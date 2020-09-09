@@ -4,7 +4,7 @@ from eor.utils.geo_utils import Coordinate
 from eor.router.base import Router
 
 
-class OSMRouter(Router):
+class BasicRouter(Router):
     """
     osm router
     """
