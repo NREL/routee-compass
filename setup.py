@@ -26,8 +26,15 @@ setup(
     packages=find_packages(),
     python_requires=">=3.6",
     install_requires=[
+        "pandas",
         "networkx",
+        "rtree",
     ],
+    extras_require={
+       "optional": [
+           "osmnx",
+       ]
+    },
     author="National Renewable Energy Laboratory",
     license="Copyright ©2020 Alliance for Sustainable Energy, LLC All Rights Reserved",
 )
