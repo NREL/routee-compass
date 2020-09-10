@@ -13,10 +13,6 @@ class OSMRoadNetwork(RoadNetwork):
     """
     osm road network
     """
-    _unit_conversion = {
-        'mph': 1,
-        'kmph': 0.6213712,
-    }
 
     def __init__(
             self,

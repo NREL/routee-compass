@@ -9,17 +9,17 @@ class TestOSMRoadNetwork(TestCase):
 
         # TODO: replace with smaller mock road network
 
-        osm_file = "../resources/chicago.xml"
+        osm_file = "../resources/denver.xml"
         network = OSMRoadNetwork(osm_file)
 
-        ohare = Coordinate(lat=41.981022, lon=-87.878541)
-        midway = Coordinate(lat=41.785619, lon=-87.741305)
+        home_plate = Coordinate(lat=39.754372, lon=-104.994300)
+        wash_park = Coordinate(lat=39.693000, lon=-104.9734343)
 
-        path = network.shortest_path(ohare, midway)
+        path = network.shortest_path(home_plate, wash_park)
         start = path[0]
         end = path[-1]
 
-        self.assertAlmostEqual(start.lat, ohare.lat, places=2)
-        self.assertAlmostEqual(start.lon, ohare.lon, places=2)
-        self.assertAlmostEqual(end.lat, midway.lat, places=2)
-        self.assertAlmostEqual(end.lon, midway.lon, places=2)
+        self.assertAlmostEqual(start.lat, home_plate.lat, places=2)
+        self.assertAlmostEqual(start.lon, home_plate.lon, places=2)
+        self.assertAlmostEqual(end.lat, wash_park.lat, places=2)
+        self.assertAlmostEqual(end.lon, wash_park.lon, places=2)
