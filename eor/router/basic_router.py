@@ -1,17 +1,21 @@
 from typing import Tuple
 
-from eor.utils.geo_utils import Coordinate
+from eor.road_network.base import RoadNetwork, PathWeight
 from eor.router.base import Router
+from eor.utils.geo_utils import Coordinate
 
 
 class BasicRouter(Router):
     """
-    osm router
+    basic router that returns lowest energy route
     """
+
+    def __init__(self, road_network: RoadNetwork):
+        self.road_network = road_network
 
     def route(self, origin: Coordinate, destination: Coordinate) -> Tuple[Coordinate, ...]:
         """
         generates a route based on an origin and destiantion coordinate
         :return: a tuple of coordinates
         """
-        pass
+        return self.road_network.shortest_path(origin, destination, weight=PathWeight.ENERGY)
