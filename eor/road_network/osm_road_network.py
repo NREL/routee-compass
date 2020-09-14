@@ -76,7 +76,7 @@ class OSMRoadNetwork(RoadNetwork):
             origin: Coordinate,
             destination: Coordinate,
             weight: PathWeight = PathWeight.DISTANCE,
-            routee_model_key: str = "Gasoline",
+            routee_key: str = "Gasoline",
     ) -> Tuple[Coordinate, ...]:
         """
         computes weighted shortest path
@@ -88,7 +88,7 @@ class OSMRoadNetwork(RoadNetwork):
         network_weight = self.network_weights[weight]
 
         if weight == PathWeight.ENERGY:
-            network_weight += f"_{routee_model_key}"
+            network_weight += f"_{routee_key}"
 
         nx_route = nx.shortest_path(
             self.G,

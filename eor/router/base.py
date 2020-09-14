@@ -10,7 +10,7 @@ class Router(ABC):
     """
 
     @abstractmethod
-    def route(self, origin: Coordinate, destination: Coordinate) -> Tuple[Coordinate, ...]:
+    def route(self, origin: Coordinate, destination: Coordinate, routee_key: str) -> Tuple[Coordinate, ...]:
         """
         generates a route based on an origin and destiantion coordinate
         :return: a tuple of coordinates

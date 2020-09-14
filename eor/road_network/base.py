@@ -25,6 +25,7 @@ class RoadNetwork(ABC):
             origin: Coordinate,
             destination: Coordinate,
             weight: PathWeight = PathWeight.ENERGY,
+            routee_key: str = "Gasoline",
     ) -> Tuple[Coordinate, ...]:
         """
         computes weighted shortest path
