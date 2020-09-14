@@ -11,12 +11,13 @@ class Nominatim(GeoEncoder):
     BASE_URL: str = "https://nominatim.openstreetmap.org/search?"
     FORMAT: str = "json"
 
-    def get_coordinates(self, location: str) -> Coordinate:
+    @classmethod
+    def get_coordinates(cls, location: str) -> Coordinate:
         """
         gets coordinates from a string
         :return: the coordinate that corresponds to the location string
         """
-        url = self.BASE_URL + f"q={location}&format={self.FORMAT}"
+        url = cls.BASE_URL + f"q={location}&format={cls.FORMAT}"
         try:
             result = requests.get(url)
         except requests.exceptions.ConnectionError as e:
