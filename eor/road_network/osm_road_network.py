@@ -1,7 +1,10 @@
 from typing import Tuple
 
 import networkx as nx
+
+# TODO: maybe we can remove pandas dependency for prototype if we precompute energy -ndr
 import pandas as pd
+
 from rtree import index
 
 from eor.road_network.base import RoadNetwork, PathWeight
