@@ -1,3 +1,4 @@
+import os
 from unittest import TestCase
 
 from eor.road_network.base import PathWeight
@@ -6,56 +7,43 @@ from eor.utils.geo_utils import Coordinate
 
 
 class TestOSMRoadNetwork(TestCase):
+    def setUp(self) -> None:
+        self.road_network_file = os.path.join("test_assets", "denver_downtown_roadnetwork.pickle")
+        self.road_network = OSMRoadNetwork(self.road_network_file)
+
+        self.home_plate = Coordinate(lat=39.754372, lon=-104.994300)
+        self.bk_lounge = Coordinate(lat=39.779098, lon=-104.951241)
+
     def test_shortest_path_distance(self):
-        # TODO: replace with smaller mock road network and share across tests -ndr
-
-        osm_file = "../resources/denver_roadnetwork.pickle"
-        network = OSMRoadNetwork(osm_file)
-
-        home_plate = Coordinate(lat=39.754372, lon=-104.994300)
-        wash_park = Coordinate(lat=39.693000, lon=-104.9734343)
-
-        path = network.shortest_path(home_plate, wash_park, weight=PathWeight.DISTANCE)
+        path = self.road_network.shortest_path(self.home_plate, self.bk_lounge, weight=PathWeight.DISTANCE)
         start = path[0]
         end = path[-1]
 
-        self.assertAlmostEqual(start.lat, home_plate.lat, places=2)
-        self.assertAlmostEqual(start.lon, home_plate.lon, places=2)
-        self.assertAlmostEqual(end.lat, wash_park.lat, places=2)
-        self.assertAlmostEqual(end.lon, wash_park.lon, places=2)
+        self.assertAlmostEqual(start.lat, self.home_plate.lat, places=2)
+        self.assertAlmostEqual(start.lon, self.home_plate.lon, places=2)
+        self.assertAlmostEqual(end.lat, self.bk_lounge.lat, places=2)
+        self.assertAlmostEqual(end.lon, self.bk_lounge.lon, places=2)
 
     def test_shortest_path_time(self):
         # TODO: how can we actually test this is the shortest time route? -ndr
 
-        osm_file = "../resources/denver_roadnetwork.pickle"
-        network = OSMRoadNetwork(osm_file)
-
-        home_plate = Coordinate(lat=39.754372, lon=-104.994300)
-        wash_park = Coordinate(lat=39.693000, lon=-104.9734343)
-
-        path = network.shortest_path(home_plate, wash_park, weight=PathWeight.TIME)
+        path = self.road_network.shortest_path(self.home_plate, self.bk_lounge, weight=PathWeight.TIME)
         start = path[0]
         end = path[-1]
 
-        self.assertAlmostEqual(start.lat, home_plate.lat, places=2)
-        self.assertAlmostEqual(start.lon, home_plate.lon, places=2)
-        self.assertAlmostEqual(end.lat, wash_park.lat, places=2)
-        self.assertAlmostEqual(end.lon, wash_park.lon, places=2)
+        self.assertAlmostEqual(start.lat, self.home_plate.lat, places=2)
+        self.assertAlmostEqual(start.lon, self.home_plate.lon, places=2)
+        self.assertAlmostEqual(end.lat, self.bk_lounge.lat, places=2)
+        self.assertAlmostEqual(end.lon, self.bk_lounge.lon, places=2)
 
     def test_shortest_path_energy(self):
         # TODO: how can we actually test this is the shortest energy route? -ndr
 
-        osm_file = "../resources/denver_roadnetwork.pickle"
-        network = OSMRoadNetwork(osm_file)
-
-        home_plate = Coordinate(lat=39.754372, lon=-104.994300)
-        wash_park = Coordinate(lat=39.693000, lon=-104.9734343)
-
-        path = network.shortest_path(home_plate, wash_park, weight=PathWeight.ENERGY)
+        path = self.road_network.shortest_path(self.home_plate, self.bk_lounge, weight=PathWeight.ENERGY)
         start = path[0]
         end = path[-1]
 
-        self.assertAlmostEqual(start.lat, home_plate.lat, places=2)
-        self.assertAlmostEqual(start.lon, home_plate.lon, places=2)
-        self.assertAlmostEqual(end.lat, wash_park.lat, places=2)
-        self.assertAlmostEqual(end.lon, wash_park.lon, places=2)
+        self.assertAlmostEqual(start.lat, self.home_plate.lat, places=2)
+        self.assertAlmostEqual(start.lon, self.home_plate.lon, places=2)
+        self.assertAlmostEqual(end.lat, self.bk_lounge.lat, places=2)
+        self.assertAlmostEqual(end.lon, self.bk_lounge.lon, places=2)

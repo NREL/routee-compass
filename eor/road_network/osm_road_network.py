@@ -29,15 +29,16 @@ class OSMRoadNetwork(RoadNetwork):
 
         self.routee_model_collection = routee_model_collection
 
-        self._compute_energy()
-
     def _compute_energy(self):
+        """
+        computes energy over the road network for all routee models in the routee model collection.
 
-        # TODO: modify this for mulitple vehicles. We should also think about the best way to update energy if
-        #  some feature changes, like weather or traffic. -ndr
+        this isn't currently called by anything since we're pre-computing energy for the prototype but
+        would presumably be called if we want to do live updates.
+        """
 
         speed = pd.DataFrame.from_dict(
-            nx.get_edge_attributes(self.G, 'gpsspeed'),
+            nx.get_edge_attributes(self.G, 'speed_mph'),
             orient="index",
             columns=['gpsspeed'],
         )
@@ -55,7 +56,7 @@ class OSMRoadNetwork(RoadNetwork):
 
         for k, model in self.routee_model_collection.routee_models.items():
             energy = model.predict(df).to_dict()
-            nx.set_edge_attributes(self.G, name=f"energy_{k}", values=energy)
+            nx.set_edge_attributes(self.G, name=f"{self.network_weights[PathWeight.ENERGY]}_{k}", values=energy)
 
     def _build_rtree(self) -> index.Index:
         tree = index.Index()
