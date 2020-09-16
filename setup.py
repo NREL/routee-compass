@@ -33,6 +33,7 @@ setup(
     extras_require={
        "optional": [
            "osmnx",
+           "geopandas",
        ]
     },
     author="National Renewable Energy Laboratory",
