@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from eor.geoencoding.nominatim import Nominatim
+from compass.geoencoding.nominatim import Nominatim
 
 
 class TestNominatim(TestCase):

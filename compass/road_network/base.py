@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Tuple
 
-from eor.utils.geo_utils import Coordinate
+from compass.utils.geo_utils import Coordinate
 
 
 class PathWeight(Enum):

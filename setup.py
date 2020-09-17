@@ -8,10 +8,10 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name="energy-optimal-routing",
+    name="routee-compass",
     version="0.0.1",
     description=
-    "eor is a package for producing energy optimal routes",
+    "routee compass is a package for producing energy optimal routes",
     long_description=long_description,
     long_description_content_type='text/markdown',
     url="https://github.nrel.gov/MBAP/energy-optimal-routing",
@@ -25,10 +25,11 @@ setup(
     ],
     packages=find_packages(),
     python_requires=">=3.6",
+    # TODO: rtree fails on pip install.. need to find workaround.
     install_requires=[
+        #"rtree",
         "pandas",
         "networkx",
-        "rtree",
     ],
     extras_require={
        "optional": [

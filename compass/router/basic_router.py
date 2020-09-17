@@ -1,8 +1,8 @@
 from typing import Tuple
 
-from eor.road_network.base import RoadNetwork, PathWeight
-from eor.router.base import Router
-from eor.utils.geo_utils import Coordinate
+from compass.road_network.base import RoadNetwork, PathWeight
+from compass.router.base import Router
+from compass.utils.geo_utils import Coordinate
 
 
 class BasicRouter(Router):
