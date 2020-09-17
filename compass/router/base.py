@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
 
-from eor.utils.geo_utils import Coordinate
+from compass.utils.geo_utils import Coordinate
 
 
 class Router(ABC):

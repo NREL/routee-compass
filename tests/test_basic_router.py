@@ -1,9 +1,9 @@
 from unittest import TestCase
 import os
 
-from eor.road_network.osm_road_network import OSMRoadNetwork
-from eor.router.basic_router import BasicRouter
-from eor.utils.geo_utils import Coordinate
+from compass.road_network.osm_road_network import OSMRoadNetwork
+from compass.router.basic_router import BasicRouter
+from compass.utils.geo_utils import Coordinate
 
 
 class TestBasicRouter(TestCase):

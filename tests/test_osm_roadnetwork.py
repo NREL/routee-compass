@@ -1,9 +1,9 @@
 import os
 from unittest import TestCase
 
-from eor.road_network.base import PathWeight
-from eor.road_network.osm_road_network import OSMRoadNetwork
-from eor.utils.geo_utils import Coordinate
+from compass.road_network.base import PathWeight
+from compass.road_network.osm_road_network import OSMRoadNetwork
+from compass.utils.geo_utils import Coordinate
 
 
 class TestOSMRoadNetwork(TestCase):

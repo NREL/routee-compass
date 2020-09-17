@@ -1,7 +1,7 @@
 import requests
 
-from eor.utils.geo_utils import Coordinate
-from eor.geoencoding.base import GeoEncoder
+from compass.utils.geo_utils import Coordinate
+from compass.geoencoding.base import GeoEncoder
 
 
 class Nominatim(GeoEncoder):

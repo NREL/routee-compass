@@ -7,9 +7,9 @@ import pandas as pd
 
 from rtree import index
 
-from eor.road_network.base import RoadNetwork, PathWeight
-from eor.utils.geo_utils import Coordinate
-from eor.utils.routee_utils import RouteeModelCollection
+from compass.road_network.base import RoadNetwork, PathWeight
+from compass.utils.geo_utils import Coordinate
+from compass.utils.routee_utils import RouteeModelCollection
 
 
 class OSMRoadNetwork(RoadNetwork):

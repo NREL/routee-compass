@@ -6,7 +6,7 @@ import networkx as nx
 import osmnx as ox
 import pandas as pd
 
-from eor.utils.routee_utils import RouteeModelCollection
+from compass.utils.routee_utils import RouteeModelCollection
 
 ox.config(log_console=True)
 log.basicConfig(level=log.INFO)

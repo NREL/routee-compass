@@ -6,8 +6,8 @@ A routing engine that considers energy weights on edges of a graph for particula
 for prototyping, this uses some local wheels that need to be installed manually:
 
 ```bash
-conda create -n eor python=3.6
-conda activate eor
+conda env create -f environment.yml
+conda activate routee-compass 
 
 pip install -e .
 

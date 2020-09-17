@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from eor.utils.geo_utils import Coordinate
+from compass.utils.geo_utils import Coordinate
 
 
 class GeoEncoder(ABC):
