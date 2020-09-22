@@ -35,6 +35,8 @@ setup(
        "optional": [
            "osmnx",
            "geopandas",
+           "sqlalchemy",
+           "psycopg2",
        ]
     },
     author="National Renewable Energy Laboratory",

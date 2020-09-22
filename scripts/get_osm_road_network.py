@@ -129,5 +129,5 @@ if __name__ == "__main__":
     G = compress(G)
 
     log.info("writing to file..")
-    path = os.path.join("..", "resources", "TEST_denver_metro_roadnetwork.pickle")
+    path = os.path.join("..", "resources", "denver_metro_osm_roadnetwork.pickle")
     nx.write_gpickle(G, path)
