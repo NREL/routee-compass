@@ -128,6 +128,11 @@ if __name__ == "__main__":
     log.info("compressing..")
     G = compress(G)
 
+    # recreating the graph as a workaround to remove a shapely dependency
+    outg = nx.MultiDiGraph()
+    outg.add_nodes_from(G.nodes(data=True))
+    outg.add_edges_from(G.edges(data=True, keys=True))
+
     log.info("writing to file..")
     path = os.path.join("..", "resources", "denver_metro_osm_roadnetwork.pickle")
-    nx.write_gpickle(G, path)
+    nx.write_gpickle(outg, path)
