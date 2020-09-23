@@ -1,6 +1,7 @@
+import argparse
+import getpass
 import logging as log
 import os
-import getpass
 
 import geopandas as gpd
 import networkx as nx
@@ -14,6 +15,16 @@ log.basicConfig(level=log.INFO)
 
 METERS_TO_MILES = 0.0006213712
 KPH_TO_MPH = 0.621371
+
+parser = argparse.ArgumentParser(description="get osm road network")
+parser.add_argument(
+    "polygon_shp_file",
+    help="path to a polygon shape file that defines road network boundaries."
+)
+parser.add_argument(
+    "outfile",
+    help="where should the network pickle file be written?"
+)
 
 
 def add_energy(G: nx.DiGraph) -> nx.DiGraph:
@@ -144,6 +155,8 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
 
 
 if __name__ == "__main__":
+    args = parser.parse_args()
+
     username = input("Please enter your Trolley username: ")
     password = getpass.getpass("Please enter your Trolley password: ")
     try:
@@ -153,8 +166,7 @@ if __name__ == "__main__":
     except OperationalError as oe:
         raise IOError("can't connect to Trolley..") from oe
 
-    shp_file = os.path.join("denver_metro", "denver_metro.shp")
-    denver_gdf = gpd.read_file(shp_file)
+    denver_gdf = gpd.read_file(args.polygon_shp_file)
     denver_polygon = denver_gdf.iloc[0].geometry
 
     log.info("pulling raw tomtom network from Trolley..")
@@ -187,6 +199,8 @@ if __name__ == "__main__":
     log.info("precomputing energy on the network..")
     G = add_energy(G)
 
+    G.graph['compass_network_type'] = 'tomtom'
+
     log.info("writing to file..")
     path = os.path.join("..", "resources", "denver_metro_tomtom_roadnetwork.pickle")
-    nx.write_gpickle(G, path)
+    nx.write_gpickle(G, args.outfile)

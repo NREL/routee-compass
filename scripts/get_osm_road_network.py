@@ -1,5 +1,5 @@
+import argparse
 import logging as log
-import os
 
 import geopandas as gpd
 import networkx as nx
@@ -17,6 +17,16 @@ _unit_conversion = {
     'kmph': 0.621371,
 }
 METERS_TO_MILES = 0.0006213712
+
+parser = argparse.ArgumentParser(description="get osm road network")
+parser.add_argument(
+    "polygon_shp_file",
+    help="path to a polygon shape file that defines road network boundaries."
+)
+parser.add_argument(
+    "outfile",
+    help="where should the network pickle file be written?"
+)
 
 
 def parse_road_network_graph(g):
@@ -106,8 +116,9 @@ def add_energy(G):
 
 
 if __name__ == "__main__":
-    shp_file = os.path.join("denver_metro", "denver_metro.shp")
-    denver_gdf = gpd.read_file(shp_file)
+    args = parser.parse_args()
+
+    denver_gdf = gpd.read_file(args.polygon_shp_file)
     denver_polygon = denver_gdf.iloc[0].geometry
 
     log.info("pulling raw osm network..")
@@ -133,6 +144,8 @@ if __name__ == "__main__":
     outg.add_nodes_from(G.nodes(data=True))
     outg.add_edges_from(G.edges(data=True, keys=True))
 
+    # tagging graph so we don't mix up networks
+    outg.graph['compass_network_type'] = 'osm'
+
     log.info("writing to file..")
-    path = os.path.join("..", "resources", "denver_metro_osm_roadnetwork.pickle")
-    nx.write_gpickle(outg, path)
+    nx.write_gpickle(outg, args.outfile)
