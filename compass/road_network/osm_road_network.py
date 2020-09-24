@@ -75,6 +75,9 @@ class OSMRoadNetwork(RoadNetwork):
 
         return node_id
 
+    def update(self):
+        self._compute_energy()
+
     def shortest_path(
             self,
             origin: Coordinate,

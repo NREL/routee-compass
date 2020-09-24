@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Tuple
 
+from networkx import MultiDiGraph
+
 from compass.utils.geo_utils import Coordinate
 
 
@@ -18,6 +20,14 @@ class RoadNetwork(ABC):
     """
     abstract base class for road network
     """
+    G: MultiDiGraph
+
+    @abstractmethod
+    def update(self):
+        """
+        update any calculated fields here
+        :return:
+        """
 
     @abstractmethod
     def shortest_path(

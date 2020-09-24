@@ -1,8 +1,9 @@
 from typing import Tuple
 
 import networkx as nx
-# TODO: maybe we can remove pandas dependency for prototype if we precompute energy -ndr
 import pandas as pd
+import logging
+
 from rtree import index
 
 from compass.road_network.base import RoadNetwork, PathWeight
@@ -12,6 +13,7 @@ from compass.utils.routee_utils import RouteeModelCollection
 METERS_TO_MILES = 0.0006213712
 KPH_TO_MPH = 0.621371
 
+log=logging.getLogger(__name__)
 
 class TomTomRoadNetwork(RoadNetwork):
     """
@@ -25,10 +27,10 @@ class TomTomRoadNetwork(RoadNetwork):
 
     def __init__(
             self,
-            osm_network_file: str,
+            network_file: str,
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
-        self.G = nx.read_gpickle(osm_network_file)
+        self.G = nx.read_gpickle(network_file)
         self.rtree = self._build_rtree()
 
         self.routee_model_collection = routee_model_collection
@@ -40,6 +42,7 @@ class TomTomRoadNetwork(RoadNetwork):
         this isn't currently called by anything since we're pre-computing energy for the prototype but
         would presumably be called if we want to do live updates.
         """
+        log.info("recomputing energy on network..")
 
         speed = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'kph'),
@@ -75,6 +78,9 @@ class TomTomRoadNetwork(RoadNetwork):
         node_id = list(self.rtree.nearest((coord.lat, coord.lon, coord.lat, coord.lon), 1))[0]
 
         return node_id
+
+    def update(self):
+        self._compute_energy()
 
     def shortest_path(
             self,

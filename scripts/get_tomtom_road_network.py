@@ -27,27 +27,27 @@ parser.add_argument(
 )
 
 
-def add_energy(G: nx.DiGraph) -> nx.DiGraph:
+def add_energy(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     precompute energy on the graph
 
-    :param G:
+    :param g:
     :return:
     """
     routee_model_collection = RouteeModelCollection()
 
     speed = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(G, 'kph'),
+        nx.get_edge_attributes(g, 'kph'),
         orient="index",
         columns=['gpsspeed'],
     ).multiply(KPH_TO_MPH)
     distance = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(G, 'meters'),
+        nx.get_edge_attributes(g, 'meters'),
         orient="index",
         columns=['miles'],
     ).multiply(METERS_TO_MILES)
     grade = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(G, 'grade'),
+        nx.get_edge_attributes(g, 'grade'),
         orient="index",
         columns=['grade'],
     )
@@ -55,9 +55,9 @@ def add_energy(G: nx.DiGraph) -> nx.DiGraph:
 
     for k, model in routee_model_collection.routee_models.items():
         energy = model.predict(df).to_dict()
-        nx.set_edge_attributes(G, name=f"energy_{k}", values=energy)
+        nx.set_edge_attributes(g, name=f"energy_{k}", values=energy)
 
-    return G
+    return g
 
 
 def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
@@ -73,56 +73,60 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
     twoway = gdf[~(gdf.oneway == 'FT') & ~(gdf.oneway == 'TF')]
 
     twoway_edges_tf = [
-        (t, f, {
+        (t, f, -k, {
             'meters': mt,
             'minutes': mn,
             'kph': kph,
             'grade': 0
-        }) for t, f, mt, mn, kph in zip(
+        }) for t, f, k, mt, mn, kph in zip(
             twoway.t_jnctid.values,
             twoway.f_jnctid.values,
+            twoway.id,
             twoway.meters.values,
             twoway.minutes.values,
             twoway.kph.values,
         )
     ]
     twoway_edges_ft = [
-        (f, t, {
+        (f, t, k, {
             'meters': mt,
             'minutes': mn,
             'kph': kph,
             'grade': 0
-        }) for t, f, mt, mn, kph in zip(
+        }) for t, f, k, mt, mn, kph in zip(
             twoway.t_jnctid.values,
             twoway.f_jnctid.values,
+            twoway.id,
             twoway.meters.values,
             twoway.minutes.values,
             twoway.kph.values,
         )
     ]
     oneway_edges_ft = [
-        (f, t, {
+        (f, t, k, {
             'meters': mt,
             'minutes': mn,
             'kph': kph,
             'grade': 0
-        }) for t, f, mt, mn, kph in zip(
+        }) for t, f, k, mt, mn, kph in zip(
             oneway_ft.t_jnctid.values,
             oneway_ft.f_jnctid.values,
+            oneway_ft.id,
             oneway_ft.meters.values,
             oneway_ft.minutes.values,
             oneway_ft.kph.values,
         )
     ]
     oneway_edges_tf = [
-        (t, f, {
+        (t, f, -k, {
             'meters': mt,
             'minutes': mn,
             'kph': kph,
             'grade': 0
-        }) for t, f, mt, mn, kph in zip(
+        }) for t, f, k, mt, mn, kph in zip(
             oneway_tf.t_jnctid.values,
             oneway_tf.f_jnctid.values,
+            oneway_tf.id,
             oneway_tf.meters.values,
             oneway_tf.minutes.values,
             oneway_tf.kph.values,
@@ -134,7 +138,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
     tlats = {nid: lat for nid, lat in zip(gdf.t_jnctid.values, gdf.t_lat)}
     tlons = {nid: lon for nid, lon in zip(gdf.t_jnctid.values, gdf.t_lon)}
 
-    G = nx.DiGraph()
+    G = nx.MultiDiGraph()
     G.add_edges_from(twoway_edges_tf)
     G.add_edges_from(twoway_edges_ft)
     G.add_edges_from(oneway_edges_ft)
@@ -147,7 +151,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
 
     log.info("extracting largest connected component..")
     n_edges_before = G.number_of_edges()
-    G = nx.DiGraph(G.subgraph(max(nx.strongly_connected_components(G), key=len)))
+    G = nx.MultiDiGraph(G.subgraph(max(nx.strongly_connected_components(G), key=len)))
     n_edges_after = G.number_of_edges()
     log.info(f"final graph has {n_edges_after} edges, lost {n_edges_before - n_edges_after}")
 
