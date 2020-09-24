@@ -1,16 +1,15 @@
 import json
 import logging
 import time
-import requests
-import geopandas as gpd
-
 from datetime import datetime, timedelta
 from typing import Optional
 
+import geopandas as gpd
+import requests
 
 from compass.datastreams.base import DataStream
 from compass.road_network.base import RoadNetwork
-from compass.utils.geo_utils import BoundingBox, GeoJsonFeatures
+from compass.utils.geo_utils import GeoJsonFeatures
 from compass.utils.units import *
 
 log = logging.getLogger(__name__)
@@ -104,7 +103,7 @@ class HistoricSpeedsTomTomStream(DataStream):
             # the current TomTom api returns a header as the first feature
             return features[1:]
 
-        timeout_steps = 50
+        timeout_steps = 25  # about 50 minutes
         t = 1
 
         get_https = self.get_https_base + f"{job_id}?key={self.api_key}"
@@ -212,6 +211,6 @@ class HistoricSpeedsTomTomStream(DataStream):
 
         road_network.update()
 
-        log.info(f"finished updating graph! took {end_time-start_time} seconds")
+        log.info(f"finished updating graph! took {end_time - start_time} seconds")
 
         return 1
