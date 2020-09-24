@@ -32,6 +32,10 @@ class TomTomRoadNetwork(RoadNetwork):
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
         self.G = nx.read_gpickle(network_file)
+
+        if not isinstance(self.G, nx.MultiDiGraph):
+            raise TypeError("graph must be a MultiDiGraph")
+
         self.bbox = bounding_box
         self.rtree = self._build_rtree()
 
