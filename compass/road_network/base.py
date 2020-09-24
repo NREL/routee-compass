@@ -4,7 +4,7 @@ from typing import Tuple
 
 from networkx import MultiDiGraph
 
-from compass.utils.geo_utils import Coordinate
+from compass.utils.geo_utils import Coordinate, BoundingBox
 
 
 class PathWeight(Enum):
@@ -21,6 +21,7 @@ class RoadNetwork(ABC):
     abstract base class for road network
     """
     G: MultiDiGraph
+    bbox: BoundingBox
 
     @abstractmethod
     def update(self):

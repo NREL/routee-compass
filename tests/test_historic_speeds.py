@@ -12,13 +12,13 @@ class TestHistoricSpeedsTomTomStream(TestCase):
     def setUp(self) -> None:
         self.road_network_file = os.path.join("test_assets", "denver_downtown_tomtom_network.pickle")
         self.bbox_file = os.path.join("test_assets", "denver_downtown_bounding_box", "denver_downtown_roadnetwork.shp")
-        self.road_network = TomTomRoadNetwork(self.road_network_file)
         self.bbox = BoundingBox.from_polygon(gpd.read_file(self.bbox_file).iloc[0].geometry)
+        self.road_network = TomTomRoadNetwork(self.road_network_file, self.bbox)
 
     # this test can take several minutes since it's interacting with the TomTom traffic stats API
     @skip
     def test_shortest_path_distance(self):
-        stream = HistoricSpeedsTomTomStream(self.bbox)
+        stream = HistoricSpeedsTomTomStream()
         result = stream.update(self.road_network)
 
         self.assertEqual(result, 1, "should have returned success code")

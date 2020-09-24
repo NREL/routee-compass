@@ -1,15 +1,18 @@
 import os
+import geopandas as gpd
 from unittest import TestCase
 
 from compass.road_network.base import PathWeight
 from compass.road_network.tomtom_road_network import TomTomRoadNetwork
-from compass.utils.geo_utils import Coordinate
+from compass.utils.geo_utils import Coordinate, BoundingBox
 
 
 class TestTomTomRoadNetwork(TestCase):
     def setUp(self) -> None:
         self.road_network_file = os.path.join("test_assets", "denver_downtown_tomtom_network.pickle")
-        self.road_network = TomTomRoadNetwork(self.road_network_file)
+        self.bbox_file = os.path.join("test_assets", "denver_downtown_bounding_box", "denver_downtown_roadnetwork.shp")
+        self.bbox = BoundingBox.from_polygon(gpd.read_file(self.bbox_file).iloc[0].geometry)
+        self.road_network = TomTomRoadNetwork(self.road_network_file, bounding_box=self.bbox)
 
         self.home_plate = Coordinate(lat=39.754372, lon=-104.994300)
         self.bk_lounge = Coordinate(lat=39.779098, lon=-104.951241)

@@ -8,7 +8,7 @@ import pandas as pd
 from rtree import index
 
 from compass.road_network.base import RoadNetwork, PathWeight
-from compass.utils.geo_utils import Coordinate
+from compass.utils.geo_utils import Coordinate, BoundingBox
 from compass.utils.routee_utils import RouteeModelCollection
 
 
@@ -25,9 +25,11 @@ class OSMRoadNetwork(RoadNetwork):
     def __init__(
             self,
             osm_network_file: str,
+            bounding_box: BoundingBox,
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
         self.G = nx.read_gpickle(osm_network_file)
+        self.bbox = bounding_box
         self.rtree = self._build_rtree()
 
         self.routee_model_collection = routee_model_collection

@@ -40,20 +40,21 @@ class HistoricSpeedsTomTomStream(DataStream):
      }
     """
 
-    def __init__(self, bounding_box: BoundingBox, timezone_str: str = "US/Mountain"):
-        self.bounding_box = bounding_box
-
+    def __init__(self, timezone_str: str = "US/Mountain"):
         json_body = json.loads(self.json_skeleton)
+
+        # TODO: get this from the road network -ndr
         json_body["network"]["timeZoneId"] = timezone_str
-        json_body["network"]["name"] = bounding_box.bbox_id
-        json_body["network"]["boundingBox"] = bounding_box.as_tomtom_json()
 
         self.json_body = json_body
 
-    def _post_query(self) -> requests.Response:
+    def _post_query(self, road_network: RoadNetwork) -> requests.Response:
         last_week = datetime.now() - timedelta(days=7)
 
         json_body = self.json_body
+
+        json_body["network"]["name"] = road_network.bbox.bbox_id
+        json_body["network"]["boundingBox"] = road_network.bbox.as_tomtom_json()
 
         json_body["jobName"] = last_week.strftime("%Y-%m-%d-%H-%M")
         json_body["dateRange"] = {
@@ -161,7 +162,7 @@ class HistoricSpeedsTomTomStream(DataStream):
             log.warning("attempting to update speeds on a road network without a type, could result in failure")
 
         log.info("posting query..")
-        post_response = self._post_query()
+        post_response = self._post_query(road_network)
         if post_response.status_code != 200:
             log.error(f"error code {post_response.status_code} with tomtom api query, json: {post_response.json()} ")
             return 0
