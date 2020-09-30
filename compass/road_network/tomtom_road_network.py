@@ -1,4 +1,5 @@
 from typing import Tuple
+from pathlib import Path
 
 import networkx as nx
 # TODO: maybe we can remove pandas dependency for prototype if we precompute energy -ndr
@@ -25,7 +26,7 @@ class TomTomRoadNetwork(RoadNetwork):
 
     def __init__(
             self,
-            osm_network_file: str,
+            osm_network_file: Path,
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
         self.G = nx.read_gpickle(osm_network_file)
