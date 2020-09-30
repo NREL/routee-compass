@@ -33,12 +33,11 @@ class TomTomRoadNetwork(RoadNetwork):
 
         self.routee_model_collection = routee_model_collection
 
+        self._compute_energy()
+
     def _compute_energy(self):
         """
         computes energy over the road network for all routee models in the routee model collection.
-
-        this isn't currently called by anything since we're pre-computing energy for the prototype but
-        would presumably be called if we want to do live updates.
         """
 
         speed = pd.DataFrame.from_dict(
