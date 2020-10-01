@@ -1,14 +1,15 @@
 from unittest import TestCase
-import os
 
 from compass.road_network.tomtom_road_network import TomTomRoadNetwork
 from compass.router.basic_router import BasicRouter
 from compass.utils.geo_utils import Coordinate
 
+from tests import test_dir
+
 
 class TestBasicRouter(TestCase):
     def setUp(self) -> None:
-        self.road_network_file = os.path.join("test_assets", "denver_downtown_tomtom_network.pickle")
+        self.road_network_file = test_dir() / "test_assets" / "denver_downtown_tomtom_network.pickle"
         self.road_network = TomTomRoadNetwork(self.road_network_file)
 
         self.home_plate = Coordinate(lat=39.754372, lon=-104.994300)

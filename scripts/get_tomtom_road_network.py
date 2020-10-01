@@ -27,7 +27,7 @@ parser.add_argument(
 )
 
 
-def add_energy(G: nx.DiGraph) -> nx.DiGraph:
+def add_energy(G: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     precompute energy on the graph
 
@@ -60,7 +60,7 @@ def add_energy(G: nx.DiGraph) -> nx.DiGraph:
     return G
 
 
-def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
+def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
     gdf['id'] = gdf.id.astype(int)
     gdf['f_jnctid'] = gdf.f_jnctid.astype(int)
     gdf['t_jnctid'] = gdf.t_jnctid.astype(int)
@@ -77,7 +77,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
             'meters': mt,
             'minutes': mn,
             'kph': kph,
-            'grade': g,
+            'grade': -g,
         }) for t, f, k, mt, mn, kph, g in zip(
             twoway.t_jnctid.values,
             twoway.f_jnctid.values,
@@ -125,7 +125,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
             'meters': mt,
             'minutes': mn,
             'kph': kph,
-            'grade': g
+            'grade': -g
         }) for t, f, k, mt, mn, kph, g in zip(
             oneway_tf.t_jnctid.values,
             oneway_tf.f_jnctid.values,
@@ -142,7 +142,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
     tlats = {nid: lat for nid, lat in zip(gdf.t_jnctid.values, gdf.t_lat)}
     tlons = {nid: lon for nid, lon in zip(gdf.t_jnctid.values, gdf.t_lon)}
 
-    G = nx.DiGraph()
+    G = nx.MultiDiGraph()
     G.add_edges_from(twoway_edges_tf)
     G.add_edges_from(twoway_edges_ft)
     G.add_edges_from(oneway_edges_ft)
@@ -155,7 +155,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
 
     log.info("extracting largest connected component..")
     n_edges_before = G.number_of_edges()
-    G = nx.DiGraph(G.subgraph(max(nx.strongly_connected_components(G), key=len)))
+    G = nx.MultiDiGraph(G.subgraph(max(nx.strongly_connected_components(G), key=len)))
     n_edges_after = G.number_of_edges()
     log.info(f"final graph has {n_edges_after} edges, lost {n_edges_before - n_edges_after}")
 

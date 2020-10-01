@@ -5,10 +5,12 @@ from compass.road_network.base import PathWeight
 from compass.road_network.tomtom_road_network import TomTomRoadNetwork
 from compass.utils.geo_utils import Coordinate
 
+from tests import test_dir
+
 
 class TestTomTomRoadNetwork(TestCase):
     def setUp(self) -> None:
-        self.road_network_file = os.path.join("test_assets", "denver_downtown_tomtom_network.pickle")
+        self.road_network_file = test_dir() / "test_assets" / "denver_downtown_tomtom_network.pickle"
         self.road_network = TomTomRoadNetwork(self.road_network_file)
 
         self.home_plate = Coordinate(lat=39.754372, lon=-104.994300)
