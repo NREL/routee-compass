@@ -1,14 +1,14 @@
-import os
 from unittest import TestCase
 
 from compass.road_network.base import PathWeight
 from compass.road_network.osm_road_network import OSMRoadNetwork
 from compass.utils.geo_utils import Coordinate
+from tests import test_dir
 
 
 class TestOSMRoadNetwork(TestCase):
     def setUp(self) -> None:
-        self.road_network_file = os.path.join("test_assets", "denver_downtown_osm_network.pickle")
+        self.road_network_file = test_dir() / "test_assets" / "denver_downtown_osm_network.pickle"
         self.road_network = OSMRoadNetwork(self.road_network_file)
 
         self.home_plate = Coordinate(lat=39.754372, lon=-104.994300)
