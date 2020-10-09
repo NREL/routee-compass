@@ -1,5 +1,6 @@
 import logging
 from typing import Tuple
+from pathlib import Path
 
 import networkx as nx
 import pandas as pd
@@ -32,7 +33,7 @@ class TomTomNetworkX(RoadNetwork):
 
     def __init__(
             self,
-            network_file: str,
+            network_file: Path,
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
         self.G = nx.read_gpickle(network_file)
@@ -51,9 +52,6 @@ class TomTomNetworkX(RoadNetwork):
     def _compute_energy(self):
         """
         computes energy over the road network for all routee models in the routee model collection.
-
-        this isn't currently called by anything since we're pre-computing energy for the prototype but
-        would presumably be called if we want to do live updates.
         """
         log.info("recomputing energy on network..")
 

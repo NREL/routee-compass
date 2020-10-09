@@ -27,7 +27,7 @@ parser.add_argument(
 )
 
 
-def add_energy(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
+def add_energy(G: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     precompute energy on the graph
 
@@ -60,7 +60,7 @@ def add_energy(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
     return g
 
 
-def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
+def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
     gdf['id'] = gdf.id.astype(int)
     gdf['f_jnctid'] = gdf.f_jnctid.astype(int)
     gdf['t_jnctid'] = gdf.t_jnctid.astype(int)
@@ -77,14 +77,15 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
             'meters': mt,
             'minutes': mn,
             'kph': kph,
-            'grade': 0
-        }) for t, f, k, mt, mn, kph in zip(
+            'grade': -g,
+        }) for t, f, k, mt, mn, kph, g in zip(
             twoway.t_jnctid.values,
             twoway.f_jnctid.values,
             twoway.id,
             twoway.meters.values,
             twoway.minutes.values,
             twoway.kph.values,
+            twoway.mean_grad.values,
         )
     ]
     twoway_edges_ft = [
@@ -92,14 +93,15 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
             'meters': mt,
             'minutes': mn,
             'kph': kph,
-            'grade': 0
-        }) for t, f, k, mt, mn, kph in zip(
+            'grade': g,
+        }) for t, f, k, mt, mn, kph, g in zip(
             twoway.t_jnctid.values,
             twoway.f_jnctid.values,
             twoway.id,
             twoway.meters.values,
             twoway.minutes.values,
             twoway.kph.values,
+            twoway.mean_grad.values,
         )
     ]
     oneway_edges_ft = [
@@ -107,14 +109,15 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
             'meters': mt,
             'minutes': mn,
             'kph': kph,
-            'grade': 0
-        }) for t, f, k, mt, mn, kph in zip(
+            'grade': g,
+        }) for t, f, k, mt, mn, kph, g in zip(
             oneway_ft.t_jnctid.values,
             oneway_ft.f_jnctid.values,
             oneway_ft.id,
             oneway_ft.meters.values,
             oneway_ft.minutes.values,
             oneway_ft.kph.values,
+            oneway_ft.mean_grad.values,
         )
     ]
     oneway_edges_tf = [
@@ -122,14 +125,15 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.DiGraph:
             'meters': mt,
             'minutes': mn,
             'kph': kph,
-            'grade': 0
-        }) for t, f, k, mt, mn, kph in zip(
+            'grade': -g
+        }) for t, f, k, mt, mn, kph, g in zip(
             oneway_tf.t_jnctid.values,
             oneway_tf.f_jnctid.values,
             oneway_tf.id,
             oneway_tf.meters.values,
             oneway_tf.minutes.values,
             oneway_tf.kph.values,
+            oneway_tf.mean_grad.values,
         )
     ]
 
@@ -175,8 +179,16 @@ if __name__ == "__main__":
 
     log.info("pulling raw tomtom network from Trolley..")
     q = f"""
-    select id, f_jnctid, t_jnctid, frc, backrd, rdcond, privaterd, roughrd, meters, minutes, kph, oneway, wkb_geometry 
+    select mn.id, f_jnctid, t_jnctid, frc, backrd, rdcond, privaterd, roughrd, 
+    meters, minutes, kph, oneway, gd.mean_grad, wkb_geometry 
     from tomtom_multinet_2017.multinet_2017 as mn
+    left join 
+    (
+        select id, avg(grad) as mean_grad from tomtom_ada_2017.gradient
+        where gradsrc > 0 
+        group by id
+    ) as gd
+    on mn.id = gd.id
     where ST_Contains(ST_GeomFromEWKT('SRID={denver_gdf.crs.to_epsg()};{denver_polygon.wkt}'), 
     ST_GeomFromEWKB(mn.wkb_geometry))
     """
@@ -186,15 +198,19 @@ if __name__ == "__main__":
         geom_col="wkb_geometry",
     )
     log.info(f"pulled {raw_gdf.shape[0]} links")
+    log.info("cleaning raw data..")
 
-    log.info("filtering out bad links..")
+    raw_gdf['mean_grad'] = raw_gdf.mean_grad.apply(lambda g: 50 if g > 50 else g)
+    raw_gdf['mean_grad'] = raw_gdf.mean_grad.apply(lambda g: -50 if g < -50 else g)
+
     raw_gdf = raw_gdf[
         (raw_gdf.rdcond == 1) &
         (raw_gdf.frc < 7) &
         (raw_gdf.backrd == 0) &
         (raw_gdf.privaterd == 0) &
         (raw_gdf.roughrd == 0)
-        ]
+        ].fillna(0)
+
     log.info(f"{raw_gdf.shape[0]} links remain after filtering")
 
     log.info("building graph from raw network..")
