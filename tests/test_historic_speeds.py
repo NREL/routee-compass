@@ -5,6 +5,7 @@ import geopandas as gpd
 
 from compass.datastreams.historic_speeds_tomtom import HistoricSpeedsTomTomStream
 from compass.road_network.tomtom_networkx import TomTomNetworkX
+from compass.road_network.constructs.link import Link
 from compass.utils.geo_utils import BoundingBox
 
 
@@ -21,7 +22,15 @@ class TestHistoricSpeedsTomTomStream(TestCase):
         stream = HistoricSpeedsTomTomStream(timezone_str="US/Mountain", bounding_box=self.bbox)
         self.road_network.add_data_stream(stream)
 
+        # setting a link with negative speeds to make sure it gets updated by the data stream
+        bad_speed_link = Link(link_id=88400000018763, attributes={'kph': -100, 'minutes': -100})
+        self.road_network.update_links((bad_speed_link,))
+
         result = stream.collect()
         self.assertEqual(result, 1, "should have returned success code")
 
-        self.assertGreater(len(stream.updated_links()), 0, "should have collected links")
+        link_attributes = list(
+            filter(lambda t: t[2] == bad_speed_link.link_id, self.road_network.G.edges(data=True, keys=True))
+        )[0][3]
+
+        self.assertGreaterEqual(link_attributes['kph'], 0, "should have updated link to be non-negative")

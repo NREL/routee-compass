@@ -197,7 +197,7 @@ class HistoricSpeedsTomTomStream(DataStream):
 
             attributes = {
                 'kph': new_speed_kph,
-                'mintues': new_time_hr * HOURS_TO_MINUTES,
+                'minutes': new_time_hr * HOURS_TO_MINUTES,
             }
 
             self.links.append(Link(

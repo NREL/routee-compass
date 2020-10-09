@@ -64,10 +64,13 @@ class TestTomTomRoadNetwork(TestCase):
 
         self.road_network.update_links((updated_link, another_updated_link))
 
-        link_1 = list(filter(lambda t: t[2] == updated_link.link_id, self.road_network.G.edges(data=True, keys=True)))[
-            0]
-        link_2 = \
-        list(filter(lambda t: t[2] == another_updated_link.link_id, self.road_network.G.edges(data=True, keys=True)))[0]
+        link_1 = list(
+            filter(lambda t: t[2] == updated_link.link_id, self.road_network.G.edges(data=True, keys=True))
+        )[0]
+
+        link_2 = list(
+            filter(lambda t: t[2] == another_updated_link.link_id, self.road_network.G.edges(data=True, keys=True))
+        )[0]
 
         self.assertEqual(updated_link.attributes['kph'], link_1[3]['kph'])
         self.assertEqual(another_updated_link.attributes['minutes'], link_2[3]['minutes'])
