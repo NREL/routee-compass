@@ -2,14 +2,14 @@ import json
 import logging
 import time
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Callable
 
 import geopandas as gpd
 import requests
 
 from compass.datastreams.base import DataStream
-from compass.road_network.base import RoadNetwork
-from compass.utils.geo_utils import GeoJsonFeatures
+from compass.road_network.constructs.link import Link
+from compass.utils.geo_utils import GeoJsonFeatures, BoundingBox
 from compass.utils.units import *
 
 log = logging.getLogger(__name__)
@@ -19,6 +19,7 @@ class HistoricSpeedsTomTomStream(DataStream):
     """
     pings the TomTom traffic stats api and updates the road network with new speeds every hour.
     """
+    _observers = []
 
     api_key = "j8DuYC17MaGl0UcKLcI9gGSd1e3rpvaJ"
     post_https_base = "https://api.tomtom.com/traffic/trafficstats/caa/1"
@@ -39,21 +40,30 @@ class HistoricSpeedsTomTomStream(DataStream):
      }
     """
 
-    def __init__(self, timezone_str: str = "US/Mountain"):
+    def __init__(self, timezone_str: str, bounding_box: BoundingBox):
         json_body = json.loads(self.json_skeleton)
 
-        # TODO: get this from the road network -ndr
         json_body["network"]["timeZoneId"] = timezone_str
+        json_body["network"]["boundingBox"] = bounding_box.as_tomtom_json()
+        json_body["network"]["name"] = bounding_box.bbox_id
 
         self.json_body = json_body
 
-    def _post_query(self, road_network: RoadNetwork) -> requests.Response:
+        self.bounding_box = bounding_box
+
+        self.links = []
+
+    def bind_to(self, callback: Callable):
+        self._observers.append(callback)
+
+    def _notify_observers(self):
+        for callback in self._observers:
+            callback(tuple(self.links))
+
+    def _post_query(self) -> requests.Response:
         last_week = datetime.now() - timedelta(days=7)
 
         json_body = self.json_body
-
-        json_body["network"]["name"] = road_network.bbox.bbox_id
-        json_body["network"]["boundingBox"] = road_network.bbox.as_tomtom_json()
 
         json_body["jobName"] = last_week.strftime("%Y-%m-%d-%H-%M")
         json_body["dateRange"] = {
@@ -140,28 +150,21 @@ class HistoricSpeedsTomTomStream(DataStream):
                 time.sleep(sleep_time)
                 t += 1
 
-    def update(self, road_network: RoadNetwork) -> int:
+    def collect(self) -> int:
         """
         this function pulls speeds from 1 week ago and updates the speeds across the road network.
 
         #TODO: this is a very costly io operation so we should make this async eventually
 
-        :param road_network:
         :return:
         """
         start_time = time.time()
-        try:
-            network_type = road_network.G.graph["compass_network_type"]
 
-            # TODO: make this an enum for network types rather than a string. -ndr
-            if network_type != "tomtom":
-                raise IOError("can only update tomtom road networks")
-
-        except KeyError:
-            log.warning("attempting to update speeds on a road network without a type, could result in failure")
+        # reset links data store
+        self.links = []
 
         log.info("posting query..")
-        post_response = self._post_query(road_network)
+        post_response = self._post_query()
         if post_response.status_code != 200:
             log.error(f"error code {post_response.status_code} with tomtom api query, json: {post_response.json()} ")
             return 0
@@ -179,38 +182,33 @@ class HistoricSpeedsTomTomStream(DataStream):
 
         gdf = gpd.GeoDataFrame.from_features(geojson_features)
 
-        log.info("updating graph edge speeds..")
-        for _, _, k, d in road_network.G.edges(data=True, keys=True):
-            segment = gdf[gdf["segmentId"] == k]
-            if len(segment) < 1:
-                log.debug(f"skipping segemnt {k}, couldn't find in speed data")
-                continue
-            elif len(segment) > 1:
-                log.warning(f"found multiple instances of segment {k} in speed data, skipping")
-                continue
+        for t in gdf.itertuples():
+            link_id = t.segmentId
 
-            new_speed_kph = segment["segmentTimeResults"].values[0][0]["harmonicAverageSpeed"]
-            speed_limit_kph = segment["speedLimit"].values[0]
+            new_speed_kph = t.segmentTimeResults[0]["harmonicAverageSpeed"]
+            speed_limit_kph = t.speedLimit
 
             # default to speed limit
             if new_speed_kph < 1 or new_speed_kph > speed_limit_kph:
                 new_speed_kph = speed_limit_kph
 
-            meters = d["meters"]
-            if meters == 0:
-                log.warning(f"found segment {k} with zero distance, skipping")
-                continue
-
+            meters = t.distance
             new_time_hr = (meters * METERS_TO_KILOMETERS) / new_speed_kph
 
-            # TODO: 🚨side effect alert🚨 not sure if we should do this another way? -ndr
-            d["kph"] = new_speed_kph
-            d["minutes"] = new_time_hr * HOURS_TO_MINUTES
+            attributes = {
+                'kph': new_speed_kph,
+                'mintues': new_time_hr * HOURS_TO_MINUTES,
+            }
+
+            self.links.append(Link(
+                link_id=link_id,
+                attributes=attributes,
+            ))
 
         end_time = time.time()
 
-        road_network.update()
+        log.info(f"finished collecting updated links! took {end_time - start_time} seconds")
 
-        log.info(f"finished updating graph! took {end_time - start_time} seconds")
+        self._notify_observers()
 
         return 1

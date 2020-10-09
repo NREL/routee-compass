@@ -1,38 +1,52 @@
+import logging
 from typing import Tuple
 
 import networkx as nx
-
-# TODO: maybe we can remove pandas dependency for prototype if we precompute energy -ndr
 import pandas as pd
-
 from rtree import index
 
+from compass.datastreams.base import DataStream
 from compass.road_network.base import RoadNetwork, PathWeight
-from compass.utils.geo_utils import Coordinate, BoundingBox
+from compass.road_network.constructs.link import Link
+from compass.utils.geo_utils import Coordinate
 from compass.utils.routee_utils import RouteeModelCollection
 
+METERS_TO_MILES = 0.0006213712
+KPH_TO_MPH = 0.621371
 
-class OSMRoadNetwork(RoadNetwork):
+log = logging.getLogger(__name__)
+
+
+class TomTomNetworkX(RoadNetwork):
     """
-    osm road network
+    tom tom road network database that uses networkx
+
     """
+    data_streams = []
+
     network_weights = {
-        PathWeight.DISTANCE: "miles",
-        PathWeight.TIME: "travel_time",
+        PathWeight.DISTANCE: "meters",
+        PathWeight.TIME: "minutes",
         PathWeight.ENERGY: "energy"
     }
 
     def __init__(
             self,
-            osm_network_file: str,
-            bounding_box: BoundingBox,
+            network_file: str,
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
-        self.G = nx.read_gpickle(osm_network_file)
-        self.bbox = bounding_box
+        self.G = nx.read_gpickle(network_file)
+
+        if not isinstance(self.G, nx.MultiDiGraph):
+            raise TypeError("graph must be a MultiDiGraph")
+
         self.rtree = self._build_rtree()
 
         self.routee_model_collection = routee_model_collection
+
+    def add_data_stream(self, data_stream: DataStream):
+        data_stream.bind_to(self.update_links)
+        self.data_streams.append(data_stream)
 
     def _compute_energy(self):
         """
@@ -41,17 +55,18 @@ class OSMRoadNetwork(RoadNetwork):
         this isn't currently called by anything since we're pre-computing energy for the prototype but
         would presumably be called if we want to do live updates.
         """
+        log.info("recomputing energy on network..")
 
         speed = pd.DataFrame.from_dict(
-            nx.get_edge_attributes(self.G, 'speed_mph'),
+            nx.get_edge_attributes(self.G, 'kph'),
             orient="index",
             columns=['gpsspeed'],
-        )
+        ).multiply(KPH_TO_MPH)
         distance = pd.DataFrame.from_dict(
-            nx.get_edge_attributes(self.G, 'miles'),
+            nx.get_edge_attributes(self.G, 'meters'),
             orient="index",
             columns=['miles'],
-        )
+        ).multiply(METERS_TO_MILES)
         grade = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'grade'),
             orient="index",
@@ -66,8 +81,8 @@ class OSMRoadNetwork(RoadNetwork):
     def _build_rtree(self) -> index.Index:
         tree = index.Index()
         for nid in self.G.nodes():
-            lat = self.G.nodes[nid]['y']
-            lon = self.G.nodes[nid]['x']
+            lat = self.G.nodes[nid]['lat']
+            lon = self.G.nodes[nid]['lon']
             tree.insert(nid, (lat, lon, lat, lon))
 
         return tree
@@ -77,7 +92,21 @@ class OSMRoadNetwork(RoadNetwork):
 
         return node_id
 
-    def update(self):
+    def update_links(self, links: Tuple[Link, ...]):
+        link_df = pd.DataFrame({"segment_id": l.link_id, **l.attributes} for l in links)
+        for _, _, k, d in self.G.edges(data=True, keys=True):
+            segment = link_df[link_df.segment_id == k]
+            if len(segment) < 1:
+                log.debug(f"skipping segemnt {k}, couldn't find in speed data")
+                continue
+            elif len(segment) > 1:
+                log.warning(f"found multiple instances of segment {k} in data stream, skipping")
+                continue
+
+            # TODO: 🚨side effect alert🚨 not sure if we should do this another way? -ndr
+            d["kph"] = segment["kph"].values[0]
+            d["minutes"] = segment["minutes"].values[0]
+
         self._compute_energy()
 
     def shortest_path(
@@ -106,6 +135,6 @@ class OSMRoadNetwork(RoadNetwork):
             weight=self.network_weights[weight],
         )
 
-        route = tuple(Coordinate(lat=self.G.nodes[n]['y'], lon=self.G.nodes[n]['x']) for n in nx_route)
+        route = tuple(Coordinate(lat=self.G.nodes[n]['lat'], lon=self.G.nodes[n]['lon']) for n in nx_route)
 
         return route

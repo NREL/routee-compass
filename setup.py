@@ -29,6 +29,7 @@ setup(
     install_requires=[
         #"rtree",
         "pandas",
+        "numpy",
         "networkx",
     ],
     extras_require={
@@ -37,6 +38,7 @@ setup(
            "geopandas",
            "sqlalchemy",
            "psycopg2",
+           "requests",
        ]
     },
     author="National Renewable Energy Laboratory",

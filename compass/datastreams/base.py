@@ -1,9 +1,10 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
+from typing import Tuple, List, Callable
 
-from compass.road_network.base import RoadNetwork
+from compass.road_network.constructs.link import Link
 
 
-class DataStream(ABC):
+class DataStream(metaclass=ABCMeta):
     """
     abstract base class for a data stream object.
 
@@ -12,12 +13,25 @@ class DataStream(ABC):
     #TODO: set this up to run asynchronously.
     """
 
+    @property
     @abstractmethod
-    def update(self, road_network: RoadNetwork) -> RoadNetwork:
+    def _observers(self) -> List[Callable[[Tuple[Link, ...]], None]]:
         """
-        takes a road network and returns an updated version.
-        #TODO: eventually this should run over road network partitions
-        :param road_network:
+        list of observers of this data stream
         :return:
         """
-        pass
+
+    @abstractmethod
+    def collect(self) -> int:
+        """
+        gathers data
+        :return: 1 for success 0 for failure
+        """
+
+    @abstractmethod
+    def bind_to(self, callback: Callable):
+        """
+        allows road network update methods to receive updates
+        :param callback:
+        :return:
+        """

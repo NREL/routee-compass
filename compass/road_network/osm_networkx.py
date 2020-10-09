@@ -1,4 +1,3 @@
-import logging
 from typing import Tuple
 
 import networkx as nx
@@ -6,40 +5,41 @@ import pandas as pd
 from rtree import index
 
 from compass.road_network.base import RoadNetwork, PathWeight
-from compass.utils.geo_utils import Coordinate, BoundingBox
+from compass.road_network.constructs.link import Link
+from compass.datastreams.base import DataStream
+from compass.utils.geo_utils import Coordinate
 from compass.utils.routee_utils import RouteeModelCollection
 
-METERS_TO_MILES = 0.0006213712
-KPH_TO_MPH = 0.621371
 
-log = logging.getLogger(__name__)
-
-
-class TomTomRoadNetwork(RoadNetwork):
+class OSMNetworkX(RoadNetwork):
     """
-    osm road network
+    osm road network database using networkx
     """
+    data_streams = []
+
     network_weights = {
-        PathWeight.DISTANCE: "meters",
-        PathWeight.TIME: "minutes",
+        PathWeight.DISTANCE: "miles",
+        PathWeight.TIME: "travel_time",
         PathWeight.ENERGY: "energy"
     }
 
     def __init__(
             self,
-            network_file: str,
-            bounding_box: BoundingBox,
+            osm_network_file: str,
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
-        self.G = nx.read_gpickle(network_file)
-
-        if not isinstance(self.G, nx.MultiDiGraph):
-            raise TypeError("graph must be a MultiDiGraph")
-
-        self.bbox = bounding_box
+        self.G = nx.read_gpickle(osm_network_file)
         self.rtree = self._build_rtree()
 
         self.routee_model_collection = routee_model_collection
+
+        self._compute_energy()
+
+    def add_data_stream(self, data_stream: DataStream):
+        raise NotImplemented("osm networks don't currently support data streams")
+
+    def update_links(self, links: Tuple[Link, ...]):
+        raise NotImplemented("osm networks don't currently support updated links")
 
     def _compute_energy(self):
         """
@@ -48,18 +48,17 @@ class TomTomRoadNetwork(RoadNetwork):
         this isn't currently called by anything since we're pre-computing energy for the prototype but
         would presumably be called if we want to do live updates.
         """
-        log.info("recomputing energy on network..")
 
         speed = pd.DataFrame.from_dict(
-            nx.get_edge_attributes(self.G, 'kph'),
+            nx.get_edge_attributes(self.G, 'speed_mph'),
             orient="index",
             columns=['gpsspeed'],
-        ).multiply(KPH_TO_MPH)
+        )
         distance = pd.DataFrame.from_dict(
-            nx.get_edge_attributes(self.G, 'meters'),
+            nx.get_edge_attributes(self.G, 'miles'),
             orient="index",
             columns=['miles'],
-        ).multiply(METERS_TO_MILES)
+        )
         grade = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'grade'),
             orient="index",
@@ -74,8 +73,8 @@ class TomTomRoadNetwork(RoadNetwork):
     def _build_rtree(self) -> index.Index:
         tree = index.Index()
         for nid in self.G.nodes():
-            lat = self.G.nodes[nid]['lat']
-            lon = self.G.nodes[nid]['lon']
+            lat = self.G.nodes[nid]['y']
+            lon = self.G.nodes[nid]['x']
             tree.insert(nid, (lat, lon, lat, lon))
 
         return tree
@@ -84,9 +83,6 @@ class TomTomRoadNetwork(RoadNetwork):
         node_id = list(self.rtree.nearest((coord.lat, coord.lon, coord.lat, coord.lon), 1))[0]
 
         return node_id
-
-    def update(self):
-        self._compute_energy()
 
     def shortest_path(
             self,
@@ -114,6 +110,6 @@ class TomTomRoadNetwork(RoadNetwork):
             weight=self.network_weights[weight],
         )
 
-        route = tuple(Coordinate(lat=self.G.nodes[n]['lat'], lon=self.G.nodes[n]['lon']) for n in nx_route)
+        route = tuple(Coordinate(lat=self.G.nodes[n]['y'], lon=self.G.nodes[n]['x']) for n in nx_route)
 
         return route

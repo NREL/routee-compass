@@ -3,7 +3,7 @@ import geopandas as gpd
 from unittest import TestCase
 
 from compass.road_network.base import PathWeight
-from compass.road_network.osm_road_network import OSMRoadNetwork
+from compass.road_network.osm_networkx import OSMNetworkX
 from compass.utils.geo_utils import Coordinate, BoundingBox
 
 
@@ -12,7 +12,7 @@ class TestOSMRoadNetwork(TestCase):
         self.road_network_file = os.path.join("test_assets", "denver_downtown_osm_network.pickle")
         self.bbox_file = os.path.join("test_assets", "denver_downtown_bounding_box", "denver_downtown_roadnetwork.shp")
         self.bbox = BoundingBox.from_polygon(gpd.read_file(self.bbox_file).iloc[0].geometry)
-        self.road_network = OSMRoadNetwork(self.road_network_file, self.bbox)
+        self.road_network = OSMNetworkX(self.road_network_file)
 
         self.home_plate = Coordinate(lat=39.754372, lon=-104.994300)
         self.bk_lounge = Coordinate(lat=39.779098, lon=-104.951241)
