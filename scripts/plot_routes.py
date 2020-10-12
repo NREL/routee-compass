@@ -3,7 +3,7 @@ import webbrowser
 import folium
 
 from compass.road_network.base import PathWeight
-from compass.road_network.tomtom_road_network import TomTomRoadNetwork
+from compass.road_network.tomtom_networkx import TomTomNetworkX
 from compass.utils.fs import root_dir
 from compass.utils.geo_utils import Coordinate
 
@@ -11,7 +11,7 @@ ROAD_NETWORK_FILE = root_dir() / "tests" / "test_assets" / "denver_downtown_tomt
 OUTFILE = root_dir() / "scripts" / "denver_downtown_routes.html"
 
 if __name__ == "__main__":
-    network = TomTomRoadNetwork(ROAD_NETWORK_FILE)
+    network = TomTomNetworkX(ROAD_NETWORK_FILE)
 
     home_plate = Coordinate(lat=39.754372, lon=-104.994300)
     bk_lounge = Coordinate(lat=39.779098, lon=-104.951241)

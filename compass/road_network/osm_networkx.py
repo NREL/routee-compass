@@ -3,7 +3,8 @@ from pathlib import Path
 
 import networkx as nx
 import pandas as pd
-from rtree import index
+import numpy as np
+from scipy.spatial import cKDTree
 
 from compass.road_network.base import RoadNetwork, PathWeight
 from compass.road_network.constructs.link import Link
@@ -30,7 +31,8 @@ class OSMNetworkX(RoadNetwork):
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
         self.G = nx.read_gpickle(osm_network_file)
-        self.rtree = self._build_rtree()
+        self._nodes = [nid for nid in self.G.nodes()]
+        self.kdtree = self._build_kdtree()
 
         self.routee_model_collection = routee_model_collection
 
@@ -68,19 +70,15 @@ class OSMNetworkX(RoadNetwork):
             energy = model.predict(df).to_dict()
             nx.set_edge_attributes(self.G, name=f"{self.network_weights[PathWeight.ENERGY]}_{k}", values=energy)
 
-    def _build_rtree(self) -> index.Index:
-        tree = index.Index()
-        for nid in self.G.nodes():
-            lat = self.G.nodes[nid]['y']
-            lon = self.G.nodes[nid]['x']
-            tree.insert(nid, (lat, lon, lat, lon))
+    def _build_kdtree(self) -> cKDTree:
+        points = [(self.G.nodes[nid]['y'], self.G.nodes[nid]['x']) for nid in self._nodes]
+        tree = cKDTree(np.array(points))
 
         return tree
 
     def _get_nearest_node(self, coord: Coordinate) -> str:
-        node_id = list(self.rtree.nearest((coord.lat, coord.lon, coord.lat, coord.lon), 1))[0]
-
-        return node_id
+        _, i = self.kdtree.query([coord.lat, coord.lon])
+        return self._nodes[i]
 
     def shortest_path(
             self,

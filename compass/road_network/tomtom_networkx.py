@@ -1,11 +1,13 @@
 import logging
-from typing import Tuple
 from pathlib import Path
+from typing import Tuple
 
 import networkx as nx
+import numpy as np
 import pandas as pd
-from rtree import index
+from scipy.spatial import cKDTree
 
+from compass import root
 from compass.datastreams.base import DataStream
 from compass.road_network.base import RoadNetwork, PathWeight
 from compass.road_network.constructs.link import Link
@@ -33,15 +35,16 @@ class TomTomNetworkX(RoadNetwork):
 
     def __init__(
             self,
-            network_file: Path,
+            network_file: Path = root() / "resources" / "denver_metro_tomtom_roadnetwork.pickle",
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
         self.G = nx.read_gpickle(network_file)
+        self._nodes = [nid for nid in self.G.nodes()]
 
         if not isinstance(self.G, nx.MultiDiGraph):
             raise TypeError("graph must be a MultiDiGraph")
 
-        self.rtree = self._build_rtree()
+        self.kdtree = self._build_kdtree()
 
         self.routee_model_collection = routee_model_collection
 
@@ -76,19 +79,15 @@ class TomTomNetworkX(RoadNetwork):
             energy = model.predict(df).to_dict()
             nx.set_edge_attributes(self.G, name=f"{self.network_weights[PathWeight.ENERGY]}_{k}", values=energy)
 
-    def _build_rtree(self) -> index.Index:
-        tree = index.Index()
-        for nid in self.G.nodes():
-            lat = self.G.nodes[nid]['lat']
-            lon = self.G.nodes[nid]['lon']
-            tree.insert(nid, (lat, lon, lat, lon))
+    def _build_kdtree(self) -> cKDTree:
+        points = [(self.G.nodes[nid]['lat'], self.G.nodes[nid]['lon']) for nid in self._nodes]
+        tree = cKDTree(np.array(points))
 
         return tree
 
     def _get_nearest_node(self, coord: Coordinate) -> str:
-        node_id = list(self.rtree.nearest((coord.lat, coord.lon, coord.lat, coord.lon), 1))[0]
-
-        return node_id
+        _, i = self.kdtree.query([coord.lat, coord.lon])
+        return self._nodes[i]
 
     def update_links(self, links: Tuple[Link, ...]):
         link_df = pd.DataFrame({"segment_id": l.link_id, **l.attributes} for l in links)
