@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Set
 from pathlib import Path
 
 import networkx as nx
@@ -37,6 +37,10 @@ class OSMNetworkX(RoadNetwork):
         self.routee_model_collection = routee_model_collection
 
         self._compute_energy()
+
+    @property
+    def routee_model_keys(self) -> Set[str]:
+        return set([k for k in self.routee_model_collection.routee_models.keys()])
 
     def add_data_stream(self, data_stream: DataStream):
         raise NotImplemented("osm networks don't currently support data streams")
@@ -96,6 +100,9 @@ class OSMNetworkX(RoadNetwork):
 
         network_weight = self.network_weights[weight]
 
+        if routee_key not in self.routee_model_keys:
+            raise Exception(f"road network doesn't have routee model key {routee_key}")
+
         if weight == PathWeight.ENERGY:
             network_weight += f"_{routee_key}"
 
@@ -103,7 +110,7 @@ class OSMNetworkX(RoadNetwork):
             self.G,
             origin_id,
             dest_id,
-            weight=self.network_weights[weight],
+            weight=network_weight,
         )
 
         route = tuple(Coordinate(lat=self.G.nodes[n]['y'], lon=self.G.nodes[n]['x']) for n in nx_route)

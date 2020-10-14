@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Set
 
 import networkx as nx
 import numpy as np
@@ -47,6 +47,10 @@ class TomTomNetworkX(RoadNetwork):
         self.kdtree = self._build_kdtree()
 
         self.routee_model_collection = routee_model_collection
+
+    @property
+    def routee_model_keys(self) -> Set[str]:
+        return set([k for k in self.routee_model_collection.routee_models.keys()])
 
     def add_data_stream(self, data_stream: DataStream):
         data_stream.bind_to(self.update_links)
@@ -122,6 +126,9 @@ class TomTomNetworkX(RoadNetwork):
 
         network_weight = self.network_weights[weight]
 
+        if routee_key not in self.routee_model_keys:
+            raise Exception(f"road network doesn't have routee model key {routee_key}")
+
         if weight == PathWeight.ENERGY:
             network_weight += f"_{routee_key}"
 
@@ -129,7 +136,7 @@ class TomTomNetworkX(RoadNetwork):
             self.G,
             origin_id,
             dest_id,
-            weight=self.network_weights[weight],
+            weight=network_weight,
         )
 
         route = tuple(Coordinate(lat=self.G.nodes[n]['lat'], lon=self.G.nodes[n]['lon']) for n in nx_route)

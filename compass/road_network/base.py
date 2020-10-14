@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Tuple, List
+from typing import Tuple, List, Set
 
 from compass.utils.geo_utils import Coordinate
 from compass.road_network.constructs.link import Link
@@ -42,6 +42,14 @@ class RoadNetwork(ABC):
         adds a new data stream to the road network database
 
         :param data_stream: DataStream to be added
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def routee_model_keys(self) -> Set[str]:
+        """
+        returns the routee models keys associated with the road network
         :return:
         """
 

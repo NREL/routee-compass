@@ -29,7 +29,8 @@ setup(
         "pandas",
         "numpy",
         "networkx",
-        "scipy"
+        "scipy",
+        "shapely",
     ],
     extras_require={
        "optional": [

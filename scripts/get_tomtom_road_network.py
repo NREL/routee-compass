@@ -27,7 +27,7 @@ parser.add_argument(
 )
 
 
-def add_energy(G: nx.MultiDiGraph) -> nx.MultiDiGraph:
+def add_energy(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     precompute energy on the graph
 
