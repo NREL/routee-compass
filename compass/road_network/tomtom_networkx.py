@@ -1,23 +1,32 @@
-from typing import Tuple
+import logging
 from pathlib import Path
+from typing import Tuple, Set
 
 import networkx as nx
-# TODO: maybe we can remove pandas dependency for prototype if we precompute energy -ndr
+import numpy as np
 import pandas as pd
-from rtree import index
+from scipy.spatial import cKDTree
 
+from compass import root
+from compass.datastreams.base import DataStream
 from compass.road_network.base import RoadNetwork, PathWeight
+from compass.road_network.constructs.link import Link
 from compass.utils.geo_utils import Coordinate
 from compass.utils.routee_utils import RouteeModelCollection
 
 METERS_TO_MILES = 0.0006213712
 KPH_TO_MPH = 0.621371
 
+log = logging.getLogger(__name__)
 
-class TomTomRoadNetwork(RoadNetwork):
+
+class TomTomNetworkX(RoadNetwork):
     """
-    osm road network
+    tom tom road network database that uses networkx
+
     """
+    data_streams = []
+
     network_weights = {
         PathWeight.DISTANCE: "meters",
         PathWeight.TIME: "minutes",
@@ -26,20 +35,32 @@ class TomTomRoadNetwork(RoadNetwork):
 
     def __init__(
             self,
-            osm_network_file: Path,
+            network_file: Path = root() / "resources" / "denver_metro_tomtom_roadnetwork.pickle",
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
-        self.G = nx.read_gpickle(osm_network_file)
-        self.rtree = self._build_rtree()
+        self.G = nx.read_gpickle(network_file)
+        self._nodes = [nid for nid in self.G.nodes()]
+
+        if not isinstance(self.G, nx.MultiDiGraph):
+            raise TypeError("graph must be a MultiDiGraph")
+
+        self.kdtree = self._build_kdtree()
 
         self.routee_model_collection = routee_model_collection
 
-        self._compute_energy()
+    @property
+    def routee_model_keys(self) -> Set[str]:
+        return set([k for k in self.routee_model_collection.routee_models.keys()])
+
+    def add_data_stream(self, data_stream: DataStream):
+        data_stream.bind_to(self.update_links)
+        self.data_streams.append(data_stream)
 
     def _compute_energy(self):
         """
         computes energy over the road network for all routee models in the routee model collection.
         """
+        log.info("recomputing energy on network..")
 
         speed = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'kph'),
@@ -62,19 +83,32 @@ class TomTomRoadNetwork(RoadNetwork):
             energy = model.predict(df).to_dict()
             nx.set_edge_attributes(self.G, name=f"{self.network_weights[PathWeight.ENERGY]}_{k}", values=energy)
 
-    def _build_rtree(self) -> index.Index:
-        tree = index.Index()
-        for nid in self.G.nodes():
-            lat = self.G.nodes[nid]['lat']
-            lon = self.G.nodes[nid]['lon']
-            tree.insert(nid, (lat, lon, lat, lon))
+    def _build_kdtree(self) -> cKDTree:
+        points = [(self.G.nodes[nid]['lat'], self.G.nodes[nid]['lon']) for nid in self._nodes]
+        tree = cKDTree(np.array(points))
 
         return tree
 
     def _get_nearest_node(self, coord: Coordinate) -> str:
-        node_id = list(self.rtree.nearest((coord.lat, coord.lon, coord.lat, coord.lon), 1))[0]
+        _, i = self.kdtree.query([coord.lat, coord.lon])
+        return self._nodes[i]
 
-        return node_id
+    def update_links(self, links: Tuple[Link, ...]):
+        link_df = pd.DataFrame({"segment_id": l.link_id, **l.attributes} for l in links)
+        for _, _, k, d in self.G.edges(data=True, keys=True):
+            segment = link_df[link_df.segment_id == k]
+            if len(segment) < 1:
+                log.debug(f"skipping segemnt {k}, couldn't find in speed data")
+                continue
+            elif len(segment) > 1:
+                log.warning(f"found multiple instances of segment {k} in data stream, skipping")
+                continue
+
+            # TODO: 🚨side effect alert🚨 not sure if we should do this another way? -ndr
+            d["kph"] = segment["kph"].values[0]
+            d["minutes"] = segment["minutes"].values[0]
+
+        self._compute_energy()
 
     def shortest_path(
             self,
@@ -92,6 +126,9 @@ class TomTomRoadNetwork(RoadNetwork):
 
         network_weight = self.network_weights[weight]
 
+        if routee_key not in self.routee_model_keys:
+            raise Exception(f"road network doesn't have routee model key {routee_key}")
+
         if weight == PathWeight.ENERGY:
             network_weight += f"_{routee_key}"
 
@@ -99,7 +136,7 @@ class TomTomRoadNetwork(RoadNetwork):
             self.G,
             origin_id,
             dest_id,
-            weight=self.network_weights[weight],
+            weight=network_weight,
         )
 
         route = tuple(Coordinate(lat=self.G.nodes[n]['lat'], lon=self.G.nodes[n]['lon']) for n in nx_route)

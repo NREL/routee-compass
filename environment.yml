@@ -5,3 +5,4 @@ dependencies:
   - networkx
   - rtree
   - requests
+  - shapely

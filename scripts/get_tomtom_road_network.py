@@ -27,27 +27,27 @@ parser.add_argument(
 )
 
 
-def add_energy(G: nx.MultiDiGraph) -> nx.MultiDiGraph:
+def add_energy(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
     """
     precompute energy on the graph
 
-    :param G:
+    :param g:
     :return:
     """
     routee_model_collection = RouteeModelCollection()
 
     speed = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(G, 'kph'),
+        nx.get_edge_attributes(g, 'kph'),
         orient="index",
         columns=['gpsspeed'],
     ).multiply(KPH_TO_MPH)
     distance = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(G, 'meters'),
+        nx.get_edge_attributes(g, 'meters'),
         orient="index",
         columns=['miles'],
     ).multiply(METERS_TO_MILES)
     grade = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(G, 'grade'),
+        nx.get_edge_attributes(g, 'grade'),
         orient="index",
         columns=['grade'],
     )
@@ -55,9 +55,9 @@ def add_energy(G: nx.MultiDiGraph) -> nx.MultiDiGraph:
 
     for k, model in routee_model_collection.routee_models.items():
         energy = model.predict(df).to_dict()
-        nx.set_edge_attributes(G, name=f"energy_{k}", values=energy)
+        nx.set_edge_attributes(g, name=f"energy_{k}", values=energy)
 
-    return G
+    return g
 
 
 def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:

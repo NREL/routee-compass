@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Tuple
+from typing import Tuple, List, Set
 
 from compass.utils.geo_utils import Coordinate
+from compass.road_network.constructs.link import Link
+from compass.datastreams.base import DataStream
 
 
 class PathWeight(Enum):
@@ -16,8 +18,40 @@ class PathWeight(Enum):
 
 class RoadNetwork(ABC):
     """
-    abstract base class for road network
+    abstract base class for road network data base
     """
+
+    @abstractmethod
+    def update_links(self, links: Tuple[Link, ...]):
+        """
+        takes in a tuple of links to update the road network
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def data_streams(self) -> List[DataStream]:
+        """
+        collection of data streams
+        :return:
+        """
+
+    @abstractmethod
+    def add_data_stream(self, data_stream: DataStream):
+        """
+        adds a new data stream to the road network database
+
+        :param data_stream: DataStream to be added
+        :return:
+        """
+
+    @property
+    @abstractmethod
+    def routee_model_keys(self) -> Set[str]:
+        """
+        returns the routee models keys associated with the road network
+        :return:
+        """
 
     @abstractmethod
     def shortest_path(

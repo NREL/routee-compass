@@ -25,11 +25,12 @@ setup(
     ],
     packages=find_packages(),
     python_requires=">=3.6",
-    # TODO: rtree fails on pip install.. need to find workaround.
     install_requires=[
-        #"rtree",
         "pandas",
+        "numpy",
         "networkx",
+        "scipy",
+        "shapely",
     ],
     extras_require={
        "optional": [
@@ -37,6 +38,7 @@ setup(
            "geopandas",
            "sqlalchemy",
            "psycopg2",
+           "requests",
        ]
     },
     author="National Renewable Energy Laboratory",
