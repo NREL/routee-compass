@@ -24,28 +24,16 @@ conda install osmnx geopandas
 
 then, you'll also need a polygon shapefile that defines the boundaries of your road network (see `scripts/denver_metro`)
 
-run `scripts/get_osm_road_network.py [infile] [outfile]`:
-
 ```bash
-cd scripts
-python get_osm_road_network.py denver_metro/denver_metro.shp ../resources/denver_metro_osm_roadnetwork.pickle
+get-osm-network <path/to/my/shapefile.shp> <path/to/outfile/road_network.pickle> 
 ```
 
 ### tomtom 
 
-to download an parse a tomtom network you'll have to install the following packages:
+you'll need a polygon shapefile that defines the boundaries of your road network (see `scripts/denver_metro`)
 
 ```bash
-conda install geopandas sqlalchemy psycopg2
-```
-
-then, you'll also need a polygon shapefile that defines the boundaries of your road network (see `scripts/denver_metro`)
-
-run `scripts/get_tomtom_road_network.py [infile] [outfile]`:
-
-```bash
-cd scripts
-python get_tomtom_road_network.py denver_metro/denver_metro.shp ../resources/denver_metro_tomtom_roadnetwork.pickle
+get-tomtom-network <path/to/my/shapefile.shp> <path/to/outfile/road_network.pickle> 
 ```
 
 note: you'll need access to the trolley postgres server.
