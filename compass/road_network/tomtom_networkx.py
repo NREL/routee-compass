@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
 
-from compass import root
 from compass.datastreams.base import DataStream
 from compass.road_network.base import RoadNetwork, PathWeight
 from compass.road_network.constructs.link import Link
@@ -35,7 +34,7 @@ class TomTomNetworkX(RoadNetwork):
 
     def __init__(
             self,
-            network_file: Path = root() / "resources" / "denver_metro_tomtom_roadnetwork.pickle",
+            network_file: Path,
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
         self.G = nx.read_gpickle(network_file)

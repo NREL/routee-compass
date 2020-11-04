@@ -222,5 +222,4 @@ if __name__ == "__main__":
     G.graph['compass_network_type'] = 'tomtom'
 
     log.info("writing to file..")
-    path = os.path.join("..", "resources", "denver_metro_tomtom_roadnetwork.pickle")
     nx.write_gpickle(G, args.outfile)
