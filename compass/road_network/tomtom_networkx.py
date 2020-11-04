@@ -80,8 +80,10 @@ class TomTomNetworkX(RoadNetwork):
         df = speed.join(distance).join(grade)
 
         for k, model in self.routee_model_collection.routee_models.items():
-            energy = model.predict(df).to_dict()
-            nx.set_edge_attributes(self.G, name=f"{self.network_weights[PathWeight.ENERGY]}_{k}", values=energy)
+            energy = model.predict(df)
+            df['energy'] = energy.values
+            edge_values = df['energy'].to_dict()
+            nx.set_edge_attributes(self.G, name=f"{self.network_weights[PathWeight.ENERGY]}_{k}", values=edge_values)
 
     def _build_kdtree(self) -> cKDTree:
         points = [(self.G.nodes[nid]['lat'], self.G.nodes[nid]['lon']) for nid in self._nodes]

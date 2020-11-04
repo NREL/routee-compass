@@ -1,11 +1,9 @@
 import os
 from unittest import TestCase
 
-import geopandas as gpd
-
 from compass.road_network.tomtom_networkx import TomTomNetworkX
 from compass.router.basic_router import BasicRouter
-from compass.utils.geo_utils import Coordinate, BoundingBox
+from compass.utils.geo_utils import Coordinate
 from tests import test_dir
 
 
@@ -13,7 +11,6 @@ class TestBasicRouter(TestCase):
     def setUp(self) -> None:
         self.road_network_file = test_dir() / "test_assets" / "denver_downtown_tomtom_network.pickle"
         self.bbox_file = os.path.join("test_assets", "denver_downtown_bounding_box", "denver_downtown_roadnetwork.shp")
-        self.bbox = BoundingBox.from_polygon(gpd.read_file(self.bbox_file).iloc[0].geometry)
         self.road_network = TomTomNetworkX(self.road_network_file)
 
         self.home_plate = Coordinate(lat=39.754372, lon=-104.994300)

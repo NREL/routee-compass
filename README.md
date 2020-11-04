@@ -3,15 +3,11 @@ A routing engine that considers energy weights on edges of a graph for particula
 
 # setup 
 
-For prototyping, this uses some local wheels that need to be installed manually:
-
 ```bash
-conda env create -f environment.yml
+conda create -n routee-compass python=3.8 
 conda activate routee-compass 
 
 pip install -e .
-
-pip install lib/routee=0.3.1/routee-0.3.1-py3-none-any.whl
 ```
 
 # road networks

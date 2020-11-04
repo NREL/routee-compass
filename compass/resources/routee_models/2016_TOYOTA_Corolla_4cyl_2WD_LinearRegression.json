@@ -1,0 +1,55 @@
+{
+    "metadata": {
+        "veh_desc": "2016_TOYOTA_Corolla_4cyl_2WD",
+        "estimator": "LinearRegression",
+        "routee_version": "0.3.1",
+        "errors": {
+            "root_mean_squared_error": 0.0020922096542302414,
+            "mean_absolute_error": 0.0009653105070220934,
+            "distance_weighted_mean_absolute_error": 0.005036722166625559,
+            "distance_weighted_mean_absolute_percentage_error": 0.7461916183939022,
+            "distance_weighted_relative_percent_difference": 0.4913266102613499,
+            "energy_weighted_relative_percent_difference": 0.4293564384699932,
+            "_relative_percent_difference": 0.829370553862223,
+            "net_error": 0.031146716787890657
+        }
+    },
+    "_estimator_json": {
+        "model": {
+            "meta": "LinearRegression",
+            "coef_": [
+                -2.343800662008087e-05,
+                0.00021609003976453406,
+                0.029630430396035412
+            ],
+            "intercept_": 0.0007167822895404452,
+            "params": {
+                "copy_X": true,
+                "fit_intercept": true,
+                "n_jobs": null,
+                "normalize": false
+            }
+        },
+        "feature_pack": {
+            "features": [
+                {
+                    "name": "gpsspeed",
+                    "units": "mph"
+                },
+                {
+                    "name": "grade",
+                    "units": "percent_0_100"
+                }
+            ],
+            "distance": {
+                "name": "miles",
+                "units": "mi"
+            },
+            "energy": {
+                "name": "gge",
+                "units": "gallons"
+            }
+        },
+        "predict_type": "ENERGY_RAW"
+    }
+}

@@ -1,0 +1,55 @@
+{
+    "metadata": {
+        "veh_desc": "2016_Nissan_Leaf_30_kWh",
+        "estimator": "LinearRegression",
+        "routee_version": "0.3.1",
+        "errors": {
+            "root_mean_squared_error": 0.027342376841955725,
+            "mean_absolute_error": 0.01341678831923122,
+            "distance_weighted_mean_absolute_error": 0.0606662898403357,
+            "distance_weighted_mean_absolute_percentage_error": 207.44349025035467,
+            "distance_weighted_relative_percent_difference": 0.7294817979406062,
+            "energy_weighted_relative_percent_difference": 0.34679553998371404,
+            "_relative_percent_difference": 1.1062000221804014,
+            "net_error": 0.08312346263104983
+        }
+    },
+    "_estimator_json": {
+        "model": {
+            "meta": "LinearRegression",
+            "coef_": [
+                0.00018879301870350774,
+                0.0034744119673161752,
+                0.23972811745877184
+            ],
+            "intercept_": -0.008653750507802847,
+            "params": {
+                "copy_X": true,
+                "fit_intercept": true,
+                "n_jobs": null,
+                "normalize": false
+            }
+        },
+        "feature_pack": {
+            "features": [
+                {
+                    "name": "gpsspeed",
+                    "units": "mph"
+                },
+                {
+                    "name": "grade",
+                    "units": "percent_0_100"
+                }
+            ],
+            "distance": {
+                "name": "miles",
+                "units": "mi"
+            },
+            "energy": {
+                "name": "esskwhoutach",
+                "units": "kwh"
+            }
+        },
+        "predict_type": "ENERGY_RAW"
+    }
+}
