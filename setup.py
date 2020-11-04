@@ -34,19 +34,25 @@ setup(
         "scipy",
         "shapely",
         "geopandas",
+        "sqlalchemy",
+        "psycopg2",
         f"routee-powertrain @ {MBAP_PYPI}routee_powertrain-0.4.0a0-py3-none-any.whl"
     ],
     extras_require={
        "optional": [
            "osmnx",
-           "sqlalchemy",
-           "psycopg2",
            "requests",
        ]
     },
     include_package_data=True,
     package_data={
         "compass.resources.routee_models": ["*"],
+    },
+    entry_points={
+        'console_scripts': [
+            'get-tomtom-network=scripts.get_tomtom_road_network:get_tomtom_network',
+            'get-osm-network=scripts.get_osm_road_network:get_osm_network',
+        ]
     },
     author="National Renewable Energy Laboratory",
     license="Copyright ©2020 Alliance for Sustainable Energy, LLC All Rights Reserved",

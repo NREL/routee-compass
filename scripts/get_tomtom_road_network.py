@@ -1,7 +1,7 @@
 import argparse
 import getpass
 import logging as log
-import os
+import sys
 
 import geopandas as gpd
 import networkx as nx
@@ -162,7 +162,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
     return G
 
 
-if __name__ == "__main__":
+def get_tomtom_network():
     args = parser.parse_args()
 
     username = input("Please enter your Trolley username: ")
@@ -223,3 +223,9 @@ if __name__ == "__main__":
 
     log.info("writing to file..")
     nx.write_gpickle(G, args.outfile)
+
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(get_tomtom_network() or 0)

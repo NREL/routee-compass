@@ -1,5 +1,6 @@
 import argparse
 import logging as log
+import sys
 
 import geopandas as gpd
 import networkx as nx
@@ -114,8 +115,7 @@ def add_energy(G):
 
     return G
 
-
-if __name__ == "__main__":
+def get_osm_network():
     args = parser.parse_args()
 
     denver_gdf = gpd.read_file(args.polygon_shp_file)
@@ -149,3 +149,10 @@ if __name__ == "__main__":
 
     log.info("writing to file..")
     nx.write_gpickle(outg, args.outfile)
+
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(get_osm_network() or 0)
+
