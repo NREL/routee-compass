@@ -1,17 +1,38 @@
 {
     "metadata": {
-        "veh_desc": "2016_TOYOTA_Corolla_4cyl_2WD",
-        "estimator": "LinearRegression",
+        "model_description": "2016_TOYOTA_Corolla_4cyl_2WD",
+        "estimator_name": "LinearRegression",
+        "estimator_features": {
+            "features": [
+                {
+                    "name": "gpsspeed",
+                    "units": "mph"
+                },
+                {
+                    "name": "grade",
+                    "units": "percent_0_100"
+                }
+            ],
+            "distance": {
+                "name": "miles",
+                "units": "mi"
+            },
+            "energy": {
+                "name": "gge",
+                "units": "gallons"
+            }
+        },
+        "estimator_predict_type": "ENERGY_RAW",
         "routee_version": "0.4.0-alpha",
         "errors": {
-            "root_mean_squared_error": 0.00345580086510707,
-            "mean_absolute_error": 0.0010439713338542091,
-            "distance_weighted_mean_absolute_error": 0.00974051506066704,
-            "distance_weighted_mean_absolute_percentage_error": 0.7699896887275007,
-            "distance_weighted_relative_percent_difference": 0.4826989441790298,
-            "energy_weighted_relative_percent_difference": 0.44107172491042224,
-            "_relative_percent_difference": 0.7637855141072559,
-            "net_error": 0.01854860461440309
+            "root_mean_squared_error": 0.004505720604967765,
+            "mean_absolute_error": 0.0010444871762712517,
+            "distance_weighted_mean_absolute_error": 0.01162120401006188,
+            "distance_weighted_mean_absolute_percentage_error": 0.7727539833025882,
+            "distance_weighted_relative_percent_difference": 0.4840598840288155,
+            "energy_weighted_relative_percent_difference": 0.44267580422833225,
+            "_relative_percent_difference": 0.7649353508965349,
+            "net_error": 0.01728678426038544
         }
     },
     "_estimator_json": {

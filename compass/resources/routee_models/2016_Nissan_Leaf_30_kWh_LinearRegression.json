@@ -1,28 +1,49 @@
 {
     "metadata": {
-        "veh_desc": "2016_Nissan_Leaf_30_kWh",
-        "estimator": "LinearRegression",
-        "routee_version": "0.3.1",
+        "model_description": "2016_Nissan_Leaf_30_kWh",
+        "estimator_name": "LinearRegression",
+        "estimator_features": {
+            "features": [
+                {
+                    "name": "gpsspeed",
+                    "units": "mph"
+                },
+                {
+                    "name": "grade",
+                    "units": "percent_0_100"
+                }
+            ],
+            "distance": {
+                "name": "miles",
+                "units": "mi"
+            },
+            "energy": {
+                "name": "esskwhoutach",
+                "units": "kwh"
+            }
+        },
+        "estimator_predict_type": "ENERGY_RAW",
+        "routee_version": "0.4.0-alpha",
         "errors": {
-            "root_mean_squared_error": 0.027342376841955725,
-            "mean_absolute_error": 0.01341678831923122,
-            "distance_weighted_mean_absolute_error": 0.0606662898403357,
-            "distance_weighted_mean_absolute_percentage_error": 207.44349025035467,
-            "distance_weighted_relative_percent_difference": 0.7294817979406062,
-            "energy_weighted_relative_percent_difference": 0.34679553998371404,
-            "_relative_percent_difference": 1.1062000221804014,
-            "net_error": 0.08312346263104983
+            "root_mean_squared_error": 0.05472919530725759,
+            "mean_absolute_error": 0.017175265188036224,
+            "distance_weighted_mean_absolute_error": 0.14706544608317398,
+            "distance_weighted_mean_absolute_percentage_error": 6.621712899078617,
+            "distance_weighted_relative_percent_difference": 0.7965402247886197,
+            "energy_weighted_relative_percent_difference": 0.4571476903797063,
+            "_relative_percent_difference": 1.1533176798704527,
+            "net_error": 0.06552293677816431
         }
     },
     "_estimator_json": {
         "model": {
             "meta": "LinearRegression",
             "coef_": [
-                0.00018879301870350774,
-                0.0034744119673161752,
-                0.23972811745877184
+                0.0004351372376615778,
+                0.004251942654641003,
+                0.14451249969681212
             ],
-            "intercept_": -0.008653750507802847,
+            "intercept_": -0.010617960612621564,
             "params": {
                 "copy_X": true,
                 "fit_intercept": true,
