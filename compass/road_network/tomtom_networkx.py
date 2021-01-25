@@ -81,7 +81,12 @@ class TomTomNetworkX(RoadNetwork):
         df = speed.join(distance).join(grade)
 
         for k, model in self.routee_model_collection.routee_models.items():
-            energy = model.predict(df)
+
+            # TODO: I clipped predicted energy to 0 since the shortest path computation was failing with
+            #  negative values. But, it would be nice to consider negative energy in certain instances.
+            #  For example, an electric vehicle can regain energy while traveling downhill.
+            energy = model.predict(df).clip(0)
+
             df['energy'] = energy.values
             edge_values = df['energy'].to_dict()
             nx.set_edge_attributes(self.G, name=f"{self.network_weights[PathWeight.ENERGY]}_{k}", values=edge_values)
