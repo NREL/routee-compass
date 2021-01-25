@@ -47,6 +47,8 @@ class TomTomNetworkX(RoadNetwork):
 
         self.routee_model_collection = routee_model_collection
 
+        self._compute_energy()
+
     @property
     def routee_model_keys(self) -> Set[str]:
         return set([k for k in self.routee_model_collection.routee_models.keys()])
