@@ -5,11 +5,8 @@ import sys
 
 import geopandas as gpd
 import networkx as nx
-import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
-
-from compass.utils.routee_utils import RouteeModelCollection
 
 log.basicConfig(level=log.INFO)
 
@@ -25,39 +22,6 @@ parser.add_argument(
     "outfile",
     help="where should the network pickle file be written?"
 )
-
-
-def add_energy(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
-    """
-    precompute energy on the graph
-
-    :param g:
-    :return:
-    """
-    routee_model_collection = RouteeModelCollection()
-
-    speed = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(g, 'kph'),
-        orient="index",
-        columns=['gpsspeed'],
-    ).multiply(KPH_TO_MPH)
-    distance = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(g, 'meters'),
-        orient="index",
-        columns=['miles'],
-    ).multiply(METERS_TO_MILES)
-    grade = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(g, 'grade'),
-        orient="index",
-        columns=['grade'],
-    )
-    df = speed.join(distance).join(grade)
-
-    for k, model in routee_model_collection.routee_models.items():
-        energy = model.predict(df).to_dict()
-        nx.set_edge_attributes(g, name=f"energy_{k}", values=energy)
-
-    return g
 
 
 def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
@@ -216,12 +180,9 @@ def get_tomtom_network():
     log.info("building graph from raw network..")
     G = build_graph(raw_gdf)
 
-    log.info("precomputing energy on the network..")
-    G = add_energy(G)
-
     G.graph['compass_network_type'] = 'tomtom'
 
-    log.info("writing to file..")
+    log.info(f"writing to file {args.outfile}..")
     nx.write_gpickle(G, args.outfile)
 
     return 1
