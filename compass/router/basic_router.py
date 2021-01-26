@@ -23,4 +23,5 @@ class BasicRouter(Router):
         generates a route based on an origin and destiantion coordinate
         :return: a tuple of coordinates
         """
-        return self.road_network.shortest_path(origin, destination, weight=PathWeight.ENERGY, routee_key=routee_key)
+        route, _ = self.road_network.shortest_path(origin, destination, weight=PathWeight.ENERGY, routee_key=routee_key)
+        return route

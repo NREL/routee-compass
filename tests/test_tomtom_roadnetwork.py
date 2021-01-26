@@ -21,7 +21,7 @@ class TestTomTomRoadNetwork(TestCase):
         self.bk_lounge = Coordinate(lat=39.779098, lon=-104.951241)
 
     def test_shortest_path_distance(self):
-        path = self.road_network.shortest_path(self.home_plate, self.bk_lounge, weight=PathWeight.DISTANCE)
+        path, _ = self.road_network.shortest_path(self.home_plate, self.bk_lounge, weight=PathWeight.DISTANCE)
         start = path[0]
         end = path[-1]
 
@@ -33,7 +33,7 @@ class TestTomTomRoadNetwork(TestCase):
     def test_shortest_path_time(self):
         # TODO: how can we actually test this is the shortest time route? -ndr
 
-        path = self.road_network.shortest_path(self.home_plate, self.bk_lounge, weight=PathWeight.TIME)
+        path, _ = self.road_network.shortest_path(self.home_plate, self.bk_lounge, weight=PathWeight.TIME)
         start = path[0]
         end = path[-1]
 
@@ -45,7 +45,7 @@ class TestTomTomRoadNetwork(TestCase):
     def test_shortest_path_energy(self):
         # TODO: how can we actually test this is the shortest energy route? -ndr
 
-        path = self.road_network.shortest_path(self.home_plate, self.bk_lounge, weight=PathWeight.ENERGY)
+        path, _ = self.road_network.shortest_path(self.home_plate, self.bk_lounge, weight=PathWeight.ENERGY)
         start = path[0]
         end = path[-1]
 

@@ -8,7 +8,7 @@ import pandas as pd
 from scipy.spatial import cKDTree
 
 from compass.datastreams.base import DataStream
-from compass.road_network.base import RoadNetwork, PathWeight
+from compass.road_network.base import RoadNetwork, PathWeight, PathResult, RouteMetadata
 from compass.road_network.constructs.link import Link
 from compass.utils.geo_utils import Coordinate
 from compass.utils.routee_utils import RouteeModelCollection
@@ -124,10 +124,11 @@ class TomTomNetworkX(RoadNetwork):
             destination: Coordinate,
             weight: PathWeight = PathWeight.DISTANCE,
             routee_key: str = "Gasoline",
-    ) -> Tuple[Coordinate, ...]:
+    ) -> PathResult:
         """
         computes weighted shortest path
-        :return: shortest path as series of coordinates
+
+        :return: the route as a tuple of coordinates and the route metadata
         """
         origin_id = self._get_nearest_node(origin)
         dest_id = self._get_nearest_node(destination)
@@ -146,7 +147,29 @@ class TomTomNetworkX(RoadNetwork):
             dest_id,
             weight=network_weight,
         )
-
         route = tuple(Coordinate(lat=self.G.nodes[n]['lat'], lon=self.G.nodes[n]['lon']) for n in nx_route)
 
-        return route
+        energy = []
+        energy_key = f"{self.network_weights[PathWeight.ENERGY]}_{routee_key}"
+        time = []
+        time_key = f"{self.network_weights[PathWeight.TIME]}"
+        distance = []
+        distance_key = f"{self.network_weights[PathWeight.DISTANCE]}"
+        for e in zip(nx_route[0:], nx_route[1:]):
+            edge_data = list(self.G.get_edge_data(e[0], e[1]).values())[0]
+            energy.append(edge_data[energy_key])
+            time.append(edge_data[time_key])
+            distance.append(edge_data[distance_key])
+
+        energy_units = self.routee_model_collection.routee_models[routee_key].metadata.estimator_features['energy']['units']
+
+        route_metadata = RouteMetadata(
+            route_distance=sum(distance),
+            route_distance_units=distance_key,
+            route_time=sum(time),
+            route_time_units=time_key,
+            route_energy=sum(energy),
+            route_energy_units=energy_units
+        )
+
+        return PathResult(route, route_metadata)
