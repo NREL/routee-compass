@@ -8,7 +8,7 @@ import pandas as pd
 from scipy.spatial import cKDTree
 
 from compass.datastreams.base import DataStream
-from compass.road_network.base import RoadNetwork, PathWeight
+from compass.road_network.base import RoadNetwork, PathWeight, PathResult, RouteMetadata
 from compass.road_network.constructs.link import Link
 from compass.utils.geo_utils import Coordinate
 from compass.utils.routee_utils import RouteeModelCollection
@@ -47,6 +47,8 @@ class TomTomNetworkX(RoadNetwork):
 
         self.routee_model_collection = routee_model_collection
 
+        self._compute_energy()
+
     @property
     def routee_model_keys(self) -> Set[str]:
         return set([k for k in self.routee_model_collection.routee_models.keys()])
@@ -79,7 +81,12 @@ class TomTomNetworkX(RoadNetwork):
         df = speed.join(distance).join(grade)
 
         for k, model in self.routee_model_collection.routee_models.items():
-            energy = model.predict(df)
+
+            # TODO: I clipped predicted energy to 0 since the shortest path computation was failing with
+            #  negative values. But, it would be nice to consider negative energy in certain instances.
+            #  For example, an electric vehicle can regain energy while traveling downhill.
+            energy = model.predict(df).clip(0)
+
             df['energy'] = energy.values
             edge_values = df['energy'].to_dict()
             nx.set_edge_attributes(self.G, name=f"{self.network_weights[PathWeight.ENERGY]}_{k}", values=edge_values)
@@ -117,10 +124,11 @@ class TomTomNetworkX(RoadNetwork):
             destination: Coordinate,
             weight: PathWeight = PathWeight.DISTANCE,
             routee_key: str = "Gasoline",
-    ) -> Tuple[Coordinate, ...]:
+    ) -> PathResult:
         """
         computes weighted shortest path
-        :return: shortest path as series of coordinates
+
+        :return: the route as a tuple of coordinates and the route metadata
         """
         origin_id = self._get_nearest_node(origin)
         dest_id = self._get_nearest_node(destination)
@@ -139,7 +147,29 @@ class TomTomNetworkX(RoadNetwork):
             dest_id,
             weight=network_weight,
         )
-
         route = tuple(Coordinate(lat=self.G.nodes[n]['lat'], lon=self.G.nodes[n]['lon']) for n in nx_route)
 
-        return route
+        energy = []
+        energy_key = f"{self.network_weights[PathWeight.ENERGY]}_{routee_key}"
+        time = []
+        time_key = f"{self.network_weights[PathWeight.TIME]}"
+        distance = []
+        distance_key = f"{self.network_weights[PathWeight.DISTANCE]}"
+        for e in zip(nx_route[0:], nx_route[1:]):
+            edge_data = list(self.G.get_edge_data(e[0], e[1]).values())[0]
+            energy.append(edge_data[energy_key])
+            time.append(edge_data[time_key])
+            distance.append(edge_data[distance_key])
+
+        energy_units = self.routee_model_collection.routee_models[routee_key].metadata.estimator_features['energy']['units']
+
+        route_metadata = RouteMetadata(
+            route_distance=sum(distance),
+            route_distance_units=distance_key,
+            route_time=sum(time),
+            route_time_units=time_key,
+            route_energy=sum(energy),
+            route_energy_units=energy_units
+        )
+
+        return PathResult(route, route_metadata)

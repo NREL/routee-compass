@@ -1,10 +1,24 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Tuple, List, Set
+from typing import Tuple, List, Set, NamedTuple
 
-from compass.utils.geo_utils import Coordinate
-from compass.road_network.constructs.link import Link
 from compass.datastreams.base import DataStream
+from compass.road_network.constructs.link import Link
+from compass.utils.geo_utils import Coordinate
+
+Route = Tuple[Coordinate]
+
+
+class RouteMetadata(NamedTuple):
+    """
+    route metadata
+    """
+    route_distance: float
+    route_distance_units: str
+    route_time: float
+    route_time_units: str
+    route_energy: float
+    route_energy_units: str
 
 
 class PathWeight(Enum):
@@ -14,6 +28,14 @@ class PathWeight(Enum):
     TIME = 0
     DISTANCE = 1
     ENERGY = 2
+
+
+class PathResult(NamedTuple):
+    """
+    return value wrapper for the road network routes
+    """
+    route: Route
+    metadata: RouteMetadata
 
 
 class RoadNetwork(ABC):
@@ -60,8 +82,9 @@ class RoadNetwork(ABC):
             destination: Coordinate,
             weight: PathWeight = PathWeight.ENERGY,
             routee_key: str = "Gasoline",
-    ) -> Tuple[Coordinate, ...]:
+    ) -> PathResult:
         """
         computes weighted shortest path
-        :return: shortest path as series of coordinates
+
+        :return: a PathResult that includes the route (tuple of coordinates) and the route metadata
         """
