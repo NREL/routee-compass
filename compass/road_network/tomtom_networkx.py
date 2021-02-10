@@ -32,12 +32,22 @@ class TomTomNetworkX(RoadNetwork):
         PathWeight.ENERGY: "energy"
     }
 
+    registered_network_types = {
+        'tomtom',
+        'tomtom_dual'
+    }
+
     def __init__(
             self,
             network_file: Path,
             routee_model_collection: RouteeModelCollection = RouteeModelCollection(),
     ):
         self.G = nx.read_gpickle(network_file)
+
+        network_type = self.G.graph.get('compass_network_type')
+        if network_type not in self.registered_network_types:
+            raise TypeError(f"graph type {network_type} not valid for TomTomNetworkX")
+
         self._nodes = [nid for nid in self.G.nodes()]
 
         if not isinstance(self.G, nx.MultiDiGraph):

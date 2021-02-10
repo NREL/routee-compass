@@ -2,9 +2,12 @@ import argparse
 import getpass
 import logging as log
 import sys
+from pathlib import Path
 
 import geopandas as gpd
 import networkx as nx
+import numpy as np
+from shapely.geometry import Point
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
@@ -22,6 +25,8 @@ parser.add_argument(
     "outfile",
     help="where should the network pickle file be written?"
 )
+
+parser.add_argument("--dual_graph", help="create dual graph rather than base graph", action="store_true")
 
 
 def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
@@ -42,7 +47,8 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
             'minutes': mn,
             'kph': kph,
             'grade': -g,
-        }) for t, f, k, mt, mn, kph, g in zip(
+            'geom': geom,
+        }) for t, f, k, mt, mn, kph, g, geom in zip(
             twoway.t_jnctid.values,
             twoway.f_jnctid.values,
             twoway.id,
@@ -50,6 +56,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
             twoway.minutes.values,
             twoway.kph.values,
             twoway.mean_grad.values,
+            twoway.wkb_geometry.values,
         )
     ]
     twoway_edges_ft = [
@@ -58,7 +65,8 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
             'minutes': mn,
             'kph': kph,
             'grade': g,
-        }) for t, f, k, mt, mn, kph, g in zip(
+            'geom': geom,
+        }) for t, f, k, mt, mn, kph, g, geom in zip(
             twoway.t_jnctid.values,
             twoway.f_jnctid.values,
             twoway.id,
@@ -66,6 +74,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
             twoway.minutes.values,
             twoway.kph.values,
             twoway.mean_grad.values,
+            twoway.wkb_geometry.values,
         )
     ]
     oneway_edges_ft = [
@@ -74,7 +83,8 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
             'minutes': mn,
             'kph': kph,
             'grade': g,
-        }) for t, f, k, mt, mn, kph, g in zip(
+            'geom': geom,
+        }) for t, f, k, mt, mn, kph, g, geom in zip(
             oneway_ft.t_jnctid.values,
             oneway_ft.f_jnctid.values,
             oneway_ft.id,
@@ -82,6 +92,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
             oneway_ft.minutes.values,
             oneway_ft.kph.values,
             oneway_ft.mean_grad.values,
+            oneway_ft.wkb_geometry.values,
         )
     ]
     oneway_edges_tf = [
@@ -89,8 +100,9 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
             'meters': mt,
             'minutes': mn,
             'kph': kph,
-            'grade': -g
-        }) for t, f, k, mt, mn, kph, g in zip(
+            'grade': -g,
+            'geom': geom,
+        }) for t, f, k, mt, mn, kph, g, geom in zip(
             oneway_tf.t_jnctid.values,
             oneway_tf.f_jnctid.values,
             oneway_tf.id,
@@ -98,6 +110,7 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
             oneway_tf.minutes.values,
             oneway_tf.kph.values,
             oneway_tf.mean_grad.values,
+            oneway_tf.wkb_geometry.values,
         )
     ]
 
@@ -123,12 +136,92 @@ def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
     n_edges_after = G.number_of_edges()
     log.info(f"final graph has {n_edges_after} edges, lost {n_edges_before - n_edges_after}")
 
+    G.graph['compass_network_type'] = 'tomtom'
+
     return G
 
 
-def get_tomtom_network():
-    args = parser.parse_args()
+def build_dual_graph(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
+    """
+    builds a dual graph and computes the angle between each edge for turn cost energy estimation
 
+    :param g: the original graph
+    :return: a graph dual of g
+    """
+
+    def _compute_angle(e1_id: int, e2_id: int) -> float:
+        """
+        helper function to compute the angle between two links.
+        """
+
+        def _azimuth(point1, point2):
+            angle = np.arctan2(point2.x - point1.x, point2.y - point1.y)
+            return np.degrees(angle)
+
+        e1_coords = list(g.edges[e1_id]['geom'].coords)
+        if e1_id[2] >= 0:
+            e1_points = e1_coords[-2:]
+        else:
+            e1_points = list(reversed(e1_coords))[-2:]
+
+        e2_coords = list(g.edges[e2_id]['geom'].coords)
+        if e2_id[2] >= 0:
+            e2_points = e2_coords[:2]
+        else:
+            e2_points = list(reversed(e2_coords))[:2]
+
+        a1 = _azimuth(Point(e1_points[0]), Point(e1_points[1]))
+        a2 = _azimuth(Point(e2_points[1]), Point(e2_points[0]))
+
+        return abs(180 - abs((a2 - a1)))
+
+    g_dual = nx.line_graph(g)
+
+    graph_data = {}
+    for u, v, k in g_dual.edges(keys=True):
+        e1_data = g.edges[u]
+        e2_data = g.edges[v]
+
+        angle = _compute_angle(u, v)
+        meters = e1_data['meters'] / 2 + e2_data['meters'] / 2  # half from each link
+        minutes = e1_data['minutes'] / 2 + e2_data['minutes'] / 2  # half from each link
+
+        # distance weighted mean
+        kph = np.average([e1_data['kph'], e2_data['kph']], weights=[e1_data['meters'], e1_data['meters']])
+
+        grade = (e1_data['grade'] + e2_data['grade']) / 2  # mean
+
+        graph_data[(u, v, k)] = {
+            'angle': angle,
+            'meters': meters,
+            'minutes': minutes,
+            'kph': kph,
+            'grade': grade,
+        }
+
+    nx.set_edge_attributes(g_dual, graph_data)
+
+    # dual node coordinates get set to the coordinate of the first node in the dual node.
+    node_data = {}
+    for n1, n2, k in g_dual.nodes():
+        coords = g.nodes[n1]
+        node_data[(n1, n2, k)] = {
+            'lat': coords['lat'],
+            'lon': coords['lon']
+        }
+    nx.set_node_attributes(g_dual, node_data)
+
+    g_dual.graph['compass_network_type'] = 'tomtom_dual'
+
+    return g_dual
+
+
+def get_tomtom_gdf(shp_filepath: str) -> gpd.GeoDataFrame:
+    """
+    pull raw tomtom data from trolley
+
+    :return: gdf of tomtom links
+    """
     username = input("Please enter your Trolley username: ")
     password = getpass.getpass("Please enter your Trolley password: ")
     try:
@@ -138,8 +231,8 @@ def get_tomtom_network():
     except OperationalError as oe:
         raise IOError("can't connect to Trolley..") from oe
 
-    denver_gdf = gpd.read_file(args.polygon_shp_file)
-    denver_polygon = denver_gdf.iloc[0].geometry
+    shp_gdf = gpd.read_file(shp_filepath)
+    polygon = shp_gdf.iloc[0].geometry
 
     log.info("pulling raw tomtom network from Trolley..")
     q = f"""
@@ -153,7 +246,7 @@ def get_tomtom_network():
         group by id
     ) as gd
     on mn.id = gd.id
-    where ST_Contains(ST_GeomFromEWKT('SRID={denver_gdf.crs.to_epsg()};{denver_polygon.wkt}'), 
+    where ST_Contains(ST_GeomFromEWKT('SRID={shp_gdf.crs.to_epsg()};{polygon.wkt}'), 
     ST_GeomFromEWKB(mn.wkb_geometry))
     """
     raw_gdf = gpd.GeoDataFrame.from_postgis(
@@ -164,8 +257,7 @@ def get_tomtom_network():
     log.info(f"pulled {raw_gdf.shape[0]} links")
     log.info("cleaning raw data..")
 
-    raw_gdf['mean_grad'] = raw_gdf.mean_grad.apply(lambda g: 50 if g > 50 else g)
-    raw_gdf['mean_grad'] = raw_gdf.mean_grad.apply(lambda g: -50 if g < -50 else g)
+    raw_gdf['mean_grad'] = raw_gdf.mean_grad / 10  # convert from 1 / 1000 to 1 / 100
 
     raw_gdf = raw_gdf[
         (raw_gdf.rdcond == 1) &
@@ -177,13 +269,33 @@ def get_tomtom_network():
 
     log.info(f"{raw_gdf.shape[0]} links remain after filtering")
 
+    return raw_gdf
+
+
+def graph_to_file(g: nx.MultiDiGraph, outfile: Path):
+    # remove the link geometry to save space
+    for _, _, data in g.edges(data=True):
+        if 'geom' in data:
+            del (data['geom'])
+
+    log.info(f"writing to file {outfile}..")
+    nx.write_gpickle(g, outfile)
+
+
+def get_tomtom_network():
+    args = parser.parse_args()
+
+    tomtom_gdf = get_tomtom_gdf(args.polygon_shp_file)
+
     log.info("building graph from raw network..")
-    G = build_graph(raw_gdf)
+    g = build_graph(tomtom_gdf)
+    g_outfile = Path(args.outfile)
 
-    G.graph['compass_network_type'] = 'tomtom'
+    if args.dual_graph:
+        log.info("building graph dual from base graph..")
+        g = build_dual_graph(g)
 
-    log.info(f"writing to file {args.outfile}..")
-    nx.write_gpickle(G, args.outfile)
+    graph_to_file(g, g_outfile)
 
     return 1
 
