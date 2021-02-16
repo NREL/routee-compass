@@ -3,13 +3,18 @@ import getpass
 import logging as log
 import sys
 from pathlib import Path
+from typing import List
 
 import geopandas as gpd
 import networkx as nx
 import numpy as np
-from shapely.geometry import Point
+import overpy
+from scipy.spatial import cKDTree
+from shapely.geometry import Point, Polygon
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
+
+from compass.utils.geo_utils import BoundingBox
 
 log.basicConfig(level=log.INFO)
 
@@ -27,6 +32,67 @@ parser.add_argument(
 )
 
 parser.add_argument("--dual_graph", help="create dual graph rather than base graph", action="store_true")
+
+
+def query_for_lights_in_polygon(polygon: Polygon) -> List[overpy.Node]:
+    """
+    Find nodes with traffic signal within a bounding box
+    """
+    bbox = BoundingBox.from_polygon(polygon)
+    query_template = "node({:3.8f},{:3.8f},{:3.8f},{:3.8f})[highway=traffic_signals];out;"
+
+    s, w = bbox.left_down_corner
+    n, e = bbox.right_top_corner
+    q = query_template.format(s, w, n, e)
+
+    api = overpy.Overpass()
+
+    result = api.query(q)
+
+    return result.nodes
+
+
+def delta_degrees_to_meters(d_degrees: float) -> float:
+    """
+    estimates the meters of a delta in lat/lon degrees
+
+    source: https://www.usgs.gov/faqs/how-much-distance-does-a-degree-minute-and-second-cover-your-maps
+    """
+    degrees_to_km = 87
+    km_to_meters = 1000
+    return d_degrees * degrees_to_km * km_to_meters
+
+
+def add_traffic_light_data(g: nx.MultiDiGraph, polygon: Polygon) -> nx.MultiDiGraph:
+    """
+    add traffic light data to the graph
+
+    :param g: the road network graph
+    :param polygon: the boundaries of the road network
+
+    :return: the updated road network graph
+    """
+    traffic_nodes = query_for_lights_in_polygon(polygon)
+
+    node_index = [nid for nid in g.nodes()]
+
+    points = [(g.nodes[nid]['lat'], g.nodes[nid]['lon']) for nid in node_index]
+    kdtree = cKDTree(np.array(points))
+
+    # find the distances and index of the nearest road network nodes to the traffic light nodes
+    dists, idxs = kdtree.query([[n.lat, n.lon] for n in traffic_nodes])
+
+    nx.set_node_attributes(g, False, 'traffic_signal')
+
+    tlights = {}
+    for d, i in zip(dists, idxs):
+        # only snap a traffic light node to a road network node if it's within ~20 meters
+        if delta_degrees_to_meters(d) < 20:
+            tlights[node_index[i]] = {'traffic_signal': True}
+
+    nx.set_node_attributes(g, tlights)
+
+    return g
 
 
 def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
@@ -191,12 +257,16 @@ def build_dual_graph(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
 
         grade = (e1_data['grade'] + e2_data['grade']) / 2  # mean
 
+        # take traffic signal from midpoint node (u[1] or v[0])
+        traffic_signal = g.nodes[u[1]]['traffic_signal']
+
         graph_data[(u, v, k)] = {
             'angle': angle,
             'meters': meters,
             'minutes': minutes,
             'kph': kph,
             'grade': grade,
+            'traffic_signal': traffic_signal,
         }
 
     nx.set_edge_attributes(g_dual, graph_data)
@@ -216,7 +286,7 @@ def build_dual_graph(g: nx.MultiDiGraph) -> nx.MultiDiGraph:
     return g_dual
 
 
-def get_tomtom_gdf(shp_filepath: str) -> gpd.GeoDataFrame:
+def get_tomtom_gdf(shp_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
     pull raw tomtom data from trolley
 
@@ -231,7 +301,6 @@ def get_tomtom_gdf(shp_filepath: str) -> gpd.GeoDataFrame:
     except OperationalError as oe:
         raise IOError("can't connect to Trolley..") from oe
 
-    shp_gdf = gpd.read_file(shp_filepath)
     polygon = shp_gdf.iloc[0].geometry
 
     log.info("pulling raw tomtom network from Trolley..")
@@ -285,10 +354,17 @@ def graph_to_file(g: nx.MultiDiGraph, outfile: Path):
 def get_tomtom_network():
     args = parser.parse_args()
 
-    tomtom_gdf = get_tomtom_gdf(args.polygon_shp_file)
+    shp_df = gpd.read_file(args.polygon_shp_file)
+    polygon = shp_df.iloc[0].geometry
+
+    tomtom_gdf = get_tomtom_gdf(shp_df)
 
     log.info("building graph from raw network..")
     g = build_graph(tomtom_gdf)
+
+    log.info("adding traffic light data to road network")
+    g = add_traffic_light_data(g, polygon)
+
     g_outfile = Path(args.outfile)
 
     if args.dual_graph:

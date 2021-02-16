@@ -5,9 +5,6 @@ import sys
 import geopandas as gpd
 import networkx as nx
 import osmnx as ox
-import pandas as pd
-
-from compass.utils.routee_utils import RouteeModelCollection
 
 ox.config(log_console=True)
 log.basicConfig(level=log.INFO)
@@ -83,38 +80,6 @@ def compress(G):
     return G
 
 
-def add_energy(G):
-    """
-    precompute energy on the graph
-
-    :param G:
-    :return:
-    """
-    routee_model_collection = RouteeModelCollection()
-
-    speed = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(G, 'speed_mph'),
-        orient="index",
-        columns=['gpsspeed'],
-    )
-    distance = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(G, 'miles'),
-        orient="index",
-        columns=['miles'],
-    )
-    grade = pd.DataFrame.from_dict(
-        nx.get_edge_attributes(G, 'grade'),
-        orient="index",
-        columns=['grade'],
-    )
-    df = speed.join(distance).join(grade)
-
-    for k, model in routee_model_collection.routee_models.items():
-        energy = model.predict(df).to_dict()
-        nx.set_edge_attributes(G, name=f"energy_{k}", values=energy)
-
-    return G
-
 def get_osm_network():
     args = parser.parse_args()
 
@@ -132,9 +97,6 @@ def get_osm_network():
     log.info("computing largest strongly connected component..")
     # this makes sure there are no graph 'dead-ends'
     G = ox.utils_graph.get_largest_component(G, strongly=True)
-
-    log.info("pre-computing energy..")
-    G = add_energy(G)
 
     log.info("compressing..")
     G = compress(G)
@@ -155,4 +117,3 @@ def get_osm_network():
 
 if __name__ == "__main__":
     sys.exit(get_osm_network() or 0)
-
