@@ -115,6 +115,7 @@ def add_energy(G):
 
     return G
 
+
 def get_osm_network():
     args = parser.parse_args()
 
@@ -155,4 +156,3 @@ def get_osm_network():
 
 if __name__ == "__main__":
     sys.exit(get_osm_network() or 0)
-
