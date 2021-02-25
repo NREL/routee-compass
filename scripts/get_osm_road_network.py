@@ -79,7 +79,6 @@ def compress(G):
 
     return G
 
-
 def get_osm_network():
     args = parser.parse_args()
 
