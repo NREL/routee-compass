@@ -34,15 +34,16 @@ setup(
         "scipy",
         "shapely",
         "geopandas",
-        "sqlalchemy",
-        "psycopg2",
         f"routee-powertrain @ {MBAP_PYPI}routee-powertrain/routee_powertrain-0.4.0-py3-none-any.whl"
     ],
     extras_require={
-       "optional": [
-           "osmnx",
-           "requests",
-       ]
+        "optional": [
+            "osmnx",  # used for building OSM road networks
+            "overpy",  # used for adding traffic signal data to road networks
+            "requests",
+            "sqlalchemy",
+            "psycopg2",
+        ]
     },
     include_package_data=True,
     package_data={
