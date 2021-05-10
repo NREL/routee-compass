@@ -34,7 +34,7 @@ setup(
         "scipy",
         "shapely",
         "geopandas",
-        f"routee-powertrain @ {MBAP_PYPI}routee-powertrain/routee_powertrain-0.4.0-py3-none-any.whl"
+        f"routee-powertrain @ {MBAP_PYPI}routee-powertrain/routee_powertrain-0.5.0-py3-none-any.whl"
     ],
     extras_require={
         "optional": [
