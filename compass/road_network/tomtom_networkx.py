@@ -15,6 +15,7 @@ from compass.utils.routee_utils import RouteeModelCollection
 
 METERS_TO_MILES = 0.0006213712
 KPH_TO_MPH = 0.621371
+PERCENT_TO_DECIMAL = 0.01
 
 log = logging.getLogger(__name__)
 
@@ -83,11 +84,13 @@ class TomTomNetworkX(RoadNetwork):
             orient="index",
             columns=['miles'],
         ).multiply(METERS_TO_MILES)
+
+        # grade comes in as percent 0 -> 100
         grade = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'grade'),
             orient="index",
             columns=['grade'],
-        )
+        ).multiply(PERCENT_TO_DECIMAL)
         df = speed.join(distance).join(grade)
 
         for k, model in self.routee_model_collection.routee_models.items():
