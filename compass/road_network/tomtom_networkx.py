@@ -77,12 +77,12 @@ class TomTomNetworkX(RoadNetwork):
         speed = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'kph'),
             orient="index",
-            columns=['gpsspeed'],
+            columns=['speed'],
         ).multiply(KPH_TO_MPH)
         distance = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'meters'),
             orient="index",
-            columns=['miles'],
+            columns=['distance'],
         ).multiply(METERS_TO_MILES)
 
         # grade comes in as percent 0 -> 100

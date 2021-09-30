@@ -56,12 +56,12 @@ class OSMNetworkX(RoadNetwork):
         speed = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'speed_mph'),
             orient="index",
-            columns=['gpsspeed'],
+            columns=['speed'],
         )
         distance = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'miles'),
             orient="index",
-            columns=['miles'],
+            columns=['distance'],
         )
         grade = pd.DataFrame.from_dict(
             nx.get_edge_attributes(self.G, 'grade'),
