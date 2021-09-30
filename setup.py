@@ -11,7 +11,7 @@ MBAP_PYPI = "https://github.nrel.gov/pages/MBAP/mbap-pypi/"
 
 setup(
     name="routee-compass",
-    version="0.1.1",
+    version="0.1.2",
     description=
     "routee compass is a package for producing energy optimal routes",
     long_description=long_description,
@@ -34,7 +34,7 @@ setup(
         "scipy",
         "shapely",
         "geopandas",
-        f"routee-powertrain @ {MBAP_PYPI}routee-powertrain/routee_powertrain-0.5.0-py3-none-any.whl"
+        f"routee-powertrain @ {MBAP_PYPI}routee-powertrain/routee_powertrain-0.5.1-py3-none-any.whl"
     ],
     extras_require={
         "optional": [

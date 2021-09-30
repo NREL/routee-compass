@@ -96,9 +96,9 @@ def add_traffic_light_data(g: nx.MultiDiGraph, polygon: Polygon) -> nx.MultiDiGr
 
 
 def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
-    gdf['id'] = gdf.id.astype(int)
-    gdf['f_jnctid'] = gdf.f_jnctid.astype(int)
-    gdf['t_jnctid'] = gdf.t_jnctid.astype(int)
+    gdf['id'] = gdf.id.astype(np.int64)
+    gdf['f_jnctid'] = gdf.f_jnctid.astype(np.int64)
+    gdf['t_jnctid'] = gdf.t_jnctid.astype(np.int64)
     gdf['f_lon'] = gdf.wkb_geometry.apply(lambda g: list(g.coords)[0][0])
     gdf['f_lat'] = gdf.wkb_geometry.apply(lambda g: list(g.coords)[0][1])
     gdf['t_lon'] = gdf.wkb_geometry.apply(lambda g: list(g.coords)[-1][0])
