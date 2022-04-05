@@ -8,7 +8,7 @@ from typing import List
 import geopandas as gpd
 import networkx as nx
 import numpy as np
-import overpy
+# import overpy
 from scipy.spatial import cKDTree
 from shapely.geometry import Point, Polygon
 from sqlalchemy import create_engine
@@ -34,22 +34,22 @@ parser.add_argument(
 parser.add_argument("--dual_graph", help="create dual graph rather than base graph", action="store_true")
 
 
-def query_for_lights_in_polygon(polygon: Polygon) -> List[overpy.Node]:
-    """
-    Find nodes with traffic signal within a bounding box
-    """
-    bbox = BoundingBox.from_polygon(polygon)
-    query_template = "node({:3.8f},{:3.8f},{:3.8f},{:3.8f})[highway=traffic_signals];out;"
+# def query_for_lights_in_polygon(polygon: Polygon) -> List[overpy.Node]:
+#     """
+#     Find nodes with traffic signal within a bounding box
+#     """
+#     bbox = BoundingBox.from_polygon(polygon)
+#     query_template = "node({:3.8f},{:3.8f},{:3.8f},{:3.8f})[highway=traffic_signals];out;"
 
-    s, w = bbox.left_down_corner
-    n, e = bbox.right_top_corner
-    q = query_template.format(s, w, n, e)
+#     s, w = bbox.left_down_corner
+#     n, e = bbox.right_top_corner
+#     q = query_template.format(s, w, n, e)
 
-    api = overpy.Overpass()
+#     api = overpy.Overpass()
 
-    result = api.query(q)
+#     result = api.query(q)
 
-    return result.nodes
+#     return result.nodes
 
 
 def delta_degrees_to_meters(d_degrees: float) -> float:
@@ -63,36 +63,36 @@ def delta_degrees_to_meters(d_degrees: float) -> float:
     return d_degrees * degrees_to_km * km_to_meters
 
 
-def add_traffic_light_data(g: nx.MultiDiGraph, polygon: Polygon) -> nx.MultiDiGraph:
-    """
-    add traffic light data to the graph
+# def add_traffic_light_data(g: nx.MultiDiGraph, polygon: Polygon) -> nx.MultiDiGraph:
+#     """
+#     add traffic light data to the graph
 
-    :param g: the road network graph
-    :param polygon: the boundaries of the road network
+#     :param g: the road network graph
+#     :param polygon: the boundaries of the road network
 
-    :return: the updated road network graph
-    """
-    traffic_nodes = query_for_lights_in_polygon(polygon)
+#     :return: the updated road network graph
+#     """
+#     traffic_nodes = query_for_lights_in_polygon(polygon)
 
-    node_index = [nid for nid in g.nodes()]
+#     node_index = [nid for nid in g.nodes()]
 
-    points = [(g.nodes[nid]['lat'], g.nodes[nid]['lon']) for nid in node_index]
-    kdtree = cKDTree(np.array(points))
+#     points = [(g.nodes[nid]['lat'], g.nodes[nid]['lon']) for nid in node_index]
+#     kdtree = cKDTree(np.array(points))
 
-    # find the distances and index of the nearest road network nodes to the traffic light nodes
-    dists, idxs = kdtree.query([[n.lat, n.lon] for n in traffic_nodes])
+#     # find the distances and index of the nearest road network nodes to the traffic light nodes
+#     dists, idxs = kdtree.query([[n.lat, n.lon] for n in traffic_nodes])
 
-    nx.set_node_attributes(g, False, 'traffic_signal')
+#     nx.set_node_attributes(g, False, 'traffic_signal')
 
-    tlights = {}
-    for d, i in zip(dists, idxs):
-        # only snap a traffic light node to a road network node if it's within ~20 meters
-        if delta_degrees_to_meters(d) < 20:
-            tlights[node_index[i]] = {'traffic_signal': True}
+#     tlights = {}
+#     for d, i in zip(dists, idxs):
+#         # only snap a traffic light node to a road network node if it's within ~20 meters
+#         if delta_degrees_to_meters(d) < 20:
+#             tlights[node_index[i]] = {'traffic_signal': True}
 
-    nx.set_node_attributes(g, tlights)
+#     nx.set_node_attributes(g, tlights)
 
-    return g
+#     return g
 
 
 def build_graph(gdf: gpd.geodataframe.GeoDataFrame) -> nx.MultiDiGraph:
@@ -362,8 +362,8 @@ def get_tomtom_network():
     log.info("building graph from raw network..")
     g = build_graph(tomtom_gdf)
 
-    log.info("adding traffic light data to road network")
-    g = add_traffic_light_data(g, polygon)
+    # log.info("adding traffic light data to road network")
+    # g = add_traffic_light_data(g, polygon)
 
     g_outfile = Path(args.outfile)
 
