@@ -1,8 +1,0 @@
-name: routee-compass
-dependencies:
-  - python=3.6
-  - pandas
-  - networkx
-  - rtree
-  - requests
-  - shapely

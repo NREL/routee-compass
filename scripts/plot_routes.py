@@ -3,7 +3,7 @@ import webbrowser
 import folium
 
 from compass.road_network.base import PathWeight
-from compass.road_network.tomtom_networkx import TomTomNetworkX
+from compass.road_network.road_network import TomTomNetworkX
 from compass.utils.fs import root_dir
 from compass.utils.geo_utils import Coordinate
 
