@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "routee-compass"
+version = "0.1.0"
+description = ""
+authors = ["Nicholas Reinicke <Nicholas.Reinicke@nrel.gov>"]
+
+[[tool.poetry.source]]
+name = "mbap-pypi"
+url = "https://github.nrel.gov/pages/MBAP/mbap-pypi/"
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+pandas = "*"
+numpy = "*"
+networkx = "*"
+scipy = "*"
+shapely = "*"
+geopandas = "*"
+sqlalchemy = "*"
+psycopg2-binary = "*"
+routee-powertrain = "*"
+folium = "*"
+polestar = "*"
+
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.4"
+black = "*"

@@ -17,28 +17,11 @@ pip install -e .
 
 ## get a road network
 
-We currently support osm and tomtom networks. 
-
-### osm
-
-to download an parse an osm network you'll have to install the following packages:
+We currently support the tomtom 2021 road network. 
 
 ```bash
-conda install osmnx geopandas
-```
-
-then, you'll also need a polygon shapefile that defines the boundaries of your road network (see `scripts/denver_metro`)
-
-```bash
-get-osm-network <path/to/my/shapefile.shp> <path/to/outfile/road_network.pickle> 
-```
-
-### tomtom 
-
-you'll need a polygon shapefile that defines the boundaries of your road network (see `scripts/denver_metro`)
-
-```bash
-get-tomtom-network <path/to/my/shapefile.shp> <path/to/outfile/road_network.pickle> 
+cd scripts
+python download_road_map.py <path/to/polygon.geojson> <my-road-network.json> 
 ```
 
 note: you'll need access to the trolley postgres server.
@@ -50,38 +33,46 @@ Once you have a road network file downloaded you can start computing least energ
 Here's a sample workflow for loading the road network and finding the least energy path:
 
 ```python
-from compass.road_network.tomtom_networkx import TomTomNetworkX
-from compass.utils.geo_utils import Coordinate
+from compass.compass_map import CompassMap
+from compass.rotuee_model_collection import RouteeModelCollection
+from polestar.constructs.geometry import Coordinate
 
-road_network = TomTomNetworkX("path/to/my/tomtom_road_network.pickle")
+road_network = CompassMap.from_file("path/to/my/tomtom_road_network.pickle")
 
-origin = Coordinate(lat=39.00, lon=-104.00)
-destination = Coordinate(lat=39.10, lon=-104.10)
+routee_models = RouteeModelCollection()
 
-shortest_energy_route, route_metadata = road_network.shortest_path(origin, destination, routee_key="Electric") 
+road_network.compute_energy(routee_models)
+
+origin = Coordinate.from_lat_lon(lat=39.00, lon=-104.00)
+destination = Coordinate.from_lat_lon(lat=39.10, lon=-104.10)
+
+shortest_energy_route = road_network.route(origin, destination, routee_key="Electric") 
 ```
-The road network will compute energy over the whole graph when it's loaded so it could take some time if the graph is large.
+The road network will compute energy over the whole graph so it could take some time if the graph is large.
 
 Note that routee-compass comes with two default routee-powertrain models "Gasoline" and "Electric".
 
 If you want to use your own routee models you can do so like this:
 
 ```python
-from compass.road_network.tomtom_networkx import TomTomNetworkX
-from compass.utils.geo_utils import Coordinate
-from compass.utils.routee_utils import RouteeModelCollection
+from compass.compass_map import CompassMap
+from compass.rotuee_model_collection import RouteeModelCollection
+from polestar.constructs.geometry import Coordinate
 
 my_routee_models = {
     "Tesla": "path/to/tesla_model.json",
     "Ferrari": "path/to/ferrari_model.json",
 } 
+routee_models = RouteeModelCollection(my_routee_models)
 
-road_network = TomTomNetworkX("path/to/my/tomtom_road_network.pickle", RouteeModelCollection(my_routee_models))
+road_network = CompassMap.from_file("path/to/my/tomtom_road_network.pickle")
+
+road_network.compute_energy(routee_models)
 
 origin = Coordinate(lat=39.00, lon=-104.00)
 destination = Coordinate(lat=39.10, lon=-104.10)
 
-tesla_shortest_energy_route, tesla_route_metadata = road_network.shortest_path(origin, destination, routee_key="Tesla")
-ferrari_shortest_energy_route, ferrari_route_metadata = road_network.shortest_path(origin, destination, routee_key="Ferrari")
+tesla_shortest_energy_route = road_network.route(origin, destination, routee_key="Tesla")
+ferrari_shortest_energy_route = road_network.route(origin, destination, routee_key="Ferrari")
 ```
 
