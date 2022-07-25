@@ -2,7 +2,7 @@ import pandas as pd
 
 from polestar.road_map import RoadMap
 
-from compass.utils.routee_utils import RouteeModelCollection
+from compass.rotuee_model_collection import RouteeModelCollection
 from compass.utils.units import KILOMETERS_TO_MILES
 
 

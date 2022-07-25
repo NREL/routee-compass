@@ -6,7 +6,7 @@ authors = ["Nicholas Reinicke <Nicholas.Reinicke@nrel.gov>"]
 
 [[tool.poetry.source]]
 name = "mbap-pypi"
-url = "https://github.nrel.gov/pages/nreinick/mbap-pypi/"
+url = "https://github.nrel.gov/pages/MBAP/mbap-pypi/"
 
 [tool.poetry.dependencies]
 python = ">=3.8"
@@ -19,6 +19,7 @@ geopandas = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 routee-powertrain = "*"
+folium = "*"
 polestar = "*"
 
 
