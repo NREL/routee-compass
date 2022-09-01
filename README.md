@@ -12,7 +12,7 @@ conda activate routee-compass
 git clone https://github.nrel.gov/MBAP/routee-compass.git
 cd routee-compass
 
-pip install -e .
+poetry install
 ```
 
 ## get a road network
