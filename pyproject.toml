@@ -1,8 +1,15 @@
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
 [tool.poetry]
 name = "routee-compass"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Nicholas Reinicke <Nicholas.Reinicke@nrel.gov>"]
+packages = [
+    {include = "compass"}
+]
 
 [[tool.poetry.source]]
 name = "mbap-pypi"
@@ -10,18 +17,8 @@ url = "https://github.nrel.gov/pages/MBAP/mbap-pypi/"
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-pandas = "*"
-numpy = "*"
-networkx = "*"
-scipy = "*"
-shapely = "*"
-geopandas = "*"
-sqlalchemy = "*"
-psycopg2-binary = "*"
-routee-powertrain = "*"
-folium = "*"
-polestar = "*"
-
+polestar = {version = "*", source = "mbap-pypi"}
+routee-powertrain = {version = "*", source = "mbap-pypi"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.4"
