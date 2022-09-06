@@ -6,7 +6,7 @@ A routing engine that considers energy weights on edges of a graph for particula
 ## prepare a python environment
 
 ```bash
-conda create -n routee-compass python=3.8 
+conda create -n routee-compass python=3.8 poetry
 conda activate routee-compass 
 
 git clone https://github.nrel.gov/MBAP/routee-compass.git
