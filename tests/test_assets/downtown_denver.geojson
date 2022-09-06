@@ -9,7 +9,6 @@
   "features": [
     {
       "type": "Feature",
-      "crs": { "type": "name", "properties": { "name": "epsg:4326" } },
       "properties": {},
       "geometry": {
         "type": "Polygon",
