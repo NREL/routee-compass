@@ -37,7 +37,7 @@ from compass.compass_map import CompassMap
 from compass.rotuee_model_collection import RouteeModelCollection
 from polestar.constructs.geometry import Coordinate
 
-road_network = CompassMap.from_file("path/to/my/tomtom_road_network.pickle")
+road_network = CompassMap.from_file("path/to/my/tomtom_road_network.json")
 
 routee_models = RouteeModelCollection()
 
