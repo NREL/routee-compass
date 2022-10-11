@@ -65,7 +65,7 @@ my_routee_models = {
 } 
 routee_models = RouteeModelCollection(my_routee_models)
 
-road_network = CompassMap.from_file("path/to/my/tomtom_road_network.pickle")
+road_network = CompassMap.from_file("path/to/my/tomtom_road_network.json")
 
 road_network.compute_energy(routee_models)
 
