@@ -17,7 +17,7 @@ url = "https://github.nrel.gov/pages/MBAP/mbap-pypi/"
 
 [tool.poetry.dependencies]
 python = ">=3.8"
-polestar = {version = "*", source = "mbap-pypi"}
+polestar = {version = "0.1.6", source = "mbap-pypi"}
 routee-powertrain = {version = "*", source = "mbap-pypi"}
 
 [tool.poetry.dev-dependencies]

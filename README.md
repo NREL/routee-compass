@@ -3,7 +3,13 @@ A routing engine that considers energy weights on edges of a graph for particula
 
 # setup 
 
-## prepare a python environment
+## from conda 
+
+```bash
+conda env create -f environment.yml
+```
+
+## from source 
 
 ```bash
 conda create -n routee-compass python=3.8 poetry
