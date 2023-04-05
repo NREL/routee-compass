@@ -12,8 +12,8 @@ from mappymatch.utils.crs import CRS, LATLON_CRS
 from nrel.mappymatch.readers.tomtom import get_tomtom_gdf, tomtom_gdf_to_nx_graph
 from nrel.mappymatch.readers.tomtom_config import TomTomConfig
 
-from compass.rotuee_model_collection import RouteeModelCollection
-from compass.utils.units import KILOMETERS_TO_MILES
+from nrel.routee.compass.rotuee_model_collection import RouteeModelCollection
+from nrel.routee.compass.utils.units import KILOMETERS_TO_MILES
 
 
 class CompassMap(NxMap):

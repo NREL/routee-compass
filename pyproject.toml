@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nrel.routee.compass"
-version = "0.1.0"
+version = "0.1.2"
 description = "An eco-routing tool build upon RouteE-Powertrain"
 readme = "README.md"
 authors = [{ name = "National Renewable Energy Laboratory" }]
