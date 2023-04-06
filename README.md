@@ -37,16 +37,17 @@ Once you have a road network file downloaded you can start computing least energ
 Here's a sample workflow for loading the road network and finding the least energy path:
 
 ```python
-from nrel.routee.compass.compass_map import CompassMap
+from nrel.routee.compass.compass_map import compute_energy
 from nrel.routee.compass.rotuee_model_collection import RouteeModelCollection
 
 from mappymatch.constructs.coordinate import Coordinate
+from mappymatch.maps.nx.nx_map import NxMap
 
-road_network = CompassMap.from_file("path/to/my/tomtom_road_network.json")
+road_network = NxMap.from_file("path/to/my/tomtom_road_network.json")
 
 routee_models = RouteeModelCollection()
 
-road_network.compute_energy(routee_models)
+compute_energy(road_network, routee_models)
 
 origin = Coordinate.from_lat_lon(lat=39.00, lon=-104.00)
 destination = Coordinate.from_lat_lon(lat=39.10, lon=-104.10)
@@ -61,10 +62,11 @@ Note that routee-compass comes with two default routee-powertrain models "Gasoli
 If you want to use your own routee models you can do so like this:
 
 ```python
-from nrel.routee.compass.compass_map import CompassMap
+from nrel.routee.compass.compass_map import compute_energy
 from nrel.routee.compass.rotuee_model_collection import RouteeModelCollection
 
 from mappymatch.constructs.coordinate import Coordinate
+from mappymatch.maps.nx.nx_map import NxMap
 
 my_routee_models = {
     "Tesla": "path/to/tesla_model.json",
@@ -72,9 +74,9 @@ my_routee_models = {
 } 
 routee_models = RouteeModelCollection(my_routee_models)
 
-road_network = CompassMap.from_file("path/to/my/tomtom_road_network.json")
+road_network = NxMap.from_file("path/to/my/tomtom_road_network.json")
 
-road_network.compute_energy(routee_models)
+compute_energy(road_network, routee_models)
 
 origin = Coordinate(lat=39.00, lon=-104.00)
 destination = Coordinate(lat=39.10, lon=-104.10)
