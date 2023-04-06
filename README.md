@@ -52,7 +52,7 @@ compute_energy(road_network, routee_models)
 origin = Coordinate.from_lat_lon(lat=39.00, lon=-104.00)
 destination = Coordinate.from_lat_lon(lat=39.10, lon=-104.10)
 
-shortest_energy_route = road_network.route(origin, destination, routee_key="Electric") 
+shortest_energy_route = road_network.shortest_path(origin, destination, weight="Electric") 
 ```
 
 The road network will compute energy over the whole graph so it could take some time if the graph is large.
@@ -81,6 +81,6 @@ compute_energy(road_network, routee_models)
 origin = Coordinate(lat=39.00, lon=-104.00)
 destination = Coordinate(lat=39.10, lon=-104.10)
 
-tesla_shortest_energy_route = road_network.route(origin, destination, routee_key="Tesla")
-ferrari_shortest_energy_route = road_network.route(origin, destination, routee_key="Ferrari")
+tesla_shortest_energy_route = road_network.shortest_path(origin, destination, weight="Tesla")
+ferrari_shortest_energy_route = road_network.shortest_path(origin, destination, weight="Ferrari")
 ```
