@@ -5,7 +5,7 @@ from pathlib import Path
 
 from sqlalchemy import create_engine
 
-from nrel.routee.compass.compass_map import CompassMap
+from nrel.mappymatch.readers.tomtom import read_tomtom_nxmap_from_sql
 
 from mappymatch.constructs.geofence import Geofence
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     geofence = Geofence.from_geojson(geofence_path)
 
     print("building road map from sql..")
-    cmap = CompassMap.from_tomtom(geofence, engine)
+    cmap = read_tomtom_nxmap_from_sql(engine, geofence)
 
     print("writing road map to file..")
     outpath = Path(args.output_file)
