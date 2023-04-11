@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import pandas as pd
 
-from mappymatch.maps.nx.nx_map import NxMap
+from mappymatch.maps.map_interface import MapInterface 
 
 
 from nrel.routee.compass.rotuee_model_collection import RouteeModelCollection
 from nrel.routee.compass.utils.units import KILOMETERS_TO_MILES
 
 
-def compute_energy(nx_map: NxMap, routee_model_collection: RouteeModelCollection):
+def compute_energy(mappy_map: MapInterface, routee_model_collection: RouteeModelCollection):
     c = []
-    for road in nx_map.roads:
+    for road in mappy_map.roads:
         dist_km = road.metadata.get("kilometers")
         if dist_km is None:
             raise ValueError(f"link {road.road_id} is missing a kilometers attribute")
@@ -42,7 +42,7 @@ def compute_energy(nx_map: NxMap, routee_model_collection: RouteeModelCollection
         for link_id, gge in energy.items():
             new_attr[link_id] = {model_key: gge}
 
-        nx_map.set_road_attributes(new_attr)
+        mappy_map.set_road_attributes(new_attr)
 
-    nx_map.routee_model_collection = routee_model_collection
-    nx_map.routee_model_keys = set(routee_model_collection.routee_models.keys())
+    mappy_map.routee_model_collection = routee_model_collection
+    mappy_map.routee_model_keys = set(routee_model_collection.routee_models.keys())

@@ -2,13 +2,15 @@ import argparse
 from pathlib import Path
 from typing import List, Tuple
 import webbrowser
-from compass.rotuee_model_collection import RouteeModelCollection
 
 import folium
 
-from compass.compass_map import CompassMap
-from polestar.constructs.geometry import Coordinate
-from polestar.graph.graph_interface import Link
+from nrel.routee.compass.compass_map import compute_energy 
+from nrel.routee.compass.rotuee_model_collection import RouteeModelCollection
+
+from mappymatch.maps.igraph.igraph_map import IGraphMap
+from mappymatch.constructs.road import Road
+from mappymatch.constructs.coordinate import Coordinate
 
 parser = argparse.ArgumentParser(description="Plot routee-compass routes")
 parser.add_argument("road_network_file", help="Road network file to use")
@@ -21,7 +23,7 @@ parser.add_argument("--output", help="Output file", default="routes.html")
 if __name__ == "__main__":
     args = parser.parse_args()
     road_network_file = Path(args.road_network_file)
-    road_map: CompassMap = CompassMap.from_file(road_network_file)
+    rmap = IGraphMap.from_file(road_network_file)
 
     origin = Coordinate.from_lat_lon(lat=args.origin_lat, lon=args.origin_lon)
     destination = Coordinate.from_lat_lon(lat=args.dest_lat, lon=args.dest_lon)
@@ -31,15 +33,17 @@ if __name__ == "__main__":
     routee_models = RouteeModelCollection()
 
     # compute the energy on the road map for each model
-    road_map.compute_energy(routee_models)
+    compute_energy(rmap, routee_models)
 
-    dist_path = road_map.route(origin, destination, weight="kilometers")
-    time_path = road_map.route(origin, destination, weight="minutes")
-    enrg_path = road_map.route(origin, destination, weight="Gasoline")
+    print(rmap.g.es[0])
+
+    dist_path = rmap.shortest_path(origin, destination, weight="kilometers")
+    time_path = rmap.shortest_path(origin, destination, weight="minutes")
+    enrg_path = rmap.shortest_path(origin, destination, weight="Gasoline")
 
     path_mid_point = dist_path[int(len(dist_path) / 2)]
 
-    def coords_from_path(path: List[Link]) -> List[Tuple[float, float]]:
+    def coords_from_path(path: List[Road]) -> List[Tuple[float, float]]:
         coords = []
         for link in path:
             line = [(lat, lon) for lon, lat in link.geom.coords]
