@@ -1,6 +1,9 @@
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
+use pyo3::prelude::*;
+
+#[pyclass]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd)]
 pub struct Restriction {
     pub weight_limit_lbs: u32,
@@ -8,6 +11,8 @@ pub struct Restriction {
     pub width_limit_feet: u8,
     pub length_limit_feet: u8,
 }
+
+#[pyclass]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Node {
     pub id: u32,
@@ -19,35 +24,35 @@ impl Node {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd)]
+#[pyclass]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd)]
 pub struct Link {
-    pub id: u32,
     pub start_node: Node,
     pub end_node: Node,
     pub road_class: u8,
-    pub speed: u8,
+    pub time: u32,
     pub distance: u32,
     pub grade: i16,
     pub restriction: Option<Restriction>,
 }
 
+#[pymethods]
 impl Link {
+    #[new]
     pub fn new(
-        id: u32,
         start_node: Node,
         end_node: Node,
         road_class: u8,
-        speed: u8,
+        time: u32,
         distance: u32,
         grade: i16,
         restriction: Option<Restriction>,
     ) -> Self {
         Link {
-            id,
             start_node,
             end_node,
             road_class,
-            speed,
+            time,
             distance,
             grade,
             restriction,
@@ -55,17 +60,26 @@ impl Link {
     }
 }
 
+#[pyclass]
 pub struct Graph {
+    #[pyo3(get)]
     adjacency_list: HashMap<Node, HashSet<Link>>,
 }
 
 impl Graph {
+    pub fn neighbors(&self, node: &Node) -> Option<&HashSet<Link>> {
+        self.adjacency_list.get(node)
+    }
+}
+
+#[pymethods]
+impl Graph {
+    #[new]
     pub fn new() -> Self {
         Graph {
             adjacency_list: HashMap::new(),
         }
     }
-
     pub fn add_node(&mut self, node: Node) {
         self.adjacency_list.entry(node).or_insert_with(HashSet::new);
     }
@@ -77,7 +91,4 @@ impl Graph {
             .insert(link);
     }
 
-    pub fn neighbors(&self, node: &Node) -> Option<&HashSet<Link>> {
-        self.adjacency_list.get(node)
-    }
 }

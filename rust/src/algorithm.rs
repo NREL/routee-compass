@@ -1,11 +1,22 @@
-use std::{cmp::Reverse, collections::HashSet};
+use pyo3::prelude::*;
 use std::collections::{BinaryHeap, HashMap};
+use std::{cmp::Reverse, collections::HashSet};
 
-use crate::graph::{Link, Graph, Node};
+use crate::graph::{Graph, Link, Node};
 
 pub type CostFunction = fn(&Link) -> u32;
 
-pub fn dijkstra_shortest_path(graph: &Graph, start: &Node, end: &Node, cost_function: CostFunction) -> Option<(u32, Vec<Node>)> {
+#[pyfunction]
+pub fn py_time_shortest_path(graph: &Graph, start: &Node, end: &Node) -> Option<(u32, Vec<Node>)> {
+    let cost_function_time = |link: &Link| link.time;
+    dijkstra_shortest_path(graph, start, end, cost_function_time)
+}
+pub fn dijkstra_shortest_path(
+    graph: &Graph,
+    start: &Node,
+    end: &Node,
+    cost_function: CostFunction,
+) -> Option<(u32, Vec<Node>)> {
     let mut visited = HashSet::new();
     let mut min_heap = BinaryHeap::new();
     let mut parents: HashMap<Node, Node> = HashMap::new();
@@ -46,7 +57,8 @@ pub fn dijkstra_shortest_path(graph: &Graph, start: &Node, end: &Node, cost_func
                 let neighbor_cost = cost_function(link);
                 let new_cost = cost + neighbor_cost;
 
-                if !distances.contains_key(neighbor) || new_cost < *distances.get(neighbor).unwrap() {
+                if !distances.contains_key(neighbor) || new_cost < *distances.get(neighbor).unwrap()
+                {
                     distances.insert(neighbor.clone(), new_cost);
                     parents.insert(neighbor.clone(), current.clone());
                     min_heap.push((Reverse(new_cost), neighbor.clone()));
@@ -57,4 +69,3 @@ pub fn dijkstra_shortest_path(graph: &Graph, start: &Node, end: &Node, cost_func
 
     None
 }
-
