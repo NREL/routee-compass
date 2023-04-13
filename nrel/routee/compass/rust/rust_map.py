@@ -2,16 +2,13 @@ from compass_rust import Graph, Link, Node, RustMap
 
 from shapely.geometry import LineString
 
-import rtree as rt
 import pandas as pd
 import geopandas as gpd
 
 
 def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     """
-    build a rust map from a networkx graph; 
-    this is useful since networkx can extract the largest strongly connected component;
-    eventually, we could find the largest strongly connected component in rust
+    build a rust map from a geopandas dataframe; 
     """
     # map node ids to integers
     node_ids = set(gdf.junction_id_from.unique()).union(set(gdf.junction_id_to.unique()))
@@ -37,16 +34,16 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
             end_point = geom.coords[-1]
             minutes = t.neg_minutes
             grade = -t.mean_gradient_dec
-            start_node = Node(nodes[t.junction_id_to], start_point[0], start_point[1])
-            end_node = Node(nodes[t.junction_id_from], end_point[0], end_point[1])
+            start_node = Node(nodes[t.junction_id_to], int(start_point[0]), int(start_point[1]))
+            end_node = Node(nodes[t.junction_id_from], int(end_point[0]), int(end_point[1]))
         elif direction == FROM_TO_DIRECTION:
             geom = t.geom
             start_point = geom.coords[0]
             end_point = geom.coords[-1]
             minutes = t.pos_minutes
             grade = t.mean_gradient_dec
-            start_node = Node(nodes[t.junction_id_from], start_point[0], start_point[1])
-            end_node = Node(nodes[t.junction_id_to], end_point[0], end_point[1])
+            start_node = Node(nodes[t.junction_id_from], int(start_point[0]), int(start_point[1]))
+            end_node = Node(nodes[t.junction_id_to], int(end_point[0]), int(end_point[1]))
         else:
             raise ValueError("Bad direction value")
 
