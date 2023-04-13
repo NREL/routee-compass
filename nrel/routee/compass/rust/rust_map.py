@@ -63,7 +63,7 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     node_ids = set(gdf.junction_id_from.unique()).union(set(gdf.junction_id_to.unique()))
     nodes = {}
     # map the nodes to integers
-    for i, n in node_ids:
+    for i, n in enumerate(node_ids):
         nodes[n] = i 
 
      # also referred to as the 'positive' direction in TomTom
