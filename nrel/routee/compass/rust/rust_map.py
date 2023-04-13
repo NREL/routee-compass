@@ -20,7 +20,7 @@ class RustMap:
         rtree = rt.index.Index()
         for link, link_geom in links:
             graph.add_edge(link)
-            start_node_point = Point(link_geom.coords[0]) 
+            start_node_point = Point(link_geom.coords[0])
             rtree.insert(link.start_node.id, start_node_point.bounds)
 
         self.graph = graph
@@ -65,9 +65,9 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     nodes = {}
     # map the nodes to integers
     for i, n in enumerate(node_ids):
-        nodes[n] = i 
+        nodes[n] = i
 
-     # also referred to as the 'positive' direction in TomTom
+    # also referred to as the 'positive' direction in TomTom
     FROM_TO_DIRECTION = 2
 
     # also referred to as the 'negative' direction in TomTom
@@ -97,12 +97,12 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
             geom = t.geom
         else:
             raise ValueError("Bad direction value")
-        
+
         if pd.isna(t.display_class):
-            road_class = 100 
+            road_class = 100
         else:
             road_class = int(t.display_class)
-        
+
         if pd.isna(grade):
             grade_milli = 0
         else:
@@ -112,7 +112,9 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
         restrictions = None
         time_seconds = int(minutes * 60)
 
-        link = Link(start_node, end_node, road_class, time_seconds, distance_m, grade_milli, restrictions)
+        link = Link(
+            start_node, end_node, road_class, time_seconds, distance_m, grade_milli, restrictions
+        )
 
         return link, geom
 
@@ -124,11 +126,11 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     for t in twoway.itertuples():
         edge_tuple = build_edge_tuple(t, FROM_TO_DIRECTION)
         all_links.append(edge_tuple)
-    
+
     for t in oneway_ft.itertuples():
         edge_tuple = build_edge_tuple(t, FROM_TO_DIRECTION)
         all_links.append(edge_tuple)
-    
+
     for t in oneway_tf.itertuples():
         edge_tuple = build_edge_tuple(t, TO_FROM_DIRECTION)
         all_links.append(edge_tuple)
