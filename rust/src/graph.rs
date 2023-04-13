@@ -15,6 +15,7 @@ pub struct Restriction {
 #[pyclass]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Node {
+    #[pyo3(get)]
     pub id: u32,
 }
 
@@ -29,12 +30,19 @@ impl Node {
 #[pyclass]
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd)]
 pub struct Link {
+    #[pyo3(get)]
     pub start_node: Node,
+    #[pyo3(get)]
     pub end_node: Node,
+    #[pyo3(get)]
     pub road_class: u8,
+    #[pyo3(get)]
     pub time: u32,
+    #[pyo3(get)]
     pub distance: u32,
+    #[pyo3(get)]
     pub grade: i16,
+    #[pyo3(get)]
     pub restriction: Option<Restriction>,
 }
 
