@@ -1,10 +1,16 @@
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use std::path::PathBuf;
 
 use pyo3::prelude::*;
 
+use anyhow::Result;
+use bincode;
+use pyo3::types::PyType;
+use serde::{Deserialize, Serialize};
+
 #[pyclass]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Serialize, Deserialize)]
 pub struct Restriction {
     pub weight_limit_lbs: u32,
     pub height_limit_feet: u8,
@@ -13,7 +19,7 @@ pub struct Restriction {
 }
 
 #[pyclass]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Node {
     #[pyo3(get)]
     pub id: u32,
@@ -28,7 +34,7 @@ impl Node {
 }
 
 #[pyclass]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Serialize, Deserialize)]
 pub struct Link {
     #[pyo3(get)]
     pub start_node: Node,
@@ -71,6 +77,7 @@ impl Link {
 }
 
 #[pyclass]
+#[derive(Serialize, Deserialize)]
 pub struct Graph {
     #[pyo3(get)]
     adjacency_list: HashMap<Node, HashSet<Link>>,
@@ -79,6 +86,12 @@ pub struct Graph {
 impl Graph {
     pub fn neighbors(&self, node: &Node) -> Option<&HashSet<Link>> {
         self.adjacency_list.get(node)
+    }
+    pub fn to_binary(&self) -> Vec<u8> {
+        bincode::serialize(&self).unwrap()
+    }
+    pub fn from_binary(binary: &[u8]) -> Self {
+        bincode::deserialize(binary).unwrap()
     }
 }
 
@@ -89,6 +102,21 @@ impl Graph {
         Graph {
             adjacency_list: HashMap::new(),
         }
+    }
+
+    pub fn to_file(&self, filename: &str) -> Result<()> {
+        let path = PathBuf::from(filename);
+        let mut file = std::fs::File::create(path)?;
+        bincode::serialize_into(&mut file, &self)?;
+        Ok(())
+    }
+
+    #[classmethod]
+    pub fn from_file(_: &PyType, filename: &str) -> Result<Self> {
+        let path = PathBuf::from(filename);
+        let file = std::fs::File::open(path)?;
+        let graph = bincode::deserialize_from(file)?;
+        Ok(graph)
     }
 
     pub fn add_edge(&mut self, link: Link) {
