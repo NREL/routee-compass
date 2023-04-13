@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 use anyhow::Result;
 use bincode;
 use pyo3::types::PyType;
+use rstar::{PointDistance, RTreeObject, AABB};
 use serde::{Deserialize, Serialize};
 
 #[pyclass]
@@ -23,13 +24,31 @@ pub struct Restriction {
 pub struct Node {
     #[pyo3(get)]
     pub id: u32,
+    pub x: isize,
+    pub y: isize,
+}
+
+impl RTreeObject for Node {
+    type Envelope = AABB<[isize; 2]>;
+
+    fn envelope(&self) -> Self::Envelope {
+        AABB::from_corners([self.x, self.y], [self.x, self.y])
+    }
+}
+
+impl PointDistance for Node {
+    fn distance_2(&self, point: &[isize; 2]) -> isize {
+        let dx = self.x - point[0];
+        let dy = self.y - point[1];
+        dx * dx + dy * dy
+    }
 }
 
 #[pymethods]
 impl Node {
     #[new]
-    pub fn new(id: u32) -> Self {
-        Node { id }
+    pub fn new(id: u32, x: isize, y: isize) -> Self {
+        Node { id, x, y }
     }
 }
 
@@ -77,7 +96,7 @@ impl Link {
 }
 
 #[pyclass]
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Graph {
     #[pyo3(get)]
     adjacency_list: HashMap<Node, HashSet<Link>>,
@@ -87,11 +106,28 @@ impl Graph {
     pub fn neighbors(&self, node: &Node) -> Option<&HashSet<Link>> {
         self.adjacency_list.get(node)
     }
+    pub fn get_nodes(&self) -> Vec<Node> {
+        self.adjacency_list.keys().cloned().collect()
+    }
     pub fn to_binary(&self) -> Vec<u8> {
         bincode::serialize(&self).unwrap()
     }
     pub fn from_binary(binary: &[u8]) -> Self {
         bincode::deserialize(binary).unwrap()
+    }
+
+    pub fn to_file(&self, filename: &str) -> Result<()> {
+        let path = PathBuf::from(filename);
+        let mut file = std::fs::File::create(path)?;
+        bincode::serialize_into(&mut file, &self)?;
+        Ok(())
+    }
+
+    pub fn from_file(filename: &str) -> Result<Self> {
+        let path = PathBuf::from(filename);
+        let file = std::fs::File::open(path)?;
+        let graph = bincode::deserialize_from(file)?;
+        Ok(graph)
     }
 }
 
@@ -104,15 +140,14 @@ impl Graph {
         }
     }
 
-    pub fn to_file(&self, filename: &str) -> Result<()> {
-        let path = PathBuf::from(filename);
-        let mut file = std::fs::File::create(path)?;
-        bincode::serialize_into(&mut file, &self)?;
-        Ok(())
+    #[pyo3(name = "to_file")]
+    pub fn py_to_file(&self, filename: &str) -> Result<()> {
+        self.to_file(filename)
     }
 
     #[classmethod]
-    pub fn from_file(_: &PyType, filename: &str) -> Result<Self> {
+    #[pyo3(name = "from_file")]
+    pub fn py_from_file(_: &PyType, filename: &str) -> Result<Self> {
         let path = PathBuf::from(filename);
         let file = std::fs::File::open(path)?;
         let graph = bincode::deserialize_from(file)?;

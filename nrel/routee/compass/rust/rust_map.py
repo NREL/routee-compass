@@ -1,57 +1,10 @@
-from typing import List, Tuple
-from mappymatch.constructs.coordinate import Coordinate
+from compass_rust import Graph, Link, Node, RustMap
 
-from compass_rust import Graph, Link, Node, py_time_shortest_path
-
-from shapely.geometry import Point, LineString
+from shapely.geometry import LineString
 
 import rtree as rt
 import pandas as pd
 import geopandas as gpd
-
-
-class RustMap:
-    def __init__(self, links: List[Tuple[Link, LineString]]):
-        """
-        Build a map from a list of links and their geometry;
-        Currently this just uses the link start point for rtree lookup 
-        """
-        graph = Graph()
-        rtree = rt.index.Index()
-        for link, link_geom in links:
-            graph.add_edge(link)
-            start_node_point = Point(link_geom.coords[0])
-            rtree.insert(link.start_node.id, start_node_point.bounds)
-
-        self.graph = graph
-        self.rtree = rtree
-
-    def nearest_node(self, coord: Coordinate, buffer: float = 10.0) -> Node:
-        """
-        get the nearest node to a coordinate
-        """
-        nearest_nodes = list(self.rtree.nearest(coord.geom.bounds, 1))
-
-        if len(nearest_nodes) == 0:
-            raise ValueError(f"No roads found for {coord}")
-        else:
-            # if there's a tie, pick the first
-            nearest_node = nearest_nodes[0]
-
-        return Node(nearest_node)
-
-    def shortest_path(self, start: Coordinate, end: Coordinate) -> List[Node]:
-        """
-        get the shortest path between two coordinates
-        """
-        start_node = self.nearest_node(start)
-        end_node = self.nearest_node(end)
-        result = py_time_shortest_path(self.graph, start_node, end_node)
-        if result is None:
-            raise ValueError(f"No path found between {start} and {end}")
-
-        weight, path = result
-        return path
 
 
 def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
@@ -77,24 +30,23 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     oneway_tf = gdf[gdf.link_direction == TO_FROM_DIRECTION]
     twoway = gdf[gdf.link_direction.isin([1, 9])]
 
-    def build_edge_tuple(t, direction):
-        if direction == TO_FROM_DIRECTION:
-            minutes = t.neg_minutes
-            grade = -t.mean_gradient_dec
-            start_node = Node(nodes[t.junction_id_to])
-            end_node = Node(nodes[t.junction_id_from])
-        elif direction == FROM_TO_DIRECTION:
-            minutes = t.pos_minutes
-            grade = t.mean_gradient_dec
-            start_node = Node(nodes[t.junction_id_from])
-            end_node = Node(nodes[t.junction_id_to])
-        else:
-            raise ValueError("Bad direction value")
-
+    def build_link(t, direction):
         if direction == TO_FROM_DIRECTION:
             geom = LineString(reversed(t.geom.coords))
+            start_point = geom.coords[0]
+            end_point = geom.coords[-1]
+            minutes = t.neg_minutes
+            grade = -t.mean_gradient_dec
+            start_node = Node(nodes[t.junction_id_to], start_point[0], start_point[1])
+            end_node = Node(nodes[t.junction_id_from], end_point[0], end_point[1])
         elif direction == FROM_TO_DIRECTION:
             geom = t.geom
+            start_point = geom.coords[0]
+            end_point = geom.coords[-1]
+            minutes = t.pos_minutes
+            grade = t.mean_gradient_dec
+            start_node = Node(nodes[t.junction_id_from], start_point[0], start_point[1])
+            end_node = Node(nodes[t.junction_id_to], end_point[0], end_point[1])
         else:
             raise ValueError("Bad direction value")
 
@@ -116,23 +68,23 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
             start_node, end_node, road_class, time_seconds, distance_m, grade_milli, restrictions
         )
 
-        return link, geom
+        return link
 
-    all_links = []
+    graph = Graph()
     for t in twoway.itertuples():
-        edge_tuple = build_edge_tuple(t, TO_FROM_DIRECTION)
-        all_links.append(edge_tuple)
+        link = build_link(t, TO_FROM_DIRECTION)
+        graph.add_edge(link)
 
     for t in twoway.itertuples():
-        edge_tuple = build_edge_tuple(t, FROM_TO_DIRECTION)
-        all_links.append(edge_tuple)
+        link = build_link(t, FROM_TO_DIRECTION)
+        graph.add_edge(link)
 
     for t in oneway_ft.itertuples():
-        edge_tuple = build_edge_tuple(t, FROM_TO_DIRECTION)
-        all_links.append(edge_tuple)
+        link = build_link(t, FROM_TO_DIRECTION)
+        graph.add_edge(link)
 
     for t in oneway_tf.itertuples():
-        edge_tuple = build_edge_tuple(t, TO_FROM_DIRECTION)
-        all_links.append(edge_tuple)
+        link = build_link(t, TO_FROM_DIRECTION)
+        graph.add_edge(link)
 
-    return RustMap(all_links)
+    return RustMap(graph)
