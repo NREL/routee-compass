@@ -6,6 +6,7 @@ from compass_rust import Graph, Link, Node, py_time_shortest_path
 from shapely.geometry import Point, LineString
 
 import rtree as rt
+import pandas as pd
 import geopandas as gpd
 
 
@@ -96,10 +97,18 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
             geom = t.geom
         else:
             raise ValueError("Bad direction value")
+        
+        if pd.isna(t.display_class):
+            road_class = 100 
+        else:
+            road_class = int(t.display_class)
+        
+        if pd.isna(grade):
+            grade_milli = 0
+        else:
+            grade_milli = int(grade * 1000)
 
-        road_class = int(t.display_class)
         distance_m = int(t.kilometers * 1000)
-        grade_milli = int(grade * 1000)
         restrictions = None
         time_seconds = int(minutes * 60)
 
