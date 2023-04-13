@@ -18,7 +18,9 @@ pub struct Node {
     pub id: u32,
 }
 
+#[pymethods]
 impl Node {
+    #[new]
     pub fn new(id: u32) -> Self {
         Node { id }
     }
@@ -80,9 +82,6 @@ impl Graph {
             adjacency_list: HashMap::new(),
         }
     }
-    pub fn add_node(&mut self, node: Node) {
-        self.adjacency_list.entry(node).or_insert_with(HashSet::new);
-    }
 
     pub fn add_edge(&mut self, link: Link) {
         self.adjacency_list
@@ -90,5 +89,4 @@ impl Graph {
             .or_insert_with(HashSet::new)
             .insert(link);
     }
-
 }
