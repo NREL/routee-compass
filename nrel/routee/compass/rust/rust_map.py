@@ -6,16 +6,21 @@ from compass_rust import Graph, Link, Node, py_time_shortest_path
 from shapely.geometry import Point, LineString
 
 import rtree as rt
-import networkx as nx
+import geopandas as gpd
 
 
 class RustMap:
-    def __init__(self, links: List[Tuple[Link, Point]]):
+    def __init__(self, links: List[Tuple[Link, LineString]]):
+        """
+        Build a map from a list of links and their geometry;
+        Currently this just uses the link start point for rtree lookup 
+        """
         graph = Graph()
         rtree = rt.index.Index()
-        for link, point in links:
+        for link, link_geom in links:
             graph.add_edge(link)
-            rtree.insert(link.start_node.id, point.bounds)
+            start_node_point = Point(link_geom.coords[0]) 
+            rtree.insert(link.start_node.id, start_node_point.bounds)
 
         self.graph = graph
         self.rtree = rtree
@@ -48,48 +53,75 @@ class RustMap:
         return path
 
 
-def build_rust_map_from_nx_graph(graph: nx.MultiDiGraph) -> RustMap:
+def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     """
     build a rust map from a networkx graph; 
     this is useful since networkx can extract the largest strongly connected component;
     eventually, we could find the largest strongly connected component in rust
     """
+    # map node ids to integers
+    node_ids = set(gdf.junction_id_from.unique()).union(set(gdf.junction_id_to.unique()))
     nodes = {}
     # map the nodes to integers
-    for i, n in enumerate(graph.nodes()):
+    for i, n in node_ids:
         nodes[n] = i 
 
-    links = []
-    for u, v, data in graph.edges(data=True):
-        start_node = Node(nodes[u])
-        end_node = Node(nodes[v])
-        time = data.get("minutes")
-        if time is None:
-            raise ValueError(f"Edge {u} -> {v} has no time")
-        distance_km = data.get("kilometers")
-        if distance_km is None:
-            raise ValueError(f"Edge {u} -> {v} has no distance")
+     # also referred to as the 'positive' direction in TomTom
+    FROM_TO_DIRECTION = 2
 
-        distance_m = int(distance_km * 1000)
+    # also referred to as the 'negative' direction in TomTom
+    TO_FROM_DIRECTION = 3
 
-        road_class = data.get("display_class")
-        if road_class is None:
-            raise ValueError(f"Edge {u} -> {v} has no frc")
+    oneway_ft = gdf[gdf.link_direction == FROM_TO_DIRECTION]
+    oneway_tf = gdf[gdf.link_direction == TO_FROM_DIRECTION]
+    twoway = gdf[gdf.link_direction.isin([1, 9])]
 
-        grade_dec = data["metadata"].get("grade")
-        if grade_dec is None:
-            raise ValueError(f"Edge {u} -> {v} has no grade")
+    def build_edge_tuple(t, direction):
+        if direction == TO_FROM_DIRECTION:
+            minutes = t.neg_minutes
+            grade = -t.mean_gradient_dec
+            start_node = Node(nodes[t.junction_id_to])
+            end_node = Node(nodes[t.junction_id_from])
+        elif direction == FROM_TO_DIRECTION:
+            minutes = t.pos_minutes
+            grade = t.mean_gradient_dec
+            start_node = Node(nodes[t.junction_id_from])
+            end_node = Node(nodes[t.junction_id_to])
+        else:
+            raise ValueError("Bad direction value")
 
-        grade_milli = int(grade_dec * 1000)
+        if direction == TO_FROM_DIRECTION:
+            geom = LineString(reversed(t.geom.coords))
+        elif direction == FROM_TO_DIRECTION:
+            geom = t.geom
+        else:
+            raise ValueError("Bad direction value")
 
+        road_class = int(t.display_class)
+        distance_m = int(t.kilometers * 1000)
+        grade_milli = int(grade * 1000)
         restrictions = None
+        time_seconds = int(minutes * 60)
 
-        link = Link(start_node, end_node, road_class, time, distance_m, grade_milli, restrictions)
+        link = Link(start_node, end_node, road_class, time_seconds, distance_m, grade_milli, restrictions)
 
-        geom: LineString = data["geom"]
+        return link, geom
 
-        link_start_point = Point(geom.coords[0])
+    all_links = []
+    for t in twoway.itertuples():
+        edge_tuple = build_edge_tuple(t, TO_FROM_DIRECTION)
+        all_links.append(edge_tuple)
 
-        links.append((link, link_start_point))
+    for t in twoway.itertuples():
+        edge_tuple = build_edge_tuple(t, FROM_TO_DIRECTION)
+        all_links.append(edge_tuple)
     
-    return RustMap(links)
+    for t in oneway_ft.itertuples():
+        edge_tuple = build_edge_tuple(t, FROM_TO_DIRECTION)
+        all_links.append(edge_tuple)
+    
+    for t in oneway_tf.itertuples():
+        edge_tuple = build_edge_tuple(t, TO_FROM_DIRECTION)
+        all_links.append(edge_tuple)
+
+    return RustMap(all_links)
