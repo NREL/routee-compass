@@ -103,19 +103,6 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     graph.add_links_bulk(links)
     print("building graph took", time.time() - start_time, "seconds")
 
-    print("building graph in python..")
-    start_time = time.time()
-    graph = Graph()
-    for link in links:
-        graph.add_link(link)
-    print("building graph in python took", time.time() - start_time, "seconds")
-
-    print("building graph in parallel..")
-    start_time = time.time()
-    graph = Graph()
-    graph.add_links_parallel(links)
-    print("building graph in parallel took", time.time() - start_time, "seconds")
-
     print("getting largest strongly connected component..")
     start_time = time.time()
     # get the largest strongly connected component
