@@ -1,4 +1,4 @@
-from compass_rust import Graph, Link, Node, RustMap
+from compass_rust import Graph, Link, Node, RustMap, largest_scc
 
 from shapely.geometry import LineString
 
@@ -70,18 +70,21 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     graph = Graph()
     for t in twoway.itertuples():
         link = build_link(t, TO_FROM_DIRECTION)
-        graph.add_edge(link)
+        graph.add_link(link)
 
     for t in twoway.itertuples():
         link = build_link(t, FROM_TO_DIRECTION)
-        graph.add_edge(link)
+        graph.add_link(link)
 
     for t in oneway_ft.itertuples():
         link = build_link(t, FROM_TO_DIRECTION)
-        graph.add_edge(link)
+        graph.add_link(link)
 
     for t in oneway_tf.itertuples():
         link = build_link(t, TO_FROM_DIRECTION)
-        graph.add_edge(link)
+        graph.add_link(link)
+    
+    # get the largest strongly connected component
+    graph = largest_scc(graph)
 
     return RustMap(graph)

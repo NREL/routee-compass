@@ -24,7 +24,9 @@ pub struct Restriction {
 pub struct Node {
     #[pyo3(get)]
     pub id: u32,
+    #[pyo3(get)]
     pub x: isize,
+    #[pyo3(get)]
     pub y: isize,
 }
 
@@ -93,21 +95,29 @@ impl Link {
             restriction,
         }
     }
+    pub fn transpose(&self) -> Self {
+        Link {
+            start_node: self.end_node,
+            end_node: self.start_node,
+            road_class: self.road_class,
+            time: self.time,
+            distance: self.distance,
+            grade: self.grade,
+            restriction: self.restriction,
+        }
+    }
 }
 
 #[pyclass]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Graph {
     #[pyo3(get)]
-    adjacency_list: HashMap<Node, HashSet<Link>>,
+    pub adjacency_list: HashMap<Node, HashSet<Link>>,
 }
 
 impl Graph {
     pub fn neighbors(&self, node: &Node) -> Option<&HashSet<Link>> {
         self.adjacency_list.get(node)
-    }
-    pub fn get_nodes(&self) -> Vec<Node> {
-        self.adjacency_list.keys().cloned().collect()
     }
     pub fn to_binary(&self) -> Vec<u8> {
         bincode::serialize(&self).unwrap()
@@ -129,6 +139,7 @@ impl Graph {
         let graph = bincode::deserialize_from(file)?;
         Ok(graph)
     }
+
 }
 
 #[pymethods]
@@ -140,10 +151,25 @@ impl Graph {
         }
     }
 
+    pub fn get_transpose(&self) -> Graph {
+        let mut transpose = Graph::new();
+        for links in self.adjacency_list.values() {
+            for link in links {
+                transpose.add_link(link.transpose());
+            }
+        }
+        transpose
+    }
+
+    pub fn get_nodes(&self) -> Vec<Node> {
+        self.adjacency_list.keys().cloned().collect()
+    }
+
     #[pyo3(name = "to_file")]
     pub fn py_to_file(&self, filename: &str) -> Result<()> {
         self.to_file(filename)
     }
+
 
     #[classmethod]
     #[pyo3(name = "from_file")]
@@ -154,7 +180,7 @@ impl Graph {
         Ok(graph)
     }
 
-    pub fn add_edge(&mut self, link: Link) {
+    pub fn add_link(&mut self, link: Link) {
         self.adjacency_list
             .entry(link.start_node)
             .or_insert_with(HashSet::new)

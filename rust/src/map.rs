@@ -10,6 +10,7 @@ use crate::{
 
 #[pyclass]
 pub struct RustMap {
+    #[pyo3(get)]
     pub graph: Graph,
     pub rtree: RTree<Node>,
 }

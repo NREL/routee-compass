@@ -1,16 +1,12 @@
-use pyo3::prelude::*;
 use std::collections::{BinaryHeap, HashMap};
 use std::{cmp::Reverse, collections::HashSet};
 
 use crate::graph::{Graph, Link, Node};
 
+use pyo3::prelude::*;
+
 pub type CostFunction = fn(&Link) -> u32;
 
-#[pyfunction]
-pub fn py_time_shortest_path(graph: &Graph, start: &Node, end: &Node) -> Option<(u32, Vec<Node>)> {
-    let cost_function_time = |link: &Link| link.time;
-    dijkstra_shortest_path(graph, start, end, cost_function_time)
-}
 pub fn dijkstra_shortest_path(
     graph: &Graph,
     start: &Node,
@@ -68,4 +64,72 @@ pub fn dijkstra_shortest_path(
     }
 
     None
+}
+
+pub fn dfs(graph: &Graph, node: &Node, visited: &mut HashSet<Node>, stack: &mut Vec<Node>) {
+    visited.insert(node.clone());
+    if let Some(links) = graph.adjacency_list.get(node) {
+        for link in links {
+            if !visited.contains(&link.end_node) {
+                dfs(graph, &link.end_node, visited, stack);
+            }
+        }
+    }
+    stack.push(node.clone());
+}
+
+pub fn dfs_transpose(
+    graph: &Graph,
+    node: &Node,
+    visited: &mut HashSet<Node>,
+    scc: &mut HashSet<Node>,
+) {
+    visited.insert(node.clone());
+    scc.insert(node.clone());
+    if let Some(links) = graph.adjacency_list.get(node) {
+        for link in links {
+            if !visited.contains(&link.end_node) {
+                dfs_transpose(graph, &link.end_node, visited, scc);
+            }
+        }
+    }
+}
+
+#[pyfunction]
+pub fn largest_scc(graph: &Graph) -> Graph {
+    let mut stack = Vec::new();
+    let mut visited = HashSet::new();
+
+    for node in graph.adjacency_list.keys() {
+        if !visited.contains(node) {
+            dfs(graph, node, &mut visited, &mut stack);
+        }
+    }
+
+    let transpose = graph.get_transpose();
+    visited.clear();
+
+    let mut largest_scc = HashSet::new();
+    while let Some(node) = stack.pop() {
+        if !visited.contains(&node) {
+            let mut scc = HashSet::new();
+            dfs_transpose(&transpose, &node, &mut visited, &mut scc);
+            if scc.len() > largest_scc.len() {
+                largest_scc = scc;
+            }
+        }
+    }
+
+    let mut largest_scc_graph = Graph::new();
+    for node in &largest_scc {
+        if let Some(links) = graph.adjacency_list.get(node) {
+            for link in links {
+                if largest_scc.contains(&link.end_node) {
+                    largest_scc_graph.add_link(link.clone());
+                }
+            }
+        }
+    }
+
+    largest_scc_graph
 }
