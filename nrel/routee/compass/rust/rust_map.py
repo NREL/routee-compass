@@ -85,11 +85,15 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     links.extend(two_way_ft_links)
     print("building two links took", time.time() - start_time, "seconds")
 
+    del(twoway)
+
     print("building one way links to-from..")
     start_time = time.time()
     oneway_ft_links = [build_link(t, FROM_TO_DIRECTION) for t in oneway_ft.itertuples()]
     links.extend(oneway_ft_links)
     print("building one way links took", time.time() - start_time, "seconds")
+
+    del(oneway_ft)
 
     print("building one way links from-to..")
     start_time = time.time()
@@ -97,11 +101,20 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     links.extend(oneway_tf_links)
     print("building one way links took", time.time() - start_time, "seconds")
 
+    del(oneway_tf)
+    del(gdf)
+
     print("building graph..")
     start_time = time.time()
     graph = Graph()
     graph.add_links_bulk(links)
     print("building graph took", time.time() - start_time, "seconds")
+
+    del(links)
+    del(two_way_tf_links)
+    del(two_way_ft_links)
+    del(oneway_ft_links)
+    del(oneway_tf_links)
 
     print("getting largest strongly connected component..")
     start_time = time.time()

@@ -3,7 +3,6 @@ use std::hash::Hash;
 use std::path::PathBuf;
 
 use pyo3::prelude::*;
-use rayon::prelude::*;
 
 use anyhow::Result;
 use bincode;
