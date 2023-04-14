@@ -11,6 +11,7 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     build a rust map from a geopandas dataframe; 
     """
     # map node ids to integers
+    print("mapping node ids to integers..")
     node_ids = set(gdf.junction_id_from.unique()).union(set(gdf.junction_id_to.unique()))
     nodes = {}
     # map the nodes to integers
@@ -68,22 +69,27 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
         return link
 
     graph = Graph()
+    print("building two way links to-from..")
     for t in twoway.itertuples():
         link = build_link(t, TO_FROM_DIRECTION)
         graph.add_link(link)
 
+    print("building one way links from-to..")
     for t in twoway.itertuples():
         link = build_link(t, FROM_TO_DIRECTION)
         graph.add_link(link)
 
+    print("building one way links to-from..")
     for t in oneway_ft.itertuples():
         link = build_link(t, FROM_TO_DIRECTION)
         graph.add_link(link)
 
+    print("building one way links from-to..")
     for t in oneway_tf.itertuples():
         link = build_link(t, TO_FROM_DIRECTION)
         graph.add_link(link)
     
+    print("getting largest strongly connected component..")
     # get the largest strongly connected component
     graph = largest_scc(graph)
 
