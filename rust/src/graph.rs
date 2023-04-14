@@ -3,6 +3,7 @@ use std::hash::Hash;
 use std::path::PathBuf;
 
 use pyo3::prelude::*;
+use rayon::prelude::*;
 
 use anyhow::Result;
 use bincode;
@@ -139,7 +140,6 @@ impl Graph {
         let graph = bincode::deserialize_from(file)?;
         Ok(graph)
     }
-
 }
 
 #[pymethods]
@@ -170,7 +170,6 @@ impl Graph {
         self.to_file(filename)
     }
 
-
     #[classmethod]
     #[pyo3(name = "from_file")]
     pub fn py_from_file(_: &PyType, filename: &str) -> Result<Self> {
@@ -185,5 +184,11 @@ impl Graph {
             .entry(link.start_node)
             .or_insert_with(HashSet::new)
             .insert(link);
+    }
+
+    pub fn add_links_bulk(&mut self, links: Vec<Link>) {
+        for link in links {
+            self.add_link(link);
+        }
     }
 }

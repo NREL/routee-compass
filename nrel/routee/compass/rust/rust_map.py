@@ -72,36 +72,52 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
 
         return link
 
-    graph = Graph()
+    links = []
     print("building two way links to-from..")
-    for t in gdf.itertuples():
-        link = build_link(t, TO_FROM_DIRECTION)
-        graph.add_link(link)
-
+    start_time = time.time()
+    two_way_tf_links = [build_link(t, TO_FROM_DIRECTION) for t in twoway.itertuples()]
+    links.extend(two_way_tf_links)
     print("building two links took", time.time() - start_time, "seconds")
 
     print("building two way links from-to..")
-    for t in twoway.itertuples():
-        link = build_link(t, FROM_TO_DIRECTION)
-        graph.add_link(link)
-
+    start_time = time.time()
+    two_way_ft_links = [build_link(t, FROM_TO_DIRECTION) for t in twoway.itertuples()]
+    links.extend(two_way_ft_links)
     print("building two links took", time.time() - start_time, "seconds")
 
     print("building one way links to-from..")
-    for t in oneway_ft.itertuples():
-        link = build_link(t, FROM_TO_DIRECTION)
-        graph.add_link(link)
-
+    start_time = time.time()
+    oneway_ft_links = [build_link(t, FROM_TO_DIRECTION) for t in oneway_ft.itertuples()]
+    links.extend(oneway_ft_links)
     print("building one way links took", time.time() - start_time, "seconds")
 
     print("building one way links from-to..")
-    for t in oneway_tf.itertuples():
-        link = build_link(t, TO_FROM_DIRECTION)
-        graph.add_link(link)
-
+    start_time = time.time()
+    oneway_tf_links = [build_link(t, TO_FROM_DIRECTION) for t in oneway_tf.itertuples()]
+    links.extend(oneway_tf_links)
     print("building one way links took", time.time() - start_time, "seconds")
 
+    print("building graph..")
+    start_time = time.time()
+    graph = Graph()
+    graph.add_links_bulk(links)
+    print("building graph took", time.time() - start_time, "seconds")
+
+    print("building graph in python..")
+    start_time = time.time()
+    graph = Graph()
+    for link in links:
+        graph.add_link(link)
+    print("building graph in python took", time.time() - start_time, "seconds")
+
+    print("building graph in parallel..")
+    start_time = time.time()
+    graph = Graph()
+    graph.add_links_parallel(links)
+    print("building graph in parallel took", time.time() - start_time, "seconds")
+
     print("getting largest strongly connected component..")
+    start_time = time.time()
     # get the largest strongly connected component
     graph = largest_scc(graph)
 
