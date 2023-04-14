@@ -1,7 +1,6 @@
 pub mod algorithm;
 pub mod graph;
 pub mod map;
-pub mod routee;
 
 use algorithm::largest_scc;
 use graph::{Graph, Link, Node};

@@ -1,3 +1,4 @@
+import time
 from compass_rust import Graph, Link, Node, RustMap, largest_scc
 
 from shapely.geometry import LineString
@@ -11,12 +12,15 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
     build a rust map from a geopandas dataframe; 
     """
     # map node ids to integers
+    start_time = time.time()
     print("mapping node ids to integers..")
     node_ids = set(gdf.junction_id_from.unique()).union(set(gdf.junction_id_to.unique()))
     nodes = {}
     # map the nodes to integers
     for i, n in enumerate(node_ids):
         nodes[n] = i
+
+    print(f"mapping took {time.time() - start_time} seconds")
 
     # also referred to as the 'positive' direction in TomTom
     FROM_TO_DIRECTION = 2
@@ -70,27 +74,37 @@ def build_rust_map_from_gdf(gdf: gpd.geodataframe.GeoDataFrame) -> RustMap:
 
     graph = Graph()
     print("building two way links to-from..")
-    for t in twoway.itertuples():
+    for t in gdf.itertuples():
         link = build_link(t, TO_FROM_DIRECTION)
         graph.add_link(link)
 
-    print("building one way links from-to..")
+    print("building two links took", time.time() - start_time, "seconds")
+
+    print("building two way links from-to..")
     for t in twoway.itertuples():
         link = build_link(t, FROM_TO_DIRECTION)
         graph.add_link(link)
+
+    print("building two links took", time.time() - start_time, "seconds")
 
     print("building one way links to-from..")
     for t in oneway_ft.itertuples():
         link = build_link(t, FROM_TO_DIRECTION)
         graph.add_link(link)
 
+    print("building one way links took", time.time() - start_time, "seconds")
+
     print("building one way links from-to..")
     for t in oneway_tf.itertuples():
         link = build_link(t, TO_FROM_DIRECTION)
         graph.add_link(link)
-    
+
+    print("building one way links took", time.time() - start_time, "seconds")
+
     print("getting largest strongly connected component..")
     # get the largest strongly connected component
     graph = largest_scc(graph)
+
+    print("getting largest strongly connected component took", time.time() - start_time, "seconds")
 
     return RustMap(graph)
