@@ -164,6 +164,25 @@ impl Graph {
         self.adjacency_list.keys().cloned().collect()
     }
 
+    /// get a list of links given a list of nodes
+    /// this is useful for getting the links that are in a given route
+    /// the links are returned in the order that they appear in the route
+    pub fn get_links_in_path(&self, nodes_in_path: Vec<Node>) -> Vec<Link> {
+        let mut links_in_path = Vec::new();
+        for (start_node, end_node) in nodes_in_path.windows(2).map(|w| (w[0], w[1])) {
+            let links = self
+                .adjacency_list
+                .get(&start_node)
+                .expect("start node not found in graph");
+            let link = links
+                .iter()
+                .find(|link| link.end_node == end_node)
+                .expect("end node not found in graph");
+            links_in_path.push(link.clone());
+        }
+        links_in_path
+    }
+
     #[pyo3(name = "to_file")]
     pub fn py_to_file(&self, filename: &str) -> Result<()> {
         self.to_file(filename)

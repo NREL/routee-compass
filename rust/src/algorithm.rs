@@ -5,13 +5,11 @@ use crate::graph::{Graph, Link, Node};
 
 use pyo3::prelude::*;
 
-pub type CostFunction = fn(&Link) -> u32;
-
 pub fn dijkstra_shortest_path(
     graph: &Graph,
     start: &Node,
     end: &Node,
-    cost_function: CostFunction,
+    cost_function: impl Fn(&Link) -> u32,
 ) -> Option<(u32, Vec<Node>)> {
     let mut visited = HashSet::new();
     let mut min_heap = BinaryHeap::new();

@@ -1,11 +1,12 @@
 use rstar::RTree;
 
-use pyo3::{prelude::*, types::PyType};
 use anyhow::Result;
+use pyo3::{prelude::*, types::PyType};
 
 use crate::{
     algorithm::dijkstra_shortest_path,
-    graph::{Graph, Node},
+    graph::{Graph, Link, Node},
+    powertrain::{build_routee_cost_function, ROUTEE_SCALE_FACTOR},
 };
 
 #[pyclass]
@@ -13,6 +14,13 @@ pub struct RustMap {
     #[pyo3(get)]
     pub graph: Graph,
     pub rtree: RTree<Node>,
+}
+
+impl RustMap {
+    pub fn from_file(path: &str) -> Result<Self> {
+        let graph = Graph::from_file(path)?;
+        Ok(RustMap::new(graph))
+    }
 }
 
 #[pymethods]
@@ -28,7 +36,8 @@ impl RustMap {
     }
 
     #[classmethod]
-    pub fn from_file(_: &PyType, path: &str) -> Result<Self> {
+    #[pyo3(name = "from_file")]
+    pub fn py_from_file(_: &PyType, path: &str) -> Result<Self> {
         let graph = Graph::from_file(path)?;
         Ok(RustMap::new(graph))
     }
@@ -37,10 +46,38 @@ impl RustMap {
         self.rtree.nearest_neighbor(&point).cloned()
     }
 
-    pub fn shortest_path(&self, start: [isize; 2], end: [isize; 2]) -> Option<Vec<Node>> {
+    /// shortest path from start to end using the time as the weight;
+    /// returns the path as a list of links
+    pub fn shortest_time_path(
+        &self,
+        start: [isize; 2],
+        end: [isize; 2],
+    ) -> Option<(u32, Vec<Link>)> {
         let start_node = self.get_closest_node(start)?;
         let end_node = self.get_closest_node(end)?;
-        dijkstra_shortest_path(&self.graph, &start_node, &end_node, |link| link.time)
-            .map(|(_, path)| path)
+        match dijkstra_shortest_path(&self.graph, &start_node, &end_node, |link| link.time) {
+            Some((time_seconds, path)) => Some((time_seconds, self.graph.get_links_in_path(path))),
+            None => None,
+        }
+    }
+
+    /// shortest path the energy from a routee model as the weight;
+    pub fn shortest_energy_path(
+        &self,
+        start: [isize; 2],
+        end: [isize; 2],
+        routee_model_path: &str,
+    ) -> Option<(f64, Vec<Link>)> {
+        let start_node = self.get_closest_node(start)?;
+        let end_node = self.get_closest_node(end)?;
+        let routee_cost_function = build_routee_cost_function(routee_model_path).unwrap();
+        match dijkstra_shortest_path(&self.graph, &start_node, &end_node, routee_cost_function) {
+            Some((scaled_energy, path)) => {
+                let energy = scaled_energy as f64 / ROUTEE_SCALE_FACTOR;
+                Some((energy, self.graph.get_links_in_path(path)))
+            }
+
+            None => None,
+        }
     }
 }
