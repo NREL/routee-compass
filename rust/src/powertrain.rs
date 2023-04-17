@@ -14,20 +14,20 @@ pub const ROUTEE_SCALE_FACTOR: f64 = 100000.0;
 #[derive(Clone, Debug)]
 pub struct VehicleParameters {
     pub weight_lbs: u32,
-    pub height_feet: u8,
-    pub width_feet: u8,
-    pub length_feet: u8,
+    pub height_inches: u8,
+    pub width_inches: u8,
+    pub length_inches: u8,
 }
 
 #[pymethods]
 impl VehicleParameters {
     #[new]
-    pub fn new(weight_lbs: u32, height_feet: u8, width_feet: u8, length_feet: u8) -> Self {
+    pub fn new(weight_lbs: u32, height_inches: u8, width_inches: u8, length_inches: u8) -> Self {
         VehicleParameters {
             weight_lbs,
-            height_feet,
-            width_feet,
-            length_feet,
+            height_inches,
+            width_inches,
+            length_inches,
         }
     }
 }
@@ -41,8 +41,8 @@ pub fn build_routee_cost_function(model_file_path: &str) -> Result<impl Fn(&Link
         bincode::deserialize(&rf_binary)?;
 
     Ok(move |link: &Link| {
-        let distance_miles = link.distance as f64 * 0.0006213712;
-        let time_hours = link.time as f64 / 3600.0;
+        let distance_miles = link.distance_centimeters as f64 * 0.0006213712;
+        let time_hours = link.time_seconds as f64 / 3600.0;
         let speed_mph = distance_miles / time_hours;
         let grade = link.grade as f64;
 

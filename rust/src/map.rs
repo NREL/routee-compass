@@ -60,7 +60,7 @@ impl RustMap {
             &self.graph,
             &start_node,
             &end_node,
-            |link| link.time,
+            |link| link.time_seconds,
             build_restriction_function(vehicle_parameters),
         ) {
             Some((time_seconds, path)) => Some((time_seconds, self.graph.get_links_in_path(path))),

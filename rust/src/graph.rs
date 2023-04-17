@@ -11,33 +11,6 @@ use rstar::{PointDistance, RTreeObject, AABB};
 use serde::{Deserialize, Serialize};
 
 #[pyclass]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Serialize, Deserialize)]
-pub struct Restriction {
-    pub weight_limit_lbs: u32,
-    pub height_limit_feet: u8,
-    pub width_limit_feet: u8,
-    pub length_limit_feet: u8,
-}
-
-#[pymethods]
-impl Restriction {
-    #[new]
-    pub fn new(
-        weight_limit_lbs: u32,
-        height_limit_feet: u8,
-        width_limit_feet: u8,
-        length_limit_feet: u8,
-    ) -> Self {
-        Restriction {
-            weight_limit_lbs,
-            height_limit_feet,
-            width_limit_feet,
-            length_limit_feet,
-        }
-    }
-}
-
-#[pyclass]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Node {
     #[pyo3(get)]
@@ -82,13 +55,19 @@ pub struct Link {
     #[pyo3(get)]
     pub road_class: u8,
     #[pyo3(get)]
-    pub time: u32,
+    pub time_seconds: u32,
     #[pyo3(get)]
-    pub distance: u32,
+    pub distance_centimeters: u32,
     #[pyo3(get)]
     pub grade: i16,
     #[pyo3(get)]
-    pub restriction: Option<Restriction>,
+    pub weight_limit_lbs: Option<u32>,
+    #[pyo3(get)]
+    pub height_limit_inches: Option<u8>,
+    #[pyo3(get)]
+    pub width_limit_inches: Option<u8>,
+    #[pyo3(get)]
+    pub length_limit_inches: Option<u8>,
 }
 
 #[pymethods]
@@ -98,19 +77,25 @@ impl Link {
         start_node: Node,
         end_node: Node,
         road_class: u8,
-        time: u32,
-        distance: u32,
+        time_seconds: u32,
+        distance_centimeters: u32,
         grade: i16,
-        restriction: Option<Restriction>,
+        weight_limit_lbs: Option<u32>,
+        height_limit_inches: Option<u8>,
+        width_limit_inches: Option<u8>,
+        length_limit_inches: Option<u8>,
     ) -> Self {
         Link {
             start_node,
             end_node,
             road_class,
-            time,
-            distance,
+            time_seconds,
+            distance_centimeters,
             grade,
-            restriction,
+            weight_limit_lbs,
+            height_limit_inches,
+            width_limit_inches,
+            length_limit_inches,
         }
     }
     pub fn transpose(&self) -> Self {
@@ -118,10 +103,13 @@ impl Link {
             start_node: self.end_node,
             end_node: self.start_node,
             road_class: self.road_class,
-            time: self.time,
-            distance: self.distance,
+            time_seconds: self.time_seconds,
+            distance_centimeters: self.distance_centimeters,
             grade: self.grade,
-            restriction: self.restriction,
+            weight_limit_lbs: self.weight_limit_lbs,
+            height_limit_inches: self.height_limit_inches,
+            width_limit_inches: self.width_limit_inches,
+            length_limit_inches: self.length_limit_inches,
         }
     }
 }

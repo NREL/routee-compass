@@ -6,20 +6,31 @@ use crate::powertrain::VehicleParameters;
 
 use pyo3::prelude::*;
 
-pub fn build_restriction_function(vehicle_parameters: Option<VehicleParameters>) -> impl Fn(&Link) -> bool {
+pub fn build_restriction_function(
+    vehicle_parameters: Option<VehicleParameters>,
+) -> impl Fn(&Link) -> bool {
     move |link: &Link| {
         if let Some(vehicle) = &vehicle_parameters {
-            if let Some(link_restriction) = &link.restriction {
-                vehicle.weight_lbs > link_restriction.weight_limit_lbs
-                    || vehicle.height_feet > link_restriction.height_limit_feet
-                    || vehicle.width_feet > link_restriction.width_limit_feet
-                    || vehicle.length_feet > link_restriction.length_limit_feet
-            } else {
-                false
-            }
+            let over_weight_limit = match link.weight_limit_lbs {
+                Some(limit) => vehicle.weight_lbs > limit,
+                None => false,
+            };
+            let over_height_limit = match link.height_limit_inches {
+                Some(limit) => vehicle.height_inches > limit,
+                None => false,
+            };
+            let over_width_limit = match link.width_limit_inches {
+                Some(limit) => vehicle.width_inches > limit,
+                None => false,
+            };
+            let over_length_limit = match link.length_limit_inches {
+                Some(limit) => vehicle.length_inches > limit,
+                None => false,
+            };
+            over_height_limit || over_weight_limit || over_width_limit || over_length_limit
         } else {
             false
-        } 
+        }
     }
 }
 
