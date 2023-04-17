@@ -66,10 +66,10 @@ def build_rust_map_from_gdf(
             else:
                 if 1 in wr:
                     # restriction is bidirectional
-                    weight_restriction = wr[1] * 2000  # tons to lbs
+                    weight_restriction = int(wr[1] * 2000)  # tons to lbs
                 elif direction in wr:
                     # restriction is unidirectional
-                    weight_restriction = wr[direction] * 2000  # tons to lbs
+                    weight_restriction = int(wr[direction] * 2000)  # tons to lbs
                 else:
                     weight_restriction = None
         else:
@@ -82,10 +82,10 @@ def build_rust_map_from_gdf(
             else:
                 if 1 in hr:
                     # restriction is bidirectional
-                    height_restriction = hr[1]
+                    height_restriction = int(hr[1])
                 elif direction in hr:
                     # restriction is unidirectional
-                    height_restriction = hr[direction]
+                    height_restriction = int(hr[direction])
                 else:
                     height_restriction = None
         else:
@@ -98,10 +98,10 @@ def build_rust_map_from_gdf(
             else:
                 if 1 in wdr:
                     # restriction is bidirectional
-                    width_restriction = wdr[1]
+                    width_restriction = int(wdr[1])
                 elif direction in wdr:
                     # restriction is unidirectional
-                    width_restriction = wdr[direction]
+                    width_restriction = int(wdr[direction])
                 else:
                     width_restriction = None
         else:
@@ -114,10 +114,10 @@ def build_rust_map_from_gdf(
             else:
                 if 1 in lr:
                     # restriction is bidirectional
-                    length_restriction = lr[1]
+                    length_restriction = int(lr[1])
                 elif direction in lr:
                     # restriction is unidirectional
-                    length_restriction = lr[direction]
+                    length_restriction = int(lr[direction])
                 else:
                     length_restriction = None
         else:
