@@ -63,11 +63,11 @@ pub struct Link {
     #[pyo3(get)]
     pub weight_limit_lbs: Option<u32>,
     #[pyo3(get)]
-    pub height_limit_inches: Option<u8>,
+    pub height_limit_inches: Option<u16>,
     #[pyo3(get)]
-    pub width_limit_inches: Option<u8>,
+    pub width_limit_inches: Option<u16>,
     #[pyo3(get)]
-    pub length_limit_inches: Option<u8>,
+    pub length_limit_inches: Option<u16>,
 }
 
 #[pymethods]
@@ -81,9 +81,9 @@ impl Link {
         distance_centimeters: u32,
         grade: i16,
         weight_limit_lbs: Option<u32>,
-        height_limit_inches: Option<u8>,
-        width_limit_inches: Option<u8>,
-        length_limit_inches: Option<u8>,
+        height_limit_inches: Option<u16>,
+        width_limit_inches: Option<u16>,
+        length_limit_inches: Option<u16>,
     ) -> Self {
         Link {
             start_node,

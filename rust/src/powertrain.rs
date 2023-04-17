@@ -14,15 +14,15 @@ pub const ROUTEE_SCALE_FACTOR: f64 = 100000.0;
 #[derive(Clone, Debug)]
 pub struct VehicleParameters {
     pub weight_lbs: u32,
-    pub height_inches: u8,
-    pub width_inches: u8,
-    pub length_inches: u8,
+    pub height_inches: u16,
+    pub width_inches: u16,
+    pub length_inches: u16,
 }
 
 #[pymethods]
 impl VehicleParameters {
     #[new]
-    pub fn new(weight_lbs: u32, height_inches: u8, width_inches: u8, length_inches: u8) -> Self {
+    pub fn new(weight_lbs: u32, height_inches: u16, width_inches: u16, length_inches: u16) -> Self {
         VehicleParameters {
             weight_lbs,
             height_inches,
