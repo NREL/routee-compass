@@ -4,9 +4,9 @@ use anyhow::Result;
 use pyo3::{prelude::*, types::PyType};
 
 use crate::{
-    algorithm::dijkstra_shortest_path,
+    algorithm::{build_restriction_function, dijkstra_shortest_path},
     graph::{Graph, Link, Node},
-    powertrain::{build_routee_cost_function, ROUTEE_SCALE_FACTOR},
+    powertrain::{build_routee_cost_function, VehicleParameters, ROUTEE_SCALE_FACTOR},
 };
 
 #[pyclass]
@@ -52,10 +52,17 @@ impl RustMap {
         &self,
         start: [isize; 2],
         end: [isize; 2],
+        vehicle_parameters: Option<VehicleParameters>,
     ) -> Option<(u32, Vec<Link>)> {
         let start_node = self.get_closest_node(start)?;
         let end_node = self.get_closest_node(end)?;
-        match dijkstra_shortest_path(&self.graph, &start_node, &end_node, |link| link.time) {
+        match dijkstra_shortest_path(
+            &self.graph,
+            &start_node,
+            &end_node,
+            |link| link.time,
+            build_restriction_function(vehicle_parameters),
+        ) {
             Some((time_seconds, path)) => Some((time_seconds, self.graph.get_links_in_path(path))),
             None => None,
         }
@@ -67,11 +74,18 @@ impl RustMap {
         start: [isize; 2],
         end: [isize; 2],
         routee_model_path: &str,
+        vehicle_parameters: Option<VehicleParameters>,
     ) -> Option<(f64, Vec<Link>)> {
         let start_node = self.get_closest_node(start)?;
         let end_node = self.get_closest_node(end)?;
         let routee_cost_function = build_routee_cost_function(routee_model_path).unwrap();
-        match dijkstra_shortest_path(&self.graph, &start_node, &end_node, routee_cost_function) {
+        match dijkstra_shortest_path(
+            &self.graph,
+            &start_node,
+            &end_node,
+            routee_cost_function,
+            build_restriction_function(vehicle_parameters),
+        ) {
             Some((scaled_energy, path)) => {
                 let energy = scaled_energy as f64 / ROUTEE_SCALE_FACTOR;
                 Some((energy, self.graph.get_links_in_path(path)))

@@ -3,11 +3,34 @@ use smartcore::{
 };
 
 use anyhow::Result;
+use pyo3::prelude::*;
 
 use crate::graph::Link;
 
 // scale the energy by this factor to make it an integer
 pub const ROUTEE_SCALE_FACTOR: f64 = 100000.0;
+
+#[pyclass]
+#[derive(Clone, Debug)]
+pub struct VehicleParameters {
+    pub weight_lbs: u32,
+    pub height_feet: u8,
+    pub width_feet: u8,
+    pub length_feet: u8,
+}
+
+#[pymethods]
+impl VehicleParameters {
+    #[new]
+    pub fn new(weight_lbs: u32, height_feet: u8, width_feet: u8, length_feet: u8) -> Self {
+        VehicleParameters {
+            weight_lbs,
+            height_feet,
+            width_feet,
+            length_feet,
+        }
+    }
+}
 
 /// a function that loads the routee-powertrain random forest model
 /// and then returns a closure that takes a link and returns the energy over that link

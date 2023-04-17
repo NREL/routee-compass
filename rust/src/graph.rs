@@ -19,6 +19,24 @@ pub struct Restriction {
     pub length_limit_feet: u8,
 }
 
+#[pymethods]
+impl Restriction {
+    #[new]
+    pub fn new(
+        weight_limit_lbs: u32,
+        height_limit_feet: u8,
+        width_limit_feet: u8,
+        length_limit_feet: u8,
+    ) -> Self {
+        Restriction {
+            weight_limit_lbs,
+            height_limit_feet,
+            width_limit_feet,
+            length_limit_feet,
+        }
+    }
+}
+
 #[pyclass]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Node {

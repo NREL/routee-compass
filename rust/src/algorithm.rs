@@ -2,14 +2,33 @@ use std::collections::{BinaryHeap, HashMap};
 use std::{cmp::Reverse, collections::HashSet};
 
 use crate::graph::{Graph, Link, Node};
+use crate::powertrain::VehicleParameters;
 
 use pyo3::prelude::*;
+
+pub fn build_restriction_function(vehicle_parameters: Option<VehicleParameters>) -> impl Fn(&Link) -> bool {
+    move |link: &Link| {
+        if let Some(vehicle) = &vehicle_parameters {
+            if let Some(link_restriction) = &link.restriction {
+                vehicle.weight_lbs > link_restriction.weight_limit_lbs
+                    || vehicle.height_feet > link_restriction.height_limit_feet
+                    || vehicle.width_feet > link_restriction.width_limit_feet
+                    || vehicle.length_feet > link_restriction.length_limit_feet
+            } else {
+                false
+            }
+        } else {
+            false
+        } 
+    }
+}
 
 pub fn dijkstra_shortest_path(
     graph: &Graph,
     start: &Node,
     end: &Node,
     cost_function: impl Fn(&Link) -> u32,
+    restriction_function: impl Fn(&Link) -> bool,
 ) -> Option<(u32, Vec<Node>)> {
     let mut visited = HashSet::new();
     let mut min_heap = BinaryHeap::new();
@@ -42,6 +61,10 @@ pub fn dijkstra_shortest_path(
 
         if let Some(links) = graph.neighbors(&current) {
             for link in links {
+                // Skip if the link is restricted
+                if restriction_function(link) {
+                    continue;
+                }
                 let neighbor = if current == link.start_node {
                     &link.end_node
                 } else {
