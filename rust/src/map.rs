@@ -2,6 +2,7 @@ use rstar::RTree;
 
 use anyhow::Result;
 use pyo3::{prelude::*, types::PyType};
+use rayon::prelude::*;
 
 use crate::{
     algorithm::{build_restriction_function, dijkstra_shortest_path},
@@ -93,5 +94,30 @@ impl RustMap {
 
             None => None,
         }
+    }
+
+    pub fn parallel_shortest_time_path(
+        &self,
+        od_pairs: Vec<([isize; 2], [isize; 2])>,
+        vehicle_parameters: Option<VehicleParameters>,
+    ) -> Vec<Option<(u32, Vec<Link>)>> {
+        od_pairs
+            .into_par_iter()
+            .map(|(start, end)| self.shortest_time_path(start, end, vehicle_parameters))
+            .collect()
+    }
+
+    pub fn parallel_shortest_energy_path(
+        &self,
+        od_pairs: Vec<([isize; 2], [isize; 2])>,
+        routee_model_path: &str,
+        vehicle_parameters: Option<VehicleParameters>,
+    ) -> Vec<Option<(f64, Vec<Link>)>> {
+        od_pairs
+            .into_par_iter()
+            .map(|(start, end)| {
+                self.shortest_energy_path(start, end, routee_model_path, vehicle_parameters)
+            })
+            .collect()
     }
 }

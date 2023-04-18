@@ -13,7 +13,7 @@ pub const ROUTEE_SCALE_FACTOR: f64 = 100000.0;
 pub const CENTIMETERS_TO_MILES: f64 = 6.213712e-6;
 
 #[pyclass]
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct VehicleParameters {
     pub weight_lbs: u32,
     pub height_inches: u16,
