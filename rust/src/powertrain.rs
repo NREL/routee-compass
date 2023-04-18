@@ -10,6 +10,8 @@ use crate::graph::Link;
 // scale the energy by this factor to make it an integer
 pub const ROUTEE_SCALE_FACTOR: f64 = 100000.0;
 
+pub const CENTIMETERS_TO_MILES: f64 = 6.213712e-6;
+
 #[pyclass]
 #[derive(Clone, Debug)]
 pub struct VehicleParameters {
@@ -41,7 +43,7 @@ pub fn build_routee_cost_function(model_file_path: &str) -> Result<impl Fn(&Link
         bincode::deserialize(&rf_binary)?;
 
     Ok(move |link: &Link| {
-        let distance_miles = link.distance_centimeters as f64 * 0.0006213712;
+        let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
         let time_hours = link.time_seconds as f64 / 3600.0;
         let speed_mph = distance_miles / time_hours;
         let grade = link.grade as f64;

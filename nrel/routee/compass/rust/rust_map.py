@@ -133,7 +133,7 @@ def build_rust_map_from_gdf(
         else:
             grade_milli = int(grade * 1000)
 
-        distance_m = int(t.kilometers * 1000)
+        distance_cm = int(t.kilometers * 100000)
         time_seconds = int(minutes * 60)
 
         link = Link(
@@ -141,7 +141,7 @@ def build_rust_map_from_gdf(
             end_node,
             road_class,
             time_seconds,
-            distance_m,
+            distance_cm,
             grade_milli,
             weight_restriction,
             height_restriction,
