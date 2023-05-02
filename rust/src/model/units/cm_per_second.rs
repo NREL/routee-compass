@@ -1,2 +1,2 @@
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct VertexId(pub u64);
+pub struct CmPerSecond(u32);
