@@ -19,13 +19,36 @@ cd routee-compass
 pip install .
 ```
 
+### rust extension
+
+If you want to use the rust extension you'll need to install rust.
+One way to do this is to use conda
+
+```bash
+conda create -n routee-compass python=3.10 rust
+conda activate routee-compass
+```
+
+Then, you'll need to get the rust build tool maturin
+
+```bash
+pip install maturin
+```
+
+Then, you can build the rust extension
+
+```bash
+cd rust/
+maturin develop --release
+```
+
 ### get a road network
 
 We support the tomtom current road network.
 
 ```bash
 cd scripts
-python download_road_map.py <path/to/polygon.geojson> <my-road-network.json> 
+python download_road_map.py <path/to/polygon.geojson> <my-road-network.json>
 ```
 
 note: you'll need access to the trolley postgres server.
@@ -52,7 +75,7 @@ compute_energy(road_network, routee_models)
 origin = Coordinate.from_lat_lon(lat=39.00, lon=-104.00)
 destination = Coordinate.from_lat_lon(lat=39.10, lon=-104.10)
 
-shortest_energy_route = road_network.shortest_path(origin, destination, weight="Electric") 
+shortest_energy_route = road_network.shortest_path(origin, destination, weight="Electric")
 ```
 
 The road network will compute energy over the whole graph so it could take some time if the graph is large.
@@ -71,7 +94,7 @@ from mappymatch.maps.nx.nx_map import NxMap
 my_routee_models = {
     "Tesla": "path/to/tesla_model.json",
     "Ferrari": "path/to/ferrari_model.json",
-} 
+}
 routee_models = RouteeModelCollection(my_routee_models)
 
 road_network = NxMap.from_file("path/to/my/tomtom_road_network.json")
