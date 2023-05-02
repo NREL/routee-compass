@@ -1,11 +1,8 @@
-pub mod algorithm;
-pub mod graph;
-pub mod map;
-pub mod powertrain;
+pub mod prototype;
 
-use algorithm::largest_scc;
-use graph::{Graph, Link, Node};
-use map::RustMap;
+use prototype::algorithm::largest_scc;
+use prototype::graph::{Graph, Link, Node};
+use prototype::map::RustMap;
 use pyo3::prelude::*;
 
 #[pymodule]

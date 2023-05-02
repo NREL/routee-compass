@@ -1,8 +1,8 @@
 use std::collections::{BinaryHeap, HashMap};
 use std::{cmp::Reverse, collections::HashSet};
 
-use crate::graph::{Graph, Link, Node};
-use crate::powertrain::VehicleParameters;
+use crate::prototype::graph::{Graph, Link, Node};
+use crate::prototype::powertrain::VehicleParameters;
 
 use pyo3::prelude::*;
 
