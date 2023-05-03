@@ -1,21 +1,15 @@
 use std::cmp::Ordering;
 
-use im::Vector;
+use crate::model::{cost::cost::Cost, graph::edge_id::EdgeId};
 
-use crate::model::{
-    cost::{cost::Cost, metric::Metric},
-    graph::edge_id::EdgeId,
-};
-
-#[derive(Clone, Eq, PartialEq)]
-pub struct Frontier {
+#[derive(Eq, PartialEq)]
+pub struct Frontier<S> {
     pub edge_id: EdgeId,
-    pub traverse_edge_metrics: Vector<Metric>,
-    pub edge_edge_metrics: Vector<Metric>,
+    pub state: S,
     pub cost: Cost,
 }
 
-impl Ord for Frontier {
+impl<S: Eq> Ord for Frontier<S> {
     ///
     /// provides a min-ordering over Frontier costs
     ///
@@ -27,7 +21,7 @@ impl Ord for Frontier {
     }
 }
 
-impl PartialOrd for Frontier {
+impl<S: Eq> PartialOrd for Frontier<S> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }

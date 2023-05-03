@@ -1,8 +1,8 @@
-use im;
-use std::collections::BinaryHeap;
+use std::collections::{BinaryHeap, HashMap};
 
 use crate::model::cost::cost::Cost;
 use crate::model::cost::function::{CostEstFn, CostFn, EdgeEdgeMetricFn, EdgeMetricFn};
+use crate::model::traversal::traversal_model::TraversalModel;
 use crate::{
     algorithm::search::min_search_tree::{direction::Direction, frontier::Frontier},
     model::graph::{directed_graph::DirectedGraph, edge_id::EdgeId, vertex_id::VertexId},
@@ -10,50 +10,58 @@ use crate::{
 
 use std::sync::{Arc, RwLock};
 
+use super::search_error::SearchError;
 use super::solution::Solution;
 
 type MinSearchTree = im::HashMap<EdgeId, Solution>;
 
-pub fn run_search(
-    g: Arc<RwLock<dyn DirectedGraph>>,
+pub fn run_search<S: Eq>(
+    directed_graph: Arc<RwLock<dyn DirectedGraph>>,
     direction: Direction,
     source: VertexId,
     target: Option<VertexId>,
-    edge_metric_fn: Arc<RwLock<EdgeMetricFn>>,
-    edge_edge_metric_fn: Arc<RwLock<EdgeEdgeMetricFn>>,
-    cost_fn: Arc<RwLock<CostFn>>,
+    traversal_model: Arc<RwLock<dyn TraversalModel<State = S>>>,
+    // edge_metric_fn: Arc<RwLock<EdgeMetricFn>>,
+    // edge_edge_metric_fn: Arc<RwLock<EdgeEdgeMetricFn>>,
+    // cost_fn: Arc<RwLock<CostFn>>,
     cost_estimate_fn: Option<Arc<RwLock<CostEstFn>>>,
-) -> Result<MinSearchTree, String> {
+) -> Result<MinSearchTree, SearchError> {
     if target.is_none() && cost_estimate_fn.is_none() {
-        let msg = "distance heuristic can only be provided when there is a target";
-        return Result::Err(msg.to_string());
+        return Result::Err(SearchError::DistanceHeuristicWithNoTarget);
     }
 
-    // todo: setup
+    // context for the search (graph, search functions, frontier priority queue)
+    let g = directed_graph.read().unwrap();
+    let m = traversal_model.read().unwrap();
+    let mut heap: BinaryHeap<Frontier<S>> = BinaryHeap::new();
+    let mut tree: HashMap<VertexId, Solution> = HashMap::new();
 
-    let mut heap: BinaryHeap<Frontier> = BinaryHeap::new();
+    // set up the initial search frontier
     let initial_edges = match direction {
-        Direction::Forward => g.read().unwrap().out_edges(source),
-        Direction::Reverse => g.read().unwrap().in_edges(source),
-    };
-    for edge_id in initial_edges? {
-        let edge = g.read().unwrap().edge_attr(edge_id)?;
+        Direction::Forward => g.out_edges(source),
+        Direction::Reverse => g.in_edges(source),
+    }
+    .map_err(SearchError::GraphCorrectnessFailure)?;
+    for edge_id in initial_edges {
+        let edge = g
+            .edge_attr(edge_id)
+            .map_err(SearchError::GraphCorrectnessFailure)?;
 
-        // todo: sort out friction from having different error implementations
-        // see https://kerkour.com/rust-error-handling
-        // let edge_metric = edge_metric_fn.read().unwrap()(edge)?;
-
-        // todo: both edges need to be in scope here to call this
-        // but, we don't have a src edge/prev edge in scope yet!
-        // let e_e_metric = edge_edge_metric_fn.read().unwrap()()
+        let initial_state = m
+            .initial_state(edge)
+            .map_err(SearchError::TraversalModelFailure)?;
 
         let frontier = Frontier {
             edge_id,
-            traverse_edge_metrics: im::vector![],
-            edge_edge_metrics: im::vector![],
+            state: initial_state,
             cost: Cost::ZERO,
         };
         heap.push(frontier)
+    }
+
+    // todo: termination condition
+    loop {
+        // todo: explore the leading frontier edge
     }
 
     return Result::Ok(im::hashmap![]);
