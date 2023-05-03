@@ -2,13 +2,7 @@ use im::Vector;
 
 use crate::model::property::{edge::Edge, vertex::Vertex};
 
-use super::{cost::Cost, metric::Metric};
-
-#[derive(thiserror::Error, Debug, Clone)]
-pub enum CostError {
-    #[error("vector of metric observations is wrong length for provided cost function")]
-    MetricVectorSizeMismatch,
-}
+use crate::model::cost::{cost::Cost, cost_error::CostError, metric::Metric};
 
 pub type EdgeMetricFn = dyn Fn(Edge) -> Result<Vector<Metric>, CostError>;
 pub type EdgeEdgeMetricFn = dyn Fn((Edge, Edge)) -> Result<Vector<Metric>, CostError>;
