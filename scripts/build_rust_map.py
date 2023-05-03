@@ -1,9 +1,11 @@
+from datetime import datetime
 from pathlib import Path
 from typing import Dict
 import pandas as pd
 import geopandas as gpd
 import pickle
 import time
+import logging
 import sqlalchemy as sql
 
 from compass_rust import Graph, Link, Node, RustMap, largest_scc
@@ -11,6 +13,12 @@ from compass_rust import Graph, Link, Node, RustMap, largest_scc
 from shapely.geometry import LineString
 
 from pyproj import CRS
+
+# set up logging to file
+date_and_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+logging.basicConfig(filename=f"build_rust_map_{date_and_time}.log", level=logging.DEBUG)
+
+log = logging.getLogger(__name__)
 
 LATLON = CRS("epsg:4326")
 WEB_MERCATOR = "epsg:3857"
@@ -240,7 +248,12 @@ if __name__ == "__main__":
     password = "NRELisgr8!"
     engine = sql.create_engine(f"postgresql://{user}:{password}@trolley.nrel.gov:5432/master")
 
-    print("getting speed by time of day info from trolley..")
+    log.info("getting speed by time of day info from trolley..")
+
+    # write a dummy file with the current date to make sure thes script is running
+    dummy_file = Path(__file__).parent / "dummy.txt"
+    with open(dummy_file, "w") as f:
+        f.write(str(datetime.now()))
 
     q = """
     select profile_id, speed_per_time_slot_id
@@ -274,19 +287,19 @@ if __name__ == "__main__":
     df.to_csv("/projects/mbap/amazon-eco/profile_id_mapping.csv", index=False)
 
     weight_restrictions_file = "/projects/mbap/amazon-eco/weight_restrictions.pickle"
-    print("loading weight restrictions..")
+    log.info("loading weight restrictions..")
     with open(weight_restrictions_file, "rb") as f:
         weight_restrictions = pickle.load(f)
     height_restrictions_file = "/projects/mbap/amazon-eco/height_restrictions.pickle"
-    print("loading height restrictions..")
+    log.info("loading height restrictions..")
     with open(height_restrictions_file, "rb") as f:
         height_restrictions = pickle.load(f)
     width_restrictions_file = "/projects/mbap/amazon-eco/width_restrictions.pickle"
-    print("loading width restrictions..")
+    log.info("loading width restrictions..")
     with open(width_restrictions_file, "rb") as f:
         width_restrictions = pickle.load(f)
     length_restrictions_file = "/projects/mbap/amazon-eco/length_restrictions.pickle"
-    print("loading length restrictions..")
+    log.info("loading length restrictions..")
     with open(length_restrictions_file, "rb") as f:
         length_restrictions = pickle.load(f)
 
@@ -343,19 +356,19 @@ if __name__ == "__main__":
         join tomtom_multinet_current.mnr_speed_profile as sp on ntw_w_sp.speed_profile_id = sp.speed_profile_id
     """
 
-    print("getting links from trolley..")
+    log.info("getting links from trolley..")
     dfs = gpd.read_postgis(q, con=engine, chunksize=5_000_000)
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
     all_links = []
     for i, df in enumerate(dfs):
         start_time = time.time()
-        print(f"working on iteration {i}")
+        log.info(f"working on iteration {i}")
         more_links, node_id_mapping, node_id_counter = links_from_df(
             df, node_id_mapping, node_id_counter
         )
         all_links.extend(more_links)
-        print(f"iteration {i} took ", time.time() - start_time, " seconds")
+        log.info(f"iteration {i} took ", time.time() - start_time, " seconds")
 
     node_map_outfile = Path("/projects/mbap/amazon-eco/node-id-mapping.pickle")
     with node_map_outfile.open("wb") as f:
@@ -363,23 +376,23 @@ if __name__ == "__main__":
 
     del node_id_mapping
 
-    print("building graph..")
+    log.info("building graph..")
     start_time = time.time()
     graph = Graph()
     graph.add_links_bulk(all_links)
-    print("graph took ", time.time() - start_time, " seconds")
+    log.info("graph took ", time.time() - start_time, " seconds")
 
     del all_links
 
-    print("extracting largest scc..")
+    log.info("extracting largest scc..")
     start_time = time.time()
     graph = largest_scc(graph)
-    print("largest scc took ", time.time() - start_time, " seconds")
+    log.info("largest scc took ", time.time() - start_time, " seconds")
 
-    print("building rust map from graph..")
+    log.info("building rust map from graph..")
     start_time = time.time()
     rust_map = RustMap(graph)
-    print("rust map took ", time.time() - start_time, " seconds")
+    log.info("rust map took ", time.time() - start_time, " seconds")
 
-    print("saving rust map..")
+    log.info("saving rust map..")
     rust_map.to_file("/scratch/nreinick/us_network_rust_map.bin")
