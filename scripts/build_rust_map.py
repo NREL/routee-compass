@@ -359,13 +359,23 @@ with node_map_outfile.open("wb") as f:
 
 del node_id_mapping
 
+print("building graph..")
+start_time = time.time()
 graph = Graph()
 graph.add_links_bulk(all_links)
+print("graph took ", time.time() - start_time, " seconds")
 
 del all_links
 
+print("extracting largest scc..")
+start_time = time.time()
 graph = largest_scc(graph)
+print("largest scc took ", time.time() - start_time, " seconds")
 
+print("building rust map from graph..")
+start_time = time.time()
 rust_map = RustMap(graph)
+print("rust map took ", time.time() - start_time, " seconds")
 
+print("saving rust map..")
 rust_map.to_file("/scratch/nreinick/us_network_rust_map.bin")
