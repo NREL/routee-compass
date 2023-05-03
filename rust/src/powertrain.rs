@@ -44,7 +44,7 @@ pub fn build_routee_cost_function(model_file_path: &str) -> Result<impl Fn(&Link
 
     Ok(move |link: &Link| {
         let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
-        let time_hours = link.time_seconds as f64 / 3600.0;
+        let time_hours = link.time_seconds() as f64 / 3600.0;
         let speed_mph = distance_miles / time_hours;
         let grade = link.grade as f64;
 

@@ -53,13 +53,13 @@ pub struct Link {
     #[pyo3(get)]
     pub end_node: Node,
     #[pyo3(get)]
-    pub road_class: u8,
-    #[pyo3(get)]
-    pub time_seconds: u32,
+    pub speed_kph: u8,
     #[pyo3(get)]
     pub distance_centimeters: u32,
     #[pyo3(get)]
     pub grade: i16,
+    #[pyo3(get)]
+    pub week_profile_ids: [Option<u16>; 7],
     #[pyo3(get)]
     pub weight_limit_lbs: Option<u32>,
     #[pyo3(get)]
@@ -68,6 +68,7 @@ pub struct Link {
     pub width_limit_inches: Option<u16>,
     #[pyo3(get)]
     pub length_limit_inches: Option<u16>,
+
 }
 
 #[pymethods]
@@ -76,10 +77,10 @@ impl Link {
     pub fn new(
         start_node: Node,
         end_node: Node,
-        road_class: u8,
-        time_seconds: u32,
+        speed_kph: u8,
         distance_centimeters: u32,
         grade: i16,
+        week_profile_ids: [Option<u16>; 7],
         weight_limit_lbs: Option<u32>,
         height_limit_inches: Option<u16>,
         width_limit_inches: Option<u16>,
@@ -88,10 +89,10 @@ impl Link {
         Link {
             start_node,
             end_node,
-            road_class,
-            time_seconds,
+            speed_kph,
             distance_centimeters,
             grade,
+            week_profile_ids,
             weight_limit_lbs,
             height_limit_inches,
             width_limit_inches,
@@ -102,15 +103,21 @@ impl Link {
         Link {
             start_node: self.end_node,
             end_node: self.start_node,
-            road_class: self.road_class,
-            time_seconds: self.time_seconds,
+            speed_kph: self.speed_kph,
             distance_centimeters: self.distance_centimeters,
-            grade: self.grade,
+            grade: -self.grade,
             weight_limit_lbs: self.weight_limit_lbs,
             height_limit_inches: self.height_limit_inches,
             width_limit_inches: self.width_limit_inches,
             length_limit_inches: self.length_limit_inches,
+            week_profile_ids: self.week_profile_ids,
         }
+    }
+
+    pub fn time_seconds(&self) -> u32 {
+        let speed_centimeters_per_second = (self.speed_kph as f32 * 27.77) as u32;
+        let time_seconds = self.distance_centimeters / speed_centimeters_per_second;
+        time_seconds
     }
 }
 

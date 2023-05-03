@@ -7,6 +7,9 @@ from shapely.geometry import LineString
 import pandas as pd
 import geopandas as gpd
 
+LATLON = "epsg:4326"
+WEB_MERCATOR = "epsg:3857"
+
 
 def build_rust_map_from_gdf(
     gdf: gpd.geodataframe.GeoDataFrame,
