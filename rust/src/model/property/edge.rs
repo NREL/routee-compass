@@ -5,6 +5,7 @@ use crate::model::{
 
 use super::road_class::RoadClass;
 
+#[derive(Copy, Clone)]
 pub struct Edge {
     pub start_node: VertexId,
     pub end_node: VertexId,

@@ -2,9 +2,10 @@ use std::cmp::Ordering;
 
 use crate::model::{cost::cost::Cost, graph::edge_id::EdgeId};
 
-#[derive(Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct Frontier<S> {
     pub edge_id: EdgeId,
+    pub prev_edge_id: Option<EdgeId>,
     pub state: S,
     pub cost: Cost,
 }
