@@ -235,147 +235,151 @@ def links_from_df(network_df_chunk, node_id_mapping, node_id_counter):
     return links, node_id_mapping, node_id_counter
 
 
-user = "nreinick"
-password = "NRELisgr8!"
-engine = sql.create_engine(f"postgresql://{user}:{password}@trolley.nrel.gov:5432/master")
+if __name__ == "__main__":
+    user = "nreinick"
+    password = "NRELisgr8!"
+    engine = sql.create_engine(f"postgresql://{user}:{password}@trolley.nrel.gov:5432/master")
 
-q = """
-select profile_id, speed_per_time_slot_id
-from tomtom_multinet_current.mnr_profile2speed_per_time_slot
-"""
+    print("getting speed by time of day info from trolley..")
 
-sdf = pd.read_sql(q, engine)
-sdf = sdf.astype(str)
+    q = """
+    select profile_id, speed_per_time_slot_id
+    from tomtom_multinet_current.mnr_profile2speed_per_time_slot
+    """
 
-tq = """
-select *
-from tomtom_multinet_current.mnr_speed_per_time_slot
-"""
+    sdf = pd.read_sql(q, engine)
+    sdf = sdf.astype(str)
 
-tdf = pd.read_sql(tq, engine)
-tdf["speed_per_time_slot_id"] = tdf.speed_per_time_slot_id.astype(str)
+    tq = """
+    select *
+    from tomtom_multinet_current.mnr_speed_per_time_slot
+    """
 
-df = (
-    sdf.set_index("speed_per_time_slot_id")
-    .join(tdf.set_index("speed_per_time_slot_id"))
-    .reset_index()
-    .drop(columns="speed_per_time_slot_id")
-)
+    tdf = pd.read_sql(tq, engine)
+    tdf["speed_per_time_slot_id"] = tdf.speed_per_time_slot_id.astype(str)
 
-profile_id_integer_mapping = {}
-for i, pid in enumerate(df.profile_id.unique()):
-    profile_id_integer_mapping[pid] = i
-
-df["profile_id_integer"] = df.profile_id.apply(lambda pid: profile_id_integer_mapping[pid])
-
-df.to_csv("/projects/mbap/amazon-eco/profile_id_mapping.csv", index=False)
-
-weight_restrictions_file = "/projects/mbap/amazon-eco/weight_restrictions.pickle"
-print("loading weight restrictions..")
-with open(weight_restrictions_file, "rb") as f:
-    weight_restrictions = pickle.load(f)
-height_restrictions_file = "/projects/mbap/amazon-eco/height_restrictions.pickle"
-print("loading height restrictions..")
-with open(height_restrictions_file, "rb") as f:
-    height_restrictions = pickle.load(f)
-width_restrictions_file = "/projects/mbap/amazon-eco/width_restrictions.pickle"
-print("loading width restrictions..")
-with open(width_restrictions_file, "rb") as f:
-    width_restrictions = pickle.load(f)
-length_restrictions_file = "/projects/mbap/amazon-eco/length_restrictions.pickle"
-print("loading length restrictions..")
-with open(length_restrictions_file, "rb") as f:
-    length_restrictions = pickle.load(f)
-
-q = """
-select
-    netw_id,
-    junction_id_from,
-    junction_id_to,
-    centimeters,
-    mean_gradient_dec,
-    speed_average_pos,
-    speed_average_neg,
-    free_flow_speed,
-    monday_profile_id,
-    tuesday_profile_id,
-    wednesday_profile_id,
-    thursday_profile_id,
-    friday_profile_id,
-    saturday_profile_id,
-    sunday_profile_id,
-    link_direction,
-    geom
-from
-    (
-        select
-            netw.netw_id,
-            junction_id_from,
-            junction_id_to,
-            centimeters,
-            mean_gradient_dec,
-            speed_average_pos,
-            speed_average_neg,
-            speed_profile_id,
-            validity_direction as link_direction,
-            geom
-        from
-            (
-                select
-                    feat_id as netw_id,
-                    junction_id_from,
-                    junction_id_to,
-                    centimeters,
-                    mean_gradient_dec,
-                    speed_average_pos,
-                    speed_average_neg,
-                    geom
-                from
-                    tomtom_multinet_current.network
-                where
-                    routing_class >= 5
-            ) as netw
-            join tomtom_multinet_current.mnr_netw2speed_profile as nt2sp on netw.netw_id = nt2sp.netw_id
-    ) as ntw_w_sp
-    join tomtom_multinet_current.mnr_speed_profile as sp on ntw_w_sp.speed_profile_id = sp.speed_profile_id
-"""
-
-dfs = gpd.read_postgis(q, con=engine, chunksize=5_000_000)
-node_id_mapping: Dict[str, int] = {}
-node_id_counter = 0
-all_links = []
-for i, df in enumerate(dfs):
-    start_time = time.time()
-    print(f"working on iteration {i}")
-    more_links, node_id_mapping, node_id_counter = links_from_df(
-        df, node_id_mapping, node_id_counter
+    df = (
+        sdf.set_index("speed_per_time_slot_id")
+        .join(tdf.set_index("speed_per_time_slot_id"))
+        .reset_index()
+        .drop(columns="speed_per_time_slot_id")
     )
-    all_links.extend(more_links)
-    print(f"iteration {i} took ", time.time() - start_time, " seconds")
 
-node_map_outfile = Path("/projects/mbap/amazon-eco/node-id-mapping.pickle")
-with node_map_outfile.open("wb") as f:
-    pickle.dump(node_id_mapping, f)
+    profile_id_integer_mapping = {}
+    for i, pid in enumerate(df.profile_id.unique()):
+        profile_id_integer_mapping[pid] = i
 
-del node_id_mapping
+    df["profile_id_integer"] = df.profile_id.apply(lambda pid: profile_id_integer_mapping[pid])
 
-print("building graph..")
-start_time = time.time()
-graph = Graph()
-graph.add_links_bulk(all_links)
-print("graph took ", time.time() - start_time, " seconds")
+    df.to_csv("/projects/mbap/amazon-eco/profile_id_mapping.csv", index=False)
 
-del all_links
+    weight_restrictions_file = "/projects/mbap/amazon-eco/weight_restrictions.pickle"
+    print("loading weight restrictions..")
+    with open(weight_restrictions_file, "rb") as f:
+        weight_restrictions = pickle.load(f)
+    height_restrictions_file = "/projects/mbap/amazon-eco/height_restrictions.pickle"
+    print("loading height restrictions..")
+    with open(height_restrictions_file, "rb") as f:
+        height_restrictions = pickle.load(f)
+    width_restrictions_file = "/projects/mbap/amazon-eco/width_restrictions.pickle"
+    print("loading width restrictions..")
+    with open(width_restrictions_file, "rb") as f:
+        width_restrictions = pickle.load(f)
+    length_restrictions_file = "/projects/mbap/amazon-eco/length_restrictions.pickle"
+    print("loading length restrictions..")
+    with open(length_restrictions_file, "rb") as f:
+        length_restrictions = pickle.load(f)
 
-print("extracting largest scc..")
-start_time = time.time()
-graph = largest_scc(graph)
-print("largest scc took ", time.time() - start_time, " seconds")
+    q = """
+    select
+        netw_id,
+        junction_id_from,
+        junction_id_to,
+        centimeters,
+        mean_gradient_dec,
+        speed_average_pos,
+        speed_average_neg,
+        free_flow_speed,
+        monday_profile_id,
+        tuesday_profile_id,
+        wednesday_profile_id,
+        thursday_profile_id,
+        friday_profile_id,
+        saturday_profile_id,
+        sunday_profile_id,
+        link_direction,
+        geom
+    from
+        (
+            select
+                netw.netw_id,
+                junction_id_from,
+                junction_id_to,
+                centimeters,
+                mean_gradient_dec,
+                speed_average_pos,
+                speed_average_neg,
+                speed_profile_id,
+                validity_direction as link_direction,
+                geom
+            from
+                (
+                    select
+                        feat_id as netw_id,
+                        junction_id_from,
+                        junction_id_to,
+                        centimeters,
+                        mean_gradient_dec,
+                        speed_average_pos,
+                        speed_average_neg,
+                        geom
+                    from
+                        tomtom_multinet_current.network
+                    where
+                        routing_class >= 5
+                ) as netw
+                join tomtom_multinet_current.mnr_netw2speed_profile as nt2sp on netw.netw_id = nt2sp.netw_id
+        ) as ntw_w_sp
+        join tomtom_multinet_current.mnr_speed_profile as sp on ntw_w_sp.speed_profile_id = sp.speed_profile_id
+    """
 
-print("building rust map from graph..")
-start_time = time.time()
-rust_map = RustMap(graph)
-print("rust map took ", time.time() - start_time, " seconds")
+    print("getting links from trolley..")
+    dfs = gpd.read_postgis(q, con=engine, chunksize=5_000_000)
+    node_id_mapping: Dict[str, int] = {}
+    node_id_counter = 0
+    all_links = []
+    for i, df in enumerate(dfs):
+        start_time = time.time()
+        print(f"working on iteration {i}")
+        more_links, node_id_mapping, node_id_counter = links_from_df(
+            df, node_id_mapping, node_id_counter
+        )
+        all_links.extend(more_links)
+        print(f"iteration {i} took ", time.time() - start_time, " seconds")
 
-print("saving rust map..")
-rust_map.to_file("/scratch/nreinick/us_network_rust_map.bin")
+    node_map_outfile = Path("/projects/mbap/amazon-eco/node-id-mapping.pickle")
+    with node_map_outfile.open("wb") as f:
+        pickle.dump(node_id_mapping, f)
+
+    del node_id_mapping
+
+    print("building graph..")
+    start_time = time.time()
+    graph = Graph()
+    graph.add_links_bulk(all_links)
+    print("graph took ", time.time() - start_time, " seconds")
+
+    del all_links
+
+    print("extracting largest scc..")
+    start_time = time.time()
+    graph = largest_scc(graph)
+    print("largest scc took ", time.time() - start_time, " seconds")
+
+    print("building rust map from graph..")
+    start_time = time.time()
+    rust_map = RustMap(graph)
+    print("rust map took ", time.time() - start_time, " seconds")
+
+    print("saving rust map..")
+    rust_map.to_file("/scratch/nreinick/us_network_rust_map.bin")
