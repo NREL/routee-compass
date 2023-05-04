@@ -380,19 +380,25 @@ if __name__ == "__main__":
     start_time = time.time()
     graph = Graph()
     graph.add_links_bulk(all_links)
-    log.info("graph took ", time.time() - start_time, " seconds")
+    elsapsed_time = time.time() - start_time
+    log.info(f"graph building took {elsapsed_time} seconds")
 
     del all_links
 
     log.info("extracting largest scc..")
     start_time = time.time()
     graph = largest_scc(graph)
-    log.info("largest scc took ", time.time() - start_time, " seconds")
+    elsapsed_time = time.time() - start_time
+    log.info(f"largest scc took {elsapsed_time} seconds")
 
     log.info("building rust map from graph..")
     start_time = time.time()
     rust_map = RustMap(graph)
-    log.info("rust map took ", time.time() - start_time, " seconds")
+    elsapsed_time = time.time() - start_time
+    log.info(f"rust map took {elsapsed_time} seconds")
 
     log.info("saving rust map..")
+    start_time = time.time()
     rust_map.to_file("/scratch/nreinick/us_network_rust_map.bin")
+    elsapsed_time = time.time() - start_time
+    log.info(f"saving rust map took {elsapsed_time} seconds")
