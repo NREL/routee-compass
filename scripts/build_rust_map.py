@@ -32,7 +32,7 @@ TO_FROM_DIRECTION = 3
 
 DEFAULT_SPEED_KPH = 40
 
-CHUNK_SIZE = 5_000
+CHUNK_SIZE = 500_000
 
 
 def build_speed(t, direction):
@@ -350,7 +350,6 @@ if __name__ == "__main__":
                 join tomtom_multinet_current.mnr_netw2speed_profile as nt2sp on netw.netw_id = nt2sp.netw_id
         ) as ntw_w_sp
         join tomtom_multinet_current.mnr_speed_profile as sp on ntw_w_sp.speed_profile_id = sp.speed_profile_id
-        limit 10000
     """
 
     log.info("getting links from trolley..")
