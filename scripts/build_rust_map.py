@@ -250,11 +250,6 @@ if __name__ == "__main__":
 
     log.info("getting speed by time of day info from trolley..")
 
-    # write a dummy file with the current date to make sure thes script is running
-    dummy_file = Path(__file__).parent / "dummy.txt"
-    with open(dummy_file, "w") as f:
-        f.write(str(datetime.now()))
-
     q = """
     select profile_id, speed_per_time_slot_id
     from tomtom_multinet_current.mnr_profile2speed_per_time_slot
@@ -368,7 +363,8 @@ if __name__ == "__main__":
             df, node_id_mapping, node_id_counter
         )
         all_links.extend(more_links)
-        log.info(f"iteration {i} took ", time.time() - start_time, " seconds")
+        elsapsed_time = time.time() - start_time
+        log.info(f"iteration {i} took {elsapsed_time} seconds")
 
     node_map_outfile = Path("/projects/mbap/amazon-eco/node-id-mapping.pickle")
     with node_map_outfile.open("wb") as f:
