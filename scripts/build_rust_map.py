@@ -207,6 +207,8 @@ def links_from_df(network_df_chunk, node_id_mapping, node_id_counter):
     oneway_tf = gdf[gdf.link_direction == TO_FROM_DIRECTION]
     twoway = gdf[gdf.link_direction.isin([1, 9])]
 
+    assert(len(oneway_ft) + len(oneway_tf) + len(twoway) == len(gdf))
+
     links = []
     two_way_tf_links = []
     for t in twoway.itertuples():
@@ -352,19 +354,16 @@ if __name__ == "__main__":
     """
 
     log.info("getting links from trolley..")
-    dfs = gpd.read_postgis(q, con=engine, chunksize=5_000_000)
+    start_time = time.time()
+    df = pd.read_sql(q, con=engine)
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
     all_links = []
-    for i, df in enumerate(dfs):
-        start_time = time.time()
-        log.info(f"working on iteration {i}")
-        more_links, node_id_mapping, node_id_counter = links_from_df(
-            df, node_id_mapping, node_id_counter
-        )
-        all_links.extend(more_links)
-        elsapsed_time = time.time() - start_time
-        log.info(f"iteration {i} took {elsapsed_time} seconds")
+    more_links, node_id_mapping, node_id_counter = links_from_df(
+        df, node_id_mapping, node_id_counter
+    )
+    all_links.extend(more_links)
+    elsapsed_time = time.time() - start_time
 
     node_map_outfile = Path("/projects/mbap/amazon-eco/node-id-mapping.pickle")
     with node_map_outfile.open("wb") as f:
