@@ -241,7 +241,6 @@ def links_from_df(gdf, node_id_mapping, node_id_counter):
         oneway_tf_links.append(link)
     links.extend(oneway_tf_links)
 
-    assert len(links) == len(gdf)
     return links, node_id_mapping, node_id_counter
 
 
