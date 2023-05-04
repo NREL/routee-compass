@@ -241,6 +241,7 @@ def links_from_df(gdf, node_id_mapping, node_id_counter):
         oneway_tf_links.append(link)
     links.extend(oneway_tf_links)
 
+    assert len(links) == len(gdf)
     return links, node_id_mapping, node_id_counter
 
 
@@ -362,6 +363,7 @@ if __name__ == "__main__":
         df, node_id_mapping, node_id_counter
     )
     all_links.extend(more_links)
+    log.info(f"found {len(all_links)} links")
     elsapsed_time = time.time() - start_time
 
     node_map_outfile = Path("/projects/mbap/amazon-eco/node-id-mapping.pickle")
@@ -376,6 +378,8 @@ if __name__ == "__main__":
     graph.add_links_bulk(all_links)
     elsapsed_time = time.time() - start_time
     log.info(f"graph building took {elsapsed_time} seconds")
+    number_of_links = graph.number_of_links()
+    log.info(f"graph has {number_of_links} links")
 
     del all_links
 
@@ -384,6 +388,8 @@ if __name__ == "__main__":
     graph = largest_scc(graph)
     elsapsed_time = time.time() - start_time
     log.info(f"largest scc took {elsapsed_time} seconds")
+    number_of_links = graph.number_of_links()
+    log.info(f"graph has {number_of_links} links")
 
     log.info("building rust map from graph..")
     start_time = time.time()

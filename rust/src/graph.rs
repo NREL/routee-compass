@@ -222,4 +222,8 @@ impl Graph {
             self.add_link(link);
         }
     }
+
+    pub fn number_of_links(&self) -> usize {
+        self.adjacency_list.values().map(|links| links.len()).sum()
+    }
 }
