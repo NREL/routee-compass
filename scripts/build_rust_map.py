@@ -11,6 +11,7 @@ import sqlalchemy as sql
 from compass_rust import Graph, Link, Node, RustMap, largest_scc
 
 from shapely.geometry import LineString
+import shapely.wkb as wkb
 
 from pyproj import CRS
 
@@ -181,9 +182,7 @@ def build_link(t, direction, node_id_mapping, node_id_counter):
     return link, node_id_mapping, node_id_counter
 
 
-def links_from_df(network_df_chunk, node_id_mapping, node_id_counter):
-    gdf = gpd.GeoDataFrame(network_df_chunk, geometry="geom")
-    gdf.crs = LATLON
+def links_from_df(gdf, node_id_mapping, node_id_counter):
     gdf = gdf.to_crs(WEB_MERCATOR)
 
     gdf = gdf.astype(
@@ -355,7 +354,7 @@ if __name__ == "__main__":
 
     log.info("getting links from trolley..")
     start_time = time.time()
-    df = pd.read_sql(q, con=engine)
+    df = gpd.read_postgis(q, con=engine)
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
     all_links = []
