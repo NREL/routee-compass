@@ -2,6 +2,7 @@ pub mod algorithm;
 pub mod graph;
 pub mod map;
 pub mod powertrain;
+pub mod time_of_day_speed;
 
 use algorithm::largest_scc;
 use graph::{Graph, Link, Node};
