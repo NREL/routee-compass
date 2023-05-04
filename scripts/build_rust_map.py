@@ -11,7 +11,7 @@ import sqlalchemy as sql
 from compass_rust import Graph, Link, Node, RustMap, largest_scc
 
 from shapely.geometry import LineString
-import shapely.wkb as wkb
+from tqdm import tqdm
 
 from pyproj import CRS
 
@@ -32,7 +32,7 @@ TO_FROM_DIRECTION = 3
 
 DEFAULT_SPEED_KPH = 40
 
-CHUNK_SIZE = 5_000_000
+CHUNK_SIZE = 5_000
 
 
 def build_speed(t, direction):
@@ -351,18 +351,20 @@ if __name__ == "__main__":
                 join tomtom_multinet_current.mnr_netw2speed_profile as nt2sp on netw.netw_id = nt2sp.netw_id
         ) as ntw_w_sp
         join tomtom_multinet_current.mnr_speed_profile as sp on ntw_w_sp.speed_profile_id = sp.speed_profile_id
+        limit 10000
     """
 
     log.info("getting links from trolley..")
     start_time = time.time()
-    df = gpd.read_postgis(q, con=engine)
+    dfs = gpd.read_postgis(q, con=engine, chunksize=CHUNK_SIZE)
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
     all_links = []
-    more_links, node_id_mapping, node_id_counter = links_from_df(
-        df, node_id_mapping, node_id_counter
-    )
-    all_links.extend(more_links)
+    for chunk in tqdm(dfs):
+        more_links, node_id_mapping, node_id_counter = links_from_df(
+            chunk, node_id_mapping, node_id_counter
+        )
+        all_links.extend(more_links)
     log.info(f"found {len(all_links)} links")
     elsapsed_time = time.time() - start_time
 
