@@ -30,7 +30,7 @@ def download_and_save_chunk(chunk_id):
     con = sql.create_engine(f"postgresql://{USER}:{PASSWORD}@trolley.nrel.gov:5432/master")
 
     offset = chunk_id * CHUNK_SIZE
-    query = f"SELECT * FROM {TABLE_NAME} OFFSET {offset} LIMIT {CHUNK_SIZE} ORDER BY netw_id"
+    query = f"SELECT * FROM {TABLE_NAME} ORDER BY netw_id OFFSET {offset} LIMIT {CHUNK_SIZE}"
 
     file_path = OUTPUT_FOLDER / f"chunk_{chunk_id}.parquet"
     if file_path.exists():
@@ -60,8 +60,11 @@ def download_and_save_chunk(chunk_id):
 
 
 engine = sql.create_engine(f"postgresql://{USER}:{PASSWORD}@trolley.nrel.gov:5432/master")
-count = pd.read_sql_query(f"select count(*) from {TABLE_NAME}", engine)
-row_count = count["count"].values[0]
+
+# note: I already ran this count and just hard-coded it here
+row_count = 72259625
+# count = pd.read_sql_query(f"select count(*) from {TABLE_NAME}", engine)
+# row_count = count["count"].values[0]
 
 num_chunks = math.ceil(row_count / CHUNK_SIZE)
 
