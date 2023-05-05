@@ -299,58 +299,7 @@ if __name__ == "__main__":
     with open(length_restrictions_file, "rb") as f:
         length_restrictions = pickle.load(f)
 
-    q = """
-    select
-        netw_id,
-        junction_id_from,
-        junction_id_to,
-        centimeters,
-        mean_gradient_dec,
-        speed_average_pos,
-        speed_average_neg,
-        free_flow_speed,
-        monday_profile_id,
-        tuesday_profile_id,
-        wednesday_profile_id,
-        thursday_profile_id,
-        friday_profile_id,
-        saturday_profile_id,
-        sunday_profile_id,
-        link_direction,
-        geom
-    from
-        (
-            select
-                netw.netw_id,
-                junction_id_from,
-                junction_id_to,
-                centimeters,
-                mean_gradient_dec,
-                speed_average_pos,
-                speed_average_neg,
-                speed_profile_id,
-                validity_direction as link_direction,
-                geom
-            from
-                (
-                    select
-                        feat_id as netw_id,
-                        junction_id_from,
-                        junction_id_to,
-                        centimeters,
-                        mean_gradient_dec,
-                        speed_average_pos,
-                        speed_average_neg,
-                        geom
-                    from
-                        tomtom_multinet_current.network
-                    where
-                        routing_class >= 5
-                ) as netw
-                join tomtom_multinet_current.mnr_netw2speed_profile as nt2sp on netw.netw_id = nt2sp.netw_id
-        ) as ntw_w_sp
-        join tomtom_multinet_current.mnr_speed_profile as sp on ntw_w_sp.speed_profile_id = sp.speed_profile_id
-    """
+    q = "select * from tomtom_multinet_current.network_w_speed_profiles"
 
     log.info("getting links from trolley..")
     start_time = time.time()
