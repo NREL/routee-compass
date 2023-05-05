@@ -5,16 +5,15 @@ from pathlib import Path
 import sqlalchemy as sql
 import math
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
+from multiprocessing import Pool
 
-chunk_size = 1_000_000
-num_threads = 8
-table_name = "tomtom_multinet_current.network_w_speed_profiles"
+CHUNK_SIZE = 1_000_000
+NUM_PROCS = 8
+TABLE_NAME = "tomtom_multinet_current.network_w_speed_profiles"
 WEB_MERCATOR = "epsg:3857"
 
-user = "nreinick"
-password = "NRELisgr8!"
-engine = sql.create_engine(f"postgresql://{user}:{password}@trolley.nrel.gov:5432/master")
+USER = "nreinick"
+PASSWORD = "NRELisgr8!"
 
 # set up logging to file
 date_and_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -22,9 +21,18 @@ logging.basicConfig(filename=f"log_download_us_network_{date_and_time}.log", lev
 
 log = logging.getLogger(__name__)
 
+OUTPUT_FOLDER = Path("/scratch/nreinick/us_network/")
+if not OUTPUT_FOLDER.exists():
+    OUTPUT_FOLDER.mkdir()
 
-def download_and_save_chunk(chunk_id, query, con, output_folder):
-    file_path = output_folder / f"chunk_{chunk_id}.parquet"
+
+def download_and_save_chunk(chunk_id):
+    con = sql.create_engine(f"postgresql://{USER}:{PASSWORD}@trolley.nrel.gov:5432/master")
+
+    offset = chunk_id * CHUNK_SIZE
+    query = f"SELECT * FROM {TABLE_NAME} OFFSET {offset} LIMIT {CHUNK_SIZE} ORDER BY netw_id"
+
+    file_path = OUTPUT_FOLDER / f"chunk_{chunk_id}.parquet"
     if file_path.exists():
         log.info(f"Chunk {chunk_id} already exists, skipping")
         return
@@ -51,19 +59,15 @@ def download_and_save_chunk(chunk_id, query, con, output_folder):
     log.info(f"Chunk {chunk_id} saved to {file_path}")
 
 
-output_folder = Path("/scratch/nreinick/us_network/")
-if not output_folder.exists():
-    output_folder.mkdir()
-
-count = pd.read_sql_query(f"select count(*) from {table_name}", engine)
+engine = sql.create_engine(f"postgresql://{USER}:{PASSWORD}@trolley.nrel.gov:5432/master")
+count = pd.read_sql_query(f"select count(*) from {TABLE_NAME}", engine)
 row_count = count["count"].values[0]
 
-num_chunks = math.ceil(row_count / chunk_size)
+num_chunks = math.ceil(row_count / CHUNK_SIZE)
 
-log.info(f"Downloading {row_count} rows in {num_chunks} chunks of size {chunk_size}")
+log.info(f"Downloading {row_count} rows in {num_chunks} chunks of size {CHUNK_SIZE}")
 
-with ThreadPoolExecutor(max_workers=num_threads) as executor:
-    for chunk_id in range(num_chunks):
-        offset = chunk_id * chunk_size
-        query = f"SELECT * FROM {table_name} OFFSET {offset} LIMIT {chunk_size} ORDER BY netw_id"
-        executor.submit(download_and_save_chunk, chunk_id, query, engine, output_folder)
+with Pool(NUM_PROCS) as p:
+    p.map(download_and_save_chunk, range(num_chunks))
+
+log.info("Done!")
