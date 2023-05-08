@@ -2,15 +2,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict
 import pandas as pd
-import geopandas as gpd
 import pickle
 import time
+import glob
 import logging
 import sqlalchemy as sql
 
 from compass_rust import Graph, Link, Node, RustMap, largest_scc
 
 from shapely.geometry import LineString
+from shapely import from_wkb
 from tqdm import tqdm
 
 from pyproj import CRS
@@ -183,8 +184,7 @@ def build_link(t, direction, node_id_mapping, node_id_counter):
 
 
 def links_from_df(gdf, node_id_mapping, node_id_counter):
-    gdf = gdf.to_crs(WEB_MERCATOR)
-
+    gdf["geom"] = gdf.geom.apply(lambda g: from_wkb(g))
     gdf = gdf.astype(
         {
             "netw_id": str,
@@ -301,13 +301,16 @@ if __name__ == "__main__":
 
     q = "select * from tomtom_multinet_current.network_w_speed_profiles"
 
-    log.info("getting links from trolley..")
+    # NOTE: This is predicated on first running the download_us_network.py script
+    log.info("loading links from file")
+    files = glob.glob("/projects/mbap/amazon-eco/us_network/*.parquet")
     start_time = time.time()
-    dfs = gpd.read_postgis(q, con=engine, chunksize=CHUNK_SIZE)
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
     all_links = []
-    for chunk in tqdm(dfs):
+    for f in tqdm(files):
+        log.info(f"working on file: {f}")
+        chunk = pd.read_parquet(f)
         more_links, node_id_mapping, node_id_counter = links_from_df(
             chunk, node_id_mapping, node_id_counter
         )
