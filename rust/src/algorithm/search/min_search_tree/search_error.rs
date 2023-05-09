@@ -1,4 +1,7 @@
-use crate::model::{graph::graph_error::GraphError, traversal::traversal_error::TraversalError};
+use crate::model::{
+    cost::cost_error::CostError, graph::graph_error::GraphError,
+    traversal::traversal_error::TraversalError,
+};
 
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum SearchError {
@@ -8,4 +11,8 @@ pub enum SearchError {
     GraphCorrectnessFailure(#[from] GraphError),
     #[error("failure applying the traversal model in search")]
     TraversalModelFailure(#[from] TraversalError),
+    #[error("failure calculating cost")]
+    CostCalculationError(#[from] CostError),
+    #[error("internal error due to search logic")]
+    InternalSearchError,
 }

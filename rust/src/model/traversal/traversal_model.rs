@@ -1,5 +1,5 @@
 use crate::{
-    algorithm::search::min_search_tree::frontier::Frontier,
+    algorithm::search::min_search_tree::edge_frontier::EdgeFrontier,
     model::{cost::cost::Cost, property::edge::Edge},
 };
 
@@ -25,5 +25,10 @@ pub trait TraversalModel {
 
     // fn update(&self, s: Self::State, c: Cost) -> Result<Self::State, TraversalError>;
 
-    fn terminate_search(&self, frontier: &Frontier<Self::State>) -> Result<bool, TraversalError>;
+    fn valid_frontier(&self, frontier: &EdgeFrontier<Self::State>) -> Result<bool, TraversalError>;
+
+    fn terminate_search(
+        &self,
+        frontier: &EdgeFrontier<Self::State>,
+    ) -> Result<bool, TraversalError>;
 }
