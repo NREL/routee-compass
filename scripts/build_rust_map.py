@@ -342,6 +342,7 @@ if __name__ == "__main__":
     log.info("building graph..")
     start_time = time.time()
     graph = Graph()
+    graph.add_nodes_bulk(all_nodes)
     graph.add_links_bulk(all_links)
     elsapsed_time = time.time() - start_time
     log.info(f"graph building took {elsapsed_time} seconds")
