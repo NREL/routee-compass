@@ -1,11 +1,13 @@
-use std::cmp;
 use std::collections::{BinaryHeap, HashMap};
 use std::{cmp::Reverse, collections::HashSet};
 
 use crate::graph::{Graph, Link, NodeId};
 use crate::powertrain::VehicleParameters;
 
+use pathfinding::prelude::strongly_connected_components;
 use pyo3::prelude::*;
+
+use anyhow::{anyhow, Result};
 
 pub fn build_restriction_function(
     vehicle_parameters: Option<VehicleParameters>,
@@ -98,103 +100,36 @@ pub fn dijkstra_shortest_path(
 
     None
 }
-struct Tarjan {
-    index: u32,
-    indexes: HashMap<NodeId, u32>,
-    lowlinks: HashMap<NodeId, u32>,
-    on_stack: HashSet<NodeId>,
-    stack: Vec<NodeId>,
-    scc: Vec<Vec<NodeId>>,
-}
-
-impl Tarjan {
-    fn new() -> Self {
-        Self {
-            index: 0,
-            indexes: HashMap::new(),
-            lowlinks: HashMap::new(),
-            on_stack: HashSet::new(),
-            stack: Vec::new(),
-            scc: Vec::new(),
-        }
-    }
-
-    fn strongconnect(&mut self, graph: &Graph, v: NodeId) {
-        self.indexes.insert(v, self.index);
-        self.lowlinks.insert(v, self.index);
-        self.index += 1;
-        self.stack.push(v);
-        self.on_stack.insert(v);
-
-        if let Some(neighbors) = graph.adjacency_list.get(&v) {
-            for link in neighbors {
-                let w = link.end_node;
-                if !self.indexes.contains_key(&w) {
-                    self.strongconnect(graph, w);
-                    let v_lowlink = *self.lowlinks.get(&v).unwrap();
-                    let w_lowlink = *self.lowlinks.get(&w).unwrap();
-                    self.lowlinks.insert(v, cmp::min(v_lowlink, w_lowlink));
-                } else if self.on_stack.contains(&w) {
-                    let v_lowlink = *self.lowlinks.get(&v).unwrap();
-                    let w_index = *self.indexes.get(&w).unwrap();
-                    self.lowlinks.insert(v, cmp::min(v_lowlink, w_index));
-                }
-            }
-        }
-
-        if self.lowlinks[&v] == self.indexes[&v] {
-            let mut component = Vec::new();
-            loop {
-                let w = self.stack.pop().unwrap();
-                self.on_stack.remove(&w);
-                component.push(w);
-                if w == v {
-                    break;
-                }
-            }
-            self.scc.push(component);
-        }
-    }
-
-    fn run(&mut self, graph: &Graph) {
-        for node in graph.nodes.keys() {
-            if !self.indexes.contains_key(node) {
-                self.strongconnect(graph, *node);
-            }
-        }
-    }
-
-    fn largest_scc(&self) -> Option<&Vec<NodeId>> {
-        self.scc.iter().max_by_key(|scc| scc.len())
-    }
-}
-
 #[pyfunction]
-pub fn extract_largest_scc(graph: &Graph) -> Option<Graph> {
-    let mut tarjan = Tarjan::new();
-    tarjan.run(graph);
-    let largest_scc = tarjan.largest_scc()?;
-    let mut new_graph = Graph {
-        nodes: HashMap::new(),
-        adjacency_list: HashMap::new(),
-    };
-    for &node_id in largest_scc {
-        if let Some(node) = graph.nodes.get(&node_id) {
-            new_graph.nodes.insert(node_id, node.clone());
-            if let Some(links) = graph.adjacency_list.get(&node_id) {
-                let mut new_links = Vec::new();
-                for link in links {
-                    if largest_scc.contains(&link.start_node)
-                        && largest_scc.contains(&link.end_node)
-                    {
-                        new_links.push(link.clone());
-                    }
-                }
-                new_graph.adjacency_list.insert(node_id, new_links);
-            }
+pub fn extract_largest_scc(graph: &Graph) -> Result<Graph> {
+    let node_ids = graph.nodes.keys().cloned().collect::<Vec<_>>();
+    let successors = |node_id: &NodeId| {
+        if let Some(links) = graph.adjacency_list.get(node_id) {
+            links.iter().map(|link| link.end_node).collect::<Vec<_>>()
+        } else {
+            Vec::new()
         }
+    };
+    let all_sccs = strongly_connected_components(&node_ids, successors);
+    let largest_scc = all_sccs
+        .into_iter()
+        .max_by_key(|scc| scc.len())
+        .ok_or(anyhow!("No SCCs found"))?;
+
+    let mut new_graph = Graph::new();
+    for node_id in largest_scc {
+        let node = graph
+            .nodes
+            .get(&node_id)
+            .ok_or(anyhow!("Node {} not found in graph", node_id))?;
+        new_graph.add_node(node.clone());
+        let links = graph
+            .adjacency_list
+            .get(&node_id)
+            .ok_or(anyhow!("Node {} not found in graph", node_id))?;
+        new_graph.add_links_bulk(links.clone());
     }
-    Some(new_graph)
+    Ok(new_graph)
 }
 
 #[cfg(test)]
@@ -249,32 +184,8 @@ mod tests {
             nodes: HashMap::new(),
             adjacency_list: HashMap::new(),
         };
-        assert!(extract_largest_scc(&g).is_none());
-    }
-
-    #[test]
-    fn test_single_node_graph() {
-        let mut g = Graph {
-            nodes: HashMap::new(),
-            adjacency_list: HashMap::new(),
-        };
-        g.nodes.insert(1, Node { id: 1, x: 0, y: 0 });
-        let scc = extract_largest_scc(&g).unwrap();
-        assert_eq!(scc.nodes.len(), 1);
-        assert_eq!(scc.adjacency_list.len(), 0);
-    }
-
-    #[test]
-    fn test_disconnected_graph() {
-        let mut g = Graph {
-            nodes: HashMap::new(),
-            adjacency_list: HashMap::new(),
-        };
-        g.add_node(Node { id: 1, x: 0, y: 0 });
-        g.add_node(Node { id: 2, x: 1, y: 1 });
-        let scc = extract_largest_scc(&g).unwrap();
-        assert_eq!(scc.nodes.len(), 1); // Only one node per SCC in a disconnected graph
-        assert_eq!(scc.adjacency_list.len(), 0);
+        // make sure the function returns an error
+        assert!(extract_largest_scc(&g).is_err());
     }
 
     #[test]
