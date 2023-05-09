@@ -1,5 +1,3 @@
-use im::Vector;
-
 use crate::model::{cost::cost::Cost, graph::edge_id::EdgeId};
 
 pub struct Solution {

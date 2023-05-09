@@ -1,9 +1,9 @@
-use im;
+use std::collections::HashMap;
 
 use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 
-type EdgePropertyTable<T> = im::HashMap<EdgeId, T>;
+type EdgePropertyTable<T> = HashMap<EdgeId, T>;
 
-type VertexPropertyTable<T> = im::HashMap<VertexId, T>;
+type VertexPropertyTable<T> = HashMap<VertexId, T>;
 
-type EdgeEdgePropertyTable<T> = im::HashMap<(EdgeId, EdgeId), T>;
+type EdgeEdgePropertyTable<T> = HashMap<(EdgeId, EdgeId), T>;

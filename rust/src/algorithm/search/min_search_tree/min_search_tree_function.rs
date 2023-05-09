@@ -14,7 +14,7 @@ use std::sync::{Arc, RwLock};
 use super::search_error::SearchError;
 use super::solution::Solution;
 
-type MinSearchTree = im::HashMap<VertexId, Solution>;
+type MinSearchTree = HashMap<VertexId, Solution>;
 
 pub fn run_search<S: Eq + Clone + Copy>(
     directed_graph: Arc<RwLock<dyn DirectedGraph>>,
@@ -80,7 +80,7 @@ pub fn run_search<S: Eq + Clone + Copy>(
         }
     }
 
-    return Result::Ok(im::hashmap![]);
+    return Result::Ok(HashMap::new());
 }
 
 fn expand<S: Eq + Clone + Copy>(
@@ -92,7 +92,7 @@ fn expand<S: Eq + Clone + Copy>(
     // directed_graph: Arc<RwLock<dyn DirectedGraph>>,
     m: &RwLockReadGuard<dyn TraversalModel<State = S>>,
     g: &RwLockReadGuard<dyn DirectedGraph>,
-) -> Result<im::Vector<Frontier<S>>, SearchError> {
+) -> Result<Vec<Frontier<S>>, SearchError> {
     // find in or out edges from this vertex id
     let initial_edges = match direction {
         Direction::Forward => g.out_edges(vertex_id),
@@ -100,7 +100,7 @@ fn expand<S: Eq + Clone + Copy>(
     }
     .map_err(SearchError::GraphCorrectnessFailure)?;
 
-    let mut expanded: im::Vector<Frontier<S>> = im::vector![];
+    let mut expanded: Vec<Frontier<S>> = vec![];
 
     for edge_id in initial_edges {
         let edge = g
@@ -131,7 +131,7 @@ fn expand<S: Eq + Clone + Copy>(
             cost: access_cost + traversal_cost,
         };
 
-        expanded.push_back(initial_frontier);
+        expanded.push(initial_frontier);
     }
 
     return Ok(expanded);
