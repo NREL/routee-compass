@@ -29,7 +29,8 @@ impl RustMap {
 impl RustMap {
     #[new]
     pub fn new(graph: Graph) -> Self {
-        let rtree = RTree::bulk_load(graph.get_nodes().clone());
+        let nodes = graph.nodes.values().cloned().collect::<Vec<Node>>();
+        let rtree = RTree::bulk_load(nodes);
         RustMap { graph, rtree }
     }
 
@@ -60,8 +61,8 @@ impl RustMap {
         let end_node = self.get_closest_node(end)?;
         match dijkstra_shortest_path(
             &self.graph,
-            &start_node,
-            &end_node,
+            &start_node.id,
+            &end_node.id,
             |link| link.time_seconds(),
             build_restriction_function(vehicle_parameters),
         ) {
@@ -84,8 +85,8 @@ impl RustMap {
         let end_node = self.get_closest_node(end)?;
         match dijkstra_shortest_path(
             &self.graph,
-            &start_node,
-            &end_node,
+            &start_node.id,
+            &end_node.id,
             |link| time_of_day_speed.link_time_seconds_by_time_of_day(link, second_of_day, day_of_week),
             build_restriction_function(vehicle_parameters),
         ) {
@@ -107,8 +108,8 @@ impl RustMap {
         let routee_cost_function = build_routee_cost_function(routee_model_path).unwrap();
         match dijkstra_shortest_path(
             &self.graph,
-            &start_node,
-            &end_node,
+            &start_node.id,
+            &end_node.id,
             routee_cost_function,
             build_restriction_function(vehicle_parameters),
         ) {

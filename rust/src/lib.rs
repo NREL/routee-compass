@@ -4,7 +4,7 @@ pub mod map;
 pub mod powertrain;
 pub mod time_of_day_speed;
 
-use algorithm::largest_scc;
+use algorithm::extract_largest_scc;
 use graph::{Graph, Link, Node};
 use map::RustMap;
 use pyo3::prelude::*;
@@ -17,7 +17,7 @@ fn compass_rust(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Graph>()?;
     m.add_class::<RustMap>()?;
     m.add_class::<TimeOfDaySpeeds>()?;
-    m.add_function(wrap_pyfunction!(largest_scc, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_largest_scc, m)?)?;
 
     Ok(())
 }
