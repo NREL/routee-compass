@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, Tuple
 import pandas as pd
 import pickle
 import time
@@ -8,7 +8,7 @@ import glob
 import logging
 import sqlalchemy as sql
 
-from compass_rust import Graph, Link, Node, RustMap, largest_scc
+from compass_rust import Graph, Link, Node, RustMap, extract_largest_scc
 
 from shapely.geometry import LineString
 from shapely import from_wkb
@@ -36,7 +36,7 @@ DEFAULT_SPEED_KPH = 40
 CHUNK_SIZE = 500_000
 
 
-def build_speed(t, direction):
+def build_speed(t, direction) -> int:
     # optimisitically return free flow
     if not pd.isna(t.free_flow_speed):
         return int(t.free_flow_speed)
@@ -53,7 +53,9 @@ def build_speed(t, direction):
         raise ValueError("Bad direction value")
 
 
-def build_link(t, direction, node_id_mapping, node_id_counter):
+def build_link(
+    t, direction, node_id_mapping, node_id_counter
+) -> Tuple[Link, Node, Node, Dict[str, int], int]:
     if t.junction_id_to in node_id_mapping:
         junction_id_to_id = node_id_mapping[t.junction_id_to]
     else:
@@ -168,8 +170,8 @@ def build_link(t, direction, node_id_mapping, node_id_counter):
     ]
 
     link = Link(
-        start_node,
-        end_node,
+        start_node.id,
+        end_node.id,
         speed_kph,
         distance_cm,
         grade_milli,
@@ -180,10 +182,12 @@ def build_link(t, direction, node_id_mapping, node_id_counter):
         length_restriction,
     )
 
-    return link, node_id_mapping, node_id_counter
+    return link, start_node, end_node, node_id_mapping, node_id_counter
 
 
-def links_from_df(gdf, node_id_mapping, node_id_counter):
+def links_from_df(
+    gdf, node_id_mapping, node_id_counter
+) -> Tuple[List[Link], List[Node], Dict[str, int], int]:
     gdf["geom"] = gdf.geom.apply(lambda g: from_wkb(g))
     gdf = gdf.astype(
         {
@@ -206,42 +210,51 @@ def links_from_df(gdf, node_id_mapping, node_id_counter):
     oneway_tf = gdf[gdf.link_direction == TO_FROM_DIRECTION]
     twoway = gdf[gdf.link_direction.isin([1, 9])]
 
-    assert(len(oneway_ft) + len(oneway_tf) + len(twoway) == len(gdf))
+    assert len(oneway_ft) + len(oneway_tf) + len(twoway) == len(gdf)
 
     links = []
+    nodes = []
     two_way_tf_links = []
     for t in twoway.itertuples():
-        link, node_id_mapping, node_id_counter = build_link(
+        link, start_node, end_node, node_id_mapping, node_id_counter = build_link(
             t, TO_FROM_DIRECTION, node_id_mapping, node_id_counter
         )
+        nodes.append(start_node)
+        nodes.append(end_node)
         two_way_tf_links.append(link)
     links.extend(two_way_tf_links)
 
     two_way_ft_links = []
     for t in twoway.itertuples():
-        link, node_id_mapping, node_id_counter = build_link(
+        link, start_node, end_node, node_id_mapping, node_id_counter = build_link(
             t, FROM_TO_DIRECTION, node_id_mapping, node_id_counter
         )
+        nodes.append(start_node)
+        nodes.append(end_node)
         two_way_ft_links.append(link)
     links.extend(two_way_ft_links)
 
     oneway_ft_links = []
     for t in oneway_ft.itertuples():
-        link, node_id_mapping, node_id_counter = build_link(
+        link, start_node, end_node, node_id_mapping, node_id_counter = build_link(
             t, FROM_TO_DIRECTION, node_id_mapping, node_id_counter
         )
+        nodes.append(start_node)
+        nodes.append(end_node)
         oneway_ft_links.append(link)
     links.extend(oneway_ft_links)
 
     oneway_tf_links = []
     for t in oneway_tf.itertuples():
-        link, node_id_mapping, node_id_counter = build_link(
+        link, start_node, end_node, node_id_mapping, node_id_counter = build_link(
             t, TO_FROM_DIRECTION, node_id_mapping, node_id_counter
         )
+        nodes.append(start_node)
+        nodes.append(end_node)
         oneway_tf_links.append(link)
     links.extend(oneway_tf_links)
 
-    return links, node_id_mapping, node_id_counter
+    return links, nodes, node_id_mapping, node_id_counter
 
 
 if __name__ == "__main__":
@@ -308,13 +321,15 @@ if __name__ == "__main__":
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
     all_links = []
+    all_nodes = [] 
     for f in tqdm(files):
         log.info(f"working on file: {f}")
         chunk = pd.read_parquet(f)
-        more_links, node_id_mapping, node_id_counter = links_from_df(
+        more_links, nodes, node_id_mapping, node_id_counter = links_from_df(
             chunk, node_id_mapping, node_id_counter
         )
         all_links.extend(more_links)
+        all_nodes.extend(nodes)
     log.info(f"found {len(all_links)} links")
     elsapsed_time = time.time() - start_time
 
@@ -337,7 +352,7 @@ if __name__ == "__main__":
 
     log.info("extracting largest scc..")
     start_time = time.time()
-    graph = largest_scc(graph)
+    graph = extract_largest_scc(graph)
     elsapsed_time = time.time() - start_time
     log.info(f"largest scc took {elsapsed_time} seconds")
     number_of_links = graph.number_of_links()
