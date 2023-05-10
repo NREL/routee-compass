@@ -153,8 +153,10 @@ pub fn extract_largest_scc(graph: &Graph) -> Graph {
     }
 
     let mut largest_scc_graph = Graph::new();
-    for node in &largest_scc {
-        if let Some(links) = graph.adjacency_list.get(node) {
+    for node_id in &largest_scc {
+        let node = graph.nodes.get(node_id).unwrap().clone();
+        largest_scc_graph.add_node(node);
+        if let Some(links) = graph.adjacency_list.get(node_id) {
             for link in links {
                 if largest_scc.contains(&link.end_node) {
                     largest_scc_graph.add_link(link.clone());
