@@ -61,6 +61,8 @@ pub struct Link {
     #[pyo3(get)]
     pub grade: i16,
     #[pyo3(get)]
+    pub road_class: u8,
+    #[pyo3(get)]
     pub week_profile_ids: [Option<u16>; 7],
     #[pyo3(get)]
     pub weight_limit_lbs: Option<u32>,
@@ -81,6 +83,7 @@ impl Link {
         speed_kph: u8,
         distance_centimeters: u32,
         grade: i16,
+        road_class: u8,
         week_profile_ids: [Option<u16>; 7],
         weight_limit_lbs: Option<u32>,
         height_limit_inches: Option<u16>,
@@ -93,6 +96,7 @@ impl Link {
             speed_kph,
             distance_centimeters,
             grade,
+            road_class,
             week_profile_ids,
             weight_limit_lbs,
             height_limit_inches,
@@ -100,6 +104,23 @@ impl Link {
             length_limit_inches,
         }
     }
+
+    pub fn transpose(&self) -> Self {
+        Link {
+            start_node: self.end_node,
+            end_node: self.start_node,
+            speed_kph: self.speed_kph,
+            distance_centimeters: self.distance_centimeters,
+            grade: -self.grade,
+            road_class: self.road_class,
+            weight_limit_lbs: self.weight_limit_lbs,
+            height_limit_inches: self.height_limit_inches,
+            width_limit_inches: self.width_limit_inches,
+            length_limit_inches: self.length_limit_inches,
+            week_profile_ids: self.week_profile_ids,
+        }
+    }
+
 
     pub fn time_seconds(&self) -> u32 {
         let speed_centimeters_per_second = (self.speed_kph as f32 * 27.77) as u32;
@@ -122,6 +143,18 @@ impl Graph {
     pub fn neighbors(&self, node_id: &NodeId) -> Option<&Vec<Link>> {
         self.adjacency_list.get(node_id)
     }
+
+    pub fn get_transpose(&self) -> Graph {
+        let mut transpose = Graph::new();
+        transpose.nodes = self.nodes.clone();
+        for links in self.adjacency_list.values() {
+            for link in links {
+                transpose.add_link(link.transpose());
+            }
+        }
+        transpose
+    }
+
     pub fn to_binary(&self) -> Vec<u8> {
         bincode::serialize(&self).unwrap()
     }

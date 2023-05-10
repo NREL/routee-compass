@@ -7,9 +7,9 @@ import math
 from datetime import datetime
 from multiprocessing import Pool
 
-CHUNK_SIZE = 1_000_000
-NUM_PROCS = 8
-TABLE_NAME = "tomtom_multinet_current.network_w_speed_profiles"
+CHUNK_SIZE = 5_000_000
+NUM_PROCS = 4 
+TABLE_NAME = "network_w_speed_profiles"
 WEB_MERCATOR = "epsg:3857"
 
 USER = "nreinick"
@@ -46,6 +46,9 @@ def download_and_save_chunk(chunk_id):
             "junction_id_from": str,
             "centimeters": int,
             "link_direction": int,
+            "routing_class": int,
+            "speed_average_pos": int,
+            "speed_average_neg": int,
             "monday_profile_id": str,
             "tuesday_profile_id": str,
             "wednesday_profile_id": str,
@@ -61,10 +64,8 @@ def download_and_save_chunk(chunk_id):
 
 engine = sql.create_engine(f"postgresql://{USER}:{PASSWORD}@trolley.nrel.gov:5432/master")
 
-# note: I already ran this count and just hard-coded it here
-row_count = 72259625
-# count = pd.read_sql_query(f"select count(*) from {TABLE_NAME}", engine)
-# row_count = count["count"].values[0]
+count = pd.read_sql_query(f"select count(*) from {TABLE_NAME}", engine)
+row_count = count["count"].values[0]
 
 num_chunks = math.ceil(row_count / CHUNK_SIZE)
 

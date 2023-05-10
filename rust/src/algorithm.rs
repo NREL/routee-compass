@@ -4,10 +4,8 @@ use std::{cmp::Reverse, collections::HashSet};
 use crate::graph::{Graph, Link, NodeId};
 use crate::powertrain::VehicleParameters;
 
-use pathfinding::prelude::strongly_connected_components;
 use pyo3::prelude::*;
 
-use anyhow::{anyhow, Result};
 
 pub fn build_restriction_function(
     vehicle_parameters: Option<VehicleParameters>,
@@ -100,36 +98,72 @@ pub fn dijkstra_shortest_path(
 
     None
 }
-#[pyfunction]
-pub fn extract_largest_scc(graph: &Graph) -> Result<Graph> {
-    let node_ids = graph.nodes.keys().cloned().collect::<Vec<_>>();
-    let successors = |node_id: &NodeId| {
-        if let Some(links) = graph.adjacency_list.get(node_id) {
-            links.iter().map(|link| link.end_node).collect::<Vec<_>>()
-        } else {
-            Vec::new()
+pub fn dfs(graph: &Graph, node: &NodeId, visited: &mut HashSet<NodeId>, stack: &mut Vec<NodeId>) {
+    visited.insert(node.clone());
+    if let Some(links) = graph.adjacency_list.get(node) {
+        for link in links {
+            if !visited.contains(&link.end_node) {
+                dfs(graph, &link.end_node, visited, stack);
+            }
         }
-    };
-    let all_sccs = strongly_connected_components(&node_ids, successors);
-    let largest_scc = all_sccs
-        .into_iter()
-        .max_by_key(|scc| scc.len())
-        .ok_or(anyhow!("No SCCs found"))?;
-
-    let mut new_graph = Graph::new();
-    for node_id in largest_scc {
-        let node = graph
-            .nodes
-            .get(&node_id)
-            .ok_or(anyhow!("Node {} not found in graph", node_id))?;
-        new_graph.add_node(node.clone());
-        let links = graph
-            .adjacency_list
-            .get(&node_id)
-            .ok_or(anyhow!("Node {} not found in graph", node_id))?;
-        new_graph.add_links_bulk(links.clone());
     }
-    Ok(new_graph)
+    stack.push(node.clone());
+}
+
+pub fn dfs_transpose(
+    graph: &Graph,
+    node: &NodeId,
+    visited: &mut HashSet<NodeId>,
+    scc: &mut HashSet<NodeId>,
+) {
+    visited.insert(node.clone());
+    scc.insert(node.clone());
+    if let Some(links) = graph.adjacency_list.get(node) {
+        for link in links {
+            if !visited.contains(&link.end_node) {
+                dfs_transpose(graph, &link.end_node, visited, scc);
+            }
+        }
+    }
+}
+
+#[pyfunction]
+pub fn extract_largest_scc(graph: &Graph) -> Graph {
+    let mut stack = Vec::new();
+    let mut visited = HashSet::new();
+
+    for node in graph.adjacency_list.keys() {
+        if !visited.contains(node) {
+            dfs(graph, node, &mut visited, &mut stack);
+        }
+    }
+
+    let transpose = graph.get_transpose();
+    visited.clear();
+
+    let mut largest_scc = HashSet::new();
+    while let Some(node) = stack.pop() {
+        if !visited.contains(&node) {
+            let mut scc = HashSet::new();
+            dfs_transpose(&transpose, &node, &mut visited, &mut scc);
+            if scc.len() > largest_scc.len() {
+                largest_scc = scc;
+            }
+        }
+    }
+
+    let mut largest_scc_graph = Graph::new();
+    for node in &largest_scc {
+        if let Some(links) = graph.adjacency_list.get(node) {
+            for link in links {
+                if largest_scc.contains(&link.end_node) {
+                    largest_scc_graph.add_link(link.clone());
+                }
+            }
+        }
+    }
+
+    largest_scc_graph
 }
 
 #[cfg(test)]
@@ -144,6 +178,7 @@ mod tests {
             10,
             10,
             10,
+            1,
             [None, None, None, None, None, None, None],
             None,
             None,
@@ -174,18 +209,8 @@ mod tests {
             graph.add_link(dummy_link_from_nodes(nodes[i], nodes[i - 1]));
         }
 
-        let scc = extract_largest_scc(&graph).unwrap();
+        let scc = extract_largest_scc(&graph);
         assert_eq!(scc.number_of_links(), 10);
-    }
-
-    #[test]
-    fn test_empty_graph() {
-        let g = Graph {
-            nodes: HashMap::new(),
-            adjacency_list: HashMap::new(),
-        };
-        // make sure the function returns an error
-        assert!(extract_largest_scc(&g).is_err());
     }
 
     #[test]
@@ -200,7 +225,7 @@ mod tests {
         g.add_node(node_b.clone());
         g.add_link(dummy_link_from_nodes(node_a.id, node_b.id));
         g.add_link(dummy_link_from_nodes(node_b.id, node_a.id));
-        let scc = extract_largest_scc(&g).unwrap();
+        let scc = extract_largest_scc(&g);
         assert_eq!(scc.nodes.len(), 2); // Two nodes strongly connected
         assert_eq!(scc.adjacency_list.len(), 2);
     }

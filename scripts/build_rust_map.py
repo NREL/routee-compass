@@ -159,6 +159,8 @@ def build_link(
 
     distance_cm = t.centimeters
 
+    road_class = int(t.routing_class)
+
     week_profile_ids = [
         profile_id_integer_mapping.get(t.monday_profile_id),
         profile_id_integer_mapping.get(t.tuesday_profile_id),
@@ -175,6 +177,7 @@ def build_link(
         speed_kph,
         distance_cm,
         grade_milli,
+        road_class,
         week_profile_ids,
         weight_restriction,
         height_restriction,
@@ -350,6 +353,7 @@ if __name__ == "__main__":
     log.info(f"graph has {number_of_links} links")
 
     del all_links
+    del all_nodes
 
     log.info("extracting largest scc..")
     start_time = time.time()
