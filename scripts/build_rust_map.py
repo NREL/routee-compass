@@ -14,15 +14,13 @@ from shapely.geometry import LineString
 from shapely import from_wkb
 from tqdm import tqdm
 
-from pyproj import CRS
-
 # set up logging to file
 date_and_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 logging.basicConfig(filename=f"build_rust_map_{date_and_time}.log", level=logging.DEBUG)
 
 log = logging.getLogger(__name__)
 
-LATLON = CRS("epsg:4326")
+LATLON = "epsg:4326"
 WEB_MERCATOR = "epsg:3857"
 
 # also referred to as the 'positive' direction in TomTom
@@ -32,8 +30,6 @@ FROM_TO_DIRECTION = 2
 TO_FROM_DIRECTION = 3
 
 DEFAULT_SPEED_KPH = 40
-
-CHUNK_SIZE = 500_000
 
 
 def build_speed(t, direction) -> int:
@@ -189,31 +185,16 @@ def build_link(
 
 
 def links_from_df(
-    gdf, node_id_mapping, node_id_counter
+    df, node_id_mapping, node_id_counter
 ) -> Tuple[List[Link], List[Node], Dict[str, int], int]:
-    gdf["geom"] = gdf.geom.apply(lambda g: from_wkb(g))
-    gdf = gdf.astype(
-        {
-            "netw_id": str,
-            "junction_id_to": str,
-            "junction_id_from": str,
-            "centimeters": int,
-            "link_direction": int,
-            "monday_profile_id": str,
-            "tuesday_profile_id": str,
-            "wednesday_profile_id": str,
-            "thursday_profile_id": str,
-            "friday_profile_id": str,
-            "saturday_profile_id": str,
-            "sunday_profile_id": str,
-        }
-    )
+    df["link_direction"] = df.link_direction.fillna(9).astype(int)
+    df["geom"] = df.geom.apply(lambda g: from_wkb(g))
 
-    oneway_ft = gdf[gdf.link_direction == FROM_TO_DIRECTION]
-    oneway_tf = gdf[gdf.link_direction == TO_FROM_DIRECTION]
-    twoway = gdf[gdf.link_direction.isin([1, 9])]
+    oneway_ft = df[df.link_direction == FROM_TO_DIRECTION]
+    oneway_tf = df[df.link_direction == TO_FROM_DIRECTION]
+    twoway = df[df.link_direction.isin([1, 9])]
 
-    assert len(oneway_ft) + len(oneway_tf) + len(twoway) == len(gdf)
+    assert len(oneway_ft) + len(oneway_tf) + len(twoway) == len(df)
 
     links = []
     nodes = []
@@ -300,22 +281,20 @@ if __name__ == "__main__":
 
     weight_restrictions_file = "/projects/mbap/amazon-eco/weight_restrictions.pickle"
     log.info("loading weight restrictions..")
-    with open(weight_restrictions_file, "rb") as f:
-        weight_restrictions = pickle.load(f)
+    with open(weight_restrictions_file, "rb") as wrf:
+        weight_restrictions = pickle.load(wrf)
     height_restrictions_file = "/projects/mbap/amazon-eco/height_restrictions.pickle"
     log.info("loading height restrictions..")
-    with open(height_restrictions_file, "rb") as f:
-        height_restrictions = pickle.load(f)
+    with open(height_restrictions_file, "rb") as hrf:
+        height_restrictions = pickle.load(hrf)
     width_restrictions_file = "/projects/mbap/amazon-eco/width_restrictions.pickle"
     log.info("loading width restrictions..")
-    with open(width_restrictions_file, "rb") as f:
-        width_restrictions = pickle.load(f)
+    with open(width_restrictions_file, "rb") as wdrf:
+        width_restrictions = pickle.load(wdrf)
     length_restrictions_file = "/projects/mbap/amazon-eco/length_restrictions.pickle"
     log.info("loading length restrictions..")
-    with open(length_restrictions_file, "rb") as f:
-        length_restrictions = pickle.load(f)
-
-    q = "select * from tomtom_multinet_current.network_w_speed_profiles"
+    with open(length_restrictions_file, "rb") as lrf:
+        length_restrictions = pickle.load(lrf)
 
     # NOTE: This is predicated on first running the download_us_network.py script
     log.info("loading links from file")
@@ -324,10 +303,10 @@ if __name__ == "__main__":
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
     all_links = []
-    all_nodes = [] 
-    for f in tqdm(files):
-        log.info(f"working on file: {f}")
-        chunk = pd.read_parquet(f)
+    all_nodes = []
+    for nfile in tqdm(files):
+        log.info(f"working on file: {nfile}")
+        chunk = pd.read_parquet(nfile)
         more_links, nodes, node_id_mapping, node_id_counter = links_from_df(
             chunk, node_id_mapping, node_id_counter
         )
@@ -337,8 +316,8 @@ if __name__ == "__main__":
     elsapsed_time = time.time() - start_time
 
     node_map_outfile = Path("/projects/mbap/amazon-eco/node-id-mapping.pickle")
-    with node_map_outfile.open("wb") as f:
-        pickle.dump(node_id_mapping, f)
+    with node_map_outfile.open("wb") as nmf:
+        pickle.dump(node_id_mapping, nmf)
 
     del node_id_mapping
 
