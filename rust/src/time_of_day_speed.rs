@@ -6,7 +6,7 @@ use crate::graph::Link;
 
 pub type ProfileId = u16;
 pub type SecondOfDay = u32;
-pub type RelativeSpeed = f32;
+pub type RelativeSpeed = f64;
 pub type DayOfWeek = usize;
 
 #[derive(Clone, Debug)]
@@ -84,7 +84,7 @@ impl TimeOfDaySpeeds {
     ) -> u32 {
         if let Some(profile_id) = link.week_profile_ids[day_of_week] {
             let modifier = self.get_modifier_by_second_of_day(profile_id, second_of_day);
-            (link.time_seconds() as f32 * (1.0/modifier)) as u32
+            (link.time_seconds() as f64 * (1.0/modifier)) as u32
 
         } else {
             link.time_seconds()

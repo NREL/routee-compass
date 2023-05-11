@@ -7,8 +7,11 @@ use rayon::prelude::*;
 use crate::{
     algorithm::{build_restriction_function, dijkstra_shortest_path},
     graph::{Graph, Link, Node},
-    powertrain::{build_routee_cost_function, VehicleParameters, ROUTEE_SCALE_FACTOR},
-    time_of_day_speed::{TimeOfDaySpeeds, SecondOfDay, DayOfWeek},
+    powertrain::{
+        build_routee_cost_function, build_routee_cost_function_with_tods, VehicleParameters,
+        ROUTEE_SCALE_FACTOR,
+    },
+    time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
 };
 
 #[pyclass]
@@ -76,7 +79,7 @@ impl RustMap {
         &self,
         start: [isize; 2],
         end: [isize; 2],
-        time_of_day_speed: TimeOfDaySpeeds,
+        time_of_day_speed: &TimeOfDaySpeeds,
         second_of_day: SecondOfDay,
         day_of_week: DayOfWeek,
         vehicle_parameters: Option<VehicleParameters>,
@@ -87,7 +90,9 @@ impl RustMap {
             &self.graph,
             &start_node.id,
             &end_node.id,
-            |link| time_of_day_speed.link_time_seconds_by_time_of_day(link, second_of_day, day_of_week),
+            |link| {
+                time_of_day_speed.link_time_seconds_by_time_of_day(link, second_of_day, day_of_week)
+            },
             build_restriction_function(vehicle_parameters),
         ) {
             Some((time_seconds, path)) => Some((time_seconds, self.graph.get_links_in_path(path))),
@@ -122,6 +127,41 @@ impl RustMap {
         }
     }
 
+    pub fn shortest_energy_path_by_time_of_day(
+        &self,
+        start: [isize; 2],
+        end: [isize; 2],
+        routee_model_path: &str,
+        time_of_day_speed: TimeOfDaySpeeds,
+        second_of_day: SecondOfDay,
+        day_of_week: DayOfWeek,
+        vehicle_parameters: Option<VehicleParameters>,
+    ) -> Option<(f64, Vec<Link>)> {
+        let start_node = self.get_closest_node(start)?;
+        let end_node = self.get_closest_node(end)?;
+        let routee_cost_function = build_routee_cost_function_with_tods(
+            routee_model_path,
+            time_of_day_speed,
+            second_of_day,
+            day_of_week,
+        )
+        .unwrap();
+        match dijkstra_shortest_path(
+            &self.graph,
+            &start_node.id,
+            &end_node.id,
+            routee_cost_function,
+            build_restriction_function(vehicle_parameters),
+        ) {
+            Some((scaled_energy, path)) => {
+                let energy = scaled_energy as f64 / ROUTEE_SCALE_FACTOR;
+                Some((energy, self.graph.get_links_in_path(path)))
+            }
+
+            None => None,
+        }
+    }
+
     pub fn parallel_shortest_time_path(
         &self,
         od_pairs: Vec<([isize; 2], [isize; 2])>,
@@ -129,8 +169,27 @@ impl RustMap {
     ) -> Vec<Option<(u32, Vec<Link>)>> {
         od_pairs
             .into_par_iter()
-            .map(|(start, end)| {
-                self.shortest_time_path(start, end, vehicle_parameters)
+            .map(|(start, end)| self.shortest_time_path(start, end, vehicle_parameters))
+            .collect()
+    }
+
+    pub fn parallel_shortest_time_path_by_time_of_day(
+        &self,
+        od_pairs: Vec<([isize; 2], [isize; 2], SecondOfDay, DayOfWeek)>,
+        time_of_day_speed: &TimeOfDaySpeeds,
+        vehicle_parameters: Option<VehicleParameters>,
+    ) -> Vec<Option<(u32, Vec<Link>)>> {
+        od_pairs
+            .into_par_iter()
+            .map(|(start, end, second_of_day, day_of_week)| {
+                self.shortest_time_path_by_time_of_day(
+                    start,
+                    end,
+                    time_of_day_speed,
+                    second_of_day,
+                    day_of_week,
+                    vehicle_parameters,
+                )
             })
             .collect()
     }
@@ -145,6 +204,29 @@ impl RustMap {
             .into_par_iter()
             .map(|(start, end)| {
                 self.shortest_energy_path(start, end, routee_model_path, vehicle_parameters)
+            })
+            .collect()
+    }
+
+    pub fn parallel_shortest_energy_path_by_time_of_day(
+        &self,
+        od_pairs: Vec<([isize; 2], [isize; 2], SecondOfDay, DayOfWeek)>,
+        routee_model_path: &str,
+        time_of_day_speed: TimeOfDaySpeeds,
+        vehicle_parameters: Option<VehicleParameters>,
+    ) -> Vec<Option<(f64, Vec<Link>)>> {
+        od_pairs
+            .into_par_iter()
+            .map(|(start, end, second_of_day, day_of_week)| {
+                self.shortest_energy_path_by_time_of_day(
+                    start,
+                    end,
+                    routee_model_path,
+                    time_of_day_speed.clone(),
+                    second_of_day,
+                    day_of_week,
+                    vehicle_parameters,
+                )
             })
             .collect()
     }
