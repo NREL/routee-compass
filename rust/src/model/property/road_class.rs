@@ -1,2 +1,2 @@
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct RoadClass(u8);
+pub struct RoadClass(pub u8);
