@@ -183,3 +183,133 @@ fn expand<S: Eq + Clone + Copy>(
 
     return Ok(expanded);
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        model::{
+            cost::cost_error::CostError,
+            graph::graph_error::GraphError,
+            property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
+            traversal::traversal_error::TraversalError,
+            units::{
+                centimeters::Centimeters, cm_per_second::CmPerSecond, millis::Millis,
+                ordinate::Ordinate,
+            },
+        },
+        util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
+    };
+
+    use super::*;
+
+    struct TestModel;
+    impl TraversalModel for TestModel {
+        type State = i64;
+        fn initial_state(&self) -> Result<Self::State, TraversalError> {
+            Ok(0)
+        }
+
+        fn traversal_cost(
+            &self,
+            e: &Edge,
+            state: &Self::State,
+        ) -> Result<(Cost, Self::State), TraversalError> {
+            let c = *state as f64
+                + (e.distance_centimeters.0 as f64 / e.free_flow_speed_seconds.0 as f64);
+            let c64 = c as i64;
+            Ok((Cost(c64), c64))
+        }
+
+        fn access_cost(
+            &self,
+            src: &Edge,
+            dst: &Edge,
+            state: &Self::State,
+        ) -> Result<(Cost, Self::State), TraversalError> {
+            Ok((Cost::ZERO, state.clone()))
+        }
+
+        // fn update(&self, s: Self::State, c: Cost) -> Result<Self::State, TraversalError>;
+
+        fn valid_frontier(
+            &self,
+            frontier: &EdgeFrontier<Self::State>,
+        ) -> Result<bool, TraversalError> {
+            Ok(true)
+        }
+
+        fn terminate_search(
+            &self,
+            frontier: &EdgeFrontier<Self::State>,
+        ) -> Result<bool, TraversalError> {
+            Ok(false)
+        }
+    }
+
+    struct TestDG;
+    impl DirectedGraph for TestDG {
+        fn edge_attr(&self, edge_id: EdgeId) -> Result<Edge, GraphError> {
+            Ok(Edge {
+                start_node: VertexId(0),
+                end_node: VertexId(1),
+                road_class: RoadClass(0),
+                free_flow_speed_seconds: CmPerSecond(80),
+                distance_centimeters: Centimeters(1000),
+                grade_millis: Millis(0),
+            })
+        }
+        fn vertex_attr(&self, vertex_id: VertexId) -> Result<Vertex, GraphError> {
+            Ok(Vertex {
+                x: Ordinate(0),
+                y: Ordinate(0),
+            })
+        }
+        fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
+            Ok(vec![EdgeId(1)])
+        }
+        fn in_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
+            Ok(vec![EdgeId(1)])
+        }
+        fn src_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
+            Ok(VertexId(1))
+        }
+        fn dst_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
+            Ok(VertexId(1))
+        }
+    }
+
+    #[test]
+    fn internal() {
+        let cost_est_fn = |tuple: (Vertex, Vertex)| -> Result<Cost, CostError> { Ok(Cost(5)) };
+        let arc_cost = Arc::new(RwLock::new(cost_est_fn));
+        // let dg = Arc::new(RwLock::new(TestDG));
+        // let tm = Arc::new(RwLock::new(TestModel));
+
+        let dg = Arc::new(DriverReadOnlyLock::new(TestDG));
+        let tm = Arc::new(DriverReadOnlyLock::new(TestModel));
+
+        // todo:
+        // - finish sending correct types to run_a_star, below
+        // - create an iterator of 4 vertex/vertex pairs as queries
+        // - import rayon, use it.par_iter().try_fold(|&pair| { /* run_a_star */ })
+        // - setup the road network to play well with the test queries
+        // - confirm that we can parallelize queries with shared memory
+        // - handle result of fork with a join and test of Result<>
+
+        for _ in 0..4 {
+            let dg_read = dg.read_only();
+            let tm_read = tm.read_only();
+            std::thread::spawn(move || {
+                let dg_inner = dg_read.read().unwrap();
+                run_a_star(
+                    dg_inner,
+                    Direction::Forward,
+                    VertexId(0),
+                    VertexId(1),
+                    tm_read,
+                    arc_cost,
+                )
+            });
+        }
+    }
+}
