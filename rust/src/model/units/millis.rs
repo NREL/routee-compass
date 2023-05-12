@@ -1,2 +1,2 @@
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Millis(i16);
+pub struct Millis(pub i16);

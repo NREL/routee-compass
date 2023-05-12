@@ -1,2 +1,2 @@
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Centimeters(i64);
+pub struct Centimeters(pub i64);

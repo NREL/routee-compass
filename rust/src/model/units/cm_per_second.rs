@@ -1,2 +1,2 @@
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub struct CmPerSecond(u32);
+pub struct CmPerSecond(pub u32);
