@@ -110,7 +110,8 @@ impl RustMap {
     ) -> Option<(f64, Vec<Link>)> {
         let start_node = self.get_closest_node(start)?;
         let end_node = self.get_closest_node(end)?;
-        let routee_cost_function = build_routee_cost_function(routee_model_path).unwrap();
+        let routee_cost_function =
+            build_routee_cost_function(routee_model_path, vehicle_parameters).unwrap();
         match dijkstra_shortest_path(
             &self.graph,
             &start_node.id,
@@ -144,6 +145,7 @@ impl RustMap {
             time_of_day_speed,
             second_of_day,
             day_of_week,
+            vehicle_parameters,
         )
         .unwrap();
         match dijkstra_shortest_path(

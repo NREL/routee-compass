@@ -39,7 +39,10 @@ impl VehicleParameters {
 
 /// a function that loads the routee-powertrain random forest model
 /// and then returns a closure that takes a link and returns the energy over that link
-pub fn build_routee_cost_function(model_file_path: &str) -> Result<impl Fn(&Link) -> u32> {
+pub fn build_routee_cost_function(
+    model_file_path: &str,
+    vehicle_params: Option<VehicleParameters>,
+) -> Result<impl Fn(&Link) -> u32> {
     let rf_binary = std::fs::read(model_file_path)?;
 
     let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
@@ -51,7 +54,13 @@ pub fn build_routee_cost_function(model_file_path: &str) -> Result<impl Fn(&Link
         let speed_mph = distance_miles / time_hours;
         let grade = link.grade as f64;
 
-        let features = vec![vec![speed_mph, grade]];
+        let features = match vehicle_params {
+            Some(params) => {
+                let mass_kg = params.weight_lbs as f64 * 0.453592;
+                vec![vec![speed_mph, grade, mass_kg]]
+            }
+            None => vec![vec![speed_mph, grade]],
+        };
 
         let x = DenseMatrix::from_2d_vec(&features);
         let energy_per_mile = rf.predict(&x).unwrap()[0];
@@ -67,6 +76,7 @@ pub fn build_routee_cost_function_with_tods(
     tods: TimeOfDaySpeeds,
     sod: SecondOfDay,
     dow: DayOfWeek,
+    vehicle_params: Option<VehicleParameters>,
 ) -> Result<impl Fn(&Link) -> u32> {
     let rf_binary = std::fs::read(model_file_path)?;
 
@@ -75,7 +85,7 @@ pub fn build_routee_cost_function_with_tods(
 
     Ok(move |link: &Link| {
         let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
-        let mut modifier = 1.0;  
+        let mut modifier = 1.0;
         if let Some(profile_id) = link.week_profile_ids[dow] {
             modifier = tods.get_modifier_by_second_of_day(profile_id, sod);
         }
@@ -84,7 +94,10 @@ pub fn build_routee_cost_function_with_tods(
         let speed_mph = (distance_miles / time_hours) * modifier;
         let grade = link.grade as f64;
 
-        let features = vec![vec![speed_mph, grade]];
+        let features = match vehicle_params {
+            Some(params) => vec![vec![speed_mph, grade, params.weight_lbs as f64 * 0.453592]],
+            None => vec![vec![speed_mph, grade]],
+        };
 
         let x = DenseMatrix::from_2d_vec(&features);
         let energy_per_mile = rf.predict(&x).unwrap()[0];
