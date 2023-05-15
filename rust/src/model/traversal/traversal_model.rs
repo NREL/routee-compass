@@ -5,8 +5,8 @@ use crate::{
 
 use super::traversal_error::TraversalError;
 
-pub trait TraversalModel {
-    type State;
+pub trait TraversalModel: Sync + Send {
+    type State: Sync + Send + Eq + Copy + Clone;
 
     fn initial_state(&self) -> Result<Self::State, TraversalError>;
 
