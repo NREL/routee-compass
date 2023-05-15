@@ -18,9 +18,13 @@ pub const CENTIMETERS_TO_MILES: f64 = 6.213712e-6;
 #[pyclass]
 #[derive(Clone, Copy, Debug)]
 pub struct VehicleParameters {
+    #[pyo3(get)]
     pub weight_lbs: u32,
+    #[pyo3(get)]
     pub height_inches: u16,
+    #[pyo3(get)]
     pub width_inches: u16,
+    #[pyo3(get)]
     pub length_inches: u16,
 }
 
