@@ -249,29 +249,42 @@ mod tests {
         }
     }
 
-    struct TestDG;
+    struct TestDG {
+        adj: HashMap<VertexId, HashMap<EdgeId, VertexId>>,
+        edge_cps: HashMap<EdgeId, CmPerSecond>,
+    }
     impl DirectedGraph for TestDG {
         fn edge_attr(&self, edge_id: EdgeId) -> Result<Edge, GraphError> {
-            Ok(Edge {
-                start_node: VertexId(0),
-                end_node: VertexId(1),
-                road_class: RoadClass(0),
-                free_flow_speed_seconds: CmPerSecond(80),
-                distance_centimeters: Centimeters(1000),
-                grade_millis: Millis(0),
-            })
+            match self.edge_cps.get(&edge_id) {
+                None => Err(GraphError::EdgeAttributeNotFound { edge_id }),
+                Some(cps) => Ok(Edge {
+                    start_node: VertexId(0),
+                    end_node: VertexId(1),
+                    road_class: RoadClass(0),
+                    free_flow_speed_seconds: cps.to_owned(),
+                    distance_centimeters: Centimeters(100),
+                    grade_millis: Millis(0),
+                }),
+            }
         }
-        fn vertex_attr(&self, vertex_id: VertexId) -> Result<Vertex, GraphError> {
+        fn vertex_attr(&self, _vertex_id: VertexId) -> Result<Vertex, GraphError> {
             Ok(Vertex {
                 x: Ordinate(0),
                 y: Ordinate(0),
             })
         }
         fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
-            Ok(vec![EdgeId(1)])
+            match self.adj.get(&src) {
+                None => Err(GraphError::VertexWithoutOutEdges { vertex_id: src }),
+                Some(out_map) => Ok(out_map.keys().cloned().collect()),
+            }
         }
-        fn in_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
-            Ok(vec![EdgeId(1)])
+        fn in_edges(&self, _src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
+            Err(GraphError::TestError)
+            // match self.adj.values()..get(&src) {
+            //     None => Err(GraphError::VertexWithoutInEdges { vertex_id: src }),
+            //     Some(out_map) => Ok(out_map.keys().cloned().collect()),
+            // }
         }
         fn src_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
             Ok(VertexId(1))
@@ -296,7 +309,37 @@ mod tests {
             &driver_cf_obj as &dyn CostEstimateFunction,
         ));
 
-        let driver_dg_obj = TestDG;
+        // simple box world but no one should drive between (0) and (1)
+        // (0) -[0]-> (1) slow
+        // (1) -[1]-> (0) slow
+        // (1) -[2]-> (2) med
+        // (2) -[3]-> (1) med
+        // (2) -[4]-> (3) med
+        // (3) -[5]-> (2) med
+        // (3) -[6]-> (0) fast
+        // (0) -[7]-> (3) fast
+        let driver_dg_obj = TestDG {
+            adj: HashMap::from([
+                (VertexId(0), HashMap::from([(EdgeId(0), VertexId(1))])),
+                (VertexId(1), HashMap::from([(EdgeId(1), VertexId(0))])),
+                (VertexId(1), HashMap::from([(EdgeId(2), VertexId(2))])),
+                (VertexId(2), HashMap::from([(EdgeId(3), VertexId(1))])),
+                (VertexId(2), HashMap::from([(EdgeId(4), VertexId(3))])),
+                (VertexId(3), HashMap::from([(EdgeId(5), VertexId(2))])),
+                (VertexId(3), HashMap::from([(EdgeId(6), VertexId(0))])),
+                (VertexId(0), HashMap::from([(EdgeId(7), VertexId(3))])),
+            ]),
+            edge_cps: HashMap::from([
+                (EdgeId(0), CmPerSecond(10)),
+                (EdgeId(1), CmPerSecond(10)),
+                (EdgeId(2), CmPerSecond(50)),
+                (EdgeId(3), CmPerSecond(50)),
+                (EdgeId(4), CmPerSecond(50)),
+                (EdgeId(5), CmPerSecond(50)),
+                (EdgeId(6), CmPerSecond(100)),
+                (EdgeId(7), CmPerSecond(100)),
+            ]),
+        };
         let driver_dg = Arc::new(DriverReadOnlyLock::new(
             &driver_dg_obj as &dyn DirectedGraph,
         ));
@@ -306,9 +349,7 @@ mod tests {
         ));
 
         // todo:
-        // - finish sending correct types to run_a_star, below
-        // - create an iterator of 4 vertex/vertex pairs as queries
-        // - setup the road network to play well with the test queries
+        // - setup the road network to play well with the test queries (grid world)
         // - confirm that we can parallelize queries with shared memory
         // - handle result of fork with a join and test of Result<>
 
