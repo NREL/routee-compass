@@ -10,4 +10,10 @@ pub enum GraphError {
     VertexIdNotFound { vertex_id: VertexId },
     #[error("vertex attribute not found for vertex {vertex_id}")]
     VertexAttributeNotFound { vertex_id: VertexId },
+    #[error("vertex without out edges in graph")]
+    VertexWithoutOutEdges { vertex_id: VertexId },
+    #[error("vertex without in edges in graph")]
+    VertexWithoutInEdges { vertex_id: VertexId },
+    #[error("error in test setup")]
+    TestError,
 }
