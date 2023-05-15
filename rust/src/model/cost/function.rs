@@ -6,3 +6,7 @@ pub type EdgeMetricFn = dyn Fn(Edge) -> Result<Vec<Metric>, CostError>;
 pub type EdgeEdgeMetricFn = dyn Fn((Edge, Edge)) -> Result<Vec<Metric>, CostError>;
 pub type CostFn = dyn Fn((Vec<Metric>, Vec<Metric>)) -> Result<Cost, CostError>;
 pub type CostEstFn = dyn Fn((Vertex, Vertex)) -> Result<Cost, CostError>;
+
+pub trait CostEstimateFunction: Sync + Send {
+    fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostError>;
+}
