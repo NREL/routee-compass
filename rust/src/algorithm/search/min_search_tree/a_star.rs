@@ -2,8 +2,11 @@ use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::sync::RwLockReadGuard;
 
 use crate::model::cost::cost::Cost;
-use crate::model::cost::function::{CostEstFn, CostFn, EdgeEdgeMetricFn, EdgeMetricFn};
+use crate::model::cost::function::{
+    CostEstFn, CostEstimateFunction, CostFn, EdgeEdgeMetricFn, EdgeMetricFn,
+};
 use crate::model::traversal::traversal_model::TraversalModel;
+use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{
     algorithm::search::min_search_tree::{direction::Direction, edge_frontier::EdgeFrontier},
     model::graph::{directed_graph::DirectedGraph, edge_id::EdgeId, vertex_id::VertexId},
@@ -17,13 +20,13 @@ use super::vertex_frontier::VertexFrontier;
 
 type MinSearchTree = HashMap<VertexId, Solution>;
 
-pub fn run_a_star<S: Eq + Clone + Copy>(
-    directed_graph: Arc<RwLock<dyn DirectedGraph>>,
+pub fn run_a_star<S: Sync + Send + Eq + Copy + Clone>(
+    directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
     direction: Direction,
     source: VertexId,
     target: VertexId,
-    traversal_model: Arc<RwLock<dyn TraversalModel<State = S>>>,
-    cost_estimate_fn: Arc<RwLock<CostEstFn>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<&dyn TraversalModel<State = S>>>,
+    cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree, SearchError> {
     // context for the search (graph, search functions, frontier priority queue)
     let g = directed_graph.read().unwrap();
@@ -120,8 +123,8 @@ pub fn run_a_star<S: Eq + Clone + Copy>(
 fn h_cost(
     vertex_id: VertexId,
     target_id: VertexId,
-    c: &RwLockReadGuard<CostEstFn>,
-    g: &RwLockReadGuard<dyn DirectedGraph>,
+    c: &RwLockReadGuard<&dyn CostEstimateFunction>,
+    g: &RwLockReadGuard<&dyn DirectedGraph>,
 ) -> Result<Cost, SearchError> {
     let src_v = g
         .vertex_attr(vertex_id)
@@ -129,18 +132,19 @@ fn h_cost(
     let dst_v = g
         .vertex_attr(target_id)
         .map_err(SearchError::GraphCorrectnessFailure)?;
-    c((src_v, dst_v)).map_err(SearchError::CostCalculationError)
+    c.cost(src_v, dst_v)
+        .map_err(SearchError::CostCalculationError)
 }
 
-fn expand<S: Eq + Clone + Copy>(
+fn expand<S: Sync + Send + Eq + Copy + Clone>(
     vertex_id: VertexId,
     prev_edge_id: Option<EdgeId>,
     direction: Direction,
     prev_state: S,
     // traversal_model: Arc<RwLock<dyn TraversalModel<State = S>>>,
     // directed_graph: Arc<RwLock<dyn DirectedGraph>>,
-    m: &RwLockReadGuard<dyn TraversalModel<State = S>>,
-    g: &RwLockReadGuard<dyn DirectedGraph>,
+    m: RwLockReadGuard<&dyn TraversalModel<State = S>>,
+    g: RwLockReadGuard<&dyn DirectedGraph>,
 ) -> Result<Vec<EdgeFrontier<S>>, SearchError> {
     // find in or out edges from this vertex id
     let initial_edges = g
@@ -199,6 +203,7 @@ mod tests {
         },
         util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
     };
+    use rayon::prelude::*;
 
     use super::*;
 
@@ -228,8 +233,6 @@ mod tests {
         ) -> Result<(Cost, Self::State), TraversalError> {
             Ok((Cost::ZERO, state.clone()))
         }
-
-        // fn update(&self, s: Self::State, c: Cost) -> Result<Self::State, TraversalError>;
 
         fn valid_frontier(
             &self,
@@ -278,38 +281,60 @@ mod tests {
         }
     }
 
-    #[test]
-    fn internal() {
-        let cost_est_fn = |tuple: (Vertex, Vertex)| -> Result<Cost, CostError> { Ok(Cost(5)) };
-        let arc_cost = Arc::new(RwLock::new(cost_est_fn));
-        // let dg = Arc::new(RwLock::new(TestDG));
-        // let tm = Arc::new(RwLock::new(TestModel));
+    struct TestCost;
+    impl CostEstimateFunction for TestCost {
+        fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, CostError> {
+            Ok(Cost(5))
+        }
+    }
 
-        let dg = Arc::new(DriverReadOnlyLock::new(TestDG));
-        let tm = Arc::new(DriverReadOnlyLock::new(TestModel));
+    #[test]
+    fn test_e2e_queries() {
+        // these mocks stand-in for the trait objects required by the search function
+        let driver_cf_obj = TestCost;
+        let driver_cf = Arc::new(DriverReadOnlyLock::new(
+            &driver_cf_obj as &dyn CostEstimateFunction,
+        ));
+
+        let driver_dg_obj = TestDG;
+        let driver_dg = Arc::new(DriverReadOnlyLock::new(
+            &driver_dg_obj as &dyn DirectedGraph,
+        ));
+        let driver_tm_obj = TestModel;
+        let driver_tm = Arc::new(DriverReadOnlyLock::new(
+            &driver_tm_obj as &dyn TraversalModel<State = i64>,
+        ));
 
         // todo:
         // - finish sending correct types to run_a_star, below
         // - create an iterator of 4 vertex/vertex pairs as queries
-        // - import rayon, use it.par_iter().try_fold(|&pair| { /* run_a_star */ })
         // - setup the road network to play well with the test queries
         // - confirm that we can parallelize queries with shared memory
         // - handle result of fork with a join and test of Result<>
 
-        for _ in 0..4 {
-            let dg_read = dg.read_only();
-            let tm_read = tm.read_only();
-            std::thread::spawn(move || {
-                let dg_inner = dg_read.read().unwrap();
-                run_a_star(
-                    dg_inner,
-                    Direction::Forward,
-                    VertexId(0),
-                    VertexId(1),
-                    tm_read,
-                    arc_cost,
-                )
-            });
+        let queries: Vec<(VertexId, VertexId)> = vec![
+            (VertexId(0), VertexId(1)),
+            (VertexId(2), VertexId(3)),
+            (VertexId(4), VertexId(5)),
+            (VertexId(6), VertexId(7)),
+        ];
+
+        let result: Vec<Result<MinSearchTree, SearchError>> = queries
+            .into_par_iter()
+            .map(|(o, d)| {
+                let dg_inner = Arc::new(driver_dg.read_only());
+                let tm_inner = Arc::new(driver_tm.read_only());
+                let cost_inner = Arc::new(driver_cf.read_only());
+                run_a_star(dg_inner, Direction::Forward, o, d, tm_inner, cost_inner)
+            })
+            .collect();
+
+        for r in result {
+            let msg = match r {
+                Ok(m) => m.len().to_string(),
+                Err(e) => e.to_string(),
+            };
+            println!("{}", msg)
         }
     }
 }
