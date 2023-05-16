@@ -12,10 +12,11 @@ pub fn build_restriction_function(
 ) -> impl Fn(&Link) -> bool {
     move |link: &Link| {
         if let Some(vehicle) = &vehicle_parameters {
-            let over_weight_limit = match link.weight_limit_lbs {
-                Some(limit) => vehicle.weight_lbs > limit,
-                None => false,
-            };
+            // NOTE: not currently using weight limit
+            // let over_weight_limit = match link.weight_limit_lbs {
+            //     Some(limit) => vehicle.weight_lbs > limit,
+            //     None => false,
+            // };
             let over_height_limit = match link.height_limit_inches {
                 Some(limit) => vehicle.height_inches > limit,
                 None => false,
@@ -28,7 +29,7 @@ pub fn build_restriction_function(
                 Some(limit) => vehicle.length_inches > limit,
                 None => false,
             };
-            over_height_limit || over_weight_limit || over_width_limit || over_length_limit
+            over_height_limit || over_width_limit || over_length_limit
         } else {
             false
         }
