@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, hash::Hash, hash::Hasher};
 
 use crate::model::{cost::cost::Cost, graph::edge_id::EdgeId, graph::vertex_id::VertexId};
 
@@ -8,6 +8,12 @@ pub struct VertexFrontier<S> {
     pub prev_edge_id: Option<EdgeId>,
     pub state: S,
     pub cost: Cost,
+}
+
+impl<S: Eq> Hash for VertexFrontier<S> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.vertex_id.hash(state);
+    }
 }
 
 impl<S: Eq> Ord for VertexFrontier<S> {

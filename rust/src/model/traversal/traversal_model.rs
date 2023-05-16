@@ -1,5 +1,5 @@
 use crate::{
-    algorithm::search::min_search_tree::edge_frontier::EdgeFrontier,
+    algorithm::search::min_search_tree::dijkstra::edge_frontier::EdgeFrontier,
     model::{cost::cost::Cost, property::edge::Edge},
 };
 

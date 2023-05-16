@@ -1,29 +1,29 @@
 use keyed_priority_queue::KeyedPriorityQueue;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::RwLockReadGuard;
-
-use crate::algorithm::search::edge_traversal::EdgeTraversal;
-use crate::algorithm::search::min_search_tree::solution::Solution;
-use crate::algorithm::search::search_error::SearchError;
-use crate::model::cost::cost::Cost;
-use crate::model::cost::function::{
-    CostEstFn, CostEstimateFunction, CostFn, EdgeEdgeMetricFn, EdgeMetricFn,
-};
-use crate::model::property::edge::Edge;
-use crate::model::traversal::traversal_model::TraversalModel;
-use crate::util::read_only_lock::ExecutorReadOnlyLock;
-use crate::{
-    algorithm::search::min_search_tree::{direction::Direction, edge_frontier::EdgeFrontier},
-    model::graph::{directed_graph::DirectedGraph, edge_id::EdgeId, vertex_id::VertexId},
-};
 
 use super::a_star_frontier::AStarFrontier;
 use super::a_star_traversal::AStarTraversal;
-// use super::vertex_frontier::AStarFrontier;
-use std::sync::{Arc, RwLock};
+use super::cost_estimate_function::CostEstimateFunction;
+use crate::algorithm::search::edge_traversal::EdgeTraversal;
+use crate::algorithm::search::search_error::SearchError;
+use crate::model::cost::cost::Cost;
+use crate::model::traversal::traversal_model::TraversalModel;
+use crate::util::read_only_lock::ExecutorReadOnlyLock;
+use crate::{
+    algorithm::search::min_search_tree::direction::Direction,
+    model::graph::{directed_graph::DirectedGraph, vertex_id::VertexId},
+};
+use std::sync::Arc;
 
 type MinSearchTree<S> = HashMap<VertexId, AStarTraversal<S>>;
 
+///
+/// run an A* Search over the given directed graph model. traverses links
+/// from the source, via the provided direction, to the target. uses the
+/// provided traversal model for state updates and link costs. estimates
+/// the distance to the destination (the a* heuristic) using the provided
+/// cost estimate function.
 pub fn run_a_star<S: Sync + Send + Eq + Copy + Clone>(
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
     direction: Direction,
@@ -117,9 +117,10 @@ fn h_cost(
 #[cfg(test)]
 mod tests {
     use crate::{
+        algorithm::search::min_search_tree::dijkstra::edge_frontier::EdgeFrontier,
         model::{
             cost::cost_error::CostError,
-            graph::graph_error::GraphError,
+            graph::{edge_id::EdgeId, graph_error::GraphError},
             property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
             traversal::traversal_error::TraversalError,
             units::{

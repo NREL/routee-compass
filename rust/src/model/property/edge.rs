@@ -7,8 +7,8 @@ use super::road_class::RoadClass;
 
 #[derive(Copy, Clone)]
 pub struct Edge {
-    pub start_node: VertexId,
-    pub end_node: VertexId,
+    pub start_vertex: VertexId,
+    pub end_vertex: VertexId,
     pub road_class: RoadClass,
     pub free_flow_speed_seconds: CmPerSecond,
     pub distance_centimeters: Centimeters,
