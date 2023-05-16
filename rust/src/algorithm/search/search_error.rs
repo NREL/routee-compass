@@ -13,6 +13,6 @@ pub enum SearchError {
     TraversalModelFailure(#[from] TraversalError),
     #[error("failure calculating cost")]
     CostCalculationError(#[from] CostError),
-    #[error("internal error due to search logic")]
-    InternalSearchError,
+    #[error("internal error due to search logic: {0}")]
+    InternalSearchError(String),
 }
