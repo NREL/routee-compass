@@ -1,4 +1,4 @@
-use std::sync::RwLockReadGuard;
+use std::{fmt::Display, sync::RwLockReadGuard};
 
 use crate::model::{
     cost::cost::Cost,
@@ -9,10 +9,20 @@ use crate::model::{
 use super::search_error::SearchError;
 
 #[derive(Clone, Copy)]
-pub struct EdgeTraversal<S> {
+pub struct EdgeTraversal<S: Copy + Clone> {
     pub access_cost: Cost,
     pub traversal_cost: Cost,
     pub result_state: S,
+}
+
+impl<S: Display + Copy> Display for EdgeTraversal<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "acost:{} tcost:{} state:{}",
+            self.access_cost, self.traversal_cost, self.result_state
+        )
+    }
 }
 
 impl<S: Sync + Send + Eq + Copy + Clone> EdgeTraversal<S> {

@@ -98,6 +98,26 @@ pub fn run_a_star<S: Sync + Send + Eq + Copy + Clone>(
     return Ok(solution);
 }
 
+pub fn backtrack<S: Copy + Clone>(
+    source_id: VertexId,
+    target_id: VertexId,
+    solution: HashMap<VertexId, AStarTraversal<S>>,
+) -> Result<Vec<EdgeTraversal<S>>, SearchError> {
+    let mut result: Vec<EdgeTraversal<S>> = vec![];
+    let mut this_vertex = target_id.clone();
+    loop {
+        if this_vertex == source_id {
+            break;
+        }
+        let traversal = solution
+            .get(&this_vertex)
+            .ok_or(SearchError::VertexMissingFromSearchTree(this_vertex))?;
+        result.push(traversal.edge_traversal.clone());
+        this_vertex = traversal.terminal_vertex;
+    }
+    Ok(result)
+}
+
 fn h_cost(
     vertex_id: VertexId,
     target_id: VertexId,
@@ -281,14 +301,14 @@ mod tests {
             (VertexId(0), HashMap::from([(EdgeId(7), VertexId(3))])),
         ]);
         let edges_cps = HashMap::from([
-            (EdgeId(0), CmPerSecond(10)),
-            (EdgeId(1), CmPerSecond(10)),
-            (EdgeId(2), CmPerSecond(50)),
-            (EdgeId(3), CmPerSecond(50)),
-            (EdgeId(4), CmPerSecond(50)),
-            (EdgeId(5), CmPerSecond(50)),
-            (EdgeId(6), CmPerSecond(100)),
-            (EdgeId(7), CmPerSecond(100)),
+            (EdgeId(0), CmPerSecond(10)),  // 10 seconds
+            (EdgeId(1), CmPerSecond(10)),  // 10 seconds
+            (EdgeId(2), CmPerSecond(50)),  // 2 seconds
+            (EdgeId(3), CmPerSecond(50)),  // 2 seconds
+            (EdgeId(4), CmPerSecond(50)),  // 2 seconds
+            (EdgeId(5), CmPerSecond(50)),  // 2 seconds
+            (EdgeId(6), CmPerSecond(100)), // 1 second
+            (EdgeId(7), CmPerSecond(100)), // 1 second
         ]);
         let driver_dg_obj = TestDG::new(&adj, edges_cps).unwrap();
         let driver_dg = Arc::new(DriverReadOnlyLock::new(
@@ -329,14 +349,20 @@ mod tests {
                 Ok(solution) => {
                     let query = format!("({} -> {})", q.0.to_string(), q.1.to_string());
                     let length = solution.len();
-                    let tree = solution
+                    let route = backtrack(q.0, q.1, solution).unwrap();
+                    let route_str = route
                         .into_iter()
-                        .map(|(src, tr)| format!("{} {}", src, tr))
+                        .map(|tr| format!("{}", tr))
                         .collect::<Vec<String>>()
-                        .join("\n    ");
+                        .join(" ");
+                    // let tree = solution
+                    //     .into_iter()
+                    //     .map(|(src, tr)| format!("{} {}", src, tr))
+                    //     .collect::<Vec<String>>()
+                    //     .join("\n    ");
                     format!(
                         "{}\n  result traverses {} links:\n    {}",
-                        query, length, tree
+                        query, length, route_str
                     )
                 }
             };

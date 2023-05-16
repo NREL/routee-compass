@@ -1,5 +1,6 @@
 use crate::model::{
-    cost::cost_error::CostError, graph::graph_error::GraphError,
+    cost::cost_error::CostError,
+    graph::{graph_error::GraphError, vertex_id::VertexId},
     traversal::traversal_error::TraversalError,
 };
 
@@ -13,6 +14,8 @@ pub enum SearchError {
     TraversalModelFailure(#[from] TraversalError),
     #[error("failure calculating cost")]
     CostCalculationError(#[from] CostError),
+    #[error("search tree is missing linked vertex {0}")]
+    VertexMissingFromSearchTree(VertexId),
     #[error("internal error due to search logic: {0}")]
     InternalSearchError(String),
 }
