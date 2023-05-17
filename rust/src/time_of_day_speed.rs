@@ -21,6 +21,14 @@ pub struct TimeOfDaySpeeds {
     pub speeds_modifiers: HashMap<ProfileId, Vec<SpeedModifier>>,
 }
 
+impl Default for TimeOfDaySpeeds {
+    fn default() -> Self {
+        TimeOfDaySpeeds {
+            speeds_modifiers: HashMap::new(),
+        }
+    }
+}
+
 #[pymethods]
 impl TimeOfDaySpeeds {
     #[new]

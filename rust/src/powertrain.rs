@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 
 use crate::{
     graph::Link,
-    time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
+    map::SearchInput,
 };
 
 // scale the energy by this factor to make it an integer
@@ -41,47 +41,56 @@ impl VehicleParameters {
     }
 }
 
-/// a function that loads the routee-powertrain random forest model
-/// and then returns a closure that takes a link and returns the energy over that link
-pub fn build_routee_cost_function(
-    model_file_path: &str,
-    vehicle_params: Option<VehicleParameters>,
-) -> Result<impl Fn(&Link) -> u32> {
+pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) -> Result<f64> {
+    let model_file_path = search_input.routee_model_path.clone().ok_or(anyhow::anyhow!(
+        "routee_model_path must be set in SearchInput"
+    ))?;
     let rf_binary = std::fs::read(model_file_path)?;
 
     let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
         bincode::deserialize(&rf_binary)?;
 
-    Ok(move |link: &Link| {
-        let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
-        let time_hours = link.time_seconds() as f64 / 3600.0;
-        let speed_mph = distance_miles / time_hours;
-        let grade = link.grade as f64;
-
-        let features = match vehicle_params {
-            Some(params) => {
-                let mass_kg = params.weight_lbs as f64 * 0.453592;
-                vec![vec![speed_mph, grade, mass_kg]]
+    let features = path
+        .iter()
+        .map(|link| {
+            let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
+            let vehicle_params = search_input.vehicle_parameters;
+            let mut modifier = 1.0;
+            if let Some(profile_id) = link.week_profile_ids[search_input.day_of_week] {
+                modifier = search_input
+                    .time_of_day_speeds
+                    .get_modifier_by_second_of_day(profile_id, search_input.second_of_day);
             }
-            None => vec![vec![speed_mph, grade]],
-        };
 
-        let x = DenseMatrix::from_2d_vec(&features);
-        let energy_per_mile = rf.predict(&x).unwrap()[0];
+            let time_hours = link.time_seconds() as f64 / 3600.0;
+            let speed_mph = (distance_miles / time_hours) * modifier;
+            let grade = link.grade as f64;
 
-        let energy = energy_per_mile * distance_miles;
-        let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
-        scaled_energy as u32
-    })
+            match vehicle_params {
+                Some(params) => vec![speed_mph, grade, params.weight_lbs as f64 * 0.453592],
+                None => vec![speed_mph, grade],
+            }
+        })
+        .collect::<Vec<Vec<f64>>>();
+    let x = DenseMatrix::from_2d_vec(&features);
+    let energy_per_mile = rf.predict(&x).unwrap();
+    let energy = energy_per_mile
+        .iter()
+        .zip(path.iter())
+        .map(|(energy_per_mile, link)| {
+            let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
+            energy_per_mile * distance_miles
+        })
+        .sum();
+    Ok(energy)
 }
 
 pub fn build_routee_cost_function_with_tods(
-    model_file_path: &str,
-    tods: TimeOfDaySpeeds,
-    sod: SecondOfDay,
-    dow: DayOfWeek,
-    vehicle_params: Option<VehicleParameters>,
+    search_input: SearchInput,
 ) -> Result<impl Fn(&Link) -> u32> {
+    let model_file_path = search_input.routee_model_path.ok_or(anyhow::anyhow!(
+        "routee_model_path must be set in SearchInput"
+    ))?;
     let rf_binary = std::fs::read(model_file_path)?;
 
     let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
@@ -89,9 +98,12 @@ pub fn build_routee_cost_function_with_tods(
 
     Ok(move |link: &Link| {
         let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
+        let vehicle_params = search_input.vehicle_parameters;
         let mut modifier = 1.0;
-        if let Some(profile_id) = link.week_profile_ids[dow] {
-            modifier = tods.get_modifier_by_second_of_day(profile_id, sod);
+        if let Some(profile_id) = link.week_profile_ids[search_input.day_of_week] {
+            modifier = search_input
+                .time_of_day_speeds
+                .get_modifier_by_second_of_day(profile_id, search_input.second_of_day);
         }
 
         let time_hours = link.time_seconds() as f64 / 3600.0;
