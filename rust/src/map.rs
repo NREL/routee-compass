@@ -15,7 +15,7 @@ use crate::{
 };
 
 #[pyclass]
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub enum SearchType {
     ShortestTime,
     ShortestEnergy,
@@ -26,8 +26,6 @@ pub enum SearchType {
 pub struct SearchInput {
     #[pyo3(get)]
     pub search_id: String,
-    #[pyo3(get)]
-    pub search_type: SearchType,
     #[pyo3(get)]
     pub origin: [isize; 2],
     #[pyo3(get)]
@@ -48,7 +46,6 @@ impl Default for SearchInput {
     fn default() -> Self {
         SearchInput {
             search_id: "default".to_string(),
-            search_type: SearchType::ShortestTime,
             origin: [0, 0],
             destination: [0, 0],
             second_of_day: 0,
@@ -65,7 +62,6 @@ impl SearchInput {
     #[new]
     pub fn new(
         search_id: String,
-        search_type: SearchType,
         origin: [isize; 2],
         destination: [isize; 2],
         second_of_day: Option<SecondOfDay>,
@@ -76,7 +72,6 @@ impl SearchInput {
     ) -> Self {
         SearchInput {
             search_id,
-            search_type,
             origin,
             destination,
             second_of_day: second_of_day.unwrap_or_default(),
@@ -167,8 +162,8 @@ impl RustMap {
             .collect()
     }
 
-    pub fn shortest_path(&self, search_input: SearchInput) -> Option<SearchResult> {
-        match search_input.search_type {
+    pub fn shortest_path(&self, search_input: SearchInput, search_type: SearchType) -> Option<SearchResult> {
+        match search_type {
             SearchType::ShortestTime => self.shortest_time_path(search_input),
             SearchType::ShortestEnergy => self.shortest_energy_path(search_input),
         }
@@ -238,10 +233,11 @@ impl RustMap {
     pub fn parallel_shortest_path(
         &self,
         search_inputs: Vec<SearchInput>,
+        search_type: SearchType,
     ) -> Vec<Option<SearchResult>> {
         search_inputs
             .into_par_iter()
-            .map(|input| self.shortest_path(input))
+            .map(|input| self.shortest_path(input, search_type))
             .collect()
     }
 }
