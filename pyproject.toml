@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=63.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["maturin>=0.15,<0.16"]
+build-backend = "maturin"
 
 [project]
 name = "nrel.routee.compass"
@@ -23,8 +23,10 @@ dependencies = [
     "pandas",
     "geopandas",
     "sqlalchemy",
-    "tqdm"
+    "psycopg2-binary"
 ]
+[project.optional-dependencies]
+dev = ["black", "pytest", "maturin"]
 requires-python = ">=3.8"
 
 
@@ -34,9 +36,8 @@ Homepage = "https://github.nrel.gov/MBAP/routee-compass"
 [tool.black]
 line-length = 100
 
-[tool.setuptools.packages.find]
-where = ["."]  # list of folders that contain the packages (["."] by default)
-include = ["nrel*"]  # package names should match these glob patterns (["*"] by default)
-
-[tool.setuptools.package-data]
-"*" = ["py.typed"]
+[tool.maturin]
+python-source="python"
+features = ["pyo3/extension-module"]
+module-name = "nrel.routee.compass.compass_rust"
+manifest-path = "rust/Cargo.toml"

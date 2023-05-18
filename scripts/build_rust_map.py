@@ -1,14 +1,23 @@
+"""
+This script is used for building a routee-compass map from a pre-downloaded set
+of parquet files that represent the whole US road network from the trolley
+tomtom_multinet_current schema. 
+
+This script has a companion file `build_rust_map.sh` for running this script
+on an eagle node.
+"""
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 import pandas as pd
 import pickle
 import time
+import os
 import glob
 import logging
 import sqlalchemy as sql
 
-from compass_rust import Graph, Link, Node, RustMap, extract_largest_scc
+from nrel.routee.compass import Graph, Link, Node, RustMap, extract_largest_scc
 
 from shapely.geometry import LineString
 from shapely import from_wkb
@@ -19,6 +28,13 @@ date_and_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 logging.basicConfig(filename=f"build_rust_map_{date_and_time}.log", level=logging.DEBUG)
 
 log = logging.getLogger(__name__)
+
+USER = os.environ.get("TROLLEY_USERNAME")
+if USER is None:
+    raise ValueError("TROLLEY_USERNAME environment variable must be set to run this script")
+PASSWORD = os.environ.get("TROLLEY_PASSWORD")
+if PASSWORD is None:
+    raise ValueError("TROLLEY_PASSWORD environment variable must be set to run this script")
 
 LATLON = "epsg:4326"
 WEB_MERCATOR = "epsg:3857"
@@ -242,9 +258,7 @@ def links_from_df(
 
 
 if __name__ == "__main__":
-    user = "nreinick"
-    password = "NRELisgr8!"
-    engine = sql.create_engine(f"postgresql://{user}:{password}@trolley.nrel.gov:5432/master")
+    engine = sql.create_engine(f"postgresql://{USER}:{PASSWORD}@trolley.nrel.gov:5432/master")
 
     log.info("getting speed by time of day info from trolley..")
 

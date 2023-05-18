@@ -1,9 +1,18 @@
+"""
+This script is used to download the whole US road network from trolley and save it
+to a set of parquet files. This was done to support quicker iteration for actually
+building a routee-compass road network from this raw data.
+
+This script has a companion file `download_us_network.sh` which is a batch script for 
+running this on an eagle node
+"""
 import logging
 import pandas as pd
 import geopandas as gpd
 from pathlib import Path
 import sqlalchemy as sql
 import math
+import os
 import time
 from datetime import datetime
 from multiprocessing import Pool
@@ -13,8 +22,12 @@ NUM_PROCS = 4
 TABLE_NAME = "network_w_speed_profiles"
 WEB_MERCATOR = "epsg:3857"
 
-USER = "nreinick"
-PASSWORD = "NRELisgr8!"
+USER = os.environ.get("TROLLEY_USERNAME")
+if USER is None:
+    raise ValueError("TROLLEY_USERNAME environment variable must be set to run this script")
+PASSWORD = os.environ.get("TROLLEY_PASSWORD")
+if PASSWORD is None:
+    raise ValueError("TROLLEY_PASSWORD environment variable must be set to run this script")
 
 # set up logging to file
 date_and_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
