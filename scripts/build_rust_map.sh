@@ -13,4 +13,8 @@
 module purge
 . activate /home/$USER/.conda/envs/routee-compass
 
+export RESTRICTION_FILE = /projects/mbap/amazon-eco/restrictions.pickle
+export NETWORK_PATH = /projects/mbap/amazon-eco/us_network/
+export OUTPUT_FOLDER = /projects/mbap/amazon-eco/
+
 python build_rust_map.py

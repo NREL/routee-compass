@@ -6,7 +6,6 @@ tomtom_multinet_current schema.
 This script has a companion file `build_rust_map.sh` for running this script
 on an eagle node.
 """
-from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 import pandas as pd
@@ -23,9 +22,7 @@ from shapely.geometry import LineString
 from shapely import from_wkb
 from tqdm import tqdm
 
-# set up logging to file
-date_and_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-logging.basicConfig(filename=f"build_rust_map_{date_and_time}.log", level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +32,18 @@ if USER is None:
 PASSWORD = os.environ.get("TROLLEY_PASSWORD")
 if PASSWORD is None:
     raise ValueError("TROLLEY_PASSWORD environment variable must be set to run this script")
+
+RESTRICTION_FILE = os.environ.get("RESTRICTION_FILE")
+if RESTRICTION_FILE is None:
+    raise ValueError("RESTRICTION_FILE environment variable must be set to run this script")
+
+network_path_str = os.environ.get("NETWORK_PATH")
+if network_path_str is None:
+    raise ValueError("NETWORK_PATH environment variable must be set to run this script")
+
+NETWORK_PATH = Path(network_path_str)
+
+OUTPUT_FOLDER = Path(os.environ.get("OUTPUT_FOLDER", ""))
 
 LATLON = "epsg:4326"
 WEB_MERCATOR = "epsg:3857"
@@ -291,28 +300,19 @@ if __name__ == "__main__":
 
     df["profile_id_integer"] = df.profile_id.apply(lambda pid: profile_id_integer_mapping[pid])
 
-    df.to_csv("/projects/mbap/amazon-eco/profile_id_mapping.csv", index=False)
+    df.to_csv(OUTPUT_FOLDER / "profile_id_mapping.csv", index=False)
 
-    weight_restrictions_file = "/projects/mbap/amazon-eco/weight_restrictions.pickle"
-    log.info("loading weight restrictions..")
-    with open(weight_restrictions_file, "rb") as wrf:
-        weight_restrictions = pickle.load(wrf)
-    height_restrictions_file = "/projects/mbap/amazon-eco/height_restrictions.pickle"
-    log.info("loading height restrictions..")
-    with open(height_restrictions_file, "rb") as hrf:
-        height_restrictions = pickle.load(hrf)
-    width_restrictions_file = "/projects/mbap/amazon-eco/width_restrictions.pickle"
-    log.info("loading width restrictions..")
-    with open(width_restrictions_file, "rb") as wdrf:
-        width_restrictions = pickle.load(wdrf)
-    length_restrictions_file = "/projects/mbap/amazon-eco/length_restrictions.pickle"
-    log.info("loading length restrictions..")
-    with open(length_restrictions_file, "rb") as lrf:
-        length_restrictions = pickle.load(lrf)
+    log.info("loading restrictions..")
+    with open(RESTRICTION_FILE, "rb") as rf:
+        restrictions = pickle.load(rf)
+    weight_restrictions = restrictions["weight"]
+    height_restrictions = restrictions["height"]
+    width_restrictions = restrictions["width"]
+    length_restrictions = restrictions["length"]
 
     # NOTE: This is predicated on first running the download_us_network.py script
     log.info("loading links from file")
-    files = glob.glob("/projects/mbap/amazon-eco/us_network/*.parquet")
+    files = glob.glob(str(NETWORK_PATH / "*.parquet"))
     start_time = time.time()
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     log.info(f"found {len(all_links)} links")
     elsapsed_time = time.time() - start_time
 
-    node_map_outfile = Path("/projects/mbap/amazon-eco/node-id-mapping.pickle")
+    node_map_outfile = OUTPUT_FOLDER /  "node-id-mapping.pickle"
     with node_map_outfile.open("wb") as nmf:
         pickle.dump(node_id_mapping, nmf)
 
@@ -364,6 +364,6 @@ if __name__ == "__main__":
 
     log.info("saving rust map..")
     start_time = time.time()
-    rust_map.to_file("/scratch/nreinick/us_network_rust_map.bin")
+    rust_map.to_file(str(OUTPUT_FOLDER / "rust_map.bin"))
     elsapsed_time = time.time() - start_time
     log.info(f"saving rust map took {elsapsed_time} seconds")
