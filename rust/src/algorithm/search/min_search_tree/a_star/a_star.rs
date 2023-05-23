@@ -72,7 +72,7 @@ pub fn run_a_star<S: Sync + Send + Eq + Copy + Clone>(
                     if tentative_gscore < *dst_gscore {
                         let f_score_value = tentative_gscore + h_cost_value;
                         let traversal = AStarTraversal {
-                            terminal_vertex: dst_id,
+                            terminal_vertex: src_id,
                             edge_traversal: et,
                         };
                         g_score.insert(dst_id, tentative_gscore);
@@ -131,7 +131,8 @@ pub fn backtrack<S: Copy + Clone>(
         result.push(traversal.edge_traversal.clone());
         this_vertex = traversal.terminal_vertex;
     }
-    Ok(result)
+    let reversed = result.into_iter().rev().collect();
+    Ok(reversed)
 }
 
 fn h_cost(
@@ -184,10 +185,11 @@ mod tests {
             _dst: &Vertex,
             state: &Self::State,
         ) -> Result<(Cost, Self::State), TraversalError> {
-            let c = *state as f64
-                + (edge.distance_centimeters.0 as f64 / edge.free_flow_speed_seconds.0 as f64);
-            let c64 = c as i64;
-            Ok((Cost(c64), c64))
+            let c = edge
+                .distance_centimeters
+                .travel_time_millis(&edge.free_flow_speed_seconds)
+                .0;
+            Ok((Cost(c), state + c))
         }
 
         fn access_cost(
@@ -241,11 +243,7 @@ mod tests {
             }
         }
         fn in_edges(&self, _src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
-            Err(GraphError::TestError)
-            // match self.adj.values()..get(&src) {
-            //     None => Err(GraphError::VertexWithoutInEdges { vertex_id: src }),
-            //     Some(out_map) => Ok(out_map.keys().cloned().collect()),
-            // }
+            Err(GraphError::TestError) // not used
         }
         fn src_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
             self.edge_attr(edge_id).map(|e| e.start_vertex)
@@ -263,18 +261,18 @@ mod tests {
             let mut edges: HashMap<EdgeId, Edge> = HashMap::new();
             for (src, out_edges) in adj {
                 for (edge_id, dst) in out_edges {
-                    let cps = edges_cps
-                        .get(&edge_id)
-                        .ok_or(GraphError::EdgeIdNotFound { edge_id: *edge_id })?;
+                    let cps = edges_cps.get(&edge_id).ok_or(GraphError::EdgeIdNotFound {
+                        edge_id: edge_id.clone(),
+                    })?;
                     let edge = Edge {
-                        start_vertex: *src,
-                        end_vertex: *dst,
+                        start_vertex: src.clone(),
+                        end_vertex: dst.clone(),
                         road_class: RoadClass(0),
                         free_flow_speed_seconds: cps.clone(),
                         distance_centimeters: Centimeters(100),
                         grade_millis: Millis(0),
                     };
-                    edges.insert(*edge_id, edge);
+                    edges.insert(edge_id.clone(), edge);
                 }
             }
 
@@ -346,11 +344,11 @@ mod tests {
         // - handle result of fork with a join and test of Result<>
 
         let queries: Vec<(VertexId, VertexId)> = vec![
-            (VertexId(0), VertexId(1)), // 0 -> 3 -> 2 -> 1
-            (VertexId(0), VertexId(3)), // 0 -> 3
-            (VertexId(1), VertexId(0)), // 1 -> 2 -> 3 -> 0
-            (VertexId(1), VertexId(2)), // 1 -> 2
-            (VertexId(2), VertexId(3)), // 2 -> 3
+            (VertexId(0), VertexId(1)), // 0 -[7]-> 3 -[5]-> 2 -[3]-> 1
+            (VertexId(0), VertexId(3)), // 0 -[7]-> 3
+            (VertexId(1), VertexId(0)), // 1 -[2]-> 2 -[4]-> 3 -[6]-> 0
+            (VertexId(1), VertexId(2)), // 1 -[2]-> 2
+            (VertexId(2), VertexId(3)), // 2 -[4]-> 3
         ];
 
         let result: Vec<Result<MinSearchTree<i64>, SearchError>> = queries
@@ -370,21 +368,36 @@ mod tests {
                 Ok(solution) => {
                     let query = format!("({} -> {})", q.0.to_string(), q.1.to_string());
                     let length = solution.len();
-                    let route = backtrack(q.0, q.1, solution).unwrap();
-                    let route_str = route
-                        .into_iter()
-                        .map(|tr| format!("{}", tr))
+                    let sol_str: String = solution
+                        .clone()
+                        .into_keys()
+                        .map(|x| x.to_string())
                         .collect::<Vec<String>>()
-                        .join(" ");
-                    // let tree = solution
-                    //     .into_iter()
-                    //     .map(|(src, tr)| format!("{} {}", src, tr))
-                    //     .collect::<Vec<String>>()
-                    //     .join("\n    ");
-                    format!(
-                        "{}\n  result traverses {} links:\n    {}",
-                        query, length, route_str
-                    )
+                        .join(", ");
+                    println!(
+                        "tree has the following vertices for backtracking: {}",
+                        sol_str
+                    );
+                    let backtrackResult = backtrack(q.0, q.1, solution);
+                    match backtrackResult {
+                        Err(e) => format!("{}", e),
+                        Ok(route) => {
+                            let route_str = route
+                                .into_iter()
+                                .map(|tr| format!("{}", tr))
+                                .collect::<Vec<String>>()
+                                .join(" -> ");
+                            // let tree = solution
+                            //     .into_iter()
+                            //     .map(|(src, tr)| format!("{} {}", src, tr))
+                            //     .collect::<Vec<String>>()
+                            //     .join("\n    ");
+                            format!(
+                                "{}\n  result traverses {} links:\n    {}",
+                                query, length, route_str
+                            )
+                        }
+                    }
                 }
             };
             println!("{}", msg)
