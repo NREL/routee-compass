@@ -5,6 +5,10 @@ use prototype::graph::{Graph, Link, Node};
 use prototype::map::RustMap;
 use pyo3::prelude::*;
 
+mod algorithm;
+mod model;
+mod util;
+
 #[pymodule]
 fn compass_rust(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Link>()?;
