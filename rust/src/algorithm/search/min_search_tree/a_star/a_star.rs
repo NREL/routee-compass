@@ -8,6 +8,7 @@ use super::cost_estimate_function::CostEstimateFunction;
 use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::model::cost::cost::Cost;
+use crate::model::graph::edge_id::EdgeId;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{
@@ -25,10 +26,10 @@ type MinSearchTree<S> = HashMap<VertexId, AStarTraversal<S>>;
 /// the distance to the destination (the a* heuristic) using the provided
 /// cost estimate function.
 pub fn run_a_star<S: Sync + Send + Eq + Copy + Clone>(
-    directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
     direction: Direction,
     source: VertexId,
     target: VertexId,
+    directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
     traversal_model: Arc<ExecutorReadOnlyLock<&dyn TraversalModel<State = S>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree<S>, SearchError> {
@@ -96,6 +97,21 @@ pub fn run_a_star<S: Sync + Send + Eq + Copy + Clone>(
     }
 
     return Ok(solution);
+}
+
+pub fn run_a_star_edge_oriented<S: Sync + Send + Eq + Copy + Clone>(
+    direction: Direction,
+    source: EdgeId,
+    target: EdgeId,
+    directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<&dyn TraversalModel<State = S>>>,
+    cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
+) -> Result<MinSearchTree<S>, SearchError> {
+    // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
+    // 2. get destination vertex of source edge, source vertex of destination edge
+    // 3. run a star for those vertices
+    // 3. prepend source edge, append destination edge to min search tree (with no costs added, for now)
+    todo!()
 }
 
 pub fn backtrack<S: Copy + Clone>(
@@ -339,7 +355,7 @@ mod tests {
                 let dg_inner = Arc::new(driver_dg.read_only());
                 let tm_inner = Arc::new(driver_tm.read_only());
                 let cost_inner = Arc::new(driver_cf.read_only());
-                run_a_star(dg_inner, Direction::Forward, o, d, tm_inner, cost_inner)
+                run_a_star(Direction::Forward, o, d, dg_inner, tm_inner, cost_inner)
             })
             .collect();
 
