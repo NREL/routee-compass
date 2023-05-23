@@ -10,6 +10,7 @@ use super::search_error::SearchError;
 
 #[derive(Clone, Copy)]
 pub struct EdgeTraversal<S: Copy + Clone> {
+    pub edge_id: EdgeId,
     pub access_cost: Cost,
     pub traversal_cost: Cost,
     pub result_state: S,
@@ -19,8 +20,8 @@ impl<S: Display + Copy> Display for EdgeTraversal<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "acost:{} tcost:{} state:{}",
-            self.access_cost, self.traversal_cost, self.result_state
+            "edge {} acost:{} tcost:{} state:{}",
+            self.edge_id, self.access_cost, self.traversal_cost, self.result_state
         )
     }
 }
@@ -59,6 +60,7 @@ impl<S: Sync + Send + Eq + Copy + Clone> EdgeTraversal<S> {
             .map_err(SearchError::TraversalModelFailure)?;
 
         let result = EdgeTraversal {
+            edge_id,
             access_cost,
             traversal_cost,
             result_state,
