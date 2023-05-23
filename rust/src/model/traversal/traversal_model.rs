@@ -1,6 +1,9 @@
 use crate::{
     algorithm::search::min_search_tree::dijkstra::edge_frontier::EdgeFrontier,
-    model::{cost::cost::Cost, property::edge::Edge},
+    model::{
+        cost::cost::Cost,
+        property::{edge::Edge, vertex::Vertex},
+    },
 };
 
 use super::traversal_error::TraversalError;
@@ -12,14 +15,19 @@ pub trait TraversalModel: Sync + Send {
 
     fn traversal_cost(
         &self,
-        e: &Edge,
+        src: &Vertex,
+        edge: &Edge,
+        dst: &Vertex,
         state: &Self::State,
     ) -> Result<(Cost, Self::State), TraversalError>;
 
     fn access_cost(
         &self,
+        v1: &Vertex,
         src: &Edge,
+        v2: &Vertex,
         dst: &Edge,
+        v3: &Vertex,
         state: &Self::State,
     ) -> Result<(Cost, Self::State), TraversalError>;
 

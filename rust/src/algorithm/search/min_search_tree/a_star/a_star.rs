@@ -179,19 +179,24 @@ mod tests {
 
         fn traversal_cost(
             &self,
-            e: &Edge,
+            _src: &Vertex,
+            edge: &Edge,
+            _dst: &Vertex,
             state: &Self::State,
         ) -> Result<(Cost, Self::State), TraversalError> {
             let c = *state as f64
-                + (e.distance_centimeters.0 as f64 / e.free_flow_speed_seconds.0 as f64);
+                + (edge.distance_centimeters.0 as f64 / edge.free_flow_speed_seconds.0 as f64);
             let c64 = c as i64;
             Ok((Cost(c64), c64))
         }
 
         fn access_cost(
             &self,
-            src: &Edge,
-            dst: &Edge,
+            _v1: &Vertex,
+            _src: &Edge,
+            _v2: &Vertex,
+            _dst: &Edge,
+            _v3: &Vertex,
             state: &Self::State,
         ) -> Result<(Cost, Self::State), TraversalError> {
             Ok((Cost::ZERO, state.clone()))

@@ -37,8 +37,8 @@ impl<S: Sync + Send + Eq + Copy + Clone> EdgeTraversal<S> {
         g: &RwLockReadGuard<&dyn DirectedGraph>,
         m: &RwLockReadGuard<&dyn TraversalModel<State = S>>,
     ) -> Result<EdgeTraversal<S>, SearchError> {
-        let edge = g
-            .edge_attr(edge_id)
+        let (src, edge, dst) = g
+            .edge_triplet_attrs(edge_id)
             .map_err(SearchError::GraphCorrectnessFailure)?;
 
         let (access_cost, access_state);
@@ -47,14 +47,15 @@ impl<S: Sync + Send + Eq + Copy + Clone> EdgeTraversal<S> {
                 let prev_edge = g
                     .edge_attr(prev_e)
                     .map_err(SearchError::GraphCorrectnessFailure)?;
-                m.access_cost(&prev_edge, &edge, &prev_state)
+                let prev_src_v = g.vertex_attr(prev_edge.start_vertex)?;
+                m.access_cost(&prev_src_v, &prev_edge, &src, &edge, &dst, &prev_state)
             }
             None => Ok((Cost::ZERO, prev_state)),
         }
         .map_err(SearchError::TraversalModelFailure)?;
 
         let (traversal_cost, result_state) = m
-            .traversal_cost(&edge, &access_state)
+            .traversal_cost(&src, &edge, &dst, &access_state)
             .map_err(SearchError::TraversalModelFailure)?;
 
         let result = EdgeTraversal {

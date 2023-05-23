@@ -40,6 +40,14 @@ pub trait DirectedGraph: Sync + Send {
         }
     }
 
+    fn edge_triplet_attrs(&self, edge_id: EdgeId) -> Result<(Vertex, Edge, Vertex), GraphError> {
+        let edge = self.edge_attr(edge_id)?;
+        let src = self.vertex_attr(edge.start_vertex)?;
+        let dst = self.vertex_attr(edge.end_vertex)?;
+
+        Ok((src, edge, dst))
+    }
+
     /// helper function to create VertexId EdgeId VertexId triplets based on
     /// a traversal direction, where the vertex_id function argument appears in
     /// the first slot and the terminal vertex id appears in the final slot
