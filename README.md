@@ -18,7 +18,10 @@ conda activate routee-compass
 
 ```bash
 git clone https://github.nrel.gov/MBAP/routee-compass.git
+
 cd routee-compass
+
+git checkout rust-graph
 
 pip install .
 ```
