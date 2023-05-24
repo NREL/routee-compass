@@ -31,8 +31,6 @@ pub trait TraversalModel: Sync + Send {
         state: &Self::State,
     ) -> Result<(Cost, Self::State), TraversalError>;
 
-    // fn update(&self, s: Self::State, c: Cost) -> Result<Self::State, TraversalError>;
-
     fn valid_frontier(&self, frontier: &EdgeFrontier<Self::State>) -> Result<bool, TraversalError>;
 
     fn terminate_search(
