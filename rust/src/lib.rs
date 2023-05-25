@@ -12,6 +12,7 @@ use pyo3::prelude::*;
 mod algorithm;
 mod model;
 mod util;
+mod implementations;
 
 #[pymodule]
 fn compass_rust(_py: Python, m: &PyModule) -> PyResult<()> {
