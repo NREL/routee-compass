@@ -14,6 +14,7 @@ import time
 import os
 import glob
 import logging
+import argparse
 import sqlalchemy as sql
 
 from nrel.routee.compass import Graph, Link, Node, RustMap, extract_largest_scc
@@ -27,23 +28,16 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 USER = os.environ.get("TROLLEY_USERNAME")
-if USER is None:
-    raise ValueError("TROLLEY_USERNAME environment variable must be set to run this script")
 PASSWORD = os.environ.get("TROLLEY_PASSWORD")
-if PASSWORD is None:
-    raise ValueError("TROLLEY_PASSWORD environment variable must be set to run this script")
 
-RESTRICTION_FILE = os.environ.get("RESTRICTION_FILE")
-if RESTRICTION_FILE is None:
-    raise ValueError("RESTRICTION_FILE environment variable must be set to run this script")
+parser = argparse.ArgumentParser()
+parser.add_argument("working_dir", type=str, default="", help="working directory")
 
-network_path_str = os.environ.get("NETWORK_PATH")
-if network_path_str is None:
-    raise ValueError("NETWORK_PATH environment variable must be set to run this script")
+args = parser.parse_args()
 
-NETWORK_PATH = Path(network_path_str)
+WORKING_DIR = Path(args.working_dir)
 
-OUTPUT_FOLDER = Path(os.environ.get("OUTPUT_FOLDER", ""))
+RESTRICTION_FILE = WORKING_DIR / "restrictions.pickle" 
 
 LATLON = "epsg:4326"
 WEB_MERCATOR = "epsg:3857"
@@ -269,38 +263,50 @@ def links_from_df(
 if __name__ == "__main__":
     engine = sql.create_engine(f"postgresql://{USER}:{PASSWORD}@trolley.nrel.gov:5432/master")
 
-    log.info("getting speed by time of day info from trolley..")
+    profile_mapping_file = WORKING_DIR / "profile_id_mapping.csv"
+    if USER is None and PASSWORD is None:
+        if not profile_mapping_file.exists():
+            raise ValueError(
+                "profile_id_mapping.csv not found in working directory. "
+                "Please provide a username and password to connect to trolley."
+            )
+        df = pd.read_csv(WORKING_DIR / "profile_id_mapping.csv").set_index("profile_id")
+        profile_id_integer_mapping = {}
+        for pid, r in df.iterrows():
+            profile_id_integer_mapping[pid] = int(r.profile_id_integer) 
+    else:
+        log.info("getting speed by time of day info from trolley..")
 
-    q = """
-    select profile_id, speed_per_time_slot_id
-    from tomtom_multinet_current.mnr_profile2speed_per_time_slot
-    """
+        q = """
+        select profile_id, speed_per_time_slot_id
+        from tomtom_multinet_current.mnr_profile2speed_per_time_slot
+        """
 
-    sdf = pd.read_sql(q, engine)
-    sdf = sdf.astype(str)
+        sdf = pd.read_sql(q, engine)
+        sdf = sdf.astype(str)
 
-    tq = """
-    select *
-    from tomtom_multinet_current.mnr_speed_per_time_slot
-    """
+        tq = """
+        select *
+        from tomtom_multinet_current.mnr_speed_per_time_slot
+        """
 
-    tdf = pd.read_sql(tq, engine)
-    tdf["speed_per_time_slot_id"] = tdf.speed_per_time_slot_id.astype(str)
+        tdf = pd.read_sql(tq, engine)
+        tdf["speed_per_time_slot_id"] = tdf.speed_per_time_slot_id.astype(str)
 
-    df = (
-        sdf.set_index("speed_per_time_slot_id")
-        .join(tdf.set_index("speed_per_time_slot_id"))
-        .reset_index()
-        .drop(columns="speed_per_time_slot_id")
-    )
+        df = (
+            sdf.set_index("speed_per_time_slot_id")
+            .join(tdf.set_index("speed_per_time_slot_id"))
+            .reset_index()
+            .drop(columns="speed_per_time_slot_id")
+        )
 
-    profile_id_integer_mapping = {}
-    for i, pid in enumerate(df.profile_id.unique()):
-        profile_id_integer_mapping[pid] = i
+        profile_id_integer_mapping = {}
+        for i, pid in enumerate(df.profile_id.unique()):
+            profile_id_integer_mapping[pid] = i
 
-    df["profile_id_integer"] = df.profile_id.apply(lambda pid: profile_id_integer_mapping[pid])
+        df["profile_id_integer"] = df.profile_id.apply(lambda pid: profile_id_integer_mapping[pid])
 
-    df.to_csv(OUTPUT_FOLDER / "profile_id_mapping.csv", index=False)
+        df.to_csv(profile_mapping_file, index=False)
 
     log.info("loading restrictions..")
     with open(RESTRICTION_FILE, "rb") as rf:
@@ -312,7 +318,7 @@ if __name__ == "__main__":
 
     # NOTE: This is predicated on first running the download_us_network.py script
     log.info("loading links from file")
-    files = glob.glob(str(NETWORK_PATH / "*.parquet"))
+    files = glob.glob(str(WORKING_DIR / "*.parquet"))
     start_time = time.time()
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
@@ -329,7 +335,7 @@ if __name__ == "__main__":
     log.info(f"found {len(all_links)} links")
     elsapsed_time = time.time() - start_time
 
-    node_map_outfile = OUTPUT_FOLDER /  "node-id-mapping.pickle"
+    node_map_outfile = WORKING_DIR /  "node-id-mapping.pickle"
     with node_map_outfile.open("wb") as nmf:
         pickle.dump(node_id_mapping, nmf)
 
@@ -364,6 +370,6 @@ if __name__ == "__main__":
 
     log.info("saving rust map..")
     start_time = time.time()
-    rust_map.to_file(str(OUTPUT_FOLDER / "rust_map.bin"))
+    rust_map.to_file(str(WORKING_DIR / "rust_map.bin"))
     elsapsed_time = time.time() - start_time
     log.info(f"saving rust map took {elsapsed_time} seconds")

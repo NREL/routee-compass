@@ -7,6 +7,7 @@ name = "nrel.routee.compass"
 version = "0.1.3"
 description = "An eco-routing tool build upon RouteE-Powertrain"
 readme = "README.md"
+requires-python = ">=3.8"
 authors = [{ name = "National Renewable Energy Laboratory" }]
 license = { text = "BSD 3-Clause License Copyright (c) 2022, Alliance for Sustainable Energy, LLC" }
 classifiers = [
@@ -27,7 +28,6 @@ dependencies = [
 ]
 [project.optional-dependencies]
 dev = ["black", "pytest", "maturin"]
-requires-python = ">=3.8"
 
 
 [project.urls]
