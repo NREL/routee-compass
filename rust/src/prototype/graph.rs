@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::hash::Hash;
 use std::path::PathBuf;
 
@@ -10,11 +10,13 @@ use pyo3::types::PyType;
 use rstar::{PointDistance, RTreeObject, AABB};
 use serde::{Deserialize, Serialize};
 
+pub type NodeId = u32;
+
 #[pyclass]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Node {
     #[pyo3(get)]
-    pub id: u32,
+    pub id: NodeId,
     #[pyo3(get)]
     pub x: isize,
     #[pyo3(get)]
@@ -49,17 +51,19 @@ impl Node {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Serialize, Deserialize)]
 pub struct Link {
     #[pyo3(get)]
-    pub start_node: Node,
+    pub start_node: NodeId,
     #[pyo3(get)]
-    pub end_node: Node,
+    pub end_node: NodeId,
     #[pyo3(get)]
-    pub road_class: u8,
-    #[pyo3(get)]
-    pub time_seconds: u32,
+    pub speed_kph: u8,
     #[pyo3(get)]
     pub distance_centimeters: u32,
     #[pyo3(get)]
     pub grade: i16,
+    #[pyo3(get)]
+    pub road_class: u8,
+    #[pyo3(get)]
+    pub week_profile_ids: [Option<u16>; 7],
     #[pyo3(get)]
     pub weight_limit_lbs: Option<u32>,
     #[pyo3(get)]
@@ -74,12 +78,13 @@ pub struct Link {
 impl Link {
     #[new]
     pub fn new(
-        start_node: Node,
-        end_node: Node,
-        road_class: u8,
-        time_seconds: u32,
+        start_node: NodeId,
+        end_node: NodeId,
+        speed_kph: u8,
         distance_centimeters: u32,
         grade: i16,
+        road_class: u8,
+        week_profile_ids: [Option<u16>; 7],
         weight_limit_lbs: Option<u32>,
         height_limit_inches: Option<u16>,
         width_limit_inches: Option<u16>,
@@ -88,29 +93,39 @@ impl Link {
         Link {
             start_node,
             end_node,
-            road_class,
-            time_seconds,
+            speed_kph,
             distance_centimeters,
             grade,
+            road_class,
+            week_profile_ids,
             weight_limit_lbs,
             height_limit_inches,
             width_limit_inches,
             length_limit_inches,
         }
     }
+
     pub fn transpose(&self) -> Self {
         Link {
             start_node: self.end_node,
             end_node: self.start_node,
-            road_class: self.road_class,
-            time_seconds: self.time_seconds,
+            speed_kph: self.speed_kph,
             distance_centimeters: self.distance_centimeters,
-            grade: self.grade,
+            grade: -self.grade,
+            road_class: self.road_class,
             weight_limit_lbs: self.weight_limit_lbs,
             height_limit_inches: self.height_limit_inches,
             width_limit_inches: self.width_limit_inches,
             length_limit_inches: self.length_limit_inches,
+            week_profile_ids: self.week_profile_ids,
         }
+    }
+
+
+    pub fn time_seconds(&self) -> u32 {
+        let speed_centimeters_per_second = (self.speed_kph as f32 * 27.77) as u32;
+        let time_seconds = self.distance_centimeters / speed_centimeters_per_second;
+        time_seconds
     }
 }
 
@@ -118,13 +133,28 @@ impl Link {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Graph {
     #[pyo3(get)]
-    pub adjacency_list: HashMap<Node, HashSet<Link>>,
+    pub nodes: HashMap<NodeId, Node>,
+
+    #[pyo3(get)]
+    pub adjacency_list: HashMap<NodeId, Vec<Link>>,
 }
 
 impl Graph {
-    pub fn neighbors(&self, node: &Node) -> Option<&HashSet<Link>> {
-        self.adjacency_list.get(node)
+    pub fn neighbors(&self, node_id: &NodeId) -> Option<&Vec<Link>> {
+        self.adjacency_list.get(node_id)
     }
+
+    pub fn get_transpose(&self) -> Graph {
+        let mut transpose = Graph::new();
+        transpose.nodes = self.nodes.clone();
+        for links in self.adjacency_list.values() {
+            for link in links {
+                transpose.add_link(link.transpose());
+            }
+        }
+        transpose
+    }
+
     pub fn to_binary(&self) -> Vec<u8> {
         bincode::serialize(&self).unwrap()
     }
@@ -152,28 +182,15 @@ impl Graph {
     #[new]
     pub fn new() -> Self {
         Graph {
+            nodes: HashMap::new(),
             adjacency_list: HashMap::new(),
         }
-    }
-
-    pub fn get_transpose(&self) -> Graph {
-        let mut transpose = Graph::new();
-        for links in self.adjacency_list.values() {
-            for link in links {
-                transpose.add_link(link.transpose());
-            }
-        }
-        transpose
-    }
-
-    pub fn get_nodes(&self) -> Vec<Node> {
-        self.adjacency_list.keys().cloned().collect()
     }
 
     /// get a list of links given a list of nodes
     /// this is useful for getting the links that are in a given route
     /// the links are returned in the order that they appear in the route
-    pub fn get_links_in_path(&self, nodes_in_path: Vec<Node>) -> Vec<Link> {
+    pub fn get_links_in_path(&self, nodes_in_path: Vec<NodeId>) -> Vec<Link> {
         let mut links_in_path = Vec::new();
         for (start_node, end_node) in nodes_in_path.windows(2).map(|w| (w[0], w[1])) {
             let links = self
@@ -203,16 +220,30 @@ impl Graph {
         Ok(graph)
     }
 
+    pub fn add_node(&mut self, node: Node) {
+        self.nodes.insert(node.id, node);
+    }
+
+    pub fn add_nodes_bulk(&mut self, nodes: Vec<Node>) {
+        for node in nodes {
+            self.add_node(node);
+        }
+    }
+
     pub fn add_link(&mut self, link: Link) {
         self.adjacency_list
             .entry(link.start_node)
-            .or_insert_with(HashSet::new)
-            .insert(link);
+            .or_insert_with(Vec::new)
+            .push(link);
     }
 
     pub fn add_links_bulk(&mut self, links: Vec<Link>) {
         for link in links {
             self.add_link(link);
         }
+    }
+
+    pub fn number_of_links(&self) -> usize {
+        self.adjacency_list.values().map(|links| links.len()).sum()
     }
 }

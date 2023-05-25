@@ -1,7 +1,7 @@
 use std::collections::{BinaryHeap, HashMap};
 use std::{cmp::Reverse, collections::HashSet};
 
-use crate::prototype::graph::{Graph, Link, Node};
+use crate::prototype::graph::{Graph, Link, NodeId};
 use crate::prototype::powertrain::VehicleParameters;
 
 use pyo3::prelude::*;
@@ -11,10 +11,11 @@ pub fn build_restriction_function(
 ) -> impl Fn(&Link) -> bool {
     move |link: &Link| {
         if let Some(vehicle) = &vehicle_parameters {
-            let over_weight_limit = match link.weight_limit_lbs {
-                Some(limit) => vehicle.weight_lbs > limit,
-                None => false,
-            };
+            // NOTE: not currently using weight limit
+            // let over_weight_limit = match link.weight_limit_lbs {
+            //     Some(limit) => vehicle.weight_lbs > limit,
+            //     None => false,
+            // };
             let over_height_limit = match link.height_limit_inches {
                 Some(limit) => vehicle.height_inches > limit,
                 None => false,
@@ -27,7 +28,7 @@ pub fn build_restriction_function(
                 Some(limit) => vehicle.length_inches > limit,
                 None => false,
             };
-            over_height_limit || over_weight_limit || over_width_limit || over_length_limit
+            over_height_limit || over_width_limit || over_length_limit
         } else {
             false
         }
@@ -36,15 +37,15 @@ pub fn build_restriction_function(
 
 pub fn dijkstra_shortest_path(
     graph: &Graph,
-    start: &Node,
-    end: &Node,
+    start: &NodeId,
+    end: &NodeId,
     cost_function: impl Fn(&Link) -> u32,
     restriction_function: impl Fn(&Link) -> bool,
-) -> Option<(u32, Vec<Node>)> {
+) -> Option<(u32, Vec<NodeId>)> {
     let mut visited = HashSet::new();
     let mut min_heap = BinaryHeap::new();
-    let mut parents: HashMap<Node, Node> = HashMap::new();
-    let mut distances: HashMap<Node, u32> = HashMap::new();
+    let mut parents: HashMap<NodeId, NodeId> = HashMap::new();
+    let mut distances: HashMap<NodeId, u32> = HashMap::new();
 
     min_heap.push((Reverse(0), start.clone()));
     distances.insert(start.clone(), 0);
@@ -97,8 +98,7 @@ pub fn dijkstra_shortest_path(
 
     None
 }
-
-pub fn dfs(graph: &Graph, node: &Node, visited: &mut HashSet<Node>, stack: &mut Vec<Node>) {
+pub fn dfs(graph: &Graph, node: &NodeId, visited: &mut HashSet<NodeId>, stack: &mut Vec<NodeId>) {
     visited.insert(node.clone());
     if let Some(links) = graph.adjacency_list.get(node) {
         for link in links {
@@ -112,9 +112,9 @@ pub fn dfs(graph: &Graph, node: &Node, visited: &mut HashSet<Node>, stack: &mut 
 
 pub fn dfs_transpose(
     graph: &Graph,
-    node: &Node,
-    visited: &mut HashSet<Node>,
-    scc: &mut HashSet<Node>,
+    node: &NodeId,
+    visited: &mut HashSet<NodeId>,
+    scc: &mut HashSet<NodeId>,
 ) {
     visited.insert(node.clone());
     scc.insert(node.clone());
@@ -128,7 +128,7 @@ pub fn dfs_transpose(
 }
 
 #[pyfunction]
-pub fn largest_scc(graph: &Graph) -> Graph {
+pub fn extract_largest_scc(graph: &Graph) -> Graph {
     let mut stack = Vec::new();
     let mut visited = HashSet::new();
 
@@ -153,8 +153,10 @@ pub fn largest_scc(graph: &Graph) -> Graph {
     }
 
     let mut largest_scc_graph = Graph::new();
-    for node in &largest_scc {
-        if let Some(links) = graph.adjacency_list.get(node) {
+    for node_id in &largest_scc {
+        let node = graph.nodes.get(node_id).unwrap().clone();
+        largest_scc_graph.add_node(node);
+        if let Some(links) = graph.adjacency_list.get(node_id) {
             for link in links {
                 if largest_scc.contains(&link.end_node) {
                     largest_scc_graph.add_link(link.clone());
@@ -164,4 +166,69 @@ pub fn largest_scc(graph: &Graph) -> Graph {
     }
 
     largest_scc_graph
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::prototype::graph::{Link, Node};
+
+    fn dummy_link_from_nodes(a: NodeId, b: NodeId) -> Link {
+        Link::new(
+            a,
+            b,
+            10,
+            10,
+            10,
+            1,
+            [None, None, None, None, None, None, None],
+            None,
+            None,
+            None,
+            None,
+        )
+    }
+
+    #[test]
+    fn test_largest_scc() {
+        let mut graph = Graph::new();
+
+        // build 10 nodes
+        let mut nodes = Vec::new();
+        for i in 0..10 {
+            nodes.push(i);
+            graph.add_node(Node::new(i, 0, 0))
+        }
+
+        // build a graph with two sccs, one with more 10 links and the other with 6
+        for i in 1..6 {
+            graph.add_link(dummy_link_from_nodes(nodes[i - 1], nodes[i]));
+            graph.add_link(dummy_link_from_nodes(nodes[i], nodes[i - 1]));
+        }
+
+        for i in 7..10 {
+            graph.add_link(dummy_link_from_nodes(nodes[i - 1], nodes[i]));
+            graph.add_link(dummy_link_from_nodes(nodes[i], nodes[i - 1]));
+        }
+
+        let scc = extract_largest_scc(&graph);
+        assert_eq!(scc.number_of_links(), 10);
+    }
+
+    #[test]
+    fn test_two_node_scc() {
+        let mut g = Graph {
+            nodes: HashMap::new(),
+            adjacency_list: HashMap::new(),
+        };
+        let node_a = Node { id: 1, x: 0, y: 0 };
+        let node_b = Node { id: 2, x: 1, y: 1 };
+        g.add_node(node_a.clone());
+        g.add_node(node_b.clone());
+        g.add_link(dummy_link_from_nodes(node_a.id, node_b.id));
+        g.add_link(dummy_link_from_nodes(node_b.id, node_a.id));
+        let scc = extract_largest_scc(&g);
+        assert_eq!(scc.nodes.len(), 2); // Two nodes strongly connected
+        assert_eq!(scc.adjacency_list.len(), 2);
+    }
 }
