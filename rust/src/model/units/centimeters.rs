@@ -1,7 +1,9 @@
-use super::{cm_per_second::CmPerSecond, milliseconds::Milliseconds};
+use derive_more::{Add, Mul, Sum, Div};
 
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Centimeters(pub i64);
+use super::{cm_per_second::CmPerSecond, seconds::Seconds};
+
+#[derive(Copy, Clone, Eq, PartialEq, Add, Mul, Sum, Div)]
+pub struct Centimeters(pub u32);
 
 impl Centimeters {
     /// computes the travel time for traversing this distance of centimeters at
@@ -12,8 +14,8 @@ impl Centimeters {
 
     /// computes the travel time for traversing this distance of centimeters at
     /// the given speed. produces time in milliseconds
-    pub fn travel_time_millis(&self, speed: &CmPerSecond) -> Milliseconds {
+    pub fn travel_time_millis(&self, speed: &CmPerSecond) -> Seconds {
         let t = self.travel_time_seconds(speed) * 1000.0;
-        Milliseconds(t as i64)
+        Seconds(t as i64)
     }
 }

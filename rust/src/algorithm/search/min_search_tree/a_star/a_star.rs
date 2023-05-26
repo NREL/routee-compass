@@ -187,7 +187,7 @@ mod tests {
         ) -> Result<(Cost, Self::State), TraversalError> {
             let c = edge
                 .distance_centimeters
-                .travel_time_millis(&edge.free_flow_speed_seconds)
+                .travel_time_millis(&edge.free_flow_speed_cm_per_second)
                 .0;
             Ok((Cost(c), state + c))
         }
@@ -268,7 +268,7 @@ mod tests {
                         start_vertex: src.clone(),
                         end_vertex: dst.clone(),
                         road_class: RoadClass(0),
-                        free_flow_speed_seconds: cps.clone(),
+                        free_flow_speed_cm_per_second: cps.clone(),
                         distance_centimeters: Centimeters(100),
                         grade_millis: Millis(0),
                     };
