@@ -352,7 +352,7 @@ if __name__ == "__main__":
     where rf.feat_type = 7403
     """
 
-    stop_df = pd.read_sql(q, engine)
+    stop_df = pd.read_sql(stop_sign_query, engine)
     stop_df = stop_df[stop_df.routing_class <= MAX_ROUTING_CLASS].astype(
         {
             "validity_direction": int,
