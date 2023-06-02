@@ -12,34 +12,6 @@ use serde::{Deserialize, Serialize};
 
 pub type NodeId = u32;
 
-#[pyclass]
-#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Serialize, Deserialize)]
-pub enum LinkDirection {
-    FromTo,
-    ToFrom,
-}
-
-impl LinkDirection {
-    pub fn from_int(int: u8) -> Result<Self> {
-        match int {
-            2 => Ok(LinkDirection::FromTo),
-            3 => Ok(LinkDirection::ToFrom),
-            _ => Err(anyhow!(format!("Invalid LinkDirection int: {}", int))),
-        }
-    }
-    pub fn to_int(&self) -> u8 {
-        match self {
-            LinkDirection::FromTo => 2,
-            LinkDirection::ToFrom => 3,
-        }
-    }
-    pub fn reverse(&self) -> Self {
-        match self {
-            LinkDirection::FromTo => LinkDirection::ToFrom,
-            LinkDirection::ToFrom => LinkDirection::FromTo,
-        }
-    }
-}
 
 #[pyclass]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
