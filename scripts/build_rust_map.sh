@@ -13,6 +13,4 @@
 module purge
 . activate /home/$USER/.conda/envs/routee-compass
 
-export WORKING_DIR = /projects/mbap/amazon-eco/us_network/
-
-python build_rust_map.py
+python build_rust_map.py /projects/mbap/amazon-eco/us_network/
