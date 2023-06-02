@@ -37,7 +37,7 @@ args = parser.parse_args()
 
 WORKING_DIR = Path(args.working_dir)
 
-RESTRICTION_FILE = WORKING_DIR / "restrictions.pickle" 
+RESTRICTION_FILE = WORKING_DIR / "restrictions.pickle"
 
 LATLON = "epsg:4326"
 WEB_MERCATOR = "epsg:3857"
@@ -192,7 +192,6 @@ def build_link(
         speed_kph,
         distance_cm,
         grade_milli,
-        direction,
         week_profile_ids,
         weight_restriction,
         height_restriction,
@@ -274,7 +273,7 @@ if __name__ == "__main__":
         df = pd.read_csv(WORKING_DIR / "profile_id_mapping.csv").set_index("profile_id")
         profile_id_integer_mapping = {}
         for pid, r in df.iterrows():
-            profile_id_integer_mapping[pid] = int(r.profile_id_integer) 
+            profile_id_integer_mapping[pid] = int(r.profile_id_integer)
     else:
         log.info("getting speed by time of day info from trolley..")
 
@@ -336,9 +335,52 @@ if __name__ == "__main__":
     log.info(f"found {len(all_links)} links")
     elsapsed_time = time.time() - start_time
 
-    node_map_outfile = WORKING_DIR /  "node-id-mapping.pickle"
+    node_map_outfile = WORKING_DIR / "node-id-mapping.pickle"
     with node_map_outfile.open("wb") as nmf:
         pickle.dump(node_id_mapping, nmf)
+
+    log.info("getting stop sign info from trolley..")
+    stop_sign_query = """
+    select 
+    nw.junction_id_from,
+    nw.junction_id_to,
+    nw.routing_class,
+    rf.validity_direction
+    from tomtom_multinet_current.mnr_road_furniture as rf
+    left join tomtom_multinet_current.mnr_netw_route_link as nw
+    on rf.netw_id = nw.feat_id
+    where rf.feat_type = 7403
+    """
+
+    stop_df = pd.read_sql(q, engine)
+    stop_df = stop_df[stop_df.routing_class <= MAX_ROUTING_CLASS].astype(
+        {
+            "validity_direction": int,
+            "junction_id_to": str,
+            "junction_id_from": str,
+        }
+    )
+    stop_sign_nodes = stop_df.apply(
+        lambda row: row.junction_id_to if row.validity_direction == 2 else row.junction_id_from,
+        axis=1,
+    )
+    stop_sign_nodes = stop_sign_nodes.rename("junction_id")
+    stop_sign_nodes = stop_sign_nodes.apply(lambda nid: node_id_mapping[nid])
+
+    stop_sign_file = WORKING_DIR / "stop_signs.csv"
+    stop_sign_nodes.to_csv(stop_sign_file)
+
+    log.info("getting traffic light info from trolley..")
+    tl_q = """
+    select junction_id from tomtom_multinet_current.mnr_traffic_light
+    """
+
+    tl_df = pd.read_sql(tl_q, engine)
+    tl_df = tl_df.astype({"junction_id": str})
+    tl_nodes = tl_df.junction_id.apply(lambda nid: node_id_mapping[nid])
+
+    tl_outfile = WORKING_DIR / "traffic_lights.csv"
+    tl_nodes.to_csv(tl_outfile)
 
     del node_id_mapping
 
