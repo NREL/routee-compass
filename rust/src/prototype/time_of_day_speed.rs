@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use pyo3::prelude::*;
 
-use crate::graph::Link;
+use crate::prototype::graph::Link;
 
 pub type ProfileId = u16;
 pub type SecondOfDay = u32;

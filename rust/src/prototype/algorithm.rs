@@ -1,11 +1,10 @@
 use std::collections::{BinaryHeap, HashMap};
 use std::{cmp::Reverse, collections::HashSet};
 
-use crate::graph::{Graph, Link, NodeId};
-use crate::powertrain::VehicleParameters;
+use crate::prototype::graph::{Graph, Link, NodeId};
+use crate::prototype::powertrain::VehicleParameters;
 
 use pyo3::prelude::*;
-
 
 pub fn build_restriction_function(
     vehicle_parameters: Option<VehicleParameters>,
@@ -172,7 +171,7 @@ pub fn extract_largest_scc(graph: &Graph) -> Graph {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::graph::{Link, Node};
+    use crate::prototype::graph::{Link, Node};
 
     fn dummy_link_from_nodes(a: NodeId, b: NodeId) -> Link {
         Link::new(
@@ -181,7 +180,6 @@ mod tests {
             10,
             10,
             10,
-            1,
             [None, None, None, None, None, None, None],
             None,
             None,

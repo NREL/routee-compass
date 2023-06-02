@@ -4,13 +4,42 @@ use std::path::PathBuf;
 
 use pyo3::prelude::*;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bincode;
 use pyo3::types::PyType;
 use rstar::{PointDistance, RTreeObject, AABB};
 use serde::{Deserialize, Serialize};
 
 pub type NodeId = u32;
+
+#[pyclass]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Serialize, Deserialize)]
+pub enum LinkDirection {
+    FromTo,
+    ToFrom,
+}
+
+impl LinkDirection {
+    pub fn from_int(int: u8) -> Result<Self> {
+        match int {
+            2 => Ok(LinkDirection::FromTo),
+            3 => Ok(LinkDirection::ToFrom),
+            _ => Err(anyhow!(format!("Invalid LinkDirection int: {}", int))),
+        }
+    }
+    pub fn to_int(&self) -> u8 {
+        match self {
+            LinkDirection::FromTo => 2,
+            LinkDirection::ToFrom => 3,
+        }
+    }
+    pub fn reverse(&self) -> Self {
+        match self {
+            LinkDirection::FromTo => LinkDirection::ToFrom,
+            LinkDirection::ToFrom => LinkDirection::FromTo,
+        }
+    }
+}
 
 #[pyclass]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
@@ -61,8 +90,6 @@ pub struct Link {
     #[pyo3(get)]
     pub grade: i16,
     #[pyo3(get)]
-    pub road_class: u8,
-    #[pyo3(get)]
     pub week_profile_ids: [Option<u16>; 7],
     #[pyo3(get)]
     pub weight_limit_lbs: Option<u32>,
@@ -83,7 +110,6 @@ impl Link {
         speed_kph: u8,
         distance_centimeters: u32,
         grade: i16,
-        road_class: u8,
         week_profile_ids: [Option<u16>; 7],
         weight_limit_lbs: Option<u32>,
         height_limit_inches: Option<u16>,
@@ -96,7 +122,6 @@ impl Link {
             speed_kph,
             distance_centimeters,
             grade,
-            road_class,
             week_profile_ids,
             weight_limit_lbs,
             height_limit_inches,
@@ -112,7 +137,6 @@ impl Link {
             speed_kph: self.speed_kph,
             distance_centimeters: self.distance_centimeters,
             grade: -self.grade,
-            road_class: self.road_class,
             weight_limit_lbs: self.weight_limit_lbs,
             height_limit_inches: self.height_limit_inches,
             width_limit_inches: self.width_limit_inches,
@@ -120,7 +144,6 @@ impl Link {
             week_profile_ids: self.week_profile_ids,
         }
     }
-
 
     pub fn time_seconds(&self) -> u32 {
         let speed_centimeters_per_second = (self.speed_kph as f32 * 27.77) as u32;

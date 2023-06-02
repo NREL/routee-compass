@@ -5,10 +5,7 @@ use smartcore::{
 use anyhow::Result;
 use pyo3::prelude::*;
 
-use crate::{
-    graph::Link,
-    map::SearchInput,
-};
+use crate::{prototype::graph::Link, prototype::map::SearchInput};
 
 // scale the energy by this factor to make it an integer
 pub const ROUTEE_SCALE_FACTOR: f64 = 100000.0;
@@ -42,9 +39,12 @@ impl VehicleParameters {
 }
 
 pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) -> Result<f64> {
-    let model_file_path = search_input.routee_model_path.clone().ok_or(anyhow::anyhow!(
-        "routee_model_path must be set in SearchInput"
-    ))?;
+    let model_file_path = search_input
+        .routee_model_path
+        .clone()
+        .ok_or(anyhow::anyhow!(
+            "routee_model_path must be set in SearchInput"
+        ))?;
     let rf_binary = std::fs::read(model_file_path)?;
 
     let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
