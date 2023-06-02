@@ -365,7 +365,8 @@ if __name__ == "__main__":
         axis=1,
     )
     stop_sign_nodes = stop_sign_nodes.rename("junction_id")
-    stop_sign_nodes = stop_sign_nodes.apply(lambda nid: node_id_mapping[nid])
+    stop_sign_nodes = stop_sign_nodes.apply(lambda nid: node_id_mapping.get(nid, pd.NA))
+    stop_sign_nodes = stop_sign_nodes.dropna()
 
     stop_sign_file = WORKING_DIR / "stop_signs.csv"
     stop_sign_nodes.to_csv(stop_sign_file)
@@ -377,7 +378,8 @@ if __name__ == "__main__":
 
     tl_df = pd.read_sql(tl_q, engine)
     tl_df = tl_df.astype({"junction_id": str})
-    tl_nodes = tl_df.junction_id.apply(lambda nid: node_id_mapping[nid])
+    tl_nodes = tl_df.junction_id.apply(lambda nid: node_id_mapping.get(nid, pd.NA))
+    tl_nodes = tl_nodes.dropna()
 
     tl_outfile = WORKING_DIR / "traffic_lights.csv"
     tl_nodes.to_csv(tl_outfile)
