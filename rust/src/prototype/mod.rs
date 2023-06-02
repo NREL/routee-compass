@@ -3,3 +3,4 @@ pub mod graph;
 pub mod map;
 pub mod powertrain;
 pub mod time_of_day_speed;
+pub mod stop_costs;

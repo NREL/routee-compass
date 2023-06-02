@@ -50,6 +50,8 @@ TO_FROM_DIRECTION = 3
 
 DEFAULT_SPEED_KPH = 40
 
+MAX_ROUTING_CLASS = 4
+
 
 def build_speed(t, direction) -> int:
     # optimisitically return free flow
@@ -174,8 +176,6 @@ def build_link(
 
     distance_cm = t.centimeters
 
-    road_class = int(t.routing_class)
-
     week_profile_ids = [
         profile_id_integer_mapping.get(t.monday_profile_id),
         profile_id_integer_mapping.get(t.tuesday_profile_id),
@@ -192,7 +192,7 @@ def build_link(
         speed_kph,
         distance_cm,
         grade_milli,
-        road_class,
+        direction,
         week_profile_ids,
         weight_restriction,
         height_restriction,
@@ -206,6 +206,7 @@ def build_link(
 def links_from_df(
     df, node_id_mapping, node_id_counter
 ) -> Tuple[List[Link], List[Node], Dict[str, int], int]:
+    df = df[df.routing_class <= MAX_ROUTING_CLASS]
     df["link_direction"] = df.link_direction.fillna(9).astype(int)
     df["geom"] = df.geom.apply(lambda g: from_wkb(g))
 

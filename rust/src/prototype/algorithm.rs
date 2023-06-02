@@ -180,7 +180,6 @@ mod tests {
             10,
             10,
             10,
-            1,
             [None, None, None, None, None, None, None],
             None,
             None,
