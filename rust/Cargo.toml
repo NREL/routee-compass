@@ -14,9 +14,6 @@ geo = "0.24.1"
 rstar = "0.10.0"
 smartcore = { version = "0.3.1", features = ["serde"] }
 rayon = "1.7.0"
-thiserror = "1.0.0"
-derive_more = "0.99.0"
-keyed_priority_queue = "0.4.1"
 
 [lib]
 name = "compass_rust"
