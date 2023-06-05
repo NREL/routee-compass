@@ -5,6 +5,7 @@ use prototype::algorithm::extract_largest_scc;
 use prototype::graph::{Graph, Link, Node};
 use prototype::map::{RustMap, SearchInput, SearchResult, SearchType};
 use prototype::powertrain::VehicleParameters;
+use prototype::stop_costs::StopCosts;
 use prototype::time_of_day_speed::TimeOfDaySpeeds;
 
 use pyo3::prelude::*;
@@ -20,6 +21,7 @@ fn compass_rust(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<SearchType>()?;
     m.add_class::<TimeOfDaySpeeds>()?;
     m.add_class::<VehicleParameters>()?;
+    m.add_class::<StopCosts>()?;
     m.add_function(wrap_pyfunction!(extract_largest_scc, m)?)?;
 
     Ok(())
