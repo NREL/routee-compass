@@ -11,6 +11,7 @@ use crate::prototype::{
         build_routee_cost_function_with_tods, compute_energy_over_path, VehicleParameters,
         ROUTEE_SCALE_FACTOR,
     },
+    stop_costs::StopCosts,
     time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
 };
 
@@ -40,6 +41,8 @@ pub struct SearchInput {
     pub vehicle_parameters: Option<VehicleParameters>,
     #[pyo3(get)]
     pub routee_model_path: Option<String>,
+    #[pyo3(get)]
+    pub stop_costs: Option<StopCosts>,
 }
 
 impl Default for SearchInput {
@@ -53,6 +56,7 @@ impl Default for SearchInput {
             time_of_day_speeds: Default::default(),
             vehicle_parameters: None,
             routee_model_path: None,
+            stop_costs: None,
         }
     }
 }
@@ -69,6 +73,7 @@ impl SearchInput {
         time_of_day_speeds: Option<TimeOfDaySpeeds>,
         vehicle_parameters: Option<VehicleParameters>,
         routee_model_path: Option<String>,
+        stop_costs: Option<StopCosts>,
     ) -> Self {
         SearchInput {
             search_id,
@@ -79,6 +84,7 @@ impl SearchInput {
             time_of_day_speeds: time_of_day_speeds.unwrap_or_default(),
             vehicle_parameters,
             routee_model_path,
+            stop_costs,
         }
     }
 }
@@ -162,7 +168,11 @@ impl RustMap {
             .collect()
     }
 
-    pub fn shortest_path(&self, search_input: SearchInput, search_type: SearchType) -> Option<SearchResult> {
+    pub fn shortest_path(
+        &self,
+        search_input: SearchInput,
+        search_type: SearchType,
+    ) -> Option<SearchResult> {
         match search_type {
             SearchType::ShortestTime => self.shortest_time_path(search_input),
             SearchType::ShortestEnergy => self.shortest_energy_path(search_input),
@@ -206,7 +216,8 @@ impl RustMap {
     pub fn shortest_energy_path(&self, search_input: SearchInput) -> Option<SearchResult> {
         let start_node = self.get_closest_node(search_input.origin)?;
         let end_node = self.get_closest_node(search_input.destination)?;
-        let routee_cost_function = build_routee_cost_function_with_tods(search_input.clone()).unwrap();
+        let routee_cost_function =
+            build_routee_cost_function_with_tods(search_input.clone()).unwrap();
         match dijkstra_shortest_path(
             &self.graph,
             &start_node.id,

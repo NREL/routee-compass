@@ -7,6 +7,8 @@ use pyo3::prelude::*;
 
 use crate::{prototype::graph::Link, prototype::map::SearchInput};
 
+use super::stop_costs;
+
 // scale the energy by this factor to make it an integer
 pub const ROUTEE_SCALE_FACTOR: f64 = 100000.0;
 
@@ -99,6 +101,7 @@ pub fn build_routee_cost_function_with_tods(
     Ok(move |link: &Link| {
         let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
         let vehicle_params = search_input.vehicle_parameters;
+        let stop_costs = search_input.stop_costs.clone();
         let mut modifier = 1.0;
         if let Some(profile_id) = link.week_profile_ids[search_input.day_of_week] {
             modifier = search_input
@@ -118,7 +121,11 @@ pub fn build_routee_cost_function_with_tods(
         let x = DenseMatrix::from_2d_vec(&features);
         let energy_per_mile = rf.predict(&x).unwrap()[0];
 
-        let energy = energy_per_mile * distance_miles;
+        let mut energy = energy_per_mile * distance_miles;
+        if let Some(stop_costs) = stop_costs {
+            let stop_energy = stop_costs.energy_stop_cost(&link);
+            energy = energy + stop_energy;
+        }
         let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
         scaled_energy as u32
     })
