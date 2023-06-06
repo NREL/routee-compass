@@ -1,8 +1,8 @@
 use std::fmt::Display;
 
-use derive_more::{Add, Mul, Sum};
+use derive_more::{Add, Mul, Neg, Sum};
 
-#[derive(Copy, Clone, Eq, PartialEq, PartialOrd, Ord, Add, Mul, Sum)]
+#[derive(Copy, Clone, Eq, PartialEq, PartialOrd, Ord, Add, Mul, Sum, Neg)]
 pub struct Cost(pub i64);
 
 impl Cost {

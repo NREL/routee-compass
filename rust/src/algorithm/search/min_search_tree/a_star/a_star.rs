@@ -86,7 +86,7 @@ pub fn run_a_star<S: Sync + Send + Eq + Copy + Clone>(
                         };
                         match open_set.get_priority(&f) {
                             None => {
-                                open_set.push(f, f_score_value);
+                                open_set.push(f, -f_score_value); // negate, a min-ordered queue
                             }
                             Some(_) => {}
                         }
@@ -239,7 +239,10 @@ mod tests {
         fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
             match self.adj.get(&src) {
                 None => Err(GraphError::VertexWithoutOutEdges { vertex_id: src }),
-                Some(out_map) => Ok(out_map.keys().cloned().collect()),
+                Some(out_map) => {
+                    let edges = out_map.keys().cloned().collect();
+                    Ok(edges)
+                }
             }
         }
         fn in_edges(&self, _src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
@@ -283,7 +286,7 @@ mod tests {
     struct TestCost;
     impl CostEstimateFunction for TestCost {
         fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, CostError> {
-            Ok(Cost(5))
+            Ok(Cost(0))
         }
     }
 
@@ -309,25 +312,43 @@ mod tests {
         // (3) -[5]-> (2) med
         // (3) -[6]-> (0) fast
         // (0) -[7]-> (3) fast
+        // let adj = HashMap::from([
+        //     (VertexId(0), HashMap::from([(EdgeId(0), VertexId(1))])),
+        //     (VertexId(1), HashMap::from([(EdgeId(1), VertexId(0))])),
+        //     (VertexId(1), HashMap::from([(EdgeId(2), VertexId(2))])),
+        //     (VertexId(2), HashMap::from([(EdgeId(3), VertexId(1))])),
+        //     (VertexId(2), HashMap::from([(EdgeId(4), VertexId(3))])),
+        //     (VertexId(3), HashMap::from([(EdgeId(5), VertexId(2))])),
+        //     (VertexId(3), HashMap::from([(EdgeId(6), VertexId(0))])),
+        //     (VertexId(0), HashMap::from([(EdgeId(7), VertexId(3))])),
+        // ]);
         let adj = HashMap::from([
-            (VertexId(0), HashMap::from([(EdgeId(0), VertexId(1))])),
-            (VertexId(1), HashMap::from([(EdgeId(1), VertexId(0))])),
-            (VertexId(1), HashMap::from([(EdgeId(2), VertexId(2))])),
-            (VertexId(2), HashMap::from([(EdgeId(3), VertexId(1))])),
-            (VertexId(2), HashMap::from([(EdgeId(4), VertexId(3))])),
-            (VertexId(3), HashMap::from([(EdgeId(5), VertexId(2))])),
-            (VertexId(3), HashMap::from([(EdgeId(6), VertexId(0))])),
-            (VertexId(0), HashMap::from([(EdgeId(7), VertexId(3))])),
+            (
+                VertexId(0),
+                HashMap::from([(EdgeId(0), VertexId(1)), (EdgeId(7), VertexId(3))]),
+            ),
+            (
+                VertexId(1),
+                HashMap::from([(EdgeId(1), VertexId(0)), (EdgeId(2), VertexId(2))]),
+            ),
+            (
+                VertexId(2),
+                HashMap::from([(EdgeId(3), VertexId(1)), (EdgeId(4), VertexId(3))]),
+            ),
+            (
+                VertexId(3),
+                HashMap::from([(EdgeId(5), VertexId(2)), (EdgeId(6), VertexId(0))]),
+            ),
         ]);
         let edges_cps = HashMap::from([
             (EdgeId(0), CmPerSecond(10)),  // 10 seconds
             (EdgeId(1), CmPerSecond(10)),  // 10 seconds
             (EdgeId(2), CmPerSecond(50)),  // 2 seconds
             (EdgeId(3), CmPerSecond(50)),  // 2 seconds
-            (EdgeId(4), CmPerSecond(50)),  // 2 seconds
-            (EdgeId(5), CmPerSecond(50)),  // 2 seconds
-            (EdgeId(6), CmPerSecond(100)), // 1 second
-            (EdgeId(7), CmPerSecond(100)), // 1 second
+            (EdgeId(4), CmPerSecond(100)), // 1 seconds
+            (EdgeId(5), CmPerSecond(100)), // 1 seconds
+            (EdgeId(6), CmPerSecond(50)),  // 2 second
+            (EdgeId(7), CmPerSecond(50)),  // 2 second
         ]);
         let driver_dg_obj = TestDG::new(&adj, edges_cps).unwrap();
         let driver_dg = Arc::new(DriverReadOnlyLock::new(
