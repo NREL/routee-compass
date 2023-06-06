@@ -24,6 +24,7 @@ where
         let bin = bin_fn(s.travel_time());
         let edge_id = e.edge_id;
         // lookup speed profile by edge id, pick speed by time bin...
+        // see https://github.nrel.gov/MBAP/mbap-computing/blob/master/postgres/examples/tomtom_2021_network/tomtom_2021_network_time_bin_speeds.sql
         let speed: CmPerSecond = CmPerSecond(1);
         let tt = e.distance_centimeters.travel_time_millis(&speed);
         Ok(Cost(tt.0))
