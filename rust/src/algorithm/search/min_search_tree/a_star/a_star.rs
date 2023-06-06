@@ -19,20 +19,27 @@ use std::sync::Arc;
 
 type MinSearchTree<S> = HashMap<VertexId, AStarTraversal<S>>;
 
-///
 /// run an A* Search over the given directed graph model. traverses links
 /// from the source, via the provided direction, to the target. uses the
 /// provided traversal model for state updates and link costs. estimates
 /// the distance to the destination (the a* heuristic) using the provided
 /// cost estimate function.
-pub fn run_a_star<S: Sync + Send + Eq + Copy + Clone>(
+pub fn run_a_star<S>(
     direction: Direction,
     source: VertexId,
     target: VertexId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
     traversal_model: Arc<ExecutorReadOnlyLock<&dyn TraversalModel<State = S>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
-) -> Result<MinSearchTree<S>, SearchError> {
+) -> Result<MinSearchTree<S>, SearchError>
+where
+    S: Sync + Send + Eq + Copy + Clone,
+{
+    if source == target {
+        let empty: HashMap<VertexId, AStarTraversal<S>> = HashMap::new();
+        return Ok(empty);
+    }
+
     // context for the search (graph, search functions, frontier priority queue)
     let g = directed_graph.read().unwrap();
     let m = traversal_model.read().unwrap();
@@ -99,26 +106,107 @@ pub fn run_a_star<S: Sync + Send + Eq + Copy + Clone>(
     return Ok(solution);
 }
 
-pub fn run_a_star_edge_oriented<S: Sync + Send + Eq + Copy + Clone>(
+/// convenience method when origin and destination are specified using
+/// edge ids instead of vertex ids. invokes a vertex-oriented search
+/// from the out-vertex of the source edge to the in-vertex of the
+/// target edge. composes the result with the source and target.
+///
+/// not tested.
+pub fn run_a_star_edge_oriented<S>(
     direction: Direction,
     source: EdgeId,
     target: EdgeId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
     traversal_model: Arc<ExecutorReadOnlyLock<&dyn TraversalModel<State = S>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
-) -> Result<MinSearchTree<S>, SearchError> {
+) -> Result<MinSearchTree<S>, SearchError>
+where
+    S: Sync + Send + Eq + Copy + Clone,
+{
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    // 2. get destination vertex of source edge, source vertex of destination edge
-    // 3. run a star for those vertices
-    // 3. prepend source edge, append destination edge to min search tree (with no costs added, for now)
-    todo!()
+    let g = directed_graph.read().unwrap();
+    let m: RwLockReadGuard<&(dyn TraversalModel<State = S>)> = traversal_model.read().unwrap();
+    let v_s0 = g.src_vertex(source)?;
+    let v_s1 = g.dst_vertex(source)?;
+    let v_d0 = g.src_vertex(target)?;
+    let v_d1 = g.dst_vertex(target)?;
+
+    if source == target {
+        let empty: HashMap<VertexId, AStarTraversal<S>> = HashMap::new();
+        return Ok(empty);
+    } else if v_s1 == v_d0 {
+        // route is simply source -> target
+        let init_state = m.initial_state()?;
+        let src_et = EdgeTraversal::new(source, None, init_state, &g, &m)?;
+        let dst_et = EdgeTraversal::new(target, Some(source), src_et.result_state, &g, &m)?;
+        let src_traversal = AStarTraversal {
+            terminal_vertex: v_d0,
+            edge_traversal: dst_et,
+        };
+        let dst_traversal = AStarTraversal {
+            terminal_vertex: v_s0,
+            edge_traversal: src_et,
+        };
+        let tree = HashMap::from([(v_d1, src_traversal), (v_s1, dst_traversal)]);
+        return Ok(tree);
+    } else {
+        // run a search and append source/target edges to result
+        let mut tree = run_a_star(
+            direction,
+            v_s1,
+            v_d0,
+            directed_graph.clone(),
+            traversal_model.clone(),
+            cost_estimate_fn.clone(),
+        )?;
+
+        // append source/target edge traversals to the tree
+        // no costs added for now, this would require flipping the order here and
+        // passing the search state into the vertex-oriented search function
+        // that included the traversal of the initial edge.
+        let init_state = m.initial_state()?;
+        let final_state = tree
+            .get(&v_d1)
+            .ok_or(SearchError::VertexMissingFromSearchTree(v_d1))?
+            .edge_traversal
+            .result_state;
+        let src_et = EdgeTraversal {
+            edge_id: source,
+            access_cost: Cost::ZERO,
+            traversal_cost: Cost::ZERO,
+            result_state: init_state,
+        };
+        let dst_et = EdgeTraversal {
+            edge_id: target,
+            access_cost: Cost::ZERO,
+            traversal_cost: Cost::ZERO,
+            result_state: final_state,
+        };
+        let src_traversal = AStarTraversal {
+            terminal_vertex: v_s0,
+            edge_traversal: src_et,
+        };
+        let dst_traversal = AStarTraversal {
+            terminal_vertex: v_d0,
+            edge_traversal: dst_et,
+        };
+
+        tree.extend([(v_s1, src_traversal), (v_d1, dst_traversal)]);
+        return Ok(tree);
+    }
 }
 
-pub fn backtrack<S: Copy + Clone>(
+/// reconstructs a path from a minimum shortest path tree for some source and target vertex
+/// directionality travels up from target to source, toward root of the tree, in both the forward
+/// and reverse cases.
+pub fn backtrack<S>(
     source_id: VertexId,
     target_id: VertexId,
     solution: HashMap<VertexId, AStarTraversal<S>>,
-) -> Result<Vec<EdgeTraversal<S>>, SearchError> {
+) -> Result<Vec<EdgeTraversal<S>>, SearchError>
+where
+    S: Copy + Clone,
+{
     let mut result: Vec<EdgeTraversal<S>> = vec![];
     let mut this_vertex = target_id.clone();
     loop {
@@ -135,6 +223,8 @@ pub fn backtrack<S: Copy + Clone>(
     Ok(reversed)
 }
 
+/// implements the a* heuristic function based on the provided cost estimate function
+/// and graph. estimates travel costs between two vertices in the graph.
 fn h_cost(
     vertex_id: VertexId,
     target_id: VertexId,
@@ -292,12 +382,6 @@ mod tests {
 
     #[test]
     fn test_e2e_queries() {
-        // these mocks stand-in for the trait objects required by the search function
-        let driver_cf_obj = TestCost;
-        let driver_cf = Arc::new(DriverReadOnlyLock::new(
-            &driver_cf_obj as &dyn CostEstimateFunction,
-        ));
-
         // simple box world but no one should drive between (0) and (1) because of slow speeds
         // (0) <---> (1)
         //  ^         ^
@@ -312,16 +396,6 @@ mod tests {
         // (3) -[5]-> (2) med
         // (3) -[6]-> (0) fast
         // (0) -[7]-> (3) fast
-        // let adj = HashMap::from([
-        //     (VertexId(0), HashMap::from([(EdgeId(0), VertexId(1))])),
-        //     (VertexId(1), HashMap::from([(EdgeId(1), VertexId(0))])),
-        //     (VertexId(1), HashMap::from([(EdgeId(2), VertexId(2))])),
-        //     (VertexId(2), HashMap::from([(EdgeId(3), VertexId(1))])),
-        //     (VertexId(2), HashMap::from([(EdgeId(4), VertexId(3))])),
-        //     (VertexId(3), HashMap::from([(EdgeId(5), VertexId(2))])),
-        //     (VertexId(3), HashMap::from([(EdgeId(6), VertexId(0))])),
-        //     (VertexId(0), HashMap::from([(EdgeId(7), VertexId(3))])),
-        // ]);
         let adj = HashMap::from([
             (
                 VertexId(0),
@@ -350,6 +424,36 @@ mod tests {
             (EdgeId(6), CmPerSecond(50)),  // 2 second
             (EdgeId(7), CmPerSecond(50)),  // 2 second
         ]);
+
+        // these are the queries to test the grid world. for each query,
+        // we have the vertex pair (source, target) to submit to the
+        // search algorithm, and then the expected route traversal vector for each pair.
+        // a comment is provided that illustrates each query/expected traversal combination.
+        let queries: Vec<(VertexId, VertexId, Vec<EdgeId>)> = vec![
+            (
+                // 0 -[7]-> 3 -[5]-> 2 -[3]-> 1
+                VertexId(0),
+                VertexId(1),
+                vec![EdgeId(7), EdgeId(5), EdgeId(3)],
+            ),
+            (
+                // 0 -[7]-> 3
+                VertexId(0),
+                VertexId(3),
+                vec![EdgeId(7)],
+            ),
+            (
+                // 1 -[2]-> 2 -[4]-> 3 -[6]-> 0
+                VertexId(1),
+                VertexId(0),
+                vec![EdgeId(2), EdgeId(4), EdgeId(6)],
+            ),
+            (VertexId(1), VertexId(2), vec![EdgeId(2)]), // 1 -[2]-> 2
+            (VertexId(2), VertexId(3), vec![EdgeId(4)]), // 2 -[4]-> 3
+        ];
+
+        // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
+        // these live in the "driver" process and are passed as read-only memory to each executor process
         let driver_dg_obj = TestDG::new(&adj, edges_cps).unwrap();
         let driver_dg = Arc::new(DriverReadOnlyLock::new(
             &driver_dg_obj as &dyn DirectedGraph,
@@ -358,24 +462,16 @@ mod tests {
         let driver_tm = Arc::new(DriverReadOnlyLock::new(
             &driver_tm_obj as &dyn TraversalModel<State = i64>,
         ));
+        let driver_cf_obj = TestCost;
+        let driver_cf = Arc::new(DriverReadOnlyLock::new(
+            &driver_cf_obj as &dyn CostEstimateFunction,
+        ));
 
-        // todo:
-        // - setup the road network to play well with the test queries (grid world)
-        // - confirm that we can parallelize queries with shared memory
-        // - handle result of fork with a join and test of Result<>
-
-        let queries: Vec<(VertexId, VertexId)> = vec![
-            (VertexId(0), VertexId(1)), // 0 -[7]-> 3 -[5]-> 2 -[3]-> 1
-            (VertexId(0), VertexId(3)), // 0 -[7]-> 3
-            (VertexId(1), VertexId(0)), // 1 -[2]-> 2 -[4]-> 3 -[6]-> 0
-            (VertexId(1), VertexId(2)), // 1 -[2]-> 2
-            (VertexId(2), VertexId(3)), // 2 -[4]-> 3
-        ];
-
+        // execute the route search
         let result: Vec<Result<MinSearchTree<i64>, SearchError>> = queries
             .clone()
             .into_par_iter()
-            .map(|(o, d)| {
+            .map(|(o, d, _expected)| {
                 let dg_inner = Arc::new(driver_dg.read_only());
                 let tm_inner = Arc::new(driver_tm.read_only());
                 let cost_inner = Arc::new(driver_cf.read_only());
@@ -383,45 +479,16 @@ mod tests {
             })
             .collect();
 
-        for (r, q) in result.into_iter().zip(queries) {
-            let msg = match r {
-                Err(e) => e.to_string(),
-                Ok(solution) => {
-                    let query = format!("({} -> {})", q.0.to_string(), q.1.to_string());
-                    let length = solution.len();
-                    let sol_str: String = solution
-                        .clone()
-                        .into_keys()
-                        .map(|x| x.to_string())
-                        .collect::<Vec<String>>()
-                        .join(", ");
-                    println!(
-                        "tree has the following vertices for backtracking: {}",
-                        sol_str
-                    );
-                    let backtrackResult = backtrack(q.0, q.1, solution);
-                    match backtrackResult {
-                        Err(e) => format!("{}", e),
-                        Ok(route) => {
-                            let route_str = route
-                                .into_iter()
-                                .map(|tr| format!("{}", tr))
-                                .collect::<Vec<String>>()
-                                .join(" -> ");
-                            // let tree = solution
-                            //     .into_iter()
-                            //     .map(|(src, tr)| format!("{} {}", src, tr))
-                            //     .collect::<Vec<String>>()
-                            //     .join("\n    ");
-                            format!(
-                                "{}\n  result traverses {} links:\n    {}",
-                                query, length, route_str
-                            )
-                        }
-                    }
-                }
-            };
-            println!("{}", msg)
+        // review the search results, confirming that the route result matches the expected route
+        for (r, (o, d, expected_route)) in result.into_iter().zip(queries) {
+            let solution = r.unwrap();
+            let route = backtrack(o, d, solution).unwrap();
+            let route_edges: Vec<EdgeId> = route.iter().map(|r| r.edge_id).collect();
+            assert_eq!(
+                route_edges, expected_route,
+                "route did not match expected: {:?} {:?}",
+                route_edges, expected_route
+            );
         }
     }
 }
