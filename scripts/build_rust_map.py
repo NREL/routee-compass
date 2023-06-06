@@ -95,6 +95,15 @@ def build_link(
         grade = -t.mean_gradient_dec
         start_node = Node(junction_id_to_id, int(start_point[0]), int(start_point[1]))
         end_node = Node(junction_id_from_id, int(end_point[0]), int(end_point[1]))
+        if t.junction_id_from in stop_sign_nodes:
+            stop_sign = True
+        else:
+            stop_sign = False
+        
+        if t.junction_id_from in traffic_light_nodes:
+            traffic_light = True
+        else:
+            traffic_light = False
     elif direction == FROM_TO_DIRECTION:
         geom = t.geom
         start_point = geom.coords[0]
@@ -102,6 +111,15 @@ def build_link(
         grade = t.mean_gradient_dec
         start_node = Node(junction_id_from_id, int(start_point[0]), int(start_point[1]))
         end_node = Node(junction_id_to_id, int(end_point[0]), int(end_point[1]))
+        if t.junction_id_to in stop_sign_nodes:
+            stop_sign = True
+        else:
+            stop_sign = False
+        
+        if t.junction_id_to in traffic_light_nodes:
+            traffic_light = True
+        else:
+            traffic_light = False
     else:
         raise ValueError("Bad direction value")
 
@@ -185,16 +203,6 @@ def build_link(
         profile_id_integer_mapping.get(t.saturday_profile_id),
         profile_id_integer_mapping.get(t.sunday_profile_id),
     ]
-
-    if end_node.id in stop_sign_nodes.junction_id.values:
-        stop_sign = True
-    else:
-        stop_sign = False
-
-    if end_node.id in tl_nodes.junction_id.values:
-        traffic_light = True
-    else:
-        traffic_light = False
 
     link = Link(
         start_node.id,
@@ -328,6 +336,47 @@ if __name__ == "__main__":
     width_restrictions = restrictions["width"]
     length_restrictions = restrictions["length"]
 
+    log.info("getting stop sign info from trolley..")
+    stop_sign_query = """
+    select 
+    nw.junction_id_from,
+    nw.junction_id_to,
+    nw.routing_class,
+    rf.validity_direction
+    from tomtom_multinet_current.mnr_road_furniture as rf
+    left join tomtom_multinet_current.mnr_netw_route_link as nw
+    on rf.netw_id = nw.feat_id
+    where rf.feat_type = 7403
+    """
+
+    stop_df = pd.read_sql(stop_sign_query, engine)
+    stop_df = stop_df[stop_df.routing_class <= MAX_ROUTING_CLASS].astype(
+        {
+            "validity_direction": int,
+            "junction_id_to": str,
+            "junction_id_from": str,
+        }
+    )
+    stop_df = stop_df.apply(
+        lambda row: row.junction_id_to if row.validity_direction == 2 else row.junction_id_from,
+        axis=1,
+    )
+    stop_sign_nodes = set(stop_df.unique())
+
+    stop_sign_file = WORKING_DIR / "stop_signs.csv"
+    stop_df.to_csv(stop_sign_file, index=False)
+
+    log.info("getting traffic light info from trolley..")
+    tl_q = """
+    select junction_id from tomtom_multinet_current.mnr_traffic_light
+    """
+    tl_df = pd.read_sql(tl_q, engine)
+    tl_df = tl_df.astype({"junction_id": str})
+    traffic_light_nodes = set(tl_df.junction_id.unique())
+
+    traffic_light_file = WORKING_DIR / "traffic_lights.csv"
+    tl_df.to_csv(traffic_light_file, index=False)
+
     # NOTE: This is predicated on first running the download_us_network.py script
     log.info("loading links from file")
     files = glob.glob(str(WORKING_DIR / "*.parquet"))
@@ -351,50 +400,6 @@ if __name__ == "__main__":
     with node_map_outfile.open("wb") as nmf:
         pickle.dump(node_id_mapping, nmf)
 
-    log.info("getting stop sign info from trolley..")
-    stop_sign_query = """
-    select 
-    nw.junction_id_from,
-    nw.junction_id_to,
-    nw.routing_class,
-    rf.validity_direction
-    from tomtom_multinet_current.mnr_road_furniture as rf
-    left join tomtom_multinet_current.mnr_netw_route_link as nw
-    on rf.netw_id = nw.feat_id
-    where rf.feat_type = 7403
-    """
-
-    stop_df = pd.read_sql(stop_sign_query, engine)
-    stop_df = stop_df[stop_df.routing_class <= MAX_ROUTING_CLASS].astype(
-        {
-            "validity_direction": int,
-            "junction_id_to": str,
-            "junction_id_from": str,
-        }
-    )
-    stop_sign_nodes = stop_df.apply(
-        lambda row: row.junction_id_to if row.validity_direction == 2 else row.junction_id_from,
-        axis=1,
-    )
-    stop_sign_nodes = stop_sign_nodes.rename("junction_id")
-    stop_sign_nodes = stop_sign_nodes.apply(lambda nid: node_id_mapping.get(nid, pd.NA))
-    stop_sign_nodes = stop_sign_nodes.dropna()
-
-    stop_sign_file = WORKING_DIR / "stop_signs.csv"
-    stop_sign_nodes.to_csv(stop_sign_file)
-
-    log.info("getting traffic light info from trolley..")
-    tl_q = """
-    select junction_id from tomtom_multinet_current.mnr_traffic_light
-    """
-
-    tl_df = pd.read_sql(tl_q, engine)
-    tl_df = tl_df.astype({"junction_id": str})
-    tl_nodes = tl_df.junction_id.apply(lambda nid: node_id_mapping.get(nid, pd.NA))
-    tl_nodes = tl_nodes.dropna()
-
-    tl_outfile = WORKING_DIR / "traffic_lights.csv"
-    tl_nodes.to_csv(tl_outfile)
 
     del node_id_mapping
 
