@@ -11,7 +11,6 @@ use crate::prototype::{
         build_routee_cost_function_with_tods, compute_energy_over_path, VehicleParameters,
         ROUTEE_SCALE_FACTOR,
     },
-    stop_costs::StopCosts,
     time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
 };
 
@@ -42,7 +41,7 @@ pub struct SearchInput {
     #[pyo3(get)]
     pub routee_model_path: Option<String>,
     #[pyo3(get)]
-    pub stop_costs: Option<StopCosts>,
+    pub stop_cost_gallons_diesel: f64,
 }
 
 impl Default for SearchInput {
@@ -56,7 +55,7 @@ impl Default for SearchInput {
             time_of_day_speeds: Default::default(),
             vehicle_parameters: None,
             routee_model_path: None,
-            stop_costs: None,
+            stop_cost_gallons_diesel: 0.0,
         }
     }
 }
@@ -73,7 +72,7 @@ impl SearchInput {
         time_of_day_speeds: Option<TimeOfDaySpeeds>,
         vehicle_parameters: Option<VehicleParameters>,
         routee_model_path: Option<String>,
-        stop_costs: Option<StopCosts>,
+        stop_cost_gallons_diesel: Option<f64>,
     ) -> Self {
         SearchInput {
             search_id,
@@ -84,7 +83,7 @@ impl SearchInput {
             time_of_day_speeds: time_of_day_speeds.unwrap_or_default(),
             vehicle_parameters,
             routee_model_path,
-            stop_costs,
+            stop_cost_gallons_diesel: stop_cost_gallons_diesel.unwrap_or_default(),
         }
     }
 }

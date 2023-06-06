@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use pyo3::prelude::*;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use bincode;
 use pyo3::types::PyType;
 use rstar::{PointDistance, RTreeObject, AABB};
@@ -62,6 +62,10 @@ pub struct Link {
     #[pyo3(get)]
     pub grade: i16,
     #[pyo3(get)]
+    pub stop_sign: bool,
+    #[pyo3(get)]
+    pub traffic_light: bool,
+    #[pyo3(get)]
     pub week_profile_ids: [Option<u16>; 7],
     #[pyo3(get)]
     pub weight_limit_lbs: Option<u32>,
@@ -82,6 +86,8 @@ impl Link {
         speed_kph: u8,
         distance_centimeters: u32,
         grade: i16,
+        stop_sign: bool,
+        traffic_light: bool,
         week_profile_ids: [Option<u16>; 7],
         weight_limit_lbs: Option<u32>,
         height_limit_inches: Option<u16>,
@@ -94,6 +100,8 @@ impl Link {
             speed_kph,
             distance_centimeters,
             grade,
+            stop_sign,
+            traffic_light,
             week_profile_ids,
             weight_limit_lbs,
             height_limit_inches,
@@ -114,6 +122,8 @@ impl Link {
             width_limit_inches: self.width_limit_inches,
             length_limit_inches: self.length_limit_inches,
             week_profile_ids: self.week_profile_ids,
+            stop_sign: self.stop_sign,
+            traffic_light: self.traffic_light,
         }
     }
 

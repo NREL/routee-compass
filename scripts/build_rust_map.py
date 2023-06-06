@@ -186,12 +186,24 @@ def build_link(
         profile_id_integer_mapping.get(t.sunday_profile_id),
     ]
 
+    if end_node.id in stop_sign_nodes.junction_id.values:
+        stop_sign = True
+    else:
+        stop_sign = False
+
+    if end_node.id in tl_nodes.junction_id.values:
+        traffic_light = True
+    else:
+        traffic_light = False
+
     link = Link(
         start_node.id,
         end_node.id,
         speed_kph,
         distance_cm,
         grade_milli,
+        stop_sign,
+        traffic_light,
         week_profile_ids,
         weight_restriction,
         height_restriction,
