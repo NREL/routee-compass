@@ -4,7 +4,7 @@ use anyhow::Result;
 use pyo3::{prelude::*, types::PyType};
 use rayon::prelude::*;
 
-use crate::prototype::{
+use crate::{
     algorithm::{build_restriction_function, dijkstra_shortest_path},
     graph::{Graph, Link, Node},
     powertrain::{
@@ -162,7 +162,11 @@ impl RustMap {
             .collect()
     }
 
-    pub fn shortest_path(&self, search_input: SearchInput, search_type: SearchType) -> Option<SearchResult> {
+    pub fn shortest_path(
+        &self,
+        search_input: SearchInput,
+        search_type: SearchType,
+    ) -> Option<SearchResult> {
         match search_type {
             SearchType::ShortestTime => self.shortest_time_path(search_input),
             SearchType::ShortestEnergy => self.shortest_energy_path(search_input),
@@ -206,7 +210,8 @@ impl RustMap {
     pub fn shortest_energy_path(&self, search_input: SearchInput) -> Option<SearchResult> {
         let start_node = self.get_closest_node(search_input.origin)?;
         let end_node = self.get_closest_node(search_input.destination)?;
-        let routee_cost_function = build_routee_cost_function_with_tods(search_input.clone()).unwrap();
+        let routee_cost_function =
+            build_routee_cost_function_with_tods(search_input.clone()).unwrap();
         match dijkstra_shortest_path(
             &self.graph,
             &start_node.id,

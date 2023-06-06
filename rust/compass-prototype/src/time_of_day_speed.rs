@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use pyo3::prelude::*;
 
-use crate::prototype::graph::Link;
+use crate::graph::Link;
 
 pub type ProfileId = u16;
 pub type SecondOfDay = u32;
@@ -88,16 +88,14 @@ impl TimeOfDaySpeeds {
         &self,
         link: &Link,
         second_of_day: SecondOfDay,
-        day_of_week: DayOfWeek, 
+        day_of_week: DayOfWeek,
     ) -> u32 {
         if let Some(profile_id) = link.week_profile_ids[day_of_week] {
             let modifier = self.get_modifier_by_second_of_day(profile_id, second_of_day);
-            (link.time_seconds() as f64 * (1.0/modifier)) as u32
-
+            (link.time_seconds() as f64 * (1.0 / modifier)) as u32
         } else {
             link.time_seconds()
         }
-
     }
 }
 

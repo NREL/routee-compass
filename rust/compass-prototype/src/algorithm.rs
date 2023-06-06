@@ -171,7 +171,7 @@ pub fn extract_largest_scc(graph: &Graph) -> Graph {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prototype::graph::{Link, Node};
+    use crate::graph::{Link, Node};
 
     fn dummy_link_from_nodes(a: NodeId, b: NodeId) -> Link {
         Link::new(

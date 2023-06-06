@@ -1,12 +1,16 @@
+mod algorithm;
+mod graph;
+mod map;
+mod powertrain;
+mod time_of_day_speed;
+
+use crate::graph::{Graph, Link, Node};
+use crate::map::{RustMap, SearchInput, SearchResult, SearchType};
+use crate::powertrain::VehicleParameters;
+use crate::time_of_day_speed::TimeOfDaySpeeds;
 use algorithm::extract_largest_scc;
-use graph::{Graph, Link, Node};
-use map::{RustMap, SearchInput, SearchResult, SearchType};
-use powertrain::VehicleParameters;
-use time_of_day_speed::TimeOfDaySpeeds;
 
 use pyo3::prelude::*;
-
-mod algorithm;
 
 #[pymodule]
 fn compass_rust(_py: Python, m: &PyModule) -> PyResult<()> {
