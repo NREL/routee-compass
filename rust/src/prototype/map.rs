@@ -14,6 +14,8 @@ use crate::prototype::{
     time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
 };
 
+use super::algorithm::build_shortest_time_function;
+
 #[pyclass]
 #[derive(Clone, Copy)]
 pub enum SearchType {
@@ -42,6 +44,10 @@ pub struct SearchInput {
     pub routee_model_path: Option<String>,
     #[pyo3(get)]
     pub stop_cost_gallons_diesel: f64,
+    #[pyo3(get)]
+    pub stop_cost_time_seconds: u32,
+    #[pyo3(get)]
+    pub traffic_light_cost_time_seconds: u32,
 }
 
 impl Default for SearchInput {
@@ -55,7 +61,9 @@ impl Default for SearchInput {
             time_of_day_speeds: Default::default(),
             vehicle_parameters: None,
             routee_model_path: None,
-            stop_cost_gallons_diesel: 0.0,
+            stop_cost_gallons_diesel: 0.001,
+            stop_cost_time_seconds: 10,
+            traffic_light_cost_time_seconds: 5,
         }
     }
 }
@@ -73,6 +81,8 @@ impl SearchInput {
         vehicle_parameters: Option<VehicleParameters>,
         routee_model_path: Option<String>,
         stop_cost_gallons_diesel: Option<f64>,
+        stop_cost_time_seconds: Option<u32>,
+        traffic_light_cost_time_seconds: Option<u32>,
     ) -> Self {
         SearchInput {
             search_id,
@@ -84,6 +94,8 @@ impl SearchInput {
             vehicle_parameters,
             routee_model_path,
             stop_cost_gallons_diesel: stop_cost_gallons_diesel.unwrap_or_default(),
+            stop_cost_time_seconds: stop_cost_time_seconds.unwrap_or_default(),
+            traffic_light_cost_time_seconds: traffic_light_cost_time_seconds.unwrap_or_default(),
         }
     }
 }
@@ -102,15 +114,7 @@ pub struct SearchResult {
 
 pub fn compute_time_seconds_over_path(path: &Vec<Link>, search_input: &SearchInput) -> u32 {
     path.iter()
-        .map(|link| {
-            search_input
-                .time_of_day_speeds
-                .link_time_seconds_by_time_of_day(
-                    link,
-                    search_input.second_of_day,
-                    search_input.day_of_week,
-                )
-        })
+        .map(build_shortest_time_function(search_input.clone()))
         .sum()
 }
 
@@ -187,15 +191,7 @@ impl RustMap {
             &self.graph,
             &start_node.id,
             &end_node.id,
-            |link| {
-                search_input
-                    .time_of_day_speeds
-                    .link_time_seconds_by_time_of_day(
-                        link,
-                        search_input.second_of_day,
-                        search_input.day_of_week,
-                    )
-            },
+            build_shortest_time_function(search_input.clone()),
             build_restriction_function(search_input.vehicle_parameters),
         ) {
             Some((time_seconds, node_path)) => {
