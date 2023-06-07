@@ -8,3 +8,5 @@ members = [
 [workspace.dependencies]
 serde = {version = "1.0.160", features=["derive"]}
 rayon = "1.7.0"
+thiserror = "1.0.0"
+flate2 = "1.0"
