@@ -81,12 +81,12 @@ impl TryFrom<TomTomGraphConfig> for TomTomGraph {
         let vertex_file_length = config
             .get_n_vertices()
             .map_err(|e| TomTomGraphError::IOError { source: e })?;
-        if edge_file_length < 1 {
+        if edge_file_length < 2 {
             return Err(TomTomGraphError::EmptyFileSource {
                 filename: config.edge_list_csv,
             });
         }
-        if vertex_file_length < 1 {
+        if vertex_file_length < 2 {
             return Err(TomTomGraphError::EmptyFileSource {
                 filename: config.vertex_list_csv,
             });
