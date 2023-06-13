@@ -1,2 +1,4 @@
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub struct Ordinate(pub i64);
+use serde::Deserialize;
+
+#[derive(Copy, Clone, Deserialize)]
+pub struct Ordinate(pub f64);
