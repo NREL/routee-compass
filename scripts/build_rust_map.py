@@ -7,8 +7,9 @@ This script has a companion file `build_rust_map.sh` for running this script
 on an eagle node.
 """
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 import pandas as pd
+import geopandas as gpd
 import pickle
 import time
 import os
@@ -19,7 +20,7 @@ import sqlalchemy as sql
 
 from nrel.routee.compass import Graph, Link, Node, RustMap, extract_largest_scc
 
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Polygon
 from shapely import from_wkb
 from tqdm import tqdm
 
@@ -31,13 +32,24 @@ USER = os.environ.get("TROLLEY_USERNAME")
 PASSWORD = os.environ.get("TROLLEY_PASSWORD")
 
 parser = argparse.ArgumentParser()
-parser.add_argument("working_dir", type=str, default="", help="working directory")
+parser.add_argument("input_dir", type=str, default="", help="Directory with the inputs")
+parser.add_argument("output_dir", type=str, default="", help="Where to write the outputs")
+parser.add_argument("--geojson-file", default=None, help="geojson file to use for filtering")
 
 args = parser.parse_args()
 
-WORKING_DIR = Path(args.working_dir)
+INPUT_DIR = Path(args.input_dir)
+OUTPUT_DIR = Path(args.output_dir)
+if not OUTPUT_DIR.exists():
+    OUTPUT_DIR.mkdir()
 
-RESTRICTION_FILE = WORKING_DIR / "restrictions.pickle"
+FILTER_POLYGON: Optional[Polygon] = None
+
+if args.geojson_file is not None:
+    geojson_file = Path(args.geojson_file)
+    FILTER_POLYGON = gpd.read_file(geojson_file).iloc[0].geometry
+
+RESTRICTION_FILE = INPUT_DIR / "restrictions.pickle"
 
 LATLON = "epsg:4326"
 WEB_MERCATOR = "epsg:3857"
@@ -51,6 +63,13 @@ TO_FROM_DIRECTION = 3
 DEFAULT_SPEED_KPH = 40
 
 MAX_ROUTING_CLASS = 4
+
+
+def filter_links(df: pd.DataFrame, polygon: Polygon, geom_column: str = "geom") -> pd.DataFrame:
+    """
+    Filter any links that are not inside the given polygon
+    """
+    return df
 
 
 def build_speed(t, direction) -> int:
@@ -99,7 +118,7 @@ def build_link(
             stop_sign = True
         else:
             stop_sign = False
-        
+
         if t.junction_id_from in traffic_light_nodes:
             traffic_light = True
         else:
@@ -115,7 +134,7 @@ def build_link(
             stop_sign = True
         else:
             stop_sign = False
-        
+
         if t.junction_id_to in traffic_light_nodes:
             traffic_light = True
         else:
@@ -229,6 +248,10 @@ def links_from_df(
     df["link_direction"] = df.link_direction.fillna(9).astype(int)
     df["geom"] = df.geom.apply(lambda g: from_wkb(g))
 
+    if FILTER_POLYGON is not None:
+        # filter any links that don't intersect the filter polygon
+        df = df[df["geom"].apply(lambda x: x.intersects(FILTER_POLYGON))]
+
     oneway_ft = df[df.link_direction == FROM_TO_DIRECTION]
     oneway_tf = df[df.link_direction == TO_FROM_DIRECTION]
     twoway = df[df.link_direction.isin([1, 9])]
@@ -283,14 +306,14 @@ def links_from_df(
 if __name__ == "__main__":
     engine = sql.create_engine(f"postgresql://{USER}:{PASSWORD}@trolley.nrel.gov:5432/master")
 
-    profile_mapping_file = WORKING_DIR / "profile_id_mapping.csv"
+    profile_mapping_file = INPUT_DIR / "profile_id_mapping.csv"
     if USER is None and PASSWORD is None:
         if not profile_mapping_file.exists():
             raise ValueError(
                 "profile_id_mapping.csv not found in working directory. "
                 "Please provide a username and password to connect to trolley."
             )
-        df = pd.read_csv(WORKING_DIR / "profile_id_mapping.csv").set_index("profile_id")
+        df = pd.read_csv(INPUT_DIR / "profile_id_mapping.csv").set_index("profile_id")
         profile_id_integer_mapping = {}
         for pid, r in df.iterrows():
             profile_id_integer_mapping[pid] = int(r.profile_id_integer)
@@ -336,50 +359,58 @@ if __name__ == "__main__":
     width_restrictions = restrictions["width"]
     length_restrictions = restrictions["length"]
 
-    log.info("getting stop sign info from trolley..")
-    stop_sign_query = """
-    select 
-    nw.junction_id_from,
-    nw.junction_id_to,
-    nw.routing_class,
-    rf.validity_direction
-    from tomtom_multinet_current.mnr_road_furniture as rf
-    left join tomtom_multinet_current.mnr_netw_route_link as nw
-    on rf.netw_id = nw.feat_id
-    where rf.feat_type = 7403
-    """
+    stop_sign_file = INPUT_DIR / "stop_signs.csv"
+    if stop_sign_file.exists():
+        stop_df = pd.read_csv(stop_sign_file)
+    else:
+        log.info("getting stop sign info from trolley..")
+        stop_sign_query = """
+        select 
+        nw.junction_id_from,
+        nw.junction_id_to,
+        nw.routing_class,
+        rf.validity_direction
+        from tomtom_multinet_current.mnr_road_furniture as rf
+        left join tomtom_multinet_current.mnr_netw_route_link as nw
+        on rf.netw_id = nw.feat_id
+        where rf.feat_type = 7403
+        """
 
-    stop_df = pd.read_sql(stop_sign_query, engine)
-    stop_df = stop_df[stop_df.routing_class <= MAX_ROUTING_CLASS].astype(
-        {
-            "validity_direction": int,
-            "junction_id_to": str,
-            "junction_id_from": str,
-        }
-    )
-    stop_df = stop_df.apply(
-        lambda row: row.junction_id_to if row.validity_direction == 2 else row.junction_id_from,
-        axis=1,
-    )
+        stop_df = pd.read_sql(stop_sign_query, engine)
+        stop_df = stop_df[stop_df.routing_class <= MAX_ROUTING_CLASS].astype(
+            {
+                "validity_direction": int,
+                "junction_id_to": str,
+                "junction_id_from": str,
+            }
+        )
+        stop_df = stop_df.apply(
+            lambda row: row.junction_id_to if row.validity_direction == 2 else row.junction_id_from,
+            axis=1,
+        )
+
+        stop_df.to_csv(stop_sign_file, index=False)
+
     stop_sign_nodes = set(stop_df.unique())
 
-    stop_sign_file = WORKING_DIR / "stop_signs.csv"
-    stop_df.to_csv(stop_sign_file, index=False)
+    traffic_light_file = INPUT_DIR / "traffic_lights.csv"
+    if traffic_light_file.exists():
+        tl_df = pd.read_csv(traffic_light_file)
+    else:
+        log.info("getting traffic light info from trolley..")
+        tl_q = """
+        select junction_id from tomtom_multinet_current.mnr_traffic_light
+        """
+        tl_df = pd.read_sql(tl_q, engine)
+        tl_df = tl_df.astype({"junction_id": str})
 
-    log.info("getting traffic light info from trolley..")
-    tl_q = """
-    select junction_id from tomtom_multinet_current.mnr_traffic_light
-    """
-    tl_df = pd.read_sql(tl_q, engine)
-    tl_df = tl_df.astype({"junction_id": str})
+        tl_df.to_csv(traffic_light_file, index=False)
+
     traffic_light_nodes = set(tl_df.junction_id.unique())
-
-    traffic_light_file = WORKING_DIR / "traffic_lights.csv"
-    tl_df.to_csv(traffic_light_file, index=False)
 
     # NOTE: This is predicated on first running the download_us_network.py script
     log.info("loading links from file")
-    files = glob.glob(str(WORKING_DIR / "*.parquet"))
+    files = glob.glob(str(INPUT_DIR / "*.parquet"))
     start_time = time.time()
     node_id_mapping: Dict[str, int] = {}
     node_id_counter = 0
@@ -396,10 +427,9 @@ if __name__ == "__main__":
     log.info(f"found {len(all_links)} links")
     elsapsed_time = time.time() - start_time
 
-    node_map_outfile = WORKING_DIR / "node-id-mapping.pickle"
+    node_map_outfile = OUTPUT_DIR / "node-id-mapping.pickle"
     with node_map_outfile.open("wb") as nmf:
         pickle.dump(node_id_mapping, nmf)
-
 
     del node_id_mapping
 
@@ -432,6 +462,6 @@ if __name__ == "__main__":
 
     log.info("saving rust map..")
     start_time = time.time()
-    rust_map.to_file(str(WORKING_DIR / "rust_map.bin"))
+    rust_map.to_file(str(OUTPUT_DIR / "rust_map.bin"))
     elsapsed_time = time.time() - start_time
     log.info(f"saving rust map took {elsapsed_time} seconds")
