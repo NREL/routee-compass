@@ -43,16 +43,19 @@ OUTPUT_DIR = Path(args.output_dir)
 if not OUTPUT_DIR.exists():
     OUTPUT_DIR.mkdir()
 
-FILTER_POLYGON: Optional[Polygon] = None
-
-if args.geojson_file is not None:
-    geojson_file = Path(args.geojson_file)
-    FILTER_POLYGON = gpd.read_file(geojson_file).iloc[0].geometry
 
 RESTRICTION_FILE = INPUT_DIR / "restrictions.pickle"
 
 LATLON = "epsg:4326"
 WEB_MERCATOR = "epsg:3857"
+
+FILTER_POLYGON: Optional[Polygon] = None
+
+if args.geojson_file is not None:
+    geojson_file = Path(args.geojson_file)
+    gdf = gpd.read_file(geojson_file)
+    gdf = gdf.to_crs(WEB_MERCATOR)
+    FILTER_POLYGON = gdf.iloc[0].geometry
 
 # also referred to as the 'positive' direction in TomTom
 FROM_TO_DIRECTION = 2
