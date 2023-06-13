@@ -72,6 +72,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "derive_more",
+ "flate2",
  "geo",
  "keyed_priority_queue",
  "rayon",
