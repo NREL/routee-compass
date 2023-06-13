@@ -387,11 +387,11 @@ if __name__ == "__main__":
         stop_df = stop_df.apply(
             lambda row: row.junction_id_to if row.validity_direction == 2 else row.junction_id_from,
             axis=1,
-        )
+        ).rename("junction_id")
 
         stop_df.to_csv(stop_sign_file, index=False)
 
-    stop_sign_nodes = set(stop_df.unique())
+    stop_sign_nodes = set(stop_df.junction_id.unique())
 
     traffic_light_file = INPUT_DIR / "traffic_lights.csv"
     if traffic_light_file.exists():
