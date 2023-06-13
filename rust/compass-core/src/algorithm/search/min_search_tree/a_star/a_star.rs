@@ -277,7 +277,7 @@ mod tests {
         ) -> Result<(Cost, Self::State), TraversalError> {
             let c = edge
                 .distance_centimeters
-                .travel_time_millis(&edge.free_flow_speed_seconds)
+                .travel_time_millis(&edge.free_flow_speed_cps)
                 .0;
             Ok((Cost(c), state + c))
         }
@@ -322,8 +322,9 @@ mod tests {
         }
         fn vertex_attr(&self, _vertex_id: VertexId) -> Result<Vertex, GraphError> {
             Ok(Vertex {
-                x: Ordinate(0),
-                y: Ordinate(0),
+                vertex_id: VertexId(0),
+                x: Ordinate(0.0),
+                y: Ordinate(0.0),
             })
         }
         fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
@@ -339,10 +340,10 @@ mod tests {
             Err(GraphError::TestError) // not used
         }
         fn src_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
-            self.edge_attr(edge_id).map(|e| e.start_vertex)
+            self.edge_attr(edge_id).map(|e| e.src_vertex_id)
         }
         fn dst_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
-            self.edge_attr(edge_id).map(|e: Edge| e.end_vertex)
+            self.edge_attr(edge_id).map(|e: Edge| e.dst_vertex_id)
         }
     }
 
@@ -359,10 +360,10 @@ mod tests {
                     })?;
                     let edge = Edge {
                         edge_id: edge_id.clone(),
-                        start_vertex: src.clone(),
-                        end_vertex: dst.clone(),
+                        src_vertex_id: src.clone(),
+                        dst_vertex_id: dst.clone(),
                         road_class: RoadClass(0),
-                        free_flow_speed_seconds: cps.clone(),
+                        free_flow_speed_cps: cps.clone(),
                         distance_centimeters: Centimeters(100),
                         grade_millis: Millis(0),
                     };
