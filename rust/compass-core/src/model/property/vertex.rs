@@ -1,7 +1,10 @@
-use crate::model::units::ordinate::Ordinate;
+use serde::Deserialize;
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+use crate::model::{graph::vertex_id::VertexId, units::ordinate::Ordinate};
+
+#[derive(Copy, Clone, Deserialize)]
 pub struct Vertex {
+    pub vertex_id: VertexId,
     pub x: Ordinate,
     pub y: Ordinate,
 }

@@ -48,7 +48,7 @@ impl<S: Sync + Send + Eq + Copy + Clone> EdgeTraversal<S> {
                 let prev_edge = g
                     .edge_attr(prev_e)
                     .map_err(SearchError::GraphCorrectnessFailure)?;
-                let prev_src_v = g.vertex_attr(prev_edge.start_vertex)?;
+                let prev_src_v = g.vertex_attr(prev_edge.src_vertex_id)?;
                 m.access_cost(&prev_src_v, &prev_edge, &src, &edge, &dst, &prev_state)
             }
             None => Ok((Cost::ZERO, prev_state)),

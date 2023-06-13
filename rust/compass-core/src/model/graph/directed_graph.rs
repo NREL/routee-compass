@@ -42,8 +42,8 @@ pub trait DirectedGraph: Sync + Send {
 
     fn edge_triplet_attrs(&self, edge_id: EdgeId) -> Result<(Vertex, Edge, Vertex), GraphError> {
         let edge = self.edge_attr(edge_id)?;
-        let src = self.vertex_attr(edge.start_vertex)?;
-        let dst = self.vertex_attr(edge.end_vertex)?;
+        let src = self.vertex_attr(edge.src_vertex_id)?;
+        let dst = self.vertex_attr(edge.dst_vertex_id)?;
 
         Ok((src, edge, dst))
     }
