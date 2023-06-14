@@ -79,15 +79,7 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
         .zip(path.iter())
         .map(|(energy_per_mile, link)| {
             let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
-            let mut energy = energy_per_mile * distance_miles;
-            if link.stop_sign {
-                energy = energy + search_input.stop_cost_gallons_diesel;
-            }
-            if link.traffic_light {
-                // assume 50% of the time we stop at a traffic light
-                let stop_cost = 0.5 * search_input.stop_cost_gallons_diesel;
-                energy = energy + stop_cost;
-            }
+            let energy = energy_per_mile * distance_miles;
             energy
         })
         .sum();
@@ -127,15 +119,7 @@ pub fn build_routee_cost_function_with_tods(
         let x = DenseMatrix::from_2d_vec(&features);
         let energy_per_mile = rf.predict(&x).unwrap()[0];
 
-        let mut energy = energy_per_mile * distance_miles;
-        if link.stop_sign {
-            energy = energy + search_input.stop_cost_gallons_diesel;
-        }
-        if link.traffic_light {
-            // assume 50% of the time we stop at a traffic light
-            let stop_cost = 0.5 * search_input.stop_cost_gallons_diesel;
-            energy = energy + stop_cost;
-        }
+        let energy = energy_per_mile * distance_miles;
         let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
         scaled_energy as usize 
     })
