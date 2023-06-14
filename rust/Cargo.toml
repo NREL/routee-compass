@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "compass-prototype",
     "compass-core",
-    "compass-tomtom"
+    "compass-tomtom",
+    "compass-app"
 ]
 
 [workspace.dependencies]
@@ -10,3 +10,4 @@ serde = {version = "1.0.160", features=["derive"]}
 rayon = "1.7.0"
 thiserror = "1.0.0"
 flate2 = "1.0"
+kdam = "0.3.0"
