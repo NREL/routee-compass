@@ -120,7 +120,9 @@ pub fn build_routee_cost_function_with_tods(
         let energy_per_mile = rf.predict(&x).unwrap()[0];
 
         let energy = energy_per_mile * distance_miles;
+        println!("energy: {}", energy);
         let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
+        println!("scaled_energy: {}", scaled_energy);
         scaled_energy as usize 
     })
 }
