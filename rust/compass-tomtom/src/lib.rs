@@ -1,2 +1,2 @@
-mod graph;
-mod speed;
+pub mod graph;
+pub mod speed;
