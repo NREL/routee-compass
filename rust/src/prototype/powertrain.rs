@@ -55,15 +55,21 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
         .map(|link| {
             let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
             let vehicle_params = search_input.vehicle_parameters;
-            let mut modifier = 1.0;
-            if let Some(profile_id) = link.week_profile_ids[search_input.day_of_week] {
-                modifier = search_input
-                    .time_of_day_speeds
-                    .get_modifier_by_second_of_day(profile_id, search_input.second_of_day);
+            let mut time_seconds = search_input
+                .time_of_day_speeds
+                .link_time_seconds_by_time_of_day(
+                    link,
+                    search_input.second_of_day,
+                    search_input.day_of_week,
+                );
+            if link.stop_sign {
+                time_seconds += search_input.stop_cost_time_seconds;
             }
-
-            let time_hours = link.time_seconds() as f64 / 3600.0;
-            let speed_mph = (distance_miles / time_hours) * modifier;
+            if link.traffic_light {
+                time_seconds += search_input.traffic_light_cost_time_seconds;
+            }
+            let time_hours = time_seconds as f64 / 3600.0;
+            let speed_mph = distance_miles / time_hours;
             let grade = link.grade as f64;
 
             match vehicle_params {
@@ -120,7 +126,6 @@ pub fn build_routee_cost_function_with_tods(
         }
         if link.traffic_light {
             time_seconds += search_input.traffic_light_cost_time_seconds;
-
         }
         let time_hours = time_seconds as f64 / 3600.0;
         let speed_mph = distance_miles / time_hours;
