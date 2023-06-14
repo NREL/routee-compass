@@ -194,8 +194,9 @@ impl RustMap {
             build_shortest_time_function(search_input.clone()),
             build_restriction_function(search_input.vehicle_parameters),
         ) {
-            Some((time_seconds, node_path)) => {
+            Some((_, node_path)) => {
                 let path = self.graph.get_links_in_path(node_path);
+                let time_seconds = compute_time_seconds_over_path(&path, &search_input);
                 let energy = compute_energy_over_path(&path, &search_input).unwrap();
                 Some(SearchResult {
                     search_id: search_input.search_id,
@@ -220,10 +221,10 @@ impl RustMap {
             routee_cost_function,
             build_restriction_function(search_input.vehicle_parameters),
         ) {
-            Some((scaled_energy, nodes_in_path)) => {
-                let energy = scaled_energy as f64 / ROUTEE_SCALE_FACTOR;
+            Some((_, nodes_in_path)) => {
                 let path = self.graph.get_links_in_path(nodes_in_path);
                 let time_seconds = compute_time_seconds_over_path(&path, &search_input);
+                let energy = compute_energy_over_path(&path, &search_input).unwrap();
                 Some(SearchResult {
                     search_id: search_input.search_id,
                     time_seconds,
