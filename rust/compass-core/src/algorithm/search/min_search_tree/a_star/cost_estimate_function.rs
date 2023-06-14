@@ -10,10 +10,8 @@ pub trait CostEstimateFunction: Sync + Send {
 /// the lower bound on distance between two vertices. we then "traverse" that
 /// distance using the provided travel speed in kilometers per hour.
 pub struct Haversine {
-    travel_speed_kph: f64,
+    pub travel_speed_kph: f64,
 }
-
-
 
 impl CostEstimateFunction for Haversine {
     fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostError> {
