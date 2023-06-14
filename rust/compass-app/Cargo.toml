@@ -1,0 +1,13 @@
+[package]
+name = "compass-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+compass-core = { path = "../compass-core" }
+compass-tomtom = { path = "../compass-tomtom" }
+thiserror = { workspace = true }
+flate2 = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_repr = "0.1"
+kdam = { workspace = true }
