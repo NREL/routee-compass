@@ -1,3 +1,4 @@
-mod tomtom_graph;
-mod tomtom_graph_config;
-mod tomtom_graph_error;
+mod tomtom_edge_list;
+pub mod tomtom_graph;
+pub mod tomtom_graph_config;
+pub mod tomtom_graph_error;
