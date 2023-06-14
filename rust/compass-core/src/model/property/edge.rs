@@ -7,7 +7,7 @@ use crate::model::{
 
 use super::road_class::RoadClass;
 
-#[derive(Copy, Clone, Deserialize, Debug)]
+#[derive(Copy, Clone, Deserialize, Debug, Default)]
 pub struct Edge {
     pub edge_id: EdgeId,
     pub src_vertex_id: VertexId,

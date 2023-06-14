@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use super::{cm_per_second::CmPerSecond, milliseconds::Milliseconds};
 
-#[derive(Copy, Clone, Eq, PartialEq, Deserialize, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Deserialize, Debug, Default)]
 pub struct Centimeters(pub i64);
 
 impl Centimeters {

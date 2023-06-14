@@ -2,7 +2,7 @@ use std::{cmp::Ordering, fmt::Display};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Hash, Debug)]
+#[derive(Copy, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Hash, Debug, Default)]
 pub struct VertexId(pub u64);
 
 impl Ord for VertexId {
