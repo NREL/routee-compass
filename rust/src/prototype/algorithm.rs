@@ -8,22 +8,15 @@ use pyo3::prelude::*;
 
 use super::map::SearchInput;
 
-pub fn build_shortest_time_function(search_input: SearchInput) -> impl Fn(&Link) -> u32 {
+pub fn build_shortest_time_function(search_input: SearchInput) -> impl Fn(&Link) -> usize {
     move |link: &Link| {
-        let mut time_seconds = search_input
+        let time_seconds = search_input
             .time_of_day_speeds
             .link_time_seconds_by_time_of_day(
                 link,
                 search_input.second_of_day,
                 search_input.day_of_week,
             );
-        if link.stop_sign {
-            time_seconds += search_input.stop_cost_time_seconds;
-        }
-        if link.traffic_light {
-            time_seconds += search_input.traffic_light_cost_time_seconds;
-
-        }
         time_seconds
     }
 }
@@ -61,13 +54,13 @@ pub fn dijkstra_shortest_path(
     graph: &Graph,
     start: &NodeId,
     end: &NodeId,
-    cost_function: impl Fn(&Link) -> u32,
+    cost_function: impl Fn(&Link) -> usize,
     restriction_function: impl Fn(&Link) -> bool,
-) -> Option<(u32, Vec<NodeId>)> {
+) -> Option<(usize, Vec<NodeId>)> {
     let mut visited = HashSet::new();
     let mut min_heap = BinaryHeap::new();
     let mut parents: HashMap<NodeId, NodeId> = HashMap::new();
-    let mut distances: HashMap<NodeId, u32> = HashMap::new();
+    let mut distances: HashMap<NodeId, usize> = HashMap::new();
 
     min_heap.push((Reverse(0), start.clone()));
     distances.insert(start.clone(), 0);

@@ -9,7 +9,6 @@ use crate::prototype::{
     graph::{Graph, Link, Node},
     powertrain::{
         build_routee_cost_function_with_tods, compute_energy_over_path, VehicleParameters,
-        ROUTEE_SCALE_FACTOR,
     },
     time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
 };
@@ -105,14 +104,14 @@ pub struct SearchResult {
     #[pyo3(get)]
     pub search_id: String,
     #[pyo3(get)]
-    pub time_seconds: u32,
+    pub time_seconds: usize,
     #[pyo3(get)]
     pub energy_gallons_gas: f64,
     #[pyo3(get)]
     pub path: Vec<Link>,
 }
 
-pub fn compute_time_seconds_over_path(path: &Vec<Link>, search_input: &SearchInput) -> u32 {
+pub fn compute_time_seconds_over_path(path: &Vec<Link>, search_input: &SearchInput) -> usize {
     path.iter()
         .map(build_shortest_time_function(search_input.clone()))
         .sum()

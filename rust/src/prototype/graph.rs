@@ -58,7 +58,7 @@ pub struct Link {
     #[pyo3(get)]
     pub speed_kph: u8,
     #[pyo3(get)]
-    pub distance_centimeters: u32,
+    pub distance_centimeters: usize,
     #[pyo3(get)]
     pub grade: i16,
     #[pyo3(get)]
@@ -84,7 +84,7 @@ impl Link {
         start_node: NodeId,
         end_node: NodeId,
         speed_kph: u8,
-        distance_centimeters: u32,
+        distance_centimeters: usize,
         grade: i16,
         stop_sign: bool,
         traffic_light: bool,
@@ -127,8 +127,8 @@ impl Link {
         }
     }
 
-    pub fn time_seconds(&self) -> u32 {
-        let speed_centimeters_per_second = (self.speed_kph as f32 * 27.77) as u32;
+    pub fn time_seconds(&self) -> usize {
+        let speed_centimeters_per_second = (self.speed_kph as f32 * 27.77) as usize;
         let time_seconds = self.distance_centimeters / speed_centimeters_per_second;
         time_seconds
     }

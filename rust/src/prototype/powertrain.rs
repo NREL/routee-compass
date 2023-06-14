@@ -96,7 +96,7 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
 
 pub fn build_routee_cost_function_with_tods(
     search_input: SearchInput,
-) -> Result<impl Fn(&Link) -> u32> {
+) -> Result<impl Fn(&Link) -> usize> {
     let model_file_path = search_input.routee_model_path.ok_or(anyhow::anyhow!(
         "routee_model_path must be set in SearchInput"
     ))?;
@@ -137,6 +137,6 @@ pub fn build_routee_cost_function_with_tods(
             energy = energy + stop_cost;
         }
         let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
-        scaled_energy as u32
+        scaled_energy as usize 
     })
 }
