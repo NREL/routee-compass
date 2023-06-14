@@ -1,21 +1,17 @@
 use std::{collections::HashMap, fs::File, io::BufReader};
 
-use compass_core::{
-    model::{
-        graph::{
-            directed_graph::DirectedGraph, edge_id::EdgeId, graph_error::GraphError,
-            vertex_id::VertexId,
-        },
-        property::{edge::Edge, vertex::Vertex},
+use compass_core::model::{
+    graph::{
+        directed_graph::DirectedGraph, edge_id::EdgeId, graph_error::GraphError,
+        vertex_id::VertexId,
     },
-    util::fs_utils::line_count,
+    property::{edge::Edge, vertex::Vertex},
 };
 use flate2::read::GzDecoder;
 
 use super::tomtom_graph_config::TomTomGraphConfig;
 use super::tomtom_graph_error::TomTomGraphError;
 use csv;
-
 pub struct TomTomGraph {
     pub adj: Vec<HashMap<EdgeId, VertexId>>,
     pub rev: Vec<HashMap<EdgeId, VertexId>>,
@@ -75,35 +71,33 @@ impl TryFrom<TomTomGraphConfig> for TomTomGraph {
     fn try_from(config: TomTomGraphConfig) -> Result<Self, TomTomGraphError> {
         // count file lengths to determine |V| and |E|. remove header from count
         println!("checking file length of edge and vertex input files");
-        let edge_file_length = config
+        let n_edges = config
             .get_n_edges()
             .map_err(|e| TomTomGraphError::IOError { source: e })?;
-        let vertex_file_length = config
+        let n_vertices = config
             .get_n_vertices()
             .map_err(|e| TomTomGraphError::IOError { source: e })?;
-        if edge_file_length < 2 {
+        if n_edges < 1 {
             return Err(TomTomGraphError::EmptyFileSource {
                 filename: config.edge_list_csv,
             });
         }
-        if vertex_file_length < 2 {
+        if n_vertices < 1 {
             return Err(TomTomGraphError::EmptyFileSource {
                 filename: config.vertex_list_csv,
             });
         }
-        let n_edges = edge_file_length - 1;
-        let n_vertices = vertex_file_length - 1;
+
         println!(
-            "{} edge file len, {} vertex file len",
-            edge_file_length, vertex_file_length
+            "creating data structures to hold {} edges, {} vertices",
+            n_edges, n_vertices
         );
-        println!("{} edges, {} vertices in file", n_edges, n_vertices);
 
         // build collections to store in the TomTomGraph
-        let mut edges: Vec<Edge> = Vec::with_capacity(n_edges);
-        let mut vertices: Vec<Vertex> = Vec::with_capacity(n_vertices);
-        let mut adj: Vec<HashMap<EdgeId, VertexId>> = Vec::with_capacity(n_vertices);
-        let mut rev: Vec<HashMap<EdgeId, VertexId>> = Vec::with_capacity(n_vertices);
+        let mut edges: Vec<Edge> = vec![Edge::default(); n_edges];
+        let mut vertices: Vec<Vertex> = vec![Vertex::default(); n_vertices];
+        let mut adj: Vec<HashMap<EdgeId, VertexId>> = vec![HashMap::with_capacity(2); n_vertices];
+        let mut rev: Vec<HashMap<EdgeId, VertexId>> = vec![HashMap::with_capacity(2); n_vertices];
 
         // set up csv.gz reading and row deserialization
         let edge_list_file = File::open(config.edge_list_csv.clone())
@@ -117,6 +111,8 @@ impl TryFrom<TomTomGraphConfig> for TomTomGraph {
             csv::Reader::from_reader(Box::new(BufReader::new(GzDecoder::new(vertex_list_file))));
         let vertex_rows = vertex_reader.deserialize();
 
+        println!("reading edge list");
+
         // read each Edge row, updating the Edge table and adjacency lists
         let mut i = 0;
         for row in edge_rows {
@@ -125,14 +121,15 @@ impl TryFrom<TomTomGraphConfig> for TomTomGraph {
                 println!("{:?}", edge);
                 i = i + 1;
             }
-            edges.insert(edge.edge_id.0 as usize, edge);
+            edges[edge.edge_id.0 as usize] = edge;
             // the Edge provides us with all id information to build our adjacency lists as well
 
             match adj.get_mut(edge.src_vertex_id.0 as usize) {
                 None => {
-                    let new_map = HashMap::from([(edge.edge_id, edge.dst_vertex_id)]);
-                    adj.insert(edge.src_vertex_id.0 as usize, new_map);
-                    todo!("add bounds check (0 <= id < vec.len()");
+                    // todo: this should be an error case based on our setup above
+                    return Err(TomTomGraphError::AdjacencyVertexMissing(edge.src_vertex_id));
+                    // let new_map = HashMap::from([(edge.edge_id, edge.dst_vertex_id)]);
+                    // adj[edge.src_vertex_id.0 as usize] = new_map;
                 }
                 Some(out_links) => {
                     out_links.insert(edge.edge_id, edge.dst_vertex_id);
@@ -140,8 +137,10 @@ impl TryFrom<TomTomGraphConfig> for TomTomGraph {
             }
             match rev.get_mut(edge.dst_vertex_id.0 as usize) {
                 None => {
-                    let new_map = HashMap::from([(edge.edge_id, edge.src_vertex_id)]);
-                    adj.insert(edge.dst_vertex_id.0 as usize, new_map);
+                    // todo: this should be an error case based on our setup above
+                    return Err(TomTomGraphError::AdjacencyVertexMissing(edge.dst_vertex_id));
+                    // let new_map = HashMap::from([(edge.edge_id, edge.src_vertex_id)]);
+                    // adj[edge.dst_vertex_id.0 as usize] = new_map;
                 }
                 Some(in_links) => {
                     in_links.insert(edge.edge_id, edge.src_vertex_id);
@@ -149,10 +148,12 @@ impl TryFrom<TomTomGraphConfig> for TomTomGraph {
             }
         }
 
+        println!("reading vertex list");
+
         // read in each Vertex row
         for row in vertex_rows {
             let vertex: Vertex = row.map_err(|e| TomTomGraphError::CsvError { source: e })?;
-            vertices.insert(vertex.vertex_id.0 as usize, vertex);
+            vertices[vertex.vertex_id.0 as usize] = vertex;
         }
 
         let graph = TomTomGraph {
@@ -180,8 +181,9 @@ mod tests {
         let conf = TomTomGraphConfig {
             edge_list_csv: String::from(edges_path),
             vertex_list_csv: String::from(vertices_path),
-            n_edges: Some(67),
+            n_edges: Some(67198522),
             n_vertices: Some(56306871),
+            verbose: false,
         };
         match TomTomGraph::try_from(conf) {
             Ok(graph) => {

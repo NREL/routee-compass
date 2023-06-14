@@ -1,3 +1,5 @@
+use compass_core::model::graph::vertex_id::VertexId;
+
 #[derive(thiserror::Error, Debug)]
 pub enum TomTomGraphError {
     #[error("{filename} file source was empty")]
@@ -7,9 +9,11 @@ pub enum TomTomGraphError {
         #[from]
         source: std::io::Error,
     },
-    #[error("csv read error")]
+    #[error("csv error: {source}")]
     CsvError {
         #[from]
         source: csv::Error,
     },
+    #[error("adjacency list missing vertex {0}")]
+    AdjacencyVertexMissing(VertexId),
 }

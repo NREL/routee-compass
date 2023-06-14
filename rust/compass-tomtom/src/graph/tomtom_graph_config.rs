@@ -7,6 +7,7 @@ pub struct TomTomGraphConfig {
     pub vertex_list_csv: String,
     pub n_edges: Option<usize>,
     pub n_vertices: Option<usize>,
+    pub verbose: bool,
 }
 
 impl TomTomGraphConfig {
@@ -16,7 +17,7 @@ impl TomTomGraphConfig {
             None => {
                 let is_gzip = self.edge_list_csv.ends_with(".gz");
                 let n = line_count(self.edge_list_csv.clone(), is_gzip)?;
-                Ok(n)
+                Ok(n - 1) // drop count of header line
             }
         }
     }
@@ -27,7 +28,7 @@ impl TomTomGraphConfig {
             None => {
                 let is_gzip = self.vertex_list_csv.ends_with(".gz");
                 let n = line_count(self.vertex_list_csv.clone(), is_gzip)?;
-                Ok(n)
+                Ok(n - 1) // drop count of header line
             }
         }
     }
