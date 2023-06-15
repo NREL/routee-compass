@@ -68,7 +68,10 @@ where
     // run search
     loop {
         match open_set.pop() {
-            None => break,
+            None => {
+                let empty: HashMap<VertexId, AStarTraversal<S>> = HashMap::new();
+                return Ok(empty);
+            }
             Some((current, _)) if current.vertex_id == target => break,
             Some((current, _)) => {
                 let triplets = g
@@ -139,35 +142,38 @@ where
     let m: RwLockReadGuard<&(dyn TraversalModel<State = S>)> = traversal_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let v_s0 = g.src_vertex(source)?;
-    let v_s1 = g.dst_vertex(source)?;
-    let v_d0 = g.src_vertex(target)?;
-    let v_d1 = g.dst_vertex(target)?;
+    let source_edge_src_vertex_id = g.src_vertex(source)?;
+    let source_edge_dst_vertex_id = g.dst_vertex(source)?;
+    let target_edge_src_vertex_id = g.src_vertex(target)?;
+    let target_edge_dst_vertex_id = g.dst_vertex(target)?;
 
     if source == target {
         let empty: HashMap<VertexId, AStarTraversal<S>> = HashMap::new();
         return Ok(empty);
-    } else if v_s1 == v_d0 {
+    } else if source_edge_dst_vertex_id == target_edge_src_vertex_id {
         // route is simply source -> target
         let init_state = m.initial_state()?;
         let src_et = EdgeTraversal::new(source, None, init_state, &g, &m)?;
         let dst_et = EdgeTraversal::new(target, Some(source), src_et.result_state, &g, &m)?;
         let src_traversal = AStarTraversal {
-            terminal_vertex: v_d0,
+            terminal_vertex: target_edge_src_vertex_id,
             edge_traversal: dst_et,
         };
         let dst_traversal = AStarTraversal {
-            terminal_vertex: v_s0,
+            terminal_vertex: source_edge_src_vertex_id,
             edge_traversal: src_et,
         };
-        let tree = HashMap::from([(v_d1, src_traversal), (v_s1, dst_traversal)]);
+        let tree = HashMap::from([
+            (target_edge_dst_vertex_id, src_traversal),
+            (source_edge_dst_vertex_id, dst_traversal),
+        ]);
         return Ok(tree);
     } else {
         // run a search and append source/target edges to result
         let mut tree = run_a_star(
             direction,
-            v_s1,
-            v_d0,
+            source_edge_dst_vertex_id,
+            target_edge_src_vertex_id,
             directed_graph.clone(),
             traversal_model.clone(),
             cost_estimate_fn.clone(),
@@ -179,8 +185,10 @@ where
         // that included the traversal of the initial edge.
         let init_state = m.initial_state()?;
         let final_state = tree
-            .get(&v_d0)
-            .ok_or(SearchError::VertexMissingFromSearchTree(v_d0))?
+            .get(&target_edge_src_vertex_id)
+            .ok_or(SearchError::VertexMissingFromSearchTree(
+                target_edge_src_vertex_id,
+            ))?
             .edge_traversal
             .result_state;
         let src_et = EdgeTraversal {
@@ -196,15 +204,18 @@ where
             result_state: final_state,
         };
         let src_traversal = AStarTraversal {
-            terminal_vertex: v_s0,
+            terminal_vertex: source_edge_src_vertex_id,
             edge_traversal: src_et,
         };
         let dst_traversal = AStarTraversal {
-            terminal_vertex: v_d0,
+            terminal_vertex: target_edge_src_vertex_id,
             edge_traversal: dst_et,
         };
 
-        tree.extend([(v_s1, src_traversal), (v_d1, dst_traversal)]);
+        tree.extend([
+            (source_edge_dst_vertex_id, src_traversal),
+            (target_edge_dst_vertex_id, dst_traversal),
+        ]);
         return Ok(tree);
     }
 }
