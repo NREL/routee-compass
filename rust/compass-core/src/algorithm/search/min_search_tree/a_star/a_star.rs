@@ -41,9 +41,15 @@ where
     }
 
     // context for the search (graph, search functions, frontier priority queue)
-    let g = directed_graph.read().unwrap();
-    let m = traversal_model.read().unwrap();
-    let c = cost_estimate_fn.read().unwrap();
+    let g = directed_graph
+        .read()
+        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
+    let m = traversal_model
+        .read()
+        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
+    let c = cost_estimate_fn
+        .read()
+        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let mut open_set: KeyedPriorityQueue<AStarFrontier<S>, Cost> = KeyedPriorityQueue::new();
     let mut g_score: HashMap<VertexId, Cost> = HashMap::new();
     let mut f_score: HashMap<VertexId, Cost> = HashMap::new();
@@ -127,8 +133,12 @@ where
     S: Sync + Send + Eq + Copy + Clone,
 {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let g = directed_graph.read().unwrap();
-    let m: RwLockReadGuard<&(dyn TraversalModel<State = S>)> = traversal_model.read().unwrap();
+    let g = directed_graph
+        .read()
+        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
+    let m: RwLockReadGuard<&(dyn TraversalModel<State = S>)> = traversal_model
+        .read()
+        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let v_s0 = g.src_vertex(source)?;
     let v_s1 = g.dst_vertex(source)?;
     let v_d0 = g.src_vertex(target)?;
