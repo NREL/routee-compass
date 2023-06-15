@@ -3,13 +3,13 @@ use std::sync::Arc;
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
-            a_star::{backtrack, backtrack_edges, run_a_star, run_a_star_edge_oriented},
+            a_star::{backtrack_edges, run_a_star_edge_oriented},
             cost_estimate_function::{CostEstimateFunction, Haversine},
         },
         direction::Direction,
     },
     model::{
-        graph::{directed_graph::DirectedGraph, edge_id::EdgeId, vertex_id::VertexId},
+        graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
         traversal::{
             free_flow_traversal_model::FreeFlowTraversalModel, traversal_model::TraversalModel,
         },
@@ -64,7 +64,6 @@ fn main() {
         &traversal_model as &dyn TraversalModel<State = i64>,
     ));
 
-    // let (o, d) = (VertexId(123), VertexId(456));
     let (o, d) = (EdgeId(123), EdgeId(456));
 
     let g_e1 = Arc::new(g.read_only());
