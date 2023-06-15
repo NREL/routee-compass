@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::File, io::BufReader};
+use std::collections::HashMap;
 
 use compass_core::model::{
     graph::{
@@ -7,11 +7,15 @@ use compass_core::model::{
     },
     property::{edge::Edge, vertex::Vertex},
 };
-use flate2::read::GzDecoder;
+
+use crate::graph::{
+    tomtom_edge_list::{TomTomEdgeList, TomTomEdgeListConfig},
+    tomtom_vertex_list::{read_vertex_list, TomTomVertexListConfig},
+};
 
 use super::tomtom_graph_config::TomTomGraphConfig;
 use super::tomtom_graph_error::TomTomGraphError;
-use csv;
+use log::info;
 pub struct TomTomGraph {
     pub adj: Vec<HashMap<EdgeId, VertexId>>,
     pub rev: Vec<HashMap<EdgeId, VertexId>>,
@@ -69,109 +73,68 @@ impl TryFrom<TomTomGraphConfig> for TomTomGraph {
     /// then we can build a Vec *once* and insert rows as we decode them without
     /// a sort.
     fn try_from(config: TomTomGraphConfig) -> Result<Self, TomTomGraphError> {
-        // count file lengths to determine |V| and |E|. remove header from count
-        println!("checking file length of edge and vertex input files");
-        let n_edges = config
-            .get_n_edges()
-            .map_err(|e| TomTomGraphError::IOError { source: e })?;
-        let n_vertices = config
-            .get_n_vertices()
-            .map_err(|e| TomTomGraphError::IOError { source: e })?;
-        if n_edges < 1 {
-            return Err(TomTomGraphError::EmptyFileSource {
-                filename: config.edge_list_csv,
-            });
-        }
-        if n_vertices < 1 {
-            return Err(TomTomGraphError::EmptyFileSource {
-                filename: config.vertex_list_csv,
-            });
-        }
-
-        println!(
+        info!("checking file length of edge and vertex input files");
+        let (n_edges, n_vertices) = config.read_file_sizes()?;
+        info!(
             "creating data structures to hold {} edges, {} vertices",
             n_edges, n_vertices
         );
 
-        // build collections to store in the TomTomGraph
-        let mut edges: Vec<Edge> = vec![Edge::default(); n_edges];
-        let mut vertices: Vec<Vertex> = vec![Vertex::default(); n_vertices];
-        let mut adj: Vec<HashMap<EdgeId, VertexId>> = vec![HashMap::with_capacity(2); n_vertices];
-        let mut rev: Vec<HashMap<EdgeId, VertexId>> = vec![HashMap::with_capacity(2); n_vertices];
+        info!("reading edge list");
 
-        // set up csv.gz reading and row deserialization
-        let edge_list_file = File::open(config.edge_list_csv.clone())
-            .map_err(|e| TomTomGraphError::IOError { source: e })?;
-        let vertex_list_file = File::open(config.vertex_list_csv.clone())
-            .map_err(|e| TomTomGraphError::IOError { source: e })?;
-        let mut edge_reader =
-            csv::Reader::from_reader(Box::new(BufReader::new(GzDecoder::new(edge_list_file))));
-        let edge_rows = edge_reader.deserialize();
-        let mut vertex_reader =
-            csv::Reader::from_reader(Box::new(BufReader::new(GzDecoder::new(vertex_list_file))));
-        let vertex_rows = vertex_reader.deserialize();
+        let e_conf = TomTomEdgeListConfig {
+            config: &config,
+            n_edges,
+            n_vertices,
+        };
+        let e_result = TomTomEdgeList::try_from(e_conf)?;
 
-        println!("reading edge list");
-
-        // read each Edge row, updating the Edge table and adjacency lists
-        let mut i = 0;
-        for row in edge_rows {
-            let edge: Edge = row.map_err(|e| TomTomGraphError::CsvError { source: e })?;
-            if i < 5 {
-                println!("{:?}", edge);
-                i = i + 1;
-            }
-            edges[edge.edge_id.0 as usize] = edge;
-            // the Edge provides us with all id information to build our adjacency lists as well
-
-            match adj.get_mut(edge.src_vertex_id.0 as usize) {
-                None => {
-                    // todo: this should be an error case based on our setup above
-                    return Err(TomTomGraphError::AdjacencyVertexMissing(edge.src_vertex_id));
-                    // let new_map = HashMap::from([(edge.edge_id, edge.dst_vertex_id)]);
-                    // adj[edge.src_vertex_id.0 as usize] = new_map;
-                }
-                Some(out_links) => {
-                    out_links.insert(edge.edge_id, edge.dst_vertex_id);
-                }
-            }
-            match rev.get_mut(edge.dst_vertex_id.0 as usize) {
-                None => {
-                    // todo: this should be an error case based on our setup above
-                    return Err(TomTomGraphError::AdjacencyVertexMissing(edge.dst_vertex_id));
-                    // let new_map = HashMap::from([(edge.edge_id, edge.src_vertex_id)]);
-                    // adj[edge.dst_vertex_id.0 as usize] = new_map;
-                }
-                Some(in_links) => {
-                    in_links.insert(edge.edge_id, edge.src_vertex_id);
-                }
-            }
-        }
-
-        println!("reading vertex list");
-
-        // read in each Vertex row
-        for row in vertex_rows {
-            let vertex: Vertex = row.map_err(|e| TomTomGraphError::CsvError { source: e })?;
-            vertices[vertex.vertex_id.0 as usize] = vertex;
-        }
+        info!("reading vertex list");
+        let v_conf = TomTomVertexListConfig {
+            config: &config,
+            n_vertices,
+        };
+        let vertices = read_vertex_list(v_conf)?;
 
         let graph = TomTomGraph {
-            adj,
-            rev,
-            edges,
+            adj: e_result.adj,
+            rev: e_result.rev,
+            edges: e_result.edges,
             vertices,
         };
+
+        info!("{}", graph.print_sizes());
 
         Ok(graph)
     }
 }
 
+impl TomTomGraph {
+    fn print_sizes(&self) -> String {
+        return format!(
+            "TomTomGraph |V| {} |E| {} |Adj| {} |rev| {}",
+            self.vertices.len(),
+            self.edges.len(),
+            self.adj.len(),
+            self.rev.len()
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::graph::tomtom_graph_config::TomTomGraphConfig;
+    use log::info;
 
     use super::TomTomGraph;
+    use crate::graph::tomtom_graph_config::TomTomGraphConfig;
+
+    // capture logs in test: https://docs.rs/env_logger/latest/env_logger/#capturing-logs-in-tests
+    fn init() {
+        let _ = env_logger::builder()
+            .is_test(true)
+            .filter_level(log::LevelFilter::Debug)
+            .try_init();
+    }
 
     #[test]
     fn test_read_national_graph() {
@@ -187,15 +150,15 @@ mod tests {
         };
         match TomTomGraph::try_from(conf) {
             Ok(graph) => {
-                println!("{} rows in adjacency list", graph.adj.len());
-                println!("{} rows in reverse list", graph.rev.len());
-                println!("{} rows in edge list", graph.edges.len());
-                println!("{} rows in vertex list", graph.vertices.len());
-                println!("yay!")
+                info!("{} rows in adjacency list", graph.adj.len());
+                info!("{} rows in reverse list", graph.rev.len());
+                info!("{} rows in edge list", graph.edges.len());
+                info!("{} rows in vertex list", graph.vertices.len());
+                info!("yay!")
             }
             Err(e) => {
-                println!("uh oh, no good");
-                println!("{}", e.to_string());
+                info!("uh oh, no good");
+                info!("{}", e.to_string());
                 panic!();
             }
         }

@@ -14,6 +14,8 @@ pub enum TomTomGraphError {
         #[from]
         source: csv::Error,
     },
-    #[error("adjacency list missing vertex {0}")]
+    #[error("internal error: adjacency list missing vertex {0}")]
     AdjacencyVertexMissing(VertexId),
+    #[error("error creating progress bar for {0}: {1}")]
+    ProgressBarBuildError(String, String),
 }
