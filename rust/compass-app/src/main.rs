@@ -32,20 +32,20 @@ fn main() {
         verbose: true,
     };
     let graph = TomTomGraph::try_from(conf).unwrap();
-    let empty_adj_rows = graph
-        .adj
-        .to_owned()
-        .into_iter()
-        .map(|map| map.values().len())
-        .fold(vec![0; 10], |mut acc, cnt| {
-            acc[cnt] = acc[cnt] + 1;
-            acc
-        });
+    // let empty_adj_rows = graph
+    //     .adj
+    //     .to_owned()
+    //     .into_iter()
+    //     .map(|map| map.values().len())
+    //     .fold(vec![0; 10], |mut acc, cnt| {
+    //         acc[cnt] = acc[cnt] + 1;
+    //         acc
+    //     });
     info!("{} rows in adjacency list", graph.adj.len());
-    info!(
-        "{:?} adj histogram vertices by out link counts",
-        empty_adj_rows
-    );
+    // info!(
+    //     "{:?} adj histogram vertices by out link counts",
+    //     empty_adj_rows
+    // );
     info!("{} rows in reverse list", graph.rev.len());
     info!("{} rows in edge list", graph.edges.len());
     info!("{} rows in vertex list", graph.vertices.len());
