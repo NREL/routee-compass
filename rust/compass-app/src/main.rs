@@ -3,7 +3,7 @@ use std::sync::Arc;
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
-            a_star::{backtrack, run_a_star},
+            a_star::{backtrack, backtrack_edges, run_a_star, run_a_star_edge_oriented},
             cost_estimate_function::{CostEstimateFunction, Haversine},
         },
         direction::Direction,
@@ -17,9 +17,10 @@ use compass_core::{
     util::read_only_lock::DriverReadOnlyLock,
 };
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
-// use kdam::tqdm;
+use log::info;
 
 fn main() {
+    env_logger::init();
     let edges_path = "/Users/rfitzger/data/routee/tomtom/tomtom-condensed/edges_compass.csv.gz";
     let vertices_path =
         "/Users/rfitzger/data/routee/tomtom/tomtom-condensed/vertices_compass.csv.gz";
@@ -31,6 +32,25 @@ fn main() {
         verbose: true,
     };
     let graph = TomTomGraph::try_from(conf).unwrap();
+    let empty_adj_rows = graph
+        .adj
+        .to_owned()
+        .into_iter()
+        .map(|map| map.values().len())
+        .fold(vec![0; 10], |mut acc, cnt| {
+            acc[cnt] = acc[cnt] + 1;
+            acc
+        });
+    info!("{} rows in adjacency list", graph.adj.len());
+    info!(
+        "{:?} adj histogram vertices by out link counts",
+        empty_adj_rows
+    );
+    info!("{} rows in reverse list", graph.rev.len());
+    info!("{} rows in edge list", graph.edges.len());
+    info!("{} rows in vertex list", graph.vertices.len());
+    info!("yay!");
+
     let haversine = Haversine {
         travel_speed_kph: 40.0,
     };
@@ -44,35 +64,27 @@ fn main() {
         &traversal_model as &dyn TraversalModel<State = i64>,
     ));
 
-    let g_e = Arc::new(g.read_only());
+    // let (o, d) = (VertexId(123), VertexId(456));
+    let (o, d) = (EdgeId(123), EdgeId(456));
+
+    let g_e1 = Arc::new(g.read_only());
+    let g_e2 = Arc::new(g.read_only());
     let h_e = Arc::new(h.read_only());
     let t_e = Arc::new(t.read_only());
 
-    let (o, d) = (VertexId(123), VertexId(456));
-
-    match run_a_star(Direction::Forward, o, d, g_e, t_e, h_e) {
+    info!("running search");
+    match run_a_star_edge_oriented(Direction::Forward, o, d, g_e1, t_e, h_e) {
         Err(e) => {
-            println!("{}", e.to_string())
+            info!("{}", e.to_string())
         }
         Ok(result) => {
-            let route = backtrack(o, d, result).unwrap();
-            let route_edges: Vec<EdgeId> = route.iter().map(|r| r.edge_id).collect();
-            println!("{:?}", route_edges)
+            info!("tree result has {} entries", result.len());
+            log::logger().flush();
+            let route = backtrack_edges(o, d, result, g_e2).unwrap();
+            let mut route_edge_ids: Vec<EdgeId> = route.iter().map(|r| r.edge_id).collect();
+            route_edge_ids.insert(0, o);
+            route_edge_ids.push(d);
+            info!("{:?}", route_edge_ids)
         }
     }
-
-    // match TomTomGraph::try_from(conf) {
-    //     Ok(graph) => {
-    //         println!("{} rows in adjacency list", graph.adj.len());
-    //         println!("{} rows in reverse list", graph.rev.len());
-    //         println!("{} rows in edge list", graph.edges.len());
-    //         println!("{} rows in vertex list", graph.vertices.len());
-    //         println!("yay!")
-    //     }
-    //     Err(e) => {
-    //         println!("uh oh, no good");
-    //         println!("{}", e.to_string());
-    //         panic!();
-    //     }
-    // }
 }
