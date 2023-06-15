@@ -8,6 +8,9 @@ edition = "2021"
 compass-core = { path = "../compass-core" }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
+kdam = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
 csv = { version = "1.2.2" }
 serde = { workspace = true, features = ["derive"] }
 serde_repr = "0.1"

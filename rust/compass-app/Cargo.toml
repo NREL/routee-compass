@@ -9,5 +9,7 @@ compass-tomtom = { path = "../compass-tomtom" }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-serde_repr = "0.1"
+env_logger = { workspace = true }
 kdam = { workspace = true }
+log = { workspace = true }
+serde_repr = "0.1"
