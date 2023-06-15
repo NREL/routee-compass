@@ -91,6 +91,9 @@ where
                             prev_edge_id: Some(edge_id),
                             state: et.result_state,
                         };
+
+                        // from pseudocode, "if neighbor not in open_set"; here, get priority is a lookup
+                        // by hash value of the AStarFrontier, which uses the VertexId hash as a proxy.
                         match open_set.get_priority(&f) {
                             None => {
                                 open_set.push(f, -f_score_value); // negate, a min-ordered queue
@@ -221,6 +224,28 @@ where
     }
     let reversed = result.into_iter().rev().collect();
     Ok(reversed)
+}
+
+/// edge-oriented backtrack method
+pub fn backtrack_edges<S>(
+    source_id: EdgeId,
+    target_id: EdgeId,
+    solution: HashMap<VertexId, AStarTraversal<S>>,
+    graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
+) -> Result<Vec<EdgeTraversal<S>>, SearchError>
+where
+    S: Copy + Clone,
+{
+    let g_inner = graph
+        .read()
+        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
+    let o_v = g_inner
+        .dst_vertex(source_id)
+        .map_err(SearchError::GraphCorrectnessFailure)?;
+    let d_v = g_inner
+        .src_vertex(target_id)
+        .map_err(SearchError::GraphCorrectnessFailure)?;
+    backtrack(o_v, d_v, solution)
 }
 
 /// implements the a* heuristic function based on the provided cost estimate function
