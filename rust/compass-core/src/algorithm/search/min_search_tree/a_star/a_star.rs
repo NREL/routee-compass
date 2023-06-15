@@ -179,8 +179,8 @@ where
         // that included the traversal of the initial edge.
         let init_state = m.initial_state()?;
         let final_state = tree
-            .get(&v_d1)
-            .ok_or(SearchError::VertexMissingFromSearchTree(v_d1))?
+            .get(&v_d0)
+            .ok_or(SearchError::VertexMissingFromSearchTree(v_d0))?
             .edge_traversal
             .result_state;
         let src_et = EdgeTraversal {
