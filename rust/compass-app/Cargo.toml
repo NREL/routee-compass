@@ -13,3 +13,5 @@ env_logger = { workspace = true }
 kdam = { workspace = true }
 log = { workspace = true }
 serde_repr = "0.1"
+rand = "0.8.5"
+chrono = "0.4.26"
