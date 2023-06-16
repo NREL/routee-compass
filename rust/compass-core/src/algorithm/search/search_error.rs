@@ -16,6 +16,8 @@ pub enum SearchError {
     TraversalModelFailure(#[from] TraversalError),
     #[error("failure calculating cost")]
     CostCalculationError(#[from] CostError),
+    #[error("no path exists between vertices {0} and {1}")]
+    NoPathExists(VertexId, VertexId),
     #[error("search tree is missing linked vertex {0}")]
     VertexMissingFromSearchTree(VertexId),
     #[error("error accessing shared read-only dataset: {0}")]
