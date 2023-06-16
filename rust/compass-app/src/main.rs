@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use chrono::Local;
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
@@ -17,7 +18,8 @@ use compass_core::{
     util::read_only_lock::DriverReadOnlyLock,
 };
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
-use log::info;
+use log::{info, warn};
+use rand::seq::SliceRandom;
 
 fn main() {
     env_logger::init();
@@ -64,26 +66,43 @@ fn main() {
         &traversal_model as &dyn TraversalModel<State = i64>,
     ));
 
-    let (o, d) = (EdgeId(123), EdgeId(456));
+    let (o, d) = (
+        graph.edges.choose(&mut rand::thread_rng()).unwrap().edge_id,
+        graph.edges.choose(&mut rand::thread_rng()).unwrap().edge_id,
+    );
+    info!("randomly selected (origin, destination): ({}, {})", o, d);
 
     let g_e1 = Arc::new(g.read_only());
     let g_e2 = Arc::new(g.read_only());
     let h_e = Arc::new(h.read_only());
     let t_e = Arc::new(t.read_only());
 
+    let start_time = Local::now();
     info!("running search");
     match run_a_star_edge_oriented(Direction::Forward, o, d, g_e1, t_e, h_e) {
         Err(e) => {
             info!("{}", e.to_string())
         }
         Ok(result) => {
+            let duration = Local::now() - start_time;
+            info!("finished search with duration {:?}", duration);
             info!("tree result has {} entries", result.len());
             log::logger().flush();
-            let route = backtrack_edges(o, d, result, g_e2).unwrap();
-            let mut route_edge_ids: Vec<EdgeId> = route.iter().map(|r| r.edge_id).collect();
-            route_edge_ids.insert(0, o);
-            route_edge_ids.push(d);
-            info!("{:?}", route_edge_ids)
+            if result.is_empty() {
+                warn!("no path exists between requested origin and target")
+            } else {
+                let route = backtrack_edges(o, d, result, g_e2).unwrap();
+                let time_ms = route
+                    .clone()
+                    .into_iter()
+                    .map(|e| e.edge_cost())
+                    .reduce(|x, y| x + y)
+                    .unwrap();
+                let time_sec = time_ms.0 * 1000;
+                info!("found route with {} edges", route.len());
+                info!("route takes {} seconds", time_sec);
+                info!("done!");
+            }
         }
     }
 }
