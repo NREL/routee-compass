@@ -52,26 +52,22 @@ where
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let mut open_set: KeyedPriorityQueue<AStarFrontier<S>, Cost> = KeyedPriorityQueue::new();
     let mut g_score: HashMap<VertexId, Cost> = HashMap::new();
-    let mut f_score: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, AStarTraversal<S>> = HashMap::new();
 
     // setup initial search state
     g_score.insert(source, Cost::ZERO);
-    f_score.insert(source, h_cost(source, target, &c, &g)?);
     let origin = AStarFrontier {
         vertex_id: source,
         prev_edge_id: None,
         state: m.initial_state()?,
     };
-    open_set.push(origin, Cost::ZERO);
+    let origin_cost = h_cost(source, target, &c, &g)?;
+    open_set.push(origin, -origin_cost);
 
-    // run search
+    // run search loop until we reach the destination, or fail if the set is ever empty
     loop {
         match open_set.pop() {
-            None => {
-                let empty: HashMap<VertexId, AStarTraversal<S>> = HashMap::new();
-                return Ok(empty);
-            }
+            None => return Err(SearchError::NoPathExists(source, target)),
             Some((current, _)) if current.vertex_id == target => break,
             Some((current, _)) => {
                 let triplets = g
@@ -81,34 +77,28 @@ where
                 for (src_id, edge_id, dst_id) in triplets {
                     let et =
                         EdgeTraversal::new(edge_id, current.prev_edge_id, current.state, &g, &m)?;
-                    let h_cost_value = h_cost(src_id, target, &c, &g)?;
+                    let dst_h_cost = h_cost(dst_id, target, &c, &g)?;
                     let src_gscore = g_score.get(&src_id).unwrap_or(&Cost::INFINITY);
-                    let tentative_gscore = *src_gscore + et.access_cost + et.traversal_cost;
-                    let dst_gscore = g_score.get(&dst_id).unwrap_or(&Cost::INFINITY);
-                    if tentative_gscore < *dst_gscore {
-                        let f_score_value = tentative_gscore + h_cost_value;
+                    let tentative_gscore = *src_gscore + et.edge_cost();
+                    let existing_gscore = g_score.get(&dst_id).unwrap_or(&Cost::INFINITY);
+                    if tentative_gscore < *existing_gscore {
+                        g_score.insert(dst_id, tentative_gscore);
+
+                        // update solution
                         let traversal = AStarTraversal {
                             terminal_vertex: src_id,
                             edge_traversal: et,
                         };
-                        g_score.insert(dst_id, tentative_gscore);
-                        f_score.insert(dst_id, f_score_value);
                         solution.insert(dst_id, traversal);
 
+                        // update open set
                         let f = AStarFrontier {
                             vertex_id: dst_id,
                             prev_edge_id: Some(edge_id),
                             state: et.result_state,
                         };
-
-                        // from pseudocode, "if neighbor not in open_set"; here, get priority is a lookup
-                        // by hash value of the AStarFrontier, which uses the VertexId hash as a proxy.
-                        match open_set.get_priority(&f) {
-                            None => {
-                                open_set.push(f, -f_score_value); // negate, a min-ordered queue
-                            }
-                            Some(_) => {}
-                        }
+                        let f_score_value = tentative_gscore + dst_h_cost;
+                        open_set.push(f, -f_score_value);
                     }
                 }
             }
@@ -178,6 +168,13 @@ where
             traversal_model.clone(),
             cost_estimate_fn.clone(),
         )?;
+
+        if tree.is_empty() {
+            return Err(SearchError::NoPathExists(
+                source_edge_dst_vertex_id,
+                target_edge_src_vertex_id,
+            ));
+        }
 
         // append source/target edge traversals to the tree
         // no costs added for now, this would require flipping the order here and
