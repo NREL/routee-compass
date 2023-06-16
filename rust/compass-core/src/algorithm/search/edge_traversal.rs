@@ -16,7 +16,19 @@ pub struct EdgeTraversal<S: Copy + Clone> {
     pub result_state: S,
 }
 
-impl<S: Display + Copy> Display for EdgeTraversal<S> {
+impl<S> EdgeTraversal<S>
+where
+    S: Copy,
+{
+    pub fn edge_cost(&self) -> Cost {
+        return self.access_cost + self.traversal_cost;
+    }
+}
+
+impl<S> Display for EdgeTraversal<S>
+where
+    S: Display + Copy,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -26,7 +38,10 @@ impl<S: Display + Copy> Display for EdgeTraversal<S> {
     }
 }
 
-impl<S: Sync + Send + Eq + Copy + Clone> EdgeTraversal<S> {
+impl<S> EdgeTraversal<S>
+where
+    S: Sync + Send + Eq + Copy + Clone,
+{
     ///
     /// traverses an edge, possibly after traversing some previous edge,
     /// collecting the access and traversal costs. returns the
