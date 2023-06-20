@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 use crate::{prototype::graph::Link, prototype::map::SearchInput};
 
 // scale the energy by this factor to make it an integer
-pub const ROUTEE_SCALE_FACTOR: f64 = 100000.0;
+pub const ROUTEE_SCALE_FACTOR: f64 = 100_000_000.0;
 
 pub const CENTIMETERS_TO_MILES: f64 = 6.213712e-6;
 
@@ -120,9 +120,9 @@ pub fn build_routee_cost_function_with_tods(
         let energy_per_mile = rf.predict(&x).unwrap()[0];
 
         let energy = energy_per_mile * distance_miles;
-        println!("energy: {}", energy);
         let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
-        println!("scaled_energy: {}", scaled_energy);
         scaled_energy as usize 
     })
 }
+
+

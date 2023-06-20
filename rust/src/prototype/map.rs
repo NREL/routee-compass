@@ -104,17 +104,29 @@ pub struct SearchResult {
     #[pyo3(get)]
     pub search_id: String,
     #[pyo3(get)]
-    pub time_seconds: usize,
+    pub time_seconds: f64,
     #[pyo3(get)]
     pub energy_gallons_gas: f64,
     #[pyo3(get)]
     pub path: Vec<Link>,
 }
 
-pub fn compute_time_seconds_over_path(path: &Vec<Link>, search_input: &SearchInput) -> usize {
-    path.iter()
-        .map(build_shortest_time_function(search_input.clone()))
-        .sum()
+pub fn compute_time_seconds_over_path(path: &Vec<Link>, search_input: &SearchInput) -> f64 {
+    let mut time_seconds = 0.0;
+    for link in path.iter() {
+        let mut speed_kph = link.speed_kph as f64;
+        if let Some(profile_id) = link.week_profile_ids[search_input.day_of_week] {
+            let speed_modifier = search_input
+                .time_of_day_speeds
+                .get_modifier_by_second_of_day(profile_id, search_input.second_of_day);
+            speed_kph *= speed_modifier;
+        } 
+        let distance_km = link.distance_centimeters as f64 / 100_000.0;
+        let time_hours = distance_km / speed_kph;
+        let time_seconds_link = time_hours * 3600.0;
+        time_seconds += time_seconds_link;
+    }
+    time_seconds
 }
 
 #[pyclass]
@@ -221,7 +233,6 @@ impl RustMap {
             build_restriction_function(search_input.vehicle_parameters),
         ) {
             Some((scaled_energy, nodes_in_path)) => {
-                println!("final scaled energy: {}", scaled_energy);
                 let path = self.graph.get_links_in_path(nodes_in_path);
                 let time_seconds = compute_time_seconds_over_path(&path, &search_input);
                 let energy = compute_energy_over_path(&path, &search_input).unwrap();
