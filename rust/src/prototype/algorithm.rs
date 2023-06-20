@@ -26,24 +26,27 @@ pub fn build_restriction_function(
 ) -> impl Fn(&Link) -> bool {
     move |link: &Link| {
         if let Some(vehicle) = &vehicle_parameters {
-            // NOTE: not currently using weight limit
+            // NOTE: these restrictions are not being used as the 
+            // vehicle gets stuck trying to navigate from the origin 
+            // out into the network 
+
             // let over_weight_limit = match link.weight_limit_lbs {
             //     Some(limit) => vehicle.weight_lbs > limit,
+            //     None => false,
+            // };
+            // let over_width_limit = match link.width_limit_inches {
+            //     Some(limit) => vehicle.width_inches > limit,
+            //     None => false,
+            // };
+            // let over_length_limit = match link.length_limit_inches {
+            //     Some(limit) => vehicle.length_inches > limit,
             //     None => false,
             // };
             let over_height_limit = match link.height_limit_inches {
                 Some(limit) => vehicle.height_inches > limit,
                 None => false,
             };
-            let over_width_limit = match link.width_limit_inches {
-                Some(limit) => vehicle.width_inches > limit,
-                None => false,
-            };
-            let over_length_limit = match link.length_limit_inches {
-                Some(limit) => vehicle.length_inches > limit,
-                None => false,
-            };
-            over_height_limit || over_width_limit || over_length_limit
+            over_height_limit
         } else {
             false
         }

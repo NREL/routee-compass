@@ -9,7 +9,10 @@
 #SBATCH --mail-user=Nicholas.Reinicke@nrel.gov
 #SBATCH --mail-type=ALL
 
+export TROLLEY_USERNAME=nreinick
+export TROLLEY_PASSWORD=NRELisgr8!
+
 module purge
 . activate /home/$USER/.conda/envs/routee-compass
 
-python build_rust_map.py /projects/mbap/amazon-eco/us_network/ /projects/mbap/green-routing/wa_network --geojson-file /projects/mbap/green-routing/wa_network/wa_boundary.geojson
+python build_rust_map.py /projects/mbap/amazon-eco/us_network/ /projects/mbap/amazon-eco/tmp_us_network/ 

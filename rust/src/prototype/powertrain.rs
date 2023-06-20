@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 use crate::{prototype::graph::Link, prototype::map::SearchInput};
 
 // scale the energy by this factor to make it an integer
-pub const ROUTEE_SCALE_FACTOR: f64 = 100_000_000.0;
+pub const ROUTEE_SCALE_FACTOR: f64 = 1_000_000_000.0;
 
 pub const CENTIMETERS_TO_MILES: f64 = 6.213712e-6;
 
@@ -74,15 +74,25 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
         .collect::<Vec<Vec<f64>>>();
     let x = DenseMatrix::from_2d_vec(&features);
     let energy_per_mile = rf.predict(&x).unwrap();
-    let energy = energy_per_mile
+    let scaled_energy: usize = energy_per_mile
         .iter()
         .zip(path.iter())
         .map(|(energy_per_mile, link)| {
             let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
-            let energy = energy_per_mile * distance_miles;
-            energy
+            let mut energy = energy_per_mile * distance_miles;
+            if link.stop_sign {
+                energy = energy + search_input.stop_cost_gallons_diesel;
+            }
+            if link.traffic_light {
+                // assume 50% of the time we stop at a traffic light
+                let stop_cost = 0.5 * search_input.stop_cost_gallons_diesel;
+                energy = energy + stop_cost;
+            }
+            let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
+            scaled_energy as usize
         })
         .sum();
+    let energy = scaled_energy as f64 / ROUTEE_SCALE_FACTOR;
     Ok(energy)
 }
 
@@ -119,7 +129,15 @@ pub fn build_routee_cost_function_with_tods(
         let x = DenseMatrix::from_2d_vec(&features);
         let energy_per_mile = rf.predict(&x).unwrap()[0];
 
-        let energy = energy_per_mile * distance_miles;
+        let mut energy = energy_per_mile * distance_miles;
+        if link.stop_sign {
+            energy = energy + search_input.stop_cost_gallons_diesel;
+        }
+        if link.traffic_light {
+            // assume 50% of the time we stop at a traffic light
+            let stop_cost = 0.5 * search_input.stop_cost_gallons_diesel;
+            energy = energy + stop_cost;
+        }
         let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
         scaled_energy as usize 
     })
