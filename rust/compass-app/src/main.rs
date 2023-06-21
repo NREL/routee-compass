@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use chrono::Local;
+use chrono::{Duration, Local};
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
@@ -34,20 +34,7 @@ fn main() {
         verbose: true,
     };
     let graph = TomTomGraph::try_from(conf).unwrap();
-    // let empty_adj_rows = graph
-    //     .adj
-    //     .to_owned()
-    //     .into_iter()
-    //     .map(|map| map.values().len())
-    //     .fold(vec![0; 10], |mut acc, cnt| {
-    //         acc[cnt] = acc[cnt] + 1;
-    //         acc
-    //     });
     info!("{} rows in adjacency list", graph.adj.len());
-    // info!(
-    //     "{:?} adj histogram vertices by out link counts",
-    //     empty_adj_rows
-    // );
     info!("{} rows in reverse list", graph.rev.len());
     info!("{} rows in edge list", graph.edges.len());
     info!("{} rows in vertex list", graph.vertices.len());
@@ -92,15 +79,22 @@ fn main() {
                 warn!("no path exists between requested origin and target")
             } else {
                 let route = backtrack_edges(o, d, result, g_e2).unwrap();
+                let g_erol3 = g.read_only();
+                let g_e3 = g_erol3.read().unwrap();
+                let src_vertex = g_e3.dst_vertex(o).unwrap();
+                let dst_vertex = g_e3.src_vertex(d).unwrap();
+                let src = g_e3.vertex_attr(src_vertex).unwrap().to_tuple_underlying();
+                let dst = g_e3.vertex_attr(dst_vertex).unwrap().to_tuple_underlying();
                 let time_ms = route
                     .clone()
                     .into_iter()
                     .map(|e| e.edge_cost())
                     .reduce(|x, y| x + y)
                     .unwrap();
-                let time_sec = time_ms.0 * 1000;
+                let time_sec = Duration::milliseconds(time_ms.0);
+                info!("origin, destination (x,y): {:?} {:?}", src, dst);
                 info!("found route with {} edges", route.len());
-                info!("route takes {} seconds", time_sec);
+                info!("route duration: {:?}", time_sec);
                 info!("done!");
             }
         }
