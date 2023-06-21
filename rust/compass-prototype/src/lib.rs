@@ -13,7 +13,7 @@ use algorithm::extract_largest_scc;
 use pyo3::prelude::*;
 
 #[pymodule]
-fn compass_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn compass_prototype(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<Link>()?;
     m.add_class::<Node>()?;
     m.add_class::<Graph>()?;
