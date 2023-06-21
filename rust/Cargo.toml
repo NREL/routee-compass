@@ -1,20 +1,16 @@
-[package]
-name = "compass_rust"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = [
+    "compass-core",
+    "compass-tomtom",
+    "compass-app",
+    "compass-prototype"
+]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-pyo3 = {version = "0.18.2", features=["extension-module", "anyhow"]}
+[workspace.dependencies]
 serde = {version = "1.0.160", features=["derive"]}
-anyhow = "1.0.70"
-bincode = "1.3.3"
-geo = "0.24.1"
-rstar = "0.10.0"
-smartcore = { version = "0.3.1", features = ["serde"] }
 rayon = "1.7.0"
-
-[lib]
-name = "compass_rust"
-crate-type = ["cdylib"]
+thiserror = "1.0.0"
+flate2 = "1.0"
+kdam = "0.3.0"
+log = "0.4.19"
+env_logger = "0.10.0"

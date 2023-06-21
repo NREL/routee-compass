@@ -1,11 +1,14 @@
-pub mod prototype;
+mod algorithm;
+mod graph;
+mod map;
+mod powertrain;
+mod time_of_day_speed;
 
-
-use prototype::algorithm::extract_largest_scc;
-use prototype::graph::{Graph, Link, Node};
-use prototype::map::{RustMap, SearchInput, SearchResult, SearchType};
-use prototype::powertrain::VehicleParameters;
-use prototype::time_of_day_speed::TimeOfDaySpeeds;
+use crate::graph::{Graph, Link, Node};
+use crate::map::{RustMap, SearchInput, SearchResult, SearchType};
+use crate::powertrain::VehicleParameters;
+use crate::time_of_day_speed::TimeOfDaySpeeds;
+use algorithm::extract_largest_scc;
 
 use pyo3::prelude::*;
 

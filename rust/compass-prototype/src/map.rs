@@ -4,7 +4,7 @@ use anyhow::Result;
 use pyo3::{prelude::*, types::PyType};
 use rayon::prelude::*;
 
-use crate::prototype::{
+use crate::{
     algorithm::{build_restriction_function, dijkstra_shortest_path},
     graph::{Graph, Link, Node},
     powertrain::{

@@ -5,7 +5,7 @@ use smartcore::{
 use anyhow::Result;
 use pyo3::prelude::*;
 
-use crate::{prototype::graph::Link, prototype::map::SearchInput};
+use crate::{graph::Link, map::SearchInput};
 
 // scale the energy by this factor to make it an integer
 pub const ROUTEE_SCALE_FACTOR: f64 = 1_000_000_000.0;

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from nrel.routee.compass.compass_rust import (
+from nrel.routee.compass.compass_prototype import (
     Link,
     Node,
     Graph,

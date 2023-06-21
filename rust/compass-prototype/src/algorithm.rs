@@ -1,8 +1,8 @@
 use std::collections::{BinaryHeap, HashMap};
 use std::{cmp::Reverse, collections::HashSet};
 
-use crate::prototype::graph::{Graph, Link, NodeId};
-use crate::prototype::powertrain::VehicleParameters;
+use crate::graph::{Graph, Link, NodeId};
+use crate::powertrain::VehicleParameters;
 
 use pyo3::prelude::*;
 
@@ -189,7 +189,7 @@ pub fn extract_largest_scc(graph: &Graph) -> Graph {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::prototype::graph::{Link, Node};
+    use crate::graph::{Link, Node};
 
     fn dummy_link_from_nodes(a: NodeId, b: NodeId) -> Link {
         Link::new(

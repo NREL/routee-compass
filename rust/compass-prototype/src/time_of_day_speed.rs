@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use pyo3::prelude::*;
 
-use crate::prototype::graph::Link;
+use crate::graph::Link;
 
 pub type ProfileId = u16;
 pub type SecondOfDay = u32;
@@ -97,7 +97,6 @@ impl TimeOfDaySpeeds {
         } else {
             link.time_seconds()
         }
-
     }
 }
 
