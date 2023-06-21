@@ -2,7 +2,8 @@
 members = [
     "compass-core",
     "compass-tomtom",
-    "compass-app"
+    "compass-app",
+    "compass-prototype"
 ]
 
 [workspace.dependencies]

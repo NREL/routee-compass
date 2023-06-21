@@ -39,5 +39,5 @@ line-length = 100
 [tool.maturin]
 python-source="python"
 features = ["pyo3/extension-module"]
-module-name = "nrel.routee.compass.compass_rust"
-manifest-path = "rust/Cargo.toml"
+module-name = "nrel.routee.compass.compass_prototype"
+manifest-path = "rust/compass-prototype/Cargo.toml"

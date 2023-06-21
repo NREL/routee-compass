@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 use crate::{graph::Link, map::SearchInput};
 
 // scale the energy by this factor to make it an integer
-pub const ROUTEE_SCALE_FACTOR: f64 = 100000.0;
+pub const ROUTEE_SCALE_FACTOR: f64 = 1_000_000_000.0;
 
 pub const CENTIMETERS_TO_MILES: f64 = 6.213712e-6;
 
@@ -55,15 +55,15 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
         .map(|link| {
             let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
             let vehicle_params = search_input.vehicle_parameters;
-            let mut modifier = 1.0;
-            if let Some(profile_id) = link.week_profile_ids[search_input.day_of_week] {
-                modifier = search_input
-                    .time_of_day_speeds
-                    .get_modifier_by_second_of_day(profile_id, search_input.second_of_day);
-            }
-
-            let time_hours = link.time_seconds() as f64 / 3600.0;
-            let speed_mph = (distance_miles / time_hours) * modifier;
+            let time_seconds = search_input
+                .time_of_day_speeds
+                .link_time_seconds_by_time_of_day(
+                    link,
+                    search_input.second_of_day,
+                    search_input.day_of_week,
+                );
+            let time_hours = time_seconds as f64 / 3600.0;
+            let speed_mph = distance_miles / time_hours;
             let grade = link.grade as f64;
 
             match vehicle_params {
@@ -74,20 +74,31 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
         .collect::<Vec<Vec<f64>>>();
     let x = DenseMatrix::from_2d_vec(&features);
     let energy_per_mile = rf.predict(&x).unwrap();
-    let energy = energy_per_mile
+    let scaled_energy: usize = energy_per_mile
         .iter()
         .zip(path.iter())
         .map(|(energy_per_mile, link)| {
             let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
-            energy_per_mile * distance_miles
+            let mut energy = energy_per_mile * distance_miles;
+            if link.stop_sign {
+                energy = energy + search_input.stop_cost_gallons_diesel;
+            }
+            if link.traffic_light {
+                // assume 50% of the time we stop at a traffic light
+                let stop_cost = 0.5 * search_input.stop_cost_gallons_diesel;
+                energy = energy + stop_cost;
+            }
+            let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
+            scaled_energy as usize
         })
         .sum();
+    let energy = scaled_energy as f64 / ROUTEE_SCALE_FACTOR;
     Ok(energy)
 }
 
 pub fn build_routee_cost_function_with_tods(
     search_input: SearchInput,
-) -> Result<impl Fn(&Link) -> u32> {
+) -> Result<impl Fn(&Link) -> usize> {
     let model_file_path = search_input.routee_model_path.ok_or(anyhow::anyhow!(
         "routee_model_path must be set in SearchInput"
     ))?;
@@ -99,15 +110,15 @@ pub fn build_routee_cost_function_with_tods(
     Ok(move |link: &Link| {
         let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
         let vehicle_params = search_input.vehicle_parameters;
-        let mut modifier = 1.0;
-        if let Some(profile_id) = link.week_profile_ids[search_input.day_of_week] {
-            modifier = search_input
-                .time_of_day_speeds
-                .get_modifier_by_second_of_day(profile_id, search_input.second_of_day);
-        }
-
-        let time_hours = link.time_seconds() as f64 / 3600.0;
-        let speed_mph = (distance_miles / time_hours) * modifier;
+        let time_seconds = search_input
+            .time_of_day_speeds
+            .link_time_seconds_by_time_of_day(
+                link,
+                search_input.second_of_day,
+                search_input.day_of_week,
+            );
+        let time_hours = time_seconds as f64 / 3600.0;
+        let speed_mph = distance_miles / time_hours;
         let grade = link.grade as f64;
 
         let features = match vehicle_params {
@@ -118,8 +129,18 @@ pub fn build_routee_cost_function_with_tods(
         let x = DenseMatrix::from_2d_vec(&features);
         let energy_per_mile = rf.predict(&x).unwrap()[0];
 
-        let energy = energy_per_mile * distance_miles;
+        let mut energy = energy_per_mile * distance_miles;
+        if link.stop_sign {
+            energy = energy + search_input.stop_cost_gallons_diesel;
+        }
+        if link.traffic_light {
+            // assume 50% of the time we stop at a traffic light
+            let stop_cost = 0.5 * search_input.stop_cost_gallons_diesel;
+            energy = energy + stop_cost;
+        }
         let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
-        scaled_energy as u32
+        scaled_energy as usize 
     })
 }
+
+

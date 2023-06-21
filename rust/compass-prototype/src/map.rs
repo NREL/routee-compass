@@ -9,10 +9,11 @@ use crate::{
     graph::{Graph, Link, Node},
     powertrain::{
         build_routee_cost_function_with_tods, compute_energy_over_path, VehicleParameters,
-        ROUTEE_SCALE_FACTOR,
     },
     time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
 };
+
+use super::algorithm::build_shortest_time_function;
 
 #[pyclass]
 #[derive(Clone, Copy)]
@@ -40,6 +41,12 @@ pub struct SearchInput {
     pub vehicle_parameters: Option<VehicleParameters>,
     #[pyo3(get)]
     pub routee_model_path: Option<String>,
+    #[pyo3(get)]
+    pub stop_cost_gallons_diesel: f64,
+    #[pyo3(get)]
+    pub stop_cost_time_seconds: u32,
+    #[pyo3(get)]
+    pub traffic_light_cost_time_seconds: u32,
 }
 
 impl Default for SearchInput {
@@ -53,6 +60,9 @@ impl Default for SearchInput {
             time_of_day_speeds: Default::default(),
             vehicle_parameters: None,
             routee_model_path: None,
+            stop_cost_gallons_diesel: 0.001,
+            stop_cost_time_seconds: 10,
+            traffic_light_cost_time_seconds: 5,
         }
     }
 }
@@ -69,6 +79,9 @@ impl SearchInput {
         time_of_day_speeds: Option<TimeOfDaySpeeds>,
         vehicle_parameters: Option<VehicleParameters>,
         routee_model_path: Option<String>,
+        stop_cost_gallons_diesel: Option<f64>,
+        stop_cost_time_seconds: Option<u32>,
+        traffic_light_cost_time_seconds: Option<u32>,
     ) -> Self {
         SearchInput {
             search_id,
@@ -79,6 +92,9 @@ impl SearchInput {
             time_of_day_speeds: time_of_day_speeds.unwrap_or_default(),
             vehicle_parameters,
             routee_model_path,
+            stop_cost_gallons_diesel: stop_cost_gallons_diesel.unwrap_or_default(),
+            stop_cost_time_seconds: stop_cost_time_seconds.unwrap_or_default(),
+            traffic_light_cost_time_seconds: traffic_light_cost_time_seconds.unwrap_or_default(),
         }
     }
 }
@@ -88,25 +104,29 @@ pub struct SearchResult {
     #[pyo3(get)]
     pub search_id: String,
     #[pyo3(get)]
-    pub time_seconds: u32,
+    pub time_seconds: f64,
     #[pyo3(get)]
     pub energy_gallons_gas: f64,
     #[pyo3(get)]
     pub path: Vec<Link>,
 }
 
-pub fn compute_time_seconds_over_path(path: &Vec<Link>, search_input: &SearchInput) -> u32 {
-    path.iter()
-        .map(|link| {
-            search_input
+pub fn compute_time_seconds_over_path(path: &Vec<Link>, search_input: &SearchInput) -> f64 {
+    let mut time_seconds = 0.0;
+    for link in path.iter() {
+        let mut speed_kph = link.speed_kph as f64;
+        if let Some(profile_id) = link.week_profile_ids[search_input.day_of_week] {
+            let speed_modifier = search_input
                 .time_of_day_speeds
-                .link_time_seconds_by_time_of_day(
-                    link,
-                    search_input.second_of_day,
-                    search_input.day_of_week,
-                )
-        })
-        .sum()
+                .get_modifier_by_second_of_day(profile_id, search_input.second_of_day);
+            speed_kph *= speed_modifier;
+        } 
+        let distance_km = link.distance_centimeters as f64 / 100_000.0;
+        let time_hours = distance_km / speed_kph;
+        let time_seconds_link = time_hours * 3600.0;
+        time_seconds += time_seconds_link;
+    }
+    time_seconds
 }
 
 #[pyclass]
@@ -182,19 +202,12 @@ impl RustMap {
             &self.graph,
             &start_node.id,
             &end_node.id,
-            |link| {
-                search_input
-                    .time_of_day_speeds
-                    .link_time_seconds_by_time_of_day(
-                        link,
-                        search_input.second_of_day,
-                        search_input.day_of_week,
-                    )
-            },
+            build_shortest_time_function(search_input.clone()),
             build_restriction_function(search_input.vehicle_parameters),
         ) {
-            Some((time_seconds, node_path)) => {
+            Some((_, node_path)) => {
                 let path = self.graph.get_links_in_path(node_path);
+                let time_seconds = compute_time_seconds_over_path(&path, &search_input);
                 let energy = compute_energy_over_path(&path, &search_input).unwrap();
                 Some(SearchResult {
                     search_id: search_input.search_id,
@@ -220,9 +233,9 @@ impl RustMap {
             build_restriction_function(search_input.vehicle_parameters),
         ) {
             Some((scaled_energy, nodes_in_path)) => {
-                let energy = scaled_energy as f64 / ROUTEE_SCALE_FACTOR;
                 let path = self.graph.get_links_in_path(nodes_in_path);
                 let time_seconds = compute_time_seconds_over_path(&path, &search_input);
+                let energy = compute_energy_over_path(&path, &search_input).unwrap();
                 Some(SearchResult {
                     search_id: search_input.search_id,
                     time_seconds,
@@ -246,3 +259,4 @@ impl RustMap {
             .collect()
     }
 }
+

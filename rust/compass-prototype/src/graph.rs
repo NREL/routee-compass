@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 pub type NodeId = u32;
 
+
 #[pyclass]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Node {
@@ -57,11 +58,13 @@ pub struct Link {
     #[pyo3(get)]
     pub speed_kph: u8,
     #[pyo3(get)]
-    pub distance_centimeters: u32,
+    pub distance_centimeters: usize,
     #[pyo3(get)]
     pub grade: i16,
     #[pyo3(get)]
-    pub road_class: u8,
+    pub stop_sign: bool,
+    #[pyo3(get)]
+    pub traffic_light: bool,
     #[pyo3(get)]
     pub week_profile_ids: [Option<u16>; 7],
     #[pyo3(get)]
@@ -81,9 +84,10 @@ impl Link {
         start_node: NodeId,
         end_node: NodeId,
         speed_kph: u8,
-        distance_centimeters: u32,
+        distance_centimeters: usize,
         grade: i16,
-        road_class: u8,
+        stop_sign: bool,
+        traffic_light: bool,
         week_profile_ids: [Option<u16>; 7],
         weight_limit_lbs: Option<u32>,
         height_limit_inches: Option<u16>,
@@ -96,7 +100,8 @@ impl Link {
             speed_kph,
             distance_centimeters,
             grade,
-            road_class,
+            stop_sign,
+            traffic_light,
             week_profile_ids,
             weight_limit_lbs,
             height_limit_inches,
@@ -112,18 +117,18 @@ impl Link {
             speed_kph: self.speed_kph,
             distance_centimeters: self.distance_centimeters,
             grade: -self.grade,
-            road_class: self.road_class,
             weight_limit_lbs: self.weight_limit_lbs,
             height_limit_inches: self.height_limit_inches,
             width_limit_inches: self.width_limit_inches,
             length_limit_inches: self.length_limit_inches,
             week_profile_ids: self.week_profile_ids,
+            stop_sign: self.stop_sign,
+            traffic_light: self.traffic_light,
         }
     }
 
-
-    pub fn time_seconds(&self) -> u32 {
-        let speed_centimeters_per_second = (self.speed_kph as f32 * 27.77) as u32;
+    pub fn time_seconds(&self) -> usize {
+        let speed_centimeters_per_second = (self.speed_kph as f32 * 27.77) as usize;
         let time_seconds = self.distance_centimeters / speed_centimeters_per_second;
         time_seconds
     }

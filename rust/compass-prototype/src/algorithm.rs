@@ -6,29 +6,47 @@ use crate::powertrain::VehicleParameters;
 
 use pyo3::prelude::*;
 
+use super::map::SearchInput;
+
+pub fn build_shortest_time_function(search_input: SearchInput) -> impl Fn(&Link) -> usize {
+    move |link: &Link| {
+        let time_seconds = search_input
+            .time_of_day_speeds
+            .link_time_seconds_by_time_of_day(
+                link,
+                search_input.second_of_day,
+                search_input.day_of_week,
+            );
+        time_seconds
+    }
+}
+
 pub fn build_restriction_function(
     vehicle_parameters: Option<VehicleParameters>,
 ) -> impl Fn(&Link) -> bool {
     move |link: &Link| {
         if let Some(vehicle) = &vehicle_parameters {
-            // NOTE: not currently using weight limit
+            // NOTE: these restrictions are not being used as the 
+            // vehicle gets stuck trying to navigate from the origin 
+            // out into the network 
+
             // let over_weight_limit = match link.weight_limit_lbs {
             //     Some(limit) => vehicle.weight_lbs > limit,
+            //     None => false,
+            // };
+            // let over_width_limit = match link.width_limit_inches {
+            //     Some(limit) => vehicle.width_inches > limit,
+            //     None => false,
+            // };
+            // let over_length_limit = match link.length_limit_inches {
+            //     Some(limit) => vehicle.length_inches > limit,
             //     None => false,
             // };
             let over_height_limit = match link.height_limit_inches {
                 Some(limit) => vehicle.height_inches > limit,
                 None => false,
             };
-            let over_width_limit = match link.width_limit_inches {
-                Some(limit) => vehicle.width_inches > limit,
-                None => false,
-            };
-            let over_length_limit = match link.length_limit_inches {
-                Some(limit) => vehicle.length_inches > limit,
-                None => false,
-            };
-            over_height_limit || over_width_limit || over_length_limit
+            over_height_limit
         } else {
             false
         }
@@ -39,13 +57,13 @@ pub fn dijkstra_shortest_path(
     graph: &Graph,
     start: &NodeId,
     end: &NodeId,
-    cost_function: impl Fn(&Link) -> u32,
+    cost_function: impl Fn(&Link) -> usize,
     restriction_function: impl Fn(&Link) -> bool,
-) -> Option<(u32, Vec<NodeId>)> {
+) -> Option<(usize, Vec<NodeId>)> {
     let mut visited = HashSet::new();
     let mut min_heap = BinaryHeap::new();
     let mut parents: HashMap<NodeId, NodeId> = HashMap::new();
-    let mut distances: HashMap<NodeId, u32> = HashMap::new();
+    let mut distances: HashMap<NodeId, usize> = HashMap::new();
 
     min_heap.push((Reverse(0), start.clone()));
     distances.insert(start.clone(), 0);
@@ -180,7 +198,8 @@ mod tests {
             10,
             10,
             10,
-            1,
+            false,
+            false,
             [None, None, None, None, None, None, None],
             None,
             None,
