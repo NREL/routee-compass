@@ -8,3 +8,9 @@ pub struct Vertex {
     pub x: Ordinate,
     pub y: Ordinate,
 }
+
+impl Vertex {
+    pub fn to_tuple_underlying(&self) -> (f64, f64) {
+        (self.x.0, self.y.0)
+    }
+}
