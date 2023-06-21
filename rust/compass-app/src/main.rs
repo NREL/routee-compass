@@ -91,10 +91,16 @@ fn main() {
                     .map(|e| e.edge_cost())
                     .reduce(|x, y| x + y)
                     .unwrap();
-                let time_sec = Duration::milliseconds(time_ms.0);
+                let dur = Duration::milliseconds(time_ms.0);
+                let time_str = format!(
+                    "{}:{}:{}",
+                    dur.num_hours(),
+                    dur.num_minutes() % 60,
+                    dur.num_seconds() % 60
+                );
                 info!("origin, destination (x,y): {:?} {:?}", src, dst);
                 info!("found route with {} edges", route.len());
-                info!("route duration: {:?}", time_sec);
+                info!("route duration: {}", time_str);
                 info!("done!");
             }
         }
