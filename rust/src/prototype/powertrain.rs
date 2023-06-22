@@ -191,7 +191,7 @@ pub fn build_routee_cost_function_with_wet(
             energy = energy + stop_cost;
         }
         let scaled_energy: f64 = energy * ROUTEE_SCALE_FACTOR;
-        let mixed_cost: f64 = scaled_energy_parameter * scaled_energy + scaled_time_parameter * time_hours;
+        let mixed_cost: f64 = scaled_energy_parameter * scaled_energy + scaled_time_parameter * time_seconds;
         mixed_cost as usize 
     })
 }
