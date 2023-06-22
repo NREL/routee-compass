@@ -64,11 +64,11 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
                 );
             let time_hours = time_seconds / 3600.0;
             let speed_mph = distance_miles / time_hours;
-            let grade = link.grade as f64;
+            let grade_percent = link.grade as f64 / 10.0;
 
             match vehicle_params {
-                Some(params) => vec![speed_mph, grade, params.weight_lbs as f64 * 0.453592],
-                None => vec![speed_mph, grade],
+                Some(params) => vec![speed_mph, grade_percent, params.weight_lbs as f64 * 0.453592],
+                None => vec![speed_mph, grade_percent],
             }
         })
         .collect::<Vec<Vec<f64>>>();
@@ -119,11 +119,11 @@ pub fn build_routee_cost_function_with_tods(
             );
         let time_hours = time_seconds / 3600.0;
         let speed_mph = distance_miles / time_hours;
-        let grade = link.grade as f64;
+        let grade_percent = link.grade as f64 / 10.0;
 
         let features = match vehicle_params {
-            Some(params) => vec![vec![speed_mph, grade, params.weight_lbs as f64 * 0.453592]],
-            None => vec![vec![speed_mph, grade]],
+            Some(params) => vec![vec![speed_mph, grade_percent, params.weight_lbs as f64 * 0.453592]],
+            None => vec![vec![speed_mph, grade_percent]],
         };
 
         let x = DenseMatrix::from_2d_vec(&features);
