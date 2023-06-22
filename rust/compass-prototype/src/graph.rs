@@ -127,9 +127,9 @@ impl Link {
         }
     }
 
-    pub fn time_seconds(&self) -> usize {
-        let speed_centimeters_per_second = (self.speed_kph as f32 * 27.77) as usize;
-        let time_seconds = self.distance_centimeters / speed_centimeters_per_second;
+    pub fn time_seconds(&self) -> f64 {
+        let speed_centimeters_per_second = self.speed_kph as f64 * 27.77;
+        let time_seconds = self.distance_centimeters as f64 / speed_centimeters_per_second;
         time_seconds
     }
 }

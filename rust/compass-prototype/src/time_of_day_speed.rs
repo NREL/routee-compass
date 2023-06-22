@@ -92,10 +92,10 @@ impl TimeOfDaySpeeds {
     ) -> usize {
         if let Some(profile_id) = link.week_profile_ids[day_of_week] {
             let modifier = self.get_modifier_by_second_of_day(profile_id, second_of_day);
-            (link.time_seconds() as f64 * (1.0/modifier)) as usize 
+            (link.time_seconds() * (1.0/modifier)).round() as usize 
 
         } else {
-            link.time_seconds()
+            link.time_seconds().round() as usize
         }
     }
 }
