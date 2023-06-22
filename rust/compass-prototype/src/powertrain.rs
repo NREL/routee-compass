@@ -67,7 +67,11 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
             let grade_percent = link.grade as f64 / 10.0;
 
             match vehicle_params {
-                Some(params) => vec![speed_mph, grade_percent, params.weight_lbs as f64 * 0.453592],
+                Some(params) => vec![
+                    speed_mph,
+                    grade_percent,
+                    params.weight_lbs as f64 * 0.453592,
+                ],
                 None => vec![speed_mph, grade_percent],
             }
         })
@@ -77,7 +81,12 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
     let energy: f64 = energy_per_mile
         .iter()
         .zip(path.iter())
-        .map(|(energy_per_mile, link)| {
+        .map(|(raw_energy_per_mile, link)| {
+            let energy_per_mile = if *raw_energy_per_mile < 0.0 {
+                0.0
+            } else {
+                *raw_energy_per_mile
+            };
             let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
             let mut energy = energy_per_mile * distance_miles;
             if link.stop_sign {
@@ -89,7 +98,8 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
                 energy = energy + stop_cost;
             }
             energy
-        }).sum();
+        })
+        .sum();
     Ok(energy)
 }
 
@@ -119,12 +129,22 @@ pub fn build_routee_cost_function_with_tods(
         let grade_percent = link.grade as f64 / 10.0;
 
         let features = match vehicle_params {
-            Some(params) => vec![vec![speed_mph, grade_percent, params.weight_lbs as f64 * 0.453592]],
+            Some(params) => vec![vec![
+                speed_mph,
+                grade_percent,
+                params.weight_lbs as f64 * 0.453592,
+            ]],
             None => vec![vec![speed_mph, grade_percent]],
         };
 
         let x = DenseMatrix::from_2d_vec(&features);
-        let energy_per_mile = rf.predict(&x).unwrap()[0];
+        let raw_energy_per_mile = rf.predict(&x).unwrap()[0];
+
+        let energy_per_mile = if raw_energy_per_mile < 0.0 {
+            0.0
+        } else {
+            raw_energy_per_mile
+        };
 
         let mut energy = energy_per_mile * distance_miles;
         if link.stop_sign {
@@ -136,8 +156,6 @@ pub fn build_routee_cost_function_with_tods(
             energy = energy + stop_cost;
         }
         let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
-        scaled_energy.round() as isize 
+        scaled_energy.round() as isize
     })
 }
-
-
