@@ -17,7 +17,7 @@ pub fn build_shortest_time_function(search_input: SearchInput) -> impl Fn(&Link)
                 search_input.second_of_day,
                 search_input.day_of_week,
             );
-        time_seconds
+        time_seconds.round() as usize
     }
 }
 

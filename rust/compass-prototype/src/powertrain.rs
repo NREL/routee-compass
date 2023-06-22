@@ -62,7 +62,7 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
                     search_input.second_of_day,
                     search_input.day_of_week,
                 );
-            let time_hours = time_seconds as f64 / 3600.0;
+            let time_hours = time_seconds / 3600.0;
             let speed_mph = distance_miles / time_hours;
             let grade = link.grade as f64;
 
@@ -117,7 +117,7 @@ pub fn build_routee_cost_function_with_tods(
                 search_input.second_of_day,
                 search_input.day_of_week,
             );
-        let time_hours = time_seconds as f64 / 3600.0;
+        let time_hours = time_seconds / 3600.0;
         let speed_mph = distance_miles / time_hours;
         let grade = link.grade as f64;
 
