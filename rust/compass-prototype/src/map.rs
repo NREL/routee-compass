@@ -232,7 +232,7 @@ impl RustMap {
             routee_cost_function,
             build_restriction_function(search_input.vehicle_parameters),
         ) {
-            Some((scaled_energy, nodes_in_path)) => {
+            Some((_, nodes_in_path)) => {
                 let path = self.graph.get_links_in_path(nodes_in_path);
                 let time_seconds = compute_time_seconds_over_path(&path, &search_input);
                 let energy = compute_energy_over_path(&path, &search_input).unwrap();

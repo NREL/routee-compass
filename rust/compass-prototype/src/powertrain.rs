@@ -74,7 +74,7 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
         .collect::<Vec<Vec<f64>>>();
     let x = DenseMatrix::from_2d_vec(&features);
     let energy_per_mile = rf.predict(&x).unwrap();
-    let scaled_energy: usize = energy_per_mile
+    let energy: f64 = energy_per_mile
         .iter()
         .zip(path.iter())
         .map(|(energy_per_mile, link)| {
@@ -88,11 +88,8 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
                 let stop_cost = 0.5 * search_input.stop_cost_gallons_diesel;
                 energy = energy + stop_cost;
             }
-            let scaled_energy = energy * ROUTEE_SCALE_FACTOR;
-            scaled_energy as usize
-        })
-        .sum();
-    let energy = scaled_energy as f64 / ROUTEE_SCALE_FACTOR;
+            energy
+        }).sum();
     Ok(energy)
 }
 
