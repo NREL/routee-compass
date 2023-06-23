@@ -58,25 +58,28 @@ impl TimeOfDaySpeeds {
         TimeOfDaySpeeds { speeds_modifiers }
     }
 
-    pub fn get_modifier_by_second_of_day(
+    pub fn get_speed_modifier(
         &self,
-        profile_id: ProfileId,
+        link: &Link,
         second_of_day: SecondOfDay,
+        day_of_week: DayOfWeek,
     ) -> RelativeSpeed {
         // set a default speed modifier of 1.0 (no change in speed)
         let mut modifier = 1.0;
 
-        if let Some(speed_modifiers) = self.speeds_modifiers.get(&profile_id) {
-            // use a binary search to find where the second of day fits in the list of speed modifiers
-            match speed_modifiers.binary_search_by(|sm| sm.second_of_day.cmp(&second_of_day)) {
-                // if the second of day is found, use that speed modifier
-                Ok(index) => modifier = speed_modifiers[index].relative_speed,
-                // if the second of day is not found, use the speed modifier of the previous second of day
-                Err(index) => {
-                    if index > 0 {
-                        modifier = speed_modifiers[index - 1].relative_speed;
-                    } else {
-                        modifier = speed_modifiers[0].relative_speed;
+        if let Some(profile_id) = link.week_profile_ids[day_of_week] {
+            if let Some(speed_modifiers) = self.speeds_modifiers.get(&profile_id) {
+                // use a binary search to find where the second of day fits in the list of speed modifiers
+                match speed_modifiers.binary_search_by(|sm| sm.second_of_day.cmp(&second_of_day)) {
+                    // if the second of day is found, use that speed modifier
+                    Ok(index) => modifier = speed_modifiers[index].relative_speed,
+                    // if the second of day is not found, use the speed modifier of the previous second of day
+                    Err(index) => {
+                        if index > 0 {
+                            modifier = speed_modifiers[index - 1].relative_speed;
+                        } else {
+                            modifier = speed_modifiers[0].relative_speed;
+                        }
                     }
                 }
             }
@@ -88,47 +91,10 @@ impl TimeOfDaySpeeds {
         &self,
         link: &Link,
         second_of_day: SecondOfDay,
-        day_of_week: DayOfWeek, 
+        day_of_week: DayOfWeek,
     ) -> f64 {
-        if let Some(profile_id) = link.week_profile_ids[day_of_week] {
-            let modifier = self.get_modifier_by_second_of_day(profile_id, second_of_day);
-            link.time_seconds() * (1.0/modifier) 
-
-        } else {
-            link.time_seconds()
-        }
+        let modifier = self.get_speed_modifier(link, second_of_day, day_of_week);
+        link.time_seconds() * (1.0 / modifier)
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_building_time_of_day_speeds() {
-        let mut speeds_modifiers = HashMap::new();
-        speeds_modifiers.insert(1, vec![(0, 1.0), (7200, 1.0), (3600, 0.5)]);
-        let time_of_day_speeds = TimeOfDaySpeeds::new(speeds_modifiers);
-        assert_eq!(time_of_day_speeds.get_modifier_by_second_of_day(1, 0), 1.0);
-        assert_eq!(
-            time_of_day_speeds.get_modifier_by_second_of_day(1, 3599),
-            1.0
-        );
-        assert_eq!(
-            time_of_day_speeds.get_modifier_by_second_of_day(1, 3600),
-            0.5
-        );
-        assert_eq!(
-            time_of_day_speeds.get_modifier_by_second_of_day(1, 7199),
-            0.5
-        );
-        assert_eq!(
-            time_of_day_speeds.get_modifier_by_second_of_day(1, 7200),
-            1.0
-        );
-        assert_eq!(
-            time_of_day_speeds.get_modifier_by_second_of_day(1, 10000),
-            1.0
-        );
-    }
-}

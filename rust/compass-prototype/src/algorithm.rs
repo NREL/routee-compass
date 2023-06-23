@@ -8,17 +8,35 @@ use pyo3::prelude::*;
 
 use super::map::SearchInput;
 
-pub fn build_shortest_time_function(search_input: SearchInput) -> impl Fn(&Link) -> isize {
-    move |link: &Link| {
-        let time_seconds = search_input
-            .time_of_day_speeds
-            .link_time_seconds_by_time_of_day(
-                link,
-                search_input.second_of_day,
-                search_input.day_of_week,
-            );
-        time_seconds.round() as isize
+pub fn compute_link_speed_kph(link: &Link, search_input: &SearchInput) -> f64 {
+    let mut speed_kph = link.speed_kph as f64;
+    let speed_modifier = search_input.time_of_day_speeds.get_speed_modifier(
+        link,
+        search_input.second_of_day,
+        search_input.day_of_week,
+    );
+    speed_kph = speed_kph * speed_modifier;
+
+    if let Some(vehicle_parameters) = search_input.vehicle_parameters {
+        if speed_kph > vehicle_parameters.max_speed_kph {
+            speed_kph = vehicle_parameters.max_speed_kph;
+        }
     }
+
+    speed_kph
+}
+
+pub fn compute_link_time_seconds(link: &Link, search_input: &SearchInput) -> isize {
+    let speed_kph = compute_link_speed_kph(link, search_input);
+    let link_distance_kilometers = link.distance_centimeters as f64 / 100_000.0;
+    let time_hours = link_distance_kilometers / speed_kph;
+    let time_seconds = time_hours * 3600.0;
+
+    time_seconds.round() as isize
+}
+
+pub fn build_shortest_time_function(search_input: SearchInput) -> impl Fn(&Link) -> isize {
+    move |link: &Link| compute_link_time_seconds(link, &search_input)
 }
 
 pub fn build_restriction_function(
@@ -26,9 +44,9 @@ pub fn build_restriction_function(
 ) -> impl Fn(&Link) -> bool {
     move |link: &Link| {
         if let Some(vehicle) = &vehicle_parameters {
-            // NOTE: these restrictions are not being used as the 
-            // vehicle gets stuck trying to navigate from the origin 
-            // out into the network 
+            // NOTE: these restrictions are not being used as the
+            // vehicle gets stuck trying to navigate from the origin
+            // out into the network
 
             // let over_weight_limit = match link.weight_limit_lbs {
             //     Some(limit) => vehicle.weight_lbs > limit,

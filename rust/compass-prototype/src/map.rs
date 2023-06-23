@@ -5,7 +5,10 @@ use pyo3::{prelude::*, types::PyType};
 use rayon::prelude::*;
 
 use crate::{
-    algorithm::{build_restriction_function, dijkstra_shortest_path},
+    algorithm::{
+        build_restriction_function, compute_link_speed_kph, compute_link_time_seconds,
+        dijkstra_shortest_path,
+    },
     graph::{Graph, Link, Node},
     powertrain::{
         build_routee_cost_function_with_tods, compute_energy_over_path, VehicleParameters,
@@ -114,13 +117,7 @@ pub struct SearchResult {
 pub fn compute_time_seconds_over_path(path: &Vec<Link>, search_input: &SearchInput) -> f64 {
     let mut time_seconds = 0.0;
     for link in path.iter() {
-        let mut speed_kph = link.speed_kph as f64;
-        if let Some(profile_id) = link.week_profile_ids[search_input.day_of_week] {
-            let speed_modifier = search_input
-                .time_of_day_speeds
-                .get_modifier_by_second_of_day(profile_id, search_input.second_of_day);
-            speed_kph *= speed_modifier;
-        } 
+        let speed_kph = compute_link_speed_kph(link, search_input);
         let distance_km = link.distance_centimeters as f64 / 100_000.0;
         let time_hours = distance_km / speed_kph;
         let time_seconds_link = time_hours * 3600.0;
@@ -259,4 +256,3 @@ impl RustMap {
             .collect()
     }
 }
-

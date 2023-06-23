@@ -5,7 +5,7 @@ use smartcore::{
 use anyhow::Result;
 use pyo3::prelude::*;
 
-use crate::{graph::Link, map::SearchInput};
+use crate::{graph::Link, map::SearchInput, algorithm::compute_link_speed_kph};
 
 // scale the energy by this factor to make it an integer
 pub const ROUTEE_SCALE_FACTOR: f64 = 1_000_000_000.0;
@@ -23,17 +23,20 @@ pub struct VehicleParameters {
     pub width_inches: u16,
     #[pyo3(get)]
     pub length_inches: u16,
+    #[pyo3(get)]
+    pub max_speed_kph: f64,
 }
 
 #[pymethods]
 impl VehicleParameters {
     #[new]
-    pub fn new(weight_lbs: u32, height_inches: u16, width_inches: u16, length_inches: u16) -> Self {
+    pub fn new(weight_lbs: u32, height_inches: u16, width_inches: u16, length_inches: u16, max_speed_kph: f64) -> Self {
         VehicleParameters {
             weight_lbs,
             height_inches,
             width_inches,
             length_inches,
+            max_speed_kph,
         }
     }
 }
@@ -53,17 +56,9 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
     let features = path
         .iter()
         .map(|link| {
-            let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
             let vehicle_params = search_input.vehicle_parameters;
-            let time_seconds = search_input
-                .time_of_day_speeds
-                .link_time_seconds_by_time_of_day(
-                    link,
-                    search_input.second_of_day,
-                    search_input.day_of_week,
-                );
-            let time_hours = time_seconds / 3600.0;
-            let speed_mph = distance_miles / time_hours;
+            let speed_kph = compute_link_speed_kph(link, search_input);
+            let speed_mph = speed_kph * 0.621371;
             let grade_percent = link.grade as f64 / 10.0;
 
             match vehicle_params {
@@ -106,7 +101,7 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
 pub fn build_routee_cost_function_with_tods(
     search_input: SearchInput,
 ) -> Result<impl Fn(&Link) -> isize> {
-    let model_file_path = search_input.routee_model_path.ok_or(anyhow::anyhow!(
+    let model_file_path = search_input.routee_model_path.clone().ok_or(anyhow::anyhow!(
         "routee_model_path must be set in SearchInput"
     ))?;
     let rf_binary = std::fs::read(model_file_path)?;
@@ -117,15 +112,8 @@ pub fn build_routee_cost_function_with_tods(
     Ok(move |link: &Link| {
         let distance_miles = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
         let vehicle_params = search_input.vehicle_parameters;
-        let time_seconds = search_input
-            .time_of_day_speeds
-            .link_time_seconds_by_time_of_day(
-                link,
-                search_input.second_of_day,
-                search_input.day_of_week,
-            );
-        let time_hours = time_seconds / 3600.0;
-        let speed_mph = distance_miles / time_hours;
+        let speed_kph = compute_link_speed_kph(link, &search_input);
+        let speed_mph = speed_kph * 0.621371;
         let grade_percent = link.grade as f64 / 10.0;
 
         let features = match vehicle_params {
