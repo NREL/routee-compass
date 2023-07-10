@@ -12,7 +12,8 @@ use compass_core::{
     model::{
         graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
         traversal::{
-            free_flow_traversal_model::FreeFlowTraversalModel, traversal_model::TraversalModel,
+            free_flow_traversal_model::FreeFlowTraversalModel, state::search_state::SearchState,
+            traversal_model::TraversalModel,
         },
     },
     util::read_only_lock::DriverReadOnlyLock,
@@ -50,7 +51,7 @@ fn main() {
         &haversine as &dyn CostEstimateFunction,
     ));
     let t = Arc::new(DriverReadOnlyLock::new(
-        &traversal_model as &dyn TraversalModel<State = i64>,
+        &traversal_model as &dyn TraversalModel<State = SearchState>,
     ));
 
     let (o, d) = (
