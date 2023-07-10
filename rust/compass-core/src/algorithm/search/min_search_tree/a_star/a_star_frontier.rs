@@ -1,15 +1,24 @@
 use std::{hash::Hash, hash::Hasher};
 
-use crate::model::{graph::edge_id::EdgeId, graph::vertex_id::VertexId};
+use crate::model::{
+    graph::edge_id::EdgeId, graph::vertex_id::VertexId, traversal::state::search_state::SearchState,
+};
 
-#[derive(Clone, Eq, PartialEq)]
-pub struct AStarFrontier<S> {
+#[derive(Clone)]
+pub struct AStarFrontier {
     pub vertex_id: VertexId,
     pub prev_edge_id: Option<EdgeId>,
-    pub state: S,
+    pub state: SearchState,
 }
 
-impl<S> Hash for AStarFrontier<S> {
+impl PartialEq for AStarFrontier {
+    fn eq(&self, other: &Self) -> bool {
+        self.vertex_id == other.vertex_id
+    }
+}
+impl Eq for AStarFrontier {}
+
+impl Hash for AStarFrontier {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.vertex_id.hash(state);
     }

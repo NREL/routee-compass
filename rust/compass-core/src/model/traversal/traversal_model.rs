@@ -9,7 +9,7 @@ use crate::{
 use super::traversal_error::TraversalError;
 
 pub trait TraversalModel: Sync + Send {
-    type State: Sync + Send + Eq + Copy + Clone;
+    type State: Sync + Send + Clone;
 
     fn initial_state(&self) -> Result<Self::State, TraversalError>;
 

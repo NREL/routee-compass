@@ -6,13 +6,17 @@ use crate::{
     },
 };
 
-use super::{traversal_error::TraversalError, traversal_model::TraversalModel};
+use super::{
+    state::{search_state::SearchState, state_variable::StateVar},
+    traversal_error::TraversalError,
+    traversal_model::TraversalModel,
+};
 
 pub struct FreeFlowTraversalModel;
 impl TraversalModel for FreeFlowTraversalModel {
-    type State = i64;
+    type State = SearchState;
     fn initial_state(&self) -> Result<Self::State, TraversalError> {
-        Ok(0)
+        Ok(vec![vec![StateVar::ZERO]])
     }
 
     fn traversal_cost(
@@ -26,7 +30,9 @@ impl TraversalModel for FreeFlowTraversalModel {
             .distance_centimeters
             .travel_time_millis(&edge.free_flow_speed_cps)
             .0;
-        Ok((Cost(c), state + c))
+        let mut s = state.to_vec();
+        s[0][0] = s[0][0] + StateVar(c as f64);
+        Ok((Cost(c), s))
     }
 
     fn access_cost(
@@ -41,13 +47,16 @@ impl TraversalModel for FreeFlowTraversalModel {
         Ok((Cost::ZERO, state.clone()))
     }
 
-    fn valid_frontier(&self, frontier: &EdgeFrontier<Self::State>) -> Result<bool, TraversalError> {
+    fn valid_frontier(
+        &self,
+        _frontier: &EdgeFrontier<Self::State>,
+    ) -> Result<bool, TraversalError> {
         Ok(true)
     }
 
     fn terminate_search(
         &self,
-        frontier: &EdgeFrontier<Self::State>,
+        _frontier: &EdgeFrontier<Self::State>,
     ) -> Result<bool, TraversalError> {
         Ok(false)
     }
