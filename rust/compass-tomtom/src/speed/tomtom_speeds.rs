@@ -1,6 +1,6 @@
 use compass_core::model::cost::cost::Cost;
+use compass_core::model::traversal::cost_function::cost_function::EdgeCostFunction;
 use compass_core::model::traversal::cost_function::edge_cost_function_config::EdgeCostFunctionConfig;
-use compass_core::model::traversal::cost_function::function::EdgeCostFunction;
 use compass_core::model::traversal::state::has_travel_time::HasTravelTime;
 use compass_core::model::traversal::state::search_state::StateVector;
 use compass_core::model::traversal::state::state_variable::StateVar;
@@ -39,5 +39,6 @@ pub fn from_edgelist_csv(start_time: i64, file: &File, bin_size: i64) -> EdgeCos
         s_update[0] = s_update[0] + StateVar(tt.0 as f64);
         Ok((Cost(tt.0), s_update))
     });
-    todo!()
+
+    return f;
 }

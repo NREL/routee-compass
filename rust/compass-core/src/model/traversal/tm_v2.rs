@@ -1,5 +1,5 @@
 use super::access_result::AccessResult;
-use super::cost_function::function::{
+use super::cost_function::cost_function::{
     EdgeCostFunction, EdgeEdgeCostFunction, TerminateSearchFunction, ValidFrontierFunction,
 };
 use super::traversal_error::TraversalError;

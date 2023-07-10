@@ -283,7 +283,11 @@ fn h_cost(
 
 #[cfg(test)]
 mod tests {
-    use crate::model::traversal::state::search_state::StateVector;
+    use crate::model::traversal::cost_function::edge_cost_function_config::EdgeCostFunctionConfig;
+
+    // use crate::model::traversal::cost_function::free_flow::FREE_FLOW_COST_CONFIG;
+    use crate::model::traversal::tm_v2::TraversalModel2;
+    use crate::model::traversal::traversal_model_config::TraversalModelConfig;
     use crate::{
         algorithm::search::min_search_tree::dijkstra::edge_frontier::EdgeFrontier,
         model::{
@@ -503,6 +507,11 @@ mod tests {
         let driver_dg = Arc::new(DriverReadOnlyLock::new(
             &driver_dg_obj as &dyn DirectedGraph,
         ));
+
+        let driver_tm2_obj = TraversalModel2::from(&TraversalModelConfig {
+            edge_fns: vec![],
+            edge_edge_fns: vec![],
+        });
         let driver_tm_obj = TestModel;
         let driver_tm = Arc::new(DriverReadOnlyLock::new(
             &driver_tm_obj as &dyn TraversalModel<State = SearchState>,
