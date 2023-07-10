@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use derive_more::{Add, Div, Mul, Neg, Sum};
 
-#[derive(Copy, Clone, PartialEq, PartialOrd, Add, Mul, Div, Sum, Neg)]
+#[derive(Copy, Clone, PartialEq, PartialOrd, Add, Mul, Div, Sum, Neg, Debug)]
 pub struct StateVar(pub f64);
 
 impl StateVar {
