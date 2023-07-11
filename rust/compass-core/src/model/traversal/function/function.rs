@@ -28,8 +28,8 @@ pub type EdgeEdgeCostFunction = Box<
 
 /// returns true if the frontier is valid to use in a search
 pub type ValidFrontierFunction =
-    Box<dyn Fn(&EdgeFrontier<Vec<Vec<StateVar>>>) -> Result<bool, TraversalError> + Sync + 'static>;
+    Box<dyn Fn(&EdgeFrontier) -> Result<bool, TraversalError> + Sync + 'static>;
 
 /// returns true if we want to terminate the search upon reaching this frontier
 pub type TerminateSearchFunction =
-    Box<dyn Fn(&EdgeFrontier<Vec<Vec<StateVar>>>) -> Result<bool, TraversalError> + Sync + 'static>;
+    Box<dyn Fn(&EdgeFrontier) -> Result<bool, TraversalError> + Sync + 'static>;

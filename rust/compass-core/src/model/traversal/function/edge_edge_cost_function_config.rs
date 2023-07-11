@@ -1,4 +1,4 @@
-use super::cost_function::{EdgeEdgeCostFunction, TerminateSearchFunction, ValidFrontierFunction};
+use super::function::{EdgeEdgeCostFunction, TerminateSearchFunction, ValidFrontierFunction};
 use crate::model::traversal::state::state_variable::StateVar;
 
 pub struct EdgeEdgeCostFunctionConfig<'a> {
