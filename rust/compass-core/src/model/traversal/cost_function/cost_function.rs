@@ -6,31 +6,30 @@ use crate::model::traversal::traversal_error::TraversalError;
 
 /// the cost for traversing an edge
 pub type EdgeCostFunction = Box<
-    dyn Fn(
-        &Vertex,
-        &Edge,
-        &Vertex,
-        &Vec<StateVar>,
-    ) -> Result<(Cost, Vec<StateVar>), TraversalError>,
+    dyn Fn(&Vertex, &Edge, &Vertex, &Vec<StateVar>) -> Result<(Cost, Vec<StateVar>), TraversalError>
+        + Sync
+        + 'static,
 >;
 
 /// the cost for accessing the 2nd edge argument which can
 /// be subject to the 1st edge argument
 pub type EdgeEdgeCostFunction = Box<
     dyn Fn(
-        &Vertex,
-        &Edge,
-        &Vertex,
-        &Edge,
-        &Vertex,
-        &Vec<StateVar>,
-    ) -> Result<(Cost, Vec<StateVar>), TraversalError>,
+            &Vertex,
+            &Edge,
+            &Vertex,
+            &Edge,
+            &Vertex,
+            &Vec<StateVar>,
+        ) -> Result<(Cost, Vec<StateVar>), TraversalError>
+        + Sync
+        + 'static,
 >;
 
 /// returns true if the frontier is valid to use in a search
 pub type ValidFrontierFunction =
-    Box<dyn Fn(&EdgeFrontier<Vec<Vec<StateVar>>>) -> Result<bool, TraversalError>>;
+    Box<dyn Fn(&EdgeFrontier<Vec<Vec<StateVar>>>) -> Result<bool, TraversalError> + Sync + 'static>;
 
 /// returns true if we want to terminate the search upon reaching this frontier
 pub type TerminateSearchFunction =
-    Box<dyn Fn(&EdgeFrontier<Vec<Vec<StateVar>>>) -> Result<bool, TraversalError>>;
+    Box<dyn Fn(&EdgeFrontier<Vec<Vec<StateVar>>>) -> Result<bool, TraversalError> + Sync + 'static>;
