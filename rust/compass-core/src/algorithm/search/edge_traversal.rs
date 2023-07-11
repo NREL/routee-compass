@@ -1,9 +1,11 @@
+use crate::model::traversal::access_result::AccessResult;
+use crate::model::traversal::tm_v2::TraversalModel2;
+
 use super::search_error::SearchError;
 use crate::model::traversal::state::search_state::SearchState;
 use crate::model::{
     cost::cost::Cost,
     graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
-    traversal::traversal_model::TraversalModel,
 };
 use std::{fmt::Display, sync::RwLockReadGuard};
 
@@ -41,14 +43,14 @@ impl EdgeTraversal {
         prev_edge_id: Option<EdgeId>,
         prev_state: &SearchState,
         g: &RwLockReadGuard<&dyn DirectedGraph>,
-        m: &RwLockReadGuard<&dyn TraversalModel<State = SearchState>>,
+        m: &RwLockReadGuard<&TraversalModel2>,
     ) -> Result<EdgeTraversal, SearchError> {
         let (src, edge, dst) = g
             .edge_triplet_attrs(edge_id)
             .map_err(SearchError::GraphCorrectnessFailure)?;
 
-        let (access_cost, access_state);
-        (access_cost, access_state) = match prev_edge_id {
+        // let (access_cost, access_state);
+        let access_result = match prev_edge_id {
             Some(prev_e) => {
                 let prev_edge = g
                     .edge_attr(prev_e)
@@ -56,19 +58,19 @@ impl EdgeTraversal {
                 let prev_src_v = g.vertex_attr(prev_edge.src_vertex_id)?;
                 m.access_cost(&prev_src_v, &prev_edge, &src, &edge, &dst, &prev_state)
             }
-            None => Ok((Cost::ZERO, prev_state.to_vec())),
+            None => Ok(AccessResult::no_cost(prev_state)),
         }
         .map_err(SearchError::TraversalModelFailure)?;
 
-        let (traversal_cost, result_state) = m
-            .traversal_cost(&src, &edge, &dst, &access_state)
+        let traversal_result = m
+            .traversal_cost(&src, &edge, &dst, &access_result.updated_state)
             .map_err(SearchError::TraversalModelFailure)?;
 
         let result = EdgeTraversal {
             edge_id,
-            access_cost,
-            traversal_cost,
-            result_state,
+            access_cost: access_result.total_cost,
+            traversal_cost: traversal_result.total_cost,
+            result_state: traversal_result.updated_state,
         };
 
         Ok(result)
