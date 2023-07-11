@@ -10,6 +10,7 @@ use crate::algorithm::search::search_error::SearchError;
 use crate::model::cost::cost::Cost;
 use crate::model::graph::edge_id::EdgeId;
 use crate::model::traversal::state::search_state::SearchState;
+use crate::model::traversal::tm_v2::TraversalModel2;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{
@@ -30,7 +31,7 @@ pub fn run_a_star(
     source: VertexId,
     target: VertexId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<&dyn TraversalModel<State = SearchState>>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel2>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
@@ -57,7 +58,7 @@ pub fn run_a_star(
     let origin = AStarFrontier {
         vertex_id: source,
         prev_edge_id: None,
-        state: m.initial_state()?,
+        state: m.initial_state(),
     };
     let origin_cost = h_cost(source, target, &c, &g)?;
     open_set.push(origin, -origin_cost);
@@ -118,14 +119,14 @@ pub fn run_a_star_edge_oriented(
     source: EdgeId,
     target: EdgeId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<&dyn TraversalModel<State = SearchState>>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel2>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let m: RwLockReadGuard<&(dyn TraversalModel<State = SearchState>)> = traversal_model
+    let m: RwLockReadGuard<&TraversalModel2> = traversal_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let source_edge_src_vertex_id = g.src_vertex(source)?;
@@ -138,7 +139,7 @@ pub fn run_a_star_edge_oriented(
         return Ok(empty);
     } else if source_edge_dst_vertex_id == target_edge_src_vertex_id {
         // route is simply source -> target
-        let init_state = m.initial_state()?;
+        let init_state = m.initial_state();
         let src_et = EdgeTraversal::new(source, None, &init_state, &g, &m)?;
         let dst_et = EdgeTraversal::new(target, Some(source), &src_et.result_state, &g, &m)?;
         let src_traversal = AStarTraversal {
@@ -176,7 +177,7 @@ pub fn run_a_star_edge_oriented(
         // no costs added for now, this would require flipping the order here and
         // passing the search state into the vertex-oriented search function
         // that included the traversal of the initial edge.
-        let init_state = m.initial_state()?;
+        let init_state = m.initial_state();
         let final_state = &tree
             .get(&target_edge_src_vertex_id)
             .ok_or(SearchError::VertexMissingFromSearchTree(
@@ -229,8 +230,8 @@ pub fn backtrack(
             break;
         }
 
-        let already_visited = visited.insert(this_vertex);
-        if already_visited {
+        let first_visit = visited.insert(this_vertex);
+        if !first_visit {
             return Err(SearchError::LoopInSearchResult(this_vertex));
         }
 
@@ -285,6 +286,9 @@ fn h_cost(
 mod tests {
     use crate::model::traversal::cost_function::edge_cost_function_config::EdgeCostFunctionConfig;
 
+    use crate::model::traversal::cost_function::free_flow::{
+        free_flow_cost_function, initial_free_flow_state,
+    };
     // use crate::model::traversal::cost_function::free_flow::FREE_FLOW_COST_CONFIG;
     use crate::model::traversal::tm_v2::TraversalModel2;
     use crate::model::traversal::traversal_model_config::TraversalModelConfig;
@@ -306,55 +310,55 @@ mod tests {
 
     use super::*;
 
-    struct TestModel;
-    impl TraversalModel for TestModel {
-        type State = SearchState;
-        fn initial_state(&self) -> Result<Self::State, TraversalError> {
-            Ok(vec![vec![StateVar::ZERO]])
-        }
+    // struct TestModel;
+    // impl TraversalModel for TestModel {
+    //     type State = SearchState;
+    //     fn initial_state(&self) -> Result<Self::State, TraversalError> {
+    //         Ok(vec![vec![StateVar::ZERO]])
+    //     }
 
-        fn traversal_cost(
-            &self,
-            _src: &Vertex,
-            edge: &Edge,
-            _dst: &Vertex,
-            state: &Self::State,
-        ) -> Result<(Cost, Self::State), TraversalError> {
-            let c = edge
-                .distance_centimeters
-                .travel_time_millis(&edge.free_flow_speed_cps)
-                .0;
-            let mut s = state.to_vec();
-            s[0][0] = s[0][0] + StateVar(c as f64);
-            Ok((Cost(c), s))
-        }
+    //     fn traversal_cost(
+    //         &self,
+    //         _src: &Vertex,
+    //         edge: &Edge,
+    //         _dst: &Vertex,
+    //         state: &Self::State,
+    //     ) -> Result<(Cost, Self::State), TraversalError> {
+    //         let c = edge
+    //             .distance_centimeters
+    //             .travel_time_millis(&edge.free_flow_speed_cps)
+    //             .0;
+    //         let mut s = state.to_vec();
+    //         s[0][0] = s[0][0] + StateVar(c as f64);
+    //         Ok((Cost(c), s))
+    //     }
 
-        fn access_cost(
-            &self,
-            _v1: &Vertex,
-            _src: &Edge,
-            _v2: &Vertex,
-            _dst: &Edge,
-            _v3: &Vertex,
-            state: &Self::State,
-        ) -> Result<(Cost, Self::State), TraversalError> {
-            Ok((Cost::ZERO, state.clone()))
-        }
+    //     fn access_cost(
+    //         &self,
+    //         _v1: &Vertex,
+    //         _src: &Edge,
+    //         _v2: &Vertex,
+    //         _dst: &Edge,
+    //         _v3: &Vertex,
+    //         state: &Self::State,
+    //     ) -> Result<(Cost, Self::State), TraversalError> {
+    //         Ok((Cost::ZERO, state.clone()))
+    //     }
 
-        fn valid_frontier(
-            &self,
-            frontier: &EdgeFrontier<Self::State>,
-        ) -> Result<bool, TraversalError> {
-            Ok(true)
-        }
+    //     fn valid_frontier(
+    //         &self,
+    //         frontier: &EdgeFrontier<Self::State>,
+    //     ) -> Result<bool, TraversalError> {
+    //         Ok(true)
+    //     }
 
-        fn terminate_search(
-            &self,
-            frontier: &EdgeFrontier<Self::State>,
-        ) -> Result<bool, TraversalError> {
-            Ok(false)
-        }
-    }
+    //     fn terminate_search(
+    //         &self,
+    //         frontier: &EdgeFrontier<Self::State>,
+    //     ) -> Result<bool, TraversalError> {
+    //         Ok(false)
+    //     }
+    // }
 
     struct TestDG<'a> {
         adj: &'a HashMap<VertexId, HashMap<EdgeId, VertexId>>,
@@ -508,14 +512,14 @@ mod tests {
             &driver_dg_obj as &dyn DirectedGraph,
         ));
 
-        let driver_tm2_obj = TraversalModel2::from(&TraversalModelConfig {
-            edge_fns: vec![],
+        let ff_fn = free_flow_cost_function();
+        let ff_init = initial_free_flow_state();
+        let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
+        let driver_tm_obj = TraversalModel2::from(&TraversalModelConfig {
+            edge_fns: vec![&ff_conf],
             edge_edge_fns: vec![],
         });
-        let driver_tm_obj = TestModel;
-        let driver_tm = Arc::new(DriverReadOnlyLock::new(
-            &driver_tm_obj as &dyn TraversalModel<State = SearchState>,
-        ));
+        let driver_tm = Arc::new(DriverReadOnlyLock::new(&driver_tm_obj));
         let driver_cf_obj = TestCost;
         let driver_cf = Arc::new(DriverReadOnlyLock::new(
             &driver_cf_obj as &dyn CostEstimateFunction,
