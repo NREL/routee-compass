@@ -9,8 +9,6 @@ use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::model::cost::cost::Cost;
 use crate::model::graph::edge_id::EdgeId;
-use crate::model::traversal::state::search_state::SearchState;
-use crate::model::traversal::tm_v2::TraversalModel2;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{
@@ -31,7 +29,7 @@ pub fn run_a_star(
     source: VertexId,
     target: VertexId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel2>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
@@ -119,14 +117,14 @@ pub fn run_a_star_edge_oriented(
     source: EdgeId,
     target: EdgeId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel2>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let m: RwLockReadGuard<&TraversalModel2> = traversal_model
+    let m: RwLockReadGuard<&TraversalModel> = traversal_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let source_edge_src_vertex_id = g.src_vertex(source)?;
@@ -284,13 +282,13 @@ fn h_cost(
 
 #[cfg(test)]
 mod tests {
-    use crate::model::traversal::cost_function::edge_cost_function_config::EdgeCostFunctionConfig;
+    use crate::model::traversal::function::edge_cost_function_config::EdgeCostFunctionConfig;
 
-    use crate::model::traversal::cost_function::free_flow::{
+    use crate::model::traversal::function::free_flow::{
         free_flow_cost_function, initial_free_flow_state,
     };
     // use crate::model::traversal::cost_function::free_flow::FREE_FLOW_COST_CONFIG;
-    use crate::model::traversal::tm_v2::TraversalModel2;
+    use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::traversal::traversal_model_config::TraversalModelConfig;
     use crate::{
         algorithm::search::min_search_tree::dijkstra::edge_frontier::EdgeFrontier,
@@ -309,56 +307,6 @@ mod tests {
     use rayon::prelude::*;
 
     use super::*;
-
-    // struct TestModel;
-    // impl TraversalModel for TestModel {
-    //     type State = SearchState;
-    //     fn initial_state(&self) -> Result<Self::State, TraversalError> {
-    //         Ok(vec![vec![StateVar::ZERO]])
-    //     }
-
-    //     fn traversal_cost(
-    //         &self,
-    //         _src: &Vertex,
-    //         edge: &Edge,
-    //         _dst: &Vertex,
-    //         state: &Self::State,
-    //     ) -> Result<(Cost, Self::State), TraversalError> {
-    //         let c = edge
-    //             .distance_centimeters
-    //             .travel_time_millis(&edge.free_flow_speed_cps)
-    //             .0;
-    //         let mut s = state.to_vec();
-    //         s[0][0] = s[0][0] + StateVar(c as f64);
-    //         Ok((Cost(c), s))
-    //     }
-
-    //     fn access_cost(
-    //         &self,
-    //         _v1: &Vertex,
-    //         _src: &Edge,
-    //         _v2: &Vertex,
-    //         _dst: &Edge,
-    //         _v3: &Vertex,
-    //         state: &Self::State,
-    //     ) -> Result<(Cost, Self::State), TraversalError> {
-    //         Ok((Cost::ZERO, state.clone()))
-    //     }
-
-    //     fn valid_frontier(
-    //         &self,
-    //         frontier: &EdgeFrontier<Self::State>,
-    //     ) -> Result<bool, TraversalError> {
-    //         Ok(true)
-    //     }
-
-    //     fn terminate_search(
-    //         &self,
-    //         frontier: &EdgeFrontier<Self::State>,
-    //     ) -> Result<bool, TraversalError> {
-    //         Ok(false)
-    //     }
-    // }
 
     struct TestDG<'a> {
         adj: &'a HashMap<VertexId, HashMap<EdgeId, VertexId>>,
@@ -515,7 +463,7 @@ mod tests {
         let ff_fn = free_flow_cost_function();
         let ff_init = initial_free_flow_state();
         let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
-        let driver_tm_obj = TraversalModel2::from(&TraversalModelConfig {
+        let driver_tm_obj = TraversalModel::from(&TraversalModelConfig {
             edge_fns: vec![&ff_conf],
             edge_edge_fns: vec![],
         });

@@ -10,10 +10,14 @@ use compass_core::{
         direction::Direction,
     },
     model::{
-        graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
+        graph::directed_graph::DirectedGraph,
         traversal::{
-            free_flow_traversal_model::FreeFlowTraversalModel, state::search_state::SearchState,
+            cost_function::{
+                edge_cost_function_config::EdgeCostFunctionConfig,
+                free_flow::{free_flow_cost_function, initial_free_flow_state},
+            },
             traversal_model::TraversalModel,
+            traversal_model_config::TraversalModelConfig,
         },
     },
     util::read_only_lock::DriverReadOnlyLock,
@@ -44,16 +48,19 @@ fn main() {
     let haversine = Haversine {
         travel_speed_kph: 40.0,
     };
-    let traversal_model = FreeFlowTraversalModel;
 
     let g = Arc::new(DriverReadOnlyLock::new(&graph as &dyn DirectedGraph));
     let h = Arc::new(DriverReadOnlyLock::new(
         &haversine as &dyn CostEstimateFunction,
     ));
-    let t = Arc::new(DriverReadOnlyLock::new(
-        &traversal_model as &dyn TraversalModel<State = SearchState>,
-    ));
-
+    let ff_fn = free_flow_cost_function();
+    let ff_init = initial_free_flow_state();
+    let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
+    let traversal_model = TraversalModel::from(&TraversalModelConfig {
+        edge_fns: vec![&ff_conf],
+        edge_edge_fns: vec![],
+    });
+    let t = Arc::new(DriverReadOnlyLock::new(&traversal_model));
     let (o, d) = (
         graph.edges.choose(&mut rand::thread_rng()).unwrap().edge_id,
         graph.edges.choose(&mut rand::thread_rng()).unwrap().edge_id,
@@ -65,45 +72,45 @@ fn main() {
     let h_e = Arc::new(h.read_only());
     let t_e = Arc::new(t.read_only());
 
-    // let start_time = Local::now();
-    // info!("running search");
-    // match run_a_star_edge_oriented(Direction::Forward, o, d, g_e1, t_e, h_e) {
-    //     Err(e) => {
-    //         info!("{}", e.to_string())
-    //     }
-    //     Ok(result) => {
-    //         let duration = Local::now() - start_time;
-    //         info!("finished search with duration {:?}", duration);
-    //         info!("tree result has {} entries", result.len());
-    //         log::logger().flush();
-    //         if result.is_empty() {
-    //             warn!("no path exists between requested origin and target")
-    //         } else {
-    //             let route = backtrack_edges(o, d, result, g_e2).unwrap();
-    //             let g_erol3 = g.read_only();
-    //             let g_e3 = g_erol3.read().unwrap();
-    //             let src_vertex = g_e3.dst_vertex(o).unwrap();
-    //             let dst_vertex = g_e3.src_vertex(d).unwrap();
-    //             let src = g_e3.vertex_attr(src_vertex).unwrap().to_tuple_underlying();
-    //             let dst = g_e3.vertex_attr(dst_vertex).unwrap().to_tuple_underlying();
-    //             let time_ms = route
-    //                 .clone()
-    //                 .into_iter()
-    //                 .map(|e| e.edge_cost())
-    //                 .reduce(|x, y| x + y)
-    //                 .unwrap();
-    //             let dur = Duration::milliseconds(time_ms.0);
-    //             let time_str = format!(
-    //                 "{}:{}:{}",
-    //                 dur.num_hours(),
-    //                 dur.num_minutes() % 60,
-    //                 dur.num_seconds() % 60
-    //             );
-    //             info!("origin, destination (x,y): {:?} {:?}", src, dst);
-    //             info!("found route with {} edges", route.len());
-    //             info!("route duration: {}", time_str);
-    //             info!("done!");
-    //         }
-    //     }
-    // }
+    let start_time = Local::now();
+    info!("running search");
+    match run_a_star_edge_oriented(Direction::Forward, o, d, g_e1, t_e, h_e) {
+        Err(e) => {
+            info!("{}", e.to_string())
+        }
+        Ok(result) => {
+            let duration = Local::now() - start_time;
+            info!("finished search with duration {:?}", duration);
+            info!("tree result has {} entries", result.len());
+            log::logger().flush();
+            if result.is_empty() {
+                warn!("no path exists between requested origin and target")
+            } else {
+                let route = backtrack_edges(o, d, result, g_e2).unwrap();
+                let g_erol3 = g.read_only();
+                let g_e3 = g_erol3.read().unwrap();
+                let src_vertex = g_e3.dst_vertex(o).unwrap();
+                let dst_vertex = g_e3.src_vertex(d).unwrap();
+                let src = g_e3.vertex_attr(src_vertex).unwrap().to_tuple_underlying();
+                let dst = g_e3.vertex_attr(dst_vertex).unwrap().to_tuple_underlying();
+                let time_ms = route
+                    .clone()
+                    .into_iter()
+                    .map(|e| e.edge_cost())
+                    .reduce(|x, y| x + y)
+                    .unwrap();
+                let dur = Duration::milliseconds(time_ms.0);
+                let time_str = format!(
+                    "{}:{}:{}",
+                    dur.num_hours(),
+                    dur.num_minutes() % 60,
+                    dur.num_seconds() % 60
+                );
+                info!("origin, destination (x,y): {:?} {:?}", src, dst);
+                info!("found route with {} edges", route.len());
+                info!("route duration: {}", time_str);
+                info!("done!");
+            }
+        }
+    }
 }

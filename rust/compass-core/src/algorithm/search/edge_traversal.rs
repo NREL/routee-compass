@@ -1,5 +1,5 @@
 use crate::model::traversal::access_result::AccessResult;
-use crate::model::traversal::tm_v2::TraversalModel2;
+use crate::model::traversal::traversal_model::TraversalModel;
 
 use super::search_error::SearchError;
 use crate::model::traversal::state::search_state::SearchState;
@@ -43,7 +43,7 @@ impl EdgeTraversal {
         prev_edge_id: Option<EdgeId>,
         prev_state: &SearchState,
         g: &RwLockReadGuard<&dyn DirectedGraph>,
-        m: &RwLockReadGuard<&TraversalModel2>,
+        m: &RwLockReadGuard<&TraversalModel>,
     ) -> Result<EdgeTraversal, SearchError> {
         let (src, edge, dst) = g
             .edge_triplet_attrs(edge_id)

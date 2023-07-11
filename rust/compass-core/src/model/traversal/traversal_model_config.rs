@@ -1,4 +1,4 @@
-use super::cost_function::{
+use super::function::{
     edge_cost_function_config::EdgeCostFunctionConfig,
     edge_edge_cost_function_config::EdgeEdgeCostFunctionConfig,
 };
