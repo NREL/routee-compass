@@ -97,7 +97,7 @@ impl<'a> TraversalModel2<'a> {
 
     /// completes an edge traversal by applying all EdgeCostFunctions. the result
     /// is collected as a TraversalResult.
-    fn traversal_cost(
+    pub fn traversal_cost(
         &self,
         src: &Vertex,
         edge: &Edge,
@@ -126,7 +126,7 @@ impl<'a> TraversalModel2<'a> {
 
     /// completes the edge access of the $dst edge by applying all EdgeEdgeCostFunctions. the result
     /// is collected as an AccessResult.
-    fn access_cost(
+    pub fn access_cost(
         &self,
         v1: &Vertex,
         src: &Edge,
@@ -158,7 +158,7 @@ impl<'a> TraversalModel2<'a> {
 
     /// if any valid_fn fails, we return false, otherwise, true
     /// base case: zero valid_fns -> returns true
-    fn valid_frontier(
+    pub fn valid_frontier(
         &self,
         frontier: &EdgeFrontier<Vec<Vec<StateVar>>>,
     ) -> Result<bool, TraversalError> {
@@ -173,7 +173,7 @@ impl<'a> TraversalModel2<'a> {
 
     /// if any terminate_fn succeeds, we return true, otherwise, false
     /// base case: zero terminate_fns -> returns false
-    fn terminate_search(
+    pub fn terminate_search(
         &self,
         frontier: &EdgeFrontier<Vec<Vec<StateVar>>>,
     ) -> Result<bool, TraversalError> {
