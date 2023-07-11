@@ -12,7 +12,7 @@ use compass_core::{
     model::{
         graph::directed_graph::DirectedGraph,
         traversal::{
-            cost_function::{
+            function::{
                 edge_cost_function_config::EdgeCostFunctionConfig,
                 free_flow::{free_flow_cost_function, initial_free_flow_state},
             },

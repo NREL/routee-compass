@@ -1,7 +1,5 @@
 use compass_core::model::cost::cost::Cost;
-use compass_core::model::traversal::cost_function::cost_function::EdgeCostFunction;
-use compass_core::model::traversal::cost_function::edge_cost_function_config::EdgeCostFunctionConfig;
-use compass_core::model::traversal::state::has_travel_time::HasTravelTime;
+use compass_core::model::traversal::function::function::EdgeCostFunction;
 use compass_core::model::traversal::state::search_state::StateVector;
 use compass_core::model::traversal::state::state_variable::StateVar;
 use compass_core::model::units::cm_per_second::CmPerSecond;
