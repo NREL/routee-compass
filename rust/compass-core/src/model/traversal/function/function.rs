@@ -26,6 +26,10 @@ pub type EdgeEdgeCostFunction = Box<
         + 'static,
 >;
 
+/// operation used to combine a Vector of {Traversal|Access} Costs
+pub type CostAggregationFunction =
+    Box<dyn Fn(&Vec<Cost>) -> Result<Cost, TraversalError> + Sync + 'static>;
+
 /// returns true if the frontier is valid to use in a search
 pub type ValidFrontierFunction =
     Box<dyn Fn(&EdgeFrontier) -> Result<bool, TraversalError> + Sync + 'static>;
