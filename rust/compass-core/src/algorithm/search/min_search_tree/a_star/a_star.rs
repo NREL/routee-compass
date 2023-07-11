@@ -282,31 +282,26 @@ fn h_cost(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::model::traversal::function::edge_cost_function_config::EdgeCostFunctionConfig;
-
     use crate::model::traversal::function::free_flow::{
         free_flow_cost_function, initial_free_flow_state,
     };
-    // use crate::model::traversal::cost_function::free_flow::FREE_FLOW_COST_CONFIG;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::traversal::traversal_model_config::TraversalModelConfig;
     use crate::{
-        algorithm::search::min_search_tree::dijkstra::edge_frontier::EdgeFrontier,
         model::{
             cost::cost_error::CostError,
             graph::{edge_id::EdgeId, graph_error::GraphError},
             property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
-            traversal::{state::state_variable::StateVar, traversal_error::TraversalError},
             units::{
                 centimeters::Centimeters, cm_per_second::CmPerSecond, millis::Millis,
                 ordinate::Ordinate,
             },
         },
-        util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
+        util::read_only_lock::DriverReadOnlyLock,
     };
     use rayon::prelude::*;
-
-    use super::*;
 
     struct TestDG<'a> {
         adj: &'a HashMap<VertexId, HashMap<EdgeId, VertexId>>,
