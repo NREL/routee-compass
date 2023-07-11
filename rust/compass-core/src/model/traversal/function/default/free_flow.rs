@@ -1,6 +1,6 @@
-use super::function::EdgeCostFunction;
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
+use crate::model::traversal::function::function::EdgeCostFunction;
 use crate::model::traversal::state::search_state::StateVector;
 use crate::model::{cost::cost::Cost, traversal::state::state_variable::StateVar};
 
