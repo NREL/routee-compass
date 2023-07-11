@@ -13,8 +13,11 @@ use compass_core::{
         graph::directed_graph::DirectedGraph,
         traversal::{
             function::{
+                default::{
+                    aggregation::additive_aggregation,
+                    free_flow::{free_flow_cost_function, initial_free_flow_state},
+                },
                 edge_cost_function_config::EdgeCostFunctionConfig,
-                free_flow::{free_flow_cost_function, initial_free_flow_state},
             },
             traversal_model::TraversalModel,
             traversal_model_config::TraversalModelConfig,
@@ -56,9 +59,12 @@ fn main() {
     let ff_fn = free_flow_cost_function();
     let ff_init = initial_free_flow_state();
     let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
+    let agg = additive_aggregation();
     let traversal_model = TraversalModel::from(&TraversalModelConfig {
         edge_fns: vec![&ff_conf],
         edge_edge_fns: vec![],
+        edge_agg_fn: &agg,
+        edge_edge_agg_fn: &agg,
     });
     let t = Arc::new(DriverReadOnlyLock::new(&traversal_model));
     let (o, d) = (

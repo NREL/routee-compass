@@ -283,10 +283,11 @@ fn h_cost(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::traversal::function::edge_cost_function_config::EdgeCostFunctionConfig;
-    use crate::model::traversal::function::free_flow::{
+    use crate::model::traversal::function::default::aggregation::additive_aggregation;
+    use crate::model::traversal::function::default::free_flow::{
         free_flow_cost_function, initial_free_flow_state,
     };
+    use crate::model::traversal::function::edge_cost_function_config::EdgeCostFunctionConfig;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::traversal::traversal_model_config::TraversalModelConfig;
     use crate::{
@@ -458,9 +459,12 @@ mod tests {
         let ff_fn = free_flow_cost_function();
         let ff_init = initial_free_flow_state();
         let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
+        let agg = additive_aggregation();
         let driver_tm_obj = TraversalModel::from(&TraversalModelConfig {
             edge_fns: vec![&ff_conf],
             edge_edge_fns: vec![],
+            edge_agg_fn: &agg,
+            edge_edge_agg_fn: &agg,
         });
         let driver_tm = Arc::new(DriverReadOnlyLock::new(&driver_tm_obj));
         let driver_cf_obj = TestCost;
