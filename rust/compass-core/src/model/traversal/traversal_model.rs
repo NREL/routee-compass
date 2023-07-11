@@ -1,8 +1,10 @@
 use super::access_result::AccessResult;
 use super::function::function::{
-    EdgeCostFunction, EdgeEdgeCostFunction, TerminateSearchFunction, ValidFrontierFunction,
+    CostAggregationFunction, EdgeCostFunction, EdgeEdgeCostFunction, TerminateSearchFunction,
+    ValidFrontierFunction,
 };
 use super::traversal_error::TraversalError;
+use crate::model::traversal::state::search_state::SearchState;
 use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::traversal::traversal_model_config::TraversalModelConfig;
 use crate::model::traversal::traversal_result::TraversalResult;
@@ -34,7 +36,9 @@ pub struct TraversalModel<'a> {
     edge_edge_fns: Vec<&'a EdgeEdgeCostFunction>,
     valid_fns: Vec<&'a ValidFrontierFunction>,
     terminate_fns: Vec<&'a TerminateSearchFunction>,
-    initial_state: Vec<Vec<StateVar>>,
+    edge_agg_fn: &'a CostAggregationFunction,
+    edge_edge_agg_fn: &'a CostAggregationFunction,
+    initial_state: SearchState,
     edge_edge_start_idx: usize,
 }
 
@@ -73,7 +77,7 @@ impl<'a> From<&TraversalModelConfig<'a>> for TraversalModel<'a> {
             .edge_fns
             .iter()
             .map(|c| c.init_state.clone())
-            .collect::<Vec<Vec<StateVar>>>();
+            .collect::<SearchState>();
         initial_state.extend(config.edge_edge_fns.iter().map(|c| c.init_state.clone()));
 
         // count the index where Edge->Edge cost functions begin in the state index
@@ -84,6 +88,8 @@ impl<'a> From<&TraversalModelConfig<'a>> for TraversalModel<'a> {
             edge_edge_fns,
             valid_fns,
             terminate_fns,
+            edge_agg_fn: config.edge_agg_fn,
+            edge_edge_agg_fn: config.edge_edge_agg_fn,
             initial_state,
             edge_edge_start_idx,
         };
@@ -104,7 +110,6 @@ impl<'a> TraversalModel<'a> {
         dst: &Vertex,
         state: &Vec<Vec<StateVar>>,
     ) -> Result<TraversalResult, TraversalError> {
-        let mut total_cost: Cost = Cost::ZERO;
         let mut cost_vector: Vec<Cost> = vec![];
         let mut updated_state = state.to_vec();
         for (idx, func) in self.edge_fns.iter().enumerate() {
@@ -112,10 +117,10 @@ impl<'a> TraversalModel<'a> {
                 .get(idx)
                 .ok_or(TraversalError::InvalidStateVariableIndexError)?;
             let (result_cost, result_state) = func(src, edge, dst, fn_state)?;
-            total_cost = total_cost + result_cost;
             cost_vector.push(result_cost);
             updated_state[idx] = result_state;
         }
+        let total_cost = (self.edge_agg_fn)(&cost_vector)?;
         let result = TraversalResult {
             total_cost,
             cost_vector,
@@ -135,7 +140,6 @@ impl<'a> TraversalModel<'a> {
         v3: &Vertex,
         state: &Vec<Vec<StateVar>>,
     ) -> Result<AccessResult, TraversalError> {
-        let mut total_cost: Cost = Cost::ZERO;
         let mut cost_vector: Vec<Cost> = vec![];
         let mut updated_state = state.to_vec();
         for (idx, func) in self.edge_edge_fns.iter().enumerate() {
@@ -144,10 +148,10 @@ impl<'a> TraversalModel<'a> {
                 .get(ee_idx)
                 .ok_or(TraversalError::InvalidStateVariableIndexError)?;
             let (result_cost, result_state) = func(v1, src, v2, dst, v3, fn_state)?;
-            total_cost = total_cost + result_cost;
             cost_vector.push(result_cost);
             updated_state[idx] = result_state;
         }
+        let total_cost = (self.edge_edge_agg_fn)(&cost_vector)?;
         let result = AccessResult {
             total_cost,
             cost_vector,
