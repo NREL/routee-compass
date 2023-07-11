@@ -65,45 +65,45 @@ fn main() {
     let h_e = Arc::new(h.read_only());
     let t_e = Arc::new(t.read_only());
 
-    let start_time = Local::now();
-    info!("running search");
-    match run_a_star_edge_oriented(Direction::Forward, o, d, g_e1, t_e, h_e) {
-        Err(e) => {
-            info!("{}", e.to_string())
-        }
-        Ok(result) => {
-            let duration = Local::now() - start_time;
-            info!("finished search with duration {:?}", duration);
-            info!("tree result has {} entries", result.len());
-            log::logger().flush();
-            if result.is_empty() {
-                warn!("no path exists between requested origin and target")
-            } else {
-                let route = backtrack_edges(o, d, result, g_e2).unwrap();
-                let g_erol3 = g.read_only();
-                let g_e3 = g_erol3.read().unwrap();
-                let src_vertex = g_e3.dst_vertex(o).unwrap();
-                let dst_vertex = g_e3.src_vertex(d).unwrap();
-                let src = g_e3.vertex_attr(src_vertex).unwrap().to_tuple_underlying();
-                let dst = g_e3.vertex_attr(dst_vertex).unwrap().to_tuple_underlying();
-                let time_ms = route
-                    .clone()
-                    .into_iter()
-                    .map(|e| e.edge_cost())
-                    .reduce(|x, y| x + y)
-                    .unwrap();
-                let dur = Duration::milliseconds(time_ms.0);
-                let time_str = format!(
-                    "{}:{}:{}",
-                    dur.num_hours(),
-                    dur.num_minutes() % 60,
-                    dur.num_seconds() % 60
-                );
-                info!("origin, destination (x,y): {:?} {:?}", src, dst);
-                info!("found route with {} edges", route.len());
-                info!("route duration: {}", time_str);
-                info!("done!");
-            }
-        }
-    }
+    // let start_time = Local::now();
+    // info!("running search");
+    // match run_a_star_edge_oriented(Direction::Forward, o, d, g_e1, t_e, h_e) {
+    //     Err(e) => {
+    //         info!("{}", e.to_string())
+    //     }
+    //     Ok(result) => {
+    //         let duration = Local::now() - start_time;
+    //         info!("finished search with duration {:?}", duration);
+    //         info!("tree result has {} entries", result.len());
+    //         log::logger().flush();
+    //         if result.is_empty() {
+    //             warn!("no path exists between requested origin and target")
+    //         } else {
+    //             let route = backtrack_edges(o, d, result, g_e2).unwrap();
+    //             let g_erol3 = g.read_only();
+    //             let g_e3 = g_erol3.read().unwrap();
+    //             let src_vertex = g_e3.dst_vertex(o).unwrap();
+    //             let dst_vertex = g_e3.src_vertex(d).unwrap();
+    //             let src = g_e3.vertex_attr(src_vertex).unwrap().to_tuple_underlying();
+    //             let dst = g_e3.vertex_attr(dst_vertex).unwrap().to_tuple_underlying();
+    //             let time_ms = route
+    //                 .clone()
+    //                 .into_iter()
+    //                 .map(|e| e.edge_cost())
+    //                 .reduce(|x, y| x + y)
+    //                 .unwrap();
+    //             let dur = Duration::milliseconds(time_ms.0);
+    //             let time_str = format!(
+    //                 "{}:{}:{}",
+    //                 dur.num_hours(),
+    //                 dur.num_minutes() % 60,
+    //                 dur.num_seconds() % 60
+    //             );
+    //             info!("origin, destination (x,y): {:?} {:?}", src, dst);
+    //             info!("found route with {} edges", route.len());
+    //             info!("route duration: {}", time_str);
+    //             info!("done!");
+    //         }
+    //     }
+    // }
 }
