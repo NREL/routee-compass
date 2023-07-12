@@ -10,9 +10,17 @@ use compass_core::{
         direction::Direction,
     },
     model::{
-        graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
+        graph::directed_graph::DirectedGraph,
         traversal::{
-            free_flow_traversal_model::FreeFlowTraversalModel, traversal_model::TraversalModel,
+            function::{
+                default::{
+                    aggregation::additive_aggregation,
+                    free_flow::{free_flow_cost_function, initial_free_flow_state},
+                },
+                edge_cost_function_config::EdgeCostFunctionConfig,
+            },
+            traversal_model::TraversalModel,
+            traversal_model_config::TraversalModelConfig,
         },
     },
     util::read_only_lock::DriverReadOnlyLock,
@@ -43,16 +51,22 @@ fn main() {
     let haversine = Haversine {
         travel_speed_kph: 40.0,
     };
-    let traversal_model = FreeFlowTraversalModel;
 
     let g = Arc::new(DriverReadOnlyLock::new(&graph as &dyn DirectedGraph));
     let h = Arc::new(DriverReadOnlyLock::new(
         &haversine as &dyn CostEstimateFunction,
     ));
-    let t = Arc::new(DriverReadOnlyLock::new(
-        &traversal_model as &dyn TraversalModel<State = i64>,
-    ));
-
+    let ff_fn = free_flow_cost_function();
+    let ff_init = initial_free_flow_state();
+    let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
+    let agg = additive_aggregation();
+    let traversal_model = TraversalModel::from(&TraversalModelConfig {
+        edge_fns: vec![&ff_conf],
+        edge_edge_fns: vec![],
+        edge_agg_fn: &agg,
+        edge_edge_agg_fn: &agg,
+    });
+    let t = Arc::new(DriverReadOnlyLock::new(&traversal_model));
     let (o, d) = (
         graph.edges.choose(&mut rand::thread_rng()).unwrap().edge_id,
         graph.edges.choose(&mut rand::thread_rng()).unwrap().edge_id,

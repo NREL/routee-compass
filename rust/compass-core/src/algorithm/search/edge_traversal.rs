@@ -1,47 +1,39 @@
-use std::{fmt::Display, sync::RwLockReadGuard};
+use crate::model::traversal::access_result::AccessResult;
+use crate::model::traversal::traversal_model::TraversalModel;
 
+use super::search_error::SearchError;
+use crate::model::traversal::state::search_state::SearchState;
 use crate::model::{
     cost::cost::Cost,
     graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
-    traversal::traversal_model::TraversalModel,
 };
+use std::{fmt::Display, sync::RwLockReadGuard};
 
-use super::search_error::SearchError;
-
-#[derive(Clone, Copy)]
-pub struct EdgeTraversal<S: Copy + Clone> {
+#[derive(Clone)]
+pub struct EdgeTraversal {
     pub edge_id: EdgeId,
     pub access_cost: Cost,
     pub traversal_cost: Cost,
-    pub result_state: S,
+    pub result_state: SearchState,
 }
 
-impl<S> EdgeTraversal<S>
-where
-    S: Copy,
-{
+impl EdgeTraversal {
     pub fn edge_cost(&self) -> Cost {
         return self.access_cost + self.traversal_cost;
     }
 }
 
-impl<S> Display for EdgeTraversal<S>
-where
-    S: Display + Copy,
-{
+impl Display for EdgeTraversal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "edge {} acost:{} tcost:{} state:{}",
+            "edge {} acost:{} tcost:{} state:{:?}",
             self.edge_id, self.access_cost, self.traversal_cost, self.result_state
         )
     }
 }
 
-impl<S> EdgeTraversal<S>
-where
-    S: Sync + Send + Eq + Copy + Clone,
-{
+impl EdgeTraversal {
     ///
     /// traverses an edge, possibly after traversing some previous edge,
     /// collecting the access and traversal costs. returns the
@@ -49,16 +41,16 @@ where
     pub fn new(
         edge_id: EdgeId,
         prev_edge_id: Option<EdgeId>,
-        prev_state: S,
+        prev_state: &SearchState,
         g: &RwLockReadGuard<&dyn DirectedGraph>,
-        m: &RwLockReadGuard<&dyn TraversalModel<State = S>>,
-    ) -> Result<EdgeTraversal<S>, SearchError> {
+        m: &RwLockReadGuard<&TraversalModel>,
+    ) -> Result<EdgeTraversal, SearchError> {
         let (src, edge, dst) = g
             .edge_triplet_attrs(edge_id)
             .map_err(SearchError::GraphCorrectnessFailure)?;
 
-        let (access_cost, access_state);
-        (access_cost, access_state) = match prev_edge_id {
+        // let (access_cost, access_state);
+        let access_result = match prev_edge_id {
             Some(prev_e) => {
                 let prev_edge = g
                     .edge_attr(prev_e)
@@ -66,19 +58,19 @@ where
                 let prev_src_v = g.vertex_attr(prev_edge.src_vertex_id)?;
                 m.access_cost(&prev_src_v, &prev_edge, &src, &edge, &dst, &prev_state)
             }
-            None => Ok((Cost::ZERO, prev_state)),
+            None => Ok(AccessResult::no_cost(prev_state)),
         }
         .map_err(SearchError::TraversalModelFailure)?;
 
-        let (traversal_cost, result_state) = m
-            .traversal_cost(&src, &edge, &dst, &access_state)
+        let traversal_result = m
+            .traversal_cost(&src, &edge, &dst, &access_result.updated_state)
             .map_err(SearchError::TraversalModelFailure)?;
 
         let result = EdgeTraversal {
             edge_id,
-            access_cost,
-            traversal_cost,
-            result_state,
+            access_cost: access_result.total_cost,
+            traversal_cost: traversal_result.total_cost,
+            result_state: traversal_result.updated_state,
         };
 
         Ok(result)

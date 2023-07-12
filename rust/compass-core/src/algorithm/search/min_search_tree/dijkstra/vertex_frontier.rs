@@ -1,22 +1,32 @@
 use std::{cmp::Ordering, hash::Hash, hash::Hasher};
 
+use crate::model::traversal::state::search_state::SearchState;
+
 use crate::model::{cost::cost::Cost, graph::edge_id::EdgeId, graph::vertex_id::VertexId};
 
-#[derive(Clone, Eq, PartialEq)]
-pub struct VertexFrontier<S> {
+#[derive(Clone)]
+pub struct VertexFrontier {
     pub vertex_id: VertexId,
     pub prev_edge_id: Option<EdgeId>,
-    pub state: S,
+    pub state: SearchState,
     pub cost: Cost,
 }
 
-impl<S: Eq> Hash for VertexFrontier<S> {
+impl PartialEq for VertexFrontier {
+    fn eq(&self, other: &Self) -> bool {
+        self.vertex_id == other.vertex_id
+    }
+}
+
+impl Eq for VertexFrontier {}
+
+impl Hash for VertexFrontier {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.vertex_id.hash(state);
     }
 }
 
-impl<S: Eq> Ord for VertexFrontier<S> {
+impl Ord for VertexFrontier {
     ///
     /// provides a min-ordering over Frontier costs
     /// is min-ordered due to order of comparitor (other.cmp(self))
@@ -29,7 +39,7 @@ impl<S: Eq> Ord for VertexFrontier<S> {
     }
 }
 
-impl<S: Eq> PartialOrd for VertexFrontier<S> {
+impl PartialOrd for VertexFrontier {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
