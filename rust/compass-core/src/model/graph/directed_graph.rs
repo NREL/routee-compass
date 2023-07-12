@@ -13,6 +13,11 @@ pub trait DirectedGraph: Sync + Send {
     fn in_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError>;
     fn src_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError>;
     fn dst_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError>;
+    fn all_edge_ids(&self) -> Vec<EdgeId>;
+    fn all_edges(&self) -> Vec<Edge>;
+    fn all_vertex_ids(&self) -> Vec<VertexId>;
+    fn all_verticies(&self) -> Vec<Vertex>;
+
 
     /// helper function to give incident edges to a vertex based on a
     /// traversal direction.

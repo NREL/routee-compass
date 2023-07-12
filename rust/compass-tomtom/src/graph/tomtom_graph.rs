@@ -24,6 +24,21 @@ pub struct TomTomGraph {
 }
 
 impl DirectedGraph for TomTomGraph {
+    fn all_edge_ids(&self) -> Vec<EdgeId> {
+        self.edges.iter().map(|edge| edge.edge_id).collect()
+    }
+    fn all_edges(&self) -> Vec<Edge> {
+        self.edges.iter().cloned().collect()
+    }
+    fn all_vertex_ids(&self) -> Vec<VertexId> {
+        self.vertices
+            .iter()
+            .map(|vertex| vertex.vertex_id)
+            .collect()
+    }
+    fn all_verticies(&self) -> Vec<Vertex> {
+        self.vertices.iter().cloned().collect()
+    }
     fn edge_attr(&self, edge_id: EdgeId) -> Result<Edge, GraphError> {
         match self.edges.get(edge_id.0 as usize) {
             None => Err(GraphError::EdgeAttributeNotFound { edge_id }),

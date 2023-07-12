@@ -309,6 +309,25 @@ mod tests {
         edges: HashMap<EdgeId, Edge>,
     }
     impl DirectedGraph for TestDG<'_> {
+        fn all_edge_ids(&self) -> Vec<EdgeId> {
+            self.edges.keys().cloned().collect()
+        }
+        fn all_vertex_ids(&self) -> Vec<VertexId> {
+            self.adj.keys().cloned().collect()
+        }
+        fn all_edges(&self) -> Vec<Edge> {
+            self.edges.values().cloned().collect()
+        }
+        fn all_verticies(&self) -> Vec<Vertex> {
+            self.adj
+                .keys()
+                .map(|v| Vertex {
+                    vertex_id: *v,
+                    x: Ordinate(0.0),
+                    y: Ordinate(0.0),
+                })
+                .collect()
+        }
         fn edge_attr(&self, edge_id: EdgeId) -> Result<Edge, GraphError> {
             match self.edges.get(&edge_id) {
                 None => Err(GraphError::EdgeAttributeNotFound { edge_id }),
