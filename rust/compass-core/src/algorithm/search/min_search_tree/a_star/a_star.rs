@@ -381,7 +381,7 @@ mod tests {
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
-        let driver_dg_obj = TestDG::new(&adj, edges_cps).unwrap();
+        let driver_dg_obj = TestDG::new(adj, edges_cps).unwrap();
         let driver_dg = Arc::new(DriverReadOnlyLock::new(
             &driver_dg_obj as &dyn DirectedGraph,
         ));
