@@ -151,6 +151,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "compass-powertrain"
+version = "0.1.0"
+dependencies = [
+ "compass-core",
+ "env_logger",
+ "log",
+ "serde",
+ "serde_repr",
+ "smartcore",
+ "thiserror",
+]
+
+[[package]]
 name = "compass-prototype"
 version = "0.1.0"
 dependencies = [
