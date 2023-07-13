@@ -318,7 +318,7 @@ mod tests {
         fn all_edges(&self) -> Vec<Edge> {
             self.edges.values().cloned().collect()
         }
-        fn all_verticies(&self) -> Vec<Vertex> {
+        fn all_vertices(&self) -> Vec<Vertex> {
             self.adj
                 .keys()
                 .map(|v| Vertex {

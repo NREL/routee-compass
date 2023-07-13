@@ -36,7 +36,7 @@ impl DirectedGraph for TomTomGraph {
             .map(|vertex| vertex.vertex_id)
             .collect()
     }
-    fn all_verticies(&self) -> Vec<Vertex> {
+    fn all_vertices(&self) -> Vec<Vertex> {
         self.vertices.iter().cloned().collect()
     }
     fn edge_attr(&self, edge_id: EdgeId) -> Result<Edge, GraphError> {

@@ -16,7 +16,7 @@ pub trait DirectedGraph: Sync + Send {
     fn all_edge_ids(&self) -> Vec<EdgeId>;
     fn all_edges(&self) -> Vec<Edge>;
     fn all_vertex_ids(&self) -> Vec<VertexId>;
-    fn all_verticies(&self) -> Vec<Vertex>;
+    fn all_vertices(&self) -> Vec<Vertex>;
 
 
     /// helper function to give incident edges to a vertex based on a
