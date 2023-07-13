@@ -3,4 +3,4 @@ pub mod map;
 pub mod model;
 pub mod util;
 
-pub mod test;
+pub(crate) mod test;

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, hash::Hash};
+use std::collections::HashMap;
 
 use crate::model::{
     graph::{
@@ -9,11 +9,13 @@ use crate::model::{
     units::{ordinate::Ordinate, cm_per_second::CmPerSecond, centimeters::Centimeters, millis::Millis},
 };
 
+#[cfg(test)]
 pub struct TestDG {
     adj: HashMap<VertexId, HashMap<EdgeId, VertexId>>,
     rev: HashMap<VertexId, HashMap<EdgeId, VertexId>>,
     edges: HashMap<EdgeId, Edge>,
 }
+#[cfg(test)]
 impl DirectedGraph for TestDG {
     fn all_edge_ids(&self) -> Vec<EdgeId> {
         self.edges.keys().cloned().collect()
@@ -73,6 +75,7 @@ impl DirectedGraph for TestDG {
     }
 }
 
+#[cfg(test)]
 impl TestDG {
     pub fn new(
         adj: HashMap<VertexId, HashMap<EdgeId, VertexId>>,

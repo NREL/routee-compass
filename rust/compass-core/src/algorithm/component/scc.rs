@@ -3,11 +3,41 @@ use std::collections::HashSet;
 use crate::model::graph::directed_graph::DirectedGraph;
 use crate::model::graph::{graph_error::GraphError, vertex_id::VertexId};
 
-fn depth_first_search(
+/// Conducts a depth-first search (DFS) on a directed graph.
+///
+/// This function takes a directed graph, a vertex ID, a mutable HashSet to keep track of visited vertices,
+/// and a mutable Vec as a container to store the order in which vertices are visited.
+/// The function returns an empty Result on successful completion, and a GraphError if something went wrong.
+///
+/// # Arguments
+///
+/// * `graph` - A directed graph to perform DFS on.
+/// * `vertex` - A VertexId to start the DFS from.
+/// * `visited` - A mutable reference to a HashSet storing visited VertexIds.
+/// * `stack` - A mutable reference to a stack storing VertexIds in the order of DFS traversal.
+///
+/// # Errors
+///
+/// Returns an error if the `graph` has an issue like a non-existing vertex.
+///
+/// # Examples
+///
+/// ```rust
+/// // let's assume `graph` is an instance of a struct implementing DirectedGraph
+/// let start_vertex = VertexId(0);
+/// let mut visited = HashSet::new();
+/// let mut stack = Vec::new();
+///
+/// match depth_first_search(&graph, start_vertex, &mut visited, &mut stack) {
+///     Ok(()) => println!("DFS completed successfully"),
+///     Err(e) => println!("DFS failed with error: {:?}", e),
+/// }
+/// ```
+pub fn depth_first_search(
     graph: &impl DirectedGraph,
     vertex: VertexId,
     visited: &mut HashSet<VertexId>,
-    container: &mut Vec<VertexId>,
+    stack: &mut Vec<VertexId>,
 ) -> Result<(), GraphError> {
     if visited.contains(&vertex) {
         return Ok(());
@@ -18,19 +48,49 @@ fn depth_first_search(
     let edges = graph.out_edges(vertex)?;
     for edge in edges {
         let dst = graph.dst_vertex(edge)?;
-        depth_first_search(graph, dst, visited, container)?;
+        depth_first_search(graph, dst, visited, stack)?;
     }
 
-    container.push(vertex);
+    stack.push(vertex);
 
     Ok(())
 }
 
+/// Conducts a reverse depth-first search (DFS) on a directed graph.
+///
+/// This function takes a directed graph, a vertex ID, a mutable HashSet to keep track of visited vertices,
+/// and a mutable Vec as a container to store the order in which vertices are visited. The function returns an empty Result on successful
+/// completion, and a GraphError if something went wrong.
+///
+/// # Arguments
+///
+/// * `graph` - A directed graph to perform DFS on.
+/// * `vertex` - A VertexId to start the DFS from.
+/// * `visited` - A mutable reference to a HashSet storing visited VertexIds.
+/// * `stack` - A mutable reference to a stack storing VertexIds in the order of reverse DFS traversal.
+///
+/// # Errors
+///
+/// Returns an error if the `graph` has an issue like a non-existing vertex.
+///
+/// # Examples
+///
+/// ```rust
+/// // let's assume `graph` is an instance of a struct implementing DirectedGraph
+/// let start_vertex = VertexId(0);
+/// let mut visited = HashSet::new();
+/// let mut stack = Vec::new();
+///
+/// match reverse_depth_first_search(&graph, start_vertex, &mut visited, &mut stack) {
+///     Ok(()) => println!("DFS completed successfully"),
+///     Err(e) => println!("DFS failed with error: {:?}", e),
+/// }
+/// ```
 fn reverse_depth_first_search(
     graph: &impl DirectedGraph,
     vertex: VertexId,
     visited: &mut HashSet<VertexId>,
-    container: &mut Vec<VertexId>,
+    stack: &mut Vec<VertexId>,
 ) -> Result<(), GraphError> {
     if visited.contains(&vertex) {
         return Ok(());
@@ -41,14 +101,35 @@ fn reverse_depth_first_search(
     let edges = graph.in_edges(vertex)?;
     for edge in edges {
         let src = graph.src_vertex(edge)?;
-        reverse_depth_first_search(graph, src, visited, container)?;
+        reverse_depth_first_search(graph, src, visited, stack)?;
     }
 
-    container.push(vertex);
+    stack.push(vertex);
 
     Ok(())
 }
 
+/// Finds all strongly connected components in a directed graph.
+///
+/// This function takes a directed graph and returns a Vec of Vecs of VertexIds, where each Vec of VertexIds is a strongly connected component.
+///
+/// # Arguments
+///
+/// * `graph` - A directed graph to find strongly connected components in.
+///
+/// # Errors
+///
+/// Returns an error if the `graph` has an issue like a non-existing vertex.
+///
+/// # Examples
+///
+/// ```rust
+/// // let's assume `graph` is an instance of a struct implementing DirectedGraph
+/// match all_strongly_connected_components(&graph) {
+///    Ok(components) => println!("Found strongly connected components: {:?}", components),
+///   Err(e) => println!("Failed to find strongly connected components: {:?}", e),
+/// }
+/// ```
 fn all_strongly_connected_componenets(
     graph: &impl DirectedGraph,
 ) -> Result<Vec<Vec<VertexId>>, GraphError> {
@@ -76,6 +157,27 @@ fn all_strongly_connected_componenets(
     Ok(result)
 }
 
+/// Finds the largest strongly connected component in a directed graph.
+///
+/// This function takes a directed graph and returns a Vec of VertexIds, where each VertexId is a vertex in the largest strongly connected component.
+///
+/// # Arguments
+///
+/// * `graph` - A directed graph to find the largest strongly connected component in.
+///
+/// # Errors
+///
+/// Returns an error if the `graph` has an issue like a non-existing vertex.
+///
+/// # Examples
+///
+/// ```rust
+/// // let's assume `graph` is an instance of a struct implementing DirectedGraph
+/// match largest_strongly_connected_component(&graph) {
+///   Ok(component) => println!("Found largest strongly connected component: {:?}", component),
+///   Err(e) => println!("Failed to find largest strongly connected component: {:?}", e),
+/// }
+/// ```
 fn largest_strongly_connected_component(
     graph: &impl DirectedGraph,
 ) -> Result<Vec<VertexId>, GraphError> {
