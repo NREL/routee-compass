@@ -14,7 +14,7 @@ impl VertexRTree {
     }
 
     pub fn from_directed_graph(graph: &impl DirectedGraph) -> Self {
-        Self::new(graph.all_verticies())
+        Self::new(graph.all_vertices())
     }
 
     pub fn nearest_vertex(&self, point: Coord<f64>) -> Option<&Vertex> {
