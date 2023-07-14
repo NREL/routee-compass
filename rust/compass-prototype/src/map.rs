@@ -185,14 +185,16 @@ impl RustMap {
         &self,
         search_input: SearchInput,
         search_type: SearchType,
-        energy_parameter: f64,
-        time_parameter: f64,
+        dollar_per_gallon: Option<f64>,
+        dollar_per_hour: Option<f64>,
     ) -> Option<SearchResult> {
         match search_type {
             SearchType::ShortestTime => self.shortest_time_path(search_input),
             SearchType::ShortestEnergy => self.shortest_energy_path(search_input),
             SearchType::WeightedEnergyTime => {
-                self.weighted_energy_time_path(search_input, energy_parameter, time_parameter)
+                let dpg = dollar_per_gallon.unwrap_or(4.5);
+                let dph = dollar_per_hour.unwrap_or(75.0);
+                self.weighted_energy_time_path(search_input, dpg, dph)
             }
         }
     }
@@ -255,15 +257,15 @@ impl RustMap {
     pub fn weighted_energy_time_path(
         &self,
         search_input: SearchInput,
-        energy_parameter: f64,
-        time_parameter: f64,
+        dollar_per_gallon: f64,
+        dollar_per_hour: f64,
     ) -> Option<SearchResult> {
         let start_node = self.get_closest_node(search_input.origin)?;
         let end_node = self.get_closest_node(search_input.destination)?;
         let routee_cost_function = build_routee_cost_function_with_wet(
             search_input.clone(),
-            energy_parameter,
-            time_parameter,
+            dollar_per_gallon,
+            dollar_per_hour,
         )
         .unwrap();
         match dijkstra_shortest_path(
@@ -293,12 +295,12 @@ impl RustMap {
         &self,
         search_inputs: Vec<SearchInput>,
         search_type: SearchType,
-        energy_parameter: f64,
-        time_parameter: f64,
+        dollar_per_gallon: Option<f64>,
+        dollar_per_hour: Option<f64>,
     ) -> Vec<Option<SearchResult>> {
         search_inputs
             .into_par_iter()
-            .map(|input| self.shortest_path(input, search_type, energy_parameter, time_parameter))
+            .map(|input| self.shortest_path(input, search_type, dollar_per_gallon, dollar_per_hour))
             .collect()
     }
 }
