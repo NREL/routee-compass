@@ -157,7 +157,7 @@ pub fn build_routee_cost_function_with_tods(
     })
 }
 
-pub fn build_routee_cost_function_with_wet(
+pub fn build_routee_cost_function_with_cost(
     search_input: SearchInput,
     dollar_per_gallon: f64,
     dollar_per_hour: f64,

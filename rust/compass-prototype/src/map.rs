@@ -11,7 +11,7 @@ use crate::{
     },
     graph::{Graph, Link, Node},
     powertrain::{
-        build_routee_cost_function_with_tods, build_routee_cost_function_with_wet,
+        build_routee_cost_function_with_tods, build_routee_cost_function_with_cost,
         compute_energy_over_path, VehicleParameters,
     },
     time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
@@ -24,7 +24,7 @@ use super::algorithm::build_shortest_time_function;
 pub enum SearchType {
     ShortestTime,
     ShortestEnergy,
-    WeightedEnergyTime,
+    LeastCost,
 }
 
 #[pyclass]
@@ -193,10 +193,10 @@ impl RustMap {
         match search_type {
             SearchType::ShortestTime => self.shortest_time_path(search_input),
             SearchType::ShortestEnergy => self.shortest_energy_path(search_input),
-            SearchType::WeightedEnergyTime => {
+            SearchType::LeastCost => {
                 let dpg = dollar_per_gallon.unwrap_or(4.5);
                 let dph = dollar_per_hour.unwrap_or(75.0);
-                self.weighted_energy_time_path(search_input, dpg, dph)
+                self.least_cost_path(search_input, dpg, dph)
             }
         }
     }
@@ -258,7 +258,7 @@ impl RustMap {
         }
     }
 
-    pub fn weighted_energy_time_path(
+    pub fn least_cost_path(
         &self,
         search_input: SearchInput,
         dollar_per_gallon: f64,
@@ -266,7 +266,7 @@ impl RustMap {
     ) -> Option<SearchResult> {
         let start_node = self.get_closest_node(search_input.origin)?;
         let end_node = self.get_closest_node(search_input.destination)?;
-        let routee_cost_function = build_routee_cost_function_with_wet(
+        let routee_cost_function = build_routee_cost_function_with_cost(
             search_input.clone(),
             dollar_per_gallon,
             dollar_per_hour,
