@@ -5,7 +5,7 @@ use smartcore::{
 use anyhow::Result;
 use pyo3::prelude::*;
 
-use crate::{graph::Link, map::SearchInput, algorithm::compute_link_speed_kph};
+use crate::{algorithm::compute_link_speed_kph, graph::Link, map::SearchInput};
 
 // scale the energy by this factor to make it an integer
 pub const ROUTEE_SCALE_FACTOR: f64 = 1_000_000_000.0;
@@ -30,7 +30,13 @@ pub struct VehicleParameters {
 #[pymethods]
 impl VehicleParameters {
     #[new]
-    pub fn new(weight_lbs: u32, height_inches: u16, width_inches: u16, length_inches: u16, max_speed_kph: f64) -> Self {
+    pub fn new(
+        weight_lbs: u32,
+        height_inches: u16,
+        width_inches: u16,
+        length_inches: u16,
+        max_speed_kph: f64,
+    ) -> Self {
         VehicleParameters {
             weight_lbs,
             height_inches,
@@ -101,9 +107,12 @@ pub fn compute_energy_over_path(path: &Vec<Link>, search_input: &SearchInput) ->
 pub fn build_routee_cost_function_with_tods(
     search_input: SearchInput,
 ) -> Result<impl Fn(&Link) -> isize> {
-    let model_file_path = search_input.routee_model_path.clone().ok_or(anyhow::anyhow!(
-        "routee_model_path must be set in SearchInput"
-    ))?;
+    let model_file_path = search_input
+        .routee_model_path
+        .clone()
+        .ok_or(anyhow::anyhow!(
+            "routee_model_path must be set in SearchInput"
+        ))?;
     let rf_binary = std::fs::read(model_file_path)?;
 
     let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
@@ -149,42 +158,46 @@ pub fn build_routee_cost_function_with_tods(
 }
 
 pub fn build_routee_cost_function_with_wet(
-    search_input: SearchInput, energy_parameter: f64, time_parameter: f64,
-) -> Result<impl Fn(&Link) -> usize> {
-    let model_file_path = search_input.routee_model_path.ok_or(anyhow::anyhow!(
-        "routee_model_path must be set in SearchInput"
-    ))?;
+    search_input: SearchInput,
+    dollar_per_gallon: f64,
+    dollar_per_hour: f64,
+) -> Result<impl Fn(&Link) -> isize> {
+    let model_file_path = search_input
+        .routee_model_path
+        .clone()
+        .ok_or(anyhow::anyhow!(
+            "routee_model_path must be set in SearchInput"
+        ))?;
     let rf_binary = std::fs::read(model_file_path)?;
 
     let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
         bincode::deserialize(&rf_binary)?;
 
-    // regularize the time and energy parameter to ensure the sum to be 1
-    let parameter_regulizer: f64 = energy_parameter + time_parameter;
-    let scaled_energy_parameter: f64 = energy_parameter / parameter_regulizer;
-    let scaled_time_parameter: f64 = time_parameter / parameter_regulizer;
-
     Ok(move |link: &Link| {
         let distance_miles: f64 = link.distance_centimeters as f64 * CENTIMETERS_TO_MILES;
         let vehicle_params: Option<VehicleParameters> = search_input.vehicle_parameters;
-        let time_seconds: f64 = search_input
-            .time_of_day_speeds
-            .link_time_seconds_by_time_of_day(
-                link,
-                search_input.second_of_day,
-                search_input.day_of_week,
-            ) as f64;
-        let time_hours: f64 = time_seconds / 3600.0;
-        let speed_mph: f64 = distance_miles / time_hours;
-        let grade: f64 = link.grade as f64;
+        let speed_kph = compute_link_speed_kph(link, &search_input);
+        let speed_mph = speed_kph * 0.621371;
+        let grade_percent = link.grade as f64 / 10.0;
+        let time_hours = distance_miles / speed_mph;
 
         let features: Vec<Vec<f64>> = match vehicle_params {
-            Some(params) => vec![vec![speed_mph, grade, params.weight_lbs as f64 * 0.453592]],
-            None => vec![vec![speed_mph, grade]],
+            Some(params) => vec![vec![
+                speed_mph,
+                grade_percent,
+                params.weight_lbs as f64 * 0.453592,
+            ]],
+            None => vec![vec![speed_mph, grade_percent]],
         };
 
         let x: DenseMatrix<f64> = DenseMatrix::from_2d_vec(&features);
-        let energy_per_mile: f64 = rf.predict(&x).unwrap()[0];
+        let raw_energy_per_mile: f64 = rf.predict(&x).unwrap()[0];
+
+        let energy_per_mile = if raw_energy_per_mile < 0.0 {
+            0.0
+        } else {
+            raw_energy_per_mile
+        };
 
         let mut energy = energy_per_mile * distance_miles;
         if link.stop_sign {
@@ -195,8 +208,9 @@ pub fn build_routee_cost_function_with_wet(
             let stop_cost = 0.5 * search_input.stop_cost_gallons_diesel;
             energy = energy + stop_cost;
         }
-        let scaled_energy: f64 = energy * ROUTEE_SCALE_FACTOR;
-        let mixed_cost: f64 = scaled_energy_parameter * scaled_energy + scaled_time_parameter * time_seconds;
-        mixed_cost as usize 
+        let energy_dollars = energy * dollar_per_gallon;
+        let time_dollars = time_hours * dollar_per_hour;
+        let mixed_cost: f64 = energy_dollars + time_dollars;
+        mixed_cost.round() as isize
     })
 }
