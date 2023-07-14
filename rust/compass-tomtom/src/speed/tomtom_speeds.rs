@@ -117,6 +117,16 @@ pub fn get_travel_time(sv: &StateVector) -> Result<StateVar, CostFunctionError> 
         .copied()
 }
 
+pub fn update_days(mut sv: StateVector, value: StateVar) {
+    sv[DAYS_INDEX] = value;
+}
+pub fn update_weekday(mut sv: StateVector, value: StateVar) {
+    sv[WEEKDAY_INDEX] = value;
+}
+pub fn update_travel_time(mut sv: StateVector, value: StateVar) {
+    sv[TRAVEL_TIME_INDEX] = value;
+}
+
 pub fn is_gzip(file: &String) -> bool {
     file.ends_with(".gz")
 }
