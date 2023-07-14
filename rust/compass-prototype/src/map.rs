@@ -11,7 +11,8 @@ use crate::{
     },
     graph::{Graph, Link, Node},
     powertrain::{
-        build_routee_cost_function_with_tods, compute_energy_over_path, VehicleParameters,
+        build_routee_cost_function_with_tods, build_routee_cost_function_with_wet,
+        compute_energy_over_path, VehicleParameters,
     },
     time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
 };
@@ -23,6 +24,7 @@ use super::algorithm::build_shortest_time_function;
 pub enum SearchType {
     ShortestTime,
     ShortestEnergy,
+    WeightedEnergyTime,
 }
 
 #[pyclass]
@@ -63,7 +65,7 @@ impl Default for SearchInput {
             time_of_day_speeds: Default::default(),
             vehicle_parameters: None,
             routee_model_path: None,
-            stop_cost_gallons_diesel: 0.001,
+            stop_cost_gallons_diesel: 0.0,
             stop_cost_time_seconds: 10,
             traffic_light_cost_time_seconds: 5,
         }
@@ -183,10 +185,15 @@ impl RustMap {
         &self,
         search_input: SearchInput,
         search_type: SearchType,
+        energy_parameter: f64,
+        time_parameter: f64,
     ) -> Option<SearchResult> {
         match search_type {
             SearchType::ShortestTime => self.shortest_time_path(search_input),
             SearchType::ShortestEnergy => self.shortest_energy_path(search_input),
+            SearchType::WeightedEnergyTime => {
+                self.weighted_energy_time_path(search_input, energy_parameter, time_parameter)
+            }
         }
     }
 
@@ -229,7 +236,44 @@ impl RustMap {
             routee_cost_function,
             build_restriction_function(search_input.vehicle_parameters),
         ) {
-            Some((_, nodes_in_path)) => {
+            Some((_scaled_energy, nodes_in_path)) => {
+                let path = self.graph.get_links_in_path(nodes_in_path);
+                let time_seconds = compute_time_seconds_over_path(&path, &search_input);
+                let energy = compute_energy_over_path(&path, &search_input).unwrap();
+                Some(SearchResult {
+                    search_id: search_input.search_id,
+                    time_seconds,
+                    energy_gallons_gas: energy,
+                    path,
+                })
+            }
+
+            None => None,
+        }
+    }
+
+    pub fn weighted_energy_time_path(
+        &self,
+        search_input: SearchInput,
+        energy_parameter: f64,
+        time_parameter: f64,
+    ) -> Option<SearchResult> {
+        let start_node = self.get_closest_node(search_input.origin)?;
+        let end_node = self.get_closest_node(search_input.destination)?;
+        let routee_cost_function = build_routee_cost_function_with_wet(
+            search_input.clone(),
+            energy_parameter,
+            time_parameter,
+        )
+        .unwrap();
+        match dijkstra_shortest_path(
+            &self.graph,
+            &start_node.id,
+            &end_node.id,
+            routee_cost_function,
+            build_restriction_function(search_input.vehicle_parameters),
+        ) {
+            Some((_scaled_energy, nodes_in_path)) => {
                 let path = self.graph.get_links_in_path(nodes_in_path);
                 let time_seconds = compute_time_seconds_over_path(&path, &search_input);
                 let energy = compute_energy_over_path(&path, &search_input).unwrap();
@@ -249,10 +293,12 @@ impl RustMap {
         &self,
         search_inputs: Vec<SearchInput>,
         search_type: SearchType,
+        energy_parameter: f64,
+        time_parameter: f64,
     ) -> Vec<Option<SearchResult>> {
         search_inputs
             .into_par_iter()
-            .map(|input| self.shortest_path(input, search_type))
+            .map(|input| self.shortest_path(input, search_type, energy_parameter, time_parameter))
             .collect()
     }
 }
