@@ -10,3 +10,9 @@ pub enum Weekday {
     Saturday,
     Sunday,
 }
+
+impl Weekday {
+    pub fn day_number(&self) -> usize {
+        *self as usize
+    }
+}
