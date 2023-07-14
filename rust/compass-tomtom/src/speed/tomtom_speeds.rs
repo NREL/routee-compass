@@ -28,16 +28,20 @@ pub fn from_edgelist_csv(
         let time = get_travel_time(s)?;
         let start_time = get_start_time(s)?;
         let time = s[0].0 as i64;
-        (start_time + time) / bin_size
+        let result = (start_time.0 as i64 + time) as usize / bin_size;
+        Ok(result)
     };
 
     // https://docs.rs/csv/latest/csv/index.html#example-with-serde
     // todo: dump each record type into a Vec<Record> so we can look these up
     // the EdgeId class is also u64, so, the top-level search Vec is indexed by those
-    let speed_profile_file = File::open(speed_profile_filename)?;
+    let speed_profile_file = File::open(&speed_profile_filename).map_err(|e| {
+        CostFunctionError::FileReadError(speed_profile_filename.clone(), e.to_string())
+    })?;
     let speed_profile_lookup =
-        build_speed_profile_lookup(speed_profile_file, is_gzip(speed_profile_filename))
-            .map_err(|e| CostFunctionError::FileReadError(speed_profile_filename, e))?;
+        build_speed_profile_lookup(speed_profile_file, is_gzip(&speed_profile_filename)).map_err(
+            |e| CostFunctionError::FileReadError(speed_profile_filename.clone(), e.to_string()),
+        )?;
 
     let f: EdgeCostFunction = Box::new(move |o, e, d, s| {
         // s.travel_time() ?
@@ -65,7 +69,7 @@ pub fn from_edgelist_csv(
 /// * `start_day` - the day of the week that the search started on
 pub fn initial_tomtom_state(start_time_sec: Seconds, start_day: Weekday) -> StateVector {
     let days: StateVar = StateVar::ZERO;
-    let ms: StateVar = StateVar(start_time_sec.to_milliseconds().0);
+    let ms: StateVar = StateVar(start_time_sec.to_milliseconds().0 as f64);
     let weekday: StateVar = StateVar(start_day.day_number() as f64);
     let init_vec = vec![days, weekday, ms, ms];
     init_vec
@@ -81,34 +85,38 @@ pub fn get_days(sv: &StateVector) -> Result<StateVar, CostFunctionError> {
         .ok_or(CostFunctionError::StateVectorIndexOutOfBounds(
             DAYS_INDEX,
             String::from("days"),
-            sv,
+            sv.clone(),
         ))
+        .copied()
 }
 pub fn get_weekday(sv: &StateVector) -> Result<StateVar, CostFunctionError> {
     sv.get(WEEKDAY_INDEX)
         .ok_or(CostFunctionError::StateVectorIndexOutOfBounds(
             WEEKDAY_INDEX,
             String::from("weekday"),
-            sv,
+            sv.clone(),
         ))
+        .copied()
 }
 pub fn get_start_time(sv: &StateVector) -> Result<StateVar, CostFunctionError> {
     sv.get(START_TIME_INDEX)
         .ok_or(CostFunctionError::StateVectorIndexOutOfBounds(
             START_TIME_INDEX,
             String::from("start time"),
-            sv,
+            sv.clone(),
         ))
+        .copied()
 }
 pub fn get_travel_time(sv: &StateVector) -> Result<StateVar, CostFunctionError> {
     sv.get(TRAVEL_TIME_INDEX)
         .ok_or(CostFunctionError::StateVectorIndexOutOfBounds(
             TRAVEL_TIME_INDEX,
             String::from("travel time"),
-            sv,
+            sv.clone(),
         ))
+        .copied()
 }
 
-pub fn is_gzip(file: String) -> bool {
+pub fn is_gzip(file: &String) -> bool {
     file.ends_with(".gz")
 }
