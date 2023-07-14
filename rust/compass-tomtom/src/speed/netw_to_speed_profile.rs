@@ -14,7 +14,7 @@ pub struct Netw2SpeedProfile {
 }
 
 /// builds a lookup table from speed profile index to weekday speed profile id
-fn build_speed_profile_lookup(
+pub fn build_speed_profile_lookup(
     file: File,
     is_gzip: bool,
 ) -> Result<Vec<SpeedProfileId>, SpeedLookupError> {
