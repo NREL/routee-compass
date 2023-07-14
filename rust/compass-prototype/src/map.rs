@@ -114,6 +114,8 @@ pub struct SearchResult {
     pub energy_gallons_gas: f64,
     #[pyo3(get)]
     pub path: Vec<Link>,
+    #[pyo3(get)]
+    pub cost_dollars: Option<f64>,
 }
 
 pub fn compute_time_seconds_over_path(path: &Vec<Link>, search_input: &SearchInput) -> f64 {
@@ -220,6 +222,7 @@ impl RustMap {
                     time_seconds,
                     energy_gallons_gas: energy,
                     path,
+                    cost_dollars: None,
                 })
             }
             None => None,
@@ -247,6 +250,7 @@ impl RustMap {
                     time_seconds,
                     energy_gallons_gas: energy,
                     path,
+                    cost_dollars: None,
                 })
             }
 
@@ -275,7 +279,7 @@ impl RustMap {
             routee_cost_function,
             build_restriction_function(search_input.vehicle_parameters),
         ) {
-            Some((_scaled_energy, nodes_in_path)) => {
+            Some((cost_dollars, nodes_in_path)) => {
                 let path = self.graph.get_links_in_path(nodes_in_path);
                 let time_seconds = compute_time_seconds_over_path(&path, &search_input);
                 let energy = compute_energy_over_path(&path, &search_input).unwrap();
@@ -284,6 +288,7 @@ impl RustMap {
                     time_seconds,
                     energy_gallons_gas: energy,
                     path,
+                    cost_dollars: Some(cost_dollars as f64),
                 })
             }
 
