@@ -12,7 +12,7 @@ use crate::{
     graph::{Graph, Link, Node},
     powertrain::{
         build_routee_cost_function_with_tods, build_routee_cost_function_with_cost,
-        compute_energy_over_path, VehicleParameters,
+        compute_energy_over_path, VehicleParameters, ROUTEE_SCALE_FACTOR,
     },
     time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
 };
@@ -279,7 +279,7 @@ impl RustMap {
             routee_cost_function,
             build_restriction_function(search_input.vehicle_parameters),
         ) {
-            Some((cost_dollars, nodes_in_path)) => {
+            Some((scaled_cost_dollars, nodes_in_path)) => {
                 let path = self.graph.get_links_in_path(nodes_in_path);
                 let time_seconds = compute_time_seconds_over_path(&path, &search_input);
                 let energy = compute_energy_over_path(&path, &search_input).unwrap();
@@ -288,7 +288,7 @@ impl RustMap {
                     time_seconds,
                     energy_gallons_gas: energy,
                     path,
-                    cost_dollars: Some(cost_dollars as f64),
+                    cost_dollars: Some(scaled_cost_dollars as f64 / ROUTEE_SCALE_FACTOR),
                 })
             }
 

@@ -7,7 +7,7 @@ use pyo3::prelude::*;
 
 use crate::{algorithm::compute_link_speed_kph, graph::Link, map::SearchInput};
 
-// scale the energy by this factor to make it an integer
+// scale the energy or cost by this factor to make it an integer
 pub const ROUTEE_SCALE_FACTOR: f64 = 1_000_000_000.0;
 
 pub const CENTIMETERS_TO_MILES: f64 = 6.213712e-6;
@@ -211,6 +211,7 @@ pub fn build_routee_cost_function_with_cost(
         let energy_dollars = energy * dollar_per_gallon;
         let time_dollars = time_hours * dollar_per_hour;
         let mixed_cost: f64 = energy_dollars + time_dollars;
-        mixed_cost.round() as isize
+        let scaled_cost = mixed_cost * ROUTEE_SCALE_FACTOR;
+        scaled_cost.round() as isize
     })
 }
