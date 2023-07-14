@@ -7,14 +7,14 @@ use super::milliseconds::Milliseconds;
 pub struct Seconds(pub i64);
 
 impl Seconds {
-    pub fn from_hours(h: f64) -> Seconds {
-        Seconds((h * 3600) as i64)
+    pub fn from_hours(h: i64) -> Seconds {
+        Seconds(h * 3600)
     }
-    pub fn from_minutes(m: f64) -> Seconds {
-        Seconds((m * 60) as i64)
+    pub fn from_minutes(m: i64) -> Seconds {
+        Seconds(m * 60)
     }
-    pub fn from_seconds(s: f64) -> Seconds {
-        Seconds((s * 1000.0) as i64)
+    pub fn from_seconds(s: i64) -> Seconds {
+        Seconds(s * 1000)
     }
     pub fn to_milliseconds(&self) -> Milliseconds {
         Milliseconds(self.0 * 1000)
