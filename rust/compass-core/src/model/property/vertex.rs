@@ -13,6 +13,13 @@ pub struct Vertex {
 }
 
 impl Vertex {
+    pub fn new(vertex_id: usize, x: f64, y: f64) -> Self {
+        Self {
+            vertex_id: VertexId(vertex_id),
+            x: Ordinate(x),
+            y: Ordinate(y),
+        }
+    }
     pub fn to_tuple_underlying(&self) -> (f64, f64) {
         (self.x.0, self.y.0)
     }
