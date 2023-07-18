@@ -1,12 +1,19 @@
+use super::{query::InputQuery, InputPlugin};
 use crate::{
     map::rtree::VertexRTree, model::property::vertex::Vertex, plugin::plugin_error::PluginError,
 };
-use super::query::InputQuery;
 
-pub fn build_rtree_plugin(
-    verticies: Vec<Vertex>,
-) -> Result<impl Fn(serde_json::Value) -> Result<serde_json::Value, PluginError>, PluginError> {
-    let vertex_rtree = VertexRTree::new(verticies);
+/// Builds an input plugin that uses an RTree to find the nearest vertex to the origin and destination coordinates.
+/// 
+/// # Arguments
+/// 
+/// * `vertices` - The vertices to build the RTree from.
+/// 
+/// # Returns
+/// 
+/// * An input plugin that uses an RTree to find the nearest vertex to the origin and destination coordinates.
+pub fn build_rtree_plugin(vertices: Vec<Vertex>) -> Result<InputPlugin, PluginError> {
+    let vertex_rtree = VertexRTree::new(vertices);
     let rtree_plugin_fn =
         move |mut query: serde_json::Value| -> Result<serde_json::Value, PluginError> {
             let origin_coord = query.get_origin_coordinate()?;
@@ -23,5 +30,5 @@ pub fn build_rtree_plugin(
             query.add_destination_vertex(destination_vertex.vertex_id)?;
             Ok(query)
         };
-    Ok(rtree_plugin_fn)
+    Ok(Box::new(rtree_plugin_fn))
 }
