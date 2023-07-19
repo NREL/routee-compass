@@ -5,9 +5,8 @@ use compass_core::model::traversal::function::cost_function_error::CostFunctionE
 use compass_core::model::traversal::function::function::EdgeCostFunction;
 use compass_core::model::traversal::state::search_state::StateVector;
 use compass_core::model::traversal::state::state_variable::StateVar;
-use compass_core::model::units::cm_per_second::CmPerSecond;
-use compass_core::model::units::seconds::Seconds;
 use std::fs::File;
+use uom::si;
 
 /// constructs a lookup table that gives us travel times by time-of-day
 /// bin. the source data is stored in 5-minute bins. we use the start time,
@@ -51,11 +50,11 @@ pub fn from_edgelist_csv(
         // lookup speed profile by edge id, pick speed by time bin...
         // see https://github.nrel.gov/MBAP/mbap-computing/blob/master/postgres/examples/tomtom_2021_network/tomtom_2021_network_time_bin_speeds.sql
         // https://pages.github.nrel.gov/MBAP/tomtom_2021_docs/mnr_spec/common_spec/theme_roads_and_ferries/speed_profile/speed_profile.html?hl=speed%2Cprofile
-        let speed: CmPerSecond = CmPerSecond(1);
-        let tt = e.distance_centimeters.travel_time_millis(&speed);
+        let tt = e.distance / e.free_flow_speed;
+        let milliseconds = tt.get::<si::time::millisecond>();
         let mut s_update = s.to_vec();
-        s_update[0] = s_update[0] + StateVar(tt.0 as f64);
-        Ok((Cost(tt.0), s_update))
+        s_update[0] = s_update[0] + StateVar(milliseconds as f64);
+        Ok((Cost::from_f32(milliseconds), s_update))
     });
 
     return Ok(f);
@@ -67,9 +66,9 @@ pub fn from_edgelist_csv(
 ///
 /// * `start_time_sec` - the time of day, in seconds, that the search started at
 /// * `start_day` - the day of the week that the search started on
-pub fn initial_tomtom_state(start_time_sec: Seconds, start_day: Weekday) -> StateVector {
+pub fn initial_tomtom_state(start_time_sec: f64, start_day: Weekday) -> StateVector {
     let days: StateVar = StateVar::ZERO;
-    let ms: StateVar = StateVar(start_time_sec.to_milliseconds().0 as f64);
+    let ms: StateVar = StateVar(start_time_sec);
     let weekday: StateVar = StateVar(start_day.day_number() as f64);
     let init_vec = vec![days, weekday, ms, ms];
     init_vec

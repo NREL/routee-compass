@@ -294,16 +294,17 @@ mod tests {
     use crate::{
         model::{
             cost::cost_error::CostError, graph::edge_id::EdgeId, property::vertex::Vertex,
-            units::cm_per_second::CmPerSecond,
         },
         util::read_only_lock::DriverReadOnlyLock,
     };
     use rayon::prelude::*;
+    use uom::si::f32::Velocity;
+    use uom::si::velocity::centimeter_per_second;
 
     struct TestCost;
     impl CostEstimateFunction for TestCost {
         fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, CostError> {
-            Ok(Cost(0))
+            Ok(Cost::from_f64(0.0))
         }
     }
 
@@ -341,15 +342,15 @@ mod tests {
                 HashMap::from([(EdgeId(5), VertexId(2)), (EdgeId(6), VertexId(0))]),
             ),
         ]);
-        let edges_cps = HashMap::from([
-            (EdgeId(0), CmPerSecond(10)),  // 10 seconds
-            (EdgeId(1), CmPerSecond(10)),  // 10 seconds
-            (EdgeId(2), CmPerSecond(50)),  // 2 seconds
-            (EdgeId(3), CmPerSecond(50)),  // 2 seconds
-            (EdgeId(4), CmPerSecond(100)), // 1 seconds
-            (EdgeId(5), CmPerSecond(100)), // 1 seconds
-            (EdgeId(6), CmPerSecond(50)),  // 2 second
-            (EdgeId(7), CmPerSecond(50)),  // 2 second
+        let edge_speeds = HashMap::from([
+            (EdgeId(0), Velocity::new::<centimeter_per_second>(10.0)), // 10 seconds
+            (EdgeId(1), Velocity::new::<centimeter_per_second>(10.0)), // 10 seconds
+            (EdgeId(2), Velocity::new::<centimeter_per_second>(50.0)), // 2 seconds
+            (EdgeId(3), Velocity::new::<centimeter_per_second>(50.0)), // 2 seconds
+            (EdgeId(4), Velocity::new::<centimeter_per_second>(100.0)), // 1 seconds
+            (EdgeId(5), Velocity::new::<centimeter_per_second>(100.0)), // 1 seconds
+            (EdgeId(6), Velocity::new::<centimeter_per_second>(50.0)), // 2 seconds
+            (EdgeId(7), Velocity::new::<centimeter_per_second>(50.0)), // 2 seconds
         ]);
 
         // these are the queries to test the grid world. for each query,
@@ -381,7 +382,7 @@ mod tests {
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
-        let driver_dg_obj = TestDG::new(adj, edges_cps).unwrap();
+        let driver_dg_obj = TestDG::new(adj, edge_speeds).unwrap();
         let driver_dg = Arc::new(DriverReadOnlyLock::new(
             &driver_dg_obj as &dyn DirectedGraph,
         ));

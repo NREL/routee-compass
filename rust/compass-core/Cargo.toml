@@ -16,6 +16,8 @@ anyhow = "1.0.70"
 bincode = "1.3.3"
 geo = "0.24.1"
 rstar = "0.10.0"
+uom = { workspace = true, features = ["use_serde"] }
+ordered-float = "3.7.0"
 smartcore = { version = "0.3.1", features = ["serde"] }
 derive_more = "0.99.0"
 keyed_priority_queue = "0.4.1"

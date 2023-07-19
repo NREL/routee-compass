@@ -28,6 +28,8 @@ use compass_core::{
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use log::{info, warn};
 use rand::seq::SliceRandom;
+use uom::si::f64::Velocity;
+use uom::si::velocity::kilometer_per_hour;
 
 fn main() {
     env_logger::init();
@@ -49,7 +51,7 @@ fn main() {
     info!("yay!");
 
     let haversine = Haversine {
-        travel_speed_kph: 40.0,
+        travel_speed: Velocity::new::<kilometer_per_hour>(40.0),
     };
 
     let g = Arc::new(DriverReadOnlyLock::new(&graph as &dyn DirectedGraph));
@@ -105,7 +107,7 @@ fn main() {
                     .map(|e| e.edge_cost())
                     .reduce(|x, y| x + y)
                     .unwrap();
-                let dur = Duration::milliseconds(time_ms.0);
+                let dur = Duration::milliseconds(time_ms.into_i64());
                 let time_str = format!(
                     "{}:{}:{}",
                     dur.num_hours(),
