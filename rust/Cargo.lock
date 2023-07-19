@@ -125,10 +125,12 @@ dependencies = [
  "compass-tomtom",
  "env_logger",
  "flate2",
+ "geo",
  "kdam",
  "log",
  "rand",
  "serde",
+ "serde_json",
  "serde_repr",
  "thiserror",
 ]
@@ -146,7 +148,6 @@ dependencies = [
  "rayon",
  "rstar",
  "serde",
- "serde_json",
  "smartcore",
  "thiserror",
 ]
