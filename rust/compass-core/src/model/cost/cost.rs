@@ -15,14 +15,8 @@ impl Cost {
     pub fn from_f64(f: f64) -> Cost {
         Cost(OrderedFloat(f))
     }
-    pub fn from_f32(f: f32) -> Cost {
-        Cost(OrderedFloat(f64::from(f)))
-    }
     pub fn into_f64(self) -> f64 {
         self.0.into_inner()
-    }
-    pub fn into_f32(self) -> f32 {
-        self.0.into_inner() as f32
     }
     pub fn into_i64(self) -> i64 {
         self.0.into_inner().round() as i64

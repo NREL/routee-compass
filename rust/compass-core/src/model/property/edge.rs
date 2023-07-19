@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 
-use uom::si::f32::{Length, Ratio, Velocity};
+use crate::model::units::{Length, Ratio, Velocity};
 
 use super::road_class::RoadClass;
 

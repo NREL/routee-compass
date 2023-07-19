@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
+use crate::model::units::{Length, Ratio, Velocity};
 use geo::coord;
-use uom::si::f32::{Velocity, Length, Ratio};
 
 use crate::model::{
     graph::{
         directed_graph::DirectedGraph, edge_id::EdgeId, graph_error::GraphError,
         vertex_id::VertexId,
     },
-    property::{edge::Edge, vertex::Vertex, road_class::RoadClass},
+    property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
 };
 
 #[cfg(test)]
@@ -16,6 +16,17 @@ pub struct TestDG {
     adj: HashMap<VertexId, HashMap<EdgeId, VertexId>>,
     rev: HashMap<VertexId, HashMap<EdgeId, VertexId>>,
     edges: HashMap<EdgeId, Edge>,
+}
+
+#[cfg(test)]
+impl Default for TestDG {
+    fn default() -> Self {
+        TestDG {
+            adj: HashMap::new(),
+            rev: HashMap::new(),
+            edges: HashMap::new(),
+        }
+    }
 }
 #[cfg(test)]
 impl DirectedGraph for TestDG {
@@ -33,7 +44,7 @@ impl DirectedGraph for TestDG {
             .keys()
             .map(|v| Vertex {
                 vertex_id: *v,
-                coordinate: coord! {x: 0.0, y: 0.0}
+                coordinate: coord! {x: 0.0, y: 0.0},
             })
             .collect()
     }
@@ -84,9 +95,11 @@ impl TestDG {
         let mut edges: HashMap<EdgeId, Edge> = HashMap::new();
         for (src, out_edges) in &adj {
             for (edge_id, dst) in out_edges {
-                let speed = edge_speeds.get(&edge_id).ok_or(GraphError::EdgeIdNotFound {
-                    edge_id: edge_id.clone(),
-                })?;
+                let speed = edge_speeds
+                    .get(&edge_id)
+                    .ok_or(GraphError::EdgeIdNotFound {
+                        edge_id: edge_id.clone(),
+                    })?;
                 let edge = Edge {
                     edge_id: edge_id.clone(),
                     src_vertex_id: src.clone(),
@@ -103,7 +116,9 @@ impl TestDG {
         for (src, out_edges) in &adj {
             for (edge_id, dst) in out_edges {
                 if rev.contains_key(dst) {
-                    rev.get_mut(dst).unwrap().insert(edge_id.clone(), src.clone());
+                    rev.get_mut(dst)
+                        .unwrap()
+                        .insert(edge_id.clone(), src.clone());
                 } else {
                     let mut new_map: HashMap<EdgeId, VertexId> = HashMap::new();
                     new_map.insert(edge_id.clone(), src.clone());

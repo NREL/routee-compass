@@ -8,25 +8,25 @@ use crate::model::graph::vertex_id::VertexId;
 #[derive(Copy, Clone, Deserialize, Default)]
 pub struct Vertex {
     pub vertex_id: VertexId,
-    pub coordinate: Coord<f32>,
+    pub coordinate: Coord,
 }
 
 impl Vertex {
-    pub fn new(vertex_id: usize, x: f32, y: f32) -> Self {
+    pub fn new(vertex_id: usize, x: f64, y: f64) -> Self {
         Self {
             vertex_id: VertexId(vertex_id),
             coordinate: coord! {x: x, y: y},
         }
     }
-    pub fn to_tuple_underlying(&self) -> (f32, f32) {
+    pub fn to_tuple_underlying(&self) -> (f64, f64) {
         (self.coordinate.x, self.coordinate.y)
     }
 
-    pub fn x(&self) -> f32 {
+    pub fn x(&self) -> f64 {
         self.coordinate.x
     }
 
-    pub fn y(&self) -> f32 {
+    pub fn y(&self) -> f64 {
         self.coordinate.y
     }
 }
@@ -36,16 +36,16 @@ impl RTreeObject for Vertex {
 
     fn envelope(&self) -> Self::Envelope {
         AABB::from_corners(
-            coord! {x: self.x() as f64, y: self.y() as f64},
-            coord! {x: self.x() as f64, y: self.y() as f64},
+            coord! {x: self.x(), y: self.y()},
+            coord! {x: self.x(), y: self.y()},
         )
     }
 }
 
 impl PointDistance for Vertex {
     fn distance_2(&self, point: &Coord) -> f64 {
-        let dx = self.x() as f64 - point.x;
-        let dy = self.y() as f64 - point.y;
+        let dx = self.x() - point.x;
+        let dy = self.y() - point.y;
         dx * dx + dy * dy
     }
 }

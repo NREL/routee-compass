@@ -1,6 +1,6 @@
 use geo::Coord;
 use uom::si;
-use uom::si::f32::{Length, Velocity};
+use crate::model::units::{Length, Velocity};
 
 use crate::model::cost::{cost::Cost, cost_error::CostError};
 use crate::model::property::vertex::Vertex;
@@ -23,17 +23,17 @@ impl CostEstimateFunction for Haversine {
         let distance = Haversine::distance(src.coordinate, dst.coordinate);
         let travel_time = distance / self.travel_speed;
         let travel_time_ms = travel_time.get::<si::time::millisecond>();
-        Ok(Cost::from_f32(travel_time_ms))
+        Ok(Cost::from_f64(travel_time_ms))
     }
 }
 
 impl Haversine {
-    pub const APPROX_EARTH_RADIUS_KM: f32 = 6372.8;
+    pub const APPROX_EARTH_RADIUS_KM: f64 = 6372.8;
 
     /// haversine distance formula, based on the one published to rosetta code.
     /// https://rosettacode.org/wiki/Haversine_formula#Rust
     /// computes the great circle distance between two points in kilometers.
-    pub fn distance(src: Coord<f32>, dst: Coord<f32>) -> Length {
+    pub fn distance(src: Coord, dst: Coord) -> Length {
         let lat1 = src.y.to_radians();
         let lat2 = dst.y.to_radians();
         let d_lat = lat2 - lat1;
@@ -51,7 +51,7 @@ impl Haversine {
 mod tests {
     use geo::coord;
     use uom::si;
-    use uom::si::f32::{Length, Velocity};
+    use crate::model::units::{Length, Velocity};
 
     use crate::model::{
         graph::vertex_id::VertexId, property::vertex::Vertex
@@ -89,7 +89,7 @@ mod tests {
             Ok(time) => {
                 assert_eq!(dist, expected_dist);
                 assert_eq!(
-                    time.into_f32(),
+                    time.into_f64(),
                     expected_time.get::<si::time::millisecond>()
                 );
             }

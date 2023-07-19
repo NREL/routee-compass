@@ -28,7 +28,7 @@ use compass_core::{
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use log::{info, warn};
 use rand::seq::SliceRandom;
-use uom::si::f32::Velocity;
+use compass_core::model::units::Velocity;
 use uom::si::velocity::kilometer_per_hour;
 
 fn main() {

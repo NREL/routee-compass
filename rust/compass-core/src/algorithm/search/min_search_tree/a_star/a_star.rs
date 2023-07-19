@@ -298,7 +298,7 @@ mod tests {
         util::read_only_lock::DriverReadOnlyLock,
     };
     use rayon::prelude::*;
-    use uom::si::f32::Velocity;
+    use crate::model::units::Velocity;
     use uom::si::velocity::centimeter_per_second;
 
     struct TestCost;
