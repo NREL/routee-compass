@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use geo::coord;
 use uom::si::f32::{Velocity, Length, Ratio};
 
 use crate::model::{
@@ -8,7 +9,6 @@ use crate::model::{
         vertex_id::VertexId,
     },
     property::{edge::Edge, vertex::Vertex, road_class::RoadClass},
-    units::{ordinate::Ordinate},
 };
 
 #[cfg(test)]
@@ -33,8 +33,7 @@ impl DirectedGraph for TestDG {
             .keys()
             .map(|v| Vertex {
                 vertex_id: *v,
-                x: Ordinate(0.0),
-                y: Ordinate(0.0),
+                coordinate: coord! {x: 0.0, y: 0.0}
             })
             .collect()
     }
@@ -47,8 +46,7 @@ impl DirectedGraph for TestDG {
     fn vertex_attr(&self, _vertex_id: VertexId) -> Result<Vertex, GraphError> {
         Ok(Vertex {
             vertex_id: VertexId(0),
-            x: Ordinate(0.0),
-            y: Ordinate(0.0),
+            coordinate: coord! {x: 0.0, y: 0.0},
         })
     }
     fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
