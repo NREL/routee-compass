@@ -1,10 +1,8 @@
 use serde::Deserialize;
 
-use crate::model::{
-    graph::{edge_id::EdgeId, vertex_id::VertexId},
-};
+use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 
-use uom::si::f32::{Length, Velocity, Ratio};
+use uom::si::f32::{Length, Ratio, Velocity};
 
 use super::road_class::RoadClass;
 
