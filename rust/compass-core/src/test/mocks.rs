@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::model::units::{Length, Ratio, Velocity};
 use geo::coord;
+use uom::si;
 
 use crate::model::{
     graph::{
@@ -106,8 +107,8 @@ impl TestDG {
                     dst_vertex_id: dst.clone(),
                     road_class: RoadClass(0),
                     free_flow_speed: speed.clone(),
-                    distance: Length::new::<uom::si::length::meter>(1.0),
-                    grade: Ratio::new::<uom::si::ratio::per_mille>(0.0),
+                    distance: Length::new::<si::length::meter>(1.0),
+                    grade: Ratio::new::<si::ratio::per_mille>(0.0),
                 };
                 edges.insert(edge_id.clone(), edge);
             }

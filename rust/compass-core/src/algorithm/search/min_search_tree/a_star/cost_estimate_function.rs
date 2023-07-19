@@ -42,7 +42,7 @@ impl Haversine {
         let a = (d_lat / 2.0).sin().powi(2) + (d_lon / 2.0).sin().powi(2) * lat1.cos() * lat2.cos();
         let c = 2.0 * a.sqrt().asin();
         let distance_km = Haversine::APPROX_EARTH_RADIUS_KM * c;
-        let distance = Length::new::<uom::si::length::kilometer>(distance_km);
+        let distance = Length::new::<si::length::kilometer>(distance_km);
         distance
     }
 }
