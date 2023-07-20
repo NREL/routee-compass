@@ -284,21 +284,19 @@ fn h_cost(
 mod tests {
     use super::*;
     use crate::model::traversal::function::default::aggregation::additive_aggregation;
-    use crate::model::traversal::function::default::free_flow::{
-        free_flow_cost_function, initial_free_flow_state,
+    use crate::model::traversal::function::default::distance_cost::{
+        distance_cost_function, initial_distance_state,
     };
     use crate::model::traversal::function::edge_cost_function_config::EdgeCostFunctionConfig;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::traversal::traversal_model_config::TraversalModelConfig;
+    use crate::model::units::Velocity;
     use crate::test::mocks::TestDG;
     use crate::{
-        model::{
-            cost::cost_error::CostError, graph::edge_id::EdgeId, property::vertex::Vertex,
-        },
+        model::{cost::cost_error::CostError, graph::edge_id::EdgeId, property::vertex::Vertex},
         util::read_only_lock::DriverReadOnlyLock,
     };
     use rayon::prelude::*;
-    use crate::model::units::Velocity;
     use uom::si::velocity::centimeter_per_second;
 
     struct TestCost;
@@ -382,13 +380,13 @@ mod tests {
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
-        let driver_dg_obj = TestDG::new(adj, edge_speeds).unwrap();
+        let driver_dg_obj = TestDG::new(adj).unwrap();
         let driver_dg = Arc::new(DriverReadOnlyLock::new(
             &driver_dg_obj as &dyn DirectedGraph,
         ));
 
-        let ff_fn = free_flow_cost_function();
-        let ff_init = initial_free_flow_state();
+        let ff_fn = distance_cost_function();
+        let ff_init = initial_distance_state();
         let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
         let agg = additive_aggregation();
         let driver_tm_obj = TraversalModel::from(&TraversalModelConfig {
