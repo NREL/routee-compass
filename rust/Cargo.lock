@@ -189,6 +189,7 @@ dependencies = [
  "csv",
  "env_logger",
  "flate2",
+ "geo",
  "kdam",
  "log",
  "serde",
