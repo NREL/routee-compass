@@ -12,7 +12,6 @@ pub struct Edge {
     pub src_vertex_id: VertexId,
     pub dst_vertex_id: VertexId,
     pub road_class: RoadClass,
-    pub free_flow_speed: Velocity,
     pub distance: Length,
     pub grade: Ratio,
 }
