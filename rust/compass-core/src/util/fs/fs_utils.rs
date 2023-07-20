@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{self, BufRead, BufReader},
     path::Path,
 };
 
@@ -22,5 +22,17 @@ where
     } else {
         let reader = BufReader::new(file);
         return Ok(reader.lines().count());
+    }
+}
+
+/// attempts to read a gzip header from the file. if it is found,
+/// then returns true. some inefficiency here due to throwing out the
+/// stream object that could have been used later, but in typical Compass
+/// settings, this isn't a real bottleneck.
+pub fn is_gzip(file: &File) -> bool {
+    let gz = GzDecoder::new(io::BufReader::new(file));
+    match gz.header() {
+        Some(_) => true,
+        None => false,
     }
 }

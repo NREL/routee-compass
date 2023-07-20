@@ -1,2 +1,2 @@
-pub mod fs_utils;
+pub mod fs;
 pub mod read_only_lock;
