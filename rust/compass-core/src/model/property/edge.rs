@@ -1,9 +1,8 @@
 use serde::Deserialize;
 
-use crate::model::{
-    graph::{edge_id::EdgeId, vertex_id::VertexId},
-    units::{centimeters::Centimeters, cm_per_second::CmPerSecond, millis::Millis},
-};
+use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
+
+use crate::model::units::{Length, Ratio, Velocity};
 
 use super::road_class::RoadClass;
 
@@ -13,7 +12,7 @@ pub struct Edge {
     pub src_vertex_id: VertexId,
     pub dst_vertex_id: VertexId,
     pub road_class: RoadClass,
-    pub free_flow_speed_cps: CmPerSecond,
-    pub distance_centimeters: Centimeters,
-    pub grade_millis: Millis,
+    pub free_flow_speed: Velocity,
+    pub distance: Length,
+    pub grade: Ratio,
 }

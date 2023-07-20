@@ -1,7 +1,9 @@
-use crate::model::property::vertex::Vertex;
+use geo::Coord;
+use uom::si;
+use crate::model::units::{Length, Velocity};
 
 use crate::model::cost::{cost::Cost, cost_error::CostError};
-use crate::model::units::milliseconds::Milliseconds;
+use crate::model::property::vertex::Vertex;
 
 pub trait CostEstimateFunction: Sync + Send {
     fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostError>;
@@ -11,17 +13,17 @@ pub trait CostEstimateFunction: Sync + Send {
 /// the lower bound on distance between two vertices. we then "traverse" that
 /// distance using the provided travel speed in kilometers per hour.
 pub struct Haversine {
-    pub travel_speed_kph: f64,
+    pub travel_speed: Velocity,
 }
 
 impl CostEstimateFunction for Haversine {
     /// uses the haversine distance between two points to estimate a lower bound of
     /// travel time in milliseconds.
     fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostError> {
-        let distance_km = Haversine::distance_km(src.x.0, src.y.0, dst.x.0, dst.y.0);
-        let travel_time_hours = distance_km / self.travel_speed_kph;
-        let travel_time_ms = Milliseconds::from_hours(travel_time_hours);
-        Ok(Cost(travel_time_ms.0))
+        let distance = Haversine::distance(src.coordinate, dst.coordinate);
+        let travel_time = distance / self.travel_speed;
+        let travel_time_ms = travel_time.get::<si::time::millisecond>();
+        Ok(Cost::from_f64(travel_time_ms))
     }
 }
 
@@ -31,25 +33,28 @@ impl Haversine {
     /// haversine distance formula, based on the one published to rosetta code.
     /// https://rosettacode.org/wiki/Haversine_formula#Rust
     /// computes the great circle distance between two points in kilometers.
-    pub fn distance_km(src_x: f64, src_y: f64, dst_x: f64, dst_y: f64) -> f64 {
-        let lat1 = src_y.to_radians();
-        let lat2 = dst_y.to_radians();
+    pub fn distance(src: Coord, dst: Coord) -> Length {
+        let lat1 = src.y.to_radians();
+        let lat2 = dst.y.to_radians();
         let d_lat = lat2 - lat1;
-        let d_lon = (dst_x - src_x).to_radians();
+        let d_lon = (dst.x - src.x).to_radians();
 
         let a = (d_lat / 2.0).sin().powi(2) + (d_lon / 2.0).sin().powi(2) * lat1.cos() * lat2.cos();
         let c = 2.0 * a.sqrt().asin();
         let distance_km = Haversine::APPROX_EARTH_RADIUS_KM * c;
-        distance_km
+        let distance = Length::new::<si::length::kilometer>(distance_km);
+        distance
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::model::units::milliseconds::Milliseconds;
+    use geo::coord;
+    use uom::si;
+    use crate::model::units::{Length, Velocity};
 
     use crate::model::{
-        graph::vertex_id::VertexId, property::vertex::Vertex, units::ordinate::Ordinate,
+        graph::vertex_id::VertexId, property::vertex::Vertex
     };
 
     use super::{CostEstimateFunction, Haversine};
@@ -60,24 +65,21 @@ mod tests {
         // https://rosettacode.org/wiki/Haversine_formula#Rust
 
         let h = Haversine {
-            travel_speed_kph: 40.0,
+            travel_speed: Velocity::new::<si::velocity::kilometer_per_hour>(40.0),
         };
         let src = Vertex {
             vertex_id: VertexId(0),
-            x: Ordinate(-86.67),
-            y: Ordinate(36.12),
+            coordinate: coord! {x: -86.67, y: 36.12},
         };
         let dst = Vertex {
             vertex_id: VertexId(1),
-            x: Ordinate(-118.4),
-            y: Ordinate(33.94),
+            coordinate: coord! {x: -118.40, y: 33.94},
         };
 
-        let expected_dist = 2887.2599506071106;
-        let expected_time_hours = expected_dist / 40.0;
-        let expected_time = Milliseconds::from_hours(expected_time_hours).0;
+        let expected_dist = Length::new::<si::length::kilometer>(2887.2599506071106);
+        let expected_time = expected_dist / h.travel_speed;
 
-        let dist = Haversine::distance_km(src.x.0, src.y.0, dst.x.0, dst.y.0);
+        let dist = Haversine::distance(src.coordinate, dst.coordinate);
 
         match h.cost(src, dst) {
             Err(e) => {
@@ -86,7 +88,10 @@ mod tests {
             }
             Ok(time) => {
                 assert_eq!(dist, expected_dist);
-                assert_eq!(time.0, expected_time);
+                assert_eq!(
+                    time.into_f64(),
+                    expected_time.get::<si::time::millisecond>()
+                );
             }
         }
     }

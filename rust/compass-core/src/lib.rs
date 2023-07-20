@@ -5,3 +5,6 @@ pub mod plugin;
 pub mod util;
 
 pub(crate) mod test;
+
+#[macro_use]
+extern crate uom;

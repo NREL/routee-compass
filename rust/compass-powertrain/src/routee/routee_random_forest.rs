@@ -16,7 +16,7 @@ pub fn build_routee_random_forest() -> EdgeCostFunction {
         // lookup routee cost, return energy cost here (instead of Cost::ZERO)
         //
         let energy_cost: Cost = Cost::ZERO;
-        let energy_cost_f64: f64 = energy_cost.0 as f64;
+        let energy_cost_f64: f64 = energy_cost.into_f64();
         let mut updated_state: StateVector = s.to_vec();
         updated_state[0] = updated_state[0] + StateVar(energy_cost_f64);
         Ok((energy_cost, updated_state))

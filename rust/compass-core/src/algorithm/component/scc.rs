@@ -20,19 +20,6 @@ use crate::model::graph::{graph_error::GraphError, vertex_id::VertexId};
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-/// # Examples
-///
-/// ```rust
-/// // let's assume `graph` is an instance of a struct implementing DirectedGraph
-/// let start_vertex = VertexId(0);
-/// let mut visited = HashSet::new();
-/// let mut stack = Vec::new();
-///
-/// match depth_first_search(&graph, start_vertex, &mut visited, &mut stack) {
-///     Ok(()) => println!("DFS completed successfully"),
-///     Err(e) => println!("DFS failed with error: {:?}", e),
-/// }
-/// ```
 pub fn depth_first_search(
     graph: &impl DirectedGraph,
     vertex: VertexId,
@@ -73,19 +60,6 @@ pub fn depth_first_search(
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-/// # Examples
-///
-/// ```rust
-/// // let's assume `graph` is an instance of a struct implementing DirectedGraph
-/// let start_vertex = VertexId(0);
-/// let mut visited = HashSet::new();
-/// let mut stack = Vec::new();
-///
-/// match reverse_depth_first_search(&graph, start_vertex, &mut visited, &mut stack) {
-///     Ok(()) => println!("DFS completed successfully"),
-///     Err(e) => println!("DFS failed with error: {:?}", e),
-/// }
-/// ```
 fn reverse_depth_first_search(
     graph: &impl DirectedGraph,
     vertex: VertexId,
@@ -121,15 +95,6 @@ fn reverse_depth_first_search(
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-/// # Examples
-///
-/// ```rust
-/// // let's assume `graph` is an instance of a struct implementing DirectedGraph
-/// match all_strongly_connected_components(&graph) {
-///    Ok(components) => println!("Found strongly connected components: {:?}", components),
-///   Err(e) => println!("Failed to find strongly connected components: {:?}", e),
-/// }
-/// ```
 fn all_strongly_connected_componenets(
     graph: &impl DirectedGraph,
 ) -> Result<Vec<Vec<VertexId>>, GraphError> {
@@ -169,15 +134,6 @@ fn all_strongly_connected_componenets(
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-/// # Examples
-///
-/// ```rust
-/// // let's assume `graph` is an instance of a struct implementing DirectedGraph
-/// match largest_strongly_connected_component(&graph) {
-///   Ok(component) => println!("Found largest strongly connected component: {:?}", component),
-///   Err(e) => println!("Failed to find largest strongly connected component: {:?}", e),
-/// }
-/// ```
 fn largest_strongly_connected_component(
     graph: &impl DirectedGraph,
 ) -> Result<Vec<VertexId>, GraphError> {
@@ -198,11 +154,11 @@ fn largest_strongly_connected_component(
 mod tests {
     use std::collections::HashMap;
 
+    use crate::model::units::Velocity;
+    use uom::si::velocity::centimeter_per_second;
+
     use super::*;
-    use crate::{
-        model::{graph::edge_id::EdgeId, units::cm_per_second::CmPerSecond},
-        test::mocks::TestDG,
-    };
+    use crate::{model::graph::edge_id::EdgeId, test::mocks::TestDG};
 
     fn build_mock_graph() -> impl DirectedGraph {
         // A test graph with 2 strongly connected components
@@ -244,20 +200,21 @@ mod tests {
                 HashMap::from([(EdgeId(12), VertexId(4))]), // self-loop for the disjoint node
             ),
         ]);
+
         let speeds = HashMap::from([
-            (EdgeId(0), CmPerSecond(10)),
-            (EdgeId(1), CmPerSecond(10)),
-            (EdgeId(2), CmPerSecond(10)),
-            (EdgeId(3), CmPerSecond(10)),
-            (EdgeId(4), CmPerSecond(10)),
-            (EdgeId(5), CmPerSecond(10)),
-            (EdgeId(6), CmPerSecond(10)),
-            (EdgeId(7), CmPerSecond(10)),
-            (EdgeId(8), CmPerSecond(10)),
-            (EdgeId(9), CmPerSecond(10)),
-            (EdgeId(10), CmPerSecond(10)),
-            (EdgeId(11), CmPerSecond(10)),
-            (EdgeId(12), CmPerSecond(10)),
+            (EdgeId(0), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(1), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(2), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(3), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(4), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(5), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(6), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(7), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(8), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(9), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(10), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(11), Velocity::new::<centimeter_per_second>(10.0)),
+            (EdgeId(12), Velocity::new::<centimeter_per_second>(10.0)),
         ]);
 
         let graph = TestDG::new(adj, speeds).unwrap();
