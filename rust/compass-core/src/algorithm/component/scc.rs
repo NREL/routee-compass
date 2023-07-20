@@ -217,7 +217,7 @@ mod tests {
             (EdgeId(12), Velocity::new::<centimeter_per_second>(10.0)),
         ]);
 
-        let graph = TestDG::new(adj, speeds).unwrap();
+        let graph = TestDG::new(adj).unwrap();
         graph
     }
 
