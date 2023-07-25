@@ -11,6 +11,7 @@ flate2 = { workspace = true }
 kdam = { workspace = true }
 log = { workspace = true }
 uom = { workspace = true}
+geo = { workspace = true }
 env_logger = { workspace = true }
 csv = { version = "1.2.2" }
 serde = { workspace = true, features = ["derive"] }

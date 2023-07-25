@@ -284,22 +284,21 @@ fn h_cost(
 mod tests {
     use super::*;
     use crate::model::traversal::function::default::aggregation::additive_aggregation;
-    use crate::model::traversal::function::default::free_flow::{
-        free_flow_cost_function, initial_free_flow_state,
+    use crate::model::traversal::function::default::distance_cost::{
+        distance_cost_function, initial_distance_state,
     };
     use crate::model::traversal::function::edge_cost_function_config::EdgeCostFunctionConfig;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::traversal::traversal_model_config::TraversalModelConfig;
+    use crate::model::units::Length;
+    use crate::model::units::Velocity;
     use crate::test::mocks::TestDG;
     use crate::{
-        model::{
-            cost::cost_error::CostError, graph::edge_id::EdgeId, property::vertex::Vertex,
-        },
+        model::{cost::cost_error::CostError, graph::edge_id::EdgeId, property::vertex::Vertex},
         util::read_only_lock::DriverReadOnlyLock,
     };
     use rayon::prelude::*;
-    use crate::model::units::Velocity;
-    use uom::si::velocity::centimeter_per_second;
+    use uom::si::length::centimeter;
 
     struct TestCost;
     impl CostEstimateFunction for TestCost {
@@ -342,15 +341,15 @@ mod tests {
                 HashMap::from([(EdgeId(5), VertexId(2)), (EdgeId(6), VertexId(0))]),
             ),
         ]);
-        let edge_speeds = HashMap::from([
-            (EdgeId(0), Velocity::new::<centimeter_per_second>(10.0)), // 10 seconds
-            (EdgeId(1), Velocity::new::<centimeter_per_second>(10.0)), // 10 seconds
-            (EdgeId(2), Velocity::new::<centimeter_per_second>(50.0)), // 2 seconds
-            (EdgeId(3), Velocity::new::<centimeter_per_second>(50.0)), // 2 seconds
-            (EdgeId(4), Velocity::new::<centimeter_per_second>(100.0)), // 1 seconds
-            (EdgeId(5), Velocity::new::<centimeter_per_second>(100.0)), // 1 seconds
-            (EdgeId(6), Velocity::new::<centimeter_per_second>(50.0)), // 2 seconds
-            (EdgeId(7), Velocity::new::<centimeter_per_second>(50.0)), // 2 seconds
+        let edge_lengths = HashMap::from([
+            (EdgeId(0), Length::new::<centimeter>(10.0)),
+            (EdgeId(1), Length::new::<centimeter>(10.0)),
+            (EdgeId(2), Length::new::<centimeter>(2.0)),
+            (EdgeId(3), Length::new::<centimeter>(2.0)),
+            (EdgeId(4), Length::new::<centimeter>(1.0)),
+            (EdgeId(5), Length::new::<centimeter>(1.0)),
+            (EdgeId(6), Length::new::<centimeter>(2.0)),
+            (EdgeId(7), Length::new::<centimeter>(2.0)),
         ]);
 
         // these are the queries to test the grid world. for each query,
@@ -382,13 +381,13 @@ mod tests {
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
-        let driver_dg_obj = TestDG::new(adj, edge_speeds).unwrap();
+        let driver_dg_obj = TestDG::new(adj, edge_lengths).unwrap();
         let driver_dg = Arc::new(DriverReadOnlyLock::new(
             &driver_dg_obj as &dyn DirectedGraph,
         ));
 
-        let ff_fn = free_flow_cost_function();
-        let ff_init = initial_free_flow_state();
+        let ff_fn = distance_cost_function();
+        let ff_init = initial_distance_state();
         let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
         let agg = additive_aggregation();
         let driver_tm_obj = TraversalModel::from(&TraversalModelConfig {

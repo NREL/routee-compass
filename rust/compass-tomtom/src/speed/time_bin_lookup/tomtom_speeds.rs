@@ -5,6 +5,7 @@ use compass_core::model::traversal::function::cost_function_error::CostFunctionE
 use compass_core::model::traversal::function::function::EdgeCostFunction;
 use compass_core::model::traversal::state::search_state::StateVector;
 use compass_core::model::traversal::state::state_variable::StateVar;
+use compass_core::model::units::Time;
 use std::fs::File;
 use uom::si;
 
@@ -50,7 +51,7 @@ pub fn from_edgelist_csv(
         // lookup speed profile by edge id, pick speed by time bin...
         // see https://github.nrel.gov/MBAP/mbap-computing/blob/master/postgres/examples/tomtom_2021_network/tomtom_2021_network_time_bin_speeds.sql
         // https://pages.github.nrel.gov/MBAP/tomtom_2021_docs/mnr_spec/common_spec/theme_roads_and_ferries/speed_profile/speed_profile.html?hl=speed%2Cprofile
-        let tt = e.distance / e.free_flow_speed;
+        let tt = Time::new::<si::time::minute>(1.0);
         let milliseconds = tt.get::<si::time::millisecond>();
         let mut s_update = s.to_vec();
         s_update[0] = s_update[0] + StateVar(milliseconds as f64);

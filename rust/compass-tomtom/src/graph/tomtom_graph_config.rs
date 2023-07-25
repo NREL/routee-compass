@@ -1,4 +1,4 @@
-use compass_core::util::fs_utils::line_count;
+use compass_core::util::fs::fs_utils::line_count;
 use log::warn;
 use serde::{Deserialize, Serialize};
 
