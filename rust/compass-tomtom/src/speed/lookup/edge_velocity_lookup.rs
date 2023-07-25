@@ -1,5 +1,3 @@
-use std::fs::File;
-
 use compass_core::model::property::edge::Edge;
 use compass_core::model::property::vertex::Vertex;
 use compass_core::model::traversal::function::cost_function_error::CostFunctionError;
@@ -10,7 +8,7 @@ use compass_core::model::units::Velocity;
 use compass_core::model::{cost::cost::Cost, traversal::state::state_variable::StateVar};
 use compass_core::util::fs::read_utils;
 use uom::si;
-use uom::si::velocity::{centimeter_per_second, kilometer_per_hour};
+use uom::si::velocity::kilometer_per_hour;
 
 /// implements a lookup traversal cost function where a table has one velocity
 /// value per edge.
@@ -19,19 +17,10 @@ use uom::si::velocity::{centimeter_per_second, kilometer_per_hour};
 pub fn build_edge_velocity_lookup(
     lookup_table_filename: String,
 ) -> Result<EdgeCostFunction, CostFunctionError> {
-    let file = File::open(&lookup_table_filename).map_err(|e| {
-        CostFunctionError::FileReadError(lookup_table_filename.clone(), e.to_string())
-    })?;
-
     // decodes the row into a velocity kph, and convert into internal cps
-    let op = move |idx: usize, row: String| {
+    let op = move |_idx: usize, row: String| {
         row.parse::<f64>()
-            .map(|f| {
-                let kph_value = Velocity::new::<kilometer_per_hour>(f);
-                let cps_value = kph_value.get::<centimeter_per_second>();
-                let r = Velocity::new::<centimeter_per_second>(cps_value);
-                r
-            })
+            .map(|f| Velocity::new::<kilometer_per_hour>(f))
             .map_err(|e| {
                 let msg = format!(
                     "failure decoding velocity from lookup table: {}",
@@ -43,7 +32,7 @@ pub fn build_edge_velocity_lookup(
     // use helper function to read the file and decode rows with the above op.
     // the resulting table has indices that are assumed EdgeIds and entries that
     // are velocities in kph.
-    let table = read_utils::read_raw_file(&file, op).map_err(|e| {
+    let table = read_utils::read_raw_file(&lookup_table_filename, op).map_err(|e| {
         CostFunctionError::FileReadError(
             format!(
                 "failure reading table from file {}",
@@ -79,23 +68,27 @@ pub fn initial_free_flow_state() -> StateVector {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
-    use crate::speed::lookup::edge_velocity_lookup::initial_free_flow_state;
-
     use super::build_edge_velocity_lookup;
-    use compass_core::model::units::{Length, Ratio, Velocity};
+    use crate::speed::lookup::edge_velocity_lookup::initial_free_flow_state;
+    use compass_core::model::cost::cost::Cost;
+    use compass_core::model::traversal::state::state_variable::StateVar;
+    use compass_core::model::units::{Length, Ratio};
     use compass_core::model::{
         graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
     };
-    use geo::{coord, Coord};
+    use geo::coord;
+    use std::path::PathBuf;
     use uom::si;
 
     #[test]
     fn test_edge_cost_lookup_from_file() {
-        let base_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let filepath = base_dir.join("src/speed/lookup/test/velocities.txt");
+        let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("speed")
+            .join("lookup")
+            .join("test")
+            .join("velocities.txt");
         let filename = filepath.to_str().unwrap();
         let v = Vertex {
             vertex_id: VertexId(0),
@@ -107,14 +100,17 @@ mod tests {
                 src_vertex_id: VertexId(0),
                 dst_vertex_id: VertexId(1),
                 road_class: RoadClass(2),
-                distance: Length::new::<si::length::meter>(1.0),
+                distance: Length::new::<si::length::meter>(100.0),
                 grade: Ratio::new::<si::ratio::per_mille>(0.0),
             };
         }
         let lookup = build_edge_velocity_lookup(String::from(filename)).unwrap();
         let initial = initial_free_flow_state();
         let e1 = mock_edge(0);
-        let result = lookup(&v, &e1, &v, &initial).unwrap();
-        println!("result is {}, {:?}", result.0, result.1);
+        // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
+        let (result_cost, result_state) = lookup(&v, &e1, &v, &initial).unwrap();
+        let expected = 36.0;
+        assert_eq!(result_cost, Cost::from_f64(expected));
+        assert_eq!(result_state, vec![StateVar(expected)]);
     }
 }
