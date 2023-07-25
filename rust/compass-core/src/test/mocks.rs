@@ -89,16 +89,22 @@ impl DirectedGraph for TestDG {
 
 #[cfg(test)]
 impl TestDG {
-    pub fn new(adj: HashMap<VertexId, HashMap<EdgeId, VertexId>>) -> Result<TestDG, GraphError> {
+    pub fn new(
+        adj: HashMap<VertexId, HashMap<EdgeId, VertexId>>,
+        lengths: HashMap<EdgeId, Length>,
+    ) -> Result<TestDG, GraphError> {
         let mut edges: HashMap<EdgeId, Edge> = HashMap::new();
         for (src, out_edges) in &adj {
             for (edge_id, dst) in out_edges {
+                let length = lengths
+                    .get(edge_id)
+                    .ok_or(GraphError::EdgeIdNotFound { edge_id: *edge_id })?;
                 let edge = Edge {
                     edge_id: edge_id.clone(),
                     src_vertex_id: src.clone(),
                     dst_vertex_id: dst.clone(),
                     road_class: RoadClass(0),
-                    distance: Length::new::<si::length::meter>(1.0),
+                    distance: length.clone(),
                     grade: Ratio::new::<si::ratio::per_mille>(0.0),
                 };
                 edges.insert(edge_id.clone(), edge);

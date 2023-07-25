@@ -154,8 +154,8 @@ fn largest_strongly_connected_component(
 mod tests {
     use std::collections::HashMap;
 
-    use crate::model::units::Velocity;
-    use uom::si::velocity::centimeter_per_second;
+    use crate::model::units::Length;
+    use uom::si::length::centimeter;
 
     use super::*;
     use crate::{model::graph::edge_id::EdgeId, test::mocks::TestDG};
@@ -201,23 +201,23 @@ mod tests {
             ),
         ]);
 
-        let speeds = HashMap::from([
-            (EdgeId(0), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(1), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(2), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(3), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(4), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(5), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(6), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(7), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(8), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(9), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(10), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(11), Velocity::new::<centimeter_per_second>(10.0)),
-            (EdgeId(12), Velocity::new::<centimeter_per_second>(10.0)),
+        let lengths = HashMap::from([
+            (EdgeId(0), Length::new::<centimeter>(10.0)),
+            (EdgeId(1), Length::new::<centimeter>(10.0)),
+            (EdgeId(2), Length::new::<centimeter>(10.0)),
+            (EdgeId(3), Length::new::<centimeter>(10.0)),
+            (EdgeId(4), Length::new::<centimeter>(10.0)),
+            (EdgeId(5), Length::new::<centimeter>(10.0)),
+            (EdgeId(6), Length::new::<centimeter>(10.0)),
+            (EdgeId(7), Length::new::<centimeter>(10.0)),
+            (EdgeId(8), Length::new::<centimeter>(10.0)),
+            (EdgeId(9), Length::new::<centimeter>(10.0)),
+            (EdgeId(10), Length::new::<centimeter>(10.0)),
+            (EdgeId(11), Length::new::<centimeter>(10.0)),
+            (EdgeId(12), Length::new::<centimeter>(10.0)),
         ]);
 
-        let graph = TestDG::new(adj).unwrap();
+        let graph = TestDG::new(adj, lengths).unwrap();
         graph
     }
 
