@@ -1,12 +1,15 @@
 use std::collections::HashMap;
 
+use crate::model::units::{Length, Ratio, Velocity};
+use geo::coord;
+use uom::si;
+
 use crate::model::{
     graph::{
         directed_graph::DirectedGraph, edge_id::EdgeId, graph_error::GraphError,
         vertex_id::VertexId,
     },
-    property::{edge::Edge, vertex::Vertex, road_class::RoadClass},
-    units::{ordinate::Ordinate, cm_per_second::CmPerSecond, centimeters::Centimeters, millis::Millis},
+    property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
 };
 
 #[cfg(test)]
@@ -14,6 +17,17 @@ pub struct TestDG {
     adj: HashMap<VertexId, HashMap<EdgeId, VertexId>>,
     rev: HashMap<VertexId, HashMap<EdgeId, VertexId>>,
     edges: HashMap<EdgeId, Edge>,
+}
+
+#[cfg(test)]
+impl Default for TestDG {
+    fn default() -> Self {
+        TestDG {
+            adj: HashMap::new(),
+            rev: HashMap::new(),
+            edges: HashMap::new(),
+        }
+    }
 }
 #[cfg(test)]
 impl DirectedGraph for TestDG {
@@ -31,8 +45,7 @@ impl DirectedGraph for TestDG {
             .keys()
             .map(|v| Vertex {
                 vertex_id: *v,
-                x: Ordinate(0.0),
-                y: Ordinate(0.0),
+                coordinate: coord! {x: 0.0, y: 0.0},
             })
             .collect()
     }
@@ -45,8 +58,7 @@ impl DirectedGraph for TestDG {
     fn vertex_attr(&self, _vertex_id: VertexId) -> Result<Vertex, GraphError> {
         Ok(Vertex {
             vertex_id: VertexId(0),
-            x: Ordinate(0.0),
-            y: Ordinate(0.0),
+            coordinate: coord! {x: 0.0, y: 0.0},
         })
     }
     fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
@@ -79,22 +91,21 @@ impl DirectedGraph for TestDG {
 impl TestDG {
     pub fn new(
         adj: HashMap<VertexId, HashMap<EdgeId, VertexId>>,
-        edges_cps: HashMap<EdgeId, CmPerSecond>,
+        lengths: HashMap<EdgeId, Length>,
     ) -> Result<TestDG, GraphError> {
         let mut edges: HashMap<EdgeId, Edge> = HashMap::new();
         for (src, out_edges) in &adj {
             for (edge_id, dst) in out_edges {
-                let cps = edges_cps.get(&edge_id).ok_or(GraphError::EdgeIdNotFound {
-                    edge_id: edge_id.clone(),
-                })?;
+                let length = lengths
+                    .get(edge_id)
+                    .ok_or(GraphError::EdgeIdNotFound { edge_id: *edge_id })?;
                 let edge = Edge {
                     edge_id: edge_id.clone(),
                     src_vertex_id: src.clone(),
                     dst_vertex_id: dst.clone(),
                     road_class: RoadClass(0),
-                    free_flow_speed_cps: cps.clone(),
-                    distance_centimeters: Centimeters(100),
-                    grade_millis: Millis(0),
+                    distance: length.clone(),
+                    grade: Ratio::new::<si::ratio::per_mille>(0.0),
                 };
                 edges.insert(edge_id.clone(), edge);
             }
@@ -103,7 +114,9 @@ impl TestDG {
         for (src, out_edges) in &adj {
             for (edge_id, dst) in out_edges {
                 if rev.contains_key(dst) {
-                    rev.get_mut(dst).unwrap().insert(edge_id.clone(), src.clone());
+                    rev.get_mut(dst)
+                        .unwrap()
+                        .insert(edge_id.clone(), src.clone());
                 } else {
                     let mut new_map: HashMap<EdgeId, VertexId> = HashMap::new();
                     new_map.insert(edge_id.clone(), src.clone());

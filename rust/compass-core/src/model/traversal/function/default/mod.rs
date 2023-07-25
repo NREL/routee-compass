@@ -1,2 +1,2 @@
 pub mod aggregation;
-pub mod free_flow;
+pub mod distance_cost;

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use chrono::{Duration, Local};
+use compass_core::model::units::{Length, Velocity};
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
@@ -14,8 +15,8 @@ use compass_core::{
         traversal::{
             function::{
                 default::{
-                    aggregation::additive_aggregation,
-                    free_flow::{free_flow_cost_function, initial_free_flow_state},
+                    aggregation::additive_aggregation, distance_cost::distance_cost_function,
+                    distance_cost::initial_distance_state,
                 },
                 edge_cost_function_config::EdgeCostFunctionConfig,
             },
@@ -28,6 +29,8 @@ use compass_core::{
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use log::{info, warn};
 use rand::seq::SliceRandom;
+use uom::si;
+use uom::si::velocity::kilometer_per_hour;
 
 fn main() {
     env_logger::init();
@@ -49,15 +52,15 @@ fn main() {
     info!("yay!");
 
     let haversine = Haversine {
-        travel_speed_kph: 40.0,
+        travel_speed: Velocity::new::<kilometer_per_hour>(40.0),
     };
 
     let g = Arc::new(DriverReadOnlyLock::new(&graph as &dyn DirectedGraph));
     let h = Arc::new(DriverReadOnlyLock::new(
         &haversine as &dyn CostEstimateFunction,
     ));
-    let ff_fn = free_flow_cost_function();
-    let ff_init = initial_free_flow_state();
+    let ff_fn = distance_cost_function();
+    let ff_init = initial_distance_state();
     let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
     let agg = additive_aggregation();
     let traversal_model = TraversalModel::from(&TraversalModelConfig {
@@ -99,22 +102,22 @@ fn main() {
                 let dst_vertex = g_e3.src_vertex(d).unwrap();
                 let src = g_e3.vertex_attr(src_vertex).unwrap().to_tuple_underlying();
                 let dst = g_e3.vertex_attr(dst_vertex).unwrap().to_tuple_underlying();
-                let time_ms = route
+                let cost = route
                     .clone()
                     .into_iter()
                     .map(|e| e.edge_cost())
                     .reduce(|x, y| x + y)
                     .unwrap();
-                let dur = Duration::milliseconds(time_ms.0);
-                let time_str = format!(
-                    "{}:{}:{}",
-                    dur.num_hours(),
-                    dur.num_minutes() % 60,
-                    dur.num_seconds() % 60
-                );
+                let distance = Length::new::<si::length::centimeter>(cost.into_f64());
                 info!("origin, destination (x,y): {:?} {:?}", src, dst);
                 info!("found route with {} edges", route.len());
-                info!("route duration: {}", time_str);
+                info!(
+                    "route distance km: {:?}",
+                    distance.into_format_args(
+                        si::length::kilometer,
+                        uom::fmt::DisplayStyle::Description
+                    )
+                );
                 info!("done!");
             }
         }
