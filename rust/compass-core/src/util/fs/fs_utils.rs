@@ -21,7 +21,8 @@ where
         return Ok(reader.lines().count());
     } else {
         let reader = BufReader::new(file);
-        return Ok(reader.lines().count());
+        let count = reader.lines().count();
+        return Ok(count);
     }
 }
 
@@ -29,10 +30,19 @@ where
 /// then returns true. some inefficiency here due to throwing out the
 /// stream object that could have been used later, but in typical Compass
 /// settings, this isn't a real bottleneck.
-pub fn is_gzip(file: &File) -> bool {
-    let gz = GzDecoder::new(io::BufReader::new(file));
-    match gz.header() {
-        Some(_) => true,
-        None => false,
+pub fn is_gzip<P>(filepath: &P) -> bool
+where
+    P: AsRef<Path>,
+{
+    let file_result = File::open(filepath);
+    match file_result {
+        Err(_) => false,
+        Ok(file) => {
+            let gz = GzDecoder::new(io::BufReader::new(file));
+            match gz.header() {
+                Some(_) => true,
+                None => false,
+            }
+        }
     }
 }
