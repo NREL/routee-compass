@@ -6,7 +6,6 @@ use super::function::function::{
 use super::traversal_error::TraversalError;
 use crate::model::traversal::state::search_state::SearchState;
 use crate::model::traversal::state::state_variable::StateVar;
-use crate::model::traversal::traversal_model_config::TraversalModelConfig;
 use crate::model::traversal::traversal_result::TraversalResult;
 use crate::{
     algorithm::search::min_search_tree::dijkstra::edge_frontier::EdgeFrontier,
@@ -41,60 +40,6 @@ pub struct TraversalModel {
     pub initial_state: SearchState,
     pub edge_edge_start_idx: usize,
 }
-
-// impl<'a> From<&TraversalModelConfig<'a>> for TraversalModel<'a> {
-//     fn from(config: &TraversalModelConfig<'a>) -> Self {
-//         // pull out the cost functions from their configs
-//         let edge_fns = config
-//             .edge_fns
-//             .iter()
-//             .map(|c| c.cost_fn)
-//             .collect::<Vec<&EdgeCostFunction>>();
-//         let edge_edge_fns = config
-//             .edge_edge_fns
-//             .iter()
-//             .map(|c| c.cost_fn)
-//             .collect::<Vec<&EdgeEdgeCostFunction>>();
-
-//         // pull out any valid frontier functions
-//         let mut valid_fns = config
-//             .edge_fns
-//             .iter()
-//             .flat_map(|c| c.valid_fn)
-//             .collect::<Vec<&ValidFrontierFunction>>();
-//         valid_fns.extend(config.edge_edge_fns.iter().flat_map(|c| c.valid_fn));
-
-//         // pull out any terminate search functions
-//         let mut terminate_fns = config
-//             .edge_fns
-//             .iter()
-//             .flat_map(|c| c.terminate_fn)
-//             .collect::<Vec<&ValidFrontierFunction>>();
-//         terminate_fns.extend(config.edge_edge_fns.iter().flat_map(|c| c.terminate_fn));
-
-//         // compose the initial states for each cost function
-//         let mut initial_state = config
-//             .edge_fns
-//             .iter()
-//             .map(|c| c.init_state.clone())
-//             .collect::<SearchState>();
-//         initial_state.extend(config.edge_edge_fns.iter().map(|c| c.init_state.clone()));
-
-//         // count the index where Edge->Edge cost functions begin in the state index
-//         let edge_edge_start_idx = config.edge_fns.len();
-
-//         return TraversalModel {
-//             edge_fns,
-//             edge_edge_fns,
-//             valid_fns,
-//             terminate_fns,
-//             edge_agg_fn: config.edge_agg_fn,
-//             edge_edge_agg_fn: config.edge_edge_agg_fn,
-//             initial_state,
-//             edge_edge_start_idx,
-//         };
-//     }
-// }
 
 impl TraversalModel {
     pub fn initial_state(&self) -> Vec<Vec<StateVar>> {

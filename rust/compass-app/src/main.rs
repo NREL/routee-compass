@@ -12,20 +12,7 @@ use compass_core::{
         },
         direction::Direction,
     },
-    model::{
-        graph::directed_graph::DirectedGraph,
-        traversal::{
-            function::{
-                default::{
-                    aggregation::additive_aggregation, distance_cost::distance_cost_function,
-                    distance_cost::initial_distance_state,
-                },
-                edge_cost_function_config::EdgeCostFunctionConfig,
-            },
-            traversal_model::TraversalModel,
-            traversal_model_config::TraversalModelConfig,
-        },
-    },
+    model::graph::directed_graph::DirectedGraph,
     util::read_only_lock::DriverReadOnlyLock,
 };
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};

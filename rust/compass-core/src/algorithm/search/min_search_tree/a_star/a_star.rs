@@ -287,11 +287,8 @@ mod tests {
     use crate::model::traversal::function::default::distance_cost::{
         distance_cost_function, initial_distance_state,
     };
-    use crate::model::traversal::function::edge_cost_function_config::EdgeCostFunctionConfig;
     use crate::model::traversal::traversal_model::TraversalModel;
-    use crate::model::traversal::traversal_model_config::TraversalModelConfig;
     use crate::model::units::Length;
-    use crate::model::units::Velocity;
     use crate::test::mocks::TestDG;
     use crate::{
         model::{cost::cost_error::CostError, graph::edge_id::EdgeId, property::vertex::Vertex},
