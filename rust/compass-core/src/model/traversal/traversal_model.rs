@@ -31,72 +31,72 @@ use crate::{
 /// state via
 /// $ let state = vec![vec![0.0], vec![0.0]];
 ///
-pub struct TraversalModel<'a> {
-    edge_fns: Vec<&'a EdgeCostFunction>,
-    edge_edge_fns: Vec<&'a EdgeEdgeCostFunction>,
-    valid_fns: Vec<&'a ValidFrontierFunction>,
-    terminate_fns: Vec<&'a TerminateSearchFunction>,
-    edge_agg_fn: &'a CostAggregationFunction,
-    edge_edge_agg_fn: &'a CostAggregationFunction,
-    initial_state: SearchState,
-    edge_edge_start_idx: usize,
+pub struct TraversalModel {
+    pub edge_fns: Vec<EdgeCostFunction>,
+    pub edge_edge_fns: Vec<EdgeEdgeCostFunction>,
+    pub valid_fns: Vec<ValidFrontierFunction>,
+    pub terminate_fns: Vec<TerminateSearchFunction>,
+    pub edge_agg_fn: CostAggregationFunction,
+    pub edge_edge_agg_fn: CostAggregationFunction,
+    pub initial_state: SearchState,
+    pub edge_edge_start_idx: usize,
 }
 
-impl<'a> From<&TraversalModelConfig<'a>> for TraversalModel<'a> {
-    fn from(config: &TraversalModelConfig<'a>) -> Self {
-        // pull out the cost functions from their configs
-        let edge_fns = config
-            .edge_fns
-            .iter()
-            .map(|c| c.cost_fn)
-            .collect::<Vec<&EdgeCostFunction>>();
-        let edge_edge_fns = config
-            .edge_edge_fns
-            .iter()
-            .map(|c| c.cost_fn)
-            .collect::<Vec<&EdgeEdgeCostFunction>>();
+// impl<'a> From<&TraversalModelConfig<'a>> for TraversalModel<'a> {
+//     fn from(config: &TraversalModelConfig<'a>) -> Self {
+//         // pull out the cost functions from their configs
+//         let edge_fns = config
+//             .edge_fns
+//             .iter()
+//             .map(|c| c.cost_fn)
+//             .collect::<Vec<&EdgeCostFunction>>();
+//         let edge_edge_fns = config
+//             .edge_edge_fns
+//             .iter()
+//             .map(|c| c.cost_fn)
+//             .collect::<Vec<&EdgeEdgeCostFunction>>();
 
-        // pull out any valid frontier functions
-        let mut valid_fns = config
-            .edge_fns
-            .iter()
-            .flat_map(|c| c.valid_fn)
-            .collect::<Vec<&ValidFrontierFunction>>();
-        valid_fns.extend(config.edge_edge_fns.iter().flat_map(|c| c.valid_fn));
+//         // pull out any valid frontier functions
+//         let mut valid_fns = config
+//             .edge_fns
+//             .iter()
+//             .flat_map(|c| c.valid_fn)
+//             .collect::<Vec<&ValidFrontierFunction>>();
+//         valid_fns.extend(config.edge_edge_fns.iter().flat_map(|c| c.valid_fn));
 
-        // pull out any terminate search functions
-        let mut terminate_fns = config
-            .edge_fns
-            .iter()
-            .flat_map(|c| c.terminate_fn)
-            .collect::<Vec<&ValidFrontierFunction>>();
-        terminate_fns.extend(config.edge_edge_fns.iter().flat_map(|c| c.terminate_fn));
+//         // pull out any terminate search functions
+//         let mut terminate_fns = config
+//             .edge_fns
+//             .iter()
+//             .flat_map(|c| c.terminate_fn)
+//             .collect::<Vec<&ValidFrontierFunction>>();
+//         terminate_fns.extend(config.edge_edge_fns.iter().flat_map(|c| c.terminate_fn));
 
-        // compose the initial states for each cost function
-        let mut initial_state = config
-            .edge_fns
-            .iter()
-            .map(|c| c.init_state.clone())
-            .collect::<SearchState>();
-        initial_state.extend(config.edge_edge_fns.iter().map(|c| c.init_state.clone()));
+//         // compose the initial states for each cost function
+//         let mut initial_state = config
+//             .edge_fns
+//             .iter()
+//             .map(|c| c.init_state.clone())
+//             .collect::<SearchState>();
+//         initial_state.extend(config.edge_edge_fns.iter().map(|c| c.init_state.clone()));
 
-        // count the index where Edge->Edge cost functions begin in the state index
-        let edge_edge_start_idx = config.edge_fns.len();
+//         // count the index where Edge->Edge cost functions begin in the state index
+//         let edge_edge_start_idx = config.edge_fns.len();
 
-        return TraversalModel {
-            edge_fns,
-            edge_edge_fns,
-            valid_fns,
-            terminate_fns,
-            edge_agg_fn: config.edge_agg_fn,
-            edge_edge_agg_fn: config.edge_edge_agg_fn,
-            initial_state,
-            edge_edge_start_idx,
-        };
-    }
-}
+//         return TraversalModel {
+//             edge_fns,
+//             edge_edge_fns,
+//             valid_fns,
+//             terminate_fns,
+//             edge_agg_fn: config.edge_agg_fn,
+//             edge_edge_agg_fn: config.edge_edge_agg_fn,
+//             initial_state,
+//             edge_edge_start_idx,
+//         };
+//     }
+// }
 
-impl<'a> TraversalModel<'a> {
+impl TraversalModel {
     pub fn initial_state(&self) -> Vec<Vec<StateVar>> {
         self.initial_state.to_vec()
     }
