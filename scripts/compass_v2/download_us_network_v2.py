@@ -19,15 +19,17 @@ from multiprocessing import Pool
 
 CHUNK_SIZE = 5_000_000
 NUM_PROCS = 4
-TABLE_NAME = "network_compass_v2"
-HPC_ACCOUNT = "rfitzger"
+TABLE_NAME = "network_compass_v2"  # trolley network table to download
 
-USER = os.environ.get("TROLLEY_USERNAME")
+# hpc username and trolley username is assumed to match
+USER = os.environ.get("USERNAME")
 if USER is None:
-    raise ValueError("TROLLEY_USERNAME environment variable must be set to run this script")
+    raise ValueError("USERNAME environment variable must be set to run this script")
 PASSWORD = os.environ.get("TROLLEY_PASSWORD")
 if PASSWORD is None:
     raise ValueError("TROLLEY_PASSWORD environment variable must be set to run this script")
+
+OUTPUT_FOLDER = Path(f"/scratch/{USER}/us_network/")
 
 # set up logging to file
 date_and_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -35,10 +37,8 @@ logging.basicConfig(filename=f"log_download_us_network_{date_and_time}.log", lev
 
 log = logging.getLogger(__name__)
 
-OUTPUT_FOLDER = Path(f"/scratch/{HPC_ACCOUNT}/us_network/")
 if not OUTPUT_FOLDER.exists():
     OUTPUT_FOLDER.mkdir()
-
 
 def download_and_save_chunk(chunk_id):
     con = sql.create_engine(f"postgresql://{USER}:{PASSWORD}@trolley.nrel.gov:5432/master")
