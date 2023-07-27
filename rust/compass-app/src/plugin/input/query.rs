@@ -1,7 +1,9 @@
 use geo;
 use serde_json;
 
-use crate::{model::graph::vertex_id::VertexId, plugin::plugin_error::PluginError};
+use compass_core::model::graph::vertex_id::VertexId;
+
+use crate::plugin::plugin_error::PluginError;
 
 pub enum InputField {
     OriginX,

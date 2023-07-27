@@ -9,12 +9,11 @@ exclude = ["test/"]
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 rayon = { workspace = true }
-serde_json = { workspace = true }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
+geo = { workspace = true }
 anyhow = "1.0.70"
 bincode = "1.3.3"
-geo = { workspace = true }
 rstar = "0.10.0"
 uom = { workspace = true, features = ["use_serde"] }
 ordered-float = "3.7.0"
