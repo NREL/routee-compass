@@ -287,11 +287,8 @@ mod tests {
     use crate::model::traversal::function::default::distance_cost::{
         distance_cost_function, initial_distance_state,
     };
-    use crate::model::traversal::function::edge_cost_function_config::EdgeCostFunctionConfig;
     use crate::model::traversal::traversal_model::TraversalModel;
-    use crate::model::traversal::traversal_model_config::TraversalModelConfig;
     use crate::model::units::Length;
-    use crate::model::units::Velocity;
     use crate::test::mocks::TestDG;
     use crate::{
         model::{cost::cost_error::CostError, graph::edge_id::EdgeId, property::vertex::Vertex},
@@ -388,14 +385,16 @@ mod tests {
 
         let ff_fn = distance_cost_function();
         let ff_init = initial_distance_state();
-        let ff_conf = EdgeCostFunctionConfig::new(&ff_fn, &ff_init);
-        let agg = additive_aggregation();
-        let driver_tm_obj = TraversalModel::from(&TraversalModelConfig {
-            edge_fns: vec![&ff_conf],
+        let driver_tm_obj = TraversalModel {
+            edge_fns: vec![ff_fn],
             edge_edge_fns: vec![],
-            edge_agg_fn: &agg,
-            edge_edge_agg_fn: &agg,
-        });
+            valid_fns: vec![],
+            terminate_fns: vec![],
+            edge_agg_fn: additive_aggregation(),
+            edge_edge_agg_fn: additive_aggregation(),
+            initial_state: vec![ff_init],
+            edge_edge_start_idx: 0,
+        };
         let driver_tm = Arc::new(DriverReadOnlyLock::new(&driver_tm_obj));
         let driver_cf_obj = TestCost;
         let driver_cf = Arc::new(DriverReadOnlyLock::new(

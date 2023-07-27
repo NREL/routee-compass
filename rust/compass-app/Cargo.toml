@@ -18,3 +18,4 @@ log = { workspace = true }
 serde_repr = "0.1"
 rand = "0.8.5"
 chrono = "0.4.26"
+config = "0.13.3"
