@@ -3,6 +3,7 @@ use std::sync::Arc;
 use chrono::Local;
 use compass_app::config::app::AppConfig;
 use compass_app::config::graph::GraphConfig;
+use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::{Length, Velocity};
 use compass_core::{
     algorithm::search::min_search_tree::{
@@ -25,7 +26,7 @@ fn main() {
     env_logger::init();
 
     let config =
-        AppConfig::from_file("compass-app/src/config/custom_config.toml".to_string()).unwrap();
+        AppConfig::from_file("src/config/custom_config.toml".to_string()).unwrap();
 
     let graph = match config.graph {
         GraphConfig::TomTom {
@@ -57,7 +58,11 @@ fn main() {
     let h = Arc::new(DriverReadOnlyLock::new(
         &haversine as &dyn CostEstimateFunction,
     ));
-    let traversal_model = config.search.traversal_model.into_traversal_model();
+    let traversal_model: TraversalModel = config
+        .search
+        .traversal_model
+        .try_into()
+        .expect("Failed to build traversal model");
 
     let t = Arc::new(DriverReadOnlyLock::new(&traversal_model));
     let (o, d) = (

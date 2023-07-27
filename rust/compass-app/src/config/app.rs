@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 
-use config::{Config, ConfigError, File};
+use config::{Config, ConfigError, File, FileFormat};
 use serde::Deserialize;
 
 use crate::config::graph::GraphConfig;
 use crate::config::plugin::PluginConfig;
 use crate::config::search::SearchConfig;
 
-const DEFAULT_FILE: &str = "compass-app/src/config/config.default.toml";
+const DEFAULT_FILE: &str = include_str!("config.default.toml");
 
 #[derive(Debug, Deserialize)]
 pub struct AppConfig {
@@ -21,9 +21,7 @@ pub struct AppConfig {
 impl AppConfig {
     pub fn default() -> Result<Self, ConfigError> {
         let s = Config::builder()
-            .add_source(File::with_name(
-                DEFAULT_FILE
-            ))
+            .add_source(File::from_str(DEFAULT_FILE, FileFormat::Toml))
             .build()?;
         s.try_deserialize()
     }
@@ -31,7 +29,7 @@ impl AppConfig {
     pub fn from_file(filename: String) -> Result<Self, ConfigError> {
         let path = PathBuf::from(filename);
         let s = Config::builder()
-            .add_source(File::with_name(DEFAULT_FILE))
+            .add_source(File::from_str(DEFAULT_FILE, FileFormat::Toml))
             .add_source(File::from(path))
             .build()?;
         s.try_deserialize()

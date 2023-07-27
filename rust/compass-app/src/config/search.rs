@@ -5,7 +5,8 @@ use compass_core::model::traversal::{
             distance_cost::{distance_cost_function, initial_distance_state},
         },
         function::{
-            CostAggregationFunction, EdgeCostFunction, EdgeEdgeCostFunction, ValidFrontierFunction,
+            CostAggregationFunction, EdgeCostFunction, EdgeEdgeCostFunction,
+            TerminateSearchFunction, ValidFrontierFunction,
         },
     },
     state::search_state::{SearchState, StateVector},
@@ -30,11 +31,13 @@ pub enum AggregationFunctionConfig {
     Multiply,
 }
 
-impl AggregationFunctionConfig {
-    pub fn into_aggregation_function(&self) -> CostAggregationFunction {
-        match self {
-            AggregationFunctionConfig::Add => additive_aggregation(),
-            AggregationFunctionConfig::Multiply => multiplicitive_aggregation(),
+impl TryFrom<&AggregationFunctionConfig> for CostAggregationFunction {
+    type Error = &'static str;
+
+    fn try_from(value: &AggregationFunctionConfig) -> Result<Self, Self::Error> {
+        match value {
+            AggregationFunctionConfig::Add => Ok(additive_aggregation()),
+            AggregationFunctionConfig::Multiply => Ok(multiplicitive_aggregation()),
         }
     }
 }
@@ -50,22 +53,29 @@ pub enum EdgeCostFunctionConfig {
     Powertrain { model: String },
 }
 
-impl EdgeCostFunctionConfig {
-    pub fn into_cost_function(&self) -> EdgeCostFunction {
-        match self {
-            EdgeCostFunctionConfig::Distance => distance_cost_function(),
-            EdgeCostFunctionConfig::FreeFlow => panic!("FreeFlow cost function not implemented"),
+impl TryFrom<&EdgeCostFunctionConfig> for EdgeCostFunction {
+    type Error = &'static str;
+
+    fn try_from(value: &EdgeCostFunctionConfig) -> Result<Self, Self::Error> {
+        match value {
+            EdgeCostFunctionConfig::Distance => Ok(distance_cost_function()),
+            EdgeCostFunctionConfig::FreeFlow => Err("FreeFlow cost function not implemented"),
             EdgeCostFunctionConfig::Powertrain { model } => {
-                panic!("Powertrain cost function not implemented")
+                Err("Powertrain cost function not implemented")
             }
         }
     }
-    pub fn into_initial_state(&self) -> StateVector {
-        match self {
-            EdgeCostFunctionConfig::Distance => initial_distance_state(),
-            EdgeCostFunctionConfig::FreeFlow => panic!("FreeFlow cost function not implemented"),
+}
+
+impl TryFrom<&EdgeCostFunctionConfig> for StateVector {
+    type Error = &'static str;
+
+    fn try_from(value: &EdgeCostFunctionConfig) -> Result<Self, Self::Error> {
+        match value {
+            EdgeCostFunctionConfig::Distance => Ok(initial_distance_state()),
+            EdgeCostFunctionConfig::FreeFlow => Err("FreeFlow cost function not implemented"),
             EdgeCostFunctionConfig::Powertrain { model } => {
-                panic!("Powertrain cost function not implemented")
+                Err("Powertrain cost function not implemented")
             }
         }
     }
@@ -75,13 +85,19 @@ impl EdgeCostFunctionConfig {
 #[serde(tag = "type")]
 pub enum EdgeEdgeCostFunctionConfig {}
 
-impl EdgeEdgeCostFunctionConfig {
-    pub fn into_cost_function(&self) -> EdgeEdgeCostFunction {
-        panic!("No edge edge cost function implemented yet")
-    }
+impl TryFrom<&EdgeEdgeCostFunctionConfig> for EdgeEdgeCostFunction {
+    type Error = &'static str;
 
-    pub fn into_initial_state(&self) -> StateVector {
-        panic!("No edge edge cost function implemented yet")
+    fn try_from(value: &EdgeEdgeCostFunctionConfig) -> Result<Self, Self::Error> {
+        Err("No edge edge cost function implemented yet")
+    }
+}
+
+impl TryFrom<&EdgeEdgeCostFunctionConfig> for StateVector {
+    type Error = &'static str;
+
+    fn try_from(value: &EdgeEdgeCostFunctionConfig) -> Result<Self, Self::Error> {
+        Err("No edge edge initial state implemented yet")
     }
 }
 
@@ -89,9 +105,11 @@ impl EdgeEdgeCostFunctionConfig {
 #[serde(tag = "type")]
 pub enum ValidFrontierFunctionConfig {}
 
-impl ValidFrontierFunctionConfig {
-    pub fn into_valid_function(&self) -> ValidFrontierFunction {
-        panic!("No valid frontier function implemented yet")
+impl TryFrom<&ValidFrontierFunctionConfig> for ValidFrontierFunction {
+    type Error = &'static str;
+
+    fn try_from(value: &ValidFrontierFunctionConfig) -> Result<Self, Self::Error> {
+        Err("No valid frontier function implemented yet")
     }
 }
 
@@ -99,9 +117,11 @@ impl ValidFrontierFunctionConfig {
 #[serde(tag = "type")]
 pub enum TerminateSearchFunctionConfig {}
 
-impl TerminateSearchFunctionConfig {
-    pub fn into_terminate_function(&self) -> ValidFrontierFunction {
-        panic!("No terminate search function implemented yet")
+impl TryFrom<&TerminateSearchFunctionConfig> for TerminateSearchFunction {
+    type Error = &'static str;
+
+    fn try_from(value: &TerminateSearchFunctionConfig) -> Result<Self, Self::Error> {
+        Err("No terminate search function implemented yet")
     }
 }
 
@@ -115,58 +135,62 @@ pub struct TraversalModelConfig {
     edge_edge_aggregation_function: AggregationFunctionConfig,
 }
 
-impl TraversalModelConfig {
-    pub fn into_traversal_model(&self) -> TraversalModel {
-        let edge_fns = self
+impl TryFrom<TraversalModelConfig> for TraversalModel {
+    type Error = &'static str;
+
+    fn try_from(value: TraversalModelConfig) -> Result<TraversalModel, Self::Error> {
+        let edge_fns = value
             .edge_cost_functions
             .iter()
-            .map(|c| c.into_cost_function())
-            .collect::<Vec<EdgeCostFunction>>();
-        let edge_edge_fns = self
+            .map(EdgeCostFunction::try_from)
+            .collect::<Result<Vec<EdgeCostFunction>, &'static str>>()?;
+        let edge_edge_fns = value
             .edge_edge_cost_functions
             .iter()
-            .map(|c| c.into_cost_function())
-            .collect::<Vec<EdgeEdgeCostFunction>>();
-        let valid_fns = self
+            .map(EdgeEdgeCostFunction::try_from)
+            .collect::<Result<Vec<EdgeEdgeCostFunction>, &'static str>>()?;
+        let valid_fns = value
             .valid_functions
             .iter()
-            .map(|c| c.into_valid_function())
-            .collect::<Vec<ValidFrontierFunction>>();
-        let terminate_fns = self
+            .map(ValidFrontierFunction::try_from)
+            .collect::<Result<Vec<ValidFrontierFunction>, &'static str>>()?;
+        let terminate_fns = value
             .terminate_functions
             .iter()
-            .map(|c| c.into_terminate_function())
-            .collect::<Vec<ValidFrontierFunction>>();
-        let mut initial_state = self
+            .map(TerminateSearchFunction::try_from)
+            .collect::<Result<Vec<TerminateSearchFunction>, &'static str>>()?;
+        let mut initial_state = value
             .edge_cost_functions
             .iter()
-            .map(|c| c.into_initial_state())
-            .collect::<SearchState>();
+            .map(StateVector::try_from)
+            .collect::<Result<SearchState, &'static str>>()?;
 
         initial_state.extend(
-            self.edge_edge_cost_functions
+            value
+                .edge_edge_cost_functions
                 .iter()
-                .map(|c| c.into_initial_state()),
+                .map(StateVector::try_from)
+                .collect::<Result<SearchState, &'static str>>()?,
         );
 
-        let edge_edge_start_idx = self.edge_cost_functions.len();
+        let edge_agg_fn = CostAggregationFunction::try_from(&value.edge_aggregation_function)?;
+        let edge_edge_agg_fn =
+            CostAggregationFunction::try_from(&value.edge_edge_aggregation_function)?;
+
+        let edge_edge_start_idx = value.edge_cost_functions.len();
 
         let traversal_model = TraversalModel {
             edge_fns,
             edge_edge_fns,
             valid_fns,
             terminate_fns,
-            edge_agg_fn: self
-                .edge_aggregation_function
-                .into_aggregation_function(),
-            edge_edge_agg_fn: self
-                .edge_edge_aggregation_function
-                .into_aggregation_function(),
+            edge_agg_fn,
+            edge_edge_agg_fn,
             initial_state,
             edge_edge_start_idx,
         };
 
-        traversal_model
+        Ok(traversal_model)
     }
 }
 
