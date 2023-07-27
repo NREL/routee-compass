@@ -26,8 +26,7 @@ impl AppConfig {
         s.try_deserialize()
     }
 
-    pub fn from_file(filename: String) -> Result<Self, ConfigError> {
-        let path = PathBuf::from(filename);
+    pub fn from_path(path: PathBuf) -> Result<Self, ConfigError> {
         let s = Config::builder()
             .add_source(File::from_str(DEFAULT_FILE, FileFormat::Toml))
             .add_source(File::from(path))

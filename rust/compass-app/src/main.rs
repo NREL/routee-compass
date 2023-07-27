@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use chrono::Local;
@@ -24,9 +25,12 @@ use uom::si::velocity::kilometer_per_hour;
 
 fn main() {
     env_logger::init();
+    let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("config")
+        .join("custom_config.toml");
 
-    let config =
-        AppConfig::from_file("src/config/custom_config.toml".to_string()).unwrap();
+    let config = AppConfig::from_path(filepath).unwrap();
 
     let graph = match config.graph {
         GraphConfig::TomTom {
