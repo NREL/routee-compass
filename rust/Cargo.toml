@@ -16,6 +16,5 @@ uom = { version = "0.35.0", features = ["use_serde"] }
 thiserror = "1.0.0"
 flate2 = "1.0"
 kdam = "0.3.0"
-geo = "0.24.1"
 log = "0.4.19"
 env_logger = "0.10.0"
