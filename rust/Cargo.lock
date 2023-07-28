@@ -161,7 +161,6 @@ dependencies = [
  "compass-core",
  "compass-tomtom",
  "config",
- "csv",
  "env_logger",
  "flate2",
  "geo",

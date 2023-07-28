@@ -10,7 +10,6 @@ thiserror = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = {workspace = true}
-csv = "1.2.2"
 geo = {workspace = true}
 wkt = { version = "0.10.3", features = ["serde"] }
 uom = { workspace = true }
