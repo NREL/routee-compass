@@ -9,7 +9,10 @@ pub enum InputPluginConfig {
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
-pub enum OutputPluginConfig {}
+pub enum OutputPluginConfig {
+    #[serde(rename = "geometry")]
+    Geometry { edge_file: String },
+}
 
 #[derive(Debug, Deserialize)]
 pub struct PluginConfig {
