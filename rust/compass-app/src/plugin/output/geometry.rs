@@ -70,7 +70,7 @@ mod tests {
     fn test_geometry_deserialization() {
         let result = read_raw_file(&mock_geometry_file(), parse_linestring).unwrap();
         println!("{:?}", result);
-        assert_eq!(result.len(), 2);
+        assert_eq!(result.len(), 3);
     }
 
     #[test]
