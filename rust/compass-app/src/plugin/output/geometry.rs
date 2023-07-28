@@ -52,7 +52,6 @@ mod tests {
 
     use compass_core::util::fs::read_utils::read_raw_file;
     use geo::{LineString, Point};
-    use wkt::TryFromWkt;
 
     use crate::plugin::output::{geometry::concat_linestrings, result::OutputField};
 
@@ -69,18 +68,7 @@ mod tests {
 
     #[test]
     fn test_geometry_deserialization() {
-        let op = |_idx: usize, row: String| -> Result<LineString, std::io::Error> {
-            let geom: LineString = LineString::try_from_wkt_str(row.as_str()).map_err(|e| {
-                let msg = format!(
-                    "failure decoding LineString from lookup table: {}",
-                    e.to_string()
-                );
-                std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
-            })?;
-            Ok(geom)
-        };
-
-        let result = read_raw_file(&mock_geometry_file(), op).unwrap();
+        let result = read_raw_file(&mock_geometry_file(), parse_linestring).unwrap();
         println!("{:?}", result);
         assert_eq!(result.len(), 2);
     }
