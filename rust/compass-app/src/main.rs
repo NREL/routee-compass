@@ -1,7 +1,12 @@
+use std::fs::File;
+use std::io::BufReader;
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use chrono::Local;
+use clap::Parser;
+
+use compass_app::cli::CLIArgs;
 use compass_app::config::app::AppConfig;
 use compass_app::config::graph::GraphConfig;
 use compass_core::model::traversal::traversal_model::TraversalModel;
@@ -25,12 +30,30 @@ use uom::si::velocity::kilometer_per_hour;
 
 fn main() {
     env_logger::init();
-    let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
-        .join("config")
-        .join("custom_config.toml");
 
-    let config = AppConfig::from_path(filepath).unwrap();
+    let args = CLIArgs::parse();
+
+    let config = match args.config {
+        Some(config_file) => {
+            let config = AppConfig::from_path(&config_file).unwrap();
+            info!("Using config file: {:?}", config_file);
+            config
+        }
+        None => {
+            let config = AppConfig::default().unwrap();
+            info!("Using default config");
+            config
+        }
+    };
+
+    // read query json file into a serde json Value
+    let query_file = File::open(args.query_file).unwrap();
+    info!("Using query file: {:?}", query_file);
+
+    let reader = BufReader::new(query_file);
+    let query: serde_json::Value = serde_json::from_reader(reader).unwrap();
+
+    info!("Query: {:?}", query);
 
     let graph = match config.graph {
         GraphConfig::TomTom {
