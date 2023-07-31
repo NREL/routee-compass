@@ -181,6 +181,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
+ "csv",
  "derive_more",
  "flate2",
  "geo",
