@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 n_vertices,
                 verbose,
             };
-            let graph = TomTomGraph::try_from(conf).unwrap();
+            let graph = TomTomGraph::try_from(conf)?;
             log::info!("{} rows in adjacency list", graph.adj.len());
             log::info!("{} rows in reverse list", graph.rev.len());
             log::info!("{} rows in edge list", graph.edges.len());
