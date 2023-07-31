@@ -4,20 +4,20 @@ use wkt::ToWkt;
 
 use crate::plugin::plugin_error::PluginError;
 
-pub enum OutputField {
+pub enum GeometryJsonField {
     Path,
     EdgeId,
     EdgeCost,
     Geometry,
 }
 
-impl OutputField {
+impl GeometryJsonField {
     pub fn as_str(self) -> &'static str {
         match self {
-            OutputField::Path => "path",
-            OutputField::EdgeId => "edge_id",
-            OutputField::EdgeCost => "edge_cost",
-            OutputField::Geometry => "geometry",
+            GeometryJsonField::Path => "path",
+            GeometryJsonField::EdgeId => "edge_id",
+            GeometryJsonField::EdgeCost => "edge_cost",
+            GeometryJsonField::Geometry => "geometry",
         }
     }
 
@@ -26,27 +26,27 @@ impl OutputField {
     }
 }
 
-pub trait OutputResult {
+pub trait GeometryJsonExtensions {
     // get the resulting path as a vector of edge ids
     fn get_edge_ids(&self) -> Result<Vec<EdgeId>, PluginError>;
     fn add_geometry(&mut self, geometry: LineString) -> Result<(), PluginError>;
     fn get_geometry_wkt(&self) -> Result<String, PluginError>;
 }
 
-impl OutputResult for serde_json::Value {
+impl GeometryJsonExtensions for serde_json::Value {
     fn get_edge_ids(&self) -> Result<Vec<EdgeId>, PluginError> {
         let path = self
-            .get(OutputField::Path.as_str())
-            .ok_or(PluginError::MissingField(OutputField::Path.as_str()))?;
+            .get(GeometryJsonField::Path.as_str())
+            .ok_or(PluginError::MissingField(GeometryJsonField::Path.as_str()))?;
         let edge_ids = path
             .as_array()
-            .ok_or(PluginError::ParseError(OutputField::Path.as_str(), "array"))?
+            .ok_or(PluginError::ParseError(GeometryJsonField::Path.as_str(), "array"))?
             .iter()
             .map(|edge| {
-                edge.get(OutputField::EdgeId.as_str())
-                    .ok_or(PluginError::MissingField(OutputField::EdgeId.as_str()))?
+                edge.get(GeometryJsonField::EdgeId.as_str())
+                    .ok_or(PluginError::MissingField(GeometryJsonField::EdgeId.as_str()))?
                     .as_u64()
-                    .ok_or(PluginError::ParseError(OutputField::EdgeId.as_str(), "u64"))
+                    .ok_or(PluginError::ParseError(GeometryJsonField::EdgeId.as_str(), "u64"))
                     .map(|id| EdgeId(id))
             })
             .collect::<Result<Vec<EdgeId>, PluginError>>()?;
@@ -59,7 +59,7 @@ impl OutputResult for serde_json::Value {
             serde_json::Value::Object(map) => {
                 let json_string = serde_json::Value::String(wkt);
                 map.insert(
-                    OutputField::Geometry.as_string(),
+                    GeometryJsonField::Geometry.as_string(),
                     json_string
                 );
                 Ok(())
@@ -70,10 +70,10 @@ impl OutputResult for serde_json::Value {
 
     fn get_geometry_wkt(&self) -> Result<String, PluginError> {
         let geometry = self
-            .get(OutputField::Geometry.as_str())
-            .ok_or(PluginError::MissingField(OutputField::Geometry.as_str()))?
+            .get(GeometryJsonField::Geometry.as_str())
+            .ok_or(PluginError::MissingField(GeometryJsonField::Geometry.as_str()))?
             .as_str()
-            .ok_or(PluginError::ParseError(OutputField::Geometry.as_str(), "string"))?
+            .ok_or(PluginError::ParseError(GeometryJsonField::Geometry.as_str(), "string"))?
             .to_string();
         Ok(geometry)
     }

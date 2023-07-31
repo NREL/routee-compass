@@ -1,30 +1,14 @@
 use compass_core::util::fs::read_utils::read_raw_file;
-use geo::{LineString, Point};
-use wkt::TryFromWkt;
+use geo::LineString;
 
-use crate::plugin::output::result::OutputResult;
 use crate::plugin::output::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
 
-fn concat_linestrings(linestrings: Vec<&LineString>) -> LineString {
-    let all_points = linestrings
-        .iter()
-        .flat_map(|ls| ls.points())
-        .collect::<Vec<Point>>();
-    LineString::from_iter(all_points)
-}
+use super::json_extensions::GeometryJsonExtensions;
+use super::utils::{concat_linestrings, parse_linestring};
 
-fn parse_linestring(_idx: usize, row: String) -> Result<LineString, std::io::Error> {
-    let geom: LineString = LineString::try_from_wkt_str(row.as_str()).map_err(|e| {
-        let msg = format!(
-            "failure decoding LineString from lookup table: {}",
-            e.to_string()
-        );
-        std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
-    })?;
-    Ok(geom)
-}
-
+/// Build a geometry plugin from a file containing a list of linestrings where each row
+/// index represents the edge id of the linestring.
 pub fn build_geometry_plugin_from_file(filename: String) -> Result<OutputPlugin, PluginError> {
     let geoms = read_raw_file(&filename, parse_linestring)?;
     let geometry_lookup_fn =
@@ -53,7 +37,7 @@ mod tests {
     use compass_core::util::fs::read_utils::read_raw_file;
     use geo::{LineString, Point};
 
-    use crate::plugin::output::{geometry::concat_linestrings, result::OutputField};
+    use crate::plugin::output::geometry::json_extensions::GeometryJsonField;
 
     use super::*;
 
@@ -69,7 +53,6 @@ mod tests {
     #[test]
     fn test_geometry_deserialization() {
         let result = read_raw_file(&mock_geometry_file(), parse_linestring).unwrap();
-        println!("{:?}", result);
         assert_eq!(result.len(), 3);
     }
 
@@ -104,13 +87,13 @@ mod tests {
             {
                 "path": [
                     {
-                        OutputField::EdgeId.as_str(): 0,
+                        GeometryJsonField::EdgeId.as_str(): 0,
                     },
                     {
-                        OutputField::EdgeId.as_str(): 1,
+                        GeometryJsonField::EdgeId.as_str(): 1,
                     },
                     {
-                        OutputField::EdgeId.as_str(): 2,
+                        GeometryJsonField::EdgeId.as_str(): 2,
                     }
                 ]
             }
