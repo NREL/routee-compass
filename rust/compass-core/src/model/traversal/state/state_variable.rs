@@ -1,8 +1,10 @@
+use derive_more::{Add, Div, Mul, Neg, Sum};
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-use derive_more::{Add, Div, Mul, Neg, Sum};
-
-#[derive(Copy, Clone, PartialEq, PartialOrd, Add, Mul, Div, Sum, Neg, Debug)]
+#[derive(
+    Copy, Clone, PartialEq, PartialOrd, Add, Mul, Div, Sum, Neg, Debug, Deserialize, Serialize,
+)]
 pub struct StateVar(pub f64);
 
 impl StateVar {
