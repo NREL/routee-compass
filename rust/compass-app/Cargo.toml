@@ -9,13 +9,15 @@ compass-tomtom = { path = "../compass-tomtom" }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-serde_json = {workspace = true}
-geo = {workspace = true}
+serde_json = { workspace = true }
+csv = { workspace = true }
+geo = { workspace = true }
 wkt = { version = "0.10.3", features = ["serde"] }
 uom = { workspace = true }
 env_logger = { workspace = true }
 kdam = { workspace = true }
 log = { workspace = true }
+rayon = { workspace = true }
 serde_repr = "0.1"
 rand = "0.8.5"
 chrono = "0.4.26"

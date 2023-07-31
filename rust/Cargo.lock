@@ -161,12 +161,14 @@ dependencies = [
  "compass-core",
  "compass-tomtom",
  "config",
+ "csv",
  "env_logger",
  "flate2",
  "geo",
  "kdam",
  "log",
  "rand",
+ "rayon",
  "serde",
  "serde_json",
  "serde_repr",
@@ -885,6 +887,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fc2dbde8f8a79f2102cc474ceb0ad68e3b80b85289ea62389b60e66777e4213"
 dependencies = [
  "num-traits",
+ "rand",
+ "serde",
 ]
 
 [[package]]
@@ -1064,6 +1068,7 @@ dependencies = [
  "libc",
  "rand_chacha",
  "rand_core",
+ "serde",
 ]
 
 [[package]]
@@ -1083,6 +1088,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 dependencies = [
  "getrandom",
+ "serde",
 ]
 
 [[package]]
