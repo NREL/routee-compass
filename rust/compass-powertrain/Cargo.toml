@@ -9,6 +9,9 @@ compass-core = { path = "../compass-core" }
 smartcore = { version = "0.3.1", features = ["serde"] } # random forest
 thiserror = { workspace = true }
 log = { workspace = true }
+uom = { workspace = true }
+geo = { workspace = true }
+bincode = "1.3.3"
 env_logger = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_repr = "0.1"
