@@ -11,7 +11,7 @@ bidirectional = false
 
 [search.traversal_model]
 edge_cost_functions = [
-  { type = "free_flow" },
+  { type = "distance" },
   { type = "powertrain", model = "random_forest" },
 ]
 edge_edge_cost_functions = []

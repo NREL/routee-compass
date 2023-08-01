@@ -12,6 +12,9 @@ use compass_core::model::traversal::{
     state::search_state::{SearchState, StateVector},
     traversal_model::TraversalModel,
 };
+use compass_tomtom::speed::lookup::edge_velocity_lookup::{
+    build_edge_velocity_lookup, initial_velocity_state,
+};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -32,7 +35,7 @@ pub enum AggregationFunctionConfig {
 }
 
 impl TryFrom<&AggregationFunctionConfig> for CostAggregationFunction {
-    type Error = &'static str;
+    type Error = String;
 
     fn try_from(value: &AggregationFunctionConfig) -> Result<Self, Self::Error> {
         match value {
@@ -47,35 +50,37 @@ impl TryFrom<&AggregationFunctionConfig> for CostAggregationFunction {
 pub enum EdgeCostFunctionConfig {
     #[serde(rename = "distance")]
     Distance,
-    #[serde(rename = "free_flow")]
-    FreeFlow,
+    #[serde(rename = "velocity_table")]
+    VelocityTable { filename: String },
     #[serde(rename = "powertrain")]
     Powertrain { model: String },
 }
 
 impl TryFrom<&EdgeCostFunctionConfig> for EdgeCostFunction {
-    type Error = &'static str;
+    type Error = String;
 
     fn try_from(value: &EdgeCostFunctionConfig) -> Result<Self, Self::Error> {
         match value {
             EdgeCostFunctionConfig::Distance => Ok(distance_cost_function()),
-            EdgeCostFunctionConfig::FreeFlow => Err("FreeFlow cost function not implemented"),
+            EdgeCostFunctionConfig::VelocityTable { filename } => {
+                build_edge_velocity_lookup(filename.to_string()).map_err(|e| e.to_string())
+            }
             EdgeCostFunctionConfig::Powertrain { model } => {
-                Err("Powertrain cost function not implemented")
+                Err(String::from("Powertrain cost function not implemented"))
             }
         }
     }
 }
 
 impl TryFrom<&EdgeCostFunctionConfig> for StateVector {
-    type Error = &'static str;
+    type Error = String;
 
     fn try_from(value: &EdgeCostFunctionConfig) -> Result<Self, Self::Error> {
         match value {
             EdgeCostFunctionConfig::Distance => Ok(initial_distance_state()),
-            EdgeCostFunctionConfig::FreeFlow => Err("FreeFlow cost function not implemented"),
+            EdgeCostFunctionConfig::VelocityTable { filename } => Ok(initial_velocity_state()),
             EdgeCostFunctionConfig::Powertrain { model } => {
-                Err("Powertrain cost function not implemented")
+                Err(String::from("Powertrain cost function not implemented"))
             }
         }
     }
@@ -86,18 +91,18 @@ impl TryFrom<&EdgeCostFunctionConfig> for StateVector {
 pub enum EdgeEdgeCostFunctionConfig {}
 
 impl TryFrom<&EdgeEdgeCostFunctionConfig> for EdgeEdgeCostFunction {
-    type Error = &'static str;
+    type Error = String;
 
     fn try_from(value: &EdgeEdgeCostFunctionConfig) -> Result<Self, Self::Error> {
-        Err("No edge edge cost function implemented yet")
+        Err(String::from("No edge edge cost function implemented yet"))
     }
 }
 
 impl TryFrom<&EdgeEdgeCostFunctionConfig> for StateVector {
-    type Error = &'static str;
+    type Error = String;
 
     fn try_from(value: &EdgeEdgeCostFunctionConfig) -> Result<Self, Self::Error> {
-        Err("No edge edge initial state implemented yet")
+        Err(String::from("No edge edge initial state implemented yet"))
     }
 }
 
@@ -106,10 +111,10 @@ impl TryFrom<&EdgeEdgeCostFunctionConfig> for StateVector {
 pub enum ValidFrontierFunctionConfig {}
 
 impl TryFrom<&ValidFrontierFunctionConfig> for ValidFrontierFunction {
-    type Error = &'static str;
+    type Error = String;
 
     fn try_from(value: &ValidFrontierFunctionConfig) -> Result<Self, Self::Error> {
-        Err("No valid frontier function implemented yet")
+        Err(String::from("No valid frontier function implemented yet"))
     }
 }
 
@@ -118,10 +123,10 @@ impl TryFrom<&ValidFrontierFunctionConfig> for ValidFrontierFunction {
 pub enum TerminateSearchFunctionConfig {}
 
 impl TryFrom<&TerminateSearchFunctionConfig> for TerminateSearchFunction {
-    type Error = &'static str;
+    type Error = String;
 
     fn try_from(value: &TerminateSearchFunctionConfig) -> Result<Self, Self::Error> {
-        Err("No terminate search function implemented yet")
+        Err(String::from("No terminate search function implemented yet"))
     }
 }
 
@@ -136,41 +141,41 @@ pub struct TraversalModelConfig {
 }
 
 impl TryFrom<TraversalModelConfig> for TraversalModel {
-    type Error = &'static str;
+    type Error = String;
 
     fn try_from(value: TraversalModelConfig) -> Result<TraversalModel, Self::Error> {
         let edge_fns = value
             .edge_cost_functions
             .iter()
             .map(EdgeCostFunction::try_from)
-            .collect::<Result<Vec<EdgeCostFunction>, &'static str>>()?;
+            .collect::<Result<Vec<EdgeCostFunction>, String>>()?;
         let edge_edge_fns = value
             .edge_edge_cost_functions
             .iter()
             .map(EdgeEdgeCostFunction::try_from)
-            .collect::<Result<Vec<EdgeEdgeCostFunction>, &'static str>>()?;
+            .collect::<Result<Vec<EdgeEdgeCostFunction>, String>>()?;
         let valid_fns = value
             .valid_functions
             .iter()
             .map(ValidFrontierFunction::try_from)
-            .collect::<Result<Vec<ValidFrontierFunction>, &'static str>>()?;
+            .collect::<Result<Vec<ValidFrontierFunction>, String>>()?;
         let terminate_fns = value
             .terminate_functions
             .iter()
             .map(TerminateSearchFunction::try_from)
-            .collect::<Result<Vec<TerminateSearchFunction>, &'static str>>()?;
+            .collect::<Result<Vec<TerminateSearchFunction>, String>>()?;
         let mut initial_state = value
             .edge_cost_functions
             .iter()
             .map(StateVector::try_from)
-            .collect::<Result<SearchState, &'static str>>()?;
+            .collect::<Result<SearchState, String>>()?;
 
         initial_state.extend(
             value
                 .edge_edge_cost_functions
                 .iter()
                 .map(StateVector::try_from)
-                .collect::<Result<SearchState, &'static str>>()?,
+                .collect::<Result<SearchState, String>>()?,
         );
 
         let edge_agg_fn = CostAggregationFunction::try_from(&value.edge_aggregation_function)?;
