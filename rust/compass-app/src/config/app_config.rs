@@ -26,10 +26,10 @@ impl AppConfig {
         s.try_deserialize()
     }
 
-    pub fn from_path(path: PathBuf) -> Result<Self, ConfigError> {
+    pub fn from_path(path: &PathBuf) -> Result<Self, ConfigError> {
         let s = Config::builder()
             .add_source(File::from_str(DEFAULT_FILE, FileFormat::Toml))
-            .add_source(File::from(path))
+            .add_source(File::from(path.clone()))
             .build()?;
         s.try_deserialize()
     }
