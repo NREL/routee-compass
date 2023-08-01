@@ -15,6 +15,7 @@ use std::path::PathBuf;
 use uom::si::velocity::kilometer_per_hour;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let setup_start = Local::now();
     env_logger::init();
     let args = env::args().collect::<Vec<String>>();
     let config_file_string = match args.get(1) {
@@ -79,11 +80,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     // in the future, "queries" should be parsed from the user at the top of the app
     let queries = vec![(o, d)];
 
-    let start_time = Local::now();
+    let setup_duration = Local::now() - setup_start;
+    log::info!("finished setup with duration {:?}", setup_duration);
+
+    let search_start = Local::now();
     log::info!("running search");
     let results = compass_app.run_edge_oriented(queries)?;
-    let duration = Local::now() - start_time;
-    log::info!("finished search with duration {:?}", duration);
+    let search_duration = Local::now() - search_start;
+    log::info!("finished search with duration {:?}", search_duration);
 
     // write each search result to it's own CSV file in the current working directory
     for result in results {
