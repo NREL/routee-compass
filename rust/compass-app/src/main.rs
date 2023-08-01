@@ -40,7 +40,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // read query json file into a serde json Value
     let query_file = File::open(args.query_file).unwrap();
-    info!("Using query file: {:?}", query_file);
 
     let reader = BufReader::new(query_file);
     let query: serde_json::Value = serde_json::from_reader(reader).unwrap();

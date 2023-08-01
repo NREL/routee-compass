@@ -3,6 +3,7 @@ query_timeout_ms = 2000
 [graph.tomtom]
 edge_file = "edges.csv.gz"
 vertex_file = "vertices.csv.gz"
+verbose = true
 
 [search.algorithm.astar]
 heuristic = "haversine"
