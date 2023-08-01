@@ -1,3 +1,6 @@
+use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::{
+    build_edge_velocity_lookup, initial_velocity_state,
+};
 use compass_core::model::traversal::{
     function::{
         default::{
@@ -11,9 +14,6 @@ use compass_core::model::traversal::{
     },
     state::search_state::{SearchState, StateVector},
     traversal_model::TraversalModel,
-};
-use compass_tomtom::speed::lookup::edge_velocity_lookup::{
-    build_edge_velocity_lookup, initial_velocity_state,
 };
 use serde::Deserialize;
 
