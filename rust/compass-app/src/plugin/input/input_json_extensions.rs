@@ -1,43 +1,18 @@
+use crate::plugin::plugin_error::PluginError;
+use compass_core::model::graph::vertex_id::VertexId;
 use geo;
 use serde_json;
 
-use compass_core::model::graph::vertex_id::VertexId;
+use super::input_field::InputField;
 
-use crate::plugin::plugin_error::PluginError;
-
-pub enum InputField {
-    OriginX,
-    OriginY,
-    DestinationX,
-    DestinationY,
-    OriginVertex,
-    DestinationVertex,
-}
-
-impl InputField {
-    pub fn to_str(&self) -> &'static str {
-        match self {
-            InputField::OriginX => "origin_x",
-            InputField::OriginY => "origin_y",
-            InputField::DestinationX => "destination_x",
-            InputField::DestinationY => "destination_y",
-            InputField::OriginVertex => "origin_vertex",
-            InputField::DestinationVertex => "destination_vertex",
-        }
-    }
-    pub fn to_string(&self) -> String {
-        self.to_str().to_string()
-    }
-}
-
-pub trait InputQuery {
+pub trait InputJsonExtensions {
     fn get_origin_coordinate(&self) -> Result<geo::Coord<f64>, PluginError>;
     fn get_destination_coordinate(&self) -> Result<geo::Coord<f64>, PluginError>;
     fn add_origin_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
     fn add_destination_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
 }
 
-impl InputQuery for serde_json::Value {
+impl InputJsonExtensions for serde_json::Value {
     fn get_origin_coordinate(&self) -> Result<geo::Coord<f64>, PluginError> {
         let origin_x = self
             .get(InputField::OriginX.to_str())

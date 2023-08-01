@@ -1,7 +1,7 @@
-use compass_core::{map::rtree::VertexRTree, model::property::vertex::Vertex};
-
-use crate::plugin::input::{query::InputQuery, InputPlugin};
+use crate::plugin::input::input_json_extensions::InputJsonExtensions;
+use crate::plugin::input::InputPlugin;
 use crate::plugin::plugin_error::PluginError;
+use compass_core::{map::rtree::VertexRTree, model::property::vertex::Vertex};
 
 /// Builds an input plugin that uses an RTree to find the nearest vertex to the origin and destination coordinates.
 ///
@@ -37,7 +37,7 @@ pub fn build_rtree_plugin(vertices: Vec<Vertex>) -> Result<InputPlugin, PluginEr
 mod test {
     use serde_json::json;
 
-    use crate::plugin::input::query::InputField;
+    use crate::plugin::input::input_field::InputField;
 
     use super::*;
 
