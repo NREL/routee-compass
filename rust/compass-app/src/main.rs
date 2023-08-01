@@ -28,22 +28,22 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let config = match args.config {
         Some(config_file) => {
-            let config = AppConfig::from_path(&config_file).unwrap();
+            let config = AppConfig::from_path(&config_file)?;
             info!("Using config file: {:?}", config_file);
             config
         }
         None => {
-            let config = AppConfig::default().unwrap();
+            let config = AppConfig::default()?;
             info!("Using default config");
             config
         }
     };
 
     // read query json file into a serde json Value
-    let query_file = File::open(args.query_file).unwrap();
+    let query_file = File::open(args.query_file)?;
 
     let reader = BufReader::new(query_file);
-    let query: serde_json::Value = serde_json::from_reader(reader).unwrap();
+    let query: serde_json::Value = serde_json::from_reader(reader)?;
 
     info!("Query: {:?}", query);
 
