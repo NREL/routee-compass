@@ -1,6 +1,17 @@
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+use std::time::Duration;
+
 use chrono::Local;
+use clap::Parser;
+use log::info;
+use rand::seq::SliceRandom;
+use uom::si::velocity::kilometer_per_hour;
+
 use compass_app::app::app_error::AppError;
 use compass_app::app::search::search_app::SearchApp;
+use compass_app::cli::CLIArgs;
 use compass_app::config::app_config::AppConfig;
 use compass_app::config::graph::GraphConfig;
 use compass_core::algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine;
@@ -8,27 +19,33 @@ use compass_core::model::cost::cost::Cost;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::Velocity;
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
-use log;
-use rand::seq::SliceRandom;
-use std::env;
-use std::error::Error;
-use std::path::PathBuf;
-use std::time::Duration;
-use uom::si::velocity::kilometer_per_hour;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let setup_start = Local::now();
     env_logger::init();
-    let args = env::args().collect::<Vec<String>>();
-    let config_file_string = match args.get(1) {
-        None => Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidInput,
-            "missing CLI argument 1 for compass-app configuration TOML file",
-        )),
-        Some(arg) => Ok(arg),
-    }?;
-    let path = PathBuf::from(config_file_string);
-    let config = AppConfig::from_path(&path)?;
+
+    let args = CLIArgs::parse();
+
+    let config = match args.config {
+        Some(config_file) => {
+            let config = AppConfig::from_path(&config_file).unwrap();
+            info!("Using config file: {:?}", config_file);
+            config
+        }
+        None => {
+            let config = AppConfig::default().unwrap();
+            info!("Using default config");
+            config
+        }
+    };
+
+    // read query json file into a serde json Value
+    let query_file = File::open(args.query_file).unwrap();
+
+    let reader = BufReader::new(query_file);
+    let query: serde_json::Value = serde_json::from_reader(reader).unwrap();
+
+    info!("Query: {:?}", query);
 
     let graph = match config.graph {
         GraphConfig::TomTom {

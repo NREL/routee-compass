@@ -1,3 +1,0 @@
-[graph.tomtom]
-edge_file = "/Users/nreinick/nrel/projects/routee-compass/edges_compass.csv.gz"
-vertex_file = "/Users/nreinick/nrel/projects/routee-compass/verticies_compass.csv.gz"
