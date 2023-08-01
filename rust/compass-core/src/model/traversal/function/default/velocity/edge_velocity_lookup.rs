@@ -1,12 +1,12 @@
-use compass_core::model::property::edge::Edge;
-use compass_core::model::property::vertex::Vertex;
-use compass_core::model::traversal::function::cost_function_error::CostFunctionError;
-use compass_core::model::traversal::function::function::EdgeCostFunction;
-use compass_core::model::traversal::state::search_state::StateVector;
-use compass_core::model::traversal::traversal_error::TraversalError;
-use compass_core::model::units::Velocity;
-use compass_core::model::{cost::cost::Cost, traversal::state::state_variable::StateVar};
-use compass_core::util::fs::read_utils;
+use crate::model::property::edge::Edge;
+use crate::model::property::vertex::Vertex;
+use crate::model::traversal::function::cost_function_error::CostFunctionError;
+use crate::model::traversal::function::function::EdgeCostFunction;
+use crate::model::traversal::state::search_state::StateVector;
+use crate::model::traversal::traversal_error::TraversalError;
+use crate::model::units::Velocity;
+use crate::model::{cost::cost::Cost, traversal::state::state_variable::StateVar};
+use crate::util::fs::read_utils;
 use uom::si;
 use uom::si::velocity::kilometer_per_hour;
 
@@ -68,12 +68,11 @@ pub fn initial_velocity_state() -> StateVector {
 
 #[cfg(test)]
 mod tests {
-    use super::build_edge_velocity_lookup;
-    use crate::speed::lookup::edge_velocity_lookup::initial_velocity_state;
-    use compass_core::model::cost::cost::Cost;
-    use compass_core::model::traversal::state::state_variable::StateVar;
-    use compass_core::model::units::{Length, Ratio};
-    use compass_core::model::{
+    use super::{build_edge_velocity_lookup, initial_velocity_state};
+    use crate::model::cost::cost::Cost;
+    use crate::model::traversal::state::state_variable::StateVar;
+    use crate::model::units::{Length, Ratio};
+    use crate::model::{
         graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
     };
@@ -85,8 +84,11 @@ mod tests {
     fn test_edge_cost_lookup_from_file() {
         let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
-            .join("speed")
-            .join("lookup")
+            .join("model")
+            .join("traversal")
+            .join("function")
+            .join("default")
+            .join("velocity")
             .join("test")
             .join("velocities.txt");
         let filename = filepath.to_str().unwrap();
