@@ -1,7 +1,11 @@
+use std::path::Path;
+
 use crate::plugin::input::input_json_extensions::InputJsonExtensions;
 use crate::plugin::input::InputPlugin;
 use crate::plugin::plugin_error::PluginError;
-use compass_core::{map::rtree::VertexRTree, model::property::vertex::Vertex};
+use compass_core::{
+    map::rtree::VertexRTree, model::property::vertex::Vertex, util::fs::read_utils,
+};
 
 /// Builds an input plugin that uses an RTree to find the nearest vertex to the origin and destination coordinates.
 ///
@@ -12,10 +16,16 @@ use compass_core::{map::rtree::VertexRTree, model::property::vertex::Vertex};
 /// # Returns
 ///
 /// * An input plugin that uses an RTree to find the nearest vertex to the origin and destination coordinates.
-pub fn build_rtree_plugin(vertices: Vec<Vertex>) -> Result<InputPlugin, PluginError> {
+pub fn build_rtree_plugin<P>(vertex_file: &P) -> Result<InputPlugin, PluginError>
+where
+    P: AsRef<Path>,
+{
+    let vertices: Vec<Vertex> =
+        read_utils::vec_from_csv(&vertex_file, true).map_err(PluginError::CsvReadError)?;
     let vertex_rtree = VertexRTree::new(vertices);
     let rtree_plugin_fn =
-        move |mut query: serde_json::Value| -> Result<serde_json::Value, PluginError> {
+        move |query: &serde_json::Value| -> Result<serde_json::Value, PluginError> {
+            let mut updated = query.clone();
             let origin_coord = query.get_origin_coordinate()?;
             let destination_coord = query.get_destination_coordinate()?;
 
@@ -26,41 +36,43 @@ pub fn build_rtree_plugin(vertices: Vec<Vertex>) -> Result<InputPlugin, PluginEr
             let destination_vertex = vertex_rtree
                 .nearest_vertex(destination_coord)
                 .ok_or(PluginError::NearestVertexNotFound(destination_coord))?;
-            query.add_origin_vertex(origin_vertex.vertex_id)?;
-            query.add_destination_vertex(destination_vertex.vertex_id)?;
-            Ok(query)
+            updated.add_origin_vertex(origin_vertex.vertex_id)?;
+            updated.add_destination_vertex(destination_vertex.vertex_id)?;
+            Ok(updated)
         };
     Ok(Box::new(rtree_plugin_fn))
 }
 
 #[cfg(test)]
 mod test {
-    use serde_json::json;
-
-    use crate::plugin::input::input_field::InputField;
+    use std::{
+        fs::{self},
+        path::PathBuf,
+    };
 
     use super::*;
+    use crate::plugin::input::input_field::InputField;
+    use serde_json::json;
 
     #[test]
     fn test_rtree_plugin() {
-        let vertices = vec![
-            Vertex::new(0, 0.0, 0.0),
-            Vertex::new(1, 1.0, 1.0),
-            Vertex::new(2, 2.0, 2.0),
-        ];
+        let vertices_filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("plugin")
+            .join("input")
+            .join("test")
+            .join("rtree_vertices.csv");
 
-        let rtree_plugin = build_rtree_plugin(vertices).unwrap();
-
-        let input_query = json!(
-            {
-                InputField::OriginX.to_str(): 0.1,
-                InputField::OriginY.to_str(): 0.1,
-                InputField::DestinationX.to_str(): 1.9,
-                InputField::DestinationY.to_str(): 2.1,
-            }
-        );
-
-        let processed_query = rtree_plugin(input_query).unwrap();
+        let query_filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("plugin")
+            .join("input")
+            .join("test")
+            .join("rtree_query.json");
+        let query_str = fs::read_to_string(query_filepath).unwrap();
+        let rtree_plugin = build_rtree_plugin(&vertices_filepath).unwrap();
+        let query: serde_json::Value = serde_json::from_str(&query_str).unwrap();
+        let processed_query = rtree_plugin(&query).unwrap();
 
         assert_eq!(
             processed_query,
