@@ -62,14 +62,14 @@ pub fn build_edge_velocity_lookup(
 }
 
 /// starting state for a free flow search
-pub fn initial_free_flow_state() -> StateVector {
+pub fn initial_velocity_state() -> StateVector {
     vec![StateVar::ZERO]
 }
 
 #[cfg(test)]
 mod tests {
     use super::build_edge_velocity_lookup;
-    use crate::speed::lookup::edge_velocity_lookup::initial_free_flow_state;
+    use crate::speed::lookup::edge_velocity_lookup::initial_velocity_state;
     use compass_core::model::cost::cost::Cost;
     use compass_core::model::traversal::state::state_variable::StateVar;
     use compass_core::model::units::{Length, Ratio};
@@ -105,7 +105,7 @@ mod tests {
             };
         }
         let lookup = build_edge_velocity_lookup(String::from(filename)).unwrap();
-        let initial = initial_free_flow_state();
+        let initial = initial_velocity_state();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
         let (result_cost, result_state) = lookup(&v, &e1, &v, &initial).unwrap();

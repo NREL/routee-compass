@@ -1,3 +1,5 @@
+use serde::Serialize;
+
 use crate::model::traversal::access_result::AccessResult;
 use crate::model::traversal::traversal_model::TraversalModel;
 
@@ -9,7 +11,7 @@ use crate::model::{
 };
 use std::{fmt::Display, sync::RwLockReadGuard};
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Serialize)]
 pub struct EdgeTraversal {
     pub edge_id: EdgeId,
     pub access_cost: Cost,

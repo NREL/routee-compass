@@ -2,8 +2,24 @@ use std::fmt::Display;
 
 use derive_more::{Add, Div, Mul, Neg, Sum};
 use ordered_float::OrderedFloat;
+use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord, Add, Mul, Div, Sum, Neg)]
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    PartialOrd,
+    Ord,
+    Add,
+    Mul,
+    Div,
+    Sum,
+    Neg,
+    Serialize,
+    Deserialize,
+)]
 pub struct Cost(pub OrderedFloat<f64>);
 
 impl Cost {
