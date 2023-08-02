@@ -5,12 +5,10 @@ use compass_core::{
     model::cost::cost::Cost,
 };
 use serde_json;
-use uom::si;
 
 use crate::plugin::output::OutputPlugin;
 
 use super::json_extensions::SummaryJsonExtensions;
-
 
 pub fn build_summary_output_plugin() -> Result<OutputPlugin, PluginError> {
     let summary_plugin = move |output: &serde_json::Value,
@@ -18,47 +16,41 @@ pub fn build_summary_output_plugin() -> Result<OutputPlugin, PluginError> {
           -> Result<serde_json::Value, PluginError> {
         let mut updated_output = output.clone();
         let route = search_result?;
-        let cost = route 
+        let cost = route
             .iter()
             .map(|traversal| traversal.edge_cost())
             .sum::<Cost>();
         updated_output.add_cost(cost)?;
-        let distance = route 
-            .iter()
-            .map(|traversal| traversal.edge.distance.get::<si::length::kilometer>())
-            .sum::<f64>();
-        updated_output.add_distance(distance)?;
         Ok(updated_output)
     };
     Ok(Box::new(summary_plugin))
 }
 
-
 #[cfg(test)]
 
 mod tests {
-    use compass_core::model::{property::edge::Edge, traversal::state::state_variable::StateVar};
+    use compass_core::model::{graph::edge_id::EdgeId, traversal::state::state_variable::StateVar};
 
     use super::*;
 
     #[test]
-    fn test_summary_output_plugin(){
+    fn test_summary_output_plugin() {
         let output_result = serde_json::json!({});
         let route = vec![
             EdgeTraversal {
-                edge: Edge::default(),
+                edge_id: EdgeId(0),
                 access_cost: Cost::from(1.0),
                 traversal_cost: Cost::from(1.0),
                 result_state: vec![vec![StateVar(0.0)]],
             },
             EdgeTraversal {
-                edge: Edge::default(),
+                edge_id: EdgeId(1),
                 access_cost: Cost::from(1.0),
                 traversal_cost: Cost::from(1.0),
                 result_state: vec![vec![StateVar(0.0)]],
             },
             EdgeTraversal {
-                edge: Edge::default(),
+                edge_id: EdgeId(2),
                 access_cost: Cost::from(1.0),
                 traversal_cost: Cost::from(1.0),
                 result_state: vec![vec![StateVar(0.0)]],

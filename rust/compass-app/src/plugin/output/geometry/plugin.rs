@@ -19,7 +19,7 @@ pub fn build_geometry_plugin_from_file(filename: String) -> Result<OutputPlugin,
         let mut updated_output = output.clone();
         let edge_ids = search_result?
             .iter()
-            .map(|traversal| traversal.edge.edge_id)
+            .map(|traversal| traversal.edge_id)
             .collect::<Vec<_>>();
 
         let final_linestring = edge_ids
@@ -114,19 +114,19 @@ mod tests {
         let output_result = serde_json::json!({});
         let route = vec![
             EdgeTraversal {
-                edge: mock_edge(0),
+                edge_id: EdgeId(0),
                 access_cost: Cost::from(0.0),
                 traversal_cost: Cost::from(0.0),
                 result_state: vec![vec![StateVar(0.0)]],
             },
             EdgeTraversal {
-                edge: mock_edge(1),
+                edge_id: EdgeId(1),
                 access_cost: Cost::from(0.0),
                 traversal_cost: Cost::from(0.0),
                 result_state: vec![vec![StateVar(0.0)]],
             },
             EdgeTraversal {
-                edge: mock_edge(2),
+                edge_id: EdgeId(2),
                 access_cost: Cost::from(0.0),
                 traversal_cost: Cost::from(0.0),
                 result_state: vec![vec![StateVar(0.0)]],

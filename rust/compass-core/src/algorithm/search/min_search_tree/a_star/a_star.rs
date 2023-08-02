@@ -183,16 +183,14 @@ pub fn run_a_star_edge_oriented(
             ))?
             .edge_traversal
             .result_state;
-        let source_edge = g.edge_attr(source)?;
         let src_et = EdgeTraversal {
-            edge: source_edge,
+            edge_id: source,
             access_cost: Cost::ZERO,
             traversal_cost: Cost::ZERO,
             result_state: init_state,
         };
-        let target_edge = g.edge_attr(target)?;
         let dst_et = EdgeTraversal {
-            edge: target_edge,
+            edge_id: target,
             access_cost: Cost::ZERO,
             traversal_cost: Cost::ZERO,
             result_state: final_state.to_vec(),
@@ -419,7 +417,7 @@ mod tests {
         for (r, (o, d, expected_route)) in result.into_iter().zip(queries) {
             let solution = r.unwrap();
             let route = backtrack(o, d, solution).unwrap();
-            let route_edges: Vec<EdgeId> = route.iter().map(|r| r.edge.edge_id).collect();
+            let route_edges: Vec<EdgeId> = route.iter().map(|r| r.edge_id).collect();
             assert_eq!(
                 route_edges, expected_route,
                 "route did not match expected: {:?} {:?}",
