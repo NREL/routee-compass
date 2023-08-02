@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use compass_core::model::{
+    units::Velocity,
     cost::cost::Cost,
     traversal::{
         function::{
@@ -20,6 +21,10 @@ use smartcore::{
 use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::{
     build_edge_velocity_lookup, initial_velocity_state
 };
+
+pub fn initial_energy_state() -> StateVector {
+    vec![StateVar::ZERO]
+}
 
 pub fn build_routee_random_forest(routee_model_path: String, 
     speed_table_file: String) -> Result<EdgeCostFunction, CostFunctionError> {
@@ -67,9 +72,10 @@ pub fn build_routee_random_forest(routee_model_path: String,
         let grade = e.grade;
         let distance_mile = distance.get::<si::length::mile>();
         let grade_percent = grade.get::<si::ratio::percent>();
-        let speed_mph = speed_kph.into_f64() * 0.621371;
+        let speed_mph = Velocity::new::<si::velocity::kilometer_per_hour>(speed_kph.into_f64())
+            .get::<si::velocity::mile_per_hour>();
         let x = DenseMatrix::from_2d_vec(&vec![vec![speed_mph, grade_percent]]);
-        let energy_per_mile = rf.predict(&x).map_err(|e| TraversalError::InvalidStateVariableError(routee_model_path.clone(), e.to_string()))?;
+        let energy_per_mile = rf.predict(&x).map_err(|e| TraversalError::PredictionModel(routee_model_path.clone(), e.to_string()))?;
         let energy_cost = energy_per_mile[0] * distance_mile;
         let updated_state = s[0].0 + energy_cost;
         Ok((Cost::from_f64(energy_cost), vec![StateVar(updated_state)]))
