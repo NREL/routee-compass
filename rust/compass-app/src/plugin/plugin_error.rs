@@ -14,7 +14,8 @@ pub enum PluginError {
     NearestVertexNotFound(Coord),
     #[error("error with reading file")]
     FileReadError(#[from] std::io::Error),
+    #[error("error with reading file")]
+    CsvReadError(#[from] csv::Error),
     #[error("geometry missing for edge id {0}")]
     GeometryMissing(u64),
-
 }

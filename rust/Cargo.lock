@@ -284,6 +284,7 @@ dependencies = [
  "derive_more",
  "flate2",
  "geo",
+ "kdam",
  "keyed_priority_queue",
  "ordered-float",
  "rayon",

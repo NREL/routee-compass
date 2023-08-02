@@ -1,12 +1,53 @@
+use super::fs_utils;
+use csv::{Reader, ReaderBuilder};
+use flate2::read::GzDecoder;
+use kdam::Bar;
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader},
+    io::{self, BufRead, BufReader, Read},
     path::Path,
 };
 
-use flate2::read::GzDecoder;
+/// reads from a CSV into an iterator of T records.
+/// building the iterator may fail with an io::Error.
+/// each row hasn't yet been decoded so it is provided in a Result<T, csv::Error>
+///
+pub fn iterator_from_csv<F, T>(
+    filepath: &F,
+    has_headers: bool,
+) -> Result<Box<dyn Iterator<Item = Result<T, csv::Error>>>, io::Error>
+where
+    F: AsRef<Path>,
+    T: serde::de::DeserializeOwned + 'static,
+{
+    let f = File::open(filepath)?;
+    let r: Box<dyn io::Read> = if fs_utils::is_gzip(filepath) {
+        Box::new(BufReader::new(GzDecoder::new(f)))
+    } else {
+        Box::new(f)
+    };
+    let reader: csv::DeserializeRecordsIntoIter<Box<dyn Read>, T> = ReaderBuilder::new()
+        .has_headers(has_headers)
+        .from_reader(r)
+        .into_deserialize::<T>();
+    Ok(Box::new(reader))
+}
 
-use super::fs_utils;
+/// reads a csv file into a vector. not space-optimized since size is not
+/// known.
+pub fn vec_from_csv<F, T>(filepath: &F, has_headers: bool) -> Result<Vec<T>, csv::Error>
+where
+    F: AsRef<Path>,
+    T: serde::de::DeserializeOwned + 'static,
+{
+    let mut result: Vec<T> = vec![];
+    let iter = iterator_from_csv(filepath, has_headers)?;
+    for row in iter {
+        let t = row?;
+        result.push(t);
+    }
+    return Ok(result);
+}
 
 /// reads in a raw file and deserializes each line of the file into a type T
 /// using the provided operation.

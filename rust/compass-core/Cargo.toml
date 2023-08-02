@@ -18,6 +18,5 @@ ordered-float = { version = "3.7.0", features = ["serde"] }
 smartcore = { version = "0.3.1", features = ["serde"] }
 derive_more = "0.99.0"
 keyed_priority_queue = "0.4.1"
-
-[dev-dependencies]
 csv = { workspace = true }
+kdam = { workspace = true }
