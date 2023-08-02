@@ -1,3 +1,5 @@
+use compass_core::algorithm::search::edge_traversal::EdgeTraversal;
+use compass_core::algorithm::search::search_error::SearchError;
 use compass_core::util::fs::read_utils::read_raw_file;
 use geo::LineString;
 
@@ -11,22 +13,28 @@ use super::utils::{concat_linestrings, parse_linestring};
 /// index represents the edge id of the linestring.
 pub fn build_geometry_plugin_from_file(filename: String) -> Result<OutputPlugin, PluginError> {
     let geoms = read_raw_file(&filename, parse_linestring)?;
-    let geometry_lookup_fn =
-        move |mut output: serde_json::Value| -> Result<serde_json::Value, PluginError> {
-            let edge_ids = output.get_edge_ids()?;
-            let final_linestring = edge_ids
-                .iter()
-                .map(|eid| {
-                    let geom = geoms
-                        .get(eid.0 as usize)
-                        .ok_or(PluginError::GeometryMissing(eid.0));
-                    geom
-                })
-                .collect::<Result<Vec<&LineString>, PluginError>>()?;
-            let geometry = concat_linestrings(final_linestring);
-            output.add_geometry(geometry)?;
-            Ok(output)
-        };
+    let geometry_lookup_fn = move |output: &serde_json::Value,
+                                   search_result: Result<&Vec<EdgeTraversal>, SearchError>|
+          -> Result<serde_json::Value, PluginError> {
+        let mut updated_output = output.clone();
+        let edge_ids = search_result?
+            .iter()
+            .map(|traversal| traversal.edge.edge_id)
+            .collect::<Vec<_>>();
+
+        let final_linestring = edge_ids
+            .iter()
+            .map(|eid| {
+                let geom = geoms
+                    .get(eid.0 as usize)
+                    .ok_or(PluginError::GeometryMissing(eid.0));
+                geom
+            })
+            .collect::<Result<Vec<&LineString>, PluginError>>()?;
+        let geometry = concat_linestrings(final_linestring);
+        updated_output.add_geometry(geometry)?;
+        Ok(updated_output)
+    };
     Ok(Box::new(geometry_lookup_fn))
 }
 
@@ -34,12 +42,32 @@ pub fn build_geometry_plugin_from_file(filename: String) -> Result<OutputPlugin,
 mod tests {
     use std::path::PathBuf;
 
-    use compass_core::util::fs::read_utils::read_raw_file;
+    use compass_core::{
+        model::units::{Length, Ratio},
+        model::{
+            cost::cost::Cost,
+            graph::{edge_id::EdgeId, vertex_id::VertexId},
+            property::{edge::Edge, road_class::RoadClass},
+            traversal::state::state_variable::StateVar,
+        },
+        util::fs::read_utils::read_raw_file,
+    };
     use geo::{LineString, Point};
 
-    use crate::plugin::output::geometry::json_extensions::GeometryJsonField;
+    use uom::si;
 
     use super::*;
+
+    fn mock_edge(edge_id: usize) -> Edge {
+        return Edge {
+            edge_id: EdgeId(edge_id as u64),
+            src_vertex_id: VertexId(0),
+            dst_vertex_id: VertexId(1),
+            road_class: RoadClass(2),
+            distance: Length::new::<si::length::meter>(100.0),
+            grade: Ratio::new::<si::ratio::per_mille>(0.0),
+        };
+    }
 
     fn mock_geometry_file() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -83,26 +111,32 @@ mod tests {
     #[test]
     fn test_add_geometry() {
         let expected_geometry = String::from("LINESTRING(0 0,1 1,2 2,3 3,4 4,5 5,6 6,7 7,8 8)");
-        let output_result = serde_json::json!(
-            {
-                "path": [
-                    {
-                        GeometryJsonField::EdgeId.as_str(): 0,
-                    },
-                    {
-                        GeometryJsonField::EdgeId.as_str(): 1,
-                    },
-                    {
-                        GeometryJsonField::EdgeId.as_str(): 2,
-                    }
-                ]
-            }
-        );
+        let output_result = serde_json::json!({});
+        let route = vec![
+            EdgeTraversal {
+                edge: mock_edge(0),
+                access_cost: Cost::from(0.0),
+                traversal_cost: Cost::from(0.0),
+                result_state: vec![vec![StateVar(0.0)]],
+            },
+            EdgeTraversal {
+                edge: mock_edge(1),
+                access_cost: Cost::from(0.0),
+                traversal_cost: Cost::from(0.0),
+                result_state: vec![vec![StateVar(0.0)]],
+            },
+            EdgeTraversal {
+                edge: mock_edge(2),
+                access_cost: Cost::from(0.0),
+                traversal_cost: Cost::from(0.0),
+                result_state: vec![vec![StateVar(0.0)]],
+            },
+        ];
         let geom_plugin =
             build_geometry_plugin_from_file(mock_geometry_file().to_str().unwrap().to_string())
                 .unwrap();
 
-        let result = geom_plugin(output_result).unwrap();
+        let result = geom_plugin(&output_result, Ok(&route)).unwrap();
         let geometry_wkt = result.get_geometry_wkt().unwrap();
         assert_eq!(geometry_wkt, expected_geometry);
     }

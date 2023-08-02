@@ -55,7 +55,7 @@ pub fn build_edge_velocity_lookup(
             let seconds: f64 = time.get::<si::time::second>().into();
             let mut s = state.to_vec();
             s[0] = s[0] + StateVar(seconds);
-            Ok((Cost::from_f64(seconds), s))
+            Ok((Cost::from(seconds), s))
         },
     );
     return Ok(ffcf);
@@ -112,7 +112,7 @@ mod tests {
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
         let (result_cost, result_state) = lookup(&v, &e1, &v, &initial).unwrap();
         let expected = 36.0;
-        assert_eq!(result_cost, Cost::from_f64(expected));
+        assert_eq!(result_cost, Cost::from(expected));
         assert_eq!(result_state, vec![StateVar(expected)]);
     }
 }

@@ -1,7 +1,10 @@
 use serde::Serialize;
+use uom::si;
 
+use crate::model::property::edge::Edge;
 use crate::model::traversal::access_result::AccessResult;
 use crate::model::traversal::traversal_model::TraversalModel;
+use crate::model::units::Length;
 
 use super::search_error::SearchError;
 use crate::model::traversal::state::search_state::SearchState;
@@ -13,7 +16,7 @@ use std::{fmt::Display, sync::RwLockReadGuard};
 
 #[derive(Clone, Debug, Serialize)]
 pub struct EdgeTraversal {
-    pub edge_id: EdgeId,
+    pub edge: Edge,
     pub access_cost: Cost,
     pub traversal_cost: Cost,
     pub result_state: SearchState,
@@ -30,7 +33,7 @@ impl Display for EdgeTraversal {
         write!(
             f,
             "edge {} acost:{} tcost:{} state:{:?}",
-            self.edge_id, self.access_cost, self.traversal_cost, self.result_state
+            self.edge.edge_id, self.access_cost, self.traversal_cost, self.result_state
         )
     }
 }
@@ -69,7 +72,7 @@ impl EdgeTraversal {
             .map_err(SearchError::TraversalModelFailure)?;
 
         let result = EdgeTraversal {
-            edge_id,
+            edge,
             access_cost: access_result.total_cost,
             traversal_cost: traversal_result.total_cost,
             result_state: traversal_result.updated_state,
