@@ -23,7 +23,7 @@ impl CostEstimateFunction for Haversine {
         let distance = Haversine::distance(src.coordinate, dst.coordinate);
         let travel_time = distance / self.travel_speed;
         let travel_time_ms = travel_time.get::<si::time::millisecond>();
-        Ok(Cost::from_f64(travel_time_ms))
+        Ok(Cost::from(travel_time_ms))
     }
 }
 
@@ -87,9 +87,10 @@ mod tests {
                 panic!();
             }
             Ok(time) => {
+                let time_float: f64 = time.into();
                 assert_eq!(dist, expected_dist);
                 assert_eq!(
-                    time.into_f64(),
+                    time_float,
                     expected_time.get::<si::time::millisecond>()
                 );
             }

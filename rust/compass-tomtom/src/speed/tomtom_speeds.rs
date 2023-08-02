@@ -55,7 +55,7 @@ pub fn from_edgelist_csv(
         let milliseconds = tt.get::<si::time::millisecond>();
         let mut s_update = s.to_vec();
         s_update[0] = s_update[0] + StateVar(milliseconds as f64);
-        Ok((Cost::from_f64(milliseconds), s_update))
+        Ok((Cost::from(milliseconds), s_update))
     });
 
     return Ok(f);

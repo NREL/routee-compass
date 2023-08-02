@@ -300,7 +300,7 @@ mod tests {
     struct TestCost;
     impl CostEstimateFunction for TestCost {
         fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, CostError> {
-            Ok(Cost::from_f64(0.0))
+            Ok(Cost::from(0.0))
         }
     }
 

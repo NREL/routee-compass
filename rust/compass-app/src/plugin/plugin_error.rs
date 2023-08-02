@@ -1,3 +1,4 @@
+use compass_core::algorithm::search::search_error::SearchError;
 use geo::Coord;
 
 #[derive(thiserror::Error, Debug)]
@@ -18,4 +19,6 @@ pub enum PluginError {
     CsvReadError(#[from] csv::Error),
     #[error("geometry missing for edge id {0}")]
     GeometryMissing(u64),
+    #[error("error during search")]
+    SearchError(#[from] SearchError),
 }

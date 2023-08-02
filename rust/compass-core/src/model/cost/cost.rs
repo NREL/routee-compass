@@ -27,15 +27,15 @@ impl Cost {
     pub const INFINITY: Cost = Cost(OrderedFloat(f64::MAX));
 }
 
-impl Cost {
-    pub fn from_f64(f: f64) -> Cost {
+impl From<f64> for Cost {
+    fn from(f: f64) -> Self {
         Cost(OrderedFloat(f))
     }
-    pub fn into_f64(self) -> f64 {
+}
+
+impl Into<f64> for Cost {
+    fn into(self) -> f64 {
         self.0.into_inner()
-    }
-    pub fn into_i64(self) -> i64 {
-        self.0.into_inner().round() as i64
     }
 }
 
