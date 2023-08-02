@@ -6,6 +6,14 @@ pub enum TraversalError {
     MissingIdInTabularCostFunction(String, String, String),
     #[error("tough stuff brah")]
     Error,
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
     #[error("input feature incompatible for model prediction ")]
     InvalidStateVariableError(String, String),
+=======
+=======
+>>>>>>> Stashed changes
+    #[error("prediction model from file {0} failed with error {1}")]
+    PredictionModel(String, String),
+>>>>>>> Stashed changes
 }
