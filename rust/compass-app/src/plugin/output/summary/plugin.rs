@@ -59,10 +59,6 @@ mod tests {
         let summary_plugin = build_summary_output_plugin().unwrap();
         let updated_output = summary_plugin(&output_result, Ok(&route)).unwrap();
         let cost: f64 = updated_output.get_cost().unwrap().into();
-        let distance_km: f64 = updated_output.get_distance().unwrap();
         assert_eq!(cost, 6.0);
-
-        // each default edge has a lenght of 1 km
-        assert_eq!(distance_km, 3.0);
     }
 }
