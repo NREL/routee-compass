@@ -33,3 +33,44 @@ pub fn build_summary_output_plugin() -> Result<OutputPlugin, PluginError> {
     Ok(Box::new(summary_plugin))
 }
 
+
+#[cfg(test)]
+
+mod tests {
+    use compass_core::model::{property::edge::Edge, traversal::state::state_variable::StateVar};
+
+    use super::*;
+
+    #[test]
+    fn test_summary_output_plugin(){
+        let output_result = serde_json::json!({});
+        let route = vec![
+            EdgeTraversal {
+                edge: Edge::default(),
+                access_cost: Cost::from(1.0),
+                traversal_cost: Cost::from(1.0),
+                result_state: vec![vec![StateVar(0.0)]],
+            },
+            EdgeTraversal {
+                edge: Edge::default(),
+                access_cost: Cost::from(1.0),
+                traversal_cost: Cost::from(1.0),
+                result_state: vec![vec![StateVar(0.0)]],
+            },
+            EdgeTraversal {
+                edge: Edge::default(),
+                access_cost: Cost::from(1.0),
+                traversal_cost: Cost::from(1.0),
+                result_state: vec![vec![StateVar(0.0)]],
+            },
+        ];
+        let summary_plugin = build_summary_output_plugin().unwrap();
+        let updated_output = summary_plugin(&output_result, Ok(&route)).unwrap();
+        let cost: f64 = updated_output.get_cost().unwrap().into();
+        let distance_km: f64 = updated_output.get_distance().unwrap();
+        assert_eq!(cost, 6.0);
+
+        // each default edge has a lenght of 1 km
+        assert_eq!(distance_km, 3.0);
+    }
+}
