@@ -1,3 +1,5 @@
+use super::search_app_result::SearchAppResult;
+use crate::app::app_error::AppError;
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
@@ -10,14 +12,10 @@ use compass_core::{
         graph::{directed_graph::DirectedGraph, edge_id::EdgeId, vertex_id::VertexId},
         traversal::traversal_model::TraversalModel,
     },
-    util::read_only_lock::DriverReadOnlyLock,
+    util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
 };
 use rayon::prelude::*;
 use std::sync::Arc;
-
-use crate::app::app_error::AppError;
-
-use super::search_app_result::SearchAppResult;
 
 pub struct SearchApp<'app> {
     graph: Arc<DriverReadOnlyLock<&'app dyn DirectedGraph>>,
@@ -113,5 +111,45 @@ impl<'app> SearchApp<'app> {
             .collect();
 
         return result.into_iter().collect();
+    }
+
+    /// helper function for accessing the DirectedGraph
+    ///
+    /// example:
+    ///
+    /// let search_app: SearchApp = ...;
+    /// let reference = search_app.get_directed_graph_reference();
+    /// let graph = reference.read();
+    /// // do things with graph
+    pub fn get_directed_graph_reference(
+        &self,
+    ) -> Arc<ExecutorReadOnlyLock<&'app dyn DirectedGraph>> {
+        Arc::new(self.graph.read_only())
+    }
+
+    /// helper function for accessing the TraversalModel
+    ///
+    /// example:
+    ///
+    /// let search_app: SearchApp = ...;
+    /// let reference = search_app.get_traversal_model_reference();
+    /// let traversal_model = reference.read();
+    /// // do things with TraversalModel
+    pub fn get_traversal_model_reference(&self) -> Arc<ExecutorReadOnlyLock<&'app TraversalModel>> {
+        Arc::new(self.traversal_model.read_only())
+    }
+
+    /// helper function for accessing the CostEstimateFunction
+    ///
+    /// example:
+    ///
+    /// let search_app: SearchApp = ...;
+    /// let reference = search_app.get_a_star_heuristic_reference();
+    /// let est_fn = reference.read();
+    /// // do things with CostEstimateFunction
+    pub fn get_a_star_heuristic_reference(
+        &self,
+    ) -> Arc<ExecutorReadOnlyLock<&'app dyn CostEstimateFunction>> {
+        Arc::new(self.a_star_heuristic.read_only())
     }
 }
