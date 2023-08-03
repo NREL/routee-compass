@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use compass_core::model::{
+    units::Velocity,
     cost::cost::Cost,
     traversal::{
         function::{
@@ -17,9 +18,11 @@ use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
 };
 
-use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::{
-    build_edge_velocity_lookup, initial_velocity_state
-};
+use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::build_edge_velocity_lookup;
+
+pub fn initial_energy_state() -> StateVector {
+    vec![StateVar::ZERO]
+}
 
 pub fn build_routee_random_forest(routee_model_path: String, 
     speed_table_file: String) -> Result<EdgeCostFunction, CostFunctionError> {
@@ -67,7 +70,8 @@ pub fn build_routee_random_forest(routee_model_path: String,
         let grade = e.grade;
         let distance_mile = distance.get::<si::length::mile>();
         let grade_percent = grade.get::<si::ratio::percent>();
-        let speed_mph = speed_kph.into_f64() * 0.621371;
+        let speed_mph = Velocity::new::<si::velocity::kilometer_per_hour>(speed_kph.into_f64())
+            .get::<si::velocity::mile_per_hour>();
         let x = DenseMatrix::from_2d_vec(&vec![vec![speed_mph, grade_percent]]);
         let energy_per_mile = rf.predict(&x).map_err(|e| TraversalError::PredictionModel(routee_model_path.clone(), e.to_string()))?;
         let energy_cost = energy_per_mile[0] * distance_mile;
@@ -80,9 +84,6 @@ pub fn build_routee_random_forest(routee_model_path: String,
 #[cfg(test)]
 mod tests {
     use crate::routee::routee_random_forest::build_routee_random_forest;
-
-    use super::build_edge_velocity_lookup;
-    use compass_tomtom::speed::lookup::edge_velocity_lookup::initial_velocity_state;
     use compass_core::model::cost::cost::Cost;
     use compass_core::model::traversal::state::state_variable::StateVar;
     use compass_core::model::units::{Length, Ratio};
@@ -90,6 +91,7 @@ mod tests {
         graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
     };
+    use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::initial_velocity_state;
     use geo::coord;
     use std::path::PathBuf;
     use uom::si;
@@ -127,8 +129,5 @@ mod tests {
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
         let (result_cost, result_state) = rf_predictor(&v, &e1, &v, &initial).unwrap();
-        // let expected = 36.0;
-        // assert_eq!(result_cost, Cost::from_f64(expected));
-        // assert_eq!(result_state, vec![StateVar(expected)]);
     }
 }
