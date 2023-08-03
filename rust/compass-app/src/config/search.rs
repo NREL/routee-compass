@@ -51,7 +51,10 @@ pub enum EdgeCostFunctionConfig {
     #[serde(rename = "distance")]
     Distance,
     #[serde(rename = "velocity_table")]
-    VelocityTable { filename: String },
+    VelocityTable {
+        filename: String,
+        output_unit: String,
+    },
     #[serde(rename = "powertrain")]
     Powertrain { model: String },
 }
@@ -62,9 +65,10 @@ impl TryFrom<&EdgeCostFunctionConfig> for EdgeCostFunction {
     fn try_from(value: &EdgeCostFunctionConfig) -> Result<Self, Self::Error> {
         match value {
             EdgeCostFunctionConfig::Distance => Ok(distance_cost_function()),
-            EdgeCostFunctionConfig::VelocityTable { filename } => {
-                build_edge_velocity_lookup(filename.to_string()).map_err(|e| e.to_string())
-            }
+            EdgeCostFunctionConfig::VelocityTable {
+                filename,
+                output_unit,
+            } => build_edge_velocity_lookup(filename, output_unit).map_err(|e| e.to_string()),
             EdgeCostFunctionConfig::Powertrain { model } => {
                 Err(String::from("Powertrain cost function not implemented"))
             }
@@ -78,7 +82,10 @@ impl TryFrom<&EdgeCostFunctionConfig> for StateVector {
     fn try_from(value: &EdgeCostFunctionConfig) -> Result<Self, Self::Error> {
         match value {
             EdgeCostFunctionConfig::Distance => Ok(initial_distance_state()),
-            EdgeCostFunctionConfig::VelocityTable { filename } => Ok(initial_velocity_state()),
+            EdgeCostFunctionConfig::VelocityTable {
+                filename,
+                output_unit,
+            } => Ok(initial_velocity_state()),
             EdgeCostFunctionConfig::Powertrain { model } => {
                 Err(String::from("Powertrain cost function not implemented"))
             }

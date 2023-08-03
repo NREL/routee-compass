@@ -1,12 +1,13 @@
+use crate::model::traversal::function::cost_function_error::CostFunctionError;
+use crate::model::units::{Length, Velocity};
 use geo::Coord;
 use uom::si;
-use crate::model::units::{Length, Velocity};
 
-use crate::model::cost::{cost::Cost, cost_error::CostError};
+use crate::model::cost::cost::Cost;
 use crate::model::property::vertex::Vertex;
 
 pub trait CostEstimateFunction: Sync + Send {
-    fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostError>;
+    fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostFunctionError>;
 }
 
 /// the default cost estimate function uses the haversine formula to give us
@@ -14,16 +15,27 @@ pub trait CostEstimateFunction: Sync + Send {
 /// distance using the provided travel speed in kilometers per hour.
 pub struct Haversine {
     pub travel_speed: Velocity,
+    pub output_unit: String,
 }
 
 impl CostEstimateFunction for Haversine {
     /// uses the haversine distance between two points to estimate a lower bound of
     /// travel time in milliseconds.
-    fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostError> {
+    fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostFunctionError> {
         let distance = Haversine::distance(src.coordinate, dst.coordinate);
         let travel_time = distance / self.travel_speed;
-        let travel_time_ms = travel_time.get::<si::time::millisecond>();
-        Ok(Cost::from(travel_time_ms))
+        let result = if self.output_unit == "ms" {
+            travel_time.get::<si::time::millisecond>()
+        } else if self.output_unit == "sec" {
+            travel_time.get::<si::time::second>()
+        } else {
+            return Err(CostFunctionError::ConfigurationError(format!(
+                "unknown output unit {} must be one of {{ms, sec}}",
+                self.output_unit
+            )));
+        };
+
+        Ok(Cost::from(result))
     }
 }
 
@@ -49,13 +61,11 @@ impl Haversine {
 
 #[cfg(test)]
 mod tests {
+    use crate::model::units::{Length, Velocity};
     use geo::coord;
     use uom::si;
-    use crate::model::units::{Length, Velocity};
 
-    use crate::model::{
-        graph::vertex_id::VertexId, property::vertex::Vertex
-    };
+    use crate::model::{graph::vertex_id::VertexId, property::vertex::Vertex};
 
     use super::{CostEstimateFunction, Haversine};
 
@@ -66,6 +76,7 @@ mod tests {
 
         let h = Haversine {
             travel_speed: Velocity::new::<si::velocity::kilometer_per_hour>(40.0),
+            output_unit: String::from("ms"),
         };
         let src = Vertex {
             vertex_id: VertexId(0),
@@ -89,10 +100,7 @@ mod tests {
             Ok(time) => {
                 let time_float: f64 = time.into();
                 assert_eq!(dist, expected_dist);
-                assert_eq!(
-                    time_float,
-                    expected_time.get::<si::time::millisecond>()
-                );
+                assert_eq!(time_float, expected_time.get::<si::time::millisecond>());
             }
         }
     }

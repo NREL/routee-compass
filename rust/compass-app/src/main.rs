@@ -74,6 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let haversine = Haversine {
         travel_speed: Velocity::new::<kilometer_per_hour>(40.0),
+        output_unit: String::from("ms"),
     };
     let traversal_model: TraversalModel = config.search.traversal_model.try_into()?;
     let search_app: SearchApp = SearchApp::new(&graph, &traversal_model, &haversine);

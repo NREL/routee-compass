@@ -21,5 +21,5 @@ edge_aggregation_function = "add"
 edge_edge_aggregation_function = "add"
 
 [plugin]
-input_plugins = [{ type = "vertex_rtree" }]
+input_plugins = [{ type = "vertex_rtree", vertices_file = "vertices.csv.gz" }]
 output_plugins = []

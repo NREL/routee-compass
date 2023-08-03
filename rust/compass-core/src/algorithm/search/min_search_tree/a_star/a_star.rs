@@ -47,39 +47,54 @@ pub fn run_a_star(
     let c = cost_estimate_fn
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let mut open_set: KeyedPriorityQueue<AStarFrontier, Cost> = KeyedPriorityQueue::new();
-    let mut g_score: HashMap<VertexId, Cost> = HashMap::new();
+    let mut frontier: KeyedPriorityQueue<AStarFrontier, Cost> = KeyedPriorityQueue::new();
+    let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, AStarTraversal> = HashMap::new();
 
     // setup initial search state
-    g_score.insert(source, Cost::ZERO);
+    traversal_costs.insert(source, Cost::ZERO);
     let origin = AStarFrontier {
         vertex_id: source,
         prev_edge_id: None,
         state: m.initial_state(),
     };
     let origin_cost = h_cost(source, target, &c, &g)?;
-    open_set.push(origin, -origin_cost);
+    frontier.push(origin, -origin_cost);
 
     // run search loop until we reach the destination, or fail if the set is ever empty
     loop {
-        match open_set.pop() {
+        match frontier.pop() {
             None => return Err(SearchError::NoPathExists(source, target)),
             Some((current, _)) if current.vertex_id == target => break,
             Some((current, _)) => {
-                let triplets = g
+                let neighbor_triplets = g
                     .incident_triplets(current.vertex_id, direction)
                     .map_err(SearchError::GraphCorrectnessFailure)?;
 
-                for (src_id, edge_id, dst_id) in triplets {
+                for (src_id, edge_id, dst_id) in neighbor_triplets {
+                    // tentative_traversal_cost = traversal_cost[src_id] + edge_traversal_cost;
+                    // if tentative_traversal_cost < traversal_cost[dst]
+                    //   let traversal = AStarTraversal(src_id, edge_traversal)
+                    //   solution.insert(dst_id, traversal)
+                    //   traversal_costs.insert(dst_id, tentative_traversal_cost)
+                    //   let next = AStarFrontier(dst_id, Some(edge_id), edge_traversal.state)
+                    //   let next_priority = tentative_traversal_cost + h(dst_id)
+                    //   frontier.push(next, next_priority)
+
                     let et =
                         EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
                     let dst_h_cost = h_cost(dst_id, target, &c, &g)?;
-                    let src_gscore = g_score.get(&src_id).unwrap_or(&Cost::INFINITY);
-                    let tentative_gscore = *src_gscore + et.edge_cost();
-                    let existing_gscore = g_score.get(&dst_id).unwrap_or(&Cost::INFINITY);
-                    if tentative_gscore < *existing_gscore {
-                        g_score.insert(dst_id, tentative_gscore);
+                    let traversal_cost = traversal_costs
+                        .get(&src_id)
+                        .unwrap_or(&Cost::INFINITY)
+                        .to_owned();
+                    let tentative_gscore = traversal_cost + et.edge_cost();
+                    let existing_gscore = traversal_costs
+                        .get(&dst_id)
+                        .unwrap_or(&Cost::INFINITY)
+                        .to_owned();
+                    if tentative_gscore < existing_gscore {
+                        traversal_costs.insert(dst_id, tentative_gscore);
 
                         // update solution
                         let traversal = AStarTraversal {
@@ -96,7 +111,7 @@ pub fn run_a_star(
                             state: et.result_state,
                         };
                         let f_score_value = tentative_gscore + dst_h_cost;
-                        open_set.push(f, -f_score_value);
+                        frontier.push(f, -f_score_value);
                     }
                 }
             }
@@ -276,13 +291,13 @@ fn h_cost(
     let dst_v = g
         .vertex_attr(target_id)
         .map_err(SearchError::GraphCorrectnessFailure)?;
-    c.cost(src_v, dst_v)
-        .map_err(SearchError::CostCalculationError)
+    c.cost(src_v, dst_v).map_err(SearchError::CostFunctionError)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::traversal::function::cost_function_error::CostFunctionError;
     use crate::model::traversal::function::default::aggregation::additive_aggregation;
     use crate::model::traversal::function::default::distance_cost::{
         distance_cost_function, initial_distance_state,
@@ -291,7 +306,7 @@ mod tests {
     use crate::model::units::Length;
     use crate::test::mocks::TestDG;
     use crate::{
-        model::{cost::cost_error::CostError, graph::edge_id::EdgeId, property::vertex::Vertex},
+        model::{graph::edge_id::EdgeId, property::vertex::Vertex},
         util::read_only_lock::DriverReadOnlyLock,
     };
     use rayon::prelude::*;
@@ -299,7 +314,7 @@ mod tests {
 
     struct TestCost;
     impl CostEstimateFunction for TestCost {
-        fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, CostError> {
+        fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, CostFunctionError> {
             Ok(Cost::from(0.0))
         }
     }
