@@ -14,10 +14,13 @@ use compass_app::app::search::search_app::SearchApp;
 use compass_app::cli::CLIArgs;
 use compass_app::config::app_config::AppConfig;
 use compass_app::config::graph::GraphConfig;
-use compass_core::algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine;
 use compass_core::model::cost::cost::Cost;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::Velocity;
+use compass_core::{
+    algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine,
+    model::graph::edge_id::EdgeId,
+};
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -79,26 +82,48 @@ fn main() -> Result<(), Box<dyn Error>> {
     let traversal_model: TraversalModel = config.search.traversal_model.try_into()?;
     let search_app: SearchApp = SearchApp::new(&graph, &traversal_model, &haversine);
 
-    let (o, d) = (
-        graph
-            .edges
-            .choose(&mut rand::thread_rng())
-            .ok_or(AppError::InternalError(String::from(
-                "graph.edges.choose returned None",
-            )))?
-            .edge_id,
-        graph
-            .edges
-            .choose(&mut rand::thread_rng())
-            .ok_or(AppError::InternalError(String::from(
-                "graph.edges.choose returned None",
-            )))?
-            .edge_id,
-    );
-    log::info!("randomly selected (origin, destination): ({}, {})", o, d);
+    let queries_result: Result<Vec<(EdgeId, EdgeId)>, AppError> = (0..10)
+        .map(|_| {
+            let (o, d) = (
+                graph
+                    .edges
+                    .choose(&mut rand::thread_rng())
+                    .ok_or(AppError::InternalError(String::from(
+                        "graph.edges.choose returned None",
+                    )))?
+                    .edge_id,
+                graph
+                    .edges
+                    .choose(&mut rand::thread_rng())
+                    .ok_or(AppError::InternalError(String::from(
+                        "graph.edges.choose returned None",
+                    )))?
+                    .edge_id,
+            );
+            log::info!("randomly selected (origin, destination): ({}, {})", o, d);
+            Ok((o, d))
+        })
+        .collect();
+
+    // let (o, d) = (
+    //     graph
+    //         .edges
+    //         .choose(&mut rand::thread_rng())
+    //         .ok_or(AppError::InternalError(String::from(
+    //             "graph.edges.choose returned None",
+    //         )))?
+    //         .edge_id,
+    //     graph
+    //         .edges
+    //         .choose(&mut rand::thread_rng())
+    //         .ok_or(AppError::InternalError(String::from(
+    //             "graph.edges.choose returned None",
+    //         )))?
+    //         .edge_id,
+    // );
 
     // in the future, "queries" should be parsed from the user at the top of the app
-    let queries = vec![(o, d)];
+    let queries = queries_result?;
 
     let setup_duration = Local::now() - setup_start;
     log::info!("finished setup with duration {:?}", setup_duration);
