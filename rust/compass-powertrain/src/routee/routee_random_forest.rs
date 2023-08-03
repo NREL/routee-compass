@@ -18,9 +18,7 @@ use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
 };
 
-use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::{
-    build_edge_velocity_lookup, initial_velocity_state
-};
+use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::build_edge_velocity_lookup;
 
 pub fn initial_energy_state() -> StateVector {
     vec![StateVar::ZERO]
@@ -86,9 +84,6 @@ pub fn build_routee_random_forest(routee_model_path: String,
 #[cfg(test)]
 mod tests {
     use crate::routee::routee_random_forest::build_routee_random_forest;
-
-    use super::build_edge_velocity_lookup;
-    use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::initial_velocity_state;
     use compass_core::model::cost::cost::Cost;
     use compass_core::model::traversal::state::state_variable::StateVar;
     use compass_core::model::units::{Length, Ratio};
@@ -96,6 +91,7 @@ mod tests {
         graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
     };
+    use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::initial_velocity_state;
     use geo::coord;
     use std::path::PathBuf;
     use uom::si;
