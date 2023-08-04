@@ -72,15 +72,6 @@ pub fn run_a_star(
                     .map_err(SearchError::GraphCorrectnessFailure)?;
 
                 for (src_id, edge_id, dst_id) in neighbor_triplets {
-                    // tentative_traversal_cost = traversal_cost[src_id] + edge_traversal_cost;
-                    // if tentative_traversal_cost < traversal_cost[dst]
-                    //   let traversal = AStarTraversal(src_id, edge_traversal)
-                    //   solution.insert(dst_id, traversal)
-                    //   traversal_costs.insert(dst_id, tentative_traversal_cost)
-                    //   let next = AStarFrontier(dst_id, Some(edge_id), edge_traversal.state)
-                    //   let next_priority = tentative_traversal_cost + h(dst_id)
-                    //   frontier.push(next, next_priority)
-
                     let et =
                         EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
                     let dst_h_cost = h_cost(dst_id, target, &c, &g)?;
@@ -170,7 +161,7 @@ pub fn run_a_star_edge_oriented(
         return Ok(tree);
     } else {
         // run a search and append source/target edges to result
-        let mut tree = run_a_star(
+        let mut tree: HashMap<VertexId, AStarTraversal> = run_a_star(
             direction,
             source_edge_dst_vertex_id,
             target_edge_src_vertex_id,
@@ -219,10 +210,15 @@ pub fn run_a_star_edge_oriented(
             edge_traversal: dst_et,
         };
 
-        tree.extend([
-            (source_edge_dst_vertex_id, src_traversal),
-            (target_edge_dst_vertex_id, dst_traversal),
-        ]);
+        // it is possible that the search already found these vertices. one major edge
+        // case is when the trip starts with a u-turn.
+        if !tree.contains_key(&source_edge_dst_vertex_id) {
+            tree.extend([(source_edge_dst_vertex_id, src_traversal)]);
+        }
+        if !tree.contains_key(&target_edge_dst_vertex_id) {
+            tree.extend([(target_edge_dst_vertex_id, dst_traversal)]);
+        }
+
         return Ok(tree);
     }
 }
@@ -236,21 +232,21 @@ pub fn backtrack(
     solution: HashMap<VertexId, AStarTraversal>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let mut result: Vec<EdgeTraversal> = vec![];
-    let mut visited: HashSet<VertexId> = HashSet::new();
+    let mut visited: HashSet<EdgeId> = HashSet::new();
     let mut this_vertex = target_id.clone();
     loop {
         if this_vertex == source_id {
             break;
         }
-
-        let first_visit = visited.insert(this_vertex);
-        if !first_visit {
-            return Err(SearchError::LoopInSearchResult(this_vertex));
-        }
-
         let traversal = solution
             .get(&this_vertex)
             .ok_or(SearchError::VertexMissingFromSearchTree(this_vertex))?;
+        let first_visit = visited.insert(traversal.edge_traversal.edge_id);
+        if !first_visit {
+            return Err(SearchError::LoopInSearchResult(
+                traversal.edge_traversal.edge_id,
+            ));
+        }
         result.push(traversal.edge_traversal.clone());
         this_vertex = traversal.terminal_vertex;
     }
@@ -269,10 +265,10 @@ pub fn backtrack_edges(
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let o_v = g_inner
-        .dst_vertex(source_id)
+        .src_vertex(source_id)
         .map_err(SearchError::GraphCorrectnessFailure)?;
     let d_v = g_inner
-        .src_vertex(target_id)
+        .dst_vertex(target_id)
         .map_err(SearchError::GraphCorrectnessFailure)?;
     backtrack(o_v, d_v, solution)
 }
