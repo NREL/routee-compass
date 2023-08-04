@@ -286,6 +286,7 @@ dependencies = [
  "geo",
  "kdam",
  "keyed_priority_queue",
+ "log",
  "ordered-float",
  "rayon",
  "rstar",
