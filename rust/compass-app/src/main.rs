@@ -7,7 +7,7 @@ use compass_app::config::app_config::AppConfig;
 use compass_app::config::graph::GraphConfig;
 use compass_core::model::cost::cost::Cost;
 use compass_core::model::traversal::traversal_model::TraversalModel;
-use compass_core::model::units::Velocity;
+use compass_core::model::units::{TimeUnit, Velocity};
 use compass_core::util::duration_extension::DurationExtension;
 use compass_core::{
     algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine,
@@ -77,7 +77,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let haversine = Haversine {
         travel_speed: Velocity::new::<kilometer_per_hour>(40.0),
-        output_unit: String::from("ms"),
+        output_unit: TimeUnit::Milliseconds,
     };
     let traversal_model: TraversalModel = config.search.traversal_model.try_into()?;
     let search_app: SearchApp = SearchApp::new(&graph, &traversal_model, &haversine);

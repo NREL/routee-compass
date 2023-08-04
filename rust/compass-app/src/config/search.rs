@@ -15,6 +15,7 @@ use compass_core::model::traversal::{
     state::search_state::{SearchState, StateVector},
     traversal_model::TraversalModel,
 };
+use compass_core::model::units::TimeUnit;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -53,7 +54,7 @@ pub enum EdgeCostFunctionConfig {
     #[serde(rename = "velocity_table")]
     VelocityTable {
         filename: String,
-        output_unit: String,
+        output_unit: TimeUnit,
     },
     #[serde(rename = "powertrain")]
     Powertrain { model: String },
@@ -68,7 +69,9 @@ impl TryFrom<&EdgeCostFunctionConfig> for EdgeCostFunction {
             EdgeCostFunctionConfig::VelocityTable {
                 filename,
                 output_unit,
-            } => build_edge_velocity_lookup(filename, output_unit).map_err(|e| e.to_string()),
+            } => {
+                build_edge_velocity_lookup(filename, output_unit.clone()).map_err(|e| e.to_string())
+            }
             EdgeCostFunctionConfig::Powertrain { model } => {
                 Err(String::from("Powertrain cost function not implemented"))
             }
