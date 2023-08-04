@@ -43,6 +43,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // read query json file into a serde json Value
     let query_file = File::open(args.query_file)?;
+    let n_queries = 10;
 
     let reader = BufReader::new(query_file);
     let query: serde_json::Value = serde_json::from_reader(reader)?;
@@ -81,7 +82,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let traversal_model: TraversalModel = config.search.traversal_model.try_into()?;
     let search_app: SearchApp = SearchApp::new(&graph, &traversal_model, &haversine);
 
-    let queries_result: Result<Vec<(EdgeId, EdgeId)>, AppError> = (0..100)
+    let queries_result: Result<Vec<(EdgeId, EdgeId)>, AppError> = (0..n_queries)
         .map(|_| {
             let (o, d) = (
                 graph
@@ -112,27 +113,32 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let search_start = Local::now();
     log::info!("running search");
-    let results = search_app.run_edge_oriented(queries)?;
+    let results = search_app.run_edge_oriented(queries.clone());
     let search_duration = (Local::now() - search_start).to_std()?;
     log::info!("finished search with duration {}", search_duration.hhmmss());
 
     // (replace this section with output plugins)
-    for result in results {
-        let links: usize = result.route.clone().len();
-        let mut time_millis = Cost::ZERO;
-        for traversal in result.route {
-            let cost = traversal.edge_cost();
-            time_millis = time_millis + cost;
+    for ((o, d), r) in queries.clone().iter().zip(results) {
+        match r {
+            Err(e) => log::error!("({},{}) failed: {}", o, d, e),
+            Ok(result) => {
+                let links: usize = result.route.clone().len();
+                let mut time_millis = Cost::ZERO;
+                for traversal in result.route {
+                    let cost = traversal.edge_cost();
+                    time_millis = time_millis + cost;
+                }
+                // whether time cost is ms actually depends on user settings, though safe bet for now
+                let dur = Duration::from_millis((time_millis.0).0 as u64).hhmmss();
+                log::info!(
+                    "{} -> {} had {} links, total time of {:?}",
+                    result.origin,
+                    result.destination,
+                    links,
+                    dur
+                );
+            }
         }
-        // whether time cost is ms actually depends on user settings, though safe bet for now
-        let dur = Duration::from_millis((time_millis.0).0 as u64).hhmmss();
-        log::info!(
-            "{} -> {} had {} links, total time of {:?}",
-            result.origin,
-            result.destination,
-            links,
-            dur
-        );
     }
     return Ok(());
 }
