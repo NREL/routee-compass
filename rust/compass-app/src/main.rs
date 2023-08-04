@@ -1,14 +1,5 @@
-use std::error::Error;
-use std::fs::File;
-use std::io::BufReader;
-use std::time::Duration;
-
 use chrono::Local;
 use clap::Parser;
-use log::info;
-use rand::seq::SliceRandom;
-use uom::si::velocity::kilometer_per_hour;
-
 use compass_app::app::app_error::AppError;
 use compass_app::app::search::search_app::SearchApp;
 use compass_app::cli::CLIArgs;
@@ -17,11 +8,19 @@ use compass_app::config::graph::GraphConfig;
 use compass_core::model::cost::cost::Cost;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::Velocity;
+use compass_core::util::duration_extension::DurationExtension;
 use compass_core::{
     algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine,
     model::graph::edge_id::EdgeId,
 };
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
+use log::info;
+use rand::seq::SliceRandom;
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
+use std::time::Duration;
+use uom::si::velocity::kilometer_per_hour;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let setup_start = Local::now();
@@ -82,7 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let traversal_model: TraversalModel = config.search.traversal_model.try_into()?;
     let search_app: SearchApp = SearchApp::new(&graph, &traversal_model, &haversine);
 
-    let queries_result: Result<Vec<(EdgeId, EdgeId)>, AppError> = (0..10)
+    let queries_result: Result<Vec<(EdgeId, EdgeId)>, AppError> = (0..100)
         .map(|_| {
             let (o, d) = (
                 graph
@@ -105,44 +104,28 @@ fn main() -> Result<(), Box<dyn Error>> {
         })
         .collect();
 
-    // let (o, d) = (
-    //     graph
-    //         .edges
-    //         .choose(&mut rand::thread_rng())
-    //         .ok_or(AppError::InternalError(String::from(
-    //             "graph.edges.choose returned None",
-    //         )))?
-    //         .edge_id,
-    //     graph
-    //         .edges
-    //         .choose(&mut rand::thread_rng())
-    //         .ok_or(AppError::InternalError(String::from(
-    //             "graph.edges.choose returned None",
-    //         )))?
-    //         .edge_id,
-    // );
-
     // in the future, "queries" should be parsed from the user at the top of the app
     let queries = queries_result?;
 
-    let setup_duration = Local::now() - setup_start;
-    log::info!("finished setup with duration {:?}", setup_duration);
+    let setup_duration = (Local::now() - setup_start).to_std()?;
+    log::info!("finished setup with duration {:?}", setup_duration.hhmmss());
 
     let search_start = Local::now();
     log::info!("running search");
     let results = search_app.run_edge_oriented(queries)?;
-    let search_duration = Local::now() - search_start;
-    log::info!("finished search with duration {:?}", search_duration);
+    let search_duration = (Local::now() - search_start).to_std()?;
+    log::info!("finished search with duration {}", search_duration.hhmmss());
 
     // (replace this section with output plugins)
     for result in results {
-        let links = result.route.clone().len();
-        let mut time_secs = Cost::ZERO;
+        let links: usize = result.route.clone().len();
+        let mut time_millis = Cost::ZERO;
         for traversal in result.route {
             let cost = traversal.edge_cost();
-            time_secs = time_secs + cost;
+            time_millis = time_millis + cost;
         }
-        let dur = Duration::from_secs_f64((time_secs.0).0);
+        // whether time cost is ms actually depends on user settings, though safe bet for now
+        let dur = Duration::from_millis((time_millis.0).0 as u64).hhmmss();
         log::info!(
             "{} -> {} had {} links, total time of {:?}",
             result.origin,
