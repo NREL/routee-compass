@@ -21,6 +21,7 @@ pub struct SearchApp<'app> {
     graph: Arc<DriverReadOnlyLock<&'app dyn DirectedGraph>>,
     a_star_heuristic: Arc<DriverReadOnlyLock<&'app dyn CostEstimateFunction>>,
     traversal_model: Arc<DriverReadOnlyLock<&'app TraversalModel>>,
+    processes: usize,
 }
 
 impl<'app> SearchApp<'app> {
@@ -30,16 +31,19 @@ impl<'app> SearchApp<'app> {
         graph: &'app dyn DirectedGraph,
         traversal_model: &'app TraversalModel,
         a_star_heuristic: &'app dyn CostEstimateFunction,
+        processes: Option<usize>,
     ) -> Self {
         let g = Arc::new(DriverReadOnlyLock::new(graph as &dyn DirectedGraph));
         let h = Arc::new(DriverReadOnlyLock::new(
             a_star_heuristic as &dyn CostEstimateFunction,
         ));
         let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
+        let procs = processes.unwrap_or(rayon::current_num_threads());
         return SearchApp {
             graph: g,
             a_star_heuristic: h,
             traversal_model: t,
+            processes: procs,
         };
     }
 
@@ -49,7 +53,13 @@ impl<'app> SearchApp<'app> {
     pub fn run_vertex_oriented(
         &self,
         queries: Vec<(VertexId, VertexId)>,
-    ) -> Result<Vec<SearchAppResult<VertexId>>, AppError> {
+    ) -> Result<Vec<Result<SearchAppResult<VertexId>, AppError>>, AppError> {
+        let _pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(self.processes)
+            .build()
+            .map_err(|e| {
+                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+            })?;
         // execute the route search
         let result: Vec<Result<SearchAppResult<VertexId>, AppError>> = queries
             .clone()
@@ -71,7 +81,7 @@ impl<'app> SearchApp<'app> {
             })
             .collect();
 
-        return result.into_iter().collect();
+        return Ok(result);
     }
 
     ///
@@ -80,7 +90,13 @@ impl<'app> SearchApp<'app> {
     pub fn run_edge_oriented(
         &self,
         queries: Vec<(EdgeId, EdgeId)>,
-    ) -> Vec<Result<SearchAppResult<EdgeId>, AppError>> {
+    ) -> Result<Vec<Result<SearchAppResult<EdgeId>, AppError>>, AppError> {
+        let _pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(self.processes)
+            .build()
+            .map_err(|e| {
+                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+            })?;
         // execute the route search
         let result: Vec<Result<SearchAppResult<EdgeId>, AppError>> = queries
             .clone()
@@ -110,7 +126,7 @@ impl<'app> SearchApp<'app> {
             })
             .collect();
 
-        return result;
+        return Ok(result);
     }
 
     /// helper function for accessing the DirectedGraph
