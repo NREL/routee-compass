@@ -7,7 +7,7 @@ pub struct EdgeId(pub u64);
 
 impl Ord for EdgeId {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.cmp(other)
+        self.0.cmp(&other.0)
     }
 }
 
