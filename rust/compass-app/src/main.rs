@@ -80,7 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         output_unit: TimeUnit::Milliseconds,
     };
     let traversal_model: TraversalModel = config.search.traversal_model.try_into()?;
-    let search_app: SearchApp = SearchApp::new(&graph, &traversal_model, &haversine);
+    let search_app: SearchApp = SearchApp::new(&graph, &traversal_model, &haversine, Some(2));
 
     let queries_result: Result<Vec<(EdgeId, EdgeId)>, AppError> = (0..n_queries)
         .map(|_| {
@@ -109,11 +109,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let queries = queries_result?;
 
     let setup_duration = (Local::now() - setup_start).to_std()?;
-    log::info!("finished setup with duration {:?}", setup_duration.hhmmss());
+    log::info!("finished setup with duration {}", setup_duration.hhmmss());
 
     let search_start = Local::now();
     log::info!("running search");
-    let results = search_app.run_edge_oriented(queries.clone());
+    let results = search_app.run_edge_oriented(queries.clone())?;
     let search_duration = (Local::now() - search_start).to_std()?;
     log::info!("finished search with duration {}", search_duration.hhmmss());
 
