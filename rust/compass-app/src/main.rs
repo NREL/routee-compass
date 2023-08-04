@@ -131,7 +131,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // whether time cost is ms actually depends on user settings, though safe bet for now
                 let dur = Duration::from_millis((time_millis.0).0 as u64).hhmmss();
                 log::info!(
-                    "{} -> {} had {} links, total time of {:?}",
+                    "{} -> {} had {} links, total time of {}",
                     result.origin,
                     result.destination,
                     links,
