@@ -21,7 +21,7 @@ pub struct SearchApp<'app> {
     graph: Arc<DriverReadOnlyLock<&'app dyn DirectedGraph>>,
     a_star_heuristic: Arc<DriverReadOnlyLock<&'app dyn CostEstimateFunction>>,
     traversal_model: Arc<DriverReadOnlyLock<&'app TraversalModel>>,
-    processes: usize,
+    parallelism: usize,
 }
 
 impl<'app> SearchApp<'app> {
@@ -31,19 +31,19 @@ impl<'app> SearchApp<'app> {
         graph: &'app dyn DirectedGraph,
         traversal_model: &'app TraversalModel,
         a_star_heuristic: &'app dyn CostEstimateFunction,
-        processes: Option<usize>,
+        parallelism: Option<usize>,
     ) -> Self {
         let g = Arc::new(DriverReadOnlyLock::new(graph as &dyn DirectedGraph));
         let h = Arc::new(DriverReadOnlyLock::new(
             a_star_heuristic as &dyn CostEstimateFunction,
         ));
         let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
-        let procs = processes.unwrap_or(rayon::current_num_threads());
+        let parallelism_or_default = parallelism.unwrap_or(rayon::current_num_threads());
         return SearchApp {
             graph: g,
             a_star_heuristic: h,
             traversal_model: t,
-            processes: procs,
+            parallelism: parallelism_or_default,
         };
     }
 
@@ -55,7 +55,7 @@ impl<'app> SearchApp<'app> {
         queries: Vec<(VertexId, VertexId)>,
     ) -> Result<Vec<Result<SearchAppResult<VertexId>, AppError>>, AppError> {
         let _pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(self.processes)
+            .num_threads(self.parallelism)
             .build()
             .map_err(|e| {
                 AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
@@ -94,7 +94,7 @@ impl<'app> SearchApp<'app> {
         queries: Vec<(EdgeId, EdgeId)>,
     ) -> Result<Vec<Result<SearchAppResult<EdgeId>, AppError>>, AppError> {
         let _pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(self.processes)
+            .num_threads(self.parallelism)
             .build()
             .map_err(|e| {
                 AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
