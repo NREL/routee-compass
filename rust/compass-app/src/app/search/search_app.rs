@@ -80,7 +80,7 @@ impl<'app> SearchApp<'app> {
     pub fn run_edge_oriented(
         &self,
         queries: Vec<(EdgeId, EdgeId)>,
-    ) -> Result<Vec<SearchAppResult<EdgeId>>, AppError> {
+    ) -> Vec<Result<SearchAppResult<EdgeId>, AppError>> {
         // execute the route search
         let result: Vec<Result<SearchAppResult<EdgeId>, AppError>> = queries
             .clone()
@@ -110,7 +110,7 @@ impl<'app> SearchApp<'app> {
             })
             .collect();
 
-        return result.into_iter().collect();
+        return result;
     }
 
     /// helper function for accessing the DirectedGraph
