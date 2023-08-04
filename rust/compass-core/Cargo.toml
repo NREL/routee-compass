@@ -20,3 +20,4 @@ derive_more = "0.99.0"
 keyed_priority_queue = "0.4.1"
 csv = { workspace = true }
 kdam = { workspace = true }
+log = { workspace = true }
