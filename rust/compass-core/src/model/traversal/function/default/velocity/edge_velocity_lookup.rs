@@ -1,12 +1,10 @@
-use std::collections::HashSet;
-
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
 use crate::model::traversal::function::cost_function_error::CostFunctionError;
 use crate::model::traversal::function::function::EdgeCostFunction;
 use crate::model::traversal::state::search_state::StateVector;
 use crate::model::traversal::traversal_error::TraversalError;
-use crate::model::units::Velocity;
+use crate::model::units::{TimeUnit, Velocity};
 use crate::model::{cost::cost::Cost, traversal::state::state_variable::StateVar};
 use crate::util::fs::read_utils;
 use uom::si;
@@ -21,16 +19,8 @@ use uom::si::velocity::kilometer_per_hour;
 /// be one of {ms, sec}
 pub fn build_edge_velocity_lookup(
     lookup_table_filename: &String,
-    output_unit: &String,
+    output_unit: TimeUnit,
 ) -> Result<EdgeCostFunction, CostFunctionError> {
-    let output_units = HashSet::from([String::from("ms"), String::from("sec")]);
-    if !output_units.contains(output_unit) {
-        return Err(CostFunctionError::ConfigurationError(format!(
-            "unknown time unit {} must be one of {:?}",
-            output_unit, output_units
-        )));
-    }
-
     // decodes the row into a velocity kph, and convert into internal cps
     let op = move |_idx: usize, row: String| {
         row.parse::<f64>()
@@ -67,10 +57,9 @@ pub fn build_edge_velocity_lookup(
                 ),
             )?;
             let time = edge.distance.clone() / ff_vel.clone();
-            let time: f64 = if output_unit_cloned == "sec" {
-                time.get::<si::time::second>().into()
-            } else {
-                time.get::<si::time::millisecond>().into()
+            let time: f64 = match output_unit_cloned {
+                TimeUnit::Seconds => time.get::<si::time::second>().into(),
+                TimeUnit::Milliseconds => time.get::<si::time::millisecond>().into(),
             };
             let mut s = state.to_vec();
             s[0] = s[0] + StateVar(time);
@@ -90,7 +79,7 @@ mod tests {
     use super::{build_edge_velocity_lookup, initial_velocity_state};
     use crate::model::cost::cost::Cost;
     use crate::model::traversal::state::state_variable::StateVar;
-    use crate::model::units::{Length, Ratio};
+    use crate::model::units::{Length, Ratio, TimeUnit};
     use crate::model::{
         graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
@@ -132,8 +121,8 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_seconds_time_unit() {
         let file = filepath();
-        let output_unit = String::from("sec");
-        let lookup = build_edge_velocity_lookup(&file, &output_unit).unwrap();
+        let output_unit = TimeUnit::Seconds;
+        let lookup = build_edge_velocity_lookup(&file, output_unit).unwrap();
         let initial = initial_velocity_state();
         let v = mock_vertex();
         let e1 = mock_edge(0);
@@ -147,8 +136,8 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_milliseconds_time_unit() {
         let file = filepath();
-        let output_unit = String::from("ms");
-        let lookup = build_edge_velocity_lookup(&file, &output_unit).unwrap();
+        let output_unit = TimeUnit::Milliseconds;
+        let lookup = build_edge_velocity_lookup(&file, output_unit).unwrap();
         let initial = initial_velocity_state();
         let v = mock_vertex();
         let e1 = mock_edge(0);

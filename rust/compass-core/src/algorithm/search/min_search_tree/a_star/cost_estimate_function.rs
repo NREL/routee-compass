@@ -1,5 +1,5 @@
 use crate::model::traversal::function::cost_function_error::CostFunctionError;
-use crate::model::units::{Length, Velocity};
+use crate::model::units::{Length, TimeUnit, Velocity};
 use geo::Coord;
 use uom::si;
 
@@ -15,7 +15,7 @@ pub trait CostEstimateFunction: Sync + Send {
 /// distance using the provided travel speed in kilometers per hour.
 pub struct Haversine {
     pub travel_speed: Velocity,
-    pub output_unit: String,
+    pub output_unit: TimeUnit,
 }
 
 impl CostEstimateFunction for Haversine {
@@ -24,15 +24,9 @@ impl CostEstimateFunction for Haversine {
     fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostFunctionError> {
         let distance = Haversine::distance(src.coordinate, dst.coordinate);
         let travel_time = distance / self.travel_speed;
-        let result = if self.output_unit == "ms" {
-            travel_time.get::<si::time::millisecond>()
-        } else if self.output_unit == "sec" {
-            travel_time.get::<si::time::second>()
-        } else {
-            return Err(CostFunctionError::ConfigurationError(format!(
-                "unknown output unit {} must be one of {{ms, sec}}",
-                self.output_unit
-            )));
+        let result: f64 = match self.output_unit {
+            TimeUnit::Seconds => travel_time.get::<si::time::second>().into(),
+            TimeUnit::Milliseconds => travel_time.get::<si::time::millisecond>().into(),
         };
 
         Ok(Cost::from(result))
@@ -61,7 +55,7 @@ impl Haversine {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::units::{Length, Velocity};
+    use crate::model::units::{Length, TimeUnit, Velocity};
     use geo::coord;
     use uom::si;
 
@@ -76,7 +70,7 @@ mod tests {
 
         let h = Haversine {
             travel_speed: Velocity::new::<si::velocity::kilometer_per_hour>(40.0),
-            output_unit: String::from("ms"),
+            output_unit: TimeUnit::Milliseconds,
         };
         let src = Vertex {
             vertex_id: VertexId(0),

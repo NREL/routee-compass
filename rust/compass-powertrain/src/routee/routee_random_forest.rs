@@ -1,4 +1,5 @@
 use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::build_edge_velocity_lookup;
+use compass_core::model::units::TimeUnit;
 use compass_core::model::{
     cost::cost::Cost,
     traversal::{
@@ -49,8 +50,8 @@ pub fn build_routee_random_forest(
     ////////////////////////////////////////////////////////////////////////////
 
     // Build speed table
-    let output_unit = String::from("ms");
-    let speed_table = build_edge_velocity_lookup(&speed_table_file, &output_unit)?;
+    let output_unit = TimeUnit::Milliseconds;
+    let speed_table = build_edge_velocity_lookup(&speed_table_file, output_unit)?;
     // Load random forest binary file
     let rf_binary = std::fs::read(routee_model_path.clone())
         .map_err(|e| CostFunctionError::FileReadError(routee_model_path.clone(), e.to_string()))?;
