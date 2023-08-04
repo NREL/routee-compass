@@ -69,12 +69,14 @@ impl<'app> SearchApp<'app> {
                 let tm_inner = Arc::new(self.traversal_model.read_only());
                 let cost_inner = Arc::new(self.a_star_heuristic.read_only());
                 run_a_star(Direction::Forward, o, d, dg_inner, tm_inner, cost_inner)
-                    .and_then(|tree| backtrack(o, d, tree))
-                    .and_then(|route| {
+                    .and_then(|tree| {
+                        let tree_size = tree.len();
+                        let route = backtrack(o, d, tree)?;
                         Ok(SearchAppResult {
                             origin: o,
                             destination: d,
                             route,
+                            tree_size,
                         })
                     })
                     .map_err(AppError::SearchError)
@@ -114,12 +116,14 @@ impl<'app> SearchApp<'app> {
                     tm_inner,
                     cost_inner,
                 )
-                .and_then(|tree| backtrack_edges(o, d, tree, dg_inner_backtrack))
-                .and_then(|route| {
+                .and_then(|tree| {
+                    let tree_size = tree.len();
+                    let route = backtrack_edges(o, d, tree, dg_inner_backtrack)?;
                     Ok(SearchAppResult {
                         origin: o,
                         destination: d,
                         route,
+                        tree_size,
                     })
                 })
                 .map_err(AppError::SearchError)

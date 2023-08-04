@@ -66,11 +66,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 verbose,
             };
             let graph = TomTomGraph::try_from(conf)?;
-            log::info!("{} rows in adjacency list", graph.adj.len());
-            log::info!("{} rows in reverse list", graph.rev.len());
-            log::info!("{} rows in edge list", graph.edges.len());
-            log::info!("{} rows in vertex list", graph.vertices.len());
-            log::info!("yay!");
             graph
         }
     };
@@ -131,10 +126,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // whether time cost is ms actually depends on user settings, though safe bet for now
                 let dur = Duration::from_millis((time_millis.0).0 as u64).hhmmss();
                 log::info!(
-                    "{} -> {} had {} links, total time of {}",
+                    "({}) -> ({}) had route with {} links, tree with {} links, travel time of {}",
                     result.origin,
                     result.destination,
                     links,
+                    result.tree_size,
                     dur
                 );
             }
