@@ -308,6 +308,7 @@ dependencies = [
  "geo",
  "log",
  "serde",
+ "serde_json",
  "serde_repr",
  "smartcore",
  "thiserror",

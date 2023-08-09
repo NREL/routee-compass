@@ -6,7 +6,7 @@ use crate::{
         cost::cost::Cost,
         property::{edge::Edge, vertex::Vertex},
         traversal::{
-            state::{traversal_state::TraversalState, state_variable::StateVar},
+            state::{state_variable::StateVar, traversal_state::TraversalState},
             traversal_model::TraversalModel,
             traversal_model_error::TraversalModelError,
             traversal_result::TraversalResult,
@@ -41,8 +41,9 @@ impl VelocityLookupModel {
         // use helper function to read the file and decode rows with the above op.
         // the resulting table has indices that are assumed EdgeIds and entries that
         // are velocities in kph.
-        let velocities = read_utils::read_raw_file(lookup_table_filename, op)
-            .map_err(|e| TraversalModelError::BuildError)?;
+        let velocities = read_utils::read_raw_file(lookup_table_filename, op).map_err(|e| {
+            TraversalModelError::FileReadError(lookup_table_filename.clone(), e.to_string())
+        })?;
         let model = VelocityLookupModel {
             velocities,
             output_unit,

@@ -3,8 +3,8 @@ use std::sync::Arc;
 use compass_core::model::property::edge::Edge;
 use compass_core::model::property::vertex::Vertex;
 use compass_core::model::traversal::default_models::velocity_lookup::VelocityLookupModel;
-use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::state::state_variable::StateVar;
+use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::model::traversal::traversal_result::TraversalResult;
@@ -52,6 +52,13 @@ impl TraversalModel for RouteERandomForestModel {
             updated_state,
         };
         Ok(result)
+    }
+    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+        let total_energy = state[0].0;
+        serde_json::json!({
+            "total_energy": total_energy,
+            "energy_units": "gallons_gasoline"
+        })
     }
 }
 
@@ -126,8 +133,8 @@ mod tests {
             };
         }
         let rf_predictor = RouteERandomForestModel::new_w_speed_file(
-            String::from(model_file_name),
             String::from(speed_file_name),
+            String::from(model_file_name),
             TimeUnit::Seconds,
         )
         .unwrap();
