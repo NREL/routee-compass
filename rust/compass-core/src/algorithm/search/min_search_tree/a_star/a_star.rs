@@ -29,7 +29,7 @@ pub fn run_a_star(
     source: VertexId,
     target: VertexId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
@@ -123,14 +123,14 @@ pub fn run_a_star_edge_oriented(
     source: EdgeId,
     target: EdgeId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let m: RwLockReadGuard<&TraversalModel> = traversal_model
+    let m: RwLockReadGuard<Box<dyn TraversalModel>> = traversal_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let source_edge_src_vertex_id = g.src_vertex(source)?;
@@ -287,17 +287,13 @@ fn h_cost(
     let dst_v = g
         .vertex_attr(target_id)
         .map_err(SearchError::GraphCorrectnessFailure)?;
-    c.cost(src_v, dst_v).map_err(SearchError::CostFunctionError)
+    c.cost(src_v, dst_v)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::traversal::function::cost_function_error::CostFunctionError;
-    use crate::model::traversal::function::default::aggregation::additive_aggregation;
-    use crate::model::traversal::function::default::distance_cost::{
-        distance_cost_function, initial_distance_state,
-    };
+    use crate::model::traversal::default_models::distance::DistanceModel;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::units::Length;
     use crate::test::mocks::TestDG;
@@ -310,7 +306,7 @@ mod tests {
 
     struct TestCost;
     impl CostEstimateFunction for TestCost {
-        fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, CostFunctionError> {
+        fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, SearchError> {
             Ok(Cost::from(0.0))
         }
     }
@@ -394,19 +390,8 @@ mod tests {
             &driver_dg_obj as &dyn DirectedGraph,
         ));
 
-        let ff_fn = distance_cost_function();
-        let ff_init = initial_distance_state();
-        let driver_tm_obj = TraversalModel {
-            edge_fns: vec![ff_fn],
-            edge_edge_fns: vec![],
-            valid_fns: vec![],
-            terminate_fns: vec![],
-            edge_agg_fn: additive_aggregation(),
-            edge_edge_agg_fn: additive_aggregation(),
-            initial_state: vec![ff_init],
-            edge_edge_start_idx: 0,
-        };
-        let driver_tm = Arc::new(DriverReadOnlyLock::new(&driver_tm_obj));
+        let dist_tm: Box<dyn TraversalModel> = Box::new(DistanceModel{});
+        let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
         let driver_cf_obj = TestCost;
         let driver_cf = Arc::new(DriverReadOnlyLock::new(
             &driver_cf_obj as &dyn CostEstimateFunction,

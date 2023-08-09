@@ -1,7 +1,6 @@
-use crate::model::traversal::function::cost_function_error::CostFunctionError;
 use crate::model::{
     graph::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
-    traversal::traversal_error::TraversalError,
+    traversal::traversal_model_error::TraversalModelError,
 };
 
 #[derive(thiserror::Error, Debug, Clone)]
@@ -11,9 +10,7 @@ pub enum SearchError {
     #[error("expected graph objects were not present")]
     GraphCorrectnessFailure(#[from] GraphError),
     #[error("failure applying the traversal model in search")]
-    TraversalModelFailure(#[from] TraversalError),
-    #[error("failure calculating cost")]
-    CostFunctionError(#[from] CostFunctionError),
+    TraversalModelFailure(#[from] TraversalModelError),
     #[error("loop in search result revisits edge {0}")]
     LoopInSearchResult(EdgeId),
     #[error("no path exists between vertices {0} and {1}")]

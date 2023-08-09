@@ -45,7 +45,7 @@ impl EdgeTraversal {
         prev_edge_id: Option<EdgeId>,
         prev_state: &SearchState,
         g: &RwLockReadGuard<&dyn DirectedGraph>,
-        m: &RwLockReadGuard<&TraversalModel>,
+        m: &RwLockReadGuard<Box<dyn TraversalModel>>,
     ) -> Result<EdgeTraversal, SearchError> {
         let (src, edge, dst) = g
             .edge_triplet_attrs(edge_id)

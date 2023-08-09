@@ -1,4 +1,4 @@
-use crate::model::traversal::function::cost_function_error::CostFunctionError;
+use crate::algorithm::search::search_error::SearchError;
 use crate::model::units::{Length, TimeUnit, Velocity};
 use geo::Coord;
 use uom::si;
@@ -7,7 +7,7 @@ use crate::model::cost::cost::Cost;
 use crate::model::property::vertex::Vertex;
 
 pub trait CostEstimateFunction: Sync + Send {
-    fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostFunctionError>;
+    fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, SearchError>;
 }
 
 /// the default cost estimate function uses the haversine formula to give us
@@ -21,7 +21,7 @@ pub struct Haversine {
 impl CostEstimateFunction for Haversine {
     /// uses the haversine distance between two points to estimate a lower bound of
     /// travel time in milliseconds.
-    fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, CostFunctionError> {
+    fn cost(&self, src: Vertex, dst: Vertex) -> Result<Cost, SearchError> {
         let distance = Haversine::distance(src.coordinate, dst.coordinate);
         let travel_time = distance / self.travel_speed;
         let result: f64 = match self.output_unit {

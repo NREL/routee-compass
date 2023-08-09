@@ -41,19 +41,19 @@ mod tests {
                 edge_id: EdgeId(0),
                 access_cost: Cost::from(1.0),
                 traversal_cost: Cost::from(1.0),
-                result_state: vec![vec![StateVar(0.0)]],
+                result_state: vec![StateVar(0.0)],
             },
             EdgeTraversal {
                 edge_id: EdgeId(1),
                 access_cost: Cost::from(1.0),
                 traversal_cost: Cost::from(1.0),
-                result_state: vec![vec![StateVar(0.0)]],
+                result_state: vec![StateVar(0.0)],
             },
             EdgeTraversal {
                 edge_id: EdgeId(2),
                 access_cost: Cost::from(1.0),
                 traversal_cost: Cost::from(1.0),
-                result_state: vec![vec![StateVar(0.0)]],
+                result_state: vec![StateVar(0.0)],
             },
         ];
         let summary_plugin = build_summary_output_plugin().unwrap();

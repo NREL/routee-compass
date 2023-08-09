@@ -256,6 +256,7 @@ dependencies = [
  "chrono",
  "clap",
  "compass-core",
+ "compass-powertrain",
  "compass-tomtom",
  "config",
  "csv",
