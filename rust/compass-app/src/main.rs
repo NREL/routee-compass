@@ -80,23 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         output_unit: TimeUnit::Milliseconds,
     };
 
-    let traversal_model: Box<dyn TraversalModel> = match config.search.traversal_model {
-        TraversalModelConfig::Distance => {
-            let model = DistanceModel{};
-            Box::new(model)
-        },
-        TraversalModelConfig::VelocityTable {
-            filename,
-            output_unit,
-        } => {
-            let model = VelocityLookupModel::from_file(&filename, output_unit)?;
-            Box::new(model)
-        },
-        TraversalModelConfig::Powertrain { model, velocity_filename, velocity_output_unit } => {
-            let model = RouteERandomForestModel::new_w_speed_file(model, velocity_filename, velocity_output_unit)?;
-            Box::new(model)
-        },
-    };
+    let traversal_model: Box<dyn TraversalModel> = config.search.traversal_model.try_into()?;
 
     let search_app: SearchApp = SearchApp::new(&graph, traversal_model, &haversine, Some(2));
 
