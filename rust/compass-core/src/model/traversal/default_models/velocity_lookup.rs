@@ -6,7 +6,7 @@ use crate::{
         cost::cost::Cost,
         property::{edge::Edge, vertex::Vertex},
         traversal::{
-            state::{search_state::SearchState, state_variable::StateVar},
+            state::{traversal_state::TraversalState, state_variable::StateVar},
             traversal_model::TraversalModel,
             traversal_model_error::TraversalModelError,
             traversal_result::TraversalResult,
@@ -52,7 +52,7 @@ impl VelocityLookupModel {
 }
 
 impl TraversalModel for VelocityLookupModel {
-    fn initial_state(&self) -> SearchState {
+    fn initial_state(&self) -> TraversalState {
         vec![StateVar(0.0)]
     }
     fn traversal_cost(
@@ -60,7 +60,7 @@ impl TraversalModel for VelocityLookupModel {
         src: &Vertex,
         edge: &Edge,
         dst: &Vertex,
-        state: &SearchState,
+        state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
         let ff_vel = self.velocities.get(edge.edge_id.0 as usize).ok_or(
             TraversalModelError::MissingIdInTabularCostFunction(
@@ -81,6 +81,17 @@ impl TraversalModel for VelocityLookupModel {
             updated_state: s,
         };
         Ok(result)
+    }
+    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+        let time = state[0].0;
+        let time_units = match self.output_unit {
+            TimeUnit::Seconds => "seconds",
+            TimeUnit::Milliseconds => "milliseconds",
+        };
+        serde_json::json!({
+            "total_time": time,
+            "units": time_units,
+        })
     }
 }
 

@@ -1,14 +1,14 @@
 use std::{hash::Hash, hash::Hasher};
 
 use crate::model::{
-    graph::edge_id::EdgeId, graph::vertex_id::VertexId, traversal::state::search_state::SearchState,
+    graph::edge_id::EdgeId, graph::vertex_id::VertexId, traversal::state::traversal_state::TraversalState,
 };
 
 #[derive(Clone)]
 pub struct AStarFrontier {
     pub vertex_id: VertexId,
     pub prev_edge_id: Option<EdgeId>,
-    pub state: SearchState,
+    pub state: TraversalState,
 }
 
 impl PartialEq for AStarFrontier {

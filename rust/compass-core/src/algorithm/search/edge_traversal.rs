@@ -4,7 +4,7 @@ use crate::model::traversal::access_result::AccessResult;
 use crate::model::traversal::traversal_model::TraversalModel;
 
 use super::search_error::SearchError;
-use crate::model::traversal::state::search_state::SearchState;
+use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::{
     cost::cost::Cost,
     graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
@@ -16,7 +16,7 @@ pub struct EdgeTraversal {
     pub edge_id: EdgeId,
     pub access_cost: Cost,
     pub traversal_cost: Cost,
-    pub result_state: SearchState,
+    pub result_state: TraversalState,
 }
 
 impl EdgeTraversal {
@@ -43,7 +43,7 @@ impl EdgeTraversal {
     pub fn new(
         edge_id: EdgeId,
         prev_edge_id: Option<EdgeId>,
-        prev_state: &SearchState,
+        prev_state: &TraversalState,
         g: &RwLockReadGuard<&dyn DirectedGraph>,
         m: &RwLockReadGuard<Box<dyn TraversalModel>>,
     ) -> Result<EdgeTraversal, SearchError> {

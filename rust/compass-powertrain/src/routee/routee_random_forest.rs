@@ -3,7 +3,7 @@ use std::sync::Arc;
 use compass_core::model::property::edge::Edge;
 use compass_core::model::property::vertex::Vertex;
 use compass_core::model::traversal::default_models::velocity_lookup::VelocityLookupModel;
-use compass_core::model::traversal::state::search_state::SearchState;
+use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::state::state_variable::StateVar;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
@@ -21,7 +21,7 @@ pub struct RouteERandomForestModel {
 }
 
 impl TraversalModel for RouteERandomForestModel {
-    fn initial_state(&self) -> SearchState {
+    fn initial_state(&self) -> TraversalState {
         vec![StateVar(0.0)]
     }
     fn traversal_cost(
@@ -29,7 +29,7 @@ impl TraversalModel for RouteERandomForestModel {
         src: &Vertex,
         edge: &Edge,
         dst: &Vertex,
-        state: &SearchState,
+        state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
         let speed_result = self.velocity_model.traversal_cost(src, edge, dst, state)?;
         let speed_kph: f64 = speed_result.total_cost.into();

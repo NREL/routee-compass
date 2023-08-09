@@ -16,4 +16,5 @@ env_logger = { workspace = true }
 csv = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_repr = "0.1"
+serde_json = { workspace = true }
 uuid = { version = "1.3.3", features = ["v4", "fast-rng", "serde"] }

@@ -1,6 +1,6 @@
 use super::access_result::AccessResult;
 use super::traversal_model_error::TraversalModelError;
-use crate::model::traversal::state::search_state::SearchState;
+use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_result::TraversalResult;
 use crate::{
     algorithm::search::min_search_tree::dijkstra::edge_frontier::EdgeFrontier,
@@ -8,13 +8,13 @@ use crate::{
 };
 
 pub trait TraversalModel: Send + Sync {
-    fn initial_state(&self) -> SearchState;
+    fn initial_state(&self) -> TraversalState;
     fn traversal_cost(
         &self,
         src: &Vertex,
         edge: &Edge,
         dst: &Vertex,
-        state: &SearchState,
+        state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError>;
     fn access_cost(
         &self,
@@ -23,7 +23,7 @@ pub trait TraversalModel: Send + Sync {
         v2: &Vertex,
         dst: &Edge,
         v3: &Vertex,
-        state: &SearchState,
+        state: &TraversalState,
     ) -> Result<AccessResult, TraversalModelError> {
         Ok(AccessResult::no_cost(state))
     }
@@ -32,5 +32,8 @@ pub trait TraversalModel: Send + Sync {
     }
     fn terminate_search(&self, frontier: &EdgeFrontier) -> Result<bool, TraversalModelError> {
         Ok(false)
+    }
+    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+        serde_json::json!({})
     }
 }

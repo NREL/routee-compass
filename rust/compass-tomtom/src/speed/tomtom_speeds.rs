@@ -3,7 +3,7 @@ use super::weekday::Weekday;
 use compass_core::model::cost::cost::Cost;
 use compass_core::model::property::edge::Edge;
 use compass_core::model::property::vertex::Vertex;
-use compass_core::model::traversal::state::search_state::SearchState;
+use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::state::state_variable::StateVar;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
@@ -19,7 +19,7 @@ pub struct TomTomSpeedLookup {
 }
 
 impl TraversalModel for TomTomSpeedLookup {
-    fn initial_state(&self) -> SearchState {
+    fn initial_state(&self) -> TraversalState {
         let days: StateVar = StateVar::ZERO;
         let ms: StateVar = StateVar(self.start_time_seconds);
         let weekday: StateVar = StateVar(self.start_day.day_number() as f64);
@@ -31,7 +31,7 @@ impl TraversalModel for TomTomSpeedLookup {
         src: &Vertex,
         edge: &Edge,
         dst: &Vertex,
-        state: &SearchState,
+        state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
         let _bin = bin_function(&state, self.bin_size);
         let _edge_id = edge.edge_id;
@@ -47,6 +47,15 @@ impl TraversalModel for TomTomSpeedLookup {
             updated_state: s_update,
         };
         Ok(result)
+    }
+
+    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+        let time = state[0].0;
+        let time_units = "milliseconds";
+        serde_json::json!({
+            "total_time": time,
+            "units": time_units,
+        })
     }
 }
 impl TomTomSpeedLookup {
@@ -85,7 +94,7 @@ impl TomTomSpeedLookup {
 }
 
 pub fn bin_function(
-    search_state: &SearchState,
+    search_state: &TraversalState,
     bin_size: usize,
 ) -> Result<usize, TraversalModelError> {
     let time = get_travel_time(search_state)?;
@@ -100,7 +109,7 @@ const WEEKDAY_INDEX: usize = 1;
 const START_TIME_INDEX: usize = 2;
 const TRAVEL_TIME_INDEX: usize = 3;
 
-pub fn get_days(sv: &SearchState) -> Result<StateVar, TraversalModelError> {
+pub fn get_days(sv: &TraversalState) -> Result<StateVar, TraversalModelError> {
     sv.get(DAYS_INDEX)
         .ok_or(TraversalModelError::StateVectorIndexOutOfBounds(
             DAYS_INDEX,
@@ -109,7 +118,7 @@ pub fn get_days(sv: &SearchState) -> Result<StateVar, TraversalModelError> {
         ))
         .copied()
 }
-pub fn get_weekday(sv: &SearchState) -> Result<StateVar, TraversalModelError> {
+pub fn get_weekday(sv: &TraversalState) -> Result<StateVar, TraversalModelError> {
     sv.get(WEEKDAY_INDEX)
         .ok_or(TraversalModelError::StateVectorIndexOutOfBounds(
             WEEKDAY_INDEX,
@@ -118,7 +127,7 @@ pub fn get_weekday(sv: &SearchState) -> Result<StateVar, TraversalModelError> {
         ))
         .copied()
 }
-pub fn get_start_time(sv: &SearchState) -> Result<StateVar, TraversalModelError> {
+pub fn get_start_time(sv: &TraversalState) -> Result<StateVar, TraversalModelError> {
     sv.get(START_TIME_INDEX)
         .ok_or(TraversalModelError::StateVectorIndexOutOfBounds(
             START_TIME_INDEX,
@@ -127,7 +136,7 @@ pub fn get_start_time(sv: &SearchState) -> Result<StateVar, TraversalModelError>
         ))
         .copied()
 }
-pub fn get_travel_time(sv: &SearchState) -> Result<StateVar, TraversalModelError> {
+pub fn get_travel_time(sv: &TraversalState) -> Result<StateVar, TraversalModelError> {
     sv.get(TRAVEL_TIME_INDEX)
         .ok_or(TraversalModelError::StateVectorIndexOutOfBounds(
             TRAVEL_TIME_INDEX,
@@ -137,13 +146,13 @@ pub fn get_travel_time(sv: &SearchState) -> Result<StateVar, TraversalModelError
         .copied()
 }
 
-pub fn update_days(mut sv: SearchState, value: StateVar) {
+pub fn update_days(mut sv: TraversalState, value: StateVar) {
     sv[DAYS_INDEX] = value;
 }
-pub fn update_weekday(mut sv: SearchState, value: StateVar) {
+pub fn update_weekday(mut sv: TraversalState, value: StateVar) {
     sv[WEEKDAY_INDEX] = value;
 }
-pub fn update_travel_time(mut sv: SearchState, value: StateVar) {
+pub fn update_travel_time(mut sv: TraversalState, value: StateVar) {
     sv[TRAVEL_TIME_INDEX] = value;
 }
 

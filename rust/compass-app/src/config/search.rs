@@ -20,11 +20,14 @@ pub enum AlgorithmConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub enum TraversalModelConfig {
+    #[serde(rename = "distance")]
     Distance,
+    #[serde(rename = "velocity_table")]
     VelocityTable {
         filename: String,
         output_unit: TimeUnit,
     },
+    #[serde(rename = "powertrain")]
     Powertrain {
         model: String,
         velocity_filename: String,

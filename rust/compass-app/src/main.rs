@@ -5,11 +5,7 @@ use compass_app::app::search::search_app::SearchApp;
 use compass_app::cli::CLIArgs;
 use compass_app::config::app_config::AppConfig;
 use compass_app::config::graph::GraphConfig;
-use compass_app::config::search::TraversalModelConfig;
-use compass_core::algorithm::search::search_error::SearchError;
 use compass_core::model::cost::cost::Cost;
-use compass_core::model::traversal::default_models::distance::DistanceModel;
-use compass_core::model::traversal::default_models::velocity_lookup::VelocityLookupModel;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::{TimeUnit, Velocity};
 use compass_core::util::duration_extension::DurationExtension;
@@ -17,7 +13,6 @@ use compass_core::{
     algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine,
     model::graph::edge_id::EdgeId,
 };
-use compass_powertrain::routee::routee_random_forest::RouteERandomForestModel;
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use log::info;
 use rand::seq::SliceRandom;
@@ -45,6 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             config
         }
     };
+    info!("Config: {:?}", config);
 
     // read query json file into a serde json Value
     let query_file = File::open(args.query_file)?;

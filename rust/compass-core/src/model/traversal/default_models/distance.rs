@@ -3,7 +3,7 @@ use crate::model::{
     cost::cost::Cost,
     property::{edge::Edge, vertex::Vertex},
     traversal::{
-        state::{search_state::SearchState, state_variable::StateVar},
+        state::{traversal_state::TraversalState, state_variable::StateVar},
         traversal_model_error::TraversalModelError,
         traversal_model::TraversalModel,
     },
@@ -14,14 +14,14 @@ use uom::si;
 pub struct DistanceModel {}
 
 impl TraversalModel for DistanceModel {
-    fn initial_state(&self) -> SearchState {
+    fn initial_state(&self) -> TraversalState {
         vec![StateVar(0.0)]
     }
     fn traversal_cost(
         &self,
-        src: &Vertex,
+        _src: &Vertex,
         edge: &Edge,
-        dst: &Vertex,
+        _dst: &Vertex,
         state: &Vec<StateVar>,
     ) -> Result<TraversalResult, TraversalModelError> {
         let cost = edge.distance.get::<si::length::meter>();
@@ -32,5 +32,12 @@ impl TraversalModel for DistanceModel {
             updated_state,
         };
         Ok(result)
+    }
+    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+        let total_distance_meters = state[0].0;
+        serde_json::json!({
+            "distance_meters": total_distance_meters,
+        })
+        
     }
 }

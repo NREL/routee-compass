@@ -9,16 +9,7 @@ verbose = true
 heuristic = "haversine"
 bidirectional = false
 
-[search.traversal_model]
-edge_cost_functions = [
-  { type = "distance" },
-  { type = "powertrain", model = "random_forest" },
-]
-edge_edge_cost_functions = []
-valid_functions = []
-terminate_functions = []
-edge_aggregation_function = "add"
-edge_edge_aggregation_function = "add"
+[search.traversal_model.distance]
 
 [plugin]
 input_plugins = [{ type = "vertex_rtree", vertices_file = "vertices.csv.gz" }]
