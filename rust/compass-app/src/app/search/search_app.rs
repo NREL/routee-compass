@@ -21,7 +21,7 @@ pub struct SearchApp<'app> {
     graph: Arc<DriverReadOnlyLock<&'app dyn DirectedGraph>>,
     a_star_heuristic: Arc<DriverReadOnlyLock<&'app dyn CostEstimateFunction>>,
     traversal_model: Arc<DriverReadOnlyLock<&'app TraversalModel>>,
-    parallelism: usize,
+    pub parallelism: usize,
 }
 
 impl<'app> SearchApp<'app> {
