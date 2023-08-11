@@ -35,6 +35,6 @@ pub fn read_vertex_list(c: TomTomVertexListConfig) -> Result<Vec<Vertex>, TomTom
         vertices[vertex.vertex_id.0 as usize] = vertex;
         pb.update(1);
     }
-
+    print!("\n");
     Ok(vertices)
 }
