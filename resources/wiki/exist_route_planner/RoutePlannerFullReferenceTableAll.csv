@@ -13,7 +13,7 @@ RoadWarrior,0,,Global,Self-developed Planner,"Business, Individual",https://road
 Samsara,0,,Global,Self-developed Planner,Business,https://www.samsara.com,Fleet Planning,No,
 IntelliShift,0,,Global,Self-developed Planner,Business,https://intellishift.com,Fleet Planning,No,
 Motive,0,,Global,,Business,https://gomotive.com,Fleet Planning,No,
-Google Map,,,Global,Google Map API,Individual,https://www.google.com/maps,General Navigating,No,
+Google Map,0,,Global,Google Map API,Individual,https://www.google.com/maps,General Navigating,No,
 Waze,0,,Global,Self-developed Planner,Individual,https://www.waze.com/live-map/,General Navigating,No,
 Mapquest,0,,Global,Self-developed Planner,Individual,https://www.mapquest.com,General Navigating,No,
 Maps.me,0,,Global,,Individual,https://maps.me,General Navigating,No,OpenStreetMap based Offline Map
