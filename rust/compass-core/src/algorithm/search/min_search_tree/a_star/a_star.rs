@@ -229,7 +229,7 @@ pub fn run_a_star_edge_oriented(
 pub fn backtrack(
     source_id: VertexId,
     target_id: VertexId,
-    solution: HashMap<VertexId, AStarTraversal>,
+    solution: &HashMap<VertexId, AStarTraversal>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let mut result: Vec<EdgeTraversal> = vec![];
     let mut visited: HashSet<EdgeId> = HashSet::new();
@@ -258,7 +258,7 @@ pub fn backtrack(
 pub fn backtrack_edges(
     source_id: EdgeId,
     target_id: EdgeId,
-    solution: HashMap<VertexId, AStarTraversal>,
+    solution: &HashMap<VertexId, AStarTraversal>,
     graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let g_inner = graph
@@ -390,7 +390,7 @@ mod tests {
             &driver_dg_obj as &dyn DirectedGraph,
         ));
 
-        let dist_tm: Box<dyn TraversalModel> = Box::new(DistanceModel{});
+        let dist_tm: Box<dyn TraversalModel> = Box::new(DistanceModel {});
         let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
         let driver_cf_obj = TestCost;
         let driver_cf = Arc::new(DriverReadOnlyLock::new(
@@ -412,7 +412,7 @@ mod tests {
         // review the search results, confirming that the route result matches the expected route
         for (r, (o, d, expected_route)) in result.into_iter().zip(queries) {
             let solution = r.unwrap();
-            let route = backtrack(o, d, solution).unwrap();
+            let route = backtrack(o, d, &solution).unwrap();
             let route_edges: Vec<EdgeId> = route.iter().map(|r| r.edge_id).collect();
             assert_eq!(
                 route_edges, expected_route,
