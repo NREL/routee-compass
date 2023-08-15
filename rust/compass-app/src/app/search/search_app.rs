@@ -1,5 +1,6 @@
 use super::search_app_result::SearchAppResult;
 use crate::app::app_error::AppError;
+use chrono::Local;
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
@@ -16,6 +17,7 @@ use compass_core::{
 };
 use rayon::prelude::*;
 use std::sync::Arc;
+use std::time;
 
 pub struct SearchApp<'app> {
     graph: Arc<DriverReadOnlyLock<&'app dyn DirectedGraph>>,
@@ -65,18 +67,30 @@ impl<'app> SearchApp<'app> {
             .clone()
             .into_par_iter()
             .map(|(o, d)| {
+                let search_start_time = Local::now();
                 let dg_inner = Arc::new(self.graph.read_only());
                 let tm_inner = Arc::new(self.traversal_model.read_only());
                 let cost_inner = Arc::new(self.a_star_heuristic.read_only());
                 run_a_star(Direction::Forward, o, d, dg_inner, tm_inner, cost_inner)
                     .and_then(|tree| {
                         let tree_size = tree.len();
-                        let route = backtrack(o, d, tree)?;
+                        let search_end_time = Local::now();
+                        let route_start_time = Local::now();
+                        let route = backtrack(o, d, &tree)?;
+                        let route_end_time = Local::now();
+                        let search_runtime = (search_end_time - search_start_time)
+                            .to_std()
+                            .unwrap_or(time::Duration::ZERO);
+                        let route_runtime = (route_end_time - route_start_time)
+                            .to_std()
+                            .unwrap_or(time::Duration::ZERO);
                         Ok(SearchAppResult {
                             origin: o,
                             destination: d,
                             route,
                             tree_size,
+                            search_runtime,
+                            route_runtime,
                         })
                     })
                     .map_err(AppError::SearchError)
@@ -104,6 +118,7 @@ impl<'app> SearchApp<'app> {
             .clone()
             .into_par_iter()
             .map(|(o, d)| {
+                let search_start_time = Local::now();
                 let dg_inner_search = Arc::new(self.graph.read_only());
                 let dg_inner_backtrack = Arc::new(self.graph.read_only());
                 let tm_inner = Arc::new(self.traversal_model.read_only());
@@ -118,12 +133,23 @@ impl<'app> SearchApp<'app> {
                 )
                 .and_then(|tree| {
                     let tree_size = tree.len();
-                    let route = backtrack_edges(o, d, tree, dg_inner_backtrack)?;
+                    let search_end_time = Local::now();
+                    let route_start_time = Local::now();
+                    let route = backtrack_edges(o, d, &tree, dg_inner_backtrack)?;
+                    let route_end_time = Local::now();
+                    let search_runtime = (search_end_time - search_start_time)
+                        .to_std()
+                        .unwrap_or(time::Duration::ZERO);
+                    let route_runtime = (route_end_time - route_start_time)
+                        .to_std()
+                        .unwrap_or(time::Duration::ZERO);
                     Ok(SearchAppResult {
                         origin: o,
                         destination: d,
                         route,
                         tree_size,
+                        search_runtime,
+                        route_runtime,
                     })
                 })
                 .map_err(AppError::SearchError)

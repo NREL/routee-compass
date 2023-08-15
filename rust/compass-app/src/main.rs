@@ -177,10 +177,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                     result.tree_size,
                     // dur
                 );
+
                 let init_output = serde_json::json!({
                     "origin_edge_id": result.origin,
                     "destination_edge_id": result.destination,
-                    // "duration": dur
+                    "search_runtime": result.search_runtime.hhmmss(),
+                    "route_runtime": result.route_runtime.hhmmss(),
+                    "tree_size": result.tree_size
                 });
                 let route = result.route.to_vec();
                 let init_acc: Result<serde_json::Value, PluginError> = Ok(init_output);
