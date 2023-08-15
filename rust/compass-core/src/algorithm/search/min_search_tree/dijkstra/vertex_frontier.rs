@@ -1,6 +1,6 @@
 use std::{cmp::Ordering, hash::Hash, hash::Hasher};
 
-use crate::model::traversal::state::search_state::SearchState;
+use crate::model::traversal::state::traversal_state::TraversalState;
 
 use crate::model::{cost::cost::Cost, graph::edge_id::EdgeId, graph::vertex_id::VertexId};
 
@@ -8,7 +8,7 @@ use crate::model::{cost::cost::Cost, graph::edge_id::EdgeId, graph::vertex_id::V
 pub struct VertexFrontier {
     pub vertex_id: VertexId,
     pub prev_edge_id: Option<EdgeId>,
-    pub state: SearchState,
+    pub state: TraversalState,
     pub cost: Cost,
 }
 

@@ -117,19 +117,19 @@ mod tests {
                 edge_id: EdgeId(0),
                 access_cost: Cost::from(0.0),
                 traversal_cost: Cost::from(0.0),
-                result_state: vec![vec![StateVar(0.0)]],
+                result_state: vec![StateVar(0.0)],
             },
             EdgeTraversal {
                 edge_id: EdgeId(1),
                 access_cost: Cost::from(0.0),
                 traversal_cost: Cost::from(0.0),
-                result_state: vec![vec![StateVar(0.0)]],
+                result_state: vec![StateVar(0.0)],
             },
             EdgeTraversal {
                 edge_id: EdgeId(2),
                 access_cost: Cost::from(0.0),
                 traversal_cost: Cost::from(0.0),
-                result_state: vec![vec![StateVar(0.0)]],
+                result_state: vec![StateVar(0.0)],
             },
         ];
         let filename = mock_geometry_file().to_str().unwrap().to_string();

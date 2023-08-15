@@ -1,92 +1,100 @@
-use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::build_edge_velocity_lookup;
+use std::sync::Arc;
+
+use compass_core::model::property::edge::Edge;
+use compass_core::model::property::vertex::Vertex;
+use compass_core::model::traversal::default_models::velocity_lookup::VelocityLookupModel;
+use compass_core::model::traversal::state::state_variable::StateVar;
+use compass_core::model::traversal::state::traversal_state::TraversalState;
+use compass_core::model::traversal::traversal_model::TraversalModel;
+use compass_core::model::traversal::traversal_model_error::TraversalModelError;
+use compass_core::model::traversal::traversal_result::TraversalResult;
 use compass_core::model::units::TimeUnit;
-use compass_core::model::{
-    cost::cost::Cost,
-    traversal::{
-        function::{cost_function_error::CostFunctionError, function::EdgeCostFunction},
-        state::{search_state::StateVector, state_variable::StateVar},
-        traversal_error::TraversalError,
-    },
-    units::Velocity,
-};
+use compass_core::model::{cost::cost::Cost, units::Velocity};
 use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
 };
 use uom::si;
 
-pub fn initial_energy_state() -> StateVector {
-    vec![StateVar::ZERO]
+pub struct RouteERandomForestModel {
+    pub velocity_model: Arc<VelocityLookupModel>,
+    pub routee_model: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
 }
 
-pub fn build_routee_random_forest(
-    routee_model_path: String,
-    speed_table_file: String,
-) -> Result<EdgeCostFunction, CostFunctionError> {
-    // load the random forest model here, similar to route prototype
-    // copy that code over from prototype into this module instead of
-    // referencing code directly from the compass_prototype lib
-
-    ////////////////////////////////////////////////////////////////////////////
-    // managing arguments
-
-    // the arguments for routee powertrain include
-    // grade, speed, vehicle parameters, and distance.
-    // these will come from different places:
-
-    // distance and grade come directly from
-    // the Edge parameter of the EdgeCostFunction
-    // speeds come from a speed lookup table
-    // which must be passed as an argument to
-    // the routee powertrain EdgeCostFunction builder
-    // a VehicleParameters lookup table needs to be constructed
-    // in the RouteE Powertrain EdgeCostFunction builder
-    // an application workflow, when route powertrains are requested,
-    // reify these dependencies based on this order:
-
-    // takes speeds &EdgeCostFunction argument
-    // read in routee powertrain random forest
-    // user submits query including vehicle parameters, used with speeds table
-    // to build an instance of routee powertrain edge lookup table
-    ////////////////////////////////////////////////////////////////////////////
-
-    // Build speed table
-    let output_unit = TimeUnit::Milliseconds;
-    let speed_table = build_edge_velocity_lookup(&speed_table_file, output_unit)?;
-    // Load random forest binary file
-    let rf_binary = std::fs::read(routee_model_path.clone())
-        .map_err(|e| CostFunctionError::FileReadError(routee_model_path.clone(), e.to_string()))?;
-    let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
-        bincode::deserialize(&rf_binary).map_err(|e| {
-            CostFunctionError::FileReadError(routee_model_path.clone(), e.to_string())
-        })?;
-
-    // Build edge function
-    let f: EdgeCostFunction = Box::new(move |o, e, d, s| {
-        //
-        // lookup routee cost, return energy cost here (instead of Cost::ZERO)
-        //
-        let (speed_kph, _state) = speed_table(o, e, d, s)?;
-        let distance = e.distance;
-        let grade = e.grade;
+impl TraversalModel for RouteERandomForestModel {
+    fn initial_state(&self) -> TraversalState {
+        vec![StateVar(0.0)]
+    }
+    fn traversal_cost(
+        &self,
+        src: &Vertex,
+        edge: &Edge,
+        dst: &Vertex,
+        state: &TraversalState,
+    ) -> Result<TraversalResult, TraversalModelError> {
+        let speed_result = self.velocity_model.traversal_cost(src, edge, dst, state)?;
+        let speed_kph: f64 = speed_result.total_cost.into();
+        let distance = edge.distance;
+        let grade = edge.grade;
         let distance_mile = distance.get::<si::length::mile>();
         let grade_percent = grade.get::<si::ratio::percent>();
         let speed_mph = Velocity::new::<si::velocity::kilometer_per_hour>(speed_kph.into())
             .get::<si::velocity::mile_per_hour>();
         let x = DenseMatrix::from_2d_vec(&vec![vec![speed_mph, grade_percent]]);
-        let energy_per_mile = rf.predict(&x).map_err(|e| {
-            TraversalError::PredictionModel(routee_model_path.clone(), e.to_string())
-        })?;
+        let energy_per_mile = self
+            .routee_model
+            .predict(&x)
+            .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
         let energy_cost = energy_per_mile[0] * distance_mile;
-        let updated_state = s[0].0 + energy_cost;
-        Ok((Cost::from(energy_cost), vec![StateVar(updated_state)]))
-    });
-    return Ok(f);
+        let mut updated_state = state.clone();
+        updated_state[0] = state[0] + StateVar(energy_cost);
+        let result = TraversalResult {
+            total_cost: Cost::from(energy_cost),
+            updated_state,
+        };
+        Ok(result)
+    }
+    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+        let total_energy = state[0].0;
+        serde_json::json!({
+            "total_energy": total_energy,
+            "energy_units": "gallons_gasoline"
+        })
+    }
+}
+
+impl RouteERandomForestModel {
+    pub fn new(
+        velocity_model: Arc<VelocityLookupModel>,
+        routee_model_path: String,
+    ) -> Result<Self, TraversalModelError> {
+        // Load random forest binary file
+        let rf_binary = std::fs::read(routee_model_path.clone()).map_err(|e| {
+            TraversalModelError::FileReadError(routee_model_path.clone(), e.to_string())
+        })?;
+        let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
+            bincode::deserialize(&rf_binary).map_err(|e| {
+                TraversalModelError::FileReadError(routee_model_path.clone(), e.to_string())
+            })?;
+
+        Ok(RouteERandomForestModel {
+            velocity_model,
+            routee_model: rf,
+        })
+    }
+
+    pub fn new_w_speed_file(
+        speed_file: String,
+        routee_model_path: String,
+        time_unit: TimeUnit,
+    ) -> Result<Self, TraversalModelError> {
+        let velocity_model = VelocityLookupModel::from_file(&speed_file, time_unit)?;
+        Self::new(Arc::new(velocity_model), routee_model_path)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::routee::routee_random_forest::build_routee_random_forest;
-    use compass_core::model::traversal::function::default::velocity::edge_velocity_lookup::initial_velocity_state;
+    use super::*;
     use compass_core::model::units::{Length, Ratio};
     use compass_core::model::{
         graph::{edge_id::EdgeId, vertex_id::VertexId},
@@ -124,14 +132,15 @@ mod tests {
                 grade: Ratio::new::<si::ratio::per_mille>(0.0),
             };
         }
-        let rf_predictor = build_routee_random_forest(
-            String::from(model_file_name),
+        let rf_predictor = RouteERandomForestModel::new_w_speed_file(
             String::from(speed_file_name),
+            String::from(model_file_name),
+            TimeUnit::Seconds,
         )
         .unwrap();
-        let initial = initial_velocity_state();
+        let initial = rf_predictor.initial_state();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        let (result_cost, result_state) = rf_predictor(&v, &e1, &v, &initial).unwrap();
+        let result = rf_predictor.traversal_cost(&v, &e1, &v, &initial).unwrap();
     }
 }

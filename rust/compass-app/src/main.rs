@@ -41,6 +41,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             config
         }
     };
+    info!("Config: {:?}", config);
 
     // read query json file into a serde json Value
     let query_file = File::open(args.query_file)?;

@@ -1,2 +1,2 @@
-pub mod search_state;
+pub mod traversal_state;
 pub mod state_variable;

@@ -20,7 +20,7 @@ use std::sync::Arc;
 pub struct SearchApp<'app> {
     graph: Arc<DriverReadOnlyLock<&'app dyn DirectedGraph>>,
     a_star_heuristic: Arc<DriverReadOnlyLock<&'app dyn CostEstimateFunction>>,
-    traversal_model: Arc<DriverReadOnlyLock<&'app TraversalModel>>,
+    traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
     pub parallelism: usize,
 }
 
@@ -29,7 +29,7 @@ impl<'app> SearchApp<'app> {
     /// handles all of the specialized boxing that allows for simple parallelization.
     pub fn new(
         graph: &'app dyn DirectedGraph,
-        traversal_model: &'app TraversalModel,
+        traversal_model: Box<dyn TraversalModel>,
         a_star_heuristic: &'app dyn CostEstimateFunction,
         parallelism: Option<usize>,
     ) -> Self {
@@ -155,7 +155,9 @@ impl<'app> SearchApp<'app> {
     /// let reference = search_app.get_traversal_model_reference();
     /// let traversal_model = reference.read();
     /// // do things with TraversalModel
-    pub fn get_traversal_model_reference(&self) -> Arc<ExecutorReadOnlyLock<&'app TraversalModel>> {
+    pub fn get_traversal_model_reference(
+        &self,
+    ) -> Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>> {
         Arc::new(self.traversal_model.read_only())
     }
 
