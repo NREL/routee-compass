@@ -13,7 +13,7 @@ pub enum PluginError {
     BuildError,
     #[error("nearest vertex not found for coord {0:?}")]
     NearestVertexNotFound(Coord),
-    #[error("error with reading file")]
+    #[error(transparent)]
     FileReadError(#[from] std::io::Error),
     #[error("error with reading file")]
     CsvReadError(#[from] csv::Error),

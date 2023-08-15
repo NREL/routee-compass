@@ -11,7 +11,7 @@ use super::utils::{concat_linestrings, parse_linestring};
 
 /// Build a geometry plugin from a file containing a list of linestrings where each row
 /// index represents the edge id of the linestring.
-pub fn build_geometry_plugin_from_file(filename: String) -> Result<OutputPlugin, PluginError> {
+pub fn build_geometry_plugin_from_file(filename: &String) -> Result<OutputPlugin, PluginError> {
     let geoms = read_raw_file(&filename, parse_linestring)?;
     let geometry_lookup_fn = move |output: &serde_json::Value,
                                    search_result: Result<&Vec<EdgeTraversal>, SearchError>|
@@ -132,9 +132,8 @@ mod tests {
                 result_state: vec![StateVar(0.0)],
             },
         ];
-        let geom_plugin =
-            build_geometry_plugin_from_file(mock_geometry_file().to_str().unwrap().to_string())
-                .unwrap();
+        let filename = mock_geometry_file().to_str().unwrap().to_string();
+        let geom_plugin = build_geometry_plugin_from_file(&filename).unwrap();
 
         let result = geom_plugin(&output_result, Ok(&route)).unwrap();
         let geometry_wkt = result.get_geometry_wkt().unwrap();

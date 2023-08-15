@@ -49,7 +49,8 @@ pub fn concat_linestrings(linestrings: Vec<&LineString>) -> LineString {
 pub fn parse_linestring(_idx: usize, row: String) -> Result<LineString, std::io::Error> {
     let geom: LineString = LineString::try_from_wkt_str(row.as_str()).map_err(|e| {
         let msg = format!(
-            "failure decoding LineString from lookup table: {}",
+            "failure decoding LineString from lookup table. source: {}; error: {}",
+            row,
             e.to_string()
         );
         std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
