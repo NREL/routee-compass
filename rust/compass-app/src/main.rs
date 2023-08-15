@@ -84,14 +84,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     let traversal_start = Local::now();
-    let traversal_model: TraversalModel = config.search.traversal_model.try_into()?;
+    let traversal_model: Box<dyn TraversalModel> = config.search.traversal_model.try_into()?;
     let traversal_duration = (Local::now() - traversal_start).to_std()?;
     log::info!(
         "finished reading traversal model with duration {}",
         traversal_duration.hhmmss()
     );
 
-    let search_app: SearchApp = SearchApp::new(&graph, &traversal_model, &haversine, Some(2));
+    let search_app: SearchApp = SearchApp::new(&graph, traversal_model, &haversine, Some(2));
 
     let input_plugins: Vec<InputPlugin> = config
         .plugin
