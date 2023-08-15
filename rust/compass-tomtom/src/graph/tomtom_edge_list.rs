@@ -70,7 +70,7 @@ impl<'a> TryFrom<TomTomEdgeListConfig<'a>> for TomTomEdgeList {
             }
             pb.update(1);
         }
-
+        print!("\n");
         let result = TomTomEdgeList { edges, adj, rev };
 
         Ok(result)

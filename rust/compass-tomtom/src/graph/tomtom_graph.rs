@@ -151,31 +151,33 @@ mod tests {
             .try_init();
     }
 
-    #[test]
-    fn test_read_national_graph() {
-        let edges_path = "/Users/rfitzger/data/routee/tomtom/tomtom-condensed/edges_compass.csv.gz";
-        let vertices_path =
-            "/Users/rfitzger/data/routee/tomtom/tomtom-condensed/vertices_compass.csv.gz";
-        let conf = TomTomGraphConfig {
-            edge_list_csv: String::from(edges_path),
-            vertex_list_csv: String::from(vertices_path),
-            n_edges: Some(67198522),
-            n_vertices: Some(56306871),
-            verbose: false,
-        };
-        match TomTomGraph::try_from(conf) {
-            Ok(graph) => {
-                info!("{} rows in adjacency list", graph.adj.len());
-                info!("{} rows in reverse list", graph.rev.len());
-                info!("{} rows in edge list", graph.edges.len());
-                info!("{} rows in vertex list", graph.vertices.len());
-                info!("yay!")
-            }
-            Err(e) => {
-                info!("uh oh, no good");
-                info!("{}", e.to_string());
-                panic!();
-            }
-        }
-    }
+    // todo: replace with more reasonable test of graph loader
+    //
+    // #[test]
+    // fn test_read_national_graph() {
+    //     let edges_path = "/Users/rfitzger/data/routee/tomtom/tomtom-condensed/edges_compass.csv.gz";
+    //     let vertices_path =
+    //         "/Users/rfitzger/data/routee/tomtom/tomtom-condensed/vertices_compass.csv.gz";
+    //     let conf = TomTomGraphConfig {
+    //         edge_list_csv: String::from(edges_path),
+    //         vertex_list_csv: String::from(vertices_path),
+    //         n_edges: Some(67198522),
+    //         n_vertices: Some(56306871),
+    //         verbose: false,
+    //     };
+    //     match TomTomGraph::try_from(conf) {
+    //         Ok(graph) => {
+    //             info!("{} rows in adjacency list", graph.adj.len());
+    //             info!("{} rows in reverse list", graph.rev.len());
+    //             info!("{} rows in edge list", graph.edges.len());
+    //             info!("{} rows in vertex list", graph.vertices.len());
+    //             info!("yay!")
+    //         }
+    //         Err(e) => {
+    //             info!("uh oh, no good");
+    //             info!("{}", e.to_string());
+    //             panic!();
+    //         }
+    //     }
+    // }
 }

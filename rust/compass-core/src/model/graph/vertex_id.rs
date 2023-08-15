@@ -7,7 +7,7 @@ pub struct VertexId(pub usize);
 
 impl Ord for VertexId {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.cmp(other)
+        self.0.cmp(&other.0)
     }
 }
 

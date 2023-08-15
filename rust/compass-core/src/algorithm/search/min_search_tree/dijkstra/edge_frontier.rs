@@ -1,4 +1,4 @@
-use crate::model::traversal::state::search_state::SearchState;
+use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::{cost::cost::Cost, graph::edge_id::EdgeId};
 use std::cmp::Ordering;
 
@@ -6,7 +6,7 @@ use std::cmp::Ordering;
 pub struct EdgeFrontier {
     pub edge_id: EdgeId,
     pub prev_edge_id: Option<EdgeId>,
-    pub state: SearchState,
+    pub state: TraversalState,
     pub cost: Cost,
 }
 

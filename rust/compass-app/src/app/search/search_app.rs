@@ -20,7 +20,8 @@ use std::sync::Arc;
 pub struct SearchApp<'app> {
     graph: Arc<DriverReadOnlyLock<&'app dyn DirectedGraph>>,
     a_star_heuristic: Arc<DriverReadOnlyLock<&'app dyn CostEstimateFunction>>,
-    traversal_model: Arc<DriverReadOnlyLock<&'app TraversalModel>>,
+    traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
+    pub parallelism: usize,
 }
 
 impl<'app> SearchApp<'app> {
@@ -28,18 +29,21 @@ impl<'app> SearchApp<'app> {
     /// handles all of the specialized boxing that allows for simple parallelization.
     pub fn new(
         graph: &'app dyn DirectedGraph,
-        traversal_model: &'app TraversalModel,
+        traversal_model: Box<dyn TraversalModel>,
         a_star_heuristic: &'app dyn CostEstimateFunction,
+        parallelism: Option<usize>,
     ) -> Self {
         let g = Arc::new(DriverReadOnlyLock::new(graph as &dyn DirectedGraph));
         let h = Arc::new(DriverReadOnlyLock::new(
             a_star_heuristic as &dyn CostEstimateFunction,
         ));
         let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
+        let parallelism_or_default = parallelism.unwrap_or(rayon::current_num_threads());
         return SearchApp {
             graph: g,
             a_star_heuristic: h,
             traversal_model: t,
+            parallelism: parallelism_or_default,
         };
     }
 
@@ -49,7 +53,13 @@ impl<'app> SearchApp<'app> {
     pub fn run_vertex_oriented(
         &self,
         queries: Vec<(VertexId, VertexId)>,
-    ) -> Result<Vec<SearchAppResult<VertexId>>, AppError> {
+    ) -> Result<Vec<Result<SearchAppResult<VertexId>, AppError>>, AppError> {
+        let _pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(self.parallelism)
+            .build()
+            .map_err(|e| {
+                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+            })?;
         // execute the route search
         let result: Vec<Result<SearchAppResult<VertexId>, AppError>> = queries
             .clone()
@@ -59,19 +69,21 @@ impl<'app> SearchApp<'app> {
                 let tm_inner = Arc::new(self.traversal_model.read_only());
                 let cost_inner = Arc::new(self.a_star_heuristic.read_only());
                 run_a_star(Direction::Forward, o, d, dg_inner, tm_inner, cost_inner)
-                    .and_then(|tree| backtrack(o, d, tree))
-                    .and_then(|route| {
+                    .and_then(|tree| {
+                        let tree_size = tree.len();
+                        let route = backtrack(o, d, tree)?;
                         Ok(SearchAppResult {
                             origin: o,
                             destination: d,
                             route,
+                            tree_size,
                         })
                     })
                     .map_err(AppError::SearchError)
             })
             .collect();
 
-        return result.into_iter().collect();
+        return Ok(result);
     }
 
     ///
@@ -80,7 +92,13 @@ impl<'app> SearchApp<'app> {
     pub fn run_edge_oriented(
         &self,
         queries: Vec<(EdgeId, EdgeId)>,
-    ) -> Result<Vec<SearchAppResult<EdgeId>>, AppError> {
+    ) -> Result<Vec<Result<SearchAppResult<EdgeId>, AppError>>, AppError> {
+        let _pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(self.parallelism)
+            .build()
+            .map_err(|e| {
+                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+            })?;
         // execute the route search
         let result: Vec<Result<SearchAppResult<EdgeId>, AppError>> = queries
             .clone()
@@ -98,19 +116,21 @@ impl<'app> SearchApp<'app> {
                     tm_inner,
                     cost_inner,
                 )
-                .and_then(|tree| backtrack_edges(o, d, tree, dg_inner_backtrack))
-                .and_then(|route| {
+                .and_then(|tree| {
+                    let tree_size = tree.len();
+                    let route = backtrack_edges(o, d, tree, dg_inner_backtrack)?;
                     Ok(SearchAppResult {
                         origin: o,
                         destination: d,
                         route,
+                        tree_size,
                     })
                 })
                 .map_err(AppError::SearchError)
             })
             .collect();
 
-        return result.into_iter().collect();
+        return Ok(result);
     }
 
     /// helper function for accessing the DirectedGraph
@@ -135,7 +155,9 @@ impl<'app> SearchApp<'app> {
     /// let reference = search_app.get_traversal_model_reference();
     /// let traversal_model = reference.read();
     /// // do things with TraversalModel
-    pub fn get_traversal_model_reference(&self) -> Arc<ExecutorReadOnlyLock<&'app TraversalModel>> {
+    pub fn get_traversal_model_reference(
+        &self,
+    ) -> Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>> {
         Arc::new(self.traversal_model.read_only())
     }
 

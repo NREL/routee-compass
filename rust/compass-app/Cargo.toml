@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 compass-core = { path = "../compass-core" }
 compass-tomtom = { path = "../compass-tomtom" }
+compass-powertrain = { path = "../compass-powertrain" }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

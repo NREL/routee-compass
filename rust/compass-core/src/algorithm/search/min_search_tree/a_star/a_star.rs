@@ -29,7 +29,7 @@ pub fn run_a_star(
     source: VertexId,
     target: VertexId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
@@ -47,39 +47,45 @@ pub fn run_a_star(
     let c = cost_estimate_fn
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let mut open_set: KeyedPriorityQueue<AStarFrontier, Cost> = KeyedPriorityQueue::new();
-    let mut g_score: HashMap<VertexId, Cost> = HashMap::new();
+    let mut frontier: KeyedPriorityQueue<AStarFrontier, Cost> = KeyedPriorityQueue::new();
+    let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, AStarTraversal> = HashMap::new();
 
     // setup initial search state
-    g_score.insert(source, Cost::ZERO);
+    traversal_costs.insert(source, Cost::ZERO);
     let origin = AStarFrontier {
         vertex_id: source,
         prev_edge_id: None,
         state: m.initial_state(),
     };
     let origin_cost = h_cost(source, target, &c, &g)?;
-    open_set.push(origin, -origin_cost);
+    frontier.push(origin, -origin_cost);
 
     // run search loop until we reach the destination, or fail if the set is ever empty
     loop {
-        match open_set.pop() {
+        match frontier.pop() {
             None => return Err(SearchError::NoPathExists(source, target)),
             Some((current, _)) if current.vertex_id == target => break,
             Some((current, _)) => {
-                let triplets = g
+                let neighbor_triplets = g
                     .incident_triplets(current.vertex_id, direction)
                     .map_err(SearchError::GraphCorrectnessFailure)?;
 
-                for (src_id, edge_id, dst_id) in triplets {
+                for (src_id, edge_id, dst_id) in neighbor_triplets {
                     let et =
                         EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
                     let dst_h_cost = h_cost(dst_id, target, &c, &g)?;
-                    let src_gscore = g_score.get(&src_id).unwrap_or(&Cost::INFINITY);
-                    let tentative_gscore = *src_gscore + et.edge_cost();
-                    let existing_gscore = g_score.get(&dst_id).unwrap_or(&Cost::INFINITY);
-                    if tentative_gscore < *existing_gscore {
-                        g_score.insert(dst_id, tentative_gscore);
+                    let traversal_cost = traversal_costs
+                        .get(&src_id)
+                        .unwrap_or(&Cost::INFINITY)
+                        .to_owned();
+                    let tentative_gscore = traversal_cost + et.edge_cost();
+                    let existing_gscore = traversal_costs
+                        .get(&dst_id)
+                        .unwrap_or(&Cost::INFINITY)
+                        .to_owned();
+                    if tentative_gscore < existing_gscore {
+                        traversal_costs.insert(dst_id, tentative_gscore);
 
                         // update solution
                         let traversal = AStarTraversal {
@@ -96,7 +102,7 @@ pub fn run_a_star(
                             state: et.result_state,
                         };
                         let f_score_value = tentative_gscore + dst_h_cost;
-                        open_set.push(f, -f_score_value);
+                        frontier.push(f, -f_score_value);
                     }
                 }
             }
@@ -117,14 +123,14 @@ pub fn run_a_star_edge_oriented(
     source: EdgeId,
     target: EdgeId,
     directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<&TraversalModel>>,
+    traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let m: RwLockReadGuard<&TraversalModel> = traversal_model
+    let m: RwLockReadGuard<Box<dyn TraversalModel>> = traversal_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let source_edge_src_vertex_id = g.src_vertex(source)?;
@@ -155,7 +161,7 @@ pub fn run_a_star_edge_oriented(
         return Ok(tree);
     } else {
         // run a search and append source/target edges to result
-        let mut tree = run_a_star(
+        let mut tree: HashMap<VertexId, AStarTraversal> = run_a_star(
             direction,
             source_edge_dst_vertex_id,
             target_edge_src_vertex_id,
@@ -204,10 +210,15 @@ pub fn run_a_star_edge_oriented(
             edge_traversal: dst_et,
         };
 
-        tree.extend([
-            (source_edge_dst_vertex_id, src_traversal),
-            (target_edge_dst_vertex_id, dst_traversal),
-        ]);
+        // it is possible that the search already found these vertices. one major edge
+        // case is when the trip starts with a u-turn.
+        if !tree.contains_key(&source_edge_dst_vertex_id) {
+            tree.extend([(source_edge_dst_vertex_id, src_traversal)]);
+        }
+        if !tree.contains_key(&target_edge_dst_vertex_id) {
+            tree.extend([(target_edge_dst_vertex_id, dst_traversal)]);
+        }
+
         return Ok(tree);
     }
 }
@@ -221,21 +232,21 @@ pub fn backtrack(
     solution: HashMap<VertexId, AStarTraversal>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let mut result: Vec<EdgeTraversal> = vec![];
-    let mut visited: HashSet<VertexId> = HashSet::new();
+    let mut visited: HashSet<EdgeId> = HashSet::new();
     let mut this_vertex = target_id.clone();
     loop {
         if this_vertex == source_id {
             break;
         }
-
-        let first_visit = visited.insert(this_vertex);
-        if !first_visit {
-            return Err(SearchError::LoopInSearchResult(this_vertex));
-        }
-
         let traversal = solution
             .get(&this_vertex)
             .ok_or(SearchError::VertexMissingFromSearchTree(this_vertex))?;
+        let first_visit = visited.insert(traversal.edge_traversal.edge_id);
+        if !first_visit {
+            return Err(SearchError::LoopInSearchResult(
+                traversal.edge_traversal.edge_id,
+            ));
+        }
         result.push(traversal.edge_traversal.clone());
         this_vertex = traversal.terminal_vertex;
     }
@@ -254,10 +265,10 @@ pub fn backtrack_edges(
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let o_v = g_inner
-        .dst_vertex(source_id)
+        .src_vertex(source_id)
         .map_err(SearchError::GraphCorrectnessFailure)?;
     let d_v = g_inner
-        .src_vertex(target_id)
+        .dst_vertex(target_id)
         .map_err(SearchError::GraphCorrectnessFailure)?;
     backtrack(o_v, d_v, solution)
 }
@@ -277,21 +288,17 @@ fn h_cost(
         .vertex_attr(target_id)
         .map_err(SearchError::GraphCorrectnessFailure)?;
     c.cost(src_v, dst_v)
-        .map_err(SearchError::CostCalculationError)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::traversal::function::default::aggregation::additive_aggregation;
-    use crate::model::traversal::function::default::distance_cost::{
-        distance_cost_function, initial_distance_state,
-    };
+    use crate::model::traversal::default_models::distance::DistanceModel;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::units::Length;
     use crate::test::mocks::TestDG;
     use crate::{
-        model::{cost::cost_error::CostError, graph::edge_id::EdgeId, property::vertex::Vertex},
+        model::{graph::edge_id::EdgeId, property::vertex::Vertex},
         util::read_only_lock::DriverReadOnlyLock,
     };
     use rayon::prelude::*;
@@ -299,7 +306,7 @@ mod tests {
 
     struct TestCost;
     impl CostEstimateFunction for TestCost {
-        fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, CostError> {
+        fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, SearchError> {
             Ok(Cost::from(0.0))
         }
     }
@@ -383,19 +390,8 @@ mod tests {
             &driver_dg_obj as &dyn DirectedGraph,
         ));
 
-        let ff_fn = distance_cost_function();
-        let ff_init = initial_distance_state();
-        let driver_tm_obj = TraversalModel {
-            edge_fns: vec![ff_fn],
-            edge_edge_fns: vec![],
-            valid_fns: vec![],
-            terminate_fns: vec![],
-            edge_agg_fn: additive_aggregation(),
-            edge_edge_agg_fn: additive_aggregation(),
-            initial_state: vec![ff_init],
-            edge_edge_start_idx: 0,
-        };
-        let driver_tm = Arc::new(DriverReadOnlyLock::new(&driver_tm_obj));
+        let dist_tm: Box<dyn TraversalModel> = Box::new(DistanceModel{});
+        let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
         let driver_cf_obj = TestCost;
         let driver_cf = Arc::new(DriverReadOnlyLock::new(
             &driver_cf_obj as &dyn CostEstimateFunction,

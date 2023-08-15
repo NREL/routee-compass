@@ -1,9 +1,6 @@
-use std::sync::PoisonError;
-
 use crate::model::{
-    cost::cost_error::CostError,
-    graph::{graph_error::GraphError, vertex_id::VertexId},
-    traversal::traversal_error::TraversalError,
+    graph::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
+    traversal::traversal_model_error::TraversalModelError,
 };
 
 #[derive(thiserror::Error, Debug, Clone)]
@@ -13,11 +10,9 @@ pub enum SearchError {
     #[error("expected graph objects were not present")]
     GraphCorrectnessFailure(#[from] GraphError),
     #[error("failure applying the traversal model in search")]
-    TraversalModelFailure(#[from] TraversalError),
-    #[error("failure calculating cost")]
-    CostCalculationError(#[from] CostError),
-    #[error("loop in search result revisits vertex {0}")]
-    LoopInSearchResult(VertexId),
+    TraversalModelFailure(#[from] TraversalModelError),
+    #[error("loop in search result revisits edge {0}")]
+    LoopInSearchResult(EdgeId),
     #[error("no path exists between vertices {0} and {1}")]
     NoPathExists(VertexId, VertexId),
     #[error("search tree is missing linked vertex {0}")]
