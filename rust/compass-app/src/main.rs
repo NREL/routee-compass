@@ -93,6 +93,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let search_app: SearchApp = SearchApp::new(&graph, traversal_model, &haversine, Some(2));
 
+    let plugins_start = Local::now();
     let input_plugins: Vec<InputPlugin> = config
         .plugin
         .input_plugins
@@ -106,6 +107,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         .iter()
         .map(OutputPlugin::try_from)
         .collect::<Result<Vec<OutputPlugin>, PluginError>>()?;
+    let plugins_duration = (Local::now() - plugins_start).to_std()?;
+    log::info!(
+        "finished loading plugins with duration {}",
+        plugins_duration.hhmmss()
+    );
 
     let queries_result: Result<Vec<(EdgeId, EdgeId)>, AppError> = (0..n_queries)
         .map(|_| {
