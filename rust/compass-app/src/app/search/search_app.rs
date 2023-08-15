@@ -21,7 +21,7 @@ pub struct SearchApp<'app> {
     graph: Arc<DriverReadOnlyLock<&'app dyn DirectedGraph>>,
     a_star_heuristic: Arc<DriverReadOnlyLock<&'app dyn CostEstimateFunction>>,
     traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
-    parallelism: usize,
+    pub parallelism: usize,
 }
 
 impl<'app> SearchApp<'app> {
@@ -155,7 +155,9 @@ impl<'app> SearchApp<'app> {
     /// let reference = search_app.get_traversal_model_reference();
     /// let traversal_model = reference.read();
     /// // do things with TraversalModel
-    pub fn get_traversal_model_reference(&self) -> Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>> {
+    pub fn get_traversal_model_reference(
+        &self,
+    ) -> Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>> {
         Arc::new(self.traversal_model.read_only())
     }
 
