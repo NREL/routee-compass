@@ -21,4 +21,6 @@ pub enum PluginError {
     GeometryMissing(u64),
     #[error("error during search")]
     SearchError(#[from] SearchError),
+    #[error("unexpected error {0}")]
+    InternalError(String),
 }
