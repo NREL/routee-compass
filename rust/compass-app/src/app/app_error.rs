@@ -8,6 +8,12 @@ pub enum AppError {
     SearchError(#[from] SearchError),
     #[error("application plugin caused a failure")]
     PluginError(#[from] PluginError),
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+    #[error(transparent)]
+    CodecError(#[from] serde_json::Error),
+    #[error("a ux component caused a failure: {0}")]
+    UXError(String),
     #[error("internal error: {0}")]
     InternalError(String),
 }
