@@ -41,9 +41,10 @@ impl VelocityLookupModel {
         // use helper function to read the file and decode rows with the above op.
         // the resulting table has indices that are assumed EdgeIds and entries that
         // are velocities in kph.
-        let velocities = read_utils::read_raw_file(lookup_table_filename, op).map_err(|e| {
-            TraversalModelError::FileReadError(lookup_table_filename.clone(), e.to_string())
-        })?;
+        let velocities =
+            read_utils::read_raw_file(lookup_table_filename, op, None).map_err(|e| {
+                TraversalModelError::FileReadError(lookup_table_filename.clone(), e.to_string())
+            })?;
         let model = VelocityLookupModel {
             velocities,
             output_unit,
