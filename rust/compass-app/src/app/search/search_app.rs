@@ -22,7 +22,7 @@ use std::time;
 pub struct SearchApp<'app> {
     graph: Arc<DriverReadOnlyLock<&'app dyn DirectedGraph>>,
     a_star_heuristic: Arc<DriverReadOnlyLock<&'app dyn CostEstimateFunction>>,
-    traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
+    pub traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
     pub parallelism: usize,
 }
 

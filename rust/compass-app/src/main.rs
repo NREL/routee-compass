@@ -178,14 +178,38 @@ fn main() -> Result<(), Box<dyn Error>> {
                     // dur
                 );
 
+                let route = result.route.to_vec();
+                let last_edge_traversal = match route.last() {
+                    None => {
+                        return serde_json::json!({
+                            "origin_edge_id": o,
+                            "destination_edge_id": d,
+                            "error": "route was empty"
+                        });
+                    }
+                    Some(et) => et,
+                };
+
+                let tmodel_reference = search_app.get_traversal_model_reference();
+                let tmodel = match tmodel_reference.read() {
+                    Err(e) => {
+                        return serde_json::json!({
+                            "origin_edge_id": o,
+                            "destination_edge_id": d,
+                            "error": e.to_string()
+                        })
+                    }
+                    Ok(tmodel) => tmodel,
+                };
+
                 let init_output = serde_json::json!({
                     "origin_edge_id": result.origin,
                     "destination_edge_id": result.destination,
                     "search_runtime": result.search_runtime.hhmmss(),
                     "route_runtime": result.route_runtime.hhmmss(),
-                    "tree_size": result.tree_size
+                    "tree_size": result.tree_size,
+                    "traversal_summary": tmodel.summary(&last_edge_traversal.result_state),
                 });
-                let route = result.route.to_vec();
                 let init_acc: Result<serde_json::Value, PluginError> = Ok(init_output);
                 let json_result = output_plugins
                     .iter()
