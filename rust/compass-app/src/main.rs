@@ -5,10 +5,12 @@ use compass_app::app::search::search_app::SearchApp;
 use compass_app::cli::CLIArgs;
 use compass_app::config::app_config::AppConfig;
 use compass_app::config::graph::GraphConfig;
+use compass_app::plugin::input::input_json_extensions::InputJsonExtensions;
 use compass_app::plugin::input::InputPlugin;
 use compass_app::plugin::output::OutputPlugin;
 use compass_app::plugin::plugin_error::PluginError;
 use compass_core::model::cost::cost::Cost;
+use compass_core::model::graph::vertex_id::VertexId;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::{TimeUnit, Velocity};
 use compass_core::util::duration_extension::DurationExtension;
@@ -51,6 +53,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let query: serde_json::Value = serde_json::from_reader(reader)?;
 
     info!("Query: {:?}", query);
+    let q = serde_json::json!({
+        "origin_x": -105.1710052,
+        "origin_y": 39.7402804,
+        "destination_x": -71.4133386,
+        "destination_y": 42.2803461
+    });
 
     let graph_start = Local::now();
     let graph = match config.graph {
@@ -131,17 +139,38 @@ fn main() -> Result<(), Box<dyn Error>> {
                     )))?
                     .edge_id,
             );
-            log::info!("randomly selected (origin, destination): ({}, {})", o, d);
+            // log::info!("randomly selected (origin, destination): ({}, {})", o, d);
             Ok((o, d))
         })
         .collect();
 
     // in the future, "queries" should be parsed from the user at the top of the app
-    let queries = queries_result?;
+    // let queries = queries_result?;
+    let (queries, requests): (Vec<(VertexId, VertexId)>, Vec<serde_json::Value>) = vec![q]
+        .iter()
+        .map(|query| {
+            let init_acc: Result<serde_json::Value, PluginError> = Ok(query.clone());
+            let modified: serde_json::Value = input_plugins
+                .iter()
+                .fold(init_acc, move |acc, plugin| match acc {
+                    Err(e) => Err(e),
+                    Ok(json) => plugin(&json),
+                })
+                .map_err(AppError::PluginError)?;
+            let o_vertex = modified
+                .get_origin_vertex()
+                .map_err(AppError::PluginError)?;
+            let d_vertex = modified
+                .get_destination_vertex()
+                .map_err(AppError::PluginError)?;
+            Ok(((o_vertex, d_vertex), modified))
+        })
+        .collect()
+        .unzip();
 
     let search_start = Local::now();
     log::info!("running search");
-    let results = search_app.run_edge_oriented(queries.clone())?;
+    let results = search_app.run_vertex_oriented(queries.clone())?;
     let search_duration = (Local::now() - search_start).to_std()?;
     log::info!("finished search with duration {}", search_duration.hhmmss());
 
@@ -149,12 +178,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let output_rows = queries
         .clone()
         .iter()
+        .zip(requests)
         .zip(results)
-        .map(move |((o, d), r)| match r {
+        .map(move |(((o, d), req), res)| match res {
             Err(e) => {
                 let error_output = serde_json::json!({
-                    "origin_edge_id": o,
-                    "destination_edge_id": d,
+                    "request": req,
                     "error": e.to_string()
                 });
                 // log::error!("({},{}) failed: {}", o, d, e);
@@ -179,8 +208,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 );
 
                 let init_output = serde_json::json!({
-                    "origin_edge_id": result.origin,
-                    "destination_edge_id": result.destination,
+                    "request": req,
                     "search_runtime": result.search_runtime.hhmmss(),
                     "route_runtime": result.route_runtime.hhmmss(),
                     "tree_size": result.tree_size
@@ -197,8 +225,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 match json_result {
                     Err(e) => {
                         serde_json::json!({
-                            "origin_edge_id": o,
-                            "destination_edge_id": d,
+                            "request": req,
                             "error": e.to_string()
                         })
                     }
