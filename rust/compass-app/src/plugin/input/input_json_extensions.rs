@@ -1,15 +1,16 @@
+use super::input_field::InputField;
 use crate::plugin::plugin_error::PluginError;
 use compass_core::model::graph::vertex_id::VertexId;
 use geo;
 use serde_json;
-
-use super::input_field::InputField;
 
 pub trait InputJsonExtensions {
     fn get_origin_coordinate(&self) -> Result<geo::Coord<f64>, PluginError>;
     fn get_destination_coordinate(&self) -> Result<geo::Coord<f64>, PluginError>;
     fn add_origin_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
     fn add_destination_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
+    fn get_origin_vertex(&self) -> Result<VertexId, PluginError>;
+    fn get_destination_vertex(&self) -> Result<VertexId, PluginError>;
 }
 
 impl InputJsonExtensions for serde_json::Value {
@@ -69,4 +70,48 @@ impl InputJsonExtensions for serde_json::Value {
             _ => Err(PluginError::InputError("InputQuery is not a JSON object")),
         }
     }
+
+    fn get_origin_vertex(&self) -> Result<VertexId, PluginError> {
+        self.get(InputField::OriginVertex.to_str())
+            .ok_or(PluginError::MissingField(InputField::OriginVertex.to_str()))?
+            .as_u64()
+            .map(|v| VertexId(v as usize))
+            .ok_or(PluginError::ParseError(
+                InputField::OriginVertex.to_str(),
+                "u64",
+            ))
+    }
+
+    fn get_destination_vertex(&self) -> Result<VertexId, PluginError> {
+        self.get(InputField::DestinationVertex.to_str())
+            .ok_or(PluginError::MissingField(
+                InputField::DestinationVertex.to_str(),
+            ))?
+            .as_u64()
+            .map(|v| VertexId(v as usize))
+            .ok_or(PluginError::ParseError(
+                InputField::DestinationVertex.to_str(),
+                "u64",
+            ))
+    }
 }
+
+// pub type DecodeOp<T> = Box<dyn Fn(&serde_json::Value) -> Option<T>>;
+
+// fn get_from_json<T>(
+//     value: &serde_json::Value,
+//     field: InputField,
+//     op: DecodeOp<T>,
+// ) -> Result<T, PluginError> {
+//     let at_field = value.get(field.to_str());
+//     return match at_field {
+//         None => Err(PluginError::MissingField(field.to_str())),
+//         Some(v) => op(v).ok_or(PluginError::ParseError(field.to_str(), ())),
+//     };
+// }
+
+// fn get_f64(v: &serde_json::Value) -> Result<f64, PluginError> {
+
+//     get_from_json(v, field, |v| v.as_f64())
+//     v.as_f64().ok_or(PluginError::ParseError((), ())
+// }
