@@ -1,18 +1,33 @@
-use compass_core::algorithm::search::edge_traversal::EdgeTraversal;
-use compass_core::algorithm::search::search_error::SearchError;
-use compass_core::util::fs::read_utils::read_raw_file;
-use geo::LineString;
-
-use crate::plugin::output::OutputPlugin;
-use crate::plugin::plugin_error::PluginError;
-
 use super::json_extensions::GeometryJsonExtensions;
 use super::utils::{concat_linestrings, parse_linestring};
+use crate::plugin::output::OutputPlugin;
+use crate::plugin::plugin_error::PluginError;
+use compass_core::algorithm::search::edge_traversal::EdgeTraversal;
+use compass_core::algorithm::search::search_error::SearchError;
+use compass_core::util::fs::fs_utils;
+use compass_core::util::fs::read_utils::read_raw_file;
+use geo::LineString;
+use kdam::Bar;
+use kdam::BarExt;
 
 /// Build a geometry plugin from a file containing a list of linestrings where each row
 /// index represents the edge id of the linestring.
 pub fn build_geometry_plugin_from_file(filename: &String) -> Result<OutputPlugin, PluginError> {
-    let geoms = read_raw_file(&filename, parse_linestring)?;
+    let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))
+        .map_err(PluginError::FileReadError)?;
+
+    let mut pb = Bar::builder()
+        .total(count)
+        .animation("fillup")
+        .desc("geometry file")
+        .build()
+        .map_err(PluginError::InternalError)?;
+
+    let cb = Box::new(|| {
+        pb.update(1);
+    });
+
+    let geoms = read_raw_file(&filename, parse_linestring, Some(cb))?;
     let geometry_lookup_fn = move |output: &serde_json::Value,
                                    search_result: Result<&Vec<EdgeTraversal>, SearchError>|
           -> Result<serde_json::Value, PluginError> {
@@ -80,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_geometry_deserialization() {
-        let result = read_raw_file(&mock_geometry_file(), parse_linestring).unwrap();
+        let result = read_raw_file(&mock_geometry_file(), parse_linestring, None).unwrap();
         assert_eq!(result.len(), 3);
     }
 

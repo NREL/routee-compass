@@ -2,6 +2,7 @@ use super::fs_utils;
 use csv::{Reader, ReaderBuilder};
 use flate2::read::GzDecoder;
 use kdam::Bar;
+use kdam::BarExt;
 use std::{
     fs::File,
     io::{self, BufRead, BufReader, Read},
@@ -54,23 +55,25 @@ where
 /// inspects the file to determine if it should read as a raw or gzip stream.
 /// the row index (starting from zero) is passed to the deserialization op
 /// as in most cases, the row number is an id.
-pub fn read_raw_file<F, T>(
+pub fn read_raw_file<'a, F, T>(
     filepath: &F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
+    row_callback: Option<Box<dyn FnMut() + 'a>>,
 ) -> Result<Vec<T>, io::Error>
 where
     F: AsRef<Path>,
 {
     if fs_utils::is_gzip(filepath) {
-        return Ok(read_gzip(filepath, op)?);
+        return Ok(read_gzip(filepath, op, row_callback)?);
     } else {
-        return Ok(read_regular(filepath, op)?);
+        return Ok(read_regular(filepath, op, row_callback)?);
     }
 }
 
 fn read_regular<'a, F, T>(
     filepath: &F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
+    mut row_callback: Option<Box<dyn FnMut() + 'a>>,
 ) -> Result<Vec<T>, io::Error>
 where
     F: AsRef<Path>,
@@ -83,6 +86,9 @@ where
         .map(|(idx, row)| {
             let parsed = row?;
             let deserialized = op(idx, parsed)?;
+            if let Some(cb) = &mut row_callback {
+                cb();
+            }
             Ok(deserialized)
         })
         .collect();
@@ -92,6 +98,7 @@ where
 fn read_gzip<'a, F, T>(
     filepath: &F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
+    mut row_callback: Option<Box<dyn FnMut() + 'a>>,
 ) -> Result<Vec<T>, io::Error>
 where
     F: AsRef<Path>,
@@ -102,6 +109,9 @@ where
     for (idx, row) in reader.lines().enumerate() {
         let parsed = row?;
         let deserialized = op(idx, parsed)?;
+        if let Some(cb) = &mut row_callback {
+            cb();
+        }
         result.push(deserialized);
     }
     return Ok(result);
@@ -124,7 +134,7 @@ mod tests {
         println!("loading file {:?}", filepath);
         let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
-        let result = read_raw_file(&filepath, op).unwrap();
+        let result = read_raw_file(&filepath, op, None).unwrap();
         assert_eq!(
             result,
             vec!["RouteE yay", "FASTSim yay", "HIVE yay", "ADOPT yay"],
@@ -143,7 +153,7 @@ mod tests {
         println!("loading file {:?}", filepath);
         let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
-        let result = read_raw_file(&filepath, op).unwrap();
+        let result = read_raw_file(&filepath, op, None).unwrap();
         assert_eq!(
             result,
             vec!["RouteE yay", "FASTSim yay", "HIVE yay", "ADOPT yay"],
