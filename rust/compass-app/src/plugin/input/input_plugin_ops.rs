@@ -4,7 +4,7 @@ use super::InputPlugin;
 
 pub fn apply_input_plugins(
     input_queries: Vec<serde_json::Value>,
-    plugins: Vec<InputPlugin>,
+    plugins: &Vec<InputPlugin>,
 ) -> Result<Vec<serde_json::Value>, PluginError> {
     input_queries
         .iter()
