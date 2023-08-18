@@ -1,9 +1,7 @@
 use super::search_app_result::SearchAppResult;
-use crate::{
-    app::app_error::AppError,
-    config::{app_config::AppConfig, graph::GraphConfig},
-    plugin::input::input_json_extensions::InputJsonExtensions,
-};
+use crate::app::compass::config::compass_app_config::CompassAppConfig;
+use crate::app::compass::config::graph::GraphConfig;
+use crate::{app::app_error::AppError, plugin::input::input_json_extensions::InputJsonExtensions};
 use chrono::Local;
 use compass_core::model::units::Velocity;
 use compass_core::{
@@ -37,10 +35,14 @@ pub struct SearchApp {
     pub parallelism: usize,
 }
 
-impl TryFrom<&AppConfig> for SearchApp {
+impl TryFrom<&CompassAppConfig> for SearchApp {
     type Error = AppError;
 
-    fn try_from(config: &AppConfig) -> Result<Self, Self::Error> {
+    /// builds the core search application.
+    /// currently hard-coded DirectedGraph.
+    /// SearchAlgorithm abstraction is missing, so this is hard-coded
+    /// to a* as well.
+    fn try_from(config: &CompassAppConfig) -> Result<Self, Self::Error> {
         let graph_start = Local::now();
         let graph = match &config.graph {
             GraphConfig::TomTom {
@@ -122,7 +124,7 @@ impl SearchApp {
     ///
     pub fn run_vertex_oriented(
         &self,
-        queries: Vec<serde_json::Value>,
+        queries: &Vec<serde_json::Value>,
     ) -> Result<Vec<Result<SearchAppResult, AppError>>, AppError> {
         let _pool = rayon::ThreadPoolBuilder::new()
             .num_threads(self.parallelism)
