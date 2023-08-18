@@ -1,12 +1,8 @@
-use keyed_priority_queue::KeyedPriorityQueue;
-use std::collections::{HashMap, HashSet};
-use std::sync::RwLockReadGuard;
-
 use super::a_star_frontier::AStarFrontier;
-use super::a_star_traversal::AStarTraversal;
 use super::cost_estimate_function::CostEstimateFunction;
 use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
+use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::model::cost::cost::Cost;
 use crate::model::graph::edge_id::EdgeId;
 use crate::model::traversal::traversal_model::TraversalModel;
@@ -15,9 +11,12 @@ use crate::{
     algorithm::search::min_search_tree::direction::Direction,
     model::graph::{directed_graph::DirectedGraph, vertex_id::VertexId},
 };
+use keyed_priority_queue::KeyedPriorityQueue;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
+use std::sync::RwLockReadGuard;
 
-type MinSearchTree = HashMap<VertexId, AStarTraversal>;
+type MinSearchTree = HashMap<VertexId, SearchTreeBranch>;
 
 /// run an A* Search over the given directed graph model. traverses links
 /// from the source, via the provided direction, to the target. uses the
@@ -33,7 +32,7 @@ pub fn run_a_star(
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>>,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
-        let empty: HashMap<VertexId, AStarTraversal> = HashMap::new();
+        let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
         return Ok(empty);
     }
 
@@ -49,7 +48,7 @@ pub fn run_a_star(
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let mut frontier: KeyedPriorityQueue<AStarFrontier, Cost> = KeyedPriorityQueue::new();
     let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
-    let mut solution: HashMap<VertexId, AStarTraversal> = HashMap::new();
+    let mut solution: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
 
     // setup initial search state
     traversal_costs.insert(source, Cost::ZERO);
@@ -88,7 +87,7 @@ pub fn run_a_star(
                         traversal_costs.insert(dst_id, tentative_gscore);
 
                         // update solution
-                        let traversal = AStarTraversal {
+                        let traversal = SearchTreeBranch {
                             terminal_vertex: src_id,
                             edge_traversal: et.clone(),
                         };
@@ -139,18 +138,18 @@ pub fn run_a_star_edge_oriented(
     let target_edge_dst_vertex_id = g.dst_vertex(target)?;
 
     if source == target {
-        let empty: HashMap<VertexId, AStarTraversal> = HashMap::new();
+        let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
         return Ok(empty);
     } else if source_edge_dst_vertex_id == target_edge_src_vertex_id {
         // route is simply source -> target
         let init_state = m.initial_state();
         let src_et = EdgeTraversal::new(source, None, &init_state, &g, &m)?;
         let dst_et = EdgeTraversal::new(target, Some(source), &src_et.result_state, &g, &m)?;
-        let src_traversal = AStarTraversal {
+        let src_traversal = SearchTreeBranch {
             terminal_vertex: target_edge_src_vertex_id,
             edge_traversal: dst_et,
         };
-        let dst_traversal = AStarTraversal {
+        let dst_traversal = SearchTreeBranch {
             terminal_vertex: source_edge_src_vertex_id,
             edge_traversal: src_et,
         };
@@ -161,7 +160,7 @@ pub fn run_a_star_edge_oriented(
         return Ok(tree);
     } else {
         // run a search and append source/target edges to result
-        let mut tree: HashMap<VertexId, AStarTraversal> = run_a_star(
+        let mut tree: HashMap<VertexId, SearchTreeBranch> = run_a_star(
             direction,
             source_edge_dst_vertex_id,
             target_edge_src_vertex_id,
@@ -201,11 +200,11 @@ pub fn run_a_star_edge_oriented(
             traversal_cost: Cost::ZERO,
             result_state: final_state.to_vec(),
         };
-        let src_traversal = AStarTraversal {
+        let src_traversal = SearchTreeBranch {
             terminal_vertex: source_edge_src_vertex_id,
             edge_traversal: src_et,
         };
-        let dst_traversal = AStarTraversal {
+        let dst_traversal = SearchTreeBranch {
             terminal_vertex: target_edge_src_vertex_id,
             edge_traversal: dst_et,
         };
@@ -229,7 +228,7 @@ pub fn run_a_star_edge_oriented(
 pub fn backtrack(
     source_id: VertexId,
     target_id: VertexId,
-    solution: &HashMap<VertexId, AStarTraversal>,
+    solution: &HashMap<VertexId, SearchTreeBranch>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let mut result: Vec<EdgeTraversal> = vec![];
     let mut visited: HashSet<EdgeId> = HashSet::new();
@@ -258,7 +257,7 @@ pub fn backtrack(
 pub fn backtrack_edges(
     source_id: EdgeId,
     target_id: EdgeId,
-    solution: &HashMap<VertexId, AStarTraversal>,
+    solution: &HashMap<VertexId, SearchTreeBranch>,
     graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let g_inner = graph
