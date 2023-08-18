@@ -35,10 +35,10 @@ pub enum TraversalModelConfig {
     },
 }
 
-impl TryFrom<TraversalModelConfig> for Box<dyn TraversalModel> {
+impl TryFrom<&TraversalModelConfig> for Box<dyn TraversalModel> {
     type Error = TraversalModelError;
 
-    fn try_from(value: TraversalModelConfig) -> Result<Box<dyn TraversalModel>, Self::Error> {
+    fn try_from(value: &TraversalModelConfig) -> Result<Box<dyn TraversalModel>, Self::Error> {
         match value {
             TraversalModelConfig::Distance => {
                 let model = DistanceModel {};
@@ -48,7 +48,7 @@ impl TryFrom<TraversalModelConfig> for Box<dyn TraversalModel> {
                 filename,
                 output_unit,
             } => {
-                let model = VelocityLookupModel::from_file(&filename, output_unit)?;
+                let model = VelocityLookupModel::from_file(&filename, output_unit.clone())?;
                 Ok(Box::new(model))
             }
             TraversalModelConfig::Powertrain {
@@ -57,9 +57,9 @@ impl TryFrom<TraversalModelConfig> for Box<dyn TraversalModel> {
                 velocity_output_unit,
             } => {
                 let model = RouteERandomForestModel::new_w_speed_file(
-                    model,
-                    velocity_filename,
-                    velocity_output_unit,
+                    model.clone(),
+                    velocity_filename.clone(),
+                    velocity_output_unit.clone(),
                 )?;
                 Ok(Box::new(model))
             }
