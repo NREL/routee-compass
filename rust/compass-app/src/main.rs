@@ -5,21 +5,15 @@ use compass_app::app::compass::compass_json_extensions::CompassJsonExtensions;
 use compass_app::app::search::search_app::SearchApp;
 use compass_app::cli::CLIArgs;
 use compass_app::config::app_config::AppConfig;
-use compass_app::config::graph::GraphConfig;
 use compass_app::plugin::input::{input_plugin_ops, InputPlugin};
 use compass_app::plugin::output::OutputPlugin;
 use compass_app::plugin::plugin_error::PluginError;
-use compass_core::algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine;
 use compass_core::model::cost::cost::Cost;
-use compass_core::model::traversal::traversal_model::TraversalModel;
-use compass_core::model::units::{TimeUnit, Velocity};
 use compass_core::util::duration_extension::DurationExtension;
-use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use log::info;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use uom::si::velocity::kilometer_per_hour;
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
@@ -56,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(InputPlugin::try_from)
         .collect::<Result<Vec<InputPlugin>, PluginError>>()?;
 
-    let output_plugins: Vec<OutputPlugin> = &config
+    let output_plugins: Vec<OutputPlugin> = config
         .plugin
         .output_plugins
         .iter()

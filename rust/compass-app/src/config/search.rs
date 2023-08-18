@@ -35,10 +35,10 @@ pub enum TraversalModelConfig {
     },
 }
 
-impl TryFrom<&TraversalModelConfig> for Box<dyn TraversalModel> {
+impl TryFrom<TraversalModelConfig> for Box<dyn TraversalModel> {
     type Error = TraversalModelError;
 
-    fn try_from(value: &TraversalModelConfig) -> Result<Box<dyn TraversalModel>, Self::Error> {
+    fn try_from(value: TraversalModelConfig) -> Result<Box<dyn TraversalModel>, Self::Error> {
         match value {
             TraversalModelConfig::Distance => {
                 let model = DistanceModel {};

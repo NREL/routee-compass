@@ -76,8 +76,8 @@ impl TryFrom<&AppConfig> for SearchApp {
         };
 
         let traversal_start = Local::now();
-        let tmc = config.search.traversal_model;
-        let traversal_model: Box<dyn TraversalModel> = &tmc.try_into()?.to_owned();
+        let traversal_model: Box<dyn TraversalModel> =
+            config.search.traversal_model.clone().try_into()?;
         let traversal_duration = (Local::now() - traversal_start)
             .to_std()
             .map_err(|e| AppError::InternalError(e.to_string()))?;
