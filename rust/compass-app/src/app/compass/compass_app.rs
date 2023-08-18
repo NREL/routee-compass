@@ -4,7 +4,7 @@ use crate::{
 };
 
 pub struct CompassApp<'app> {
-    pub search_app: &'app SearchApp<'app>,
+    pub search_app: &'app SearchApp,
     pub input_plugins: Vec<&'app InputPlugin>,
     pub output_plugins: Vec<&'app OutputPlugin>,
 }
