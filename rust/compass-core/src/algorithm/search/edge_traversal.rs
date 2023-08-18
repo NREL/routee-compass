@@ -44,7 +44,7 @@ impl EdgeTraversal {
         edge_id: EdgeId,
         prev_edge_id: Option<EdgeId>,
         prev_state: &TraversalState,
-        g: &RwLockReadGuard<&dyn DirectedGraph>,
+        g: &RwLockReadGuard<Box<dyn DirectedGraph>>,
         m: &RwLockReadGuard<Box<dyn TraversalModel>>,
     ) -> Result<EdgeTraversal, SearchError> {
         let (src, edge, dst) = g

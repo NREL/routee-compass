@@ -28,9 +28,9 @@ pub fn run_a_star(
     direction: Direction,
     source: VertexId,
     target: VertexId,
-    directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
+    directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
-    cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
+    cost_estimate_fn: Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>>,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
         let empty: HashMap<VertexId, AStarTraversal> = HashMap::new();
@@ -122,9 +122,9 @@ pub fn run_a_star_edge_oriented(
     direction: Direction,
     source: EdgeId,
     target: EdgeId,
-    directed_graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
+    directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
-    cost_estimate_fn: Arc<ExecutorReadOnlyLock<&dyn CostEstimateFunction>>,
+    cost_estimate_fn: Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
@@ -259,7 +259,7 @@ pub fn backtrack_edges(
     source_id: EdgeId,
     target_id: EdgeId,
     solution: &HashMap<VertexId, AStarTraversal>,
-    graph: Arc<ExecutorReadOnlyLock<&dyn DirectedGraph>>,
+    graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let g_inner = graph
         .read()
@@ -278,8 +278,8 @@ pub fn backtrack_edges(
 fn h_cost(
     vertex_id: VertexId,
     target_id: VertexId,
-    c: &RwLockReadGuard<&dyn CostEstimateFunction>,
-    g: &RwLockReadGuard<&dyn DirectedGraph>,
+    c: &RwLockReadGuard<Box<dyn CostEstimateFunction>>,
+    g: &RwLockReadGuard<Box<dyn DirectedGraph>>,
 ) -> Result<Cost, SearchError> {
     let src_v = g
         .vertex_attr(vertex_id)
@@ -385,17 +385,14 @@ mod tests {
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
-        let driver_dg_obj = TestDG::new(adj, edge_lengths).unwrap();
-        let driver_dg = Arc::new(DriverReadOnlyLock::new(
-            &driver_dg_obj as &dyn DirectedGraph,
-        ));
+        let driver_dg_obj: Box<dyn DirectedGraph> =
+            Box::new(TestDG::new(adj, edge_lengths).unwrap());
+        let driver_dg = Arc::new(DriverReadOnlyLock::new(driver_dg_obj));
 
         let dist_tm: Box<dyn TraversalModel> = Box::new(DistanceModel {});
         let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
-        let driver_cf_obj = TestCost;
-        let driver_cf = Arc::new(DriverReadOnlyLock::new(
-            &driver_cf_obj as &dyn CostEstimateFunction,
-        ));
+        let driver_cf_obj: Box<dyn CostEstimateFunction> = Box::new(TestCost);
+        let driver_cf = Arc::new(DriverReadOnlyLock::new(driver_cf_obj));
 
         // execute the route search
         let result: Vec<Result<MinSearchTree, SearchError>> = queries
