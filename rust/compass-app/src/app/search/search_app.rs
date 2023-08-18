@@ -5,6 +5,7 @@ use crate::{
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
 use chrono::Local;
+use compass_core::model::units::Velocity;
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
@@ -23,7 +24,6 @@ use compass_core::{
         read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
     },
 };
-use compass_core::{algorithm::search::search_error::SearchError, model::units::Velocity};
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use rayon::prelude::*;
 use std::sync::Arc;
@@ -123,7 +123,7 @@ impl SearchApp {
     pub fn run_vertex_oriented(
         &self,
         queries: Vec<serde_json::Value>,
-    ) -> Result<Vec<Result<SearchAppResult<VertexId>, AppError>>, AppError> {
+    ) -> Result<Vec<Result<SearchAppResult, AppError>>, AppError> {
         let _pool = rayon::ThreadPoolBuilder::new()
             .num_threads(self.parallelism)
             .build()
@@ -131,7 +131,7 @@ impl SearchApp {
                 AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
             })?;
         // execute the route search
-        let result: Vec<Result<SearchAppResult<VertexId>, AppError>> = queries
+        let result: Vec<Result<SearchAppResult, AppError>> = queries
             .clone()
             .into_par_iter()
             .map(|query| {
@@ -146,7 +146,6 @@ impl SearchApp {
                 let cost_inner = Arc::new(self.a_star_heuristic.read_only());
                 run_a_star(Direction::Forward, o, d, dg_inner, tm_inner, cost_inner)
                     .and_then(|tree| {
-                        let tree_size = tree.len();
                         let search_end_time = Local::now();
                         let route_start_time = Local::now();
                         let route = backtrack(o, d, &tree)?;
@@ -158,12 +157,11 @@ impl SearchApp {
                             .to_std()
                             .unwrap_or(time::Duration::ZERO);
                         Ok(SearchAppResult {
-                            origin: o,
-                            destination: d,
                             route,
-                            tree_size,
+                            tree,
                             search_runtime,
                             route_runtime,
+                            total_runtime: search_runtime + route_runtime,
                         })
                     })
                     .map_err(AppError::SearchError)
@@ -179,7 +177,7 @@ impl SearchApp {
     pub fn run_edge_oriented(
         &self,
         queries: Vec<(EdgeId, EdgeId)>,
-    ) -> Result<Vec<Result<SearchAppResult<EdgeId>, AppError>>, AppError> {
+    ) -> Result<Vec<Result<SearchAppResult, AppError>>, AppError> {
         let _pool = rayon::ThreadPoolBuilder::new()
             .num_threads(self.parallelism)
             .build()
@@ -187,7 +185,7 @@ impl SearchApp {
                 AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
             })?;
         // execute the route search
-        let result: Vec<Result<SearchAppResult<EdgeId>, AppError>> = queries
+        let result: Vec<Result<SearchAppResult, AppError>> = queries
             .clone()
             .into_par_iter()
             .map(|(o, d)| {
@@ -205,7 +203,6 @@ impl SearchApp {
                     cost_inner,
                 )
                 .and_then(|tree| {
-                    let tree_size = tree.len();
                     let search_end_time = Local::now();
                     let route_start_time = Local::now();
                     let route = backtrack_edges(o, d, &tree, dg_inner_backtrack)?;
@@ -217,12 +214,11 @@ impl SearchApp {
                         .to_std()
                         .unwrap_or(time::Duration::ZERO);
                     Ok(SearchAppResult {
-                        origin: o,
-                        destination: d,
                         route,
-                        tree_size,
+                        tree,
                         search_runtime,
                         route_runtime,
+                        total_runtime: search_runtime + route_runtime,
                     })
                 })
                 .map_err(AppError::SearchError)

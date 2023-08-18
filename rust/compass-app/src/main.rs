@@ -89,33 +89,26 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "request": req,
                     "error": e.to_string()
                 });
-                // log::error!("({},{}) failed: {}", o, d, e);
                 error_output
             }
             Ok(result) => {
-                let links: usize = result.route.clone().len();
                 let mut time_millis = Cost::ZERO;
                 for traversal in result.route.clone() {
                     let cost = traversal.edge_cost();
                     time_millis = time_millis + cost;
                 }
-                // whether time cost is ms actually depends on user settings, though safe bet for now
-                // let dur = Duration::from_millis((time_millis.0).0 as u64).hhmmss();
-                log::info!(
-                    "({}) -> ({}) had route with {} links, tree with {} links",
-                    result.origin,
-                    result.destination,
-                    links,
-                    result.tree_size,
-                    // dur
+                log::debug!(
+                    "completed route for request {}: {} links, tree with {} links",
+                    req,
+                    result.route.len(),
+                    result.tree.len(),
                 );
 
                 let route = result.route.to_vec();
                 let last_edge_traversal = match route.last() {
                     None => {
                         return serde_json::json!({
-                            "origin_edge_id": o,
-                            "destination_edge_id": d,
+                            "request": req,
                             "error": "route was empty"
                         });
                     }
@@ -126,8 +119,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 let tmodel = match tmodel_reference.read() {
                     Err(e) => {
                         return serde_json::json!({
-                            "origin_edge_id": o,
-                            "destination_edge_id": d,
+                            "request": req,
                             "error": e.to_string()
                         })
                     }
@@ -138,7 +130,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     "request": req,
                     "search_runtime": result.search_runtime.hhmmss(),
                     "route_runtime": result.route_runtime.hhmmss(),
-                    "tree_size": result.tree_size,
+                    "total_runtime": result.total_runtime.hhmmss(),
                     "traversal_summary": tmodel.summary(&last_edge_traversal.result_state),
                 });
                 let init_acc: Result<serde_json::Value, PluginError> = Ok(init_output);
