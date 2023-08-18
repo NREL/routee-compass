@@ -3,12 +3,12 @@ use std::fmt::Display;
 use crate::{algorithm::search::edge_traversal::EdgeTraversal, model::graph::vertex_id::VertexId};
 
 #[derive(Clone, Debug)]
-pub struct AStarTraversal {
+pub struct SearchTreeBranch {
     pub terminal_vertex: VertexId,
     pub edge_traversal: EdgeTraversal,
 }
 
-impl Display for AStarTraversal {
+impl Display for SearchTreeBranch {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,

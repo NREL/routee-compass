@@ -48,7 +48,7 @@ impl TryFrom<TraversalModelConfig> for Box<dyn TraversalModel> {
                 filename,
                 output_unit,
             } => {
-                let model = VelocityLookupModel::from_file(&filename, output_unit)?;
+                let model = VelocityLookupModel::from_file(&filename, output_unit.clone())?;
                 Ok(Box::new(model))
             }
             TraversalModelConfig::Powertrain {
@@ -57,9 +57,9 @@ impl TryFrom<TraversalModelConfig> for Box<dyn TraversalModel> {
                 velocity_output_unit,
             } => {
                 let model = RouteERandomForestModel::new_w_speed_file(
-                    model,
-                    velocity_filename,
-                    velocity_output_unit,
+                    model.clone(),
+                    velocity_filename.clone(),
+                    velocity_output_unit.clone(),
                 )?;
                 Ok(Box::new(model))
             }

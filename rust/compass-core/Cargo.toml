@@ -22,3 +22,4 @@ keyed_priority_queue = "0.4.1"
 csv = { workspace = true }
 kdam = { workspace = true }
 log = { workspace = true }
+itertools = { workspace = true }

@@ -1,12 +1,19 @@
-use compass_core::algorithm::search::search_error::SearchError;
+use compass_core::{
+    algorithm::search::search_error::SearchError,
+    model::traversal::traversal_model_error::TraversalModelError,
+};
 
 use crate::plugin::plugin_error::PluginError;
 
+use super::compass::compass_input_field::CompassInputField;
+
 #[derive(thiserror::Error, Debug)]
 pub enum AppError {
-    #[error("search failure")]
+    #[error(transparent)]
     SearchError(#[from] SearchError),
-    #[error("application plugin caused a failure")]
+    #[error(transparent)]
+    TraversalModelError(#[from] TraversalModelError),
+    #[error(transparent)]
     PluginError(#[from] PluginError),
     #[error(transparent)]
     IOError(#[from] std::io::Error),
@@ -16,4 +23,8 @@ pub enum AppError {
     UXError(String),
     #[error("internal error: {0}")]
     InternalError(String),
+    #[error("app input JSON missing field: {0}")]
+    MissingInputField(CompassInputField),
+    #[error("error decoding input: {0}")]
+    InvalidInput(String),
 }
