@@ -1,26 +1,21 @@
 use chrono::Local;
 use clap::Parser;
 use compass_app::app::app_error::AppError;
+use compass_app::app::compass::compass_json_extensions::CompassJsonExtensions;
 use compass_app::app::search::search_app::SearchApp;
 use compass_app::cli::CLIArgs;
 use compass_app::config::app_config::AppConfig;
 use compass_app::config::graph::GraphConfig;
-use compass_app::plugin::input::input_json_extensions::InputJsonExtensions;
-use compass_app::plugin::input::InputPlugin;
+use compass_app::plugin::input::{input_plugin_ops, InputPlugin};
 use compass_app::plugin::output::OutputPlugin;
 use compass_app::plugin::plugin_error::PluginError;
+use compass_core::algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine;
 use compass_core::model::cost::cost::Cost;
-use compass_core::model::graph::vertex_id::VertexId;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::{TimeUnit, Velocity};
 use compass_core::util::duration_extension::DurationExtension;
-use compass_core::{
-    algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine,
-    model::graph::edge_id::EdgeId,
-};
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use log::info;
-use rand::seq::SliceRandom;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
@@ -45,61 +40,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     info!("Config: {:?}", config);
 
-    // read query json file into a serde json Value
-    let query_file = File::open(args.query_file)?;
-    let n_queries = 10;
-
-    let reader = BufReader::new(query_file);
-    let query: serde_json::Value = serde_json::from_reader(reader)?;
-
-    info!("Query: {:?}", query);
-    let q = serde_json::json!({
-        "origin_x": -105.1710052,
-        "origin_y": 39.7402804,
-        "destination_x": -71.4133386,
-        "destination_y": 42.2803461
-    });
-
-    let graph_start = Local::now();
-    let graph = match config.graph {
-        GraphConfig::TomTom {
-            edge_file,
-            vertex_file,
-            n_edges,
-            n_vertices,
-            verbose,
-        } => {
-            let conf = TomTomGraphConfig {
-                edge_list_csv: edge_file,
-                vertex_list_csv: vertex_file,
-                n_edges,
-                n_vertices,
-                verbose,
-            };
-            let graph = TomTomGraph::try_from(conf)?;
-            graph
-        }
-    };
-    let graph_duration = (Local::now() - graph_start).to_std()?;
+    let search_app_start = Local::now();
+    let search_app: SearchApp = SearchApp::try_from(&config)?;
+    let search_app_duration = (Local::now() - search_app_start).to_std()?;
     log::info!(
-        "finished reading graph with duration {}",
-        graph_duration.hhmmss()
+        "finished building search app with duration {}",
+        search_app_duration.hhmmss()
     );
-
-    let haversine = Haversine {
-        travel_speed: Velocity::new::<kilometer_per_hour>(40.0),
-        output_unit: TimeUnit::Milliseconds,
-    };
-
-    let traversal_start = Local::now();
-    let traversal_model: Box<dyn TraversalModel> = config.search.traversal_model.try_into()?;
-    let traversal_duration = (Local::now() - traversal_start).to_std()?;
-    log::info!(
-        "finished reading traversal model with duration {}",
-        traversal_duration.hhmmss()
-    );
-
-    let search_app: SearchApp = SearchApp::new(&graph, traversal_model, &haversine, Some(2));
 
     let plugins_start = Local::now();
     let input_plugins: Vec<InputPlugin> = config
@@ -109,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .map(InputPlugin::try_from)
         .collect::<Result<Vec<InputPlugin>, PluginError>>()?;
 
-    let output_plugins: Vec<OutputPlugin> = config
+    let output_plugins: Vec<OutputPlugin> = &config
         .plugin
         .output_plugins
         .iter()
@@ -121,66 +68,28 @@ fn main() -> Result<(), Box<dyn Error>> {
         plugins_duration.hhmmss()
     );
 
-    let queries_result: Result<Vec<(EdgeId, EdgeId)>, AppError> = (0..n_queries)
-        .map(|_| {
-            let (o, d) = (
-                graph
-                    .edges
-                    .choose(&mut rand::thread_rng())
-                    .ok_or(AppError::InternalError(String::from(
-                        "graph.edges.choose returned None",
-                    )))?
-                    .edge_id,
-                graph
-                    .edges
-                    .choose(&mut rand::thread_rng())
-                    .ok_or(AppError::InternalError(String::from(
-                        "graph.edges.choose returned None",
-                    )))?
-                    .edge_id,
-            );
-            // log::info!("randomly selected (origin, destination): ({}, {})", o, d);
-            Ok((o, d))
-        })
-        .collect();
+    let query_file = File::open(args.query_file)?;
+    let reader = BufReader::new(query_file);
+    let user_json: serde_json::Value =
+        serde_json::from_reader(reader).map_err(AppError::CodecError)?;
+    let user_queries = user_json.get_queries()?;
+    info!("Query: {:?}", user_json);
 
-    // in the future, "queries" should be parsed from the user at the top of the app
-    // let queries = queries_result?;
-    let (queries, requests): (Vec<(VertexId, VertexId)>, Vec<serde_json::Value>) = vec![q]
-        .iter()
-        .map(|query| {
-            let init_acc: Result<serde_json::Value, PluginError> = Ok(query.clone());
-            let modified: serde_json::Value = input_plugins
-                .iter()
-                .fold(init_acc, move |acc, plugin| match acc {
-                    Err(e) => Err(e),
-                    Ok(json) => plugin(&json),
-                })
-                .map_err(AppError::PluginError)?;
-            let o_vertex = modified
-                .get_origin_vertex()
-                .map_err(AppError::PluginError)?;
-            let d_vertex = modified
-                .get_destination_vertex()
-                .map_err(AppError::PluginError)?;
-            Ok(((o_vertex, d_vertex), modified))
-        })
-        .collect()
-        .unzip();
+    let processed_user_queries =
+        input_plugin_ops::apply_input_plugins(user_queries, input_plugins)?;
 
     let search_start = Local::now();
     log::info!("running search");
-    let results = search_app.run_vertex_oriented(queries.clone())?;
+    let results = search_app.run_vertex_oriented(processed_user_queries.clone())?;
     let search_duration = (Local::now() - search_start).to_std()?;
     log::info!("finished search with duration {}", search_duration.hhmmss());
 
     let output_start = Local::now();
-    let output_rows = queries
+    let output_rows = processed_user_queries
         .clone()
         .iter()
-        .zip(requests)
         .zip(results)
-        .map(move |(((o, d), req), res)| match res {
+        .map(move |(req, res)| match res {
             Err(e) => {
                 let error_output = serde_json::json!({
                     "request": req,
