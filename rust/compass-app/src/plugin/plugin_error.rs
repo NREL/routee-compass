@@ -19,6 +19,8 @@ pub enum PluginError {
     CsvReadError(#[from] csv::Error),
     #[error("geometry missing for edge id {0}")]
     GeometryMissing(u64),
+    #[error("uuid missing for edge id {0}")]
+    UUIDMissing(usize),
     #[error("error during search")]
     SearchError(#[from] SearchError),
     #[error("unexpected error {0}")]

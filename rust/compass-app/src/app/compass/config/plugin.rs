@@ -4,6 +4,7 @@ use crate::plugin::input::rtree::build_rtree_plugin;
 use crate::plugin::input::InputPlugin;
 use crate::plugin::output::geometry::plugin::build_geometry_plugin_from_file;
 use crate::plugin::output::summary::plugin::build_summary_output_plugin;
+use crate::plugin::output::uuid::plugin::build_uuid_plugin_from_file;
 use crate::plugin::output::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
 
@@ -21,6 +22,8 @@ pub enum OutputPluginConfig {
     Summary,
     #[serde(rename = "geometry")]
     Geometry { edge_file: String },
+    #[serde(rename = "uuid")]
+    Uuid { uuid_file: String },
 }
 
 #[derive(Debug, Deserialize)]
@@ -38,6 +41,7 @@ impl TryFrom<&OutputPluginConfig> for OutputPlugin {
             OutputPluginConfig::Geometry { edge_file } => {
                 build_geometry_plugin_from_file(&edge_file)
             }
+            OutputPluginConfig::Uuid { uuid_file } => build_uuid_plugin_from_file(&uuid_file),
         }
     }
 }
