@@ -1,6 +1,6 @@
 use super::compass::{
     compass_input_field::CompassInputField,
-    conf_v2::compass_configuration_error::CompassConfigurationError,
+    config::compass_configuration_error::CompassConfigurationError,
 };
 use crate::plugin::plugin_error::PluginError;
 use compass_core::{
