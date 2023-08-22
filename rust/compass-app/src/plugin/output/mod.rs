@@ -4,6 +4,7 @@ use super::plugin_error::PluginError;
 
 pub mod geometry;
 pub mod summary;
+pub mod uuid;
 
 pub type OutputPlugin = Box<
     dyn Fn(
