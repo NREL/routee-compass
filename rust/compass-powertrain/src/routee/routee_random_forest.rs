@@ -65,7 +65,7 @@ impl TraversalModel for RouteERandomForestModel {
 impl RouteERandomForestModel {
     pub fn new(
         velocity_model: Arc<VelocityLookupModel>,
-        routee_model_path: String,
+        routee_model_path: &String,
     ) -> Result<Self, TraversalModelError> {
         // Load random forest binary file
         let rf_binary = std::fs::read(routee_model_path.clone()).map_err(|e| {
@@ -83,8 +83,8 @@ impl RouteERandomForestModel {
     }
 
     pub fn new_w_speed_file(
-        speed_file: String,
-        routee_model_path: String,
+        speed_file: &String,
+        routee_model_path: &String,
         time_unit: TimeUnit,
     ) -> Result<Self, TraversalModelError> {
         let velocity_model = VelocityLookupModel::from_file(&speed_file, time_unit)?;
@@ -132,9 +132,11 @@ mod tests {
                 grade: Ratio::new::<si::ratio::per_mille>(0.0),
             };
         }
+        let speed_file = String::from(speed_file_name);
+        let routee_model_path = String::from(model_file_name);
         let rf_predictor = RouteERandomForestModel::new_w_speed_file(
-            String::from(speed_file_name),
-            String::from(model_file_name),
+            &speed_file,
+            &routee_model_path,
             TimeUnit::Seconds,
         )
         .unwrap();
