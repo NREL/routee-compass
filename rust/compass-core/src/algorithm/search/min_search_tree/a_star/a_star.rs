@@ -81,7 +81,7 @@ pub fn run_a_star(
                     let e = g
                         .edge_attr(edge_id)
                         .map_err(SearchError::GraphCorrectnessFailure)?;
-                    if !m.valid_edge(&e, &current.state)? {
+                    if !m.valid_frontier(&e, &current.state)? {
                         continue;
                     }
                     let et =

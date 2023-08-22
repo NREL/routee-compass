@@ -27,7 +27,7 @@ pub trait TraversalModel: Send + Sync {
     ) -> Result<AccessResult, TraversalModelError> {
         Ok(AccessResult::no_cost(state))
     }
-    fn valid_edge(&self, edge: &Edge, state: &TraversalState) -> Result<bool, TraversalModelError> {
+    fn valid_frontier(&self, edge: &Edge, state: &TraversalState) -> Result<bool, TraversalModelError> {
         Ok(true)
     }
     fn terminate_search(&self, state: &TraversalState) -> Result<bool, TraversalModelError> {
