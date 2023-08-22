@@ -28,11 +28,9 @@ impl CompassAppConfig2 {
 #[cfg(test)]
 mod tests {
 
-    use std::path::PathBuf;
-
-    use config::{Config, ConfigError, File, FileFormat};
-
     use crate::app::compass::conf_v2::compass_app_config::CompassAppConfig2;
+    use config::{Config, ConfigError, File, FileFormat};
+    use std::path::PathBuf;
 
     #[test]
     fn test_parse() {
@@ -43,19 +41,28 @@ mod tests {
             .join("conf_v2")
             .join("test")
             .join("conf.toml");
+
+        // parse TOML, but not yet deserialized. later, we will grab nested bits as serde_json::Value
         let toml_conf = Config::builder()
             .add_source(config::File::from(toml_file))
             .build()
             .unwrap();
+
+        // this is the thing with the builders hashmap. it has one entry for this tes
+        // which is "distance" -> ThingThatBuildsDistanceTraversalModel
         let compass_app_config = CompassAppConfig2::default();
+
+        // grab the traversal model params and type from the file
         let traversal_params = toml_conf.get::<serde_json::Value>("traversal").unwrap();
-        println!("{:?}", toml_conf.get::<serde_json::Value>("traversal"));
+        println!("contents of 'traversal' section: {:?}", traversal_params);
         let tm_type_obj = traversal_params.get("type").unwrap();
         let tm_type = String::from(tm_type_obj.as_str().unwrap());
-        println!("type: {}", tm_type);
+        println!("traversal model type: {}", tm_type);
+
+        // build the traversal model
         let tm_builder = compass_app_config.tm_builders.get(&tm_type).unwrap();
         let tm = tm_builder.build(&traversal_params).unwrap();
         let init_state = tm.initial_state();
-        println!("distance init state: {:?}", init_state);
+        println!("traversal init state: {:?}", init_state);
     }
 }
