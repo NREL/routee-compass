@@ -57,9 +57,9 @@ impl TryFrom<TraversalModelConfig> for Box<dyn TraversalModel> {
                 velocity_output_unit,
             } => {
                 let model = RouteERandomForestModel::new_w_speed_file(
-                    model.clone(),
-                    velocity_filename.clone(),
-                    velocity_output_unit.clone(),
+                    &model,
+                    &velocity_filename,
+                    velocity_output_unit,
                 )?;
                 Ok(Box::new(model))
             }
