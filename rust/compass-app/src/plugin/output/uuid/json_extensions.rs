@@ -16,8 +16,8 @@ impl UUIDJsonField {
             UUIDJsonField::Request => "request",
             UUIDJsonField::OriginVertexId => "origin_vertex",
             UUIDJsonField::DestinationVertexId => "destination_vertex",
-            UUIDJsonField::OriginVertexUUID => "origin_uuid",
-            UUIDJsonField::DestinationVertexUUID => "destination_uuid",
+            UUIDJsonField::OriginVertexUUID => "origin_vertex_uuid",
+            UUIDJsonField::DestinationVertexUUID => "destination_vertex_uuid",
         }
     }
 
