@@ -65,12 +65,25 @@ pub fn run_a_star(
         match frontier.pop() {
             None => return Err(SearchError::NoPathExists(source, target)),
             Some((current, _)) if current.vertex_id == target => break,
+            Some((current, _))
+                if m.terminate_search(&current.state)
+                    .map_err(SearchError::TraversalModelFailure)? =>
+            {
+                break
+            }
             Some((current, _)) => {
                 let neighbor_triplets = g
                     .incident_triplets(current.vertex_id, direction)
                     .map_err(SearchError::GraphCorrectnessFailure)?;
 
                 for (src_id, edge_id, dst_id) in neighbor_triplets {
+                    // first make sure we have a valid edge
+                    let e = g
+                        .edge_attr(edge_id)
+                        .map_err(SearchError::GraphCorrectnessFailure)?;
+                    if !m.valid_edge(&e, &current.state)? {
+                        continue;
+                    }
                     let et =
                         EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
                     let dst_h_cost = h_cost(dst_id, target, &c, &g)?;
