@@ -26,12 +26,6 @@ pub enum OutputPluginConfig {
     Uuid { uuid_file: String },
 }
 
-#[derive(Debug, Deserialize)]
-pub struct PluginConfig {
-    pub input_plugins: Vec<InputPluginConfig>,
-    pub output_plugins: Vec<OutputPluginConfig>,
-}
-
 impl TryFrom<&OutputPluginConfig> for OutputPlugin {
     type Error = PluginError;
 

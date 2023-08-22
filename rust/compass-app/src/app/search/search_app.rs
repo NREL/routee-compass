@@ -1,101 +1,29 @@
 use super::search_app_result::SearchAppResult;
-use crate::app::compass::config::compass_app_config::CompassAppConfig;
-use crate::app::compass::config::graph::GraphConfig;
 use crate::{app::app_error::AppError, plugin::input::input_json_extensions::InputJsonExtensions};
 use chrono::Local;
-use compass_core::model::units::Velocity;
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
             a_star::{backtrack, backtrack_edges, run_a_star, run_a_star_edge_oriented},
-            cost_estimate_function::{CostEstimateFunction, Haversine},
+            cost_estimate_function::CostEstimateFunction,
         },
         direction::Direction,
     },
     model::{
-        graph::{directed_graph::DirectedGraph, edge_id::EdgeId, vertex_id::VertexId},
+        graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
         traversal::traversal_model::TraversalModel,
-        units::TimeUnit,
     },
-    util::{
-        duration_extension::DurationExtension,
-        read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
-    },
+    util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
 };
-use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use rayon::prelude::*;
 use std::sync::Arc;
 use std::time;
-use uom::si::velocity::kilometer_per_hour;
 
 pub struct SearchApp {
     graph: Arc<DriverReadOnlyLock<Box<dyn DirectedGraph>>>,
     a_star_heuristic: Arc<DriverReadOnlyLock<Box<dyn CostEstimateFunction>>>,
     traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
     pub parallelism: usize,
-}
-
-impl TryFrom<&CompassAppConfig> for SearchApp {
-    type Error = AppError;
-
-    /// builds the core search application.
-    /// currently hard-coded DirectedGraph.
-    /// SearchAlgorithm abstraction is missing, so this is hard-coded
-    /// to a* as well.
-    fn try_from(config: &CompassAppConfig) -> Result<Self, Self::Error> {
-        let graph_start = Local::now();
-        let graph = match &config.graph {
-            GraphConfig::TomTom {
-                edge_file,
-                vertex_file,
-                n_edges,
-                n_vertices,
-                verbose,
-            } => {
-                let conf = TomTomGraphConfig {
-                    edge_list_csv: edge_file.clone(),
-                    vertex_list_csv: vertex_file.clone(),
-                    n_edges: n_edges.clone(),
-                    n_vertices: n_vertices.clone(),
-                    verbose: verbose.clone(),
-                };
-                let graph = TomTomGraph::try_from(conf)
-                    .map_err(|e| AppError::InvalidInput(e.to_string()))?;
-                graph
-            }
-        };
-        let graph_duration = (Local::now() - graph_start)
-            .to_std()
-            .map_err(|e| AppError::InternalError(e.to_string()))?;
-        log::info!(
-            "finished reading graph with duration {}",
-            graph_duration.hhmmss()
-        );
-
-        let haversine = Haversine {
-            travel_speed: Velocity::new::<kilometer_per_hour>(40.0),
-            output_unit: TimeUnit::Milliseconds,
-        };
-
-        let traversal_start = Local::now();
-        let traversal_model: Box<dyn TraversalModel> =
-            config.search.traversal_model.clone().try_into()?;
-        let traversal_duration = (Local::now() - traversal_start)
-            .to_std()
-            .map_err(|e| AppError::InternalError(e.to_string()))?;
-        log::info!(
-            "finished reading traversal model with duration {}",
-            traversal_duration.hhmmss()
-        );
-        let search_app: SearchApp = SearchApp::new(
-            Box::new(graph),
-            traversal_model,
-            Box::new(haversine),
-            Some(2),
-        );
-
-        return Ok(search_app);
-    }
 }
 
 impl SearchApp {
