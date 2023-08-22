@@ -1,13 +1,28 @@
-use super::config::compass_app_config::CompassAppConfig;
+use super::{
+    conf_v2::compass_app_builder::CompassAppBuilder, config::compass_app_config::CompassAppConfig,
+};
 use crate::{
     app::{
         app_error::AppError,
+        compass::{
+            compass_configuration_field::CompassConfigurationField,
+            config::{
+                graph::GraphConfig,
+                plugin::{InputPluginConfig, OutputPluginConfig},
+            },
+        },
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
     plugin::{input::InputPlugin, output::OutputPlugin, plugin_error::PluginError},
 };
 use chrono::{Duration, Local};
-use compass_core::{model::cost::cost::Cost, util::duration_extension::DurationExtension};
+use compass_core::model::units::*;
+use compass_core::{
+    algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine,
+    model::cost::cost::Cost, util::duration_extension::DurationExtension,
+};
+use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
+use config::Config;
 use itertools::{Either, Itertools};
 
 pub struct CompassApp {
@@ -43,6 +58,109 @@ impl TryFrom<&CompassAppConfig> for CompassApp {
         let output_plugins: Vec<OutputPlugin> = config
             .plugin
             .output_plugins
+            .iter()
+            .map(OutputPlugin::try_from)
+            .collect::<Result<Vec<OutputPlugin>, PluginError>>()?;
+        let plugins_duration = to_std(Local::now() - plugins_start)?;
+        log::info!(
+            "finished loading plugins with duration {}",
+            plugins_duration.hhmmss()
+        );
+
+        return Ok(CompassApp {
+            search_app,
+            input_plugins,
+            output_plugins,
+        });
+    }
+}
+
+impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
+    type Error = AppError;
+
+    /// builds a CompassApp from configuration. builds all modules
+    /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
+    /// also builds the input and output plugins.
+    /// returns a persistent application that can run user queries.
+    fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
+        let (config, builder) = pair;
+
+        // build traversal model
+        let traversal_start = Local::now();
+        let traversal_params = config
+            .get::<serde_json::Value>(CompassConfigurationField::Traversal.to_str())
+            .map_err(AppError::ConfigError)?;
+        let tm_type_obj = traversal_params.get("type").unwrap();
+        let tm_type = String::from(tm_type_obj.as_str().unwrap());
+        let tm_builder = builder.tm_builders.get(&tm_type).unwrap();
+        let traversal_model = tm_builder.build(&traversal_params).unwrap();
+        let traversal_duration = (Local::now() - traversal_start)
+            .to_std()
+            .map_err(|e| AppError::InternalError(e.to_string()))?;
+        log::info!(
+            "finished reading traversal model with duration {}",
+            traversal_duration.hhmmss()
+        );
+
+        // build graph
+        let graph_start = Local::now();
+        let graph_conf = &config
+            .get::<GraphConfig>(CompassConfigurationField::Graph.to_str())
+            .map_err(AppError::ConfigError)?;
+        let graph = match &graph_conf {
+            GraphConfig::TomTom {
+                edge_file,
+                vertex_file,
+                n_edges,
+                n_vertices,
+                verbose,
+            } => {
+                let conf = TomTomGraphConfig {
+                    edge_list_csv: edge_file.clone(),
+                    vertex_list_csv: vertex_file.clone(),
+                    n_edges: n_edges.clone(),
+                    n_vertices: n_vertices.clone(),
+                    verbose: verbose.clone(),
+                };
+                let graph = TomTomGraph::try_from(conf)
+                    .map_err(|e| AppError::InvalidInput(e.to_string()))?;
+                Box::new(graph)
+            }
+        };
+        let graph_duration = (Local::now() - graph_start)
+            .to_std()
+            .map_err(|e| AppError::InternalError(e.to_string()))?;
+        log::info!(
+            "finished reading graph with duration {}",
+            graph_duration.hhmmss()
+        );
+
+        // build algorithm
+        let haversine = Haversine {
+            travel_speed: Velocity::new::<uom::si::velocity::kilometer_per_hour>(40.0),
+            output_unit: TimeUnit::Milliseconds,
+        };
+
+        let search_app_start = Local::now();
+        let search_app: SearchApp =
+            SearchApp::new(graph, traversal_model, Box::new(haversine), Some(2));
+        let search_app_duration = to_std(Local::now() - search_app_start)?;
+        log::info!(
+            "finished building search app with duration {}",
+            search_app_duration.hhmmss()
+        );
+
+        // build plugins
+        let plugins_start = Local::now();
+        let input_plugins: Vec<InputPlugin> = config
+            .get::<Vec<InputPluginConfig>>(CompassConfigurationField::InputPlugins.to_str())
+            .map_err(AppError::ConfigError)?
+            .iter()
+            .map(InputPlugin::try_from)
+            .collect::<Result<Vec<InputPlugin>, PluginError>>()?;
+        let output_plugins: Vec<OutputPlugin> = config
+            .get::<Vec<OutputPluginConfig>>(CompassConfigurationField::OutputPlugins.to_str())
+            .map_err(AppError::ConfigError)?
             .iter()
             .map(OutputPlugin::try_from)
             .collect::<Result<Vec<OutputPlugin>, PluginError>>()?;
