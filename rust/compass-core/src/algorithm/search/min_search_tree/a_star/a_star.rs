@@ -305,7 +305,7 @@ fn h_cost(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::traversal::default_models::distance::DistanceModel;
+    use crate::model::traversal::default::distance::DistanceModel;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::units::Length;
     use crate::test::mocks::TestDG;

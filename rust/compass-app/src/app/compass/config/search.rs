@@ -1,6 +1,6 @@
 use compass_core::model::{
     traversal::{
-        default_models::{distance::DistanceModel, velocity_lookup::VelocityLookupModel},
+        default::{distance::DistanceModel, velocity_lookup::VelocityLookupModel},
         traversal_model::TraversalModel,
         traversal_model_error::TraversalModelError,
     },
