@@ -1,12 +1,10 @@
-use super::{
-    conf_v2::compass_app_builder::CompassAppBuilder, config::compass_app_config::CompassAppConfig,
-};
+use super::config::compass_app_builder::CompassAppBuilder;
 use crate::{
     app::{
         app_error::AppError,
         compass::{
             compass_configuration_field::CompassConfigurationField,
-            config::{
+            config_old::{
                 graph::GraphConfig,
                 plugin::{InputPluginConfig, OutputPluginConfig},
             },
@@ -29,50 +27,6 @@ pub struct CompassApp {
     pub search_app: SearchApp,
     pub input_plugins: Vec<InputPlugin>,
     pub output_plugins: Vec<OutputPlugin>,
-}
-
-impl TryFrom<&CompassAppConfig> for CompassApp {
-    type Error = AppError;
-
-    /// builds a CompassApp from configuration. builds all modules
-    /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
-    /// also builds the input and output plugins.
-    /// returns a persistent application that can run user queries.
-    fn try_from(config: &CompassAppConfig) -> Result<Self, Self::Error> {
-        let search_app_start = Local::now();
-        let search_app: SearchApp = SearchApp::try_from(config)?;
-        let search_app_duration = to_std(Local::now() - search_app_start)?;
-        log::info!(
-            "finished building search app with duration {}",
-            search_app_duration.hhmmss()
-        );
-
-        let plugins_start = Local::now();
-        let input_plugins: Vec<InputPlugin> = config
-            .plugin
-            .input_plugins
-            .iter()
-            .map(InputPlugin::try_from)
-            .collect::<Result<Vec<InputPlugin>, PluginError>>()?;
-
-        let output_plugins: Vec<OutputPlugin> = config
-            .plugin
-            .output_plugins
-            .iter()
-            .map(OutputPlugin::try_from)
-            .collect::<Result<Vec<OutputPlugin>, PluginError>>()?;
-        let plugins_duration = to_std(Local::now() - plugins_start)?;
-        log::info!(
-            "finished loading plugins with duration {}",
-            plugins_duration.hhmmss()
-        );
-
-        return Ok(CompassApp {
-            search_app,
-            input_plugins,
-            output_plugins,
-        });
-    }
 }
 
 impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
