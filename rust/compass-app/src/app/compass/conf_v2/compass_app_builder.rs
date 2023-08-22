@@ -14,13 +14,6 @@ pub struct CompassAppBuilder {
 }
 
 impl CompassAppBuilder {
-    // pub fn add_tm_builder(&mut self, name: String, builder: Box<dyn TraversalModelBuilder>) {
-    //     match self.tm_builders.insert(name.clone(), builder) {
-    //         Some(_prev) => log::warn!("adding traversal model builder {} more than once", &name),
-    //         None => (),
-    //     }
-    // }
-
     /// builds a traversal model with the specified type name with the provided
     /// traversal model configuration JSON
     pub fn build_traversal_model(
@@ -37,6 +30,7 @@ impl CompassAppBuilder {
             .and_then(|b| b.build(config))
     }
 
+    /// builds the default builder which includes all defined components
     pub fn default() -> CompassAppBuilder {
         let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
         let velo: Box<dyn TraversalModelBuilder> = Box::new(VelocityLookupBuilder {});
