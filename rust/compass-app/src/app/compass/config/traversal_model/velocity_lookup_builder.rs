@@ -1,6 +1,6 @@
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::{
-    traversal::default_models::velocity_lookup::VelocityLookupModel, units::TimeUnit,
+    traversal::default::velocity_lookup::VelocityLookupModel, units::TimeUnit,
 };
 
 use crate::app::compass::compass_configuration_field::CompassConfigurationField;

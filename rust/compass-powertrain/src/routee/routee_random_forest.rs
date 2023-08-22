@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use compass_core::model::property::edge::Edge;
 use compass_core::model::property::vertex::Vertex;
-use compass_core::model::traversal::default_models::velocity_lookup::VelocityLookupModel;
+use compass_core::model::traversal::default::velocity_lookup::VelocityLookupModel;
 use compass_core::model::traversal::state::state_variable::StateVar;
 use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::traversal_model::TraversalModel;
