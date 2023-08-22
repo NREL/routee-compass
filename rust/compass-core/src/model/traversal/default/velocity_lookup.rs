@@ -132,7 +132,8 @@ mod tests {
             .join("src")
             .join("model")
             .join("traversal")
-            .join("default_models")
+            .join("default")
+            .join("model")
             .join("test")
             .join("velocities.txt");
         let filename = filepath.to_str().unwrap().to_owned();
