@@ -13,7 +13,7 @@ use compass_core::{
         direction::Direction,
     },
     model::{
-        graph::{directed_graph::DirectedGraph, edge_id::EdgeId, vertex_id::VertexId},
+        graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
         traversal::traversal_model::TraversalModel,
         units::TimeUnit,
     },
