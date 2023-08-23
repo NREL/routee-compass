@@ -41,13 +41,9 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // build traversal model
         let traversal_start = Local::now();
-        let traversal_params = config
-            .get::<serde_json::Value>(CompassConfigurationField::Traversal.to_str())
-            .map_err(AppError::ConfigError)?;
-        let tm_type_obj = traversal_params.get("type").unwrap();
-        let tm_type = String::from(tm_type_obj.as_str().unwrap());
-        let tm_builder = builder.tm_builders.get(&tm_type).unwrap();
-        let traversal_model = tm_builder.build(&traversal_params).unwrap();
+        let traversal_params =
+            config.get::<serde_json::Value>(CompassConfigurationField::Traversal.to_str())?;
+        let traversal_model = builder.build_traversal_model(&traversal_params)?;
         let traversal_duration = (Local::now() - traversal_start)
             .to_std()
             .map_err(|e| AppError::InternalError(e.to_string()))?;
