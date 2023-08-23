@@ -1,3 +1,5 @@
+use crate::app::compass::compass_configuration_field::CompassConfigurationField;
+
 use super::{
     compass_configuration_error::CompassConfigurationError,
     traversal_model::{
@@ -18,13 +20,26 @@ impl CompassAppBuilder {
     /// traversal model configuration JSON
     pub fn build_traversal_model(
         &self,
-        type_name: &String,
         config: &serde_json::Value,
     ) -> Result<Box<dyn TraversalModel>, CompassConfigurationError> {
+        let tm_type_obj =
+            config
+                .get("type")
+                .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
+                    CompassConfigurationField::Traversal.to_string(),
+                    String::from("type"),
+                ))?;
+        let tm_type: String = tm_type_obj
+            .as_str()
+            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                String::from("type"),
+                String::from("String"),
+            ))?
+            .into();
         self.tm_builders
-            .get(type_name)
+            .get(&tm_type)
             .ok_or(CompassConfigurationError::UnknownModelNameForComponent(
-                type_name.clone(),
+                tm_type.clone(),
                 String::from("traversal"),
             ))
             .and_then(|b| b.build(config))
