@@ -9,8 +9,7 @@ use kdam::BarExt;
 use crate::plugin::{output::OutputPlugin, plugin_error::PluginError};
 
 pub fn build_uuid_plugin_from_file(filename: &String) -> Result<OutputPlugin, PluginError> {
-    let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))
-        .map_err(PluginError::FileReadError)?;
+    let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))?;
 
     let mut pb = Bar::builder()
         .total(count)

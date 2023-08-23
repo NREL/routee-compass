@@ -13,8 +13,7 @@ use kdam::BarExt;
 /// Build a geometry plugin from a file containing a list of linestrings where each row
 /// index represents the edge id of the linestring.
 pub fn build_geometry_plugin_from_file(filename: &String) -> Result<OutputPlugin, PluginError> {
-    let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))
-        .map_err(PluginError::FileReadError)?;
+    let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))?;
 
     let mut pb = Bar::builder()
         .total(count)
