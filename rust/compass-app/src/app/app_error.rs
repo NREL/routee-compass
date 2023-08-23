@@ -23,6 +23,8 @@ pub enum AppError {
     CodecError(#[from] serde_json::Error),
     #[error(transparent)]
     ConfigError(#[from] ConfigError),
+    #[error("Input file {0} missing")]
+    NoInputFile(String),
     #[error(transparent)]
     CompassConfigurationError(#[from] CompassConfigurationError),
     #[error("a ux component caused a failure: {0}")]

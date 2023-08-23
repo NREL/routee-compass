@@ -5,11 +5,16 @@ edge_file = "edges.csv.gz"
 vertex_file = "vertices.csv.gz"
 verbose = true
 
-[search.algorithm.astar]
+[algorithm]
+type = "a*"
 heuristic = "haversine"
 bidirectional = false
 
-[search.traversal_model.distance]
+[traversal]
+type = "distance"
+
+[frontier]
+type = "no_restriction"
 
 [plugin]
 input_plugins = [{ type = "vertex_rtree", vertices_file = "vertices.csv.gz" }]
