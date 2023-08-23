@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::config::compass_app_builder::CompassAppBuilder;
 use crate::{
     app::{
@@ -11,7 +13,7 @@ use crate::{
         },
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
-    plugin::{input::InputPlugin, output::OutputPlugin, plugin_error::PluginError},
+    plugin::{input::input_plugin::InputPlugin, output::OutputPlugin, plugin_error::PluginError},
 };
 use chrono::{Duration, Local};
 use compass_core::model::units::*;
@@ -25,8 +27,36 @@ use itertools::{Either, Itertools};
 
 pub struct CompassApp {
     pub search_app: SearchApp,
-    pub input_plugins: Vec<InputPlugin>,
+    pub input_plugins: Vec<Box<dyn InputPlugin>>,
     pub output_plugins: Vec<OutputPlugin>,
+}
+
+impl TryFrom<&String> for CompassApp {
+    type Error = AppError;
+
+    /// builds a CompassApp from a configuration file. builds all modules
+    /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
+    /// also builds the input and output plugins.
+    /// returns a persistent application that can run user queries.
+    fn try_from(conf_file: &String) -> Result<Self, Self::Error> {
+        let default_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("app")
+            .join("compass")
+            .join("config")
+            .join("config.default.toml");
+        let conf_file = PathBuf::from(conf_file);
+
+        let config = Config::builder()
+            .add_source(config::File::from(default_file))
+            .add_source(config::File::from(conf_file))
+            .build()
+            .map_err(AppError::ConfigError)?;
+        log::info!("Config: {:?}", config);
+        let builder = CompassAppBuilder::default();
+        let compass_app = CompassApp::try_from((&config, &builder))?;
+        return Ok(compass_app);
+    }
 }
 
 impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
@@ -54,8 +84,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // build frontier model
         let frontier_start = Local::now();
-        let frontier_params = config
-            .get::<serde_json::Value>(CompassConfigurationField::Frontier.to_str())?;
+        let frontier_params =
+            config.get::<serde_json::Value>(CompassConfigurationField::Frontier.to_str())?;
         let frontier_model = builder.build_frontier_model(frontier_params)?;
         let frontier_duration = (Local::now() - frontier_start)
             .to_std()
@@ -120,12 +150,11 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // build plugins
         let plugins_start = Local::now();
-        let input_plugins: Vec<InputPlugin> = config
-            .get::<Vec<InputPluginConfig>>(CompassConfigurationField::InputPlugins.to_str())
-            .map_err(AppError::ConfigError)?
-            .iter()
-            .map(InputPlugin::try_from)
-            .collect::<Result<Vec<InputPlugin>, PluginError>>()?;
+        let plugins_config =
+            config.get::<serde_json::Value>(CompassConfigurationField::Plugins.to_str())?;
+
+        let input_plugins = builder.build_input_plugins(plugins_config)?;
+
         let output_plugins: Vec<OutputPlugin> = config
             .get::<Vec<OutputPluginConfig>>(CompassConfigurationField::OutputPlugins.to_str())
             .map_err(AppError::ConfigError)?
@@ -206,12 +235,12 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, AppError> {
 /// helper that applies the input plugins to a query, returning the result or an error if failed
 pub fn apply_input_plugins(
     query: &serde_json::Value,
-    plugins: &Vec<InputPlugin>,
+    plugins: &Vec<Box<dyn InputPlugin>>,
 ) -> Result<serde_json::Value, PluginError> {
     let init_acc: Result<serde_json::Value, PluginError> = Ok(query.clone());
     plugins.iter().fold(init_acc, move |acc, plugin| match acc {
         Err(e) => Err(e),
-        Ok(json) => plugin(&json),
+        Ok(json) => plugin.proccess(&json),
     })
 }
 

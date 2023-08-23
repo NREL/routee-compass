@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::plugin::input::input_json_extensions::InputJsonExtensions;
-use crate::plugin::input::InputPlugin;
+use crate::plugin::input::input_plugin::InputPlugin;
 use crate::plugin::plugin_error::PluginError;
 use compass_core::{
     map::rtree::VertexRTree, model::property::vertex::Vertex, util::fs::read_utils,
@@ -16,31 +16,44 @@ use compass_core::{
 /// # Returns
 ///
 /// * An input plugin that uses an RTree to find the nearest vertex to the origin and destination coordinates.
-pub fn build_rtree_plugin<P>(vertex_file: &P) -> Result<InputPlugin, PluginError>
-where
-    P: AsRef<Path>,
-{
-    let vertices: Vec<Vertex> =
-        read_utils::vec_from_csv(&vertex_file, true).map_err(PluginError::CsvReadError)?;
-    let vertex_rtree = VertexRTree::new(vertices);
-    let rtree_plugin_fn =
-        move |query: &serde_json::Value| -> Result<serde_json::Value, PluginError> {
-            let mut updated = query.clone();
-            let origin_coord = query.get_origin_coordinate()?;
-            let destination_coord = query.get_destination_coordinate()?;
 
-            let origin_vertex = vertex_rtree
-                .nearest_vertex(origin_coord)
-                .ok_or(PluginError::NearestVertexNotFound(origin_coord))?;
+pub struct RTreePlugin {
+    vertex_rtree: VertexRTree,
+}
 
-            let destination_vertex = vertex_rtree
-                .nearest_vertex(destination_coord)
-                .ok_or(PluginError::NearestVertexNotFound(destination_coord))?;
-            updated.add_origin_vertex(origin_vertex.vertex_id)?;
-            updated.add_destination_vertex(destination_vertex.vertex_id)?;
-            Ok(updated)
-        };
-    Ok(Box::new(rtree_plugin_fn))
+impl RTreePlugin {
+    pub fn new(vertices: Vec<Vertex>) -> Self {
+        Self {
+            vertex_rtree: VertexRTree::new(vertices),
+        }
+    }
+    pub fn from_file(vertex_file: &Path) -> Result<Self, PluginError> {
+        let vertices: Vec<Vertex> =
+            read_utils::vec_from_csv(&vertex_file, true).map_err(PluginError::CsvReadError)?;
+        Ok(Self::new(vertices))
+    }
+}
+
+impl InputPlugin for RTreePlugin {
+    fn proccess(&self, input: &serde_json::Value) -> Result<serde_json::Value, PluginError> {
+        let mut updated = input.clone();
+        let origin_coord = input.get_origin_coordinate()?;
+        let destination_coord = input.get_destination_coordinate()?;
+
+        let origin_vertex = self
+            .vertex_rtree
+            .nearest_vertex(origin_coord)
+            .ok_or(PluginError::NearestVertexNotFound(origin_coord))?;
+
+        let destination_vertex = self
+            .vertex_rtree
+            .nearest_vertex(destination_coord)
+            .ok_or(PluginError::NearestVertexNotFound(destination_coord))?;
+        updated.add_origin_vertex(origin_vertex.vertex_id)?;
+        updated.add_destination_vertex(destination_vertex.vertex_id)?;
+        Ok(updated)
+    }
+    
 }
 
 #[cfg(test)]
@@ -70,9 +83,9 @@ mod test {
             .join("test")
             .join("rtree_query.json");
         let query_str = fs::read_to_string(query_filepath).unwrap();
-        let rtree_plugin = build_rtree_plugin(&vertices_filepath).unwrap();
+        let rtree_plugin = RTreePlugin::from_file(&vertices_filepath).unwrap();
         let query: serde_json::Value = serde_json::from_str(&query_str).unwrap();
-        let processed_query = rtree_plugin(&query).unwrap();
+        let processed_query = rtree_plugin.proccess(&query).unwrap();
 
         assert_eq!(
             processed_query,

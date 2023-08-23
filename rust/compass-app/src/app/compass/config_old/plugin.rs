@@ -1,7 +1,9 @@
+use std::path::PathBuf;
+
 use serde::Deserialize;
 
-use crate::plugin::input::rtree::build_rtree_plugin;
-use crate::plugin::input::InputPlugin;
+use crate::plugin::input::input_plugin::InputPlugin;
+use crate::plugin::input::rtree::RTreePlugin;
 use crate::plugin::output::geometry::plugin::build_geometry_plugin_from_file;
 use crate::plugin::output::summary::plugin::build_summary_output_plugin;
 use crate::plugin::output::uuid::plugin::build_uuid_plugin_from_file;
@@ -40,12 +42,16 @@ impl TryFrom<&OutputPluginConfig> for OutputPlugin {
     }
 }
 
-impl TryFrom<&InputPluginConfig> for InputPlugin {
+impl TryFrom<&InputPluginConfig> for Box<dyn InputPlugin> {
     type Error = PluginError;
 
-    fn try_from(conf: &InputPluginConfig) -> Result<InputPlugin, Self::Error> {
+    fn try_from(conf: &InputPluginConfig) -> Result<Box<dyn InputPlugin>, Self::Error> {
         match conf {
-            InputPluginConfig::VertexRTree { vertices_file } => build_rtree_plugin(vertices_file),
+            InputPluginConfig::VertexRTree { vertices_file } => {
+                let path = PathBuf::from(vertices_file);
+                let rtree_plugin = RTreePlugin::from_file(&path)?;
+                Ok(Box::new(rtree_plugin))
+            }
         }
     }
 }
