@@ -4,6 +4,7 @@ use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::model::cost::cost::Cost;
+use crate::model::frontier::frontier_model::{self, FrontierModel};
 use crate::model::graph::edge_id::EdgeId;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
@@ -29,6 +30,7 @@ pub fn run_a_star(
     target: VertexId,
     directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
+    frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>>,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
@@ -46,6 +48,10 @@ pub fn run_a_star(
     let c = cost_estimate_fn
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
+    let f = frontier_model
+        .read()
+        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
+
     let mut frontier: KeyedPriorityQueue<AStarFrontier, Cost> = KeyedPriorityQueue::new();
     let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
@@ -81,7 +87,7 @@ pub fn run_a_star(
                     let e = g
                         .edge_attr(edge_id)
                         .map_err(SearchError::GraphCorrectnessFailure)?;
-                    if !m.valid_frontier(&e, &current.state)? {
+                    if !f.valid_frontier(&e, &current.state)? {
                         continue;
                     }
                     let et =
@@ -136,6 +142,7 @@ pub fn run_a_star_edge_oriented(
     target: EdgeId,
     directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
+    frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
@@ -179,6 +186,7 @@ pub fn run_a_star_edge_oriented(
             target_edge_src_vertex_id,
             directed_graph.clone(),
             traversal_model.clone(),
+            frontier_model.clone(),
             cost_estimate_fn.clone(),
         )?;
 
@@ -305,6 +313,7 @@ fn h_cost(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::frontier::default::no_restriction;
     use crate::model::traversal::default::distance::DistanceModel;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::units::Length;
@@ -402,7 +411,9 @@ mod tests {
         let driver_dg = Arc::new(DriverReadOnlyLock::new(driver_dg_obj));
 
         let dist_tm: Box<dyn TraversalModel> = Box::new(DistanceModel {});
+        let no_restriction: Box<dyn FrontierModel> = Box::new(no_restriction::NoRestriction {});
         let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
+        let driver_fm = Arc::new(DriverReadOnlyLock::new(no_restriction));
         let driver_cf_obj: Box<dyn CostEstimateFunction> = Box::new(TestCost);
         let driver_cf = Arc::new(DriverReadOnlyLock::new(driver_cf_obj));
 
@@ -413,8 +424,17 @@ mod tests {
             .map(|(o, d, _expected)| {
                 let dg_inner = Arc::new(driver_dg.read_only());
                 let tm_inner = Arc::new(driver_tm.read_only());
+                let fm_inner = Arc::new(driver_fm.read_only());
                 let cost_inner = Arc::new(driver_cf.read_only());
-                run_a_star(Direction::Forward, o, d, dg_inner, tm_inner, cost_inner)
+                run_a_star(
+                    Direction::Forward,
+                    o,
+                    d,
+                    dg_inner,
+                    tm_inner,
+                    fm_inner,
+                    cost_inner,
+                )
             })
             .collect();
 

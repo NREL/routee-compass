@@ -52,6 +52,19 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             traversal_duration.hhmmss()
         );
 
+        // build frontier model
+        let frontier_start = Local::now();
+        let frontier_params = config
+            .get::<serde_json::Value>(CompassConfigurationField::Frontier.to_str())?;
+        let frontier_model = builder.build_frontier_model(frontier_params)?;
+        let frontier_duration = (Local::now() - frontier_start)
+            .to_std()
+            .map_err(|e| AppError::InternalError(e.to_string()))?;
+        log::info!(
+            "finished reading frontier model with duration {}",
+            frontier_duration.hhmmss()
+        );
+
         // build graph
         let graph_start = Local::now();
         let graph_conf = &config
@@ -92,8 +105,13 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         };
 
         let search_app_start = Local::now();
-        let search_app: SearchApp =
-            SearchApp::new(graph, traversal_model, Box::new(haversine), Some(2));
+        let search_app: SearchApp = SearchApp::new(
+            graph,
+            traversal_model,
+            frontier_model,
+            Box::new(haversine),
+            Some(2),
+        );
         let search_app_duration = to_std(Local::now() - search_app_start)?;
         log::info!(
             "finished building search app with duration {}",

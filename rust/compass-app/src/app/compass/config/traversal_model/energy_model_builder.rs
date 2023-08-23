@@ -1,7 +1,7 @@
 use crate::app::compass::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::{
     compass_configuration_error::CompassConfigurationError,
-    traversal_model_builder::TraversalModelBuilder,
+    builders::TraversalModelBuilder,
 };
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::TimeUnit;

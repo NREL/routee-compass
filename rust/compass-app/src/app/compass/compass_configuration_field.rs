@@ -3,6 +3,7 @@ use std::fmt::Display;
 #[derive(Debug)]
 pub enum CompassConfigurationField {
     Graph,
+    Frontier,
     Traversal,
     Algorithm,
     InputPlugins,
@@ -14,6 +15,7 @@ impl CompassConfigurationField {
         match self {
             CompassConfigurationField::Graph => "graph",
             CompassConfigurationField::Traversal => "traversal",
+            CompassConfigurationField::Frontier => "frontier",
             CompassConfigurationField::Algorithm => "algorithm",
             CompassConfigurationField::InputPlugins => "plugin.input_plugins",
             CompassConfigurationField::OutputPlugins => "plugin.output_plugins",

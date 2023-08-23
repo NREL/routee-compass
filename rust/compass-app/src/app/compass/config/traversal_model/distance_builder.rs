@@ -3,7 +3,7 @@ use compass_core::model::traversal::traversal_model::TraversalModel;
 
 use crate::app::compass::config::{
     compass_configuration_error::CompassConfigurationError,
-    traversal_model_builder::TraversalModelBuilder,
+    builders::TraversalModelBuilder,
 };
 
 pub struct DistanceBuilder {}

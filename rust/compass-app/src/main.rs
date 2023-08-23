@@ -16,14 +16,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // build CompassApp from config
     let args = CompassAppArgs::parse();
-    let defaul_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let default_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("src")
         .join("app")
         .join("compass")
         .join("config")
         .join("config.default.toml");
-    let conf_file = args.config.unwrap_or(defaul_file);
+    let conf_file = args.config.ok_or(AppError::NoInputFile(
+        "No configuration file specified".to_string(),
+    ))?;
+
     let config = Config::builder()
+        .add_source(config::File::from(default_file))
         .add_source(config::File::from(conf_file))
         .build()
         .map_err(AppError::ConfigError)?;
@@ -32,7 +36,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let compass_app = CompassApp::try_from((&config, &builder))?;
 
     // read user file containing JSON query/queries
-    let query_file = File::open(args.query_file)?;
+    let query_file = File::open(args.query_file.clone()).map_err(|_e| {
+        AppError::NoInputFile(format!(
+            "Could not find query file {}",
+            args.query_file.display()
+        ))
+    })?;
     let reader = BufReader::new(query_file);
     let user_json: serde_json::Value =
         serde_json::from_reader(reader).map_err(AppError::CodecError)?;
