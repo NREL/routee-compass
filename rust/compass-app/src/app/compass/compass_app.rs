@@ -104,13 +104,15 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             output_unit: TimeUnit::Milliseconds,
         };
 
+        // build search app
         let search_app_start = Local::now();
+        let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
         let search_app: SearchApp = SearchApp::new(
             graph,
             traversal_model,
             frontier_model,
             Box::new(haversine),
-            Some(2),
+            Some(parallelism),
         );
         let search_app_duration = to_std(Local::now() - search_app_start)?;
         log::info!(

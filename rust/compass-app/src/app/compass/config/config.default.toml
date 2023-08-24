@@ -1,4 +1,5 @@
 query_timeout_ms = 2000
+parallelism = 2
 
 [graph.tomtom]
 edge_file = "edges.csv.gz"

@@ -8,6 +8,7 @@ pub enum CompassConfigurationField {
     Algorithm,
     InputPlugins,
     OutputPlugins,
+    Parallelism,
 }
 
 impl CompassConfigurationField {
@@ -19,6 +20,7 @@ impl CompassConfigurationField {
             CompassConfigurationField::Algorithm => "algorithm",
             CompassConfigurationField::InputPlugins => "plugin.input_plugins",
             CompassConfigurationField::OutputPlugins => "plugin.output_plugins",
+            CompassConfigurationField::Parallelism => "parallelism",
         }
     }
     pub fn to_string(&self) -> String {
