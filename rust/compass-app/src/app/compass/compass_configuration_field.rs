@@ -9,6 +9,7 @@ pub enum CompassConfigurationField {
     InputPlugins,
     OutputPlugins,
     Parallelism,
+    QueryTimeoutMs,
 }
 
 impl CompassConfigurationField {
@@ -21,6 +22,7 @@ impl CompassConfigurationField {
             CompassConfigurationField::InputPlugins => "plugin.input_plugins",
             CompassConfigurationField::OutputPlugins => "plugin.output_plugins",
             CompassConfigurationField::Parallelism => "parallelism",
+            CompassConfigurationField::QueryTimeoutMs => "query_timeout_ms",
         }
     }
     pub fn to_string(&self) -> String {

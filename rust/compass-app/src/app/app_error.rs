@@ -16,6 +16,8 @@ pub enum AppError {
     #[error(transparent)]
     TraversalModelError(#[from] TraversalModelError),
     #[error(transparent)]
+    TimeoutError(#[from] async_std::future::TimeoutError),
+    #[error(transparent)]
     PluginError(#[from] PluginError),
     #[error(transparent)]
     IOError(#[from] std::io::Error),

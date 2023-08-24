@@ -25,3 +25,4 @@ chrono = "0.4.26"
 config = "0.13.3"
 clap = { version = "4.3.19", features = ["derive"] }
 itertools = { workspace = true }
+async-std = { workspace = true}
