@@ -85,20 +85,17 @@ impl SearchApp {
                 let tm_inner = Arc::new(self.traversal_model.read_only());
                 let fm_inner = Arc::new(self.frontier_model.read_only());
                 let cost_inner = Arc::new(self.a_star_heuristic.read_only());
-                let result = task::block_on(timeout(
-                    Duration::from_millis(self.query_timeout_ms),
-                    async {
-                        run_a_star(
-                            Direction::Forward,
-                            o,
-                            d,
-                            dg_inner,
-                            tm_inner,
-                            fm_inner,
-                            cost_inner,
-                        )
-                    },
-                ));
+                let result = task::block_on(timeout(Duration::from_millis(2000), async {
+                    run_a_star(
+                        Direction::Forward,
+                        o,
+                        d,
+                        dg_inner,
+                        tm_inner,
+                        fm_inner,
+                        cost_inner,
+                    )
+                }));
                 match result {
                     Err(e) => Err(AppError::TimeoutError(e)),
                     Ok(tree_or_error) => {
