@@ -64,79 +64,72 @@ impl SearchApp {
         &self,
         queries: &Vec<serde_json::Value>,
     ) -> Result<Vec<Result<SearchAppResult, AppError>>, AppError> {
-        // let _pool = rayon::ThreadPoolBuilder::new()
-        //     .num_threads(self.parallelism)
-        //     .build()
-        //     .map_err(|e| {
-        //         AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
-        //     })?;
+        let _pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(self.parallelism)
+            .build()
+            .map_err(|e| {
+                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+            })?;
         // execute the route search
         let result: Vec<Result<SearchAppResult, AppError>> = queries
             .clone()
-            .into_iter()
+            .into_par_iter()
             .map(|query| {
-                log::debug!("Query: {}", query);
-                let o = query.get_origin_vertex().map_err(AppError::PluginError)?;
-                let d = query
-                    .get_destination_vertex()
-                    .map_err(AppError::PluginError)?;
-                let search_start_time = Local::now();
-                let dg_inner = Arc::new(self.graph.read_only());
-                let tm_inner = Arc::new(self.traversal_model.read_only());
-                let fm_inner = Arc::new(self.frontier_model.read_only());
-                let cost_inner = Arc::new(self.a_star_heuristic.read_only());
-                let result = task::block_on(timeout(Duration::from_millis(2000), async {
-                    run_a_star(
-                        Direction::Forward,
-                        o,
-                        d,
-                        dg_inner,
-                        tm_inner,
-                        fm_inner,
-                        cost_inner,
-                    )
-                }));
+                let result = task::block_on(timeout(
+                    Duration::from_millis(self.query_timeout_ms),
+                    async {
+                        log::debug!("Query: {}", query);
+                        let o = query.get_origin_vertex().map_err(AppError::PluginError)?;
+                        let d = query
+                            .get_destination_vertex()
+                            .map_err(AppError::PluginError)?;
+                        let search_start_time = Local::now();
+                        let dg_inner = Arc::new(self.graph.read_only());
+                        let tm_inner = Arc::new(self.traversal_model.read_only());
+                        let fm_inner = Arc::new(self.frontier_model.read_only());
+                        let cost_inner = Arc::new(self.a_star_heuristic.read_only());
+                        let lock_end_time = Local::now();
+                        log::debug!(
+                            "Locks Acquired in {:?} miliseconds",
+                            (lock_end_time - search_start_time)
+                                .to_std()
+                                .unwrap_or(time::Duration::ZERO)
+                                .as_millis()
+                        );
+                        run_a_star(
+                            Direction::Forward,
+                            o,
+                            d,
+                            dg_inner,
+                            tm_inner,
+                            fm_inner,
+                            cost_inner,
+                        )
+                        .and_then(|tree| {
+                            let search_end_time = Local::now();
+                            let route_start_time = Local::now();
+                            let route = backtrack(o, d, &tree)?;
+                            let route_end_time = Local::now();
+                            let search_runtime = (search_end_time - search_start_time)
+                                .to_std()
+                                .unwrap_or(time::Duration::ZERO);
+                            let route_runtime = (route_end_time - route_start_time)
+                                .to_std()
+                                .unwrap_or(time::Duration::ZERO);
+                            Ok(SearchAppResult {
+                                route,
+                                tree,
+                                search_runtime,
+                                route_runtime,
+                                total_runtime: search_runtime + route_runtime,
+                            })
+                        })
+                        .map_err(AppError::SearchError)
+                    },
+                ));
                 match result {
                     Err(e) => Err(AppError::TimeoutError(e)),
-                    Ok(tree_or_error) => {
-                        let tree = tree_or_error.map_err(AppError::SearchError)?;
-                        let search_end_time = Local::now();
-                        let search_runtime = (search_end_time - search_start_time)
-                            .to_std()
-                            .unwrap_or(time::Duration::ZERO);
-                        log::debug!(
-                            "finished query for {} -> {} in {:?} milliseconds",
-                            o,
-                            d,
-                            search_runtime.as_millis()
-                        );
-                        let route_start_time = Local::now();
-                        let route_result =
-                            task::block_on(timeout(Duration::from_millis(2000), async {
-                                backtrack(o, d, &tree)
-                            }));
-                        let route = match route_result {
-                            Err(e) => return Err(AppError::TimeoutError(e)),
-                            Ok(r) => r.map_err(AppError::SearchError),
-                        }?;
-                        let route_end_time = Local::now();
-                        let route_runtime = (route_end_time - route_start_time)
-                            .to_std()
-                            .unwrap_or(time::Duration::ZERO);
-                        log::debug!(
-                            "backtracked route for {} -> {} in {:?} milliseconds",
-                            o,
-                            d,
-                            route_runtime.as_millis()
-                        );
-                        Ok(SearchAppResult {
-                            route,
-                            tree,
-                            search_runtime,
-                            route_runtime,
-                            total_runtime: search_runtime + route_runtime,
-                        })
-                    }
+                    Ok(r) => r,
                 }
             })
             .collect();
@@ -162,15 +155,15 @@ impl SearchApp {
             .clone()
             .into_par_iter()
             .map(|(o, d)| {
-                let search_start_time = Local::now();
-                let dg_inner_search = Arc::new(self.graph.read_only());
-                let dg_inner_backtrack = Arc::new(self.graph.read_only());
-                let tm_inner = Arc::new(self.traversal_model.read_only());
-                let fm_inner = Arc::new(self.frontier_model.read_only());
-                let cost_inner = Arc::new(self.a_star_heuristic.read_only());
                 let result = task::block_on(timeout(
                     Duration::from_millis(self.query_timeout_ms),
                     async {
+                        let search_start_time = Local::now();
+                        let dg_inner_search = Arc::new(self.graph.read_only());
+                        let dg_inner_backtrack = Arc::new(self.graph.read_only());
+                        let tm_inner = Arc::new(self.traversal_model.read_only());
+                        let fm_inner = Arc::new(self.frontier_model.read_only());
+                        let cost_inner = Arc::new(self.a_star_heuristic.read_only());
                         run_a_star_edge_oriented(
                             Direction::Forward,
                             o,
@@ -180,30 +173,31 @@ impl SearchApp {
                             fm_inner,
                             cost_inner,
                         )
+                        .and_then(|tree| {
+                            let search_end_time = Local::now();
+                            let route_start_time = Local::now();
+                            let route = backtrack_edges(o, d, &tree, dg_inner_backtrack)?;
+                            let route_end_time = Local::now();
+                            let search_runtime = (search_end_time - search_start_time)
+                                .to_std()
+                                .unwrap_or(time::Duration::ZERO);
+                            let route_runtime = (route_end_time - route_start_time)
+                                .to_std()
+                                .unwrap_or(time::Duration::ZERO);
+                            Ok(SearchAppResult {
+                                route,
+                                tree,
+                                search_runtime,
+                                route_runtime,
+                                total_runtime: search_runtime + route_runtime,
+                            })
+                        })
+                        .map_err(AppError::SearchError)
                     },
                 ));
                 match result {
                     Err(e) => Err(AppError::TimeoutError(e)),
-                    Ok(tree_or_error) => {
-                        let tree = tree_or_error.map_err(AppError::SearchError)?;
-                        let search_end_time = Local::now();
-                        let route_start_time = Local::now();
-                        let route = backtrack_edges(o, d, &tree, dg_inner_backtrack)?;
-                        let route_end_time = Local::now();
-                        let search_runtime = (search_end_time - search_start_time)
-                            .to_std()
-                            .unwrap_or(time::Duration::ZERO);
-                        let route_runtime = (route_end_time - route_start_time)
-                            .to_std()
-                            .unwrap_or(time::Duration::ZERO);
-                        Ok(SearchAppResult {
-                            route,
-                            tree,
-                            search_runtime,
-                            route_runtime,
-                            total_runtime: search_runtime + route_runtime,
-                        })
-                    }
+                    Ok(r) => r,
                 }
             })
             .collect();
