@@ -1,101 +1,31 @@
 use super::search_app_result::SearchAppResult;
-use crate::app::compass::config::compass_app_config::CompassAppConfig;
-use crate::app::compass::config::graph::GraphConfig;
 use crate::{app::app_error::AppError, plugin::input::input_json_extensions::InputJsonExtensions};
 use chrono::Local;
-use compass_core::model::units::Velocity;
 use compass_core::{
     algorithm::search::min_search_tree::{
         a_star::{
             a_star::{backtrack, backtrack_edges, run_a_star, run_a_star_edge_oriented},
-            cost_estimate_function::{CostEstimateFunction, Haversine},
+            cost_estimate_function::CostEstimateFunction,
         },
         direction::Direction,
     },
     model::{
-        graph::{directed_graph::DirectedGraph, edge_id::EdgeId, vertex_id::VertexId},
+        frontier::frontier_model::FrontierModel,
+        graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
         traversal::traversal_model::TraversalModel,
-        units::TimeUnit,
     },
-    util::{
-        duration_extension::DurationExtension,
-        read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
-    },
+    util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
 };
-use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use rayon::prelude::*;
 use std::sync::Arc;
 use std::time;
-use uom::si::velocity::kilometer_per_hour;
 
 pub struct SearchApp {
     graph: Arc<DriverReadOnlyLock<Box<dyn DirectedGraph>>>,
     a_star_heuristic: Arc<DriverReadOnlyLock<Box<dyn CostEstimateFunction>>>,
     traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
+    frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
     pub parallelism: usize,
-}
-
-impl TryFrom<&CompassAppConfig> for SearchApp {
-    type Error = AppError;
-
-    /// builds the core search application.
-    /// currently hard-coded DirectedGraph.
-    /// SearchAlgorithm abstraction is missing, so this is hard-coded
-    /// to a* as well.
-    fn try_from(config: &CompassAppConfig) -> Result<Self, Self::Error> {
-        let graph_start = Local::now();
-        let graph = match &config.graph {
-            GraphConfig::TomTom {
-                edge_file,
-                vertex_file,
-                n_edges,
-                n_vertices,
-                verbose,
-            } => {
-                let conf = TomTomGraphConfig {
-                    edge_list_csv: edge_file.clone(),
-                    vertex_list_csv: vertex_file.clone(),
-                    n_edges: n_edges.clone(),
-                    n_vertices: n_vertices.clone(),
-                    verbose: verbose.clone(),
-                };
-                let graph = TomTomGraph::try_from(conf)
-                    .map_err(|e| AppError::InvalidInput(e.to_string()))?;
-                graph
-            }
-        };
-        let graph_duration = (Local::now() - graph_start)
-            .to_std()
-            .map_err(|e| AppError::InternalError(e.to_string()))?;
-        log::info!(
-            "finished reading graph with duration {}",
-            graph_duration.hhmmss()
-        );
-
-        let haversine = Haversine {
-            travel_speed: Velocity::new::<kilometer_per_hour>(40.0),
-            output_unit: TimeUnit::Milliseconds,
-        };
-
-        let traversal_start = Local::now();
-        let traversal_model: Box<dyn TraversalModel> =
-            config.search.traversal_model.clone().try_into()?;
-        let traversal_duration = (Local::now() - traversal_start)
-            .to_std()
-            .map_err(|e| AppError::InternalError(e.to_string()))?;
-        log::info!(
-            "finished reading traversal model with duration {}",
-            traversal_duration.hhmmss()
-        );
-        let search_app: SearchApp = SearchApp::new(
-            Box::new(graph),
-            traversal_model,
-            Box::new(haversine),
-            Some(2),
-        );
-
-        return Ok(search_app);
-    }
 }
 
 impl SearchApp {
@@ -104,17 +34,20 @@ impl SearchApp {
     pub fn new(
         graph: Box<dyn DirectedGraph>,
         traversal_model: Box<dyn TraversalModel>,
+        frontier_model: Box<dyn FrontierModel>,
         a_star_heuristic: Box<dyn CostEstimateFunction>,
         parallelism: Option<usize>,
     ) -> Self {
         let g = Arc::new(DriverReadOnlyLock::new(graph));
         let h = Arc::new(DriverReadOnlyLock::new(a_star_heuristic));
         let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
+        let f = Arc::new(DriverReadOnlyLock::new(frontier_model));
         let parallelism_or_default = parallelism.unwrap_or(rayon::current_num_threads());
         return SearchApp {
             graph: g,
             a_star_heuristic: h,
             traversal_model: t,
+            frontier_model: f,
             parallelism: parallelism_or_default,
         };
     }
@@ -145,28 +78,37 @@ impl SearchApp {
                 let search_start_time = Local::now();
                 let dg_inner = Arc::new(self.graph.read_only());
                 let tm_inner = Arc::new(self.traversal_model.read_only());
+                let fm_inner = Arc::new(self.frontier_model.read_only());
                 let cost_inner = Arc::new(self.a_star_heuristic.read_only());
-                run_a_star(Direction::Forward, o, d, dg_inner, tm_inner, cost_inner)
-                    .and_then(|tree| {
-                        let search_end_time = Local::now();
-                        let route_start_time = Local::now();
-                        let route = backtrack(o, d, &tree)?;
-                        let route_end_time = Local::now();
-                        let search_runtime = (search_end_time - search_start_time)
-                            .to_std()
-                            .unwrap_or(time::Duration::ZERO);
-                        let route_runtime = (route_end_time - route_start_time)
-                            .to_std()
-                            .unwrap_or(time::Duration::ZERO);
-                        Ok(SearchAppResult {
-                            route,
-                            tree,
-                            search_runtime,
-                            route_runtime,
-                            total_runtime: search_runtime + route_runtime,
-                        })
+                run_a_star(
+                    Direction::Forward,
+                    o,
+                    d,
+                    dg_inner,
+                    tm_inner,
+                    fm_inner,
+                    cost_inner,
+                )
+                .and_then(|tree| {
+                    let search_end_time = Local::now();
+                    let route_start_time = Local::now();
+                    let route = backtrack(o, d, &tree)?;
+                    let route_end_time = Local::now();
+                    let search_runtime = (search_end_time - search_start_time)
+                        .to_std()
+                        .unwrap_or(time::Duration::ZERO);
+                    let route_runtime = (route_end_time - route_start_time)
+                        .to_std()
+                        .unwrap_or(time::Duration::ZERO);
+                    Ok(SearchAppResult {
+                        route,
+                        tree,
+                        search_runtime,
+                        route_runtime,
+                        total_runtime: search_runtime + route_runtime,
                     })
-                    .map_err(AppError::SearchError)
+                })
+                .map_err(AppError::SearchError)
             })
             .collect();
 
@@ -195,6 +137,7 @@ impl SearchApp {
                 let dg_inner_search = Arc::new(self.graph.read_only());
                 let dg_inner_backtrack = Arc::new(self.graph.read_only());
                 let tm_inner = Arc::new(self.traversal_model.read_only());
+                let fm_inner = Arc::new(self.frontier_model.read_only());
                 let cost_inner = Arc::new(self.a_star_heuristic.read_only());
                 run_a_star_edge_oriented(
                     Direction::Forward,
@@ -202,6 +145,7 @@ impl SearchApp {
                     d,
                     dg_inner_search,
                     tm_inner,
+                    fm_inner,
                     cost_inner,
                 )
                 .and_then(|tree| {

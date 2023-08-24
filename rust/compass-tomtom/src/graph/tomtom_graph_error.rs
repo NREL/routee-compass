@@ -4,7 +4,7 @@ use compass_core::model::graph::vertex_id::VertexId;
 pub enum TomTomGraphError {
     #[error("{filename} file source was empty")]
     EmptyFileSource { filename: String },
-    #[error("error in test setup")]
+    #[error("failure reading TomTom graph: {source}")]
     IOError {
         #[from]
         source: std::io::Error,

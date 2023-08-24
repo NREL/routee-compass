@@ -1,11 +1,8 @@
 use super::access_result::AccessResult;
 use super::traversal_model_error::TraversalModelError;
+use crate::model::property::{edge::Edge, vertex::Vertex};
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_result::TraversalResult;
-use crate::{
-    algorithm::search::min_search_tree::dijkstra::edge_frontier::EdgeFrontier,
-    model::property::{edge::Edge, vertex::Vertex},
-};
 
 pub trait TraversalModel: Send + Sync {
     fn initial_state(&self) -> TraversalState;
@@ -26,9 +23,6 @@ pub trait TraversalModel: Send + Sync {
         state: &TraversalState,
     ) -> Result<AccessResult, TraversalModelError> {
         Ok(AccessResult::no_cost(state))
-    }
-    fn valid_frontier(&self, edge: &Edge, state: &TraversalState) -> Result<bool, TraversalModelError> {
-        Ok(true)
     }
     fn terminate_search(&self, state: &TraversalState) -> Result<bool, TraversalModelError> {
         Ok(false)
