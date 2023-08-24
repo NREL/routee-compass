@@ -64,16 +64,16 @@ impl SearchApp {
         &self,
         queries: &Vec<serde_json::Value>,
     ) -> Result<Vec<Result<SearchAppResult, AppError>>, AppError> {
-        let _pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(self.parallelism)
-            .build()
-            .map_err(|e| {
-                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
-            })?;
+        // let _pool = rayon::ThreadPoolBuilder::new()
+        //     .num_threads(self.parallelism)
+        //     .build()
+        //     .map_err(|e| {
+        //         AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+        //     })?;
         // execute the route search
         let result: Vec<Result<SearchAppResult, AppError>> = queries
             .clone()
-            .into_par_iter()
+            .into_iter()
             .map(|query| {
                 log::debug!("Query: {}", query);
                 let o = query.get_origin_vertex().map_err(AppError::PluginError)?;
