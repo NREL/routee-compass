@@ -101,13 +101,7 @@ impl SearchApp {
                     Ok(tree_or_error) => {
                         let tree = tree_or_error.map_err(AppError::SearchError)?;
                         let search_end_time = Local::now();
-                        let route_start_time = Local::now();
-                        let route = backtrack(o, d, &tree)?;
-                        let route_end_time = Local::now();
                         let search_runtime = (search_end_time - search_start_time)
-                            .to_std()
-                            .unwrap_or(time::Duration::ZERO);
-                        let route_runtime = (route_end_time - route_start_time)
                             .to_std()
                             .unwrap_or(time::Duration::ZERO);
                         log::debug!(
@@ -115,6 +109,25 @@ impl SearchApp {
                             o,
                             d,
                             search_runtime.as_millis()
+                        );
+                        let route_start_time = Local::now();
+                        let route_result =
+                            task::block_on(timeout(Duration::from_millis(2000), async {
+                                backtrack(o, d, &tree)
+                            }));
+                        let route = match route_result {
+                            Err(e) => return Err(AppError::TimeoutError(e)),
+                            Ok(r) => r.map_err(AppError::SearchError),
+                        }?;
+                        let route_end_time = Local::now();
+                        let route_runtime = (route_end_time - route_start_time)
+                            .to_std()
+                            .unwrap_or(time::Duration::ZERO);
+                        log::debug!(
+                            "backtracked route for {} -> {} in {:?} milliseconds",
+                            o,
+                            d,
+                            route_runtime.as_millis()
                         );
                         Ok(SearchAppResult {
                             route,
