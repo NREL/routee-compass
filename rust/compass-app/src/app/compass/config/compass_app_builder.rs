@@ -115,13 +115,25 @@ impl CompassAppBuilder {
         )?;
         let mut plugins: Vec<Box<dyn InputPlugin>> = Vec::new();
         for plugin_json in input_plugins {
-            let plugin_type = plugin_json
+            let plugin_type_obj =
+                plugin_json
+                    .as_object()
+                    .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                        String::from("type"),
+                        String::from("Json Object"),
+                    ))?;
+            let plugin_type: String = plugin_type_obj
                 .get("type")
                 .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
                     CompassConfigurationField::InputPlugins.to_string(),
                     String::from("type"),
                 ))?
-                .to_string();
+                .as_str()
+                .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                    String::from("type"),
+                    String::from("String"),
+                ))?
+                .into();
             let builder = self.input_plugin_builders.get(&plugin_type).ok_or(
                 CompassConfigurationError::UnknownModelNameForComponent(
                     plugin_type.clone(),
@@ -152,13 +164,25 @@ impl CompassAppBuilder {
         )?;
         let mut plugins: Vec<Box<dyn OutputPlugin>> = Vec::new();
         for plugin_json in output_plugins {
-            let plugin_type = plugin_json
+            let plugin_json_obj =
+                plugin_json
+                    .as_object()
+                    .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                        String::from("output_plugins"),
+                        String::from("Json Object"),
+                    ))?;
+            let plugin_type: String = plugin_json_obj
                 .get("type")
                 .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
                     CompassConfigurationField::OutputPlugins.to_string(),
                     String::from("type"),
                 ))?
-                .to_string();
+                .as_str()
+                .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                    String::from("type"),
+                    String::from("String"),
+                ))?
+                .into();
             let builder = self.output_plugin_builders.get(&plugin_type).ok_or(
                 CompassConfigurationError::UnknownModelNameForComponent(
                     plugin_type.clone(),

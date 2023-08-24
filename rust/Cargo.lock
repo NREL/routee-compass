@@ -282,6 +282,7 @@ version = "0.1.0"
 dependencies = [
  "compass-app",
  "pyo3",
+ "serde_json",
 ]
 
 [[package]]

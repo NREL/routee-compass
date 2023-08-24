@@ -30,21 +30,20 @@ pub struct CompassApp {
     pub output_plugins: Vec<Box<dyn OutputPlugin>>,
 }
 
-impl TryFrom<&String> for CompassApp {
+impl TryFrom<PathBuf> for CompassApp {
     type Error = AppError;
 
     /// builds a CompassApp from a configuration file. builds all modules
     /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
     /// also builds the input and output plugins.
     /// returns a persistent application that can run user queries.
-    fn try_from(conf_file: &String) -> Result<Self, Self::Error> {
+    fn try_from(conf_file: PathBuf) -> Result<Self, Self::Error> {
         let default_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("app")
             .join("compass")
             .join("config")
             .join("config.default.toml");
-        let conf_file = PathBuf::from(conf_file);
 
         let config = Config::builder()
             .add_source(config::File::from(default_file))

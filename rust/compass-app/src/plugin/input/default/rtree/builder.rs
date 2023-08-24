@@ -16,7 +16,7 @@ impl InputPluginBuilder for VertexRTreeBuilder {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
-        let vertex_filename_key = String::from("vertex_filename");
+        let vertex_filename_key = String::from("vertices_file");
         let vertex_filename = parameters
             .get(&vertex_filename_key)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(

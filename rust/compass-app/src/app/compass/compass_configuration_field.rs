@@ -18,7 +18,7 @@ impl CompassConfigurationField {
             CompassConfigurationField::Traversal => "traversal",
             CompassConfigurationField::Frontier => "frontier",
             CompassConfigurationField::Algorithm => "algorithm",
-            CompassConfigurationField::Plugins => "plugins",
+            CompassConfigurationField::Plugins => "plugin",
             CompassConfigurationField::InputPlugins => "input_plugins",
             CompassConfigurationField::OutputPlugins => "output_plugins",
         }
