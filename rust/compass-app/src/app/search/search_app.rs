@@ -107,15 +107,23 @@ impl SearchApp {
                         )
                         .and_then(|tree| {
                             let search_end_time = Local::now();
-                            let route_start_time = Local::now();
-                            let route = backtrack(o, d, &tree)?;
-                            let route_end_time = Local::now();
                             let search_runtime = (search_end_time - search_start_time)
                                 .to_std()
                                 .unwrap_or(time::Duration::ZERO);
+                            log::debug!(
+                                "Search Completed in {:?} miliseconds",
+                                search_runtime.as_millis()
+                            );
+                            let route_start_time = Local::now();
+                            let route = backtrack(o, d, &tree)?;
+                            let route_end_time = Local::now();
                             let route_runtime = (route_end_time - route_start_time)
                                 .to_std()
                                 .unwrap_or(time::Duration::ZERO);
+                            log::debug!(
+                                "Route Computed in {:?} miliseconds",
+                                route_runtime.as_millis()
+                            );
                             Ok(SearchAppResult {
                                 route,
                                 tree,
