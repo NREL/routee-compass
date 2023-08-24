@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=0.15,<0.16"]
+requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
@@ -20,12 +20,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 keywords = ["eco routing"]
-dependencies = [
-    "pandas",
-    "geopandas",
-    "sqlalchemy",
-    "psycopg2-binary"
-]
+dependencies = []
 [project.optional-dependencies]
 dev = ["black", "pytest", "maturin"]
 
@@ -37,7 +32,7 @@ Homepage = "https://github.nrel.gov/MBAP/routee-compass"
 line-length = 100
 
 [tool.maturin]
-python-source="python"
+python-source = "python"
 features = ["pyo3/extension-module"]
-module-name = "nrel.routee.compass.compass_prototype"
-manifest-path = "rust/compass-prototype/Cargo.toml"
+module-name = "nrel.routee.compass.compass_app_py"
+manifest-path = "rust/compass-app-py/Cargo.toml"

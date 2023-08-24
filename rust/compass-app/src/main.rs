@@ -2,38 +2,23 @@ use clap::Parser;
 use compass_app::app::app_error::AppError;
 use compass_app::app::compass::compass_app::CompassApp;
 use compass_app::app::compass::compass_json_extensions::CompassJsonExtensions;
-use compass_app::app::compass::config::compass_app_builder::CompassAppBuilder;
 use compass_app::app::compass::config_old::compass_app_args::CompassAppArgs;
-use config::Config;
 use log::info;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use std::path::PathBuf;
 
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
 
     // build CompassApp from config
     let args = CompassAppArgs::parse();
-    let default_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
-        .join("app")
-        .join("compass")
-        .join("config")
-        .join("config.default.toml");
+
     let conf_file = args.config.ok_or(AppError::NoInputFile(
         "No configuration file specified".to_string(),
     ))?;
 
-    let config = Config::builder()
-        .add_source(config::File::from(default_file))
-        .add_source(config::File::from(conf_file))
-        .build()
-        .map_err(AppError::ConfigError)?;
-    info!("Config: {:?}", config);
-    let builder = CompassAppBuilder::default();
-    let compass_app = CompassApp::try_from((&config, &builder))?;
+    let compass_app = CompassApp::try_from(conf_file)?;
 
     // read user file containing JSON query/queries
     let query_file = File::open(args.query_file.clone()).map_err(|_e| {

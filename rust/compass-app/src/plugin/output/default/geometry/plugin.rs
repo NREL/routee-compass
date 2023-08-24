@@ -1,6 +1,8 @@
 use super::json_extensions::GeometryJsonExtensions;
 use super::utils::{concat_linestrings, parse_linestring};
-use crate::plugin::output::OutputPlugin;
+use crate::app::compass::config::builders::OutputPluginBuilder;
+use crate::app::compass::config::compass_configuration_error::CompassConfigurationError;
+use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
 use compass_core::algorithm::search::edge_traversal::EdgeTraversal;
 use compass_core::algorithm::search::search_error::SearchError;
@@ -10,26 +12,36 @@ use geo::LineString;
 use kdam::Bar;
 use kdam::BarExt;
 
-/// Build a geometry plugin from a file containing a list of linestrings where each row
-/// index represents the edge id of the linestring.
-pub fn build_geometry_plugin_from_file(filename: &String) -> Result<OutputPlugin, PluginError> {
-    let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))?;
+pub struct GeometryPlugin {
+    geoms: Vec<LineString<f64>>,
+}
 
-    let mut pb = Bar::builder()
-        .total(count)
-        .animation("fillup")
-        .desc("geometry file")
-        .build()
-        .map_err(PluginError::InternalError)?;
+impl GeometryPlugin {
+    pub fn from_file(filename: &String) -> Result<GeometryPlugin, PluginError> {
+        let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))?;
 
-    let cb = Box::new(|| {
-        pb.update(1);
-    });
+        let mut pb = Bar::builder()
+            .total(count)
+            .animation("fillup")
+            .desc("geometry file")
+            .build()
+            .map_err(PluginError::InternalError)?;
 
-    let geoms = read_raw_file(&filename, parse_linestring, Some(cb))?;
-    let geometry_lookup_fn = move |output: &serde_json::Value,
-                                   search_result: Result<&Vec<EdgeTraversal>, SearchError>|
-          -> Result<serde_json::Value, PluginError> {
+        let cb = Box::new(|| {
+            pb.update(1);
+        });
+
+        let geoms = read_raw_file(&filename, parse_linestring, Some(cb))?;
+        Ok(GeometryPlugin { geoms })
+    }
+}
+
+impl OutputPlugin for GeometryPlugin {
+    fn proccess(
+        &self,
+        output: &serde_json::Value,
+        search_result: Result<&Vec<EdgeTraversal>, SearchError>,
+    ) -> Result<serde_json::Value, PluginError> {
         let mut updated_output = output.clone();
         let edge_ids = search_result?
             .iter()
@@ -39,7 +51,8 @@ pub fn build_geometry_plugin_from_file(filename: &String) -> Result<OutputPlugin
         let final_linestring = edge_ids
             .iter()
             .map(|eid| {
-                let geom = geoms
+                let geom = self
+                    .geoms
                     .get(eid.0 as usize)
                     .ok_or(PluginError::GeometryMissing(eid.0));
                 geom
@@ -48,9 +61,9 @@ pub fn build_geometry_plugin_from_file(filename: &String) -> Result<OutputPlugin
         let geometry = concat_linestrings(final_linestring);
         updated_output.add_geometry(geometry)?;
         Ok(updated_output)
-    };
-    Ok(Box::new(geometry_lookup_fn))
+    }
 }
+
 
 #[cfg(test)]
 mod tests {
@@ -88,6 +101,7 @@ mod tests {
             .join("src")
             .join("plugin")
             .join("output")
+            .join("default")
             .join("test")
             .join("geometry.txt")
     }
@@ -147,9 +161,9 @@ mod tests {
             },
         ];
         let filename = mock_geometry_file().to_str().unwrap().to_string();
-        let geom_plugin = build_geometry_plugin_from_file(&filename).unwrap();
+        let geom_plugin = GeometryPlugin::from_file(&filename).unwrap();
 
-        let result = geom_plugin(&output_result, Ok(&route)).unwrap();
+        let result = geom_plugin.proccess(&output_result, Ok(&route)).unwrap();
         let geometry_wkt = result.get_geometry_wkt().unwrap();
         assert_eq!(geometry_wkt, expected_geometry);
     }
