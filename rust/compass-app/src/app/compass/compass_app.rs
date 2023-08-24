@@ -5,15 +5,14 @@ use crate::{
     app::{
         app_error::AppError,
         compass::{
-            compass_configuration_field::CompassConfigurationField,
-            config_old::{
-                graph::GraphConfig,
-                plugin::{InputPluginConfig, OutputPluginConfig},
-            },
+            compass_configuration_field::CompassConfigurationField, config_old::graph::GraphConfig,
         },
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
-    plugin::{input::input_plugin::InputPlugin, output::OutputPlugin, plugin_error::PluginError},
+    plugin::{
+        input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin,
+        plugin_error::PluginError,
+    },
 };
 use chrono::{Duration, Local};
 use compass_core::model::units::*;
@@ -28,7 +27,7 @@ use itertools::{Either, Itertools};
 pub struct CompassApp {
     pub search_app: SearchApp,
     pub input_plugins: Vec<Box<dyn InputPlugin>>,
-    pub output_plugins: Vec<OutputPlugin>,
+    pub output_plugins: Vec<Box<dyn OutputPlugin>>,
 }
 
 impl TryFrom<&String> for CompassApp {
@@ -153,14 +152,9 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let plugins_config =
             config.get::<serde_json::Value>(CompassConfigurationField::Plugins.to_str())?;
 
-        let input_plugins = builder.build_input_plugins(plugins_config)?;
+        let input_plugins = builder.build_input_plugins(plugins_config.clone())?;
+        let output_plugins = builder.build_output_plugins(plugins_config.clone())?;
 
-        let output_plugins: Vec<OutputPlugin> = config
-            .get::<Vec<OutputPluginConfig>>(CompassConfigurationField::OutputPlugins.to_str())
-            .map_err(AppError::ConfigError)?
-            .iter()
-            .map(OutputPlugin::try_from)
-            .collect::<Result<Vec<OutputPlugin>, PluginError>>()?;
         let plugins_duration = to_std(Local::now() - plugins_start)?;
         log::info!(
             "finished loading plugins with duration {}",
@@ -250,7 +244,7 @@ pub fn apply_input_plugins(
 pub fn apply_output_processing(
     response_data: (&serde_json::Value, Result<SearchAppResult, AppError>),
     search_app: &SearchApp,
-    output_plugins: &Vec<OutputPlugin>,
+    output_plugins: &Vec<Box<dyn OutputPlugin>>,
 ) -> serde_json::Value {
     let (req, res) = response_data;
     match res {
@@ -311,7 +305,7 @@ pub fn apply_output_processing(
                 .iter()
                 .fold(init_acc, move |acc, plugin| match acc {
                     Err(e) => Err(e),
-                    Ok(json) => plugin(&json, Ok(&route)),
+                    Ok(json) => plugin.proccess(&json, Ok(&route)),
                 })
                 .map_err(AppError::PluginError);
             match json_result {

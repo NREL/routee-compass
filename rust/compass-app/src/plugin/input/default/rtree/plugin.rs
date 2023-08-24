@@ -73,6 +73,7 @@ mod test {
             .join("src")
             .join("plugin")
             .join("input")
+            .join("default")
             .join("test")
             .join("rtree_vertices.csv");
 
@@ -80,6 +81,7 @@ mod test {
             .join("src")
             .join("plugin")
             .join("input")
+            .join("default")
             .join("test")
             .join("rtree_query.json");
         let query_str = fs::read_to_string(query_filepath).unwrap();

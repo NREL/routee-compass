@@ -4,8 +4,10 @@ use crate::{
     app::compass::config::{
         builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
     },
-    plugin::input::{input_plugin::InputPlugin, rtree::RTreePlugin},
+    plugin::input::input_plugin::InputPlugin,
 };
+
+use super::plugin::RTreePlugin;
 
 pub struct VertexRTreeBuilder {}
 
