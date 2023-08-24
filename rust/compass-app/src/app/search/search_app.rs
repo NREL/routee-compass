@@ -100,6 +100,12 @@ impl SearchApp {
                     let route_runtime = (route_end_time - route_start_time)
                         .to_std()
                         .unwrap_or(time::Duration::ZERO);
+                    log::debug!(
+                        "finished query for {} -> {} in {:?} seconds",
+                        o,
+                        d,
+                        search_runtime.as_secs()
+                    );
                     Ok(SearchAppResult {
                         route,
                         tree,
