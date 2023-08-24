@@ -6,18 +6,26 @@ pub trait CompassJsonExtensions {
 }
 
 impl CompassJsonExtensions for serde_json::Value {
-    /// attempts to grab a vector of queries from the Queries field. if there is none,
-    /// then treat the entire input as a query and return it wrapped in a vector.
+    /// attempts to read queries from the user in the three following ways:
+    ///   1. top-level of JSON is an array -> return it directly
+    ///   2. top-level of JSON is object without a "queries" field -> wrap it in an array and return it
+    ///   3. top-level of JSON is object with a "queries" field ->  if the value at "queries" is an array, return it
     fn get_queries(&self) -> Result<Vec<serde_json::Value>, AppError> {
-        match self.get(CompassInputField::Queries.to_str()) {
-            None => Ok(vec![self.to_owned()]),
-            Some(value) => match value {
-                serde_json::Value::Array(vec) => Ok(vec.to_owned()),
-                _ => {
-                    let msg = String::from("user JSON argument must be an object or an array");
-                    Err(AppError::InvalidInput(msg))
-                }
+        match self {
+            serde_json::Value::Array(queries) => Ok(queries.to_owned()),
+            serde_json::Value::Object(obj) => match obj.get(CompassInputField::Queries.to_str()) {
+                None => Ok(vec![self.to_owned()]),
+                Some(value) => match value {
+                    serde_json::Value::Array(vec) => Ok(vec.to_owned()),
+                    _ => {
+                        let msg = String::from("user JSON argument must be an object or an array");
+                        Err(AppError::InvalidInput(msg))
+                    }
+                },
             },
+            _ => Err(AppError::InvalidInput(String::from(
+                "expected object, object with queries, or array input",
+            ))),
         }
     }
 }
