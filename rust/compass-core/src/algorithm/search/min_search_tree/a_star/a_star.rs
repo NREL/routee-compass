@@ -73,6 +73,7 @@ pub fn run_a_star(
     loop {
         let elapsed = now.elapsed();
         if elapsed.as_millis() > 2000 {
+            log::error!("search timed out after {}ms", elapsed.as_millis());
             return Err(SearchError::InternalSearchError(format!(
                 "search timed out after {}ms",
                 elapsed.as_millis()
