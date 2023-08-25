@@ -1,6 +1,5 @@
-use uom::si;
-use uom::si::f64::Velocity;
-
+use crate::model::units::Velocity;
+use crate::util::geo::haversine::coord_distance_km;
 use crate::{
     model::{
         cost::cost::Cost,
@@ -15,10 +14,13 @@ use crate::{
     },
     util::fs::read_utils,
 };
+use ordered_float::OrderedFloat;
+use uom::si;
 
 pub struct VelocityLookupModel {
     velocities: Vec<Velocity>,
     output_unit: TimeUnit,
+    max_velocity: Velocity,
 }
 
 impl VelocityLookupModel {
@@ -45,11 +47,24 @@ impl VelocityLookupModel {
             read_utils::read_raw_file(lookup_table_filename, op, None).map_err(|e| {
                 TraversalModelError::FileReadError(lookup_table_filename.clone(), e.to_string())
             })?;
-        let model = VelocityLookupModel {
-            velocities,
-            output_unit,
+        return match velocities.iter().map(|v| OrderedFloat(v.value)).max() {
+            None => {
+                let count = velocities.len();
+                let msg = format!(
+                    "could not find max speed from speed table with {} entries",
+                    count
+                );
+                Err(TraversalModelError::BuildError(msg))
+            }
+            Some(max_velocity) => {
+                let model = VelocityLookupModel {
+                    velocities,
+                    output_unit,
+                    max_velocity: Velocity::new::<si::velocity::kilometer_per_hour>(max_velocity.0),
+                };
+                Ok(model)
+            }
         };
-        Ok(model)
     }
 }
 
@@ -59,9 +74,9 @@ impl TraversalModel for VelocityLookupModel {
     }
     fn traversal_cost(
         &self,
-        src: &Vertex,
+        _src: &Vertex,
         edge: &Edge,
-        dst: &Vertex,
+        _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
         let ff_vel = self.velocities.get(edge.edge_id.0 as usize).ok_or(
@@ -72,17 +87,32 @@ impl TraversalModel for VelocityLookupModel {
             ),
         )?;
         let time = edge.distance.clone() / ff_vel.clone();
-        let time: f64 = match self.output_unit {
+        let time_output: f64 = match self.output_unit {
             TimeUnit::Seconds => time.get::<si::time::second>().into(),
             TimeUnit::Milliseconds => time.get::<si::time::millisecond>().into(),
         };
         let mut s = state.clone();
-        s[0] = s[0] + StateVar(time);
+        s[0] = s[0] + StateVar(time_output);
         let result = TraversalResult {
-            total_cost: Cost::from(time),
+            total_cost: Cost::from(time_output),
             updated_state: s,
         };
         Ok(result)
+    }
+    fn cost_estimate(
+        &self,
+        src: &Vertex,
+        dst: &Vertex,
+        _state: &TraversalState,
+    ) -> Result<Cost, TraversalModelError> {
+        let distance = coord_distance_km(src.coordinate, dst.coordinate)
+            .map_err(TraversalModelError::NumericError)?;
+        let time = distance / self.max_velocity;
+        let time_output: f64 = match self.output_unit {
+            TimeUnit::Seconds => time.get::<si::time::second>().into(),
+            TimeUnit::Milliseconds => time.get::<si::time::millisecond>().into(),
+        };
+        Ok(Cost::from(time_output))
     }
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
         let time = state[0].0;

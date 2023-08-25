@@ -3,11 +3,12 @@ use crate::model::{
     cost::cost::Cost,
     property::{edge::Edge, vertex::Vertex},
     traversal::{
-        state::{traversal_state::TraversalState, state_variable::StateVar},
-        traversal_model_error::TraversalModelError,
+        state::{state_variable::StateVar, traversal_state::TraversalState},
         traversal_model::TraversalModel,
+        traversal_model_error::TraversalModelError,
     },
 };
+use crate::util::geo::haversine::coord_distance_km;
 use uom::si;
 
 /// A simple traversal model that uses the edge distance as the cost of traversal.
@@ -33,11 +34,20 @@ impl TraversalModel for DistanceModel {
         };
         Ok(result)
     }
+    fn cost_estimate(
+        &self,
+        src: &Vertex,
+        dst: &Vertex,
+        state: &TraversalState,
+    ) -> Result<Cost, TraversalModelError> {
+        return coord_distance_km(src.coordinate, dst.coordinate)
+            .map(|d| Cost::from(d.value))
+            .map_err(TraversalModelError::NumericError);
+    }
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
         let total_distance_meters = state[0].0;
         serde_json::json!({
             "distance_meters": total_distance_meters,
         })
-        
     }
 }

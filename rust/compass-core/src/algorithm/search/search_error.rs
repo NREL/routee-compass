@@ -8,8 +8,8 @@ use crate::model::{
 pub enum SearchError {
     #[error("distance heuristic can only be provided when there is a target")]
     DistanceHeuristicWithNoTarget,
-    #[error("expected graph objects were not present")]
-    GraphCorrectnessFailure(#[from] GraphError),
+    #[error(transparent)]
+    GraphError(#[from] GraphError),
     #[error("failure applying the traversal model in search")]
     TraversalModelFailure(#[from] TraversalModelError),
     #[error("failure applying the frontier model in search")]
