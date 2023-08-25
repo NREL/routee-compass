@@ -28,6 +28,7 @@ impl UUIDOutputPlugin {
         });
 
         let uuids = read_raw_file(&filename, |_idx, row| Ok(row), Some(cb))?;
+        print!("\n");
         Ok(UUIDOutputPlugin { uuids })
     }
 }

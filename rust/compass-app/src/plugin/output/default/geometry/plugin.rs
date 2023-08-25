@@ -30,7 +30,7 @@ impl GeometryPlugin {
         let cb = Box::new(|| {
             pb.update(1);
         });
-
+        print!("\n");
         let geoms = read_raw_file(&filename, parse_linestring, Some(cb))?;
         Ok(GeometryPlugin { geoms })
     }
@@ -63,7 +63,6 @@ impl OutputPlugin for GeometryPlugin {
         Ok(updated_output)
     }
 }
-
 
 #[cfg(test)]
 mod tests {
