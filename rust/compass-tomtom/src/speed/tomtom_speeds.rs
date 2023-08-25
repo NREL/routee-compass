@@ -3,8 +3,8 @@ use super::weekday::Weekday;
 use compass_core::model::cost::cost::Cost;
 use compass_core::model::property::edge::Edge;
 use compass_core::model::property::vertex::Vertex;
-use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::state::state_variable::StateVar;
+use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::model::traversal::traversal_result::TraversalResult;
@@ -26,6 +26,7 @@ impl TraversalModel for TomTomSpeedLookup {
         let init_vec = vec![days, weekday, ms, ms];
         init_vec
     }
+
     fn traversal_cost(
         &self,
         src: &Vertex,
@@ -56,6 +57,15 @@ impl TraversalModel for TomTomSpeedLookup {
             "total_time": time,
             "units": time_units,
         })
+    }
+
+    fn cost_estimate(
+        &self,
+        src: &Vertex,
+        dst: &Vertex,
+        state: &TraversalState,
+    ) -> Result<Cost, TraversalModelError> {
+        todo!("not yet implemented")
     }
 }
 impl TomTomSpeedLookup {

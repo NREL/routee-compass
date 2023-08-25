@@ -26,13 +26,11 @@ impl TraversalModel for RouteERandomForestModel {
     }
     fn cost_estimate(
         &self,
-        _src: Vertex,
-        _dst: Vertex,
+        _src: &Vertex,
+        _dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        Err(TraversalModelError::InternalError(String::from(
-            "not yet implemented",
-        )))
+        todo!("not yet implemented")
     }
     fn traversal_cost(
         &self,

@@ -16,8 +16,8 @@ pub trait TraversalModel: Send + Sync {
     ) -> Result<TraversalResult, TraversalModelError>;
     fn cost_estimate(
         &self,
-        src: Vertex,
-        dst: Vertex,
+        src: &Vertex,
+        dst: &Vertex,
         state: &TraversalState,
     ) -> Result<Cost, TraversalModelError>;
     fn access_cost(

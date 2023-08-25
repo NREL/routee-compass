@@ -74,9 +74,9 @@ impl TraversalModel for VelocityLookupModel {
     }
     fn traversal_cost(
         &self,
-        src: &Vertex,
+        _src: &Vertex,
         edge: &Edge,
-        dst: &Vertex,
+        _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
         let ff_vel = self.velocities.get(edge.edge_id.0 as usize).ok_or(
@@ -101,8 +101,8 @@ impl TraversalModel for VelocityLookupModel {
     }
     fn cost_estimate(
         &self,
-        src: Vertex,
-        dst: Vertex,
+        src: &Vertex,
+        dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
         let distance = coord_distance_km(src.coordinate, dst.coordinate)

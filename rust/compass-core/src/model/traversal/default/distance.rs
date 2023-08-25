@@ -36,8 +36,8 @@ impl TraversalModel for DistanceModel {
     }
     fn cost_estimate(
         &self,
-        src: Vertex,
-        dst: Vertex,
+        src: &Vertex,
+        dst: &Vertex,
         state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
         return coord_distance_km(src.coordinate, dst.coordinate)
