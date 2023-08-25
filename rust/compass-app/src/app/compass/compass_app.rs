@@ -15,11 +15,7 @@ use crate::{
     },
 };
 use chrono::{Duration, Local};
-use compass_core::model::units::*;
-use compass_core::{
-    algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine,
-    model::cost::cost::Cost, util::duration_extension::DurationExtension,
-};
+use compass_core::{model::cost::cost::Cost, util::duration_extension::DurationExtension};
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use config::Config;
 use itertools::{Either, Itertools};
@@ -126,12 +122,6 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             graph_duration.hhmmss()
         );
 
-        // build algorithm
-        let haversine = Haversine {
-            travel_speed: Velocity::new::<uom::si::velocity::kilometer_per_hour>(40.0),
-            output_unit: TimeUnit::Milliseconds,
-        };
-
         // build search app
         let search_app_start = Local::now();
         let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
@@ -141,7 +131,6 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             graph,
             traversal_model,
             frontier_model,
-            Box::new(haversine),
             Some(parallelism),
             Some(query_timeout_ms),
         );
