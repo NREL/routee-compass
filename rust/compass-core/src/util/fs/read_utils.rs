@@ -1,21 +1,82 @@
+use crate::util::io_utils;
+
 use super::fs_utils;
 use csv::{Reader, ReaderBuilder};
 use flate2::read::GzDecoder;
 use kdam::Bar;
 use kdam::BarExt;
+use std::io::ErrorKind;
 use std::{
     fs::File,
     io::{self, BufRead, BufReader, Read},
     path::Path,
 };
 
+pub fn read_raw_file_pb<F, T>(
+    filepath: &F,
+    row_op: impl Fn(usize, String) -> Result<T, io::Error> + Copy + Clone,
+    message: String,
+    animation: String,
+) -> Result<Vec<T>, io::Error>
+where
+    F: AsRef<Path>,
+{
+    let count = fs_utils::line_count(filepath.clone(), fs_utils::is_gzip(&filepath))?;
+
+    let op = Box::new(move |cb| read_raw_file(filepath, row_op, Some(cb)));
+
+    let result = io_utils::with_progress_bar(
+        op,
+        Box::new(|s: String| std::io::Error::new(ErrorKind::Other, s)),
+        count,
+        message,
+        animation,
+    )?;
+    return Ok(result);
+}
+
+/// reads a csv file into a vector of matching size. provides a progress bar for the user.
+pub fn vec_from_csv_pb<F, T>(
+    filepath: &F,
+    has_headers: bool,
+    message: String,
+    animation: String,
+) -> Result<Vec<T>, csv::Error>
+where
+    F: AsRef<Path>,
+    T: serde::de::DeserializeOwned + 'static,
+{
+    let count = fs_utils::line_count(filepath.clone(), fs_utils::is_gzip(&filepath))?;
+
+    let op = Box::new(move |mut cb: Box<dyn FnMut()>| {
+        let mut builder: Vec<T> = Vec::with_capacity(count);
+        let iterator = iterator_from_csv(filepath, has_headers, None)?;
+        for row in iterator {
+            let t = row?;
+            builder.push(t);
+            cb();
+        }
+        Ok(builder)
+    });
+
+    let result = io_utils::with_progress_bar(
+        op,
+        Box::new(|s: String| csv::Error::from(std::io::Error::new(ErrorKind::Other, s))),
+        count,
+        message,
+        animation,
+    )?;
+    return Ok(result);
+}
+
 /// reads from a CSV into an iterator of T records.
 /// building the iterator may fail with an io::Error.
 /// each row hasn't yet been decoded so it is provided in a Result<T, csv::Error>
 ///
-pub fn iterator_from_csv<F, T>(
+pub fn iterator_from_csv<'a, F, T>(
     filepath: &F,
     has_headers: bool,
+    row_callback: Option<Box<dyn FnMut() + 'a>>,
 ) -> Result<Box<dyn Iterator<Item = Result<T, csv::Error>>>, io::Error>
 where
     F: AsRef<Path>,
@@ -42,7 +103,7 @@ where
     T: serde::de::DeserializeOwned + 'static,
 {
     let mut result: Vec<T> = vec![];
-    let iter = iterator_from_csv(filepath, has_headers)?;
+    let iter = iterator_from_csv(filepath, has_headers, None)?;
     for row in iter {
         let t = row?;
         result.push(t);
