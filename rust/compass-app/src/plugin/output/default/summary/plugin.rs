@@ -6,14 +6,18 @@ use compass_core::{
 };
 use serde_json;
 
-use crate::plugin::output::OutputPlugin;
+use crate::plugin::output::output_plugin::OutputPlugin;
 
 use super::json_extensions::SummaryJsonExtensions;
 
-pub fn build_summary_output_plugin() -> Result<OutputPlugin, PluginError> {
-    let summary_plugin = move |output: &serde_json::Value,
-                               search_result: Result<&Vec<EdgeTraversal>, SearchError>|
-          -> Result<serde_json::Value, PluginError> {
+pub struct SummaryOutputPlugin {}
+
+impl OutputPlugin for SummaryOutputPlugin {
+    fn proccess(
+        &self,
+        output: &serde_json::Value,
+        search_result: Result<&Vec<EdgeTraversal>, SearchError>,
+    ) -> Result<serde_json::Value, PluginError> {
         let mut updated_output = output.clone();
         let route = search_result?;
         let cost = route
@@ -22,8 +26,7 @@ pub fn build_summary_output_plugin() -> Result<OutputPlugin, PluginError> {
             .sum::<Cost>();
         updated_output.add_cost(cost)?;
         Ok(updated_output)
-    };
-    Ok(Box::new(summary_plugin))
+    }
 }
 
 #[cfg(test)]
@@ -56,8 +59,8 @@ mod tests {
                 result_state: vec![StateVar(0.0)],
             },
         ];
-        let summary_plugin = build_summary_output_plugin().unwrap();
-        let updated_output = summary_plugin(&output_result, Ok(&route)).unwrap();
+        let summary_plugin = SummaryOutputPlugin{};
+        let updated_output = summary_plugin.proccess(&output_result, Ok(&route)).unwrap();
         let cost: f64 = updated_output.get_cost().unwrap().into();
         assert_eq!(cost, 6.0);
     }

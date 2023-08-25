@@ -1,7 +1,22 @@
-use crate::app::compass::compass_configuration_field::CompassConfigurationField;
+use crate::{
+    app::compass::compass_configuration_field::CompassConfigurationField,
+    plugin::{
+        input::{default::rtree::builder::VertexRTreeBuilder, input_plugin::InputPlugin},
+        output::{
+            default::{
+                geometry::builder::GeometryPluginBuilder,
+                summary::builder::SummaryOutputPluginBuilder,
+                uuid::builder::UUIDOutputPluginBuilder,
+            },
+            output_plugin::OutputPlugin,
+        },
+    },
+};
 
 use super::{
-    builders::{FrontierModelBuilder, TraversalModelBuilder},
+    builders::{
+        FrontierModelBuilder, InputPluginBuilder, OutputPluginBuilder, TraversalModelBuilder,
+    },
     compass_configuration_error::CompassConfigurationError,
     frontier_model::{
         no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
@@ -12,14 +27,15 @@ use super::{
     },
 };
 use compass_core::model::{
-    frontier::{default::no_restriction::NoRestriction, frontier_model::FrontierModel},
-    traversal::traversal_model::TraversalModel,
+    frontier::frontier_model::FrontierModel, traversal::traversal_model::TraversalModel,
 };
 use std::collections::HashMap;
 
 pub struct CompassAppBuilder {
     pub tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>>,
     pub frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>>,
+    pub input_plugin_builders: HashMap<String, Box<dyn InputPluginBuilder>>,
+    pub output_plugin_builders: HashMap<String, Box<dyn OutputPluginBuilder>>,
 }
 
 impl CompassAppBuilder {
@@ -81,6 +97,104 @@ impl CompassAppBuilder {
             .and_then(|b| b.build(&config))
     }
 
+    pub fn build_input_plugins(
+        &self,
+        config: serde_json::Value,
+    ) -> Result<Vec<Box<dyn InputPlugin>>, CompassConfigurationError> {
+        let input_plugins_obj = config.get("input_plugins").ok_or(
+            CompassConfigurationError::ExpectedFieldForComponent(
+                CompassConfigurationField::InputPlugins.to_string(),
+                String::from("input_plugins"),
+            ),
+        )?;
+        let input_plugins = input_plugins_obj.as_array().ok_or(
+            CompassConfigurationError::ExpectedFieldWithType(
+                String::from("input_plugins"),
+                String::from("Array"),
+            ),
+        )?;
+        let mut plugins: Vec<Box<dyn InputPlugin>> = Vec::new();
+        for plugin_json in input_plugins {
+            let plugin_type_obj =
+                plugin_json
+                    .as_object()
+                    .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                        String::from("type"),
+                        String::from("Json Object"),
+                    ))?;
+            let plugin_type: String = plugin_type_obj
+                .get("type")
+                .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
+                    CompassConfigurationField::InputPlugins.to_string(),
+                    String::from("type"),
+                ))?
+                .as_str()
+                .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                    String::from("type"),
+                    String::from("String"),
+                ))?
+                .into();
+            let builder = self.input_plugin_builders.get(&plugin_type).ok_or(
+                CompassConfigurationError::UnknownModelNameForComponent(
+                    plugin_type.clone(),
+                    String::from("Input Plugin"),
+                ),
+            )?;
+            let input_plugin = builder.build(plugin_json)?;
+            plugins.push(input_plugin);
+        }
+        return Ok(plugins);
+    }
+
+    pub fn build_output_plugins(
+        &self,
+        config: serde_json::Value,
+    ) -> Result<Vec<Box<dyn OutputPlugin>>, CompassConfigurationError> {
+        let output_plugins_obj = config.get("output_plugins").ok_or(
+            CompassConfigurationError::ExpectedFieldForComponent(
+                CompassConfigurationField::OutputPlugins.to_string(),
+                String::from("output_plugins"),
+            ),
+        )?;
+        let output_plugins = output_plugins_obj.as_array().ok_or(
+            CompassConfigurationError::ExpectedFieldWithType(
+                String::from("output_plugins"),
+                String::from("Array"),
+            ),
+        )?;
+        let mut plugins: Vec<Box<dyn OutputPlugin>> = Vec::new();
+        for plugin_json in output_plugins {
+            let plugin_json_obj =
+                plugin_json
+                    .as_object()
+                    .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                        String::from("output_plugins"),
+                        String::from("Json Object"),
+                    ))?;
+            let plugin_type: String = plugin_json_obj
+                .get("type")
+                .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
+                    CompassConfigurationField::OutputPlugins.to_string(),
+                    String::from("type"),
+                ))?
+                .as_str()
+                .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                    String::from("type"),
+                    String::from("String"),
+                ))?
+                .into();
+            let builder = self.output_plugin_builders.get(&plugin_type).ok_or(
+                CompassConfigurationError::UnknownModelNameForComponent(
+                    plugin_type.clone(),
+                    String::from("Output Plugin"),
+                ),
+            )?;
+            let output_plugin = builder.build(plugin_json)?;
+            plugins.push(output_plugin);
+        }
+        return Ok(plugins);
+    }
+
     /// builds the default builder which includes all defined components
     pub fn default() -> CompassAppBuilder {
         // Traversal model builders
@@ -101,9 +215,25 @@ impl CompassAppBuilder {
             (String::from("road_class"), road_class),
         ]);
 
-        return CompassAppBuilder {
+        // Input plugin builders
+        let vertex_tree: Box<dyn InputPluginBuilder> = Box::new(VertexRTreeBuilder {});
+        let input_builders = HashMap::from([(String::from("vertex_rtree"), vertex_tree)]);
+
+        // Output plugin builders
+        let geom: Box<dyn OutputPluginBuilder> = Box::new(GeometryPluginBuilder {});
+        let summary: Box<dyn OutputPluginBuilder> = Box::new(SummaryOutputPluginBuilder {});
+        let uuid: Box<dyn OutputPluginBuilder> = Box::new(UUIDOutputPluginBuilder {});
+        let output_builders = HashMap::from([
+            (String::from("geometry"), geom),
+            (String::from("summary"), summary),
+            (String::from("uuid"), uuid),
+        ]);
+
+        CompassAppBuilder {
             tm_builders: tms,
             frontier_builders: fms,
-        };
+            input_plugin_builders: input_builders,
+            output_plugin_builders: output_builders,
+        }
     }
 }

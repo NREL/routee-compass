@@ -1,5 +1,7 @@
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 
+use crate::plugin::plugin_error::PluginError;
+
 #[derive(thiserror::Error, Debug)]
 pub enum CompassConfigurationError {
     #[error("expected field {0} for component {1} provided by configuration")]
@@ -12,4 +14,6 @@ pub enum CompassConfigurationError {
     SerdeDeserializationError(#[from] serde_json::Error),
     #[error(transparent)]
     TraversalModelError(#[from] TraversalModelError),
+    #[error(transparent)]
+    PluginError(#[from] PluginError),
 }

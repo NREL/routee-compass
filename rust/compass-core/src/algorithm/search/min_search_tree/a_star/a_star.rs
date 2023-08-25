@@ -1,11 +1,11 @@
 use super::a_star_frontier::AStarFrontier;
-use super::cost_estimate_function::CostEstimateFunction;
 use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::model::cost::cost::Cost;
-use crate::model::frontier::frontier_model::{self, FrontierModel};
+use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::graph::edge_id::EdgeId;
+use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{
@@ -32,7 +32,6 @@ pub fn run_a_star(
     directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
-    cost_estimate_fn: Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>>,
     timeout_duration: Duration,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
@@ -47,9 +46,6 @@ pub fn run_a_star(
     let m = traversal_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let c = cost_estimate_fn
-        .read()
-        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let f = frontier_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
@@ -60,12 +56,14 @@ pub fn run_a_star(
 
     // setup initial search state
     traversal_costs.insert(source, Cost::ZERO);
+    let initial_state = m.initial_state();
     let origin = AStarFrontier {
         vertex_id: source,
         prev_edge_id: None,
-        state: m.initial_state(),
+        state: initial_state.clone(),
     };
-    let origin_cost = h_cost(source, target, &c, &g)?;
+
+    let origin_cost = h_cost(source, target, &initial_state, &g, &m)?;
     frontier.push(origin, -origin_cost);
 
     let now = Instant::now();
@@ -92,19 +90,17 @@ pub fn run_a_star(
             Some((current, _)) => {
                 let neighbor_triplets = g
                     .incident_triplets(current.vertex_id, direction)
-                    .map_err(SearchError::GraphCorrectnessFailure)?;
+                    .map_err(SearchError::GraphError)?;
 
                 for (src_id, edge_id, dst_id) in neighbor_triplets {
                     // first make sure we have a valid edge
-                    let e = g
-                        .edge_attr(edge_id)
-                        .map_err(SearchError::GraphCorrectnessFailure)?;
+                    let e = g.edge_attr(edge_id).map_err(SearchError::GraphError)?;
                     if !f.valid_frontier(&e, &current.state)? {
                         continue;
                     }
                     let et =
                         EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
-                    let dst_h_cost = h_cost(dst_id, target, &c, &g)?;
+                    let dst_h_cost = h_cost(dst_id, target, &current.state, &g, &m)?;
                     let traversal_cost = traversal_costs
                         .get(&src_id)
                         .unwrap_or(&Cost::INFINITY)
@@ -155,7 +151,6 @@ pub fn run_a_star_edge_oriented(
     directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
-    cost_estimate_fn: Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>>,
     timeout_duration: Duration,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
@@ -200,7 +195,6 @@ pub fn run_a_star_edge_oriented(
             directed_graph.clone(),
             traversal_model.clone(),
             frontier_model.clone(),
-            cost_estimate_fn.clone(),
             timeout_duration,
         )?;
 
@@ -300,28 +294,24 @@ pub fn backtrack_edges(
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let o_v = g_inner
         .src_vertex(source_id)
-        .map_err(SearchError::GraphCorrectnessFailure)?;
+        .map_err(SearchError::GraphError)?;
     let d_v = g_inner
         .dst_vertex(target_id)
-        .map_err(SearchError::GraphCorrectnessFailure)?;
+        .map_err(SearchError::GraphError)?;
     backtrack(o_v, d_v, solution)
 }
 
-/// implements the a* heuristic function based on the provided cost estimate function
-/// and graph. estimates travel costs between two vertices in the graph.
-fn h_cost(
-    vertex_id: VertexId,
-    target_id: VertexId,
-    c: &RwLockReadGuard<Box<dyn CostEstimateFunction>>,
+pub fn h_cost(
+    src: VertexId,
+    dst: VertexId,
+    state: &TraversalState,
     g: &RwLockReadGuard<Box<dyn DirectedGraph>>,
+    m: &RwLockReadGuard<Box<dyn TraversalModel>>,
 ) -> Result<Cost, SearchError> {
-    let src_v = g
-        .vertex_attr(vertex_id)
-        .map_err(SearchError::GraphCorrectnessFailure)?;
-    let dst_v = g
-        .vertex_attr(target_id)
-        .map_err(SearchError::GraphCorrectnessFailure)?;
-    c.cost(src_v, dst_v)
+    let src_vertex = g.vertex_attr(src)?;
+    let dst_vertex = g.vertex_attr(dst)?;
+    let cost_estimate = m.cost_estimate(&src_vertex, &dst_vertex, &state)?;
+    return Ok(cost_estimate);
 }
 
 #[cfg(test)]
@@ -332,19 +322,9 @@ mod tests {
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::units::Length;
     use crate::test::mocks::TestDG;
-    use crate::{
-        model::{graph::edge_id::EdgeId, property::vertex::Vertex},
-        util::read_only_lock::DriverReadOnlyLock,
-    };
+    use crate::{model::graph::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
     use uom::si::length::centimeter;
-
-    struct TestCost;
-    impl CostEstimateFunction for TestCost {
-        fn cost(&self, _src: Vertex, _dst: Vertex) -> Result<Cost, SearchError> {
-            Ok(Cost::from(0.0))
-        }
-    }
 
     #[test]
     fn test_e2e_queries() {
@@ -428,8 +408,6 @@ mod tests {
         let no_restriction: Box<dyn FrontierModel> = Box::new(no_restriction::NoRestriction {});
         let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
         let driver_fm = Arc::new(DriverReadOnlyLock::new(no_restriction));
-        let driver_cf_obj: Box<dyn CostEstimateFunction> = Box::new(TestCost);
-        let driver_cf = Arc::new(DriverReadOnlyLock::new(driver_cf_obj));
 
         // execute the route search
         let result: Vec<Result<MinSearchTree, SearchError>> = queries
@@ -439,7 +417,6 @@ mod tests {
                 let dg_inner = Arc::new(driver_dg.read_only());
                 let tm_inner = Arc::new(driver_tm.read_only());
                 let fm_inner = Arc::new(driver_fm.read_only());
-                let cost_inner = Arc::new(driver_cf.read_only());
                 run_a_star(
                     Direction::Forward,
                     o,
@@ -447,7 +424,6 @@ mod tests {
                     dg_inner,
                     tm_inner,
                     fm_inner,
-                    cost_inner,
                     Duration::from_secs(2),
                 )
             })

@@ -1,5 +1,5 @@
 use crate::app::app_error::AppError;
-use crate::plugin::output::geometry::utils::parse_linestring;
+use crate::plugin::output::default::geometry::utils::parse_linestring;
 use compass_core::util::fs::{fs_utils, read_utils};
 use geo::LineString;
 use kdam::Bar;
