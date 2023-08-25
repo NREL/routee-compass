@@ -16,7 +16,7 @@ use keyed_priority_queue::KeyedPriorityQueue;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::RwLockReadGuard;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 type MinSearchTree = HashMap<VertexId, SearchTreeBranch>;
 
@@ -33,6 +33,7 @@ pub fn run_a_star(
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>>,
+    timeout_duration: Duration,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
         let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
@@ -72,7 +73,7 @@ pub fn run_a_star(
     // run search loop until we reach the destination, or fail if the set is ever empty
     loop {
         let elapsed = now.elapsed();
-        if elapsed.as_millis() > 2000 {
+        if elapsed > timeout_duration {
             log::error!("search timed out after {}ms", elapsed.as_millis());
             return Err(SearchError::InternalSearchError(format!(
                 "search timed out after {}ms",
@@ -155,6 +156,7 @@ pub fn run_a_star_edge_oriented(
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     cost_estimate_fn: Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>>,
+    timeout_duration: Duration,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
@@ -199,6 +201,7 @@ pub fn run_a_star_edge_oriented(
             traversal_model.clone(),
             frontier_model.clone(),
             cost_estimate_fn.clone(),
+            timeout_duration,
         )?;
 
         if tree.is_empty() {
@@ -445,6 +448,7 @@ mod tests {
                     tm_inner,
                     fm_inner,
                     cost_inner,
+                    Duration::from_secs(2),
                 )
             })
             .collect();

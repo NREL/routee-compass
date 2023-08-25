@@ -17,8 +17,8 @@ use compass_core::{
     util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
 };
 use rayon::prelude::*;
-use std::sync::Arc;
 use std::time;
+use std::{sync::Arc, time::Duration};
 
 pub struct SearchApp {
     graph: Arc<DriverReadOnlyLock<Box<dyn DirectedGraph>>>,
@@ -92,6 +92,7 @@ impl SearchApp {
                     tm_inner,
                     fm_inner,
                     cost_inner,
+                    Duration::from_millis(self.query_timeout_ms),
                 )
                 .and_then(|tree| {
                     let search_end_time = Local::now();
@@ -159,6 +160,7 @@ impl SearchApp {
                     tm_inner,
                     fm_inner,
                     cost_inner,
+                    Duration::from_millis(self.query_timeout_ms),
                 )
                 .and_then(|tree| {
                     let search_end_time = Local::now();
