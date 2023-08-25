@@ -35,4 +35,6 @@ pub enum AppError {
     MissingInputField(CompassInputField),
     #[error("error decoding input: {0}")]
     InvalidInput(String),
+    #[error("error in termination condition: {0}")]
+    TerminationConditionError(String),
 }

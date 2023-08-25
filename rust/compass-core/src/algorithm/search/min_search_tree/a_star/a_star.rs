@@ -16,6 +16,7 @@ use keyed_priority_queue::KeyedPriorityQueue;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::RwLockReadGuard;
+use std::time::Instant;
 
 type MinSearchTree = HashMap<VertexId, SearchTreeBranch>;
 
@@ -66,8 +67,17 @@ pub fn run_a_star(
     let origin_cost = h_cost(source, target, &c, &g)?;
     frontier.push(origin, -origin_cost);
 
+    let now = Instant::now();
+
     // run search loop until we reach the destination, or fail if the set is ever empty
     loop {
+        let elapsed = now.elapsed();
+        if elapsed.as_millis() > 2000 {
+            return Err(SearchError::InternalSearchError(format!(
+                "search timed out after {}ms",
+                elapsed.as_millis()
+            )));
+        }
         match frontier.pop() {
             None => return Err(SearchError::NoPathExists(source, target)),
             Some((current, _)) if current.vertex_id == target => break,

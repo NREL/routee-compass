@@ -84,14 +84,6 @@ impl SearchApp {
                 let tm_inner = Arc::new(self.traversal_model.read_only());
                 let fm_inner = Arc::new(self.frontier_model.read_only());
                 let cost_inner = Arc::new(self.a_star_heuristic.read_only());
-                let lock_end_time = Local::now();
-                log::debug!(
-                    "Locks Acquired in {:?} miliseconds",
-                    (lock_end_time - search_start_time)
-                        .to_std()
-                        .unwrap_or(time::Duration::ZERO)
-                        .as_millis()
-                );
                 run_a_star(
                     Direction::Forward,
                     o,
