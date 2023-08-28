@@ -44,7 +44,7 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
 
         let geoms =
             read_utils::read_raw_file(&conf.edge_file, op, Some(cb)).map_err(AppError::IOError)?;
-
+        print!("\n");
         let app = GeomApp { geoms };
         return Ok(app);
     }
