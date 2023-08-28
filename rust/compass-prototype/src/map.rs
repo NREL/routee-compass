@@ -6,12 +6,12 @@ use rayon::prelude::*;
 
 use crate::{
     algorithm::{
-        build_restriction_function, compute_link_speed_kph, compute_link_time_seconds,
+        build_restriction_function, compute_link_speed_kph,
         dijkstra_shortest_path,
     },
     graph::{Graph, Link, Node},
     powertrain::{
-        build_routee_cost_function_with_tods, build_routee_cost_function_with_cost,
+        build_routee_cost_function_with_cost, build_routee_cost_function_with_tods,
         compute_energy_over_path, VehicleParameters, ROUTEE_SCALE_FACTOR,
     },
     time_of_day_speed::{DayOfWeek, SecondOfDay, TimeOfDaySpeeds},
@@ -66,8 +66,8 @@ impl Default for SearchInput {
             vehicle_parameters: None,
             routee_model_path: None,
             stop_cost_gallons_diesel: 0.0,
-            stop_cost_time_seconds: 10,
-            traffic_light_cost_time_seconds: 5,
+            stop_cost_time_seconds: 0,
+            traffic_light_cost_time_seconds: 0,
         }
     }
 }

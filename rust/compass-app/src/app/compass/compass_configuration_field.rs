@@ -9,6 +9,8 @@ pub enum CompassConfigurationField {
     Plugins,
     InputPlugins,
     OutputPlugins,
+    Parallelism,
+    QueryTimeoutMs,
 }
 
 impl CompassConfigurationField {
@@ -18,6 +20,8 @@ impl CompassConfigurationField {
             CompassConfigurationField::Traversal => "traversal",
             CompassConfigurationField::Frontier => "frontier",
             CompassConfigurationField::Algorithm => "algorithm",
+            CompassConfigurationField::Parallelism => "parallelism",
+            CompassConfigurationField::QueryTimeoutMs => "query_timeout_ms",
             CompassConfigurationField::Plugins => "plugin",
             CompassConfigurationField::InputPlugins => "input_plugins",
             CompassConfigurationField::OutputPlugins => "output_plugins",
