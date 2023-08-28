@@ -30,8 +30,8 @@ impl GeometryPlugin {
         let cb = Box::new(|| {
             pb.update(1);
         });
-        print!("\n");
         let geoms = read_raw_file(&filename, parse_linestring, Some(cb))?;
+        print!("\n");
         Ok(GeometryPlugin { geoms })
     }
 }
