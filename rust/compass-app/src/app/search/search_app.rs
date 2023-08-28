@@ -3,10 +3,7 @@ use crate::{app::app_error::AppError, plugin::input::input_json_extensions::Inpu
 use chrono::Local;
 use compass_core::{
     algorithm::search::min_search_tree::{
-        a_star::{
-            a_star::{backtrack, backtrack_edges, run_a_star, run_a_star_edge_oriented},
-            cost_estimate_function::CostEstimateFunction,
-        },
+        a_star::a_star::{backtrack, backtrack_edges, run_a_star, run_a_star_edge_oriented},
         direction::Direction,
     },
     model::{
@@ -22,7 +19,6 @@ use std::time;
 
 pub struct SearchApp {
     graph: Arc<DriverReadOnlyLock<Box<dyn DirectedGraph>>>,
-    a_star_heuristic: Arc<DriverReadOnlyLock<Box<dyn CostEstimateFunction>>>,
     traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
     pub parallelism: usize,
@@ -35,17 +31,14 @@ impl SearchApp {
         graph: Box<dyn DirectedGraph>,
         traversal_model: Box<dyn TraversalModel>,
         frontier_model: Box<dyn FrontierModel>,
-        a_star_heuristic: Box<dyn CostEstimateFunction>,
         parallelism: Option<usize>,
     ) -> Self {
         let g = Arc::new(DriverReadOnlyLock::new(graph));
-        let h = Arc::new(DriverReadOnlyLock::new(a_star_heuristic));
         let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
         let f = Arc::new(DriverReadOnlyLock::new(frontier_model));
         let parallelism_or_default = parallelism.unwrap_or(rayon::current_num_threads());
         return SearchApp {
             graph: g,
-            a_star_heuristic: h,
             traversal_model: t,
             frontier_model: f,
             parallelism: parallelism_or_default,
@@ -79,36 +72,27 @@ impl SearchApp {
                 let dg_inner = Arc::new(self.graph.read_only());
                 let tm_inner = Arc::new(self.traversal_model.read_only());
                 let fm_inner = Arc::new(self.frontier_model.read_only());
-                let cost_inner = Arc::new(self.a_star_heuristic.read_only());
-                run_a_star(
-                    Direction::Forward,
-                    o,
-                    d,
-                    dg_inner,
-                    tm_inner,
-                    fm_inner,
-                    cost_inner,
-                )
-                .and_then(|tree| {
-                    let search_end_time = Local::now();
-                    let route_start_time = Local::now();
-                    let route = backtrack(o, d, &tree)?;
-                    let route_end_time = Local::now();
-                    let search_runtime = (search_end_time - search_start_time)
-                        .to_std()
-                        .unwrap_or(time::Duration::ZERO);
-                    let route_runtime = (route_end_time - route_start_time)
-                        .to_std()
-                        .unwrap_or(time::Duration::ZERO);
-                    Ok(SearchAppResult {
-                        route,
-                        tree,
-                        search_runtime,
-                        route_runtime,
-                        total_runtime: search_runtime + route_runtime,
+                run_a_star(Direction::Forward, o, d, dg_inner, tm_inner, fm_inner)
+                    .and_then(|tree| {
+                        let search_end_time = Local::now();
+                        let route_start_time = Local::now();
+                        let route = backtrack(o, d, &tree)?;
+                        let route_end_time = Local::now();
+                        let search_runtime = (search_end_time - search_start_time)
+                            .to_std()
+                            .unwrap_or(time::Duration::ZERO);
+                        let route_runtime = (route_end_time - route_start_time)
+                            .to_std()
+                            .unwrap_or(time::Duration::ZERO);
+                        Ok(SearchAppResult {
+                            route,
+                            tree,
+                            search_runtime,
+                            route_runtime,
+                            total_runtime: search_runtime + route_runtime,
+                        })
                     })
-                })
-                .map_err(AppError::SearchError)
+                    .map_err(AppError::SearchError)
             })
             .collect();
 
@@ -138,7 +122,6 @@ impl SearchApp {
                 let dg_inner_backtrack = Arc::new(self.graph.read_only());
                 let tm_inner = Arc::new(self.traversal_model.read_only());
                 let fm_inner = Arc::new(self.frontier_model.read_only());
-                let cost_inner = Arc::new(self.a_star_heuristic.read_only());
                 run_a_star_edge_oriented(
                     Direction::Forward,
                     o,
@@ -146,7 +129,6 @@ impl SearchApp {
                     dg_inner_search,
                     tm_inner,
                     fm_inner,
-                    cost_inner,
                 )
                 .and_then(|tree| {
                     let search_end_time = Local::now();
@@ -200,19 +182,5 @@ impl SearchApp {
         &self,
     ) -> Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>> {
         Arc::new(self.traversal_model.read_only())
-    }
-
-    /// helper function for accessing the CostEstimateFunction
-    ///
-    /// example:
-    ///
-    /// let search_app: SearchApp = ...;
-    /// let reference = search_app.get_a_star_heuristic_reference();
-    /// let est_fn = reference.read();
-    /// // do things with CostEstimateFunction
-    pub fn get_a_star_heuristic_reference(
-        &self,
-    ) -> Arc<ExecutorReadOnlyLock<Box<dyn CostEstimateFunction>>> {
-        Arc::new(self.a_star_heuristic.read_only())
     }
 }

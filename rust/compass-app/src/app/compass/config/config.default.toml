@@ -7,7 +7,6 @@ verbose = true
 
 [algorithm]
 type = "a*"
-heuristic = "haversine"
 bidirectional = false
 
 [traversal]

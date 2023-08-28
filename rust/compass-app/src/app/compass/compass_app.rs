@@ -16,10 +16,7 @@ use crate::{
 };
 use chrono::{Duration, Local};
 use compass_core::model::units::*;
-use compass_core::{
-    algorithm::search::min_search_tree::a_star::cost_estimate_function::Haversine,
-    model::cost::cost::Cost, util::duration_extension::DurationExtension,
-};
+use compass_core::{model::cost::cost::Cost, util::duration_extension::DurationExtension};
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use config::Config;
 use itertools::{Either, Itertools};
@@ -127,19 +124,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         );
 
         // build algorithm
-        let haversine = Haversine {
-            travel_speed: Velocity::new::<uom::si::velocity::kilometer_per_hour>(40.0),
-            output_unit: TimeUnit::Milliseconds,
-        };
-
         let search_app_start = Local::now();
-        let search_app: SearchApp = SearchApp::new(
-            graph,
-            traversal_model,
-            frontier_model,
-            Box::new(haversine),
-            Some(2),
-        );
+        let search_app: SearchApp = SearchApp::new(graph, traversal_model, frontier_model, Some(2));
         let search_app_duration = to_std(Local::now() - search_app_start)?;
         log::info!(
             "finished building search app with duration {}",
