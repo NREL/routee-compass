@@ -20,6 +20,8 @@ use std::time::{Duration, Instant};
 
 type MinSearchTree = HashMap<VertexId, SearchTreeBranch>;
 
+const TIMEOUT_ITERATION_CHECK: u64 = 100;
+
 /// run an A* Search over the given directed graph model. traverses links
 /// from the source, via the provided direction, to the target. uses the
 /// provided traversal model for state updates and link costs. estimates
@@ -67,17 +69,21 @@ pub fn run_a_star(
     frontier.push(origin, -origin_cost);
 
     let now = Instant::now();
+    let mut counter = 0;
 
     // run search loop until we reach the destination, or fail if the set is ever empty
     loop {
-        let elapsed = now.elapsed();
-        if elapsed > timeout_duration {
-            log::error!("search timed out after {}ms", elapsed.as_millis());
-            return Err(SearchError::InternalSearchError(format!(
-                "search timed out after {}ms",
-                elapsed.as_millis()
-            )));
+        if counter % TIMEOUT_ITERATION_CHECK == 0 {
+            let elapsed = now.elapsed();
+            if elapsed > timeout_duration {
+                log::error!("search timed out after {}ms", elapsed.as_millis());
+                return Err(SearchError::InternalSearchError(format!(
+                    "search timed out after {}ms",
+                    elapsed.as_millis()
+                )));
+            }
         }
+        counter += 1;
         match frontier.pop() {
             None => return Err(SearchError::NoPathExists(source, target)),
             Some((current, _)) if current.vertex_id == target => break,
