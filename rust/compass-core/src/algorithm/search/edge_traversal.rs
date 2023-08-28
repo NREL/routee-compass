@@ -49,14 +49,12 @@ impl EdgeTraversal {
     ) -> Result<EdgeTraversal, SearchError> {
         let (src, edge, dst) = g
             .edge_triplet_attrs(edge_id)
-            .map_err(SearchError::GraphCorrectnessFailure)?;
+            .map_err(SearchError::GraphError)?;
 
         // let (access_cost, access_state);
         let access_result = match prev_edge_id {
             Some(prev_e) => {
-                let prev_edge = g
-                    .edge_attr(prev_e)
-                    .map_err(SearchError::GraphCorrectnessFailure)?;
+                let prev_edge = g.edge_attr(prev_e).map_err(SearchError::GraphError)?;
                 let prev_src_v = g.vertex_attr(prev_edge.src_vertex_id)?;
                 m.access_cost(&prev_src_v, &prev_edge, &src, &edge, &dst, &prev_state)
             }
