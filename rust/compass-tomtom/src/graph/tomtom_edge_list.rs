@@ -1,8 +1,15 @@
-use std::{collections::HashMap, fs::File, io::BufReader};
+use std::{
+    collections::{HashMap, HashSet},
+    fs::File,
+    io::BufReader,
+};
 
-use compass_core::model::{
-    graph::{edge_id::EdgeId, vertex_id::VertexId},
-    property::edge::Edge,
+use compass_core::{
+    model::{
+        graph::{edge_id::EdgeId, vertex_id::VertexId},
+        property::edge::Edge,
+    },
+    util::fs::read_utils,
 };
 use flate2::read::GzDecoder;
 use log::debug;
@@ -28,17 +35,10 @@ impl<'a> TryFrom<TomTomEdgeListConfig<'a>> for TomTomEdgeList {
 
     fn try_from(c: TomTomEdgeListConfig) -> Result<Self, Self::Error> {
         let min_node_connectivity: usize = 1;
-        let mut edges: Vec<Edge> = vec![Edge::default(); c.n_edges];
         let mut adj: Vec<HashMap<EdgeId, VertexId>> =
             vec![HashMap::with_capacity(min_node_connectivity); c.n_vertices];
         let mut rev: Vec<HashMap<EdgeId, VertexId>> =
             vec![HashMap::with_capacity(min_node_connectivity); c.n_vertices];
-
-        let edge_list_file = File::open(c.config.edge_list_csv.clone())
-            .map_err(|e| TomTomGraphError::IOError { source: e })?;
-        let mut edge_reader =
-            csv::Reader::from_reader(Box::new(BufReader::new(GzDecoder::new(edge_list_file))));
-        let edge_rows = edge_reader.deserialize();
 
         let mut pb = Bar::builder()
             .total(c.n_edges)
@@ -47,14 +47,12 @@ impl<'a> TryFrom<TomTomEdgeListConfig<'a>> for TomTomEdgeList {
             .build()
             .map_err(|e| TomTomGraphError::ProgressBarBuildError(String::from("edge list"), e))?;
 
-        for row in edge_rows {
-            let edge: Edge = row.map_err(|e| TomTomGraphError::CsvError { source: e })?;
-            edges[edge.edge_id.0 as usize] = edge;
+        let mut missing_vertices: HashSet<VertexId> = HashSet::new();
+        let cb = Box::new(|edge: &Edge| {
             // the Edge provides us with all id information to build our adjacency lists as well
-
             match adj.get_mut(edge.src_vertex_id.0 as usize) {
                 None => {
-                    return Err(TomTomGraphError::AdjacencyVertexMissing(edge.src_vertex_id));
+                    missing_vertices.insert(edge.src_vertex_id);
                 }
                 Some(out_links) => {
                     out_links.insert(edge.edge_id, edge.dst_vertex_id);
@@ -62,14 +60,41 @@ impl<'a> TryFrom<TomTomEdgeListConfig<'a>> for TomTomEdgeList {
             }
             match rev.get_mut(edge.dst_vertex_id.0 as usize) {
                 None => {
-                    return Err(TomTomGraphError::AdjacencyVertexMissing(edge.dst_vertex_id));
+                    missing_vertices.insert(edge.dst_vertex_id);
                 }
                 Some(in_links) => {
                     in_links.insert(edge.edge_id, edge.src_vertex_id);
                 }
             }
             pb.update(1);
-        }
+        });
+
+        let edges =
+            read_utils::vec_from_csv(&c.config.edge_list_csv, true, Some(c.n_edges), Some(cb))?;
+
+        // for row in edge_rows {
+        //     let edge: Edge = row.map_err(|e| TomTomGraphError::CsvError { source: e })?;
+        //     edges[edge.edge_id.0 as usize] = edge;
+        //     // the Edge provides us with all id information to build our adjacency lists as well
+
+        //     match adj.get_mut(edge.src_vertex_id.0 as usize) {
+        //         None => {
+        //             return Err(TomTomGraphError::AdjacencyVertexMissing(edge.src_vertex_id));
+        //         }
+        //         Some(out_links) => {
+        //             out_links.insert(edge.edge_id, edge.dst_vertex_id);
+        //         }
+        //     }
+        //     match rev.get_mut(edge.dst_vertex_id.0 as usize) {
+        //         None => {
+        //             return Err(TomTomGraphError::AdjacencyVertexMissing(edge.dst_vertex_id));
+        //         }
+        //         Some(in_links) => {
+        //             in_links.insert(edge.edge_id, edge.src_vertex_id);
+        //         }
+        //     }
+        //     pb.update(1);
+        // }
         print!("\n");
         let result = TomTomEdgeList { edges, adj, rev };
 
