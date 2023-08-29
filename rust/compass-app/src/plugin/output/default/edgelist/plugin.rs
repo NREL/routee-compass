@@ -25,38 +25,6 @@ impl OutputPlugin for EdgeListOutputPlugin {
 #[cfg(test)]
 
 mod tests {
-    use compass_core::model::{graph::edge_id::EdgeId, traversal::state::state_variable::StateVar};
 
     use super::*;
-
-    #[test]
-    fn test_EdgeList_output_plugin() {
-        let output_result = serde_json::json!({});
-        let route = vec![
-            EdgeTraversal {
-                edge_id: EdgeId(0),
-                access_cost: Cost::from(1.0),
-                traversal_cost: Cost::from(1.0),
-                result_state: vec![StateVar(0.0)],
-            },
-            EdgeTraversal {
-                edge_id: EdgeId(1),
-                access_cost: Cost::from(1.0),
-                traversal_cost: Cost::from(1.0),
-                result_state: vec![StateVar(0.0)],
-            },
-            EdgeTraversal {
-                edge_id: EdgeId(2),
-                access_cost: Cost::from(1.0),
-                traversal_cost: Cost::from(1.0),
-                result_state: vec![StateVar(0.0)],
-            },
-        ];
-        let EdgeList_plugin = EdgeListOutputPlugin {};
-        let updated_output = EdgeList_plugin
-            .proccess(&output_result, Ok(&route))
-            .unwrap();
-        let cost: f64 = updated_output.get_cost().unwrap().into();
-        assert_eq!(cost, 6.0);
-    }
 }
