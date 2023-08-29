@@ -1,10 +1,11 @@
 use std::{hash::Hash, hash::Hasher};
 
 use crate::model::{
-    graph::edge_id::EdgeId, graph::vertex_id::VertexId, traversal::state::traversal_state::TraversalState,
+    graph::edge_id::EdgeId, graph::vertex_id::VertexId,
+    traversal::state::traversal_state::TraversalState,
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AStarFrontier {
     pub vertex_id: VertexId,
     pub prev_edge_id: Option<EdgeId>,
