@@ -313,3 +313,31 @@ pub fn apply_output_processing(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::CompassApp;
+
+    #[test]
+    fn test_speeds() {
+        
+        let conf_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("app")
+            .join("compass")
+            .join("test")
+            .join("speeds_test")
+            .join("speeds_test.toml");
+
+        let app = CompassApp::try_from(conf_file).unwrap();
+        let query = serde_json::json!({
+            "origin_vertex": 0,
+            "destination_vertex": 2
+        });
+        let result = app.run(vec![query]).unwrap();
+        println!("{:?}", result);
+
+    }
+}
