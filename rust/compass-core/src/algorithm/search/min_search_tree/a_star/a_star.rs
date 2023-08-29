@@ -52,7 +52,8 @@ pub fn run_a_star(
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
 
-    let mut frontier: KeyedPriorityQueue<AStarFrontier, Cost> = KeyedPriorityQueue::new();
+    let mut costs: KeyedPriorityQueue<VertexId, Cost> = KeyedPriorityQueue::new();
+    let mut frontier: HashMap<VertexId, AStarFrontier> = HashMap::new();
     let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
 
@@ -66,7 +67,8 @@ pub fn run_a_star(
     };
 
     let origin_cost = h_cost(source, target, &initial_state, &g, &m)?;
-    frontier.push(origin, -origin_cost);
+    costs.push(source, -origin_cost);
+    frontier.insert(source, origin);
 
     let now = Instant::now();
     let mut counter = 0;
@@ -84,16 +86,25 @@ pub fn run_a_star(
             }
         }
         counter += 1;
-        match frontier.pop() {
+        match costs.pop() {
             None => return Err(SearchError::NoPathExists(source, target)),
-            Some((current, _)) if current.vertex_id == target => break,
-            Some((current, _))
-                if m.terminate_search(&current.state)
-                    .map_err(SearchError::TraversalModelFailure)? =>
-            {
-                break
+            Some((current_vertex_id, _)) if current_vertex_id == target => {
+                println!("{:?}", current_vertex_id);
+                break;
             }
-            Some((current, _)) => {
+            // Some((current, _))
+            //     if m.terminate_search(&current.state)
+            //         .map_err(SearchError::TraversalModelFailure)? =>
+            // {
+            //     break
+            // }
+            Some((current_vertex_id, _)) => {
+                let current = frontier.get(&current_vertex_id).cloned().ok_or(
+                    SearchError::InternalSearchError(format!(
+                        "expected vertex id {} missing from frontier",
+                        current_vertex_id
+                    )),
+                )?;
                 let neighbor_triplets = g
                     .incident_triplets(current.vertex_id, direction)
                     .map_err(SearchError::GraphError)?;
@@ -107,11 +118,11 @@ pub fn run_a_star(
                     let et =
                         EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
                     let dst_h_cost = h_cost(dst_id, target, &current.state, &g, &m)?;
-                    let traversal_cost = traversal_costs
+                    let current_gscore = traversal_costs
                         .get(&src_id)
                         .unwrap_or(&Cost::INFINITY)
                         .to_owned();
-                    let tentative_gscore = traversal_cost + et.edge_cost();
+                    let tentative_gscore = current_gscore + et.edge_cost();
                     let existing_gscore = traversal_costs
                         .get(&dst_id)
                         .unwrap_or(&Cost::INFINITY)
@@ -134,7 +145,11 @@ pub fn run_a_star(
                             state: et.result_state,
                         };
                         let f_score_value = tentative_gscore + dst_h_cost;
-                        frontier.push(f, -f_score_value);
+                        println!("({})-[{}]->({}) {}", src_id, edge_id, dst_id, f_score_value);
+
+                        costs.push(f.vertex_id, -f_score_value);
+                        frontier.insert(f.vertex_id, f);
+                        println!("{:?}", costs);
                     }
                 }
             }
@@ -331,6 +346,18 @@ mod tests {
     use crate::{model::graph::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
     use uom::si::length::centimeter;
+
+    #[test]
+    fn test_x() {
+        let mut pq: KeyedPriorityQueue<String, ordered_float::OrderedFloat<f64>> =
+            keyed_priority_queue::KeyedPriorityQueue::new();
+        pq.push(String::from("b"), ordered_float::OrderedFloat(-2.0));
+        pq.push(String::from("a"), ordered_float::OrderedFloat(-12.0));
+        pq.push(String::from("b"), ordered_float::OrderedFloat(-8.0));
+        println!("{:?}", pq);
+        println!("{:?}", pq.pop());
+        println!("{:?}", pq);
+    }
 
     #[test]
     fn test_e2e_queries() {
