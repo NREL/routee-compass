@@ -47,14 +47,18 @@ impl VelocityLookupModel {
             read_utils::read_raw_file(lookup_table_filename, op, None).map_err(|e| {
                 TraversalModelError::FileReadError(lookup_table_filename.clone(), e.to_string())
             })?;
-        return match velocities.iter().map(|v| OrderedFloat(v.value)).max() {
+        match velocities
+            .iter()
+            .map(|v| OrderedFloat(v.get::<si::velocity::kilometer_per_hour>()))
+            .max()
+        {
             None => {
                 let count = velocities.len();
                 let msg = format!(
                     "could not find max speed from speed table with {} entries",
                     count
                 );
-                Err(TraversalModelError::BuildError(msg))
+                return Err(TraversalModelError::BuildError(msg));
             }
             Some(max_velocity) => {
                 let model = VelocityLookupModel {
@@ -62,9 +66,9 @@ impl VelocityLookupModel {
                     output_unit,
                     max_velocity: Velocity::new::<si::velocity::kilometer_per_hour>(max_velocity.0),
                 };
-                Ok(model)
+                return Ok(model);
             }
-        };
+        }
     }
 }
 
@@ -88,6 +92,7 @@ impl TraversalModel for VelocityLookupModel {
         )?;
         let time = edge.distance.clone() / ff_vel.clone();
         let time_output: f64 = match self.output_unit {
+            TimeUnit::Hours => time.get::<si::time::hour>().into(),
             TimeUnit::Seconds => time.get::<si::time::second>().into(),
             TimeUnit::Milliseconds => time.get::<si::time::millisecond>().into(),
         };
@@ -109,6 +114,7 @@ impl TraversalModel for VelocityLookupModel {
             .map_err(TraversalModelError::NumericError)?;
         let time = distance / self.max_velocity;
         let time_output: f64 = match self.output_unit {
+            TimeUnit::Hours => time.get::<si::time::hour>().into(),
             TimeUnit::Seconds => time.get::<si::time::second>().into(),
             TimeUnit::Milliseconds => time.get::<si::time::millisecond>().into(),
         };
@@ -117,6 +123,7 @@ impl TraversalModel for VelocityLookupModel {
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
         let time = state[0].0;
         let time_units = match self.output_unit {
+            TimeUnit::Hours => "hours",
             TimeUnit::Seconds => "seconds",
             TimeUnit::Milliseconds => "milliseconds",
         };
