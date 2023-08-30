@@ -4,11 +4,11 @@ use geo::Coord;
 #[derive(thiserror::Error, Debug)]
 pub enum PluginError {
     #[error("failed to parse {0} as {1}")]
-    ParseError(&'static str, &'static str),
+    ParseError(String, String),
     #[error("missing field {0}")]
-    MissingField(&'static str),
+    MissingField(String),
     #[error("error with parsing inputs: {0}")]
-    InputError(&'static str),
+    InputError(String),
     #[error("error with building plugin")]
     BuildError,
     #[error("nearest vertex not found for coord {0:?}")]

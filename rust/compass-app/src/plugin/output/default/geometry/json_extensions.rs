@@ -14,7 +14,7 @@ impl GeometryJsonField {
         }
     }
 
-    pub fn as_string(self) -> String {
+    pub fn to_string(self) -> String {
         self.as_str().to_string()
     }
 }
@@ -30,10 +30,12 @@ impl GeometryJsonExtensions for serde_json::Value {
         match self {
             serde_json::Value::Object(map) => {
                 let json_string = serde_json::Value::String(wkt);
-                map.insert(GeometryJsonField::Geometry.as_string(), json_string);
+                map.insert(GeometryJsonField::Geometry.to_string(), json_string);
                 Ok(())
             }
-            _ => Err(PluginError::InputError("OutputResult is not a JSON object")),
+            _ => Err(PluginError::InputError(String::from(
+                "OutputResult is not a JSON object",
+            ))),
         }
     }
 
@@ -41,12 +43,12 @@ impl GeometryJsonExtensions for serde_json::Value {
         let geometry = self
             .get(GeometryJsonField::Geometry.as_str())
             .ok_or(PluginError::MissingField(
-                GeometryJsonField::Geometry.as_str(),
+                GeometryJsonField::Geometry.to_string(),
             ))?
             .as_str()
             .ok_or(PluginError::ParseError(
-                GeometryJsonField::Geometry.as_str(),
-                "string",
+                GeometryJsonField::Geometry.to_string(),
+                String::from("string"),
             ))?
             .to_string();
         Ok(geometry)

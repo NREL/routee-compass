@@ -5,15 +5,15 @@ use crate::{
     plugin::output::output_plugin::OutputPlugin,
 };
 
-use super::plugin::EdgeListOutputPlugin;
+use super::plugin::EdgeIdListOutputPlugin;
 
-pub struct EdgeListOutputPluginBuilder {}
+pub struct EdgeIdListOutputPluginBuilder {}
 
-impl OutputPluginBuilder for EdgeListOutputPluginBuilder {
+impl OutputPluginBuilder for EdgeIdListOutputPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
-        Ok(Box::new(EdgeListOutputPlugin {}))
+        Ok(Box::new(EdgeIdListOutputPlugin {}))
     }
 }

@@ -1,8 +1,8 @@
 query_timeout_ms = 3600000
 
 [graph.tomtom]
-edge_file = "src/app/compass/test/speeds_test/test_edges.csv"
-vertex_file = "src/app/compass/test/speeds_test/test_vertices.csv"
+edge_file = "compass-app/src/app/compass/test/speeds_test/test_edges.csv"
+vertex_file = "compass-app/src/app/compass/test/speeds_test/test_vertices.csv"
 verbose = true
 
 [algorithm]
@@ -11,7 +11,7 @@ bidirectional = false
 
 [traversal]
 type = "velocity_table"
-filename = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
+filename = "compass-app/src/app/compass/test/speeds_test/test_edge_speeds.csv"
 time_unit = "Hours"
 
 [plugin]

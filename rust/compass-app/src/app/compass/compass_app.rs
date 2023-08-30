@@ -322,8 +322,11 @@ mod tests {
 
     #[test]
     fn test_speeds() {
-        
-        let conf_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        // rust runs test and debug at different locations, which breaks the URLs
+        // written in the referenced TOML files. here's a quick fix
+        // turnaround that doesn't leak into anyone's VS Code settings.json files
+        // see https://github.com/rust-lang/rust-analyzer/issues/4705 for discussion
+        let conf_file_test = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("app")
             .join("compass")
@@ -331,13 +334,25 @@ mod tests {
             .join("speeds_test")
             .join("speeds_test.toml");
 
-        let app = CompassApp::try_from(conf_file).unwrap();
+        let conf_file_debug = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("app")
+            .join("compass")
+            .join("test")
+            .join("speeds_test")
+            .join("speeds_debug.toml");
+
+        let app = CompassApp::try_from(conf_file_test)
+            .or(CompassApp::try_from(conf_file_debug))
+            .unwrap();
         let query = serde_json::json!({
             "origin_vertex": 0,
             "destination_vertex": 2
         });
         let result = app.run(vec![query]).unwrap();
-        println!("{:?}", result);
-
+        let edge_ids = result[0].get("edge_id_list").unwrap();
+        // path [1] is distance-optimal; path [0, 2] is time-optimal
+        let expected = serde_json::json!(vec![0, 2]);
+        assert_eq!(edge_ids, &expected);
     }
 }

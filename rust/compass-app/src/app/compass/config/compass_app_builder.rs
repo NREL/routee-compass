@@ -4,6 +4,7 @@ use crate::{
         input::{default::rtree::builder::VertexRTreeBuilder, input_plugin::InputPlugin},
         output::{
             default::{
+                edgeidlist::builder::EdgeIdListOutputPluginBuilder,
                 geometry::builder::GeometryPluginBuilder,
                 summary::builder::SummaryOutputPluginBuilder,
                 uuid::builder::UUIDOutputPluginBuilder,
@@ -223,10 +224,12 @@ impl CompassAppBuilder {
         let geom: Box<dyn OutputPluginBuilder> = Box::new(GeometryPluginBuilder {});
         let summary: Box<dyn OutputPluginBuilder> = Box::new(SummaryOutputPluginBuilder {});
         let uuid: Box<dyn OutputPluginBuilder> = Box::new(UUIDOutputPluginBuilder {});
+        let edge_id_list: Box<dyn OutputPluginBuilder> = Box::new(EdgeIdListOutputPluginBuilder {});
         let output_builders = HashMap::from([
             (String::from("geometry"), geom),
             (String::from("summary"), summary),
             (String::from("uuid"), uuid),
+            (String::from("edge_id_list"), edge_id_list),
         ]);
 
         CompassAppBuilder {

@@ -16,33 +16,43 @@ pub trait InputJsonExtensions {
 impl InputJsonExtensions for serde_json::Value {
     fn get_origin_coordinate(&self) -> Result<geo::Coord<f64>, PluginError> {
         let origin_x = self
-            .get(InputField::OriginX.to_str())
-            .ok_or(PluginError::MissingField(InputField::OriginX.to_str()))?
+            .get(InputField::OriginX.to_string())
+            .ok_or(PluginError::MissingField(InputField::OriginX.to_string()))?
             .as_f64()
-            .ok_or(PluginError::ParseError(InputField::OriginX.to_str(), "f64"))?;
+            .ok_or(PluginError::ParseError(
+                InputField::OriginX.to_string(),
+                String::from(String::from("f64")),
+            ))?;
         let origin_y = self
-            .get(InputField::OriginY.to_str())
-            .ok_or(PluginError::MissingField(InputField::OriginY.to_str()))?
+            .get(InputField::OriginY.to_string())
+            .ok_or(PluginError::MissingField(InputField::OriginY.to_string()))?
             .as_f64()
-            .ok_or(PluginError::ParseError(InputField::OriginY.to_str(), "f64"))?;
+            .ok_or(PluginError::ParseError(
+                InputField::OriginY.to_string(),
+                String::from(String::from("f64")),
+            ))?;
         Ok(geo::Coord::from((origin_x, origin_y)))
     }
     fn get_destination_coordinate(&self) -> Result<geo::Coord<f64>, PluginError> {
         let destination_x = self
-            .get(InputField::DestinationX.to_str())
-            .ok_or(PluginError::MissingField(InputField::DestinationX.to_str()))?
+            .get(InputField::DestinationX.to_string())
+            .ok_or(PluginError::MissingField(
+                InputField::DestinationX.to_string(),
+            ))?
             .as_f64()
             .ok_or(PluginError::ParseError(
-                InputField::DestinationX.to_str(),
-                "f64",
+                InputField::DestinationX.to_string(),
+                String::from("f64"),
             ))?;
         let destination_y = self
-            .get(InputField::DestinationY.to_str())
-            .ok_or(PluginError::MissingField(InputField::DestinationY.to_str()))?
+            .get(InputField::DestinationY.to_string())
+            .ok_or(PluginError::MissingField(
+                InputField::DestinationY.to_string(),
+            ))?
             .as_f64()
             .ok_or(PluginError::ParseError(
-                InputField::DestinationY.to_str(),
-                "f64",
+                InputField::DestinationY.to_string(),
+                String::from("f64"),
             ))?;
         Ok(geo::Coord::from((destination_x, destination_y)))
     }
@@ -55,7 +65,9 @@ impl InputJsonExtensions for serde_json::Value {
                 );
                 Ok(())
             }
-            _ => Err(PluginError::InputError("InputQuery is not a JSON object")),
+            _ => Err(PluginError::InputError(String::from(
+                "InputQuery is not a JSON object",
+            ))),
         }
     }
     fn add_destination_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError> {
@@ -67,31 +79,35 @@ impl InputJsonExtensions for serde_json::Value {
                 );
                 Ok(())
             }
-            _ => Err(PluginError::InputError("InputQuery is not a JSON object")),
+            _ => Err(PluginError::InputError(String::from(
+                "InputQuery is not a JSON object",
+            ))),
         }
     }
 
     fn get_origin_vertex(&self) -> Result<VertexId, PluginError> {
-        self.get(InputField::OriginVertex.to_str())
-            .ok_or(PluginError::MissingField(InputField::OriginVertex.to_str()))?
-            .as_u64()
-            .map(|v| VertexId(v as usize))
-            .ok_or(PluginError::ParseError(
-                InputField::OriginVertex.to_str(),
-                "u64",
-            ))
-    }
-
-    fn get_destination_vertex(&self) -> Result<VertexId, PluginError> {
-        self.get(InputField::DestinationVertex.to_str())
+        self.get(InputField::OriginVertex.to_string())
             .ok_or(PluginError::MissingField(
-                InputField::DestinationVertex.to_str(),
+                InputField::OriginVertex.to_string(),
             ))?
             .as_u64()
             .map(|v| VertexId(v as usize))
             .ok_or(PluginError::ParseError(
-                InputField::DestinationVertex.to_str(),
-                "u64",
+                InputField::OriginVertex.to_string(),
+                String::from("u64"),
+            ))
+    }
+
+    fn get_destination_vertex(&self) -> Result<VertexId, PluginError> {
+        self.get(InputField::DestinationVertex.to_string())
+            .ok_or(PluginError::MissingField(
+                InputField::DestinationVertex.to_string(),
+            ))?
+            .as_u64()
+            .map(|v| VertexId(v as usize))
+            .ok_or(PluginError::ParseError(
+                InputField::DestinationVertex.to_string(),
+                String::from("u64"),
             ))
     }
 }
@@ -103,10 +119,10 @@ impl InputJsonExtensions for serde_json::Value {
 //     field: InputField,
 //     op: DecodeOp<T>,
 // ) -> Result<T, PluginError> {
-//     let at_field = value.get(field.to_str());
+//     let at_field = value.get(field.to_string());
 //     return match at_field {
-//         None => Err(PluginError::MissingField(field.to_str())),
-//         Some(v) => op(v).ok_or(PluginError::ParseError(field.to_str(), ())),
+//         None => Err(PluginError::MissingField(field.to_string())),
+//         Some(v) => op(v).ok_or(PluginError::ParseError(field.to_string(), ())),
 //     };
 // }
 
