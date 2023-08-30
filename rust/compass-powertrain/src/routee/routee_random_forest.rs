@@ -62,7 +62,11 @@ impl TraversalModel for RouteERandomForestModel {
             .routee_model
             .predict(&x)
             .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
-        let energy_cost = energy_per_mile[0] * distance_mile;
+        let mut energy_cost = energy_per_mile[0] * distance_mile;
+
+        // set cost to zero if it's negative since we can't currently handle negative costs
+        energy_cost = if energy_cost < 0.0 { 0.0 } else { energy_cost };
+
         let mut updated_state = state.clone();
         updated_state[0] = state[0] + StateVar(energy_cost);
         let result = TraversalResult {
@@ -78,7 +82,7 @@ impl TraversalModel for RouteERandomForestModel {
         };
         serde_json::json!({
             "total_energy": total_energy,
-            "energy_units": energy_units 
+            "energy_units": energy_units
         })
     }
 }
@@ -87,7 +91,7 @@ impl RouteERandomForestModel {
     pub fn new(
         velocity_model: Arc<VelocityLookupModel>,
         routee_model_path: &String,
-        energy_unit: EnergyUnit
+        energy_unit: EnergyUnit,
     ) -> Result<Self, TraversalModelError> {
         // Load random forest binary file
         let rf_binary = std::fs::read(routee_model_path.clone()).map_err(|e| {
@@ -109,10 +113,14 @@ impl RouteERandomForestModel {
         speed_file: &String,
         routee_model_path: &String,
         time_unit: TimeUnit,
-        energy_rate_unit: EnergyUnit 
+        energy_rate_unit: EnergyUnit,
     ) -> Result<Self, TraversalModelError> {
         let velocity_model = VelocityLookupModel::from_file(&speed_file, time_unit)?;
-        Self::new(Arc::new(velocity_model), routee_model_path, energy_rate_unit)
+        Self::new(
+            Arc::new(velocity_model),
+            routee_model_path,
+            energy_rate_unit,
+        )
     }
 }
 
@@ -162,7 +170,7 @@ mod tests {
             &speed_file,
             &routee_model_path,
             TimeUnit::Seconds,
-            EnergyUnit::GallonsGasoline
+            EnergyUnit::GallonsGasoline,
         )
         .unwrap();
         let initial = rf_predictor.initial_state();
