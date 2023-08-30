@@ -23,7 +23,7 @@ impl TryFrom<String> for EdgeListField {
 impl EdgeListField {
     fn into_str(self) -> &'static str {
         match self {
-            EdgeListField::EdgeIdList => "edge_list",
+            EdgeListField::EdgeIdList => "edge_id_list",
         }
     }
 
