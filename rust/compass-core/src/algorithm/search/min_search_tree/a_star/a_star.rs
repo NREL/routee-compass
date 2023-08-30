@@ -93,12 +93,12 @@ pub fn run_a_star(
                 break;
             }
             Some((current_vertex_id, _)) => {
-                let current = frontier.get(&current_vertex_id).cloned().ok_or(
+                let current = frontier.get(&current_vertex_id).cloned().ok_or_else(|| {
                     SearchError::InternalSearchError(format!(
                         "expected vertex id {} missing from frontier",
                         current_vertex_id
-                    )),
-                )?;
+                    ))
+                })?;
 
                 // test for search termination
                 if m.terminate_search(&current.state)
