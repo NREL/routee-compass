@@ -231,9 +231,7 @@ pub fn run_a_star_edge_oriented(
         let init_state = m.initial_state();
         let final_state = &tree
             .get(&target_edge_src_vertex_id)
-            .ok_or(SearchError::VertexMissingFromSearchTree(
-                target_edge_src_vertex_id,
-            ))?
+            .ok_or_else(|| SearchError::VertexMissingFromSearchTree(target_edge_src_vertex_id))?
             .edge_traversal
             .result_state;
         let src_et = EdgeTraversal {
@@ -287,7 +285,7 @@ pub fn backtrack(
         }
         let traversal = solution
             .get(&this_vertex)
-            .ok_or(SearchError::VertexMissingFromSearchTree(this_vertex))?;
+            .ok_or_else(|| SearchError::VertexMissingFromSearchTree(this_vertex))?;
         let first_visit = visited.insert(traversal.edge_traversal.edge_id);
         if !first_visit {
             return Err(SearchError::LoopInSearchResult(
