@@ -119,7 +119,6 @@ pub fn run_a_star(
                     }
                     let et =
                         EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
-                    let dst_h_cost = h_cost(dst_id, target, &current.state, &g, &m)?;
                     let current_gscore = traversal_costs
                         .get(&src_id)
                         .unwrap_or(&Cost::INFINITY)
@@ -145,6 +144,7 @@ pub fn run_a_star(
                             prev_edge_id: Some(edge_id),
                             state: et.result_state,
                         };
+                        let dst_h_cost = h_cost(dst_id, target, &current.state, &g, &m)?;
                         let f_score_value = tentative_gscore + dst_h_cost;
                         costs.push_increase(f.vertex_id, std::cmp::Reverse(f_score_value));
                         frontier.insert(f.vertex_id, f);
