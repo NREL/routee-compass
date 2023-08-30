@@ -83,13 +83,16 @@ impl TraversalModel for VelocityLookupModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let ff_vel = self.velocities.get(edge.edge_id.0 as usize).ok_or(
-            TraversalModelError::MissingIdInTabularCostFunction(
-                edge.edge_id.to_string(),
-                String::from("EdgeId"),
-                String::from("edge velocity lookup"),
-            ),
-        )?;
+        let ff_vel = self
+            .velocities
+            .get(edge.edge_id.0 as usize)
+            .ok_or_else(|| {
+                TraversalModelError::MissingIdInTabularCostFunction(
+                    edge.edge_id.to_string(),
+                    String::from("EdgeId"),
+                    String::from("edge velocity lookup"),
+                )
+            })?;
         let time = edge.distance.clone() / ff_vel.clone();
         let time_output: f64 = match self.output_unit {
             TimeUnit::Hours => time.get::<si::time::hour>().into(),
