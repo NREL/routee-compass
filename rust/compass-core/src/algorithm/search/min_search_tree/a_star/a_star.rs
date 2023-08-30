@@ -12,7 +12,7 @@ use crate::{
     algorithm::search::min_search_tree::direction::Direction,
     model::graph::{directed_graph::DirectedGraph, vertex_id::VertexId},
 };
-use keyed_priority_queue::KeyedPriorityQueue;
+use priority_queue::PriorityQueue;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::RwLockReadGuard;
@@ -52,7 +52,7 @@ pub fn run_a_star(
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
 
-    let mut costs: KeyedPriorityQueue<VertexId, Cost> = KeyedPriorityQueue::new();
+    let mut costs: PriorityQueue<VertexId, std::cmp::Reverse<Cost>> = PriorityQueue::new();
     let mut frontier: HashMap<VertexId, AStarFrontier> = HashMap::new();
     let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
@@ -67,7 +67,7 @@ pub fn run_a_star(
     };
 
     let origin_cost = h_cost(source, target, &initial_state, &g, &m)?;
-    costs.push(source, -origin_cost);
+    costs.push(source, std::cmp::Reverse(origin_cost));
     frontier.insert(source, origin);
 
     let now = Instant::now();
@@ -92,12 +92,6 @@ pub fn run_a_star(
                 println!("{:?}", current_vertex_id);
                 break;
             }
-            // Some((current, _))
-            //     if m.terminate_search(&current.state)
-            //         .map_err(SearchError::TraversalModelFailure)? =>
-            // {
-            //     break
-            // }
             Some((current_vertex_id, _)) => {
                 let current = frontier.get(&current_vertex_id).cloned().ok_or(
                     SearchError::InternalSearchError(format!(
@@ -105,10 +99,18 @@ pub fn run_a_star(
                         current_vertex_id
                     )),
                 )?;
+
+                // test for search termination
+                if m.terminate_search(&current.state)
+                    .map_err(SearchError::TraversalModelFailure)?
+                {
+                    break;
+                };
+
+                // visit all neighbors of this source vertex
                 let neighbor_triplets = g
                     .incident_triplets(current.vertex_id, direction)
                     .map_err(SearchError::GraphError)?;
-
                 for (src_id, edge_id, dst_id) in neighbor_triplets {
                     // first make sure we have a valid edge
                     let e = g.edge_attr(edge_id).map_err(SearchError::GraphError)?;
@@ -137,19 +139,15 @@ pub fn run_a_star(
                         };
                         solution.insert(dst_id, traversal);
 
-                        // update open set
-
+                        // update search state
                         let f = AStarFrontier {
                             vertex_id: dst_id,
                             prev_edge_id: Some(edge_id),
                             state: et.result_state,
                         };
                         let f_score_value = tentative_gscore + dst_h_cost;
-                        println!("({})-[{}]->({}) {}", src_id, edge_id, dst_id, f_score_value);
-
-                        costs.push(f.vertex_id, -f_score_value);
+                        costs.push_increase(f.vertex_id, std::cmp::Reverse(f_score_value));
                         frontier.insert(f.vertex_id, f);
-                        println!("{:?}", costs);
                     }
                 }
             }
@@ -346,18 +344,6 @@ mod tests {
     use crate::{model::graph::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
     use uom::si::length::centimeter;
-
-    #[test]
-    fn test_x() {
-        let mut pq: KeyedPriorityQueue<String, ordered_float::OrderedFloat<f64>> =
-            keyed_priority_queue::KeyedPriorityQueue::new();
-        pq.push(String::from("b"), ordered_float::OrderedFloat(-2.0));
-        pq.push(String::from("a"), ordered_float::OrderedFloat(-12.0));
-        pq.push(String::from("b"), ordered_float::OrderedFloat(-8.0));
-        println!("{:?}", pq);
-        println!("{:?}", pq.pop());
-        println!("{:?}", pq);
-    }
 
     #[test]
     fn test_e2e_queries() {
