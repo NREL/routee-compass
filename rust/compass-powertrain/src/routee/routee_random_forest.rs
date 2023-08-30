@@ -8,16 +8,20 @@ use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::model::traversal::traversal_result::TraversalResult;
-use compass_core::model::units::TimeUnit;
+use compass_core::model::units::{EnergyUnit, TimeUnit};
 use compass_core::model::{cost::cost::Cost, units::Velocity};
+use compass_core::util::geo::haversine::coord_distance_km;
 use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
 };
 use uom::si;
 
+const MAXIMUM_MPG: f64 = 100.0;
+
 pub struct RouteERandomForestModel {
     pub velocity_model: Arc<VelocityLookupModel>,
     pub routee_model: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
+    pub energy_unit: EnergyUnit,
 }
 
 impl TraversalModel for RouteERandomForestModel {
@@ -26,11 +30,17 @@ impl TraversalModel for RouteERandomForestModel {
     }
     fn cost_estimate(
         &self,
-        _src: &Vertex,
-        _dst: &Vertex,
+        src: &Vertex,
+        dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        todo!("not yet implemented")
+        let distance = coord_distance_km(src.coordinate, dst.coordinate)
+            .map_err(TraversalModelError::NumericError)?;
+        let distance_miles = distance.get::<si::length::mile>();
+        let minimum_energy = match self.energy_unit {
+            EnergyUnit::GallonsGasoline => distance_miles / MAXIMUM_MPG,
+        };
+        Ok(Cost::from(minimum_energy))
     }
     fn traversal_cost(
         &self,
@@ -63,9 +73,12 @@ impl TraversalModel for RouteERandomForestModel {
     }
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
         let total_energy = state[0].0;
+        let energy_units = match self.energy_unit {
+            EnergyUnit::GallonsGasoline => "gallons_gasoline",
+        };
         serde_json::json!({
             "total_energy": total_energy,
-            "energy_units": "gallons_gasoline"
+            "energy_units": energy_units 
         })
     }
 }
@@ -74,6 +87,7 @@ impl RouteERandomForestModel {
     pub fn new(
         velocity_model: Arc<VelocityLookupModel>,
         routee_model_path: &String,
+        energy_unit: EnergyUnit
     ) -> Result<Self, TraversalModelError> {
         // Load random forest binary file
         let rf_binary = std::fs::read(routee_model_path.clone()).map_err(|e| {
@@ -87,6 +101,7 @@ impl RouteERandomForestModel {
         Ok(RouteERandomForestModel {
             velocity_model,
             routee_model: rf,
+            energy_unit,
         })
     }
 
@@ -94,9 +109,10 @@ impl RouteERandomForestModel {
         speed_file: &String,
         routee_model_path: &String,
         time_unit: TimeUnit,
+        energy_rate_unit: EnergyUnit 
     ) -> Result<Self, TraversalModelError> {
         let velocity_model = VelocityLookupModel::from_file(&speed_file, time_unit)?;
-        Self::new(Arc::new(velocity_model), routee_model_path)
+        Self::new(Arc::new(velocity_model), routee_model_path, energy_rate_unit)
     }
 }
 
@@ -146,6 +162,7 @@ mod tests {
             &speed_file,
             &routee_model_path,
             TimeUnit::Seconds,
+            EnergyUnit::GallonsGasoline
         )
         .unwrap();
         let initial = rf_predictor.initial_state();

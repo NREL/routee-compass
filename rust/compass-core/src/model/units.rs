@@ -10,3 +10,9 @@ pub enum TimeUnit {
     Seconds,
     Milliseconds,
 }
+
+#[derive(Debug, Deserialize, Clone)]
+pub enum EnergyUnit {
+    #[serde(rename = "gallons_gasoline")]
+    GallonsGasoline,
+}
