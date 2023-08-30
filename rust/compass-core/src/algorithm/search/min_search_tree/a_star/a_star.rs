@@ -12,7 +12,7 @@ use crate::{
     algorithm::search::min_search_tree::direction::Direction,
     model::graph::{directed_graph::DirectedGraph, vertex_id::VertexId},
 };
-use keyed_priority_queue::KeyedPriorityQueue;
+use priority_queue::PriorityQueue;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::RwLockReadGuard;
@@ -52,7 +52,8 @@ pub fn run_a_star(
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
 
-    let mut frontier: KeyedPriorityQueue<AStarFrontier, Cost> = KeyedPriorityQueue::new();
+    let mut costs: PriorityQueue<VertexId, std::cmp::Reverse<Cost>> = PriorityQueue::new();
+    let mut frontier: HashMap<VertexId, AStarFrontier> = HashMap::new();
     let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
 
@@ -66,7 +67,8 @@ pub fn run_a_star(
     };
 
     let origin_cost = h_cost(source, target, &initial_state, &g, &m)?;
-    frontier.push(origin, -origin_cost);
+    costs.push(source, std::cmp::Reverse(origin_cost));
+    frontier.insert(source, origin);
 
     let now = Instant::now();
     let mut counter = 0;
@@ -84,20 +86,31 @@ pub fn run_a_star(
             }
         }
         counter += 1;
-        match frontier.pop() {
+        match costs.pop() {
             None => return Err(SearchError::NoPathExists(source, target)),
-            Some((current, _)) if current.vertex_id == target => break,
-            Some((current, _))
-                if m.terminate_search(&current.state)
-                    .map_err(SearchError::TraversalModelFailure)? =>
-            {
-                break
+            Some((current_vertex_id, _)) if current_vertex_id == target => {
+                println!("{:?}", current_vertex_id);
+                break;
             }
-            Some((current, _)) => {
+            Some((current_vertex_id, _)) => {
+                let current = frontier.get(&current_vertex_id).cloned().ok_or(
+                    SearchError::InternalSearchError(format!(
+                        "expected vertex id {} missing from frontier",
+                        current_vertex_id
+                    )),
+                )?;
+
+                // test for search termination
+                if m.terminate_search(&current.state)
+                    .map_err(SearchError::TraversalModelFailure)?
+                {
+                    break;
+                };
+
+                // visit all neighbors of this source vertex
                 let neighbor_triplets = g
                     .incident_triplets(current.vertex_id, direction)
                     .map_err(SearchError::GraphError)?;
-
                 for (src_id, edge_id, dst_id) in neighbor_triplets {
                     // first make sure we have a valid edge
                     let e = g.edge_attr(edge_id).map_err(SearchError::GraphError)?;
@@ -106,12 +119,11 @@ pub fn run_a_star(
                     }
                     let et =
                         EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
-                    let dst_h_cost = h_cost(dst_id, target, &current.state, &g, &m)?;
-                    let traversal_cost = traversal_costs
+                    let current_gscore = traversal_costs
                         .get(&src_id)
                         .unwrap_or(&Cost::INFINITY)
                         .to_owned();
-                    let tentative_gscore = traversal_cost + et.edge_cost();
+                    let tentative_gscore = current_gscore + et.edge_cost();
                     let existing_gscore = traversal_costs
                         .get(&dst_id)
                         .unwrap_or(&Cost::INFINITY)
@@ -126,15 +138,16 @@ pub fn run_a_star(
                         };
                         solution.insert(dst_id, traversal);
 
-                        // update open set
-
+                        // update search state
                         let f = AStarFrontier {
                             vertex_id: dst_id,
                             prev_edge_id: Some(edge_id),
                             state: et.result_state,
                         };
+                        let dst_h_cost = h_cost(dst_id, target, &current.state, &g, &m)?;
                         let f_score_value = tentative_gscore + dst_h_cost;
-                        frontier.push(f, -f_score_value);
+                        costs.push_increase(f.vertex_id, std::cmp::Reverse(f_score_value));
+                        frontier.insert(f.vertex_id, f);
                     }
                 }
             }

@@ -1,0 +1,19 @@
+query_timeout_ms = 3600000
+
+[graph.tomtom]
+edge_file = "compass-app/src/app/compass/test/speeds_test/test_edges.csv"
+vertex_file = "compass-app/src/app/compass/test/speeds_test/test_vertices.csv"
+verbose = true
+
+[algorithm]
+type = "a*"
+bidirectional = false
+
+[traversal]
+type = "velocity_table"
+filename = "compass-app/src/app/compass/test/speeds_test/test_edge_speeds.csv"
+time_unit = "Hours"
+
+[plugin]
+input_plugins = []
+output_plugins = [{ type = "summary" }]

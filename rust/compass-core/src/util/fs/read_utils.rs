@@ -50,7 +50,7 @@ where
 
     let op = Box::new(move |mut cb: Box<dyn FnMut()>| {
         let mut builder: Vec<T> = Vec::with_capacity(count);
-        let iterator = iterator_from_csv(filepath, has_headers, None)?;
+        let iterator = iterator_from_csv(filepath, has_headers)?;
         for row in iterator {
             let t = row?;
             builder.push(t);
@@ -76,7 +76,6 @@ where
 pub fn iterator_from_csv<'a, F, T>(
     filepath: &F,
     has_headers: bool,
-    row_callback: Option<Box<dyn FnMut() + 'a>>,
 ) -> Result<Box<dyn Iterator<Item = Result<T, csv::Error>>>, io::Error>
 where
     F: AsRef<Path>,
@@ -97,16 +96,25 @@ where
 
 /// reads a csv file into a vector. not space-optimized since size is not
 /// known.
-pub fn vec_from_csv<F, T>(filepath: &F, has_headers: bool) -> Result<Vec<T>, csv::Error>
+pub fn vec_from_csv<'a, F, T>(
+    filepath: &F,
+    has_headers: bool,
+    size: Option<usize>,
+    mut row_callback: Option<Box<dyn FnMut(&T) + 'a>>,
+) -> Result<Vec<T>, csv::Error>
 where
     F: AsRef<Path>,
-    T: serde::de::DeserializeOwned + 'static,
+    T: serde::de::DeserializeOwned + 'static + Copy,
 {
-    let mut result: Vec<T> = vec![];
-    let iter = iterator_from_csv(filepath, has_headers, None)?;
+    let capacity = size.unwrap_or(2);
+    let mut result: Vec<T> = Vec::with_capacity(capacity);
+    let iter = iterator_from_csv(filepath, has_headers)?;
     for row in iter {
         let t = row?;
         result.push(t);
+        if let Some(cb) = &mut row_callback {
+            cb(&t);
+        }
     }
     return Ok(result);
 }

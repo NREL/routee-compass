@@ -28,8 +28,8 @@ impl RTreePlugin {
         }
     }
     pub fn from_file(vertex_file: &Path) -> Result<Self, PluginError> {
-        let vertices: Vec<Vertex> =
-            read_utils::vec_from_csv(&vertex_file, true).map_err(PluginError::CsvReadError)?;
+        let vertices: Vec<Vertex> = read_utils::vec_from_csv(&vertex_file, true, None, None)
+            .map_err(PluginError::CsvReadError)?;
         Ok(Self::new(vertices))
     }
 }
@@ -53,7 +53,6 @@ impl InputPlugin for RTreePlugin {
         updated.add_destination_vertex(destination_vertex.vertex_id)?;
         Ok(updated)
     }
-    
 }
 
 #[cfg(test)]
