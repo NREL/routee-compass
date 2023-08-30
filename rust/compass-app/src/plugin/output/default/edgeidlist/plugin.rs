@@ -10,9 +10,9 @@ use crate::plugin::output::output_plugin::OutputPlugin;
 
 use super::json_extensions::EdgeListJsonExtensions;
 
-pub struct EdgeListOutputPlugin {}
+pub struct EdgeIdListOutputPlugin {}
 
-impl OutputPlugin for EdgeListOutputPlugin {
+impl OutputPlugin for EdgeIdListOutputPlugin {
     fn proccess(
         &self,
         output: &serde_json::Value,
