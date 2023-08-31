@@ -105,12 +105,12 @@ pub fn run_a_star(
                 break;
             }
             Some((current_vertex_id, _)) => {
-                let current = frontier.remove(&current_vertex_id).ok_or_else(|| {
-                    SearchError::InternalSearchError(format!(
-                        "expected vertex id {} missing from frontier",
-                        current_vertex_id
-                    ))
-                })?;
+                // remove current from the frontier to evaluate 
+                // if it doesn't exist, we assume we've already processed it
+                let current = match frontier.remove(&current_vertex_id) {
+                    None => continue,
+                    Some(c) => c,
+                };
 
                 // test for search termination
                 if m.terminate_search(&current.state)
