@@ -31,6 +31,12 @@ impl Default for TestDG {
 }
 #[cfg(test)]
 impl DirectedGraph for TestDG {
+    fn n_edges(&self) -> usize {
+        self.edges.len()
+    }
+    fn n_vertices(&self) -> usize {
+        self.adj.len()
+    }
     fn all_edge_ids(&self) -> Vec<EdgeId> {
         self.edges.keys().cloned().collect()
     }
@@ -49,14 +55,14 @@ impl DirectedGraph for TestDG {
             })
             .collect()
     }
-    fn edge_attr(&self, edge_id: EdgeId) -> Result<Edge, GraphError> {
+    fn edge_attr(&self, edge_id: EdgeId) -> Result<&Edge, GraphError> {
         match self.edges.get(&edge_id) {
             None => Err(GraphError::EdgeAttributeNotFound { edge_id }),
-            Some(edge) => Ok(*edge),
+            Some(edge) => Ok(edge),
         }
     }
-    fn vertex_attr(&self, _vertex_id: VertexId) -> Result<Vertex, GraphError> {
-        Ok(Vertex {
+    fn vertex_attr(&self, _vertex_id: VertexId) -> Result<&Vertex, GraphError> {
+        Ok(&Vertex {
             vertex_id: VertexId(0),
             coordinate: coord! {x: 0.0, y: 0.0},
         })
@@ -83,7 +89,7 @@ impl DirectedGraph for TestDG {
         self.edge_attr(edge_id).map(|e| e.src_vertex_id)
     }
     fn dst_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
-        self.edge_attr(edge_id).map(|e: Edge| e.dst_vertex_id)
+        self.edge_attr(edge_id).map(|e: &Edge| e.dst_vertex_id)
     }
 }
 

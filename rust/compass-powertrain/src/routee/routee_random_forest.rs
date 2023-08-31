@@ -16,7 +16,7 @@ use smartcore::{
 };
 use uom::si;
 
-const MAXIMUM_MPG: f64 = 100.0;
+const MAXIMUM_MPG: f64 = 50.0;
 
 pub struct RouteERandomForestModel {
     pub velocity_model: Arc<VelocityLookupModel>,

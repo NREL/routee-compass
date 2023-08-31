@@ -63,7 +63,7 @@ impl EdgeTraversal {
         .map_err(SearchError::TraversalModelFailure)?;
 
         let traversal_result = m
-            .traversal_cost(&src, &edge, &dst, &access_result.updated_state)
+            .traversal_cost(src, edge, dst, &access_result.updated_state)
             .map_err(SearchError::TraversalModelFailure)?;
 
         let result = EdgeTraversal {
