@@ -23,6 +23,7 @@ pub struct SearchApp {
     frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
     pub parallelism: usize,
     pub query_timeout_ms: u64,
+    pub include_tree: bool,
 }
 
 impl SearchApp {
@@ -34,6 +35,7 @@ impl SearchApp {
         frontier_model: Box<dyn FrontierModel>,
         parallelism: Option<usize>,
         query_timeout_ms: Option<u64>,
+        include_tree: bool,
     ) -> Self {
         let g = Arc::new(DriverReadOnlyLock::new(graph));
         let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
@@ -46,6 +48,7 @@ impl SearchApp {
             frontier_model: f,
             parallelism: parallelism_or_default,
             query_timeout_ms: query_timeout_ms_or_default,
+            include_tree: include_tree,
         };
     }
 
@@ -56,6 +59,7 @@ impl SearchApp {
         &self,
         queries: &Vec<serde_json::Value>,
     ) -> Result<Vec<Result<SearchAppResult, AppError>>, AppError> {
+        log::debug!("Building thread pool with {} threads", self.parallelism);
         let _pool = rayon::ThreadPoolBuilder::new()
             .num_threads(self.parallelism)
             .build()
@@ -104,13 +108,22 @@ impl SearchApp {
                         "Route Computed in {:?} miliseconds",
                         route_runtime.as_millis()
                     );
-                    Ok(SearchAppResult {
-                        route,
-                        tree,
-                        search_runtime,
-                        route_runtime,
-                        total_runtime: search_runtime + route_runtime,
-                    })
+                    match self.include_tree {
+                        true => Ok(SearchAppResult {
+                            route,
+                            tree: Some(tree),
+                            search_runtime,
+                            route_runtime,
+                            total_runtime: search_runtime + route_runtime,
+                        }),
+                        false => Ok(SearchAppResult {
+                            route,
+                            tree: None,
+                            search_runtime,
+                            route_runtime,
+                            total_runtime: search_runtime + route_runtime,
+                        }),
+                    }
                 })
                 .map_err(AppError::SearchError)
             })
@@ -162,13 +175,22 @@ impl SearchApp {
                     let route_runtime = (route_end_time - route_start_time)
                         .to_std()
                         .unwrap_or(time::Duration::ZERO);
-                    Ok(SearchAppResult {
-                        route,
-                        tree,
-                        search_runtime,
-                        route_runtime,
-                        total_runtime: search_runtime + route_runtime,
-                    })
+                    match self.include_tree {
+                        true => Ok(SearchAppResult {
+                            route,
+                            tree: Some(tree),
+                            search_runtime,
+                            route_runtime,
+                            total_runtime: search_runtime + route_runtime,
+                        }),
+                        false => Ok(SearchAppResult {
+                            route,
+                            tree: None,
+                            search_runtime,
+                            route_runtime,
+                            total_runtime: search_runtime + route_runtime,
+                        }),
+                    }
                 })
                 .map_err(AppError::SearchError)
             })
