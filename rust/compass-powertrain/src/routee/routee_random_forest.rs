@@ -16,12 +16,11 @@ use smartcore::{
 };
 use uom::si;
 
-const MAXIMUM_MPG: f64 = 50.0;
-
 pub struct RouteERandomForestModel {
     pub velocity_model: Arc<VelocityLookupModel>,
     pub routee_model: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
     pub energy_unit: EnergyUnit,
+    pub minimum_energy_per_mile: f64,
 }
 
 impl TraversalModel for RouteERandomForestModel {
@@ -38,7 +37,7 @@ impl TraversalModel for RouteERandomForestModel {
             .map_err(TraversalModelError::NumericError)?;
         let distance_miles = distance.get::<si::length::mile>();
         let minimum_energy = match self.energy_unit {
-            EnergyUnit::GallonsGasoline => distance_miles / MAXIMUM_MPG,
+            EnergyUnit::GallonsGasoline => distance_miles * self.minimum_energy_per_mile,
         };
         Ok(Cost::from(minimum_energy))
     }
@@ -102,10 +101,33 @@ impl RouteERandomForestModel {
                 TraversalModelError::FileReadError(routee_model_path.clone(), e.to_string())
             })?;
 
+        // sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
+        let mut minimum_energy_per_mile = std::f64::MAX;
+
+        for speed_mph in 1..100 {
+            for grade_percent in -20..20 {
+                let x =
+                    DenseMatrix::from_2d_vec(&vec![vec![speed_mph as f64, grade_percent as f64]]);
+                let energy_per_mile = rf
+                    .predict(&x)
+                    .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+                if energy_per_mile[0] < minimum_energy_per_mile {
+                    minimum_energy_per_mile = energy_per_mile[0];
+                }
+            }
+        }
+
+        log::debug!(
+            "found minimum_energy_per_mile: {} for {}",
+            minimum_energy_per_mile,
+            routee_model_path
+        );
+
         Ok(RouteERandomForestModel {
             velocity_model,
             routee_model: rf,
             energy_unit,
+            minimum_energy_per_mile,
         })
     }
 
