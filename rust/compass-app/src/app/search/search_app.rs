@@ -45,11 +45,7 @@ impl SearchApp {
             traversal_model: t,
             frontier_model: f,
             termination_model: r,
-            parallelism: parallelism_or_default,
             query_timeout_ms: query_timeout_ms_or_default,
-=======
-            query_timeout_ms: query_timeout_ms_or_default,
->>>>>>> ndr/output-plugin-pipeline
         };
     }
 
