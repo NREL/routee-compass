@@ -16,8 +16,7 @@ use crate::{
 
 use super::{
     builders::{
-        FrontierModelBuilder, InputPluginBuilder, OutputPluginBuilder, TerminationModelBuilder,
-        TraversalModelBuilder,
+        FrontierModelBuilder, InputPluginBuilder, OutputPluginBuilder, TraversalModelBuilder,
     },
     compass_configuration_error::CompassConfigurationError,
     frontier_model::{
@@ -29,15 +28,13 @@ use super::{
     },
 };
 use compass_core::model::{
-    frontier::frontier_model::FrontierModel, termination::termination_model::TerminationModel,
-    traversal::traversal_model::TraversalModel,
+    frontier::frontier_model::FrontierModel, traversal::traversal_model::TraversalModel,
 };
 use std::collections::HashMap;
 
 pub struct CompassAppBuilder {
     pub tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>>,
     pub frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>>,
-    pub termination_builders: HashMap<String, Box<dyn TerminationModelBuilder>>,
     pub input_plugin_builders: HashMap<String, Box<dyn InputPluginBuilder>>,
     pub output_plugin_builders: HashMap<String, Box<dyn OutputPluginBuilder>>,
 }
@@ -97,33 +94,6 @@ impl CompassAppBuilder {
             .ok_or(CompassConfigurationError::UnknownModelNameForComponent(
                 fm_type.clone(),
                 String::from("frontier"),
-            ))
-            .and_then(|b| b.build(&config))
-    }
-
-    pub fn build_termination_model(
-        &self,
-        config: serde_json::Value,
-    ) -> Result<Box<dyn TerminationModel>, CompassConfigurationError> {
-        let fm_type_obj =
-            config
-                .get("type")
-                .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                    CompassConfigurationField::Frontier.to_string(),
-                    String::from("type"),
-                ))?;
-        let fm_type: String = fm_type_obj
-            .as_str()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                String::from("type"),
-                String::from("String"),
-            ))?
-            .into();
-        self.termination_builders
-            .get(&fm_type)
-            .ok_or(CompassConfigurationError::UnknownModelNameForComponent(
-                fm_type.clone(),
-                String::from("termination"),
             ))
             .and_then(|b| b.build(&config))
     }
@@ -246,9 +216,6 @@ impl CompassAppBuilder {
             (String::from("road_class"), road_class),
         ]);
 
-        let termination_builders: HashMap<String, Box<dyn TerminationModelBuilder>> =
-            HashMap::from([]);
-
         // Input plugin builders
         let vertex_tree: Box<dyn InputPluginBuilder> = Box::new(VertexRTreeBuilder {});
         let input_plugin_builders = HashMap::from([(String::from("vertex_rtree"), vertex_tree)]);
@@ -268,7 +235,6 @@ impl CompassAppBuilder {
         CompassAppBuilder {
             tm_builders,
             frontier_builders,
-            termination_builders,
             input_plugin_builders,
             output_plugin_builders,
         }

@@ -15,7 +15,10 @@ use crate::{
     },
 };
 use chrono::{Duration, Local};
-use compass_core::{model::cost::cost::Cost, util::duration_extension::DurationExtension};
+use compass_core::{
+    model::{cost::cost::Cost, termination::termination_model::TerminationModel},
+    util::duration_extension::DurationExtension,
+};
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use config::Config;
 use rayon::prelude::*;
@@ -91,9 +94,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         );
 
         // build termination model
-        let termination_params =
-            config.get::<serde_json::Value>(CompassConfigurationField::Termination.to_str())?;
-        let termination_model = builder.build_termination_model(termination_params)?;
+        let termination_model =
+            config.get::<TerminationModel>(CompassConfigurationField::Termination.to_str())?;
 
         // build graph
         let graph_start = Local::now();
