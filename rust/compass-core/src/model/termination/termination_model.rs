@@ -7,7 +7,7 @@ pub trait TerminationModel: Send + Sync {
         &self,
         edge: &Edge,
         state: &TraversalState,
-        start_time: Instant,
+        start_time: &Instant,
         iterations: u64,
     ) -> Result<bool, TerminationModelError>;
 
@@ -15,7 +15,7 @@ pub trait TerminationModel: Send + Sync {
         &self,
         edge: &Edge,
         state: &TraversalState,
-        start_time: Instant,
+        start_time: &Instant,
         iterations: u64,
     ) -> Result<Option<String>, TerminationModelError>;
 }
