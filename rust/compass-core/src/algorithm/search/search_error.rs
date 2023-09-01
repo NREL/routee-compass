@@ -1,6 +1,7 @@
 use crate::model::{
     frontier::frontier_model_error::FrontierModelError,
     graph::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
+    termination::termination_model_error::TerminationModelError,
     traversal::traversal_model_error::TraversalModelError,
 };
 
@@ -10,6 +11,8 @@ pub enum SearchError {
     DistanceHeuristicWithNoTarget,
     #[error(transparent)]
     GraphError(#[from] GraphError),
+    #[error(transparent)]
+    TerminationModelError(#[from] TerminationModelError),
     #[error("failure applying the traversal model in search")]
     TraversalModelFailure(#[from] TraversalModelError),
     #[error("failure applying the frontier model in search")]
