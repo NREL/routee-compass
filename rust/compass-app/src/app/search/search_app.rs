@@ -9,6 +9,7 @@ use compass_core::{
     model::{
         frontier::frontier_model::FrontierModel,
         graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
+        termination::termination_model::TerminationModel,
         traversal::traversal_model::TraversalModel,
     },
     util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
@@ -21,6 +22,7 @@ pub struct SearchApp {
     graph: Arc<DriverReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
+    termination_model: Arc<DriverReadOnlyLock<Box<dyn TerminationModel>>>,
     pub parallelism: usize,
     pub query_timeout_ms: u64,
     pub include_tree: bool,
@@ -33,6 +35,7 @@ impl SearchApp {
         graph: Box<dyn DirectedGraph>,
         traversal_model: Box<dyn TraversalModel>,
         frontier_model: Box<dyn FrontierModel>,
+        termination_model: Box<dyn TerminationModel>,
         parallelism: Option<usize>,
         query_timeout_ms: Option<u64>,
         include_tree: bool,
@@ -40,15 +43,17 @@ impl SearchApp {
         let g = Arc::new(DriverReadOnlyLock::new(graph));
         let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
         let f = Arc::new(DriverReadOnlyLock::new(frontier_model));
+        let r = Arc::new(DriverReadOnlyLock::new(termination_model));
         let parallelism_or_default = parallelism.unwrap_or(rayon::current_num_threads());
         let query_timeout_ms_or_default = query_timeout_ms.unwrap_or(2000);
         return SearchApp {
             graph: g,
             traversal_model: t,
             frontier_model: f,
+            termination_model: r,
             parallelism: parallelism_or_default,
             query_timeout_ms: query_timeout_ms_or_default,
-            include_tree: include_tree,
+            include_tree,
         };
     }
 

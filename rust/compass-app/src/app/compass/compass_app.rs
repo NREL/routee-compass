@@ -89,6 +89,11 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             frontier_duration.hhmmss()
         );
 
+        // build termination model
+        let termination_params =
+            config.get::<serde_json::Value>(CompassConfigurationField::Termination.to_str())?;
+        let termination_model = builder.build_termination_model(termination_params)?;
+
         // build graph
         let graph_start = Local::now();
         let graph_conf = &config
@@ -132,6 +137,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             graph,
             traversal_model,
             frontier_model,
+            termination_model,
             Some(parallelism),
             Some(query_timeout_ms),
             include_tree,
