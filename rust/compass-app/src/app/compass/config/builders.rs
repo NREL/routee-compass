@@ -21,13 +21,6 @@ pub trait FrontierModelBuilder {
     ) -> Result<Box<dyn FrontierModel>, CompassConfigurationError>;
 }
 
-pub trait TerminationModelBuilder {
-    fn build(
-        &self,
-        parameters: &serde_json::Value,
-    ) -> Result<Box<dyn TerminationModel>, CompassConfigurationError>;
-}
-
 pub trait InputPluginBuilder {
     fn build(
         &self,
