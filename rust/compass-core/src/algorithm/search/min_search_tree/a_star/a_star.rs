@@ -73,6 +73,9 @@ pub fn run_a_star(
     let now = Instant::now();
     let mut counter = 0;
 
+    let graph_size = g.n_vertices();
+    let max_search_tree_size = graph_size / 3;
+
     // run search loop until we reach the destination, or fail if the set is ever empty
     loop {
         if counter % TIMEOUT_ITERATION_CHECK == 0 {
@@ -84,12 +87,21 @@ pub fn run_a_star(
                     elapsed.as_millis()
                 )));
             }
+            if solution.len() > max_search_tree_size {
+                log::error!(
+                    "search tree exceeded max size of {} vertices",
+                    max_search_tree_size
+                );
+                return Err(SearchError::InternalSearchError(format!(
+                    "search tree exceeded max size of {} vertices",
+                    max_search_tree_size
+                )));
+            }
         }
         counter += 1;
         match costs.pop() {
             None => return Err(SearchError::NoPathExists(source, target)),
             Some((current_vertex_id, _)) if current_vertex_id == target => {
-                println!("{:?}", current_vertex_id);
                 break;
             }
             Some((current_vertex_id, _)) => {
@@ -131,10 +143,12 @@ pub fn run_a_star(
                     if tentative_gscore < existing_gscore {
                         traversal_costs.insert(dst_id, tentative_gscore);
 
+                        let result_state = et.result_state.clone();
+
                         // update solution
                         let traversal = SearchTreeBranch {
                             terminal_vertex: src_id,
-                            edge_traversal: et.clone(),
+                            edge_traversal: et,
                         };
                         solution.insert(dst_id, traversal);
 
@@ -142,7 +156,7 @@ pub fn run_a_star(
                         let f = AStarFrontier {
                             vertex_id: dst_id,
                             prev_edge_id: Some(edge_id),
-                            state: et.result_state,
+                            state: result_state,
                         };
                         let dst_h_cost = h_cost(dst_id, target, &current.state, &g, &m)?;
                         let f_score_value = tentative_gscore + dst_h_cost;
@@ -153,6 +167,11 @@ pub fn run_a_star(
             }
         }
     }
+    log::debug!(
+        "search iterations: {}, size of search tree: {}",
+        counter,
+        solution.len()
+    );
 
     return Ok(solution);
 }

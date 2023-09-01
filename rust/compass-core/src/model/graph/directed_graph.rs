@@ -7,8 +7,8 @@ use super::graph_error::GraphError;
 use super::vertex_id::VertexId;
 
 pub trait DirectedGraph: Sync + Send {
-    fn edge_attr(&self, edge_id: EdgeId) -> Result<Edge, GraphError>;
-    fn vertex_attr(&self, vertex_id: VertexId) -> Result<Vertex, GraphError>;
+    fn edge_attr(&self, edge_id: EdgeId) -> Result<&Edge, GraphError>;
+    fn vertex_attr(&self, vertex_id: VertexId) -> Result<&Vertex, GraphError>;
     fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError>;
     fn in_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError>;
     fn src_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError>;
@@ -17,7 +17,8 @@ pub trait DirectedGraph: Sync + Send {
     fn all_edges(&self) -> Vec<Edge>;
     fn all_vertex_ids(&self) -> Vec<VertexId>;
     fn all_vertices(&self) -> Vec<Vertex>;
-
+    fn n_edges(&self) -> usize; 
+    fn n_vertices(&self) -> usize;
 
     /// helper function to give incident edges to a vertex based on a
     /// traversal direction.
@@ -45,7 +46,7 @@ pub trait DirectedGraph: Sync + Send {
         }
     }
 
-    fn edge_triplet_attrs(&self, edge_id: EdgeId) -> Result<(Vertex, Edge, Vertex), GraphError> {
+    fn edge_triplet_attrs(&self, edge_id: EdgeId) -> Result<(&Vertex, &Edge, &Vertex), GraphError> {
         let edge = self.edge_attr(edge_id)?;
         let src = self.vertex_attr(edge.src_vertex_id)?;
         let dst = self.vertex_attr(edge.dst_vertex_id)?;
@@ -63,7 +64,7 @@ pub trait DirectedGraph: Sync + Send {
         direction: Direction,
     ) -> Result<Vec<(VertexId, EdgeId, VertexId)>, GraphError> {
         let edge_ids = self.incident_edges(vertex_id, direction)?;
-        let mut result: Vec<(VertexId, EdgeId, VertexId)> = Vec::new();
+        let mut result: Vec<(VertexId, EdgeId, VertexId)> = Vec::with_capacity(edge_ids.len());
         for edge_id in edge_ids {
             let terminal_vid = self.incident_vertex(edge_id, direction)?;
             result.push((vertex_id, edge_id, terminal_vid));
@@ -75,9 +76,9 @@ pub trait DirectedGraph: Sync + Send {
         &self,
         vertex_id: VertexId,
         direction: Direction,
-    ) -> Result<Vec<(Vertex, Edge, Vertex)>, GraphError> {
+    ) -> Result<Vec<(&Vertex, &Edge, &Vertex)>, GraphError> {
         let triplets = self.incident_triplets(vertex_id, direction)?;
-        let mut result: Vec<(Vertex, Edge, Vertex)> = Vec::new();
+        let mut result: Vec<(&Vertex, &Edge, &Vertex)> = Vec::with_capacity(triplets.len());
         for (src_id, edge_id, dst_id) in triplets {
             let src = self.vertex_attr(src_id)?;
             let edge = self.edge_attr(edge_id)?;

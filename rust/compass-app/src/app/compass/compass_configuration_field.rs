@@ -11,6 +11,7 @@ pub enum CompassConfigurationField {
     OutputPlugins,
     Parallelism,
     QueryTimeoutMs,
+    IncludeTree,
 }
 
 impl CompassConfigurationField {
@@ -22,6 +23,7 @@ impl CompassConfigurationField {
             CompassConfigurationField::Algorithm => "algorithm",
             CompassConfigurationField::Parallelism => "parallelism",
             CompassConfigurationField::QueryTimeoutMs => "query_timeout_ms",
+            CompassConfigurationField::IncludeTree => "include_tree",
             CompassConfigurationField::Plugins => "plugin",
             CompassConfigurationField::InputPlugins => "input_plugins",
             CompassConfigurationField::OutputPlugins => "output_plugins",
