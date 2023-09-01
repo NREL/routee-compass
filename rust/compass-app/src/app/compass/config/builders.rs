@@ -1,5 +1,6 @@
 use compass_core::model::{
-    frontier::frontier_model::FrontierModel, traversal::traversal_model::TraversalModel,
+    frontier::frontier_model::FrontierModel, termination::termination_model::TerminationModel,
+    traversal::traversal_model::TraversalModel,
 };
 
 use crate::plugin::{input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin};
@@ -18,6 +19,13 @@ pub trait FrontierModelBuilder {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn FrontierModel>, CompassConfigurationError>;
+}
+
+pub trait TerminationModelBuilder {
+    fn build(
+        &self,
+        parameters: &serde_json::Value,
+    ) -> Result<Box<dyn TerminationModel>, CompassConfigurationError>;
 }
 
 pub trait InputPluginBuilder {

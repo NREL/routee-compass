@@ -4,6 +4,7 @@ use std::fmt::Display;
 pub enum CompassConfigurationField {
     Graph,
     Frontier,
+    Termination,
     Traversal,
     Algorithm,
     Plugins,
@@ -20,6 +21,7 @@ impl CompassConfigurationField {
             CompassConfigurationField::Graph => "graph",
             CompassConfigurationField::Traversal => "traversal",
             CompassConfigurationField::Frontier => "frontier",
+            CompassConfigurationField::Termination => "termination",
             CompassConfigurationField::Algorithm => "algorithm",
             CompassConfigurationField::Parallelism => "parallelism",
             CompassConfigurationField::QueryTimeoutMs => "query_timeout_ms",
@@ -31,6 +33,12 @@ impl CompassConfigurationField {
     }
     pub fn to_string(&self) -> String {
         self.to_str().to_string()
+    }
+}
+
+impl From<CompassConfigurationField> for String {
+    fn from(value: CompassConfigurationField) -> Self {
+        value.to_string()
     }
 }
 
