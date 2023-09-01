@@ -1,6 +1,5 @@
 query_timeout_ms = 2000
 parallelism = 2
-include_tree = true 
 
 [graph.tomtom]
 edge_file = "edges.csv.gz"
@@ -16,6 +15,10 @@ type = "distance"
 
 [frontier]
 type = "no_restriction"
+
+[termination]
+[combination]
+models = [{ type = "QueryRuntimeLimit", limit = "00:01:00", frequency = 100 }]
 
 [plugin]
 input_plugins = [{ type = "vertex_rtree", vertices_file = "vertices.csv.gz" }]
