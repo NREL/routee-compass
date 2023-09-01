@@ -1,12 +1,13 @@
-use crate::model::{property::edge::Edge, traversal::state::traversal_state::TraversalState};
-
 use super::termination_model_error::TerminationModelError;
+use crate::model::{property::edge::Edge, traversal::state::traversal_state::TraversalState};
+use std::time::Instant;
 
 pub trait TerminationModel: Send + Sync {
     fn terminate_search(
         &self,
         edge: &Edge,
         state: &TraversalState,
+        start_time: Instant,
         iterations: u64,
     ) -> Result<bool, TerminationModelError>;
 
@@ -14,6 +15,7 @@ pub trait TerminationModel: Send + Sync {
         &self,
         edge: &Edge,
         state: &TraversalState,
+        start_time: Instant,
         iterations: u64,
-    ) -> Result<serde_json::Value, TerminationModelError>;
+    ) -> Result<Option<String>, TerminationModelError>;
 }
