@@ -18,12 +18,13 @@ use chrono::{Duration, Local};
 use compass_core::{model::cost::cost::Cost, util::duration_extension::DurationExtension};
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use config::Config;
-use itertools::{Either, Itertools};
+use rayon::prelude::*;
 
 pub struct CompassApp {
     pub search_app: SearchApp,
     pub input_plugins: Vec<Box<dyn InputPlugin>>,
     pub output_plugins: Vec<Box<dyn OutputPlugin>>,
+    pub parallelism: usize,
 }
 
 impl TryFrom<PathBuf> for CompassApp {
@@ -127,14 +128,11 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
         let query_timeout_ms =
             config.get::<u64>(CompassConfigurationField::QueryTimeoutMs.to_str())?;
-        let include_tree = config.get::<bool>(CompassConfigurationField::IncludeTree.to_str())?;
         let search_app: SearchApp = SearchApp::new(
             graph,
             traversal_model,
             frontier_model,
-            Some(parallelism),
             Some(query_timeout_ms),
-            include_tree,
         );
         let search_app_duration = to_std(Local::now() - search_app_start)?;
         log::info!(
@@ -160,6 +158,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             search_app,
             input_plugins,
             output_plugins,
+            parallelism,
         });
     }
 }
@@ -175,39 +174,43 @@ impl CompassApp {
     /// errors due to the user, they should be propagated along into the output
     /// JSON in an error format along with the request.
     pub fn run(&self, queries: Vec<serde_json::Value>) -> Result<Vec<serde_json::Value>, AppError> {
-        let (processed_user_queries, failed_input_proc): (Vec<_>, Vec<_>) = queries
-            .iter()
-            .partition_map(|q| match apply_input_plugins(&q, &self.input_plugins) {
-                Ok(processed) => Either::Left(processed),
-                Err(error) => Either::Right(serde_json::json!({
-                    "req": q,
+        let _pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(self.parallelism)
+            .build()
+            .map_err(|e| {
+                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+            })?;
+
+        queries
+            .into_par_iter()
+            .map(|query| self.run_single_query(query))
+            .collect()
+    }
+
+    /// run a single query from end to end, applying input plugins, running the search
+    /// algorithm, and applying output plugins.
+    pub fn run_single_query(
+        &self,
+        query: serde_json::Value,
+    ) -> Result<serde_json::Value, AppError> {
+        let processed_query = match apply_input_plugins(&query, &self.input_plugins) {
+            Ok(processed) => processed,
+            Err(error) => {
+                return Ok(serde_json::json!({
+                    "req": query,
                     "error": format!("{:?}", error)
-                })),
-            });
+                }))
+            }
+        };
+        let search_result = self.search_app.run_vertex_oriented(&processed_query);
 
-        let search_start = Local::now();
-        log::info!("running search");
-        let results = self
-            .search_app
-            .run_vertex_oriented(&processed_user_queries)?;
-        let search_duration = to_std(Local::now() - search_start)?;
-        log::info!("finished search with duration {}", search_duration.hhmmss());
-
-        let output_start = Local::now();
-        let output_rows = processed_user_queries
-            .clone()
-            .iter()
-            .zip(results)
-            .map(|data| apply_output_processing(data, &self.search_app, &self.output_plugins))
-            .collect::<Vec<serde_json::Value>>();
-
-        let output_duration = to_std(Local::now() - output_start)?;
-        log::info!(
-            "finished generating output with duration {}",
-            output_duration.hhmmss()
+        let output = apply_output_processing(
+            (&processed_query, search_result),
+            &self.search_app,
+            &self.output_plugins,
         );
 
-        return Ok([output_rows, failed_input_proc].concat());
+        Ok(output)
     }
 }
 
@@ -260,13 +263,11 @@ pub fn apply_output_processing(
             }
 
             log::debug!(
-                "completed route for request {}: {} links",
+                "completed route for request {}: {} links, {} tree size",
                 req,
                 result.route.len(),
+                result.tree.len()
             );
-            if search_app.include_tree {
-                log::debug!("tree with {} links", result.tree.unwrap().len(),);
-            }
 
             // should be moved into TraversalModel::summary same reason as above
             let route = result.route.to_vec();

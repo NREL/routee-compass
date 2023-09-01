@@ -104,6 +104,8 @@ impl RouteERandomForestModel {
         // sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
         let mut minimum_energy_per_mile = std::f64::MAX;
 
+        let start_time = std::time::Instant::now();
+
         for speed_mph in 1..100 {
             for grade_percent in -20..20 {
                 let x =
@@ -117,10 +119,14 @@ impl RouteERandomForestModel {
             }
         }
 
+        let end_time = std::time::Instant::now();
+        let search_time = end_time - start_time;
+
         log::debug!(
-            "found minimum_energy_per_mile: {} for {}",
+            "found minimum_energy_per_mile: {} for {} in {} milliseconds",
             minimum_energy_per_mile,
-            routee_model_path
+            routee_model_path,
+            search_time.as_millis()
         );
 
         Ok(RouteERandomForestModel {
