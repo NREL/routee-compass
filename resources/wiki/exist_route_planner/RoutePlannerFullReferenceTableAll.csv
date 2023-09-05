@@ -1,0 +1,33 @@
+﻿Route Planner,Michelin Star System in Investigation,Editable Properties,Suitable Region,Planner Resource,Targeted Customer,Reference,Tool Type,Demo Availability,Additional Comments
+A Better Route Planner,3,"Amenities, Battery Degradation, Charge Networks, Charger Availability, Charger Cards, Charger Stop Frequency, Charger Types, Extra Weight, Initial Vehicle Temprature, Maximum Speed, Number of Charger Stalls, Real-time Speed, Real-time Weather, Reference Consumption, Reference Speed, Seasonal Weather, State of Charge at Destinatiton, State of Charge at Start, Vehicle Model, Wait Time",Global,Self-developed Planner,Individual,https://abetterrouteplanner.com,EV Planner,Yes,
+PlugShare,2,"Amenities, Charge Networks, Charger Legend, Kilowatt Range, Number of Charger Stalls, Parking Type, PlugScore Filtering, Range Estimates, Search Radius, Vehicle Model, Wait Time",Global,Self-developed Planner,Individual,https://www.plugshare.com,EV Planner,Yes,
+EV Navigation,2,"Altitude Change (Not Ediable), Extra Weight, Maximum Speed, State of Charge at Destinatiton, State of Charge at Start, Tire Pressure, User Behavior, Vehicle Model, Wait Time",Global,"Google Map API, Self-developed Planner",Individual,https://evnavigation.com,EV Planner,Yes,
+Charge Hub,2,"Charge Networks, Charger Legend, Charger Stop Frequency, Charger Types, Search Radius",US,Google Map API,Individual,https://chargehub.com/en/charging-stations-map.html,EV Planner,Yes,
+Tom Tom EV Route Planning,3,"Charger Types, Energy Efficient Route Preference, Range Estimates, State of Charge at Destinatiton, State of Charge at Start, Vehicle Parameters",Global,Self-developed Planner,Individual,https://developer.tomtom.com/use-cases/ev-route-planning,EV Planner,Yes,
+BeNomad (EV Move),2,"EV Planning, Heavy Truck Planning",EU,Self-developed Planner,Business,https://benomad.com/en/home/,GPS Navigation with Multiple Vehicle Type Supports,No,
+ZapMap,1,"Amenities, Charge Networks, Charger Types, Kilowatt Range, Vehicle Model",UK,Self-developed Planner,"Business, Individual",https://www.zap-map.com/live/,EV Planner,Yes,
+Octopus Electroverse,1,"State of Charge at Destinatiton, State of Charge at Start, Vehicle Model",EU,Google Map API,Individual,https://electroverse.octopus.energy/map,EV Planner,Yes,
+Charge Trip,1,"Altitude Change (Not Ediable), Charger Types, Real-time Speed, Real-time Weather",Global,Self-developed Planner,Business,https://chargetrip.com/api,EV Planner,No,
+Onfleet,0,,Global,Self-developed Planner,Business,https://onfleet.com,Fleet Planning,No,
+RoadWarrior,0,,Global,Self-developed Planner,"Business, Individual",https://roadwarrior.app/drivers/,Traveling Salesman Problem,No,
+Samsara,0,,Global,Self-developed Planner,Business,https://www.samsara.com,Fleet Planning,No,
+IntelliShift,0,,Global,Self-developed Planner,Business,https://intellishift.com,Fleet Planning,No,
+Motive,0,,Global,,Business,https://gomotive.com,Fleet Planning,No,
+Google Map,0,,Global,Google Map API,Individual,https://www.google.com/maps,General Navigating,No,
+Waze,0,,Global,Self-developed Planner,Individual,https://www.waze.com/live-map/,General Navigating,No,
+Mapquest,0,,Global,Self-developed Planner,Individual,https://www.mapquest.com,General Navigating,No,
+Maps.me,0,,Global,,Individual,https://maps.me,General Navigating,No,OpenStreetMap based Offline Map
+Scout GPS,0,,Global,Self-developed Planner,Individual,https://www.scoutgpslink.com,General Navigating,No,"Embedded in Lexus, Embedded in Toyota"
+Inroute Route Planner,0,,Global,Self-developed Planner,Individual,https://inroute.com,General Navigating,No,
+Apple Maps,0,,Global,Self-developed Planner,Individual,https://www.apple.com/maps/,General Navigating,No,
+Mapfactor Navigator,1,,Global,Self-developed Planner,Individual,https://navigatorfree.mapfactor.com/en/,General Navigating,No,"OpenStreetMap based Offline Map, Tom Tom Map for Truck"
+Copilot GPS Navigation,0,,Global,Self-developed Planner,Individual,https://copilotgps.com/en-us/,General Navigating,No,
+Osm And,0,,Global,Self-developed Planner,Individual,https://osmand.net,General Navigating,No,Offline
+Tom Tom Go Navigation,3,"Maximum Speed, Vehicle Model, Vehicle Parameters",Global,Self-developed Planner,Individual,https://www.tomtom.com/en_us/navigation/mobile-apps/go-navigation-app/,General Navigating,No,
+Here We Go Maps & Navigation,0,,Global,Self-developed Planner,Individual,https://www.here.com/products/wego,General Navigating,No,Alternate Route
+GAIA GPS,0,,Global,,Individual,https://www.gaiagps.com,General Navigating,No,Offroad
+Karta GPS,0,,Global,Self-developed Planner,Individual,https://ndrive.com/product/karta-gps/,General Navigating,No,
+Polaris GPS Navigation,0,,Global,,Individual,https://www.polaris.com/en-us/off-road/technology/ride-command/,General Navigating,No,Offroad
+Road Trippers,0,,Global,Self-developed Planner,Individual,https://roadtrippers.com,General Navigating,No,
+Traffic Spotter,1,,Global,,Individual,https://www.trafficspotter.com,General Navigating,No,Real-time Traffic Report
+Sygic GPS Navigation & Maps,0,,Global,Self-developed Planner,Individual,https://www.sygic.com/gps-navigation,General Navigating,No,
