@@ -23,22 +23,23 @@ class CompassApp:
         app = CompassAppWrapper._from_config_file(str(config_path.absolute()))
         return cls(app)
 
-    def run_query(self, query: Dict[str, Any]) -> Dict[str, Any]:
+    def run(
+        self, query: Union[Dict[str, Any], List[Dict[str, Any]]]
+    ) -> List[Dict[str, Any]]:
         """
         A wrapper function to run a query on the CompassAppWrapper object
         which expects the inputs to be a JSON string and returns a JSON string
         """
-        query_json = json.dumps(query)
+        if isinstance(query, dict):
+            queries = [query]
+        elif isinstance(query, list):
+            queries = query
+        else:
+            raise ValueError(
+                f"Query must be a dict or list of dicts, not {type(query)}"
+            )
 
-        result_json = self._app._run_query(query_json)
-
-        return json.loads(result_json)
-
-    def run_queries(self, queries: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        A wrapper function to run multiple queries on the CompassAppWrapper object
-        """
-        queries_json = json.dumps(queries)
+        queries_json = list(map(json.dumps, queries))
 
         results_json: List[str] = self._app._run_queries(queries_json)
 

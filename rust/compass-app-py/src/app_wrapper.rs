@@ -22,27 +22,6 @@ impl CompassAppWrapper {
         Ok(CompassAppWrapper { compass_app })
     }
 
-    /// Runs a single query and returns the result
-    ///
-    /// # Arguments
-    ///
-    /// * `query` - a json string containing the query to run
-    ///
-    /// # Returns
-    ///
-    /// * a json string containing the result of the query
-    pub fn _run_query(&self, query: String) -> PyResult<String> {
-        let json_query = serde_json::from_str(&query)
-            .map_err(|e| PyException::new_err(format!("Could not parse query: {}", e)))?;
-
-        let result = self
-            .compass_app
-            .run(vec![json_query])
-            .map_err(|e| PyException::new_err(format!("Could not run query: {}", e)))?;
-
-        Ok(result[0].to_string())
-    }
-
     /// Runs a set of queries and returns the results
     /// # Arguments
     /// * `queries` - a list of queries to run as json strings
@@ -50,6 +29,18 @@ impl CompassAppWrapper {
     /// # Returns
     /// * a list of json strings containing the results of the queries
     pub fn _run_queries(&self, queries: Vec<String>) -> PyResult<Vec<String>> {
-        queries.iter().map(|q| self._run_query(q.clone())).collect()
+        let json_queries = queries
+            .iter()
+            .map(|q| serde_json::from_str(q))
+            .collect::<Result<Vec<serde_json::Value>, serde_json::Error>>()
+            .map_err(|e| PyException::new_err(format!("Could not parse queries: {}", e)))?;
+
+        let results = self
+            .compass_app
+            .run(json_queries)
+            .map_err(|e| PyException::new_err(format!("Could not run queries: {}", e)))?;
+
+        let string_results: Vec<String> = results.iter().map(|r| r.to_string()).collect();
+        Ok(string_results)
     }
 }

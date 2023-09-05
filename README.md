@@ -99,8 +99,8 @@ query = {
     "destination_y": 39.6757025
 }
 
-# result here is a python dictionary
-result = app.run_query(query)
+# result here is a list of python dictionaries
+results = app.run(query)
 ```
 
 ### command line application

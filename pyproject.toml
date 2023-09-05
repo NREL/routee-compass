@@ -28,9 +28,6 @@ dev = ["black", "pytest", "maturin"]
 [project.urls]
 Homepage = "https://github.nrel.gov/MBAP/routee-compass"
 
-[tool.black]
-line-length = 100
-
 [tool.maturin]
 python-source = "python"
 features = ["pyo3/extension-module"]
