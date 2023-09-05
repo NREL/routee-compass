@@ -1,7 +1,6 @@
+use super::termination_model_error::TerminationModelError;
 use serde::Deserialize;
 use std::time::{Duration, Instant};
-
-use super::termination_model_error::TerminationModelError;
 
 #[derive(Debug, Deserialize)]
 pub enum TerminationModel {
