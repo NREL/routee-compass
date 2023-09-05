@@ -1,6 +1,5 @@
 query_timeout_ms = 2000
 parallelism = 2
-include_tree = true 
 
 [graph.tomtom]
 edge_file = "edges.csv.gz"
