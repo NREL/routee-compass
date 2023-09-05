@@ -34,7 +34,6 @@ pub fn run_a_star(
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
-    timeout_duration: Duration,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
         let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
@@ -177,7 +176,6 @@ pub fn run_a_star_edge_oriented(
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
-    timeout_duration: Duration,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
@@ -222,7 +220,6 @@ pub fn run_a_star_edge_oriented(
             traversal_model.clone(),
             frontier_model.clone(),
             termination_model,
-            timeout_duration,
         )?;
 
         if tree.is_empty() {
@@ -454,7 +451,6 @@ mod tests {
                     tm_inner,
                     fm_inner,
                     rm_inner,
-                    Duration::from_secs(2),
                 )
             })
             .collect();

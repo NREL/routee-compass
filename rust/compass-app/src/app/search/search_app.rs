@@ -22,7 +22,6 @@ pub struct SearchApp {
     traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
     termination_model: Arc<DriverReadOnlyLock<TerminationModel>>,
-    pub query_timeout_ms: u64,
 }
 
 impl SearchApp {
@@ -33,19 +32,16 @@ impl SearchApp {
         traversal_model: Box<dyn TraversalModel>,
         frontier_model: Box<dyn FrontierModel>,
         termination_model: TerminationModel,
-        query_timeout_ms: Option<u64>,
     ) -> Self {
         let g = Arc::new(DriverReadOnlyLock::new(graph));
         let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
         let f = Arc::new(DriverReadOnlyLock::new(frontier_model));
         let r = Arc::new(DriverReadOnlyLock::new(termination_model));
-        let query_timeout_ms_or_default = query_timeout_ms.unwrap_or(2000);
         return SearchApp {
             graph: g,
             traversal_model: t,
             frontier_model: f,
             termination_model: r,
-            query_timeout_ms: query_timeout_ms_or_default,
         };
     }
 
@@ -72,7 +68,6 @@ impl SearchApp {
             tm_inner,
             fm_inner,
             rm_inner,
-            Duration::from_millis(self.query_timeout_ms),
         )
         .and_then(|tree| {
             let search_end_time = Local::now();
@@ -123,7 +118,6 @@ impl SearchApp {
             tm_inner,
             fm_inner,
             rm_inner,
-            Duration::from_millis(self.query_timeout_ms),
         )
         .and_then(|tree| {
             let search_end_time = Local::now();
