@@ -1,4 +1,7 @@
-use compass_core::model::traversal::traversal_model_error::TraversalModelError;
+use compass_core::{
+    model::traversal::traversal_model_error::TraversalModelError,
+    util::conversion::conversion_error::ConversionError,
+};
 
 use crate::plugin::plugin_error::PluginError;
 
@@ -12,6 +15,8 @@ pub enum CompassConfigurationError {
     UnknownModelNameForComponent(String, String),
     #[error(transparent)]
     SerdeDeserializationError(#[from] serde_json::Error),
+    #[error(transparent)]
+    ConversionError(#[from] ConversionError),
     #[error(transparent)]
     TraversalModelError(#[from] TraversalModelError),
     #[error(transparent)]
