@@ -5,7 +5,9 @@ use crate::{
     app::{
         app_error::AppError,
         compass::{
-            compass_configuration_field::CompassConfigurationField, config_old::graph::GraphConfig,
+            compass_configuration_field::CompassConfigurationField,
+            config::termination_model_builder::TerminationModelBuilder,
+            config_old::graph::GraphConfig,
         },
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
@@ -15,10 +17,7 @@ use crate::{
     },
 };
 use chrono::{Duration, Local};
-use compass_core::{
-    model::{cost::cost::Cost, termination::termination_model::TerminationModel},
-    util::duration_extension::DurationExtension,
-};
+use compass_core::{model::cost::cost::Cost, util::duration_extension::DurationExtension};
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use config::Config;
 use rayon::prelude::*;
@@ -94,8 +93,9 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         );
 
         // build termination model
-        let termination_model =
-            config.get::<TerminationModel>(CompassConfigurationField::Termination.to_str())?;
+        let termination_model_json =
+            config.get::<serde_json::Value>(CompassConfigurationField::Termination.to_str())?;
+        let termination_model = TerminationModelBuilder::build(&termination_model_json)?;
 
         // build graph
         let graph_start = Local::now();
@@ -133,15 +133,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         // build search app
         let search_app_start = Local::now();
         let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
-        let query_timeout_ms =
-            config.get::<u64>(CompassConfigurationField::QueryTimeoutMs.to_str())?;
-        let search_app: SearchApp = SearchApp::new(
-            graph,
-            traversal_model,
-            frontier_model,
-            termination_model,
-            Some(query_timeout_ms),
-        );
+        let search_app: SearchApp =
+            SearchApp::new(graph, traversal_model, frontier_model, termination_model);
         let search_app_duration = to_std(Local::now() - search_app_start)?;
         log::info!(
             "finished building search app with duration {}",
