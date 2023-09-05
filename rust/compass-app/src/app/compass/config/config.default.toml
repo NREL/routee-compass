@@ -18,7 +18,7 @@ type = "no_restriction"
 [termination]
 type = "combined"
 models = [
-    { type = "query_runtime", limit = "00:01:00", frequency = 100 },
+    { type = "query_runtime", limit = "00:01:00", frequency = 1000 },
     { type = "iterations", limit = 1000000 },
 ]
 
