@@ -35,7 +35,7 @@ impl RTreePlugin {
 }
 
 impl InputPlugin for RTreePlugin {
-    fn proccess(&self, input: &serde_json::Value) -> Result<serde_json::Value, PluginError> {
+    fn process(&self, input: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
         let mut updated = input.clone();
         let origin_coord = input.get_origin_coordinate()?;
         let destination_coord = input.get_destination_coordinate()?;
@@ -51,7 +51,7 @@ impl InputPlugin for RTreePlugin {
             .ok_or(PluginError::NearestVertexNotFound(destination_coord))?;
         updated.add_origin_vertex(origin_vertex.vertex_id)?;
         updated.add_destination_vertex(destination_vertex.vertex_id)?;
-        Ok(updated)
+        Ok(vec![updated])
     }
 }
 
@@ -86,10 +86,10 @@ mod test {
         let query_str = fs::read_to_string(query_filepath).unwrap();
         let rtree_plugin = RTreePlugin::from_file(&vertices_filepath).unwrap();
         let query: serde_json::Value = serde_json::from_str(&query_str).unwrap();
-        let processed_query = rtree_plugin.proccess(&query).unwrap();
+        let processed_query = rtree_plugin.process(&query).unwrap();
 
         assert_eq!(
-            processed_query,
+            processed_query[0],
             json!(
                 {
                     InputField::OriginX.to_str(): 0.1,
