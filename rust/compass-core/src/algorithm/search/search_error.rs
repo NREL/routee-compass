@@ -19,6 +19,8 @@ pub enum SearchError {
     FrontierModelFailure(#[from] FrontierModelError),
     #[error("loop in search result revisits edge {0}")]
     LoopInSearchResult(EdgeId),
+    #[error("query terminated due to {0}")]
+    QueryTerminated(String),
     #[error("no path exists between vertices {0} and {1}")]
     NoPathExists(VertexId, VertexId),
     #[error("search tree is missing linked vertex {0}")]

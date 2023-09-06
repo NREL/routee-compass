@@ -1,4 +1,5 @@
 use super::termination_model_error::TerminationModelError;
+use crate::util::duration_extension::DurationExtension;
 use serde::Deserialize;
 use std::time::{Duration, Instant};
 
@@ -39,6 +40,47 @@ impl TerminationModel {
                 m.terminate_search(start_time, solution_size, iterations)
                     .map(|r| acc && r)
             }),
+        }
+    }
+
+    /// assuming the termination model has
+    pub fn explain_termination(
+        &self,
+        start_time: &Instant,
+        solution_size: usize,
+        iterations: u64,
+    ) -> Option<String> {
+        use TerminationModel as T;
+        let caused_termination = self
+            .terminate_search(start_time, solution_size, iterations)
+            .unwrap_or(false);
+        match self {
+            T::Combined { models } => models
+                .iter()
+                .map(|m| m.explain_termination(start_time, solution_size, iterations))
+                .collect::<Option<Vec<_>>>()
+                .map(|result| result.join(", ")),
+            T::QueryRuntimeLimit { limit, .. } => {
+                if caused_termination {
+                    Some(format!("exceeded runtime limit of {}", limit.hhmmss()))
+                } else {
+                    None
+                }
+            }
+            T::SolutionSizeLimit { limit } => {
+                if caused_termination {
+                    Some(format!("exceeded solution size limit of {}", limit))
+                } else {
+                    None
+                }
+            }
+            T::IterationsLimit { limit } => {
+                if caused_termination {
+                    Some(format!("exceeded iteration limit of {}", limit))
+                } else {
+                    None
+                }
+            }
         }
     }
 }

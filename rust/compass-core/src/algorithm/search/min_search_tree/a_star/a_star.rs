@@ -81,7 +81,14 @@ pub fn run_a_star(
     // - our TerminationModel says we are cut off (Ok)
     loop {
         if t.terminate_search(&start_time, solution.len(), iterations)? {
-            break;
+            match t.explain_termination(&start_time, solution.len(), iterations) {
+                None => {
+                    return Err(SearchError::InternalSearchError(String::from(
+                        "termination model error",
+                    )))
+                }
+                Some(msg) => return Err(SearchError::QueryTerminated(msg)),
+            }
         }
 
         match costs.pop() {
