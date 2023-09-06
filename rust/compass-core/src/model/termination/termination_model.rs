@@ -46,7 +46,7 @@ impl TerminationModel {
             T::IterationsLimit { limit } => Ok(iteration + 1 > *limit),
             T::Combined { models } => models.iter().try_fold(false, |acc, m| {
                 m.terminate_search(start_time, solution_size, iteration)
-                    .map(|r| acc && r)
+                    .map(|r| acc || r)
             }),
         }
     }
@@ -97,7 +97,7 @@ impl TerminationModel {
 mod tests {
     use std::time::{Duration, Instant};
 
-    use super::TerminationModel;
+    use super::TerminationModel as T;
 
     #[test]
     fn test_within_runtime_limit() {
@@ -106,7 +106,7 @@ mod tests {
         let limit = Duration::from_secs(2);
         let frequency = 10;
 
-        let m = TerminationModel::QueryRuntimeLimit { limit, frequency };
+        let m = T::QueryRuntimeLimit { limit, frequency };
         for iteration in 0..(frequency + 1) {
             let result = m.terminate_search(&start_time, 0, iteration).unwrap();
             // in all iterations, the result should be false, though for iterations 1-9, that will be due to the sample frequency
@@ -121,7 +121,7 @@ mod tests {
         let limit = Duration::from_secs(2);
         let frequency = 10;
 
-        let m = TerminationModel::QueryRuntimeLimit { limit, frequency };
+        let m = T::QueryRuntimeLimit { limit, frequency };
         for iteration in 0..(frequency + 1) {
             let result = m.terminate_search(&start_time, 0, iteration).unwrap();
             if iteration == 0 {
@@ -141,7 +141,7 @@ mod tests {
 
     #[test]
     fn test_iterations_limit() {
-        let m = TerminationModel::IterationsLimit { limit: 5 };
+        let m = T::IterationsLimit { limit: 5 };
         let i = Instant::now();
         let t_good = m.terminate_search(&i, 4, 4).unwrap();
         let t_bad1 = m.terminate_search(&i, 5, 5).unwrap();
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_size_limit() {
-        let m = TerminationModel::SolutionSizeLimit { limit: 5 };
+        let m = T::SolutionSizeLimit { limit: 5 };
         let i = Instant::now();
         let t_good = m.terminate_search(&i, 4, 4).unwrap();
         let t_bad1 = m.terminate_search(&i, 5, 5).unwrap();
@@ -161,5 +161,41 @@ mod tests {
         assert_eq!(t_good, false);
         assert_eq!(t_bad1, false);
         assert_eq!(t_bad2, true);
+    }
+
+    #[test]
+    fn test_combined() {
+        let exceeds_limit = Duration::from_secs(3);
+        let start_time = Instant::now() - exceeds_limit;
+        let runtime_limit = Duration::from_secs(2);
+        let frequency = 1;
+        let iteration_limit = 5;
+        let solution_limit = 3;
+
+        let m1 = T::QueryRuntimeLimit {
+            limit: runtime_limit,
+            frequency,
+        };
+        let m2 = T::IterationsLimit {
+            limit: iteration_limit,
+        };
+        let m3 = T::SolutionSizeLimit {
+            limit: solution_limit,
+        };
+        let cm = T::Combined {
+            models: vec![m1, m2, m3],
+        };
+        let terminate = cm.terminate_search(&start_time, 4, 6).unwrap();
+        assert_eq!(terminate, true);
+        let msg = cm.explain_termination(&start_time, 4, 6);
+        let expected = Some(
+            vec![
+                "exceeded runtime limit of 0:00:02.000",
+                "exceeded iteration limit of 5",
+                "exceeded solution size limit of 3",
+            ]
+            .join(", "),
+        );
+        assert_eq!(msg, expected);
     }
 }
