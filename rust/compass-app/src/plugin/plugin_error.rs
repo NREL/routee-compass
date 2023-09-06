@@ -26,6 +26,8 @@ pub enum PluginError {
     UUIDMissing(usize),
     #[error("error during search")]
     SearchError(#[from] SearchError),
+    #[error("expected query to be a json object {{}} but found {0}")]
+    UnexpectedQueryStructure(String),
     #[error("unexpected error {0}")]
     InternalError(String),
 }
