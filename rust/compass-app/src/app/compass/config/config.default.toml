@@ -1,0 +1,27 @@
+parallelism = 2
+
+[graph.tomtom]
+edge_file = "edges.csv.gz"
+vertex_file = "vertices.csv.gz"
+verbose = true
+
+[algorithm]
+type = "a*"
+bidirectional = false
+
+[traversal]
+type = "distance"
+
+[frontier]
+type = "no_restriction"
+
+[termination]
+type = "combined"
+models = [
+    { type = "query_runtime", limit = "00:01:00", frequency = 1000 },
+    { type = "iterations", limit = 1000000 },
+]
+
+[plugin]
+input_plugins = [{ type = "vertex_rtree", vertices_file = "vertices.csv.gz" }]
+output_plugins = []

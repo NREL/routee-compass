@@ -1,0 +1,26 @@
+[workspace]
+members = [
+    "compass-core",
+    "compass-powertrain",
+    "compass-tomtom",
+    "compass-app",
+    "compass-app-py",
+    "compass-prototype",
+]
+
+[workspace.dependencies]
+serde = { version = "1.0.160", features = ["derive"] }
+serde_json = "1.0"
+rayon = "1.7.0"
+geo = "0.24.1"
+uom = { version = "0.35.0", features = ["use_serde"] }
+thiserror = "1.0.0"
+flate2 = "1.0"
+kdam = "0.3.0"
+log = "0.4.19"
+env_logger = "0.10.0"
+csv = { version = "1.2.2" }
+itertools = { version = "0.11.0" }
+pyo3 = "0.19"
+chrono = "0.4.26"
+regex = "1.9.5"

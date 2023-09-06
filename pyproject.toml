@@ -1,12 +1,13 @@
 [build-system]
-requires = ["setuptools>=63.0.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
 
 [project]
 name = "nrel.routee.compass"
 version = "0.2.0"
 description = "An eco-routing tool build upon RouteE-Powertrain"
 readme = "README.md"
+requires-python = ">=3.8"
 authors = [{ name = "National Renewable Energy Laboratory" }]
 license = { text = "BSD 3-Clause License Copyright (c) 2022, Alliance for Sustainable Energy, LLC" }
 classifiers = [
@@ -19,23 +20,16 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 keywords = ["eco routing"]
-dependencies = [
-    "routee-powertrain",
-    "nrel.mappymatch",
-    "scikit-learn<=1.2"
-]
-requires-python = ">=3.8"
+dependencies = []
+[project.optional-dependencies]
+dev = ["black", "pytest", "maturin"]
 
 
 [project.urls]
 Homepage = "https://github.nrel.gov/MBAP/routee-compass"
 
-[tool.black]
-line-length = 100
-
-[tool.setuptools.packages.find]
-where = ["."]  # list of folders that contain the packages (["."] by default)
-include = ["nrel*"]  # package names should match these glob patterns (["*"] by default)
-
-[tool.setuptools.package-data]
-"*" = ["py.typed"]
+[tool.maturin]
+python-source = "python"
+features = ["pyo3/extension-module"]
+module-name = "nrel.routee.compass.compass_app_py"
+manifest-path = "rust/compass-app-py/Cargo.toml"

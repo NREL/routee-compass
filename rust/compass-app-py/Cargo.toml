@@ -1,0 +1,13 @@
+[package]
+name = "compass-app-py"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+compass-app = { path = "../compass-app" }
+pyo3 = { workspace = true }
+serde_json = { workspace = true }
+
+[lib]
+name = "compass_app_py"
+crate-type = ["cdylib"]

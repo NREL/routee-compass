@@ -1,86 +1,114 @@
 # routee-compass
 
-A routing engine that considers energy weights on edges of a graph for particular vehicle types - built for integration with RouteE.
+RouteE-Compass is a robust, energy-aware, routing engine.
+
+The routing engine has been designed to integrate with the other tools in the RouteE ecosystem and has the following key features:
+
+- Dynamic costing that allows for any vehicle model to be used (represented by a RouteE-Powertrain model)
+- Python API for integration into research pipelines and other python software
+- Core engine written in Rust for improved performance
 
 ## setup
 
-### from pip
+### get rust
+
+The core engine is written in Rust and so we'll need access to a Rust compiler.
+There are a couple of ways to do this:
+
+#### rustup
+
+The recommended way to install rust is to [use rustup](https://www.rust-lang.org/tools/install).
+
+#### conda
+
+An alternative way to get rust is to use the anaconda package manager:
 
 ```bash
-pip install nrel.routee.compass --extra-index-url=https://github.nrel.gov/pages/MBAP/mbap-pypi/
+conda create -n routee-compass python=3.10 rust
+conda activate routee-compass
 ```
 
-### from source
+### build
+
+#### python
+
+You can build the application as a python library by running the following from the root folder of this repository:
 
 ```bash
-git clone https://github.nrel.gov/MBAP/routee-compass.git
-cd routee-compass
-
 pip install .
 ```
 
-### get a road network
+#### from source
 
-We support the tomtom current road network.
+Building the application from source can be done using `cargo`:
 
 ```bash
-cd scripts
-python download_road_map.py <path/to/polygon.geojson> <my-road-network.json> 
+git clone https://github.nrel.gov/MBAP/routee-compass.git
+
+cd routee-compass/rust
+
+cargo build --release
 ```
 
-note: you'll need access to the trolley postgres server.
+This will build the application into the location `path/to/routee-compass/rust/target/release/compass-app`
 
-## start routing
+You can optionally alias the application to make it easier to run:
 
-Once you have a road network file downloaded you can start computing least energy routes.
+```bash
+alias compass-app=path/to/routee-compass/rust/target/release/compass-app
+```
 
-Here's a sample workflow for loading the road network and finding the least energy path:
+## running
+
+### config
+
+The application expects a config file to tell it where to find the graph data and what traversal model it should use.
+Take a look at [the default configuation](./rust/compass-app/src/app/compass/config/config.default.toml) to see an example of what this looks like.
+
+### query
+
+In addition to an application level config, we also need to specify what queries the application should run.
+These are represented as json that can contain one or multiple queries. Here's an example:
+
+```json
+{
+  "origin_name": "NREL",
+  "destination_name": "Comrade Brewing Company",
+  "origin_x": -105.1710052,
+  "origin_y": 39.7402804,
+  "destination_x": -104.9009913,
+  "destination_y": 39.6757025
+}
+```
+
+### python library
+
+If you installed the application using `pip`, you can load it and run queries within python:
 
 ```python
-from nrel.routee.compass.compass_map import compute_energy
-from nrel.routee.compass.rotuee_model_collection import RouteeModelCollection
+from nrel.routee.compass import CompassApp
 
-from mappymatch.constructs.coordinate import Coordinate
-from mappymatch.maps.nx.nx_map import NxMap
+app = CompassApp("path/to/config.toml")
 
-road_network = NxMap.from_file("path/to/my/tomtom_road_network.json")
+query = {
+    "origin_name": "NREL",
+    "destination_name": "Comrade Brewing Company",
+    "origin_x": -105.1710052,
+    "origin_y": 39.7402804,
+    "destination_x": -104.9009913,
+    "destination_y": 39.6757025
+}
 
-routee_models = RouteeModelCollection()
-
-compute_energy(road_network, routee_models)
-
-origin = Coordinate.from_lat_lon(lat=39.00, lon=-104.00)
-destination = Coordinate.from_lat_lon(lat=39.10, lon=-104.10)
-
-shortest_energy_route = road_network.shortest_path(origin, destination, weight="Electric") 
+# result here is a list of python dictionaries
+results = app.run(query)
 ```
 
-The road network will compute energy over the whole graph so it could take some time if the graph is large.
+### command line application
 
-Note that routee-compass comes with two default routee-powertrain models "Gasoline" and "Electric".
+Once you've built the application, you can run it from the command line, passing in your config and your query
 
-If you want to use your own routee models you can do so like this:
-
-```python
-from nrel.routee.compass.compass_map import compute_energy
-from nrel.routee.compass.rotuee_model_collection import RouteeModelCollection
-
-from mappymatch.constructs.coordinate import Coordinate
-from mappymatch.maps.nx.nx_map import NxMap
-
-my_routee_models = {
-    "Tesla": "path/to/tesla_model.json",
-    "Ferrari": "path/to/ferrari_model.json",
-} 
-routee_models = RouteeModelCollection(my_routee_models)
-
-road_network = NxMap.from_file("path/to/my/tomtom_road_network.json")
-
-compute_energy(road_network, routee_models)
-
-origin = Coordinate(lat=39.00, lon=-104.00)
-destination = Coordinate(lat=39.10, lon=-104.10)
-
-tesla_shortest_energy_route = road_network.shortest_path(origin, destination, weight="Tesla")
-ferrari_shortest_energy_route = road_network.shortest_path(origin, destination, weight="Ferrari")
+```bash
+path/to/routee-compass/rust/target/release/compass-app --config path/to/config.toml path/to/query.json
 ```
+
+This will load the graph and then run the query (or queries) from your `query.json` file, outputing results to a file called `results.json` in the current working directory.
