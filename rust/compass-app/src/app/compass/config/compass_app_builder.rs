@@ -202,7 +202,7 @@ impl CompassAppBuilder {
         let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
         let velo: Box<dyn TraversalModelBuilder> = Box::new(VelocityLookupBuilder {});
         let ener: Box<dyn TraversalModelBuilder> = Box::new(EnergyModelBuilder {});
-        let tms: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
+        let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),
             (String::from("velocity_table"), velo),
             (String::from("energy"), ener),
@@ -211,21 +211,21 @@ impl CompassAppBuilder {
         // Frontier model builders
         let no_restriction: Box<dyn FrontierModelBuilder> = Box::new(NoRestrictionBuilder {});
         let road_class: Box<dyn FrontierModelBuilder> = Box::new(RoadClassBuilder {});
-        let fms: HashMap<String, Box<dyn FrontierModelBuilder>> = HashMap::from([
+        let frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>> = HashMap::from([
             (String::from("no_restriction"), no_restriction),
             (String::from("road_class"), road_class),
         ]);
 
         // Input plugin builders
         let vertex_tree: Box<dyn InputPluginBuilder> = Box::new(VertexRTreeBuilder {});
-        let input_builders = HashMap::from([(String::from("vertex_rtree"), vertex_tree)]);
+        let input_plugin_builders = HashMap::from([(String::from("vertex_rtree"), vertex_tree)]);
 
         // Output plugin builders
         let geom: Box<dyn OutputPluginBuilder> = Box::new(GeometryPluginBuilder {});
         let summary: Box<dyn OutputPluginBuilder> = Box::new(SummaryOutputPluginBuilder {});
         let uuid: Box<dyn OutputPluginBuilder> = Box::new(UUIDOutputPluginBuilder {});
         let edge_id_list: Box<dyn OutputPluginBuilder> = Box::new(EdgeIdListOutputPluginBuilder {});
-        let output_builders = HashMap::from([
+        let output_plugin_builders = HashMap::from([
             (String::from("geometry"), geom),
             (String::from("summary"), summary),
             (String::from("uuid"), uuid),
@@ -233,10 +233,10 @@ impl CompassAppBuilder {
         ]);
 
         CompassAppBuilder {
-            tm_builders: tms,
-            frontier_builders: fms,
-            input_plugin_builders: input_builders,
-            output_plugin_builders: output_builders,
+            tm_builders,
+            frontier_builders,
+            input_plugin_builders,
+            output_plugin_builders,
         }
     }
 }

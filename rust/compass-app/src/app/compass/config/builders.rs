@@ -1,5 +1,6 @@
 use compass_core::model::{
-    frontier::frontier_model::FrontierModel, traversal::traversal_model::TraversalModel,
+    frontier::frontier_model::FrontierModel, termination::termination_model::TerminationModel,
+    traversal::traversal_model::TraversalModel,
 };
 
 use crate::plugin::{input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin};

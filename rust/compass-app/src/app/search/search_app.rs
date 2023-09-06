@@ -9,6 +9,7 @@ use compass_core::{
     model::{
         frontier::frontier_model::FrontierModel,
         graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
+        termination::termination_model::TerminationModel,
         traversal::traversal_model::TraversalModel,
     },
     util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
@@ -20,7 +21,7 @@ pub struct SearchApp {
     graph: Arc<DriverReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
-    pub query_timeout_ms: u64,
+    termination_model: Arc<DriverReadOnlyLock<TerminationModel>>,
 }
 
 impl SearchApp {
@@ -30,17 +31,17 @@ impl SearchApp {
         graph: Box<dyn DirectedGraph>,
         traversal_model: Box<dyn TraversalModel>,
         frontier_model: Box<dyn FrontierModel>,
-        query_timeout_ms: Option<u64>,
+        termination_model: TerminationModel,
     ) -> Self {
         let g = Arc::new(DriverReadOnlyLock::new(graph));
         let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
         let f = Arc::new(DriverReadOnlyLock::new(frontier_model));
-        let query_timeout_ms_or_default = query_timeout_ms.unwrap_or(2000);
+        let r = Arc::new(DriverReadOnlyLock::new(termination_model));
         return SearchApp {
             graph: g,
             traversal_model: t,
             frontier_model: f,
-            query_timeout_ms: query_timeout_ms_or_default,
+            termination_model: r,
         };
     }
 
@@ -58,6 +59,7 @@ impl SearchApp {
         let dg_inner = Arc::new(self.graph.read_only());
         let tm_inner = Arc::new(self.traversal_model.read_only());
         let fm_inner = Arc::new(self.frontier_model.read_only());
+        let rm_inner = Arc::new(self.termination_model.read_only());
         run_a_star(
             Direction::Forward,
             o,
@@ -65,7 +67,7 @@ impl SearchApp {
             dg_inner,
             tm_inner,
             fm_inner,
-            Duration::from_millis(self.query_timeout_ms),
+            rm_inner,
         )
         .and_then(|tree| {
             let search_end_time = Local::now();
@@ -107,6 +109,7 @@ impl SearchApp {
         let dg_inner_backtrack = Arc::new(self.graph.read_only());
         let tm_inner = Arc::new(self.traversal_model.read_only());
         let fm_inner = Arc::new(self.frontier_model.read_only());
+        let rm_inner = Arc::new(self.termination_model.read_only());
         run_a_star_edge_oriented(
             Direction::Forward,
             o,
@@ -114,7 +117,7 @@ impl SearchApp {
             dg_inner_search,
             tm_inner,
             fm_inner,
-            Duration::from_millis(self.query_timeout_ms),
+            rm_inner,
         )
         .and_then(|tree| {
             let search_end_time = Local::now();

@@ -1,3 +1,4 @@
+pub mod conversion;
 pub mod duration_extension;
 pub mod fs;
 pub mod geo;

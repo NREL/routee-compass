@@ -5,6 +5,7 @@ use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::model::cost::cost::Cost;
 use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::graph::edge_id::EdgeId;
+use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
@@ -20,8 +21,6 @@ use std::time::{Duration, Instant};
 
 type MinSearchTree = HashMap<VertexId, SearchTreeBranch>;
 
-const TIMEOUT_ITERATION_CHECK: u64 = 100;
-
 /// run an A* Search over the given directed graph model. traverses links
 /// from the source, via the provided direction, to the target. uses the
 /// provided traversal model for state updates and link costs. estimates
@@ -34,7 +33,7 @@ pub fn run_a_star(
     directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
-    timeout_duration: Duration,
+    termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
     if source == target {
         let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
@@ -49,6 +48,9 @@ pub fn run_a_star(
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let f = frontier_model
+        .read()
+        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
+    let t = termination_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
 
@@ -70,35 +72,25 @@ pub fn run_a_star(
     costs.push(source, std::cmp::Reverse(origin_cost));
     frontier.insert(source, origin);
 
-    let now = Instant::now();
-    let mut counter = 0;
+    let start_time = Instant::now();
+    let mut iterations = 0;
 
-    let graph_size = g.n_vertices();
-    let max_search_tree_size = graph_size / 3;
-
-    // run search loop until we reach the destination, or fail if the set is ever empty
+    // run search loop until
+    // - we reach the destination (Ok)
+    // - if the set is ever empty (Err)
+    // - our TerminationModel says we are cut off (Ok)
     loop {
-        if counter % TIMEOUT_ITERATION_CHECK == 0 {
-            let elapsed = now.elapsed();
-            if elapsed > timeout_duration {
-                log::error!("search timed out after {}ms", elapsed.as_millis());
-                return Err(SearchError::InternalSearchError(format!(
-                    "search timed out after {}ms",
-                    elapsed.as_millis()
-                )));
-            }
-            if solution.len() > max_search_tree_size {
-                log::error!(
-                    "search tree exceeded max size of {} vertices",
-                    max_search_tree_size
-                );
-                return Err(SearchError::InternalSearchError(format!(
-                    "search tree exceeded max size of {} vertices",
-                    max_search_tree_size
-                )));
+        if t.terminate_search(&start_time, solution.len(), iterations)? {
+            match t.explain_termination(&start_time, solution.len(), iterations) {
+                None => {
+                    return Err(SearchError::InternalSearchError(String::from(
+                        "termination model error",
+                    )))
+                }
+                Some(msg) => return Err(SearchError::QueryTerminated(msg)),
             }
         }
-        counter += 1;
+
         match costs.pop() {
             None => return Err(SearchError::NoPathExists(source, target)),
             Some((current_vertex_id, _)) if current_vertex_id == target => {
@@ -164,12 +156,13 @@ pub fn run_a_star(
                         frontier.insert(f.vertex_id, f);
                     }
                 }
+                iterations += 1;
             }
         }
     }
     log::debug!(
         "search iterations: {}, size of search tree: {}",
-        counter,
+        iterations,
         solution.len()
     );
 
@@ -189,7 +182,7 @@ pub fn run_a_star_edge_oriented(
     directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
     traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
-    timeout_duration: Duration,
+    termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
@@ -233,7 +226,7 @@ pub fn run_a_star_edge_oriented(
             directed_graph.clone(),
             traversal_model.clone(),
             frontier_model.clone(),
-            timeout_duration,
+            termination_model,
         )?;
 
         if tree.is_empty() {
@@ -442,6 +435,9 @@ mod tests {
 
         let dist_tm: Box<dyn TraversalModel> = Box::new(DistanceModel {});
         let no_restriction: Box<dyn FrontierModel> = Box::new(no_restriction::NoRestriction {});
+        let driver_rm = Arc::new(DriverReadOnlyLock::new(TerminationModel::IterationsLimit {
+            limit: 20,
+        }));
         let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
         let driver_fm = Arc::new(DriverReadOnlyLock::new(no_restriction));
 
@@ -453,6 +449,7 @@ mod tests {
                 let dg_inner = Arc::new(driver_dg.read_only());
                 let tm_inner = Arc::new(driver_tm.read_only());
                 let fm_inner = Arc::new(driver_fm.read_only());
+                let rm_inner = Arc::new(driver_rm.read_only());
                 run_a_star(
                     Direction::Forward,
                     o,
@@ -460,7 +457,7 @@ mod tests {
                     dg_inner,
                     tm_inner,
                     fm_inner,
-                    Duration::from_secs(2),
+                    rm_inner,
                 )
             })
             .collect();
