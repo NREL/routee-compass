@@ -88,7 +88,7 @@ If you installed the application using `pip`, you can load it and run queries wi
 ```python
 from nrel.routee.compass import CompassApp
 
-app = CompassApp("path/to/config.toml")
+app = CompassApp.from_config_file("path/to/config.toml")
 
 query = {
     "origin_name": "NREL",
