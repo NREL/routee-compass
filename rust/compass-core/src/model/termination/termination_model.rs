@@ -185,9 +185,11 @@ mod tests {
         let cm = T::Combined {
             models: vec![m1, m2, m3],
         };
-        let terminate = cm.terminate_search(&start_time, 4, 6).unwrap();
+        let terminate = cm
+            .terminate_search(&start_time, solution_limit + 1, iteration_limit + 1)
+            .unwrap();
         assert_eq!(terminate, true);
-        let msg = cm.explain_termination(&start_time, 4, 6);
+        let msg = cm.explain_termination(&start_time, solution_limit + 1, iteration_limit + 1);
         let expected = Some(
             vec![
                 "exceeded runtime limit of 0:00:02.000",
