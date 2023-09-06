@@ -3,12 +3,20 @@ use crate::util::duration_extension::DurationExtension;
 use serde::Deserialize;
 use std::time::{Duration, Instant};
 
+/// the termination model for the application should be evaluated at the top of each iteration
+/// of a search. if it returns true, an error response should be created for the user using the
+/// explain method.
 #[derive(Debug, Deserialize)]
 pub enum TerminationModel {
+    /// terminates a query if the runtime exceeds some limit.
+    /// only checks at some provided iteration frequency, since the computation is expensive.
     #[serde(rename = "query_runtime")]
     QueryRuntimeLimit { limit: Duration, frequency: u64 },
+    /// terminates if the size of the solution exceeds (greater than) some limit
     #[serde(rename = "solution_size")]
     SolutionSizeLimit { limit: usize },
+    /// terminates if the number of iterations exceeds (greater than) some limit
+    /// iterations begin at 0, so we add 1 to the iteration to make this comparison
     #[serde(rename = "iterations")]
     IterationsLimit { limit: u64 },
     #[serde(rename = "combined")]
@@ -22,23 +30,22 @@ impl TerminationModel {
         &self,
         start_time: &Instant,
         solution_size: usize,
-        iterations: u64,
+        iteration: u64,
     ) -> Result<bool, TerminationModelError> {
         use TerminationModel as T;
         match self {
             T::QueryRuntimeLimit { limit, frequency } => {
-                if iterations % frequency == 0 {
+                if iteration % frequency == 0 {
                     let dur = Instant::now().duration_since(*start_time);
-                    let result = dur > *limit;
-                    Ok(result)
+                    Ok(dur > *limit)
                 } else {
                     Ok(false)
                 }
             }
             T::SolutionSizeLimit { limit } => Ok(solution_size > *limit),
-            T::IterationsLimit { limit } => Ok(iterations > *limit),
+            T::IterationsLimit { limit } => Ok(iteration + 1 > *limit),
             T::Combined { models } => models.iter().try_fold(false, |acc, m| {
-                m.terminate_search(start_time, solution_size, iterations)
+                m.terminate_search(start_time, solution_size, iteration)
                     .map(|r| acc && r)
             }),
         }
@@ -130,5 +137,29 @@ mod tests {
                 assert_eq!(result, true);
             }
         }
+    }
+
+    #[test]
+    fn test_iterations_limit() {
+        let m = TerminationModel::IterationsLimit { limit: 5 };
+        let i = Instant::now();
+        let t_good = m.terminate_search(&i, 4, 4).unwrap();
+        let t_bad1 = m.terminate_search(&i, 5, 5).unwrap();
+        let t_bad2 = m.terminate_search(&i, 6, 6).unwrap();
+        assert_eq!(t_good, false);
+        assert_eq!(t_bad1, true);
+        assert_eq!(t_bad2, true);
+    }
+
+    #[test]
+    fn test_size_limit() {
+        let m = TerminationModel::SolutionSizeLimit { limit: 5 };
+        let i = Instant::now();
+        let t_good = m.terminate_search(&i, 4, 4).unwrap();
+        let t_bad1 = m.terminate_search(&i, 5, 5).unwrap();
+        let t_bad2 = m.terminate_search(&i, 6, 6).unwrap();
+        assert_eq!(t_good, false);
+        assert_eq!(t_bad1, false);
+        assert_eq!(t_bad2, true);
     }
 }
