@@ -29,13 +29,14 @@ impl TerminationModel {
             T::QueryRuntimeLimit { limit, frequency } => {
                 if iterations % frequency == 0 {
                     let dur = Instant::now().duration_since(*start_time);
-                    Ok(dur < *limit)
+                    let result = dur > *limit;
+                    Ok(result)
                 } else {
                     Ok(false)
                 }
             }
-            T::SolutionSizeLimit { limit } => Ok(solution_size < *limit),
-            T::IterationsLimit { limit } => Ok(iterations < *limit),
+            T::SolutionSizeLimit { limit } => Ok(solution_size > *limit),
+            T::IterationsLimit { limit } => Ok(iterations > *limit),
             T::Combined { models } => models.iter().try_fold(false, |acc, m| {
                 m.terminate_search(start_time, solution_size, iterations)
                     .map(|r| acc && r)
@@ -80,6 +81,53 @@ impl TerminationModel {
                 } else {
                     None
                 }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::{Duration, Instant};
+
+    use super::TerminationModel;
+
+    #[test]
+    fn test_within_runtime_limit() {
+        let within_limit = Duration::from_secs(1);
+        let start_time = Instant::now() - within_limit;
+        let limit = Duration::from_secs(2);
+        let frequency = 10;
+
+        let m = TerminationModel::QueryRuntimeLimit { limit, frequency };
+        for iteration in 0..(frequency + 1) {
+            let result = m.terminate_search(&start_time, 0, iteration).unwrap();
+            // in all iterations, the result should be false, though for iterations 1-9, that will be due to the sample frequency
+            assert_eq!(result, false);
+        }
+    }
+
+    #[test]
+    fn test_exceeds_runtime_limit() {
+        let exceeds_limit = Duration::from_secs(3);
+        let start_time = Instant::now() - exceeds_limit;
+        let limit = Duration::from_secs(2);
+        let frequency = 10;
+
+        let m = TerminationModel::QueryRuntimeLimit { limit, frequency };
+        for iteration in 0..(frequency + 1) {
+            let result = m.terminate_search(&start_time, 0, iteration).unwrap();
+            if iteration == 0 {
+                // edge case. when iteration == 0, we will run the test, and it should fail, since 10 % 0 == 0 is true.
+                // but let's continue testing iterations 1-10 to explore the expected range of behaviors.
+                assert_eq!(result, true);
+            } else if iteration != frequency {
+                // from iterations 1 to 9, terminate is false because of the frequency argument of 10
+                // bypasses the runtime test
+                assert_eq!(result, false);
+            } else {
+                // on iteration 10, terminate is true because "exceeds_limit_time" is greater than the limit duration
+                assert_eq!(result, true);
             }
         }
     }
