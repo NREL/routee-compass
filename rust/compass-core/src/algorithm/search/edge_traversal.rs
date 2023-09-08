@@ -9,6 +9,7 @@ use crate::model::{
     cost::cost::Cost,
     graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
 };
+use std::sync::Arc;
 use std::{fmt::Display, sync::RwLockReadGuard};
 
 #[derive(Clone, Debug, Serialize)]
@@ -45,7 +46,7 @@ impl EdgeTraversal {
         prev_edge_id: Option<EdgeId>,
         prev_state: &TraversalState,
         g: &RwLockReadGuard<Box<dyn DirectedGraph>>,
-        m: &RwLockReadGuard<Box<dyn TraversalModel>>,
+        m: &Arc<dyn TraversalModel>,
     ) -> Result<EdgeTraversal, SearchError> {
         let (src, edge, dst) = g
             .edge_triplet_attrs(edge_id)
