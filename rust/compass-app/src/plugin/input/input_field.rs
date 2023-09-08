@@ -5,6 +5,7 @@ pub enum InputField {
     DestinationY,
     OriginVertex,
     DestinationVertex,
+    GridSearch,
 }
 
 impl InputField {
@@ -16,6 +17,7 @@ impl InputField {
             InputField::DestinationY => "destination_y",
             InputField::OriginVertex => "origin_vertex",
             InputField::DestinationVertex => "destination_vertex",
+            InputField::GridSearch => "grid_search",
         }
     }
     pub fn to_string(&self) -> String {

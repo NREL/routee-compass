@@ -4,3 +4,4 @@ pub mod fs;
 pub mod geo;
 pub mod io_utils;
 pub mod read_only_lock;
+pub mod multiset;

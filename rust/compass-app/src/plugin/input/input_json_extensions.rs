@@ -11,6 +11,7 @@ pub trait InputJsonExtensions {
     fn add_destination_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
     fn get_origin_vertex(&self) -> Result<VertexId, PluginError>;
     fn get_destination_vertex(&self) -> Result<VertexId, PluginError>;
+    fn get_grid_search(&self) -> Option<&serde_json::Value>;
 }
 
 impl InputJsonExtensions for serde_json::Value {
@@ -109,6 +110,9 @@ impl InputJsonExtensions for serde_json::Value {
                 InputField::DestinationVertex.to_string(),
                 String::from("u64"),
             ))
+    }
+    fn get_grid_search(&self) -> Option<&serde_json::Value> {
+        self.get(InputField::GridSearch.to_string())
     }
 }
 
