@@ -5,17 +5,22 @@ pub enum InputField {
     DestinationY,
     OriginVertex,
     DestinationVertex,
+    OriginEdge,
+    DestinationEdge,
 }
 
 impl InputField {
     pub fn to_str(&self) -> &'static str {
+        use InputField as I;
         match self {
-            InputField::OriginX => "origin_x",
-            InputField::OriginY => "origin_y",
-            InputField::DestinationX => "destination_x",
-            InputField::DestinationY => "destination_y",
-            InputField::OriginVertex => "origin_vertex",
-            InputField::DestinationVertex => "destination_vertex",
+            I::OriginX => "origin_x",
+            I::OriginY => "origin_y",
+            I::DestinationX => "destination_x",
+            I::DestinationY => "destination_y",
+            I::OriginVertex => "origin_vertex",
+            I::DestinationVertex => "destination_vertex",
+            I::OriginEdge => "origin_edge",
+            I::DestinationEdge => "destination_edge",
         }
     }
     pub fn to_string(&self) -> String {
