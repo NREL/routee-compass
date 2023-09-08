@@ -1,17 +1,22 @@
-use compass_core::model::{
-    frontier::frontier_model::FrontierModel, termination::termination_model::TerminationModel,
-    traversal::traversal_model::TraversalModel,
-};
-
-use crate::plugin::{input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin};
-
 use super::compass_configuration_error::CompassConfigurationError;
+use crate::plugin::{input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin};
+use compass_core::model::{
+    frontier::frontier_model::FrontierModel, traversal::traversal_model::TraversalModel,
+};
+use std::sync::Arc;
 
 pub trait TraversalModelBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn TraversalModel>, CompassConfigurationError>;
+    ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError>;
+}
+
+pub trait TraversalModelService: Send + Sync {
+    fn build(
+        &self,
+        parameters: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError>;
 }
 
 pub trait FrontierModelBuilder {

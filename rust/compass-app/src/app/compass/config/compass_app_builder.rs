@@ -1,3 +1,17 @@
+use super::{
+    builders::{
+        FrontierModelBuilder, InputPluginBuilder, OutputPluginBuilder, TraversalModelBuilder,
+        TraversalModelService,
+    },
+    compass_configuration_error::CompassConfigurationError,
+    frontier_model::{
+        no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
+    },
+    traversal_model::{
+        distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
+        velocity_lookup_builder::VelocityLookupBuilder,
+    },
+};
 use crate::{
     app::compass::compass_configuration_field::CompassConfigurationField,
     plugin::{
@@ -13,24 +27,10 @@ use crate::{
         },
     },
 };
-
-use super::{
-    builders::{
-        FrontierModelBuilder, InputPluginBuilder, OutputPluginBuilder, TraversalModelBuilder,
-    },
-    compass_configuration_error::CompassConfigurationError,
-    frontier_model::{
-        no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
-    },
-    traversal_model::{
-        distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
-        velocity_lookup_builder::VelocityLookupBuilder,
-    },
-};
 use compass_core::model::{
     frontier::frontier_model::FrontierModel, traversal::traversal_model::TraversalModel,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 pub struct CompassAppBuilder {
     pub tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>>,
@@ -42,10 +42,10 @@ pub struct CompassAppBuilder {
 impl CompassAppBuilder {
     /// builds a traversal model with the specified type name with the provided
     /// traversal model configuration JSON
-    pub fn build_traversal_model(
+    pub fn build_traversal_model_service(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Box<dyn TraversalModel>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
         let tm_type_obj =
             config
                 .get("type")
