@@ -1,15 +1,14 @@
-use compass_core::model::graphv2::edge_loader::EdgeLoaderConfig;
-use compass_core::model::graphv2::graph_config::GraphConfig;
-use compass_core::model::graphv2::graph_error::GraphError;
-use compass_core::model::graphv2::vertex_loader::VertexLoaderConfig;
-
 use crate::algorithm::search::min_search_tree::direction::Direction;
+use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::graphv2::edge_loader::EdgeLoader;
+use crate::model::graphv2::edge_loader::EdgeLoaderConfig;
+use crate::model::graphv2::graph_config::GraphConfig;
+use crate::model::graphv2::graph_error::GraphError;
+use crate::model::graphv2::vertex_loader::VertexLoaderConfig;
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
-
-use super::edge_id::EdgeId;
-use super::graph_error::GraphError;
-use super::vertex_id::VertexId;
+use log::info;
+use std::collections::HashMap;
 
 pub struct Graph {
     pub adj: Vec<HashMap<EdgeId, VertexId>>,
@@ -171,7 +170,7 @@ impl TryFrom<GraphConfig> for Graph {
             n_edges,
             n_vertices,
         };
-        let e_result = TomTomEdgeList::try_from(e_conf)?;
+        let e_result = EdgeLoader::try_from(e_conf)?;
 
         info!("reading vertex list");
         let v_conf = VertexLoaderConfig {
@@ -180,7 +179,7 @@ impl TryFrom<GraphConfig> for Graph {
         };
         let vertices: Vec<Vertex> = v_conf.try_into()?;
 
-        let graph = GraphGraph {
+        let graph = Graph {
             adj: e_result.adj,
             rev: e_result.rev,
             edges: e_result.edges,
