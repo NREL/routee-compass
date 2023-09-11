@@ -33,6 +33,8 @@ pub enum AppError {
     InternalError(String),
     #[error("app input JSON missing field: {0}")]
     MissingInputField(CompassInputField),
+    #[error("error accessing shared read-only dataset: {0}")]
+    ReadOnlyPoisonError(String),
     #[error("error decoding input: {0}")]
     InvalidInput(String),
 }

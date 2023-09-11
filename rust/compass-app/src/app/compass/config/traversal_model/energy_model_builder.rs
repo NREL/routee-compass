@@ -1,19 +1,25 @@
+use std::sync::Arc;
+
 use crate::app::compass::compass_configuration_field::CompassConfigurationField;
+use crate::app::compass::config::builders::TraversalModelService;
 use crate::app::compass::config::{
-    compass_configuration_error::CompassConfigurationError,
-    builders::TraversalModelBuilder,
+    builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
 };
 use compass_core::model::traversal::traversal_model::TraversalModel;
-use compass_core::model::units::{TimeUnit, EnergyUnit};
+use compass_core::model::units::{EnergyUnit, TimeUnit};
 use compass_powertrain::routee::routee_random_forest::RouteERandomForestModel;
 
 pub struct EnergyModelBuilder {}
+
+pub struct EnergyModelService {
+    m: Arc<RouteERandomForestModel>,
+}
 
 impl TraversalModelBuilder for EnergyModelBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn TraversalModel>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
         let velocity_filename_key = String::from("velocity_filename");
         let routee_filename_key = String::from("routee_filename");
         let time_unit_key = String::from("time_unit");
@@ -53,7 +59,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 time_unit_key.clone(),
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
-    
+
         let energy_rate_unit = parameters
             .get(&energy_rate_unit_key)
             .map(|t| serde_json::from_value::<EnergyUnit>(t.clone()))
@@ -67,9 +73,19 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             &velocity_filename,
             &routee_filename,
             time_unit,
-            energy_rate_unit
+            energy_rate_unit,
         )
         .map_err(CompassConfigurationError::TraversalModelError)?;
-        return Ok(Box::new(m));
+        let service = EnergyModelService { m: Arc::new(m) };
+        return Ok(Arc::new(service));
+    }
+}
+
+impl TraversalModelService for EnergyModelService {
+    fn build(
+        &self,
+        _parameters: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
+        return Ok(self.m.clone());
     }
 }
