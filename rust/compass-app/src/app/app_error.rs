@@ -5,7 +5,9 @@ use super::compass::{
 use crate::plugin::plugin_error::PluginError;
 use compass_core::{
     algorithm::search::search_error::SearchError,
-    model::traversal::traversal_model_error::TraversalModelError,
+    model::{
+        graphv2::graph_error::GraphError, traversal::traversal_model_error::TraversalModelError,
+    },
 };
 use config::ConfigError;
 
@@ -23,6 +25,8 @@ pub enum AppError {
     CodecError(#[from] serde_json::Error),
     #[error(transparent)]
     ConfigError(#[from] ConfigError),
+    #[error(transparent)]
+    GraphError(#[from] GraphError),
     #[error("Input file {0} missing")]
     NoInputFile(String),
     #[error(transparent)]
