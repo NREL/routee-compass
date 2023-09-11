@@ -1,4 +1,4 @@
-use crate::algorithm::search::min_search_tree::direction::Direction;
+use crate::algorithm::search::direction::Direction;
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
 
@@ -17,7 +17,7 @@ pub trait DirectedGraph: Sync + Send {
     fn all_edges(&self) -> Vec<Edge>;
     fn all_vertex_ids(&self) -> Vec<VertexId>;
     fn all_vertices(&self) -> Vec<Vertex>;
-    fn n_edges(&self) -> usize; 
+    fn n_edges(&self) -> usize;
     fn n_vertices(&self) -> usize;
 
     /// helper function to give incident edges to a vertex based on a
