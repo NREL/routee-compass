@@ -1,21 +1,25 @@
+use crate::app::compass::compass_configuration_field::CompassConfigurationField;
+use crate::app::compass::config::builders::TraversalModelService;
+use crate::app::compass::config::{
+    builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
+};
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::{
     traversal::default::velocity_lookup::VelocityLookupModel, units::TimeUnit,
 };
-
-use crate::app::compass::compass_configuration_field::CompassConfigurationField;
-use crate::app::compass::config::{
-    compass_configuration_error::CompassConfigurationError,
-    builders::TraversalModelBuilder,
-};
+use std::sync::Arc;
 
 pub struct VelocityLookupBuilder {}
+
+pub struct VelocityLookupService {
+    m: Arc<VelocityLookupModel>,
+}
 
 impl TraversalModelBuilder for VelocityLookupBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn TraversalModel>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
         let filename_key = String::from("filename");
         let time_unit_key = String::from("time_unit");
         let traversal_key = CompassConfigurationField::Traversal.to_string();
@@ -43,6 +47,16 @@ impl TraversalModelBuilder for VelocityLookupBuilder {
 
         let m = VelocityLookupModel::from_file(&filename, time_unit)
             .map_err(CompassConfigurationError::TraversalModelError)?;
-        return Ok(Box::new(m));
+        let service = Arc::new(VelocityLookupService { m: Arc::new(m) });
+        return Ok(service);
+    }
+}
+
+impl TraversalModelService for VelocityLookupService {
+    fn build(
+        &self,
+        _parameters: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
+        return Ok(self.m.clone());
     }
 }

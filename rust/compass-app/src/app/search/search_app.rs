@@ -1,5 +1,8 @@
 use super::search_app_result::SearchAppResult;
-use crate::{app::app_error::AppError, plugin::input::input_json_extensions::InputJsonExtensions};
+use crate::{
+    app::{app_error::AppError, compass::config::builders::TraversalModelService},
+    plugin::input::input_json_extensions::InputJsonExtensions,
+};
 use chrono::Local;
 use compass_core::{
     algorithm::search::min_search_tree::{
@@ -7,19 +10,18 @@ use compass_core::{
         direction::Direction,
     },
     model::{
-        frontier::frontier_model::FrontierModel,
-        graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
+        frontier::frontier_model::FrontierModel, graph::directed_graph::DirectedGraph,
         termination::termination_model::TerminationModel,
         traversal::traversal_model::TraversalModel,
     },
     util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
 };
+use std::sync::Arc;
 use std::time;
-use std::{sync::Arc, time::Duration};
 
 pub struct SearchApp {
     graph: Arc<DriverReadOnlyLock<Box<dyn DirectedGraph>>>,
-    traversal_model: Arc<DriverReadOnlyLock<Box<dyn TraversalModel>>>,
+    traversal_model_service: Arc<DriverReadOnlyLock<Arc<dyn TraversalModelService>>>,
     frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
     termination_model: Arc<DriverReadOnlyLock<TerminationModel>>,
 }
@@ -29,19 +31,19 @@ impl SearchApp {
     /// handles all of the specialized boxing that allows for simple parallelization.
     pub fn new(
         graph: Box<dyn DirectedGraph>,
-        traversal_model: Box<dyn TraversalModel>,
+        traversal_model_service: Arc<dyn TraversalModelService>,
         frontier_model: Box<dyn FrontierModel>,
         termination_model: TerminationModel,
     ) -> Self {
-        let g = Arc::new(DriverReadOnlyLock::new(graph));
-        let t = Arc::new(DriverReadOnlyLock::new(traversal_model));
-        let f = Arc::new(DriverReadOnlyLock::new(frontier_model));
-        let r = Arc::new(DriverReadOnlyLock::new(termination_model));
+        let graph = Arc::new(DriverReadOnlyLock::new(graph));
+        let traversal_model_service = Arc::new(DriverReadOnlyLock::new(traversal_model_service));
+        let frontier_model = Arc::new(DriverReadOnlyLock::new(frontier_model));
+        let termination_model = Arc::new(DriverReadOnlyLock::new(termination_model));
         return SearchApp {
-            graph: g,
-            traversal_model: t,
-            frontier_model: f,
-            termination_model: r,
+            graph,
+            traversal_model_service,
+            frontier_model,
+            termination_model,
         };
     }
 
@@ -57,7 +59,13 @@ impl SearchApp {
             .map_err(AppError::PluginError)?;
         let search_start_time = Local::now();
         let dg_inner = Arc::new(self.graph.read_only());
-        let tm_inner = Arc::new(self.traversal_model.read_only());
+
+        let tm_inner = self
+            .traversal_model_service
+            .read_only()
+            .read()
+            .map_err(|e| AppError::ReadOnlyPoisonError(e.to_string()))?
+            .build(query)?;
         let fm_inner = Arc::new(self.frontier_model.read_only());
         let rm_inner = Arc::new(self.termination_model.read_only());
         run_a_star(
@@ -102,12 +110,23 @@ impl SearchApp {
     ///
     /// runs a single edge oriented query
     ///
-    pub fn run_edge_oriented(&self, query: (EdgeId, EdgeId)) -> Result<SearchAppResult, AppError> {
-        let (o, d) = query;
+    pub fn run_edge_oriented(
+        &self,
+        query: &serde_json::Value,
+    ) -> Result<SearchAppResult, AppError> {
+        let o = query.get_origin_edge().map_err(AppError::PluginError)?;
+        let d = query
+            .get_destination_edge()
+            .map_err(AppError::PluginError)?;
         let search_start_time = Local::now();
         let dg_inner_search = Arc::new(self.graph.read_only());
         let dg_inner_backtrack = Arc::new(self.graph.read_only());
-        let tm_inner = Arc::new(self.traversal_model.read_only());
+        let tm_inner = self
+            .traversal_model_service
+            .read_only()
+            .read()
+            .map_err(|e| AppError::ReadOnlyPoisonError(e.to_string()))?
+            .build(query)?;
         let fm_inner = Arc::new(self.frontier_model.read_only());
         let rm_inner = Arc::new(self.termination_model.read_only());
         run_a_star_edge_oriented(
@@ -163,9 +182,30 @@ impl SearchApp {
     /// let reference = search_app.get_traversal_model_reference();
     /// let traversal_model = reference.read();
     /// // do things with TraversalModel
+    pub fn get_traversal_model_service_reference(
+        &self,
+    ) -> Arc<ExecutorReadOnlyLock<Arc<dyn TraversalModelService>>> {
+        Arc::new(self.traversal_model_service.read_only())
+    }
+
+    /// helper function for accessing the TraversalModel
+    ///
+    /// example:
+    ///
+    /// let search_app: SearchApp = ...;
+    /// let reference = search_app.get_traversal_model_reference();
+    /// let traversal_model = reference.read();
+    /// // do things with TraversalModel
     pub fn get_traversal_model_reference(
         &self,
-    ) -> Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>> {
-        Arc::new(self.traversal_model.read_only())
+        query: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, AppError> {
+        let tm = self
+            .traversal_model_service
+            .read_only()
+            .read()
+            .map_err(|e| AppError::ReadOnlyPoisonError(e.to_string()))?
+            .build(query)?;
+        return Ok(tm);
     }
 }

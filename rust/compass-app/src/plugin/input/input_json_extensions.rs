@@ -1,6 +1,6 @@
 use super::input_field::InputField;
 use crate::plugin::plugin_error::PluginError;
-use compass_core::model::graph::vertex_id::VertexId;
+use compass_core::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 use geo;
 use serde_json;
 
@@ -11,6 +11,8 @@ pub trait InputJsonExtensions {
     fn add_destination_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
     fn get_origin_vertex(&self) -> Result<VertexId, PluginError>;
     fn get_destination_vertex(&self) -> Result<VertexId, PluginError>;
+    fn get_origin_edge(&self) -> Result<EdgeId, PluginError>;
+    fn get_destination_edge(&self) -> Result<EdgeId, PluginError>;
     fn get_grid_search(&self) -> Option<&serde_json::Value>;
 }
 
@@ -108,6 +110,32 @@ impl InputJsonExtensions for serde_json::Value {
             .map(|v| VertexId(v as usize))
             .ok_or(PluginError::ParseError(
                 InputField::DestinationVertex.to_string(),
+                String::from("u64"),
+            ))
+    }
+
+    fn get_origin_edge(&self) -> Result<EdgeId, PluginError> {
+        self.get(InputField::OriginEdge.to_string())
+            .ok_or(PluginError::MissingField(
+                InputField::OriginEdge.to_string(),
+            ))?
+            .as_u64()
+            .map(|v| EdgeId(v))
+            .ok_or(PluginError::ParseError(
+                InputField::OriginEdge.to_string(),
+                String::from("u64"),
+            ))
+    }
+
+    fn get_destination_edge(&self) -> Result<EdgeId, PluginError> {
+        self.get(InputField::DestinationEdge.to_string())
+            .ok_or(PluginError::MissingField(
+                InputField::DestinationEdge.to_string(),
+            ))?
+            .as_u64()
+            .map(|v| EdgeId(v))
+            .ok_or(PluginError::ParseError(
+                InputField::DestinationEdge.to_string(),
                 String::from("u64"),
             ))
     }

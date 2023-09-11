@@ -71,7 +71,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let traversal_start = Local::now();
         let traversal_params =
             config.get::<serde_json::Value>(CompassConfigurationField::Traversal.to_str())?;
-        let traversal_model = builder.build_traversal_model(&traversal_params)?;
+        let traversal_model_service = builder.build_traversal_model_service(&traversal_params)?;
         let traversal_duration = (Local::now() - traversal_start)
             .to_std()
             .map_err(|e| AppError::InternalError(e.to_string()))?;
@@ -134,8 +134,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         // build search app
         let search_app_start = Local::now();
         let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
-        let search_app: SearchApp =
-            SearchApp::new(graph, traversal_model, frontier_model, termination_model);
+        let search_app: SearchApp = SearchApp::new(
+            graph,
+            traversal_model_service,
+            frontier_model,
+            termination_model,
+        );
         let search_app_duration = to_std(Local::now() - search_app_start)?;
         log::info!(
             "finished building search app with duration {}",
@@ -323,8 +327,7 @@ pub fn apply_output_processing(
                 Some(et) => et,
             };
 
-            let tmodel_reference = search_app.get_traversal_model_reference();
-            let tmodel = match tmodel_reference.read() {
+            let tmodel = match search_app.get_traversal_model_reference(req) {
                 Err(e) => {
                     return serde_json::json!({
                         "request": req,

@@ -31,7 +31,7 @@ pub fn run_a_star(
     source: VertexId,
     target: VertexId,
     directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
+    m: Arc<dyn TraversalModel>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
@@ -42,9 +42,6 @@ pub fn run_a_star(
 
     // context for the search (graph, search functions, frontier priority queue)
     let g = directed_graph
-        .read()
-        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let m = traversal_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let f = frontier_model
@@ -180,15 +177,12 @@ pub fn run_a_star_edge_oriented(
     source: EdgeId,
     target: EdgeId,
     directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
-    traversal_model: Arc<ExecutorReadOnlyLock<Box<dyn TraversalModel>>>,
+    m: Arc<dyn TraversalModel>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
-        .read()
-        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let m: RwLockReadGuard<Box<dyn TraversalModel>> = traversal_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let source_edge_src_vertex_id = g.src_vertex(source)?;
@@ -224,7 +218,7 @@ pub fn run_a_star_edge_oriented(
             source_edge_dst_vertex_id,
             target_edge_src_vertex_id,
             directed_graph.clone(),
-            traversal_model.clone(),
+            m.clone(),
             frontier_model.clone(),
             termination_model,
         )?;
@@ -335,7 +329,7 @@ pub fn h_cost(
     dst: VertexId,
     state: &TraversalState,
     g: &RwLockReadGuard<Box<dyn DirectedGraph>>,
-    m: &RwLockReadGuard<Box<dyn TraversalModel>>,
+    m: &Arc<dyn TraversalModel>,
 ) -> Result<Cost, SearchError> {
     let src_vertex = g.vertex_attr(src)?;
     let dst_vertex = g.vertex_attr(dst)?;
@@ -433,12 +427,11 @@ mod tests {
             Box::new(TestDG::new(adj, edge_lengths).unwrap());
         let driver_dg = Arc::new(DriverReadOnlyLock::new(driver_dg_obj));
 
-        let dist_tm: Box<dyn TraversalModel> = Box::new(DistanceModel {});
         let no_restriction: Box<dyn FrontierModel> = Box::new(no_restriction::NoRestriction {});
         let driver_rm = Arc::new(DriverReadOnlyLock::new(TerminationModel::IterationsLimit {
             limit: 20,
         }));
-        let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
+        // let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
         let driver_fm = Arc::new(DriverReadOnlyLock::new(no_restriction));
 
         // execute the route search
@@ -447,7 +440,7 @@ mod tests {
             .into_par_iter()
             .map(|(o, d, _expected)| {
                 let dg_inner = Arc::new(driver_dg.read_only());
-                let tm_inner = Arc::new(driver_tm.read_only());
+                let dist_tm: Arc<dyn TraversalModel> = Arc::new(DistanceModel {});
                 let fm_inner = Arc::new(driver_fm.read_only());
                 let rm_inner = Arc::new(driver_rm.read_only());
                 run_a_star(
@@ -455,7 +448,7 @@ mod tests {
                     o,
                     d,
                     dg_inner,
-                    tm_inner,
+                    dist_tm,
                     fm_inner,
                     rm_inner,
                 )
