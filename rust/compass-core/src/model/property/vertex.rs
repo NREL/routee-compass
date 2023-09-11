@@ -3,7 +3,7 @@ use serde::de;
 
 use rstar::{PointDistance, RTreeObject, AABB};
 
-use crate::model::graph::vertex_id::VertexId;
+use crate::model::graphv2::vertex_id::VertexId;
 
 #[derive(Copy, Clone, Default, Debug)]
 pub struct Vertex {
@@ -147,7 +147,7 @@ mod tests {
     use csv;
     use geo::Coord;
 
-    use crate::model::{graph::vertex_id::VertexId, property::vertex::Vertex};
+    use crate::model::{graphv2::vertex_id::VertexId, property::vertex::Vertex};
 
     #[test]
     fn test_deserialize_csv() {

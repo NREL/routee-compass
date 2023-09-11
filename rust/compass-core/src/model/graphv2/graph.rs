@@ -1,10 +1,10 @@
 use crate::algorithm::search::direction::Direction;
-use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::graphv2::edge_loader::EdgeLoader;
 use crate::model::graphv2::edge_loader::EdgeLoaderConfig;
 use crate::model::graphv2::graph_config::GraphConfig;
 use crate::model::graphv2::graph_error::GraphError;
 use crate::model::graphv2::vertex_loader::VertexLoaderConfig;
+use crate::model::graphv2::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
 use log::info;

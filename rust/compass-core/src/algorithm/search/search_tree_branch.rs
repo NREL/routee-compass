@@ -1,6 +1,8 @@
 use std::fmt::Display;
 
-use crate::{algorithm::search::edge_traversal::EdgeTraversal, model::graph::vertex_id::VertexId};
+use crate::{
+    algorithm::search::edge_traversal::EdgeTraversal, model::graphv2::vertex_id::VertexId,
+};
 
 #[derive(Clone, Debug)]
 pub struct SearchTreeBranch {

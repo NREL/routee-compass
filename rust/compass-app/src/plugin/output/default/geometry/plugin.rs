@@ -72,7 +72,7 @@ mod tests {
         model::units::{Length, Ratio},
         model::{
             cost::cost::Cost,
-            graph::{edge_id::EdgeId, vertex_id::VertexId},
+            graphv2::{edge_id::EdgeId, vertex_id::VertexId},
             property::{edge::Edge, road_class::RoadClass},
             traversal::state::state_variable::StateVar,
         },

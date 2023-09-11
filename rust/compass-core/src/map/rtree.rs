@@ -1,7 +1,6 @@
+use crate::model::{graphv2::graph::Graph, property::vertex::Vertex};
 use geo::Coord;
 use rstar::RTree;
-
-use crate::model::{graph::directed_graph::DirectedGraph, property::vertex::Vertex};
 
 pub struct VertexRTree {
     rtree: RTree<Vertex>,
@@ -13,7 +12,7 @@ impl VertexRTree {
         Self { rtree }
     }
 
-    pub fn from_directed_graph(graph: &impl DirectedGraph) -> Self {
+    pub fn from_directed_graph(graph: &Graph) -> Self {
         Self::new(graph.all_vertices())
     }
 
