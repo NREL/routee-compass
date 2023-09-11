@@ -1,4 +1,4 @@
-use compass_core::model::graphv2::edge_id::EdgeId;
+use compass_core::model::graph::edge_id::EdgeId;
 
 use crate::plugin::plugin_error::PluginError;
 

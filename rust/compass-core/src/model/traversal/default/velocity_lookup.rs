@@ -144,7 +144,7 @@ mod tests {
     use crate::model::traversal::state::state_variable::StateVar;
     use crate::model::units::{Length, Ratio, TimeUnit};
     use crate::model::{
-        graphv2::{edge_id::EdgeId, vertex_id::VertexId},
+        graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
     };
     use geo::coord;

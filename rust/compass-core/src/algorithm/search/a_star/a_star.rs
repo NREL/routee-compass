@@ -4,13 +4,13 @@ use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::model::cost::cost::Cost;
 use crate::model::frontier::frontier_model::FrontierModel;
-use crate::model::graphv2::edge_id::EdgeId;
-use crate::model::graphv2::graph::Graph;
+use crate::model::graph::edge_id::EdgeId;
+use crate::model::graph::graph::Graph;
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
-use crate::{algorithm::search::direction::Direction, model::graphv2::vertex_id::VertexId};
+use crate::{algorithm::search::direction::Direction, model::graph::vertex_id::VertexId};
 use priority_queue::PriorityQueue;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
@@ -341,11 +341,11 @@ mod tests {
 
     use super::*;
     use crate::model::frontier::default::no_restriction;
-    use crate::model::graphv2::graph::Graph;
-    use crate::model::graphv2::graph_config::GraphConfig;
+    use crate::model::graph::graph::Graph;
+    use crate::model::graph::graph_config::GraphConfig;
     use crate::model::traversal::default::distance::DistanceModel;
     use crate::model::traversal::traversal_model::TraversalModel;
-    use crate::{model::graphv2::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
+    use crate::{model::graph::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
 
     #[test]

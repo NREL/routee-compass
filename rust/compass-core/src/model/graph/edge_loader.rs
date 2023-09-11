@@ -1,8 +1,8 @@
 use super::graph_config::GraphConfig;
 use crate::{
     model::{
-        graphv2::graph_error::GraphError,
-        graphv2::{edge_id::EdgeId, vertex_id::VertexId},
+        graph::graph_error::GraphError,
+        graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::edge::Edge,
     },
     util::fs::read_utils,

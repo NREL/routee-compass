@@ -32,9 +32,7 @@ impl OutputPlugin for SummaryOutputPlugin {
 #[cfg(test)]
 
 mod tests {
-    use compass_core::model::{
-        graphv2::edge_id::EdgeId, traversal::state::state_variable::StateVar,
-    };
+    use compass_core::model::{graph::edge_id::EdgeId, traversal::state::state_variable::StateVar};
 
     use super::*;
 

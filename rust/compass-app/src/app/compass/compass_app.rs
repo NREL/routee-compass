@@ -19,7 +19,7 @@ use chrono::{Duration, Local};
 use compass_core::{
     model::{
         cost::cost::Cost,
-        graphv2::{graph::Graph, graph_config::GraphConfig},
+        graph::{graph::Graph, graph_config::GraphConfig},
     },
     util::duration_extension::DurationExtension,
 };

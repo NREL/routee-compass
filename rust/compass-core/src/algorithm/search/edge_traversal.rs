@@ -1,7 +1,7 @@
 use serde::Serialize;
 
-use crate::model::graphv2::edge_id::EdgeId;
-use crate::model::graphv2::graph::Graph;
+use crate::model::graph::edge_id::EdgeId;
+use crate::model::graph::graph::Graph;
 use crate::model::traversal::access_result::AccessResult;
 use crate::model::traversal::traversal_model::TraversalModel;
 

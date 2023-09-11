@@ -1,4 +1,4 @@
-use crate::model::{graphv2::graph::Graph, property::vertex::Vertex};
+use crate::model::{graph::graph::Graph, property::vertex::Vertex};
 use geo::Coord;
 use rstar::RTree;
 

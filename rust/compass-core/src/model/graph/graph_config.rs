@@ -1,4 +1,4 @@
-use crate::model::graphv2::graph_error::GraphError;
+use crate::model::graph::graph_error::GraphError;
 use crate::util::fs::fs_utils::line_count;
 use log::warn;
 use serde::{Deserialize, Serialize};

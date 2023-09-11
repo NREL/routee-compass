@@ -10,7 +10,7 @@ use compass_core::{
         direction::Direction,
     },
     model::{
-        frontier::frontier_model::FrontierModel, graphv2::graph::Graph,
+        frontier::frontier_model::FrontierModel, graph::graph::Graph,
         termination::termination_model::TerminationModel,
         traversal::traversal_model::TraversalModel,
     },

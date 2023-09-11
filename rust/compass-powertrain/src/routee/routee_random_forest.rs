@@ -157,7 +157,7 @@ mod tests {
     use super::*;
     use compass_core::model::units::{Length, Ratio};
     use compass_core::model::{
-        graphv2::{edge_id::EdgeId, vertex_id::VertexId},
+        graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
     };
     use geo::coord;

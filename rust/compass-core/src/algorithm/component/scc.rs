@@ -1,5 +1,5 @@
-use crate::model::graphv2::graph::Graph;
-use crate::model::graphv2::{graph_error::GraphError, vertex_id::VertexId};
+use crate::model::graph::graph::Graph;
+use crate::model::graph::{graph_error::GraphError, vertex_id::VertexId};
 use std::collections::HashSet;
 
 /// Conducts a depth-first search (DFS) on a directed graph.
@@ -148,7 +148,7 @@ fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexId>, 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::graphv2::graph_config::GraphConfig;
+    use crate::model::graph::graph_config::GraphConfig;
     use std::path::PathBuf;
 
     fn build_mock_graph() -> Graph {

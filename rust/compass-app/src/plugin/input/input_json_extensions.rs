@@ -1,6 +1,6 @@
 use super::input_field::InputField;
 use crate::plugin::plugin_error::PluginError;
-use compass_core::model::graphv2::{edge_id::EdgeId, vertex_id::VertexId};
+use compass_core::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 use geo;
 use serde_json;
 

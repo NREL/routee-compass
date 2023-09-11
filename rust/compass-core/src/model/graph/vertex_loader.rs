@@ -1,5 +1,5 @@
-use crate::model::graphv2::graph_config::GraphConfig;
-use crate::model::graphv2::graph_error::GraphError;
+use crate::model::graph::graph_config::GraphConfig;
+use crate::model::graph::graph_error::GraphError;
 use crate::model::property::vertex::Vertex;
 use crate::util::fs::read_utils;
 use kdam::{Bar, BarExt};

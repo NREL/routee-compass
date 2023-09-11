@@ -1,4 +1,4 @@
-use compass_core::model::graphv2::vertex_id::VertexId;
+use compass_core::model::graph::vertex_id::VertexId;
 
 use crate::plugin::plugin_error::PluginError;
 

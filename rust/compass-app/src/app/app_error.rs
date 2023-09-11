@@ -6,7 +6,7 @@ use crate::plugin::plugin_error::PluginError;
 use compass_core::{
     algorithm::search::search_error::SearchError,
     model::{
-        graphv2::graph_error::GraphError, traversal::traversal_model_error::TraversalModelError,
+        graph::graph_error::GraphError, traversal::traversal_model_error::TraversalModelError,
     },
 };
 use config::ConfigError;
