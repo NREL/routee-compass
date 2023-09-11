@@ -18,6 +18,8 @@ pub enum PluginError {
         #[from]
         source: std::io::Error,
     },
+    #[error(transparent)]
+    JsonError(#[from] serde_json::Error),
     #[error("error with reading file")]
     CsvReadError(#[from] csv::Error),
     #[error("geometry missing for edge id {0}")]
@@ -26,6 +28,8 @@ pub enum PluginError {
     UUIDMissing(usize),
     #[error("error during search")]
     SearchError(#[from] SearchError),
+    #[error("expected query to be a json object '{{}}' but found {0}")]
+    UnexpectedQueryStructure(String),
     #[error("unexpected error {0}")]
     InternalError(String),
 }

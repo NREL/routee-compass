@@ -20,6 +20,7 @@ use chrono::{Duration, Local};
 use compass_core::{model::cost::cost::Cost, util::duration_extension::DurationExtension};
 use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
 use config::Config;
+use itertools::{Either, Itertools};
 use rayon::prelude::*;
 
 pub struct CompassApp {
@@ -179,17 +180,38 @@ impl CompassApp {
     /// errors due to the user, they should be propagated along into the output
     /// JSON in an error format along with the request.
     pub fn run(&self, queries: Vec<serde_json::Value>) -> Result<Vec<serde_json::Value>, AppError> {
+        // input plugins need to be flattened, and queries that fail input processing need to be
+        // returned at the end.
+        let (input_bundles, input_error_responses): (
+            Vec<Vec<serde_json::Value>>,
+            Vec<serde_json::Value>,
+        ) = queries
+            .iter()
+            .map(|q| apply_input_plugins(&q, &self.input_plugins))
+            .partition_map(|r| match r {
+                Ok(values) => Either::Left(values),
+                Err(error_response) => Either::Right(error_response),
+            });
+        let input_queries: Vec<serde_json::Value> = input_bundles.into_iter().flatten().collect();
+
+        // run parallel searches using a rayon thread pool
         let _pool = rayon::ThreadPoolBuilder::new()
             .num_threads(self.parallelism)
             .build()
             .map_err(|e| {
                 AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
             })?;
-
-        queries
+        let run_query_result: Vec<serde_json::Value> = input_queries
             .into_par_iter()
             .map(|query| self.run_single_query(query))
-            .collect()
+            .collect::<Result<Vec<serde_json::Value>, AppError>>()?;
+
+        let run_result = run_query_result
+            .into_iter()
+            .chain(input_error_responses)
+            .collect();
+
+        return Ok(run_result);
     }
 
     /// run a single query from end to end, applying input plugins, running the search
@@ -198,19 +220,19 @@ impl CompassApp {
         &self,
         query: serde_json::Value,
     ) -> Result<serde_json::Value, AppError> {
-        let processed_query = match apply_input_plugins(&query, &self.input_plugins) {
-            Ok(processed) => processed,
-            Err(error) => {
-                return Ok(serde_json::json!({
-                    "req": query,
-                    "error": format!("{:?}", error)
-                }))
-            }
-        };
-        let search_result = self.search_app.run_vertex_oriented(&processed_query);
+        // let processed_query = match apply_input_plugins(&query, &self.input_plugins) {
+        //     Ok(processed) => processed,
+        //     Err(error) => {
+        //         return Ok(serde_json::json!({
+        //             "req": query,
+        //             "error": format!("{:?}", error)
+        //         }))
+        //     }
+        // };
+        let search_result = self.search_app.run_vertex_oriented(&query);
 
         let output = apply_output_processing(
-            (&processed_query, search_result),
+            (&query, search_result),
             &self.search_app,
             &self.output_plugins,
         );
@@ -229,16 +251,35 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, AppError> {
     })
 }
 
-/// helper that applies the input plugins to a query, returning the result or an error if failed
+/// helper that applies the input plugins to a query, returning the result(s) or an error if failed
 pub fn apply_input_plugins(
     query: &serde_json::Value,
     plugins: &Vec<Box<dyn InputPlugin>>,
-) -> Result<serde_json::Value, PluginError> {
-    let init_acc: Result<serde_json::Value, PluginError> = Ok(query.clone());
-    plugins.iter().fold(init_acc, move |acc, plugin| match acc {
-        Err(e) => Err(e),
-        Ok(json) => plugin.proccess(&json),
-    })
+) -> Result<Vec<serde_json::Value>, serde_json::Value> {
+    let init = Ok(vec![query.clone()]);
+    let result = plugins
+        .iter()
+        .fold(init, |acc, p| {
+            acc.and_then(|outer| {
+                outer
+                    .iter()
+                    .map(|q| p.process(q))
+                    .collect::<Result<Vec<_>, PluginError>>()
+                    .map(|inner| {
+                        inner
+                            .into_iter()
+                            .flatten()
+                            .collect::<Vec<serde_json::Value>>()
+                    })
+            })
+        })
+        .map_err(|e| {
+            serde_json::json!({
+                "request": query,
+                "error": e.to_string()
+            })
+        })?;
+    return Ok(result);
 }
 
 // helper that applies the output processing. this includes

@@ -15,7 +15,12 @@ use super::{
 use crate::{
     app::compass::compass_configuration_field::CompassConfigurationField,
     plugin::{
-        input::{default::rtree::builder::VertexRTreeBuilder, input_plugin::InputPlugin},
+        input::{
+            default::{
+                grid_search::builder::GridSearchBuilder, rtree::builder::VertexRTreeBuilder,
+            },
+            input_plugin::InputPlugin,
+        },
         output::{
             default::{
                 edgeidlist::builder::EdgeIdListOutputPluginBuilder,
@@ -218,7 +223,11 @@ impl CompassAppBuilder {
 
         // Input plugin builders
         let vertex_tree: Box<dyn InputPluginBuilder> = Box::new(VertexRTreeBuilder {});
-        let input_plugin_builders = HashMap::from([(String::from("vertex_rtree"), vertex_tree)]);
+        let grid_search: Box<dyn InputPluginBuilder> = Box::new(GridSearchBuilder {});
+        let input_plugin_builders = HashMap::from([
+            (String::from("grid_search"), grid_search),
+            (String::from("vertex_rtree"), vertex_tree),
+        ]);
 
         // Output plugin builders
         let geom: Box<dyn OutputPluginBuilder> = Box::new(GeometryPluginBuilder {});

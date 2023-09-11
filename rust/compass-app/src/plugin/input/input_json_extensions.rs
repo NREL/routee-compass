@@ -13,6 +13,7 @@ pub trait InputJsonExtensions {
     fn get_destination_vertex(&self) -> Result<VertexId, PluginError>;
     fn get_origin_edge(&self) -> Result<EdgeId, PluginError>;
     fn get_destination_edge(&self) -> Result<EdgeId, PluginError>;
+    fn get_grid_search(&self) -> Option<&serde_json::Value>;
 }
 
 impl InputJsonExtensions for serde_json::Value {
@@ -137,6 +138,9 @@ impl InputJsonExtensions for serde_json::Value {
                 InputField::DestinationEdge.to_string(),
                 String::from("u64"),
             ))
+    }
+    fn get_grid_search(&self) -> Option<&serde_json::Value> {
+        self.get(InputField::GridSearch.to_string())
     }
 }
 
