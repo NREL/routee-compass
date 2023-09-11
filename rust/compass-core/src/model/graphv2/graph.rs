@@ -1,4 +1,4 @@
-use crate::algorithm::search::min_search_tree::direction::Direction;
+use crate::algorithm::search::direction::Direction;
 use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::graphv2::edge_loader::EdgeLoader;
 use crate::model::graphv2::edge_loader::EdgeLoaderConfig;
@@ -18,40 +18,40 @@ pub struct Graph {
 }
 
 impl Graph {
-    fn n_edges(&self) -> usize {
+    pub fn n_edges(&self) -> usize {
         self.edges.len()
     }
-    fn n_vertices(&self) -> usize {
+    pub fn n_vertices(&self) -> usize {
         self.vertices.len()
     }
-    fn all_edge_ids(&self) -> Vec<EdgeId> {
+    pub fn all_edge_ids(&self) -> Vec<EdgeId> {
         self.edges.iter().map(|edge| edge.edge_id).collect()
     }
-    fn all_edges(&self) -> Vec<Edge> {
+    pub fn all_edges(&self) -> Vec<Edge> {
         self.edges.iter().cloned().collect()
     }
-    fn all_vertex_ids(&self) -> Vec<VertexId> {
+    pub fn all_vertex_ids(&self) -> Vec<VertexId> {
         self.vertices
             .iter()
             .map(|vertex| vertex.vertex_id)
             .collect()
     }
-    fn all_vertices(&self) -> Vec<Vertex> {
+    pub fn all_vertices(&self) -> Vec<Vertex> {
         self.vertices.iter().cloned().collect()
     }
-    fn edge_attr(&self, edge_id: EdgeId) -> Result<&Edge, GraphError> {
+    pub fn edge_attr(&self, edge_id: EdgeId) -> Result<&Edge, GraphError> {
         match self.edges.get(edge_id.0 as usize) {
             None => Err(GraphError::EdgeAttributeNotFound { edge_id }),
             Some(edge) => Ok(edge),
         }
     }
-    fn vertex_attr(&self, vertex_id: VertexId) -> Result<&Vertex, GraphError> {
+    pub fn vertex_attr(&self, vertex_id: VertexId) -> Result<&Vertex, GraphError> {
         match self.vertices.get(vertex_id.0 as usize) {
             None => Err(GraphError::VertexAttributeNotFound { vertex_id }),
             Some(vertex) => Ok(vertex),
         }
     }
-    fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
+    pub fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
         match self.adj.get(src.0 as usize) {
             None => Err(GraphError::VertexWithoutOutEdges { vertex_id: src }),
             Some(out_map) => {
@@ -60,7 +60,7 @@ impl Graph {
             }
         }
     }
-    fn in_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
+    pub fn in_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
         match self.rev.get(src.0 as usize) {
             None => Err(GraphError::VertexWithoutInEdges { vertex_id: src }),
             Some(in_map) => {
@@ -69,16 +69,16 @@ impl Graph {
             }
         }
     }
-    fn src_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
+    pub fn src_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
         self.edge_attr(edge_id).map(|e| e.src_vertex_id)
     }
-    fn dst_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
+    pub fn dst_vertex(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
         self.edge_attr(edge_id).map(|e| e.dst_vertex_id)
     }
 
     /// helper function to give incident edges to a vertex based on a
     /// traversal direction.
-    fn incident_edges(
+    pub fn incident_edges(
         &self,
         vertex_id: VertexId,
         direction: Direction,
@@ -91,7 +91,7 @@ impl Graph {
 
     /// helper function to give the incident vertex to an edge based on a
     /// traversal direction.
-    fn incident_vertex(
+    pub fn incident_vertex(
         &self,
         edge_id: EdgeId,
         direction: Direction,
@@ -102,7 +102,10 @@ impl Graph {
         }
     }
 
-    fn edge_triplet_attrs(&self, edge_id: EdgeId) -> Result<(&Vertex, &Edge, &Vertex), GraphError> {
+    pub fn edge_triplet_attrs(
+        &self,
+        edge_id: EdgeId,
+    ) -> Result<(&Vertex, &Edge, &Vertex), GraphError> {
         let edge = self.edge_attr(edge_id)?;
         let src = self.vertex_attr(edge.src_vertex_id)?;
         let dst = self.vertex_attr(edge.dst_vertex_id)?;
@@ -114,7 +117,7 @@ impl Graph {
     /// a traversal direction, where the vertex_id function argument appears in
     /// the first slot and the terminal vertex id appears in the final slot
     /// of each result triplet.
-    fn incident_triplets(
+    pub fn incident_triplets(
         &self,
         vertex_id: VertexId,
         direction: Direction,
@@ -128,7 +131,7 @@ impl Graph {
         Ok(result)
     }
 
-    fn incident_triplet_attributes(
+    pub fn incident_triplet_attributes(
         &self,
         vertex_id: VertexId,
         direction: Direction,
@@ -145,7 +148,7 @@ impl Graph {
     }
 }
 
-impl TryFrom<GraphConfig> for Graph {
+impl TryFrom<&GraphConfig> for Graph {
     type Error = GraphError;
 
     /// tries to build a Graph from a GraphConfig.
@@ -155,7 +158,7 @@ impl TryFrom<GraphConfig> for Graph {
     /// through each file to count the number of rows (minus header) of the CSV.
     /// then we can build a Vec *once* and insert rows as we decode them without
     /// a sort.
-    fn try_from(config: GraphConfig) -> Result<Self, Self::Error> {
+    fn try_from(config: &GraphConfig) -> Result<Self, Self::Error> {
         info!("checking file length of edge and vertex input files");
         let (n_edges, n_vertices) = config.read_file_sizes()?;
         info!(
