@@ -1,10 +1,10 @@
-use compass_core::util::fs::fs_utils::line_count;
+use crate::model::graph::graph_error::GraphError;
+use crate::util::fs::fs_utils::line_count;
 use log::warn;
 use serde::{Deserialize, Serialize};
 
-use super::tomtom_graph_error::TomTomGraphError;
 #[derive(Debug, Deserialize, Serialize)]
-pub struct TomTomGraphConfig {
+pub struct GraphConfig {
     pub edge_list_csv: String,
     pub vertex_list_csv: String,
     pub n_edges: Option<usize>,
@@ -12,21 +12,21 @@ pub struct TomTomGraphConfig {
     pub verbose: bool,
 }
 
-impl TomTomGraphConfig {
-    pub fn read_file_sizes(&self) -> Result<(usize, usize), TomTomGraphError> {
+impl GraphConfig {
+    pub fn read_file_sizes(&self) -> Result<(usize, usize), GraphError> {
         let n_edges = self
             .get_n_edges()
-            .map_err(|e| TomTomGraphError::IOError { source: e })?;
+            .map_err(|e| GraphError::IOError { source: e })?;
         let n_vertices = self
             .get_n_vertices()
-            .map_err(|e| TomTomGraphError::IOError { source: e })?;
+            .map_err(|e| GraphError::IOError { source: e })?;
         if n_edges < 1 {
-            return Err(TomTomGraphError::EmptyFileSource {
+            return Err(GraphError::EmptyFileSource {
                 filename: self.edge_list_csv.clone(),
             });
         }
         if n_vertices < 1 {
-            return Err(TomTomGraphError::EmptyFileSource {
+            return Err(GraphError::EmptyFileSource {
                 filename: self.vertex_list_csv.clone(),
             });
         }

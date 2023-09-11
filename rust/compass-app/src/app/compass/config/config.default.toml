@@ -1,8 +1,8 @@
 parallelism = 2
 
-[graph.tomtom]
-edge_file = "edges.csv.gz"
-vertex_file = "vertices.csv.gz"
+[graph]
+edge_list_csv = "edges.csv.gz"
+vertex_list_csv = "vertices.csv.gz"
 verbose = true
 
 [algorithm]

@@ -1,14 +1,13 @@
 use serde::Serialize;
 
+use crate::model::graph::edge_id::EdgeId;
+use crate::model::graph::graph::Graph;
 use crate::model::traversal::access_result::AccessResult;
 use crate::model::traversal::traversal_model::TraversalModel;
 
 use super::search_error::SearchError;
+use crate::model::cost::cost::Cost;
 use crate::model::traversal::state::traversal_state::TraversalState;
-use crate::model::{
-    cost::cost::Cost,
-    graph::{directed_graph::DirectedGraph, edge_id::EdgeId},
-};
 use std::sync::Arc;
 use std::{fmt::Display, sync::RwLockReadGuard};
 
@@ -45,7 +44,7 @@ impl EdgeTraversal {
         edge_id: EdgeId,
         prev_edge_id: Option<EdgeId>,
         prev_state: &TraversalState,
-        g: &RwLockReadGuard<Box<dyn DirectedGraph>>,
+        g: &RwLockReadGuard<Graph>,
         m: &Arc<dyn TraversalModel>,
     ) -> Result<EdgeTraversal, SearchError> {
         let (src, edge, dst) = g

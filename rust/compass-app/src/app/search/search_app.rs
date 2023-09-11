@@ -5,12 +5,12 @@ use crate::{
 };
 use chrono::Local;
 use compass_core::{
-    algorithm::search::min_search_tree::{
+    algorithm::search::{
         a_star::a_star::{backtrack, backtrack_edges, run_a_star, run_a_star_edge_oriented},
         direction::Direction,
     },
     model::{
-        frontier::frontier_model::FrontierModel, graph::directed_graph::DirectedGraph,
+        frontier::frontier_model::FrontierModel, graph::graph::Graph,
         termination::termination_model::TerminationModel,
         traversal::traversal_model::TraversalModel,
     },
@@ -20,7 +20,7 @@ use std::sync::Arc;
 use std::time;
 
 pub struct SearchApp {
-    graph: Arc<DriverReadOnlyLock<Box<dyn DirectedGraph>>>,
+    graph: Arc<DriverReadOnlyLock<Graph>>,
     traversal_model_service: Arc<DriverReadOnlyLock<Arc<dyn TraversalModelService>>>,
     frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
     termination_model: Arc<DriverReadOnlyLock<TerminationModel>>,
@@ -30,7 +30,7 @@ impl SearchApp {
     /// builds a new SearchApp from the required components.
     /// handles all of the specialized boxing that allows for simple parallelization.
     pub fn new(
-        graph: Box<dyn DirectedGraph>,
+        graph: Graph,
         traversal_model_service: Arc<dyn TraversalModelService>,
         frontier_model: Box<dyn FrontierModel>,
         termination_model: TerminationModel,
@@ -158,20 +158,6 @@ impl SearchApp {
             })
         })
         .map_err(AppError::SearchError)
-    }
-
-    /// helper function for accessing the DirectedGraph
-    ///
-    /// example:
-    ///
-    /// let search_app: SearchApp = ...;
-    /// let reference = search_app.get_directed_graph_reference();
-    /// let graph = reference.read();
-    /// // do things with graph
-    pub fn get_directed_graph_reference(
-        &self,
-    ) -> Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>> {
-        Arc::new(self.graph.read_only())
     }
 
     /// helper function for accessing the TraversalModel

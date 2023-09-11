@@ -1,6 +1,6 @@
-use super::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 
-#[derive(thiserror::Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug)]
 pub enum GraphError {
     #[error("edge {edge_id} not found")]
     EdgeIdNotFound { edge_id: EdgeId },
@@ -16,4 +16,20 @@ pub enum GraphError {
     VertexWithoutInEdges { vertex_id: VertexId },
     #[error("error in test setup")]
     TestError,
+    #[error("{filename} file source was empty")]
+    EmptyFileSource { filename: String },
+    #[error("failure reading TomTom graph: {source}")]
+    IOError {
+        #[from]
+        source: std::io::Error,
+    },
+    #[error("csv error: {source}")]
+    CsvError {
+        #[from]
+        source: csv::Error,
+    },
+    #[error("internal error: adjacency list missing vertex {0}")]
+    AdjacencyVertexMissing(VertexId),
+    #[error("error creating progress bar for {0}: {1}")]
+    ProgressBarBuildError(String, String),
 }

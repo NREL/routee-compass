@@ -5,19 +5,17 @@ use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::model::cost::cost::Cost;
 use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::graph::edge_id::EdgeId;
+use crate::model::graph::graph::Graph;
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
-use crate::{
-    algorithm::search::min_search_tree::direction::Direction,
-    model::graph::{directed_graph::DirectedGraph, vertex_id::VertexId},
-};
+use crate::{algorithm::search::direction::Direction, model::graph::vertex_id::VertexId};
 use priority_queue::PriorityQueue;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::RwLockReadGuard;
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 type MinSearchTree = HashMap<VertexId, SearchTreeBranch>;
 
@@ -30,7 +28,7 @@ pub fn run_a_star(
     direction: Direction,
     source: VertexId,
     target: VertexId,
-    directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
+    directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
@@ -176,7 +174,7 @@ pub fn run_a_star_edge_oriented(
     direction: Direction,
     source: EdgeId,
     target: EdgeId,
-    directed_graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
+    directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
     frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
@@ -310,7 +308,7 @@ pub fn backtrack_edges(
     source_id: EdgeId,
     target_id: EdgeId,
     solution: &HashMap<VertexId, SearchTreeBranch>,
-    graph: Arc<ExecutorReadOnlyLock<Box<dyn DirectedGraph>>>,
+    graph: Arc<ExecutorReadOnlyLock<Graph>>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let g_inner = graph
         .read()
@@ -328,7 +326,7 @@ pub fn h_cost(
     src: VertexId,
     dst: VertexId,
     state: &TraversalState,
-    g: &RwLockReadGuard<Box<dyn DirectedGraph>>,
+    g: &RwLockReadGuard<Graph>,
     m: &Arc<dyn TraversalModel>,
 ) -> Result<Cost, SearchError> {
     let src_vertex = g.vertex_attr(src)?;
@@ -339,60 +337,36 @@ pub fn h_cost(
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     use super::*;
     use crate::model::frontier::default::no_restriction;
+    use crate::model::graph::graph::Graph;
+    use crate::model::graph::graph_config::GraphConfig;
     use crate::model::traversal::default::distance::DistanceModel;
     use crate::model::traversal::traversal_model::TraversalModel;
-    use crate::model::units::Length;
-    use crate::test::mocks::TestDG;
     use crate::{model::graph::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
-    use uom::si::length::centimeter;
 
     #[test]
     fn test_e2e_queries() {
-        // simple box world but no one should drive between (0) and (1) because of slow speeds
+        // simple box world that exists in a non-euclidean plane that stretches
+        // the distances between vertex 0 and 1. tested using a distance cost
+        // function. to zero out the cost estimate function, all vertices have a
+        // position of (0,0).
         // (0) <---> (1)
         //  ^         ^
         //  |         |
         //  v         v
         // (3) <---> (2)
-        // (0) -[0]-> (1) slow
-        // (1) -[1]-> (0) slow
-        // (1) -[2]-> (2) med
-        // (2) -[3]-> (1) med
-        // (2) -[4]-> (3) med
-        // (3) -[5]-> (2) med
-        // (3) -[6]-> (0) fast
-        // (0) -[7]-> (3) fast
-        let adj = HashMap::from([
-            (
-                VertexId(0),
-                HashMap::from([(EdgeId(0), VertexId(1)), (EdgeId(7), VertexId(3))]),
-            ),
-            (
-                VertexId(1),
-                HashMap::from([(EdgeId(1), VertexId(0)), (EdgeId(2), VertexId(2))]),
-            ),
-            (
-                VertexId(2),
-                HashMap::from([(EdgeId(3), VertexId(1)), (EdgeId(4), VertexId(3))]),
-            ),
-            (
-                VertexId(3),
-                HashMap::from([(EdgeId(5), VertexId(2)), (EdgeId(6), VertexId(0))]),
-            ),
-        ]);
-        let edge_lengths = HashMap::from([
-            (EdgeId(0), Length::new::<centimeter>(10.0)),
-            (EdgeId(1), Length::new::<centimeter>(10.0)),
-            (EdgeId(2), Length::new::<centimeter>(2.0)),
-            (EdgeId(3), Length::new::<centimeter>(2.0)),
-            (EdgeId(4), Length::new::<centimeter>(1.0)),
-            (EdgeId(5), Length::new::<centimeter>(1.0)),
-            (EdgeId(6), Length::new::<centimeter>(2.0)),
-            (EdgeId(7), Length::new::<centimeter>(2.0)),
-        ]);
+        // (0) -[0]-> (1) 10 units distance
+        // (1) -[1]-> (0) 10 units distance
+        // (1) -[2]-> (2) 2 units distance
+        // (2) -[3]-> (1) 2 units distance
+        // (2) -[4]-> (3) 1 units distance
+        // (3) -[5]-> (2) 1 units distance
+        // (3) -[6]-> (0) 2 units distance
+        // (0) -[7]-> (3) 2 units distance
 
         // these are the queries to test the grid world. for each query,
         // we have the vertex pair (source, target) to submit to the
@@ -423,9 +397,23 @@ mod tests {
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
-        let driver_dg_obj: Box<dyn DirectedGraph> =
-            Box::new(TestDG::new(adj, edge_lengths).unwrap());
-        let driver_dg = Arc::new(DriverReadOnlyLock::new(driver_dg_obj));
+        let test_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("algorithm")
+            .join("search")
+            .join("a_star")
+            .join("test");
+        let edge_list_csv = test_path.join("edges.csv").to_str().unwrap().to_string();
+        let vertex_list_csv = test_path.join("vertices.csv").to_str().unwrap().to_string();
+        let graph_conf = GraphConfig {
+            edge_list_csv,
+            vertex_list_csv,
+            n_edges: None,
+            n_vertices: None,
+            verbose: false,
+        };
+        let graph = Graph::try_from(&graph_conf).unwrap();
+        let driver_dg = Arc::new(DriverReadOnlyLock::new(graph));
 
         let no_restriction: Box<dyn FrontierModel> = Box::new(no_restriction::NoRestriction {});
         let driver_rm = Arc::new(DriverReadOnlyLock::new(TerminationModel::IterationsLimit {

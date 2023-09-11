@@ -1,7 +1,6 @@
-use std::collections::HashSet;
-
-use crate::model::graph::directed_graph::DirectedGraph;
+use crate::model::graph::graph::Graph;
 use crate::model::graph::{graph_error::GraphError, vertex_id::VertexId};
+use std::collections::HashSet;
 
 /// Conducts a depth-first search (DFS) on a directed graph.
 ///
@@ -21,7 +20,7 @@ use crate::model::graph::{graph_error::GraphError, vertex_id::VertexId};
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
 pub fn depth_first_search(
-    graph: &impl DirectedGraph,
+    graph: &Graph,
     vertex: VertexId,
     visited: &mut HashSet<VertexId>,
     stack: &mut Vec<VertexId>,
@@ -61,7 +60,7 @@ pub fn depth_first_search(
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
 fn reverse_depth_first_search(
-    graph: &impl DirectedGraph,
+    graph: &Graph,
     vertex: VertexId,
     visited: &mut HashSet<VertexId>,
     stack: &mut Vec<VertexId>,
@@ -95,9 +94,7 @@ fn reverse_depth_first_search(
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-fn all_strongly_connected_componenets(
-    graph: &impl DirectedGraph,
-) -> Result<Vec<Vec<VertexId>>, GraphError> {
+fn all_strongly_connected_componenets(graph: &Graph) -> Result<Vec<Vec<VertexId>>, GraphError> {
     let mut visited: HashSet<VertexId> = HashSet::new();
     let mut container: Vec<VertexId> = Vec::new();
 
@@ -134,9 +131,7 @@ fn all_strongly_connected_componenets(
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-fn largest_strongly_connected_component(
-    graph: &impl DirectedGraph,
-) -> Result<Vec<VertexId>, GraphError> {
+fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexId>, GraphError> {
     let components = all_strongly_connected_componenets(graph)?;
 
     let mut largest_component: Vec<VertexId> = Vec::new();
@@ -152,72 +147,27 @@ fn largest_strongly_connected_component(
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
-    use crate::model::units::Length;
-    use uom::si::length::centimeter;
-
     use super::*;
-    use crate::{model::graph::edge_id::EdgeId, test::mocks::TestDG};
+    use crate::model::graph::graph_config::GraphConfig;
+    use std::path::PathBuf;
 
-    fn build_mock_graph() -> impl DirectedGraph {
+    fn build_mock_graph() -> Graph {
         // A test graph with 2 strongly connected components
-        let adj = HashMap::from([
-            (
-                VertexId(0),
-                HashMap::from([
-                    (EdgeId(0), VertexId(1)),
-                    (EdgeId(7), VertexId(3)),
-                    (EdgeId(8), VertexId(2)),
-                ]),
-            ),
-            (
-                VertexId(1),
-                HashMap::from([
-                    (EdgeId(1), VertexId(0)),
-                    (EdgeId(2), VertexId(2)),
-                    (EdgeId(9), VertexId(3)),
-                ]),
-            ),
-            (
-                VertexId(2),
-                HashMap::from([
-                    (EdgeId(3), VertexId(1)),
-                    (EdgeId(4), VertexId(3)),
-                    (EdgeId(10), VertexId(0)),
-                ]),
-            ),
-            (
-                VertexId(3),
-                HashMap::from([
-                    (EdgeId(5), VertexId(2)),
-                    (EdgeId(6), VertexId(0)),
-                    (EdgeId(11), VertexId(1)),
-                ]),
-            ),
-            (
-                VertexId(4),
-                HashMap::from([(EdgeId(12), VertexId(4))]), // self-loop for the disjoint node
-            ),
-        ]);
-
-        let lengths = HashMap::from([
-            (EdgeId(0), Length::new::<centimeter>(10.0)),
-            (EdgeId(1), Length::new::<centimeter>(10.0)),
-            (EdgeId(2), Length::new::<centimeter>(10.0)),
-            (EdgeId(3), Length::new::<centimeter>(10.0)),
-            (EdgeId(4), Length::new::<centimeter>(10.0)),
-            (EdgeId(5), Length::new::<centimeter>(10.0)),
-            (EdgeId(6), Length::new::<centimeter>(10.0)),
-            (EdgeId(7), Length::new::<centimeter>(10.0)),
-            (EdgeId(8), Length::new::<centimeter>(10.0)),
-            (EdgeId(9), Length::new::<centimeter>(10.0)),
-            (EdgeId(10), Length::new::<centimeter>(10.0)),
-            (EdgeId(11), Length::new::<centimeter>(10.0)),
-            (EdgeId(12), Length::new::<centimeter>(10.0)),
-        ]);
-
-        let graph = TestDG::new(adj, lengths).unwrap();
+        let test_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("algorithm")
+            .join("component")
+            .join("test");
+        let edge_list_csv = test_path.join("edges.csv").to_str().unwrap().to_string();
+        let vertex_list_csv = test_path.join("vertices.csv").to_str().unwrap().to_string();
+        let graph_conf = GraphConfig {
+            edge_list_csv,
+            vertex_list_csv,
+            n_edges: None,
+            n_vertices: None,
+            verbose: false,
+        };
+        let graph = Graph::try_from(&graph_conf).unwrap();
         graph
     }
 

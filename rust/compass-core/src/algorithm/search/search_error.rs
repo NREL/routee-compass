@@ -1,11 +1,12 @@
 use crate::model::{
     frontier::frontier_model_error::FrontierModelError,
-    graph::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
+    graph::graph_error::GraphError,
+    graph::{edge_id::EdgeId, vertex_id::VertexId},
     termination::termination_model_error::TerminationModelError,
     traversal::traversal_model_error::TraversalModelError,
 };
 
-#[derive(thiserror::Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug)]
 pub enum SearchError {
     #[error("distance heuristic can only be provided when there is a target")]
     DistanceHeuristicWithNoTarget,

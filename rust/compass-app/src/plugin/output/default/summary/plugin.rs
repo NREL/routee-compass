@@ -59,7 +59,7 @@ mod tests {
                 result_state: vec![StateVar(0.0)],
             },
         ];
-        let summary_plugin = SummaryOutputPlugin{};
+        let summary_plugin = SummaryOutputPlugin {};
         let updated_output = summary_plugin.proccess(&output_result, Ok(&route)).unwrap();
         let cost: f64 = updated_output.get_cost().unwrap().into();
         assert_eq!(cost, 6.0);

@@ -1,7 +1,6 @@
 mod algorithm;
-mod model;
 mod map;
-mod test;
+mod model;
 mod util;
 
 fn main() {}

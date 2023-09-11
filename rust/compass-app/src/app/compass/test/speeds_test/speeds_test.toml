@@ -1,8 +1,8 @@
 query_timeout_ms = 3600000
 
-[graph.tomtom]
-edge_file = "src/app/compass/test/speeds_test/test_edges.csv"
-vertex_file = "src/app/compass/test/speeds_test/test_vertices.csv"
+[graph]
+edge_list_csv = "src/app/compass/test/speeds_test/test_edges.csv"
+vertex_list_csv = "src/app/compass/test/speeds_test/test_vertices.csv"
 verbose = true
 
 [algorithm]

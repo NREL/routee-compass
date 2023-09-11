@@ -7,7 +7,6 @@ use crate::{
         compass::{
             compass_configuration_field::CompassConfigurationField,
             config::termination_model_builder::TerminationModelBuilder,
-            config_old::graph::GraphConfig,
         },
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
@@ -17,8 +16,13 @@ use crate::{
     },
 };
 use chrono::{Duration, Local};
-use compass_core::{model::cost::cost::Cost, util::duration_extension::DurationExtension};
-use compass_tomtom::graph::{tomtom_graph::TomTomGraph, tomtom_graph_config::TomTomGraphConfig};
+use compass_core::{
+    model::{
+        cost::cost::Cost,
+        graph::{graph::Graph, graph_config::GraphConfig},
+    },
+    util::duration_extension::DurationExtension,
+};
 use config::Config;
 use itertools::{Either, Itertools};
 use rayon::prelude::*;
@@ -103,26 +107,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let graph_conf = &config
             .get::<GraphConfig>(CompassConfigurationField::Graph.to_str())
             .map_err(AppError::ConfigError)?;
-        let graph = match &graph_conf {
-            GraphConfig::TomTom {
-                edge_file,
-                vertex_file,
-                n_edges,
-                n_vertices,
-                verbose,
-            } => {
-                let conf = TomTomGraphConfig {
-                    edge_list_csv: edge_file.clone(),
-                    vertex_list_csv: vertex_file.clone(),
-                    n_edges: n_edges.clone(),
-                    n_vertices: n_vertices.clone(),
-                    verbose: verbose.clone(),
-                };
-                let graph = TomTomGraph::try_from(conf)
-                    .map_err(|e| AppError::InvalidInput(e.to_string()))?;
-                Box::new(graph)
-            }
-        };
+        let graph = Graph::try_from(graph_conf)?;
         let graph_duration = (Local::now() - graph_start)
             .to_std()
             .map_err(|e| AppError::InternalError(e.to_string()))?;
@@ -220,23 +205,12 @@ impl CompassApp {
         &self,
         query: serde_json::Value,
     ) -> Result<serde_json::Value, AppError> {
-        // let processed_query = match apply_input_plugins(&query, &self.input_plugins) {
-        //     Ok(processed) => processed,
-        //     Err(error) => {
-        //         return Ok(serde_json::json!({
-        //             "req": query,
-        //             "error": format!("{:?}", error)
-        //         }))
-        //     }
-        // };
         let search_result = self.search_app.run_vertex_oriented(&query);
-
         let output = apply_output_processing(
             (&query, search_result),
             &self.search_app,
             &self.output_plugins,
         );
-
         Ok(output)
     }
 }
