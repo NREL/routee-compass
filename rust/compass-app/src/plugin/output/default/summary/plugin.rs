@@ -9,7 +9,7 @@ use serde_json;
 pub struct SummaryOutputPlugin {}
 
 impl OutputPlugin for SummaryOutputPlugin {
-    fn proccess(
+    fn process(
         &self,
         output: &serde_json::Value,
         search_result: Result<&SearchAlgorithmResult, SearchError>,
@@ -74,7 +74,7 @@ mod tests {
         };
         let summary_plugin = SummaryOutputPlugin {};
         let updated_output = summary_plugin
-            .proccess(&output_result, Ok(&search_result))
+            .process(&output_result, Ok(&search_result))
             .unwrap();
         let cost: f64 = updated_output.get_cost().unwrap().into();
         assert_eq!(cost, 6.0);

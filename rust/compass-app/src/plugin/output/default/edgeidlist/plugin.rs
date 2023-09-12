@@ -10,7 +10,7 @@ use serde_json;
 pub struct EdgeIdListOutputPlugin {}
 
 impl OutputPlugin for EdgeIdListOutputPlugin {
-    fn proccess(
+    fn process(
         &self,
         output: &serde_json::Value,
         search_result: Result<&SearchAlgorithmResult, SearchError>,

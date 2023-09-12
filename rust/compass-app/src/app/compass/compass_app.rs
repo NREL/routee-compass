@@ -323,7 +323,7 @@ pub fn apply_output_processing(
                 .iter()
                 .fold(init_acc, move |acc, plugin| match acc {
                     Err(e) => Err(e),
-                    Ok(json) => plugin.proccess(&json, Ok(&result)),
+                    Ok(json) => plugin.process(&json, Ok(&result)),
                 })
                 .map_err(AppError::PluginError);
             match json_result {

@@ -35,7 +35,7 @@ impl UUIDOutputPlugin {
 }
 
 impl OutputPlugin for UUIDOutputPlugin {
-    fn proccess(
+    fn process(
         &self,
         output: &serde_json::Value,
         search_result: Result<&SearchAlgorithmResult, SearchError>,
