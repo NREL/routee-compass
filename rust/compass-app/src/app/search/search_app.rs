@@ -1,4 +1,4 @@
-use super::search_app_result::SearchAppResult;
+use super::search_algorithm_result::SearchAlgorithmResult;
 use crate::{
     app::{app_error::AppError, compass::config::builders::TraversalModelService},
     plugin::input::input_json_extensions::InputJsonExtensions,
@@ -52,7 +52,7 @@ impl SearchApp {
     pub fn run_vertex_oriented(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchAppResult, AppError> {
+    ) -> Result<SearchAlgorithmResult, AppError> {
         let o = query.get_origin_vertex().map_err(AppError::PluginError)?;
         let d = query
             .get_destination_vertex()
@@ -96,7 +96,7 @@ impl SearchApp {
                 "Route Computed in {:?} miliseconds",
                 route_runtime.as_millis()
             );
-            Ok(SearchAppResult {
+            Ok(SearchAlgorithmResult {
                 route,
                 tree,
                 search_runtime,
@@ -113,7 +113,7 @@ impl SearchApp {
     pub fn run_edge_oriented(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchAppResult, AppError> {
+    ) -> Result<SearchAlgorithmResult, AppError> {
         let o = query.get_origin_edge().map_err(AppError::PluginError)?;
         let d = query
             .get_destination_edge()
@@ -149,7 +149,7 @@ impl SearchApp {
             let route_runtime = (route_end_time - route_start_time)
                 .to_std()
                 .unwrap_or(time::Duration::ZERO);
-            Ok(SearchAppResult {
+            Ok(SearchAlgorithmResult {
                 route,
                 tree,
                 search_runtime,

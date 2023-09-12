@@ -6,7 +6,7 @@ use compass_core::util::fs::{fs_utils, read_utils::read_raw_file};
 use kdam::Bar;
 use kdam::BarExt;
 
-use crate::app::search::search_app_result::SearchAppResult;
+use crate::app::search::search_algorithm_result::SearchAlgorithmResult;
 use crate::plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError};
 
 pub struct UUIDOutputPlugin {
@@ -38,7 +38,7 @@ impl OutputPlugin for UUIDOutputPlugin {
     fn proccess(
         &self,
         output: &serde_json::Value,
-        search_result: Result<&SearchAppResult, SearchError>,
+        search_result: Result<&SearchAlgorithmResult, SearchError>,
     ) -> Result<serde_json::Value, PluginError> {
         let mut updated_output = output.clone();
         let (origin_vertex_id, destination_vertex_id) = output.get_od_vertex_ids()?;

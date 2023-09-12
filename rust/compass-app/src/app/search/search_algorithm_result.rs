@@ -4,7 +4,7 @@ use compass_core::{
 };
 use std::{collections::HashMap, time::Duration};
 
-pub struct SearchAppResult {
+pub struct SearchAlgorithmResult {
     pub route: Vec<EdgeTraversal>,
     pub tree: HashMap<VertexId, SearchTreeBranch>,
     pub search_runtime: Duration,

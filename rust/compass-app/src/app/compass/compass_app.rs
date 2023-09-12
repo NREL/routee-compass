@@ -8,7 +8,7 @@ use crate::{
             compass_configuration_field::CompassConfigurationField,
             config::termination_model_builder::TerminationModelBuilder,
         },
-        search::{search_app::SearchApp, search_app_result::SearchAppResult},
+        search::{search_algorithm_result::SearchAlgorithmResult, search_app::SearchApp},
     },
     plugin::{
         input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin,
@@ -260,7 +260,7 @@ pub fn apply_input_plugins(
 // 1. summarizing from the TraversalModel
 // 2. applying the output plugins
 pub fn apply_output_processing(
-    response_data: (&serde_json::Value, Result<SearchAppResult, AppError>),
+    response_data: (&serde_json::Value, Result<SearchAlgorithmResult, AppError>),
     search_app: &SearchApp,
     output_plugins: &Vec<Box<dyn OutputPlugin>>,
 ) -> serde_json::Value {
