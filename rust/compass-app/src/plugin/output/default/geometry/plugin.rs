@@ -1,23 +1,32 @@
+use std::collections::HashMap;
+
 use super::json_extensions::GeometryJsonExtensions;
 use super::utils::{concat_linestrings, parse_linestring};
-use crate::app::compass::config::builders::OutputPluginBuilder;
-use crate::app::compass::config::compass_configuration_error::CompassConfigurationError;
+use crate::app::search::search_algorithm_result::SearchAlgorithmResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
 use compass_core::algorithm::search::edge_traversal::EdgeTraversal;
 use compass_core::algorithm::search::search_error::SearchError;
+use compass_core::algorithm::search::search_tree_branch::SearchTreeBranch;
+use compass_core::model::graph::vertex_id::VertexId;
 use compass_core::util::fs::fs_utils;
 use compass_core::util::fs::read_utils::read_raw_file;
-use geo::LineString;
+use geo::{LineString, MultiLineString};
 use kdam::Bar;
 use kdam::BarExt;
 
 pub struct GeometryPlugin {
     geoms: Vec<LineString<f64>>,
+    route_geometry: bool,
+    tree_geometry: bool,
 }
 
 impl GeometryPlugin {
-    pub fn from_file(filename: &String) -> Result<GeometryPlugin, PluginError> {
+    pub fn from_file(
+        filename: &String,
+        route_geometry: bool,
+        tree_geometry: bool,
+    ) -> Result<GeometryPlugin, PluginError> {
         let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))?;
 
         let mut pb = Bar::builder()
@@ -32,43 +41,87 @@ impl GeometryPlugin {
         });
         let geoms = read_raw_file(&filename, parse_linestring, Some(cb))?;
         print!("\n");
-        Ok(GeometryPlugin { geoms })
+        Ok(GeometryPlugin {
+            geoms,
+            route_geometry,
+            tree_geometry,
+        })
     }
 }
 
 impl OutputPlugin for GeometryPlugin {
-    fn proccess(
+    fn process(
         &self,
         output: &serde_json::Value,
-        search_result: Result<&Vec<EdgeTraversal>, SearchError>,
+        search_result: Result<&SearchAlgorithmResult, SearchError>,
     ) -> Result<serde_json::Value, PluginError> {
-        let mut updated_output = output.clone();
-        let edge_ids = search_result?
-            .iter()
-            .map(|traversal| traversal.edge_id)
-            .collect::<Vec<_>>();
+        match search_result {
+            Err(_) => Ok(output.clone()),
+            Ok(result) => {
+                let mut updated_output = output.clone();
+                if self.route_geometry {
+                    let route_geometry = create_route_geometry(&result.route, &self.geoms)?;
+                    updated_output.add_route_geometry(route_geometry)?;
+                }
+                if self.tree_geometry {
+                    let tree_geometry = create_tree_geometry(&result.tree, &self.geoms)?;
+                    updated_output.add_tree_geometry(tree_geometry)?;
+                }
 
-        let final_linestring = edge_ids
-            .iter()
-            .map(|eid| {
-                let geom = self
-                    .geoms
-                    .get(eid.0 as usize)
-                    .ok_or(PluginError::GeometryMissing(eid.0));
-                geom
-            })
-            .collect::<Result<Vec<&LineString>, PluginError>>()?;
-        let geometry = concat_linestrings(final_linestring);
-        updated_output.add_geometry(geometry)?;
-        Ok(updated_output)
+                Ok(updated_output)
+            }
+        }
     }
+}
+
+fn create_route_geometry(
+    route: &Vec<EdgeTraversal>,
+    geoms: &Vec<LineString<f64>>,
+) -> Result<LineString, PluginError> {
+    let edge_ids = route
+        .iter()
+        .map(|traversal| traversal.edge_id)
+        .collect::<Vec<_>>();
+
+    let edge_linestrings = edge_ids
+        .iter()
+        .map(|eid| {
+            let geom = geoms
+                .get(eid.0 as usize)
+                .ok_or(PluginError::GeometryMissing(eid.0));
+            geom
+        })
+        .collect::<Result<Vec<&LineString>, PluginError>>()?;
+    let geometry = concat_linestrings(edge_linestrings);
+    return Ok(geometry);
+}
+
+fn create_tree_geometry(
+    tree: &HashMap<VertexId, SearchTreeBranch>,
+    geoms: &Vec<LineString<f64>>,
+) -> Result<MultiLineString, PluginError> {
+    let edge_ids = tree
+        .values()
+        .map(|traversal| traversal.edge_traversal.edge_id)
+        .collect::<Vec<_>>();
+
+    let tree_linestrings = edge_ids
+        .iter()
+        .map(|eid| {
+            let geom = geoms
+                .get(eid.0 as usize)
+                .ok_or(PluginError::GeometryMissing(eid.0));
+            geom.cloned()
+        })
+        .collect::<Result<Vec<LineString>, PluginError>>()?;
+    let geometry = MultiLineString::new(tree_linestrings);
+    return Ok(geometry);
 }
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
     use compass_core::{
+        algorithm::search::edge_traversal::EdgeTraversal,
         model::units::{Length, Ratio},
         model::{
             cost::cost::Cost,
@@ -79,7 +132,9 @@ mod tests {
         util::fs::read_utils::read_raw_file,
     };
     use geo::{LineString, Point};
-
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+    use std::time::Duration;
     use uom::si;
 
     use super::*;
@@ -159,11 +214,23 @@ mod tests {
                 result_state: vec![StateVar(0.0)],
             },
         ];
+        let search_result = SearchAlgorithmResult {
+            route,
+            tree: HashMap::new(),
+            search_runtime: Duration::ZERO,
+            route_runtime: Duration::ZERO,
+            total_runtime: Duration::ZERO,
+        };
         let filename = mock_geometry_file().to_str().unwrap().to_string();
-        let geom_plugin = GeometryPlugin::from_file(&filename).unwrap();
+        let route_geometry = true;
+        let tree_geometry = false;
+        let geom_plugin =
+            GeometryPlugin::from_file(&filename, route_geometry, tree_geometry).unwrap();
 
-        let result = geom_plugin.proccess(&output_result, Ok(&route)).unwrap();
-        let geometry_wkt = result.get_geometry_wkt().unwrap();
+        let result = geom_plugin
+            .process(&output_result, Ok(&search_result))
+            .unwrap();
+        let geometry_wkt = result.get_route_geometry_wkt().unwrap();
         assert_eq!(geometry_wkt, expected_geometry);
     }
 }
