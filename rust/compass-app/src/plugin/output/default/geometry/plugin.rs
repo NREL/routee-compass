@@ -50,7 +50,7 @@ impl GeometryPlugin {
 }
 
 impl OutputPlugin for GeometryPlugin {
-    fn proccess(
+    fn process(
         &self,
         output: &serde_json::Value,
         search_result: Result<&SearchAlgorithmResult, SearchError>,
@@ -59,10 +59,15 @@ impl OutputPlugin for GeometryPlugin {
             Err(_) => Ok(output.clone()),
             Ok(result) => {
                 let mut updated_output = output.clone();
-                let route_geometry = create_route_geometry(&result.route, &self.geoms)?;
-                let tree_geometry = create_tree_geometry(&result.tree, &self.geoms)?;
-                updated_output.add_route_geometry(route_geometry)?;
-                updated_output.add_tree_geometry(tree_geometry)?;
+                if self.route_geometry {
+                    let route_geometry = create_route_geometry(&result.route, &self.geoms)?;
+                    updated_output.add_route_geometry(route_geometry)?;
+                }
+                if self.tree_geometry {
+                    let tree_geometry = create_tree_geometry(&result.tree, &self.geoms)?;
+                    updated_output.add_tree_geometry(tree_geometry)?;
+                }
+
                 Ok(updated_output)
             }
         }
@@ -223,7 +228,7 @@ mod tests {
             GeometryPlugin::from_file(&filename, route_geometry, tree_geometry).unwrap();
 
         let result = geom_plugin
-            .proccess(&output_result, Ok(&search_result))
+            .process(&output_result, Ok(&search_result))
             .unwrap();
         let geometry_wkt = result.get_route_geometry_wkt().unwrap();
         assert_eq!(geometry_wkt, expected_geometry);
