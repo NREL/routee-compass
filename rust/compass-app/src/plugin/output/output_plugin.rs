@@ -1,11 +1,11 @@
 use compass_core::algorithm::search::{edge_traversal::EdgeTraversal, search_error::SearchError};
 
-use crate::plugin::plugin_error::PluginError;
+use crate::{app::search::search_app_result::SearchAppResult, plugin::plugin_error::PluginError};
 
 pub trait OutputPlugin: Send + Sync {
     fn proccess(
         &self,
         output: &serde_json::Value,
-        search_result: Result<&Vec<EdgeTraversal>, SearchError>,
+        result: Result<&SearchAppResult, SearchError>,
     ) -> Result<serde_json::Value, PluginError>;
 }
