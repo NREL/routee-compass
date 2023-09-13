@@ -7,7 +7,6 @@ verbose = true
 
 [algorithm]
 type = "a*"
-bidirectional = false
 
 [traversal]
 type = "distance"

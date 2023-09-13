@@ -1,4 +1,3 @@
-use super::search_algorithm_result::SearchAlgorithmResult;
 use crate::{
     app::{app_error::AppError, compass::config::builders::TraversalModelService},
     plugin::input::input_json_extensions::InputJsonExtensions,
@@ -6,8 +5,8 @@ use crate::{
 use chrono::Local;
 use compass_core::{
     algorithm::search::{
-        a_star::a_star::{backtrack, backtrack_edges, run_a_star, run_a_star_edge_oriented},
-        direction::Direction,
+        backtrack, search_algorithm::SearchAlgorithm,
+        search_algorithm_result::SearchAlgorithmResult,
     },
     model::{
         frontier::frontier_model::FrontierModel, graph::graph::Graph,
@@ -20,6 +19,7 @@ use std::sync::Arc;
 use std::time;
 
 pub struct SearchApp {
+    search_algorithm: SearchAlgorithm,
     graph: Arc<DriverReadOnlyLock<Graph>>,
     traversal_model_service: Arc<DriverReadOnlyLock<Arc<dyn TraversalModelService>>>,
     frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
@@ -30,6 +30,7 @@ impl SearchApp {
     /// builds a new SearchApp from the required components.
     /// handles all of the specialized boxing that allows for simple parallelization.
     pub fn new(
+        search_algorithm: SearchAlgorithm,
         graph: Graph,
         traversal_model_service: Arc<dyn TraversalModelService>,
         frontier_model: Box<dyn FrontierModel>,
@@ -40,6 +41,7 @@ impl SearchApp {
         let frontier_model = Arc::new(DriverReadOnlyLock::new(frontier_model));
         let termination_model = Arc::new(DriverReadOnlyLock::new(termination_model));
         return SearchApp {
+            search_algorithm,
             graph,
             traversal_model_service,
             frontier_model,
@@ -68,43 +70,41 @@ impl SearchApp {
             .build(query)?;
         let fm_inner = Arc::new(self.frontier_model.read_only());
         let rm_inner = Arc::new(self.termination_model.read_only());
-        run_a_star(
-            Direction::Forward,
-            o,
-            d,
-            dg_inner,
-            tm_inner,
-            fm_inner,
-            rm_inner,
-        )
-        .and_then(|tree| {
-            let search_end_time = Local::now();
-            let search_runtime = (search_end_time - search_start_time)
-                .to_std()
-                .unwrap_or(time::Duration::ZERO);
-            log::debug!(
-                "Search Completed in {:?} miliseconds",
-                search_runtime.as_millis()
-            );
-            let route_start_time = Local::now();
-            let route = backtrack(o, d, &tree)?;
-            let route_end_time = Local::now();
-            let route_runtime = (route_end_time - route_start_time)
-                .to_std()
-                .unwrap_or(time::Duration::ZERO);
-            log::debug!(
-                "Route Computed in {:?} miliseconds",
-                route_runtime.as_millis()
-            );
-            Ok(SearchAlgorithmResult {
-                route,
-                tree,
-                search_runtime,
-                route_runtime,
-                total_runtime: search_runtime + route_runtime,
+        self.search_algorithm
+            .run_vertex_oriented(o, d, dg_inner, tm_inner, fm_inner, rm_inner)
+            // run_a_star(o, Some(d), dg_inner, tm_inner, fm_inner, rm_inner)
+            .and_then(|tree| {
+                let search_end_time = Local::now();
+                let search_runtime = (search_end_time - search_start_time)
+                    .to_std()
+                    .unwrap_or(time::Duration::ZERO);
+                log::debug!(
+                    "Search Completed in {:?} miliseconds",
+                    search_runtime.as_millis()
+                );
+                let route_start_time = Local::now();
+                let route = match d {
+                    None => vec![],
+                    Some(dest) => backtrack::vertex_oriented_route(o, dest, &tree)?,
+                };
+                let route_end_time = Local::now();
+                let route_runtime = (route_end_time - route_start_time)
+                    .to_std()
+                    .unwrap_or(time::Duration::ZERO);
+                log::debug!(
+                    "Route Computed in {:?} miliseconds",
+                    route_runtime.as_millis()
+                );
+                Ok(SearchAlgorithmResult {
+                    route,
+                    tree,
+                    search_start_time,
+                    search_runtime,
+                    route_runtime,
+                    total_runtime: search_runtime + route_runtime,
+                })
             })
-        })
-        .map_err(AppError::SearchError)
+            .map_err(AppError::SearchError)
     }
 
     ///
@@ -129,35 +129,34 @@ impl SearchApp {
             .build(query)?;
         let fm_inner = Arc::new(self.frontier_model.read_only());
         let rm_inner = Arc::new(self.termination_model.read_only());
-        run_a_star_edge_oriented(
-            Direction::Forward,
-            o,
-            d,
-            dg_inner_search,
-            tm_inner,
-            fm_inner,
-            rm_inner,
-        )
-        .and_then(|tree| {
-            let search_end_time = Local::now();
-            let route_start_time = Local::now();
-            let route = backtrack_edges(o, d, &tree, dg_inner_backtrack)?;
-            let route_end_time = Local::now();
-            let search_runtime = (search_end_time - search_start_time)
-                .to_std()
-                .unwrap_or(time::Duration::ZERO);
-            let route_runtime = (route_end_time - route_start_time)
-                .to_std()
-                .unwrap_or(time::Duration::ZERO);
-            Ok(SearchAlgorithmResult {
-                route,
-                tree,
-                search_runtime,
-                route_runtime,
-                total_runtime: search_runtime + route_runtime,
+        self.search_algorithm
+            .run_edge_oriented(o, d, dg_inner_search, tm_inner, fm_inner, rm_inner)
+            .and_then(|tree| {
+                let search_end_time = Local::now();
+                let route_start_time = Local::now();
+                let route = match d {
+                    None => vec![],
+                    Some(dest) => {
+                        backtrack::edge_oriented_route(o, dest, &tree, dg_inner_backtrack)?
+                    }
+                };
+                let route_end_time = Local::now();
+                let search_runtime = (search_end_time - search_start_time)
+                    .to_std()
+                    .unwrap_or(time::Duration::ZERO);
+                let route_runtime = (route_end_time - route_start_time)
+                    .to_std()
+                    .unwrap_or(time::Duration::ZERO);
+                Ok(SearchAlgorithmResult {
+                    route,
+                    tree,
+                    search_start_time,
+                    search_runtime,
+                    route_runtime,
+                    total_runtime: search_runtime + route_runtime,
+                })
             })
-        })
-        .map_err(AppError::SearchError)
+            .map_err(AppError::SearchError)
     }
 
     /// helper function for accessing the TraversalModel
