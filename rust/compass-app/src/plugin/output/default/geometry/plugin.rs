@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use super::json_extensions::GeometryJsonExtensions;
 use super::utils::{concat_linestrings, parse_linestring};
+use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
 use compass_core::algorithm::search::edge_traversal::EdgeTraversal;
-use compass_core::algorithm::search::search_algorithm_result::SearchAlgorithmResult;
 use compass_core::algorithm::search::search_error::SearchError;
 use compass_core::algorithm::search::search_tree_branch::SearchTreeBranch;
 use compass_core::model::graph::vertex_id::VertexId;
@@ -53,7 +53,7 @@ impl OutputPlugin for GeometryPlugin {
     fn process(
         &self,
         output: &serde_json::Value,
-        search_result: Result<&SearchAlgorithmResult, SearchError>,
+        search_result: Result<&SearchAppResult, SearchError>,
     ) -> Result<serde_json::Value, PluginError> {
         match search_result {
             Err(_) => Ok(output.clone()),
@@ -214,7 +214,7 @@ mod tests {
                 result_state: vec![StateVar(0.0)],
             },
         ];
-        let search_result = SearchAlgorithmResult {
+        let search_result = SearchAppResult {
             route,
             tree: HashMap::new(),
             search_start_time: Local::now(),

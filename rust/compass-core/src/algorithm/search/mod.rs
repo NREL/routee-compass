@@ -7,7 +7,6 @@ pub mod backtrack;
 pub mod direction;
 pub mod edge_traversal;
 pub mod search_algorithm;
-pub mod search_algorithm_result;
 pub mod search_algorithm_type;
 pub mod search_error;
 pub mod search_tree_branch;

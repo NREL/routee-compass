@@ -1,13 +1,11 @@
+use super::search_app_result::SearchAppResult;
 use crate::{
     app::{app_error::AppError, compass::config::builders::TraversalModelService},
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
 use chrono::Local;
 use compass_core::{
-    algorithm::search::{
-        backtrack, search_algorithm::SearchAlgorithm,
-        search_algorithm_result::SearchAlgorithmResult,
-    },
+    algorithm::search::{backtrack, search_algorithm::SearchAlgorithm},
     model::{
         frontier::frontier_model::FrontierModel, graph::graph::Graph,
         termination::termination_model::TerminationModel,
@@ -54,7 +52,7 @@ impl SearchApp {
     pub fn run_vertex_oriented(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchAlgorithmResult, AppError> {
+    ) -> Result<SearchAppResult, AppError> {
         let o = query.get_origin_vertex().map_err(AppError::PluginError)?;
         let d = query
             .get_destination_vertex()
@@ -95,7 +93,7 @@ impl SearchApp {
                     "Route Computed in {:?} miliseconds",
                     route_runtime.as_millis()
                 );
-                Ok(SearchAlgorithmResult {
+                Ok(SearchAppResult {
                     route,
                     tree,
                     search_start_time,
@@ -113,7 +111,7 @@ impl SearchApp {
     pub fn run_edge_oriented(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchAlgorithmResult, AppError> {
+    ) -> Result<SearchAppResult, AppError> {
         let o = query.get_origin_edge().map_err(AppError::PluginError)?;
         let d = query
             .get_destination_edge()
@@ -147,7 +145,7 @@ impl SearchApp {
                 let route_runtime = (route_end_time - route_start_time)
                     .to_std()
                     .unwrap_or(time::Duration::ZERO);
-                Ok(SearchAlgorithmResult {
+                Ok(SearchAppResult {
                     route,
                     tree,
                     search_start_time,
