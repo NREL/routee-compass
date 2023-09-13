@@ -1,12 +1,10 @@
 # routee-compass
 
-RouteE-Compass is a robust, energy-aware, routing engine.
+RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
 
-The routing engine has been designed to integrate with the other tools in the RouteE ecosystem and has the following key features:
-
-- Dynamic costing that allows for any vehicle model to be used (represented by a RouteE-Powertrain model)
-- Python API for integration into research pipelines and other python software
-- Core engine written in Rust for improved performance
+Dynamic and extensible search objectives that allow customized blends of distance, time, cost, and energy (via RouteE Powertrain) at query-time
+Core engine written in Rust for improved runtimes, parallel query execution, and the ability to load nation-sized road networks into memory
+Rust, HTTP, and Python APIs for integration into different research pipelines and other software
 
 ## setup
 
