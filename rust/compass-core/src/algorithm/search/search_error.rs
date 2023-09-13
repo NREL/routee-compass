@@ -28,6 +28,8 @@ pub enum SearchError {
     VertexMissingFromSearchTree(VertexId),
     #[error("error accessing shared read-only dataset: {0}")]
     ReadOnlyPoisonError(String),
+    #[error("failure building search algorithm: {0}")]
+    BuildError(String),
     #[error("internal error due to search logic: {0}")]
     InternalSearchError(String),
 }

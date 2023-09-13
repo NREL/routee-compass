@@ -8,7 +8,7 @@ use crate::{
             compass_configuration_field::CompassConfigurationField,
             config::termination_model_builder::TerminationModelBuilder,
         },
-        search::{search_algorithm_result::SearchAlgorithmResult, search_app::SearchApp},
+        search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
     plugin::{
         input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin,
@@ -17,6 +17,7 @@ use crate::{
 };
 use chrono::{Duration, Local};
 use compass_core::{
+    algorithm::search::search_algorithm::SearchAlgorithm,
     model::{
         cost::cost::Cost,
         graph::{graph::Graph, graph_config::GraphConfig},
@@ -71,6 +72,10 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
         let (config, builder) = pair;
 
+        let alg_params =
+            config.get::<serde_json::Value>(CompassConfigurationField::Algorithm.to_str())?;
+        let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
+
         // build traversal model
         let traversal_start = Local::now();
         let traversal_params =
@@ -120,6 +125,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let search_app_start = Local::now();
         let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
         let search_app: SearchApp = SearchApp::new(
+            search_algorithm,
             graph,
             traversal_model_service,
             frontier_model,
@@ -260,7 +266,7 @@ pub fn apply_input_plugins(
 // 1. summarizing from the TraversalModel
 // 2. applying the output plugins
 pub fn apply_output_processing(
-    response_data: (&serde_json::Value, Result<SearchAlgorithmResult, AppError>),
+    response_data: (&serde_json::Value, Result<SearchAppResult, AppError>),
     search_app: &SearchApp,
     output_plugins: &Vec<Box<dyn OutputPlugin>>,
 ) -> serde_json::Value {
@@ -313,6 +319,7 @@ pub fn apply_output_processing(
 
             let init_output = serde_json::json!({
                 "request": req,
+                "search_executed_time": result.search_start_time.to_rfc3339(),
                 "search_runtime": result.search_runtime.hhmmss(),
                 "route_runtime": result.route_runtime.hhmmss(),
                 "total_runtime": result.total_runtime.hhmmss(),
