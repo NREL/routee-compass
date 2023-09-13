@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use super::json_extensions::GeometryJsonExtensions;
 use super::utils::{concat_linestrings, parse_linestring};
-use crate::app::search::search_algorithm_result::SearchAlgorithmResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
 use compass_core::algorithm::search::edge_traversal::EdgeTraversal;
+use compass_core::algorithm::search::search_algorithm_result::SearchAlgorithmResult;
 use compass_core::algorithm::search::search_error::SearchError;
 use compass_core::algorithm::search::search_tree_branch::SearchTreeBranch;
 use compass_core::model::graph::vertex_id::VertexId;
@@ -120,6 +120,8 @@ fn create_tree_geometry(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use chrono::Local;
     use compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
         model::units::{Length, Ratio},
@@ -136,8 +138,6 @@ mod tests {
     use std::path::PathBuf;
     use std::time::Duration;
     use uom::si;
-
-    use super::*;
 
     fn mock_edge(edge_id: usize) -> Edge {
         return Edge {
@@ -217,6 +217,7 @@ mod tests {
         let search_result = SearchAlgorithmResult {
             route,
             tree: HashMap::new(),
+            search_start_time: Local::now(),
             search_runtime: Duration::ZERO,
             route_runtime: Duration::ZERO,
             total_runtime: Duration::ZERO,

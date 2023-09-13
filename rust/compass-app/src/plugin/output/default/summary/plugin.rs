@@ -1,8 +1,7 @@
 use super::json_extensions::SummaryJsonExtensions;
 use crate::plugin::output::output_plugin::OutputPlugin;
-use crate::{
-    app::search::search_algorithm_result::SearchAlgorithmResult, plugin::plugin_error::PluginError,
-};
+use crate::plugin::plugin_error::PluginError;
+use compass_core::algorithm::search::search_algorithm_result::SearchAlgorithmResult;
 use compass_core::{algorithm::search::search_error::SearchError, model::cost::cost::Cost};
 use serde_json;
 
@@ -35,6 +34,7 @@ impl OutputPlugin for SummaryOutputPlugin {
 mod tests {
     use std::{collections::HashMap, time::Duration};
 
+    use chrono::Local;
     use compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
         model::{graph::edge_id::EdgeId, traversal::state::state_variable::StateVar},
@@ -68,6 +68,7 @@ mod tests {
         let search_result = SearchAlgorithmResult {
             route,
             tree: HashMap::new(),
+            search_start_time: Local::now(),
             search_runtime: Duration::ZERO,
             route_runtime: Duration::ZERO,
             total_runtime: Duration::ZERO,

@@ -1,13 +1,11 @@
 use super::json_extensions::UUIDJsonExtensions;
 
-use compass_core::algorithm::search::edge_traversal::EdgeTraversal;
+use crate::plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError};
+use compass_core::algorithm::search::search_algorithm_result::SearchAlgorithmResult;
 use compass_core::algorithm::search::search_error::SearchError;
 use compass_core::util::fs::{fs_utils, read_utils::read_raw_file};
 use kdam::Bar;
 use kdam::BarExt;
-
-use crate::app::search::search_algorithm_result::SearchAlgorithmResult;
-use crate::plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError};
 
 pub struct UUIDOutputPlugin {
     uuids: Vec<String>,
