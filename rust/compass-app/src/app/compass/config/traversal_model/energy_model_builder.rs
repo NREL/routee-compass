@@ -24,6 +24,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         let routee_filename_key = String::from("routee_filename");
         let time_unit_key = String::from("time_unit");
         let energy_rate_unit_key = String::from("energy_unit");
+        let energy_percent_key = String::from("energy_percent");
         let traversal_key = CompassConfigurationField::Traversal.to_string();
         let velocity_filename = parameters
             .get(&velocity_filename_key)
@@ -69,9 +70,27 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
 
+        let energy_percent =
+            parameters
+                .get(&energy_percent_key)
+                .map_or(Ok(1.0), |v| match v.as_f64() {
+                    None => Err(CompassConfigurationError::ExpectedFieldWithType(
+                        energy_percent_key.clone(),
+                        String::from("numeric"),
+                    )),
+                    Some(f) if f < 0.0 || 1.0 < f => {
+                        Err(CompassConfigurationError::ExpectedFieldWithType(
+                            energy_percent_key.clone(),
+                            String::from("decimal in [0.0, 1.0]"),
+                        ))
+                    }
+                    Some(f) => Ok(f),
+                })?;
+
         let m = RouteERandomForestModel::new_w_speed_file(
             &velocity_filename,
             &routee_filename,
+            energy_percent,
             time_unit,
             energy_rate_unit,
         )

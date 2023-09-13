@@ -19,7 +19,9 @@ use uom::si;
 pub struct RouteERandomForestModel {
     pub velocity_model: Arc<VelocityLookupModel>,
     pub routee_model: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
+    pub energy_percent: f64,
     pub energy_unit: EnergyUnit,
+    pub time_unit: TimeUnit,
     pub minimum_energy_per_mile: f64,
 }
 
@@ -91,6 +93,8 @@ impl RouteERandomForestModel {
         velocity_model: Arc<VelocityLookupModel>,
         routee_model_path: &String,
         energy_unit: EnergyUnit,
+        time_unit: TimeUnit,
+        energy_percent: f64,
     ) -> Result<Self, TraversalModelError> {
         // Load random forest binary file
         let rf_binary = std::fs::read(routee_model_path.clone()).map_err(|e| {
@@ -132,7 +136,9 @@ impl RouteERandomForestModel {
         Ok(RouteERandomForestModel {
             velocity_model,
             routee_model: rf,
+            energy_percent,
             energy_unit,
+            time_unit,
             minimum_energy_per_mile,
         })
     }
@@ -140,14 +146,17 @@ impl RouteERandomForestModel {
     pub fn new_w_speed_file(
         speed_file: &String,
         routee_model_path: &String,
+        energy_percent: f64,
         time_unit: TimeUnit,
         energy_rate_unit: EnergyUnit,
     ) -> Result<Self, TraversalModelError> {
-        let velocity_model = VelocityLookupModel::from_file(&speed_file, time_unit)?;
+        let velocity_model = VelocityLookupModel::from_file(&speed_file, time_unit.clone())?;
         Self::new(
             Arc::new(velocity_model),
             routee_model_path,
             energy_rate_unit,
+            time_unit,
+            energy_percent,
         )
     }
 }
@@ -197,6 +206,7 @@ mod tests {
         let rf_predictor = RouteERandomForestModel::new_w_speed_file(
             &speed_file,
             &routee_model_path,
+            1.0,
             TimeUnit::Seconds,
             EnergyUnit::GallonsGasoline,
         )
