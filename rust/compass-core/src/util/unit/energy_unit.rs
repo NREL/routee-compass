@@ -1,0 +1,10 @@
+use serde::{Deserialize, Serialize};
+
+use super::Energy;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum EnergyUnit {
+    GallonsGasoline,
+    KilowattHours,
+}
