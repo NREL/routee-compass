@@ -12,11 +12,12 @@ members = [
 serde = { version = "1.0.160", features = ["derive"] }
 serde_json = "1.0"
 rayon = "1.7.0"
-geo = "0.24.1"
+geo = { workspace = true }
+rstar = { workspace = true }
 uom = { version = "0.35.0", features = ["use_serde"] }
 thiserror = "1.0.0"
 flate2 = "1.0"
-kdam = "0.3.0"
+kdam = "0.4.1"
 log = "0.4.19"
 env_logger = "0.10.0"
 csv = { version = "1.2.2" }
