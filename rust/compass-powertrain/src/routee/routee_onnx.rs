@@ -89,33 +89,6 @@ pub fn get_energy(
 }
 
 impl RouteEOnnxModel {
-    pub fn get_energy(
-        &self,
-        speed_mph: f64,
-        grade_percent: f64,
-        distance_miles: f64,
-    ) -> Result<f64, TraversalModelError> {
-        let x = ndarray::Array1::from(vec![speed_mph as f32, grade_percent as f32])
-            .into_shape((1, 2))
-            .map_err(|e| {
-                TraversalModelError::PredictionModel(format!(
-                    "Failed to reshape input for prediction: {}",
-                    e.to_string()
-                ))
-            })?;
-        let input_tensor = vec![x];
-
-        let session = self.session.get_session();
-
-        let outputs: Vec<OrtOwnedTensor<f32, _>> = session
-            .run(input_tensor)
-            .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
-
-        let energy_per_mile = outputs[0].to_owned().into_raw_vec()[0] as f64;
-        let mut energy = energy_per_mile * distance_miles;
-        energy = if energy < 0.0 { 0.0 } else { energy };
-        Ok(energy)
-    }
     pub fn from_file<P: AsRef<Path>>(
         onnx_path: P,
         velocity_path: P,
@@ -249,8 +222,7 @@ mod tests {
         )
         .unwrap();
 
-        let energy = model
-            .get_energy(60.0, 0.0, 1.0)
+        let energy = get_energy(&model.session, 60.0, 0.0, 1.0)
             .expect("Failed to get energy");
 
         println!("mpg: {}", 1.0/energy);
