@@ -7,15 +7,15 @@ use crate::app::compass::config::{
 };
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::{EnergyUnit, TimeUnit};
-use compass_powertrain::routee::routee_random_forest::RouteERandomForestModel;
+use compass_powertrain::routee::routee_onnx::RouteEOnnxModel;
 
-pub struct EnergyModelBuilder {}
+pub struct RouteEONNXBuilder {}
 
-pub struct EnergyModelService {
-    m: Arc<RouteERandomForestModel>,
+pub struct RouteEONNXService {
+    m: Arc<RouteEOnnxModel>,
 }
 
-impl TraversalModelBuilder for EnergyModelBuilder {
+impl TraversalModelBuilder for RouteEONNXBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
@@ -69,19 +69,19 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
 
-        let m = RouteERandomForestModel::new_w_speed_file(
+        let m = RouteEOnnxModel::from_file(
             &velocity_filename,
             &routee_filename,
             time_unit,
             energy_rate_unit,
         )
         .map_err(CompassConfigurationError::TraversalModelError)?;
-        let service = EnergyModelService { m: Arc::new(m) };
+        let service = RouteEONNXService { m: Arc::new(m) };
         return Ok(Arc::new(service));
     }
 }
 
-impl TraversalModelService for EnergyModelService {
+impl TraversalModelService for RouteEONNXService {
     fn build(
         &self,
         _parameters: &serde_json::Value,

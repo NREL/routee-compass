@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use super::state::traversal_state::TraversalState;
 
 #[derive(thiserror::Error, Debug, Clone)]

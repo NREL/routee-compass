@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::model::units::Velocity;
 use crate::util::geo::haversine::coord_distance_km;
 use crate::{
@@ -19,13 +21,13 @@ use uom::si;
 
 pub struct VelocityLookupModel {
     velocities: Vec<Velocity>,
-    output_unit: TimeUnit,
+    pub output_unit: TimeUnit,
     max_velocity: Velocity,
 }
 
 impl VelocityLookupModel {
-    pub fn from_file(
-        lookup_table_filename: &String,
+    pub fn from_file<P: AsRef<Path>>(
+        lookup_table_filename: P,
         output_unit: TimeUnit,
     ) -> Result<VelocityLookupModel, TraversalModelError> {
         // decodes the row into a velocity kph, and convert into internal cps
@@ -44,8 +46,11 @@ impl VelocityLookupModel {
         // the resulting table has indices that are assumed EdgeIds and entries that
         // are velocities in kph.
         let velocities =
-            read_utils::read_raw_file(lookup_table_filename, op, None).map_err(|e| {
-                TraversalModelError::FileReadError(lookup_table_filename.clone(), e.to_string())
+            read_utils::read_raw_file(&lookup_table_filename, op, None).map_err(|e| {
+                TraversalModelError::FileReadError(
+                    lookup_table_filename.as_ref().to_string_lossy().to_string(),
+                    e.to_string(),
+                )
             })?;
         match velocities
             .iter()
@@ -183,7 +188,7 @@ mod tests {
     fn test_edge_cost_lookup_with_seconds_time_unit() {
         let file = filepath();
         let output_unit = TimeUnit::Seconds;
-        let lookup = VelocityLookupModel::from_file(&file, output_unit).unwrap();
+        let mut lookup = VelocityLookupModel::from_file(&file, output_unit).unwrap();
         let initial = lookup.initial_state();
         let v = mock_vertex();
         let e1 = mock_edge(0);

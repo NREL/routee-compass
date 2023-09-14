@@ -8,8 +8,8 @@ use super::{
         no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
     },
     traversal_model::{
-        distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
-        velocity_lookup_builder::VelocityLookupBuilder,
+        distance_builder::DistanceBuilder, routee_smartcore_builder::RouteESmartcoreBuilder,
+        velocity_lookup_builder::VelocityLookupBuilder, routee_onnx_builder::RouteEONNXBuilder,
     },
 };
 use crate::{
@@ -32,9 +32,7 @@ use crate::{
         },
     },
 };
-use compass_core::model::{
-    frontier::frontier_model::FrontierModel, traversal::traversal_model::TraversalModel,
-};
+use compass_core::model::frontier::frontier_model::FrontierModel;
 use std::{collections::HashMap, sync::Arc};
 
 pub struct CompassAppBuilder {
@@ -206,11 +204,13 @@ impl CompassAppBuilder {
         // Traversal model builders
         let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
         let velo: Box<dyn TraversalModelBuilder> = Box::new(VelocityLookupBuilder {});
-        let ener: Box<dyn TraversalModelBuilder> = Box::new(EnergyModelBuilder {});
+        let smartcore: Box<dyn TraversalModelBuilder> = Box::new(RouteESmartcoreBuilder {});
+        let onnx: Box<dyn TraversalModelBuilder> = Box::new(RouteEONNXBuilder {});
         let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),
             (String::from("velocity_table"), velo),
-            (String::from("energy"), ener),
+            (String::from("rotuee-smartcore"), smartcore),
+            (String::from("routee-onnx"), onnx),
         ]);
 
         // Frontier model builders
