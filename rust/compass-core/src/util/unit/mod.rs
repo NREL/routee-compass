@@ -1,3 +1,4 @@
+pub mod base_units;
 pub mod distance;
 pub mod distance_unit;
 pub mod energy;
@@ -6,7 +7,9 @@ pub mod speed;
 pub mod speed_unit;
 pub mod time;
 pub mod time_unit;
-
+pub mod unit_error;
+pub mod untyped;
+pub use base_units::{BASE_DISTANCE, BASE_SPEED, BASE_TIME};
 pub use distance::Distance;
 pub use distance_unit::DistanceUnit;
 pub use energy::Energy;
@@ -15,3 +18,5 @@ pub use speed::Speed;
 pub use speed_unit::SpeedUnit;
 pub use time::Time;
 pub use time_unit::TimeUnit;
+pub use unit_error::UnitError;
+pub use untyped::Untyped;

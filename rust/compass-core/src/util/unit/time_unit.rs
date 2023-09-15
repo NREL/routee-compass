@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use super::Time;
+use super::{
+    Distance, DistanceUnit, Speed, SpeedUnit, Time, UnitError, BASE_DISTANCE, BASE_SPEED, BASE_TIME,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
@@ -33,13 +35,33 @@ impl TimeUnit {
             (T::Milliseconds, T::Seconds) => value * 0.001,
         }
     }
+
+    /// calculates a time value based on the TimeUnit and incoming speed/distance values
+    /// in their unit types. First converts both Speed and Distance values to the Compass
+    /// base units. performs the division operation to get time and converts to the target
+    /// time unit.
+    pub fn calculate_time(
+        &self,
+        speed: Speed,
+        speed_unit: SpeedUnit,
+        distance: Distance,
+        distance_unit: DistanceUnit,
+    ) -> Result<Time, UnitError> {
+        let d = distance_unit.convert(distance, BASE_DISTANCE);
+        let s = speed_unit.convert(speed, BASE_SPEED);
+        if s <= Speed::ZERO {
+            return Err(UnitError::TimeFromSpeedAndDistanceError(speed, distance));
+        } else {
+            let t = Time::new(d.to_f64() / s.to_f64());
+            Ok(BASE_TIME.convert(t, self.clone()))
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
 
-    use super::Time;
-    use super::TimeUnit as T;
+    use super::{TimeUnit as T, *};
 
     fn assert_approx_eq(a: Time, b: Time, error: f64) {
         let result = match (a, b) {
@@ -132,5 +154,75 @@ mod test {
             Time::new(3600000.0),
             0.001,
         );
+    }
+
+    #[test]
+    fn test_calculate_fails() {
+        let failure = T::Seconds.calculate_time(
+            Speed::ZERO,
+            SpeedUnit::KilometersPerHour,
+            Distance::ONE,
+            DistanceUnit::Meters,
+        );
+        assert!(failure.is_err());
+    }
+
+    #[test]
+    fn test_calculate_idempotent() {
+        let one_sec = T::Seconds
+            .calculate_time(
+                Speed::ONE,
+                SpeedUnit::MetersPerSecond,
+                Distance::ONE,
+                DistanceUnit::Meters,
+            )
+            .unwrap();
+        assert_eq!(Time::ONE, one_sec);
+    }
+
+    #[test]
+    fn test_calculate_kph_to_base() {
+        let time = BASE_TIME
+            .calculate_time(
+                Speed::ONE,
+                SpeedUnit::KilometersPerHour,
+                Distance::ONE,
+                DistanceUnit::Kilometers,
+            )
+            .unwrap();
+        let expected = T::Hours.convert(Time::ONE, BASE_TIME);
+        assert_approx_eq(time, expected, 0.001);
+    }
+
+    #[test]
+    fn test_calculate_base_to_kph() {
+        let speed_kph = TimeUnit::Hours
+            .calculate_time(Speed::ONE, BASE_SPEED, Distance::ONE, BASE_DISTANCE)
+            .unwrap();
+        let expected = BASE_TIME.convert(Time::ONE, T::Hours);
+        assert_approx_eq(speed_kph, expected, 0.001);
+    }
+
+    #[test]
+    fn test_calculate_mph_to_base() {
+        let time = BASE_TIME
+            .calculate_time(
+                Speed::ONE,
+                SpeedUnit::MilesPerHour,
+                Distance::ONE,
+                DistanceUnit::Miles,
+            )
+            .unwrap();
+        let expected = T::Hours.convert(Time::ONE, BASE_TIME);
+        assert_approx_eq(time, expected, 0.01);
+    }
+
+    #[test]
+    fn test_calculate_base_to_mph() {
+        let time = T::Hours
+            .calculate_time(Speed::ONE, BASE_SPEED, Distance::ONE, BASE_DISTANCE)
+            .unwrap();
+        let expected = BASE_TIME.convert(Time::ONE, T::Hours);
+        assert_approx_eq(time, expected, 0.001);
     }
 }
