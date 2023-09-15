@@ -41,7 +41,7 @@ impl TraversalModel for DistanceModel {
         state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
         return coord_distance_km(src.coordinate, dst.coordinate)
-            .map(|d| Cost::from(d.value))
+            .map(|d| Cost::from(d))
             .map_err(TraversalModelError::NumericError);
     }
     fn summary(&self, state: &TraversalState) -> serde_json::Value {

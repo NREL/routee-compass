@@ -20,8 +20,9 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
-        let velocity_filename_key = String::from("velocity_filename");
+        let velocity_filename_key = String::from("speeds_filename");
         let routee_filename_key = String::from("routee_filename");
+        let speed_unit_key = String::from("speed_unit");
         let time_unit_key = String::from("time_unit");
         let energy_rate_unit_key = String::from("energy_unit");
         let energy_percent_key = String::from("energy_percent");
@@ -87,7 +88,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                     Some(f) => Ok(f),
                 })?;
 
-        let m = RouteERandomForestModel::new_w_speed_file(
+        let m = RouteERandomForestModel::new(
             &velocity_filename,
             &routee_filename,
             energy_percent,

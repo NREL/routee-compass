@@ -1,10 +1,10 @@
 use crate::model::units::Length;
+use crate::util::unit::Distance;
 use geo::Coord;
-use uom::si;
 pub const APPROX_EARTH_RADIUS_KM: f64 = 6372.8;
 
 /// helper function to invoke distance between geo::Coords
-pub fn coord_distance_km(src: Coord, dst: Coord) -> Result<Length, String> {
+pub fn coord_distance_km(src: Coord, dst: Coord) -> Result<Distance, String> {
     distance_km(src.x, src.y, dst.x, dst.y)
 }
 
@@ -12,7 +12,7 @@ pub fn coord_distance_km(src: Coord, dst: Coord) -> Result<Length, String> {
 /// https://rosettacode.org/wiki/Haversine_formula#Rust
 /// computes the great circle distance between two points in kilometers.
 /// assumes input data is in WGS84 projection (aka EPSG:4326 CRS)
-pub fn distance_km(src_x: f64, src_y: f64, dst_x: f64, dst_y: f64) -> Result<Length, String> {
+pub fn distance_km(src_x: f64, src_y: f64, dst_x: f64, dst_y: f64) -> Result<Distance, String> {
     if src_x < -180.0 || 180.0 < src_x {
         return Err(format!("src x value not in range [-180, 180]: {}", src_x));
     }
@@ -34,6 +34,5 @@ pub fn distance_km(src_x: f64, src_y: f64, dst_x: f64, dst_y: f64) -> Result<Len
     let a = (d_lat / 2.0).sin().powi(2) + (d_lon / 2.0).sin().powi(2) * lat1.cos() * lat2.cos();
     let c = 2.0 * a.sqrt().asin();
     let distance_km = APPROX_EARTH_RADIUS_KM * c;
-    let distance = Length::new::<si::length::kilometer>(distance_km);
-    return Ok(distance);
+    return Ok(Distance::new(distance_km));
 }

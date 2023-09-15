@@ -39,8 +39,11 @@ impl Distance {
     pub fn new(value: f64) -> Distance {
         Distance(OrderedFloat(value))
     }
+    pub fn to_ordered_float(&self) -> OrderedFloat<f64> {
+        self.0
+    }
     pub fn to_f64(&self) -> f64 {
-        (self.0).0
+        self.to_ordered_float().0
     }
     pub const ZERO: Distance = Distance(OrderedFloat(0.0));
     pub const ONE: Distance = Distance(OrderedFloat(1.0));
