@@ -138,9 +138,6 @@ impl RouteEOnnxModel {
     }
 }
 
-unsafe impl Send for RouteEOnnxModel {}
-unsafe impl Sync for RouteEOnnxModel {}
-
 impl TraversalModel for RouteEOnnxModel {
     fn initial_state(&self) -> TraversalState {
         vec![StateVar(0.0)]
