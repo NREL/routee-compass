@@ -239,7 +239,7 @@ mod tests {
     fn test_thread_saftey() {
         let model = test_model();
         let inputs: Vec<(f64, f64, f64)> = (0..1000)
-            .map(|i| (50.0, 0.0, i as f64))
+            .map(|i| (50.0, 0.0, 1.0))
             .collect();
         
         // map the model.get_energy function over the inputs using rayon
@@ -249,6 +249,10 @@ mod tests {
 
         // assert that all of the results are Ok
         assert!(results.iter().all(|r| r.is_ok()));
+
+        // assert that all the results are the same
+        let expected_result = model.session.get_energy(50.0, 0.0, 1.0).unwrap();
+        assert!(results.iter().all(|r| r.as_ref().unwrap() == &expected_result));
 
     }
 }
