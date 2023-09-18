@@ -20,8 +20,8 @@ use onnxruntime::{
 };
 use uom::si;
 
-pub struct SessionWrapper {
-    env: Environment,
+struct SessionWrapper {
+    _env: Environment,
     session: UnsafeCell<Session<'static>>,
 }
 
@@ -45,7 +45,7 @@ impl SessionWrapper {
         };
 
         Ok(SessionWrapper {
-            env: environment,
+            _env: environment,
             session: session,
         })
     }
