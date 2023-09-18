@@ -1,6 +1,8 @@
+use crate::util::unit::UnitError;
+
 use super::state::traversal_state::TraversalState;
 
-#[derive(thiserror::Error, Debug, Clone)]
+#[derive(thiserror::Error, Debug)]
 pub enum TraversalModelError {
     #[error("failure building traversal model from file {0}: {1}")]
     FileReadError(String, String),
@@ -14,6 +16,8 @@ pub enum TraversalModelError {
     MissingIdInTabularCostFunction(String, String, String),
     #[error("internal error: {0}")]
     InternalError(String),
+    #[error(transparent)]
+    TraversalUnitsError(#[from] UnitError),
     #[error("prediction model failed with error {0}")]
     PredictionModel(String),
 }

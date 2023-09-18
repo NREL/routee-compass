@@ -16,3 +16,9 @@ impl Display for EdgeId {
         write!(f, "{}", self.0)
     }
 }
+
+impl EdgeId {
+    pub fn as_usize(&self) -> usize {
+        return self.0 as usize;
+    }
+}

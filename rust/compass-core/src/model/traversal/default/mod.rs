@@ -1,2 +1,2 @@
 pub mod distance;
-pub mod velocity_lookup;
+pub mod speed_lookup_model;

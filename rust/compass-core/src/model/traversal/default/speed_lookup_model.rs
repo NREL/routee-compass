@@ -1,5 +1,6 @@
-use crate::model::units::Velocity;
+use crate::util::fs::read_decoders;
 use crate::util::geo::haversine::coord_distance_km;
+use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE, BASE_TIME};
 use crate::{
     model::{
         cost::cost::Cost,
@@ -10,69 +11,63 @@ use crate::{
             traversal_model_error::TraversalModelError,
             traversal_result::TraversalResult,
         },
-        units::TimeUnit,
     },
-    util::fs::read_utils,
+    util::{fs::read_utils, unit::Speed},
 };
-use ordered_float::OrderedFloat;
-use uom::si;
 
-pub struct VelocityLookupModel {
-    velocities: Vec<Velocity>,
-    output_unit: TimeUnit,
-    max_velocity: Velocity,
+pub struct SpeedLookupModel {
+    speed_table: Vec<Speed>,
+    speed_unit: SpeedUnit,
+    output_time_unit: TimeUnit,
+    max_speed: Speed,
 }
 
-impl VelocityLookupModel {
-    pub fn from_file(
-        lookup_table_filename: &String,
-        output_unit: TimeUnit,
-    ) -> Result<VelocityLookupModel, TraversalModelError> {
-        // decodes the row into a velocity kph, and convert into internal cps
-        let op = move |_idx: usize, row: String| {
-            row.parse::<f64>()
-                .map(|f| Velocity::new::<si::velocity::kilometer_per_hour>(f))
-                .map_err(|e| {
-                    let msg = format!(
-                        "failure decoding velocity from lookup table: {}",
-                        e.to_string()
-                    );
-                    std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
-                })
-        };
-        // use helper function to read the file and decode rows with the above op.
-        // the resulting table has indices that are assumed EdgeIds and entries that
-        // are velocities in kph.
-        let velocities =
-            read_utils::read_raw_file(lookup_table_filename, op, None).map_err(|e| {
-                TraversalModelError::FileReadError(lookup_table_filename.clone(), e.to_string())
-            })?;
-        match velocities
-            .iter()
-            .map(|v| OrderedFloat(v.get::<si::velocity::kilometer_per_hour>()))
-            .max()
-        {
-            None => {
-                let count = velocities.len();
-                let msg = format!(
-                    "could not find max speed from speed table with {} entries",
-                    count
-                );
-                return Err(TraversalModelError::BuildError(msg));
-            }
-            Some(max_velocity) => {
-                let model = VelocityLookupModel {
-                    velocities,
-                    output_unit,
-                    max_velocity: Velocity::new::<si::velocity::kilometer_per_hour>(max_velocity.0),
-                };
-                return Ok(model);
-            }
+impl SpeedLookupModel {
+    pub fn new(
+        speed_table_path: &String,
+        speed_unit: SpeedUnit,
+        output_time_unit_opt: Option<TimeUnit>,
+    ) -> Result<SpeedLookupModel, TraversalModelError> {
+        let speed_table: Vec<Speed> =
+            read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
+                |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
+            )?;
+
+        let (max_speed, count) =
+            speed_table
+                .iter()
+                .fold((Speed::ZERO, 0), |(acc_max, acc_cnt), row| {
+                    let next_max = if acc_max > *row { acc_max } else { row.clone() };
+                    (next_max, acc_cnt + 1)
+                });
+
+        if count == 0 {
+            let msg = format!(
+                "parsed {} entries for speed table {}",
+                count, speed_table_path
+            );
+            return Err(TraversalModelError::BuildError(msg));
+        } else if max_speed == Speed::ZERO {
+            let msg = format!(
+                "max speed was zero in speed table {} with {} entries",
+                speed_table_path, count
+            );
+            return Err(TraversalModelError::BuildError(msg));
+        } else {
+            let output_time_unit =
+                output_time_unit_opt.unwrap_or(speed_unit.associated_time_unit());
+            let model = SpeedLookupModel {
+                speed_table,
+                output_time_unit,
+                speed_unit,
+                max_speed: max_speed.clone(),
+            };
+            return Ok(model);
         }
     }
 }
 
-impl TraversalModel for VelocityLookupModel {
+impl TraversalModel for SpeedLookupModel {
     fn initial_state(&self) -> TraversalState {
         vec![StateVar(0.0)]
     }
@@ -83,8 +78,8 @@ impl TraversalModel for VelocityLookupModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let ff_vel = self
-            .velocities
+        let speed = self
+            .speed_table
             .get(edge.edge_id.0 as usize)
             .ok_or_else(|| {
                 TraversalModelError::MissingIdInTabularCostFunction(
@@ -93,14 +88,16 @@ impl TraversalModel for VelocityLookupModel {
                     String::from("edge velocity lookup"),
                 )
             })?;
-        let time = edge.distance.clone() / ff_vel.clone();
-        let time_output: f64 = match self.output_unit {
-            TimeUnit::Hours => time.get::<si::time::hour>().into(),
-            TimeUnit::Seconds => time.get::<si::time::second>().into(),
-            TimeUnit::Milliseconds => time.get::<si::time::millisecond>().into(),
-        };
+        let time = Time::calculate_time(
+            speed.clone(),
+            self.speed_unit.clone(),
+            edge.distance,
+            BASE_DISTANCE,
+        )?;
+
+        let time_output: Time = BASE_TIME.convert(time, self.output_time_unit.clone());
         let mut s = state.clone();
-        s[0] = s[0] + StateVar(time_output);
+        s[0] = s[0] + StateVar::from(time_output);
         let result = TraversalResult {
             total_cost: Cost::from(time_output),
             updated_state: s,
@@ -115,24 +112,20 @@ impl TraversalModel for VelocityLookupModel {
     ) -> Result<Cost, TraversalModelError> {
         let distance = coord_distance_km(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
-        let time = distance / self.max_velocity;
-        let time_output: f64 = match self.output_unit {
-            TimeUnit::Hours => time.get::<si::time::hour>().into(),
-            TimeUnit::Seconds => time.get::<si::time::second>().into(),
-            TimeUnit::Milliseconds => time.get::<si::time::millisecond>().into(),
-        };
+        let time = Time::calculate_time(
+            self.max_speed,
+            self.speed_unit.clone(),
+            distance,
+            BASE_DISTANCE,
+        )?;
+        let time_output: Time = BASE_TIME.convert(time, self.output_time_unit.clone());
         Ok(Cost::from(time_output))
     }
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
         let time = state[0].0;
-        let time_units = match self.output_unit {
-            TimeUnit::Hours => "hours",
-            TimeUnit::Seconds => "seconds",
-            TimeUnit::Milliseconds => "milliseconds",
-        };
         serde_json::json!({
-            "total_time": time,
-            "units": time_units,
+            "time": time,
+            "time_unit": self.output_time_unit,
         })
     }
 }
@@ -142,14 +135,13 @@ mod tests {
     use super::*;
     use crate::model::cost::cost::Cost;
     use crate::model::traversal::state::state_variable::StateVar;
-    use crate::model::units::{Length, Ratio, TimeUnit};
     use crate::model::{
         graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
     };
+    use crate::util::unit::Distance;
     use geo::coord;
     use std::path::PathBuf;
-    use uom::si;
 
     fn mock_vertex() -> Vertex {
         return Vertex {
@@ -163,8 +155,8 @@ mod tests {
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
             road_class: RoadClass(2),
-            distance: Length::new::<si::length::meter>(100.0),
-            grade: Ratio::new::<si::ratio::per_mille>(0.0),
+            distance: Distance::new(100.0),
+            grade: 0.0,
         };
     }
     fn filepath() -> String {
@@ -182,8 +174,7 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_seconds_time_unit() {
         let file = filepath();
-        let output_unit = TimeUnit::Seconds;
-        let lookup = VelocityLookupModel::from_file(&file, output_unit).unwrap();
+        let lookup = SpeedLookupModel::new(&file, SpeedUnit::MetersPerSecond, None).unwrap();
         let initial = lookup.initial_state();
         let v = mock_vertex();
         let e1 = mock_edge(0);
@@ -197,8 +188,7 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_milliseconds_time_unit() {
         let file = filepath();
-        let output_unit = TimeUnit::Milliseconds;
-        let lookup = VelocityLookupModel::from_file(&file, output_unit).unwrap();
+        let lookup = SpeedLookupModel::new(&file, SpeedUnit::MetersPerSecond, None).unwrap();
         let initial = lookup.initial_state();
         let v = mock_vertex();
         let e1 = mock_edge(0);

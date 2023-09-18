@@ -11,6 +11,26 @@ pub enum SpeedUnit {
 }
 
 impl SpeedUnit {
+    /// provides the numerator unit for some speed unit
+    pub fn associated_time_unit(&self) -> TimeUnit {
+        use SpeedUnit as S;
+        match self {
+            S::KilometersPerHour => TimeUnit::Hours,
+            S::MilesPerHour => TimeUnit::Hours,
+            S::MetersPerSecond => TimeUnit::Seconds,
+        }
+    }
+
+    /// provides the denomenator unit for some speed unit
+    pub fn associated_distance_unit(&self) -> DistanceUnit {
+        use SpeedUnit as S;
+        match self {
+            S::KilometersPerHour => DistanceUnit::Kilometers,
+            S::MilesPerHour => DistanceUnit::Miles,
+            S::MetersPerSecond => DistanceUnit::Meters,
+        }
+    }
+
     /// converts a value from the current speed unit to some target speed unit.
     pub fn convert(&self, value: Speed, target: SpeedUnit) -> Speed {
         use SpeedUnit as S;

@@ -3,16 +3,15 @@ use crate::app::compass::config::builders::TraversalModelService;
 use crate::app::compass::config::{
     builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
 };
+use compass_core::model::traversal::default::speed_lookup_model::SpeedLookupModel;
 use compass_core::model::traversal::traversal_model::TraversalModel;
-use compass_core::model::{
-    traversal::default::velocity_lookup::VelocityLookupModel, units::TimeUnit,
-};
+use compass_core::util::unit::{SpeedUnit, TimeUnit};
 use std::sync::Arc;
 
 pub struct VelocityLookupBuilder {}
 
 pub struct VelocityLookupService {
-    m: Arc<VelocityLookupModel>,
+    m: Arc<SpeedLookupModel>,
 }
 
 impl TraversalModelBuilder for VelocityLookupBuilder {
@@ -21,8 +20,9 @@ impl TraversalModelBuilder for VelocityLookupBuilder {
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
         let filename_key = String::from("filename");
-        let time_unit_key = String::from("time_unit");
+        let speed_unit_key = String::from("speed_unit");
         let traversal_key = CompassConfigurationField::Traversal.to_string();
+        // todo: optional output time unit
         let filename = parameters
             .get(&filename_key)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
@@ -36,16 +36,16 @@ impl TraversalModelBuilder for VelocityLookupBuilder {
                 String::from("String"),
             ))?;
 
-        let time_unit = parameters
-            .get(&time_unit_key)
-            .map(|t| serde_json::from_value::<TimeUnit>(t.clone()))
+        let speed_unit = parameters
+            .get(&speed_unit_key)
+            .map(|t| serde_json::from_value::<SpeedUnit>(t.clone()))
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
                 filename_key.clone(),
-                time_unit_key.clone(),
+                speed_unit_key.clone(),
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
 
-        let m = VelocityLookupModel::from_file(&filename, time_unit)
+        let m = SpeedLookupModel::new(&filename, speed_unit, None)
             .map_err(CompassConfigurationError::TraversalModelError)?;
         let service = Arc::new(VelocityLookupService { m: Arc::new(m) });
         return Ok(service);

@@ -1,3 +1,4 @@
+use crate::util::unit::{Distance, Energy, Time};
 use derive_more::{Add, Div, Mul, Neg, Sum};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -15,5 +16,21 @@ impl StateVar {
 impl Display for StateVar {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl From<Distance> for StateVar {
+    fn from(value: Distance) -> Self {
+        StateVar(value.to_f64())
+    }
+}
+impl From<Time> for StateVar {
+    fn from(value: Time) -> Self {
+        StateVar(value.to_f64())
+    }
+}
+impl From<Energy> for StateVar {
+    fn from(value: Energy) -> Self {
+        StateVar(value.to_f64())
     }
 }

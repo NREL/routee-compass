@@ -1,7 +1,9 @@
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
-use std::{cmp::Ordering, fmt::Display};
+use std::{cmp::Ordering, fmt::Display, str::FromStr};
+
+use super::UnitError;
 
 #[derive(
     Copy,
@@ -32,6 +34,24 @@ impl Ord for Speed {
 impl Display for Speed {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl FromStr for Speed {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let value = s
+            .parse::<f64>()
+            .map_err(|_| format!("could not parse {} as a number", s))?;
+        if value < 0.0 {
+            return Err(format!(
+                "speed value {} invalid, must be strictly positive (0, +inf]",
+                value
+            ));
+        } else {
+            return Ok(Speed::new(value));
+        }
     }
 }
 

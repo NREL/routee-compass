@@ -6,7 +6,8 @@ use crate::app::compass::config::{
     builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
 };
 use compass_core::model::traversal::traversal_model::TraversalModel;
-use compass_core::model::units::{EnergyUnit, TimeUnit};
+use compass_core::util::unit::{EnergyRateUnit, SpeedUnit};
+use compass_core::util::unit::{EnergyUnit, TimeUnit};
 use compass_powertrain::routee::routee_random_forest::RouteERandomForestModel;
 
 pub struct EnergyModelBuilder {}
@@ -22,11 +23,13 @@ impl TraversalModelBuilder for EnergyModelBuilder {
     ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
         let velocity_filename_key = String::from("speeds_filename");
         let routee_filename_key = String::from("routee_filename");
-        let speed_unit_key = String::from("speed_unit");
-        let time_unit_key = String::from("time_unit");
-        let energy_rate_unit_key = String::from("energy_unit");
+
+        let speed_table_speed_unit_key = String::from("speed_table_speed_unit");
+        let routee_model_speed_unit_key = String::from("routee_model_speed_unit");
+        let routee_model_energy_rate_unit_key = String::from("routee_model_energy_rate_unit");
         let energy_percent_key = String::from("energy_percent");
         let traversal_key = CompassConfigurationField::Traversal.to_string();
+
         let velocity_filename = parameters
             .get(&velocity_filename_key)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
@@ -53,21 +56,30 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 String::from("String"),
             ))?;
 
-        let time_unit = parameters
-            .get(&time_unit_key)
-            .map(|t| serde_json::from_value::<TimeUnit>(t.clone()))
+        let speed_table_speed_unit = parameters
+            .get(&speed_table_speed_unit_key)
+            .map(|t| serde_json::from_value::<SpeedUnit>(t.clone()))
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
                 velocity_filename_key.clone(),
-                time_unit_key.clone(),
+                speed_table_speed_unit_key.clone(),
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
 
-        let energy_rate_unit = parameters
-            .get(&energy_rate_unit_key)
-            .map(|t| serde_json::from_value::<EnergyUnit>(t.clone()))
+        let routee_model_speed_unit = parameters
+            .get(&routee_model_speed_unit_key)
+            .map(|t| serde_json::from_value::<SpeedUnit>(t.clone()))
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
                 velocity_filename_key.clone(),
-                energy_rate_unit_key.clone(),
+                routee_model_speed_unit_key.clone(),
+            ))?
+            .map_err(CompassConfigurationError::SerdeDeserializationError)?;
+
+        let routee_model_energy_rate_unit = parameters
+            .get(&routee_model_energy_rate_unit_key)
+            .map(|t| serde_json::from_value::<EnergyRateUnit>(t.clone()))
+            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
+                velocity_filename_key.clone(),
+                routee_model_energy_rate_unit_key.clone(),
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
 
@@ -91,9 +103,10 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         let m = RouteERandomForestModel::new(
             &velocity_filename,
             &routee_filename,
+            routee_model_energy_rate_unit,
+            speed_table_speed_unit,
+            routee_model_speed_unit,
             energy_percent,
-            time_unit,
-            energy_rate_unit,
         )
         .map_err(CompassConfigurationError::TraversalModelError)?;
         let service = EnergyModelService { m: Arc::new(m) };

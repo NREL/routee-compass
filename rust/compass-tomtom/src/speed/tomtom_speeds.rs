@@ -8,7 +8,7 @@ use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::model::traversal::traversal_result::TraversalResult;
-use compass_core::model::units::Time;
+use compass_core::util::unit::Time;
 use std::fs::File;
 use uom::si;
 
@@ -39,8 +39,8 @@ impl TraversalModel for TomTomSpeedLookup {
         // lookup speed profile by edge id, pick speed by time bin...
         // see https://github.nrel.gov/MBAP/mbap-computing/blob/master/postgres/examples/tomtom_2021_network/tomtom_2021_network_time_bin_speeds.sql
         // https://pages.github.nrel.gov/MBAP/tomtom_2021_docs/mnr_spec/common_spec/theme_roads_and_ferries/speed_profile/speed_profile.html?hl=speed%2Cprofile
-        let tt = Time::new::<si::time::minute>(1.0);
-        let milliseconds = tt.get::<si::time::millisecond>();
+        let tt = Time::new(1.0);
+        let milliseconds = 0.001;
         let mut s_update = state.clone();
         s_update[0] = s_update[0] + StateVar(milliseconds as f64);
         let result = TraversalResult {

@@ -25,7 +25,7 @@ impl TraversalModelService for DistanceService {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
-        let m: Arc<dyn TraversalModel> = Arc::new(DistanceModel {});
+        let m: Arc<dyn TraversalModel> = Arc::new(DistanceModel::new());
         return Ok(m);
     }
 }

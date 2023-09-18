@@ -42,8 +42,8 @@ impl From<Time> for Cost {
         Cost::new(value.to_f64())
     }
 }
-impl From<EnergyRate> for Cost {
-    fn from(value: EnergyRate) -> Self {
+impl From<Energy> for Cost {
+    fn from(value: Energy) -> Self {
         Cost::new(value.to_f64())
     }
 }

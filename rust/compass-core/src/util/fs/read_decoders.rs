@@ -1,3 +1,5 @@
+/// default read decoder for an arbitrary type if the read operation
+/// can be performed via the FromStr trait for type T
 pub fn default<T>(_idx: usize, row: String) -> Result<T, std::io::Error>
 where
     T: std::str::FromStr<Err = String>,
