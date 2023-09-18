@@ -355,6 +355,7 @@ dependencies = [
  "log",
  "ndarray",
  "onnxruntime",
+ "rayon",
  "serde",
  "serde_json",
  "serde_repr",

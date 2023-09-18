@@ -9,13 +9,13 @@ use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::units::{EnergyUnit, TimeUnit};
 use compass_powertrain::routee::routee_onnx::RouteEOnnxModel;
 
-pub struct RouteEONNXBuilder {}
+pub struct RouteEOnnxBuilder {}
 
-pub struct RouteEONNXService {
+pub struct RouteEOnnxService {
     m: Arc<RouteEOnnxModel>,
 }
 
-impl TraversalModelBuilder for RouteEONNXBuilder {
+impl TraversalModelBuilder for RouteEOnnxBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
@@ -76,12 +76,12 @@ impl TraversalModelBuilder for RouteEONNXBuilder {
             energy_rate_unit,
         )
         .map_err(CompassConfigurationError::TraversalModelError)?;
-        let service = RouteEONNXService { m: Arc::new(m) };
+        let service = RouteEOnnxService { m: Arc::new(m) };
         return Ok(Arc::new(service));
     }
 }
 
-impl TraversalModelService for RouteEONNXService {
+impl TraversalModelService for RouteEOnnxService {
     fn build(
         &self,
         _parameters: &serde_json::Value,

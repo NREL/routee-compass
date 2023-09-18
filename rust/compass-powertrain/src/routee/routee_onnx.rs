@@ -48,44 +48,47 @@ impl SessionWrapper {
         })
     }
 
-    pub fn get_session(&self) -> &mut Session<'static> {
+    fn get_session(&self) -> &mut Session<'static> {
         unsafe { &mut *self.session.get() }
     }
+
+    pub fn get_energy(
+        &self,
+        speed_mph: f64,
+        grade_percent: f64,
+        distance_miles: f64,
+    ) -> Result<f64, TraversalModelError> {
+        let x = ndarray::Array1::from(vec![speed_mph as f32, grade_percent as f32])
+            .into_shape((1, 2))
+            .map_err(|e| {
+                TraversalModelError::PredictionModel(format!(
+                    "Failed to reshape input for prediction: {}",
+                    e.to_string()
+                ))
+            })?;
+        let input_tensor = vec![x];
+
+        let session = self.get_session();
+
+        let outputs: Vec<OrtOwnedTensor<f32, _>> = session
+            .run(input_tensor)
+            .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+
+        let energy_per_mile = outputs[0].to_owned().into_raw_vec()[0] as f64;
+        let mut energy = energy_per_mile * distance_miles;
+        energy = if energy < 0.0 { 0.0 } else { energy };
+        Ok(energy)
+    }
 }
+
+unsafe impl Send for SessionWrapper {}
+unsafe impl Sync for SessionWrapper {}
 
 pub struct RouteEOnnxModel {
     pub energy_unit: EnergyUnit,
 
     session: SessionWrapper,
     velocity_model: Arc<VelocityLookupModel>,
-}
-
-pub fn get_energy(
-    session_wrapper: &SessionWrapper,
-    speed_mph: f64,
-    grade_percent: f64,
-    distance_miles: f64,
-) -> Result<f64, TraversalModelError> {
-    let x = ndarray::Array1::from(vec![speed_mph as f32, grade_percent as f32])
-        .into_shape((1, 2))
-        .map_err(|e| {
-            TraversalModelError::PredictionModel(format!(
-                "Failed to reshape input for prediction: {}",
-                e.to_string()
-            ))
-        })?;
-    let input_tensor = vec![x];
-
-    let session = session_wrapper.get_session();
-
-    let outputs: Vec<OrtOwnedTensor<f32, _>> = session
-        .run(input_tensor)
-        .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
-
-    let energy_per_mile = outputs[0].to_owned().into_raw_vec()[0] as f64;
-    let mut energy = energy_per_mile * distance_miles;
-    energy = if energy < 0.0 { 0.0 } else { energy };
-    Ok(energy)
 }
 
 impl RouteEOnnxModel {
@@ -102,12 +105,9 @@ impl RouteEOnnxModel {
         // sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
         let mut minimum_energy_per_mile = std::f64::MAX;
 
-        let start_time = std::time::Instant::now();
-
         for speed_mph in 1..100 {
             for grade_percent in -20..20 {
-                let energy_per_mile = get_energy(
-                    &session_wrapper,
+                let energy_per_mile = session_wrapper.get_energy(
                     speed_mph as f64,
                     grade_percent as f64,
                     1.0,
@@ -169,7 +169,7 @@ impl TraversalModel for RouteEOnnxModel {
         let grade_percent = grade.get::<si::ratio::percent>();
         let speed_mph = distance_mile / time_hours;
 
-        let energy_cost = get_energy(&self.session, speed_mph, grade_percent, distance_mile)?;
+        let energy_cost = self.session.get_energy(speed_mph, grade_percent, distance_mile)?;
 
         let mut updated_state = state.clone();
         updated_state[0] = state[0] + StateVar(energy_cost);
@@ -202,8 +202,9 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn test_load_wrapper() {
+    use rayon::prelude::*;
+
+    fn test_model() -> RouteEOnnxModel {
         let model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
@@ -221,10 +222,34 @@ mod tests {
             EnergyUnit::GallonsGasoline,
         )
         .unwrap();
+        model
+    }
 
-        let energy = get_energy(&model.session, 60.0, 0.0, 1.0)
-            .expect("Failed to get energy");
+    #[test]
+    fn test_load() {
+        let model = test_model();
 
-        println!("mpg: {}", 1.0/energy);
+        let energy = model.session.get_energy(60.0, 0.0, 1.0).expect("Failed to get energy");
+
+        println!("mpg: {}", 1.0 / energy);
+    }
+
+    #[test]
+    // test that we can safely call this traversal model from multiple threads
+    // since we have to implement unsafe code around the onnx runtime
+    fn test_thread_saftey() {
+        let model = test_model();
+        let inputs: Vec<(f64, f64, f64)> = (0..1000)
+            .map(|i| (50.0, 0.0, i as f64))
+            .collect();
+        
+        // map the model.get_energy function over the inputs using rayon
+        let results = inputs.par_iter().map(|(speed, grade, distance)| {
+            model.session.get_energy(*speed, *grade, *distance)
+        }).collect::<Vec<Result<f64, TraversalModelError>>>();
+
+        // assert that all of the results are Ok
+        assert!(results.iter().all(|r| r.is_ok()));
+
     }
 }
