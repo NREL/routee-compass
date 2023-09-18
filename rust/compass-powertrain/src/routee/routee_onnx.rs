@@ -35,6 +35,8 @@ impl SessionWrapper {
                 environment
                     .new_session_builder()
                     .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
+                    .with_number_threads(1)
+                    .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
                     .with_optimization_level(GraphOptimizationLevel::Basic)
                     .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
                     .with_model_from_file(filepath)
