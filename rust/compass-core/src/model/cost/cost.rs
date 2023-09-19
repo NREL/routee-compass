@@ -4,7 +4,7 @@ use derive_more::{Add, Div, Mul, Neg, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 
-use crate::util::unit::*;
+use crate::util::unit::{as_f64::AsF64, *};
 
 #[derive(
     Copy,
@@ -34,22 +34,22 @@ impl Cost {
 
 impl From<Distance> for Cost {
     fn from(value: Distance) -> Self {
-        Cost::new(value.to_f64())
+        Cost::new(value.as_f64())
     }
 }
 impl From<Time> for Cost {
     fn from(value: Time) -> Self {
-        Cost::new(value.to_f64())
+        Cost::new(value.as_f64())
     }
 }
 impl From<Energy> for Cost {
     fn from(value: Energy) -> Self {
-        Cost::new(value.to_f64())
+        Cost::new(value.as_f64())
     }
 }
 impl From<Speed> for Cost {
     fn from(value: Speed) -> Self {
-        Cost::new(value.to_f64())
+        Cost::new(value.as_f64())
     }
 }
 

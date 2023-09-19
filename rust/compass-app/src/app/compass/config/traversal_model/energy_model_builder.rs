@@ -8,12 +8,12 @@ use crate::app::compass::config::{
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::util::unit::{EnergyRateUnit, SpeedUnit};
 use compass_core::util::unit::{EnergyUnit, TimeUnit};
-use compass_powertrain::routee::routee_random_forest::RouteERandomForestModel;
+use compass_powertrain::routee::smart_core_energy_model::SmartCoreEnergyModel;
 
 pub struct EnergyModelBuilder {}
 
 pub struct EnergyModelService {
-    m: Arc<RouteERandomForestModel>,
+    m: Arc<SmartCoreEnergyModel>,
 }
 
 impl TraversalModelBuilder for EnergyModelBuilder {
@@ -100,7 +100,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                     Some(f) => Ok(f),
                 })?;
 
-        let m = RouteERandomForestModel::new(
+        let m = SmartCoreEnergyModel::new(
             &velocity_filename,
             &routee_filename,
             routee_model_energy_rate_unit,

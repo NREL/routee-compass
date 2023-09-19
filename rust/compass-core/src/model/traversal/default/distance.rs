@@ -10,7 +10,7 @@ use crate::model::{
 };
 use crate::util::geo::haversine::coord_distance_km;
 use crate::util::unit::DistanceUnit;
-use crate::util::unit::BASE_DISTANCE;
+use crate::util::unit::BASE_DISTANCE_UNIT;
 
 /// A simple traversal model that uses the edge distance as the cost of traversal.
 pub struct DistanceModel {
@@ -36,7 +36,7 @@ impl TraversalModel for DistanceModel {
         _dst: &Vertex,
         state: &Vec<StateVar>,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let distance = BASE_DISTANCE.convert(edge.distance, self.distance_unit.clone());
+        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.distance_unit.clone());
         let mut updated_state = state.clone();
         updated_state[0] = state[0] + StateVar::from(distance);
         let result = TraversalResult {

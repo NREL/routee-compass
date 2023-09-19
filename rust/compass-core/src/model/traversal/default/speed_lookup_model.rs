@@ -1,6 +1,6 @@
 use crate::util::fs::read_decoders;
 use crate::util::geo::haversine::coord_distance_km;
-use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE, BASE_TIME};
+use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
         cost::cost::Cost,
@@ -88,14 +88,15 @@ impl TraversalModel for SpeedLookupModel {
                     String::from("edge velocity lookup"),
                 )
             })?;
-        let time = Time::calculate_time(
+        let time = Time::create(
             speed.clone(),
             self.speed_unit.clone(),
             edge.distance,
-            BASE_DISTANCE,
+            BASE_DISTANCE_UNIT,
+            self.output_time_unit.clone(),
         )?;
 
-        let time_output: Time = BASE_TIME.convert(time, self.output_time_unit.clone());
+        let time_output: Time = BASE_TIME_UNIT.convert(time, self.output_time_unit.clone());
         let mut s = state.clone();
         s[0] = s[0] + StateVar::from(time_output);
         let result = TraversalResult {
@@ -112,13 +113,14 @@ impl TraversalModel for SpeedLookupModel {
     ) -> Result<Cost, TraversalModelError> {
         let distance = coord_distance_km(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
-        let time = Time::calculate_time(
+        let time = Time::create(
             self.max_speed,
             self.speed_unit.clone(),
             distance,
-            BASE_DISTANCE,
+            BASE_DISTANCE_UNIT,
+            self.output_time_unit.clone(),
         )?;
-        let time_output: Time = BASE_TIME.convert(time, self.output_time_unit.clone());
+        let time_output: Time = BASE_TIME_UNIT.convert(time, self.output_time_unit.clone());
         Ok(Cost::from(time_output))
     }
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
