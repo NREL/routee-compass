@@ -12,7 +12,8 @@ bidirectional = false
 [traversal]
 type = "velocity_table"
 filename = "compass-app/src/app/compass/test/speeds_test/test_edge_speeds.csv"
-time_unit = "Hours"
+speed_unit = "kilometers_per_hour"
+output_time_unit = "hours"
 
 [plugin]
 input_plugins = []
