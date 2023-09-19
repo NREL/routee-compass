@@ -7,6 +7,12 @@ pub const BASE_DISTANCE_UNIT: DistanceUnit = DistanceUnit::Meters;
 pub const BASE_TIME_UNIT: TimeUnit = TimeUnit::Seconds;
 pub const BASE_SPEED_UNIT: SpeedUnit = SpeedUnit::MetersPerSecond;
 
+// these functions are accessible via the associated unit namespace. they are
+// implemented here as they are coupled with the base units listed above.
+// - Time::create_time()
+// - Speed::create_speed()
+// - Energy::create_energy()
+
 /// calculates a time value based on the TimeUnit and incoming speed/distance values
 /// in their unit types. First converts both Speed and Distance values to the Compass
 /// base units. performs the division operation to get time and converts to the target
