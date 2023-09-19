@@ -13,7 +13,7 @@ use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
 };
 
-pub struct RouteERandomForestModel {
+pub struct SmartCoreEnergyModel {
     pub speed_table: Vec<Speed>,
     pub routee_model: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
     pub energy_percent: f64,
@@ -23,7 +23,7 @@ pub struct RouteERandomForestModel {
     pub minimum_energy_rate: EnergyRate,
 }
 
-impl TraversalModel for RouteERandomForestModel {
+impl TraversalModel for SmartCoreEnergyModel {
     fn initial_state(&self) -> TraversalState {
         // time, energy
         vec![StateVar(0.0), StateVar(0.0)]
@@ -36,7 +36,7 @@ impl TraversalModel for RouteERandomForestModel {
     ) -> Result<Cost, TraversalModelError> {
         let distance = coord_distance_km(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
-        let (energy, energy_unit) = Energy::calculate_energy(
+        let (energy, energy_unit) = Energy::create(
             self.minimum_energy_rate,
             self.routee_model_energy_rate_unit.clone(),
             distance,
@@ -62,11 +62,12 @@ impl TraversalModel for RouteERandomForestModel {
             ),
         )?;
 
-        let time: Time = Time::calculate_time(
+        let time: Time = Time::create(
             *speed,
             self.speeds_table_speed_unit.clone(),
             edge.distance,
             DistanceUnit::Meters,
+            time_unit.clone(),
         )?;
         let grade = edge.grade;
         let speed_routee = self
@@ -83,7 +84,7 @@ impl TraversalModel for RouteERandomForestModel {
         } else {
             energy_rate
         };
-        let (energy, _energy_unit) = Energy::calculate_energy(
+        let (energy, _energy_unit) = Energy::create(
             energy_rate_safe,
             self.routee_model_energy_rate_unit.clone(),
             edge.distance,
@@ -95,7 +96,7 @@ impl TraversalModel for RouteERandomForestModel {
         let time_scaled = time * (1.0 - self.energy_percent);
         let time_cost = Cost::from(time_scaled);
         let total_cost = energy_cost + time_cost;
-        let mut updated_state = update_state(&state, time, energy);
+        let updated_state = update_state(&state, time, energy);
         let result = TraversalResult {
             total_cost,
             updated_state,
@@ -117,7 +118,7 @@ impl TraversalModel for RouteERandomForestModel {
     }
 }
 
-impl RouteERandomForestModel {
+impl SmartCoreEnergyModel {
     pub fn new(
         speed_table_path: &String,
         routee_model_path: &String,
@@ -168,7 +169,7 @@ impl RouteERandomForestModel {
             search_time.as_millis()
         );
 
-        Ok(RouteERandomForestModel {
+        Ok(SmartCoreEnergyModel {
             speed_table,
             routee_model,
             energy_percent,
@@ -216,7 +217,6 @@ mod tests {
     };
     use geo::coord;
     use std::path::PathBuf;
-    use uom::si;
 
     #[test]
     fn test_edge_cost_lookup_from_file() {
@@ -248,7 +248,7 @@ mod tests {
         }
         let speed_file = String::from(speed_file_name);
         let routee_model_path = String::from(model_file_name);
-        let rf_predictor = RouteERandomForestModel::new(
+        let rf_predictor = SmartCoreEnergyModel::new(
             &speed_file,
             &routee_model_path,
             EnergyRateUnit::GallonsGasolinePerMile,
