@@ -26,6 +26,13 @@ impl DistanceUnit {
     }
 }
 
+impl std::fmt::Display for DistanceUnit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = serde_json::to_string(self).map_err(|_| std::fmt::Error)?;
+        write!(f, "{}", s)
+    }
+}
+
 #[cfg(test)]
 mod test {
 

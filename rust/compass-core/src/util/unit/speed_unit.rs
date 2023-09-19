@@ -10,6 +10,13 @@ pub enum SpeedUnit {
     MetersPerSecond,
 }
 
+impl std::fmt::Display for SpeedUnit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = serde_json::to_string(self).map_err(|_| std::fmt::Error)?;
+        write!(f, "{}", s)
+    }
+}
+
 impl From<(DistanceUnit, TimeUnit)> for SpeedUnit {
     fn from(value: (DistanceUnit, TimeUnit)) -> Self {
         use DistanceUnit as D;
