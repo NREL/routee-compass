@@ -7,7 +7,6 @@ use crate::app::compass::config::{
 };
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::util::unit::{EnergyRateUnit, SpeedUnit};
-use compass_core::util::unit::{EnergyUnit, TimeUnit};
 use compass_powertrain::routee::smart_core_energy_model::SmartCoreEnergyModel;
 
 pub struct EnergyModelBuilder {}
@@ -60,8 +59,8 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             .get(&speed_table_speed_unit_key)
             .map(|t| serde_json::from_value::<SpeedUnit>(t.clone()))
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                velocity_filename_key.clone(),
                 speed_table_speed_unit_key.clone(),
+                traversal_key.clone(),
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
 
@@ -69,8 +68,8 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             .get(&routee_model_speed_unit_key)
             .map(|t| serde_json::from_value::<SpeedUnit>(t.clone()))
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                velocity_filename_key.clone(),
                 routee_model_speed_unit_key.clone(),
+                traversal_key.clone(),
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
 
@@ -78,8 +77,8 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             .get(&routee_model_energy_rate_unit_key)
             .map(|t| serde_json::from_value::<EnergyRateUnit>(t.clone()))
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                velocity_filename_key.clone(),
                 routee_model_energy_rate_unit_key.clone(),
+                traversal_key.clone(),
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
 
