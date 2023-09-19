@@ -1,5 +1,6 @@
 use crate::util::fs::read_decoders;
 use crate::util::geo::haversine::coord_distance_km;
+use crate::util::unit::BASE_SPEED_UNIT;
 use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
@@ -25,7 +26,7 @@ pub struct SpeedLookupModel {
 impl SpeedLookupModel {
     pub fn new(
         speed_table_path: &String,
-        speed_unit: SpeedUnit,
+        speed_unit_opt: Option<SpeedUnit>,
         output_time_unit_opt: Option<TimeUnit>,
     ) -> Result<SpeedLookupModel, TraversalModelError> {
         let speed_table: Vec<Speed> =
@@ -54,6 +55,7 @@ impl SpeedLookupModel {
             );
             return Err(TraversalModelError::BuildError(msg));
         } else {
+            let speed_unit = speed_unit_opt.unwrap_or(BASE_SPEED_UNIT);
             let output_time_unit =
                 output_time_unit_opt.unwrap_or(speed_unit.associated_time_unit());
             let model = SpeedLookupModel {
@@ -96,11 +98,10 @@ impl TraversalModel for SpeedLookupModel {
             self.output_time_unit.clone(),
         )?;
 
-        let time_output: Time = BASE_TIME_UNIT.convert(time, self.output_time_unit.clone());
         let mut s = state.clone();
-        s[0] = s[0] + StateVar::from(time_output);
+        s[0] = s[0] + StateVar::from(time);
         let result = TraversalResult {
-            total_cost: Cost::from(time_output),
+            total_cost: Cost::from(time),
             updated_state: s,
         };
         Ok(result)
@@ -135,8 +136,6 @@ impl TraversalModel for SpeedLookupModel {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::cost::cost::Cost;
-    use crate::model::traversal::state::state_variable::StateVar;
     use crate::model::{
         graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
@@ -173,31 +172,54 @@ mod tests {
         return filename;
     }
 
+    fn approx_eq(a: f64, b: f64, error: f64) {
+        let result = match (a, b) {
+            (c, d) if c < d => d - c < error,
+            (c, d) if c > d => c - d < error,
+            (_, _) => true,
+        };
+        assert!(
+            result,
+            "{} ~= {} is not true within an error of {}",
+            a, b, error
+        )
+    }
+
     #[test]
     fn test_edge_cost_lookup_with_seconds_time_unit() {
         let file = filepath();
-        let lookup = SpeedLookupModel::new(&file, SpeedUnit::MetersPerSecond, None).unwrap();
+        let lookup = SpeedLookupModel::new(
+            &file,
+            Some(SpeedUnit::KilometersPerHour),
+            Some(TimeUnit::Seconds),
+        )
+        .unwrap();
         let initial = lookup.initial_state();
         let v = mock_vertex();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
         let result = lookup.traversal_cost(&v, &e1, &v, &initial).unwrap();
         let expected = 36.0;
-        assert_eq!(result.total_cost, Cost::from(expected));
-        assert_eq!(result.updated_state, vec![StateVar(expected)]);
+        approx_eq(result.total_cost.into(), expected, 0.001);
+        approx_eq(result.updated_state[0].into(), expected, 0.001);
     }
 
     #[test]
     fn test_edge_cost_lookup_with_milliseconds_time_unit() {
         let file = filepath();
-        let lookup = SpeedLookupModel::new(&file, SpeedUnit::MetersPerSecond, None).unwrap();
+        let lookup = SpeedLookupModel::new(
+            &file,
+            Some(SpeedUnit::KilometersPerHour),
+            Some(TimeUnit::Milliseconds),
+        )
+        .unwrap();
         let initial = lookup.initial_state();
         let v = mock_vertex();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36,000 milliseconds ((0.1/10) * 3600000)
         let result = lookup.traversal_cost(&v, &e1, &v, &initial).unwrap();
         let expected = 36000.0;
-        assert_eq!(result.total_cost, Cost::from(expected));
-        assert_eq!(result.updated_state, vec![StateVar(expected)]);
+        approx_eq(result.total_cost.into(), expected, 0.001);
+        approx_eq(result.updated_state[0].into(), expected, 0.001);
     }
 }
