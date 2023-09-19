@@ -240,7 +240,7 @@ mod test {
             BASE_SPEED_UNIT,
             Distance::ONE,
             BASE_DISTANCE_UNIT,
-            BASE_TIME_UNIT,
+            TimeUnit::Hours,
         )
         .unwrap();
         let expected = BASE_TIME_UNIT.convert(Time::ONE, TimeUnit::Hours);
@@ -268,7 +268,7 @@ mod test {
             BASE_SPEED_UNIT,
             Distance::ONE,
             BASE_DISTANCE_UNIT,
-            BASE_TIME_UNIT,
+            TimeUnit::Hours,
         )
         .unwrap();
         let expected = BASE_TIME_UNIT.convert(Time::ONE, TimeUnit::Hours);
