@@ -36,7 +36,7 @@ impl TraversalModel for SmartCoreEnergyModel {
     ) -> Result<Cost, TraversalModelError> {
         let distance = coord_distance_km(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
-        let (energy, energy_unit) = Energy::create(
+        let (energy, _energy_unit) = Energy::create(
             self.minimum_energy_rate,
             self.routee_model_energy_rate_unit.clone(),
             distance,
@@ -46,14 +46,13 @@ impl TraversalModel for SmartCoreEnergyModel {
     }
     fn traversal_cost(
         &self,
-        src: &Vertex,
+        _src: &Vertex,
         edge: &Edge,
-        dst: &Vertex,
+        _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
         let time_unit = self.speeds_table_speed_unit.associated_time_unit();
-        let time_state = unpack_time_state(state);
-        let energy_state = unpack_energy_state(state);
+
         let speed = self.speed_table.get(edge.edge_id.as_usize()).ok_or(
             TraversalModelError::MissingIdInTabularCostFunction(
                 format!("{}", edge.edge_id),
@@ -78,6 +77,7 @@ impl TraversalModel for SmartCoreEnergyModel {
             .routee_model
             .predict(&x)
             .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+
         let energy_rate = EnergyRate::new(y[0]);
         let energy_rate_safe = if energy_rate < self.minimum_energy_rate {
             self.minimum_energy_rate
@@ -91,11 +91,7 @@ impl TraversalModel for SmartCoreEnergyModel {
             DistanceUnit::Meters,
         )?;
 
-        let energy_scaled = energy * self.energy_percent;
-        let energy_cost = Cost::from(energy_scaled);
-        let time_scaled = time * (1.0 - self.energy_percent);
-        let time_cost = Cost::from(time_scaled);
-        let total_cost = energy_cost + time_cost;
+        let total_cost = create_cost(energy, time, self.energy_percent);
         let updated_state = update_state(&state, time, energy);
         let result = TraversalResult {
             total_cost,
@@ -181,12 +177,13 @@ impl SmartCoreEnergyModel {
     }
 }
 
-fn unpack_time_state(state: &TraversalState) -> TraversalState {
-    return vec![state[0]];
-}
-
-fn unpack_energy_state(state: &TraversalState) -> TraversalState {
-    return vec![state[1]];
+fn create_cost(energy: Energy, time: Time, energy_percent: f64) -> Cost {
+    let energy_scaled = energy * energy_percent;
+    let energy_cost = Cost::from(energy_scaled);
+    let time_scaled = time * (1.0 - energy_percent);
+    let time_cost = Cost::from(time_scaled);
+    let total_cost = energy_cost + time_cost;
+    total_cost
 }
 
 fn update_state(state: &TraversalState, time: Time, energy: Energy) -> TraversalState {
@@ -202,10 +199,6 @@ fn get_time_from_state(state: &TraversalState) -> Time {
 
 fn get_energy_from_state(state: &TraversalState) -> Energy {
     return Energy::new(state[1].0);
-}
-
-fn pack_state(time_state: &TraversalState, energy_state: &TraversalState) -> TraversalState {
-    return vec![time_state[0], energy_state[0]];
 }
 
 #[cfg(test)]
