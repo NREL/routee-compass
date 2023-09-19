@@ -10,7 +10,6 @@ use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::model::traversal::traversal_result::TraversalResult;
 use compass_core::util::unit::Time;
 use std::fs::File;
-use uom::si;
 
 pub struct TomTomSpeedLookup {
     bin_size: usize,

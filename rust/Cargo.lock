@@ -272,7 +272,6 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "thiserror",
- "uom",
  "wkt",
 ]
 
@@ -308,7 +307,6 @@ dependencies = [
  "serde_json",
  "smartcore",
  "thiserror",
- "uom",
 ]
 
 [[package]]
@@ -325,7 +323,6 @@ dependencies = [
  "serde_repr",
  "smartcore",
  "thiserror",
- "uom",
 ]
 
 [[package]]
@@ -357,7 +354,6 @@ dependencies = [
  "serde_json",
  "serde_repr",
  "thiserror",
- "uom",
  "uuid",
 ]
 
@@ -1609,17 +1605,6 @@ name = "unindent"
 version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1766d682d402817b5ac4490b3c3002d91dfa0d22812f341609f97b08757359c"
-
-[[package]]
-name = "uom"
-version = "0.35.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8362194c7a9845a7a7f3562173d6e1da3f24f7132018cb78fe77a5b4474187b2"
-dependencies = [
- "num-traits",
- "serde",
- "typenum",
-]
 
 [[package]]
 name = "utf8parse"
