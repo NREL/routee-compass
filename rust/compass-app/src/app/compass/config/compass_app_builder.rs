@@ -9,7 +9,7 @@ use super::{
     },
     traversal_model::{
         distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
-        velocity_lookup_builder::VelocityLookupBuilder,
+        speed_lookup_builder::SpeedLookupBuilder,
     },
 };
 use crate::{
@@ -205,7 +205,7 @@ impl CompassAppBuilder {
     pub fn default() -> CompassAppBuilder {
         // Traversal model builders
         let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
-        let velo: Box<dyn TraversalModelBuilder> = Box::new(VelocityLookupBuilder {});
+        let velo: Box<dyn TraversalModelBuilder> = Box::new(SpeedLookupBuilder {});
         let ener: Box<dyn TraversalModelBuilder> = Box::new(EnergyModelBuilder {});
         let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),
