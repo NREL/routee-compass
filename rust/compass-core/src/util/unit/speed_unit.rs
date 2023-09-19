@@ -1,5 +1,5 @@
-use super::{Distance, Speed, Time};
-use super::{DistanceUnit, TimeUnit, UnitError, BASE_DISTANCE, BASE_SPEED, BASE_TIME};
+use super::Speed;
+use super::{DistanceUnit, TimeUnit};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -8,6 +8,28 @@ pub enum SpeedUnit {
     KilometersPerHour,
     MilesPerHour,
     MetersPerSecond,
+}
+
+impl From<(DistanceUnit, TimeUnit)> for SpeedUnit {
+    fn from(value: (DistanceUnit, TimeUnit)) -> Self {
+        use DistanceUnit as D;
+        use SpeedUnit as S;
+        use TimeUnit as T;
+        match value {
+            (D::Meters, T::Hours) => todo!(),
+            (D::Meters, T::Minutes) => todo!(),
+            (D::Meters, T::Seconds) => S::MetersPerSecond,
+            (D::Meters, T::Milliseconds) => todo!(),
+            (D::Kilometers, T::Hours) => S::KilometersPerHour,
+            (D::Kilometers, T::Minutes) => todo!(),
+            (D::Kilometers, T::Seconds) => todo!(),
+            (D::Kilometers, T::Milliseconds) => todo!(),
+            (D::Miles, T::Hours) => S::MilesPerHour,
+            (D::Miles, T::Minutes) => todo!(),
+            (D::Miles, T::Seconds) => todo!(),
+            (D::Miles, T::Milliseconds) => todo!(),
+        }
+    }
 }
 
 impl SpeedUnit {
@@ -44,27 +66,6 @@ impl SpeedUnit {
             (S::MetersPerSecond, S::KilometersPerHour) => value * 3.6,
             (S::MetersPerSecond, S::MilesPerHour) => value * 2.237,
             (S::MetersPerSecond, S::MetersPerSecond) => value,
-        }
-    }
-
-    /// calculates a speed value based on the SpeedUnit and incoming time/distance values
-    /// in their unit types. First converts both Time and Distance values to the Compass
-    /// base units. performs the division operation to get speed and converts to the target
-    /// speed unit.
-    pub fn calculate_speed(
-        &self,
-        time: Time,
-        time_unit: TimeUnit,
-        distance: Distance,
-        distance_unit: DistanceUnit,
-    ) -> Result<Speed, UnitError> {
-        let d = distance_unit.convert(distance, BASE_DISTANCE);
-        let t = time_unit.convert(time, BASE_TIME);
-        if t <= Time::ZERO {
-            return Err(UnitError::SpeedFromTimeAndDistanceError(time, distance));
-        } else {
-            let s = Speed::new(d.to_f64() / t.to_f64());
-            Ok(BASE_SPEED.convert(s, self.clone()))
         }
     }
 }
@@ -134,88 +135,5 @@ mod test {
             Speed::ONE,
             0.001,
         );
-    }
-
-    #[test]
-    fn test_calculate_fails() {
-        let failure = S::MetersPerSecond.calculate_speed(
-            Time::ZERO,
-            TimeUnit::Seconds,
-            Distance::ONE,
-            DistanceUnit::Meters,
-        );
-        assert!(failure.is_err());
-    }
-
-    #[test]
-    fn test_calculate_idempotent() {
-        let one_mps = S::MetersPerSecond
-            .calculate_speed(
-                Time::ONE,
-                TimeUnit::Seconds,
-                Distance::ONE,
-                DistanceUnit::Meters,
-            )
-            .unwrap();
-        assert_eq!(Speed::ONE, one_mps);
-    }
-
-    #[test]
-    fn test_calculate_imperial_to_si() {
-        let speed_kph = S::KilometersPerHour
-            .calculate_speed(
-                Time::ONE,
-                TimeUnit::Hours,
-                Distance::ONE,
-                DistanceUnit::Miles,
-            )
-            .unwrap();
-        assert_approx_eq(Speed::new(1.60934), speed_kph, 0.001);
-    }
-
-    #[test]
-    fn test_calculate_kph_to_base() {
-        let speed_kph = BASE_SPEED
-            .calculate_speed(
-                Time::ONE,
-                TimeUnit::Hours,
-                Distance::ONE,
-                DistanceUnit::Kilometers,
-            )
-            .unwrap();
-        let expected = S::KilometersPerHour.convert(Speed::ONE, BASE_SPEED);
-        assert_approx_eq(speed_kph, expected, 0.001);
-    }
-
-    #[test]
-    fn test_calculate_base_to_kph() {
-        let speed_kph = S::KilometersPerHour
-            .calculate_speed(Time::ONE, BASE_TIME, Distance::ONE, BASE_DISTANCE)
-            .unwrap();
-        let expected = S::MetersPerSecond.convert(Speed::ONE, S::KilometersPerHour);
-        assert_approx_eq(speed_kph, expected, 0.001);
-    }
-
-    #[test]
-    fn test_calculate_mph_to_base() {
-        let speed_kph = BASE_SPEED
-            .calculate_speed(
-                Time::ONE,
-                TimeUnit::Hours,
-                Distance::ONE,
-                DistanceUnit::Miles,
-            )
-            .unwrap();
-        let expected = S::MilesPerHour.convert(Speed::ONE, BASE_SPEED);
-        assert_approx_eq(speed_kph, expected, 0.001);
-    }
-
-    #[test]
-    fn test_calculate_base_to_mph() {
-        let speed_kph = S::MilesPerHour
-            .calculate_speed(Time::ONE, BASE_TIME, Distance::ONE, BASE_DISTANCE)
-            .unwrap();
-        let expected = S::MetersPerSecond.convert(Speed::ONE, S::MilesPerHour);
-        assert_approx_eq(speed_kph, expected, 0.001);
     }
 }

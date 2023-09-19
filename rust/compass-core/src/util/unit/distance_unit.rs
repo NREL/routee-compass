@@ -29,13 +29,15 @@ impl DistanceUnit {
 #[cfg(test)]
 mod test {
 
+    use crate::util::unit::as_f64::AsF64;
+
     use super::Distance;
     use super::DistanceUnit as D;
 
     fn assert_approx_eq(a: Distance, b: Distance, error: f64) {
         let result = match (a, b) {
-            (c, d) if c < d => (d - c).to_f64() < error,
-            (c, d) if c > d => (c - d).to_f64() < error,
+            (c, d) if c < d => (d - c).as_f64() < error,
+            (c, d) if c > d => (c - d).as_f64() < error,
             (_, _) => true,
         };
         assert!(

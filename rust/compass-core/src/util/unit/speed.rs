@@ -1,9 +1,8 @@
+use super::{as_f64::AsF64, unit, Distance, DistanceUnit, SpeedUnit, Time, TimeUnit, UnitError};
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display, str::FromStr};
-
-use super::UnitError;
 
 #[derive(
     Copy,
@@ -24,6 +23,20 @@ use super::UnitError;
     Neg,
 )]
 pub struct Speed(pub OrderedFloat<f64>);
+
+impl AsF64 for Speed {
+    fn as_f64(&self) -> f64 {
+        (self.0).0
+    }
+}
+
+impl From<(Distance, Time)> for Speed {
+    fn from(value: (Distance, Time)) -> Self {
+        let (distance, time) = value;
+        let speed = distance.as_f64() / time.as_f64();
+        Speed::new(speed)
+    }
+}
 
 impl Ord for Speed {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -58,6 +71,15 @@ impl FromStr for Speed {
 impl Speed {
     pub fn new(value: f64) -> Speed {
         Speed(OrderedFloat(value))
+    }
+    pub fn create(
+        time: Time,
+        time_unit: TimeUnit,
+        distance: Distance,
+        distance_unit: DistanceUnit,
+        speed_unit: SpeedUnit,
+    ) -> Result<Speed, UnitError> {
+        unit::create_speed(time, time_unit, distance, distance_unit, speed_unit)
     }
     pub fn to_f64(&self) -> f64 {
         (self.0).0

@@ -8,6 +8,7 @@ pub enum EnergyRateUnit {
     GallonsGasolinePerMile,
     KilowattHoursPerMile,
     KilowattHoursPerKilometer,
+    KilowattHoursPerMeter,
 }
 
 impl EnergyRateUnit {
@@ -19,6 +20,7 @@ impl EnergyRateUnit {
             ERU::GallonsGasolinePerMile => DU::Miles,
             ERU::KilowattHoursPerMile => DU::Miles,
             ERU::KilowattHoursPerKilometer => DU::Kilometers,
+            ERU::KilowattHoursPerMeter => DU::Meters,
         }
     }
 
@@ -30,6 +32,7 @@ impl EnergyRateUnit {
             ERU::GallonsGasolinePerMile => EU::GallonsGasoline,
             ERU::KilowattHoursPerMile => EU::KilowattHours,
             ERU::KilowattHoursPerKilometer => EU::KilowattHours,
+            ERU::KilowattHoursPerMeter => EU::KilowattHours,
         }
     }
 }
