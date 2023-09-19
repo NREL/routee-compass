@@ -19,6 +19,12 @@ impl Display for StateVar {
     }
 }
 
+impl Into<f64> for StateVar {
+    fn into(self) -> f64 {
+        self.0
+    }
+}
+
 impl From<Distance> for StateVar {
     fn from(value: Distance) -> Self {
         StateVar(value.as_f64())
