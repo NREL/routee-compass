@@ -1,15 +1,14 @@
 use super::model_type::ModelType;
 use super::prediction_model::SpeedGradePredictionModel;
-use super::speed_grade_model::SpeedGradeModel;
 use crate::routee::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
 use crate::routee::smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel;
-use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::util::fs::read_decoders;
 use compass_core::util::fs::read_utils;
 use compass_core::util::unit::*;
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct SpeedGradeModelService {
     pub speed_table: Arc<Vec<Speed>>,
     pub energy_model: Arc<dyn SpeedGradePredictionModel>,

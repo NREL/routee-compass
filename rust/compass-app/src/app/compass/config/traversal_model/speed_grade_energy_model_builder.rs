@@ -72,7 +72,7 @@ impl TraversalModelService for SpeedGradeEnergyModelService {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
-        let arc_self = Arc::new(self.service);
+        let arc_self = Arc::new(self.service.clone());
         let m = SpeedGradeModel::try_from((arc_self, parameters))?;
         Ok(Arc::new(m))
     }
