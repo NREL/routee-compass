@@ -124,7 +124,7 @@ where
 /// inspects the file to determine if it should read as a raw or gzip stream.
 /// the row index (starting from zero) is passed to the deserialization op
 /// as in most cases, the row number is an id.
-pub fn read_raw_file<'a, F, T>(
+pub fn read_raw_file<'a, F: AsRef<Path>, T>(
     filepath: &F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
     row_callback: Option<Box<dyn FnMut() + 'a>>,

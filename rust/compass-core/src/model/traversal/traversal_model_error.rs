@@ -1,6 +1,5 @@
-use crate::util::unit::UnitError;
-
 use super::state::traversal_state::TraversalState;
+use crate::util::unit::UnitError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum TraversalModelError {
