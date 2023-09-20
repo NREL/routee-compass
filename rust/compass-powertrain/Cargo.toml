@@ -16,5 +16,4 @@ serde = { workspace = true, features = ["derive"] }
 serde_repr = "0.1"
 serde_json = { workspace = true }
 ndarray = "0.15"
-onnxruntime = "0.0.14"
-rayon = {workspace = true}
+rayon = { workspace = true }

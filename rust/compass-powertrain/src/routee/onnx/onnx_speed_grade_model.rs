@@ -4,7 +4,7 @@ use compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
     util::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Speed, SpeedUnit},
 };
-use onnxruntime::tensor::OrtOwnedTensor;
+// use onnxruntime::tensor::OrtOwnedTensor;
 
 pub struct OnnxSpeedGradeModel {
     session: OnnxSession,
@@ -31,15 +31,17 @@ impl SpeedGradePredictionModel for OnnxSpeedGradeModel {
             })?;
         let input_tensor = vec![x];
 
-        let session = self.session.get_session();
+        // let session = self.session.get_session();
 
-        let outputs: Vec<OrtOwnedTensor<f32, _>> = session
-            .run(input_tensor)
-            .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+        // let outputs: Vec<OrtOwnedTensor<f32, _>> = session
+        //     .run(input_tensor)
+        //     .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
 
-        let output_f64 = outputs[0].to_owned().into_raw_vec()[0] as f64;
-        let energy_rate = EnergyRate::new(output_f64);
-        Ok((energy_rate, self.energy_rate_unit.clone()))
+        // let output_f64 = outputs[0].to_owned().into_raw_vec()[0] as f64;
+        // let energy_rate = EnergyRate::new(output_f64);
+        // Ok((energy_rate, self.energy_rate_unit.clone()))
+
+        todo!("perform prediction here using new library")
     }
 }
 
