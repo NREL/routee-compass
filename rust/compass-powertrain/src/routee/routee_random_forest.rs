@@ -86,6 +86,19 @@ impl TraversalModel for RouteERandomForestModel {
     }
 }
 
+/// A traversal model that uses a random forest model to predict energy consumption
+///
+/// # Arguments
+/// - `velocity_model` :` 
+///
+/// # Returns
+/// 
+///
+/// # Example
+/// ```rust
+/// 
+/// ```
+
 impl RouteERandomForestModel {
     pub fn new(
         velocity_model: Arc<VelocityLookupModel>,

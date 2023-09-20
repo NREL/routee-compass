@@ -5,7 +5,6 @@ members = [
     "compass-tomtom",
     "compass-app",
     "compass-app-py",
-    "compass-prototype",
 ]
 
 [workspace.dependencies]

@@ -6,7 +6,7 @@ edition = "2021"
 
 [dependencies]
 compass-core = { path = "../compass-core" }
-smartcore = { version = "0.3.1", features = ["serde"] } # random forest
+smartcore = { version = "0.3.1", features = ["serde"] }   # random forest
 thiserror = { workspace = true }
 log = { workspace = true }
 uom = { workspace = true }
@@ -17,5 +17,6 @@ serde = { workspace = true, features = ["derive"] }
 serde_repr = "0.1"
 serde_json = { workspace = true }
 ndarray = "0.15"
-onnxruntime = "0.0.14"
-rayon = {workspace = true}
+# ort = { version = "1.15.1", features = ["load-dynamic"] }
+ort = "1.15.1"
+rayon = { workspace = true }
