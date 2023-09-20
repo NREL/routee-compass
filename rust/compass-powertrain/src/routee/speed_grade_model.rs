@@ -92,8 +92,9 @@ impl TraversalModel for SpeedGradeModel {
     }
 
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
+        let data_time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
         let time = get_time_from_state(state);
-        let time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
+        let time_output = data_time_unit.convert(time, self.service.output_time_unit.clone());
         let energy = get_energy_from_state(state);
         let energy_unit = self
             .service
@@ -102,8 +103,8 @@ impl TraversalModel for SpeedGradeModel {
         serde_json::json!({
             "energy": energy,
             "energy_unit": energy_unit,
-            "time": time,
-            "time_unit": time_unit
+            "time": time_output,
+            "time_unit": self.service.output_time_unit.clone()
         })
     }
 }
@@ -115,11 +116,15 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
         input: (Arc<SpeedGradeModelService>, &serde_json::Value),
     ) -> Result<Self, Self::Error> {
         let (service, conf) = input;
+
         match conf.get(String::from("energy_cost_coefficient")) {
-            None => Ok(SpeedGradeModel {
-                service: service.clone(),
-                energy_cost_coefficient: 1.0,
-            }),
+            None => {
+                log::debug!("no energy_cost_coefficient provided");
+                Ok(SpeedGradeModel {
+                    service: service.clone(),
+                    energy_cost_coefficient: 1.0,
+                })
+            }
             Some(v) => {
                 let f = v.as_f64().ok_or(TraversalModelError::BuildError(format!(
                     "expected 'energy_cost_coefficient' value to be numeric, found {}",
@@ -128,6 +133,7 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
                 if f < 0.0 || 1.0 < f {
                     Err(TraversalModelError::BuildError(format!("expected 'energy_cost_coefficient' value to be numeric in range [0.0, 1.0], found {}", f)))
                 } else {
+                    log::debug!("using energy_cost_coefficient of {}", f);
                     Ok(SpeedGradeModel {
                         service: service.clone(),
                         energy_cost_coefficient: f,
