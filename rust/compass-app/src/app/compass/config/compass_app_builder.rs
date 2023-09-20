@@ -8,8 +8,9 @@ use super::{
         no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
     },
     traversal_model::{
-        distance_builder::DistanceBuilder, routee_onnx_builder::RouteEOnnxBuilder,
-        routee_smartcore_builder::RouteESmartcoreBuilder, speed_lookup_builder::SpeedLookupBuilder,
+        distance_builder::DistanceBuilder,
+        speed_grade_energy_model_builder::SpeedGradeEnergyModelBuilder,
+        speed_lookup_builder::SpeedLookupBuilder,
     },
 };
 use crate::{
@@ -204,13 +205,11 @@ impl CompassAppBuilder {
         // Traversal model builders
         let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
         let velo: Box<dyn TraversalModelBuilder> = Box::new(SpeedLookupBuilder {});
-        let smartcore: Box<dyn TraversalModelBuilder> = Box::new(RouteESmartcoreBuilder {});
-        let onnx: Box<dyn TraversalModelBuilder> = Box::new(RouteEOnnxBuilder {});
+        let smartcore: Box<dyn TraversalModelBuilder> = Box::new(SpeedGradeEnergyModelBuilder {});
         let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),
             (String::from("velocity_table"), velo),
-            (String::from("routee_smartcore"), smartcore),
-            (String::from("routee_onnx"), onnx),
+            (String::from("speed_grade_energy_model"), smartcore),
         ]);
 
         // Frontier model builders

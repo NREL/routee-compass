@@ -1,8 +1,10 @@
+use std::str::FromStr;
+
 use serde::{Deserialize, Serialize};
 
 use super::{DistanceUnit, EnergyUnit};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum EnergyRateUnit {
     GallonsGasolinePerMile,

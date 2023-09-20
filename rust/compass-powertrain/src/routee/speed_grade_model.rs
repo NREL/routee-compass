@@ -1,3 +1,5 @@
+use super::speed_grade_model_service::SpeedGradeModelService;
+use compass_core::model::cost::cost::Cost;
 use compass_core::model::property::edge::Edge;
 use compass_core::model::property::vertex::Vertex;
 use compass_core::model::traversal::state::state_variable::StateVar;
@@ -5,25 +7,16 @@ use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::model::traversal::traversal_result::TraversalResult;
-use compass_core::util::fs::read_decoders;
 use compass_core::util::geo::haversine::coord_distance_km;
 use compass_core::util::unit::*;
-use compass_core::{model::cost::cost::Cost, util::fs::read_utils};
-use smartcore::{
-    ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
-};
+use std::sync::Arc;
 
-pub struct SmartCoreEnergyModel {
-    pub speed_table: Vec<Speed>,
-    pub routee_model: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
-    pub energy_percent: f64,
-    pub routee_model_energy_rate_unit: EnergyRateUnit,
-    pub speeds_table_speed_unit: SpeedUnit,
-    pub routee_model_speed_unit: SpeedUnit,
-    pub minimum_energy_rate: EnergyRate,
+pub struct SpeedGradeModel {
+    pub service: Arc<SpeedGradeModelService>,
+    pub energy_cost_coefficient: f64,
 }
 
-impl TraversalModel for SmartCoreEnergyModel {
+impl TraversalModel for SpeedGradeModel {
     fn initial_state(&self) -> TraversalState {
         // time, energy
         vec![StateVar(0.0), StateVar(0.0)]
@@ -37,8 +30,8 @@ impl TraversalModel for SmartCoreEnergyModel {
         let distance = coord_distance_km(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
         let (energy, _energy_unit) = Energy::create(
-            self.minimum_energy_rate,
-            self.routee_model_energy_rate_unit.clone(),
+            self.service.minimum_energy_rate,
+            self.service.energy_model_energy_rate_unit.clone(),
             distance,
             DistanceUnit::Kilometers,
         )?;
@@ -51,47 +44,45 @@ impl TraversalModel for SmartCoreEnergyModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let time_unit = self.speeds_table_speed_unit.associated_time_unit();
+        let time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
 
-        let speed = self.speed_table.get(edge.edge_id.as_usize()).ok_or(
-            TraversalModelError::MissingIdInTabularCostFunction(
+        let speed = self
+            .service
+            .speed_table
+            .get(edge.edge_id.as_usize())
+            .ok_or(TraversalModelError::MissingIdInTabularCostFunction(
                 format!("{}", edge.edge_id),
                 String::from("EdgeId"),
                 String::from("speed table"),
-            ),
-        )?;
+            ))?;
 
         let time: Time = Time::create(
             *speed,
-            self.speeds_table_speed_unit.clone(),
+            self.service.speeds_table_speed_unit.clone(),
             edge.distance,
             DistanceUnit::Meters,
             time_unit.clone(),
         )?;
         let grade = edge.grade;
-        let speed_routee = self
-            .speeds_table_speed_unit
-            .convert(*speed, self.routee_model_speed_unit.clone());
-        let x = DenseMatrix::from_2d_vec(&vec![vec![speed_routee.to_f64(), grade]]);
-        let y = self
-            .routee_model
-            .predict(&x)
-            .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+        let (energy_rate, _energy_rate_unit) = self.service.energy_model.predict(
+            *speed,
+            self.service.speeds_table_speed_unit.clone(),
+            grade,
+        )?;
 
-        let energy_rate = EnergyRate::new(y[0]);
-        let energy_rate_safe = if energy_rate < self.minimum_energy_rate {
-            self.minimum_energy_rate
+        let energy_rate_safe = if energy_rate < self.service.minimum_energy_rate {
+            self.service.minimum_energy_rate
         } else {
             energy_rate
         };
         let (energy, _energy_unit) = Energy::create(
             energy_rate_safe,
-            self.routee_model_energy_rate_unit.clone(),
+            self.service.energy_model_energy_rate_unit.clone(),
             edge.distance,
             DistanceUnit::Meters,
         )?;
 
-        let total_cost = create_cost(energy, time, self.energy_percent);
+        let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
         let updated_state = update_state(&state, time, energy);
         let result = TraversalResult {
             total_cost,
@@ -102,9 +93,12 @@ impl TraversalModel for SmartCoreEnergyModel {
 
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
         let time = get_time_from_state(state);
-        let time_unit = self.speeds_table_speed_unit.associated_time_unit();
+        let time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
         let energy = get_energy_from_state(state);
-        let energy_unit = self.routee_model_energy_rate_unit.associated_energy_unit();
+        let energy_unit = self
+            .service
+            .energy_model_energy_rate_unit
+            .associated_energy_unit();
         serde_json::json!({
             "energy": energy,
             "energy_unit": energy_unit,
@@ -114,66 +108,33 @@ impl TraversalModel for SmartCoreEnergyModel {
     }
 }
 
-impl SmartCoreEnergyModel {
-    pub fn new(
-        speed_table_path: &String,
-        routee_model_path: &String,
-        routee_model_energy_rate_unit: EnergyRateUnit,
-        speeds_table_speed_unit: SpeedUnit,
-        routee_model_speed_unit: SpeedUnit,
-        energy_percent: f64,
-    ) -> Result<Self, TraversalModelError> {
-        // load speeds table
-        let speed_table: Vec<Speed> =
-            read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
-                |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
-            )?;
+impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeModel {
+    type Error = TraversalModelError;
 
-        // Load random forest binary file
-        let rf_binary = std::fs::read(routee_model_path.clone()).map_err(|e| {
-            TraversalModelError::FileReadError(routee_model_path.clone(), e.to_string())
-        })?;
-        let routee_model: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
-            bincode::deserialize(&rf_binary).map_err(|e| {
-                TraversalModelError::FileReadError(routee_model_path.clone(), e.to_string())
-            })?;
-
-        // sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
-        let mut minimum_energy_rate = std::f64::MAX;
-        let start_time = std::time::Instant::now();
-
-        for speed_mph in 1..100 {
-            for grade_percent in -20..20 {
-                let x =
-                    DenseMatrix::from_2d_vec(&vec![vec![speed_mph as f64, grade_percent as f64]]);
-                let energy_per_mile = routee_model
-                    .predict(&x)
-                    .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
-                if energy_per_mile[0] < minimum_energy_rate {
-                    minimum_energy_rate = energy_per_mile[0];
+    fn try_from(
+        input: (Arc<SpeedGradeModelService>, &serde_json::Value),
+    ) -> Result<Self, Self::Error> {
+        let (service, conf) = input;
+        match conf.get(String::from("energy_cost_coefficient")) {
+            None => Ok(SpeedGradeModel {
+                service: service.clone(),
+                energy_cost_coefficient: 1.0,
+            }),
+            Some(v) => {
+                let f = v.as_f64().ok_or(TraversalModelError::BuildError(format!(
+                    "expected 'energy_cost_coefficient' value to be numeric, found {}",
+                    v
+                )))?;
+                if f < 0.0 || 1.0 < f {
+                    Err(TraversalModelError::BuildError(format!("expected 'energy_cost_coefficient' value to be numeric in range [0.0, 1.0], found {}", f)))
+                } else {
+                    Ok(SpeedGradeModel {
+                        service: service.clone(),
+                        energy_cost_coefficient: f,
+                    })
                 }
             }
         }
-
-        let end_time = std::time::Instant::now();
-        let search_time = end_time - start_time;
-
-        log::debug!(
-            "found minimum_energy_per_mile: {} for {} in {} milliseconds",
-            minimum_energy_rate,
-            routee_model_path,
-            search_time.as_millis()
-        );
-
-        Ok(SmartCoreEnergyModel {
-            speed_table,
-            routee_model,
-            energy_percent,
-            routee_model_energy_rate_unit,
-            speeds_table_speed_unit,
-            routee_model_speed_unit,
-            minimum_energy_rate: EnergyRate::new(minimum_energy_rate),
-        })
     }
 }
 
@@ -203,6 +164,8 @@ fn get_energy_from_state(state: &TraversalState) -> Energy {
 
 #[cfg(test)]
 mod tests {
+    use crate::routee::model_type::ModelType;
+
     use super::*;
     use compass_core::model::{
         graph::{edge_id::EdgeId, vertex_id::VertexId},
@@ -241,18 +204,23 @@ mod tests {
         }
         let speed_file = String::from(speed_file_name);
         let routee_model_path = String::from(model_file_name);
-        let rf_predictor = SmartCoreEnergyModel::new(
-            &speed_file,
-            &routee_model_path,
-            EnergyRateUnit::GallonsGasolinePerMile,
+        let service = SpeedGradeModelService::new(
+            speed_file,
             SpeedUnit::KilometersPerHour,
+            routee_model_path,
+            ModelType::Smartcore,
             SpeedUnit::MilesPerHour,
-            1.0,
+            EnergyRateUnit::GallonsGasolinePerMile,
+            None,
         )
         .unwrap();
-        let initial = rf_predictor.initial_state();
+        let arc_service = Arc::new(service);
+        let conf = serde_json::json!({});
+        let model = SpeedGradeModel::try_from((arc_service, &conf)).unwrap();
+        let initial = model.initial_state();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        let result = rf_predictor.traversal_cost(&v, &e1, &v, &initial).unwrap();
+        let result = model.traversal_cost(&v, &e1, &v, &initial).unwrap();
+        println!("{}, {:?}", result.total_cost, result.updated_state);
     }
 }
