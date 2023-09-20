@@ -55,9 +55,32 @@ impl SpeedLookupModel {
             );
             return Err(TraversalModelError::BuildError(msg));
         } else {
-            let speed_unit = speed_unit_opt.unwrap_or(BASE_SPEED_UNIT);
-            let output_time_unit =
-                output_time_unit_opt.unwrap_or(speed_unit.associated_time_unit());
+            let speed_unit = match speed_unit_opt {
+                Some(su) => {
+                    log::info!("speed table configured with speeds in {}", su.clone());
+                    su.clone()
+                }
+                None => {
+                    log::info!(
+                        "no speed unit provided for speed table, using default of {}",
+                        BASE_SPEED_UNIT
+                    );
+                    BASE_SPEED_UNIT
+                }
+            };
+            let output_time_unit = match output_time_unit_opt {
+                Some(tu) => {
+                    log::info!("speed model configured with output units in {}", tu.clone());
+                    tu.clone()
+                }
+                None => {
+                    log::info!(
+                        "no time unit provided for speed model, using default of {}",
+                        BASE_TIME_UNIT
+                    );
+                    BASE_TIME_UNIT
+                }
+            };
             let model = SpeedLookupModel {
                 speed_table,
                 output_time_unit,
