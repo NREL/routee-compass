@@ -27,8 +27,8 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
 
         let speed_table_path =
             params.get_config_string(String::from("speed_table_path"), traversal_key.clone())?;
-        let speeds_table_speed_unit = params.get_config_serde::<SpeedUnit>(
-            String::from("speeds_table_speed_unit"),
+        let speed_table_speed_unit = params.get_config_serde::<SpeedUnit>(
+            String::from("speed_table_speed_unit"),
             traversal_key.clone(),
         )?;
         let energy_model_path =
@@ -51,7 +51,7 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
 
         let inner_service = SpeedGradeModelService::new(
             speed_table_path,
-            speeds_table_speed_unit,
+            speed_table_speed_unit,
             energy_model_path,
             model_type,
             energy_model_speed_unit,

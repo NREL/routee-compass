@@ -208,7 +208,7 @@ impl CompassAppBuilder {
         let smartcore: Box<dyn TraversalModelBuilder> = Box::new(SpeedGradeEnergyModelBuilder {});
         let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),
-            (String::from("velocity_table"), velo),
+            (String::from("speed_table"), velo),
             (String::from("speed_grade_energy_model"), smartcore),
         ]);
 
