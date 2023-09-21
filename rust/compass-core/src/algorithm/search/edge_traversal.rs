@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::model::graph::edge_id::EdgeId;
 use crate::model::graph::graph::Graph;
-use crate::model::traversal::access_result::{AccessCost, AccessResult};
+use crate::model::traversal::access_result::AccessResult;
 use crate::model::traversal::traversal_model::TraversalModel;
 
 use super::search_error::SearchError;
@@ -62,11 +62,6 @@ impl EdgeTraversal {
         }
         .map_err(SearchError::TraversalModelFailure)?;
 
-        let access_cost = match access_result.cost {
-            AccessCost::NoCost => Cost::ZERO,
-            AccessCost::Cost(c) => c,
-        };
-
         let updated_state = match &access_result.updated_state {
             Some(s) => s,
             None => prev_state,
@@ -78,7 +73,7 @@ impl EdgeTraversal {
 
         let result = EdgeTraversal {
             edge_id,
-            access_cost: access_cost,
+            access_cost: access_result.cost,
             traversal_cost: traversal_result.total_cost,
             result_state: traversal_result.updated_state,
         };

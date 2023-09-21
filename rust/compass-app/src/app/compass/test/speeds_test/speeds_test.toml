@@ -10,8 +10,8 @@ type = "a*"
 bidirectional = false
 
 [traversal]
-type = "velocity_table"
-filename = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
+type = "speed_table"
+speed_table_path = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
 speed_unit = "kilometers_per_hour"
 output_time_unit = "hours"
 
