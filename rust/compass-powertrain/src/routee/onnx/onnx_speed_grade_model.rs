@@ -1,7 +1,7 @@
 use crate::routee::prediction_model::SpeedGradePredictionModel;
 use compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Speed, SpeedUnit},
+    util::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Speed, SpeedUnit, Grade, GradeUnit},
 };
 use ndarray::CowArray;
 use ort::{
@@ -11,6 +11,7 @@ use ort::{
 pub struct OnnxSpeedGradeModel {
     session: Session,
     speed_unit: SpeedUnit,
+    grade_unit: GradeUnit,
     energy_rate_unit: EnergyRateUnit,
 }
 
@@ -19,10 +20,11 @@ impl SpeedGradePredictionModel for OnnxSpeedGradeModel {
         &self,
         speed: Speed,
         speed_unit: SpeedUnit,
-        grade: f64,
+        grade: Grade,
+        grade_unit: GradeUnit,
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let speed_value: f32 = speed_unit.convert(speed, self.speed_unit.clone()).as_f64() as f32;
-        let grade_value: f32 = grade as f32;
+        let grade_value: f32 = grade_unit.convert(grade, self.grade_unit.clone()).as_f64() as f32;
         let array = ndarray::Array1::from(vec![speed_value, grade_value])
             .into_shape((1, 2))
             .map_err(|e| {
@@ -54,6 +56,7 @@ impl OnnxSpeedGradeModel {
     pub fn new(
         onnx_model_path: String,
         speed_unit: SpeedUnit,
+        grade_unit: GradeUnit,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
         let env = Environment::builder()
@@ -73,6 +76,7 @@ impl OnnxSpeedGradeModel {
         Ok(OnnxSpeedGradeModel {
             session,
             speed_unit,
+            grade_unit,
             energy_rate_unit,
         })
     }
@@ -88,7 +92,7 @@ mod test {
     };
     use compass_core::{
         model::traversal::traversal_model_error::TraversalModelError,
-        util::unit::{EnergyRate, EnergyRateUnit, Speed, SpeedUnit},
+        util::unit::{EnergyRate, EnergyRateUnit, Speed, SpeedUnit, GradeUnit, Grade},
     };
     use rayon::prelude::*;
 
@@ -108,6 +112,7 @@ mod test {
             OnnxSpeedGradeModel::new(
                 model_file_path,
                 SpeedUnit::MilesPerHour,
+                GradeUnit::Decimal,
                 compass_core::util::unit::EnergyRateUnit::GallonsGasolinePerMile,
             )
             .unwrap(),
@@ -115,18 +120,20 @@ mod test {
 
         let input_speed = Speed::new(50.0);
         let input_speed_unit = SpeedUnit::MilesPerHour;
-        let input_grade = 0.0;
+        let input_grade = Grade::ZERO;
+        let input_grade_unit = GradeUnit::Decimal;
         let input_row = (
-            input_speed.clone(),
-            input_speed_unit.clone(),
-            input_grade.clone(),
+            input_speed,
+            input_speed_unit,
+            input_grade,
+            input_grade_unit
         );
-        let inputs: Vec<(Speed, SpeedUnit, f64)> = (0..1000).map(|_i| input_row.clone()).collect();
+        let inputs: Vec<(Speed, SpeedUnit, Grade, GradeUnit)> = (0..1000).map(|_i| input_row.clone()).collect();
 
         // map the model.get_energy function over the inputs using rayon
         let results = inputs
             .par_iter()
-            .map(|(speed, speed_unit, grade)| model.predict(*speed, speed_unit.clone(), *grade))
+            .map(|(speed, speed_unit, grade, grade_unit)| model.predict(*speed, *speed_unit, *grade, *grade_unit))
             .collect::<Vec<Result<(EnergyRate, EnergyRateUnit), TraversalModelError>>>();
 
         // assert that all of the results are Ok
@@ -134,7 +141,7 @@ mod test {
 
         // assert that all the results are the same
         let (expected_er, expected_eru) = model
-            .predict(input_speed, input_speed_unit, input_grade)
+            .predict(input_speed, input_speed_unit, input_grade, input_grade_unit)
             .unwrap();
         assert!(results.iter().all(|r| match r {
             Err(e) => panic!("{}", e),

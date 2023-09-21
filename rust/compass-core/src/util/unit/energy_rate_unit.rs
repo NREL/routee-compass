@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{DistanceUnit, EnergyUnit};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum EnergyRateUnit {
     GallonsGasolinePerMile,

@@ -1,6 +1,6 @@
 use compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::unit::{EnergyRate, EnergyRateUnit, Speed, SpeedUnit},
+    util::unit::{EnergyRate, EnergyRateUnit, Speed, SpeedUnit, GradeUnit, Grade},
 };
 
 pub trait SpeedGradePredictionModel: Send + Sync {
@@ -8,6 +8,7 @@ pub trait SpeedGradePredictionModel: Send + Sync {
         &self,
         speed: Speed,
         speed_unit: SpeedUnit,
-        grade: f64,
+        grade: Grade,
+        grade_unit: GradeUnit,
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError>;
 }

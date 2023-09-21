@@ -1,6 +1,6 @@
 use super::road_class::RoadClass;
 use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
-use crate::util::unit::Distance;
+use crate::util::unit::{Distance, Grade};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
@@ -10,7 +10,7 @@ pub struct Edge {
     pub dst_vertex_id: VertexId,
     pub road_class: RoadClass,
     pub distance: Distance,
-    pub grade: f64,
+    pub grade: Grade,
 }
 
 impl Default for Edge {
@@ -21,7 +21,7 @@ impl Default for Edge {
             dst_vertex_id: VertexId(1),
             road_class: RoadClass(1),
             distance: Distance::ONE,
-            grade: 0.0,
+            grade: Grade::ZERO,
         }
     }
 }

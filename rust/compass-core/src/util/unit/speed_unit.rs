@@ -2,7 +2,7 @@ use super::Speed;
 use super::{DistanceUnit, TimeUnit};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum SpeedUnit {
     KilometersPerHour,

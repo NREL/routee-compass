@@ -159,10 +159,10 @@ impl TraversalModel for SpeedLookupModel {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{
+    use crate::{model::{
         graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
-    };
+    }, util::unit::Grade};
     use crate::util::unit::Distance;
     use geo::coord;
     use std::path::PathBuf;
@@ -180,7 +180,7 @@ mod tests {
             dst_vertex_id: VertexId(1),
             road_class: RoadClass(2),
             distance: Distance::new(100.0),
-            grade: 0.0,
+            grade: Grade::ZERO,
         };
     }
     fn filepath() -> String {
