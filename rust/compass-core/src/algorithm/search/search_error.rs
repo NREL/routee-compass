@@ -14,9 +14,9 @@ pub enum SearchError {
     GraphError(#[from] GraphError),
     #[error(transparent)]
     TerminationModelError(#[from] TerminationModelError),
-    #[error("failure applying the traversal model in search")]
+    #[error(transparent)]
     TraversalModelFailure(#[from] TraversalModelError),
-    #[error("failure applying the frontier model in search")]
+    #[error(transparent)]
     FrontierModelFailure(#[from] FrontierModelError),
     #[error("loop in search result revisits edge {0}")]
     LoopInSearchResult(EdgeId),
