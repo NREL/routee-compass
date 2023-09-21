@@ -124,20 +124,18 @@ mod tests {
     use chrono::Local;
     use compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::units::{Length, Ratio},
         model::{
             cost::cost::Cost,
             graph::{edge_id::EdgeId, vertex_id::VertexId},
             property::{edge::Edge, road_class::RoadClass},
             traversal::state::state_variable::StateVar,
         },
-        util::fs::read_utils::read_raw_file,
+        util::{fs::read_utils::read_raw_file, unit::Distance},
     };
     use geo::{LineString, Point};
     use std::collections::HashMap;
     use std::path::PathBuf;
     use std::time::Duration;
-    use uom::si;
 
     fn mock_edge(edge_id: usize) -> Edge {
         return Edge {
@@ -145,8 +143,8 @@ mod tests {
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
             road_class: RoadClass(2),
-            distance: Length::new::<si::length::meter>(100.0),
-            grade: Ratio::new::<si::ratio::per_mille>(0.0),
+            distance: Distance::new(100.0),
+            grade: 0.0,
         };
     }
 

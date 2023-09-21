@@ -69,7 +69,7 @@ impl TraversalModelBuilder for RouteEOnnxBuilder {
             ))?
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
 
-        let m = RouteEOnnxModel::from_file(
+        let m = RouteEOnnxModel::new(
             &velocity_filename,
             &routee_filename,
             time_unit,

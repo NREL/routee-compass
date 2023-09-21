@@ -4,6 +4,8 @@ use derive_more::{Add, Div, Mul, Neg, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 
+use crate::util::unit::{as_f64::AsF64, *};
+
 #[derive(
     Copy,
     Clone,
@@ -25,6 +27,30 @@ pub struct Cost(pub OrderedFloat<f64>);
 impl Cost {
     pub const ZERO: Cost = Cost(OrderedFloat(0.0));
     pub const INFINITY: Cost = Cost(OrderedFloat(f64::MAX));
+    pub fn new(value: f64) -> Cost {
+        return Cost(OrderedFloat(value));
+    }
+}
+
+impl From<Distance> for Cost {
+    fn from(value: Distance) -> Self {
+        Cost::new(value.as_f64())
+    }
+}
+impl From<Time> for Cost {
+    fn from(value: Time) -> Self {
+        Cost::new(value.as_f64())
+    }
+}
+impl From<Energy> for Cost {
+    fn from(value: Energy) -> Self {
+        Cost::new(value.as_f64())
+    }
+}
+impl From<Speed> for Cost {
+    fn from(value: Speed) -> Self {
+        Cost::new(value.as_f64())
+    }
 }
 
 impl From<f64> for Cost {
