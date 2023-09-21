@@ -76,8 +76,11 @@ pub fn run_a_star(
         if t.terminate_search(&start_time, solution.len(), iterations)? {
             match t.explain_termination(&start_time, solution.len(), iterations) {
                 None => {
-                    return Err(SearchError::InternalSearchError(String::from(
-                        "termination model error",
+                    return Err(SearchError::InternalSearchError(format!(
+                        "unable to explain termination with start_time, solution_size, iterations: {:?}, {}, {}",
+                        &start_time,
+                        solution.len(),
+                        iterations
                     )))
                 }
                 Some(msg) => return Err(SearchError::QueryTerminated(msg)),
