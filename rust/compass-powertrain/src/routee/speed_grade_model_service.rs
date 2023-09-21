@@ -78,8 +78,9 @@ impl SpeedGradeModelService {
         let search_time = end_time - start_time;
 
         log::debug!(
-            "found minimum_energy_per_mile: {} for {} in {} milliseconds",
+            "found minimum energy: {}/{} for {} in {} milliseconds",
             minimum_energy_rate,
+            energy_model_energy_rate_unit,
             energy_model_path,
             search_time.as_millis()
         );
