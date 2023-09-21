@@ -325,6 +325,8 @@ pub fn apply_output_processing(
                 "search_runtime": result.search_runtime.hhmmss(),
                 "route_runtime": result.route_runtime.hhmmss(),
                 "total_runtime": result.total_runtime.hhmmss(),
+                "route_edge_count": result.route.len(),
+                "tree_edge_count": result.tree.len(),
                 "traversal_summary": tmodel.summary(&last_edge_traversal.result_state),
             });
             let init_acc: Result<serde_json::Value, PluginError> = Ok(init_output);
