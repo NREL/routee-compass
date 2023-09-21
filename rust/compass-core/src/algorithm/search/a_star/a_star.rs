@@ -76,8 +76,11 @@ pub fn run_a_star(
         if t.terminate_search(&start_time, solution.len(), iterations)? {
             match t.explain_termination(&start_time, solution.len(), iterations) {
                 None => {
-                    return Err(SearchError::InternalSearchError(String::from(
-                        "termination model error",
+                    return Err(SearchError::InternalSearchError(format!(
+                        "unable to explain termination with start_time, solution_size, iterations: {:?}, {}, {}",
+                        &start_time,
+                        solution.len(),
+                        iterations
                     )))
                 }
                 Some(msg) => return Err(SearchError::QueryTerminated(msg)),
@@ -413,7 +416,7 @@ mod tests {
             .into_par_iter()
             .map(|(o, d, _expected)| {
                 let dg_inner = Arc::new(driver_dg.read_only());
-                let dist_tm: Arc<dyn TraversalModel> = Arc::new(DistanceModel {});
+                let dist_tm: Arc<dyn TraversalModel> = Arc::new(DistanceModel::new());
                 let fm_inner = Arc::new(driver_fm.read_only());
                 let rm_inner = Arc::new(driver_rm.read_only());
                 run_a_star(o, Some(d), dg_inner, dist_tm, fm_inner, rm_inner)

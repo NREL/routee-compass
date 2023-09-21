@@ -186,17 +186,19 @@ impl CompassApp {
         let input_queries: Vec<serde_json::Value> = input_bundles.into_iter().flatten().collect();
 
         // run parallel searches using a rayon thread pool
-        let _pool = rayon::ThreadPoolBuilder::new()
+        let pool = rayon::ThreadPoolBuilder::new()
             .num_threads(self.parallelism)
             .build()
             .map_err(|e| {
                 AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
             })?;
-        let run_query_result: Vec<serde_json::Value> = input_queries
-            .into_par_iter()
-            .map(|query| self.run_single_query(query))
-            .collect::<Result<Vec<serde_json::Value>, AppError>>()?;
 
+        let run_query_result: Vec<serde_json::Value> = pool.install(|| {
+            input_queries
+                .into_par_iter()
+                .map(|query| self.run_single_query(query))
+                .collect::<Result<Vec<serde_json::Value>, AppError>>()
+        })?;
         let run_result = run_query_result
             .into_iter()
             .chain(input_error_responses)
@@ -323,6 +325,8 @@ pub fn apply_output_processing(
                 "search_runtime": result.search_runtime.hhmmss(),
                 "route_runtime": result.route_runtime.hhmmss(),
                 "total_runtime": result.total_runtime.hhmmss(),
+                "route_edge_count": result.route.len(),
+                "tree_edge_count": result.tree.len(),
                 "traversal_summary": tmodel.summary(&last_edge_traversal.result_state),
             });
             let init_acc: Result<serde_json::Value, PluginError> = Ok(init_output);

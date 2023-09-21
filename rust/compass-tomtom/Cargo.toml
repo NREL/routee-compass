@@ -10,7 +10,6 @@ thiserror = { workspace = true }
 flate2 = { workspace = true }
 kdam = { workspace = true }
 log = { workspace = true }
-uom = { workspace = true }
 geo = { workspace = true }
 env_logger = { workspace = true }
 csv = { workspace = true }
