@@ -1097,9 +1097,9 @@ dependencies = [
 
 [[package]]
 name = "ort"
-version = "1.15.2"
+version = "1.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5e56c9c4185ee949ef961aca8777d1dbd52cb104b444669adad63e8181820a7"
+checksum = "9955201a9aac4a7a003a789af64a2ccdc4ef312f6e3aa3c1e8694e98b4e29613"
 dependencies = [
  "flate2",
  "half",
