@@ -2,7 +2,7 @@ use serde::Serialize;
 
 use crate::model::graph::edge_id::EdgeId;
 use crate::model::graph::graph::Graph;
-use crate::model::traversal::access_result::AccessResult;
+use crate::model::traversal::access_result::{AccessCost, AccessResult};
 use crate::model::traversal::traversal_model::TraversalModel;
 
 use super::search_error::SearchError;
@@ -58,17 +58,27 @@ impl EdgeTraversal {
                 let prev_src_v = g.vertex_attr(prev_edge.src_vertex_id)?;
                 m.access_cost(&prev_src_v, &prev_edge, &src, &edge, &dst, &prev_state)
             }
-            None => Ok(AccessResult::no_cost(prev_state)),
+            None => Ok(AccessResult::no_cost()),
         }
         .map_err(SearchError::TraversalModelFailure)?;
 
+        let access_cost = match access_result.cost {
+            AccessCost::NoCost => Cost::ZERO,
+            AccessCost::Cost(c) => c,
+        };
+
+        let updated_state = match &access_result.updated_state {
+            Some(s) => s,
+            None => prev_state,
+        };
+
         let traversal_result = m
-            .traversal_cost(src, edge, dst, &access_result.updated_state)
+            .traversal_cost(src, edge, dst, updated_state)
             .map_err(SearchError::TraversalModelFailure)?;
 
         let result = EdgeTraversal {
             edge_id,
-            access_cost: access_result.total_cost,
+            access_cost: access_cost,
             traversal_cost: traversal_result.total_cost,
             result_state: traversal_result.updated_state,
         };

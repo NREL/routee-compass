@@ -29,7 +29,7 @@ pub trait TraversalModel: Send + Sync {
         v3: &Vertex,
         state: &TraversalState,
     ) -> Result<AccessResult, TraversalModelError> {
-        Ok(AccessResult::no_cost(state))
+        Ok(AccessResult::no_cost())
     }
     fn terminate_search(&self, state: &TraversalState) -> Result<bool, TraversalModelError> {
         Ok(false)
