@@ -27,15 +27,24 @@ impl TraversalModel for SpeedGradeModel {
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
+        let time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
         let distance = coord_distance_km(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
+        let time: Time = Time::create(
+            self.max_speed.clone(),
+            self.service.speeds_table_speed_unit.clone(),
+            distance,
+            DistanceUnit::Meters,
+            time_unit.clone(),
+        )?;
         let (energy, _energy_unit) = Energy::create(
             self.service.minimum_energy_rate,
             self.service.energy_model_energy_rate_unit.clone(),
             distance,
             DistanceUnit::Kilometers,
         )?;
-        Ok(Cost::from(energy))
+        let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
+        Ok(total_cost)
     }
     fn traversal_cost(
         &self,
