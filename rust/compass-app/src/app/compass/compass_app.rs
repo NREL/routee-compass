@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use super::config::compass_app_builder::CompassAppBuilder;
 use crate::{
     app::{
@@ -27,6 +25,7 @@ use compass_core::{
 use config::Config;
 use itertools::{Either, Itertools};
 use rayon::prelude::*;
+use std::path::PathBuf;
 
 pub struct CompassApp {
     pub search_app: SearchApp,
@@ -185,20 +184,27 @@ impl CompassApp {
             });
         let input_queries: Vec<serde_json::Value> = input_bundles.into_iter().flatten().collect();
 
-        // run parallel searches using a rayon thread pool
-        let pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(self.parallelism)
-            .build()
-            .map_err(|e| {
-                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
-            })?;
+        // ack, this is running the same queries on each thread in the pool, duplicating work
+        // instead of scatter/gather-ing
 
-        let run_query_result: Vec<serde_json::Value> = pool.install(|| {
-            input_queries
-                .into_par_iter()
-                .map(|query| self.run_single_query(query))
-                .collect::<Result<Vec<serde_json::Value>, AppError>>()
-        })?;
+        // run parallel searches using a rayon thread pool
+        // let pool = rayon::ThreadPoolBuilder::new()
+        //     .num_threads(self.parallelism)
+        //     .build()
+        //     .map_err(|e| {
+        //         AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+        //     })?;
+
+        // let run_query_result: Vec<serde_json::Value> = pool.install(|| {
+        //     input_queries
+        //         .into_par_iter()
+        //         .map(|query| self.run_single_query(query))
+        //         .collect::<Result<Vec<serde_json::Value>, AppError>>()
+        // })?;
+        let run_query_result: Vec<serde_json::Value> = input_queries
+            .into_par_iter()
+            .map(|query| self.run_single_query(query))
+            .collect::<Result<Vec<serde_json::Value>, AppError>>()?;
         let run_result = run_query_result
             .into_iter()
             .chain(input_error_responses)
