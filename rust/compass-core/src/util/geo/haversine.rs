@@ -1,6 +1,17 @@
-use crate::util::unit::Distance;
+use crate::util::unit::{Distance, DistanceUnit};
 use geo::Coord;
 pub const APPROX_EARTH_RADIUS_KM: f64 = 6372.8;
+
+/// get the distance between two coordinates and return the value
+/// in the requested distance unit
+pub fn coord_distance(
+    src: Coord,
+    dst: Coord,
+    distance_unit: DistanceUnit,
+) -> Result<Distance, String> {
+    let dist_km = distance_km(src.x, src.y, dst.x, dst.y)?;
+    Ok(DistanceUnit::Kilometers.convert(dist_km, distance_unit))
+}
 
 /// helper function to invoke distance between geo::Coords
 pub fn coord_distance_km(src: Coord, dst: Coord) -> Result<Distance, String> {
