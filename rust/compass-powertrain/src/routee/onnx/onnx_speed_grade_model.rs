@@ -1,13 +1,15 @@
-use super::onnx_session::OnnxSession;
 use crate::routee::prediction_model::SpeedGradePredictionModel;
 use compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
     util::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Speed, SpeedUnit},
 };
-// use onnxruntime::tensor::OrtOwnedTensor;
+use ndarray::CowArray;
+use ort::{
+    tensor::OrtOwnedTensor, Environment, GraphOptimizationLevel, Session, SessionBuilder, Value,
+};
 
 pub struct OnnxSpeedGradeModel {
-    session: OnnxSession,
+    session: Session,
     speed_unit: SpeedUnit,
     energy_rate_unit: EnergyRateUnit,
 }
@@ -21,7 +23,7 @@ impl SpeedGradePredictionModel for OnnxSpeedGradeModel {
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let speed_value: f32 = speed_unit.convert(speed, self.speed_unit.clone()).as_f64() as f32;
         let grade_value: f32 = grade as f32;
-        let x = ndarray::Array1::from(vec![speed_value, grade_value])
+        let array = ndarray::Array1::from(vec![speed_value, grade_value])
             .into_shape((1, 2))
             .map_err(|e| {
                 TraversalModelError::PredictionModel(format!(
@@ -29,19 +31,22 @@ impl SpeedGradePredictionModel for OnnxSpeedGradeModel {
                     e.to_string()
                 ))
             })?;
-        let input_tensor = vec![x];
 
-        // let session = self.session.get_session();
+        let x = CowArray::from(array).into_dyn();
+        let value = Value::from_array(self.session.allocator(), &x).map_err(|e| {
+            TraversalModelError::PredictionModel(format!(
+                "Failed to create input value for prediction: {}",
+                e.to_string()
+            ))
+        })?;
+        let input = vec![value];
 
-        // let outputs: Vec<OrtOwnedTensor<f32, _>> = session
-        //     .run(input_tensor)
-        //     .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+        let result: OrtOwnedTensor<f32, _> =
+            self.session.run(input).unwrap()[0].try_extract().unwrap();
+        let output_f64 = result.view().to_owned().into_raw_vec()[0] as f64;
 
-        // let output_f64 = outputs[0].to_owned().into_raw_vec()[0] as f64;
-        // let energy_rate = EnergyRate::new(output_f64);
-        // Ok((energy_rate, self.energy_rate_unit.clone()))
-
-        todo!("perform prediction here using new library")
+        let energy_rate = EnergyRate::new(output_f64);
+        Ok((energy_rate, self.energy_rate_unit.clone()))
     }
 }
 
@@ -51,7 +56,20 @@ impl OnnxSpeedGradeModel {
         speed_unit: SpeedUnit,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
-        let session = OnnxSession::try_from(onnx_model_path)?;
+        let env = Environment::builder()
+            .build()
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
+            .into_arc();
+
+        let session = SessionBuilder::new(&env)
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
+            .with_intra_threads(1)
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
+            .with_optimization_level(GraphOptimizationLevel::Level1)
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
+            .with_model_from_file(onnx_model_path)
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
+
         Ok(OnnxSpeedGradeModel {
             session,
             speed_unit,

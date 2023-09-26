@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 compass-app = { path = "../compass-app" }
-pyo3 = { workspace = true }
+pyo3 = {version = "0.19", features=["extension-module"]} 
 serde_json = { workspace = true }
 
 [lib]
