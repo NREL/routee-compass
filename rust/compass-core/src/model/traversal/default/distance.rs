@@ -8,7 +8,7 @@ use crate::model::{
         traversal_model_error::TraversalModelError,
     },
 };
-use crate::util::geo::haversine::coord_distance_km;
+use crate::util::geo::haversine::coord_distance;
 use crate::util::unit::DistanceUnit;
 use crate::util::unit::BASE_DISTANCE_UNIT;
 
@@ -49,9 +49,9 @@ impl TraversalModel for DistanceModel {
         &self,
         src: &Vertex,
         dst: &Vertex,
-        state: &TraversalState,
+        _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        return coord_distance_km(src.coordinate, dst.coordinate)
+        return coord_distance(src.coordinate, dst.coordinate, self.distance_unit.clone())
             .map(|d| Cost::from(d))
             .map_err(TraversalModelError::NumericError);
     }

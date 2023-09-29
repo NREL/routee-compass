@@ -1,28 +1,38 @@
 use crate::util::unit::{Distance, DistanceUnit};
 use geo::Coord;
-pub const APPROX_EARTH_RADIUS_KM: f64 = 6372.8;
+// pub const APPROX_EARTH_RADIUS_KM: f64 = 6372.8;
+pub const APPROX_EARTH_RADIUS_M: f64 = 6_371_000.0;
+
+/// get the distance between two coordinates and return the value
+/// in the base distance unit, which is meters.
+/// coordinates are assumed to be in the WGS84 Coordinate System.
+pub fn coord_distance_meters(src: Coord, dst: Coord) -> Result<Distance, String> {
+    let distance_meters = haversine_distance_meters(src.x, src.y, dst.x, dst.y)?;
+    Ok(distance_meters)
+}
 
 /// get the distance between two coordinates and return the value
 /// in the requested distance unit
+/// coordinates are assumed to be in the WGS84 Coordinate System.
 pub fn coord_distance(
     src: Coord,
     dst: Coord,
     distance_unit: DistanceUnit,
 ) -> Result<Distance, String> {
-    let dist_km = distance_km(src.x, src.y, dst.x, dst.y)?;
-    Ok(DistanceUnit::Kilometers.convert(dist_km, distance_unit))
-}
-
-/// helper function to invoke distance between geo::Coords
-pub fn coord_distance_km(src: Coord, dst: Coord) -> Result<Distance, String> {
-    distance_km(src.x, src.y, dst.x, dst.y)
+    let distance_meters = haversine_distance_meters(src.x, src.y, dst.x, dst.y)?;
+    Ok(DistanceUnit::Meters.convert(distance_meters, distance_unit))
 }
 
 /// haversine distance formula, based on the one published to rosetta code.
 /// https://rosettacode.org/wiki/Haversine_formula#Rust
-/// computes the great circle distance between two points in kilometers.
+/// computes the great circle distance between two points in meters.
 /// assumes input data is in WGS84 projection (aka EPSG:4326 CRS)
-pub fn distance_km(src_x: f64, src_y: f64, dst_x: f64, dst_y: f64) -> Result<Distance, String> {
+pub fn haversine_distance_meters(
+    src_x: f64,
+    src_y: f64,
+    dst_x: f64,
+    dst_y: f64,
+) -> Result<Distance, String> {
     if src_x < -180.0 || 180.0 < src_x {
         return Err(format!("src x value not in range [-180, 180]: {}", src_x));
     }
@@ -43,6 +53,6 @@ pub fn distance_km(src_x: f64, src_y: f64, dst_x: f64, dst_y: f64) -> Result<Dis
 
     let a = (d_lat / 2.0).sin().powi(2) + (d_lon / 2.0).sin().powi(2) * lat1.cos() * lat2.cos();
     let c = 2.0 * a.sqrt().asin();
-    let distance_km = APPROX_EARTH_RADIUS_KM * c;
-    return Ok(Distance::new(distance_km));
+    let distance_meters = APPROX_EARTH_RADIUS_M * c;
+    return Ok(Distance::new(distance_meters));
 }

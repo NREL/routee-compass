@@ -8,7 +8,7 @@ use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::model::traversal::traversal_result::TraversalResult;
-use compass_core::util::geo::haversine::coord_distance_km;
+use compass_core::util::geo::haversine;
 use compass_core::util::unit::*;
 use std::sync::Arc;
 
@@ -22,6 +22,8 @@ impl TraversalModel for SpeedGradeModel {
         // distance, time, energy
         vec![StateVar(0.0), StateVar(0.0), StateVar(0.0)]
     }
+    /// estimate the cost of traveling between two vertices.
+    /// given a distance estimate,
     fn cost_estimate(
         &self,
         src: &Vertex,
@@ -29,21 +31,21 @@ impl TraversalModel for SpeedGradeModel {
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
         let time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
-        let distance = coord_distance_km(src.coordinate, dst.coordinate)
+        let distance = haversine::coord_distance_meters(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
 
         let (energy, _energy_unit) = Energy::create(
             self.service.minimum_energy_rate,
             self.service.energy_model_energy_rate_unit.clone(),
             distance,
-            DistanceUnit::Kilometers,
+            DistanceUnit::Meters,
         )?;
 
         let time: Time = Time::create(
             self.service.max_speed.clone(),
             self.service.speeds_table_speed_unit.clone(),
             distance,
-            DistanceUnit::Kilometers,
+            DistanceUnit::Meters,
             time_unit.clone(),
         )?;
 

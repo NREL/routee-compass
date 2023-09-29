@@ -1,7 +1,7 @@
 use crate::model::graph::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
-use crate::util::geo::haversine::coord_distance_km;
-use crate::util::unit::BASE_SPEED_UNIT;
+use crate::util::geo::haversine;
+use crate::util::unit::{DistanceUnit, BASE_SPEED_UNIT};
 use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
@@ -21,6 +21,7 @@ pub struct SpeedLookupModel {
     speed_table: Vec<Speed>,
     speed_unit: SpeedUnit,
     output_time_unit: TimeUnit,
+    output_distance_unit: DistanceUnit,
     max_speed: Speed,
 }
 
@@ -28,6 +29,7 @@ impl SpeedLookupModel {
     pub fn new(
         speed_table_path: &String,
         speed_unit_opt: Option<SpeedUnit>,
+        output_distance_unit_opt: Option<DistanceUnit>,
         output_time_unit_opt: Option<TimeUnit>,
     ) -> Result<SpeedLookupModel, TraversalModelError> {
         let speed_table: Vec<Speed> =
@@ -49,6 +51,19 @@ impl SpeedLookupModel {
                 BASE_SPEED_UNIT
             }
         };
+        let output_distance_unit = match output_distance_unit_opt {
+            Some(du) => {
+                log::info!("speed model configured with output units in {}", du.clone());
+                du.clone()
+            }
+            None => {
+                log::info!(
+                    "no distance unit provided for speed model, using default of {}",
+                    BASE_DISTANCE_UNIT
+                );
+                BASE_DISTANCE_UNIT
+            }
+        };
         let output_time_unit = match output_time_unit_opt {
             Some(tu) => {
                 log::info!("speed model configured with output units in {}", tu.clone());
@@ -64,6 +79,7 @@ impl SpeedLookupModel {
         };
         let model = SpeedLookupModel {
             speed_table,
+            output_distance_unit,
             output_time_unit,
             speed_unit,
             max_speed: max_speed.clone(),
@@ -74,7 +90,8 @@ impl SpeedLookupModel {
 
 impl TraversalModel for SpeedLookupModel {
     fn initial_state(&self) -> TraversalState {
-        vec![StateVar(0.0)]
+        // distance, time
+        vec![StateVar(0.0), StateVar(0.0)]
     }
     fn traversal_cost(
         &self,
@@ -93,34 +110,40 @@ impl TraversalModel for SpeedLookupModel {
         )?;
 
         let mut s = state.clone();
-        s[0] = s[0] + StateVar::from(time);
+        s[0] = s[0] + StateVar::from(edge.distance);
+        s[1] = s[1] + StateVar::from(time);
         let result = TraversalResult {
             total_cost: Cost::from(time),
             updated_state: s,
         };
         Ok(result)
     }
+
     fn cost_estimate(
         &self,
         src: &Vertex,
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        let distance = coord_distance_km(src.coordinate, dst.coordinate)
+        let distance = haversine::coord_distance_meters(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
         let time = Time::create(
             self.max_speed,
             self.speed_unit.clone(),
             distance,
-            BASE_DISTANCE_UNIT,
+            DistanceUnit::Meters,
             self.output_time_unit.clone(),
         )?;
         let time_output: Time = BASE_TIME_UNIT.convert(time, self.output_time_unit.clone());
         Ok(Cost::from(time_output))
     }
+
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
-        let time = state[0].0;
+        let time = state[1].0;
+        let distance = state[1].0;
         serde_json::json!({
+            "distance": distance,
+            "distance_unit": self.output_distance_unit,
             "time": time,
             "time_unit": self.output_time_unit,
         })
@@ -217,6 +240,7 @@ mod tests {
         let lookup = SpeedLookupModel::new(
             &file,
             Some(SpeedUnit::KilometersPerHour),
+            None,
             Some(TimeUnit::Seconds),
         )
         .unwrap();
@@ -236,6 +260,7 @@ mod tests {
         let lookup = SpeedLookupModel::new(
             &file,
             Some(SpeedUnit::KilometersPerHour),
+            None,
             Some(TimeUnit::Milliseconds),
         )
         .unwrap();
