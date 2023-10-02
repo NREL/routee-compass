@@ -251,7 +251,7 @@ mod tests {
         let result = lookup.traversal_cost(&v, &e1, &v, &initial).unwrap();
         let expected = 36.0;
         approx_eq(result.total_cost.into(), expected, 0.001);
-        approx_eq(result.updated_state[0].into(), expected, 0.001);
+        approx_eq(result.updated_state[1].into(), expected, 0.001);
     }
 
     #[test]
@@ -271,6 +271,6 @@ mod tests {
         let result = lookup.traversal_cost(&v, &e1, &v, &initial).unwrap();
         let expected = 36000.0;
         approx_eq(result.total_cost.into(), expected, 0.001);
-        approx_eq(result.updated_state[0].into(), expected, 0.001);
+        approx_eq(result.updated_state[1].into(), expected, 0.001);
     }
 }
