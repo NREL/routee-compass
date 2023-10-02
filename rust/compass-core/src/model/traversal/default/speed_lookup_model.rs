@@ -1,6 +1,7 @@
+use crate::model::graph::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
-use crate::util::geo::haversine::coord_distance_km;
-use crate::util::unit::BASE_SPEED_UNIT;
+use crate::util::geo::haversine;
+use crate::util::unit::{DistanceUnit, BASE_SPEED_UNIT};
 use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
@@ -20,6 +21,7 @@ pub struct SpeedLookupModel {
     speed_table: Vec<Speed>,
     speed_unit: SpeedUnit,
     output_time_unit: TimeUnit,
+    output_distance_unit: DistanceUnit,
     max_speed: Speed,
 }
 
@@ -27,6 +29,7 @@ impl SpeedLookupModel {
     pub fn new(
         speed_table_path: &String,
         speed_unit_opt: Option<SpeedUnit>,
+        output_distance_unit_opt: Option<DistanceUnit>,
         output_time_unit_opt: Option<TimeUnit>,
     ) -> Result<SpeedLookupModel, TraversalModelError> {
         let speed_table: Vec<Speed> =
@@ -34,67 +37,61 @@ impl SpeedLookupModel {
                 |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
             )?;
 
-        let (max_speed, count) =
-            speed_table
-                .iter()
-                .fold((Speed::ZERO, 0), |(acc_max, acc_cnt), row| {
-                    let next_max = if acc_max > *row { acc_max } else { row.clone() };
-                    (next_max, acc_cnt + 1)
-                });
-
-        if count == 0 {
-            let msg = format!(
-                "parsed {} entries for speed table {}",
-                count, speed_table_path
-            );
-            return Err(TraversalModelError::BuildError(msg));
-        } else if max_speed == Speed::ZERO {
-            let msg = format!(
-                "max speed was zero in speed table {} with {} entries",
-                speed_table_path, count
-            );
-            return Err(TraversalModelError::BuildError(msg));
-        } else {
-            let speed_unit = match speed_unit_opt {
-                Some(su) => {
-                    log::info!("speed table configured with speeds in {}", su.clone());
-                    su.clone()
-                }
-                None => {
-                    log::info!(
-                        "no speed unit provided for speed table, using default of {}",
-                        BASE_SPEED_UNIT
-                    );
+        let max_speed = get_max_speed(&speed_table)?;
+        let speed_unit = match speed_unit_opt {
+            Some(su) => {
+                log::info!("speed table configured with speeds in {}", su.clone());
+                su.clone()
+            }
+            None => {
+                log::info!(
+                    "no speed unit provided for speed table, using default of {}",
                     BASE_SPEED_UNIT
-                }
-            };
-            let output_time_unit = match output_time_unit_opt {
-                Some(tu) => {
-                    log::info!("speed model configured with output units in {}", tu.clone());
-                    tu.clone()
-                }
-                None => {
-                    log::info!(
-                        "no time unit provided for speed model, using default of {}",
-                        BASE_TIME_UNIT
-                    );
+                );
+                BASE_SPEED_UNIT
+            }
+        };
+        let output_distance_unit = match output_distance_unit_opt {
+            Some(du) => {
+                log::info!("speed model configured with output units in {}", du.clone());
+                du.clone()
+            }
+            None => {
+                log::info!(
+                    "no distance unit provided for speed model, using default of {}",
+                    BASE_DISTANCE_UNIT
+                );
+                BASE_DISTANCE_UNIT
+            }
+        };
+        let output_time_unit = match output_time_unit_opt {
+            Some(tu) => {
+                log::info!("speed model configured with output units in {}", tu.clone());
+                tu.clone()
+            }
+            None => {
+                log::info!(
+                    "no time unit provided for speed model, using default of {}",
                     BASE_TIME_UNIT
-                }
-            };
-            let model = SpeedLookupModel {
-                speed_table,
-                output_time_unit,
-                speed_unit,
-                max_speed: max_speed.clone(),
-            };
-            return Ok(model);
-        }
+                );
+                BASE_TIME_UNIT
+            }
+        };
+        let model = SpeedLookupModel {
+            speed_table,
+            output_distance_unit,
+            output_time_unit,
+            speed_unit,
+            max_speed: max_speed.clone(),
+        };
+        return Ok(model);
     }
 }
 
 impl TraversalModel for SpeedLookupModel {
     fn initial_state(&self) -> TraversalState {
-        vec![StateVar(0.0)]
+        // distance, time
+        vec![StateVar(0.0), StateVar(0.0)]
     }
     fn traversal_cost(
         &self,
@@ -103,16 +100,7 @@ impl TraversalModel for SpeedLookupModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let speed = self
-            .speed_table
-            .get(edge.edge_id.0 as usize)
-            .ok_or_else(|| {
-                TraversalModelError::MissingIdInTabularCostFunction(
-                    edge.edge_id.to_string(),
-                    String::from("EdgeId"),
-                    String::from("edge velocity lookup"),
-                )
-            })?;
+        let speed = get_speed(&self.speed_table, edge.edge_id)?;
         let time = Time::create(
             speed.clone(),
             self.speed_unit.clone(),
@@ -122,37 +110,75 @@ impl TraversalModel for SpeedLookupModel {
         )?;
 
         let mut s = state.clone();
-        s[0] = s[0] + StateVar::from(time);
+        s[0] = s[0] + StateVar::from(edge.distance);
+        s[1] = s[1] + StateVar::from(time);
         let result = TraversalResult {
             total_cost: Cost::from(time),
             updated_state: s,
         };
         Ok(result)
     }
+
     fn cost_estimate(
         &self,
         src: &Vertex,
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        let distance = coord_distance_km(src.coordinate, dst.coordinate)
+        let distance = haversine::coord_distance_meters(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
         let time = Time::create(
             self.max_speed,
             self.speed_unit.clone(),
             distance,
-            BASE_DISTANCE_UNIT,
+            DistanceUnit::Meters,
             self.output_time_unit.clone(),
         )?;
         let time_output: Time = BASE_TIME_UNIT.convert(time, self.output_time_unit.clone());
         Ok(Cost::from(time_output))
     }
+
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
-        let time = state[0].0;
+        let time = state[1].0;
+        let distance = state[1].0;
         serde_json::json!({
+            "distance": distance,
+            "distance_unit": self.output_distance_unit,
             "time": time,
             "time_unit": self.output_time_unit,
         })
+    }
+}
+
+/// look up a speed from the speed table
+pub fn get_speed(speed_table: &Vec<Speed>, edge_id: EdgeId) -> Result<Speed, TraversalModelError> {
+    let speed: &Speed = speed_table.get(edge_id.as_usize()).ok_or(
+        TraversalModelError::MissingIdInTabularCostFunction(
+            format!("{}", edge_id),
+            String::from("EdgeId"),
+            String::from("speed table"),
+        ),
+    )?;
+    Ok(*speed)
+}
+
+pub fn get_max_speed(speed_table: &Vec<Speed>) -> Result<Speed, TraversalModelError> {
+    let (max_speed, count) =
+        speed_table
+            .iter()
+            .fold((Speed::ZERO, 0), |(acc_max, acc_cnt), row| {
+                let next_max = if acc_max > *row { acc_max } else { row.clone() };
+                (next_max, acc_cnt + 1)
+            });
+
+    if count == 0 {
+        let msg = format!("parsed {} entries for speed table", count);
+        return Err(TraversalModelError::BuildError(msg));
+    } else if max_speed == Speed::ZERO {
+        let msg = format!("max speed was zero in speed table with {} entries", count);
+        return Err(TraversalModelError::BuildError(msg));
+    } else {
+        return Ok(max_speed);
     }
 }
 
@@ -214,6 +240,7 @@ mod tests {
         let lookup = SpeedLookupModel::new(
             &file,
             Some(SpeedUnit::KilometersPerHour),
+            None,
             Some(TimeUnit::Seconds),
         )
         .unwrap();
@@ -233,6 +260,7 @@ mod tests {
         let lookup = SpeedLookupModel::new(
             &file,
             Some(SpeedUnit::KilometersPerHour),
+            None,
             Some(TimeUnit::Milliseconds),
         )
         .unwrap();

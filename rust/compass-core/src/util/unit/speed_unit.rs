@@ -75,6 +75,16 @@ impl SpeedUnit {
             (S::MetersPerSecond, S::MetersPerSecond) => value,
         }
     }
+
+    /// use as a soft "max" value for certain calculations
+    pub fn max_american_highway_speed(&self) -> Speed {
+        use SpeedUnit as S;
+        match self {
+            S::KilometersPerHour => Speed::new(120.675),
+            S::MilesPerHour => Speed::new(75.0),
+            S::MetersPerSecond => Speed::new(33.528),
+        }
+    }
 }
 
 #[cfg(test)]
