@@ -6,7 +6,7 @@ use crate::app::compass::config::{
 };
 use compass_core::model::traversal::default::speed_lookup_model::SpeedLookupModel;
 use compass_core::model::traversal::traversal_model::TraversalModel;
-use compass_core::util::unit::{SpeedUnit, TimeUnit};
+use compass_core::util::unit::{DistanceUnit, SpeedUnit, TimeUnit};
 use std::sync::Arc;
 
 pub struct SpeedLookupBuilder {}
@@ -28,12 +28,16 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
             String::from("speed_unit"),
             traversal_key.clone(),
         )?;
+        let distance_unit = params.get_config_serde_optional::<DistanceUnit>(
+            String::from("output_distance_unit"),
+            traversal_key.clone(),
+        )?;
         let time_unit = params.get_config_serde_optional::<TimeUnit>(
             String::from("output_time_unit"),
             traversal_key.clone(),
         )?;
 
-        let m = SpeedLookupModel::new(&filename, speed_unit, time_unit)
+        let m = SpeedLookupModel::new(&filename, speed_unit, distance_unit, time_unit)
             .map_err(CompassConfigurationError::TraversalModelError)?;
         let service = Arc::new(SpeedLookupService { m: Arc::new(m) });
         return Ok(service);

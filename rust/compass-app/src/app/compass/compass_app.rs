@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use super::config::compass_app_builder::CompassAppBuilder;
 use crate::{
     app::{
@@ -27,6 +25,7 @@ use compass_core::{
 use config::Config;
 use itertools::{Either, Itertools};
 use rayon::prelude::*;
+use std::path::PathBuf;
 
 pub struct CompassApp {
     pub search_app: SearchApp,
@@ -185,20 +184,27 @@ impl CompassApp {
             });
         let input_queries: Vec<serde_json::Value> = input_bundles.into_iter().flatten().collect();
 
-        // run parallel searches using a rayon thread pool
-        let pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(self.parallelism)
-            .build()
-            .map_err(|e| {
-                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
-            })?;
+        // ack, this is running the same queries on each thread in the pool, duplicating work
+        // instead of scatter/gather-ing
 
-        let run_query_result: Vec<serde_json::Value> = pool.install(|| {
-            input_queries
-                .into_par_iter()
-                .map(|query| self.run_single_query(query))
-                .collect::<Result<Vec<serde_json::Value>, AppError>>()
-        })?;
+        // run parallel searches using a rayon thread pool
+        // let pool = rayon::ThreadPoolBuilder::new()
+        //     .num_threads(self.parallelism)
+        //     .build()
+        //     .map_err(|e| {
+        //         AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+        //     })?;
+
+        // let run_query_result: Vec<serde_json::Value> = pool.install(|| {
+        //     input_queries
+        //         .into_par_iter()
+        //         .map(|query| self.run_single_query(query))
+        //         .collect::<Result<Vec<serde_json::Value>, AppError>>()
+        // })?;
+        let run_query_result: Vec<serde_json::Value> = input_queries
+            .into_par_iter()
+            .map(|query| self.run_single_query(query))
+            .collect::<Result<Vec<serde_json::Value>, AppError>>()?;
         let run_result = run_query_result
             .into_iter()
             .chain(input_error_responses)
@@ -391,4 +397,40 @@ mod tests {
         let expected = serde_json::json!(vec![0, 2]);
         assert_eq!(edge_ids, &expected);
     }
+
+    // #[test]
+    // fn test_energy() {
+    //     // rust runs test and debug at different locations, which breaks the URLs
+    //     // written in the referenced TOML files. here's a quick fix
+    //     // turnaround that doesn't leak into anyone's VS Code settings.json files
+    //     // see https://github.com/rust-lang/rust-analyzer/issues/4705 for discussion
+    //     let conf_file_test = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    //         .join("src")
+    //         .join("app")
+    //         .join("compass")
+    //         .join("test")
+    //         .join("energy_test")
+    //         .join("energy_test.toml");
+
+    //     let conf_file_debug = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    //         .join("src")
+    //         .join("app")
+    //         .join("compass")
+    //         .join("test")
+    //         .join("energy_test")
+    //         .join("energy_debug.toml");
+
+    //     let app = CompassApp::try_from(conf_file_test)
+    //         .or(CompassApp::try_from(conf_file_debug))
+    //         .unwrap();
+    //     let query = serde_json::json!({
+    //         "origin_vertex": 0,
+    //         "destination_vertex": 2
+    //     });
+    //     let result = app.run(vec![query]).unwrap();
+    //     let edge_ids = result[0].get("edge_id_list").unwrap();
+    //     // path [1] is distance-optimal; path [0, 2] is time-optimal
+    //     let expected = serde_json::json!(vec![0, 2]);
+    //     assert_eq!(edge_ids, &expected);
+    // }
 }

@@ -2,12 +2,13 @@ use super::speed_grade_model_service::SpeedGradeModelService;
 use compass_core::model::cost::cost::Cost;
 use compass_core::model::property::edge::Edge;
 use compass_core::model::property::vertex::Vertex;
+use compass_core::model::traversal::default::speed_lookup_model::get_speed;
 use compass_core::model::traversal::state::state_variable::StateVar;
 use compass_core::model::traversal::state::traversal_state::TraversalState;
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::model::traversal::traversal_result::TraversalResult;
-use compass_core::util::geo::haversine::coord_distance_km;
+use compass_core::util::geo::haversine;
 use compass_core::util::unit::*;
 use std::sync::Arc;
 
@@ -18,25 +19,40 @@ pub struct SpeedGradeModel {
 
 impl TraversalModel for SpeedGradeModel {
     fn initial_state(&self) -> TraversalState {
-        // time, energy
-        vec![StateVar(0.0), StateVar(0.0)]
+        // distance, time, energy
+        vec![StateVar(0.0), StateVar(0.0), StateVar(0.0)]
     }
+    /// estimate the cost of traveling between two vertices.
+    /// given a distance estimate,
     fn cost_estimate(
         &self,
         src: &Vertex,
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        let distance = coord_distance_km(src.coordinate, dst.coordinate)
+        let time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
+        let distance = haversine::coord_distance_meters(src.coordinate, dst.coordinate)
             .map_err(TraversalModelError::NumericError)?;
+
         let (energy, _energy_unit) = Energy::create(
             self.service.minimum_energy_rate,
             self.service.energy_model_energy_rate_unit.clone(),
             distance,
-            DistanceUnit::Kilometers,
+            DistanceUnit::Meters,
         )?;
-        Ok(Cost::from(energy))
+
+        let time: Time = Time::create(
+            self.service.max_speed.clone(),
+            self.service.speeds_table_speed_unit.clone(),
+            distance,
+            DistanceUnit::Meters,
+            time_unit.clone(),
+        )?;
+
+        let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
+        Ok(total_cost)
     }
+
     fn traversal_cost(
         &self,
         _src: &Vertex,
@@ -44,32 +60,23 @@ impl TraversalModel for SpeedGradeModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
+        let distance = edge.distance;
         let time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
-
-        let speed = self
-            .service
-            .speed_table
-            .get(edge.edge_id.as_usize())
-            .ok_or(TraversalModelError::MissingIdInTabularCostFunction(
-                format!("{}", edge.edge_id),
-                String::from("EdgeId"),
-                String::from("speed table"),
-            ))?;
+        let speed = get_speed(&self.service.speed_table, edge.edge_id)?;
 
         let time: Time = Time::create(
-            *speed,
+            speed,
             self.service.speeds_table_speed_unit.clone(),
-            edge.distance,
+            distance,
             DistanceUnit::Meters,
             time_unit.clone(),
         )?;
         let grade = edge.grade;
         let (energy_rate, _energy_rate_unit) = self.service.energy_model.predict(
-            *speed,
+            speed,
             self.service.speeds_table_speed_unit.clone(),
             grade,
         )?;
-
         let energy_rate_safe = if energy_rate < self.service.minimum_energy_rate {
             self.service.minimum_energy_rate
         } else {
@@ -78,12 +85,12 @@ impl TraversalModel for SpeedGradeModel {
         let (energy, _energy_unit) = Energy::create(
             energy_rate_safe,
             self.service.energy_model_energy_rate_unit.clone(),
-            edge.distance,
+            distance,
             DistanceUnit::Meters,
         )?;
 
         let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
-        let updated_state = update_state(&state, time, energy);
+        let updated_state = update_state(&state, distance, time, energy);
         let result = TraversalResult {
             total_cost,
             updated_state,
@@ -92,6 +99,7 @@ impl TraversalModel for SpeedGradeModel {
     }
 
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
+        let distance = get_distance_from_state(state);
         let data_time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
         let time = get_time_from_state(state);
         let time_output = data_time_unit.convert(time, self.service.output_time_unit.clone());
@@ -101,10 +109,12 @@ impl TraversalModel for SpeedGradeModel {
             .energy_model_energy_rate_unit
             .associated_energy_unit();
         serde_json::json!({
+            "distance": distance,
+            "distance_unit": DistanceUnit::Meters,
+            "time": time_output,
+            "time_unit": self.service.output_time_unit.clone(),
             "energy": energy,
             "energy_unit": energy_unit,
-            "time": time_output,
-            "time_unit": self.service.output_time_unit.clone()
         })
     }
 }
@@ -153,19 +163,29 @@ fn create_cost(energy: Energy, time: Time, energy_percent: f64) -> Cost {
     total_cost
 }
 
-fn update_state(state: &TraversalState, time: Time, energy: Energy) -> TraversalState {
+fn update_state(
+    state: &TraversalState,
+    distance: Distance,
+    time: Time,
+    energy: Energy,
+) -> TraversalState {
     let mut updated_state = state.clone();
-    updated_state[0] = state[0] + time.into();
-    updated_state[1] = state[1] + energy.into();
+    updated_state[0] = state[0] + distance.into();
+    updated_state[1] = state[1] + time.into();
+    updated_state[2] = state[2] + energy.into();
     return updated_state;
 }
 
+fn get_distance_from_state(state: &TraversalState) -> Distance {
+    return Distance::new(state[0].0);
+}
+
 fn get_time_from_state(state: &TraversalState) -> Time {
-    return Time::new(state[0].0);
+    return Time::new(state[1].0);
 }
 
 fn get_energy_from_state(state: &TraversalState) -> Energy {
-    return Energy::new(state[1].0);
+    return Energy::new(state[2].0);
 }
 
 #[cfg(test)]
