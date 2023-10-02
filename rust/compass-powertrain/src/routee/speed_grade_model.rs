@@ -74,8 +74,9 @@ impl TraversalModel for SpeedGradeModel {
         let grade = edge.grade;
         let (energy_rate, _energy_rate_unit) = self.service.energy_model.predict(
             speed,
-            self.service.speeds_table_speed_unit.clone(),
+            self.service.speeds_table_speed_unit,
             grade,
+            self.service.graph_grade_unit,
         )?;
         let energy_rate_safe = if energy_rate < self.service.minimum_energy_rate {
             self.service.minimum_energy_rate
@@ -225,7 +226,7 @@ mod tests {
                 dst_vertex_id: VertexId(1),
                 road_class: RoadClass(2),
                 distance: Distance::new(100.0),
-                grade: 0.0,
+                grade: Grade::ZERO,
             };
         }
         let speed_file = String::from(speed_file_name);
@@ -236,6 +237,8 @@ mod tests {
             routee_model_path,
             ModelType::Smartcore,
             SpeedUnit::MilesPerHour,
+            GradeUnit::Decimal,
+            GradeUnit::Millis,
             EnergyRateUnit::GallonsGasolinePerMile,
             None,
         )

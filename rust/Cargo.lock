@@ -317,7 +317,6 @@ dependencies = [
  "rstar",
  "serde",
  "serde_json",
- "smartcore",
  "thiserror",
 ]
 

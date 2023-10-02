@@ -1,6 +1,8 @@
+use crate::routee::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
+use crate::routee::smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel;
+
 use super::model_type::ModelType;
 use super::prediction_model::SpeedGradePredictionModel;
-use compass_core::model::graph::edge_id::EdgeId;
 use compass_core::model::traversal::default::speed_lookup_model::get_max_speed;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::util::fs::read_decoders;
@@ -16,6 +18,8 @@ pub struct SpeedGradeModelService {
     pub energy_model: Arc<dyn SpeedGradePredictionModel>,
     pub energy_model_energy_rate_unit: EnergyRateUnit,
     pub energy_model_speed_unit: SpeedUnit,
+    pub energy_model_grade_unit: GradeUnit,
+    pub graph_grade_unit: GradeUnit,
     pub output_time_unit: TimeUnit,
     pub minimum_energy_rate: EnergyRate,
 }
@@ -27,6 +31,8 @@ impl SpeedGradeModelService {
         energy_model_path: String,
         model_type: ModelType,
         energy_model_speed_unit: SpeedUnit,
+        energy_model_grade_unit: GradeUnit,
+        graph_grade_unit: GradeUnit,
         energy_model_energy_rate_unit: EnergyRateUnit,
         output_time_unit_option: Option<TimeUnit>,
     ) -> Result<Self, TraversalModelError> {
@@ -35,12 +41,12 @@ impl SpeedGradeModelService {
         let energy_model = model_type.build(
             energy_model_path.clone(),
             energy_model_speed_unit.clone(),
+            energy_model_grade_unit.clone(),
             energy_model_energy_rate_unit.clone(),
         )?;
 
         let minimum_energy_rate = find_min_energy_rate(
             &energy_model,
-            &energy_model_speed_unit,
             &energy_model_energy_rate_unit,
         )?;
 
@@ -50,6 +56,29 @@ impl SpeedGradeModelService {
                 |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
             )?,
         );
+
+        // Load random forest binary file
+        let energy_model: Arc<dyn SpeedGradePredictionModel> = match model_type {
+            ModelType::Smartcore => {
+                let model = SmartcoreSpeedGradeModel::new(
+                    energy_model_path.clone(),
+                    energy_model_speed_unit,
+                    energy_model_grade_unit,
+                    energy_model_energy_rate_unit,
+                )?;
+                Arc::new(model)
+            }
+            ModelType::Onnx => {
+                let model = OnnxSpeedGradeModel::new(
+                    energy_model_path.clone(),
+                    energy_model_speed_unit,
+                    energy_model_grade_unit,
+                    energy_model_energy_rate_unit,
+                )?;
+                Arc::new(model)
+            }
+        };
+
         let max_speed = get_max_speed(&speed_table)?;
 
         Ok(SpeedGradeModelService {
@@ -59,6 +88,8 @@ impl SpeedGradeModelService {
             energy_model,
             energy_model_energy_rate_unit,
             energy_model_speed_unit,
+            energy_model_grade_unit,
+            graph_grade_unit,
             output_time_unit,
             minimum_energy_rate,
         })
@@ -68,25 +99,25 @@ impl SpeedGradeModelService {
 /// sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
 pub fn find_min_energy_rate(
     model: &Arc<dyn SpeedGradePredictionModel>,
-    energy_model_speed_unit: &SpeedUnit,
     energy_model_energy_rate_unit: &EnergyRateUnit,
 ) -> Result<EnergyRate, TraversalModelError> {
     // sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
-    let max_speed = energy_model_speed_unit.max_american_highway_speed();
-    let max_speed_i32 = max_speed.to_f64().ceil() as i32;
     let mut minimum_energy_rate = EnergyRate::new(f64::MAX);
     let start_time = std::time::Instant::now();
 
-    for speed_i32 in 1..max_speed_i32 {
-        for grade_percent in -20..20 {
-            let speed = Speed::new(speed_i32 as f64);
-            let grade = grade_percent as f64;
-            let (energy_rate, _) = model
-                .predict(speed, energy_model_speed_unit.clone(), grade)
-                .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
-            if energy_rate < minimum_energy_rate {
-                minimum_energy_rate = energy_rate;
-            }
+    let grade = Grade::ZERO;
+    for speed_i32 in 20..80 {
+        let speed = Speed::new(speed_i32 as f64);
+        let (energy_rate, _) = model
+            .predict(
+                speed,
+                SpeedUnit::MilesPerHour,
+                grade,
+                GradeUnit::Percent,
+            )
+            .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+        if energy_rate < minimum_energy_rate {
+            minimum_energy_rate = energy_rate;
         }
     }
 

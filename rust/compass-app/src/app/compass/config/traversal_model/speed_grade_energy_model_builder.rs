@@ -7,7 +7,7 @@ use crate::app::compass::config::{
     builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
 };
 use compass_core::model::traversal::traversal_model::TraversalModel;
-use compass_core::util::unit::{EnergyRateUnit, EnergyUnit, SpeedUnit, TimeUnit};
+use compass_core::util::unit::{EnergyRateUnit, EnergyUnit, SpeedUnit, TimeUnit, GradeUnit};
 use compass_powertrain::routee::model_type::ModelType;
 use compass_powertrain::routee::speed_grade_model::SpeedGradeModel;
 use compass_powertrain::routee::speed_grade_model_service::SpeedGradeModelService;
@@ -39,6 +39,14 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             String::from("energy_model_speed_unit"),
             traversal_key.clone(),
         )?;
+        let energy_model_grade_unit = params.get_config_serde::<GradeUnit>(
+            String::from("energy_model_grade_unit"),
+            traversal_key.clone(),
+        )?;
+        let graph_grade_unit = params.get_config_serde::<GradeUnit>(
+            String::from("graph_grade_unit"),
+            traversal_key.clone(),
+        )?;
         let energy_model_energy_rate_unit = params.get_config_serde::<EnergyRateUnit>(
             String::from("energy_model_energy_rate_unit"),
             traversal_key.clone(),
@@ -55,6 +63,8 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             energy_model_path,
             model_type,
             energy_model_speed_unit,
+            energy_model_grade_unit,
+            graph_grade_unit,
             energy_model_energy_rate_unit,
             output_time_unit_option,
         )

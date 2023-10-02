@@ -130,7 +130,7 @@ mod tests {
             property::{edge::Edge, road_class::RoadClass},
             traversal::state::state_variable::StateVar,
         },
-        util::{fs::read_utils::read_raw_file, unit::Distance},
+        util::{fs::read_utils::read_raw_file, unit::{Distance, Grade}},
     };
     use geo::{LineString, Point};
     use std::collections::HashMap;
@@ -144,7 +144,7 @@ mod tests {
             dst_vertex_id: VertexId(1),
             road_class: RoadClass(2),
             distance: Distance::new(100.0),
-            grade: 0.0,
+            grade: Grade::ZERO,
         };
     }
 

@@ -1,7 +1,7 @@
 use crate::routee::prediction_model::SpeedGradePredictionModel;
 use compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Speed, SpeedUnit},
+    util::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Speed, SpeedUnit, Grade, GradeUnit},
 };
 use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
@@ -10,6 +10,7 @@ use smartcore::{
 pub struct SmartcoreSpeedGradeModel {
     rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
     speed_unit: SpeedUnit,
+    grade_unit: GradeUnit,
     energy_rate_unit: EnergyRateUnit,
 }
 
@@ -18,10 +19,12 @@ impl SpeedGradePredictionModel for SmartcoreSpeedGradeModel {
         &self,
         speed: Speed,
         speed_unit: SpeedUnit,
-        grade: f64,
+        grade: Grade,
+        grade_unit: GradeUnit,
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
-        let speed_value = speed_unit.convert(speed, self.speed_unit.clone()).as_f64();
-        let x = DenseMatrix::from_2d_vec(&vec![vec![speed_value, grade]]);
+        let speed_value = speed_unit.convert(speed, self.speed_unit).as_f64();
+        let grade_value = grade_unit.convert(grade, self.grade_unit).as_f64();
+        let x = DenseMatrix::from_2d_vec(&vec![vec![speed_value, grade_value]]);
         let y = self
             .rf
             .predict(&x)
@@ -36,6 +39,7 @@ impl SmartcoreSpeedGradeModel {
     pub fn new(
         routee_model_path: String,
         speed_unit: SpeedUnit,
+        grade_unit: GradeUnit,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
         // Load random forest binary file
@@ -49,6 +53,7 @@ impl SmartcoreSpeedGradeModel {
         Ok(SmartcoreSpeedGradeModel {
             rf,
             speed_unit,
+            grade_unit,
             energy_rate_unit,
         })
     }
