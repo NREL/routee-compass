@@ -44,10 +44,19 @@ impl InputPlugin for GridSearchPlugin {
                     .into_iter()
                     .map(|combination| {
                         let mut instance = initial.clone();
-                        for (set_idx, (key, val_idx)) in
-                            keys.iter().zip(combination.iter()).enumerate()
-                        {
-                            instance[key] = multiset_input[set_idx][*val_idx].clone();
+                        let it = keys.iter().zip(combination.iter()).enumerate();
+                        for (set_idx, (key, val_idx)) in it {
+                            let value = multiset_input[set_idx][*val_idx].clone();
+                            match value {
+                                serde_json::Value::Object(o) => {
+                                    for (k, v) in o.into_iter() {
+                                        instance[k] = v.clone();
+                                    }
+                                }
+                                _ => {
+                                    instance[key] = multiset_input[set_idx][*val_idx].clone();
+                                }
+                            }
                         }
                         instance
                     })
@@ -95,7 +104,7 @@ mod test {
     #[test]
     fn test_grid_search_persisted_parent_keys() {
         let input = serde_json::json!({
-            "persistent": "key",
+            "ignored_key": "ignored_value",
             "grid_search": {
                 "bar": ["a", "b", "c"],
                 "foo": [1.2, 3.4]
@@ -110,12 +119,41 @@ mod test {
             .collect::<Result<Vec<String>, serde_json::Error>>()
             .unwrap();
         let expected = vec![
-            String::from("{\"bar\":\"a\",\"foo\":1.2,\"persistent\":\"key\"}"),
-            String::from("{\"bar\":\"b\",\"foo\":1.2,\"persistent\":\"key\"}"),
-            String::from("{\"bar\":\"c\",\"foo\":1.2,\"persistent\":\"key\"}"),
-            String::from("{\"bar\":\"a\",\"foo\":3.4,\"persistent\":\"key\"}"),
-            String::from("{\"bar\":\"b\",\"foo\":3.4,\"persistent\":\"key\"}"),
-            String::from("{\"bar\":\"c\",\"foo\":3.4,\"persistent\":\"key\"}"),
+            String::from("{\"bar\":\"a\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
+            String::from("{\"bar\":\"b\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
+            String::from("{\"bar\":\"c\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
+            String::from("{\"bar\":\"a\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
+            String::from("{\"bar\":\"b\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
+            String::from("{\"bar\":\"c\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
+        ];
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_grid_search_using_objects() {
+        let input = serde_json::json!({
+            "ignored_key": "ignored_value",
+            "grid_search": {
+                "a": [1, 2],
+                "ignored_inner_key": [
+                    { "x": 0, "y": 0 },
+                    { "x": 1, "y": 1 }
+                ],
+            }
+        });
+        let plugin = GridSearchPlugin {};
+        let result = plugin
+            .process(&input)
+            .unwrap()
+            .iter()
+            .map(serde_json::to_string)
+            .collect::<Result<Vec<String>, serde_json::Error>>()
+            .unwrap();
+        let expected = vec![
+            String::from("{\"a\":1,\"ignored_key\":\"ignored_value\",\"x\":0,\"y\":0}"),
+            String::from("{\"a\":2,\"ignored_key\":\"ignored_value\",\"x\":0,\"y\":0}"),
+            String::from("{\"a\":1,\"ignored_key\":\"ignored_value\",\"x\":1,\"y\":1}"),
+            String::from("{\"a\":2,\"ignored_key\":\"ignored_value\",\"x\":1,\"y\":1}"),
         ];
         assert_eq!(result, expected);
     }
