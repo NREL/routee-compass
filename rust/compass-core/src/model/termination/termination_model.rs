@@ -63,11 +63,19 @@ impl TerminationModel {
             .terminate_search(start_time, solution_size, iterations)
             .unwrap_or(false);
         match self {
-            T::Combined { models } => models
-                .iter()
-                .map(|m| m.explain_termination(start_time, solution_size, iterations))
-                .collect::<Option<Vec<_>>>()
-                .map(|result| result.join(", ")),
+            T::Combined { models } => {
+                let combined_explanations: String = models
+                    .iter()
+                    .map(|m| m.explain_termination(start_time, solution_size, iterations))
+                    .flatten()
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                if combined_explanations.is_empty() {
+                    None
+                } else {
+                    Some(combined_explanations)
+                }
+            }
             T::QueryRuntimeLimit { limit, .. } => {
                 if caused_termination {
                     Some(format!("exceeded runtime limit of {}", limit.hhmmss()))
@@ -164,7 +172,7 @@ mod tests {
     }
 
     #[test]
-    fn test_combined() {
+    fn test_combined_3() {
         let exceeds_limit = Duration::from_secs(3);
         let start_time = Instant::now() - exceeds_limit;
         let runtime_limit = Duration::from_secs(2);
@@ -195,6 +203,43 @@ mod tests {
                 "exceeded runtime limit of 0:00:02.000",
                 "exceeded iteration limit of 5",
                 "exceeded solution size limit of 3",
+            ]
+            .join(", "),
+        );
+        assert_eq!(msg, expected);
+    }
+
+    #[test]
+    fn test_combined_2_of_3() {
+        let exceeds_limit = Duration::from_secs(3);
+        let start_time = Instant::now() - exceeds_limit;
+        let runtime_limit = Duration::from_secs(2);
+        let frequency = 1;
+        let iteration_limit = 5;
+        let solution_limit = 3;
+
+        let m1 = T::QueryRuntimeLimit {
+            limit: runtime_limit,
+            frequency,
+        };
+        let m2 = T::IterationsLimit {
+            limit: iteration_limit,
+        };
+        let m3 = T::SolutionSizeLimit {
+            limit: solution_limit,
+        };
+        let cm = T::Combined {
+            models: vec![m1, m2, m3],
+        };
+        let terminate = cm
+            .terminate_search(&start_time, solution_limit - 1, iteration_limit + 1)
+            .unwrap();
+        assert_eq!(terminate, true);
+        let msg = cm.explain_termination(&start_time, solution_limit - 1, iteration_limit + 1);
+        let expected = Some(
+            vec![
+                "exceeded runtime limit of 0:00:02.000",
+                "exceeded iteration limit of 5",
             ]
             .join(", "),
         );
