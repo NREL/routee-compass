@@ -51,7 +51,8 @@ impl TerminationModel {
         }
     }
 
-    /// assuming the termination model has
+    /// this method will return a string explaining why a model terminated. if the
+    /// conditions do not merit termination, then the result will be None.
     pub fn explain_termination(
         &self,
         start_time: &Instant,
