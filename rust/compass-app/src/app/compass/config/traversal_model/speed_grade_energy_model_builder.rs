@@ -7,7 +7,9 @@ use crate::app::compass::config::{
     builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
 };
 use compass_core::model::traversal::traversal_model::TraversalModel;
-use compass_core::util::unit::{EnergyRateUnit, EnergyUnit, SpeedUnit, TimeUnit, GradeUnit};
+use compass_core::util::unit::{
+    DistanceUnit, EnergyRate, EnergyRateUnit, GradeUnit, SpeedUnit, TimeUnit,
+};
 use compass_powertrain::routee::model_type::ModelType;
 use compass_powertrain::routee::speed_grade_model::SpeedGradeModel;
 use compass_powertrain::routee::speed_grade_model_service::SpeedGradeModelService;
@@ -39,6 +41,10 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             String::from("energy_model_speed_unit"),
             traversal_key.clone(),
         )?;
+        let ideal_energy_rate_option = params.get_config_serde_optional::<EnergyRate>(
+            String::from("ideal_energy_rate"),
+            traversal_key.clone(),
+        )?;
         let energy_model_grade_unit = params.get_config_serde::<GradeUnit>(
             String::from("energy_model_grade_unit"),
             traversal_key.clone(),
@@ -56,17 +62,23 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             String::from("output_time_unit"),
             traversal_key.clone(),
         )?;
+        let output_distance_unit_option = params.get_config_serde_optional::<DistanceUnit>(
+            String::from("output_distance_unit"),
+            traversal_key.clone(),
+        )?;
 
         let inner_service = SpeedGradeModelService::new(
             speed_table_path,
             speed_table_speed_unit,
             energy_model_path,
             model_type,
+            ideal_energy_rate_option,
             energy_model_speed_unit,
             energy_model_grade_unit,
             graph_grade_unit,
             energy_model_energy_rate_unit,
             output_time_unit_option,
+            output_distance_unit_option,
         )
         .map_err(CompassConfigurationError::TraversalModelError)?;
         let service = SpeedGradeEnergyModelService {
