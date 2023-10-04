@@ -24,10 +24,8 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
         // todo: optional output time unit
         let filename =
             params.get_config_string(String::from("speed_table_path"), traversal_key.clone())?;
-        let speed_unit = params.get_config_serde_optional::<SpeedUnit>(
-            String::from("speed_unit"),
-            traversal_key.clone(),
-        )?;
+        let speed_unit = params
+            .get_config_serde::<SpeedUnit>(String::from("speed_unit"), traversal_key.clone())?;
         let distance_unit = params.get_config_serde_optional::<DistanceUnit>(
             String::from("output_distance_unit"),
             traversal_key.clone(),

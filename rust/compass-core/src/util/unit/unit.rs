@@ -26,8 +26,13 @@ pub fn create_time(
 ) -> Result<Time, UnitError> {
     let d = distance_unit.convert(distance, BASE_DISTANCE_UNIT);
     let s = speed_unit.convert(speed, BASE_SPEED_UNIT);
-    if s <= Speed::ZERO {
-        return Err(UnitError::TimeFromSpeedAndDistanceError(speed, distance));
+    if s <= Speed::ZERO || d <= Distance::ZERO {
+        return Err(UnitError::TimeFromSpeedAndDistanceError(
+            speed,
+            speed_unit,
+            distance,
+            distance_unit,
+        ));
     } else {
         let time = (d, s).into();
         let result = BASE_TIME_UNIT.convert(time, time_unit);
@@ -94,6 +99,19 @@ mod test {
     }
 
     fn approx_eq_speed(a: Speed, b: Speed, error: f64) {
+        let result = match (a, b) {
+            (c, d) if c < d => (d - c).as_f64() < error,
+            (c, d) if c > d => (c - d).as_f64() < error,
+            (_, _) => true,
+        };
+        assert!(
+            result,
+            "{} ~= {} is not true within an error of {}",
+            a, b, error
+        )
+    }
+
+    fn approx_eq_energy(a: Energy, b: Energy, error: f64) {
         let result = match (a, b) {
             (c, d) if c < d => (d - c).as_f64() < error,
             (c, d) if c > d => (c - d).as_f64() < error,
@@ -279,5 +297,33 @@ mod test {
         .unwrap();
         let expected = BASE_TIME_UNIT.convert(Time::ONE, TimeUnit::Hours);
         approx_eq_time(time, expected, 0.001);
+    }
+
+    #[test]
+    fn test_energy_ggpm_meters() {
+        let ten_mpg_rate = 1.0 / 10.0;
+        let (energy, energy_unit) = create_energy(
+            EnergyRate::new(ten_mpg_rate),
+            EnergyRateUnit::GallonsGasolinePerMile,
+            Distance::new(1609.0),
+            DistanceUnit::Meters,
+        )
+        .unwrap();
+        approx_eq_energy(energy, Energy::new(ten_mpg_rate), 0.00001);
+        assert_eq!(energy_unit, EnergyUnit::GallonsGasoline);
+    }
+
+    #[test]
+    fn test_energy_ggpm_miles() {
+        let ten_mpg_rate = 1.0 / 10.0;
+        let (energy, energy_unit) = create_energy(
+            EnergyRate::new(ten_mpg_rate),
+            EnergyRateUnit::GallonsGasolinePerMile,
+            Distance::new(1.0),
+            DistanceUnit::Miles,
+        )
+        .unwrap();
+        approx_eq_energy(energy, Energy::new(ten_mpg_rate), 0.00001);
+        assert_eq!(energy_unit, EnergyUnit::GallonsGasoline);
     }
 }

@@ -1,9 +1,13 @@
-use crate::app::compass::config::{
-    builders::{TraversalModelBuilder, TraversalModelService},
-    compass_configuration_error::CompassConfigurationError,
+use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
+use crate::app::compass::{
+    compass_configuration_field::CompassConfigurationField,
+    config::{
+        builders::{TraversalModelBuilder, TraversalModelService},
+        compass_configuration_error::CompassConfigurationError,
+    },
 };
-use compass_core::model::traversal::default::distance::DistanceModel;
 use compass_core::model::traversal::traversal_model::TraversalModel;
+use compass_core::{model::traversal::default::distance::DistanceModel, util::unit::DistanceUnit};
 use std::sync::Arc;
 
 pub struct DistanceBuilder {}
@@ -25,7 +29,12 @@ impl TraversalModelService for DistanceService {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
-        let m: Arc<dyn TraversalModel> = Arc::new(DistanceModel::new());
+        let traversal_key = CompassConfigurationField::Traversal.to_string();
+        let distance_unit_option = parameters.get_config_serde_optional::<DistanceUnit>(
+            String::from("distance_unit"),
+            traversal_key.clone(),
+        )?;
+        let m: Arc<dyn TraversalModel> = Arc::new(DistanceModel::new(distance_unit_option));
         return Ok(m);
     }
 }

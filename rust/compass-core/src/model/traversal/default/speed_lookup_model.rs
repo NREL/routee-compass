@@ -1,7 +1,7 @@
 use crate::model::graph::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
 use crate::util::geo::haversine;
-use crate::util::unit::{DistanceUnit, BASE_SPEED_UNIT};
+use crate::util::unit::{Distance, DistanceUnit, BASE_SPEED_UNIT};
 use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
@@ -28,7 +28,7 @@ pub struct SpeedLookupModel {
 impl SpeedLookupModel {
     pub fn new(
         speed_table_path: &String,
-        speed_unit_opt: Option<SpeedUnit>,
+        speed_unit: SpeedUnit,
         output_distance_unit_opt: Option<DistanceUnit>,
         output_time_unit_opt: Option<TimeUnit>,
     ) -> Result<SpeedLookupModel, TraversalModelError> {
@@ -36,47 +36,9 @@ impl SpeedLookupModel {
             read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
                 |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
             )?;
-
         let max_speed = get_max_speed(&speed_table)?;
-        let speed_unit = match speed_unit_opt {
-            Some(su) => {
-                log::info!("speed table configured with speeds in {}", su.clone());
-                su.clone()
-            }
-            None => {
-                log::info!(
-                    "no speed unit provided for speed table, using default of {}",
-                    BASE_SPEED_UNIT
-                );
-                BASE_SPEED_UNIT
-            }
-        };
-        let output_distance_unit = match output_distance_unit_opt {
-            Some(du) => {
-                log::info!("speed model configured with output units in {}", du.clone());
-                du.clone()
-            }
-            None => {
-                log::info!(
-                    "no distance unit provided for speed model, using default of {}",
-                    BASE_DISTANCE_UNIT
-                );
-                BASE_DISTANCE_UNIT
-            }
-        };
-        let output_time_unit = match output_time_unit_opt {
-            Some(tu) => {
-                log::info!("speed model configured with output units in {}", tu.clone());
-                tu.clone()
-            }
-            None => {
-                log::info!(
-                    "no time unit provided for speed model, using default of {}",
-                    BASE_TIME_UNIT
-                );
-                BASE_TIME_UNIT
-            }
-        };
+        let output_time_unit = output_time_unit_opt.unwrap_or(BASE_TIME_UNIT);
+        let output_distance_unit = output_distance_unit_opt.unwrap_or(BASE_DISTANCE_UNIT);
         let model = SpeedLookupModel {
             speed_table,
             output_distance_unit,
@@ -100,21 +62,21 @@ impl TraversalModel for SpeedLookupModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
+        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.output_distance_unit.clone());
         let speed = get_speed(&self.speed_table, edge.edge_id)?;
         let time = Time::create(
-            speed.clone(),
+            speed,
             self.speed_unit.clone(),
-            edge.distance,
-            BASE_DISTANCE_UNIT,
+            distance,
+            self.output_distance_unit.clone(),
             self.output_time_unit.clone(),
         )?;
 
-        let mut s = state.clone();
-        s[0] = s[0] + StateVar::from(edge.distance);
-        s[1] = s[1] + StateVar::from(time);
+        let total_cost = Cost::from(time);
+        let updated_state = update_state(state, distance, time);
         let result = TraversalResult {
-            total_cost: Cost::from(time),
-            updated_state: s,
+            total_cost,
+            updated_state,
         };
         Ok(result)
     }
@@ -125,22 +87,30 @@ impl TraversalModel for SpeedLookupModel {
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        let distance = haversine::coord_distance_meters(src.coordinate, dst.coordinate)
-            .map_err(TraversalModelError::NumericError)?;
+        let distance = haversine::coord_distance(
+            src.coordinate,
+            dst.coordinate,
+            self.output_distance_unit.clone(),
+        )
+        .map_err(TraversalModelError::NumericError)?;
+
+        if distance == Distance::ZERO {
+            return Ok(Cost::ZERO);
+        }
+
         let time = Time::create(
             self.max_speed,
             self.speed_unit.clone(),
             distance,
-            DistanceUnit::Meters,
+            self.output_distance_unit.clone(),
             self.output_time_unit.clone(),
         )?;
-        let time_output: Time = BASE_TIME_UNIT.convert(time, self.output_time_unit.clone());
-        Ok(Cost::from(time_output))
+        Ok(Cost::from(time))
     }
 
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
-        let time = state[1].0;
-        let distance = state[1].0;
+        let distance = get_distance_from_state(state);
+        let time = get_time_from_state(state);
         serde_json::json!({
             "distance": distance,
             "distance_unit": self.output_distance_unit,
@@ -148,6 +118,21 @@ impl TraversalModel for SpeedLookupModel {
             "time_unit": self.output_time_unit,
         })
     }
+}
+
+fn update_state(state: &TraversalState, distance: Distance, time: Time) -> TraversalState {
+    let mut updated_state = state.clone();
+    updated_state[0] = state[0] + distance.into();
+    updated_state[1] = state[1] + time.into();
+    return updated_state;
+}
+
+fn get_distance_from_state(state: &TraversalState) -> Distance {
+    return Distance::new(state[0].0);
+}
+
+fn get_time_from_state(state: &TraversalState) -> Time {
+    return Time::new(state[1].0);
 }
 
 /// look up a speed from the speed table
@@ -185,11 +170,14 @@ pub fn get_max_speed(speed_table: &Vec<Speed>) -> Result<Speed, TraversalModelEr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{model::{
-        graph::{edge_id::EdgeId, vertex_id::VertexId},
-        property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
-    }, util::unit::Grade};
     use crate::util::unit::Distance;
+    use crate::{
+        model::{
+            graph::{edge_id::EdgeId, vertex_id::VertexId},
+            property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
+        },
+        util::unit::Grade,
+    };
     use geo::coord;
     use std::path::PathBuf;
 
@@ -239,7 +227,7 @@ mod tests {
         let file = filepath();
         let lookup = SpeedLookupModel::new(
             &file,
-            Some(SpeedUnit::KilometersPerHour),
+            SpeedUnit::KilometersPerHour,
             None,
             Some(TimeUnit::Seconds),
         )
@@ -259,7 +247,7 @@ mod tests {
         let file = filepath();
         let lookup = SpeedLookupModel::new(
             &file,
-            Some(SpeedUnit::KilometersPerHour),
+            SpeedUnit::KilometersPerHour,
             None,
             Some(TimeUnit::Milliseconds),
         )

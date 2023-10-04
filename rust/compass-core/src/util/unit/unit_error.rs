@@ -1,4 +1,4 @@
-use super::{Distance, Speed, Time};
+use super::{Distance, DistanceUnit, Speed, SpeedUnit, Time};
 
 #[derive(thiserror::Error, Debug)]
 pub enum UnitError {
@@ -8,6 +8,6 @@ pub enum UnitError {
     InvalidSpeed(f64),
     #[error("cannot create speed from time {0} and distance {0}")]
     SpeedFromTimeAndDistanceError(Time, Distance),
-    #[error("cannot create time from speed {0} and distance {0}")]
-    TimeFromSpeedAndDistanceError(Speed, Distance),
+    #[error("cannot create time from speed {0} {1} and distance {2} {3}")]
+    TimeFromSpeedAndDistanceError(Speed, SpeedUnit, Distance, DistanceUnit),
 }

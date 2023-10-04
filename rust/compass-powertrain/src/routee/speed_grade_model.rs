@@ -30,23 +30,30 @@ impl TraversalModel for SpeedGradeModel {
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        let time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
-        let distance = haversine::coord_distance_meters(src.coordinate, dst.coordinate)
-            .map_err(TraversalModelError::NumericError)?;
+        let distance = haversine::coord_distance(
+            src.coordinate,
+            dst.coordinate,
+            self.service.output_distance_unit.clone(),
+        )
+        .map_err(TraversalModelError::NumericError)?;
+
+        if distance == Distance::ZERO {
+            return Ok(Cost::ZERO);
+        }
 
         let (energy, _energy_unit) = Energy::create(
-            self.service.minimum_energy_rate,
+            self.service.ideal_energy_rate,
             self.service.energy_model_energy_rate_unit.clone(),
             distance,
-            DistanceUnit::Meters,
+            self.service.output_distance_unit.clone(),
         )?;
 
         let time: Time = Time::create(
             self.service.max_speed.clone(),
             self.service.speeds_table_speed_unit.clone(),
             distance,
-            DistanceUnit::Meters,
-            time_unit.clone(),
+            self.service.output_distance_unit.clone(),
+            self.service.output_time_unit.clone(),
         )?;
 
         let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
@@ -60,16 +67,15 @@ impl TraversalModel for SpeedGradeModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let distance = edge.distance;
-        let time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
+        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.service.output_distance_unit);
         let speed = get_speed(&self.service.speed_table, edge.edge_id)?;
 
         let time: Time = Time::create(
             speed,
             self.service.speeds_table_speed_unit.clone(),
             distance,
-            DistanceUnit::Meters,
-            time_unit.clone(),
+            self.service.output_distance_unit.clone(),
+            self.service.output_time_unit.clone(),
         )?;
         let grade = edge.grade;
         let (energy_rate, _energy_rate_unit) = self.service.energy_model.predict(
@@ -78,8 +84,8 @@ impl TraversalModel for SpeedGradeModel {
             grade,
             self.service.graph_grade_unit,
         )?;
-        let energy_rate_safe = if energy_rate < self.service.minimum_energy_rate {
-            self.service.minimum_energy_rate
+        let energy_rate_safe = if energy_rate < self.service.ideal_energy_rate {
+            self.service.ideal_energy_rate
         } else {
             energy_rate
         };
@@ -87,7 +93,7 @@ impl TraversalModel for SpeedGradeModel {
             energy_rate_safe,
             self.service.energy_model_energy_rate_unit.clone(),
             distance,
-            DistanceUnit::Meters,
+            self.service.output_distance_unit.clone(),
         )?;
 
         let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
@@ -101,9 +107,7 @@ impl TraversalModel for SpeedGradeModel {
 
     fn summary(&self, state: &TraversalState) -> serde_json::Value {
         let distance = get_distance_from_state(state);
-        let data_time_unit = self.service.speeds_table_speed_unit.associated_time_unit();
         let time = get_time_from_state(state);
-        let time_output = data_time_unit.convert(time, self.service.output_time_unit.clone());
         let energy = get_energy_from_state(state);
         let energy_unit = self
             .service
@@ -111,9 +115,9 @@ impl TraversalModel for SpeedGradeModel {
             .associated_energy_unit();
         serde_json::json!({
             "distance": distance,
-            "distance_unit": DistanceUnit::Meters,
-            "time": time_output,
-            "time_unit": self.service.output_time_unit.clone(),
+            "distance_unit": self.service.output_distance_unit,
+            "time": time,
+            "time_unit": self.service.output_time_unit,
             "energy": energy,
             "energy_unit": energy_unit,
         })
@@ -236,10 +240,12 @@ mod tests {
             SpeedUnit::KilometersPerHour,
             routee_model_path,
             ModelType::Smartcore,
+            None,
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             GradeUnit::Millis,
             EnergyRateUnit::GallonsGasolinePerMile,
+            None,
             None,
         )
         .unwrap();
