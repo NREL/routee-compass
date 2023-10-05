@@ -1,0 +1,1 @@
+`compass-app` is the rust application for running the RouteE-Compass energy-aware routing engine

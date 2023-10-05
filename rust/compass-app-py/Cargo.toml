@@ -2,6 +2,7 @@
 name = "compass-app-py"
 version = "0.1.0"
 edition = "2021"
+readme = "README.md"
 
 [dependencies]
 compass-app = { path = "../compass-app" }

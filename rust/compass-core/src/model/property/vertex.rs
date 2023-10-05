@@ -1,8 +1,6 @@
 use geo::{coord, Coord};
 use serde::de;
 
-use rstar::{PointDistance, RTreeObject, AABB};
-
 use crate::model::graph::vertex_id::VertexId;
 
 #[derive(Copy, Clone, Default, Debug)]
@@ -31,24 +29,6 @@ impl Vertex {
     }
 }
 
-impl RTreeObject for Vertex {
-    type Envelope = AABB<Coord>;
-
-    fn envelope(&self) -> Self::Envelope {
-        AABB::from_corners(
-            coord! {x: self.x(), y: self.y()},
-            coord! {x: self.x(), y: self.y()},
-        )
-    }
-}
-
-impl PointDistance for Vertex {
-    fn distance_2(&self, point: &Coord) -> f64 {
-        let dx = self.x() - point.x;
-        let dy = self.y() - point.y;
-        dx * dx + dy * dy
-    }
-}
 
 const VERTEX_ID: &str = "vertex_id";
 const X_COORDINATE: &str = "x";

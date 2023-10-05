@@ -1,0 +1,1 @@
+`compass-app-py` provides python bindings for the `compass-app` crate
