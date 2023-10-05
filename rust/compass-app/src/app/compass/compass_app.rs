@@ -24,7 +24,7 @@ use compass_core::{
 };
 use config::Config;
 use itertools::{Either, Itertools};
-use rayon::prelude::*;
+use rayon::{current_num_threads, prelude::*};
 use std::path::PathBuf;
 
 pub struct CompassApp {
@@ -184,23 +184,16 @@ impl CompassApp {
             });
         let input_queries: Vec<serde_json::Value> = input_bundles.into_iter().flatten().collect();
 
-        // ack, this is running the same queries on each thread in the pool, duplicating work
-        // instead of scatter/gather-ing
-
         // run parallel searches using a rayon thread pool
-        // let pool = rayon::ThreadPoolBuilder::new()
-        //     .num_threads(self.parallelism)
-        //     .build()
-        //     .map_err(|e| {
-        //         AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
-        //     })?;
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(self.parallelism)
+            .build_global()
+            .map_err(|e| {
+                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
+            })?;
 
-        // let run_query_result: Vec<serde_json::Value> = pool.install(|| {
-        //     input_queries
-        //         .into_par_iter()
-        //         .map(|query| self.run_single_query(query))
-        //         .collect::<Result<Vec<serde_json::Value>, AppError>>()
-        // })?;
+        log::info!("using {} threads to run queries", current_num_threads());
+
         let run_query_result: Vec<serde_json::Value> = input_queries
             .into_par_iter()
             .map(|query| self.run_single_query(query))
