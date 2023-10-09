@@ -34,9 +34,11 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             traversal_key.clone(),
         )?;
 
-        let grade_table_path =
-            params.get_config_string(String::from("grade_table_path"), traversal_key.clone())?;
-        let grade_table_grade_unit = params.get_config_serde::<GradeUnit>(
+        let grade_table_path = params.get_config_serde_optional::<String>(
+            String::from("grade_table_path"),
+            traversal_key.clone(),
+        )?;
+        let grade_table_grade_unit = params.get_config_serde_optional::<GradeUnit>(
             String::from("graph_grade_unit"),
             traversal_key.clone(),
         )?;

@@ -196,15 +196,23 @@ fn get_energy_from_state(state: &TraversalState) -> Energy {
 }
 
 /// look up the grade from the grade table
-pub fn get_grade(grade_table: &Vec<Grade>, edge_id: EdgeId) -> Result<Grade, TraversalModelError> {
-    let speed: &Grade = grade_table.get(edge_id.as_usize()).ok_or(
-        TraversalModelError::MissingIdInTabularCostFunction(
-            format!("{}", edge_id),
-            String::from("EdgeId"),
-            String::from("grade table"),
-        ),
-    )?;
-    Ok(*speed)
+pub fn get_grade(
+    grade_table: &Option<Vec<Grade>>,
+    edge_id: EdgeId,
+) -> Result<Grade, TraversalModelError> {
+    match grade_table {
+        None => Ok(Grade::ZERO),
+        Some(gt) => {
+            let grade: &Grade = gt.get(edge_id.as_usize()).ok_or(
+                TraversalModelError::MissingIdInTabularCostFunction(
+                    format!("{}", edge_id),
+                    String::from("EdgeId"),
+                    String::from("grade table"),
+                ),
+            )?;
+            Ok(*grade)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -257,8 +265,8 @@ mod tests {
         let service = SpeedGradeModelService::new(
             speed_file,
             SpeedUnit::KilometersPerHour,
-            grade_file,
-            GradeUnit::Decimal,
+            None,
+            None,
             routee_model_path,
             ModelType::Smartcore,
             None,

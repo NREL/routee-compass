@@ -15,7 +15,7 @@ pub struct SpeedGradeModelService {
     pub speed_table: Arc<Vec<Speed>>,
     pub speeds_table_speed_unit: SpeedUnit,
     pub max_speed: Speed,
-    pub grade_table: Arc<Vec<Grade>>,
+    pub grade_table: Arc<Option<Vec<Grade>>>,
     pub grade_table_grade_unit: GradeUnit,
     pub energy_model: Arc<dyn SpeedGradePredictionModel>,
     pub energy_model_energy_rate_unit: EnergyRateUnit,
@@ -30,8 +30,8 @@ impl SpeedGradeModelService {
     pub fn new(
         speed_table_path: String,
         speeds_table_speed_unit: SpeedUnit,
-        grade_table_path: String,
-        grade_table_grade_unit: GradeUnit,
+        grade_table_path_option: Option<String>,
+        grade_table_grade_unit_option: Option<GradeUnit>,
         energy_model_path: String,
         model_type: ModelType,
         ideal_energy_rate_option: Option<EnergyRate>,
@@ -63,11 +63,15 @@ impl SpeedGradeModelService {
             )?,
         );
 
-        let grade_table: Arc<Vec<Grade>> = Arc::new(
-            read_utils::read_raw_file(&grade_table_path, read_decoders::default, None).map_err(
-                |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
-            )?,
-        );
+        let grade_table: Arc<Option<Vec<Grade>>> = match grade_table_path_option {
+            Some(gtp) => Arc::new(Some(
+                read_utils::read_raw_file(&gtp, read_decoders::default, None).map_err(|e| {
+                    TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string())
+                })?,
+            )),
+            None => Arc::new(None),
+        };
+        let grade_table_grade_unit = grade_table_grade_unit_option.unwrap_or(GradeUnit::Decimal);
 
         // Load random forest binary file
         let energy_model: Arc<dyn SpeedGradePredictionModel> = match model_type {
