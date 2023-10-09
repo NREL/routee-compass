@@ -1,4 +1,3 @@
-use crate::routee::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
 use crate::routee::smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel;
 
 use super::model_type::ModelType;
@@ -9,6 +8,9 @@ use compass_core::util::fs::read_decoders;
 use compass_core::util::fs::read_utils;
 use compass_core::util::unit::*;
 use std::sync::Arc;
+
+#[cfg(feature = "onnx")]
+use crate::routee::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
 
 #[derive(Clone)]
 pub struct SpeedGradeModelService {
@@ -72,6 +74,7 @@ impl SpeedGradeModelService {
                 )?;
                 Arc::new(model)
             }
+            #[cfg(feature = "onnx")]
             ModelType::Onnx => {
                 let model = OnnxSpeedGradeModel::new(
                     energy_model_path.clone(),
