@@ -1,4 +1,3 @@
-use crate::routee::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
 use crate::routee::smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel;
 
 use super::model_type::ModelType;
@@ -9,6 +8,9 @@ use compass_core::util::fs::read_decoders;
 use compass_core::util::fs::read_utils;
 use compass_core::util::unit::*;
 use std::sync::Arc;
+
+#[cfg(feature = "onnx")]
+use crate::routee::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
 
 #[derive(Clone)]
 pub struct SpeedGradeModelService {
@@ -73,13 +75,25 @@ impl SpeedGradeModelService {
                 Arc::new(model)
             }
             ModelType::Onnx => {
-                let model = OnnxSpeedGradeModel::new(
-                    energy_model_path.clone(),
-                    energy_model_speed_unit,
-                    energy_model_grade_unit,
-                    energy_model_energy_rate_unit,
-                )?;
-                Arc::new(model)
+                #[cfg(feature = "onnx")]
+                {
+                    let model = OnnxSpeedGradeModel::new(
+                        energy_model_path.clone(),
+                        energy_model_speed_unit,
+                        energy_model_grade_unit,
+                        energy_model_energy_rate_unit,
+                    )?;
+                    Arc::new(model)
+                }
+                #[cfg(not(feature = "onnx"))]
+                {
+                    return Err(
+                    TraversalModelError::BuildError(
+                        "Cannot build Onnx model without `onnx` feature enabled for compass-powertrain"
+                            .to_string(),
+                    )
+                );
+                }
             }
         };
 
