@@ -9,3 +9,7 @@ where
         std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
     })
 }
+
+pub fn string(_idx: usize, row: String) -> Result<String, std::io::Error> {
+    return Ok(row);
+}
