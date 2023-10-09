@@ -22,8 +22,8 @@ classifiers = [
 keywords = ["eco routing"]
 dependencies = []
 [project.optional-dependencies]
+osm = ['osmnx', 'toml']
 dev = ["black", "pytest", "maturin"]
-
 
 [project.urls]
 Homepage = "https://github.nrel.gov/MBAP/routee-compass"
