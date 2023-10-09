@@ -74,15 +74,26 @@ impl SpeedGradeModelService {
                 )?;
                 Arc::new(model)
             }
-            #[cfg(feature = "onnx")]
             ModelType::Onnx => {
-                let model = OnnxSpeedGradeModel::new(
-                    energy_model_path.clone(),
-                    energy_model_speed_unit,
-                    energy_model_grade_unit,
-                    energy_model_energy_rate_unit,
-                )?;
-                Arc::new(model)
+                #[cfg(feature = "onnx")]
+                {
+                    let model = OnnxSpeedGradeModel::new(
+                        energy_model_path.clone(),
+                        energy_model_speed_unit,
+                        energy_model_grade_unit,
+                        energy_model_energy_rate_unit,
+                    )?;
+                    Arc::new(model)
+                }
+                #[cfg(not(feature = "onnx"))]
+                {
+                    return Err(
+                    TraversalModelError::BuildError(
+                        "Cannot build Onnx model without `onnx` feature enabled for compass-powertrain"
+                            .to_string(),
+                    )
+                );
+                }
             }
         };
 

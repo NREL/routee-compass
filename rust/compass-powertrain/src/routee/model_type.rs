@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::unit::{EnergyRateUnit, SpeedUnit, GradeUnit},
+    util::unit::{EnergyRateUnit, GradeUnit, SpeedUnit},
 };
 use serde::{Deserialize, Serialize};
 
@@ -18,7 +18,6 @@ use super::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
 #[serde(rename_all = "snake_case")]
 pub enum ModelType {
     Smartcore,
-    #[cfg(feature = "onnx")]
     Onnx,
 }
 
@@ -46,13 +45,21 @@ impl ModelType {
                 energy_model_grade_unit.clone(),
                 energy_model_energy_rate_unit.clone(),
             )?),
-            #[cfg(feature = "onnx")]
-            ModelType::Onnx => Arc::new(OnnxSpeedGradeModel::new(
-                energy_model_path.clone(),
-                energy_model_speed_unit.clone(),
-                energy_model_grade_unit.clone(),
-                energy_model_energy_rate_unit.clone(),
-            )?),
+            ModelType::Onnx => {
+                #[cfg(feature = "onnx")]
+                {
+                    Arc::new(OnnxSpeedGradeModel::new(
+                        energy_model_path.clone(),
+                        energy_model_speed_unit.clone(),
+                        energy_model_grade_unit.clone(),
+                        energy_model_energy_rate_unit.clone(),
+                    )?)
+                }
+                #[cfg(not(feature = "onnx"))]
+                {
+                    return Err(TraversalModelError::BuildError("Cannot build Onnx model without `onnx` feature enabled for compass-powertrain".to_string()));
+                }
+            }
         };
         Ok(model)
     }
