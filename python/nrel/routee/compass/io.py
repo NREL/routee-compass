@@ -1,28 +1,17 @@
 from typing import Callable, Dict, Optional
-import numpy as np
-import osmnx as ox
-from networkx import MultiDiGraph
 from pathlib import Path
 from pkg_resources import resource_filename
 import logging
 import shutil
 
-try:
-    import toml
-except Exception:
-    try: 
-        import tomllib as toml
-    except Exception:
-        raise ImportError("requires Python 3.11 tomllib or pip install toml for earier Python versions")
-
 log = logging.getLogger("nrel.routee.compass.io")
 
 def generate_compass_dataset(
-        g: MultiDiGraph,
+        g,
         output_directory: Path,
         hwy_speeds: Optional[Dict] = None,
         fallback: Optional[float] = None,
-        agg: Callable = np.mean,
+        agg: Optional[Callable] = None,
         default_config: bool = True,
         default_energy_model: bool = True
         ):
@@ -61,6 +50,20 @@ def generate_compass_dataset(
     :type default_energy_model: bool
     """
     
+    import numpy as np
+    import osmnx as ox
+    from networkx import MultiDiGraph
+    try:
+        import toml
+    except Exception:
+        try: 
+            import tomllib as toml
+        except Exception:
+            raise ImportError("requires Python 3.11 tomllib or pip install toml for earier Python versions")
+
+    # default aggregation is via numpy mean operation
+    agg = agg if agg is not None else np.mean
+
     # pre-process the graph
     log.info("processing graph topology and speeds")
     g1 = g.copy()
