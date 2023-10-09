@@ -5,7 +5,7 @@ from networkx import MultiDiGraph
 from pathlib import Path
 from pkg_resources import resource_filename
 import logging
-import csv
+import shutil
 
 try:
     import toml
@@ -102,8 +102,13 @@ def generate_compass_dataset(
 
     # DEFAULT CONFIGURATION FILES
     for filename in ['osm_default_speed.toml', 'osm_default_energy.toml']:
-        init_toml_file = resource_filename("nrel.routee.compass.io.resources", filename)
+        init_toml_file = resource_filename("nrel.routee.compass.resources", filename)
         with open(init_toml_file, 'r') as f:
             init_toml = toml.loads(f.read())
         with open(output_directory / filename, 'w') as f:
             f.write(toml.dumps(init_toml))
+    
+    # ROUTEE ENERGY MODEL
+    camry_src = Path(resource_filename("nrel.routee.compass.resources", "2016_TOYOTA_Camry_4cyl_2WD.bin"))
+    camry_dst = output_directory / "2016_TOYOTA_Camry_4cyl_2WD.bin"
+    shutil.copy(camry_src, camry_dst)
