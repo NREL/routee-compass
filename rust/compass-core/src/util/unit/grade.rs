@@ -1,7 +1,7 @@
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
-use std::{cmp::Ordering, fmt::Display};
+use std::{cmp::Ordering, fmt::Display, str::FromStr};
 
 use super::as_f64::AsF64;
 
@@ -40,6 +40,16 @@ impl Ord for Grade {
 impl Display for Grade {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl FromStr for Grade {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let f = str::parse::<f64>(s)
+            .map_err(|e| format!("failure reading grade value {}: {}", s, e))?;
+        Ok(Grade::new(f))
     }
 }
 

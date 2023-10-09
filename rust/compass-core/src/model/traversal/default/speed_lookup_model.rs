@@ -1,7 +1,7 @@
 use crate::model::graph::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
 use crate::util::geo::haversine;
-use crate::util::unit::{Distance, DistanceUnit, BASE_SPEED_UNIT};
+use crate::util::unit::{Distance, DistanceUnit, Grade, BASE_SPEED_UNIT};
 use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
@@ -174,7 +174,7 @@ mod tests {
     use crate::{
         model::{
             graph::{edge_id::EdgeId, vertex_id::VertexId},
-            property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
+            property::{edge::Edge, vertex::Vertex},
         },
         util::unit::Grade,
     };
@@ -192,9 +192,7 @@ mod tests {
             edge_id: EdgeId(edge_id as u64),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
-            road_class: RoadClass(2),
             distance: Distance::new(100.0),
-            grade: Grade::ZERO,
         };
     }
     fn filepath() -> String {

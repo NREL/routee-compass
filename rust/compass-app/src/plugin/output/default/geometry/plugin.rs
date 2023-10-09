@@ -127,10 +127,10 @@ mod tests {
         model::{
             cost::cost::Cost,
             graph::{edge_id::EdgeId, vertex_id::VertexId},
-            property::{edge::Edge, road_class::RoadClass},
+            property::edge::Edge,
             traversal::state::state_variable::StateVar,
         },
-        util::{fs::read_utils::read_raw_file, unit::{Distance, Grade}},
+        util::{fs::read_utils::read_raw_file, unit::Distance},
     };
     use geo::{LineString, Point};
     use std::collections::HashMap;
@@ -142,9 +142,7 @@ mod tests {
             edge_id: EdgeId(edge_id as u64),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
-            road_class: RoadClass(2),
             distance: Distance::new(100.0),
-            grade: Grade::ZERO,
         };
     }
 

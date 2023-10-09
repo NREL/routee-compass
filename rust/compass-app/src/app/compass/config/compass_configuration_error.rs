@@ -14,6 +14,8 @@ pub enum CompassConfigurationError {
     #[error("unknown module {0} for component {1} provided by configuration")]
     UnknownModelNameForComponent(String, String),
     #[error(transparent)]
+    IoError(#[from] std::io::Error),
+    #[error(transparent)]
     SerdeDeserializationError(#[from] serde_json::Error),
     #[error(transparent)]
     ConversionError(#[from] ConversionError),

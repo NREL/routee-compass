@@ -1,5 +1,6 @@
 use super::speed_grade_model_service::SpeedGradeModelService;
 use compass_core::model::cost::cost::Cost;
+use compass_core::model::graph::edge_id::EdgeId;
 use compass_core::model::property::edge::Edge;
 use compass_core::model::property::vertex::Vertex;
 use compass_core::model::traversal::default::speed_lookup_model::get_speed;
@@ -69,6 +70,7 @@ impl TraversalModel for SpeedGradeModel {
     ) -> Result<TraversalResult, TraversalModelError> {
         let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.service.output_distance_unit);
         let speed = get_speed(&self.service.speed_table, edge.edge_id)?;
+        let grade = get_grade(&self.service.grade_table, edge.edge_id)?;
 
         let time: Time = Time::create(
             speed,
@@ -77,12 +79,12 @@ impl TraversalModel for SpeedGradeModel {
             self.service.output_distance_unit.clone(),
             self.service.output_time_unit.clone(),
         )?;
-        let grade = edge.grade;
+
         let (energy_rate, _energy_rate_unit) = self.service.energy_model.predict(
             speed,
             self.service.speeds_table_speed_unit,
             grade,
-            self.service.graph_grade_unit,
+            self.service.grade_table_grade_unit,
         )?;
         let energy_rate_safe = if energy_rate < self.service.ideal_energy_rate {
             self.service.ideal_energy_rate
@@ -193,6 +195,18 @@ fn get_energy_from_state(state: &TraversalState) -> Energy {
     return Energy::new(state[2].0);
 }
 
+/// look up the grade from the grade table
+pub fn get_grade(grade_table: &Vec<Grade>, edge_id: EdgeId) -> Result<Grade, TraversalModelError> {
+    let speed: &Grade = grade_table.get(edge_id.as_usize()).ok_or(
+        TraversalModelError::MissingIdInTabularCostFunction(
+            format!("{}", edge_id),
+            String::from("EdgeId"),
+            String::from("grade table"),
+        ),
+    )?;
+    Ok(*speed)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::routee::model_type::ModelType;
@@ -200,7 +214,7 @@ mod tests {
     use super::*;
     use compass_core::model::{
         graph::{edge_id::EdgeId, vertex_id::VertexId},
-        property::{edge::Edge, road_class::RoadClass, vertex::Vertex},
+        property::{edge::Edge, vertex::Vertex},
     };
     use geo::coord;
     use std::path::PathBuf;
@@ -212,12 +226,18 @@ mod tests {
             .join("routee")
             .join("test")
             .join("velocities.txt");
+        let grade_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("routee")
+            .join("test")
+            .join("grades.txt");
         let model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
             .join("test")
             .join("Toyota_Camry.bin");
         let speed_file_name = speed_file_path.to_str().unwrap();
+        let grade_file_name = grade_file_path.to_str().unwrap();
         let model_file_name = model_file_path.to_str().unwrap();
         let v = Vertex {
             vertex_id: VertexId(0),
@@ -228,21 +248,21 @@ mod tests {
                 edge_id: EdgeId(edge_id as u64),
                 src_vertex_id: VertexId(0),
                 dst_vertex_id: VertexId(1),
-                road_class: RoadClass(2),
                 distance: Distance::new(100.0),
-                grade: Grade::ZERO,
             };
         }
         let speed_file = String::from(speed_file_name);
+        let grade_file = String::from(grade_file_name);
         let routee_model_path = String::from(model_file_name);
         let service = SpeedGradeModelService::new(
             speed_file,
             SpeedUnit::KilometersPerHour,
+            grade_file,
+            GradeUnit::Decimal,
             routee_model_path,
             ModelType::Smartcore,
             None,
             SpeedUnit::MilesPerHour,
-            GradeUnit::Decimal,
             GradeUnit::Millis,
             EnergyRateUnit::GallonsGasolinePerMile,
             None,

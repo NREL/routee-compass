@@ -8,7 +8,7 @@ use crate::app::compass::config::{
 };
 use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::util::unit::{
-    DistanceUnit, EnergyRate, EnergyRateUnit, GradeUnit, SpeedUnit, TimeUnit,
+    grade, DistanceUnit, EnergyRate, EnergyRateUnit, GradeUnit, SpeedUnit, TimeUnit,
 };
 use compass_powertrain::routee::model_type::ModelType;
 use compass_powertrain::routee::speed_grade_model::SpeedGradeModel;
@@ -33,6 +33,14 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             String::from("speed_table_speed_unit"),
             traversal_key.clone(),
         )?;
+
+        let grade_table_path =
+            params.get_config_string(String::from("grade_table_path"), traversal_key.clone())?;
+        let grade_table_grade_unit = params.get_config_serde::<GradeUnit>(
+            String::from("graph_grade_unit"),
+            traversal_key.clone(),
+        )?;
+
         let energy_model_path =
             params.get_config_string(String::from("energy_model_path"), traversal_key.clone())?;
         let model_type = params
@@ -49,10 +57,7 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             String::from("energy_model_grade_unit"),
             traversal_key.clone(),
         )?;
-        let graph_grade_unit = params.get_config_serde::<GradeUnit>(
-            String::from("graph_grade_unit"),
-            traversal_key.clone(),
-        )?;
+
         let energy_model_energy_rate_unit = params.get_config_serde::<EnergyRateUnit>(
             String::from("energy_model_energy_rate_unit"),
             traversal_key.clone(),
@@ -70,12 +75,13 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
         let inner_service = SpeedGradeModelService::new(
             speed_table_path,
             speed_table_speed_unit,
+            grade_table_path,
+            grade_table_grade_unit,
             energy_model_path,
             model_type,
             ideal_energy_rate_option,
             energy_model_speed_unit,
             energy_model_grade_unit,
-            graph_grade_unit,
             energy_model_energy_rate_unit,
             output_time_unit_option,
             output_distance_unit_option,

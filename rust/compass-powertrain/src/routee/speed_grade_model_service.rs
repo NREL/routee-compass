@@ -15,11 +15,12 @@ pub struct SpeedGradeModelService {
     pub speed_table: Arc<Vec<Speed>>,
     pub speeds_table_speed_unit: SpeedUnit,
     pub max_speed: Speed,
+    pub grade_table: Arc<Vec<Grade>>,
+    pub grade_table_grade_unit: GradeUnit,
     pub energy_model: Arc<dyn SpeedGradePredictionModel>,
     pub energy_model_energy_rate_unit: EnergyRateUnit,
     pub energy_model_speed_unit: SpeedUnit,
     pub energy_model_grade_unit: GradeUnit,
-    pub graph_grade_unit: GradeUnit,
     pub output_time_unit: TimeUnit,
     pub output_distance_unit: DistanceUnit,
     pub ideal_energy_rate: EnergyRate,
@@ -29,12 +30,13 @@ impl SpeedGradeModelService {
     pub fn new(
         speed_table_path: String,
         speeds_table_speed_unit: SpeedUnit,
+        grade_table_path: String,
+        grade_table_grade_unit: GradeUnit,
         energy_model_path: String,
         model_type: ModelType,
         ideal_energy_rate_option: Option<EnergyRate>,
         energy_model_speed_unit: SpeedUnit,
         energy_model_grade_unit: GradeUnit,
-        graph_grade_unit: GradeUnit,
         energy_model_energy_rate_unit: EnergyRateUnit,
         output_time_unit_option: Option<TimeUnit>,
         output_distance_unit_option: Option<DistanceUnit>,
@@ -57,6 +59,12 @@ impl SpeedGradeModelService {
         // load speeds table
         let speed_table: Arc<Vec<Speed>> = Arc::new(
             read_utils::read_raw_file(&speed_table_path, read_decoders::default, None).map_err(
+                |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
+            )?,
+        );
+
+        let grade_table: Arc<Vec<Grade>> = Arc::new(
+            read_utils::read_raw_file(&grade_table_path, read_decoders::default, None).map_err(
                 |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
             )?,
         );
@@ -89,11 +97,12 @@ impl SpeedGradeModelService {
             speed_table,
             speeds_table_speed_unit,
             max_speed,
+            grade_table,
+            grade_table_grade_unit,
             energy_model,
             energy_model_energy_rate_unit,
             energy_model_speed_unit,
             energy_model_grade_unit,
-            graph_grade_unit,
             output_time_unit,
             output_distance_unit,
             ideal_energy_rate,
