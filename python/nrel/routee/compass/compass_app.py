@@ -32,8 +32,10 @@ class CompassApp:
         """
         if isinstance(query, dict):
             queries = [query]
+            single_query = True
         elif isinstance(query, list):
             queries = query
+            single_query = False
         else:
             raise ValueError(
                 f"Query must be a dict or list of dicts, not {type(query)}"
@@ -44,5 +46,6 @@ class CompassApp:
         results_json: List[str] = self._app._run_queries(queries_json)
 
         results = list(map(json.loads, results_json))
-
+        if single_query and len(results) == 1:
+            return results[0]
         return results

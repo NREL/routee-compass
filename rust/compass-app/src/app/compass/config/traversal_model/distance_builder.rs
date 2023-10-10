@@ -7,19 +7,28 @@ use crate::app::compass::{
     },
 };
 use compass_core::model::traversal::traversal_model::TraversalModel;
+use compass_core::util::unit::BASE_DISTANCE_UNIT;
 use compass_core::{model::traversal::default::distance::DistanceModel, util::unit::DistanceUnit};
 use std::sync::Arc;
 
 pub struct DistanceBuilder {}
 
-pub struct DistanceService {}
+pub struct DistanceService {
+    distance_unit: DistanceUnit,
+}
 
 impl TraversalModelBuilder for DistanceBuilder {
     fn build(
         &self,
-        _parameters: &serde_json::Value,
+        parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
-        let m: Arc<dyn TraversalModelService> = Arc::new(DistanceService {});
+        let traversal_key = CompassConfigurationField::Traversal.to_string();
+        let distance_unit_option = parameters.get_config_serde_optional::<DistanceUnit>(
+            String::from("distance_unit"),
+            traversal_key.clone(),
+        )?;
+        let distance_unit = distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
+        let m: Arc<dyn TraversalModelService> = Arc::new(DistanceService { distance_unit });
         return Ok(m);
     }
 }
@@ -27,14 +36,9 @@ impl TraversalModelBuilder for DistanceBuilder {
 impl TraversalModelService for DistanceService {
     fn build(
         &self,
-        parameters: &serde_json::Value,
+        _parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
-        let traversal_key = CompassConfigurationField::Traversal.to_string();
-        let distance_unit_option = parameters.get_config_serde_optional::<DistanceUnit>(
-            String::from("distance_unit"),
-            traversal_key.clone(),
-        )?;
-        let m: Arc<dyn TraversalModel> = Arc::new(DistanceModel::new(distance_unit_option));
+        let m: Arc<dyn TraversalModel> = Arc::new(DistanceModel::new(self.distance_unit));
         return Ok(m);
     }
 }

@@ -1,0 +1,21 @@
+parallelism = 2
+
+[graph]
+edge_list_csv = "edges-compass.csv.gz"
+vertex_list_csv = "vertices-compass.csv.gz"
+verbose = true
+
+[traversal]
+type = "distance"
+distance_unit = "miles"
+
+[plugin]
+input_plugins = [
+    { type = "grid_search" },
+    { type = "vertex_rtree", vertices_file = "vertices-compass.csv.gz" },
+]
+output_plugins = [
+    { type = "summary" },
+    { type = "geometry", route_geometry = true, tree_geometry = true, edge_file = "edges-geometries-enumerated.txt.gz" },
+    { type = "uuid", uuid_file = "vertices-uuid-enumerated.txt.gz" },
+]
