@@ -333,6 +333,7 @@ mod tests {
     use crate::model::graph::graph_config::GraphConfig;
     use crate::model::traversal::default::distance::DistanceModel;
     use crate::model::traversal::traversal_model::TraversalModel;
+    use crate::util::unit::DistanceUnit;
     use crate::{model::graph::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
 
@@ -416,7 +417,8 @@ mod tests {
             .into_par_iter()
             .map(|(o, d, _expected)| {
                 let dg_inner = Arc::new(driver_dg.read_only());
-                let dist_tm: Arc<dyn TraversalModel> = Arc::new(DistanceModel::new(None));
+                let dist_tm: Arc<dyn TraversalModel> =
+                    Arc::new(DistanceModel::new(DistanceUnit::Meters));
                 let fm_inner = Arc::new(driver_fm.read_only());
                 let rm_inner = Arc::new(driver_rm.read_only());
                 run_a_star(o, Some(d), dg_inner, dist_tm, fm_inner, rm_inner)
