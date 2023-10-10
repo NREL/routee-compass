@@ -58,12 +58,30 @@ alias compass-app=path/to/routee-compass/rust/target/release/compass-app
 
 ## running
 
-### config
+Three workflows for running RouteE Compass are detailed below:
+  - [Python using OpenStreetMaps networks](#run-with-openstreetmaps)
+  - [Python using a custom backend](#python-using-a-custom-backend)
+  - [Command line application](#command-line-application)
+
+### Python using OpenStreetMaps networks
+
+The Python CompassApp comes equipped with a tool to download OpenStreetMaps networks and reformat them as RouteE Compass datasets.
+See [the example notebook](examples/OpenStreetMaps%20Example.ipynb) for a simple walkthrough.
+
+### Python using a custom backend
+
+This workflow depends on importing your own custom road network datasets.
+The workflow for executing queries is the same as the process for using OpenStreetMaps as described above.
+
+##### data preparation requirements
+_todo_
+
+##### configuration file
 
 The application expects a config file to tell it where to find the graph data and what traversal model it should use.
 Take a look at [the default configuation](./rust/compass-app/src/app/compass/config/config.default.toml) to see an example of what this looks like.
 
-### query
+##### query
 
 In addition to an application level config, we also need to specify what queries the application should run.
 These are represented as json that can contain one or multiple queries. Here's an example:
@@ -79,7 +97,7 @@ These are represented as json that can contain one or multiple queries. Here's a
 }
 ```
 
-### python library
+##### python execution
 
 If you installed the application using `pip`, you can load it and run queries within python:
 
@@ -101,9 +119,9 @@ query = {
 results = app.run(query)
 ```
 
-### command line application
+### Command line application
 
-Once you've built the application, you can run it from the command line, passing in your config and your query
+Once you've built the application, you can also run it from the command line, passing in your config and your [query](#query):
 
 ```bash
 path/to/routee-compass/rust/target/release/compass-app --config path/to/config.toml path/to/query.json

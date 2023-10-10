@@ -17,5 +17,8 @@ serde = { workspace = true, features = ["derive"] }
 serde_repr = "0.1"
 serde_json = { workspace = true }
 ndarray = "0.15"
-ort = "1.15.3"
+ort = {version = "1.15.3", optional=true}
 rayon = { workspace = true }
+
+[features]
+onnx = ["ort"]

@@ -18,8 +18,7 @@ pub struct DistanceModel {
 }
 
 impl DistanceModel {
-    pub fn new(distance_unit_option: Option<DistanceUnit>) -> DistanceModel {
-        let distance_unit = distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
+    pub fn new(distance_unit: DistanceUnit) -> DistanceModel {
         DistanceModel { distance_unit }
     }
 }
