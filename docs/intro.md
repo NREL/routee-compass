@@ -1,4 +1,4 @@
-# routee-compass
+# RouteE Compass
 
 RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
 
@@ -15,11 +15,3 @@ pip install nrel.routee.compass[osm]
 ```
 
 Then, follow this [example](notebooks/open_street_maps_example.ipynb) to start routing over Open Street Maps data.
-
-TODO: Once we go live point update this:
-See the [documentation](https://nrel.github.io/routee-compass/) for more information.
-
-##### configuration file
-
-The application expects a config file to tell it where to find the graph data and what traversal model it should use.
-Take a look at [the default configuation](./rust/compass-app/src/app/compass/config/config.default.toml) to see an example of what this looks like.

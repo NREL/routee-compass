@@ -23,7 +23,14 @@ keywords = ["eco routing"]
 dependencies = []
 [project.optional-dependencies]
 osm = ['osmnx', 'toml']
-dev = ["black", "pytest", "maturin"]
+dev = [
+    "nrel.routee.compass[osm]",
+    "black",
+    "pytest",
+    "maturin",
+    "jupyter-book",
+    "sphinx-book-theme",
+]
 
 [project.urls]
 Homepage = "https://github.nrel.gov/MBAP/routee-compass"

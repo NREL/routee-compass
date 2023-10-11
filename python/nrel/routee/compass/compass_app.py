@@ -10,6 +10,10 @@ from nrel.routee.compass.compass_app_py import (
 
 
 class CompassApp:
+    """
+    The CompassApp holds everything needed to run a route query.
+    """
+
     _app: CompassAppWrapper
 
     def __init__(self, app: CompassAppWrapper):
@@ -17,6 +21,19 @@ class CompassApp:
 
     @classmethod
     def from_config_file(cls, config_file: Union[str, Path]) -> CompassApp:
+        """
+        Build a CompassApp from a config file
+
+        Args:
+            config_file (Union[str, Path]): Path to the config file
+
+        Returns:
+            CompassApp: A CompassApp object
+
+        Example:
+            >>> from nrel.routee.compass import CompassApp
+            >>> app = CompassApp.from_config_file("config.toml")
+        """
         config_path = Path(config_file)
         if not config_path.is_file():
             raise ValueError(f"Config file {str(config_path)} does not exist")
@@ -27,8 +44,28 @@ class CompassApp:
         self, query: Union[Dict[str, Any], List[Dict[str, Any]]]
     ) -> List[Dict[str, Any]]:
         """
-        A wrapper function to run a query on the CompassAppWrapper object
-        which expects the inputs to be a JSON string and returns a JSON string
+        Run a query (or multiple queries) against the CompassApp
+
+        Args:
+            query (Union[Dict[str, Any], List[Dict[str, Any]]]): A query or list of queries to run
+
+        Returns:
+            List[Dict[str, Any]]: A list of results (or a single result if a single query was passed)
+
+        Example:
+            >>> from nrel.routee.compass import CompassApp
+            >>> app = CompassApp.from_config_file("config.toml")
+            >>> query = {
+                    "origin_name": "NREL",
+                    "destination_name": "Comrade Brewing Company",
+                    "origin_x": -105.1710052,
+                    "origin_y": 39.7402804,
+                    "destination_x": -104.9009913,
+                    "destination_y": 39.6757025
+                }
+
+            >>> result = app.run(query)
+
         """
         if isinstance(query, dict):
             queries = [query]

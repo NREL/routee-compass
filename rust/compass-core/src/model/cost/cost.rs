@@ -6,6 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::util::unit::{as_f64::AsF64, *};
 
+/// Represents the cost for traversing a graph edge.
+/// A cost does not carry any units but can be built from a unit type like [`Time`] or [`Energy`]  
+
 #[derive(
     Copy,
     Clone,
@@ -25,7 +28,9 @@ use crate::util::unit::{as_f64::AsF64, *};
 pub struct Cost(pub OrderedFloat<f64>);
 
 impl Cost {
+    /// represents zero cost
     pub const ZERO: Cost = Cost(OrderedFloat(0.0));
+    /// represents the maximum possible cost 
     pub const INFINITY: Cost = Cost(OrderedFloat(f64::MAX));
     pub fn new(value: f64) -> Cost {
         return Cost(OrderedFloat(value));

@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 pub mod app_wrapper;
 
 use app_wrapper::CompassAppWrapper;
