@@ -8,6 +8,7 @@ use serde_json;
 pub struct SummaryOutputPlugin {}
 
 impl OutputPlugin for SummaryOutputPlugin {
+    /// append "Cost" value to the output JSON
     fn process(
         &self,
         output: &serde_json::Value,

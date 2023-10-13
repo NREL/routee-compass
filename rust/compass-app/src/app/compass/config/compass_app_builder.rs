@@ -25,9 +25,8 @@ use crate::{
         output::{
             default::{
                 edgeidlist::builder::EdgeIdListOutputPluginBuilder,
-                geometry::builder::GeometryPluginBuilder,
                 summary::builder::SummaryOutputPluginBuilder,
-                uuid::builder::UUIDOutputPluginBuilder,
+                traversal::builder::TraversalPluginBuilder, uuid::builder::UUIDOutputPluginBuilder,
             },
             output_plugin::OutputPlugin,
         },
@@ -229,12 +228,12 @@ impl CompassAppBuilder {
         ]);
 
         // Output plugin builders
-        let geom: Box<dyn OutputPluginBuilder> = Box::new(GeometryPluginBuilder {});
+        let traversal: Box<dyn OutputPluginBuilder> = Box::new(TraversalPluginBuilder {});
         let summary: Box<dyn OutputPluginBuilder> = Box::new(SummaryOutputPluginBuilder {});
         let uuid: Box<dyn OutputPluginBuilder> = Box::new(UUIDOutputPluginBuilder {});
         let edge_id_list: Box<dyn OutputPluginBuilder> = Box::new(EdgeIdListOutputPluginBuilder {});
         let output_plugin_builders = HashMap::from([
-            (String::from("geometry"), geom),
+            (String::from("traversal"), traversal),
             (String::from("summary"), summary),
             (String::from("uuid"), uuid),
             (String::from("edge_id_list"), edge_id_list),

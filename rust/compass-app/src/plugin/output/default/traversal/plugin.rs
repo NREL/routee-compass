@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::json_extensions::GeometryJsonExtensions;
+use super::json_extensions::TraversalJsonExtensions;
 use super::utils::{concat_linestrings, parse_linestring};
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
@@ -15,18 +15,18 @@ use geo::{LineString, MultiLineString};
 use kdam::Bar;
 use kdam::BarExt;
 
-pub struct GeometryPlugin {
+pub struct TraversalPlugin {
     geoms: Vec<LineString<f64>>,
     route_geometry: bool,
     tree_geometry: bool,
 }
 
-impl GeometryPlugin {
+impl TraversalPlugin {
     pub fn from_file(
         filename: &String,
         route_geometry: bool,
         tree_geometry: bool,
-    ) -> Result<GeometryPlugin, PluginError> {
+    ) -> Result<TraversalPlugin, PluginError> {
         let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))?;
 
         let mut pb = Bar::builder()
@@ -41,7 +41,7 @@ impl GeometryPlugin {
         });
         let geoms = read_raw_file(&filename, parse_linestring, Some(cb))?;
         print!("\n");
-        Ok(GeometryPlugin {
+        Ok(TraversalPlugin {
             geoms,
             route_geometry,
             tree_geometry,
@@ -49,7 +49,7 @@ impl GeometryPlugin {
     }
 }
 
-impl OutputPlugin for GeometryPlugin {
+impl OutputPlugin for TraversalPlugin {
     fn process(
         &self,
         output: &serde_json::Value,
@@ -222,7 +222,7 @@ mod tests {
         let route_geometry = true;
         let tree_geometry = false;
         let geom_plugin =
-            GeometryPlugin::from_file(&filename, route_geometry, tree_geometry).unwrap();
+            TraversalPlugin::from_file(&filename, route_geometry, tree_geometry).unwrap();
 
         let result = geom_plugin
             .process(&output_result, Ok(&search_result))

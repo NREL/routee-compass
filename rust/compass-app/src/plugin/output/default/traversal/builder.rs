@@ -5,11 +5,11 @@ use crate::{
     plugin::output::output_plugin::OutputPlugin,
 };
 
-use super::plugin::GeometryPlugin;
+use super::plugin::TraversalPlugin;
 
-pub struct GeometryPluginBuilder {}
+pub struct TraversalPluginBuilder {}
 
-impl OutputPluginBuilder for GeometryPluginBuilder {
+impl OutputPluginBuilder for TraversalPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
@@ -52,7 +52,7 @@ impl OutputPluginBuilder for GeometryPluginBuilder {
                 String::from("String"),
             ))?;
         let geom_plugin =
-            GeometryPlugin::from_file(&geometry_filename, route_geometry, tree_geometry)
+            TraversalPlugin::from_file(&geometry_filename, route_geometry, tree_geometry)
                 .map_err(CompassConfigurationError::PluginError)?;
         Ok(Box::new(geom_plugin))
     }
