@@ -49,13 +49,15 @@ impl TraversalModel for TomTomSpeedLookup {
         Ok(result)
     }
 
-    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+    fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
         let time = state[0].0;
-        let time_units = "milliseconds";
         serde_json::json!({
             "total_time": time,
-            "units": time_units,
         })
+    }
+
+    fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
+        serde_json::json!({})
     }
 
     fn cost_estimate(
