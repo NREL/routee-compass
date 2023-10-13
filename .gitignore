@@ -4,6 +4,7 @@
 .vscode/
 
 cache/
+golden_co/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
