@@ -11,6 +11,8 @@ pub enum CompassConfigurationError {
     ExpectedFieldForComponent(String, String),
     #[error("expected field {0} with type {1} was unable to deserialize")]
     ExpectedFieldWithType(String, String),
+    #[error("expected field {0} for component {1} had unrecognized value {2}")]
+    ExpectedFieldWithTypeUnrecognized(String, String, String),
     #[error("unknown module {0} for component {1} provided by configuration")]
     UnknownModelNameForComponent(String, String),
     #[error(transparent)]
