@@ -1,4 +1,4 @@
-use super::{geometry_output_format::TraversalOutputFormat, plugin::TraversalPlugin};
+use super::{plugin::TraversalPlugin, traversal_output_format::TraversalOutputFormat};
 use crate::{
     app::compass::config::{
         builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,

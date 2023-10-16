@@ -1,5 +1,5 @@
-use super::geometry_output_format::TraversalOutputFormat;
 use super::json_extensions::TraversalJsonField;
+use super::traversal_output_format::TraversalOutputFormat;
 use super::utils::parse_linestring;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
