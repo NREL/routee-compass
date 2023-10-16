@@ -1,9 +1,15 @@
-from typing import Any, Callable, Union
+from typing import Any, Callable, Optional, Union, TYPE_CHECKING
 from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
+
+if TYPE_CHECKING:
+    import folium
 
 
 def plot_route_folium(
-    result_dict, route_name=None, route_color="blue", folium_map=None
+    result_dict: dict,
+    route_name: Optional[str] = None,
+    route_color: str = "blue",
+    folium_map: Optional[folium.Map] = None,
 ):
     """
     Plots a single route from a compass query on a folium map.
@@ -85,13 +91,13 @@ def plot_route_folium(
     return folium_map
 
 
-def plot_results_folium(
+def plot_routes_folium(
     results: Union[dict, list[dict]],
     value_fn: Callable[[dict], Any] = lambda r: r["request"].get("name"),
     color_map: str = "viridis",
 ):
     """
-    Plot all results from a CompassApp query on a folium map
+    Plot multiple routes from a CompassApp query on a folium map
 
     Args:
         results (Union[dict, list[dict]]): A result dictionary or list of result
