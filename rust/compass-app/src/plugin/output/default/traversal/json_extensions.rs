@@ -4,15 +4,15 @@ use wkt::ToWkt;
 use crate::plugin::plugin_error::PluginError;
 
 pub enum TraversalJsonField {
-    RouteGeometry,
-    TreeGeometry,
+    RouteOutput,
+    TreeOutput,
 }
 
 impl TraversalJsonField {
     pub fn as_str(self) -> &'static str {
         match self {
-            TraversalJsonField::RouteGeometry => "geometry",
-            TraversalJsonField::TreeGeometry => "tree_geometry",
+            TraversalJsonField::RouteOutput => "geometry",
+            TraversalJsonField::TreeOutput => "tree",
         }
     }
 
@@ -33,7 +33,7 @@ impl TraversalJsonExtensions for serde_json::Value {
         match self {
             serde_json::Value::Object(map) => {
                 let json_string = serde_json::Value::String(wkt);
-                map.insert(TraversalJsonField::RouteGeometry.to_string(), json_string);
+                map.insert(TraversalJsonField::RouteOutput.to_string(), json_string);
                 Ok(())
             }
             _ => Err(PluginError::InputError(String::from(
@@ -47,7 +47,7 @@ impl TraversalJsonExtensions for serde_json::Value {
         match self {
             serde_json::Value::Object(map) => {
                 let json_string = serde_json::Value::String(wkt);
-                map.insert(TraversalJsonField::TreeGeometry.to_string(), json_string);
+                map.insert(TraversalJsonField::TreeOutput.to_string(), json_string);
                 Ok(())
             }
             _ => Err(PluginError::InputError(String::from(
@@ -58,13 +58,13 @@ impl TraversalJsonExtensions for serde_json::Value {
 
     fn get_route_geometry_wkt(&self) -> Result<String, PluginError> {
         let geometry = self
-            .get(TraversalJsonField::RouteGeometry.as_str())
+            .get(TraversalJsonField::RouteOutput.as_str())
             .ok_or(PluginError::MissingField(
-                TraversalJsonField::RouteGeometry.to_string(),
+                TraversalJsonField::RouteOutput.to_string(),
             ))?
             .as_str()
             .ok_or(PluginError::ParseError(
-                TraversalJsonField::RouteGeometry.to_string(),
+                TraversalJsonField::RouteOutput.to_string(),
                 String::from("string"),
             ))?
             .to_string();
