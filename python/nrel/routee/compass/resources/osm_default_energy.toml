@@ -25,6 +25,6 @@ input_plugins = [
 ]
 output_plugins = [
     { type = "summary" },
-    { type = "geometry", route_geometry = true, tree_geometry = true, edge_file = "edges-geometries-enumerated.txt.gz" },
+    { type = "traversal", route = "geo_json", tree = "geo_json", geometry_file = "edges-geometries-enumerated.txt.gz" },
     { type = "uuid", uuid_file = "vertices-uuid-enumerated.txt.gz" },
 ]
