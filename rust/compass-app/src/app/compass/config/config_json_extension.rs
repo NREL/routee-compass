@@ -143,17 +143,13 @@ impl ConfigJsonExtensions for serde_json::Value {
     fn get_config_serde_optional<T: de::DeserializeOwned>(
         &self,
         key: String,
-        parent_key: String,
+        _parent_key: String,
     ) -> Result<Option<T>, CompassConfigurationError> {
         match self.get(key.clone()) {
             None => Ok(None),
             Some(value) => {
-                let result: T = serde_json::from_value(value.clone()).map_err(|_| {
-                    CompassConfigurationError::ExpectedFieldWithType(
-                        key.clone(),
-                        String::from("string-parseable"),
-                    )
-                })?;
+                let result: T = serde_json::from_value(value.clone())
+                    .map_err(CompassConfigurationError::SerdeDeserializationError)?;
                 return Ok(Some(result));
             }
         }
