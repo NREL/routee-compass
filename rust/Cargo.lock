@@ -275,6 +275,7 @@ dependencies = [
  "env_logger",
  "flate2",
  "geo",
+ "geojson",
  "itertools 0.11.0",
  "kdam",
  "log",
@@ -631,6 +632,7 @@ dependencies = [
  "num-traits",
  "robust",
  "rstar",
+ "serde",
 ]
 
 [[package]]
@@ -652,6 +654,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ea804e7bd3c6a4ca6a01edfa35231557a8a81d4d3f3e1e2b650d028c42592be"
 dependencies = [
  "lazy_static",
+]
+
+[[package]]
+name = "geojson"
+version = "0.24.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a5d728c1df1fbf328d74151efe6cb0586f79ee813346ea981add69bd22c9241b"
+dependencies = [
+ "geo-types",
+ "log",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
