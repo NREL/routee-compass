@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use super::traversal_ops as ops;
-use crate::{app::search::search_app_result::SearchAppResult, plugin::plugin_error::PluginError};
+use crate::plugin::plugin_error::PluginError;
 use compass_core::{
-    algorithm::search::search_tree_branch::SearchTreeBranch, model::graph::vertex_id::VertexId,
+    algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
+    model::graph::vertex_id::VertexId,
 };
 use geo::LineString;
 use serde::{Deserialize, Serialize};
@@ -11,7 +12,7 @@ use wkt::ToWkt;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
-enum GeometryOutputFormat {
+pub enum TraversalOutputFormat {
     // concatenates all LINESTRINGS and returns the geometry as a WKT
     Wkt,
     // returns the properties of each link traversal as a JSON array of objects
@@ -20,24 +21,24 @@ enum GeometryOutputFormat {
     GeoJson,
 }
 
-impl GeometryOutputFormat {
+impl TraversalOutputFormat {
     pub fn generate_route_output(
         &self,
-        result: &SearchAppResult,
+        route: &Vec<EdgeTraversal>,
         geoms: &Vec<LineString<f64>>,
     ) -> Result<serde_json::Value, PluginError> {
         match self {
-            GeometryOutputFormat::Wkt => {
-                let route_geometry = ops::create_route_linestring(&result.route, geoms)?;
+            TraversalOutputFormat::Wkt => {
+                let route_geometry = ops::create_route_linestring(route, geoms)?;
                 let route_wkt = route_geometry.wkt_string();
                 Ok(serde_json::Value::String(route_wkt))
             }
-            GeometryOutputFormat::Json => {
-                let result = serde_json::to_value(&result.route)?;
+            TraversalOutputFormat::Json => {
+                let result = serde_json::to_value(route)?;
                 Ok(result)
             }
-            GeometryOutputFormat::GeoJson => {
-                let result = ops::create_route_geojson(&result.route, geoms)?;
+            TraversalOutputFormat::GeoJson => {
+                let result = ops::create_route_geojson(route, geoms)?;
                 Ok(result)
             }
         }
@@ -49,16 +50,16 @@ impl GeometryOutputFormat {
         geoms: &Vec<LineString<f64>>,
     ) -> Result<serde_json::Value, PluginError> {
         match self {
-            GeometryOutputFormat::Wkt => {
+            TraversalOutputFormat::Wkt => {
                 let route_geometry = ops::create_tree_multilinestring(&tree, geoms)?;
                 let route_wkt = route_geometry.wkt_string();
                 Ok(serde_json::Value::String(route_wkt))
             }
-            GeometryOutputFormat::Json => {
+            TraversalOutputFormat::Json => {
                 let result = serde_json::to_value(&tree.values().collect::<Vec<_>>())?;
                 Ok(result)
             }
-            GeometryOutputFormat::GeoJson => {
+            TraversalOutputFormat::GeoJson => {
                 let result = ops::create_tree_geojson(&tree, geoms)?;
                 Ok(result)
             }
@@ -123,20 +124,20 @@ mod test {
 
         println!(
             "{:?}",
-            GeometryOutputFormat::Wkt
-                .generate_route_output(&result, &geoms)
+            TraversalOutputFormat::Wkt
+                .generate_route_output(&result.route, &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );
         println!(
             "{:?}",
-            GeometryOutputFormat::Json
-                .generate_route_output(&result, &geoms)
+            TraversalOutputFormat::Json
+                .generate_route_output(&result.route, &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );
         println!(
             "{:?}",
-            GeometryOutputFormat::GeoJson
-                .generate_route_output(&result, &geoms)
+            TraversalOutputFormat::GeoJson
+                .generate_route_output(&result.route, &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );
     }
