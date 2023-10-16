@@ -1,8 +1,8 @@
+use crate::{algorithm::search::edge_traversal::EdgeTraversal, model::graph::vertex_id::VertexId};
+use serde::Serialize;
 use std::fmt::Display;
 
-use crate::{algorithm::search::edge_traversal::EdgeTraversal, model::graph::vertex_id::VertexId};
-
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct SearchTreeBranch {
     pub terminal_vertex: VertexId,
     pub edge_traversal: EdgeTraversal,
