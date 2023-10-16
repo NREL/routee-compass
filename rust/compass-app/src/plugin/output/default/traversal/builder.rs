@@ -1,11 +1,11 @@
+use super::{geometry_output_format::TraversalOutputFormat, plugin::TraversalPlugin};
 use crate::{
     app::compass::config::{
         builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,
+        config_json_extension::ConfigJsonExtensions,
     },
     plugin::output::output_plugin::OutputPlugin,
 };
-
-use super::plugin::TraversalPlugin;
 
 pub struct TraversalPluginBuilder {}
 
@@ -14,46 +14,20 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
-        let geometry_filename_key = String::from("edge_file");
-        let route_geometry_key = String::from("route_geometry");
-        let tree_geometry_key = String::from("tree_geometry");
-        let geometry_filename = parameters
-            .get(&geometry_filename_key)
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                geometry_filename_key.clone(),
-                String::from("Geometry Output Plugin"),
-            ))?
-            .as_str()
-            .map(String::from)
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                geometry_filename_key.clone(),
-                String::from("String"),
-            ))?;
-        let route_geometry = parameters
-            .get(&route_geometry_key)
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                route_geometry_key.clone(),
-                String::from("Geometry Output Plugin"),
-            ))?
-            .as_bool()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                route_geometry_key.clone(),
-                String::from("String"),
-            ))?;
-        let tree_geometry = parameters
-            .get(&tree_geometry_key)
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                tree_geometry_key.clone(),
-                String::from("Geometry Output Plugin"),
-            ))?
-            .as_bool()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                tree_geometry_key.clone(),
-                String::from("String"),
-            ))?;
-        let geom_plugin =
-            TraversalPlugin::from_file(&geometry_filename, route_geometry, tree_geometry)
-                .map_err(CompassConfigurationError::PluginError)?;
+        let parent_key = String::from("traversal");
+        let geometry_filename_key = String::from("geometry_file");
+        let route_geometry_key = String::from("route");
+        let tree_geometry_key = String::from("tree");
+
+        let geometry_filename =
+            parameters.get_config_string(geometry_filename_key, parent_key.clone())?;
+        let route: Option<TraversalOutputFormat> =
+            parameters.get_config_serde_optional(route_geometry_key, parent_key.clone())?;
+        let tree: Option<TraversalOutputFormat> =
+            parameters.get_config_serde_optional(tree_geometry_key, parent_key.clone())?;
+
+        let geom_plugin = TraversalPlugin::from_file(&geometry_filename, route, tree)
+            .map_err(CompassConfigurationError::PluginError)?;
         Ok(Box::new(geom_plugin))
     }
 }
