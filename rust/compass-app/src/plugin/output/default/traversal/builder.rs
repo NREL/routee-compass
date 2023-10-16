@@ -10,6 +10,8 @@ use crate::{
 pub struct TraversalPluginBuilder {}
 
 impl OutputPluginBuilder for TraversalPluginBuilder {
+    /// builds the traversal output plugin, which allows users to configure how they want to
+    /// output datasets related to the route plan and tree.
     fn build(
         &self,
         parameters: &serde_json::Value,

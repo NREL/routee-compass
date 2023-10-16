@@ -22,6 +22,7 @@ pub enum TraversalOutputFormat {
 }
 
 impl TraversalOutputFormat {
+    /// generates output for a route based on the configured TraversalOutputFormat
     pub fn generate_route_output(
         &self,
         route: &Vec<EdgeTraversal>,
@@ -44,6 +45,7 @@ impl TraversalOutputFormat {
         }
     }
 
+    /// generates output for a tree based on the configured TraversalOutputFormat
     pub fn generate_tree_output(
         &self,
         tree: &HashMap<VertexId, SearchTreeBranch>,
