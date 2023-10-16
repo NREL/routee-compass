@@ -1,5 +1,10 @@
+use std::collections::HashMap;
+
 use super::traversal_ops as ops;
 use crate::{app::search::search_app_result::SearchAppResult, plugin::plugin_error::PluginError};
+use compass_core::{
+    algorithm::search::search_tree_branch::SearchTreeBranch, model::graph::vertex_id::VertexId,
+};
 use geo::LineString;
 use serde::{Deserialize, Serialize};
 use wkt::ToWkt;
@@ -7,8 +12,11 @@ use wkt::ToWkt;
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 enum GeometryOutputFormat {
-    AggregateWkt,
-    EdgePropertiesJson,
+    // concatenates all LINESTRINGS and returns the geometry as a WKT
+    Wkt,
+    // returns the properties of each link traversal as a JSON array of objects
+    Json,
+    // returns the geometries and properties as GeoJSON
     GeoJson,
 }
 
@@ -19,17 +27,39 @@ impl GeometryOutputFormat {
         geoms: &Vec<LineString<f64>>,
     ) -> Result<serde_json::Value, PluginError> {
         match self {
-            GeometryOutputFormat::AggregateWkt => {
-                let route_geometry = ops::create_route_geometry(&result.route, geoms)?;
+            GeometryOutputFormat::Wkt => {
+                let route_geometry = ops::create_route_linestring(&result.route, geoms)?;
                 let route_wkt = route_geometry.wkt_string();
                 Ok(serde_json::Value::String(route_wkt))
             }
-            GeometryOutputFormat::EdgePropertiesJson => {
+            GeometryOutputFormat::Json => {
                 let result = serde_json::to_value(&result.route)?;
                 Ok(result)
             }
             GeometryOutputFormat::GeoJson => {
-                let result = ops::create_annotated_with_geometries(&result.route, geoms)?;
+                let result = ops::create_route_geojson(&result.route, geoms)?;
+                Ok(result)
+            }
+        }
+    }
+
+    pub fn generate_tree_output(
+        &self,
+        tree: &HashMap<VertexId, SearchTreeBranch>,
+        geoms: &Vec<LineString<f64>>,
+    ) -> Result<serde_json::Value, PluginError> {
+        match self {
+            GeometryOutputFormat::Wkt => {
+                let route_geometry = ops::create_tree_multilinestring(&tree, geoms)?;
+                let route_wkt = route_geometry.wkt_string();
+                Ok(serde_json::Value::String(route_wkt))
+            }
+            GeometryOutputFormat::Json => {
+                let result = serde_json::to_value(&tree.values().collect::<Vec<_>>())?;
+                Ok(result)
+            }
+            GeometryOutputFormat::GeoJson => {
+                let result = ops::create_tree_geojson(&tree, geoms)?;
                 Ok(result)
             }
         }
@@ -93,13 +123,13 @@ mod test {
 
         println!(
             "{:?}",
-            GeometryOutputFormat::AggregateWkt
+            GeometryOutputFormat::Wkt
                 .generate_route_output(&result, &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );
         println!(
             "{:?}",
-            GeometryOutputFormat::EdgePropertiesJson
+            GeometryOutputFormat::Json
                 .generate_route_output(&result, &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );
