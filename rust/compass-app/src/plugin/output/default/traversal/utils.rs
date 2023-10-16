@@ -57,3 +57,33 @@ pub fn parse_linestring(_idx: usize, row: String) -> Result<LineString, std::io:
     })?;
     Ok(geom)
 }
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn test_concat_linstrings() {
+        let line1 = LineString::from(vec![
+            Point::from((0.0, 0.0)),
+            Point::from((1.0, 1.0)),
+            Point::from((2.0, 2.0)),
+        ]);
+        let line2 = LineString::from(vec![
+            Point::from((3.0, 3.0)),
+            Point::from((4.0, 4.0)),
+            Point::from((5.0, 5.0)),
+        ]);
+        let line3 = LineString::from(vec![
+            Point::from((6.0, 6.0)),
+            Point::from((7.0, 7.0)),
+            Point::from((8.0, 8.0)),
+        ]);
+        let result = concat_linestrings(vec![&line1, &line2, &line3]);
+        assert_eq!(result.points().len(), 9);
+        let points = result.into_points();
+        assert_eq!(points[0], Point::from((0.0, 0.0)));
+        assert_eq!(points[8], Point::from((8.0, 8.0)));
+    }
+}
