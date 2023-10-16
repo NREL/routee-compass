@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::json_extensions::TraversalJsonExtensions;
 use super::utils::{concat_linestrings, parse_linestring};
 use crate::app::search::search_app_result::SearchAppResult;
@@ -14,6 +12,7 @@ use compass_core::util::fs::read_utils::read_raw_file;
 use geo::{LineString, MultiLineString};
 use kdam::Bar;
 use kdam::BarExt;
+use std::collections::HashMap;
 
 pub struct TraversalPlugin {
     geoms: Vec<LineString<f64>>,
