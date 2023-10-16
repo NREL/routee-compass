@@ -8,7 +8,33 @@ use geojson::feature::Id;
 use geojson::{Feature, FeatureCollection};
 use std::collections::HashMap;
 
-pub fn create_annotated_with_geometries(
+pub fn create_tree_geojson(
+    tree: &HashMap<VertexId, SearchTreeBranch>,
+    geoms: &Vec<LineString<f64>>,
+) -> Result<serde_json::Value, PluginError> {
+    let features = tree
+        .values()
+        .map(|t| {
+            let row_result = geoms
+                .get(t.edge_traversal.edge_id.0 as usize)
+                .cloned()
+                .ok_or(PluginError::GeometryMissing(t.edge_traversal.edge_id.0))
+                .and_then(|g| create_geojson_feature(&t.edge_traversal, g));
+
+            row_result
+        })
+        .collect::<Result<Vec<_>, PluginError>>()?;
+    // let result_json = serde_json::to_value(features)?;/
+    let feature_collection = FeatureCollection {
+        bbox: None,
+        features,
+        foreign_members: None,
+    };
+    let result = serde_json::to_value(feature_collection)?;
+    Ok(result)
+}
+
+pub fn create_route_geojson(
     route: &Vec<EdgeTraversal>,
     geoms: &Vec<LineString<f64>>,
 ) -> Result<serde_json::Value, PluginError> {
@@ -27,7 +53,7 @@ pub fn create_annotated_with_geometries(
     // let result_json = serde_json::to_value(features)?;/
     let feature_collection = FeatureCollection {
         bbox: None,
-        features: features,
+        features,
         foreign_members: None,
     };
     let result = serde_json::to_value(feature_collection)?;
@@ -73,7 +99,7 @@ pub fn create_branch_geometry(
     create_edge_geometry(&branch.edge_traversal, geoms)
 }
 
-pub fn create_route_geometry(
+pub fn create_route_linestring(
     route: &Vec<EdgeTraversal>,
     geoms: &Vec<LineString<f64>>,
 ) -> Result<LineString, PluginError> {
@@ -95,7 +121,7 @@ pub fn create_route_geometry(
     return Ok(geometry);
 }
 
-pub fn create_tree_geometry(
+pub fn create_tree_multilinestring(
     tree: &HashMap<VertexId, SearchTreeBranch>,
     geoms: &Vec<LineString<f64>>,
 ) -> Result<MultiLineString, PluginError> {
