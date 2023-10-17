@@ -22,7 +22,9 @@ classifiers = [
 keywords = ["eco routing"]
 dependencies = []
 [project.optional-dependencies]
+all = ["nrel.routee.compass[osm]", "nrel.routee.compass[plot]"]
 osm = ['osmnx', 'toml']
+plot = ["folium", "matplotlib"]
 dev = [
     "nrel.routee.compass[osm]",
     "black",
