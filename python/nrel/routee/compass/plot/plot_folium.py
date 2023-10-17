@@ -1,24 +1,27 @@
-from typing import Any, Callable, Optional, Union, TYPE_CHECKING
+from typing import Any, Callable, Optional, Union
 from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
 
-if TYPE_CHECKING:
-    import folium
+DEFAULT_LINE_KWARGS = {
+    "color": "blue",
+    "weight": 10,
+    "opacity": 0.8,
+}
 
 
 def plot_route_folium(
     result_dict: dict,
-    route_name: Optional[str] = None,
-    route_color: str = "blue",
-    folium_map: Optional[folium.Map] = None,
+    line_kwargs: Optional[dict] = None,
+    folium_map=None,
 ):
     """
     Plots a single route from a compass query on a folium map.
 
     Args:
         result_dict (Dict[str, Any]): A result dictionary from a CompassApp query
-        route_name (str, optional): The name of the route. Defaults to None.
-        route_color (str, optional): The color of the route. Defaults to "blue".
-        folium_map (folium.Map, optional): A existing folium map to plot the route on. Defaults to None.
+        line_kwargs (Optional[Dict[str, Any]], optional): A dictionary of keyword
+            arguments to pass to the folium Polyline
+        folium_map (folium.Map, optional): A existing folium map to plot the route on.
+            Defaults to None.
 
     Returns:
         folium.Map: A folium map with the route plotted on it
@@ -66,12 +69,15 @@ def plot_route_folium(
 
         folium_map = folium.Map(location=mid, zoom_start=12)
 
+    if line_kwargs is None:
+        kwargs = DEFAULT_LINE_KWARGS
+    else:
+        kwargs = DEFAULT_LINE_KWARGS
+        kwargs.update(line_kwargs)
+
     folium.PolyLine(
         locations=coords,
-        weight=10,
-        opacity=0.8,
-        color=route_color,
-        tooltip=route_name,
+        **kwargs,
     ).add_to(folium_map)
 
     start_icon = folium.Icon(color="green", icon="circle", prefix="fa")
@@ -123,7 +129,7 @@ def plot_routes_folium(
     """
     try:
         import matplotlib.pyplot as plt
-        import matplotlib.colors as colors
+        import matplotlib.colors as mcolors 
     except ImportError:
         raise ImportError(
             "You need to install the matplotlib package to use this function"
@@ -136,7 +142,7 @@ def plot_routes_folium(
 
     cmap = plt.get_cmap(color_map)
     if all(isinstance(v, float) or isinstance(v, int) for v in values):
-        norm = colors.Normalize(vmin=min(values), vmax=max(values))
+        norm = mcolors.Normalize(vmin=min(values), vmax=max(values))
         colors = [rgba_to_hex(cmap(norm(v))) for v in values]
     else:
         cmap_iter = ColormapCircularIterator(cmap, len(values))
@@ -144,7 +150,6 @@ def plot_routes_folium(
 
     folium_map = None
     for result, value, route_color in zip(results, values, colors):
-        folium_map = plot_route_folium(
-            result, value, route_color, folium_map=folium_map
-        )
+        line_kwargs = {"color": route_color, "tooltip": f"{value}"}
+        folium_map = plot_route_folium(result, line_kwargs, folium_map=folium_map)
     return folium_map
