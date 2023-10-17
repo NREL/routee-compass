@@ -15,7 +15,7 @@ use wkt::TryFromWkt;
 ///
 /// ```rust
 /// use geo::{LineString, Point};
-/// use compass_app::plugin::output::default::geometry::utils::concat_linestrings;
+/// use compass_app::plugin::output::default::traversal::utils::concat_linestrings;
 ///
 /// let line1 = LineString::from(vec![
 ///     Point::from((0.0, 0.0)),
