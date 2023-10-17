@@ -108,13 +108,18 @@ impl TraversalModel for SpeedLookupModel {
         Ok(Cost::from(time))
     }
 
-    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+    fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
         let distance = get_distance_from_state(state);
         let time = get_time_from_state(state);
         serde_json::json!({
             "distance": distance,
-            "distance_unit": self.output_distance_unit,
             "time": time,
+        })
+    }
+
+    fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
+        serde_json::json!({
+            "distance_unit": self.output_distance_unit,
             "time_unit": self.output_time_unit,
         })
     }

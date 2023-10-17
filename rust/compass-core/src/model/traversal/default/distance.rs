@@ -53,10 +53,15 @@ impl TraversalModel for DistanceModel {
             .map(|d| Cost::from(d))
             .map_err(TraversalModelError::NumericError);
     }
-    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+    fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
         let total_distance = state[0].0;
         serde_json::json!({
-            "distance": total_distance,
+            "distance": total_distance
+        })
+    }
+
+    fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
+        serde_json::json!({
             "distance_unit": self.distance_unit
         })
     }

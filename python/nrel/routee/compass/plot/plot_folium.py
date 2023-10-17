@@ -1,5 +1,6 @@
 from typing import Any, Callable, Optional, Union
 from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
+import json
 
 DEFAULT_LINE_KWARGS = {
     "color": "blue",
@@ -7,6 +8,8 @@ DEFAULT_LINE_KWARGS = {
     "opacity": 0.8,
 }
 
+# routes should exist at a "route" key
+ROUTE_KEY = "route"
 
 def plot_route_folium(
     result_dict: dict,
@@ -46,10 +49,10 @@ def plot_route_folium(
     if not isinstance(result_dict, dict):
         raise ValueError(f"Expected to get a dictionary but got a {type(result_dict)}")
 
-    geom = result_dict.get("geometry")
+    geom = result_dict.get(ROUTE_KEY)
     if geom is None:
         raise KeyError(
-            "Could not find geometry in result. "
+            f"Could not find '{ROUTE_KEY}' in result. "
             "Make sure the geometry output plugin is activated"
         )
 
@@ -59,8 +62,13 @@ def plot_route_folium(
         linestring = shapely.from_wkt(geom)
     elif isinstance(geom, bytes):
         linestring = shapely.from_wkb(geom)
+    elif isinstance(geom, dict) and geom.get("features") is not None:
+        # RouteE Compass can output GeoJson as a GeometryCollection
+        # and we expect we can concatenate the result as a single linestring
+        feature_collection = shapely.from_geojson(json.dumps(geom))
+        linestring = shapely.ops.linemerge(feature_collection.geoms)
     else:
-        raise ValueError("Could not parse geometry")
+        raise ValueError("Could not parse route geometry")
 
     coords = [(lat, lon) for lon, lat in linestring.coords]
 

@@ -107,20 +107,25 @@ impl TraversalModel for SpeedGradeModel {
         Ok(result)
     }
 
-    fn summary(&self, state: &TraversalState) -> serde_json::Value {
+    fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
         let distance = get_distance_from_state(state);
         let time = get_time_from_state(state);
         let energy = get_energy_from_state(state);
+        serde_json::json!({
+            "distance": distance,
+            "time": time,
+            "energy": energy,
+        })
+    }
+
+    fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
         let energy_unit = self
             .service
             .energy_model_energy_rate_unit
             .associated_energy_unit();
         serde_json::json!({
-            "distance": distance,
             "distance_unit": self.service.output_distance_unit,
-            "time": time,
             "time_unit": self.service.output_time_unit,
-            "energy": energy,
             "energy_unit": energy_unit,
         })
     }

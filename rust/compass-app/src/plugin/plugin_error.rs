@@ -20,13 +20,15 @@ pub enum PluginError {
     },
     #[error(transparent)]
     JsonError(#[from] serde_json::Error),
-    #[error("error with reading file")]
+    #[error(transparent)]
+    GeoJsonError(#[from] geojson::Error),
+    #[error(transparent)]
     CsvReadError(#[from] csv::Error),
     #[error("geometry missing for edge id {0}")]
     GeometryMissing(u64),
     #[error("uuid missing for edge id {0}")]
     UUIDMissing(usize),
-    #[error("error during search")]
+    #[error(transparent)]
     SearchError(#[from] SearchError),
     #[error("expected query to be a json object '{{}}' but found {0}")]
     UnexpectedQueryStructure(String),
