@@ -1,7 +1,6 @@
 [graph]
-type = "tomtom"
-edge_file = "data/tomtom_multinet_r_2021/edges-compass.csv.gz"
-vertex_file = "data/tomtom_multinet_r_2021/vertices-compass.csv.gz"
+edge_file = "edges-compass.csv.gz"
+vertex_file = "vertices-compass.csv.gz"
 n_edges = 125309338
 n_vertices = 56306871
 verbose = true
@@ -14,17 +13,11 @@ bidirectional = false
 [traversal]
 type = "distance"
 
-# [traversal]
-# type = "energy"
-# model = "random_forest"
-# velocity_filename = "data/tomtom_multinet_r_2021/edges-free-flow-speed-avg-fill-enumerated.txt.gz"
-# velocity_output_unit = "Milliseconds"
-
 [plugin]
 input_plugins = [
-    { type = "vertex_rtree", vertices_file = "data/tomtom_multinet_r_2021/vertices-compass.csv.gz" },
+    { type = "vertex_rtree", vertices_file = "vertices-compass.csv.gz" },
 ]
 output_plugins = [
     { type = "summary" },
-    { type = "geometry", edge_file = "data/tomtom_multinet_r_2021/edges-geometries-enumerated.txt.gz" },
+    { type = "geometry", edge_file = "edges-geometries-enumerated.txt.gz" },
 ]

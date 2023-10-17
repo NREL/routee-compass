@@ -1,8 +1,8 @@
 use clap::Parser;
 use compass_app::app::app_error::AppError;
 use compass_app::app::compass::compass_app::CompassApp;
+use compass_app::app::compass::compass_app_args::CompassAppArgs;
 use compass_app::app::compass::compass_json_extensions::CompassJsonExtensions;
-use compass_app::app::compass::config_old::compass_app_args::CompassAppArgs;
 use log::info;
 use std::error::Error;
 use std::fs::File;
