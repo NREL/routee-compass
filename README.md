@@ -8,11 +8,20 @@ RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of sof
 
 ## Quickstart
 
-To install RouteE Compass, we must first install Rust:
+To install RouteE Compass, we must first install Rust.
+
+### Rust
+#### Via Anaconda:
 
 ```bash
 conda install -c conda-forge rust
 ```
+
+#### Via rust-lang.org
+
+Follow instructions at [https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install).
+
+### Compass
 
 The fastest way to get started with RouteE Compass is to use the python package manager `pip`:
 
