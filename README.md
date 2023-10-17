@@ -8,13 +8,19 @@ RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of sof
 
 ## Quickstart
 
+To install RouteE Compass, we must first install Rust:
+
+```bash
+conda install -c conda-forge rust
+```
+
 The fastest way to get started with RouteE Compass is to use the python package manager `pip`:
 
 ```bash
 pip install nrel.routee.compass[osm]
 ```
 
-Then, follow this [example](notebooks/open_street_maps_example.ipynb) to start routing over Open Street Maps data.
+Then, follow this [example](docs/notebooks/open_street_maps_example.ipynb) to start routing over Open Street Maps data.
 
 TODO: Once we go live point update this:
 See the [documentation](https://nrel.github.io/routee-compass/) for more information.
