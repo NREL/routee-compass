@@ -8,7 +8,7 @@ pub enum TraversalJsonField {
 impl TraversalJsonField {
     pub fn as_str(self) -> &'static str {
         match self {
-            TraversalJsonField::RouteOutput => "geometry",
+            TraversalJsonField::RouteOutput => "route",
             TraversalJsonField::TreeOutput => "tree",
         }
     }
