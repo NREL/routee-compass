@@ -6,7 +6,6 @@ readme = "README.md"
 
 [dependencies]
 compass-core = { path = "../compass-core" }
-compass-tomtom = { path = "../compass-tomtom" }
 compass-powertrain = { path = "../compass-powertrain" }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
