@@ -199,11 +199,13 @@ impl CompassApp {
                 queries
                     .iter()
                     .map(|q| self.run_single_query(q.clone()))
-                    .collect()
+                    .collect::<Result<Vec<serde_json::Value>, AppError>>()
             })
-            .collect::<Result<Vec<serde_json::Value>, AppError>>()?;
+            .collect::<Result<Vec<Vec<serde_json::Value>>, AppError>>()?;
+
         let run_result = run_query_result
             .into_iter()
+            .flatten()
             .chain(input_error_responses)
             .collect();
 
