@@ -12,6 +12,8 @@ parts:
   - caption: User Reference
     chapters:
     - file: notebooks/open_street_maps_example 
+    - file: query 
+    - file: config 
     - file: python_api_docs
     - file: rust_api_docs 
 
