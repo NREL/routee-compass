@@ -11,6 +11,7 @@ DEFAULT_LINE_KWARGS = {
 # routes should exist at a "route" key
 ROUTE_KEY = "route"
 
+
 def plot_route_folium(
     result_dict: dict,
     line_kwargs: Optional[dict] = None,
@@ -137,7 +138,7 @@ def plot_routes_folium(
     """
     try:
         import matplotlib.pyplot as plt
-        import matplotlib.colors as mcolors 
+        import matplotlib.colors as mcolors
     except ImportError:
         raise ImportError(
             "You need to install the matplotlib package to use this function"

@@ -4,7 +4,9 @@ from pkg_resources import resource_filename
 import logging
 import shutil
 
-log = logging.getLogger("nrel.routee.compass.io")
+from nrel.routee.compass.io.utils import add_grade_to_graph
+
+log = logging.getLogger(__name__)
 
 
 def generate_compass_dataset(
@@ -13,6 +15,7 @@ def generate_compass_dataset(
     hwy_speeds: Optional[Dict] = None,
     fallback: Optional[float] = None,
     agg: Optional[Callable] = None,
+    add_grade: bool = False,
     default_config: bool = True,
     default_energy_model: bool = True,
 ):
@@ -36,6 +39,7 @@ def generate_compass_dataset(
         agg (Callable, optional): Aggregation function to impute missing values from observed values.
             The default is numpy.mean, but you might also consider for example
             numpy.median, numpy.nanmedian, or your own custom function. Defaults to numpy.mean.
+        add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.
         default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
         default_energy_model (bool, optional): If true, copy a trained RouteE Powertrain model into the output directory. Defaults to True.
 
@@ -44,17 +48,18 @@ def generate_compass_dataset(
         >>> g = ox.graph_from_place("Denver, Colorado, USA")
         >>> generate_compass_dataset(g, Path("denver_co"))
     """
-
-    import numpy as np
-    import osmnx as ox
-    from networkx import MultiDiGraph
+    try:
+        import osmnx as ox
+        import numpy as np
+    except ImportError:
+        raise ImportError("requires osmnx to be installed. " "Try 'pip install osmnx'")
 
     try:
         import toml
-    except Exception:
+    except ImportError:
         try:
-            import tomllib as toml
-        except Exception:
+            import tomllib as toml # type: ignore
+        except ImportError:
             raise ImportError(
                 "requires Python 3.11 tomllib or pip install toml for earier Python versions"
             )
@@ -64,9 +69,13 @@ def generate_compass_dataset(
 
     # pre-process the graph
     log.info("processing graph topology and speeds")
-    g1 = g.copy()
-    g1 = ox.utils_graph.get_largest_component(g1)
+    g1 = ox.utils_graph.get_largest_component(g)
     g1 = ox.add_edge_speeds(g1, hwy_speeds=hwy_speeds, fallback=fallback, agg=agg)
+
+    if add_grade:
+        log.info("adding grade information")
+        g1 = add_grade_to_graph(g1)
+
     v, e = ox.graph_to_gdfs(g1)
 
     # process vertices
@@ -137,6 +146,13 @@ def generate_compass_dataset(
         header=False,
     )
 
+    if add_grade:
+        e.grade.to_csv(
+            output_directory / "edges-grade-enumerated.txt.gz",
+            index=False,
+            header=False,
+        )
+
     # COPY DEFAULT CONFIGURATION FILES
     if default_config:
         log.info("copying default configuration TOML files")
@@ -150,6 +166,11 @@ def generate_compass_dataset(
             )
             with open(init_toml_file, "r") as f:
                 init_toml = toml.loads(f.read())
+                if filename == "osm_default_energy.toml" and add_grade:
+                    init_toml["traversal"][
+                        "grade_table_path"
+                    ] = "edges-grade-enumerated.txt.gz"
+                    init_toml["traversal"]["grade_table_grade_unit"] = "decimal"
             with open(output_directory / filename, "w") as f:
                 f.write(toml.dumps(init_toml))
 
