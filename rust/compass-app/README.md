@@ -1,4 +1,14 @@
-This is the rust application for running the RouteE-Compass energy-aware routing engine.
+The RouteE-Compass energy-aware routing engine.
+
+### Crates
+
+This documentation is built around use of the `compass_app` crate.
+This repo is setup as a [workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) containing these additional sub-crates:
+
+* [compass-core] - core data structures and algorithms used by Compass
+* [compass-powertrain] - traversal model supporting energy-optimal route planning via [RouteE Powertrain](https://github.com/nrel/routee-powertrain)
+* compass-app-py - python bindings for [CompassApp] 
+* [compass-app] - application built around the core model intended for command-line execution or longer-running applications such as the python sdk (this README)
 
 ### Building CompassApp instances
 
@@ -14,7 +24,7 @@ If this is not needed, then sticking to the default is sufficient, via the `Comp
 
 With a running instance of [CompassApp], one can repeatedly issue queries via the `run` method:
 
-```rust
+```ignore
 let path: PathBuf = todo!();
 let app = CompassApp::try_from(path)?;
 // use vec![query] to run a single query
@@ -43,3 +53,7 @@ Any custom builders will need to be added to a [`CompassAppBuilder`] instance th
 [FrontierModelBuilder]: crate::app::compass::config::builders::FrontierModelBuilder
 [InputPluginBuilder]: crate::app::compass::config::builders::InputPluginBuilder
 [OutputPluginBuilder]: crate::app::compass::config::builders::OutputPluginBuilder
+
+[compass-core]: compass_core
+[compass-powertrain]: compass_powertrain
+[compass-app]: self
