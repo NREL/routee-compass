@@ -196,7 +196,6 @@ impl CompassApp {
         let run_query_result = input_queries
             .par_chunks(chunk_size)
             .map(|queries| {
-                log::info!("starting a parallel chunk with {} queries", queries.len());
                 queries
                     .iter()
                     .map(|q| self.run_single_query(q.clone()))
