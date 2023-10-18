@@ -204,7 +204,7 @@ impl CompassApp {
     ///   3. processes each output based on the OutputPlugins
     ///   4. returns the JSON response
     ///
-    /// only internal errors should cause CompassApp to halt. if there are
+    /// only  errors should cause CompassApp to halt. if there are
     /// errors due to the user, they should be propagated along into the output
     /// JSON in an error format along with the request.
     pub fn run(
@@ -239,8 +239,18 @@ impl CompassApp {
         return Ok(run_result);
     }
 
-    /// run a single query from end to end, applying input plugins, running the search
-    /// algorithm, and applying output plugins.
+    /// Helper function that runs CompassApp on a single query.
+    /// It is assumed that all pre-processing from InputPlugins have been applied.
+    /// This function runs a vertex-oriented search and feeds the result into the
+    /// OutputPlugins for post-processing, returning the result as JSON.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - a single search query that has been processed by InputPlugins
+    ///
+    /// # Returns
+    ///
+    /// * The result of the search and post-processing as a JSON object, or, an error
     pub fn run_single_query(
         &self,
         query: serde_json::Value,
