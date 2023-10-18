@@ -1,11 +1,11 @@
 use super::config::compass_app_builder::CompassAppBuilder;
 use crate::{
     app::{
-        app_error::AppError,
         compass::{
             compass_configuration_field::CompassConfigurationField,
             config::termination_model_builder::TerminationModelBuilder,
         },
+        compass_app_error::CompassAppError,
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
     plugin::{
@@ -35,7 +35,7 @@ pub struct CompassApp {
 }
 
 impl TryFrom<PathBuf> for CompassApp {
-    type Error = AppError;
+    type Error = CompassAppError;
 
     /// builds a CompassApp from a configuration file. builds all modules
     /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
@@ -53,7 +53,7 @@ impl TryFrom<PathBuf> for CompassApp {
             .add_source(config::File::from(default_file))
             .add_source(config::File::from(conf_file))
             .build()
-            .map_err(AppError::ConfigError)?;
+            .map_err(CompassAppError::ConfigError)?;
         log::info!("Config: {:?}", config);
         let builder = CompassAppBuilder::default();
         let compass_app = CompassApp::try_from((&config, &builder))?;
@@ -62,7 +62,7 @@ impl TryFrom<PathBuf> for CompassApp {
 }
 
 impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
-    type Error = AppError;
+    type Error = CompassAppError;
 
     /// builds a CompassApp from configuration. builds all modules
     /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
@@ -82,7 +82,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let traversal_model_service = builder.build_traversal_model_service(&traversal_params)?;
         let traversal_duration = (Local::now() - traversal_start)
             .to_std()
-            .map_err(|e| AppError::InternalError(e.to_string()))?;
+            .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
         log::info!(
             "finished reading traversal model with duration {}",
             traversal_duration.hhmmss()
@@ -95,7 +95,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let frontier_model = builder.build_frontier_model(frontier_params)?;
         let frontier_duration = (Local::now() - frontier_start)
             .to_std()
-            .map_err(|e| AppError::InternalError(e.to_string()))?;
+            .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
         log::info!(
             "finished reading frontier model with duration {}",
             frontier_duration.hhmmss()
@@ -110,11 +110,11 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let graph_start = Local::now();
         let graph_conf = &config
             .get::<GraphConfig>(CompassConfigurationField::Graph.to_str())
-            .map_err(AppError::ConfigError)?;
+            .map_err(CompassAppError::ConfigError)?;
         let graph = Graph::try_from(graph_conf)?;
         let graph_duration = (Local::now() - graph_start)
             .to_std()
-            .map_err(|e| AppError::InternalError(e.to_string()))?;
+            .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
         log::info!(
             "finished reading graph with duration {}",
             graph_duration.hhmmss()
@@ -169,7 +169,10 @@ impl CompassApp {
     /// only internal errors should cause CompassApp to halt. if there are
     /// errors due to the user, they should be propagated along into the output
     /// JSON in an error format along with the request.
-    pub fn run(&self, queries: Vec<serde_json::Value>) -> Result<Vec<serde_json::Value>, AppError> {
+    pub fn run(
+        &self,
+        queries: Vec<serde_json::Value>,
+    ) -> Result<Vec<serde_json::Value>, CompassAppError> {
         // input plugins need to be flattened, and queries that fail input processing need to be
         // returned at the end.
         let (input_bundles, input_error_responses): (
@@ -199,9 +202,9 @@ impl CompassApp {
                 queries
                     .iter()
                     .map(|q| self.run_single_query(q.clone()))
-                    .collect::<Result<Vec<serde_json::Value>, AppError>>()
+                    .collect::<Result<Vec<serde_json::Value>, CompassAppError>>()
             })
-            .collect::<Result<Vec<Vec<serde_json::Value>>, AppError>>()?;
+            .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()?;
 
         let run_result = run_query_result
             .into_iter()
@@ -217,7 +220,7 @@ impl CompassApp {
     pub fn run_single_query(
         &self,
         query: serde_json::Value,
-    ) -> Result<serde_json::Value, AppError> {
+    ) -> Result<serde_json::Value, CompassAppError> {
         let search_result = self.search_app.run_vertex_oriented(&query);
         let output = apply_output_processing(
             (&query, search_result),
@@ -229,9 +232,9 @@ impl CompassApp {
 }
 
 /// helper for handling conversion from Chrono Duration to std Duration
-fn to_std(dur: Duration) -> Result<std::time::Duration, AppError> {
+fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
     dur.to_std().map_err(|e| {
-        AppError::InternalError(format!(
+        CompassAppError::InternalError(format!(
             "unexpected internal error mapping chrono duration to std duration: {}",
             e.to_string()
         ))
@@ -273,7 +276,7 @@ pub fn apply_input_plugins(
 // 1. summarizing from the TraversalModel
 // 2. applying the output plugins
 pub fn apply_output_processing(
-    response_data: (&serde_json::Value, Result<SearchAppResult, AppError>),
+    response_data: (&serde_json::Value, Result<SearchAppResult, CompassAppError>),
     search_app: &SearchApp,
     output_plugins: &Vec<Box<dyn OutputPlugin>>,
 ) -> serde_json::Value {
@@ -341,7 +344,7 @@ pub fn apply_output_processing(
                     Err(e) => Err(e),
                     Ok(json) => plugin.process(&json, Ok(&result)),
                 })
-                .map_err(AppError::PluginError);
+                .map_err(CompassAppError::PluginError);
             match json_result {
                 Err(e) => {
                     serde_json::json!({

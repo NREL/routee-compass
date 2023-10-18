@@ -1,6 +1,6 @@
 use super::search_app_result::SearchAppResult;
 use crate::{
-    app::{app_error::AppError, compass::config::builders::TraversalModelService},
+    app::{compass::config::builders::TraversalModelService, compass_app_error::CompassAppError},
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
 use chrono::Local;
@@ -52,11 +52,13 @@ impl SearchApp {
     pub fn run_vertex_oriented(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchAppResult, AppError> {
-        let o = query.get_origin_vertex().map_err(AppError::PluginError)?;
+    ) -> Result<SearchAppResult, CompassAppError> {
+        let o = query
+            .get_origin_vertex()
+            .map_err(CompassAppError::PluginError)?;
         let d = query
             .get_destination_vertex()
-            .map_err(AppError::PluginError)?;
+            .map_err(CompassAppError::PluginError)?;
         let search_start_time = Local::now();
         let dg_inner = Arc::new(self.graph.read_only());
 
@@ -64,7 +66,7 @@ impl SearchApp {
             .traversal_model_service
             .read_only()
             .read()
-            .map_err(|e| AppError::ReadOnlyPoisonError(e.to_string()))?
+            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
             .build(query)?;
         let fm_inner = Arc::new(self.frontier_model.read_only());
         let rm_inner = Arc::new(self.termination_model.read_only());
@@ -102,7 +104,7 @@ impl SearchApp {
                     total_runtime: search_runtime + route_runtime,
                 })
             })
-            .map_err(AppError::SearchError)
+            .map_err(CompassAppError::SearchError)
     }
 
     ///
@@ -111,11 +113,13 @@ impl SearchApp {
     pub fn run_edge_oriented(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchAppResult, AppError> {
-        let o = query.get_origin_edge().map_err(AppError::PluginError)?;
+    ) -> Result<SearchAppResult, CompassAppError> {
+        let o = query
+            .get_origin_edge()
+            .map_err(CompassAppError::PluginError)?;
         let d = query
             .get_destination_edge()
-            .map_err(AppError::PluginError)?;
+            .map_err(CompassAppError::PluginError)?;
         let search_start_time = Local::now();
         let dg_inner_search = Arc::new(self.graph.read_only());
         let dg_inner_backtrack = Arc::new(self.graph.read_only());
@@ -123,7 +127,7 @@ impl SearchApp {
             .traversal_model_service
             .read_only()
             .read()
-            .map_err(|e| AppError::ReadOnlyPoisonError(e.to_string()))?
+            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
             .build(query)?;
         let fm_inner = Arc::new(self.frontier_model.read_only());
         let rm_inner = Arc::new(self.termination_model.read_only());
@@ -154,7 +158,7 @@ impl SearchApp {
                     total_runtime: search_runtime + route_runtime,
                 })
             })
-            .map_err(AppError::SearchError)
+            .map_err(CompassAppError::SearchError)
     }
 
     /// helper function for accessing the TraversalModel
@@ -182,12 +186,12 @@ impl SearchApp {
     pub fn get_traversal_model_reference(
         &self,
         query: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModel>, AppError> {
+    ) -> Result<Arc<dyn TraversalModel>, CompassAppError> {
         let tm = self
             .traversal_model_service
             .read_only()
             .read()
-            .map_err(|e| AppError::ReadOnlyPoisonError(e.to_string()))?
+            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
             .build(query)?;
         return Ok(tm);
     }

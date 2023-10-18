@@ -13,11 +13,8 @@ pub enum PluginError {
     BuildError,
     #[error("nearest vertex not found for coord {0:?}")]
     NearestVertexNotFound(Coord),
-    #[error(transparent)]
-    FileReadError {
-        #[from]
-        source: std::io::Error,
-    },
+    #[error("unable to read file {filename} due to {message}")]
+    FileReadError { filename: String, message: String },
     #[error(transparent)]
     JsonError(#[from] serde_json::Error),
     #[error(transparent)]

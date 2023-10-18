@@ -12,7 +12,7 @@ use compass_core::{
 use config::ConfigError;
 
 #[derive(thiserror::Error, Debug)]
-pub enum AppError {
+pub enum CompassAppError {
     #[error(transparent)]
     SearchError(#[from] SearchError),
     #[error(transparent)]

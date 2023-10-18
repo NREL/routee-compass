@@ -23,7 +23,13 @@ impl TraversalPlugin {
         route: Option<TraversalOutputFormat>,
         tree: Option<TraversalOutputFormat>,
     ) -> Result<TraversalPlugin, PluginError> {
-        let count = fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename))?;
+        let count =
+            fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename)).map_err(|e| {
+                PluginError::FileReadError {
+                    filename: filename.clone(),
+                    message: e.to_string(),
+                }
+            })?;
 
         let mut pb = Bar::builder()
             .total(count)
@@ -35,7 +41,12 @@ impl TraversalPlugin {
         let cb = Box::new(|| {
             pb.update(1);
         });
-        let geoms = read_raw_file(&filename, parse_linestring, Some(cb))?;
+        let geoms = read_raw_file(&filename, parse_linestring, Some(cb)).map_err(|e| {
+            PluginError::FileReadError {
+                filename: filename.clone(),
+                message: e.to_string(),
+            }
+        })?;
         print!("\n");
         Ok(TraversalPlugin { geoms, route, tree })
     }
