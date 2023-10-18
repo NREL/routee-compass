@@ -27,6 +27,14 @@ use itertools::{Either, Itertools};
 use rayon::{current_num_threads, prelude::*};
 use std::path::PathBuf;
 
+/// Instance of RouteE Compass as an application.
+/// When constructed, it holds
+///   - the core search application which performs parallel path search
+///   - the input plugins for query pre-processing
+///   - the output plugins for query post-processing
+///
+/// A CompassApp instance provides the high-level API for building and
+/// running RouteE Compass.
 pub struct CompassApp {
     pub search_app: SearchApp,
     pub input_plugins: Vec<Box<dyn InputPlugin>>,
@@ -37,10 +45,18 @@ pub struct CompassApp {
 impl TryFrom<PathBuf> for CompassApp {
     type Error = CompassAppError;
 
-    /// builds a CompassApp from a configuration file. builds all modules
-    /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
-    /// also builds the input and output plugins.
-    /// returns a persistent application that can run user queries.
+    /// Builds a CompassApp from a configuration filepath, using the default CompassAppBuilder.
+    /// Builds all components such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
+    /// Also builds the input and output plugins.
+    /// Returns a persistent application that can run user queries in parallel.
+    ///
+    /// # Arguments
+    ///
+    /// * `conf_file` - path to a configuration TOML file
+    ///
+    /// # Returns
+    ///
+    /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(conf_file: PathBuf) -> Result<Self, Self::Error> {
         let default_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
@@ -64,10 +80,23 @@ impl TryFrom<PathBuf> for CompassApp {
 impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     type Error = CompassAppError;
 
-    /// builds a CompassApp from configuration. builds all modules
-    /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
-    /// also builds the input and output plugins.
-    /// returns a persistent application that can run user queries.
+    /// Builds a CompassApp from configuration and a (possibly customized) CompassAppBuilder.
+    /// Builds all modules such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
+    /// Also builds the input and output plugins.
+    /// Returns a persistent application that can run user queries in parallel.
+    ///
+    /// This is the extension API for building [`CompassApp`] instances.
+    /// In application, the user becomes responsible for
+    ///   -
+    ///
+    /// # Arguments
+    ///
+    /// * `pair` - a tuple containing a config object (such as a parsed TOML file) and
+    ///            a [`super::config::compass_app_builder::CompassAppBuilder`] instance
+    ///
+    /// # Returns
+    ///
+    /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
         let (config, builder) = pair;
 
