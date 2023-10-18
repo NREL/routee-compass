@@ -123,12 +123,6 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         // build search app
         let search_app_start = Local::now();
         let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
-        let pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(parallelism)
-            .build_global()
-            .map_err(|e| {
-                AppError::InternalError(format!("failure getting thread pool: {}", e.to_string()))
-            })?;
         let search_app: SearchApp = SearchApp::new(
             search_algorithm,
             graph,
@@ -191,10 +185,23 @@ impl CompassApp {
         let input_queries: Vec<serde_json::Value> = input_bundles.into_iter().flatten().collect();
 
         // run parallel searches using a rayon thread pool
-        log::info!("using {} threads to run queries", current_num_threads());
-        let run_query_result: Vec<serde_json::Value> = input_queries
-            .into_par_iter()
-            .map(|query| self.run_single_query(query))
+        let chunk_size = (input_queries.len() as f64 / self.parallelism as f64).ceil() as usize;
+        log::info!(
+            "using {} of {} threads to run queries with chunk size {}",
+            self.parallelism,
+            current_num_threads(),
+            chunk_size
+        );
+
+        let run_query_result = input_queries
+            .par_chunks(chunk_size)
+            .map(|queries| {
+                log::info!("starting a parallel chunk with {} queries", queries.len());
+                queries
+                    .iter()
+                    .map(|q| self.run_single_query(q.clone()))
+                    .collect()
+            })
             .collect::<Result<Vec<serde_json::Value>, AppError>>()?;
         let run_result = run_query_result
             .into_iter()
