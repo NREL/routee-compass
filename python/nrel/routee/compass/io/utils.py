@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from enum import Enum
 from pathlib import Path
 
 import math
 import itertools
 import logging
+from typing import Union
 
 log = logging.getLogger(__name__)
 
@@ -11,10 +14,31 @@ log = logging.getLogger(__name__)
 class TileResolution(Enum):
     ONE_ARC_SECOND = 1
     ONE_THIRD_ARC_SECOND = 13
-    ONE_NINTH_ARC_SECOND = 19
+
+    @classmethod
+    def from_string(self, string: str) -> TileResolution:
+        if string.lower() in ["1", "one"]:
+            return TileResolution.ONE_ARC_SECOND
+        elif string.lower() in ["1/3", "one third"]:
+            return TileResolution.ONE_THIRD_ARC_SECOND
+        else:
+            raise ValueError(
+                f"invalid string {string} for tile resolution. Must be one of: 1, one, 1/3, one third"
+            )
+
+    @classmethod
+    def from_int(self, int: int) -> TileResolution:
+        if int == 1:
+            return TileResolution.ONE_ARC_SECOND
+        elif int == 13:
+            return TileResolution.ONE_THIRD_ARC_SECOND
+        else:
+            raise ValueError(
+                f"invalid int {int} for tile resolution. Must be one of: 1, 13"
+            )
 
 
-def cover_floats_with_integers(float_min: float, float_max: float) -> list[int]:
+def _cover_floats_with_integers(float_min: float, float_max: float) -> list[int]:
     if float_max < float_min:
         raise ValueError("float max must be greater than float min")
 
@@ -25,7 +49,7 @@ def cover_floats_with_integers(float_min: float, float_max: float) -> list[int]:
     return integers
 
 
-def lat_lon_to_tile(coord: tuple[int, int]) -> str:
+def _lat_lon_to_tile(coord: tuple[int, int]) -> str:
     lat, lon = coord
     if lat < 0:
         lat_prefix = "s"
@@ -39,7 +63,7 @@ def lat_lon_to_tile(coord: tuple[int, int]) -> str:
     return f"{lat_prefix}{abs(lat)}{lon_prefix}{abs(lon)}"
 
 
-def build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) -> str:
+def _build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) -> str:
     base_link_fragment = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/"
     resolution_link_fragment = f"{resolution.value}/TIFF/current/{tile}/"
     filename = f"USGS_{resolution.value}_{tile}.tif"
@@ -48,7 +72,7 @@ def build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) -> 
     return link
 
 
-def download_tile(
+def _download_tile(
     tile: str,
     output_dir: Path = Path("cache"),
     resolution=TileResolution.ONE_ARC_SECOND,
@@ -59,14 +83,15 @@ def download_tile(
         raise ImportError(
             "requires requests to be installed. Try 'pip install requests'"
         )
-    url = build_download_link(tile, resolution)
+    url = _build_download_link(tile, resolution)
     filename = url.split("/")[-1]
     destination = output_dir / filename
     if destination.is_file():
-        print(f"{str(destination)} already exists, skipping")
+        log.info(f"{str(destination)} already exists, skipping")
         return destination
 
     with requests.get(url, stream=True) as r:
+        log.info(f"downloading {tile}")
         r.raise_for_status()
 
         destination.parent.mkdir(exist_ok=True)
@@ -82,7 +107,7 @@ def download_tile(
 def add_grade_to_graph(
     g,
     output_dir: Path = Path("cache"),
-    resolution: TileResolution = TileResolution.ONE_ARC_SECOND,
+    resolution_arc_seconds: Union[str, int] = 1,
 ):
     """
     Adds grade information to the edges of a graph.
@@ -97,7 +122,7 @@ def add_grade_to_graph(
     Args:
         g (nx.MultiDiGraph): The networkx graph to add grades to.
         output_dir (Path, optional): The directory to cache the downloaded tiles in. Defaults to Path("cache").
-        resolution (TileResolution, optional): The resolution of the tiles to download. Defaults to TileResolution.ONE_ARC_SECOND.
+        resolution_arc_seconds (str, optional): The resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
 
     Returns:
         nx.MultiDiGraph: The graph with grade information added to the edges.
@@ -119,15 +144,24 @@ def add_grade_to_graph(
     min_lon = node_gdf.x.min()
     max_lon = node_gdf.x.max()
 
-    lats = cover_floats_with_integers(min_lat, max_lat)
-    lons = cover_floats_with_integers(min_lon, max_lon)
+    lats = _cover_floats_with_integers(min_lat, max_lat)
+    lons = _cover_floats_with_integers(min_lon, max_lon)
 
-    tiles = map(lat_lon_to_tile, itertools.product(lats, lons))
+    tiles = map(_lat_lon_to_tile, itertools.product(lats, lons))
+
+    if isinstance(resolution_arc_seconds, int):
+        resolution = TileResolution.from_int(resolution_arc_seconds)
+    elif isinstance(resolution_arc_seconds, str):
+        resolution = TileResolution.from_string(resolution_arc_seconds)
+    else:
+        raise ValueError(
+            f"invalid type for resolution {resolution_arc_seconds}."
+            "Must be one of: int, str"
+        )
 
     files = []
     for tile in tiles:
-        print(f"downloading tile {tile}")
-        downloaded_file = download_tile(
+        downloaded_file = _download_tile(
             tile, output_dir=output_dir, resolution=resolution
         )
         files.append(str(downloaded_file))
