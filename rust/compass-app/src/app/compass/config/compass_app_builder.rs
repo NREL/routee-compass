@@ -35,6 +35,28 @@ use crate::{
 use compass_core::model::frontier::frontier_model::FrontierModel;
 use std::{collections::HashMap, sync::Arc};
 
+/// Upstream component factory of [`compass_app::app::compass::compass_app::CompassApp`]
+/// that builds components when constructing a CompassApp instance.
+///
+/// A [`CompassAppBuilder`] instance is typically created via the [`CompassAppBuilder::default']
+/// method, which provides builders for commonly-used components.
+/// Alternatively, there is a [`CompassAppBuilder::new'] method to build an empty instance.
+/// Custom builder types can be added to an instance of CompassAppBuilder and
+/// then loaded into a CompassApp when the configuration TOML input provides a `type` argument
+/// signaling the key associated with the builder below.
+///
+/// Builders (values in the hash maps) are simple structs that have empty constructors and
+/// no fields, so any number of these may be present without resulting in any loading.
+/// It is only once these are referenced during CompassApp construction that files and models
+/// will be loaded and CPU/RAM impacted.
+///
+/// # Arguments
+///
+/// * `tm_builders` - a mapping of TraversalModel `type` names to builders
+/// * `frontier_builders` - a mapping of FrontierModel `type` names to builders
+/// * `input_plugin_builders` - a mapping of InputPlugin `type` names to builders
+/// * `output_plugin_builders` - a mapping of OutputPlugin `type` names to builders
+///
 pub struct CompassAppBuilder {
     pub tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>>,
     pub frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>>,
@@ -43,6 +65,79 @@ pub struct CompassAppBuilder {
 }
 
 impl CompassAppBuilder {
+    /// Build an empty [`CompassAppBuilder`] instance.
+    /// If no additional builders are added, this will be unable to create
+    /// components for a [`compass_app::app::compass::compass_app::CompassApp`],
+    /// so this method is only useful is seeking a blank page for customizing.
+    /// the [`default`] method provides the default builder set and is a better
+    /// starting point.
+    ///
+    /// # Returns
+    ///
+    /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
+    pub fn new() -> CompassAppBuilder {
+        CompassAppBuilder {
+            tm_builders: HashMap::new(),
+            frontier_builders: HashMap::new(),
+            input_plugin_builders: HashMap::new(),
+            output_plugin_builders: HashMap::new(),
+        }
+    }
+
+    /// Builds the default builder.
+    /// All components present in the routee-compass library are injected here
+    /// into a builder instance with their expected `type` keys.
+    ///
+    /// # Returns
+    ///
+    /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
+    pub fn default() -> CompassAppBuilder {
+        // Traversal model builders
+        let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
+        let velo: Box<dyn TraversalModelBuilder> = Box::new(SpeedLookupBuilder {});
+        let smartcore: Box<dyn TraversalModelBuilder> = Box::new(SpeedGradeEnergyModelBuilder {});
+        let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
+            (String::from("distance"), dist),
+            (String::from("speed_table"), velo),
+            (String::from("speed_grade_energy_model"), smartcore),
+        ]);
+
+        // Frontier model builders
+        let no_restriction: Box<dyn FrontierModelBuilder> = Box::new(NoRestrictionBuilder {});
+        let road_class: Box<dyn FrontierModelBuilder> = Box::new(RoadClassBuilder {});
+        let frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>> = HashMap::from([
+            (String::from("no_restriction"), no_restriction),
+            (String::from("road_class"), road_class),
+        ]);
+
+        // Input plugin builders
+        let vertex_tree: Box<dyn InputPluginBuilder> = Box::new(VertexRTreeBuilder {});
+        let grid_search: Box<dyn InputPluginBuilder> = Box::new(GridSearchBuilder {});
+        let input_plugin_builders = HashMap::from([
+            (String::from("grid_search"), grid_search),
+            (String::from("vertex_rtree"), vertex_tree),
+        ]);
+
+        // Output plugin builders
+        let traversal: Box<dyn OutputPluginBuilder> = Box::new(TraversalPluginBuilder {});
+        let summary: Box<dyn OutputPluginBuilder> = Box::new(SummaryOutputPluginBuilder {});
+        let uuid: Box<dyn OutputPluginBuilder> = Box::new(UUIDOutputPluginBuilder {});
+        let edge_id_list: Box<dyn OutputPluginBuilder> = Box::new(EdgeIdListOutputPluginBuilder {});
+        let output_plugin_builders = HashMap::from([
+            (String::from("traversal"), traversal),
+            (String::from("summary"), summary),
+            (String::from("uuid"), uuid),
+            (String::from("edge_id_list"), edge_id_list),
+        ]);
+
+        CompassAppBuilder {
+            tm_builders,
+            frontier_builders,
+            input_plugin_builders,
+            output_plugin_builders,
+        }
+    }
+
     /// builds a traversal model with the specified type name with the provided
     /// traversal model configuration JSON
     pub fn build_traversal_model_service(
@@ -197,53 +292,5 @@ impl CompassAppBuilder {
             plugins.push(output_plugin);
         }
         return Ok(plugins);
-    }
-
-    /// builds the default builder which includes all defined components
-    pub fn default() -> CompassAppBuilder {
-        // Traversal model builders
-        let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
-        let velo: Box<dyn TraversalModelBuilder> = Box::new(SpeedLookupBuilder {});
-        let smartcore: Box<dyn TraversalModelBuilder> = Box::new(SpeedGradeEnergyModelBuilder {});
-        let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
-            (String::from("distance"), dist),
-            (String::from("speed_table"), velo),
-            (String::from("speed_grade_energy_model"), smartcore),
-        ]);
-
-        // Frontier model builders
-        let no_restriction: Box<dyn FrontierModelBuilder> = Box::new(NoRestrictionBuilder {});
-        let road_class: Box<dyn FrontierModelBuilder> = Box::new(RoadClassBuilder {});
-        let frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>> = HashMap::from([
-            (String::from("no_restriction"), no_restriction),
-            (String::from("road_class"), road_class),
-        ]);
-
-        // Input plugin builders
-        let vertex_tree: Box<dyn InputPluginBuilder> = Box::new(VertexRTreeBuilder {});
-        let grid_search: Box<dyn InputPluginBuilder> = Box::new(GridSearchBuilder {});
-        let input_plugin_builders = HashMap::from([
-            (String::from("grid_search"), grid_search),
-            (String::from("vertex_rtree"), vertex_tree),
-        ]);
-
-        // Output plugin builders
-        let traversal: Box<dyn OutputPluginBuilder> = Box::new(TraversalPluginBuilder {});
-        let summary: Box<dyn OutputPluginBuilder> = Box::new(SummaryOutputPluginBuilder {});
-        let uuid: Box<dyn OutputPluginBuilder> = Box::new(UUIDOutputPluginBuilder {});
-        let edge_id_list: Box<dyn OutputPluginBuilder> = Box::new(EdgeIdListOutputPluginBuilder {});
-        let output_plugin_builders = HashMap::from([
-            (String::from("traversal"), traversal),
-            (String::from("summary"), summary),
-            (String::from("uuid"), uuid),
-            (String::from("edge_id_list"), edge_id_list),
-        ]);
-
-        CompassAppBuilder {
-            tm_builders,
-            frontier_builders,
-            input_plugin_builders,
-            output_plugin_builders,
-        }
     }
 }
