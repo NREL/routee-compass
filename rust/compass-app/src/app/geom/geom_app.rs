@@ -1,4 +1,4 @@
-use crate::app::app_error::AppError;
+use crate::app::compass_app_error::CompassAppError;
 use crate::plugin::output::default::traversal::utils::parse_linestring;
 use compass_core::util::fs::{fs_utils, read_utils};
 use geo::LineString;
@@ -15,7 +15,7 @@ pub struct GeomApp {
 }
 
 impl TryFrom<&GeomAppConfig> for GeomApp {
-    type Error = AppError;
+    type Error = CompassAppError;
 
     ///
     /// builds a GeomApp instance. this reads and decodes a file with LINESTRINGs enumerated
@@ -24,14 +24,14 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
     fn try_from(conf: &GeomAppConfig) -> Result<Self, Self::Error> {
         let count =
             fs_utils::line_count(conf.edge_file.clone(), fs_utils::is_gzip(&conf.edge_file))
-                .map_err(AppError::IOError)?;
+                .map_err(CompassAppError::IOError)?;
 
         let mut pb = Bar::builder()
             .total(count)
             .animation("fillup")
             .desc("geometry file")
             .build()
-            .map_err(AppError::UXError)?;
+            .map_err(CompassAppError::UXError)?;
 
         let cb = Box::new(|| {
             pb.update(1);
@@ -42,8 +42,8 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
             return Ok(result);
         };
 
-        let geoms =
-            read_utils::read_raw_file(&conf.edge_file, op, Some(cb)).map_err(AppError::IOError)?;
+        let geoms = read_utils::read_raw_file(&conf.edge_file, op, Some(cb))
+            .map_err(CompassAppError::IOError)?;
         print!("\n");
         let app = GeomApp { geoms };
         return Ok(app);
@@ -53,16 +53,16 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
 impl GeomApp {
     /// run the GeomApp. reads each line of a file, which is expected to be a number coorelating to
     /// some EdgeId. looks up the geometry for that EdgeId.
-    pub fn run(&self, file: String) -> Result<Vec<LineString>, AppError> {
+    pub fn run(&self, file: String) -> Result<Vec<LineString>, CompassAppError> {
         let count = fs_utils::line_count(file.clone(), fs_utils::is_gzip(&file))
-            .map_err(AppError::IOError)?;
+            .map_err(CompassAppError::IOError)?;
 
         let mut pb = Bar::builder()
             .total(count)
             .animation("fillup")
             .desc("edge id list")
             .build()
-            .map_err(AppError::UXError)?;
+            .map_err(CompassAppError::UXError)?;
 
         let cb = Box::new(|| {
             pb.update(1);
@@ -82,7 +82,7 @@ impl GeomApp {
         };
 
         let result: Vec<LineString> =
-            read_utils::read_raw_file(&file, op, Some(cb)).map_err(AppError::IOError)?;
+            read_utils::read_raw_file(&file, op, Some(cb)).map_err(CompassAppError::IOError)?;
         return Ok(result);
     }
 }
