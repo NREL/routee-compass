@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Union
 from pathlib import Path
 from pkg_resources import resource_filename
 import logging
@@ -16,6 +16,7 @@ def generate_compass_dataset(
     fallback: Optional[float] = None,
     agg: Optional[Callable] = None,
     add_grade: bool = False,
+    raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
     default_energy_model: bool = True,
 ):
@@ -40,6 +41,7 @@ def generate_compass_dataset(
             The default is numpy.mean, but you might also consider for example
             numpy.median, numpy.nanmedian, or your own custom function. Defaults to numpy.mean.
         add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.
+        raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
         default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
         default_energy_model (bool, optional): If true, copy a trained RouteE Powertrain model into the output directory. Defaults to True.
 
@@ -58,7 +60,7 @@ def generate_compass_dataset(
         import toml
     except ImportError:
         try:
-            import tomllib as toml # type: ignore
+            import tomllib as toml  # type: ignore
         except ImportError:
             raise ImportError(
                 "requires Python 3.11 tomllib or pip install toml for earier Python versions"
@@ -74,7 +76,9 @@ def generate_compass_dataset(
 
     if add_grade:
         log.info("adding grade information")
-        g1 = add_grade_to_graph(g1)
+        g1 = add_grade_to_graph(
+            g1, resolution_arc_seconds=raster_resolution_arc_seconds
+        )
 
     v, e = ox.graph_to_gdfs(g1)
 
