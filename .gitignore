@@ -2,6 +2,7 @@
 *.code-workspace
 *.local*
 .vscode/
+.osmnx*
 
 cache/
 golden_co/
