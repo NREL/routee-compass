@@ -221,7 +221,7 @@ pub fn get_grade(
 
 #[cfg(test)]
 mod tests {
-    use crate::routee::{model_type::ModelType, speed_grade_model_service::PowertrainType};
+    use crate::routee::model_type::ModelType;
 
     use super::*;
     use compass_core::model::{
@@ -280,7 +280,6 @@ mod tests {
             None,
             None,
             None,
-            PowertrainType::ICE,
         )
         .unwrap();
         let arc_service = Arc::new(service);
