@@ -86,13 +86,11 @@ impl TraversalModel for SpeedGradeModel {
             grade,
             self.service.grade_table_grade_unit,
         )?;
-        let energy_rate_safe = if energy_rate < self.service.ideal_energy_rate {
-            self.service.ideal_energy_rate
-        } else {
-            energy_rate
-        };
+
+        let energy_rate_real_world = energy_rate * self.service.real_world_energy_adjustment;
+
         let (energy, _energy_unit) = Energy::create(
-            energy_rate_safe,
+            energy_rate_real_world,
             self.service.energy_model_energy_rate_unit.clone(),
             distance,
             self.service.output_distance_unit.clone(),
@@ -278,6 +276,7 @@ mod tests {
             SpeedUnit::MilesPerHour,
             GradeUnit::Millis,
             EnergyRateUnit::GallonsGasolinePerMile,
+            None,
             None,
             None,
         )

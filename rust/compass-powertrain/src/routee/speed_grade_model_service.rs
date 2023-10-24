@@ -26,6 +26,7 @@ pub struct SpeedGradeModelService {
     pub output_time_unit: TimeUnit,
     pub output_distance_unit: DistanceUnit,
     pub ideal_energy_rate: EnergyRate,
+    pub real_world_energy_adjustment: f64,
 }
 
 impl SpeedGradeModelService {
@@ -42,6 +43,7 @@ impl SpeedGradeModelService {
         energy_model_energy_rate_unit: EnergyRateUnit,
         output_time_unit_option: Option<TimeUnit>,
         output_distance_unit_option: Option<DistanceUnit>,
+        real_world_energy_adjustment: Option<f64>,
     ) -> Result<Self, TraversalModelError> {
         let output_time_unit = output_time_unit_option.unwrap_or(BASE_TIME_UNIT);
         let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
@@ -111,6 +113,11 @@ impl SpeedGradeModelService {
 
         let max_speed = get_max_speed(&speed_table)?;
 
+        let real_world_energy_adjustment = match real_world_energy_adjustment {
+            Some(rwea) => rwea,
+            None => 1.0,
+        };
+
         Ok(SpeedGradeModelService {
             speed_table,
             speeds_table_speed_unit,
@@ -124,6 +131,7 @@ impl SpeedGradeModelService {
             output_time_unit,
             output_distance_unit,
             ideal_energy_rate,
+            real_world_energy_adjustment,
         })
     }
 }

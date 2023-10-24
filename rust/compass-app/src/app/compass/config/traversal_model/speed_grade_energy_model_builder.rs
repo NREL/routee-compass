@@ -74,6 +74,11 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             traversal_key.clone(),
         )?;
 
+        let real_world_energy_adjustment = params.get_config_serde_optional::<f64>(
+            String::from("real_world_energy_adjustment"),
+            traversal_key.clone(),
+        )?;
+
         let inner_service = SpeedGradeModelService::new(
             speed_table_path,
             speed_table_speed_unit,
@@ -87,6 +92,7 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             energy_model_energy_rate_unit,
             output_time_unit_option,
             output_distance_unit_option,
+            real_world_energy_adjustment,
         )
         .map_err(CompassConfigurationError::TraversalModelError)?;
         let service = SpeedGradeEnergyModelService {

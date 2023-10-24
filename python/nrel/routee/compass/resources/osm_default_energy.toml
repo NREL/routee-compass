@@ -17,6 +17,7 @@ energy_model_grade_unit = "decimal"
 energy_model_energy_rate_unit = "gallons_gasoline_per_mile"
 output_time_unit = "minutes"
 output_distance_unit = "miles"
+real_world_energy_adjustment = 1.166 
 
 [plugin]
 input_plugins = [
