@@ -2,6 +2,9 @@ use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::util::unit::Distance;
 use serde::{Deserialize, Serialize};
 
+/// represents a single edge in a Graph.
+/// this struct implements Serialize and Deserialize to support reading
+/// edge records from CSV files.
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
 pub struct Edge {
     pub edge_id: EdgeId,
