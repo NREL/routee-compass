@@ -87,7 +87,6 @@ impl TraversalModel for SpeedGradeModel {
             self.service.grade_table_grade_unit,
         )?;
 
-        // This adjustment factor only applies to ICE powertrains
         let energy_rate_real_world = energy_rate * self.service.real_world_energy_adjustment;
 
         let (energy, _energy_unit) = Energy::create(
