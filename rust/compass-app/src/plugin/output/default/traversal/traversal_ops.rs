@@ -18,7 +18,7 @@ pub fn create_tree_geojson(
             let row_result = geoms
                 .get(t.edge_traversal.edge_id.0 as usize)
                 .cloned()
-                .ok_or(PluginError::GeometryMissing(t.edge_traversal.edge_id.0))
+                .ok_or(PluginError::EdgeGeometryMissing(t.edge_traversal.edge_id))
                 .and_then(|g| create_geojson_feature(&t.edge_traversal, g));
 
             row_result
@@ -44,7 +44,7 @@ pub fn create_route_geojson(
             let row_result = geoms
                 .get(t.edge_id.0 as usize)
                 .cloned()
-                .ok_or(PluginError::GeometryMissing(t.edge_id.0))
+                .ok_or(PluginError::EdgeGeometryMissing(t.edge_id))
                 .and_then(|g| create_geojson_feature(&t, g));
 
             row_result
@@ -89,7 +89,7 @@ pub fn create_edge_geometry(
     geoms
         .get(edge.edge_id.0 as usize)
         .cloned()
-        .ok_or(PluginError::GeometryMissing(edge.edge_id.0))
+        .ok_or(PluginError::EdgeGeometryMissing(edge.edge_id))
 }
 
 pub fn create_branch_geometry(
@@ -113,7 +113,7 @@ pub fn create_route_linestring(
         .map(|eid| {
             let geom = geoms
                 .get(eid.0 as usize)
-                .ok_or(PluginError::GeometryMissing(eid.0));
+                .ok_or(PluginError::EdgeGeometryMissing(*eid));
             geom
         })
         .collect::<Result<Vec<&LineString>, PluginError>>()?;
@@ -135,7 +135,7 @@ pub fn create_tree_multilinestring(
         .map(|eid| {
             let geom = geoms
                 .get(eid.0 as usize)
-                .ok_or(PluginError::GeometryMissing(eid.0));
+                .ok_or(PluginError::EdgeGeometryMissing(*eid));
             geom.cloned()
         })
         .collect::<Result<Vec<LineString>, PluginError>>()?;

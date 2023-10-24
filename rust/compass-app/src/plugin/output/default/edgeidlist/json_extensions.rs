@@ -68,10 +68,12 @@ impl EdgeListJsonExtensions for serde_json::Value {
                 let result: Result<Vec<EdgeId>, PluginError> = json_list
                     .iter()
                     .map(|v| {
-                        v.as_u64().map(EdgeId).ok_or(PluginError::ParseError(
-                            format!("{}", v),
-                            String::from("u64"),
-                        ))
+                        v.as_u64()
+                            .map(|u| EdgeId(u as usize))
+                            .ok_or(PluginError::ParseError(
+                                format!("{}", v),
+                                String::from("u64"),
+                            ))
                     })
                     .collect();
 

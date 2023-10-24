@@ -3,7 +3,7 @@ use std::{cmp::Ordering, fmt::Display};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Hash, Debug, Default)]
-pub struct EdgeId(pub u64);
+pub struct EdgeId(pub usize);
 
 impl Ord for EdgeId {
     fn cmp(&self, other: &Self) -> Ordering {
@@ -19,6 +19,6 @@ impl Display for EdgeId {
 
 impl EdgeId {
     pub fn as_usize(&self) -> usize {
-        return self.0 as usize;
+        return self.0;
     }
 }
