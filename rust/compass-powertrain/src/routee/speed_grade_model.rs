@@ -86,13 +86,12 @@ impl TraversalModel for SpeedGradeModel {
             grade,
             self.service.grade_table_grade_unit,
         )?;
-        let energy_rate_safe = if energy_rate < self.service.ideal_energy_rate {
-            self.service.ideal_energy_rate
-        } else {
-            energy_rate
-        };
+
+        // This adjustment factor only applies to ICE powertrains
+        let energy_rate_real_world = energy_rate * self.service.real_world_energy_adjustment;
+
         let (energy, _energy_unit) = Energy::create(
-            energy_rate_safe,
+            energy_rate_real_world,
             self.service.energy_model_energy_rate_unit.clone(),
             distance,
             self.service.output_distance_unit.clone(),
@@ -222,7 +221,7 @@ pub fn get_grade(
 
 #[cfg(test)]
 mod tests {
-    use crate::routee::model_type::ModelType;
+    use crate::routee::{model_type::ModelType, speed_grade_model_service::PowertrainType};
 
     use super::*;
     use compass_core::model::{
@@ -280,6 +279,8 @@ mod tests {
             EnergyRateUnit::GallonsGasolinePerMile,
             None,
             None,
+            None,
+            PowertrainType::ICE,
         )
         .unwrap();
         let arc_service = Arc::new(service);

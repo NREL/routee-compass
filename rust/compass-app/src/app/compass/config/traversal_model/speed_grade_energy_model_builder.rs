@@ -12,7 +12,9 @@ use compass_core::util::unit::{
 };
 use compass_powertrain::routee::model_type::ModelType;
 use compass_powertrain::routee::speed_grade_model::SpeedGradeModel;
-use compass_powertrain::routee::speed_grade_model_service::SpeedGradeModelService;
+use compass_powertrain::routee::speed_grade_model_service::{
+    PowertrainType, SpeedGradeModelService,
+};
 
 pub struct SpeedGradeEnergyModelBuilder {}
 
@@ -74,6 +76,16 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             traversal_key.clone(),
         )?;
 
+        let real_world_energy_adjustment = params.get_config_serde_optional::<f64>(
+            String::from("real_world_energy_adjustment"),
+            traversal_key.clone(),
+        )?;
+
+        let powertrain_type = params.get_config_serde::<PowertrainType>(
+            String::from("powertrain_type"),
+            traversal_key.clone(),
+        )?;
+
         let inner_service = SpeedGradeModelService::new(
             speed_table_path,
             speed_table_speed_unit,
@@ -87,6 +99,8 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             energy_model_energy_rate_unit,
             output_time_unit_option,
             output_distance_unit_option,
+            real_world_energy_adjustment,
+            powertrain_type,
         )
         .map_err(CompassConfigurationError::TraversalModelError)?;
         let service = SpeedGradeEnergyModelService {

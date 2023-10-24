@@ -7,10 +7,20 @@ use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::util::fs::read_decoders;
 use compass_core::util::fs::read_utils;
 use compass_core::util::unit::*;
+use serde::Deserialize;
 use std::sync::Arc;
 
 #[cfg(feature = "onnx")]
 use crate::routee::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
+
+pub const ICE_ADJUSTMENT: f64 = 1.166;
+pub const BEV_ADJUSTMENT: f64 = 1.3958;
+
+#[derive(Clone, Deserialize)]
+pub enum PowertrainType {
+    ICE,
+    BEV,
+}
 
 #[derive(Clone)]
 pub struct SpeedGradeModelService {
@@ -26,6 +36,8 @@ pub struct SpeedGradeModelService {
     pub output_time_unit: TimeUnit,
     pub output_distance_unit: DistanceUnit,
     pub ideal_energy_rate: EnergyRate,
+    pub real_world_energy_adjustment: f64,
+    pub powertrain_type: PowertrainType,
 }
 
 impl SpeedGradeModelService {
@@ -42,6 +54,8 @@ impl SpeedGradeModelService {
         energy_model_energy_rate_unit: EnergyRateUnit,
         output_time_unit_option: Option<TimeUnit>,
         output_distance_unit_option: Option<DistanceUnit>,
+        real_world_energy_adjustment: Option<f64>,
+        powertrain_type: PowertrainType,
     ) -> Result<Self, TraversalModelError> {
         let output_time_unit = output_time_unit_option.unwrap_or(BASE_TIME_UNIT);
         let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
@@ -111,6 +125,14 @@ impl SpeedGradeModelService {
 
         let max_speed = get_max_speed(&speed_table)?;
 
+        let real_world_energy_adjustment = match real_world_energy_adjustment {
+            Some(rwea) => rwea,
+            None => match powertrain_type {
+                PowertrainType::ICE => ICE_ADJUSTMENT,
+                PowertrainType::BEV => BEV_ADJUSTMENT,
+            },
+        };
+
         Ok(SpeedGradeModelService {
             speed_table,
             speeds_table_speed_unit,
@@ -124,6 +146,8 @@ impl SpeedGradeModelService {
             output_time_unit,
             output_distance_unit,
             ideal_energy_rate,
+            real_world_energy_adjustment,
+            powertrain_type,
         })
     }
 }
