@@ -33,7 +33,7 @@ pub fn depth_first_search(
 
     let edges = graph.out_edges(vertex)?;
     for edge in edges {
-        let dst = graph.dst_vertex(edge)?;
+        let dst = graph.dst_vertex_id(edge)?;
         depth_first_search(graph, dst, visited, stack)?;
     }
 
@@ -73,7 +73,7 @@ fn reverse_depth_first_search(
 
     let edges = graph.in_edges(vertex)?;
     for edge in edges {
-        let src = graph.src_vertex(edge)?;
+        let src = graph.src_vertex_id(edge)?;
         reverse_depth_first_search(graph, src, visited, stack)?;
     }
 
@@ -100,7 +100,7 @@ fn all_strongly_connected_componenets(graph: &Graph) -> Result<Vec<Vec<VertexId>
 
     let mut result: Vec<Vec<VertexId>> = Vec::new();
 
-    for vertex_id in graph.all_vertex_ids() {
+    for vertex_id in graph.vertex_ids() {
         depth_first_search(graph, vertex_id, &mut visited, &mut container)?;
     }
 

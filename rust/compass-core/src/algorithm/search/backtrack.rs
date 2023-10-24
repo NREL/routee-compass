@@ -54,10 +54,10 @@ pub fn edge_oriented_route(
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let o_v = g_inner
-        .src_vertex(source_id)
+        .src_vertex_id(source_id)
         .map_err(SearchError::GraphError)?;
     let d_v = g_inner
-        .dst_vertex(target_id)
+        .dst_vertex_id(target_id)
         .map_err(SearchError::GraphError)?;
     vertex_oriented_route(o_v, d_v, solution)
 }

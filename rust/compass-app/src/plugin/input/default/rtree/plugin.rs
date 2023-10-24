@@ -38,7 +38,8 @@ impl VertexRTree {
     }
 
     pub fn from_directed_graph(graph: &Graph) -> Self {
-        Self::new(graph.all_vertices())
+        let vertices = graph.vertices.iter().cloned().collect();
+        Self::new(vertices)
     }
 
     pub fn nearest_vertex(&self, point: Coord<f64>) -> Option<&Vertex> {
