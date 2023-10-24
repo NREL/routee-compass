@@ -369,7 +369,7 @@ pub fn apply_output_processing(
                 "total_runtime": result.total_runtime.hhmmss(),
                 "route_edge_count": result.route.len(),
                 "tree_edge_count": result.tree.len(),
-                "traversal_summary": tmodel.serialize_state_with_units(&last_edge_traversal.result_state),
+                "traversal_summary": tmodel.serialize_state_with_info(&last_edge_traversal.result_state),
             });
             let init_acc: Result<serde_json::Value, PluginError> = Ok(init_output);
             let json_result = output_plugins
