@@ -24,7 +24,7 @@ dependencies = []
 [project.optional-dependencies]
 all = ["nrel.routee.compass[osm]", "nrel.routee.compass[plot]"]
 osm = ['osmnx', 'toml']
-plot = ["folium", "matplotlib"]
+plot = ["folium", "matplotlib", "shapely>2"]
 dev = [
     "nrel.routee.compass[all]",
     "black",
