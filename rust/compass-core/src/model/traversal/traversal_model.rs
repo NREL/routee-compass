@@ -1,5 +1,3 @@
-use serde_json::Map;
-
 use super::access_result::AccessResult;
 use super::traversal_model_error::TraversalModelError;
 use crate::model::cost::cost::Cost;
@@ -7,8 +5,26 @@ use crate::model::property::{edge::Edge, vertex::Vertex};
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_result::TraversalResult;
 
+/// Dictates how state transitions occur and how to evaluate the costs
+/// while traversing a graph in a search algorithm.
+///
+/// see the [`super::default`] module for implementations bundled with RouteE Compass:
+///   - [DistanceModel]: uses Edge distances to find the route with the shortest distance
+///   - [SpeedLookupModel]: retrieves link speeds via lookup from a file
+///
+/// [DistanceModel]: super::default::distance::DistanceModel
+/// [SpeedLookupModel]: super::default::speed_lookup_model::SpeedLookupModel
 pub trait TraversalModel: Send + Sync {
+    /// Creates the initial state of a search. this should be a vector of
+    /// accumulators.
+    ///
+    ///
+    /// * Returns
+    ///
+    /// an initialized, zero-valued traversal state
     fn initial_state(&self) -> TraversalState;
+
+    ///
     fn traversal_cost(
         &self,
         src: &Vertex,
