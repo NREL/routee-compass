@@ -35,7 +35,7 @@ use crate::{
 use compass_core::model::frontier::frontier_model::FrontierModel;
 use std::{collections::HashMap, sync::Arc};
 
-/// Upstream component factory of [`compass_app::app::compass::compass_app::CompassApp`]
+/// Upstream component factory of [`crate::app::compass::compass_app::CompassApp`]
 /// that builds components when constructing a CompassApp instance.
 ///
 /// A [`CompassAppBuilder`] instance is typically created via the [`CompassAppBuilder::default']
@@ -67,9 +67,9 @@ pub struct CompassAppBuilder {
 impl CompassAppBuilder {
     /// Build an empty [`CompassAppBuilder`] instance.
     /// If no additional builders are added, this will be unable to create
-    /// components for a [`compass_app::app::compass::compass_app::CompassApp`],
+    /// components for a [`crate::app::compass::compass_app::CompassApp`],
     /// so this method is only useful is seeking a blank page for customizing.
-    /// the [`default`] method provides the default builder set and is a better
+    /// the [`CompassAppBuilder::default`] method provides the default builder set and is a better
     /// starting point.
     ///
     /// # Returns

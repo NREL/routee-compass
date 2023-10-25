@@ -33,19 +33,19 @@ let queries: Vec<serde_json::Value> = vec![];
 let result = app.run(queries);
 ```
 
-Based on the parallelism argument to [`CompassApp`], the batch of queries will be split into chunks and sent to different threads. 
+Based on the parallelism argument to [CompassApp], the batch of queries will be split into chunks and sent to different threads. 
 Keep in mind that each chunk needs enough RAM to conduct a search over your road network.
 For example, if a road network has 1 million links, and parallelism is 8, then there should be sufficient RAM to store 8 million rows of search data.
 
 ### Customizing RouteE Compass
 
-If you wish to add your own features to a [`CompassApp`] instance, then see the following links for info on:
+If you wish to add your own features to a [CompassApp] instance, then see the following links for info on:
   - a custom [TraversalModelBuilder]
   - a custom [FrontierModelBuilder]
   - a custom [InputPluginBuilder]
   - a custom [OutputPluginBuilder]
 
-Any custom builders will need to be added to a [`CompassAppBuilder`] instance that should be used to create a [`CompassApp`].
+Any custom builders will need to be added to a [CompassAppBuilder] instance that should be used to create a [CompassApp].
 
 [CompassApp]: crate::app::compass::compass_app::CompassApp
 [CompassAppBuilder]: crate::app::compass::config::compass_app_builder::CompassAppBuilder
