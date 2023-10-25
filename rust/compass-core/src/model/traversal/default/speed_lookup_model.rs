@@ -194,7 +194,7 @@ mod tests {
     }
     fn mock_edge(edge_id: usize) -> Edge {
         return Edge {
-            edge_id: EdgeId(edge_id as u64),
+            edge_id: EdgeId(edge_id),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
             distance: Distance::new(100.0),

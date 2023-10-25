@@ -1,8 +1,10 @@
+use crate::model::graph::vertex_id::VertexId;
 use geo::{coord, Coord};
 use serde::de;
 
-use crate::model::graph::vertex_id::VertexId;
-
+/// represents a vertex in a Graph
+/// this struct implements Serialize and Deserialize to support reading
+/// vertex records from CSV files.
 #[derive(Copy, Clone, Default, Debug)]
 pub struct Vertex {
     pub vertex_id: VertexId,
@@ -29,12 +31,13 @@ impl Vertex {
     }
 }
 
-
 const VERTEX_ID: &str = "vertex_id";
 const X_COORDINATE: &str = "x";
 const Y_COORDINATE: &str = "y";
 
 impl<'de> de::Deserialize<'de> for Vertex {
+    /// specialized deserialization for `Vertex` that creates a Vertex from a CSV
+    /// that has vertex_id, x, and y columns.
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: de::Deserializer<'de>,

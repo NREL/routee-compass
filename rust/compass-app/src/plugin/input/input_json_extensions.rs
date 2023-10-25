@@ -121,7 +121,7 @@ impl InputJsonExtensions for serde_json::Value {
                 InputField::OriginEdge.to_string(),
             ))?
             .as_u64()
-            .map(|v| EdgeId(v))
+            .map(|v| EdgeId(v as usize))
             .ok_or(PluginError::ParseError(
                 InputField::OriginEdge.to_string(),
                 String::from("u64"),
@@ -133,7 +133,7 @@ impl InputJsonExtensions for serde_json::Value {
             None => Ok(None),
             Some(v) => v
                 .as_u64()
-                .map(|v| Some(EdgeId(v)))
+                .map(|v| Some(EdgeId(v as usize)))
                 .ok_or(PluginError::ParseError(
                     InputField::OriginEdge.to_string(),
                     String::from("u64"),

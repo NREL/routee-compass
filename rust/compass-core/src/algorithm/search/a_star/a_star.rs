@@ -121,7 +121,7 @@ pub fn run_a_star(
             .map_err(SearchError::GraphError)?;
         for (src_id, edge_id, dst_id) in neighbor_triplets {
             // first make sure we have a valid edge
-            let e = g.edge_attr(edge_id).map_err(SearchError::GraphError)?;
+            let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
             if !f.valid_frontier(&e, &current.state)? {
                 continue;
             }
@@ -204,8 +204,8 @@ pub fn run_a_star_edge_oriented(
     let g = directed_graph
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let source_edge_src_vertex_id = g.src_vertex(source)?;
-    let source_edge_dst_vertex_id = g.dst_vertex(source)?;
+    let source_edge_src_vertex_id = g.src_vertex_id(source)?;
+    let source_edge_dst_vertex_id = g.dst_vertex_id(source)?;
     let src_et = EdgeTraversal {
         edge_id: source,
         access_cost: Cost::ZERO,
@@ -233,8 +233,8 @@ pub fn run_a_star_edge_oriented(
             Ok(tree)
         }
         Some(target_edge) => {
-            let target_edge_src_vertex_id = g.src_vertex(target_edge)?;
-            let target_edge_dst_vertex_id = g.dst_vertex(target_edge)?;
+            let target_edge_src_vertex_id = g.src_vertex_id(target_edge)?;
+            let target_edge_dst_vertex_id = g.dst_vertex_id(target_edge)?;
 
             if source == target_edge {
                 let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
@@ -316,8 +316,8 @@ pub fn h_cost(
     g: &RwLockReadGuard<Graph>,
     m: &Arc<dyn TraversalModel>,
 ) -> Result<Cost, SearchError> {
-    let src_vertex = g.vertex_attr(src)?;
-    let dst_vertex = g.vertex_attr(dst)?;
+    let src_vertex = g.get_vertex(src)?;
+    let dst_vertex = g.get_vertex(dst)?;
     let cost_estimate = m.cost_estimate(&src_vertex, &dst_vertex, &state)?;
     return Ok(cost_estimate);
 }

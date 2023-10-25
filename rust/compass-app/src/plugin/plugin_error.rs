@@ -1,4 +1,4 @@
-use compass_core::algorithm::search::search_error::SearchError;
+use compass_core::{algorithm::search::search_error::SearchError, model::graph::edge_id::EdgeId};
 use geo::Coord;
 
 #[derive(thiserror::Error, Debug)]
@@ -22,7 +22,7 @@ pub enum PluginError {
     #[error(transparent)]
     CsvReadError(#[from] csv::Error),
     #[error("geometry missing for edge id {0}")]
-    GeometryMissing(u64),
+    EdgeGeometryMissing(EdgeId),
     #[error("uuid missing for edge id {0}")]
     UUIDMissing(usize),
     #[error(transparent)]

@@ -27,6 +27,14 @@ use itertools::{Either, Itertools};
 use rayon::{current_num_threads, prelude::*};
 use std::path::PathBuf;
 
+/// Instance of RouteE Compass as an application.
+/// When constructed, it holds
+///   - the core search application which performs parallel path search
+///   - the input plugins for query pre-processing
+///   - the output plugins for query post-processing
+///
+/// A CompassApp instance provides the high-level API for building and
+/// running RouteE Compass.
 pub struct CompassApp {
     pub search_app: SearchApp,
     pub input_plugins: Vec<Box<dyn InputPlugin>>,
@@ -37,10 +45,18 @@ pub struct CompassApp {
 impl TryFrom<PathBuf> for CompassApp {
     type Error = CompassAppError;
 
-    /// builds a CompassApp from a configuration file. builds all modules
-    /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
-    /// also builds the input and output plugins.
-    /// returns a persistent application that can run user queries.
+    /// Builds a CompassApp from a configuration filepath, using the default CompassAppBuilder.
+    /// Builds all components such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
+    /// Also builds the input and output plugins.
+    /// Returns a persistent application that can run user queries in parallel.
+    ///
+    /// # Arguments
+    ///
+    /// * `conf_file` - path to a configuration TOML file
+    ///
+    /// # Returns
+    ///
+    /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(conf_file: PathBuf) -> Result<Self, Self::Error> {
         let default_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
@@ -64,10 +80,23 @@ impl TryFrom<PathBuf> for CompassApp {
 impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     type Error = CompassAppError;
 
-    /// builds a CompassApp from configuration. builds all modules
-    /// such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
-    /// also builds the input and output plugins.
-    /// returns a persistent application that can run user queries.
+    /// Builds a CompassApp from configuration and a (possibly customized) CompassAppBuilder.
+    /// Builds all modules such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
+    /// Also builds the input and output plugins.
+    /// Returns a persistent application that can run user queries in parallel.
+    ///
+    /// This is the extension API for building [`CompassApp`] instances.
+    /// In application, the user becomes responsible for
+    ///   -
+    ///
+    /// # Arguments
+    ///
+    /// * `pair` - a tuple containing a config object (such as a parsed TOML file) and
+    ///            a [`super::config::compass_app_builder::CompassAppBuilder`] instance
+    ///
+    /// # Returns
+    ///
+    /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
         let (config, builder) = pair;
 
@@ -166,7 +195,7 @@ impl CompassApp {
     ///   3. processes each output based on the OutputPlugins
     ///   4. returns the JSON response
     ///
-    /// only internal errors should cause CompassApp to halt. if there are
+    /// only  errors should cause CompassApp to halt. if there are
     /// errors due to the user, they should be propagated along into the output
     /// JSON in an error format along with the request.
     pub fn run(
@@ -215,8 +244,18 @@ impl CompassApp {
         return Ok(run_result);
     }
 
-    /// run a single query from end to end, applying input plugins, running the search
-    /// algorithm, and applying output plugins.
+    /// Helper function that runs CompassApp on a single query.
+    /// It is assumed that all pre-processing from InputPlugins have been applied.
+    /// This function runs a vertex-oriented search and feeds the result into the
+    /// OutputPlugins for post-processing, returning the result as JSON.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - a single search query that has been processed by InputPlugins
+    ///
+    /// # Returns
+    ///
+    /// * The result of the search and post-processing as a JSON object, or, an error
     pub fn run_single_query(
         &self,
         query: serde_json::Value,
@@ -335,7 +374,7 @@ pub fn apply_output_processing(
                 "total_runtime": result.total_runtime.hhmmss(),
                 "route_edge_count": result.route.len(),
                 "tree_edge_count": result.tree.len(),
-                "traversal_summary": tmodel.serialize_state_with_units(&last_edge_traversal.result_state),
+                "traversal_summary": tmodel.serialize_state_with_info(&last_edge_traversal.result_state),
             });
             let init_acc: Result<serde_json::Value, PluginError> = Ok(init_output);
             let json_result = output_plugins
