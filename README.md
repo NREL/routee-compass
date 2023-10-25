@@ -1,4 +1,4 @@
-# routee-compass
+# RouteE Compass
 
 RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
 
@@ -6,35 +6,35 @@ RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of sof
 - Core engine written in Rust for improved runtimes, parallel query execution, and the ability to load nation-sized road networks into memory
 - Rust, HTTP, and Python APIs for integration into different research pipelines and other software
 
-## Quickstart
+RouteE Compass is a part of the [RouteE](https://www.nrel.gov/transportation/route-energy-prediction-model.html) family of mobility tools created at the National Renewable Energy Laboratory.
 
-To install RouteE Compass, we must first install Rust.
+## Installation
 
-### Rust
-#### Via Anaconda:
+1. install Rust
+  - via [rust-lang.org](https://www.rust-lang.org/tools/install)
+  - via [conda](https://anaconda.org/conda-forge/rust)
+2. install RouteE Compass
+  - for Python via [pip](https://pypi.org/project/pip/): `$ pip install nrel.routee.compass[all]`
+  - for the command line: `$ cd rust; cargo build -r`
 
-```bash
-conda install -c conda-forge rust
-```
+## Usage
 
-#### Via rust-lang.org
-
-Follow instructions at [https://www.rust-lang.org/tools/install](https://www.rust-lang.org/tools/install).
-
-### Compass
-
-The fastest way to get started with RouteE Compass is to use the python package manager `pip`:
-
-```bash
-pip install nrel.routee.compass[osm]
-```
-
-Then, follow this [example](docs/notebooks/open_street_maps_example.ipynb) to start routing over Open Street Maps data.
-
-TODO: Once we go live point update this:
 See the [documentation](https://nrel.github.io/routee-compass/) for more information.
 
-##### configuration file
+## Contributors
 
-The application expects a config file to tell it where to find the graph data and what traversal model it should use.
-Take a look at [the default configuation](./rust/compass-app/src/app/compass/config/config.default.toml) to see an example of what this looks like.
+RouteE Compass is currently maintained by Nick Reinicke ([@nreinicke](https://github.com/nreinicke)) and Rob Fitzgerald ([@robfitzgerald](https://github.com/robfitzgerald)).
+
+## License
+
+Copyright 2023 National Renewable Energy Laboratory
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
