@@ -33,12 +33,7 @@ impl Cost {
     /// represents the maximum possible cost
     pub const INFINITY: Cost = Cost(OrderedFloat(f64::MAX));
     pub fn new(value: f64) -> Cost {
-        // Cost can't be negative
-        if value < 0.0 {
-            Cost::ZERO
-        } else {
-            Cost(OrderedFloat(value))
-        }
+        Cost(OrderedFloat(value))
     }
 }
 
