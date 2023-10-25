@@ -30,10 +30,15 @@ pub struct Cost(pub OrderedFloat<f64>);
 impl Cost {
     /// represents zero cost
     pub const ZERO: Cost = Cost(OrderedFloat(0.0));
-    /// represents the maximum possible cost 
+    /// represents the maximum possible cost
     pub const INFINITY: Cost = Cost(OrderedFloat(f64::MAX));
     pub fn new(value: f64) -> Cost {
-        return Cost(OrderedFloat(value));
+        // Cost can't be negative
+        if value < 0.0 {
+            Cost::ZERO
+        } else {
+            Cost(OrderedFloat(value))
+        }
     }
 }
 
