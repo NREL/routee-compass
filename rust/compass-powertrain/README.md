@@ -72,9 +72,9 @@ As a result of NREL research, some recommended values for this adjustment are:
 
 powertrain type | factor
 --- | ---
-CV  | 1.1660
-HEV | 1.1252
-EV  | 1.3958
+combustion vehicle (CV) | 1.1660
+hybrid vehicle (HV) | 1.1252
+electric vehicle (EV) | 1.3958
 
 A factor of 1.0 equates to 100% of the original energy value.
 
