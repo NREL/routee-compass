@@ -7,6 +7,29 @@ use crate::{
     plugin::output::output_plugin::OutputPlugin,
 };
 
+/// Builds a plugin that can generate traversal outputs.
+///
+/// # Configuration
+///
+/// This plugin expects the following keys:
+/// * `geometry_file` - the filename providing edge geometries
+/// * `route` (optional) - traversal output format for the route result
+/// * `tree` (optional) - traversal output format for the search tree result
+///
+/// See [TraversalOutputFormat] for information on the output formats supported.
+///
+/// [TraversalOutputFormat]: super::traversal_output_format::TraversalOutputFormat
+///
+/// # Example Configuration
+///
+/// ```toml
+/// [[plugin.output_plugins]]
+/// type = "traversal"
+/// route = "geo_json"
+/// tree = "geo_json"
+/// geometry_file = "edges-geometries-enumerated.txt.gz"
+/// ```
+///
 pub struct TraversalPluginBuilder {}
 
 impl OutputPluginBuilder for TraversalPluginBuilder {
