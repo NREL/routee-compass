@@ -1,32 +1,3 @@
-# RouteE Compass
-
-RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
-
-- Dynamic and extensible search objectives that allow customized blends of distance, time, cost, and energy (via RouteE Powertrain) at query-time
-- Core engine written in Rust for improved runtimes, parallel query execution, and the ability to load nation-sized road networks into memory
-- Rust, HTTP, and Python APIs for integration into different research pipelines and other software
-
-RouteE Compass is a part of the [RouteE](https://www.nrel.gov/transportation/route-energy-prediction-model.html) family of mobility tools created at the National Renewable Energy Laboratory.
-
-## Installation
-
-1. install Rust
-  - via [rust-lang.org](https://www.rust-lang.org/tools/install)
-  - via [conda](https://anaconda.org/conda-forge/rust)
-2. install RouteE Compass
-  - for Python via [pip](https://pypi.org/project/pip/): `$ pip install nrel.routee.compass[all]`
-  - for the command line: `$ cd rust; cargo build -r`
-
-## Usage
-
-See the [documentation](https://nrel.github.io/routee-compass/) for more information.
-
-## Contributors
-
-RouteE Compass is currently maintained by Nick Reinicke ([@nreinicke](https://github.com/nreinicke)) and Rob Fitzgerald ([@robfitzgerald](https://github.com/robfitzgerald)).
-
-## License
-
 Copyright 2023 National Renewable Energy Laboratory
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
