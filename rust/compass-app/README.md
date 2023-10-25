@@ -3,11 +3,10 @@ The RouteE-Compass energy-aware routing engine.
 ### Crates
 
 This documentation is built around use of the `compass_app` crate.
-This repo is setup as a [workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) containing these additional sub-crates:
+This repo is setup as a [workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) and CompassApp is defined with two upstream dependencies, [compass-core] and [compass-powertrain]:
 
 * [compass-core] - core data structures and algorithms used by Compass
 * [compass-powertrain] - traversal model supporting energy-optimal route planning via [RouteE Powertrain](https://github.com/nrel/routee-powertrain)
-* compass-app-py - python bindings for [CompassApp] 
 * [compass-app] - application built around the core model intended for command-line execution or longer-running applications such as the python sdk (this README)
 
 ### Building CompassApp instances
@@ -33,9 +32,9 @@ let queries: Vec<serde_json::Value> = vec![];
 let result = app.run(queries);
 ```
 
-Based on the parallelism argument to [CompassApp], the batch of queries will be split into chunks and sent to different threads. 
+Based on the parallelism argument to [CompassApp], the batch of queries will be split into chunks in a SIMD parallelization scheme across the available system threads. 
 Keep in mind that each chunk needs enough RAM to conduct a search over your road network.
-For example, if a road network has 1 million links, and parallelism is 8, then there should be sufficient RAM to store 8 million rows of search data.
+For example, if a road network has 1 million links, and parallelism is 8, then _(in the worst case)_ there should be sufficient RAM to store 8 million rows of search data.
 
 ### Customizing RouteE Compass
 
