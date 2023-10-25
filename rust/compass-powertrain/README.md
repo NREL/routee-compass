@@ -76,10 +76,6 @@ CV  | 1.1660
 HEV | 1.1252
 EV  | 1.3958
 
-Or, as it appears in the original research:
-
-![Figures on real-world adjustment factors](../../docs/images/real-world-adjustment-factors.png)
-
 A factor of 1.0 equates to 100% of the original energy value.
 
 [SpeedGradeModelService]: crate::routee::speed_grade_model_service::SpeedGradeModelService
