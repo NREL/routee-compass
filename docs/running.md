@@ -2,10 +2,10 @@
 
 There are a few different ways you can interact with RouteE Compass:
 
-## python
+## Python
 
 We provide python bindings for the core engine that allow you to run queries from within python.
-After following the [installation instructions](installation), you can load an application and run queries like this:
+After following the [installation instructions](/docs/installation), you can load an application and run queries like this:
 
 ```python
 from nrel.routee.compass import CompassApp
@@ -24,13 +24,19 @@ query = {
 result = app.run(query)
 ```
 
-## command line application 
+## Command line application 
 
 You can also just build the rust application and run it from the command line.
-After following the [installation instructions](installation), you can run the application like this:
+After following the [installation instructions](/docs/installation), you can run the application like this:
 
 ```bash
 path/to/routee-compass/rust/target/release/compass-app --config path/to/config.toml path/to/query.json
 ```
 
 This will load the graph and then run the query (or queries) from your `query.json` file, outputing results to a file called `results.json` in the current working directory.
+
+Logging verbosity can be controlled via the `RUST_LOG` environment variable:
+
+```bash
+RUST_LOG=DEBUG path/to/routee-compass/rust/target/release/compass-app --config path/to/config.toml path/to/query.json
+```
