@@ -51,5 +51,5 @@ ENERGY_OUTPUT_UNITS = {
 IDEAL_ENERGY_RATES = {
     "ICE": 1 / 35,
     "HEV": 1 / 70,
-    "BEV": 2,
+    "BEV": 0.2,
 }
