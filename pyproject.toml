@@ -42,3 +42,4 @@ python-source = "python"
 features = ["pyo3/extension-module"]
 module-name = "nrel.routee.compass.compass_app_py"
 manifest-path = "rust/compass-app-py/Cargo.toml"
+include = ["python/nrel/routee/compass/resources/models/*.bin"]

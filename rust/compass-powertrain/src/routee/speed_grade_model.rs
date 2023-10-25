@@ -10,8 +10,11 @@ use compass_core::model::traversal::traversal_model::TraversalModel;
 use compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use compass_core::model::traversal::traversal_result::TraversalResult;
 use compass_core::util::geo::haversine;
+use compass_core::util::unit::as_f64::AsF64;
 use compass_core::util::unit::*;
 use std::sync::Arc;
+
+const ZERO_ENERGY: f64 = 1e-9;
 
 pub struct SpeedGradeModel {
     pub service: Arc<SpeedGradeModelService>,
@@ -89,12 +92,17 @@ impl TraversalModel for SpeedGradeModel {
 
         let energy_rate_real_world = energy_rate * self.service.real_world_energy_adjustment;
 
-        let (energy, _energy_unit) = Energy::create(
+        let (mut energy, _energy_unit) = Energy::create(
             energy_rate_real_world,
             self.service.energy_model_energy_rate_unit.clone(),
             distance,
             self.service.output_distance_unit.clone(),
         )?;
+
+        if energy.as_f64() < 0.0 {
+            energy = Energy::new(ZERO_ENERGY);
+            log::debug!("negative energy encountered, setting to 1e-9");
+        }
 
         let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
         let updated_state = update_state(&state, distance, time, energy);

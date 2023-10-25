@@ -1,5 +1,6 @@
 from typing import Callable, Dict, Optional, Union
 from pathlib import Path
+from nrel.routee.compass.io.models import ADJUSTMENT_FACTORS, ENERGY_OUTPUT_UNITS, IDEAL_ENERGY_RATES, MODELS_POWERTRAINS
 from pkg_resources import resource_filename
 import logging
 import shutil
@@ -18,7 +19,7 @@ def generate_compass_dataset(
     add_grade: bool = False,
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
-    default_energy_model: bool = True,
+    energy_model: str = "2016_TOYOTA_Camry_4cyl_2WD",
 ):
     """
     Processes a graph downloaded via OSMNx, generating the set of input
@@ -43,7 +44,7 @@ def generate_compass_dataset(
         add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.
         raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
         default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
-        default_energy_model (bool, optional): If true, copy a trained RouteE Powertrain model into the output directory. Defaults to True.
+        energy_model (str, optional): Which trained RouteE Powertrain should we use? Defaults to "2016_TOYOTA_Camry_4cyl_2WD".
 
     Example:
         >>> import osmnx as ox
@@ -170,21 +171,54 @@ def generate_compass_dataset(
             )
             with open(init_toml_file, "r") as f:
                 init_toml = toml.loads(f.read())
-                if filename == "osm_default_energy.toml" and add_grade:
+                if filename == "osm_default_energy.toml":
+                    if add_grade:
+                        init_toml["traversal"][
+                            "grade_table_path"
+                        ] = "edges-grade-enumerated.txt.gz"
+                        init_toml["traversal"]["grade_table_grade_unit"] = "decimal"
+
+                    powertrain_type = MODELS_POWERTRAINS.get(energy_model)
+                    if powertrain_type is None:
+                        raise ValueError(
+                            f"Could not find powertrain type for {energy_model}."
+                        )
+                    adjustment_factor = ADJUSTMENT_FACTORS.get(powertrain_type)
+                    if adjustment_factor is None:
+                        raise ValueError(
+                            f"Could not find adjustment factor for {powertrain_type}."
+                        )
                     init_toml["traversal"][
-                        "grade_table_path"
-                    ] = "edges-grade-enumerated.txt.gz"
-                    init_toml["traversal"]["grade_table_grade_unit"] = "decimal"
+                        "real_world_energy_adjustment"
+                    ] = adjustment_factor
+                    init_toml["traversal"]["energy_model_path"] = f"{energy_model}.bin"
+
+                    energy_model_energy_rate_unit = ENERGY_OUTPUT_UNITS.get(powertrain_type) 
+                    if energy_model_energy_rate_unit is None:
+                        raise ValueError(
+                            f"Could not find energy rate unit for {powertrain_type}."
+                        )
+                    
+                    init_toml["traversal"]["energy_model_energy_rate_unit"] = energy_model_energy_rate_unit
+
+                    ideal_energy_rate = IDEAL_ENERGY_RATES.get(powertrain_type)
+                    if ideal_energy_rate is None:
+                        raise ValueError(
+                            f"Could not find ideal energy rate for {powertrain_type}."
+                        )
+                    
+                    init_toml["traversal"]["ideal_energy_rate"] = ideal_energy_rate
+
             with open(output_directory / filename, "w") as f:
                 f.write(toml.dumps(init_toml))
 
     # COPY ROUTEE ENERGY MODEL
-    if default_energy_model:
-        log.info("copying example RouteE Powertrain model")
-        camry_src = Path(
-            resource_filename(
-                "nrel.routee.compass.resources", "2016_TOYOTA_Camry_4cyl_2WD.bin"
-            )
-        )
-        camry_dst = output_directory / "2016_TOYOTA_Camry_4cyl_2WD.bin"
-        shutil.copy(camry_src, camry_dst)
+    log.info(f"copying RouteE Powertrain model {energy_model}")
+    model_src = Path(
+        resource_filename("nrel.routee.compass.resources.models", f"{energy_model}.bin")
+    )
+    if not model_src.exists():
+        raise ValueError(f"Could not find {energy_model} in the resources directory.")
+
+    model_dst = output_directory / f"{energy_model}.bin"
+    shutil.copy(model_src, model_dst)

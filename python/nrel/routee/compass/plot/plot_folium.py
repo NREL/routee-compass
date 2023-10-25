@@ -67,7 +67,8 @@ def plot_route_folium(
         # RouteE Compass can output GeoJson as a GeometryCollection
         # and we expect we can concatenate the result as a single linestring
         feature_collection = shapely.from_geojson(json.dumps(geom))
-        linestring = shapely.line_merge(feature_collection.geoms)
+        multilinestring = shapely.MultiLineString(feature_collection.geoms)
+        linestring = shapely.line_merge(multilinestring)
     else:
         raise ValueError("Could not parse route geometry")
 
