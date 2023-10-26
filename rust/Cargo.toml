@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "compass-core",
-    "compass-powertrain",
-    "compass-app",
-    "compass-app-py",
+    "routee-compass-core",
+    "routee-compass-powertrain",
+    "routee-compass",
+    "routee-compass-py",
 ]
 
 [workspace.dependencies]

@@ -1,3 +1,5 @@
+Cargo.lock
+
 .DS_Store
 *.code-workspace
 *.local*
@@ -5,6 +7,8 @@
 .osmnx*
 
 cache/
+
+# osmnx notebook test case output directory name
 golden_co/
 
 # Byte-compiled / optimized / DLL files
@@ -54,6 +58,7 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+.pytest_cache
 
 # Translations
 *.mo
