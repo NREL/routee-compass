@@ -1,3 +1,4 @@
 # Rust API Docs
 
-TODO: add link to docs on docs.rs when we go open source
+The API documentation for the RouteE Compass rust library can be found at [docs.rs/routee-compass/latest/routee-compass](docs.rs/routee-compass/latest/routee-compass).
+

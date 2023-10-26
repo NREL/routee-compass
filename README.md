@@ -27,7 +27,7 @@ RouteE Compass is currently maintained by Nick Reinicke ([@nreinicke](https://gi
 
 ## License
 
-Copyright 2023 National Renewable Energy Laboratory
+Copyright 2023 Alliance for Sustainable Energy, LLC
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
