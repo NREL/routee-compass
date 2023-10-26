@@ -11,8 +11,8 @@ documentation = "https://docs.rs/routee-compass"
 
 
 [dependencies]
-routee-compass-core = { path = "../routee-compass-core" }
-smartcore = { version = "0.3.1", features = ["serde"] }   # random forest
+routee-compass-core = { path = "../routee-compass-core", version = "0.2.0" }
+smartcore = { version = "0.3.1", features = ["serde"] }                      # random forest
 thiserror = { workspace = true }
 log = { workspace = true }
 geo = { workspace = true }
