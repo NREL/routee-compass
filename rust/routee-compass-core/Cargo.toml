@@ -4,6 +4,11 @@ version = "0.2.0"
 edition = "2021"
 exclude = ["test/"]
 readme = "README.md"
+license = "BSD-3-Clause"
+description = "The core routing algorithms and data structures of the RouteE-Compass energy-aware routing engine"
+homepage = "https://nrel.github.io/routee-compass"
+repository = "https://github.com/NREL/routee-compass"
+documentation = "https://docs.rs/routee-compass"
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }

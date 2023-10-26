@@ -3,6 +3,11 @@ name = "routee-compass-powertrain"
 version = "0.2.0"
 edition = "2021"
 readme = "README.md"
+license = "BSD-3-Clause"
+description = "Crate providing integration between RouteE Compass and RouteE Powertrain"
+homepage = "https://nrel.github.io/routee-compass"
+repository = "https://github.com/NREL/routee-compass"
+documentation = "https://docs.rs/routee-compass"
 
 
 [dependencies]

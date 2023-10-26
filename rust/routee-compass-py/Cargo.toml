@@ -3,6 +3,11 @@ name = "routee-compass-py"
 version = "0.2.0"
 edition = "2021"
 readme = "README.md"
+license = "BSD-3-Clause"
+description = "Python bindings to the RouteE-Compass energy-aware routing engine"
+homepage = "https://nrel.github.io/routee-compass"
+repository = "https://github.com/NREL/routee-compass"
+documentation = "https://docs.rs/routee-compass"
 
 [dependencies]
 routee-compass = { path = "../routee-compass" }
