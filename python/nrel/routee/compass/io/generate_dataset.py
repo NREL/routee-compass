@@ -1,6 +1,11 @@
 from typing import Callable, Dict, Optional, Union
 from pathlib import Path
-from nrel.routee.compass.io.models import ADJUSTMENT_FACTORS, ENERGY_OUTPUT_UNITS, IDEAL_ENERGY_RATES, MODELS_POWERTRAINS
+from nrel.routee.compass.io.models import (
+    ADJUSTMENT_FACTORS,
+    ENERGY_OUTPUT_UNITS,
+    IDEAL_ENERGY_RATES,
+    MODELS_POWERTRAINS,
+)
 from pkg_resources import resource_filename
 import logging
 import shutil
@@ -193,20 +198,24 @@ def generate_compass_dataset(
                     ] = adjustment_factor
                     init_toml["traversal"]["energy_model_path"] = f"{energy_model}.bin"
 
-                    energy_model_energy_rate_unit = ENERGY_OUTPUT_UNITS.get(powertrain_type) 
+                    energy_model_energy_rate_unit = ENERGY_OUTPUT_UNITS.get(
+                        powertrain_type
+                    )
                     if energy_model_energy_rate_unit is None:
                         raise ValueError(
                             f"Could not find energy rate unit for {powertrain_type}."
                         )
-                    
-                    init_toml["traversal"]["energy_model_energy_rate_unit"] = energy_model_energy_rate_unit
+
+                    init_toml["traversal"][
+                        "energy_model_energy_rate_unit"
+                    ] = energy_model_energy_rate_unit
 
                     ideal_energy_rate = IDEAL_ENERGY_RATES.get(powertrain_type)
                     if ideal_energy_rate is None:
                         raise ValueError(
                             f"Could not find ideal energy rate for {powertrain_type}."
                         )
-                    
+
                     init_toml["traversal"]["ideal_energy_rate"] = ideal_energy_rate
 
             with open(output_directory / filename, "w") as f:

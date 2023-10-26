@@ -49,7 +49,7 @@ ENERGY_OUTPUT_UNITS = {
 }
 
 IDEAL_ENERGY_RATES = {
-    "ICE": 1 / 35, # 35 mpg
-    "HEV": 1 / 50, # 50 mpg
-    "BEV": 0.2, # 20 kWh per 100 miles
+    "ICE": 1 / 35,  # 35 mpg
+    "HEV": 1 / 50,  # 50 mpg
+    "BEV": 0.2,  # 20 kWh per 100 miles
 }
