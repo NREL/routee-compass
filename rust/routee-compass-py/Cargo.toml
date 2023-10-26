@@ -1,0 +1,14 @@
+[package]
+name = "routee-compass-py"
+version = "0.2.0"
+edition = "2021"
+readme = "README.md"
+
+[dependencies]
+routee-compass = { path = "../routee-compass" }
+pyo3 = { version = "0.19", features = ["extension-module"] }
+serde_json = { workspace = true }
+
+[lib]
+name = "routee_compass_py"
+crate-type = ["cdylib"]

@@ -1,0 +1,28 @@
+[package]
+name = "routee-compass"
+version = "0.2.0"
+edition = "2021"
+readme = "README.md"
+
+[dependencies]
+routee-compass-core = { path = "../routee-compass-core" }
+routee-compass-powertrain = { path = "../routee-compass-powertrain" }
+thiserror = { workspace = true }
+flate2 = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+csv = { workspace = true }
+geo = { workspace = true }
+geojson = { workspace = true }
+rstar = { workspace = true }
+wkt = { version = "0.10.3", features = ["serde"] }
+env_logger = { workspace = true }
+kdam = { workspace = true }
+log = { workspace = true }
+rayon = { workspace = true }
+serde_repr = "0.1"
+rand = "0.8.5"
+chrono = { workspace = true }
+config = "0.13.3"
+clap = { version = "4.3.19", features = ["derive"] }
+itertools = { workspace = true }
