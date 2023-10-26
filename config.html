@@ -1,0 +1,789 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="python" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>App Config &#8212; RouteE Compass</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=c5ced968eda925caa686" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=c5ced968eda925caa686" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=c5ced968eda925caa686" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=c5ced968eda925caa686" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=c5ced968eda925caa686" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=c5ced968eda925caa686" />
+  <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=c5ced968eda925caa686"></script>
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="_static/sphinx-thebe.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'config';</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Python API Docs" href="python_api_docs.html" />
+    <link rel="prev" title="Query" href="query.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
+
+<a class="navbar-brand logo" href="intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/routeelogo.png" class="logo__image only-light" alt="RouteE Compass - Home"/>
+    <script>document.write(`<img src="_static/routeelogo.png" class="logo__image only-dark" alt="RouteE Compass - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="intro.html">
+                    RouteE Compass
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running.html">Running</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="notebooks/open_street_maps_example.html">OpenStreetMap example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="query.html">Query</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">App Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api_docs.html">Python API Docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rust_api_docs.html">Rust API Docs</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developers</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="developers/build_the_docs.html">Build The Docs</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/NREL/routee-compass" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/NREL/routee-compass/issues/new?title=Issue%20on%20page%20%2Fconfig.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="_sources/config.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script>
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<label class="sidebar-toggle secondary-toggle btn btn-sm" for="__secondary"title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</label>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>App Config</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal-models">Traversal Models</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distance">Distance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#speed-table">Speed Table</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#speed-grade-energy-model">Speed Grade Energy Model</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plugins">Plugins</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-plugins">Input Plugins</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grid-search">Grid Search</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#config">Config</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertex-rtree">Vertex RTree</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Config</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-plugins">Output Plugins</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Config</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="app-config">
+<h1>App Config<a class="headerlink" href="#app-config" title="Permalink to this heading">#</a></h1>
+<p>Each <code class="docutils literal notranslate"><span class="pre">CompassApp</span></code> instance is defined by a configuration toml file.
+The configuration file specifies things like &quot;Which traversal model should I use, and what are its parameters?&quot; and &quot;Which data sources should I use?&quot;.</p>
+<p>If you follow the <a class="reference internal" href="notebooks/open_street_maps_example.html"><span class="doc std std-doc">open street maps example</span></a>, the code will produce a few configuration files in the <code class="docutils literal notranslate"><span class="pre">golden_co/</span></code> folder. Let's take a look at the <code class="docutils literal notranslate"><span class="pre">osm_default_energy.toml</span></code> file.
+We added some annotations to describe the different sections:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># how many threads should a CompassApp use to process queries?</span>
+<span class="n">parallelism</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+
+<span class="c1"># the parameters for the underlying road network graph</span>
+<span class="k">[graph]</span>
+<span class="c1"># a file containing all the graph edges and their adjacencies</span>
+<span class="n">edge_list_csv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-compass.csv.gz&quot;</span>
+<span class="c1"># a file containing all the graph verticies</span>
+<span class="n">vertex_list_csv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
+<span class="c1"># if verbose is true, you&#39;ll see more information when loading the graph</span>
+<span class="n">verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+
+<span class="c1"># which traversal model to use and its parameters</span>
+<span class="k">[traversal]</span>
+<span class="c1"># the speed_grade_energy_model can compute routes using time or energy as costs</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;speed_grade_energy_model&quot;</span>
+<span class="c1"># what underlying machine learn framework to use [smartcore | onnx]</span>
+<span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;smartcore&quot;</span>
+<span class="c1"># speeds for each edge in the graph</span>
+<span class="n">speed_table_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
+<span class="c1"># the file for the routee-powertrain model</span>
+<span class="n">energy_model_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2016_TOYOTA_Camry_4cyl_2WD.bin&quot;</span>
+<span class="c1"># the &quot;best case&quot; energy rate for this particular vehicle (something like highway mpg) that&#39;s used in the a-star algorithm</span>
+<span class="n">ideal_energy_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.02857142857</span>
+<span class="c1"># the units of the above speed table</span>
+<span class="n">speed_table_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kilometers_per_hour&quot;</span>
+<span class="c1"># the units of what the routee-powertrain model expects speed to be in</span>
+<span class="n">energy_model_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles_per_hour&quot;</span>
+<span class="c1"># the units of what the routee-powertrain model expects grade to be in</span>
+<span class="n">energy_model_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;decimal&quot;</span>
+<span class="c1"># the units of what the routee-powertrain model outputs for energy</span>
+<span class="n">energy_model_energy_rate_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gallons_gasoline_per_mile&quot;</span>
+<span class="c1"># the units of what the traversal model outputs for time</span>
+<span class="n">output_time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;minutes&quot;</span>
+<span class="c1"># the units of what the traversal model outputs for distance</span>
+<span class="n">output_distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles&quot;</span>
+
+<span class="c1"># which plugins should be activated?</span>
+<span class="k">[plugin]</span>
+
+<span class="c1"># input plugins get applied to a query before it gets executed</span>
+<span class="k">[[plugin.input_plugins]]</span>
+<span class="c1"># the grid search plugin allows for multiple queries to be generated from one query with the &quot;grid_search&quot; key</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;grid_search&quot;</span>
+
+<span class="k">[[plugin.input_plugins]]</span>
+<span class="c1"># a vertex based RTree for matching incoming x/y coordinates to a graph vertex</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertex_rtree&quot;</span>
+<span class="c1"># a file with all the graph verticies</span>
+<span class="n">vertices_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
+
+<span class="c1"># output plugs get applied to the result of running a query</span>
+<span class="k">[[plugin.output_plugins]]</span>
+<span class="c1"># summarize the results of the search</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;summary&quot;</span>
+
+<span class="k">[[plugin.output_plugins]]</span>
+<span class="c1"># a plugin that gathers traversal specific outputs like the route geometry</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;traversal&quot;</span>
+<span class="c1"># return the full route in a geojson format</span>
+<span class="n">route</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;geo_json&quot;</span>
+<span class="c1"># return the full search tree in a geojson format</span>
+<span class="n">tree</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;geo_json&quot;</span>
+<span class="c1"># geometry objects for all the edges in the graph</span>
+<span class="n">geometry_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-geometries-enumerated.txt.gz&quot;</span>
+
+<span class="k">[[plugin.output_plugins]]</span>
+<span class="c1"># append an map specific id(like Open Street Maps Nodes) onto the compass verticies (which use a simple integer internal index)</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;uuid&quot;</span>
+<span class="c1"># a file with ids for each vertex in the graph</span>
+<span class="n">uuid_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-uuid-enumerated.txt.gz&quot;</span>
+</pre></div>
+</div>
+<section id="traversal-models">
+<h2>Traversal Models<a class="headerlink" href="#traversal-models" title="Permalink to this heading">#</a></h2>
+<p>Traversal models are what the application uses when computing a path through the graph.
+The models can use things like road speed to compute the shortest time route or vehicle energy consumption to compute a route that uses the least energy.
+Here are the default traversal models that come with the <code class="docutils literal notranslate"><span class="pre">CompassApp</span></code>:</p>
+<section id="distance">
+<h3>Distance<a class="headerlink" href="#distance" title="Permalink to this heading">#</a></h3>
+<p>The distance traversal model is a very simple model that just uses distance for computing a route, producing the route that has the shortest distance.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[traversal]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;distance&quot;</span>
+<span class="n">distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="speed-table">
+<h3>Speed Table<a class="headerlink" href="#speed-table" title="Permalink to this heading">#</a></h3>
+<p>The speed table traversal model uses a speed lookup table to compute the fastest (or shortest time) route.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[traversal]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;speed_table&quot;</span>
+<span class="n">speed_table_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
+<span class="n">speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kilometers_per_hour&quot;</span>
+<span class="n">output_distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles&quot;</span>
+<span class="n">output_time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;minutes&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="speed-grade-energy-model">
+<h3>Speed Grade Energy Model<a class="headerlink" href="#speed-grade-energy-model" title="Permalink to this heading">#</a></h3>
+<p>The speed grade energy model computes energy (with a routee-powertrain vehicle model) and speed over an edge. This model also takes in an additional query argument <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> that specifies how much to value energy in the resulting cost. For example, an <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> of <code class="docutils literal notranslate"><span class="pre">0.0</span></code> would not value energy at all and would return a pure shortest time route whereas an <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> of <code class="docutils literal notranslate"><span class="pre">1.0</span></code> would not value time at all and would return a pure least energy route.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[traversal]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;speed_grade_energy_model&quot;</span>
+<span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;smartcore&quot;</span>
+<span class="n">speed_table_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz&quot;</span>
+<span class="n">grade_table_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz&quot;</span>
+<span class="n">grade_table_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;decimal&quot;</span>
+<span class="n">energy_model_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/2016_TOYOTA_Camry_4cyl_2WD.bin&quot;</span>
+<span class="n">ideal_energy_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.02857142857</span>
+<span class="n">speed_table_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kilometers_per_hour&quot;</span>
+<span class="n">energy_model_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles_per_hour&quot;</span>
+<span class="n">energy_model_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;decimal&quot;</span>
+<span class="n">energy_model_energy_rate_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gallons_gasoline_per_mile&quot;</span>
+<span class="n">output_time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;minutes&quot;</span>
+<span class="n">output_distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="plugins">
+<h2>Plugins<a class="headerlink" href="#plugins" title="Permalink to this heading">#</a></h2>
+<p>Input and output plugins are used to modify the queries and the results respectively.
+Both queries and results are valid json objects and so a plugin takes in a json object and returns a json object.</p>
+</section>
+<section id="input-plugins">
+<h2>Input Plugins<a class="headerlink" href="#input-plugins" title="Permalink to this heading">#</a></h2>
+<p>Here are the default input plugins that are provided:</p>
+<section id="grid-search">
+<h3>Grid Search<a class="headerlink" href="#grid-search" title="Permalink to this heading">#</a></h3>
+<p>The grid search plugin allows you to specify a <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> key in the query and it will generate multiple queries from those parameters. For example, if you had a query:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;origin_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Government Center Station&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;destination_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cannonball Creek Brewery&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;origin_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.200146</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.72657</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;grid_search&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The grid search plugin would take this single query and generate two queries that would be fed into the application:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;origin_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Government Center Station&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;destination_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cannonball Creek Brewery&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;origin_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.200146</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.72657</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;origin_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Government Center Station&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;destination_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cannonball Creek Brewery&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;origin_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.200146</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.72657</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<section id="config">
+<h4>Config<a class="headerlink" href="#config" title="Permalink to this heading">#</a></h4>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.input_plugins]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;grid_search&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="vertex-rtree">
+<h3>Vertex RTree<a class="headerlink" href="#vertex-rtree" title="Permalink to this heading">#</a></h3>
+<p>The vertex RTree plugin uses an RTree to match coordiantes to graph verticies.</p>
+<p>For example, if you specify your query origin and destination as lat/lon coordinates (i.e. <code class="docutils literal notranslate"><span class="pre">origin_x</span></code>, <code class="docutils literal notranslate"><span class="pre">origin_y</span></code>) we need a way to match this to the graph and then insert an <code class="docutils literal notranslate"><span class="pre">origin_vertex</span></code> or a <code class="docutils literal notranslate"><span class="pre">destination_vertex</span></code> into the query. Those two fields are what the application expects when conducting a search.</p>
+<section id="id1">
+<h4>Config<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h4>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.input_plugins]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertex_rtree&quot;</span>
+<span class="n">vertices_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="output-plugins">
+<h2>Output Plugins<a class="headerlink" href="#output-plugins" title="Permalink to this heading">#</a></h2>
+<p>Here are the default output plugins that are provided:</p>
+<section id="summary">
+<h3>Summary<a class="headerlink" href="#summary" title="Permalink to this heading">#</a></h3>
+<p>A plugin adds a simple <code class="docutils literal notranslate"><span class="pre">traversal_summary</span></code> section to the result.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.output_plugins]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;summary&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="traversal">
+<h3>Traversal<a class="headerlink" href="#traversal" title="Permalink to this heading">#</a></h3>
+<p>A plugin that appends various items to the result.</p>
+<section id="id2">
+<h4>Config<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h4>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.output_plugins]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;traversal&quot;</span>
+<span class="n">route</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;geo_json&quot;</span>
+<span class="n">tree</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;geo_json&quot;</span>
+<span class="n">geometry_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-geometries-enumerated.txt.gz&quot;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">route</span></code> key will add route information to the result depending on the type.
+The <code class="docutils literal notranslate"><span class="pre">tree</span></code> key will add search tree information to the result depending on the type (be aware that this could be very large for searches that span a large geographical distance).</p>
+<p>Both the <code class="docutils literal notranslate"><span class="pre">route</span></code> and the <code class="docutils literal notranslate"><span class="pre">tree</span></code> key are optional and if omitted, the plugin will not append anything for it. In addition both keys can be specified in the following formats:</p>
+<ul class="simple">
+<li><p>&quot;json&quot;: non-geometry output writing traversal metrics (cost, state) as JSON for a route or a tree</p></li>
+<li><p>&quot;wkt&quot;: outputs a LINESTRING for a route, or a MULTILINESTRING for a tree</p></li>
+<li><p>&quot;geo_json&quot;: annotated geometry data as a FeatureCollection of LineStrings with properties assigned from traversal metrics</p></li>
+</ul>
+</section>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  <!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="query.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Query</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="python_api_docs.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Python API Docs</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal-models">Traversal Models</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distance">Distance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#speed-table">Speed Table</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#speed-grade-energy-model">Speed Grade Energy Model</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plugins">Plugins</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-plugins">Input Plugins</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grid-search">Grid Search</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#config">Config</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertex-rtree">Vertex RTree</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Config</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-plugins">Output Plugins</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Config</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By National Renewable Energy Laboratory
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2022.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=c5ced968eda925caa686"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=c5ced968eda925caa686"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
