@@ -2,7 +2,7 @@ name: Python build release for platforms
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 jobs:
   build:
