@@ -3,11 +3,11 @@ The RouteE-Compass energy-aware routing engine.
 ### Crates
 
 This documentation is built around use of the `routee_compass` crate.
-This repo is setup as a [workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) and CompassApp is defined with two upstream dependencies, [compass-core] and [compass-powertrain]:
+This repo is setup as a [workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) and CompassApp is defined with two upstream dependencies, [routee-compass-core] and [routee-compass-powertrain]:
 
-* [compass-core] - core data structures and algorithms used by Compass
-* [compass-powertrain] - traversal model supporting energy-optimal route planning via [RouteE Powertrain](https://github.com/nrel/routee-powertrain)
-* [compass-app] - application built around the core model intended for command-line execution or longer-running applications such as the python sdk (this README)
+* [routee-compass-core] - core data structures and algorithms used by Compass
+* [routee-compass-powertrain] - traversal model supporting energy-optimal route planning via [RouteE Powertrain](https://github.com/nrel/routee-powertrain)
+* [routee-compass] - application built around the core model intended for command-line execution or longer-running applications such as the python sdk (this README)
 
 ### Building CompassApp instances
 
@@ -53,6 +53,6 @@ Any custom builders will need to be added to a [CompassAppBuilder] instance that
 [InputPluginBuilder]: crate::app::compass::config::builders::InputPluginBuilder
 [OutputPluginBuilder]: crate::app::compass::config::builders::OutputPluginBuilder
 
-[compass-core]: routee_compass_core
-[compass-powertrain]: routee_compass_powertrain
-[compass-app]: self
+[routee-compass-core]: routee_compass_core
+[routee-compass-powertrain]: routee_compass_powertrain
+[routee-compass]: self
