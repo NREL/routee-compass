@@ -1,8 +1,24 @@
 use super::compass_configuration_error::CompassConfigurationError;
 use serde::de;
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
+
+pub const CONFIG_DIRECTORY_KEY: &str = "config_directory";
 
 pub trait ConfigJsonExtensions {
+    fn set_config_directory(
+        &mut self,
+        config_directory: String,
+    ) -> Result<(), CompassConfigurationError>;
+    fn get_config_path(
+        &self,
+        key: String,
+        parent_key: String,
+    ) -> Result<PathBuf, CompassConfigurationError>;
+    fn get_config_path_optional(
+        &self,
+        key: String,
+        parent_key: String,
+    ) -> Result<Option<PathBuf>, CompassConfigurationError>;
     fn get_config_string(
         &self,
         key: String,
@@ -36,6 +52,77 @@ pub trait ConfigJsonExtensions {
 }
 
 impl ConfigJsonExtensions for serde_json::Value {
+    fn set_config_directory(
+        &mut self,
+        config_directory: String,
+    ) -> Result<(), CompassConfigurationError> {
+        self.as_object_mut()
+            .ok_or(CompassConfigurationError::InsertError(
+                "Attempted to set config directory but the config is not a JSON object".to_string(),
+            ))?
+            .insert(
+                CONFIG_DIRECTORY_KEY.to_string(),
+                serde_json::Value::String(config_directory),
+            )
+            .ok_or(CompassConfigurationError::InsertError(format!(
+                "Attempted to set config directory but the key {} already exists",
+                CONFIG_DIRECTORY_KEY.to_string()
+            )))?;
+        Ok(())
+    }
+    fn get_config_path_optional(
+        &self,
+        key: String,
+        parent_key: String,
+    ) -> Result<Option<PathBuf>, CompassConfigurationError> {
+        match self.get(key.clone()) {
+            None => Ok(None),
+            Some(value) => {
+                let config_path = self.get_config_path(key, parent_key)?;
+                Ok(Some(config_path))
+            }
+        }
+    }
+    fn get_config_path(
+        &self,
+        key: String,
+        parent_key: String,
+    ) -> Result<PathBuf, CompassConfigurationError> {
+        let config_path_string = self
+            .get(CONFIG_DIRECTORY_KEY)
+            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
+                CONFIG_DIRECTORY_KEY.to_string(),
+                parent_key.clone(),
+            ))?
+            .as_str()
+            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                key.clone(),
+                String::from("String"),
+            ))?;
+
+        let config_path = PathBuf::from(config_path_string);
+
+        let path_string = self.get_config_string(key.clone(), parent_key.clone())?;
+        let path = PathBuf::from(path_string.clone());
+
+        // if file can be found, just return it
+        if path.is_file() {
+            return Ok(path);
+        }
+
+        // try searching in the config directory
+        let path_from_config = config_path.join(path);
+        if path_from_config.is_file() {
+            return Ok(path_from_config);
+        }
+
+        // can't find the file
+        Err(CompassConfigurationError::FileNotFoundForComponent(
+            path_string,
+            key,
+            parent_key,
+        ))
+    }
     fn get_config_string(
         &self,
         key: String,

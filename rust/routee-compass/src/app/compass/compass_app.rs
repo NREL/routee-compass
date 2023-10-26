@@ -3,7 +3,10 @@ use crate::{
     app::{
         compass::{
             compass_configuration_field::CompassConfigurationField,
-            config::termination_model_builder::TerminationModelBuilder,
+            config::{
+                config_json_extension::CONFIG_DIRECTORY_KEY,
+                termination_model_builder::TerminationModelBuilder,
+            },
         },
         compass_app_error::CompassAppError,
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
@@ -25,7 +28,7 @@ use routee_compass_core::{
     },
     util::duration_extension::DurationExtension,
 };
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Instance of RouteE Compass as an application.
 /// When constructed, it holds
@@ -65,9 +68,19 @@ impl TryFrom<PathBuf> for CompassApp {
             .join("config")
             .join("config.default.toml");
 
+        let conf_file_clone = conf_file.clone();
+
+        let config_file_parent_string: &str = match conf_file_clone.parent() {
+            Some(p) => p.to_str().ok_or(CompassAppError::NoInputFile(
+                "Could not find parent directory of config file".to_string(),
+            ))?,
+            None => "",
+        };
+
         let config = Config::builder()
             .add_source(config::File::from(default_file))
             .add_source(config::File::from(conf_file))
+            .set_override(CONFIG_DIRECTORY_KEY, config_file_parent_string)?
             .build()
             .map_err(CompassAppError::ConfigError)?;
         log::info!("Config: {:?}", config);

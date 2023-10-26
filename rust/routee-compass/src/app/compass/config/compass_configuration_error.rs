@@ -15,6 +15,10 @@ pub enum CompassConfigurationError {
     ExpectedFieldWithTypeUnrecognized(String, String, String),
     #[error("unknown module {0} for component {1} provided by configuration")]
     UnknownModelNameForComponent(String, String),
+    #[error("file {0} from field {1} for component {2} provided by configuration was not found")]
+    FileNotFoundForComponent(String, String, String),
+    #[error("{0}")]
+    InsertError(String),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]

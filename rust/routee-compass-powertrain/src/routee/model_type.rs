@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, path::PathBuf};
 
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
@@ -32,7 +32,7 @@ impl ModelType {
     /// builds a speed grade energy prediction model
     pub fn build(
         &self,
-        energy_model_path: String,
+        energy_model_path: PathBuf,
         energy_model_speed_unit: SpeedUnit,
         energy_model_grade_unit: GradeUnit,
         energy_model_energy_rate_unit: EnergyRateUnit,

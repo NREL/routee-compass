@@ -255,9 +255,6 @@ mod tests {
             .join("routee")
             .join("test")
             .join("Toyota_Camry.bin");
-        let speed_file_name = speed_file_path.to_str().unwrap();
-        let grade_file_name = grade_file_path.to_str().unwrap();
-        let model_file_name = model_file_path.to_str().unwrap();
         let v = Vertex {
             vertex_id: VertexId(0),
             coordinate: coord! {x: -86.67, y: 36.12},
@@ -270,15 +267,12 @@ mod tests {
                 distance: Distance::new(100.0),
             };
         }
-        let speed_file = String::from(speed_file_name);
-        let grade_file = String::from(grade_file_name);
-        let routee_model_path = String::from(model_file_name);
         let service = SpeedGradeModelService::new(
-            speed_file,
+            speed_file_path,
             SpeedUnit::KilometersPerHour,
+            Some(grade_file_path),
             None,
-            None,
-            routee_model_path,
+            model_file_path,
             ModelType::Smartcore,
             None,
             SpeedUnit::MilesPerHour,

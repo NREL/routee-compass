@@ -23,7 +23,7 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
         let traversal_key = CompassConfigurationField::Traversal.to_string();
         // todo: optional output time unit
         let filename =
-            params.get_config_string(String::from("speed_table_path"), traversal_key.clone())?;
+            params.get_config_path(String::from("speed_table_path"), traversal_key.clone())?;
         let speed_unit = params
             .get_config_serde::<SpeedUnit>(String::from("speed_unit"), traversal_key.clone())?;
         let distance_unit = params.get_config_serde_optional::<DistanceUnit>(
@@ -35,7 +35,7 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
             traversal_key.clone(),
         )?;
 
-        let m = SpeedLookupModel::new(&filename, speed_unit, distance_unit, time_unit)
+        let m = SpeedLookupModel::new(filename, speed_unit, distance_unit, time_unit)
             .map_err(CompassConfigurationError::TraversalModelError)?;
         let service = Arc::new(SpeedLookupService { m: Arc::new(m) });
         return Ok(service);

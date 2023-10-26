@@ -7,6 +7,7 @@ use routee_compass_core::model::traversal::traversal_model_error::TraversalModel
 use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;
 use routee_compass_core::util::unit::*;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 #[cfg(feature = "onnx")]
@@ -31,11 +32,11 @@ pub struct SpeedGradeModelService {
 
 impl SpeedGradeModelService {
     pub fn new(
-        speed_table_path: String,
+        speed_table_path: PathBuf,
         speeds_table_speed_unit: SpeedUnit,
-        grade_table_path_option: Option<String>,
+        grade_table_path_option: Option<PathBuf>,
         grade_table_grade_unit_option: Option<GradeUnit>,
-        energy_model_path: String,
+        energy_model_path: PathBuf,
         model_type: ModelType,
         ideal_energy_rate_option: Option<EnergyRate>,
         energy_model_speed_unit: SpeedUnit,

@@ -1,10 +1,12 @@
+use std::path::PathBuf;
+
 use super::state::traversal_state::TraversalState;
 use crate::util::unit::UnitError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum TraversalModelError {
     #[error("failure building traversal model from file {0}: {1}")]
-    FileReadError(String, String),
+    FileReadError(PathBuf, String),
     #[error("failure building traversal model: {0}")]
     BuildError(String),
     #[error("numeric error during calculation: {0}")]

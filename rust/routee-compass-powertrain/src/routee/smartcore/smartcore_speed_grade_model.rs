@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::routee::prediction_model::SpeedGradePredictionModel;
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
@@ -37,7 +39,7 @@ impl SpeedGradePredictionModel for SmartcoreSpeedGradeModel {
 
 impl SmartcoreSpeedGradeModel {
     pub fn new(
-        routee_model_path: String,
+        routee_model_path: PathBuf,
         speed_unit: SpeedUnit,
         grade_unit: GradeUnit,
         energy_rate_unit: EnergyRateUnit,

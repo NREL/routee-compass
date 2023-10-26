@@ -3,7 +3,7 @@ check-revoke = false
 
 [env]
 ORT_STRATEGY = { value = "system" }
-ORT_LIB_LOCATION = { value = "rust/compass-powertrain/onnx-runtime/v1.15.1/osx-x86_64", relative = true }
+ORT_LIB_LOCATION = { value = "rust/routee-compass-powertrain/onnx-runtime/v1.15.1/osx-x86_64", relative = true }
 
 [target.x86_64-apple-darwin]
 rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]
