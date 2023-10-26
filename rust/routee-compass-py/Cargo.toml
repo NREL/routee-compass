@@ -10,7 +10,7 @@ repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
 
 [dependencies]
-routee-compass = { path = "../routee-compass" }
+routee-compass = { path = "../routee-compass", version = "0.2.0" }
 pyo3 = { version = "0.19", features = ["extension-module"] }
 serde_json = { workspace = true }
 
