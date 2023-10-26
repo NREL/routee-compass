@@ -25,7 +25,7 @@ jobs:
 
     # Build the book
     - name: Build the book
-      working-directory: ${{runner.workspace}}/docs/
+      working-directory: ${{runner.workspace}}/routee-compass/docs/
       run: |
         jupyter-book build .
 
