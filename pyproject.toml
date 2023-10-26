@@ -29,7 +29,6 @@ plot = ["folium", "matplotlib", "shapely>2"]
 dev = [
     "nrel.routee.compass[all]",
     "black",
-    "mypy",
     "pytest",
     "maturin",
     "jupyter-book",
