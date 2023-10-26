@@ -1,0 +1,105 @@
+name: Python build release for platforms
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: build py3.${{ matrix.python-version }} on ${{ matrix.platform || matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu
+          - macos
+          - windows
+        python-version:
+          - "9"
+          - "10"
+        include:
+          - os: ubuntu
+            platform: linux
+          - os: windows
+            ls: dir
+
+    runs-on: ${{ format('{0}-latest', matrix.os) }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: set up python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: set up rust
+        if: matrix.os != 'ubuntu'
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly 
+          override: true
+      - run: rustup target add aarch64-apple-darwin
+        if: matrix.os == 'macos'
+
+      - name: run cargo tests
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly 
+          override: true
+      - run: cd rust/ && cargo test
+
+      - name: install python dependencies
+        run: pip install -U maturin wheel twine cibuildwheel
+
+      - name: build sdist
+        if: matrix.os == 'ubuntu' && matrix.python-version == '9'
+        run: |
+          pip install -U maturin
+          maturin build --sdist --out dist/
+      - name: build ${{ matrix.platform || matrix.os }} binaries
+        run: cibuildwheel --output-dir dist
+        env:
+          CIBW_BUILD: "cp3${{ matrix.python-version }}-*"
+          CIBW_SKIP: "*-win32 *-musllinux* *i686 *ppc64le *s390x *aarch64"
+          CIBW_PLATFORM: ${{ matrix.platform || matrix.os }}
+          CIBW_TEST_REQUIRES: "pytest"
+          CIBW_TEST_COMMAND: "pytest {project}/tests -s"
+          CIBW_ENVIRONMENT: 'PATH="$HOME/.cargo/bin:$PATH"'
+          CIBW_ENVIRONMENT_WINDOWS: 'PATH="$UserProfile\.cargo\bin;$PATH"'
+          CIBW_ARCHS_MACOS: 'universal2'
+          # see https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2
+          CIBW_TEST_SKIP: '*_universal2:arm64'
+          CIBW_BEFORE_BUILD: >
+            pip install -U maturin &&
+            rustup default nightly &&
+            rustup show
+          CIBW_BEFORE_BUILD_LINUX: >
+            pip install -U setuptools-rust &&
+            curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=nightly --profile=minimal -y &&
+            rustup show
+
+      - name: upload artifacts 
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels 
+          path: dist 
+
+#   upload:
+#     needs: build
+#     runs-on: ubuntu-latest
+#     environment:
+#       name: pypi
+#       url: https://pypi.org/p/altrios
+#     permissions:
+#       id-token: write 
+#     steps:
+#       - name: Download all workflow run artifacts
+#         uses: actions/download-artifact@v2
+#         with:
+#           name: wheels
+#           path: dist 
+
+#       - name: publish package
+#         uses: pypa/gh-action-pypi-publish@release/v1
