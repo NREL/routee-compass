@@ -36,7 +36,7 @@ jobs:
 
       - name: Validate formatting
         run: |
-          black nrel tests --check
+          black python --check
 
     #   - name: Run tests
     
