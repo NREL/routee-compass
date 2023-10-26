@@ -1,0 +1,42 @@
+name: Python build and test on push + pull request
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  test:
+    if: github.event.pull_request.merged == false
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+
+    env:
+      PYTHON: ${{ matrix.python-version }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: set up python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          pip install ".[dev]"
+
+      - name: Run mypy
+        run: mypy . --ignore-missing-imports
+
+      - name: Validate formatting
+        run: |
+          black nrel tests --check
+
+    #   - name: Run tests
+    
