@@ -106,7 +106,7 @@ fn get_n_edges(edge_list_csv: PathBuf) -> Result<usize, GraphError> {
 
 fn get_n_vertices(vertex_list_csv: PathBuf) -> Result<usize, GraphError> {
     warn!("vertex list size not provided, scanning input to determine size");
-    let is_gzip = vertex_list_csv 
+    let is_gzip = vertex_list_csv
         .extension()
         .map(|ext| ext.to_str() == Some("gz"))
         .unwrap_or(false);
