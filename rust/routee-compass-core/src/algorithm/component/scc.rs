@@ -148,26 +148,50 @@ fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexId>, 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::graph::graph_config::GraphConfig;
-    use std::path::PathBuf;
+    use crate::model::property::{edge::Edge, vertex::Vertex};
+    use std::collections::HashMap;
 
     fn build_mock_graph() -> Graph {
-        // A test graph with 2 strongly connected components
-        let test_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("src")
-            .join("algorithm")
-            .join("component")
-            .join("test");
-        let edge_list_csv = test_path.join("edges.csv").to_str().unwrap().to_string();
-        let vertex_list_csv = test_path.join("vertices.csv").to_str().unwrap().to_string();
-        let graph_conf = GraphConfig {
-            edge_list_csv,
-            vertex_list_csv,
-            n_edges: None,
-            n_vertices: None,
-            verbose: false,
+        let vertices = vec![
+            Vertex::new(0, 0.0, 0.0),
+            Vertex::new(1, 1.0, 1.0),
+            Vertex::new(2, 2.0, 2.0),
+            Vertex::new(3, 3.0, 3.0),
+            Vertex::new(4, 4.0, 4.0),
+        ];
+
+        let edges = vec![
+            Edge::new(0, 0, 1, 10.0),
+            Edge::new(1, 1, 0, 10.0),
+            Edge::new(2, 1, 2, 10.0),
+            Edge::new(3, 2, 1, 10.0),
+            Edge::new(4, 2, 3, 10.0),
+            Edge::new(5, 3, 2, 10.0),
+            Edge::new(6, 3, 0, 10.0),
+            Edge::new(7, 0, 3, 10.0),
+            Edge::new(8, 0, 2, 10.0),
+            Edge::new(9, 1, 3, 10.0),
+            Edge::new(10, 2, 0, 10.0),
+            Edge::new(11, 3, 1, 10.0),
+            Edge::new(12, 4, 4, 10.0),
+        ];
+
+        // Create the adjacency and reverse adjacency lists.
+        let mut adj = vec![HashMap::new(); vertices.len()];
+        let mut rev = vec![HashMap::new(); vertices.len()];
+
+        for edge in &edges {
+            adj[edge.src_vertex_id.0].insert(edge.edge_id, edge.dst_vertex_id);
+            rev[edge.dst_vertex_id.0].insert(edge.edge_id, edge.src_vertex_id);
+        }
+
+        // Construct the Graph instance.
+        let graph = Graph {
+            adj,
+            rev,
+            edges,
+            vertices,
         };
-        let graph = Graph::try_from(&graph_conf).unwrap();
         graph
     }
 

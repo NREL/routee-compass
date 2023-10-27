@@ -1,4 +1,4 @@
-use crate::app::compass_app_error::CompassAppError;
+use crate::app::compass::compass_app_error::CompassAppError;
 use crate::plugin::output::default::traversal::utils::parse_linestring;
 use geo::LineString;
 use kdam::Bar;

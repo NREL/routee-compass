@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::json_extensions::UUIDJsonExtensions;
 
 use crate::app::search::search_app_result::SearchAppResult;
@@ -12,7 +14,7 @@ pub struct UUIDOutputPlugin {
 }
 
 impl UUIDOutputPlugin {
-    pub fn from_file(filename: &String) -> Result<UUIDOutputPlugin, PluginError> {
+    pub fn from_file(filename: PathBuf) -> Result<UUIDOutputPlugin, PluginError> {
         let count =
             fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename)).map_err(|e| {
                 PluginError::FileReadError {

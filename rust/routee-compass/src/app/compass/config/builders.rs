@@ -1,7 +1,8 @@
 use super::compass_configuration_error::CompassConfigurationError;
 use crate::plugin::{input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin};
 use routee_compass_core::model::{
-    frontier::frontier_model::FrontierModel, traversal::traversal_model::TraversalModel,
+    frontier::frontier_model::FrontierModel, graph::graph::Graph,
+    traversal::traversal_model::TraversalModel,
 };
 use std::sync::Arc;
 
@@ -11,7 +12,7 @@ use std::sync::Arc;
 /// A [`TraversalModelBuilder`] instance should be an empty struct that implements
 /// this trait.
 pub trait TraversalModelBuilder {
-    /// Builds a [`TraversalModelService`] from JSON configuration.
+    /// Builds a [`TraversalModelService`] from configuration.
     ///
     /// # Arguments
     ///
@@ -102,7 +103,7 @@ pub trait InputPluginBuilder {
     /// [InputPlugin]: compass_app::plugin::input::input_plugin::InputPlugin
     fn build(
         &self,
-        parameters: &serde_json::Value,
+        parameters: serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError>;
 }
 
@@ -127,6 +128,6 @@ pub trait OutputPluginBuilder {
     /// [OutputPlugin]: compass_app::plugin::input::output_plugin::OutputPlugin
     fn build(
         &self,
-        parameters: &serde_json::Value,
+        parameters: serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError>;
 }

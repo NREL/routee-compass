@@ -23,7 +23,7 @@ impl FrontierModelBuilder for RoadClassBuilder {
         let valid_road_class_key = String::from("valid_road_classes");
 
         let road_class_file =
-            parameters.get_config_string(road_class_file_key.clone(), frontier_key.clone())?;
+            parameters.get_config_path(road_class_file_key.clone(), frontier_key.clone())?;
 
         let road_classes_json = parameters
             .get(valid_road_class_key.clone())

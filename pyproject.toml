@@ -42,6 +42,6 @@ Homepage = "https://github.nrel.gov/MBAP/routee-compass"
 [tool.maturin]
 python-source = "python"
 features = ["pyo3/extension-module"]
-module-name = "nrel.routee.compass.compass_app_py"
+module-name = "nrel.routee.compass.routee_compass_py"
 manifest-path = "rust/routee-compass-py/Cargo.toml"
 include = ["python/nrel/routee/compass/resources/models/*.bin"]

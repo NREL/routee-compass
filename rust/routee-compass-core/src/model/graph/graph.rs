@@ -1,13 +1,8 @@
 use crate::algorithm::search::direction::Direction;
-use crate::model::graph::edge_loader::EdgeLoader;
-use crate::model::graph::edge_loader::EdgeLoaderConfig;
-use crate::model::graph::graph_config::GraphConfig;
 use crate::model::graph::graph_error::GraphError;
-use crate::model::graph::vertex_loader::VertexLoaderConfig;
 use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
-use log::info;
 use std::collections::HashMap;
 
 /// Road network topology represented as an adjacency list.
@@ -28,6 +23,8 @@ use std::collections::HashMap;
 /// collections will prefer chained iterators. A few will collect
 /// into Vecs because of error handling or lifetimes, but those cases will only produce a
 /// smaller subset of the source data.
+
+#[derive(Debug)]
 pub struct Graph {
     pub adj: Vec<HashMap<EdgeId, VertexId>>,
     pub rev: Vec<HashMap<EdgeId, VertexId>>,
@@ -283,58 +280,5 @@ impl Graph {
                 Ok((src, edge, dst))
             })
             .collect()
-    }
-}
-
-impl TryFrom<&GraphConfig> for Graph {
-    type Error = GraphError;
-
-    /// tries to build a Graph from a GraphConfig.
-    ///
-    /// for both edge and vertex lists, we assume all ids can be used as indices
-    /// to an array data structure. to find the size of each array, we pass once
-    /// through each file to count the number of rows (minus header) of the CSV.
-    /// then we can build a Vec *once* and insert rows as we decode them without
-    /// a sort.
-    ///
-    /// # Arguments
-    ///
-    /// * `config` - configuration object for building a `Graph` instance
-    ///
-    /// # Returns
-    ///
-    /// A graph instance, or an error if an IO error occurred.
-    fn try_from(config: &GraphConfig) -> Result<Self, Self::Error> {
-        info!("checking file length of edge and vertex input files");
-        let (n_edges, n_vertices) = config.read_file_sizes()?;
-        info!(
-            "creating data structures to hold {} edges, {} vertices",
-            n_edges, n_vertices
-        );
-
-        info!("reading edge list");
-
-        let e_conf = EdgeLoaderConfig {
-            config: &config,
-            n_edges,
-            n_vertices,
-        };
-        let e_result = EdgeLoader::try_from(e_conf)?;
-
-        info!("reading vertex list");
-        let v_conf = VertexLoaderConfig {
-            config: &config,
-            n_vertices,
-        };
-        let vertices: Vec<Vertex> = v_conf.try_into()?;
-
-        let graph = Graph {
-            adj: e_result.adj,
-            rev: e_result.rev,
-            edges: e_result.edges,
-            vertices,
-        };
-
-        Ok(graph)
     }
 }

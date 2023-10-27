@@ -12,7 +12,7 @@ pub struct EdgeIdListOutputPluginBuilder {}
 impl OutputPluginBuilder for EdgeIdListOutputPluginBuilder {
     fn build(
         &self,
-        parameters: &serde_json::Value,
+        parameters: serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
         Ok(Box::new(EdgeIdListOutputPlugin {}))
     }

@@ -1,3 +1,5 @@
+use crate::app::compass::compass_configuration_field::CompassConfigurationField;
+
 use super::compass_configuration_error::CompassConfigurationError;
 use serde::de;
 use std::{path::PathBuf, str::FromStr};
@@ -5,10 +7,15 @@ use std::{path::PathBuf, str::FromStr};
 pub const CONFIG_DIRECTORY_KEY: &str = "config_directory";
 
 pub trait ConfigJsonExtensions {
+    fn get_config_section(
+        &mut self,
+        section: CompassConfigurationField,
+    ) -> Result<serde_json::Value, CompassConfigurationError>;
     fn set_config_directory(
         &mut self,
         config_directory: String,
     ) -> Result<(), CompassConfigurationError>;
+    fn get_config_directory(&self) -> Result<String, CompassConfigurationError>;
     fn get_config_path(
         &self,
         key: String,
@@ -52,6 +59,39 @@ pub trait ConfigJsonExtensions {
 }
 
 impl ConfigJsonExtensions for serde_json::Value {
+    fn get_config_section(
+        &mut self,
+        section: CompassConfigurationField,
+    ) -> Result<serde_json::Value, CompassConfigurationError> {
+        let mut section = self
+            .get(section.to_str())
+            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
+                section.to_string(),
+                String::from(""),
+            ))?
+            .clone();
+
+        // copy down config directory
+        let config_path_string = self.get_config_directory()?;
+        section.set_config_directory(config_path_string)?;
+
+        Ok(section)
+    }
+    fn get_config_directory(&self) -> Result<String, CompassConfigurationError> {
+        let config_directory_string = self
+            .get(CONFIG_DIRECTORY_KEY)
+            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
+                CONFIG_DIRECTORY_KEY.to_string(),
+                String::from(""),
+            ))?
+            .as_str()
+            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                CONFIG_DIRECTORY_KEY.to_string(),
+                String::from("String"),
+            ))?
+            .to_string();
+        Ok(config_directory_string)
+    }
     fn set_config_directory(
         &mut self,
         config_directory: String,
@@ -63,11 +103,7 @@ impl ConfigJsonExtensions for serde_json::Value {
             .insert(
                 CONFIG_DIRECTORY_KEY.to_string(),
                 serde_json::Value::String(config_directory),
-            )
-            .ok_or(CompassConfigurationError::InsertError(format!(
-                "Attempted to set config directory but the key {} already exists",
-                CONFIG_DIRECTORY_KEY.to_string()
-            )))?;
+            );
         Ok(())
     }
     fn get_config_path_optional(
@@ -77,7 +113,7 @@ impl ConfigJsonExtensions for serde_json::Value {
     ) -> Result<Option<PathBuf>, CompassConfigurationError> {
         match self.get(key.clone()) {
             None => Ok(None),
-            Some(value) => {
+            Some(_) => {
                 let config_path = self.get_config_path(key, parent_key)?;
                 Ok(Some(config_path))
             }
@@ -88,17 +124,7 @@ impl ConfigJsonExtensions for serde_json::Value {
         key: String,
         parent_key: String,
     ) -> Result<PathBuf, CompassConfigurationError> {
-        let config_path_string = self
-            .get(CONFIG_DIRECTORY_KEY)
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                CONFIG_DIRECTORY_KEY.to_string(),
-                parent_key.clone(),
-            ))?
-            .as_str()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                key.clone(),
-                String::from("String"),
-            ))?;
+        let config_path_string = self.get_config_directory()?;
 
         let config_path = PathBuf::from(config_path_string);
 

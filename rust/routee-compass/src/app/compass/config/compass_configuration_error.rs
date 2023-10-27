@@ -1,5 +1,8 @@
+use config::ConfigError;
 use routee_compass_core::{
-    model::traversal::traversal_model_error::TraversalModelError,
+    model::{
+        graph::graph_error::GraphError, traversal::traversal_model_error::TraversalModelError,
+    },
     util::conversion::conversion_error::ConversionError,
 };
 
@@ -19,6 +22,10 @@ pub enum CompassConfigurationError {
     FileNotFoundForComponent(String, String, String),
     #[error("{0}")]
     InsertError(String),
+    #[error(transparent)]
+    GraphError(#[from] GraphError),
+    #[error(transparent)]
+    ConfigError(#[from] ConfigError),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]

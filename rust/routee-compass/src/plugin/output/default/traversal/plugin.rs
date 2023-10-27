@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use super::json_extensions::TraversalJsonField;
 use super::traversal_output_format::TraversalOutputFormat;
 use super::utils::parse_linestring;
@@ -19,7 +21,7 @@ pub struct TraversalPlugin {
 
 impl TraversalPlugin {
     pub fn from_file(
-        filename: &String,
+        filename: PathBuf,
         route: Option<TraversalOutputFormat>,
         tree: Option<TraversalOutputFormat>,
     ) -> Result<TraversalPlugin, PluginError> {
@@ -171,11 +173,11 @@ mod tests {
             route_runtime: Duration::ZERO,
             total_runtime: Duration::ZERO,
         };
-        let filename = mock_geometry_file().to_str().unwrap().to_string();
+        let filename = mock_geometry_file();
         let route_geometry = true;
         let tree_geometry = false;
         let geom_plugin =
-            TraversalPlugin::from_file(&filename, Some(TraversalOutputFormat::Wkt), None).unwrap();
+            TraversalPlugin::from_file(filename, Some(TraversalOutputFormat::Wkt), None).unwrap();
 
         let result = geom_plugin
             .process(&output_result, Ok(&search_result))

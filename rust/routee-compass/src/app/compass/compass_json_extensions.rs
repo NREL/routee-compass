@@ -1,5 +1,5 @@
 use super::compass_input_field::CompassInputField;
-use crate::app::compass_app_error::CompassAppError;
+use crate::app::compass::compass_app_error::CompassAppError;
 
 pub trait CompassJsonExtensions {
     fn get_queries(&self) -> Result<Vec<serde_json::Value>, CompassAppError>;

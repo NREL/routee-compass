@@ -2,13 +2,14 @@ use super::config::compass_app_builder::CompassAppBuilder;
 use crate::{
     app::{
         compass::{
+            compass_app_error::CompassAppError,
             compass_configuration_field::CompassConfigurationField,
             config::{
-                config_json_extension::CONFIG_DIRECTORY_KEY,
+                config_json_extension::{ConfigJsonExtensions, CONFIG_DIRECTORY_KEY},
+                graph_builder::DefaultGraphBuilder,
                 termination_model_builder::TerminationModelBuilder,
             },
         },
-        compass_app_error::CompassAppError,
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
     plugin::{
@@ -21,14 +22,10 @@ use config::Config;
 use itertools::{Either, Itertools};
 use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::{
-    algorithm::search::search_algorithm::SearchAlgorithm,
-    model::{
-        cost::cost::Cost,
-        graph::{graph::Graph, graph_config::GraphConfig},
-    },
+    algorithm::search::search_algorithm::SearchAlgorithm, model::cost::cost::Cost,
     util::duration_extension::DurationExtension,
 };
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 /// Instance of RouteE Compass as an application.
 /// When constructed, it holds
@@ -113,14 +110,15 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
         let (config, builder) = pair;
 
-        let alg_params =
-            config.get::<serde_json::Value>(CompassConfigurationField::Algorithm.to_str())?;
+        let mut config_json = config.clone().try_deserialize::<serde_json::Value>()?;
+
+        let alg_params = config_json.get_config_section(CompassConfigurationField::Algorithm)?;
         let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
 
         // build traversal model
         let traversal_start = Local::now();
         let traversal_params =
-            config.get::<serde_json::Value>(CompassConfigurationField::Traversal.to_str())?;
+            config_json.get_config_section(CompassConfigurationField::Traversal)?;
         let traversal_model_service = builder.build_traversal_model_service(&traversal_params)?;
         let traversal_duration = (Local::now() - traversal_start)
             .to_std()
@@ -133,7 +131,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         // build frontier model
         let frontier_start = Local::now();
         let frontier_params =
-            config.get::<serde_json::Value>(CompassConfigurationField::Frontier.to_str())?;
+            config_json.get_config_section(CompassConfigurationField::Frontier)?;
         let frontier_model = builder.build_frontier_model(frontier_params)?;
         let frontier_duration = (Local::now() - frontier_start)
             .to_std()
@@ -145,15 +143,13 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // build termination model
         let termination_model_json =
-            config.get::<serde_json::Value>(CompassConfigurationField::Termination.to_str())?;
+            config_json.get_config_section(CompassConfigurationField::Termination)?;
         let termination_model = TerminationModelBuilder::build(&termination_model_json)?;
 
         // build graph
         let graph_start = Local::now();
-        let graph_conf = &config
-            .get::<GraphConfig>(CompassConfigurationField::Graph.to_str())
-            .map_err(CompassAppError::ConfigError)?;
-        let graph = Graph::try_from(graph_conf)?;
+        let graph_params = config_json.get_config_section(CompassConfigurationField::Graph)?;
+        let graph = DefaultGraphBuilder::build(&graph_params)?;
         let graph_duration = (Local::now() - graph_start)
             .to_std()
             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
@@ -180,8 +176,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // build plugins
         let plugins_start = Local::now();
-        let plugins_config =
-            config.get::<serde_json::Value>(CompassConfigurationField::Plugins.to_str())?;
+        let plugins_config = config_json.get_config_section(CompassConfigurationField::Plugins)?;
 
         let input_plugins = builder.build_input_plugins(plugins_config.clone())?;
         let output_plugins = builder.build_output_plugins(plugins_config.clone())?;

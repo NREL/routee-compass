@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::PathBuf;
 
 use crate::plugin::input::input_json_extensions::InputJsonExtensions;
 use crate::plugin::input::input_plugin::InputPlugin;
@@ -97,7 +97,7 @@ impl RTreePlugin {
             vertex_rtree: VertexRTree::new(vertices),
         }
     }
-    pub fn from_file(vertex_file: &Path) -> Result<Self, PluginError> {
+    pub fn from_file(vertex_file: &PathBuf) -> Result<Self, PluginError> {
         let vertices: Vec<Vertex> = read_utils::vec_from_csv(&vertex_file, true, None, None)
             .map_err(PluginError::CsvReadError)?;
         Ok(Self::new(vertices))

@@ -12,7 +12,7 @@ pub struct GridSearchBuilder {}
 impl InputPluginBuilder for GridSearchBuilder {
     fn build(
         &self,
-        _parameters: &serde_json::Value,
+        _parameters: serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
         return Ok(Box::new(GridSearchPlugin {}));
     }

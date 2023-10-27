@@ -1,6 +1,9 @@
 use super::search_app_result::SearchAppResult;
 use crate::{
-    app::{compass::config::builders::TraversalModelService, compass_app_error::CompassAppError},
+    app::{
+        compass::compass_app_error::CompassAppError,
+        compass::config::builders::TraversalModelService,
+    },
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
 use chrono::Local;
