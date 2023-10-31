@@ -58,15 +58,13 @@ impl TryFrom<PathBuf> for CompassApp {
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(conf_file: PathBuf) -> Result<Self, Self::Error> {
-        let default_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("src")
-            .join("app")
-            .join("compass")
-            .join("config")
-            .join("config.default.toml");
+        let default_config = config::File::from_str(
+            include_str!("config.default.toml"),
+            config::FileFormat::Toml,
+        );
 
         let config = Config::builder()
-            .add_source(config::File::from(default_file))
+            .add_source(default_config)
             .add_source(config::File::from(conf_file))
             .build()
             .map_err(CompassAppError::ConfigError)?;
