@@ -10,12 +10,18 @@ You can install this package from PyPI using pip:
 pip install nrel.routee.compass
 ```
 
+Or, if you want plotting and OSM features:
+
+```bash
+pip install 'nrel.routee.compass[all]'
+```
+
 ### from source
 
 You can also install from source by running the following from the root folder of this repository:
 
 ```bash
-pip install .
+pip install '.[all]'
 ```
 
 ## rust
@@ -43,17 +49,17 @@ conda activate routee-compass
 Building the application from source can be done using `cargo`:
 
 ```bash
-git clone https://github.nrel.gov/MBAP/routee-compass.git
+git clone https://github.com/NREL/routee-compass.git
 
 cd routee-compass/rust
 
 cargo build --release
 ```
 
-This will build the application into the location `path/to/routee-compass/rust/target/release/compass-app`
+This will build the application into the location `path/to/routee-compass/rust/target/release/routee-compass`
 
 You can optionally alias the application to make it easier to run:
 
 ```bash
-alias compass-app=path/to/routee-compass/rust/target/release/compass-app
+alias compass-app=path/to/routee-compass/rust/target/release/routee-compass
 ```

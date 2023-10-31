@@ -14,7 +14,7 @@ RouteE Compass is a part of the [RouteE](https://www.nrel.gov/transportation/rou
   - via [rust-lang.org](https://www.rust-lang.org/tools/install)
   - via [conda](https://anaconda.org/conda-forge/rust)
 2. install RouteE Compass
-  - for Python via [pip](https://pypi.org/project/pip/): `$ pip install nrel.routee.compass[all]`
+  - for Python via [pip](https://pypi.org/project/pip/): `$ pip install 'nrel.routee.compass[all]'`
   - for the command line: `$ cd rust; cargo build -r`
 
 ## Usage
