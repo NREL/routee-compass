@@ -15,36 +15,39 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-import osmnx as ox
-from nrel.routee.compass.io import generate_compass_dataset
-from nrel.routee.compass import CompassApp
-from pathlib import Path
-import os
+generate_compass_dataset(g, output_directory, add_grade=True, energy_model="2016_TOYOTA_Camry_4cyl_2WD")      
 ------------------
 
 
 [0;31m---------------------------------------------------------------------------[0m
 [0;31mImportError[0m                               Traceback (most recent call last)
-Cell [0;32mIn[1], line 2[0m
-[1;32m      1[0m [38;5;28;01mimport[39;00m [38;5;21;01mosmnx[39;00m [38;5;28;01mas[39;00m [38;5;21;01mox[39;00m
-[0;32m----> 2[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnrel[39;00m[38;5;21;01m.[39;00m[38;5;21;01mroutee[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompass[39;00m[38;5;21;01m.[39;00m[38;5;21;01mio[39;00m [38;5;28;01mimport[39;00m generate_compass_dataset
-[1;32m      3[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnrel[39;00m[38;5;21;01m.[39;00m[38;5;21;01mroutee[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompass[39;00m [38;5;28;01mimport[39;00m CompassApp
-[1;32m      4[0m [38;5;28;01mfrom[39;00m [38;5;21;01mpathlib[39;00m [38;5;28;01mimport[39;00m Path
+Cell [0;32mIn[4], line 1[0m
+[0;32m----> 1[0m [43mgenerate_compass_dataset[49m[43m([49m[43mg[49m[43m,[49m[43m [49m[43moutput_directory[49m[43m,[49m[43m [49m[43madd_grade[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43menergy_model[49m[38;5;241;43m=[39;49m[38;5;124;43m"[39;49m[38;5;124;43m2016_TOYOTA_Camry_4cyl_2WD[39;49m[38;5;124;43m"[39;49m[43m)[49m      
 
-File [0;32m/opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/nrel/routee/compass/__init__.py:1[0m
-[0;32m----> 1[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnrel[39;00m[38;5;21;01m.[39;00m[38;5;21;01mroutee[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompass[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompass_app[39;00m [38;5;28;01mimport[39;00m CompassApp
-[1;32m      2[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnrel[39;00m[38;5;21;01m.[39;00m[38;5;21;01mroutee[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompass[39;00m[38;5;21;01m.[39;00m[38;5;21;01mio[39;00m[38;5;21;01m.[39;00m[38;5;21;01mgenerate_dataset[39;00m [38;5;28;01mimport[39;00m generate_compass_dataset
+File [0;32m/opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/nrel/routee/compass/io/generate_dataset.py:85[0m, in [0;36mgenerate_compass_dataset[0;34m(g, output_directory, hwy_speeds, fallback, agg, add_grade, raster_resolution_arc_seconds, default_config, energy_model)[0m
+[1;32m     83[0m [38;5;28;01mif[39;00m add_grade:
+[1;32m     84[0m     log[38;5;241m.[39minfo([38;5;124m"[39m[38;5;124madding grade information[39m[38;5;124m"[39m)
+[0;32m---> 85[0m     g1 [38;5;241m=[39m [43madd_grade_to_graph[49m[43m([49m
+[1;32m     86[0m [43m        [49m[43mg1[49m[43m,[49m[43m [49m[43mresolution_arc_seconds[49m[38;5;241;43m=[39;49m[43mraster_resolution_arc_seconds[49m
+[1;32m     87[0m [43m    [49m[43m)[49m
+[1;32m     89[0m v, e [38;5;241m=[39m ox[38;5;241m.[39mgraph_to_gdfs(g1)
+[1;32m     91[0m [38;5;66;03m# process vertices[39;00m
 
-File [0;32m/opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/nrel/routee/compass/compass_app.py:7[0m
-[1;32m      5[0m [38;5;28;01mfrom[39;00m [38;5;21;01mpathlib[39;00m [38;5;28;01mimport[39;00m Path
-[1;32m      6[0m [38;5;28;01mfrom[39;00m [38;5;21;01mtyping[39;00m [38;5;28;01mimport[39;00m Any, Dict, List, Union
-[0;32m----> 7[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnrel[39;00m[38;5;21;01m.[39;00m[38;5;21;01mroutee[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompass[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompass_app_py[39;00m [38;5;28;01mimport[39;00m (
-[1;32m      8[0m     CompassAppWrapper,
-[1;32m      9[0m )
-[1;32m     12[0m [38;5;28;01mclass[39;00m [38;5;21;01mCompassApp[39;00m:
-[1;32m     13[0m [38;5;250m    [39m[38;5;124;03m"""[39;00m
-[1;32m     14[0m [38;5;124;03m    The CompassApp holds everything needed to run a route query.[39;00m
-[1;32m     15[0m [38;5;124;03m    """[39;00m
+File [0;32m/opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/nrel/routee/compass/io/utils.py:169[0m, in [0;36madd_grade_to_graph[0;34m(g, output_dir, resolution_arc_seconds)[0m
+[1;32m    164[0m     downloaded_file [38;5;241m=[39m _download_tile(
+[1;32m    165[0m         tile, output_dir[38;5;241m=[39moutput_dir, resolution[38;5;241m=[39mresolution
+[1;32m    166[0m     )
+[1;32m    167[0m     files[38;5;241m.[39mappend([38;5;28mstr[39m(downloaded_file))
+[0;32m--> 169[0m g [38;5;241m=[39m [43mox[49m[38;5;241;43m.[39;49m[43madd_node_elevations_raster[49m[43m([49m[43mg[49m[43m,[49m[43m [49m[43mfiles[49m[43m)[49m
+[1;32m    170[0m g [38;5;241m=[39m ox[38;5;241m.[39madd_edge_grades(g)
+[1;32m    172[0m [38;5;28;01mreturn[39;00m g
 
-[0;31mImportError[0m: dynamic module does not define module export function (PyInit_compass_app_py)
+File [0;32m/opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/osmnx/elevation.py:129[0m, in [0;36madd_node_elevations_raster[0;34m(G, filepath, band, cpus)[0m
+[1;32m    127[0m [38;5;28;01mif[39;00m rasterio [38;5;129;01mis[39;00m [38;5;28;01mNone[39;00m [38;5;129;01mor[39;00m gdal [38;5;129;01mis[39;00m [38;5;28;01mNone[39;00m:  [38;5;66;03m# pragma: no cover[39;00m
+[1;32m    128[0m     msg [38;5;241m=[39m [38;5;124m"[39m[38;5;124mgdal and rasterio must be installed to query raster files[39m[38;5;124m"[39m
+[0;32m--> 129[0m     [38;5;28;01mraise[39;00m [38;5;167;01mImportError[39;00m(msg)
+[1;32m    131[0m [38;5;28;01mif[39;00m cpus [38;5;129;01mis[39;00m [38;5;28;01mNone[39;00m:
+[1;32m    132[0m     cpus [38;5;241m=[39m mp[38;5;241m.[39mcpu_count()
+
+[0;31mImportError[0m: gdal and rasterio must be installed to query raster files
 

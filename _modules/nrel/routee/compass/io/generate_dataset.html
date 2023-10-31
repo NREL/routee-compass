@@ -1,0 +1,631 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="python" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>nrel.routee.compass.io.generate_dataset &#8212; RouteE Compass</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../../_static/styles/theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+<link href="../../../../../_static/styles/bootstrap.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+<link href="../../../../../_static/styles/pydata-sphinx-theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+
+  
+  <link href="../../../../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css" />
+    <link rel="stylesheet" href="../../../../../_static/styles/sphinx-book-theme.css?digest=14f4ca6b54d191a8c7657f6c759bf11a5fb86285" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6" />
+<link rel="preload" as="script" href="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6" />
+  <script src="../../../../../_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=365ca57ee442770a23c6"></script>
+
+    <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+    <script src="../../../../../_static/jquery.js"></script>
+    <script src="../../../../../_static/underscore.js"></script>
+    <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/clipboard.min.js"></script>
+    <script src="../../../../../_static/copybutton.js"></script>
+    <script src="../../../../../_static/scripts/sphinx-book-theme.js?digest=5a5c038af52cf7bc1a1ec88eea08e6366ee68824"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../../../../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../../../../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../../../../../_static/sphinx-thebe.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/nrel/routee/compass/io/generate_dataset';</script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>
+    Back to top
+  </button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+  
+
+<a class="navbar-brand logo" href="../../../../../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../../_static/routeelogo.png" class="logo__image only-light" alt="RouteE Compass - Home"/>
+    <script>document.write(`<img src="../../../../../_static/routeelogo.png" class="logo__image only-dark" alt="RouteE Compass - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item"><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../../../../intro.html">
+                    RouteE Compass
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../running.html">Running</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../notebooks/open_street_maps_example.html">OpenStreetMap example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../query.html">Query</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../config.html">App Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../python_api_docs.html">Python API Docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../rust_api_docs.html">Rust API Docs</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developers</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../developers/build_the_docs.html">Build The Docs</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><label class="sidebar-toggle primary-toggle btn btn-sm" for="__primary" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</label></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/NREL/routee-compass" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/NREL/routee-compass/issues/new?title=Issue%20on%20page%20%2F_modules/nrel/routee/compass/io/generate_dataset.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch nav-link" data-mode="light"><i class="fa-solid fa-sun fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="dark"><i class="fa-solid fa-moon fa-lg"></i></span>
+    <span class="theme-switch nav-link" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg"></i></span>
+  </button>
+`);
+</script>
+
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <h1>Source code for nrel.routee.compass.io.generate_dataset</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">nrel.routee.compass.io.models</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ADJUSTMENT_FACTORS</span><span class="p">,</span>
+    <span class="n">ENERGY_OUTPUT_UNITS</span><span class="p">,</span>
+    <span class="n">IDEAL_ENERGY_RATES</span><span class="p">,</span>
+    <span class="n">MODELS_POWERTRAINS</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_filename</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+
+<span class="kn">from</span> <span class="nn">nrel.routee.compass.io.utils</span> <span class="kn">import</span> <span class="n">add_grade_to_graph</span>
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="generate_compass_dataset"><a class="viewcode-back" href="../../../../../python_api_docs.html#nrel.routee.compass.io.generate_dataset.generate_compass_dataset">[docs]</a><span class="k">def</span> <span class="nf">generate_compass_dataset</span><span class="p">(</span>
+    <span class="n">g</span><span class="p">,</span>
+    <span class="n">output_directory</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">hwy_speeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fallback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">agg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">add_grade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">raster_resolution_arc_seconds</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">default_config</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">energy_model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Processes a graph downloaded via OSMNx, generating the set of input</span>
+<span class="sd">    files required for running RouteE Compass.</span>
+
+<span class="sd">    The input graph is assumed to be the direct output of an osmnx download.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        g (MultiDiGraph): A network graph.</span>
+<span class="sd">        output_directory (Path): Directory path to use for writing new Compass files.</span>
+<span class="sd">        hwy_speeds (Optional[Dict], optional): OSM highway types and values = typical speeds (km per</span>
+<span class="sd">            hour) to assign to edges of that highway type for any edges missing</span>
+<span class="sd">            speed data. Any edges with highway type not in `hwy_speeds` will be</span>
+<span class="sd">            assigned the mean preexisting speed value of all edges of that highway</span>
+<span class="sd">            type. Defaults to None.</span>
+<span class="sd">        fallback (Optional[float], optional): Default speed value (km per hour) to assign to edges whose highway</span>
+<span class="sd">            type did not appear in `hwy_speeds` and had no preexisting speed</span>
+<span class="sd">            values on any edge. Defaults to None.</span>
+<span class="sd">        agg (Callable, optional): Aggregation function to impute missing values from observed values.</span>
+<span class="sd">            The default is numpy.mean, but you might also consider for example</span>
+<span class="sd">            numpy.median, numpy.nanmedian, or your own custom function. Defaults to numpy.mean.</span>
+<span class="sd">        add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.</span>
+<span class="sd">        raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.</span>
+<span class="sd">        default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.</span>
+<span class="sd">        energy_model (str, optional): Which trained RouteE Powertrain should we use? Defaults to &quot;2016_TOYOTA_Camry_4cyl_2WD&quot;.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; import osmnx as ox</span>
+<span class="sd">        &gt;&gt;&gt; g = ox.graph_from_place(&quot;Denver, Colorado, USA&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; generate_compass_dataset(g, Path(&quot;denver_co&quot;))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">osmnx</span> <span class="k">as</span> <span class="nn">ox</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;requires osmnx to be installed. &quot;</span> <span class="s2">&quot;Try &#39;pip install osmnx&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">toml</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">tomllib</span> <span class="k">as</span> <span class="nn">toml</span>  <span class="c1"># type: ignore</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="s2">&quot;requires Python 3.11 tomllib or pip install toml for earier Python versions&quot;</span>
+            <span class="p">)</span>
+
+    <span class="c1"># default aggregation is via numpy mean operation</span>
+    <span class="n">agg</span> <span class="o">=</span> <span class="n">agg</span> <span class="k">if</span> <span class="n">agg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span>
+
+    <span class="c1"># pre-process the graph</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;processing graph topology and speeds&quot;</span><span class="p">)</span>
+    <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">utils_graph</span><span class="o">.</span><span class="n">get_largest_component</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+    <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_edge_speeds</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">hwy_speeds</span><span class="o">=</span><span class="n">hwy_speeds</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="n">fallback</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="n">agg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">add_grade</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;adding grade information&quot;</span><span class="p">)</span>
+        <span class="n">g1</span> <span class="o">=</span> <span class="n">add_grade_to_graph</span><span class="p">(</span>
+            <span class="n">g1</span><span class="p">,</span> <span class="n">resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span>
+        <span class="p">)</span>
+
+    <span class="n">v</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_to_gdfs</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
+
+    <span class="c1"># process vertices</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;processing vertices&quot;</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;osmid&quot;</span><span class="p">:</span> <span class="s2">&quot;vertex_uuid&quot;</span><span class="p">})</span>
+    <span class="n">v</span><span class="p">[</span><span class="s2">&quot;vertex_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+
+    <span class="c1"># process edges</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;processing edges&quot;</span><span class="p">)</span>
+    <span class="n">lookup</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;vertex_uuid&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">replace_id</span><span class="p">(</span><span class="n">vertex_uuid</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">lookup</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">vertex_uuid</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_id</span>
+
+    <span class="n">e</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;u&quot;</span><span class="p">:</span> <span class="s2">&quot;src_vertex_uuid&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;v&quot;</span><span class="p">:</span> <span class="s2">&quot;dst_vertex_uuid&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;osmid&quot;</span><span class="p">:</span> <span class="s2">&quot;edge_uuid&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="s2">&quot;distance&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="s2">&quot;key&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># take the first entry regardless of what it is (is this ok?)</span>
+    <span class="n">e</span><span class="p">[</span><span class="s2">&quot;edge_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+    <span class="n">e</span><span class="p">[</span><span class="s2">&quot;src_vertex_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">src_vertex_uuid</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">replace_id</span><span class="p">)</span>
+    <span class="n">e</span><span class="p">[</span><span class="s2">&quot;dst_vertex_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">dst_vertex_uuid</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">replace_id</span><span class="p">)</span>
+
+    <span class="c1"># WRITE NETWORK FILES</span>
+    <span class="n">output_directory</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1">#   vertex tables</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;writing vertex files&quot;</span><span class="p">)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;vertices-complete.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">v</span><span class="p">[[</span><span class="s2">&quot;vertex_id&quot;</span><span class="p">,</span> <span class="s2">&quot;vertex_uuid&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;vertices-mapping.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">v</span><span class="p">[[</span><span class="s2">&quot;vertex_uuid&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;vertices-uuid-enumerated.txt.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">v</span><span class="p">[[</span><span class="s2">&quot;vertex_id&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;vertices-compass.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="c1">#   edge tables (CSV)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;writing edge files&quot;</span><span class="p">)</span>
+    <span class="n">compass_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;edge_id&quot;</span><span class="p">,</span> <span class="s2">&quot;src_vertex_id&quot;</span><span class="p">,</span> <span class="s2">&quot;dst_vertex_id&quot;</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">]</span>
+    <span class="n">e</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-complete.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">e</span><span class="p">[</span><span class="n">compass_cols</span><span class="p">]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-compass.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">e</span><span class="p">[[</span><span class="s2">&quot;edge_id&quot;</span><span class="p">,</span> <span class="s2">&quot;edge_uuid&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-mapping.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="c1">#   edge tables (TXT)</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;writing edge attribute files&quot;</span><span class="p">)</span>
+    <span class="n">e</span><span class="o">.</span><span class="n">edge_uuid</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-uuid-enumerated.txt.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-geometries-enumerated.txt.gz&quot;</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="p">)</span>  <span class="c1"># doesn&#39;t quote LINESTRINGS</span>
+    <span class="n">e</span><span class="o">.</span><span class="n">speed_kph</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span><span class="p">,</span>
+        <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">e</span><span class="o">.</span><span class="n">highway</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-road-class-enumerated.txt.gz&quot;</span><span class="p">,</span>
+        <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">add_grade</span><span class="p">:</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">grade</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+            <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="c1"># COPY DEFAULT CONFIGURATION FILES</span>
+    <span class="k">if</span> <span class="n">default_config</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;copying default configuration TOML files&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;osm_default_distance.toml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;osm_default_speed.toml&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="n">init_toml_file</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+                <span class="s2">&quot;nrel.routee.compass.resources&quot;</span><span class="p">,</span> <span class="n">filename</span>
+            <span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">init_toml_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">init_toml</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">add_grade</span><span class="p">:</span>
+                        <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span>
+                            <span class="s2">&quot;grade_table_path&quot;</span>
+                        <span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span>
+                        <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_grade_unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;decimal&quot;</span>
+
+                    <span class="n">powertrain_type</span> <span class="o">=</span> <span class="n">MODELS_POWERTRAINS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">energy_model</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">powertrain_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Could not find powertrain type for </span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="n">adjustment_factor</span> <span class="o">=</span> <span class="n">ADJUSTMENT_FACTORS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">powertrain_type</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">adjustment_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Could not find adjustment factor for </span><span class="si">{</span><span class="n">powertrain_type</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span>
+                        <span class="s2">&quot;real_world_energy_adjustment&quot;</span>
+                    <span class="p">]</span> <span class="o">=</span> <span class="n">adjustment_factor</span>
+                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;energy_model_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.bin&quot;</span>
+
+                    <span class="n">energy_model_energy_rate_unit</span> <span class="o">=</span> <span class="n">ENERGY_OUTPUT_UNITS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                        <span class="n">powertrain_type</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">energy_model_energy_rate_unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Could not find energy rate unit for </span><span class="si">{</span><span class="n">powertrain_type</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span>
+                        <span class="s2">&quot;energy_model_energy_rate_unit&quot;</span>
+                    <span class="p">]</span> <span class="o">=</span> <span class="n">energy_model_energy_rate_unit</span>
+
+                    <span class="n">ideal_energy_rate</span> <span class="o">=</span> <span class="n">IDEAL_ENERGY_RATES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">powertrain_type</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">ideal_energy_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Could not find ideal energy rate for </span><span class="si">{</span><span class="n">powertrain_type</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;ideal_energy_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ideal_energy_rate</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">toml</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">init_toml</span><span class="p">))</span>
+
+    <span class="c1"># COPY ROUTEE ENERGY MODEL</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;copying RouteE Powertrain model </span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">model_src</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span>
+        <span class="n">resource_filename</span><span class="p">(</span><span class="s2">&quot;nrel.routee.compass.resources.models&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.bin&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">model_src</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find </span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2"> in the resources directory.&quot;</span><span class="p">)</span>
+
+    <span class="n">model_dst</span> <span class="o">=</span> <span class="n">output_directory</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.bin&quot;</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">model_src</span><span class="p">,</span> <span class="n">model_dst</span><span class="p">)</span></div>
+</pre></div>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer">
+                  <!-- Previous / next buttons -->
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By National Renewable Energy Laboratory
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  <p class="copyright">
+    
+      © Copyright 2022.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../../../_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6"></script>
+<script src="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
