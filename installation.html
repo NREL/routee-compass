@@ -411,11 +411,15 @@ document.write(`
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>nrel.routee.compass
 </pre></div>
 </div>
+<p>Or, if you want plotting and OSM features:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;nrel.routee.compass[all]&#39;</span>
+</pre></div>
+</div>
 </section>
 <section id="from-source">
 <h3>from source<a class="headerlink" href="#from-source" title="Permalink to this heading">#</a></h3>
 <p>You can also install from source by running the following from the root folder of this repository:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>.
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;.[all]&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -442,16 +446,16 @@ conda<span class="w"> </span>activate<span class="w"> </span>routee-compass
 <section id="build">
 <h3>build<a class="headerlink" href="#build" title="Permalink to this heading">#</a></h3>
 <p>Building the application from source can be done using <code class="docutils literal notranslate"><span class="pre">cargo</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.nrel.gov/MBAP/routee-compass.git
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/NREL/routee-compass.git
 
 <span class="nb">cd</span><span class="w"> </span>routee-compass/rust
 
 cargo<span class="w"> </span>build<span class="w"> </span>--release
 </pre></div>
 </div>
-<p>This will build the application into the location <code class="docutils literal notranslate"><span class="pre">path/to/routee-compass/rust/target/release/compass-app</span></code></p>
+<p>This will build the application into the location <code class="docutils literal notranslate"><span class="pre">path/to/routee-compass/rust/target/release/routee-compass</span></code></p>
 <p>You can optionally alias the application to make it easier to run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">alias</span><span class="w"> </span>compass-app<span class="o">=</span>path/to/routee-compass/rust/target/release/compass-app
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">alias</span><span class="w"> </span>compass-app<span class="o">=</span>path/to/routee-compass/rust/target/release/routee-compass
 </pre></div>
 </div>
 </section>
