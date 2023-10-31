@@ -448,41 +448,6 @@ document.write(`
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">ImportError</span><span class="g g-Whitespace">                               </span>Traceback (most recent call last)
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
-<span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">generate_compass_dataset</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">add_grade</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">energy_model</span><span class="o">=</span><span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">)</span>      
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/nrel/routee/compass/io/generate_dataset.py:85,</span> in <span class="ni">generate_compass_dataset</span><span class="nt">(g, output_directory, hwy_speeds, fallback, agg, add_grade, raster_resolution_arc_seconds, default_config, energy_model)</span>
-<span class="g g-Whitespace">     </span><span class="mi">83</span> <span class="k">if</span> <span class="n">add_grade</span><span class="p">:</span>
-<span class="g g-Whitespace">     </span><span class="mi">84</span>     <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;adding grade information&quot;</span><span class="p">)</span>
-<span class="ne">---&gt; </span><span class="mi">85</span>     <span class="n">g1</span> <span class="o">=</span> <span class="n">add_grade_to_graph</span><span class="p">(</span>
-<span class="g g-Whitespace">     </span><span class="mi">86</span>         <span class="n">g1</span><span class="p">,</span> <span class="n">resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span>
-<span class="g g-Whitespace">     </span><span class="mi">87</span>     <span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">89</span> <span class="n">v</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_to_gdfs</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">91</span> <span class="c1"># process vertices</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/nrel/routee/compass/io/utils.py:169,</span> in <span class="ni">add_grade_to_graph</span><span class="nt">(g, output_dir, resolution_arc_seconds)</span>
-<span class="g g-Whitespace">    </span><span class="mi">164</span>     <span class="n">downloaded_file</span> <span class="o">=</span> <span class="n">_download_tile</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">165</span>         <span class="n">tile</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span>
-<span class="g g-Whitespace">    </span><span class="mi">166</span>     <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">167</span>     <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">downloaded_file</span><span class="p">))</span>
-<span class="ne">--&gt; </span><span class="mi">169</span> <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_node_elevations_raster</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">170</span> <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_edge_grades</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">172</span> <span class="k">return</span> <span class="n">g</span>
-
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.13/x64/lib/python3.10/site-packages/osmnx/elevation.py:129,</span> in <span class="ni">add_node_elevations_raster</span><span class="nt">(G, filepath, band, cpus)</span>
-<span class="g g-Whitespace">    </span><span class="mi">127</span> <span class="k">if</span> <span class="n">rasterio</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">gdal</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-<span class="g g-Whitespace">    </span><span class="mi">128</span>     <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;gdal and rasterio must be installed to query raster files&quot;</span>
-<span class="ne">--&gt; </span><span class="mi">129</span>     <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">131</span> <span class="k">if</span> <span class="n">cpus</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">132</span>     <span class="n">cpus</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
-
-<span class="ne">ImportError</span>: gdal and rasterio must be installed to query raster files
-</pre></div>
-</div>
-</div>
 </div>
 <p>If you take a look in the directory where the compass files have been written, you'll notice some <code class="docutils literal notranslate"><span class="pre">.toml</span></code> files like: <code class="docutils literal notranslate"><span class="pre">osm_default_energy.toml</span></code>.
 These are configurations for the compass application. Here's what it might look like:</p>
@@ -550,10 +515,13 @@ We'll pick <code class="docutils literal notranslate"><span class="pre">osm_defa
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>uuid file: 100%|██████████| 746/746 [00:00&lt;00:00, 4125398.75it/s]it/s]
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>edge list: 100%|██████████| 1760/1760 [00:00&lt;00:00, 1991398.50it/s]
+
+vertex list: 100%|██████████| 746/746 [00:00&lt;00:00, 2084381.12it/s]
+
+geometry file: 100%|██████████| 1760/1760 [00:00&lt;00:00, 365607.69it/s]
+
+uuid file: 100%|██████████| 746/746 [00:00&lt;00:00, 5067900.00it/s]
 </pre></div>
 </div>
 </div>
@@ -615,9 +583,9 @@ The energy cost coefficient indicates how much we should factor energy into our 
 <div class="cell_output docutils container">
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;distance&#39;: 4.23738036063421,
  &#39;distance_unit&#39;: &#39;miles&#39;,
- &#39;energy&#39;: 0.18816139103031826,
+ &#39;energy&#39;: 0.18821565778485838,
  &#39;energy_unit&#39;: &#39;gallons_gasoline&#39;,
- &#39;time&#39;: 8.486183959367098,
+ &#39;time&#39;: 8.501927726263151,
  &#39;time_unit&#39;: &#39;minutes&#39;}
 </pre></div>
 </div>
@@ -633,9 +601,9 @@ The energy cost coefficient indicates how much we should factor energy into our 
 <div class="cell_output docutils container">
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;distance&#39;: 4.017396519730842,
  &#39;distance_unit&#39;: &#39;miles&#39;,
- &#39;energy&#39;: 0.1871862788506351,
+ &#39;energy&#39;: 0.18722374836334246,
  &#39;energy_unit&#39;: &#39;gallons_gasoline&#39;,
- &#39;time&#39;: 8.619006658572934,
+ &#39;time&#39;: 8.987039191276414,
  &#39;time_unit&#39;: &#39;minutes&#39;}
 </pre></div>
 </div>
@@ -697,7 +665,7 @@ The energy cost coefficient indicates how much we should factor energy into our 
             &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
             &lt;style&gt;
-                #map_d862d2af78f1d04ef353eb1b7981e045 {
+                #map_04bc25db99b89fdacf2d808e1be02f92 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -711,14 +679,14 @@ The energy cost coefficient indicates how much we should factor energy into our 
 &lt;body&gt;
     
     
-            &lt;div class=&quot;folium-map&quot; id=&quot;map_d862d2af78f1d04ef353eb1b7981e045&quot; &gt;&lt;/div&gt;
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_04bc25db99b89fdacf2d808e1be02f92&quot; &gt;&lt;/div&gt;
         
 &lt;/body&gt;
 &lt;script&gt;
     
     
-            var map_d862d2af78f1d04ef353eb1b7981e045 = L.map(
-                &quot;map_d862d2af78f1d04ef353eb1b7981e045&quot;,
+            var map_04bc25db99b89fdacf2d808e1be02f92 = L.map(
+                &quot;map_04bc25db99b89fdacf2d808e1be02f92&quot;,
                 {
                     center: [39.7465774, -105.2216276],
                     crs: L.CRS.EPSG3857,
@@ -732,19 +700,19 @@ The energy cost coefficient indicates how much we should factor energy into our 
 
         
     
-            var tile_layer_affa8a797cf436704df24ee8f8f6eaee = L.tileLayer(
+            var tile_layer_fd165ec1b337042b1c15c2dcf4a34acb = L.tileLayer(
                 &quot;https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
                 {&quot;attribution&quot;: &quot;Data by \u0026copy; \u003ca target=\&quot;_blank\&quot; href=\&quot;http://openstreetmap.org\&quot;\u003eOpenStreetMap\u003c/a\u003e, under \u003ca target=\&quot;_blank\&quot; href=\&quot;http://www.openstreetmap.org/copyright\&quot;\u003eODbL\u003c/a\u003e.&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 18, &quot;maxZoom&quot;: 18, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
-            ).addTo(map_d862d2af78f1d04ef353eb1b7981e045);
+            ).addTo(map_04bc25db99b89fdacf2d808e1be02f92);
         
     
-            var poly_line_b65c3643b8275a0f722a0d466be2ace6 = L.polyline(
+            var poly_line_f8c2447d279e95dd1af13076a6cf6ebc = L.polyline(
                 [[39.7273069, -105.1994169], [39.7272989, -105.1994535], [39.7272848, -105.1994868], [39.7272593, -105.1995218], [39.7272272, -105.1995461], [39.7271912, -105.1995576], [39.7271688, -105.199558], [39.7271461, -105.1995532], [39.7271142, -105.1995365], [39.7270868, -105.1995096], [39.7270657, -105.1994741], [39.7270519, -105.1994296], [39.7270483, -105.1993816], [39.727052, -105.1993539], [39.7270571, -105.1993247], [39.7270719, -105.1992916], [39.7270973, -105.1992566], [39.7271293, -105.1992323], [39.7271651, -105.1992207], [39.7271854, -105.1992226], [39.7272113, -105.199227], [39.7273496, -105.1991687], [39.7274185, -105.1991465], [39.7275326, -105.1990928], [39.7276828, -105.1990602], [39.7277455, -105.1990518], [39.7279702, -105.1990232], [39.7281558, -105.1990357], [39.7284384, -105.1990893], [39.7286639, -105.199177], [39.7288222, -105.1992773], [39.7289214, -105.199385], [39.7290292, -105.1995543], [39.7290506, -105.1995879], [39.7292157, -105.1998155], [39.7293094, -105.1998945], [39.7294079, -105.1999604], [39.7295437, -105.200014], [39.7296299, -105.2000721], [39.7297292, -105.2000757], [39.7297135, -105.2007081], [39.7297192, -105.2013106], [39.7298153, -105.2032041], [39.7298256, -105.2033784], [39.7298664, -105.2035708], [39.7298795, -105.203649], [39.7299267, -105.2038558], [39.7301082, -105.2042608], [39.7304911, -105.2048068], [39.7308741, -105.2053111], [39.7310676, -105.2055985], [39.7311933, -105.205824], [39.7312069, -105.2058543], [39.7313075, -105.2061158], [39.731348, -105.206248], [39.731386, -105.2064213], [39.7314237, -105.2067336], [39.731429, -105.2070565], [39.7314226, -105.207224], [39.7314076, -105.2074036], [39.7313611, -105.2077675], [39.7313265, -105.2079124], [39.7312831, -105.20806], [39.7312292, -105.2082086], [39.7311706, -105.208344], [39.7310965, -105.2084777], [39.7310049, -105.208616], [39.7309234, -105.2087235], [39.7308212, -105.2088303], [39.7306227, -105.2089819], [39.7304801, -105.2090736], [39.7303681, -105.2091988], [39.7303327, -105.2092597], [39.7303114, -105.2093181], [39.730299, -105.20939], [39.7302939, -105.2095126], [39.7303105, -105.2096804], [39.7304414, -105.2099267], [39.7305001, -105.2100344], [39.7305871, -105.2101842], [39.7307404, -105.2104481], [39.7309234, -105.2107229], [39.7310934, -105.2109639], [39.731238, -105.211145], [39.7314101, -105.2113464], [39.7315783, -105.2115336], [39.7317541, -105.2117064], [39.7319796, -105.2119089], [39.732359, -105.2122393], [39.7329187, -105.2127184], [39.7334557, -105.213188], [39.7338968, -105.2135676], [39.7342777, -105.2138968], [39.7347139, -105.2142786], [39.7354652, -105.2149301], [39.7356319, -105.2150733], [39.7358844, -105.2152902], [39.7363901, -105.2157275], [39.7369129, -105.2161859], [39.7377243, -105.2168831], [39.7390882, -105.2180682], [39.7397882, -105.2186718], [39.7403043, -105.2191078], [39.7405645, -105.2193336], [39.7406767, -105.2194225], [39.7415803, -105.2202142], [39.7416486, -105.2202727], [39.7417047, -105.2203151], [39.7421502, -105.2206932], [39.7425816, -105.221062], [39.7432687, -105.2215398], [39.7435797, -105.2217631], [39.7436721, -105.2218299], [39.7437366, -105.2218764], [39.7438794, -105.2219759], [39.7439546, -105.2220253], [39.7440082, -105.2220586], [39.7440819, -105.2221021], [39.7441377, -105.2221322], [39.7441808, -105.2221541], [39.7442796, -105.2222043], [39.7443357, -105.2222286], [39.7444062, -105.222259], [39.7444657, -105.2222871], [39.7444962, -105.2223029], [39.7445695, -105.2223431], [39.7446343, -105.2223808], [39.744683, -105.2224104], [39.7447215, -105.2224349], [39.7447658, -105.2224654], [39.744813, -105.222499], [39.7448547, -105.2225315], [39.7448881, -105.2225586], [39.7449328, -105.2225965], [39.7449815, -105.2226391], [39.7451542, -105.2227925], [39.7454784, -105.2230438], [39.7455034, -105.2230623], [39.7455159, -105.2230713], [39.7455403, -105.2230861], [39.7455548, -105.2230941], [39.7455766, -105.2231014], [39.7456018, -105.223106], [39.7456176, -105.2231071], [39.7456337, -105.223107], [39.7456638, -105.2231045], [39.7456814, -105.2231011], [39.7456983, -105.2230945], [39.7457224, -105.2230821], [39.7457338, -105.2230745], [39.7457588, -105.2230543], [39.7457709, -105.223043], [39.7457834, -105.2230284], [39.7458035, -105.2230027], [39.7458905, -105.2228787], [39.7460068, -105.2226624], [39.7461589, -105.2223894], [39.7463617, -105.2220126], [39.7464427, -105.2218672], [39.746482, -105.2217968], [39.7465202, -105.2217322], [39.7465523, -105.2216771], [39.7465774, -105.2216276], [39.7465928, -105.2215823], [39.7466004, -105.2215466], [39.7466042, -105.2215101], [39.7466044, -105.2214695], [39.746601, -105.2214368], [39.7465881, -105.2213862], [39.7465804, -105.2213567], [39.7465774, -105.2213321], [39.7465774, -105.2213048], [39.746581, -105.2212762], [39.7465874, -105.2212518], [39.7465978, -105.2212266], [39.7466125, -105.2212024], [39.7466266, -105.2211858], [39.7466485, -105.2211678], [39.7466708, -105.2211566], [39.746693, -105.2211511], [39.746715, -105.2211506], [39.7467203, -105.2211517], [39.7467798, -105.2211327], [39.7468101, -105.2211204], [39.7468347, -105.2211032], [39.7468673, -105.2210676], [39.7468863, -105.2210389], [39.7469079, -105.2209995], [39.7469752, -105.2208699], [39.7471073, -105.220655], [39.7471371, -105.2206129], [39.7471594, -105.2205845], [39.7472061, -105.2205376], [39.7473376, -105.2202962], [39.747357, -105.2202177], [39.7473682, -105.2201868], [39.7473848, -105.2201519], [39.7475089, -105.2199249], [39.7475861, -105.2197973], [39.7476254, -105.2197401], [39.7476917, -105.2196525], [39.7477724, -105.2195069], [39.7478875, -105.219299], [39.7479219, -105.2192372], [39.7479518, -105.219179], [39.7480957, -105.2189201], [39.7481337, -105.2188515], [39.7482567, -105.2186294], [39.7484851, -105.2182271], [39.7485167, -105.218164], [39.7485605, -105.2180881], [39.7490516, -105.217166], [39.7490955, -105.2170866], [39.7491263, -105.2170387], [39.7493736, -105.2165801], [39.7496841, -105.2160128], [39.7497482, -105.2160733], [39.7504593, -105.216753], [39.7505084, -105.2168007], [39.7505733, -105.2168567], [39.7509525, -105.2172063], [39.7512593, -105.2174884], [39.7513304, -105.2175506], [39.7513869, -105.217604], [39.7517458, -105.2179367], [39.7520945, -105.21826], [39.7521462, -105.2183047], [39.7522126, -105.218369], [39.7523012, -105.2184523], [39.7525052, -105.218642], [39.7527145, -105.2188366], [39.7528959, -105.2189993], [39.7529601, -105.2190649], [39.7530308, -105.219128], [39.7537033, -105.2197718], [39.753764, -105.2198302], [39.7538299, -105.2198915], [39.7542346, -105.2202638], [39.7545279, -105.2205433], [39.7545847, -105.2206031], [39.7546623, -105.2206728], [39.7553326, -105.2212752], [39.755407, -105.221342], [39.7554908, -105.2214211], [39.7561483, -105.2220415], [39.7562254, -105.2221143], [39.7563006, -105.2221853], [39.7566193, -105.222483], [39.7566315, -105.2224957], [39.7569475, -105.2227913], [39.7570561, -105.222895], [39.7574792, -105.2232693], [39.7575579, -105.2233409], [39.7576236, -105.2234019], [39.7578565, -105.2236199], [39.7579703, -105.2237258], [39.7580027, -105.2237561], [39.7583001, -105.2240544], [39.7583591, -105.2241084], [39.7587249, -105.2244446], [39.7588057, -105.22452], [39.7591609, -105.2248516], [39.7595089, -105.2251741], [39.7596887, -105.2253408], [39.7597554, -105.2254024], [39.7598802, -105.2255173], [39.7598939, -105.2255305], [39.7599658, -105.2255988], [39.7600186, -105.2256498], [39.7604008, -105.2259941], [39.7605066, -105.2260931], [39.7605924, -105.226174], [39.760667, -105.2262427], [39.7607946, -105.2263631], [39.7608753, -105.2264373], [39.7615829, -105.2271044], [39.7616266, -105.2271481], [39.7616788, -105.2272008], [39.762203, -105.2276943], [39.7623411, -105.2278299], [39.7630405, -105.2284565], [39.7632824, -105.2286685], [39.7637358, -105.2290679], [39.7640137, -105.229309], [39.7640954, -105.229381], [39.7641743, -105.229462], [39.76436, -105.2296495], [39.7645376, -105.2298658], [39.764824, -105.2301918], [39.7652051, -105.2307044], [39.7654711, -105.2310802], [39.7654801, -105.2310934], [39.7655308, -105.231168], [39.7655792, -105.231232], [39.7655918, -105.2312486], [39.7657719, -105.2315035], [39.7658973, -105.2316751], [39.7659962, -105.2318039], [39.7661018, -105.231924], [39.7662469, -105.2320614], [39.7664515, -105.2322588], [39.7671442, -105.2329283], [39.7673559, -105.2331244], [39.7674414, -105.2332053], [39.7675186, -105.2332845], [39.7675756, -105.2333522], [39.7676291, -105.2334243], [39.7676969, -105.2335369], [39.7677304, -105.233602], [39.767761, -105.2336649], [39.7677908, -105.233739], [39.7678172, -105.233812], [39.7678551, -105.2339422], [39.7678736, -105.2340294], [39.7678904, -105.2341257], [39.7679032, -105.2342329], [39.7679095, -105.2343359], [39.7679068, -105.2344027], [39.7679029, -105.234499], [39.7678875, -105.2346626], [39.7678651, -105.2347791], [39.7678384, -105.2348898], [39.7678006, -105.2350283], [39.7677517, -105.2352031], [39.7677119, -105.2353468]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_d862d2af78f1d04ef353eb1b7981e045);
+            ).addTo(map_04bc25db99b89fdacf2d808e1be02f92);
         
     
-            poly_line_b65c3643b8275a0f722a0d466be2ace6.bindTooltip(
+            poly_line_f8c2447d279e95dd1af13076a6cf6ebc.bindTooltip(
                 `&lt;div&gt;
                      Shortest Time
                  &lt;/div&gt;`,
@@ -752,19 +720,19 @@ The energy cost coefficient indicates how much we should factor energy into our 
             );
         
     
-            var marker_665c35c0da1237e885dd8246f9547ff8 = L.marker(
+            var marker_1c955daa45d2f67bdcdea5a87a003993 = L.marker(
                 [39.7273069, -105.1994169],
                 {}
-            ).addTo(map_d862d2af78f1d04ef353eb1b7981e045);
+            ).addTo(map_04bc25db99b89fdacf2d808e1be02f92);
         
     
-            var icon_cbcb7d6401702fa31276149d6a5ea7cf = L.AwesomeMarkers.icon(
+            var icon_321ecabd214727d05832aab4478e30a9 = L.AwesomeMarkers.icon(
                 {&quot;extraClasses&quot;: &quot;fa-rotate-0&quot;, &quot;icon&quot;: &quot;circle&quot;, &quot;iconColor&quot;: &quot;white&quot;, &quot;markerColor&quot;: &quot;green&quot;, &quot;prefix&quot;: &quot;fa&quot;}
             );
-            marker_665c35c0da1237e885dd8246f9547ff8.setIcon(icon_cbcb7d6401702fa31276149d6a5ea7cf);
+            marker_1c955daa45d2f67bdcdea5a87a003993.setIcon(icon_321ecabd214727d05832aab4478e30a9);
         
     
-            marker_665c35c0da1237e885dd8246f9547ff8.bindTooltip(
+            marker_1c955daa45d2f67bdcdea5a87a003993.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -772,19 +740,19 @@ The energy cost coefficient indicates how much we should factor energy into our 
             );
         
     
-            var marker_f68aabb53853f6d33215666997040086 = L.marker(
+            var marker_81882ae4a761cbea959b688fecfbfb19 = L.marker(
                 [39.7677119, -105.2353468],
                 {}
-            ).addTo(map_d862d2af78f1d04ef353eb1b7981e045);
+            ).addTo(map_04bc25db99b89fdacf2d808e1be02f92);
         
     
-            var icon_e3e80d8b58e39fd9302ba3193aa3d5fc = L.AwesomeMarkers.icon(
+            var icon_e1b8252bf361403e053784ebc7104dea = L.AwesomeMarkers.icon(
                 {&quot;extraClasses&quot;: &quot;fa-rotate-0&quot;, &quot;icon&quot;: &quot;circle&quot;, &quot;iconColor&quot;: &quot;white&quot;, &quot;markerColor&quot;: &quot;red&quot;, &quot;prefix&quot;: &quot;fa&quot;}
             );
-            marker_f68aabb53853f6d33215666997040086.setIcon(icon_e3e80d8b58e39fd9302ba3193aa3d5fc);
+            marker_81882ae4a761cbea959b688fecfbfb19.setIcon(icon_e1b8252bf361403e053784ebc7104dea);
         
     
-            marker_f68aabb53853f6d33215666997040086.bindTooltip(
+            marker_81882ae4a761cbea959b688fecfbfb19.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -792,13 +760,13 @@ The energy cost coefficient indicates how much we should factor energy into our 
             );
         
     
-            var poly_line_806f2404ba6fc8b78e52b2a53712ecbb = L.polyline(
+            var poly_line_d06fcbc2fcbbf596f57da30f4cd682c4 = L.polyline(
                 [[39.7273069, -105.1994169], [39.7272989, -105.1994535], [39.7272848, -105.1994868], [39.7272593, -105.1995218], [39.7272272, -105.1995461], [39.7271912, -105.1995576], [39.7271688, -105.199558], [39.7271461, -105.1995532], [39.7271142, -105.1995365], [39.7270868, -105.1995096], [39.7270657, -105.1994741], [39.7270519, -105.1994296], [39.7270483, -105.1993816], [39.727052, -105.1993539], [39.7270571, -105.1993247], [39.7270719, -105.1992916], [39.7270973, -105.1992566], [39.7271293, -105.1992323], [39.7271651, -105.1992207], [39.7271854, -105.1992226], [39.7272113, -105.199227], [39.7273496, -105.1991687], [39.7274185, -105.1991465], [39.7275326, -105.1990928], [39.7276828, -105.1990602], [39.7277455, -105.1990518], [39.7279702, -105.1990232], [39.7281558, -105.1990357], [39.7284384, -105.1990893], [39.7286639, -105.199177], [39.7288222, -105.1992773], [39.7289214, -105.199385], [39.7290292, -105.1995543], [39.7290506, -105.1995879], [39.7292157, -105.1998155], [39.7293094, -105.1998945], [39.7294079, -105.1999604], [39.7295437, -105.200014], [39.7296299, -105.2000721], [39.7296469, -105.1996789], [39.7296738, -105.1987284], [39.7296906, -105.1986794], [39.7297244, -105.1985856], [39.7297272, -105.1984193], [39.7299723, -105.1984198], [39.7302117, -105.1984227], [39.7303235, -105.1984285], [39.7304434, -105.198443], [39.7305651, -105.1984732], [39.7307182, -105.1985167], [39.7308487, -105.1985623], [39.7309909, -105.1986311], [39.731127, -105.1987144], [39.7312292, -105.1987897], [39.7313292, -105.1988731], [39.7314292, -105.1989611], [39.731524, -105.1990554], [39.7316089, -105.1991466], [39.7317085, -105.1992639], [39.7318575, -105.1994488], [39.7319522, -105.1995697], [39.7320423, -105.1996716], [39.7321372, -105.1997578], [39.7322615, -105.1998506], [39.7323697, -105.1999163], [39.7324712, -105.1999637], [39.7325898, -105.2000081], [39.732689, -105.2000309], [39.7327987, -105.2000627], [39.732945, -105.2001049], [39.7330635, -105.2001374], [39.7331838, -105.2001914], [39.7332899, -105.2002528], [39.7334312, -105.200363], [39.7335257, -105.2004544], [39.7335523, -105.2004835], [39.7336132, -105.2005503], [39.7336902, -105.2006555], [39.733767, -105.2007557], [39.7338411, -105.2008491], [39.7339359, -105.2009412], [39.7340357, -105.2010154], [39.7340742, -105.201042], [39.7341117, -105.2010678], [39.7341542, -105.2010901], [39.734211, -105.2011198], [39.7343173, -105.2011712], [39.7344056, -105.2012021], [39.7345704, -105.2012376], [39.7347726, -105.2012753], [39.7351329, -105.2013311], [39.7352203, -105.2013441], [39.7353243, -105.201352], [39.7354415, -105.2013441], [39.7355491, -105.2013268], [39.7357022, -105.2012901], [39.7358395, -105.201259], [39.7362429, -105.2011675], [39.7367157, -105.2010639], [39.7367857, -105.2010539], [39.7368531, -105.2010442], [39.7369645, -105.2010356], [39.7370755, -105.201044], [39.7371895, -105.2010632], [39.7373179, -105.201099], [39.737714, -105.2012295], [39.7379567, -105.2013009], [39.7384451, -105.2014404], [39.7386872, -105.2015167], [39.7395717, -105.2017905], [39.7397153, -105.2018369], [39.7398269, -105.2018673], [39.7399356, -105.2018843], [39.7400618, -105.2018961], [39.740184, -105.2018932], [39.7403133, -105.2018823], [39.7404288, -105.2018645], [39.7405518, -105.2018387], [39.740665, -105.2018073], [39.7407597, -105.2017713], [39.7408728, -105.2017196], [39.740992, -105.2016551], [39.7411268, -105.2015625], [39.7412599, -105.2014489], [39.7413718, -105.2013453], [39.7414758, -105.2012326], [39.741608, -105.2010691], [39.7416901, -105.200964], [39.7417903, -105.2008396], [39.7417994, -105.200826], [39.7418968, -105.200686], [39.7418878, -105.200623], [39.7418917, -105.2005592], [39.7419081, -105.2004988], [39.7419393, -105.2004416], [39.7419818, -105.2003982], [39.7420319, -105.2003723], [39.7420864, -105.2003661], [39.7421399, -105.2003805], [39.742188, -105.2004144], [39.7422255, -105.2004628], [39.742251, -105.2005229], [39.7422628, -105.2005898], [39.7422597, -105.2006584], [39.7422421, -105.2007231], [39.7422712, -105.2008198], [39.7423227, -105.200901], [39.7428069, -105.2016549], [39.7429048, -105.2018114], [39.7429131, -105.2018245], [39.7431503, -105.2022035], [39.7434374, -105.2026477], [39.7435807, -105.2028659], [39.7437705, -105.2031843], [39.7441255, -105.2037193], [39.7444536, -105.2042289], [39.7445369, -105.204369], [39.7448087, -105.2048085], [39.7450389, -105.205197], [39.745164, -105.2054397], [39.7452617, -105.205642], [39.745359, -105.2058753], [39.7454413, -105.2060693], [39.7454698, -105.2061365], [39.7455586, -105.2063498], [39.7456394, -105.2066197], [39.7457343, -105.2068984], [39.7458096, -105.2071619], [39.7458432, -105.2072893], [39.7459057, -105.2075162], [39.7459547, -105.2077463], [39.7460104, -105.2080066], [39.7460312, -105.2081149], [39.7460508, -105.2082709], [39.7460836, -105.2084787], [39.7461092, -105.2086125], [39.7461165, -105.2087078], [39.7461128, -105.2088019], [39.7461078, -105.2089177], [39.7461163, -105.208995], [39.7461377, -105.2090672], [39.7461588, -105.2091147], [39.7462509, -105.2092159], [39.746281, -105.2092382], [39.7462978, -105.209256], [39.7463242, -105.209292], [39.7463458, -105.2093473], [39.746361, -105.2094251], [39.7463921, -105.2095768], [39.7464353, -105.2097133], [39.7465001, -105.2098285], [39.7467097, -105.21004], [39.7467814, -105.2101094], [39.7473357, -105.2106047], [39.7474554, -105.2107116], [39.7475615, -105.2108064], [39.7475958, -105.2108371], [39.747653, -105.2108907], [39.7481502, -105.2113567], [39.7483361, -105.2115309], [39.7483726, -105.2115651], [39.7484183, -105.2116079], [39.7484718, -105.2116584], [39.7487212, -105.2118951], [39.749238, -105.2123721], [39.7492814, -105.2124135], [39.7500059, -105.2130759], [39.7500454, -105.2131129], [39.7503812, -105.2134256], [39.7504627, -105.2135015], [39.7508219, -105.2138362], [39.7508792, -105.2138895], [39.7509348, -105.2139426], [39.7511093, -105.2141093], [39.7516271, -105.2146038], [39.7516716, -105.2146463], [39.751739, -105.2147085], [39.7524829, -105.2153953], [39.7525012, -105.2154123], [39.7532517, -105.2161101], [39.7533052, -105.2161598], [39.7540716, -105.2168674], [39.7541308, -105.2169221], [39.7544795, -105.2172508], [39.7546281, -105.2174522], [39.7546745, -105.2175037], [39.7548394, -105.2176869], [39.7549112, -105.2177871], [39.7548521, -105.2179433], [39.7546476, -105.2183047], [39.7544379, -105.2186805], [39.7544293, -105.218688], [39.7543723, -105.2187394], [39.7544376, -105.2188002], [39.7544872, -105.2188464], [39.7547934, -105.2191313], [39.7551071, -105.2194077], [39.7551368, -105.2194339], [39.755202, -105.2194913], [39.7552559, -105.2195411], [39.755615, -105.2198733], [39.755696, -105.2199479], [39.7559351, -105.2201693], [39.7559559, -105.220191], [39.7560109, -105.2202486], [39.7560703, -105.2203182], [39.756257, -105.2205368], [39.7562813, -105.2205598], [39.7564057, -105.2206774], [39.7565461, -105.2208058], [39.7567417, -105.2209442], [39.7566986, -105.2211001], [39.756638, -105.2213112], [39.7565732, -105.2214643], [39.7565209, -105.2215678], [39.7564595, -105.2216814], [39.7562914, -105.2219923], [39.7562254, -105.2221143], [39.7563006, -105.2221853], [39.7566193, -105.222483], [39.7566315, -105.2224957], [39.7569475, -105.2227913], [39.7570561, -105.222895], [39.7574792, -105.2232693], [39.7575579, -105.2233409], [39.7576236, -105.2234019], [39.7578565, -105.2236199], [39.7579703, -105.2237258], [39.7580027, -105.2237561], [39.7583001, -105.2240544], [39.7583591, -105.2241084], [39.7587249, -105.2244446], [39.7588057, -105.22452], [39.7591609, -105.2248516], [39.7595089, -105.2251741], [39.7596887, -105.2253408], [39.7597554, -105.2254024], [39.7598802, -105.2255173], [39.7598939, -105.2255305], [39.7599658, -105.2255988], [39.7600186, -105.2256498], [39.7604008, -105.2259941], [39.7605066, -105.2260931], [39.7605924, -105.226174], [39.760667, -105.2262427], [39.7607946, -105.2263631], [39.7608753, -105.2264373], [39.7615829, -105.2271044], [39.7616266, -105.2271481], [39.7616788, -105.2272008], [39.762203, -105.2276943], [39.7623411, -105.2278299], [39.7630405, -105.2284565], [39.7632824, -105.2286685], [39.7637358, -105.2290679], [39.7640137, -105.229309], [39.7640954, -105.229381], [39.7641743, -105.229462], [39.76436, -105.2296495], [39.7645376, -105.2298658], [39.764824, -105.2301918], [39.7652051, -105.2307044], [39.7654711, -105.2310802], [39.7654801, -105.2310934], [39.7655308, -105.231168], [39.7655792, -105.231232], [39.7655918, -105.2312486], [39.7657719, -105.2315035], [39.7658973, -105.2316751], [39.7659962, -105.2318039], [39.7661018, -105.231924], [39.7662469, -105.2320614], [39.7664515, -105.2322588], [39.7671442, -105.2329283], [39.7673559, -105.2331244], [39.7674414, -105.2332053], [39.7675186, -105.2332845], [39.7675756, -105.2333522], [39.7676291, -105.2334243], [39.7676969, -105.2335369], [39.7677304, -105.233602], [39.767761, -105.2336649], [39.7677908, -105.233739], [39.7678172, -105.233812], [39.7678551, -105.2339422], [39.7678736, -105.2340294], [39.7678904, -105.2341257], [39.7679032, -105.2342329], [39.7679095, -105.2343359], [39.7679068, -105.2344027], [39.7679029, -105.234499], [39.7678875, -105.2346626], [39.7678651, -105.2347791], [39.7678384, -105.2348898], [39.7678006, -105.2350283], [39.7677517, -105.2352031], [39.7677119, -105.2353468]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;green&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;green&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_d862d2af78f1d04ef353eb1b7981e045);
+            ).addTo(map_04bc25db99b89fdacf2d808e1be02f92);
         
     
-            poly_line_806f2404ba6fc8b78e52b2a53712ecbb.bindTooltip(
+            poly_line_d06fcbc2fcbbf596f57da30f4cd682c4.bindTooltip(
                 `&lt;div&gt;
                      Least Energy
                  &lt;/div&gt;`,
@@ -806,19 +774,19 @@ The energy cost coefficient indicates how much we should factor energy into our 
             );
         
     
-            var marker_7c37da716cb756b814f21ea3f6479594 = L.marker(
+            var marker_697a8decb3a8f038132d399c3ffeeb92 = L.marker(
                 [39.7273069, -105.1994169],
                 {}
-            ).addTo(map_d862d2af78f1d04ef353eb1b7981e045);
+            ).addTo(map_04bc25db99b89fdacf2d808e1be02f92);
         
     
-            var icon_eed93e433c2a6b860f50efb5aa7c44a4 = L.AwesomeMarkers.icon(
+            var icon_275a838b150d9d80e78fc2e9d0f6ce6a = L.AwesomeMarkers.icon(
                 {&quot;extraClasses&quot;: &quot;fa-rotate-0&quot;, &quot;icon&quot;: &quot;circle&quot;, &quot;iconColor&quot;: &quot;white&quot;, &quot;markerColor&quot;: &quot;green&quot;, &quot;prefix&quot;: &quot;fa&quot;}
             );
-            marker_7c37da716cb756b814f21ea3f6479594.setIcon(icon_eed93e433c2a6b860f50efb5aa7c44a4);
+            marker_697a8decb3a8f038132d399c3ffeeb92.setIcon(icon_275a838b150d9d80e78fc2e9d0f6ce6a);
         
     
-            marker_7c37da716cb756b814f21ea3f6479594.bindTooltip(
+            marker_697a8decb3a8f038132d399c3ffeeb92.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -826,19 +794,19 @@ The energy cost coefficient indicates how much we should factor energy into our 
             );
         
     
-            var marker_82d64c127f89cca15f9ae983151c54da = L.marker(
+            var marker_1346170bfb11c3f0d45acc6bca1d6d22 = L.marker(
                 [39.7677119, -105.2353468],
                 {}
-            ).addTo(map_d862d2af78f1d04ef353eb1b7981e045);
+            ).addTo(map_04bc25db99b89fdacf2d808e1be02f92);
         
     
-            var icon_126eae8593d80c3b03df0b32189b9b2f = L.AwesomeMarkers.icon(
+            var icon_04c0442cffd73c72d4b3a6c5d763884a = L.AwesomeMarkers.icon(
                 {&quot;extraClasses&quot;: &quot;fa-rotate-0&quot;, &quot;icon&quot;: &quot;circle&quot;, &quot;iconColor&quot;: &quot;white&quot;, &quot;markerColor&quot;: &quot;red&quot;, &quot;prefix&quot;: &quot;fa&quot;}
             );
-            marker_82d64c127f89cca15f9ae983151c54da.setIcon(icon_126eae8593d80c3b03df0b32189b9b2f);
+            marker_1346170bfb11c3f0d45acc6bca1d6d22.setIcon(icon_04c0442cffd73c72d4b3a6c5d763884a);
         
     
-            marker_82d64c127f89cca15f9ae983151c54da.bindTooltip(
+            marker_1346170bfb11c3f0d45acc6bca1d6d22.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -884,7 +852,7 @@ The energy cost coefficient indicates how much we should factor energy into our 
             &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
             &lt;style&gt;
-                #map_dcb7bad45aa74f661fe0563d05b6f73e {
+                #map_7403bd8ebb0f1523666157516ba06c04 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -898,14 +866,14 @@ The energy cost coefficient indicates how much we should factor energy into our 
 &lt;body&gt;
     
     
-            &lt;div class=&quot;folium-map&quot; id=&quot;map_dcb7bad45aa74f661fe0563d05b6f73e&quot; &gt;&lt;/div&gt;
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_7403bd8ebb0f1523666157516ba06c04&quot; &gt;&lt;/div&gt;
         
 &lt;/body&gt;
 &lt;script&gt;
     
     
-            var map_dcb7bad45aa74f661fe0563d05b6f73e = L.map(
-                &quot;map_dcb7bad45aa74f661fe0563d05b6f73e&quot;,
+            var map_7403bd8ebb0f1523666157516ba06c04 = L.map(
+                &quot;map_7403bd8ebb0f1523666157516ba06c04&quot;,
                 {
                     center: [39.7465774, -105.2216276],
                     crs: L.CRS.EPSG3857,
@@ -919,39 +887,39 @@ The energy cost coefficient indicates how much we should factor energy into our 
 
         
     
-            var tile_layer_cebf0d3fa55a032016912d225217aa58 = L.tileLayer(
+            var tile_layer_b0478ba7145ec6c003a157cc07675b47 = L.tileLayer(
                 &quot;https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
                 {&quot;attribution&quot;: &quot;Data by \u0026copy; \u003ca target=\&quot;_blank\&quot; href=\&quot;http://openstreetmap.org\&quot;\u003eOpenStreetMap\u003c/a\u003e, under \u003ca target=\&quot;_blank\&quot; href=\&quot;http://www.openstreetmap.org/copyright\&quot;\u003eODbL\u003c/a\u003e.&quot;, &quot;detectRetina&quot;: false, &quot;maxNativeZoom&quot;: 18, &quot;maxZoom&quot;: 18, &quot;minZoom&quot;: 0, &quot;noWrap&quot;: false, &quot;opacity&quot;: 1, &quot;subdomains&quot;: &quot;abc&quot;, &quot;tms&quot;: false}
-            ).addTo(map_dcb7bad45aa74f661fe0563d05b6f73e);
+            ).addTo(map_7403bd8ebb0f1523666157516ba06c04);
         
     
-            var poly_line_f2f0a91c5e1148698c02cc543ba8ee1b = L.polyline(
+            var poly_line_02fb58035bfca29ea8b829f10cdc5d2c = L.polyline(
                 [[39.7273069, -105.1994169], [39.7272989, -105.1994535], [39.7272848, -105.1994868], [39.7272593, -105.1995218], [39.7272272, -105.1995461], [39.7271912, -105.1995576], [39.7271688, -105.199558], [39.7271461, -105.1995532], [39.7271142, -105.1995365], [39.7270868, -105.1995096], [39.7270657, -105.1994741], [39.7270519, -105.1994296], [39.7270483, -105.1993816], [39.727052, -105.1993539], [39.7270571, -105.1993247], [39.7270719, -105.1992916], [39.7270973, -105.1992566], [39.7271293, -105.1992323], [39.7271651, -105.1992207], [39.7271854, -105.1992226], [39.7272113, -105.199227], [39.7273496, -105.1991687], [39.7274185, -105.1991465], [39.7275326, -105.1990928], [39.7276828, -105.1990602], [39.7277455, -105.1990518], [39.7279702, -105.1990232], [39.7281558, -105.1990357], [39.7284384, -105.1990893], [39.7286639, -105.199177], [39.7288222, -105.1992773], [39.7289214, -105.199385], [39.7290292, -105.1995543], [39.7290506, -105.1995879], [39.7292157, -105.1998155], [39.7293094, -105.1998945], [39.7294079, -105.1999604], [39.7295437, -105.200014], [39.7296299, -105.2000721], [39.7297292, -105.2000757], [39.7297135, -105.2007081], [39.7297192, -105.2013106], [39.7298153, -105.2032041], [39.7298256, -105.2033784], [39.7298664, -105.2035708], [39.7298795, -105.203649], [39.7299267, -105.2038558], [39.7301082, -105.2042608], [39.7304911, -105.2048068], [39.7308741, -105.2053111], [39.7310676, -105.2055985], [39.7311933, -105.205824], [39.7312069, -105.2058543], [39.7313075, -105.2061158], [39.731348, -105.206248], [39.731386, -105.2064213], [39.7314237, -105.2067336], [39.731429, -105.2070565], [39.7314226, -105.207224], [39.7314076, -105.2074036], [39.7313611, -105.2077675], [39.7313265, -105.2079124], [39.7312831, -105.20806], [39.7312292, -105.2082086], [39.7311706, -105.208344], [39.7310965, -105.2084777], [39.7310049, -105.208616], [39.7309234, -105.2087235], [39.7308212, -105.2088303], [39.7306227, -105.2089819], [39.7304801, -105.2090736], [39.7303681, -105.2091988], [39.7303327, -105.2092597], [39.7303114, -105.2093181], [39.730299, -105.20939], [39.7302939, -105.2095126], [39.7303105, -105.2096804], [39.7304414, -105.2099267], [39.7305001, -105.2100344], [39.7305871, -105.2101842], [39.7307404, -105.2104481], [39.7309234, -105.2107229], [39.7310934, -105.2109639], [39.731238, -105.211145], [39.7314101, -105.2113464], [39.7315783, -105.2115336], [39.7317541, -105.2117064], [39.7319796, -105.2119089], [39.732359, -105.2122393], [39.7329187, -105.2127184], [39.7334557, -105.213188], [39.7338968, -105.2135676], [39.7342777, -105.2138968], [39.7347139, -105.2142786], [39.7354652, -105.2149301], [39.7356319, -105.2150733], [39.7358844, -105.2152902], [39.7363901, -105.2157275], [39.7369129, -105.2161859], [39.7377243, -105.2168831], [39.7390882, -105.2180682], [39.7397882, -105.2186718], [39.7403043, -105.2191078], [39.7405645, -105.2193336], [39.7406767, -105.2194225], [39.7415803, -105.2202142], [39.7416486, -105.2202727], [39.7417047, -105.2203151], [39.7421502, -105.2206932], [39.7425816, -105.221062], [39.7432687, -105.2215398], [39.7435797, -105.2217631], [39.7436721, -105.2218299], [39.7437366, -105.2218764], [39.7438794, -105.2219759], [39.7439546, -105.2220253], [39.7440082, -105.2220586], [39.7440819, -105.2221021], [39.7441377, -105.2221322], [39.7441808, -105.2221541], [39.7442796, -105.2222043], [39.7443357, -105.2222286], [39.7444062, -105.222259], [39.7444657, -105.2222871], [39.7444962, -105.2223029], [39.7445695, -105.2223431], [39.7446343, -105.2223808], [39.744683, -105.2224104], [39.7447215, -105.2224349], [39.7447658, -105.2224654], [39.744813, -105.222499], [39.7448547, -105.2225315], [39.7448881, -105.2225586], [39.7449328, -105.2225965], [39.7449815, -105.2226391], [39.7451542, -105.2227925], [39.7454784, -105.2230438], [39.7455034, -105.2230623], [39.7455159, -105.2230713], [39.7455403, -105.2230861], [39.7455548, -105.2230941], [39.7455766, -105.2231014], [39.7456018, -105.223106], [39.7456176, -105.2231071], [39.7456337, -105.223107], [39.7456638, -105.2231045], [39.7456814, -105.2231011], [39.7456983, -105.2230945], [39.7457224, -105.2230821], [39.7457338, -105.2230745], [39.7457588, -105.2230543], [39.7457709, -105.223043], [39.7457834, -105.2230284], [39.7458035, -105.2230027], [39.7458905, -105.2228787], [39.7460068, -105.2226624], [39.7461589, -105.2223894], [39.7463617, -105.2220126], [39.7464427, -105.2218672], [39.746482, -105.2217968], [39.7465202, -105.2217322], [39.7465523, -105.2216771], [39.7465774, -105.2216276], [39.7465928, -105.2215823], [39.7466004, -105.2215466], [39.7466042, -105.2215101], [39.7466044, -105.2214695], [39.746601, -105.2214368], [39.7465881, -105.2213862], [39.7465804, -105.2213567], [39.7465774, -105.2213321], [39.7465774, -105.2213048], [39.746581, -105.2212762], [39.7465874, -105.2212518], [39.7465978, -105.2212266], [39.7466125, -105.2212024], [39.7466266, -105.2211858], [39.7466485, -105.2211678], [39.7466708, -105.2211566], [39.746693, -105.2211511], [39.746715, -105.2211506], [39.7467203, -105.2211517], [39.7467798, -105.2211327], [39.7468101, -105.2211204], [39.7468347, -105.2211032], [39.7468673, -105.2210676], [39.7468863, -105.2210389], [39.7469079, -105.2209995], [39.7469752, -105.2208699], [39.7471073, -105.220655], [39.7471371, -105.2206129], [39.7471594, -105.2205845], [39.7472061, -105.2205376], [39.7473376, -105.2202962], [39.747357, -105.2202177], [39.7473682, -105.2201868], [39.7473848, -105.2201519], [39.7475089, -105.2199249], [39.7475861, -105.2197973], [39.7476254, -105.2197401], [39.7476917, -105.2196525], [39.7477724, -105.2195069], [39.7478875, -105.219299], [39.7479219, -105.2192372], [39.7479518, -105.219179], [39.7480957, -105.2189201], [39.7481337, -105.2188515], [39.7482567, -105.2186294], [39.7484851, -105.2182271], [39.7485167, -105.218164], [39.7485605, -105.2180881], [39.7490516, -105.217166], [39.7490955, -105.2170866], [39.7491263, -105.2170387], [39.7493736, -105.2165801], [39.7496841, -105.2160128], [39.7497482, -105.2160733], [39.7504593, -105.216753], [39.7505084, -105.2168007], [39.7505733, -105.2168567], [39.7509525, -105.2172063], [39.7512593, -105.2174884], [39.7513304, -105.2175506], [39.7513869, -105.217604], [39.7517458, -105.2179367], [39.7520945, -105.21826], [39.7521462, -105.2183047], [39.7522126, -105.218369], [39.7523012, -105.2184523], [39.7525052, -105.218642], [39.7527145, -105.2188366], [39.7528959, -105.2189993], [39.7529601, -105.2190649], [39.7530308, -105.219128], [39.7537033, -105.2197718], [39.753764, -105.2198302], [39.7538299, -105.2198915], [39.7542346, -105.2202638], [39.7545279, -105.2205433], [39.7545847, -105.2206031], [39.7546623, -105.2206728], [39.7553326, -105.2212752], [39.755407, -105.221342], [39.7554908, -105.2214211], [39.7561483, -105.2220415], [39.7562254, -105.2221143], [39.7563006, -105.2221853], [39.7566193, -105.222483], [39.7566315, -105.2224957], [39.7569475, -105.2227913], [39.7570561, -105.222895], [39.7574792, -105.2232693], [39.7575579, -105.2233409], [39.7576236, -105.2234019], [39.7578565, -105.2236199], [39.7579703, -105.2237258], [39.7580027, -105.2237561], [39.7583001, -105.2240544], [39.7583591, -105.2241084], [39.7587249, -105.2244446], [39.7588057, -105.22452], [39.7591609, -105.2248516], [39.7595089, -105.2251741], [39.7596887, -105.2253408], [39.7597554, -105.2254024], [39.7598802, -105.2255173], [39.7598939, -105.2255305], [39.7599658, -105.2255988], [39.7600186, -105.2256498], [39.7604008, -105.2259941], [39.7605066, -105.2260931], [39.7605924, -105.226174], [39.760667, -105.2262427], [39.7607946, -105.2263631], [39.7608753, -105.2264373], [39.7615829, -105.2271044], [39.7616266, -105.2271481], [39.7616788, -105.2272008], [39.762203, -105.2276943], [39.7623411, -105.2278299], [39.7630405, -105.2284565], [39.7632824, -105.2286685], [39.7637358, -105.2290679], [39.7640137, -105.229309], [39.7640954, -105.229381], [39.7641743, -105.229462], [39.76436, -105.2296495], [39.7645376, -105.2298658], [39.764824, -105.2301918], [39.7652051, -105.2307044], [39.7654711, -105.2310802], [39.7654801, -105.2310934], [39.7655308, -105.231168], [39.7655792, -105.231232], [39.7655918, -105.2312486], [39.7657719, -105.2315035], [39.7658973, -105.2316751], [39.7659962, -105.2318039], [39.7661018, -105.231924], [39.7662469, -105.2320614], [39.7664515, -105.2322588], [39.7671442, -105.2329283], [39.7673559, -105.2331244], [39.7674414, -105.2332053], [39.7675186, -105.2332845], [39.7675756, -105.2333522], [39.7676291, -105.2334243], [39.7676969, -105.2335369], [39.7677304, -105.233602], [39.767761, -105.2336649], [39.7677908, -105.233739], [39.7678172, -105.233812], [39.7678551, -105.2339422], [39.7678736, -105.2340294], [39.7678904, -105.2341257], [39.7679032, -105.2342329], [39.7679095, -105.2343359], [39.7679068, -105.2344027], [39.7679029, -105.234499], [39.7678875, -105.2346626], [39.7678651, -105.2347791], [39.7678384, -105.2348898], [39.7678006, -105.2350283], [39.7677517, -105.2352031], [39.7677119, -105.2353468]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#eff821&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#eff821&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_dcb7bad45aa74f661fe0563d05b6f73e);
+            ).addTo(map_7403bd8ebb0f1523666157516ba06c04);
         
     
-            poly_line_f2f0a91c5e1148698c02cc543ba8ee1b.bindTooltip(
+            poly_line_02fb58035bfca29ea8b829f10cdc5d2c.bindTooltip(
                 `&lt;div&gt;
-                     0.18816139103031826
+                     0.18821565778485838
                  &lt;/div&gt;`,
                 {&quot;sticky&quot;: true}
             );
         
     
-            var marker_dcc1d8f03fe05a78a2c746e313c8cdfe = L.marker(
+            var marker_c7bd097f86fa65d196d6f08fe33809c8 = L.marker(
                 [39.7273069, -105.1994169],
                 {}
-            ).addTo(map_dcb7bad45aa74f661fe0563d05b6f73e);
+            ).addTo(map_7403bd8ebb0f1523666157516ba06c04);
         
     
-            var icon_5af3b69232acb8b032f9f05474ebe27a = L.AwesomeMarkers.icon(
+            var icon_3243ac290e04d3ed81d88106808b8cc4 = L.AwesomeMarkers.icon(
                 {&quot;extraClasses&quot;: &quot;fa-rotate-0&quot;, &quot;icon&quot;: &quot;circle&quot;, &quot;iconColor&quot;: &quot;white&quot;, &quot;markerColor&quot;: &quot;green&quot;, &quot;prefix&quot;: &quot;fa&quot;}
             );
-            marker_dcc1d8f03fe05a78a2c746e313c8cdfe.setIcon(icon_5af3b69232acb8b032f9f05474ebe27a);
+            marker_c7bd097f86fa65d196d6f08fe33809c8.setIcon(icon_3243ac290e04d3ed81d88106808b8cc4);
         
     
-            marker_dcc1d8f03fe05a78a2c746e313c8cdfe.bindTooltip(
+            marker_c7bd097f86fa65d196d6f08fe33809c8.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -959,19 +927,19 @@ The energy cost coefficient indicates how much we should factor energy into our 
             );
         
     
-            var marker_86fb34c4a72121b96e7a4c4e4b692122 = L.marker(
+            var marker_e1f58558f4063d7c7723cc233f9c4aa8 = L.marker(
                 [39.7677119, -105.2353468],
                 {}
-            ).addTo(map_dcb7bad45aa74f661fe0563d05b6f73e);
+            ).addTo(map_7403bd8ebb0f1523666157516ba06c04);
         
     
-            var icon_63698279efbaee214f4e9bf2bdc89ea3 = L.AwesomeMarkers.icon(
+            var icon_2bc41403a121411ae24733bfba7415a7 = L.AwesomeMarkers.icon(
                 {&quot;extraClasses&quot;: &quot;fa-rotate-0&quot;, &quot;icon&quot;: &quot;circle&quot;, &quot;iconColor&quot;: &quot;white&quot;, &quot;markerColor&quot;: &quot;red&quot;, &quot;prefix&quot;: &quot;fa&quot;}
             );
-            marker_86fb34c4a72121b96e7a4c4e4b692122.setIcon(icon_63698279efbaee214f4e9bf2bdc89ea3);
+            marker_e1f58558f4063d7c7723cc233f9c4aa8.setIcon(icon_2bc41403a121411ae24733bfba7415a7);
         
     
-            marker_86fb34c4a72121b96e7a4c4e4b692122.bindTooltip(
+            marker_e1f58558f4063d7c7723cc233f9c4aa8.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -979,33 +947,33 @@ The energy cost coefficient indicates how much we should factor energy into our 
             );
         
     
-            var poly_line_1021a8fdde811fe986b0def01c25f04c = L.polyline(
+            var poly_line_c4f30264e10303d105be9b6411554e53 = L.polyline(
                 [[39.7273069, -105.1994169], [39.7272989, -105.1994535], [39.7272848, -105.1994868], [39.7272593, -105.1995218], [39.7272272, -105.1995461], [39.7271912, -105.1995576], [39.7271688, -105.199558], [39.7271461, -105.1995532], [39.7271142, -105.1995365], [39.7270868, -105.1995096], [39.7270657, -105.1994741], [39.7270519, -105.1994296], [39.7270483, -105.1993816], [39.727052, -105.1993539], [39.7270571, -105.1993247], [39.7270719, -105.1992916], [39.7270973, -105.1992566], [39.7271293, -105.1992323], [39.7271651, -105.1992207], [39.7271854, -105.1992226], [39.7272113, -105.199227], [39.7273496, -105.1991687], [39.7274185, -105.1991465], [39.7275326, -105.1990928], [39.7276828, -105.1990602], [39.7277455, -105.1990518], [39.7279702, -105.1990232], [39.7281558, -105.1990357], [39.7284384, -105.1990893], [39.7286639, -105.199177], [39.7288222, -105.1992773], [39.7289214, -105.199385], [39.7290292, -105.1995543], [39.7290506, -105.1995879], [39.7292157, -105.1998155], [39.7293094, -105.1998945], [39.7294079, -105.1999604], [39.7295437, -105.200014], [39.7296299, -105.2000721], [39.7296469, -105.1996789], [39.7296738, -105.1987284], [39.7296906, -105.1986794], [39.7297244, -105.1985856], [39.7297272, -105.1984193], [39.7299723, -105.1984198], [39.7302117, -105.1984227], [39.7303235, -105.1984285], [39.7304434, -105.198443], [39.7305651, -105.1984732], [39.7307182, -105.1985167], [39.7308487, -105.1985623], [39.7309909, -105.1986311], [39.731127, -105.1987144], [39.7312292, -105.1987897], [39.7313292, -105.1988731], [39.7314292, -105.1989611], [39.731524, -105.1990554], [39.7316089, -105.1991466], [39.7317085, -105.1992639], [39.7318575, -105.1994488], [39.7319522, -105.1995697], [39.7320423, -105.1996716], [39.7321372, -105.1997578], [39.7322615, -105.1998506], [39.7323697, -105.1999163], [39.7324712, -105.1999637], [39.7325898, -105.2000081], [39.732689, -105.2000309], [39.7327987, -105.2000627], [39.732945, -105.2001049], [39.7330635, -105.2001374], [39.7331838, -105.2001914], [39.7332899, -105.2002528], [39.7334312, -105.200363], [39.7335257, -105.2004544], [39.7335523, -105.2004835], [39.7336132, -105.2005503], [39.7336902, -105.2006555], [39.733767, -105.2007557], [39.7338411, -105.2008491], [39.7339359, -105.2009412], [39.7340357, -105.2010154], [39.7340742, -105.201042], [39.7341117, -105.2010678], [39.7341542, -105.2010901], [39.734211, -105.2011198], [39.7343173, -105.2011712], [39.7344056, -105.2012021], [39.7345704, -105.2012376], [39.7347726, -105.2012753], [39.7351329, -105.2013311], [39.7352203, -105.2013441], [39.7353243, -105.201352], [39.7354415, -105.2013441], [39.7355491, -105.2013268], [39.7357022, -105.2012901], [39.7358395, -105.201259], [39.7362429, -105.2011675], [39.7367157, -105.2010639], [39.7367857, -105.2010539], [39.7368531, -105.2010442], [39.7369645, -105.2010356], [39.7370755, -105.201044], [39.7371895, -105.2010632], [39.7373179, -105.201099], [39.737714, -105.2012295], [39.7379567, -105.2013009], [39.7384451, -105.2014404], [39.7386872, -105.2015167], [39.7395717, -105.2017905], [39.7397153, -105.2018369], [39.7398269, -105.2018673], [39.7399356, -105.2018843], [39.7400618, -105.2018961], [39.740184, -105.2018932], [39.7403133, -105.2018823], [39.7404288, -105.2018645], [39.7405518, -105.2018387], [39.740665, -105.2018073], [39.7407597, -105.2017713], [39.7408728, -105.2017196], [39.740992, -105.2016551], [39.7411268, -105.2015625], [39.7412599, -105.2014489], [39.7413718, -105.2013453], [39.7414758, -105.2012326], [39.741608, -105.2010691], [39.7416901, -105.200964], [39.7417903, -105.2008396], [39.7417994, -105.200826], [39.7418968, -105.200686], [39.7418878, -105.200623], [39.7418917, -105.2005592], [39.7419081, -105.2004988], [39.7419393, -105.2004416], [39.7419818, -105.2003982], [39.7420319, -105.2003723], [39.7420864, -105.2003661], [39.7421399, -105.2003805], [39.742188, -105.2004144], [39.7422255, -105.2004628], [39.742251, -105.2005229], [39.7422628, -105.2005898], [39.7422597, -105.2006584], [39.7422421, -105.2007231], [39.7422712, -105.2008198], [39.7423227, -105.200901], [39.7428069, -105.2016549], [39.7429048, -105.2018114], [39.7429131, -105.2018245], [39.7431503, -105.2022035], [39.7434374, -105.2026477], [39.7435807, -105.2028659], [39.7437705, -105.2031843], [39.7441255, -105.2037193], [39.7444536, -105.2042289], [39.7445369, -105.204369], [39.7448087, -105.2048085], [39.7450389, -105.205197], [39.745164, -105.2054397], [39.7452617, -105.205642], [39.745359, -105.2058753], [39.7454413, -105.2060693], [39.7454698, -105.2061365], [39.7455586, -105.2063498], [39.7456394, -105.2066197], [39.7457343, -105.2068984], [39.7458096, -105.2071619], [39.7458432, -105.2072893], [39.7459057, -105.2075162], [39.7459547, -105.2077463], [39.7460104, -105.2080066], [39.7460312, -105.2081149], [39.7460508, -105.2082709], [39.7460836, -105.2084787], [39.7461092, -105.2086125], [39.7461165, -105.2087078], [39.7461128, -105.2088019], [39.7461078, -105.2089177], [39.7461163, -105.208995], [39.7461377, -105.2090672], [39.7461588, -105.2091147], [39.7462509, -105.2092159], [39.746281, -105.2092382], [39.7462978, -105.209256], [39.7463242, -105.209292], [39.7463458, -105.2093473], [39.746361, -105.2094251], [39.7463921, -105.2095768], [39.7464353, -105.2097133], [39.7465001, -105.2098285], [39.7467097, -105.21004], [39.7467814, -105.2101094], [39.7473357, -105.2106047], [39.7474554, -105.2107116], [39.7475615, -105.2108064], [39.7475958, -105.2108371], [39.747653, -105.2108907], [39.7481502, -105.2113567], [39.7483361, -105.2115309], [39.7483726, -105.2115651], [39.7484183, -105.2116079], [39.7484718, -105.2116584], [39.7487212, -105.2118951], [39.749238, -105.2123721], [39.7492814, -105.2124135], [39.7500059, -105.2130759], [39.7500454, -105.2131129], [39.7503812, -105.2134256], [39.7504627, -105.2135015], [39.7508219, -105.2138362], [39.7508792, -105.2138895], [39.7509348, -105.2139426], [39.7511093, -105.2141093], [39.7516271, -105.2146038], [39.7516716, -105.2146463], [39.751739, -105.2147085], [39.7524829, -105.2153953], [39.7525012, -105.2154123], [39.7532517, -105.2161101], [39.7533052, -105.2161598], [39.7540716, -105.2168674], [39.7541308, -105.2169221], [39.7544795, -105.2172508], [39.7546281, -105.2174522], [39.7546745, -105.2175037], [39.7548394, -105.2176869], [39.7549112, -105.2177871], [39.7548521, -105.2179433], [39.7546476, -105.2183047], [39.7544379, -105.2186805], [39.7544293, -105.218688], [39.7543723, -105.2187394], [39.7544376, -105.2188002], [39.7544872, -105.2188464], [39.7547934, -105.2191313], [39.7551071, -105.2194077], [39.7551368, -105.2194339], [39.755202, -105.2194913], [39.7552559, -105.2195411], [39.755615, -105.2198733], [39.755696, -105.2199479], [39.7559351, -105.2201693], [39.7559559, -105.220191], [39.7560109, -105.2202486], [39.7560703, -105.2203182], [39.756257, -105.2205368], [39.7562813, -105.2205598], [39.7564057, -105.2206774], [39.7565461, -105.2208058], [39.7567417, -105.2209442], [39.7566986, -105.2211001], [39.756638, -105.2213112], [39.7565732, -105.2214643], [39.7565209, -105.2215678], [39.7564595, -105.2216814], [39.7562914, -105.2219923], [39.7562254, -105.2221143], [39.7563006, -105.2221853], [39.7566193, -105.222483], [39.7566315, -105.2224957], [39.7569475, -105.2227913], [39.7570561, -105.222895], [39.7574792, -105.2232693], [39.7575579, -105.2233409], [39.7576236, -105.2234019], [39.7578565, -105.2236199], [39.7579703, -105.2237258], [39.7580027, -105.2237561], [39.7583001, -105.2240544], [39.7583591, -105.2241084], [39.7587249, -105.2244446], [39.7588057, -105.22452], [39.7591609, -105.2248516], [39.7595089, -105.2251741], [39.7596887, -105.2253408], [39.7597554, -105.2254024], [39.7598802, -105.2255173], [39.7598939, -105.2255305], [39.7599658, -105.2255988], [39.7600186, -105.2256498], [39.7604008, -105.2259941], [39.7605066, -105.2260931], [39.7605924, -105.226174], [39.760667, -105.2262427], [39.7607946, -105.2263631], [39.7608753, -105.2264373], [39.7615829, -105.2271044], [39.7616266, -105.2271481], [39.7616788, -105.2272008], [39.762203, -105.2276943], [39.7623411, -105.2278299], [39.7630405, -105.2284565], [39.7632824, -105.2286685], [39.7637358, -105.2290679], [39.7640137, -105.229309], [39.7640954, -105.229381], [39.7641743, -105.229462], [39.76436, -105.2296495], [39.7645376, -105.2298658], [39.764824, -105.2301918], [39.7652051, -105.2307044], [39.7654711, -105.2310802], [39.7654801, -105.2310934], [39.7655308, -105.231168], [39.7655792, -105.231232], [39.7655918, -105.2312486], [39.7657719, -105.2315035], [39.7658973, -105.2316751], [39.7659962, -105.2318039], [39.7661018, -105.231924], [39.7662469, -105.2320614], [39.7664515, -105.2322588], [39.7671442, -105.2329283], [39.7673559, -105.2331244], [39.7674414, -105.2332053], [39.7675186, -105.2332845], [39.7675756, -105.2333522], [39.7676291, -105.2334243], [39.7676969, -105.2335369], [39.7677304, -105.233602], [39.767761, -105.2336649], [39.7677908, -105.233739], [39.7678172, -105.233812], [39.7678551, -105.2339422], [39.7678736, -105.2340294], [39.7678904, -105.2341257], [39.7679032, -105.2342329], [39.7679095, -105.2343359], [39.7679068, -105.2344027], [39.7679029, -105.234499], [39.7678875, -105.2346626], [39.7678651, -105.2347791], [39.7678384, -105.2348898], [39.7678006, -105.2350283], [39.7677517, -105.2352031], [39.7677119, -105.2353468]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_dcb7bad45aa74f661fe0563d05b6f73e);
+            ).addTo(map_7403bd8ebb0f1523666157516ba06c04);
         
     
-            poly_line_1021a8fdde811fe986b0def01c25f04c.bindTooltip(
+            poly_line_c4f30264e10303d105be9b6411554e53.bindTooltip(
                 `&lt;div&gt;
-                     0.1871862788506351
+                     0.18722374836334246
                  &lt;/div&gt;`,
                 {&quot;sticky&quot;: true}
             );
         
     
-            var marker_2bdb148bb5b4bc4d2fc4b38ecaf14ba5 = L.marker(
+            var marker_5cd1ebcff6bf352ad3cf4f30532410d3 = L.marker(
                 [39.7273069, -105.1994169],
                 {}
-            ).addTo(map_dcb7bad45aa74f661fe0563d05b6f73e);
+            ).addTo(map_7403bd8ebb0f1523666157516ba06c04);
         
     
-            var icon_6881073c5eb1cd06f98421ba4749d1c5 = L.AwesomeMarkers.icon(
+            var icon_3e7d104747c5c40607fb85a9d1d3ee3c = L.AwesomeMarkers.icon(
                 {&quot;extraClasses&quot;: &quot;fa-rotate-0&quot;, &quot;icon&quot;: &quot;circle&quot;, &quot;iconColor&quot;: &quot;white&quot;, &quot;markerColor&quot;: &quot;green&quot;, &quot;prefix&quot;: &quot;fa&quot;}
             );
-            marker_2bdb148bb5b4bc4d2fc4b38ecaf14ba5.setIcon(icon_6881073c5eb1cd06f98421ba4749d1c5);
+            marker_5cd1ebcff6bf352ad3cf4f30532410d3.setIcon(icon_3e7d104747c5c40607fb85a9d1d3ee3c);
         
     
-            marker_2bdb148bb5b4bc4d2fc4b38ecaf14ba5.bindTooltip(
+            marker_5cd1ebcff6bf352ad3cf4f30532410d3.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -1013,19 +981,19 @@ The energy cost coefficient indicates how much we should factor energy into our 
             );
         
     
-            var marker_435aa897d6070d044b50fc5020add8d2 = L.marker(
+            var marker_3587d98f48205253ce6c8b7f2bb5a7be = L.marker(
                 [39.7677119, -105.2353468],
                 {}
-            ).addTo(map_dcb7bad45aa74f661fe0563d05b6f73e);
+            ).addTo(map_7403bd8ebb0f1523666157516ba06c04);
         
     
-            var icon_6f25483c7fb8b68fe59e3d73cbc13c51 = L.AwesomeMarkers.icon(
+            var icon_3f79d05f54ab187b3dd0f27719f7d386 = L.AwesomeMarkers.icon(
                 {&quot;extraClasses&quot;: &quot;fa-rotate-0&quot;, &quot;icon&quot;: &quot;circle&quot;, &quot;iconColor&quot;: &quot;white&quot;, &quot;markerColor&quot;: &quot;red&quot;, &quot;prefix&quot;: &quot;fa&quot;}
             );
-            marker_435aa897d6070d044b50fc5020add8d2.setIcon(icon_6f25483c7fb8b68fe59e3d73cbc13c51);
+            marker_3587d98f48205253ce6c8b7f2bb5a7be.setIcon(icon_3f79d05f54ab187b3dd0f27719f7d386);
         
     
-            marker_435aa897d6070d044b50fc5020add8d2.bindTooltip(
+            marker_3587d98f48205253ce6c8b7f2bb5a7be.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
