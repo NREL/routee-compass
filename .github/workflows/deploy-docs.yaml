@@ -18,12 +18,16 @@ jobs:
         auto-update-conda: true
         python-version: "3.10" 
 
-    - name: Install dependencies and build book
+    - name: Install dependencies
       shell: bash -el {0}
-      working-directory: ${{runner.workspace}}/routee-compass/docs/
       run: |
         conda install rasterio gdal
         pip install ".[dev]"
+    
+    - name: Build book
+      shell: bash -el {0}
+      working-directory: ${{runner.workspace}}/routee-compass/docs/
+      run: |
         jupyter-book build .
 
     # Push the book's HTML to github-pages
