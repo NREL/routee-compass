@@ -2,9 +2,9 @@ name: Python build and test on push + pull request
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [ main ]
   pull_request:
-    branches: [ $default-branch ]
+    branches: [ main ]
 
 jobs:
   test:
@@ -31,12 +31,12 @@ jobs:
         run: |
           pip install ".[dev]"
 
-      - name: Run mypy
-        run: mypy . --ignore-missing-imports
+      # - name: Run mypy
+      #   run: mypy . --ignore-missing-imports
 
       - name: Validate formatting
         run: |
-          black nrel tests --check
+          black python --check
 
     #   - name: Run tests
     

@@ -1,4 +1,4 @@
-# RouteE Compass
+# <img src="docs/images/routeelogo.png" alt="Routee Compass" width="100"/>
 
 RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
 

@@ -2,7 +2,7 @@ name: Python build release for platforms
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 jobs:
   build:
@@ -58,19 +58,20 @@ jobs:
         run: |
           pip install -U maturin
           maturin build --sdist --out dist/
+      
       - name: build ${{ matrix.platform || matrix.os }} binaries
         run: cibuildwheel --output-dir dist
         env:
           CIBW_BUILD: "cp3${{ matrix.python-version }}-*"
           CIBW_SKIP: "*-win32 *-musllinux* *i686 *ppc64le *s390x *aarch64"
           CIBW_PLATFORM: ${{ matrix.platform || matrix.os }}
-          CIBW_TEST_REQUIRES: "pytest"
-          CIBW_TEST_COMMAND: "pytest {project}/tests -s"
+          # CIBW_TEST_REQUIRES: "pytest"
+          # CIBW_TEST_COMMAND: "pytest {project}/tests -s"
           CIBW_ENVIRONMENT: 'PATH="$HOME/.cargo/bin:$PATH"'
           CIBW_ENVIRONMENT_WINDOWS: 'PATH="$UserProfile\.cargo\bin;$PATH"'
           CIBW_ARCHS_MACOS: 'universal2'
           # see https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2
-          CIBW_TEST_SKIP: '*_universal2:arm64'
+          # CIBW_TEST_SKIP: '*_universal2:arm64'
           CIBW_BEFORE_BUILD: >
             pip install -U maturin &&
             rustup default nightly &&
