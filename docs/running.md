@@ -24,7 +24,7 @@ query = {
 result = app.run(query)
 ```
 
-## Command line application 
+## Command line application
 
 You can also just build the rust application and run it from the command line.
 After following the [installation instructions](/docs/installation), you can run the application like this:
