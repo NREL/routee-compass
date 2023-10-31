@@ -4,7 +4,7 @@ import json
 
 from pathlib import Path
 from typing import Any, Dict, List, Union
-from nrel.routee.compass.compass_app_py import (
+from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
 
