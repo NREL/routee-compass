@@ -11,7 +11,7 @@ RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of sof
 The fastest way to get started with RouteE Compass is to use the python package manager `pip`:
 
 ```bash
-pip install nrel.routee.compass[osm]
+pip install 'nrel.routee.compass[all]'
 ```
 
 Then, follow this [example](notebooks/open_street_maps_example.ipynb) to start routing over Open Street Maps data.

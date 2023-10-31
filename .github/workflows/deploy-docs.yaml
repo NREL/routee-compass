@@ -13,18 +13,19 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Install dependencies
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - uses: conda-incubator/setup-miniconda@v2
       with:
-        python-version: "3.10"
+        auto-update-conda: true
+        python-version: "3.10" 
 
     - name: Install dependencies
+      shell: bash -el {0}
       run: |
+        conda install rasterio gdal
         pip install ".[dev]"
-
-    # Build the book
-    - name: Build the book
+    
+    - name: Build book
+      shell: bash -el {0}
       working-directory: ${{runner.workspace}}/routee-compass/docs/
       run: |
         jupyter-book build .
