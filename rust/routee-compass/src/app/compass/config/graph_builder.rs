@@ -1,18 +1,4 @@
-use std::path::PathBuf;
-
-use log::warn;
-use routee_compass_core::{
-    model::{
-        graph::{
-            edge_loader::{EdgeLoader, EdgeLoaderConfig},
-            graph::Graph,
-            graph_error::GraphError,
-            vertex_loader::VertexLoaderConfig,
-        },
-        property::vertex::Vertex,
-    },
-    util::fs::fs_utils::line_count,
-};
+use routee_compass_core::model::graph::graph::Graph;
 
 use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 
@@ -45,76 +31,16 @@ impl DefaultGraphBuilder {
             params.get_config_path(String::from("edge_list_file"), graph_key.clone())?;
         let vertex_list_csv =
             params.get_config_path(String::from("vertex_list_file"), graph_key.clone())?;
-        let maybe_n_edges =
+        let n_edges =
             params.get_config_serde_optional(String::from("n_edges"), graph_key.clone())?;
-        let maybe_n_vertices =
+        let n_vertices =
             params.get_config_serde_optional(String::from("n_vertices"), graph_key.clone())?;
         let verbose: Option<bool> =
             params.get_config_serde_optional(String::from("verbose"), graph_key.clone())?;
 
-        let n_edges = match maybe_n_edges {
-            Some(n) => n,
-            None => get_n_edges(edge_list_csv.clone())?,
-        };
-
-        let n_vertices = match maybe_n_vertices {
-            Some(n) => n,
-            None => get_n_vertices(vertex_list_csv.clone())?,
-        };
-
-        let e_conf = EdgeLoaderConfig {
-            edge_list_csv,
-            n_edges,
-            n_vertices,
-        };
-
-        let e_result = EdgeLoader::try_from(e_conf)?;
-
-        let v_conf = VertexLoaderConfig {
-            vertex_list_csv,
-            n_vertices,
-        };
-
-        let vertices: Vec<Vertex> = v_conf.try_into()?;
-
-        let graph = Graph {
-            adj: e_result.adj,
-            rev: e_result.rev,
-            edges: e_result.edges,
-            vertices,
-        };
+        let graph =
+            Graph::from_files(edge_list_csv, vertex_list_csv, n_edges, n_vertices, verbose)?;
 
         Ok(graph)
     }
-}
-
-fn get_n_edges(edge_list_csv: PathBuf) -> Result<usize, GraphError> {
-    warn!("edge list size not provided, scanning input to determine size");
-    // check if the extension is .gz
-    let is_gzip = edge_list_csv
-        .extension()
-        .map(|ext| ext.to_str() == Some("gz"))
-        .unwrap_or(false);
-    let n = line_count(edge_list_csv.clone(), is_gzip)?;
-    if n < 1 {
-        return Err(GraphError::EmptyFileSource {
-            filename: edge_list_csv.clone(),
-        });
-    }
-    Ok(n - 1) // drop count of header line
-}
-
-fn get_n_vertices(vertex_list_csv: PathBuf) -> Result<usize, GraphError> {
-    warn!("vertex list size not provided, scanning input to determine size");
-    let is_gzip = vertex_list_csv
-        .extension()
-        .map(|ext| ext.to_str() == Some("gz"))
-        .unwrap_or(false);
-    let n = line_count(vertex_list_csv.clone(), is_gzip)?;
-    if n < 1 {
-        return Err(GraphError::EmptyFileSource {
-            filename: vertex_list_csv.clone(),
-        });
-    }
-    Ok(n - 1) // drop count of header line
 }

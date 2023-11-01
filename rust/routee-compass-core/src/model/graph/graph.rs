@@ -4,6 +4,9 @@ use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
 use std::collections::HashMap;
+use std::path::Path;
+
+use super::graph_loader::graph_from_files;
 
 /// Road network topology represented as an adjacency list.
 /// The `EdgeId` and `VertexId` values correspond to edge and
@@ -33,6 +36,38 @@ pub struct Graph {
 }
 
 impl Graph {
+    /// Build a `Graph` from a pair of CSV files.
+    /// You can also pass in the number of edges and vertices to avoid
+    /// scanning the input files and potentially building vectors that
+    /// have more memory than needed.
+    ///
+    /// # Arguments
+    ///
+    /// * `edge_list_csv` - path to the CSV file containing edge attributes
+    /// * `vertex_list_csv` - path to the CSV file containing vertex attributes
+    /// * `n_edges` - number of edges in the graph
+    /// * `n_vertices` - number of vertices in the graph
+    /// * `verbose` - whether to print progress information to the console
+    ///
+    /// # Returns
+    ///
+    /// A graph instance, or an error if an IO error occurred.
+    ///
+    pub fn from_files<P: AsRef<Path>>(
+        edge_list_csv: P,
+        vertex_list_csv: P,
+        n_edges: Option<usize>,
+        n_vertices: Option<usize>,
+        verbose: Option<bool>,
+    ) -> Result<Graph, GraphError> {
+        graph_from_files(
+            edge_list_csv.as_ref().to_path_buf(),
+            vertex_list_csv.as_ref().to_path_buf(),
+            n_edges,
+            n_vertices,
+            verbose,
+        )
+    }
     /// number of edges in the Graph
     pub fn n_edges(&self) -> usize {
         self.edges.len()
