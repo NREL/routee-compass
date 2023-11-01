@@ -5,8 +5,7 @@ use crate::{
             compass_app_error::CompassAppError,
             config::{
                 compass_configuration_field::CompassConfigurationField,
-                config_json_extension::{ConfigJsonExtensions, CONFIG_DIRECTORY_KEY},
-                graph_builder::DefaultGraphBuilder,
+                config_json_extension::ConfigJsonExtensions, graph_builder::DefaultGraphBuilder,
                 termination_model_builder::TerminationModelBuilder,
             },
         },
@@ -26,6 +25,8 @@ use routee_compass_core::{
     util::duration_extension::DurationExtension,
 };
 use std::path::PathBuf;
+
+pub const CONFIG_FILE_KEY: &str = "config_file";
 
 /// Instance of RouteE Compass as an application.
 /// When constructed, it holds
@@ -63,22 +64,17 @@ impl TryFrom<PathBuf> for CompassApp {
             config::FileFormat::Toml,
         );
 
-        let conf_file_clone = conf_file.clone();
-
-        // Extract the config parent directory so we can append it to any nested paths in the config.
-        // This allows the app to be loaded from any working directory but still allow relative filepaths
-        // in the config.
-        let config_file_parent_string: &str = match conf_file_clone.parent() {
-            Some(p) => p.to_str().ok_or(CompassAppError::NoInputFile(
-                "Could not find parent directory of config file".to_string(),
-            ))?,
-            None => "",
-        };
+        let conf_file_string = conf_file
+            .to_str()
+            .ok_or(CompassAppError::NoInputFile(
+                "Could not find config file".to_string(),
+            ))?
+            .to_string();
 
         let config = Config::builder()
             .add_source(default_config)
             .add_source(config::File::from(conf_file))
-            .set_override(CONFIG_DIRECTORY_KEY, config_file_parent_string)?
+            .set_override(CONFIG_FILE_KEY, conf_file_string)?
             .build()
             .map_err(CompassAppError::ConfigError)?;
 
@@ -113,7 +109,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
         let (config, builder) = pair;
 
-        let root_config_path = config.get::<PathBuf>(CONFIG_DIRECTORY_KEY)?;
+        let root_config_path = config.get::<PathBuf>(CONFIG_FILE_KEY)?;
 
         let config_json = config
             .clone()

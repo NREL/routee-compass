@@ -1,9 +1,10 @@
 use super::compass_configuration_error::CompassConfigurationError;
 use super::compass_configuration_field::CompassConfigurationField;
 use serde::de;
-use std::{path::PathBuf, str::FromStr};
-
-pub const CONFIG_DIRECTORY_KEY: &str = "config_directory";
+use std::{
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 pub trait ConfigJsonExtensions {
     fn get_config_section(
@@ -236,7 +237,11 @@ impl ConfigJsonExtensions for serde_json::Value {
                 }
 
                 // next we try adding the root config path and see if that exists
-                let new_path = root_config_path.join(&path);
+                let root_config_parent = match root_config_path.parent() {
+                    Some(parent) => parent,
+                    None => Path::new(""),
+                };
+                let new_path = root_config_parent.join(&path);
                 let new_path_string = new_path
                     .to_str()
                     .ok_or(CompassConfigurationError::FileNormalizationError(
