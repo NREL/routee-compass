@@ -1,8 +1,6 @@
 parallelism = 2
 
 [graph]
-edge_list_csv = "edges.csv.gz"
-vertex_list_csv = "vertices.csv.gz"
 verbose = true
 
 [algorithm]
@@ -20,5 +18,5 @@ limit = "00:02:00"
 frequency = 100_000
 
 [plugin]
-input_plugins = [{ type = "vertex_rtree", vertices_file = "vertices.csv.gz" }]
+input_plugins = []
 output_plugins = []

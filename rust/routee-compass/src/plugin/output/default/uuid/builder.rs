@@ -13,7 +13,7 @@ pub struct UUIDOutputPluginBuilder {}
 impl OutputPluginBuilder for UUIDOutputPluginBuilder {
     fn build(
         &self,
-        parameters: serde_json::Value,
+        parameters: &serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
         let uuid_filename_key = String::from("uuid_file");
         let uuid_filename = parameters.get_config_path(uuid_filename_key, String::from("uuid"))?;

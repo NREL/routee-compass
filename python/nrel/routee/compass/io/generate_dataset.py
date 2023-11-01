@@ -179,7 +179,7 @@ def generate_compass_dataset(
                 if filename == "osm_default_energy.toml":
                     if add_grade:
                         init_toml["traversal"][
-                            "grade_table_path"
+                            "grade_table_file"
                         ] = "edges-grade-enumerated.txt.gz"
                         init_toml["traversal"]["grade_table_grade_unit"] = "decimal"
 
@@ -196,7 +196,7 @@ def generate_compass_dataset(
                     init_toml["traversal"][
                         "real_world_energy_adjustment"
                     ] = adjustment_factor
-                    init_toml["traversal"]["energy_model_path"] = f"{energy_model}.bin"
+                    init_toml["traversal"]["energy_model_file"] = f"{energy_model}.bin"
 
                     energy_model_energy_rate_unit = ENERGY_OUTPUT_UNITS.get(
                         powertrain_type

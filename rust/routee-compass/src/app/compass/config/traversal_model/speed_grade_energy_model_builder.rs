@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::app::compass::compass_configuration_field::CompassConfigurationField;
+use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::builders::TraversalModelService;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use crate::app::compass::config::{
@@ -28,21 +28,21 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
         let traversal_key = CompassConfigurationField::Traversal.to_string();
 
         let speed_table_path =
-            params.get_config_path(String::from("speed_table_path"), traversal_key.clone())?;
+            params.get_config_path(String::from("speed_table_file"), traversal_key.clone())?;
         let speed_table_speed_unit = params.get_config_serde::<SpeedUnit>(
             String::from("speed_table_speed_unit"),
             traversal_key.clone(),
         )?;
 
         let grade_table_path = params
-            .get_config_path_optional(String::from("grade_table_path"), traversal_key.clone())?;
+            .get_config_path_optional(String::from("grade_table_file"), traversal_key.clone())?;
         let grade_table_grade_unit = params.get_config_serde_optional::<GradeUnit>(
             String::from("graph_grade_unit"),
             traversal_key.clone(),
         )?;
 
         let energy_model_path =
-            params.get_config_path(String::from("energy_model_path"), traversal_key.clone())?;
+            params.get_config_path(String::from("energy_model_file"), traversal_key.clone())?;
         let model_type = params
             .get_config_serde::<ModelType>(String::from("model_type"), traversal_key.clone())?;
         let energy_model_speed_unit = params.get_config_serde::<SpeedUnit>(

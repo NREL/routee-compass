@@ -103,7 +103,7 @@ pub trait InputPluginBuilder {
     /// [InputPlugin]: compass_app::plugin::input::input_plugin::InputPlugin
     fn build(
         &self,
-        parameters: serde_json::Value,
+        parameters: &serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError>;
 }
 
@@ -128,6 +128,6 @@ pub trait OutputPluginBuilder {
     /// [OutputPlugin]: compass_app::plugin::input::output_plugin::OutputPlugin
     fn build(
         &self,
-        parameters: serde_json::Value,
+        parameters: &serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError>;
 }

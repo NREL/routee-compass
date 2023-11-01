@@ -1,9 +1,7 @@
-use crate::app::compass::{
+use crate::app::compass::config::{
+    builders::FrontierModelBuilder, compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
-    config::{
-        builders::FrontierModelBuilder, compass_configuration_error::CompassConfigurationError,
-        config_json_extension::ConfigJsonExtensions,
-    },
+    config_json_extension::ConfigJsonExtensions,
 };
 use routee_compass_core::{
     model::frontier::{default::road_class::RoadClassFrontierModel, frontier_model::FrontierModel},

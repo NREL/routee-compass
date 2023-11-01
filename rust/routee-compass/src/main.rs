@@ -1,5 +1,5 @@
 use clap::Parser;
-use log::info;
+use log::{error, info};
 use routee_compass::app::compass::compass_app::CompassApp;
 use routee_compass::app::compass::compass_app_args::CompassAppArgs;
 use routee_compass::app::compass::compass_app_error::CompassAppError;
@@ -18,7 +18,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         "No configuration file specified".to_string(),
     ))?;
 
-    let compass_app = CompassApp::try_from(conf_file)?;
+    let compass_app = match CompassApp::try_from(conf_file) {
+        Ok(app) => app,
+        Err(e) => {
+            error!("Could not build CompassApp from config file: {}", e);
+            return Err(Box::new(e));
+        }
+    };
 
     // read user file containing JSON query/queries
     let query_file = File::open(args.query_file.clone()).map_err(|_e| {

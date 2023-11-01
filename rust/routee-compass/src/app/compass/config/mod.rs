@@ -1,6 +1,7 @@
 pub mod builders;
 pub mod compass_app_builder;
 pub mod compass_configuration_error;
+pub mod compass_configuration_field;
 pub mod config_json_extension;
 pub mod frontier_model;
 pub mod graph_builder;

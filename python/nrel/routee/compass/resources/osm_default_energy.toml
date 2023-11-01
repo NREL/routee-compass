@@ -1,14 +1,14 @@
 parallelism = 2
 
 [graph]
-edge_list_csv = "edges-compass.csv.gz"
-vertex_list_csv = "vertices-compass.csv.gz"
+edge_list_file = "edges-compass.csv.gz"
+vertex_list_file = "vertices-compass.csv.gz"
 verbose = true
 
 [traversal]
 type = "speed_grade_energy_model"
 model_type = "smartcore"
-speed_table_path = "edges-posted-speed-enumerated.txt.gz"
+speed_table_file = "edges-posted-speed-enumerated.txt.gz"
 speed_table_speed_unit = "kilometers_per_hour"
 energy_model_speed_unit = "miles_per_hour"
 energy_model_grade_unit = "decimal"

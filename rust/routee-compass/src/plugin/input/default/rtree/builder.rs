@@ -13,7 +13,7 @@ pub struct VertexRTreeBuilder {}
 impl InputPluginBuilder for VertexRTreeBuilder {
     fn build(
         &self,
-        parameters: serde_json::Value,
+        parameters: &serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
         let vertex_filename_key = String::from("vertices_file");
         let vertex_path = parameters.get_config_path(

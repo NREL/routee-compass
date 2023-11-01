@@ -14,7 +14,7 @@ use routee_compass_core::{
     util::fs::fs_utils::line_count,
 };
 
-use crate::app::compass::compass_configuration_field::CompassConfigurationField;
+use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 
 use super::{
     compass_configuration_error::CompassConfigurationError,
@@ -42,9 +42,9 @@ impl DefaultGraphBuilder {
     pub fn build(params: &serde_json::Value) -> Result<Graph, CompassConfigurationError> {
         let graph_key = CompassConfigurationField::Graph.to_string();
         let edge_list_csv =
-            params.get_config_path(String::from("edge_list_csv"), graph_key.clone())?;
+            params.get_config_path(String::from("edge_list_file"), graph_key.clone())?;
         let vertex_list_csv =
-            params.get_config_path(String::from("vertex_list_csv"), graph_key.clone())?;
+            params.get_config_path(String::from("vertex_list_file"), graph_key.clone())?;
         let maybe_n_edges =
             params.get_config_serde_optional(String::from("n_edges"), graph_key.clone())?;
         let maybe_n_vertices =

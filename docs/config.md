@@ -13,9 +13,9 @@ parallelism = 2
 # the parameters for the underlying road network graph
 [graph]
 # a file containing all the graph edges and their adjacencies
-edge_list_csv = "edges-compass.csv.gz"
+edge_list_file = "edges-compass.csv.gz"
 # a file containing all the graph verticies
-vertex_list_csv = "vertices-compass.csv.gz"
+vertex_list_file = "vertices-compass.csv.gz"
 # if verbose is true, you'll see more information when loading the graph
 verbose = true
 
@@ -26,9 +26,9 @@ type = "speed_grade_energy_model"
 # what underlying machine learn framework to use [smartcore | onnx]
 model_type = "smartcore"
 # speeds for each edge in the graph
-speed_table_path = "edges-posted-speed-enumerated.txt.gz"
+speed_table_file = "edges-posted-speed-enumerated.txt.gz"
 # the file for the routee-powertrain model
-energy_model_path = "2016_TOYOTA_Camry_4cyl_2WD.bin"
+energy_model_file = "2016_TOYOTA_Camry_4cyl_2WD.bin"
 # the "best case" energy rate for this particular vehicle (something like highway mpg) that's used in the a-star algorithm
 ideal_energy_rate = 0.02857142857
 # the units of the above speed table
@@ -103,7 +103,7 @@ The speed table traversal model uses a speed lookup table to compute the fastest
 ```toml
 [traversal]
 type = "speed_table"
-speed_table_path = "edges-posted-speed-enumerated.txt.gz"
+speed_table_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kilometers_per_hour"
 output_distance_unit = "miles"
 output_time_unit = "minutes"
@@ -117,10 +117,10 @@ The speed grade energy model computes energy (with a routee-powertrain vehicle m
 [traversal]
 type = "speed_grade_energy_model"
 model_type = "smartcore"
-speed_table_path = "data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz"
-grade_table_path = "data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz"
+speed_table_file = "data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz"
+grade_table_file = "data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz"
 grade_table_grade_unit = "decimal"
-energy_model_path = "data/2016_TOYOTA_Camry_4cyl_2WD.bin"
+energy_model_file = "data/2016_TOYOTA_Camry_4cyl_2WD.bin"
 ideal_energy_rate = 0.02857142857
 speed_table_speed_unit = "kilometers_per_hour"
 energy_model_speed_unit = "miles_per_hour"

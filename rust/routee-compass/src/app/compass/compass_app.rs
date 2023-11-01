@@ -3,8 +3,8 @@ use crate::{
     app::{
         compass::{
             compass_app_error::CompassAppError,
-            compass_configuration_field::CompassConfigurationField,
             config::{
+                compass_configuration_field::CompassConfigurationField,
                 config_json_extension::{ConfigJsonExtensions, CONFIG_DIRECTORY_KEY},
                 graph_builder::DefaultGraphBuilder,
                 termination_model_builder::TerminationModelBuilder,
@@ -65,6 +65,9 @@ impl TryFrom<PathBuf> for CompassApp {
 
         let conf_file_clone = conf_file.clone();
 
+        // Extract the config parent directory so we can append it to any nested paths in the config.
+        // This allows the app to be loaded from any working directory but still allow relative filepaths
+        // in the config.
         let config_file_parent_string: &str = match conf_file_clone.parent() {
             Some(p) => p.to_str().ok_or(CompassAppError::NoInputFile(
                 "Could not find parent directory of config file".to_string(),
@@ -78,7 +81,9 @@ impl TryFrom<PathBuf> for CompassApp {
             .set_override(CONFIG_DIRECTORY_KEY, config_file_parent_string)?
             .build()
             .map_err(CompassAppError::ConfigError)?;
-        log::info!("Config: {:?}", config);
+
+        log::debug!("Loaded config: {:?}", config);
+
         let builder = CompassAppBuilder::default();
         let compass_app = CompassApp::try_from((&config, &builder))?;
         return Ok(compass_app);
@@ -108,7 +113,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
         let (config, builder) = pair;
 
-        let mut config_json = config.clone().try_deserialize::<serde_json::Value>()?;
+        let root_config_path = config.get::<PathBuf>(CONFIG_DIRECTORY_KEY)?;
+
+        let config_json = config
+            .clone()
+            .try_deserialize::<serde_json::Value>()?
+            .normalize_file_paths(&root_config_path)?;
 
         let alg_params = config_json.get_config_section(CompassConfigurationField::Algorithm)?;
         let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
@@ -176,8 +186,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let plugins_start = Local::now();
         let plugins_config = config_json.get_config_section(CompassConfigurationField::Plugins)?;
 
-        let input_plugins = builder.build_input_plugins(plugins_config.clone())?;
-        let output_plugins = builder.build_output_plugins(plugins_config.clone())?;
+        let input_plugins = builder.build_input_plugins(&plugins_config)?;
+        let output_plugins = builder.build_output_plugins(&plugins_config)?;
 
         let plugins_duration = to_std(Local::now() - plugins_start)?;
         log::info!(

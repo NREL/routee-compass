@@ -1,6 +1,5 @@
-use crate::app::compass::compass_configuration_field::CompassConfigurationField;
-
 use super::compass_configuration_error::CompassConfigurationError;
+use super::compass_configuration_field::CompassConfigurationField;
 use serde::de;
 use std::{path::PathBuf, str::FromStr};
 
@@ -8,14 +7,9 @@ pub const CONFIG_DIRECTORY_KEY: &str = "config_directory";
 
 pub trait ConfigJsonExtensions {
     fn get_config_section(
-        &mut self,
+        &self,
         section: CompassConfigurationField,
     ) -> Result<serde_json::Value, CompassConfigurationError>;
-    fn set_config_directory(
-        &mut self,
-        config_directory: String,
-    ) -> Result<(), CompassConfigurationError>;
-    fn get_config_directory(&self) -> Result<String, CompassConfigurationError>;
     fn get_config_path(
         &self,
         key: String,
@@ -56,14 +50,18 @@ pub trait ConfigJsonExtensions {
         key: String,
         parent_key: String,
     ) -> Result<Option<T>, CompassConfigurationError>;
+    fn normalize_file_paths(
+        &self,
+        root_config_path: &PathBuf,
+    ) -> Result<serde_json::Value, CompassConfigurationError>;
 }
 
 impl ConfigJsonExtensions for serde_json::Value {
     fn get_config_section(
-        &mut self,
+        &self,
         section: CompassConfigurationField,
     ) -> Result<serde_json::Value, CompassConfigurationError> {
-        let mut section = self
+        let section = self
             .get(section.to_str())
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
                 section.to_string(),
@@ -71,40 +69,7 @@ impl ConfigJsonExtensions for serde_json::Value {
             ))?
             .clone();
 
-        // copy down config directory
-        let config_path_string = self.get_config_directory()?;
-        section.set_config_directory(config_path_string)?;
-
         Ok(section)
-    }
-    fn get_config_directory(&self) -> Result<String, CompassConfigurationError> {
-        let config_directory_string = self
-            .get(CONFIG_DIRECTORY_KEY)
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                CONFIG_DIRECTORY_KEY.to_string(),
-                String::from(""),
-            ))?
-            .as_str()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                CONFIG_DIRECTORY_KEY.to_string(),
-                String::from("String"),
-            ))?
-            .to_string();
-        Ok(config_directory_string)
-    }
-    fn set_config_directory(
-        &mut self,
-        config_directory: String,
-    ) -> Result<(), CompassConfigurationError> {
-        self.as_object_mut()
-            .ok_or(CompassConfigurationError::InsertError(
-                "Attempted to set config directory but the config is not a JSON object".to_string(),
-            ))?
-            .insert(
-                CONFIG_DIRECTORY_KEY.to_string(),
-                serde_json::Value::String(config_directory),
-            );
-        Ok(())
     }
     fn get_config_path_optional(
         &self,
@@ -124,30 +89,20 @@ impl ConfigJsonExtensions for serde_json::Value {
         key: String,
         parent_key: String,
     ) -> Result<PathBuf, CompassConfigurationError> {
-        let config_path_string = self.get_config_directory()?;
-
-        let config_path = PathBuf::from(config_path_string);
-
         let path_string = self.get_config_string(key.clone(), parent_key.clone())?;
         let path = PathBuf::from(path_string.clone());
 
         // if file can be found, just return it
         if path.is_file() {
             return Ok(path);
+        } else {
+            // can't find the file
+            return Err(CompassConfigurationError::FileNotFoundForComponent(
+                path_string,
+                key,
+                parent_key,
+            ));
         }
-
-        // try searching in the config directory
-        let path_from_config = config_path.join(path);
-        if path_from_config.is_file() {
-            return Ok(path_from_config);
-        }
-
-        // can't find the file
-        Err(CompassConfigurationError::FileNotFoundForComponent(
-            path_string,
-            key,
-            parent_key,
-        ))
     }
     fn get_config_string(
         &self,
@@ -265,6 +220,58 @@ impl ConfigJsonExtensions for serde_json::Value {
                     .map_err(CompassConfigurationError::SerdeDeserializationError)?;
                 return Ok(Some(result));
             }
+        }
+    }
+    fn normalize_file_paths(
+        &self,
+        root_config_path: &PathBuf,
+    ) -> Result<serde_json::Value, CompassConfigurationError> {
+        match self {
+            serde_json::Value::String(path_string) => {
+                let path = PathBuf::from(path_string.clone());
+
+                // no need to modify if the file exists
+                if path.is_file() {
+                    return Ok(serde_json::Value::String(path_string.clone()));
+                }
+
+                // next we try adding the root config path and see if that exists
+                let new_path = root_config_path.join(&path);
+                let new_path_string = new_path
+                    .to_str()
+                    .ok_or(CompassConfigurationError::FileNormalizationError(
+                        path_string.clone(),
+                    ))?
+                    .to_string();
+                if new_path.is_file() {
+                    Ok(serde_json::Value::String(new_path_string))
+                } else {
+                    // if we can't find the file in either location, we throw an error
+                    Err(CompassConfigurationError::FileNormalizationNotFound(
+                        path_string.clone(),
+                        new_path_string,
+                    ))
+                }
+            }
+            serde_json::Value::Object(obj) => {
+                let mut new_obj = serde_json::map::Map::new();
+                for (key, value) in obj.iter() {
+                    if key.ends_with("_file") || value.is_object() || value.is_array() {
+                        new_obj.insert(key.clone(), value.normalize_file_paths(root_config_path)?);
+                    } else {
+                        new_obj.insert(key.clone(), value.clone());
+                    }
+                }
+                Ok(serde_json::Value::Object(new_obj))
+            }
+            serde_json::Value::Array(arr) => {
+                let mut new_arr = Vec::new();
+                for value in arr.iter() {
+                    new_arr.push(value.normalize_file_paths(root_config_path)?);
+                }
+                Ok(serde_json::Value::Array(new_arr))
+            }
+            _ => Ok(self.clone()),
         }
     }
 }
