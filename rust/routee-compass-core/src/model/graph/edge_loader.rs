@@ -23,7 +23,7 @@ pub struct EdgeLoaderConfig {
     pub edge_list_csv: PathBuf,
     pub n_edges: usize,
     pub n_vertices: usize,
-} 
+}
 
 impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
     type Error = GraphError;

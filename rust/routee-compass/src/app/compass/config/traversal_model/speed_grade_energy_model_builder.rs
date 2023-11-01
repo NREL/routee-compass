@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::builders::TraversalModelService;
+use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use crate::app::compass::config::{
     builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
