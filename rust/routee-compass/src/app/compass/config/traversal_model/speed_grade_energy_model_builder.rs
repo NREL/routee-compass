@@ -78,11 +78,11 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
         )?;
 
         let inner_service = SpeedGradeModelService::new(
-            speed_table_path,
+            &speed_table_path,
             speed_table_speed_unit,
-            grade_table_path,
+            &grade_table_path,
             grade_table_grade_unit,
-            energy_model_path,
+            &energy_model_path,
             model_type,
             ideal_energy_rate_option,
             energy_model_speed_unit,

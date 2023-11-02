@@ -1,4 +1,7 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
@@ -30,9 +33,9 @@ impl std::fmt::Display for ModelType {
 
 impl ModelType {
     /// builds a speed grade energy prediction model
-    pub fn build(
+    pub fn build<P: AsRef<Path>>(
         &self,
-        energy_model_path: PathBuf,
+        energy_model_path: &P,
         energy_model_speed_unit: SpeedUnit,
         energy_model_grade_unit: GradeUnit,
         energy_model_energy_rate_unit: EnergyRateUnit,

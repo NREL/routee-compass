@@ -54,19 +54,13 @@ impl Graph {
     /// A graph instance, or an error if an IO error occurred.
     ///
     pub fn from_files<P: AsRef<Path>>(
-        edge_list_csv: P,
-        vertex_list_csv: P,
+        edge_list_csv: &P,
+        vertex_list_csv: &P,
         n_edges: Option<usize>,
         n_vertices: Option<usize>,
         verbose: Option<bool>,
     ) -> Result<Graph, GraphError> {
-        graph_from_files(
-            edge_list_csv.as_ref().to_path_buf(),
-            vertex_list_csv.as_ref().to_path_buf(),
-            n_edges,
-            n_vertices,
-            verbose,
-        )
+        graph_from_files(edge_list_csv, vertex_list_csv, n_edges, n_vertices, verbose)
     }
     /// number of edges in the Graph
     pub fn n_edges(&self) -> usize {

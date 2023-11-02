@@ -1,3 +1,4 @@
+use std::path::Path;
 use std::path::PathBuf;
 
 use super::json_extensions::TraversalJsonField;
@@ -20,15 +21,15 @@ pub struct TraversalPlugin {
 }
 
 impl TraversalPlugin {
-    pub fn from_file(
-        filename: PathBuf,
+    pub fn from_file<P: AsRef<Path>>(
+        filename: &P,
         route: Option<TraversalOutputFormat>,
         tree: Option<TraversalOutputFormat>,
     ) -> Result<TraversalPlugin, PluginError> {
         let count =
             fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename)).map_err(|e| {
                 PluginError::FileReadError {
-                    filename: filename.clone(),
+                    filename: filename.as_ref().to_path_buf(),
                     message: e.to_string(),
                 }
             })?;
@@ -45,7 +46,7 @@ impl TraversalPlugin {
         });
         let geoms = read_raw_file(&filename, parse_linestring, Some(cb)).map_err(|e| {
             PluginError::FileReadError {
-                filename: filename.clone(),
+                filename: filename.as_ref().to_path_buf(),
                 message: e.to_string(),
             }
         })?;
@@ -177,7 +178,7 @@ mod tests {
         let route_geometry = true;
         let tree_geometry = false;
         let geom_plugin =
-            TraversalPlugin::from_file(filename, Some(TraversalOutputFormat::Wkt), None).unwrap();
+            TraversalPlugin::from_file(&filename, Some(TraversalOutputFormat::Wkt), None).unwrap();
 
         let result = geom_plugin
             .process(&output_result, Ok(&search_result))

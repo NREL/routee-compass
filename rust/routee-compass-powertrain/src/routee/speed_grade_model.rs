@@ -268,11 +268,11 @@ mod tests {
             };
         }
         let service = SpeedGradeModelService::new(
-            speed_file_path,
+            &speed_file_path,
             SpeedUnit::KilometersPerHour,
-            Some(grade_file_path),
+            &Some(grade_file_path),
             None,
-            model_file_path,
+            &model_file_path,
             ModelType::Smartcore,
             None,
             SpeedUnit::MilesPerHour,

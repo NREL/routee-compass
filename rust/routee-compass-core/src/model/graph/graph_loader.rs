@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use log::warn;
 
@@ -11,9 +11,9 @@ use super::{
     vertex_loader::VertexLoaderConfig,
 };
 
-pub fn graph_from_files(
-    edge_list_csv: PathBuf,
-    vertex_list_csv: PathBuf,
+pub fn graph_from_files<P: AsRef<Path>>(
+    edge_list_csv: &P,
+    vertex_list_csv: &P,
     n_edges: Option<usize>,
     n_vertices: Option<usize>,
     verbose: Option<bool>,
@@ -25,7 +25,7 @@ pub fn graph_from_files(
             if verbose {
                 warn!("edge list size not provided, scanning input to determine size");
             }
-            get_n_edges(edge_list_csv.clone())?
+            get_n_edges(&edge_list_csv)?
         }
     };
 
@@ -35,11 +35,11 @@ pub fn graph_from_files(
             if verbose {
                 warn!("vertex list size not provided, scanning input to determine size");
             }
-            get_n_vertices(vertex_list_csv.clone())?
+            get_n_vertices(&vertex_list_csv)?
         }
     };
     let e_conf = EdgeLoaderConfig {
-        edge_list_csv,
+        edge_list_csv: edge_list_csv.as_ref().to_path_buf(),
         n_edges,
         n_vertices,
     };
@@ -47,7 +47,7 @@ pub fn graph_from_files(
     let e_result = EdgeLoader::try_from(e_conf)?;
 
     let v_conf = VertexLoaderConfig {
-        vertex_list_csv,
+        vertex_list_csv: vertex_list_csv.as_ref().to_path_buf(),
         n_vertices,
     };
 
@@ -63,30 +63,34 @@ pub fn graph_from_files(
     Ok(graph)
 }
 
-fn get_n_edges(edge_list_csv: PathBuf) -> Result<usize, GraphError> {
+fn get_n_edges<P: AsRef<Path>>(edge_list_csv: &P) -> Result<usize, GraphError> {
     // check if the extension is .gz
     let is_gzip = edge_list_csv
+        .as_ref()
+        .to_path_buf()
         .extension()
         .map(|ext| ext.to_str() == Some("gz"))
         .unwrap_or(false);
     let n = line_count(edge_list_csv.clone(), is_gzip)?;
     if n < 1 {
         return Err(GraphError::EmptyFileSource {
-            filename: edge_list_csv,
+            filename: edge_list_csv.as_ref().to_path_buf(),
         });
     }
     Ok(n - 1) // drop count of header line
 }
 
-fn get_n_vertices(vertex_list_csv: PathBuf) -> Result<usize, GraphError> {
+fn get_n_vertices<P: AsRef<Path>>(vertex_list_csv: &P) -> Result<usize, GraphError> {
     let is_gzip = vertex_list_csv
+        .as_ref()
+        .to_path_buf()
         .extension()
         .map(|ext| ext.to_str() == Some("gz"))
         .unwrap_or(false);
     let n = line_count(vertex_list_csv.clone(), is_gzip)?;
     if n < 1 {
         return Err(GraphError::EmptyFileSource {
-            filename: vertex_list_csv,
+            filename: vertex_list_csv.as_ref().to_path_buf(),
         });
     }
     Ok(n - 1) // drop count of header line

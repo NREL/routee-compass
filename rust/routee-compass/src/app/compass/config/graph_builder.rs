@@ -38,8 +38,13 @@ impl DefaultGraphBuilder {
         let verbose: Option<bool> =
             params.get_config_serde_optional(String::from("verbose"), graph_key.clone())?;
 
-        let graph =
-            Graph::from_files(edge_list_csv, vertex_list_csv, n_edges, n_vertices, verbose)?;
+        let graph = Graph::from_files(
+            &edge_list_csv,
+            &vertex_list_csv,
+            n_edges,
+            n_vertices,
+            verbose,
+        )?;
 
         Ok(graph)
     }

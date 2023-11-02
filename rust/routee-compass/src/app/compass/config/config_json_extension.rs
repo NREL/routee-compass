@@ -53,7 +53,7 @@ pub trait ConfigJsonExtensions {
     ) -> Result<Option<T>, CompassConfigurationError>;
     fn normalize_file_paths(
         &self,
-        root_config_path: &PathBuf,
+        root_config_path: &Path,
     ) -> Result<serde_json::Value, CompassConfigurationError>;
 }
 
@@ -91,7 +91,7 @@ impl ConfigJsonExtensions for serde_json::Value {
         parent_key: String,
     ) -> Result<PathBuf, CompassConfigurationError> {
         let path_string = self.get_config_string(key.clone(), parent_key.clone())?;
-        let path = PathBuf::from(path_string.clone());
+        let path = PathBuf::from(&path_string);
 
         // if file can be found, just return it
         if path.is_file() {
@@ -225,11 +225,11 @@ impl ConfigJsonExtensions for serde_json::Value {
     }
     fn normalize_file_paths(
         &self,
-        root_config_path: &PathBuf,
+        root_config_path: &Path,
     ) -> Result<serde_json::Value, CompassConfigurationError> {
         match self {
             serde_json::Value::String(path_string) => {
-                let path = PathBuf::from(path_string.clone());
+                let path = Path::new(path_string);
 
                 // no need to modify if the file exists
                 if path.is_file() {

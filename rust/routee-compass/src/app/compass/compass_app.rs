@@ -24,7 +24,7 @@ use routee_compass_core::{
     algorithm::search::search_algorithm::SearchAlgorithm, model::cost::cost::Cost,
     util::duration_extension::DurationExtension,
 };
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub const CONFIG_FILE_KEY: &str = "config_file";
 
@@ -43,7 +43,7 @@ pub struct CompassApp {
     pub parallelism: usize,
 }
 
-impl TryFrom<PathBuf> for CompassApp {
+impl TryFrom<&Path> for CompassApp {
     type Error = CompassAppError;
 
     /// Builds a CompassApp from a configuration filepath, using the default CompassAppBuilder.
@@ -58,7 +58,7 @@ impl TryFrom<PathBuf> for CompassApp {
     /// # Returns
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
-    fn try_from(conf_file: PathBuf) -> Result<Self, Self::Error> {
+    fn try_from(conf_file: &Path) -> Result<Self, Self::Error> {
         let default_config = config::File::from_str(
             include_str!("config.default.toml"),
             config::FileFormat::Toml,
@@ -66,8 +66,8 @@ impl TryFrom<PathBuf> for CompassApp {
 
         let conf_file_string = conf_file
             .to_str()
-            .ok_or(CompassAppError::NoInputFile(
-                "Could not find config file".to_string(),
+            .ok_or(CompassAppError::InternalError(
+                "Could not parse incoming config file path".to_string(),
             ))?
             .to_string();
 
@@ -437,8 +437,8 @@ mod tests {
             .join("speeds_test")
             .join("speeds_debug.toml");
 
-        let app = CompassApp::try_from(conf_file_test)
-            .or(CompassApp::try_from(conf_file_debug))
+        let app = CompassApp::try_from(conf_file_test.as_path())
+            .or(CompassApp::try_from(conf_file_debug.as_path()))
             .unwrap();
         let query = serde_json::json!({
             "origin_vertex": 0,

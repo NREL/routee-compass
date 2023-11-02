@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::model::graph::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
@@ -28,15 +28,20 @@ pub struct SpeedLookupModel {
 }
 
 impl SpeedLookupModel {
-    pub fn new(
-        speed_table_path: PathBuf,
+    pub fn new<P: AsRef<Path>>(
+        speed_table_path: &P,
         speed_unit: SpeedUnit,
         output_distance_unit_opt: Option<DistanceUnit>,
         output_time_unit_opt: Option<TimeUnit>,
     ) -> Result<SpeedLookupModel, TraversalModelError> {
         let speed_table: Vec<Speed> =
             read_utils::read_raw_file(&speed_table_path, read_decoders::default, None).map_err(
-                |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
+                |e| {
+                    TraversalModelError::FileReadError(
+                        speed_table_path.as_ref().to_path_buf(),
+                        e.to_string(),
+                    )
+                },
             )?;
         let max_speed = get_max_speed(&speed_table)?;
         let output_time_unit = output_time_unit_opt.unwrap_or(BASE_TIME_UNIT);
@@ -230,7 +235,7 @@ mod tests {
     fn test_edge_cost_lookup_with_seconds_time_unit() {
         let file = filepath();
         let lookup = SpeedLookupModel::new(
-            file,
+            &file,
             SpeedUnit::KilometersPerHour,
             None,
             Some(TimeUnit::Seconds),
@@ -250,7 +255,7 @@ mod tests {
     fn test_edge_cost_lookup_with_milliseconds_time_unit() {
         let file = filepath();
         let lookup = SpeedLookupModel::new(
-            file,
+            &file,
             SpeedUnit::KilometersPerHour,
             None,
             Some(TimeUnit::Milliseconds),

@@ -51,7 +51,7 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
         let tree: Option<TraversalOutputFormat> =
             parameters.get_config_serde_optional(tree_geometry_key, parent_key.clone())?;
 
-        let geom_plugin = TraversalPlugin::from_file(geometry_filename, route, tree)?;
+        let geom_plugin = TraversalPlugin::from_file(&geometry_filename, route, tree)?;
         Ok(Box::new(geom_plugin))
     }
 }

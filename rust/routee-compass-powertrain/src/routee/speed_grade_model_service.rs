@@ -7,6 +7,7 @@ use routee_compass_core::model::traversal::traversal_model_error::TraversalModel
 use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;
 use routee_compass_core::util::unit::*;
+use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -31,12 +32,12 @@ pub struct SpeedGradeModelService {
 }
 
 impl SpeedGradeModelService {
-    pub fn new(
-        speed_table_path: PathBuf,
+    pub fn new<P: AsRef<Path>>(
+        speed_table_path: &P,
         speeds_table_speed_unit: SpeedUnit,
-        grade_table_path_option: Option<PathBuf>,
+        grade_table_path_option: &Option<P>,
         grade_table_grade_unit_option: Option<GradeUnit>,
-        energy_model_path: PathBuf,
+        energy_model_path: &P,
         model_type: ModelType,
         ideal_energy_rate_option: Option<EnergyRate>,
         energy_model_speed_unit: SpeedUnit,
@@ -64,14 +65,22 @@ impl SpeedGradeModelService {
         // load speeds table
         let speed_table: Arc<Vec<Speed>> = Arc::new(
             read_utils::read_raw_file(&speed_table_path, read_decoders::default, None).map_err(
-                |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
+                |e| {
+                    TraversalModelError::FileReadError(
+                        speed_table_path.as_ref().to_path_buf(),
+                        e.to_string(),
+                    )
+                },
             )?,
         );
 
         let grade_table: Arc<Option<Vec<Grade>>> = match grade_table_path_option {
             Some(gtp) => Arc::new(Some(
                 read_utils::read_raw_file(&gtp, read_decoders::default, None).map_err(|e| {
-                    TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string())
+                    TraversalModelError::FileReadError(
+                        speed_table_path.as_ref().to_path_buf(),
+                        e.to_string(),
+                    )
                 })?,
             )),
             None => Arc::new(None),

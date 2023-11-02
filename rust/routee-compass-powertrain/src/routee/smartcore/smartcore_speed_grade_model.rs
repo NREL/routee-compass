@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use crate::routee::prediction_model::SpeedGradePredictionModel;
 use routee_compass_core::{
@@ -38,19 +38,25 @@ impl SpeedGradePredictionModel for SmartcoreSpeedGradeModel {
 }
 
 impl SmartcoreSpeedGradeModel {
-    pub fn new(
-        routee_model_path: PathBuf,
+    pub fn new<P: AsRef<Path>>(
+        routee_model_path: &P,
         speed_unit: SpeedUnit,
         grade_unit: GradeUnit,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
         // Load random forest binary file
         let rf_binary = std::fs::read(routee_model_path.clone()).map_err(|e| {
-            TraversalModelError::FileReadError(routee_model_path.clone(), e.to_string())
+            TraversalModelError::FileReadError(
+                routee_model_path.as_ref().to_path_buf(),
+                e.to_string(),
+            )
         })?;
         let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
             bincode::deserialize(&rf_binary).map_err(|e| {
-                TraversalModelError::FileReadError(routee_model_path.clone(), e.to_string())
+                TraversalModelError::FileReadError(
+                    routee_model_path.as_ref().to_path_buf(),
+                    e.to_string(),
+                )
             })?;
         Ok(SmartcoreSpeedGradeModel {
             rf,

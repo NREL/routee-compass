@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "No configuration file specified".to_string(),
     ))?;
 
-    let compass_app = match CompassApp::try_from(conf_file) {
+    let compass_app = match CompassApp::try_from(conf_file.as_path()) {
         Ok(app) => app,
         Err(e) => {
             error!("Could not build CompassApp from config file: {}", e);
