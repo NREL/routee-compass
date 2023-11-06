@@ -1,10 +1,8 @@
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
-use crate::app::compass::{
+use crate::app::compass::config::{
+    builders::{TraversalModelBuilder, TraversalModelService},
+    compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
-    config::{
-        builders::{TraversalModelBuilder, TraversalModelService},
-        compass_configuration_error::CompassConfigurationError,
-    },
 };
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::util::unit::BASE_DISTANCE_UNIT;

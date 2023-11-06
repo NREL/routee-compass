@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use pyo3::{exceptions::PyException, prelude::*, types::PyType};
 use routee_compass::app::compass::compass_app::CompassApp;
@@ -12,7 +12,7 @@ pub struct CompassAppWrapper {
 impl CompassAppWrapper {
     #[classmethod]
     pub fn _from_config_file(_cls: &PyType, config_file: String) -> PyResult<Self> {
-        let config_path = PathBuf::from(config_file.clone());
+        let config_path = Path::new(&config_file);
         let routee_compass = CompassApp::try_from(config_path).map_err(|e| {
             PyException::new_err(format!(
                 "Could not create CompassApp from config file {}: {}",

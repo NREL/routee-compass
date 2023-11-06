@@ -1,13 +1,13 @@
 parallelism = 2
 
 [graph]
-edge_list_csv = "edges-compass.csv.gz"
-vertex_list_csv = "vertices-compass.csv.gz"
+edge_list_file = "edges-compass.csv.gz"
+vertex_list_file = "vertices-compass.csv.gz"
 verbose = true
 
 [traversal]
 type = "speed_table"
-speed_table_path = "edges-posted-speed-enumerated.txt.gz"
+speed_table_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kilometers_per_hour"
 output_distance_unit = "miles"
 output_time_unit = "minutes"

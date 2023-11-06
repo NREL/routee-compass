@@ -1,8 +1,7 @@
-use std::path::PathBuf;
-
 use crate::{
     app::compass::config::{
         builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
+        config_json_extension::ConfigJsonExtensions,
     },
     plugin::input::input_plugin::InputPlugin,
 };
@@ -17,19 +16,10 @@ impl InputPluginBuilder for VertexRTreeBuilder {
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
         let vertex_filename_key = String::from("vertices_file");
-        let vertex_filename = parameters
-            .get(&vertex_filename_key)
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                vertex_filename_key.clone(),
-                String::from("Vertex RTree Input Plugin"),
-            ))?
-            .as_str()
-            .map(String::from)
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                vertex_filename_key.clone(),
-                String::from("String"),
-            ))?;
-        let vertex_path = PathBuf::from(vertex_filename);
+        let vertex_path = parameters.get_config_path(
+            vertex_filename_key,
+            String::from("Vertex RTree Input Plugin"),
+        )?;
         let rtree =
             RTreePlugin::from_file(&vertex_path).map_err(CompassConfigurationError::PluginError)?;
         let m: Box<dyn InputPlugin> = Box::new(rtree);

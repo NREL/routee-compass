@@ -1,6 +1,7 @@
 use crate::{
     app::compass::config::{
         builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,
+        config_json_extension::ConfigJsonExtensions,
     },
     plugin::output::output_plugin::OutputPlugin,
 };
@@ -15,18 +16,7 @@ impl OutputPluginBuilder for UUIDOutputPluginBuilder {
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
         let uuid_filename_key = String::from("uuid_file");
-        let uuid_filename = parameters
-            .get(&uuid_filename_key)
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                uuid_filename_key.clone(),
-                String::from("UUID Output Plugin"),
-            ))?
-            .as_str()
-            .map(String::from)
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                uuid_filename_key.clone(),
-                String::from("String"),
-            ))?;
+        let uuid_filename = parameters.get_config_path(uuid_filename_key, String::from("uuid"))?;
 
         let uuid_plugin = UUIDOutputPlugin::from_file(&uuid_filename)
             .map_err(CompassConfigurationError::PluginError)?;

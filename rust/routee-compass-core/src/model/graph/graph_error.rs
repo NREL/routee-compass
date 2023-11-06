@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 
 #[derive(thiserror::Error, Debug)]
@@ -17,7 +19,7 @@ pub enum GraphError {
     #[error("error in test setup")]
     TestError,
     #[error("{filename} file source was empty")]
-    EmptyFileSource { filename: String },
+    EmptyFileSource { filename: PathBuf },
     #[error("failure reading TomTom graph: {source}")]
     IOError {
         #[from]

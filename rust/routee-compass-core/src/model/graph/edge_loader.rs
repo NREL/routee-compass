@@ -1,4 +1,3 @@
-use super::graph_config::GraphConfig;
 use crate::{
     model::{
         graph::graph_error::GraphError,
@@ -9,7 +8,10 @@ use crate::{
 };
 use kdam::Bar;
 use kdam::BarExt;
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+};
 
 pub struct EdgeLoader {
     pub edges: Vec<Edge>,
@@ -17,13 +19,13 @@ pub struct EdgeLoader {
     pub rev: Vec<HashMap<EdgeId, VertexId>>,
 }
 
-pub struct EdgeLoaderConfig<'a> {
-    pub config: &'a GraphConfig,
+pub struct EdgeLoaderConfig {
+    pub edge_list_csv: PathBuf,
     pub n_edges: usize,
     pub n_vertices: usize,
 }
 
-impl<'a> TryFrom<EdgeLoaderConfig<'a>> for EdgeLoader {
+impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
     type Error = GraphError;
 
     fn try_from(c: EdgeLoaderConfig) -> Result<Self, Self::Error> {
@@ -62,8 +64,7 @@ impl<'a> TryFrom<EdgeLoaderConfig<'a>> for EdgeLoader {
             pb.update(1);
         });
 
-        let edges =
-            read_utils::vec_from_csv(&c.config.edge_list_csv, true, Some(c.n_edges), Some(cb))?;
+        let edges = read_utils::vec_from_csv(&c.edge_list_csv, true, Some(c.n_edges), Some(cb))?;
 
         print!("\n");
         let result = EdgeLoader { edges, adj, rev };

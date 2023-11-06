@@ -1,5 +1,5 @@
-use crate::app::compass::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::builders::TraversalModelService;
+use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use crate::app::compass::config::{
     builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
@@ -23,7 +23,7 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
         let traversal_key = CompassConfigurationField::Traversal.to_string();
         // todo: optional output time unit
         let filename =
-            params.get_config_string(String::from("speed_table_path"), traversal_key.clone())?;
+            params.get_config_path(String::from("speed_table_file"), traversal_key.clone())?;
         let speed_unit = params
             .get_config_serde::<SpeedUnit>(String::from("speed_unit"), traversal_key.clone())?;
         let distance_unit = params.get_config_serde_optional::<DistanceUnit>(

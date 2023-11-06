@@ -1,7 +1,9 @@
+use std::path::{Path, PathBuf};
+
 use crate::model::graph::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
 use crate::util::geo::haversine;
-use crate::util::unit::{Distance, DistanceUnit, Grade, BASE_SPEED_UNIT};
+use crate::util::unit::{Distance, DistanceUnit};
 use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
@@ -26,15 +28,20 @@ pub struct SpeedLookupModel {
 }
 
 impl SpeedLookupModel {
-    pub fn new(
-        speed_table_path: &String,
+    pub fn new<P: AsRef<Path>>(
+        speed_table_path: &P,
         speed_unit: SpeedUnit,
         output_distance_unit_opt: Option<DistanceUnit>,
         output_time_unit_opt: Option<TimeUnit>,
     ) -> Result<SpeedLookupModel, TraversalModelError> {
         let speed_table: Vec<Speed> =
-            read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
-                |e| TraversalModelError::FileReadError(speed_table_path.clone(), e.to_string()),
+            read_utils::read_raw_file(&speed_table_path, read_decoders::default, None).map_err(
+                |e| {
+                    TraversalModelError::FileReadError(
+                        speed_table_path.as_ref().to_path_buf(),
+                        e.to_string(),
+                    )
+                },
             )?;
         let max_speed = get_max_speed(&speed_table)?;
         let output_time_unit = output_time_unit_opt.unwrap_or(BASE_TIME_UNIT);
@@ -200,7 +207,7 @@ mod tests {
             distance: Distance::new(100.0),
         };
     }
-    fn filepath() -> String {
+    fn filepath() -> PathBuf {
         let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
@@ -208,8 +215,7 @@ mod tests {
             .join("default")
             .join("test")
             .join("velocities.txt");
-        let filename = filepath.to_str().unwrap().to_owned();
-        return filename;
+        filepath
     }
 
     fn approx_eq(a: f64, b: f64, error: f64) {

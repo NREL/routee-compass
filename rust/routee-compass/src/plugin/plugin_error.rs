@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use geo::Coord;
 use routee_compass_core::{
     algorithm::search::search_error::SearchError, model::graph::edge_id::EdgeId,
@@ -16,7 +18,7 @@ pub enum PluginError {
     #[error("nearest vertex not found for coord {0:?}")]
     NearestVertexNotFound(Coord),
     #[error("unable to read file {filename} due to {message}")]
-    FileReadError { filename: String, message: String },
+    FileReadError { filename: PathBuf, message: String },
     #[error(transparent)]
     JsonError(#[from] serde_json::Error),
     #[error(transparent)]

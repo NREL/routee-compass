@@ -1,14 +1,12 @@
 use crate::algorithm::search::direction::Direction;
-use crate::model::graph::edge_loader::EdgeLoader;
-use crate::model::graph::edge_loader::EdgeLoaderConfig;
-use crate::model::graph::graph_config::GraphConfig;
 use crate::model::graph::graph_error::GraphError;
-use crate::model::graph::vertex_loader::VertexLoaderConfig;
 use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
-use log::info;
 use std::collections::HashMap;
+use std::path::Path;
+
+use super::graph_loader::graph_from_files;
 
 /// Road network topology represented as an adjacency list.
 /// The `EdgeId` and `VertexId` values correspond to edge and
@@ -28,6 +26,8 @@ use std::collections::HashMap;
 /// collections will prefer chained iterators. A few will collect
 /// into Vecs because of error handling or lifetimes, but those cases will only produce a
 /// smaller subset of the source data.
+
+#[derive(Debug)]
 pub struct Graph {
     pub adj: Vec<HashMap<EdgeId, VertexId>>,
     pub rev: Vec<HashMap<EdgeId, VertexId>>,
@@ -36,6 +36,32 @@ pub struct Graph {
 }
 
 impl Graph {
+    /// Build a `Graph` from a pair of CSV files.
+    /// You can also pass in the number of edges and vertices to avoid
+    /// scanning the input files and potentially building vectors that
+    /// have more memory than needed.
+    ///
+    /// # Arguments
+    ///
+    /// * `edge_list_csv` - path to the CSV file containing edge attributes
+    /// * `vertex_list_csv` - path to the CSV file containing vertex attributes
+    /// * `n_edges` - number of edges in the graph
+    /// * `n_vertices` - number of vertices in the graph
+    /// * `verbose` - whether to print progress information to the console
+    ///
+    /// # Returns
+    ///
+    /// A graph instance, or an error if an IO error occurred.
+    ///
+    pub fn from_files<P: AsRef<Path>>(
+        edge_list_csv: &P,
+        vertex_list_csv: &P,
+        n_edges: Option<usize>,
+        n_vertices: Option<usize>,
+        verbose: Option<bool>,
+    ) -> Result<Graph, GraphError> {
+        graph_from_files(edge_list_csv, vertex_list_csv, n_edges, n_vertices, verbose)
+    }
     /// number of edges in the Graph
     pub fn n_edges(&self) -> usize {
         self.edges.len()
@@ -283,58 +309,5 @@ impl Graph {
                 Ok((src, edge, dst))
             })
             .collect()
-    }
-}
-
-impl TryFrom<&GraphConfig> for Graph {
-    type Error = GraphError;
-
-    /// tries to build a Graph from a GraphConfig.
-    ///
-    /// for both edge and vertex lists, we assume all ids can be used as indices
-    /// to an array data structure. to find the size of each array, we pass once
-    /// through each file to count the number of rows (minus header) of the CSV.
-    /// then we can build a Vec *once* and insert rows as we decode them without
-    /// a sort.
-    ///
-    /// # Arguments
-    ///
-    /// * `config` - configuration object for building a `Graph` instance
-    ///
-    /// # Returns
-    ///
-    /// A graph instance, or an error if an IO error occurred.
-    fn try_from(config: &GraphConfig) -> Result<Self, Self::Error> {
-        info!("checking file length of edge and vertex input files");
-        let (n_edges, n_vertices) = config.read_file_sizes()?;
-        info!(
-            "creating data structures to hold {} edges, {} vertices",
-            n_edges, n_vertices
-        );
-
-        info!("reading edge list");
-
-        let e_conf = EdgeLoaderConfig {
-            config: &config,
-            n_edges,
-            n_vertices,
-        };
-        let e_result = EdgeLoader::try_from(e_conf)?;
-
-        info!("reading vertex list");
-        let v_conf = VertexLoaderConfig {
-            config: &config,
-            n_vertices,
-        };
-        let vertices: Vec<Vertex> = v_conf.try_into()?;
-
-        let graph = Graph {
-            adj: e_result.adj,
-            rev: e_result.rev,
-            edges: e_result.edges,
-            vertices,
-        };
-
-        Ok(graph)
     }
 }

@@ -4,6 +4,7 @@ use super::{
         TraversalModelService,
     },
     compass_configuration_error::CompassConfigurationError,
+    compass_configuration_field::CompassConfigurationField,
     frontier_model::{
         no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
     },
@@ -13,23 +14,18 @@ use super::{
         speed_lookup_builder::SpeedLookupBuilder,
     },
 };
-use crate::{
-    app::compass::compass_configuration_field::CompassConfigurationField,
-    plugin::{
-        input::{
-            default::{
-                grid_search::builder::GridSearchBuilder, rtree::builder::VertexRTreeBuilder,
-            },
-            input_plugin::InputPlugin,
+use crate::plugin::{
+    input::{
+        default::{grid_search::builder::GridSearchBuilder, rtree::builder::VertexRTreeBuilder},
+        input_plugin::InputPlugin,
+    },
+    output::{
+        default::{
+            edgeidlist::builder::EdgeIdListOutputPluginBuilder,
+            summary::builder::SummaryOutputPluginBuilder,
+            traversal::builder::TraversalPluginBuilder, uuid::builder::UUIDOutputPluginBuilder,
         },
-        output::{
-            default::{
-                edgeidlist::builder::EdgeIdListOutputPluginBuilder,
-                summary::builder::SummaryOutputPluginBuilder,
-                traversal::builder::TraversalPluginBuilder, uuid::builder::UUIDOutputPluginBuilder,
-            },
-            output_plugin::OutputPlugin,
-        },
+        output_plugin::OutputPlugin,
     },
 };
 use routee_compass_core::model::frontier::frontier_model::FrontierModel;
@@ -198,14 +194,14 @@ impl CompassAppBuilder {
 
     pub fn build_input_plugins(
         &self,
-        config: serde_json::Value,
+        config: &serde_json::Value,
     ) -> Result<Vec<Box<dyn InputPlugin>>, CompassConfigurationError> {
-        let input_plugins_obj = config.get("input_plugins").ok_or(
-            CompassConfigurationError::ExpectedFieldForComponent(
+        let input_plugins_obj = config
+            .get(CompassConfigurationField::InputPlugins.to_str())
+            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
                 CompassConfigurationField::InputPlugins.to_string(),
-                String::from("input_plugins"),
-            ),
-        )?;
+                CompassConfigurationField::Plugins.to_string(),
+            ))?;
         let input_plugins = input_plugins_obj.as_array().ok_or(
             CompassConfigurationError::ExpectedFieldWithType(
                 String::from("input_plugins"),
@@ -247,14 +243,14 @@ impl CompassAppBuilder {
 
     pub fn build_output_plugins(
         &self,
-        config: serde_json::Value,
+        config: &serde_json::Value,
     ) -> Result<Vec<Box<dyn OutputPlugin>>, CompassConfigurationError> {
-        let output_plugins_obj = config.get("output_plugins").ok_or(
-            CompassConfigurationError::ExpectedFieldForComponent(
+        let output_plugins_obj = config
+            .get(CompassConfigurationField::OutputPlugins.to_str())
+            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
                 CompassConfigurationField::OutputPlugins.to_string(),
-                String::from("output_plugins"),
-            ),
-        )?;
+                CompassConfigurationField::Plugins.to_string(),
+            ))?;
         let output_plugins = output_plugins_obj.as_array().ok_or(
             CompassConfigurationError::ExpectedFieldWithType(
                 String::from("output_plugins"),

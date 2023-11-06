@@ -45,7 +45,7 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
         let tree_geometry_key = String::from("tree");
 
         let geometry_filename =
-            parameters.get_config_string(geometry_filename_key, parent_key.clone())?;
+            parameters.get_config_path(geometry_filename_key, parent_key.clone())?;
         let route: Option<TraversalOutputFormat> =
             parameters.get_config_serde_optional(route_geometry_key, parent_key.clone())?;
         let tree: Option<TraversalOutputFormat> =

@@ -1,9 +1,7 @@
-use crate::app::compass::{
+use crate::app::compass::config::{
+    builders::FrontierModelBuilder, compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
-    config::{
-        builders::FrontierModelBuilder, compass_configuration_error::CompassConfigurationError,
-        config_json_extension::ConfigJsonExtensions,
-    },
+    config_json_extension::ConfigJsonExtensions,
 };
 use routee_compass_core::{
     model::frontier::{default::road_class::RoadClassFrontierModel, frontier_model::FrontierModel},
@@ -23,7 +21,7 @@ impl FrontierModelBuilder for RoadClassBuilder {
         let valid_road_class_key = String::from("valid_road_classes");
 
         let road_class_file =
-            parameters.get_config_string(road_class_file_key.clone(), frontier_key.clone())?;
+            parameters.get_config_path(road_class_file_key.clone(), frontier_key.clone())?;
 
         let road_classes_json = parameters
             .get(valid_road_class_key.clone())

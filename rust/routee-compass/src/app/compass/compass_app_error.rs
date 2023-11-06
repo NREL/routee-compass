@@ -1,4 +1,4 @@
-use super::compass::{
+use super::{
     compass_input_field::CompassInputField,
     config::compass_configuration_error::CompassConfigurationError,
 };
