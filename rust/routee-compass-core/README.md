@@ -1,43 +1,32 @@
-# Compass Core Crate
+routee-compass-core
+============
+Crate containing core routing modules of RouteE Compass used by all downstream crates. 
 
-Crate containing core routing modules of RouteE Compass used by all downstream crates.
-This can be broken up into the following modules:
-- [`crate::model`] - [data-model](#data-model) of the search algorithm
-  - [`crate::model::graph`] - road network topology collection type
-  - [`crate::model::property`] - road network record types
-  - [`crate::model::traversal`] - search cost model
-  - [`crate::model::frontier`] - search frontier validation predicates
-  - [`crate::model::termination::termination_model`] - system-level rules on timeouts + limits for search
-- [`crate::algorithm`] - [algorithm](#algorithm) implementations
-  - [`crate::algorithm::search`] - search algorithm module
-    - [`crate::algorithm::search::search_algorithm_type::SearchAlgorithmType`] - enumeration listing search algorithm types, so far only traditional a star supported
-    - [`crate::algorithm::search::a_star::a_star`] - a star search implementation
-  - [`crate::algorithm::component:scc`] - strongly-connected components algorithm
-- [`crate::util`] - utility modules
+[![crates.io](https://img.shields.io/crates/v/routee-compass-core.svg)](https://crates.io/crates/routee-compass-core)
 
-### Data Model
+### Usage
 
-RouteE Compass takes a layered approach to modeling the road network.
-At the core is the [Graph] model. 
-The edges and vertices are stored in `vec`s and carry the minimal data required for most search applications:
-- [`crate::model::property::edge::Edge`] records store distance in meters
-- [`crate::model::property::vertex::Vertex`] records store coordinate locations, assumed in WGS84 projection
+Unless you are only interested in the core RouteE Compass data structures and algorithms, consider instead installing the [complete application crate](https://crates.io/crates/routee-compass).
 
-A forward and reverse adjacency list describes connectivity in the graph using the indices of the edges and vertices in their respective `vec`s.
+To install as a library in Rust, add routee-compass-core to your Cargo.toml file:
 
-From this alone we can implement a distance-minimizing search.
-This is done via a [TraversalModel], which provides an API for computing the costs of traversal based on the search state, graph, and any exogenous datasets.
-The convention in RouteE Compass is to load additional `vec`s in the [TraversalModel] which can serve as lookup functions by `EdgeId` for traversal costs and `(EdgeId, EdgeId)` for access costs.
-This is also where the compass-powertrain crate loads an energy estimator.
-See [TraversalModel] for more details.
+```toml
+[dependencies]
+routee-compass-core = { version = "0.2.0" }
+```
 
-### Algorithm
+Please see the [documentation](https://docs.rs/routee-compass-core/latest/routee_compass_core/) for usage.
 
-RouteE Compass is set up to provide a suite of search algorithms which may be useful for different search problems.
-In all cases, these are assumed to be deterministic searches.
-At present, only an a star algorithm is implemented.
+### License
 
-Other graph algorithms may be added here in future, such as the connected components module.
+Copyright 2023 Alliance for Sustainable Energy, LLC
 
-[Graph]: crate::model::graph::Graph
-[TraversalModel]: crate::model::traversal::traversal_model::TraversalModel
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
