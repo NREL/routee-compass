@@ -237,7 +237,6 @@ impl CompassApp {
 
         // run parallel searches using a rayon thread pool
         let chunk_size = (input_queries.len() as f64 / self.parallelism as f64).ceil() as usize;
-
         log::info!(
             "creating {} parallel batches across {} threads to run queries with chunk size {}",
             self.parallelism,
