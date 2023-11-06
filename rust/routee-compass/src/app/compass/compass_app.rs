@@ -231,6 +231,9 @@ impl CompassApp {
                 Err(error_response) => Either::Right(error_response),
             });
         let input_queries: Vec<serde_json::Value> = input_bundles.into_iter().flatten().collect();
+        if input_queries.len() == 0 {
+            return Ok(input_error_responses);
+        }
 
         // run parallel searches using a rayon thread pool
         let chunk_size = (input_queries.len() as f64 / self.parallelism as f64).ceil() as usize;
