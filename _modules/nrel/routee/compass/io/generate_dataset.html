@@ -509,7 +509,7 @@ document.write(`
                 <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">add_grade</span><span class="p">:</span>
                         <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span>
-                            <span class="s2">&quot;grade_table_path&quot;</span>
+                            <span class="s2">&quot;grade_table_file&quot;</span>
                         <span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span>
                         <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_grade_unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;decimal&quot;</span>
 
@@ -526,7 +526,7 @@ document.write(`
                     <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span>
                         <span class="s2">&quot;real_world_energy_adjustment&quot;</span>
                     <span class="p">]</span> <span class="o">=</span> <span class="n">adjustment_factor</span>
-                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;energy_model_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.bin&quot;</span>
+                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;energy_model_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.bin&quot;</span>
 
                     <span class="n">energy_model_energy_rate_unit</span> <span class="o">=</span> <span class="n">ENERGY_OUTPUT_UNITS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                         <span class="n">powertrain_type</span>

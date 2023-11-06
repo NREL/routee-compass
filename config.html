@@ -425,9 +425,9 @@ We added some annotations to describe the different sections:</p>
 <span class="c1"># the parameters for the underlying road network graph</span>
 <span class="k">[graph]</span>
 <span class="c1"># a file containing all the graph edges and their adjacencies</span>
-<span class="n">edge_list_csv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-compass.csv.gz&quot;</span>
+<span class="n">edge_list_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-compass.csv.gz&quot;</span>
 <span class="c1"># a file containing all the graph verticies</span>
-<span class="n">vertex_list_csv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
+<span class="n">vertex_list_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
 <span class="c1"># if verbose is true, you&#39;ll see more information when loading the graph</span>
 <span class="n">verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 
@@ -438,9 +438,9 @@ We added some annotations to describe the different sections:</p>
 <span class="c1"># what underlying machine learn framework to use [smartcore | onnx]</span>
 <span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;smartcore&quot;</span>
 <span class="c1"># speeds for each edge in the graph</span>
-<span class="n">speed_table_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
+<span class="n">speed_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
 <span class="c1"># the file for the routee-powertrain model</span>
-<span class="n">energy_model_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2016_TOYOTA_Camry_4cyl_2WD.bin&quot;</span>
+<span class="n">energy_model_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2016_TOYOTA_Camry_4cyl_2WD.bin&quot;</span>
 <span class="c1"># the &quot;best case&quot; energy rate for this particular vehicle (something like highway mpg) that&#39;s used in the a-star algorithm</span>
 <span class="n">ideal_energy_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.02857142857</span>
 <span class="c1"># the units of the above speed table</span>
@@ -511,7 +511,7 @@ Here are the default traversal models that come with the <code class="docutils l
 <p>The speed table traversal model uses a speed lookup table to compute the fastest (or shortest time) route.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[traversal]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;speed_table&quot;</span>
-<span class="n">speed_table_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
+<span class="n">speed_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
 <span class="n">speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kilometers_per_hour&quot;</span>
 <span class="n">output_distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles&quot;</span>
 <span class="n">output_time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;minutes&quot;</span>
@@ -524,10 +524,10 @@ Here are the default traversal models that come with the <code class="docutils l
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[traversal]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;speed_grade_energy_model&quot;</span>
 <span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;smartcore&quot;</span>
-<span class="n">speed_table_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz&quot;</span>
-<span class="n">grade_table_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz&quot;</span>
+<span class="n">speed_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz&quot;</span>
+<span class="n">grade_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz&quot;</span>
 <span class="n">grade_table_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;decimal&quot;</span>
-<span class="n">energy_model_path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/2016_TOYOTA_Camry_4cyl_2WD.bin&quot;</span>
+<span class="n">energy_model_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/2016_TOYOTA_Camry_4cyl_2WD.bin&quot;</span>
 <span class="n">ideal_energy_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.02857142857</span>
 <span class="n">speed_table_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kilometers_per_hour&quot;</span>
 <span class="n">energy_model_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles_per_hour&quot;</span>
