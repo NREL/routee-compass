@@ -1,58 +1,31 @@
+routee-compass
+============
 The RouteE-Compass energy-aware routing engine.
 
-### Crates
+[![crates.io](https://img.shields.io/crates/v/routee-compass.svg)](https://crates.io/crates/routee-compass)
 
-This documentation is built around use of the `routee_compass` crate.
-This repo is setup as a [workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) and CompassApp is defined with two upstream dependencies, [routee-compass-core] and [routee-compass-powertrain]:
+### Usage
 
-* [routee-compass-core] - core data structures and algorithms used by Compass
-* [routee-compass-powertrain] - traversal model supporting energy-optimal route planning via [RouteE Powertrain](https://github.com/nrel/routee-powertrain)
-* [routee-compass] - application built around the core model intended for command-line execution or longer-running applications such as the python sdk (this README)
+To install via Python please visit the [Python documentation](https://nrel.github.io/routee-compass/intro.html). 
+To install as a library in Rust, add routee-compass to your Cargo.toml file:
 
-### Building CompassApp instances
-
-A RouteE Compass app exists as a value of type [CompassApp] on a given system.
-An instance can be built using one of two `try_from` methods:
-  1. from a path, which assumes the default [CompassAppBuilder]
-  2. from an instance of [Config](https://docs.rs/config/latest/config/) along with a (possibly customized) [CompassAppBuilder]
-
-Customizing a [CompassAppBuilder] is the extension point for adding 3rd party extensions to [CompassApp].
-If this is not needed, then sticking to the default is sufficient, via the `CompassApp::try_from(path)` builder method.
-
-### Running queries on CompassApp
-
-With a running instance of [CompassApp], one can repeatedly issue queries via the `run` method:
-
-```ignore
-let path: PathBuf = todo!();
-let app = CompassApp::try_from(path)?;
-// use vec![query] to run a single query
-let queries: Vec<serde_json::Value> = vec![];
-
-let result = app.run(queries);
+```toml
+[dependencies]
+routee-compass = { version = "0.2.0" }
 ```
 
-Based on the parallelism argument to [CompassApp], the batch of queries will be split into chunks in a SIMD parallelization scheme across the available system threads. 
-Keep in mind that each chunk needs enough RAM to conduct a search over your road network.
-For example, if a road network has 1 million links, and parallelism is 8, then _(in the worst case)_ there should be sufficient RAM to store 8 million rows of search data.
+Please see the [documentation](https://docs.rs/routee-compass/latest/routee_compass/) for usage.
 
-### Customizing RouteE Compass
+### License
 
-If you wish to add your own features to a [CompassApp] instance, then see the following links for info on:
-  - a custom [TraversalModelBuilder]
-  - a custom [FrontierModelBuilder]
-  - a custom [InputPluginBuilder]
-  - a custom [OutputPluginBuilder]
+Copyright 2023 Alliance for Sustainable Energy, LLC
 
-Any custom builders will need to be added to a [CompassAppBuilder] instance that should be used to create a [CompassApp].
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-[CompassApp]: crate::app::compass::routee_compass::CompassApp
-[CompassAppBuilder]: crate::app::compass::config::routee_compass_builder::CompassAppBuilder
-[TraversalModelBuilder]: crate::app::compass::config::builders::TraversalModelBuilder
-[FrontierModelBuilder]: crate::app::compass::config::builders::FrontierModelBuilder
-[InputPluginBuilder]: crate::app::compass::config::builders::InputPluginBuilder
-[OutputPluginBuilder]: crate::app::compass::config::builders::OutputPluginBuilder
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 
-[routee-compass-core]: routee_compass_core
-[routee-compass-powertrain]: routee_compass_powertrain
-[routee-compass]: self
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
