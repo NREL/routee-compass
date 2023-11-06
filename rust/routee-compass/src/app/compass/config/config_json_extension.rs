@@ -223,6 +223,25 @@ impl ConfigJsonExtensions for serde_json::Value {
             }
         }
     }
+
+    /// This function is used to normalize file paths in the configuration JSON object.
+    /// Incoming file paths can be in one of three locations:
+    ///
+    /// 1. Absolute path
+    /// 2. Relative path to the config file itself
+    /// 3. Relative path to where the application is being run
+    ///
+    /// This function scans each key value pair in the config and for any key that
+    /// ends with `_file`, it will attempt to normalize the path such that the application
+    /// can find the file regardless of where it is being executed.
+    ///
+    /// Arguments:
+    ///
+    /// * `root_config_path` - The path to the where the config file is located.
+    ///
+    /// Returns:
+    ///
+    /// * `Result<serde_json::Value, CompassConfigurationError>` - The JSON object with normalized paths.
     fn normalize_file_paths(
         &self,
         root_config_path: &Path,

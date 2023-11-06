@@ -64,6 +64,8 @@ impl TryFrom<&Path> for CompassApp {
             config::FileFormat::Toml,
         );
 
+        // We want to store the location of where the config file
+        // was found so we can use it later to resolve relative paths
         let conf_file_string = conf_file
             .to_str()
             .ok_or(CompassAppError::InternalError(
@@ -109,6 +111,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
         let (config, builder) = pair;
 
+        // Get the root config path so we can resolve paths relative
+        // to where the config file is located.
         let root_config_path = config.get::<PathBuf>(CONFIG_FILE_KEY)?;
 
         let config_json = config
