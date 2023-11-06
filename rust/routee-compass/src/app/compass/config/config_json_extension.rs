@@ -142,9 +142,10 @@ impl ConfigJsonExtensions for serde_json::Value {
                 parent_key.clone(),
             ))?
             .as_array()
-            .ok_or(
-                CompassConfigurationError::ExpectedFieldWithType(key.clone(), String::from("Array")),
-            )?;
+            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
+                key.clone(),
+                String::from("Array"),
+            ))?;
         Ok(array)
     }
 

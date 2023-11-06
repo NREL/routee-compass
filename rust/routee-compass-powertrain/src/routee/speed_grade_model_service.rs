@@ -8,7 +8,6 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 
-
 #[derive(Clone)]
 pub struct SpeedGradeModelService {
     pub speed_table: Arc<Vec<Speed>>,

@@ -17,6 +17,14 @@ use std::sync::Arc;
 
 const ZERO_ENERGY: f64 = 1e-9;
 
+const NO_MODEL_NAME_ERROR: &str = r#"
+Expected key 'model_name' in requeset to specify which routee-powertrain model to use.
+Try adding the following to your request:
+{
+    "model_name": "2016_TOYOTA_Camry_4cyl_2WD"
+}
+"#;
+
 pub struct SpeedGradeModel {
     pub service: Arc<SpeedGradeModelService>,
     pub model_record: Arc<SpeedGradePredictionModelRecord>,
@@ -163,25 +171,16 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
             }
         };
 
-        let prediction_model_name = match conf.get(String::from("model_name")) {
-            None => {
-                log::debug!(
-                    "No model_name provided, using default of '2016_TOYOTA_Camry_4cyl_2WD'"
-                );
-                String::from("2016_TOYOTA_Camry_4cyl_2WD")
-            }
-            Some(model_name) => {
-                let model_name = model_name
-                    .as_str()
-                    .ok_or(TraversalModelError::BuildError(format!(
-                        "Expected 'model_name' value to be string, found {}",
-                        model_name
-                    )))?
-                    .to_string();
-                log::debug!("Using model_name of {}", model_name);
-                String::from(model_name)
-            }
-        };
+        let prediction_model_name = conf
+            .get("model_name".to_string())
+            .ok_or(TraversalModelError::BuildError(
+                NO_MODEL_NAME_ERROR.to_string(),
+            ))?
+            .as_str()
+            .ok_or(TraversalModelError::BuildError(
+                "Expected 'model_name' value to be string".to_string(),
+            ))?
+            .to_string();
 
         let model_record = match service.energy_model_library.get(&prediction_model_name) {
             None => {
@@ -321,7 +320,10 @@ mod tests {
         )
         .unwrap();
         let arc_service = Arc::new(service);
-        let conf = serde_json::json!({});
+        let conf = serde_json::json!({
+            "model_name": "Toyota_Camry",
+            "energy_cost_coefficient": 0.5,
+        });
         let model = SpeedGradeModel::try_from((arc_service, &conf)).unwrap();
         let initial = model.initial_state();
         let e1 = mock_edge(0);
