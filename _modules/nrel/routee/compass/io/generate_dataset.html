@@ -330,13 +330,9 @@ document.write(`
   <h1>Source code for nrel.routee.compass.io.generate_dataset</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">nrel.routee.compass.io.models</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ADJUSTMENT_FACTORS</span><span class="p">,</span>
-    <span class="n">ENERGY_OUTPUT_UNITS</span><span class="p">,</span>
-    <span class="n">IDEAL_ENERGY_RATES</span><span class="p">,</span>
-    <span class="n">MODELS_POWERTRAINS</span><span class="p">,</span>
-<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_filename</span>
+
+<span class="kn">import</span> <span class="nn">importlib.resources</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 
@@ -354,7 +350,6 @@ document.write(`
     <span class="n">add_grade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">raster_resolution_arc_seconds</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">default_config</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">energy_model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Processes a graph downloaded via OSMNx, generating the set of input</span>
@@ -512,55 +507,22 @@ document.write(`
                             <span class="s2">&quot;grade_table_file&quot;</span>
                         <span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span>
                         <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_grade_unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;decimal&quot;</span>
-
-                    <span class="n">powertrain_type</span> <span class="o">=</span> <span class="n">MODELS_POWERTRAINS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">energy_model</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">powertrain_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;Could not find powertrain type for </span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.&quot;</span>
-                        <span class="p">)</span>
-                    <span class="n">adjustment_factor</span> <span class="o">=</span> <span class="n">ADJUSTMENT_FACTORS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">powertrain_type</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">adjustment_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;Could not find adjustment factor for </span><span class="si">{</span><span class="n">powertrain_type</span><span class="si">}</span><span class="s2">.&quot;</span>
-                        <span class="p">)</span>
-                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span>
-                        <span class="s2">&quot;real_world_energy_adjustment&quot;</span>
-                    <span class="p">]</span> <span class="o">=</span> <span class="n">adjustment_factor</span>
-                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;energy_model_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.bin&quot;</span>
-
-                    <span class="n">energy_model_energy_rate_unit</span> <span class="o">=</span> <span class="n">ENERGY_OUTPUT_UNITS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-                        <span class="n">powertrain_type</span>
-                    <span class="p">)</span>
-                    <span class="k">if</span> <span class="n">energy_model_energy_rate_unit</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;Could not find energy rate unit for </span><span class="si">{</span><span class="n">powertrain_type</span><span class="si">}</span><span class="s2">.&quot;</span>
-                        <span class="p">)</span>
-
-                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span>
-                        <span class="s2">&quot;energy_model_energy_rate_unit&quot;</span>
-                    <span class="p">]</span> <span class="o">=</span> <span class="n">energy_model_energy_rate_unit</span>
-
-                    <span class="n">ideal_energy_rate</span> <span class="o">=</span> <span class="n">IDEAL_ENERGY_RATES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">powertrain_type</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">ideal_energy_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                            <span class="sa">f</span><span class="s2">&quot;Could not find ideal energy rate for </span><span class="si">{</span><span class="n">powertrain_type</span><span class="si">}</span><span class="s2">.&quot;</span>
-                        <span class="p">)</span>
-
-                    <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;ideal_energy_rate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ideal_energy_rate</span>
-
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">toml</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">init_toml</span><span class="p">))</span>
 
-    <span class="c1"># COPY ROUTEE ENERGY MODEL</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;copying RouteE Powertrain model </span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">model_src</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span>
-        <span class="n">resource_filename</span><span class="p">(</span><span class="s2">&quot;nrel.routee.compass.resources.models&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.bin&quot;</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">model_src</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find </span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2"> in the resources directory.&quot;</span><span class="p">)</span>
-
-    <span class="n">model_dst</span> <span class="o">=</span> <span class="n">output_directory</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">energy_model</span><span class="si">}</span><span class="s2">.bin&quot;</span>
-    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">model_src</span><span class="p">,</span> <span class="n">model_dst</span><span class="p">)</span></div>
+    <span class="c1"># COPY ROUTEE ENERGY MODEL CATALOG</span>
+    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;copying RouteE Powertrain models&quot;</span><span class="p">)</span>
+    <span class="n">model_directory</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;nrel.routee.compass.resources.models&quot;</span><span class="p">)</span>
+    <span class="n">model_output_directory</span> <span class="o">=</span> <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;models&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">model_output_directory</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">model_output_directory</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">model_file</span> <span class="ow">in</span> <span class="n">model_directory</span><span class="o">.</span><span class="n">iterdir</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">model_file</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.bin&quot;</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">model_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="k">with</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">as_file</span><span class="p">(</span><span class="n">model_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">model_path</span><span class="p">:</span>
+                <span class="n">model_dst</span> <span class="o">=</span> <span class="n">model_output_directory</span> <span class="o">/</span> <span class="n">model_path</span><span class="o">.</span><span class="n">name</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">model_dst</span><span class="p">)</span></div>
 </pre></div>
 
                 </article>
