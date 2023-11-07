@@ -12,7 +12,7 @@ pub struct SummaryOutputPluginBuilder {}
 impl OutputPluginBuilder for SummaryOutputPluginBuilder {
     fn build(
         &self,
-        parameters: &serde_json::Value,
+        _parameters: &serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
         Ok(Box::new(SummaryOutputPlugin {}))
     }

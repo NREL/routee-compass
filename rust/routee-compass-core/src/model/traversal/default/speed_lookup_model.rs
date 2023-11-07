@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use crate::model::graph::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
@@ -182,14 +182,11 @@ pub fn get_max_speed(speed_table: &Vec<Speed>) -> Result<Speed, TraversalModelEr
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::util::unit::Distance;
-    use crate::{
-        model::{
-            graph::{edge_id::EdgeId, vertex_id::VertexId},
-            property::{edge::Edge, vertex::Vertex},
-        },
-        util::unit::Grade,
+    use crate::model::{
+        graph::{edge_id::EdgeId, vertex_id::VertexId},
+        property::{edge::Edge, vertex::Vertex},
     };
+    use crate::util::unit::Distance;
     use geo::coord;
     use std::path::PathBuf;
 

@@ -9,7 +9,7 @@ use crate::app::compass::config::{
 };
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::util::unit::{
-    grade_unit, DistanceUnit, EnergyRate, EnergyRateUnit, GradeUnit, SpeedUnit, TimeUnit,
+    DistanceUnit, EnergyRate, EnergyRateUnit, GradeUnit, SpeedUnit, TimeUnit,
 };
 use routee_compass_powertrain::routee::model_type::ModelType;
 use routee_compass_powertrain::routee::prediction_model::SpeedGradePredictionModelRecord;
