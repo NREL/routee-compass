@@ -1,10 +1,9 @@
 use crate::util::io_utils;
 
 use super::fs_utils;
-use csv::{Reader, ReaderBuilder};
+use csv::ReaderBuilder;
 use flate2::read::GzDecoder;
-use kdam::Bar;
-use kdam::BarExt;
+
 use std::io::ErrorKind;
 use std::{
     fs::File,

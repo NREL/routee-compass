@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use super::json_extensions::UUIDJsonExtensions;
 
@@ -49,7 +49,7 @@ impl OutputPlugin for UUIDOutputPlugin {
     fn process(
         &self,
         output: &serde_json::Value,
-        search_result: Result<&SearchAppResult, SearchError>,
+        _search_result: Result<&SearchAppResult, SearchError>,
     ) -> Result<serde_json::Value, PluginError> {
         let mut updated_output = output.clone();
         let (origin_vertex_id, destination_vertex_id) = output.get_od_vertex_ids()?;

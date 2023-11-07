@@ -1,5 +1,4 @@
 use std::path::Path;
-use std::path::PathBuf;
 
 use super::json_extensions::TraversalJsonField;
 use super::traversal_output_format::TraversalOutputFormat;
@@ -102,7 +101,7 @@ mod tests {
 
     use super::*;
     use chrono::Local;
-    use geo::{LineString, Point};
+
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
         model::{
@@ -175,8 +174,8 @@ mod tests {
             total_runtime: Duration::ZERO,
         };
         let filename = mock_geometry_file();
-        let route_geometry = true;
-        let tree_geometry = false;
+        let _route_geometry = true;
+        let _tree_geometry = false;
         let geom_plugin =
             TraversalPlugin::from_file(&filename, Some(TraversalOutputFormat::Wkt), None).unwrap();
 

@@ -1,3 +1,4 @@
+use super::prediction_model::SpeedGradePredictionModelRecord;
 use super::speed_grade_model_service::SpeedGradeModelService;
 use routee_compass_core::model::cost::cost::Cost;
 use routee_compass_core::model::graph::edge_id::EdgeId;
@@ -16,8 +17,17 @@ use std::sync::Arc;
 
 const ZERO_ENERGY: f64 = 1e-9;
 
+const NO_MODEL_NAME_ERROR: &str = r#"
+Expected key 'model_name' in requeset to specify which routee-powertrain model to use.
+Try adding the following to your request:
+{
+    "model_name": "2016_TOYOTA_Camry_4cyl_2WD"
+}
+"#;
+
 pub struct SpeedGradeModel {
     pub service: Arc<SpeedGradeModelService>,
+    pub model_record: Arc<SpeedGradePredictionModelRecord>,
     pub energy_cost_coefficient: f64,
 }
 
@@ -46,8 +56,8 @@ impl TraversalModel for SpeedGradeModel {
         }
 
         let (energy, _energy_unit) = Energy::create(
-            self.service.ideal_energy_rate,
-            self.service.energy_model_energy_rate_unit.clone(),
+            self.model_record.ideal_energy_rate,
+            self.model_record.energy_rate_unit.clone(),
             distance,
             self.service.output_distance_unit.clone(),
         )?;
@@ -83,18 +93,18 @@ impl TraversalModel for SpeedGradeModel {
             self.service.output_time_unit.clone(),
         )?;
 
-        let (energy_rate, _energy_rate_unit) = self.service.energy_model.predict(
+        let (energy_rate, _energy_rate_unit) = self.model_record.prediction_model.predict(
             speed,
             self.service.speeds_table_speed_unit,
             grade,
             self.service.grade_table_grade_unit,
         )?;
 
-        let energy_rate_real_world = energy_rate * self.service.real_world_energy_adjustment;
+        let energy_rate_real_world = energy_rate * self.model_record.real_world_energy_adjustment;
 
         let (mut energy, _energy_unit) = Energy::create(
             energy_rate_real_world,
-            self.service.energy_model_energy_rate_unit.clone(),
+            self.model_record.energy_rate_unit.clone(),
             distance,
             self.service.output_distance_unit.clone(),
         )?;
@@ -125,10 +135,7 @@ impl TraversalModel for SpeedGradeModel {
     }
 
     fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
-        let energy_unit = self
-            .service
-            .energy_model_energy_rate_unit
-            .associated_energy_unit();
+        let energy_unit = self.model_record.energy_rate_unit.associated_energy_unit();
         serde_json::json!({
             "distance_unit": self.service.output_distance_unit,
             "time_unit": self.service.output_time_unit,
@@ -145,13 +152,10 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
     ) -> Result<Self, Self::Error> {
         let (service, conf) = input;
 
-        match conf.get(String::from("energy_cost_coefficient")) {
+        let energy_cost_coefficient = match conf.get(String::from("energy_cost_coefficient")) {
             None => {
                 log::debug!("no energy_cost_coefficient provided");
-                Ok(SpeedGradeModel {
-                    service: service.clone(),
-                    energy_cost_coefficient: 1.0,
-                })
+                1.0
             }
             Some(v) => {
                 let f = v.as_f64().ok_or(TraversalModelError::BuildError(format!(
@@ -159,16 +163,40 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
                     v
                 )))?;
                 if f < 0.0 || 1.0 < f {
-                    Err(TraversalModelError::BuildError(format!("expected 'energy_cost_coefficient' value to be numeric in range [0.0, 1.0], found {}", f)))
+                    return Err(TraversalModelError::BuildError(format!("expected 'energy_cost_coefficient' value to be numeric in range [0.0, 1.0], found {}", f)));
                 } else {
                     log::debug!("using energy_cost_coefficient of {}", f);
-                    Ok(SpeedGradeModel {
-                        service: service.clone(),
-                        energy_cost_coefficient: f,
-                    })
+                    f
                 }
             }
-        }
+        };
+
+        let prediction_model_name = conf
+            .get("model_name".to_string())
+            .ok_or(TraversalModelError::BuildError(
+                NO_MODEL_NAME_ERROR.to_string(),
+            ))?
+            .as_str()
+            .ok_or(TraversalModelError::BuildError(
+                "Expected 'model_name' value to be string".to_string(),
+            ))?
+            .to_string();
+
+        let model_record = match service.energy_model_library.get(&prediction_model_name) {
+            None => {
+                return Err(TraversalModelError::BuildError(format!(
+                    "No energy model found with name {}",
+                    prediction_model_name
+                )))
+            }
+            Some(mr) => mr.clone(),
+        };
+
+        Ok(SpeedGradeModel {
+            service,
+            model_record,
+            energy_cost_coefficient,
+        })
     }
 }
 
@@ -236,7 +264,7 @@ mod tests {
         graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, vertex::Vertex},
     };
-    use std::path::PathBuf;
+    use std::{collections::HashMap, path::PathBuf};
 
     #[test]
     fn test_edge_cost_lookup_from_file() {
@@ -267,24 +295,35 @@ mod tests {
                 distance: Distance::new(100.0),
             };
         }
-        let service = SpeedGradeModelService::new(
-            &speed_file_path,
-            SpeedUnit::KilometersPerHour,
-            &Some(grade_file_path),
-            None,
+        let model_record = SpeedGradePredictionModelRecord::new(
+            "Toyota_Camry".to_string(),
             &model_file_path,
             ModelType::Smartcore,
-            None,
             SpeedUnit::MilesPerHour,
-            GradeUnit::Millis,
+            GradeUnit::Decimal,
             EnergyRateUnit::GallonsGasolinePerMile,
-            None,
             None,
             None,
         )
         .unwrap();
+        let mut model_library = HashMap::new();
+        model_library.insert("Toyota_Camry".to_string(), Arc::new(model_record));
+
+        let service = SpeedGradeModelService::new(
+            &speed_file_path,
+            SpeedUnit::KilometersPerHour,
+            &Some(grade_file_path),
+            Some(GradeUnit::Millis),
+            None,
+            None,
+            model_library,
+        )
+        .unwrap();
         let arc_service = Arc::new(service);
-        let conf = serde_json::json!({});
+        let conf = serde_json::json!({
+            "model_name": "Toyota_Camry",
+            "energy_cost_coefficient": 0.5,
+        });
         let model = SpeedGradeModel::try_from((arc_service, &conf)).unwrap();
         let initial = model.initial_state();
         let e1 = mock_edge(0);
