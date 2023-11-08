@@ -1,8 +1,8 @@
 parallelism = 2
 
 [graph]
-edge_list_file = "edges-compass.csv.gz"
-vertex_list_file = "vertices-compass.csv.gz"
+edge_list_input_file = "edges-compass.csv.gz"
+vertex_list_input_file = "vertices-compass.csv.gz"
 verbose = true
 
 [traversal]
@@ -12,10 +12,10 @@ distance_unit = "miles"
 [plugin]
 input_plugins = [
     { type = "grid_search" },
-    { type = "vertex_rtree", vertices_file = "vertices-compass.csv.gz" },
+    { type = "vertex_rtree", vertices_input_file = "vertices-compass.csv.gz" },
 ]
 output_plugins = [
     { type = "summary" },
-    { type = "traversal", route = "geo_json", tree = "geo_json", geometry_file = "edges-geometries-enumerated.txt.gz" },
-    { type = "uuid", uuid_file = "vertices-uuid-enumerated.txt.gz" },
+    { type = "traversal", route = "geo_json", tree = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
+    { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
 ]

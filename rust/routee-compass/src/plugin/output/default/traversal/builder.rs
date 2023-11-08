@@ -27,7 +27,7 @@ use crate::{
 /// type = "traversal"
 /// route = "geo_json"
 /// tree = "geo_json"
-/// geometry_file = "edges-geometries-enumerated.txt.gz"
+/// geometry_input_file = "edges-geometries-enumerated.txt.gz"
 /// ```
 ///
 pub struct TraversalPluginBuilder {}

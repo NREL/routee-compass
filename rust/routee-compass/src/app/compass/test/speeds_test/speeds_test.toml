@@ -1,8 +1,8 @@
 query_timeout_ms = 3600000
 
 [graph]
-edge_list_file = "src/app/compass/test/speeds_test/test_edges.csv"
-vertex_list_file = "src/app/compass/test/speeds_test/test_vertices.csv"
+edge_list_input_file = "src/app/compass/test/speeds_test/test_edges.csv"
+vertex_list_input_file = "src/app/compass/test/speeds_test/test_vertices.csv"
 verbose = true
 
 [algorithm]
@@ -11,7 +11,7 @@ bidirectional = false
 
 [traversal]
 type = "speed_table"
-speed_table_file = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
+speed_table_input_file = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
 speed_unit = "kilometers_per_hour"
 output_time_unit = "hours"
 

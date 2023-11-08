@@ -1,6 +1,6 @@
 [graph]
-edge_file = "edges-compass.csv.gz"
-vertex_file = "vertices-compass.csv.gz"
+edge_input_file = "edges-compass.csv.gz"
+vertex_input_file = "vertices-compass.csv.gz"
 n_edges = 125309338
 n_vertices = 56306871
 verbose = true
@@ -15,9 +15,9 @@ type = "distance"
 
 [plugin]
 input_plugins = [
-    { type = "vertex_rtree", vertices_file = "vertices-compass.csv.gz" },
+    { type = "vertex_rtree", vertices_input_file = "vertices-compass.csv.gz" },
 ]
 output_plugins = [
     { type = "summary" },
-    { type = "geometry", edge_file = "edges-geometries-enumerated.txt.gz" },
+    { type = "geometry", edge_input_file = "edges-geometries-enumerated.txt.gz" },
 ]

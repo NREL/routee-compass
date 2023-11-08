@@ -13,9 +13,9 @@ parallelism = 2
 # the parameters for the underlying road network graph
 [graph]
 # a file containing all the graph edges and their adjacencies
-edge_list_file = "edges-compass.csv.gz"
+edge_list_input_file = "edges-compass.csv.gz"
 # a file containing all the graph verticies
-vertex_list_file = "vertices-compass.csv.gz"
+vertex_list_input_file = "vertices-compass.csv.gz"
 # if verbose is true, you'll see more information when loading the graph
 verbose = true
 
@@ -24,11 +24,11 @@ verbose = true
 # the speed_grade_energy_model can compute routes using time or energy as costs
 type = "speed_grade_energy_model"
 # speeds for each edge in the graph
-speed_table_file = "edges-posted-speed-enumerated.txt.gz"
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 # the units of the above speed table
 speed_table_speed_unit = "kilometers_per_hour"
 # grades for each edge in the graph
-grade_table_file = "edges-grade-enumerated.txt.gz"
+grade_table_input_file = "edges-grade-enumerated.txt.gz"
 # the units of the above graph table
 grade_table_grade_unit = "decimal"
 # the units of what the traversal model outputs for time
@@ -42,7 +42,7 @@ output_distance_unit = "miles"
 # the name of the model that can be passed in from a query as "model_name"
 name = "2012_Ford_Focus"
 # the file for the routee-powertrain model
-model_file = "models/2012_Ford_Focus.bin"
+model_input_file = "models/2012_Ford_Focus.bin"
 # what underlying machine learn framework to use [smartcore | onnx]
 model_type = "smartcore"
 # the units of what the routee-powertrain model expects speed to be in
@@ -69,7 +69,7 @@ type = "grid_search"
 # a vertex based RTree for matching incoming x/y coordinates to a graph vertex
 type = "vertex_rtree"
 # a file with all the graph verticies
-vertices_file = "vertices-compass.csv.gz"
+vertices_input_file = "vertices-compass.csv.gz"
 
 # output plugs get applied to the result of running a query
 [[plugin.output_plugins]]
@@ -84,13 +84,13 @@ route = "geo_json"
 # return the full search tree in a geojson format
 tree = "geo_json"
 # geometry objects for all the edges in the graph
-geometry_file = "edges-geometries-enumerated.txt.gz"
+geometry_input_file = "edges-geometries-enumerated.txt.gz"
 
 [[plugin.output_plugins]]
 # append an map specific id(like Open Street Maps Nodes) onto the compass verticies (which use a simple integer internal index)
 type = "uuid"
 # a file with ids for each vertex in the graph
-uuid_file = "vertices-uuid-enumerated.txt.gz"
+uuid_input_file = "vertices-uuid-enumerated.txt.gz"
 ```
 
 ## Traversal Models
@@ -116,7 +116,7 @@ The speed table traversal model uses a speed lookup table to compute the fastest
 ```toml
 [traversal]
 type = "speed_table"
-speed_table_file = "edges-posted-speed-enumerated.txt.gz"
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kilometers_per_hour"
 output_distance_unit = "miles"
 output_time_unit = "minutes"
@@ -130,10 +130,10 @@ The speed grade energy model computes energy (with a routee-powertrain vehicle m
 [traversal]
 type = "speed_grade_energy_model"
 model_type = "smartcore"
-speed_table_file = "data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz"
-grade_table_file = "data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz"
+speed_table_input_file = "data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz"
+grade_table_input_file = "data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz"
 grade_table_grade_unit = "decimal"
-energy_model_file = "data/2016_TOYOTA_Camry_4cyl_2WD.bin"
+energy_model_input_file = "data/2016_TOYOTA_Camry_4cyl_2WD.bin"
 ideal_energy_rate = 0.02857142857
 speed_table_speed_unit = "kilometers_per_hour"
 energy_model_speed_unit = "miles_per_hour"
@@ -213,7 +213,7 @@ For example, if you specify your query origin and destination as lat/lon coordin
 ```toml
 [[plugin.input_plugins]]
 type = "vertex_rtree"
-vertices_file = "vertices-compass.csv.gz"
+vertices_input_file = "vertices-compass.csv.gz"
 ```
 
 ## Output Plugins
@@ -240,7 +240,7 @@ A plugin that appends various items to the result.
 type = "traversal"
 route = "geo_json"
 tree = "geo_json"
-geometry_file = "edges-geometries-enumerated.txt.gz"
+geometry_input_file = "edges-geometries-enumerated.txt.gz"
 ```
 
 The `route` key will add route information to the result depending on the type.
