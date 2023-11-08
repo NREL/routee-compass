@@ -28,14 +28,14 @@ pub enum CompassConfigurationError {
 
         Second, make sure the file exists.
 
-        Third, make sure the config key ends with '_file' which is a schema requirement
+        Third, make sure the config key ends with '_input_file' which is a schema requirement
         for the CompassApp config.
         "#
     )]
     FileNotFoundForComponent(String, String, String),
     #[error("could not normalize incoming file {0}")]
     FileNormalizationError(String),
-    #[error("Could not find incoming configuration file, tried {0} and {1}. Make sure the file exists and that the config key ends with '_file'")]
+    #[error("Could not find incoming configuration file, tried {0} and {1}. Make sure the file exists and that the config key ends with '_input_file'")]
     FileNormalizationNotFound(String, String),
     #[error("{0}")]
     InsertError(String),
