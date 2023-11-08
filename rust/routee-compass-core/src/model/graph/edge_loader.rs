@@ -14,9 +14,9 @@ use std::{
 };
 
 pub struct EdgeLoader {
-    pub edges: Vec<Edge>,
-    pub adj: Vec<HashMap<EdgeId, VertexId>>,
-    pub rev: Vec<HashMap<EdgeId, VertexId>>,
+    pub edges: Box<[Edge]>,
+    pub adj: Box<[HashMap<EdgeId, VertexId>]>,
+    pub rev: Box<[HashMap<EdgeId, VertexId>]>,
 }
 
 pub struct EdgeLoaderConfig {
@@ -64,10 +64,14 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
             pb.update(1);
         });
 
-        let edges = read_utils::vec_from_csv(&c.edge_list_csv, true, Some(c.n_edges), Some(cb))?;
+        let edges = read_utils::from_csv(&c.edge_list_csv, true, Some(cb))?;
 
         print!("\n");
-        let result = EdgeLoader { edges, adj, rev };
+        let result = EdgeLoader {
+            edges,
+            adj: adj.into_boxed_slice(),
+            rev: rev.into_boxed_slice(),
+        };
 
         Ok(result)
     }

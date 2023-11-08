@@ -29,10 +29,10 @@ use super::graph_loader::graph_from_files;
 
 #[derive(Debug)]
 pub struct Graph {
-    pub adj: Vec<HashMap<EdgeId, VertexId>>,
-    pub rev: Vec<HashMap<EdgeId, VertexId>>,
-    pub edges: Vec<Edge>,
-    pub vertices: Vec<Vertex>,
+    pub adj: Box<[HashMap<EdgeId, VertexId>]>,
+    pub rev: Box<[HashMap<EdgeId, VertexId>]>,
+    pub edges: Box<[Edge]>,
+    pub vertices: Box<[Vertex]>,
 }
 
 impl Graph {

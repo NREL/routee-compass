@@ -1,16 +1,14 @@
-use std::path::Path;
-
 use super::json_extensions::UUIDJsonExtensions;
-
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError};
 use kdam::Bar;
 use kdam::BarExt;
 use routee_compass_core::algorithm::search::search_error::SearchError;
 use routee_compass_core::util::fs::{fs_utils, read_utils::read_raw_file};
+use std::path::Path;
 
 pub struct UUIDOutputPlugin {
-    uuids: Vec<String>,
+    uuids: Box<[String]>,
 }
 
 impl UUIDOutputPlugin {
