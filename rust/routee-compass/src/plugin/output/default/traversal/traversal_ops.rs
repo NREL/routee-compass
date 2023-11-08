@@ -10,7 +10,7 @@ use std::collections::HashMap;
 
 pub fn create_tree_geojson(
     tree: &HashMap<VertexId, SearchTreeBranch>,
-    geoms: &Vec<LineString<f64>>,
+    geoms: &Box<[LineString<f64>]>,
 ) -> Result<serde_json::Value, PluginError> {
     let features = tree
         .values()
@@ -36,7 +36,7 @@ pub fn create_tree_geojson(
 
 pub fn create_route_geojson(
     route: &Vec<EdgeTraversal>,
-    geoms: &Vec<LineString<f64>>,
+    geoms: &Box<[LineString<f64>]>,
 ) -> Result<serde_json::Value, PluginError> {
     let features = route
         .iter()
@@ -84,7 +84,7 @@ pub fn create_geojson_feature(t: &EdgeTraversal, g: LineString) -> Result<Featur
 
 pub fn create_edge_geometry(
     edge: &EdgeTraversal,
-    geoms: &Vec<LineString<f64>>,
+    geoms: &Box<[LineString<f64>]>,
 ) -> Result<LineString, PluginError> {
     geoms
         .get(edge.edge_id.0 as usize)
@@ -94,14 +94,14 @@ pub fn create_edge_geometry(
 
 pub fn create_branch_geometry(
     branch: &SearchTreeBranch,
-    geoms: &Vec<LineString<f64>>,
+    geoms: &Box<[LineString<f64>]>,
 ) -> Result<LineString, PluginError> {
     create_edge_geometry(&branch.edge_traversal, geoms)
 }
 
 pub fn create_route_linestring(
     route: &Vec<EdgeTraversal>,
-    geoms: &Vec<LineString<f64>>,
+    geoms: &Box<[LineString<f64>]>,
 ) -> Result<LineString, PluginError> {
     let edge_ids = route
         .iter()
@@ -123,7 +123,7 @@ pub fn create_route_linestring(
 
 pub fn create_tree_multilinestring(
     tree: &HashMap<VertexId, SearchTreeBranch>,
-    geoms: &Vec<LineString<f64>>,
+    geoms: &Box<[LineString<f64>]>,
 ) -> Result<MultiLineString, PluginError> {
     let edge_ids = tree
         .values()

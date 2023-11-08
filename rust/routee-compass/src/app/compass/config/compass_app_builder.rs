@@ -201,8 +201,9 @@ impl CompassAppBuilder {
             CompassConfigurationField::InputPlugins.to_string(),
             CompassConfigurationField::Plugins.to_string(),
         )?;
+
         let mut plugins: Vec<Box<dyn InputPlugin>> = Vec::new();
-        for plugin_json in input_plugins {
+        for plugin_json in input_plugins.into_iter() {
             let plugin_type_obj =
                 plugin_json
                     .as_object()
@@ -228,7 +229,7 @@ impl CompassAppBuilder {
                     String::from("Input Plugin"),
                 ),
             )?;
-            let input_plugin = builder.build(plugin_json)?;
+            let input_plugin = builder.build(&plugin_json)?;
             plugins.push(input_plugin);
         }
         return Ok(plugins);
@@ -242,8 +243,9 @@ impl CompassAppBuilder {
             CompassConfigurationField::OutputPlugins.to_string(),
             CompassConfigurationField::Plugins.to_string(),
         )?;
+
         let mut plugins: Vec<Box<dyn OutputPlugin>> = Vec::new();
-        for plugin_json in output_plugins {
+        for plugin_json in output_plugins.into_iter() {
             let plugin_json_obj =
                 plugin_json
                     .as_object()
@@ -269,7 +271,7 @@ impl CompassAppBuilder {
                     String::from("Output Plugin"),
                 ),
             )?;
-            let output_plugin = builder.build(plugin_json)?;
+            let output_plugin = builder.build(&plugin_json)?;
             plugins.push(output_plugin);
         }
         return Ok(plugins);

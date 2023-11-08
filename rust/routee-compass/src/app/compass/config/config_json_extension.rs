@@ -30,7 +30,7 @@ pub trait ConfigJsonExtensions {
         &self,
         key: String,
         parent_key: String,
-    ) -> Result<&Vec<serde_json::Value>, CompassConfigurationError>;
+    ) -> Result<Vec<serde_json::Value>, CompassConfigurationError>;
     fn get_config_i64(
         &self,
         key: String,
@@ -134,7 +134,7 @@ impl ConfigJsonExtensions for serde_json::Value {
         &self,
         key: String,
         parent_key: String,
-    ) -> Result<&Vec<serde_json::Value>, CompassConfigurationError> {
+    ) -> Result<Vec<serde_json::Value>, CompassConfigurationError> {
         let array = self
             .get(&key)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
@@ -145,7 +145,8 @@ impl ConfigJsonExtensions for serde_json::Value {
             .ok_or(CompassConfigurationError::ExpectedFieldWithType(
                 key.clone(),
                 String::from("Array"),
-            ))?;
+            ))?
+            .to_owned();
         Ok(array)
     }
 

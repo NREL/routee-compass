@@ -10,10 +10,10 @@ use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct SpeedGradeModelService {
-    pub speed_table: Arc<Vec<Speed>>,
+    pub speed_table: Arc<Box<[Speed]>>,
     pub speeds_table_speed_unit: SpeedUnit,
     pub max_speed: Speed,
-    pub grade_table: Arc<Option<Vec<Grade>>>,
+    pub grade_table: Arc<Option<Box<[Grade]>>>,
     pub grade_table_grade_unit: GradeUnit,
     pub output_time_unit: TimeUnit,
     pub output_distance_unit: DistanceUnit,
@@ -34,7 +34,7 @@ impl SpeedGradeModelService {
         let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
 
         // load speeds table
-        let speed_table: Arc<Vec<Speed>> = Arc::new(
+        let speed_table: Arc<Box<[Speed]>> = Arc::new(
             read_utils::read_raw_file(&speed_table_path, read_decoders::default, None).map_err(
                 |e| {
                     TraversalModelError::FileReadError(
@@ -45,7 +45,7 @@ impl SpeedGradeModelService {
             )?,
         );
 
-        let grade_table: Arc<Option<Vec<Grade>>> = match grade_table_path_option {
+        let grade_table: Arc<Option<Box<[Grade]>>> = match grade_table_path_option {
             Some(gtp) => Arc::new(Some(
                 read_utils::read_raw_file(&gtp, read_decoders::default, None).map_err(|e| {
                     TraversalModelError::FileReadError(

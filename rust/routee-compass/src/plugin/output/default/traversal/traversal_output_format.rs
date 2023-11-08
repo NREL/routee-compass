@@ -26,7 +26,7 @@ impl TraversalOutputFormat {
     pub fn generate_route_output(
         &self,
         route: &Vec<EdgeTraversal>,
-        geoms: &Vec<LineString<f64>>,
+        geoms: &Box<[LineString<f64>]>,
     ) -> Result<serde_json::Value, PluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
@@ -49,7 +49,7 @@ impl TraversalOutputFormat {
     pub fn generate_tree_output(
         &self,
         tree: &HashMap<VertexId, SearchTreeBranch>,
-        geoms: &Vec<LineString<f64>>,
+        geoms: &Box<[LineString<f64>]>,
     ) -> Result<serde_json::Value, PluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
@@ -122,7 +122,8 @@ mod test {
             ]),
             LineString(vec![coord! { x: 2.0, y: 2.0 }, coord! { x: 2.0, y: 3.0 }]),
             LineString(vec![coord! { x: 3.0, y: 3.0 }, coord! { x: 3.0, y: 4.0 }]),
-        ];
+        ]
+        .into_boxed_slice();
 
         println!(
             "{:?}",

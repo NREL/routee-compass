@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use super::json_extensions::TraversalJsonField;
 use super::traversal_output_format::TraversalOutputFormat;
 use super::utils::parse_linestring;
@@ -12,9 +10,10 @@ use kdam::BarExt;
 use routee_compass_core::algorithm::search::search_error::SearchError;
 use routee_compass_core::util::fs::fs_utils;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
+use std::path::Path;
 
 pub struct TraversalPlugin {
-    geoms: Vec<LineString<f64>>,
+    geoms: Box<[LineString<f64>]>,
     route: Option<TraversalOutputFormat>,
     tree: Option<TraversalOutputFormat>,
 }
@@ -97,11 +96,9 @@ impl OutputPlugin for TraversalPlugin {
 
 #[cfg(test)]
 mod tests {
-    use crate::plugin::output::default::traversal::json_extensions::TraversalJsonExtensions;
-
     use super::*;
+    use crate::plugin::output::default::traversal::json_extensions::TraversalJsonExtensions;
     use chrono::Local;
-
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
         model::{

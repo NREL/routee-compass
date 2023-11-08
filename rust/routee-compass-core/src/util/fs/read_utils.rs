@@ -1,72 +1,12 @@
-use crate::util::io_utils;
-
 use super::fs_utils;
 use csv::ReaderBuilder;
 use flate2::read::GzDecoder;
-
 use std::io::ErrorKind;
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader, Read},
+    io::{self, BufRead, BufReader},
     path::Path,
 };
-
-pub fn read_raw_file_pb<F, T>(
-    filepath: &F,
-    row_op: impl Fn(usize, String) -> Result<T, io::Error> + Copy + Clone,
-    message: String,
-    animation: String,
-) -> Result<Vec<T>, io::Error>
-where
-    F: AsRef<Path>,
-{
-    let count = fs_utils::line_count(filepath.clone(), fs_utils::is_gzip(&filepath))?;
-
-    let op = Box::new(move |cb| read_raw_file(filepath, row_op, Some(cb)));
-
-    let result = io_utils::with_progress_bar(
-        op,
-        Box::new(|s: String| std::io::Error::new(ErrorKind::Other, s)),
-        count,
-        message,
-        animation,
-    )?;
-    return Ok(result);
-}
-
-/// reads a csv file into a vector of matching size. provides a progress bar for the user.
-pub fn vec_from_csv_pb<F, T>(
-    filepath: &F,
-    has_headers: bool,
-    message: String,
-    animation: String,
-) -> Result<Vec<T>, csv::Error>
-where
-    F: AsRef<Path>,
-    T: serde::de::DeserializeOwned + 'static,
-{
-    let count = fs_utils::line_count(filepath.clone(), fs_utils::is_gzip(&filepath))?;
-
-    let op = Box::new(move |mut cb: Box<dyn FnMut()>| {
-        let mut builder: Vec<T> = Vec::with_capacity(count);
-        let iterator = iterator_from_csv(filepath, has_headers)?;
-        for row in iterator {
-            let t = row?;
-            builder.push(t);
-            cb();
-        }
-        Ok(builder)
-    });
-
-    let result = io_utils::with_progress_bar(
-        op,
-        Box::new(|s: String| csv::Error::from(std::io::Error::new(ErrorKind::Other, s))),
-        count,
-        message,
-        animation,
-    )?;
-    return Ok(result);
-}
 
 /// reads from a CSV into an iterator of T records.
 /// building the iterator may fail with an io::Error.
@@ -75,10 +15,11 @@ where
 pub fn iterator_from_csv<'a, F, T>(
     filepath: &F,
     has_headers: bool,
-) -> Result<Box<dyn Iterator<Item = Result<T, csv::Error>>>, io::Error>
+    mut row_callback: Option<Box<dyn FnMut(&T) + 'a>>,
+) -> Result<Box<dyn Iterator<Item = Result<T, csv::Error>> + 'a>, io::Error>
 where
     F: AsRef<Path>,
-    T: serde::de::DeserializeOwned + 'static,
+    T: serde::de::DeserializeOwned + 'a,
 {
     let f = File::open(filepath)?;
     let r: Box<dyn io::Read> = if fs_utils::is_gzip(filepath) {
@@ -86,35 +27,39 @@ where
     } else {
         Box::new(f)
     };
-    let reader: csv::DeserializeRecordsIntoIter<Box<dyn Read>, T> = ReaderBuilder::new()
+    let reader = ReaderBuilder::new()
         .has_headers(has_headers)
         .from_reader(r)
-        .into_deserialize::<T>();
+        .into_deserialize::<T>()
+        .map(move |r| {
+            if let Ok(t) = &r {
+                if let Some(cb) = &mut row_callback {
+                    cb(t);
+                }
+            }
+            r
+        });
+
     Ok(Box::new(reader))
 }
 
 /// reads a csv file into a vector. not space-optimized since size is not
 /// known.
-pub fn vec_from_csv<'a, F, T>(
+pub fn from_csv<'a, F, T>(
     filepath: &F,
     has_headers: bool,
-    size: Option<usize>,
-    mut row_callback: Option<Box<dyn FnMut(&T) + 'a>>,
-) -> Result<Vec<T>, csv::Error>
+    row_callback: Option<Box<dyn FnMut(&T) + 'a>>,
+) -> Result<Box<[T]>, csv::Error>
 where
     F: AsRef<Path>,
-    T: serde::de::DeserializeOwned + 'static + Copy,
+    T: serde::de::DeserializeOwned + 'a,
 {
-    let capacity = size.unwrap_or(2);
-    let mut result: Vec<T> = Vec::with_capacity(capacity);
-    let iter = iterator_from_csv(filepath, has_headers)?;
-    for row in iter {
-        let t = row?;
-        result.push(t);
-        if let Some(cb) = &mut row_callback {
-            cb(&t);
-        }
-    }
+    let iter: Box<dyn Iterator<Item = Result<T, csv::Error>>> =
+        iterator_from_csv(filepath, has_headers, row_callback)?;
+    let result = iter
+        .into_iter()
+        .collect::<Result<Vec<T>, csv::Error>>()?
+        .into_boxed_slice();
     return Ok(result);
 }
 
@@ -127,7 +72,7 @@ pub fn read_raw_file<'a, F: AsRef<Path>, T>(
     filepath: &F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
     row_callback: Option<Box<dyn FnMut() + 'a>>,
-) -> Result<Vec<T>, io::Error>
+) -> Result<Box<[T]>, io::Error>
 where
     F: AsRef<Path>,
 {
@@ -142,13 +87,13 @@ fn read_regular<'a, F, T>(
     filepath: &F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
     mut row_callback: Option<Box<dyn FnMut() + 'a>>,
-) -> Result<Vec<T>, io::Error>
+) -> Result<Box<[T]>, io::Error>
 where
     F: AsRef<Path>,
 {
     let file = File::open(filepath)?;
     let reader = BufReader::new(file);
-    let result: Result<Vec<T>, std::io::Error> = reader
+    let result: Result<Box<[T]>, std::io::Error> = reader
         .lines()
         .enumerate()
         .map(|(idx, row)| {
@@ -167,12 +112,12 @@ fn read_gzip<'a, F, T>(
     filepath: &F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
     mut row_callback: Option<Box<dyn FnMut() + 'a>>,
-) -> Result<Vec<T>, io::Error>
+) -> Result<Box<[T]>, io::Error>
 where
     F: AsRef<Path>,
 {
     let file = File::open(filepath)?;
-    let mut result: Vec<T> = vec![];
+    let mut result = vec![];
     let reader = BufReader::new(GzDecoder::new(file));
     for (idx, row) in reader.lines().enumerate() {
         let parsed = row?;
@@ -182,7 +127,7 @@ where
         }
         result.push(deserialized);
     }
-    return Ok(result);
+    return Ok(result.into_boxed_slice());
 }
 
 #[cfg(test)]
@@ -203,9 +148,15 @@ mod tests {
         let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
         let result = read_raw_file(&filepath, op, None).unwrap();
+        let expected = vec![
+            String::from("RouteE yay"),
+            String::from("FASTSim yay"),
+            String::from("HIVE yay"),
+            String::from("ADOPT yay"),
+        ]
+        .into_boxed_slice();
         assert_eq!(
-            result,
-            vec!["RouteE yay", "FASTSim yay", "HIVE yay", "ADOPT yay"],
+            result, expected,
             "result should include each row from the source file along with the bonus word"
         );
     }
@@ -222,9 +173,15 @@ mod tests {
         let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
         let result = read_raw_file(&filepath, op, None).unwrap();
+        let expected = vec![
+            String::from("RouteE yay"),
+            String::from("FASTSim yay"),
+            String::from("HIVE yay"),
+            String::from("ADOPT yay"),
+        ]
+        .into_boxed_slice();
         assert_eq!(
-            result,
-            vec!["RouteE yay", "FASTSim yay", "HIVE yay", "ADOPT yay"],
+            result, expected,
             "result should include each row from the source file along with the bonus word"
         );
     }

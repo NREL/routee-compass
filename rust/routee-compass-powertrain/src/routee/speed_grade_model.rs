@@ -236,7 +236,7 @@ fn get_energy_from_state(state: &TraversalState) -> Energy {
 
 /// look up the grade from the grade table
 pub fn get_grade(
-    grade_table: &Option<Vec<Grade>>,
+    grade_table: &Option<Box<[Grade]>>,
     edge_id: EdgeId,
 ) -> Result<Grade, TraversalModelError> {
     match grade_table {
