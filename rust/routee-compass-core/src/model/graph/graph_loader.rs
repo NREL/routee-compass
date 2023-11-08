@@ -51,7 +51,7 @@ pub fn graph_from_files<P: AsRef<Path>>(
         n_vertices,
     };
 
-    let vertices: Vec<Vertex> = v_conf.try_into()?;
+    let vertices: Box<[Vertex]> = v_conf.try_into()?;
 
     let graph = Graph {
         adj: e_result.adj,

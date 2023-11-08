@@ -38,7 +38,7 @@ impl VertexRTree {
     }
 
     pub fn from_directed_graph(graph: &Graph) -> Self {
-        let vertices = graph.vertices.iter().cloned().collect();
+        let vertices = graph.vertices.to_vec();
         Self::new(vertices)
     }
 
@@ -92,14 +92,14 @@ pub struct RTreePlugin {
 }
 
 impl RTreePlugin {
-    pub fn new(vertices: Vec<Vertex>) -> Self {
+    pub fn new(vertices: Box<[Vertex]>) -> Self {
         Self {
-            vertex_rtree: VertexRTree::new(vertices),
+            vertex_rtree: VertexRTree::new(vertices.to_vec()),
         }
     }
     pub fn from_file(vertex_file: &Path) -> Result<Self, PluginError> {
-        let vertices: Vec<Vertex> = read_utils::vec_from_csv(&vertex_file, true, None, None)
-            .map_err(PluginError::CsvReadError)?;
+        let vertices: Box<[Vertex]> =
+            read_utils::from_csv(&vertex_file, true, None).map_err(PluginError::CsvReadError)?;
         Ok(Self::new(vertices))
     }
 }

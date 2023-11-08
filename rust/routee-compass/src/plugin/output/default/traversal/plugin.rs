@@ -15,7 +15,7 @@ use routee_compass_core::util::fs::fs_utils;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 
 pub struct TraversalPlugin {
-    geoms: Vec<LineString<f64>>,
+    geoms: Box<[LineString<f64>]>,
     route: Option<TraversalOutputFormat>,
     tree: Option<TraversalOutputFormat>,
 }

@@ -10,7 +10,7 @@ use routee_compass_core::algorithm::search::search_error::SearchError;
 use routee_compass_core::util::fs::{fs_utils, read_utils::read_raw_file};
 
 pub struct UUIDOutputPlugin {
-    uuids: Vec<String>,
+    uuids: Box<[String]>,
 }
 
 impl UUIDOutputPlugin {
@@ -49,7 +49,7 @@ impl OutputPlugin for UUIDOutputPlugin {
     fn process(
         &self,
         output: &serde_json::Value,
-        search_result: Result<&SearchAppResult, SearchError>,
+        _search_result: Result<&SearchAppResult, SearchError>,
     ) -> Result<serde_json::Value, PluginError> {
         let mut updated_output = output.clone();
         let (origin_vertex_id, destination_vertex_id) = output.get_od_vertex_ids()?;

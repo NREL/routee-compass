@@ -10,7 +10,7 @@ pub struct VertexLoaderConfig {
     pub n_vertices: usize,
 }
 
-impl TryFrom<VertexLoaderConfig> for Vec<Vertex> {
+impl TryFrom<VertexLoaderConfig> for Box<[Vertex]> {
     type Error = GraphError;
 
     fn try_from(conf: VertexLoaderConfig) -> Result<Self, Self::Error> {
@@ -26,8 +26,7 @@ impl TryFrom<VertexLoaderConfig> for Vec<Vertex> {
             pb.update(1);
             processed = processed + 1;
         });
-        let result: Vec<Vertex> =
-            read_utils::vec_from_csv(&conf.vertex_list_csv, true, Some(conf.n_vertices), Some(cb))?;
+        let result: Box<[Vertex]> = read_utils::from_csv(&conf.vertex_list_csv, true, Some(cb))?;
 
         print!("\n");
         Ok(result)

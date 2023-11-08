@@ -11,7 +11,7 @@ pub struct GeomAppConfig {
 }
 
 pub struct GeomApp {
-    geoms: Vec<LineString>,
+    geoms: Box<[LineString]>,
 }
 
 impl TryFrom<&GeomAppConfig> for GeomApp {
@@ -53,7 +53,7 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
 impl GeomApp {
     /// run the GeomApp. reads each line of a file, which is expected to be a number coorelating to
     /// some EdgeId. looks up the geometry for that EdgeId.
-    pub fn run(&self, file: String) -> Result<Vec<LineString>, CompassAppError> {
+    pub fn run(&self, file: String) -> Result<Box<[LineString]>, CompassAppError> {
         let count = fs_utils::line_count(file.clone(), fs_utils::is_gzip(&file))
             .map_err(CompassAppError::IOError)?;
 
@@ -81,7 +81,7 @@ impl GeomApp {
             return result;
         };
 
-        let result: Vec<LineString> =
+        let result: Box<[LineString]> =
             read_utils::read_raw_file(&file, op, Some(cb)).map_err(CompassAppError::IOError)?;
         return Ok(result);
     }

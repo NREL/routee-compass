@@ -20,7 +20,7 @@ use crate::{
 };
 
 pub struct SpeedLookupModel {
-    speed_table: Vec<Speed>,
+    speed_table: Box<[Speed]>,
     speed_unit: SpeedUnit,
     output_time_unit: TimeUnit,
     output_distance_unit: DistanceUnit,
@@ -34,7 +34,7 @@ impl SpeedLookupModel {
         output_distance_unit_opt: Option<DistanceUnit>,
         output_time_unit_opt: Option<TimeUnit>,
     ) -> Result<SpeedLookupModel, TraversalModelError> {
-        let speed_table: Vec<Speed> =
+        let speed_table: Box<[Speed]> =
             read_utils::read_raw_file(&speed_table_path, read_decoders::default, None).map_err(
                 |e| {
                     TraversalModelError::FileReadError(
@@ -148,7 +148,10 @@ fn get_time_from_state(state: &TraversalState) -> Time {
 }
 
 /// look up a speed from the speed table
-pub fn get_speed(speed_table: &Vec<Speed>, edge_id: EdgeId) -> Result<Speed, TraversalModelError> {
+pub fn get_speed(
+    speed_table: &Box<[Speed]>,
+    edge_id: EdgeId,
+) -> Result<Speed, TraversalModelError> {
     let speed: &Speed = speed_table.get(edge_id.as_usize()).ok_or(
         TraversalModelError::MissingIdInTabularCostFunction(
             format!("{}", edge_id),
@@ -159,7 +162,7 @@ pub fn get_speed(speed_table: &Vec<Speed>, edge_id: EdgeId) -> Result<Speed, Tra
     Ok(*speed)
 }
 
-pub fn get_max_speed(speed_table: &Vec<Speed>) -> Result<Speed, TraversalModelError> {
+pub fn get_max_speed(speed_table: &Box<[Speed]>) -> Result<Speed, TraversalModelError> {
     let (max_speed, count) =
         speed_table
             .iter()

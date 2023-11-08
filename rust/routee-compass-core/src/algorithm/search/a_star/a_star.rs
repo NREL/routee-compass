@@ -366,10 +366,10 @@ mod tests {
         }
 
         let graph = Graph {
-            adj,
-            rev,
-            edges,
-            vertices,
+            adj: adj.into_boxed_slice(),
+            rev: rev.into_boxed_slice(),
+            edges: edges.into_boxed_slice(),
+            vertices: vertices.into_boxed_slice(),
         };
         graph
     }

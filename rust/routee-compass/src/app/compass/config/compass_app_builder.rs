@@ -195,7 +195,7 @@ impl CompassAppBuilder {
     pub fn build_input_plugins(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Vec<Box<dyn InputPlugin>>, CompassConfigurationError> {
+    ) -> Result<Box<[Box<dyn InputPlugin>]>, CompassConfigurationError> {
         let input_plugins_obj = config
             .get(CompassConfigurationField::InputPlugins.to_str())
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
@@ -238,13 +238,13 @@ impl CompassAppBuilder {
             let input_plugin = builder.build(plugin_json)?;
             plugins.push(input_plugin);
         }
-        return Ok(plugins);
+        return Ok(plugins.into_boxed_slice());
     }
 
     pub fn build_output_plugins(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Vec<Box<dyn OutputPlugin>>, CompassConfigurationError> {
+    ) -> Result<Box<[Box<dyn OutputPlugin>]>, CompassConfigurationError> {
         let output_plugins_obj = config
             .get(CompassConfigurationField::OutputPlugins.to_str())
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
@@ -287,6 +287,6 @@ impl CompassAppBuilder {
             let output_plugin = builder.build(plugin_json)?;
             plugins.push(output_plugin);
         }
-        return Ok(plugins);
+        return Ok(plugins.into_boxed_slice());
     }
 }
