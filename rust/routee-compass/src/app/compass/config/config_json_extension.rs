@@ -6,6 +6,8 @@ use std::{
     str::FromStr,
 };
 
+const FILE_NORMALIZATION_POSTFIX: &str = "_input_file";
+
 pub trait ConfigJsonExtensions {
     fn get_config_section(
         &self,
@@ -305,7 +307,10 @@ impl ConfigJsonExtensions for serde_json::Value {
             serde_json::Value::Object(obj) => {
                 let mut new_obj = serde_json::map::Map::new();
                 for (key, value) in obj.iter() {
-                    if key.ends_with("_file") || value.is_object() || value.is_array() {
+                    if key.ends_with(FILE_NORMALIZATION_POSTFIX)
+                        || value.is_object()
+                        || value.is_array()
+                    {
                         new_obj.insert(key.clone(), value.normalize_file_paths(root_config_path)?);
                     } else {
                         new_obj.insert(key.clone(), value.clone());

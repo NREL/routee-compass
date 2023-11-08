@@ -22,8 +22,10 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
     ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
         let traversal_key = CompassConfigurationField::Traversal.to_string();
         // todo: optional output time unit
-        let filename =
-            params.get_config_path(String::from("speed_table_file"), traversal_key.clone())?;
+        let filename = params.get_config_path(
+            String::from("speed_table_input_file"),
+            traversal_key.clone(),
+        )?;
         let speed_unit = params
             .get_config_serde::<SpeedUnit>(String::from("speed_unit"), traversal_key.clone())?;
         let distance_unit = params.get_config_serde_optional::<DistanceUnit>(

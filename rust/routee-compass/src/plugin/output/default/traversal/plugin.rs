@@ -8,7 +8,6 @@ use crate::plugin::plugin_error::PluginError;
 use geo::LineString;
 use kdam::Bar;
 use kdam::BarExt;
-use routee_compass_core::algorithm::search::search_error::SearchError;
 use routee_compass_core::util::fs::fs_utils;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 use std::path::Path;
@@ -27,10 +26,7 @@ impl TraversalPlugin {
     ) -> Result<TraversalPlugin, PluginError> {
         let count =
             fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename)).map_err(|e| {
-                PluginError::FileReadError {
-                    filename: filename.as_ref().to_path_buf(),
-                    message: e.to_string(),
-                }
+                PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
             })?;
 
         let mut pb = Bar::builder()
@@ -44,10 +40,7 @@ impl TraversalPlugin {
             pb.update(1);
         });
         let geoms = read_raw_file(&filename, parse_linestring, Some(cb)).map_err(|e| {
-            PluginError::FileReadError {
-                filename: filename.as_ref().to_path_buf(),
-                message: e.to_string(),
-            }
+            PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
         })?;
         print!("\n");
         Ok(TraversalPlugin { geoms, route, tree })

@@ -29,15 +29,19 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
     ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
         let traversal_key = CompassConfigurationField::Traversal.to_string();
 
-        let speed_table_path =
-            params.get_config_path(String::from("speed_table_file"), traversal_key.clone())?;
+        let speed_table_path = params.get_config_path(
+            String::from("speed_table_input_file"),
+            traversal_key.clone(),
+        )?;
         let speed_table_speed_unit = params.get_config_serde::<SpeedUnit>(
             String::from("speed_table_speed_unit"),
             traversal_key.clone(),
         )?;
 
-        let grade_table_path = params
-            .get_config_path_optional(String::from("grade_table_file"), traversal_key.clone())?;
+        let grade_table_path = params.get_config_path_optional(
+            String::from("grade_table_input_file"),
+            traversal_key.clone(),
+        )?;
         let grade_table_grade_unit = params.get_config_serde_optional::<GradeUnit>(
             String::from("graph_grade_unit"),
             traversal_key.clone(),
@@ -52,7 +56,7 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             let name = energy_model_config
                 .get_config_string(String::from("name"), traversal_key.clone())?;
             let model_path = energy_model_config
-                .get_config_path(String::from("model_file"), traversal_key.clone())?;
+                .get_config_path(String::from("model_input_file"), traversal_key.clone())?;
             let model_type = energy_model_config
                 .get_config_serde::<ModelType>(String::from("model_type"), traversal_key.clone())?;
             let speed_unit = energy_model_config

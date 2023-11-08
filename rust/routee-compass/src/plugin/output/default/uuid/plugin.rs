@@ -16,10 +16,7 @@ impl UUIDOutputPlugin {
     pub fn from_file<P: AsRef<Path>>(filename: &P) -> Result<UUIDOutputPlugin, PluginError> {
         let count =
             fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename)).map_err(|e| {
-                PluginError::FileReadError {
-                    filename: filename.as_ref().to_path_buf(),
-                    message: e.to_string(),
-                }
+                PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
             })?;
 
         let mut pb = Bar::builder()
@@ -34,10 +31,7 @@ impl UUIDOutputPlugin {
         });
 
         let uuids = read_raw_file(&filename, |_idx, row| Ok(row), Some(cb)).map_err(|e| {
-            PluginError::FileReadError {
-                filename: filename.as_ref().to_path_buf(),
-                message: e.to_string(),
-            }
+            PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
         })?;
         print!("\n");
         Ok(UUIDOutputPlugin { uuids })

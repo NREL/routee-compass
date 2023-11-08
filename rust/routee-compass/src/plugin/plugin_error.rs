@@ -17,8 +17,8 @@ pub enum PluginError {
     BuildError,
     #[error("nearest vertex not found for coord {0:?}")]
     NearestVertexNotFound(Coord),
-    #[error("unable to read file {filename} due to {message}")]
-    FileReadError { filename: PathBuf, message: String },
+    #[error("unable to read file {0} due to {1}")]
+    FileReadError(PathBuf, String),
     #[error(transparent)]
     JsonError(#[from] serde_json::Error),
     #[error(transparent)]

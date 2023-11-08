@@ -28,9 +28,9 @@ impl DefaultGraphBuilder {
     pub fn build(params: &serde_json::Value) -> Result<Graph, CompassConfigurationError> {
         let graph_key = CompassConfigurationField::Graph.to_string();
         let edge_list_csv =
-            params.get_config_path(String::from("edge_list_file"), graph_key.clone())?;
+            params.get_config_path(String::from("edge_list_input_file"), graph_key.clone())?;
         let vertex_list_csv =
-            params.get_config_path(String::from("vertex_list_file"), graph_key.clone())?;
+            params.get_config_path(String::from("vertex_list_input_file"), graph_key.clone())?;
         let n_edges =
             params.get_config_serde_optional(String::from("n_edges"), graph_key.clone())?;
         let n_vertices =

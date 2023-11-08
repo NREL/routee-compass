@@ -26,7 +26,7 @@ use routee_compass_core::{
 };
 use std::path::{Path, PathBuf};
 
-pub const CONFIG_FILE_KEY: &str = "config_file";
+pub const CONFIG_FILE_KEY: &str = "config_input_file";
 
 /// Instance of RouteE Compass as an application.
 /// When constructed, it holds
@@ -350,14 +350,6 @@ pub fn apply_output_processing(
             error_output
         }
         Ok(result) => {
-            // should be moved into TraversalModel::summary, queries requesting
-            // min spanning tree result will not have an acc_cost.
-            let mut acc_cost = Cost::ZERO;
-            for traversal in result.route.clone() {
-                let cost = traversal.edge_cost();
-                acc_cost = acc_cost + cost;
-            }
-
             log::debug!(
                 "completed route for request {}: {} links, {} tree size",
                 req,
@@ -365,7 +357,8 @@ pub fn apply_output_processing(
                 result.tree.len()
             );
 
-            // should be moved into TraversalModel::summary same reason as above
+            // should be moved into TraversalModel::summary, queries requesting
+            // min spanning tree result will not have a route.
             let route = result.route.to_vec();
             let last_edge_traversal = match route.last() {
                 None => {

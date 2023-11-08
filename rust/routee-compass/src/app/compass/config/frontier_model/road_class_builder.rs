@@ -17,7 +17,7 @@ impl FrontierModelBuilder for RoadClassBuilder {
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn FrontierModel>, CompassConfigurationError> {
         let frontier_key = CompassConfigurationField::Frontier.to_string();
-        let road_class_file_key = String::from("road_class_file");
+        let road_class_file_key = String::from("road_class_input_file");
         let valid_road_class_key = String::from("valid_road_classes");
 
         let road_class_file =

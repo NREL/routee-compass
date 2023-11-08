@@ -1,5 +1,7 @@
 use super::json_extensions::SummaryJsonExtensions;
-use crate::app::{search::search_app_result::SearchAppResult, compass::compass_app_error::CompassAppError};
+use crate::app::{
+    compass::compass_app_error::CompassAppError, search::search_app_result::SearchAppResult,
+};
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
 use routee_compass_core::{algorithm::search::search_error::SearchError, model::cost::cost::Cost};

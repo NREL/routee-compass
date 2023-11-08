@@ -40,7 +40,7 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
         let parent_key = String::from("traversal");
-        let geometry_filename_key = String::from("geometry_file");
+        let geometry_filename_key = String::from("geometry_input_file");
         let route_geometry_key = String::from("route");
         let tree_geometry_key = String::from("tree");
 
