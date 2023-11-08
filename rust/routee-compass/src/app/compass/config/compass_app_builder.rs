@@ -205,7 +205,7 @@ impl CompassAppBuilder {
             .into_boxed_slice();
 
         let mut plugins: Vec<Box<dyn InputPlugin>> = Vec::new();
-        for plugin_json in input_plugins {
+        for plugin_json in input_plugins.into_iter() {
             let plugin_type_obj =
                 plugin_json
                     .as_object()
@@ -249,7 +249,7 @@ impl CompassAppBuilder {
             .into_boxed_slice();
 
         let mut plugins: Vec<Box<dyn OutputPlugin>> = Vec::new();
-        for plugin_json in output_plugins {
+        for plugin_json in output_plugins.into_iter() {
             let plugin_json_obj =
                 plugin_json
                     .as_object()
