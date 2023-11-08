@@ -196,13 +196,11 @@ impl CompassAppBuilder {
     pub fn build_input_plugins(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Box<[Box<dyn InputPlugin>]>, CompassConfigurationError> {
-        let input_plugins = config
-            .get_config_array(
-                CompassConfigurationField::InputPlugins.to_string(),
-                CompassConfigurationField::Plugins.to_string(),
-            )?
-            .into_boxed_slice();
+    ) -> Result<Vec<Box<dyn InputPlugin>>, CompassConfigurationError> {
+        let input_plugins = config.get_config_array(
+            CompassConfigurationField::InputPlugins.to_string(),
+            CompassConfigurationField::Plugins.to_string(),
+        )?;
 
         let mut plugins: Vec<Box<dyn InputPlugin>> = Vec::new();
         for plugin_json in input_plugins.into_iter() {
@@ -231,22 +229,20 @@ impl CompassAppBuilder {
                     String::from("Input Plugin"),
                 ),
             )?;
-            let input_plugin = builder.build(plugin_json)?;
+            let input_plugin = builder.build(&plugin_json)?;
             plugins.push(input_plugin);
         }
-        return Ok(plugins.into_boxed_slice());
+        return Ok(plugins);
     }
 
     pub fn build_output_plugins(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Box<[Box<dyn OutputPlugin>]>, CompassConfigurationError> {
-        let output_plugins = config
-            .get_config_array(
-                CompassConfigurationField::OutputPlugins.to_string(),
-                CompassConfigurationField::Plugins.to_string(),
-            )?
-            .into_boxed_slice();
+    ) -> Result<Vec<Box<dyn OutputPlugin>>, CompassConfigurationError> {
+        let output_plugins = config.get_config_array(
+            CompassConfigurationField::OutputPlugins.to_string(),
+            CompassConfigurationField::Plugins.to_string(),
+        )?;
 
         let mut plugins: Vec<Box<dyn OutputPlugin>> = Vec::new();
         for plugin_json in output_plugins.into_iter() {
@@ -275,9 +271,9 @@ impl CompassAppBuilder {
                     String::from("Output Plugin"),
                 ),
             )?;
-            let output_plugin = builder.build(plugin_json)?;
+            let output_plugin = builder.build(&plugin_json)?;
             plugins.push(output_plugin);
         }
-        return Ok(plugins.into_boxed_slice());
+        return Ok(plugins);
     }
 }

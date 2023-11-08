@@ -38,8 +38,8 @@ pub const CONFIG_FILE_KEY: &str = "config_file";
 /// running RouteE Compass.
 pub struct CompassApp {
     pub search_app: SearchApp,
-    pub input_plugins: Box<[Box<dyn InputPlugin>]>,
-    pub output_plugins: Box<[Box<dyn OutputPlugin>]>,
+    pub input_plugins: Vec<Box<dyn InputPlugin>>,
+    pub output_plugins: Vec<Box<dyn OutputPlugin>>,
     pub parallelism: usize,
 }
 
@@ -302,7 +302,7 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
 /// helper that applies the input plugins to a query, returning the result(s) or an error if failed
 pub fn apply_input_plugins(
     query: &serde_json::Value,
-    plugins: &Box<[Box<dyn InputPlugin>]>,
+    plugins: &Vec<Box<dyn InputPlugin>>,
 ) -> Result<Vec<serde_json::Value>, serde_json::Value> {
     let init = Ok(vec![query.clone()]);
     let result = plugins
@@ -336,7 +336,7 @@ pub fn apply_input_plugins(
 pub fn apply_output_processing(
     response_data: (&serde_json::Value, Result<SearchAppResult, CompassAppError>),
     search_app: &SearchApp,
-    output_plugins: &Box<[Box<dyn OutputPlugin>]>,
+    output_plugins: &Vec<Box<dyn OutputPlugin>>,
 ) -> serde_json::Value {
     let (req, res) = response_data;
     match res {
