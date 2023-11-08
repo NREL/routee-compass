@@ -1,5 +1,15 @@
 # <img src="docs/images/routeelogo.png" alt="Routee Compass" width="100"/>
 
+<div align="left">
+    <img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11-blue"/>
+  <a href="https://pypi.org/project/nrel.routee.compass/">
+    <img src="https://img.shields.io/pypi/v/nrel.routee.compass" alt="PyPi Latest Release"/>
+  </a>
+  <a href="https://crates.io/crates/routee-compass">
+    <img src="https://img.shields.io/crates/v/routee-compass" alt="Crates.io Latest Release"/>
+  </a>
+</div>
+
 RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
 
 - Dynamic and extensible search objectives that allow customized blends of distance, time, cost, and energy (via RouteE Powertrain) at query-time
@@ -10,12 +20,7 @@ RouteE Compass is a part of the [RouteE](https://www.nrel.gov/transportation/rou
 
 ## Installation
 
-1. install Rust
-  - via [rust-lang.org](https://www.rust-lang.org/tools/install)
-  - via [conda](https://anaconda.org/conda-forge/rust)
-2. install RouteE Compass
-  - for Python via [pip](https://pypi.org/project/pip/): `$ pip install 'nrel.routee.compass[all]'`
-  - for the command line: `$ cd rust; cargo build -r`
+See the [installation](https://nrel.github.io/routee-compass/installation.html) guide for installing RouteE Compass
 
 ## Usage
 

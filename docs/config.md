@@ -23,26 +23,39 @@ verbose = true
 [traversal]
 # the speed_grade_energy_model can compute routes using time or energy as costs
 type = "speed_grade_energy_model"
-# what underlying machine learn framework to use [smartcore | onnx]
-model_type = "smartcore"
 # speeds for each edge in the graph
 speed_table_file = "edges-posted-speed-enumerated.txt.gz"
-# the file for the routee-powertrain model
-energy_model_file = "2016_TOYOTA_Camry_4cyl_2WD.bin"
-# the "best case" energy rate for this particular vehicle (something like highway mpg) that's used in the a-star algorithm
-ideal_energy_rate = 0.02857142857
 # the units of the above speed table
 speed_table_speed_unit = "kilometers_per_hour"
-# the units of what the routee-powertrain model expects speed to be in
-energy_model_speed_unit = "miles_per_hour"
-# the units of what the routee-powertrain model expects grade to be in
-energy_model_grade_unit = "decimal"
-# the units of what the routee-powertrain model outputs for energy
-energy_model_energy_rate_unit = "gallons_gasoline_per_mile"
+# grades for each edge in the graph
+grade_table_file = "edges-grade-enumerated.txt.gz"
+# the units of the above graph table
+grade_table_grade_unit = "decimal"
 # the units of what the traversal model outputs for time
 output_time_unit = "minutes"
 # the units of what the traversal model outputs for distance
 output_distance_unit = "miles"
+
+# here, we specify which energy models to make available at query time
+# if you wanted to add more models, you would make a new [[traversal.energy_models]] section.
+[[traversal.energy_models]]
+# the name of the model that can be passed in from a query as "model_name"
+name = "2012_Ford_Focus"
+# the file for the routee-powertrain model
+model_file = "models/2012_Ford_Focus.bin"
+# what underlying machine learn framework to use [smartcore | onnx]
+model_type = "smartcore"
+# the units of what the routee-powertrain model expects speed to be in
+speed_unit = "miles_per_hour"
+# the units of what the routee-powertrain model expects grade to be in
+grade_unit = "decimal"
+# the units of what the routee-powertrain model outputs for energy
+energy_rate_unit = "gallons_gasoline_per_mile"
+# the "best case" energy rate for this particular vehicle (something like highway mpg) that's used in the a-star algorithm
+ideal_energy_rate = 0.02857143
+# A real world adjustment factor for things like temperature and auxillary loads
+real_world_energy_adjustment = 1.166
+
 
 # which plugins should be activated?
 [plugin]

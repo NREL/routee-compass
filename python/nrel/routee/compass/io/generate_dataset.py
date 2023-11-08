@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 def generate_compass_dataset(
     g,
-    output_directory: Path,
+    output_directory: Union[str, Path],
     hwy_speeds: Optional[Dict] = None,
     fallback: Optional[float] = None,
     agg: Optional[Callable] = None,
@@ -29,7 +29,7 @@ def generate_compass_dataset(
 
     Args:
         g (MultiDiGraph): A network graph.
-        output_directory (Path): Directory path to use for writing new Compass files.
+        output_directory (Union[str, Path]): Directory path to use for writing new Compass files.
         hwy_speeds (Optional[Dict], optional): OSM highway types and values = typical speeds (km per
             hour) to assign to edges of that highway type for any edges missing
             speed data. Any edges with highway type not in `hwy_speeds` will be
@@ -66,6 +66,8 @@ def generate_compass_dataset(
             raise ImportError(
                 "requires Python 3.11 tomllib or pip install toml for earier Python versions"
             )
+
+    output_directory = Path(output_directory)
 
     # default aggregation is via numpy mean operation
     agg = agg if agg is not None else np.mean
