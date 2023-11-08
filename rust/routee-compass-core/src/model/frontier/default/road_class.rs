@@ -1,5 +1,3 @@
-
-
 use crate::model::{
     frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
     property::edge::Edge,

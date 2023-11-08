@@ -13,7 +13,7 @@ use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{algorithm::search::direction::Direction, model::graph::vertex_id::VertexId};
 use priority_queue::PriorityQueue;
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::RwLockReadGuard;
 use std::time::Instant;
@@ -324,7 +324,6 @@ pub fn h_cost(
 
 #[cfg(test)]
 mod tests {
-    
 
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;

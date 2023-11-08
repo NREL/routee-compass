@@ -5,6 +5,7 @@ use super::{
     },
     compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
+    config_json_extension::ConfigJsonExtensions,
     frontier_model::{
         no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
     },
@@ -196,18 +197,13 @@ impl CompassAppBuilder {
         &self,
         config: &serde_json::Value,
     ) -> Result<Box<[Box<dyn InputPlugin>]>, CompassConfigurationError> {
-        let input_plugins_obj = config
-            .get(CompassConfigurationField::InputPlugins.to_str())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
+        let input_plugins = config
+            .get_config_array(
                 CompassConfigurationField::InputPlugins.to_string(),
                 CompassConfigurationField::Plugins.to_string(),
-            ))?;
-        let input_plugins = input_plugins_obj.as_array().ok_or(
-            CompassConfigurationError::ExpectedFieldWithType(
-                String::from("input_plugins"),
-                String::from("Array"),
-            ),
-        )?;
+            )?
+            .into_boxed_slice();
+
         let mut plugins: Vec<Box<dyn InputPlugin>> = Vec::new();
         for plugin_json in input_plugins {
             let plugin_type_obj =
@@ -245,18 +241,13 @@ impl CompassAppBuilder {
         &self,
         config: &serde_json::Value,
     ) -> Result<Box<[Box<dyn OutputPlugin>]>, CompassConfigurationError> {
-        let output_plugins_obj = config
-            .get(CompassConfigurationField::OutputPlugins.to_str())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
+        let output_plugins = config
+            .get_config_array(
                 CompassConfigurationField::OutputPlugins.to_string(),
                 CompassConfigurationField::Plugins.to_string(),
-            ))?;
-        let output_plugins = output_plugins_obj.as_array().ok_or(
-            CompassConfigurationError::ExpectedFieldWithType(
-                String::from("output_plugins"),
-                String::from("Array"),
-            ),
-        )?;
+            )?
+            .into_boxed_slice();
+
         let mut plugins: Vec<Box<dyn OutputPlugin>> = Vec::new();
         for plugin_json in output_plugins {
             let plugin_json_obj =

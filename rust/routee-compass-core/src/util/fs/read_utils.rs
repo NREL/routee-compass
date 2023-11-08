@@ -1,6 +1,7 @@
 use super::fs_utils;
 use csv::ReaderBuilder;
 use flate2::read::GzDecoder;
+use std::io::ErrorKind;
 use std::{
     fs::File,
     io::{self, BufRead, BufReader},

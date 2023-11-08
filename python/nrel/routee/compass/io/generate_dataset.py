@@ -1,12 +1,8 @@
 from typing import Callable, Dict, Optional, Union
 from pathlib import Path
-from nrel.routee.compass.io.models import (
-    ADJUSTMENT_FACTORS,
-    ENERGY_OUTPUT_UNITS,
-    IDEAL_ENERGY_RATES,
-    MODELS_POWERTRAINS,
-)
 from pkg_resources import resource_filename
+
+import importlib.resources
 import logging
 import shutil
 
@@ -24,7 +20,6 @@ def generate_compass_dataset(
     add_grade: bool = False,
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
-    energy_model: str = "2016_TOYOTA_Camry_4cyl_2WD",
 ):
     """
     Processes a graph downloaded via OSMNx, generating the set of input
@@ -182,52 +177,19 @@ def generate_compass_dataset(
                             "grade_table_file"
                         ] = "edges-grade-enumerated.txt.gz"
                         init_toml["traversal"]["grade_table_grade_unit"] = "decimal"
-
-                    powertrain_type = MODELS_POWERTRAINS.get(energy_model)
-                    if powertrain_type is None:
-                        raise ValueError(
-                            f"Could not find powertrain type for {energy_model}."
-                        )
-                    adjustment_factor = ADJUSTMENT_FACTORS.get(powertrain_type)
-                    if adjustment_factor is None:
-                        raise ValueError(
-                            f"Could not find adjustment factor for {powertrain_type}."
-                        )
-                    init_toml["traversal"][
-                        "real_world_energy_adjustment"
-                    ] = adjustment_factor
-                    init_toml["traversal"]["energy_model_file"] = f"{energy_model}.bin"
-
-                    energy_model_energy_rate_unit = ENERGY_OUTPUT_UNITS.get(
-                        powertrain_type
-                    )
-                    if energy_model_energy_rate_unit is None:
-                        raise ValueError(
-                            f"Could not find energy rate unit for {powertrain_type}."
-                        )
-
-                    init_toml["traversal"][
-                        "energy_model_energy_rate_unit"
-                    ] = energy_model_energy_rate_unit
-
-                    ideal_energy_rate = IDEAL_ENERGY_RATES.get(powertrain_type)
-                    if ideal_energy_rate is None:
-                        raise ValueError(
-                            f"Could not find ideal energy rate for {powertrain_type}."
-                        )
-
-                    init_toml["traversal"]["ideal_energy_rate"] = ideal_energy_rate
-
             with open(output_directory / filename, "w") as f:
                 f.write(toml.dumps(init_toml))
 
-    # COPY ROUTEE ENERGY MODEL
-    log.info(f"copying RouteE Powertrain model {energy_model}")
-    model_src = Path(
-        resource_filename("nrel.routee.compass.resources.models", f"{energy_model}.bin")
-    )
-    if not model_src.exists():
-        raise ValueError(f"Could not find {energy_model} in the resources directory.")
-
-    model_dst = output_directory / f"{energy_model}.bin"
-    shutil.copy(model_src, model_dst)
+    # COPY ROUTEE ENERGY MODEL CATALOG
+    log.info("copying RouteE Powertrain models")
+    model_directory = importlib.resources.files("nrel.routee.compass.resources.models")
+    model_output_directory = output_directory / "models"
+    if not model_output_directory.exists():
+        model_output_directory.mkdir(exist_ok=True)
+    for model_file in model_directory.iterdir():
+        if not model_file.name.endswith(".bin"):
+            continue
+        if model_file.is_file():
+            with importlib.resources.as_file(model_file) as model_path:
+                model_dst = model_output_directory / model_path.name
+                shutil.copy(model_path, model_dst)

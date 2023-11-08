@@ -1,8 +1,5 @@
-
-
-use serde::{Deserialize, Serialize};
-
 use super::{DistanceUnit, EnergyUnit};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Copy)]
 #[serde(rename_all = "snake_case")]

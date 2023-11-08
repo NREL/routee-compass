@@ -1,18 +1,13 @@
-use std::{
-    path::{Path},
-    sync::Arc,
+use super::{
+    prediction_model::SpeedGradePredictionModel,
+    smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel,
 };
-
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
     util::unit::{EnergyRateUnit, GradeUnit, SpeedUnit},
 };
 use serde::{Deserialize, Serialize};
-
-use super::{
-    prediction_model::SpeedGradePredictionModel,
-    smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel,
-};
+use std::{path::Path, sync::Arc};
 
 #[cfg(feature = "onnx")]
 use super::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
