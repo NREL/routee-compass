@@ -4,7 +4,7 @@ use crate::app::{
 };
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
-use routee_compass_core::{model::cost::cost::Cost};
+use routee_compass_core::model::cost::cost::Cost;
 use serde_json;
 
 pub struct SummaryOutputPlugin {}

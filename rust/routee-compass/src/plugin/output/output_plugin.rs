@@ -2,7 +2,6 @@ use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::plugin_error::PluginError;
 
-
 /// Performs some kind of post-processing on a search result. The result JSON is available
 /// to the plugin as a reference which was potentially modified upstream by another output
 /// plugin. The plugin will output a modified version of the JSON as a result.
