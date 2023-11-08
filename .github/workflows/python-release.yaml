@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    if: startsWith(github.ref, 'refs/tags/py-') # 
     name: build py3.${{ matrix.python-version }} on ${{ matrix.platform || matrix.os }}
     strategy:
       fail-fast: false
