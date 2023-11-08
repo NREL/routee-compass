@@ -340,13 +340,14 @@ pub fn apply_output_processing(
     output_plugins: &Vec<Box<dyn OutputPlugin>>,
 ) -> Vec<serde_json::Value> {
     let (req, res) = response_data;
-    match res {
+
+    let init_output = match &res {
         Err(e) => {
             let error_output = serde_json::json!({
                 "request": req,
                 "error": e.to_string()
             });
-            vec![error_output]
+            error_output
         }
         Ok(result) => {
             // should be moved into TraversalModel::summary, queries requesting
@@ -396,39 +397,41 @@ pub fn apply_output_processing(
                 "tree_edge_count": result.tree.len(),
                 "traversal_summary": tmodel.serialize_state_with_info(&last_edge_traversal.result_state),
             });
-            let init_acc: Result<Vec<serde_json::Value>, PluginError> = Ok(vec![init_output]);
-            let json_result = output_plugins
-                .iter()
-                .fold(init_acc, |acc, p| {
-                    acc.and_then(|outer| {
-                        outer
-                            .iter()
-                            .map(|output| p.process(output, Ok(&result)))
-                            .collect::<Result<Vec<_>, PluginError>>()
-                            .map(|inner| {
-                                inner
-                                    .into_iter()
-                                    .flatten()
-                                    .collect::<Vec<serde_json::Value>>()
-                            })
-                    })
-                })
-                .map_err(|e| {
-                    serde_json::json!({
-                        "request": req,
-                        "error": e.to_string()
-                    })
-                });
-            match json_result {
-                Err(e) => {
-                    vec![serde_json::json!({
-                        "request": req,
-                        "error": e.to_string()
-                    })]
-                }
-                Ok(json) => json,
-            }
+            init_output
         }
+    };
+
+    let init_acc: Result<Vec<serde_json::Value>, PluginError> = Ok(vec![init_output]);
+    let json_result = output_plugins
+        .iter()
+        .fold(init_acc, |acc, p| {
+            acc.and_then(|outer| {
+                outer
+                    .iter()
+                    .map(|output| p.process(output, &res))
+                    .collect::<Result<Vec<_>, PluginError>>()
+                    .map(|inner| {
+                        inner
+                            .into_iter()
+                            .flatten()
+                            .collect::<Vec<serde_json::Value>>()
+                    })
+            })
+        })
+        .map_err(|e| {
+            serde_json::json!({
+                "request": req,
+                "error": e.to_string()
+            })
+        });
+    match json_result {
+        Err(e) => {
+            vec![serde_json::json!({
+                "request": req,
+                "error": e.to_string()
+            })]
+        }
+        Ok(json) => json,
     }
 }
 

@@ -1,6 +1,7 @@
 use super::json_extensions::TraversalJsonField;
 use super::traversal_output_format::TraversalOutputFormat;
 use super::utils::parse_linestring;
+use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
@@ -57,7 +58,7 @@ impl OutputPlugin for TraversalPlugin {
     fn process(
         &self,
         output: &serde_json::Value,
-        search_result: Result<&SearchAppResult, SearchError>,
+        search_result: &Result<SearchAppResult, CompassAppError>,
     ) -> Result<Vec<serde_json::Value>, PluginError> {
         match search_result {
             Err(_) => Ok(vec![output.clone()]),
@@ -177,7 +178,7 @@ mod tests {
             TraversalPlugin::from_file(&filename, Some(TraversalOutputFormat::Wkt), None).unwrap();
 
         let result = geom_plugin
-            .process(&output_result, Ok(&search_result))
+            .process(&output_result, &Ok(search_result))
             .unwrap();
         let geometry_wkt = result[0].get_route_geometry_wkt().unwrap();
         assert_eq!(geometry_wkt, expected_geometry);

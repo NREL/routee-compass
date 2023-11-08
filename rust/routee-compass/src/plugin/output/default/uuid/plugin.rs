@@ -1,4 +1,5 @@
 use super::json_extensions::UUIDJsonExtensions;
+use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError};
 use kdam::Bar;
@@ -47,7 +48,7 @@ impl OutputPlugin for UUIDOutputPlugin {
     fn process(
         &self,
         output: &serde_json::Value,
-        _search_result: Result<&SearchAppResult, SearchError>,
+        _search_result: &Result<SearchAppResult, CompassAppError>,
     ) -> Result<Vec<serde_json::Value>, PluginError> {
         let mut updated_output = output.clone();
         let (origin_vertex_id, destination_vertex_id) = output.get_od_vertex_ids()?;
