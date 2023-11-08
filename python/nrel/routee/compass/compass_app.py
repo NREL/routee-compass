@@ -11,6 +11,7 @@ from nrel.routee.compass.routee_compass_py import (
 Query = Dict[str, Any]
 Result = List[Dict[str, Any]]
 
+
 class CompassApp:
     """
     The CompassApp holds everything needed to run a route query.
@@ -42,9 +43,7 @@ class CompassApp:
         app = CompassAppWrapper._from_config_file(str(config_path.absolute()))
         return cls(app)
 
-    def run(
-        self, query: Union[Query, List[Query]]
-    ) -> Result:
+    def run(self, query: Union[Query, List[Query]]) -> Result:
         """
         Run a query (or multiple queries) against the CompassApp
 
@@ -88,5 +87,3 @@ class CompassApp:
         if single_query and len(results) == 1:
             return results[0]
         return results
-    
-
