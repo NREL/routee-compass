@@ -50,7 +50,7 @@ impl OutputPlugin for UUIDOutputPlugin {
         &self,
         output: &serde_json::Value,
         _search_result: Result<&SearchAppResult, SearchError>,
-    ) -> Result<serde_json::Value, PluginError> {
+    ) -> Result<Vec<serde_json::Value>, PluginError> {
         let mut updated_output = output.clone();
         let (origin_vertex_id, destination_vertex_id) = output.get_od_vertex_ids()?;
         let origin_uuid = self
@@ -64,6 +64,6 @@ impl OutputPlugin for UUIDOutputPlugin {
 
         updated_output.add_od_uuids(origin_uuid.clone(), destination_uuid.clone())?;
 
-        Ok(updated_output)
+        Ok(vec![updated_output])
     }
 }

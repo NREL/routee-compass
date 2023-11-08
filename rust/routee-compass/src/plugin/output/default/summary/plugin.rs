@@ -13,9 +13,9 @@ impl OutputPlugin for SummaryOutputPlugin {
         &self,
         output: &serde_json::Value,
         search_result: Result<&SearchAppResult, SearchError>,
-    ) -> Result<serde_json::Value, PluginError> {
+    ) -> Result<Vec<serde_json::Value>, PluginError> {
         match search_result {
-            Err(_e) => Ok(output.clone()),
+            Err(_e) => Ok(vec![output.clone()]),
             Ok(result) => {
                 let mut updated_output = output.clone();
                 let cost = result
@@ -24,7 +24,7 @@ impl OutputPlugin for SummaryOutputPlugin {
                     .map(|traversal| traversal.edge_cost())
                     .sum::<Cost>();
                 updated_output.add_cost(cost)?;
-                Ok(updated_output)
+                Ok(vec![updated_output])
             }
         }
     }
@@ -78,7 +78,7 @@ mod tests {
         let updated_output = summary_plugin
             .process(&output_result, Ok(&search_result))
             .unwrap();
-        let cost: f64 = updated_output.get_cost().unwrap().into();
+        let cost: f64 = updated_output[0].get_cost().unwrap().into();
         assert_eq!(cost, 6.0);
     }
 }

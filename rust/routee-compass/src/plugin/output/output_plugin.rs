@@ -38,5 +38,5 @@ pub trait OutputPlugin: Send + Sync {
         &self,
         output: &serde_json::Value,
         result: Result<&SearchAppResult, SearchError>,
-    ) -> Result<serde_json::Value, PluginError>;
+    ) -> Result<Vec<serde_json::Value>, PluginError>;
 }

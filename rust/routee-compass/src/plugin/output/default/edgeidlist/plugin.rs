@@ -12,9 +12,9 @@ impl OutputPlugin for EdgeIdListOutputPlugin {
         &self,
         output: &serde_json::Value,
         search_result: Result<&SearchAppResult, SearchError>,
-    ) -> Result<serde_json::Value, PluginError> {
+    ) -> Result<Vec<serde_json::Value>, PluginError> {
         match search_result {
-            Err(_e) => Ok(output.clone()),
+            Err(_e) => Ok(vec![output.clone()]),
             Ok(result) => {
                 let edge_ids = result
                     .route
@@ -24,7 +24,7 @@ impl OutputPlugin for EdgeIdListOutputPlugin {
                     .collect::<Vec<_>>();
                 let mut updated = output.clone();
                 updated.add_edge_list(&edge_ids)?;
-                Ok(updated)
+                Ok(vec![updated])
             }
         }
     }

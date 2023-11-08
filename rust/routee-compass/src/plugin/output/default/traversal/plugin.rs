@@ -59,9 +59,9 @@ impl OutputPlugin for TraversalPlugin {
         &self,
         output: &serde_json::Value,
         search_result: Result<&SearchAppResult, SearchError>,
-    ) -> Result<serde_json::Value, PluginError> {
+    ) -> Result<Vec<serde_json::Value>, PluginError> {
         match search_result {
-            Err(_) => Ok(output.clone()),
+            Err(_) => Ok(vec![output.clone()]),
             Ok(result) => {
                 let mut output_mut = output.clone();
                 let updated = output_mut
@@ -89,7 +89,7 @@ impl OutputPlugin for TraversalPlugin {
                     }
                 }
 
-                Ok(serde_json::Value::Object(updated.to_owned()))
+                Ok(vec![serde_json::Value::Object(updated.to_owned())])
             }
         }
     }
@@ -182,7 +182,7 @@ mod tests {
         let result = geom_plugin
             .process(&output_result, Ok(&search_result))
             .unwrap();
-        let geometry_wkt = result.get_route_geometry_wkt().unwrap();
+        let geometry_wkt = result[0].get_route_geometry_wkt().unwrap();
         assert_eq!(geometry_wkt, expected_geometry);
     }
 }

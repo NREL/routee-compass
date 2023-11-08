@@ -250,12 +250,13 @@ impl CompassApp {
                 queries
                     .iter()
                     .map(|q| self.run_single_query(q.clone()))
-                    .collect::<Result<Vec<serde_json::Value>, CompassAppError>>()
+                    .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()
             })
-            .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()?;
+            .collect::<Result<Vec<Vec<Vec<serde_json::Value>>>, CompassAppError>>()?;
 
         let run_result = run_query_result
             .into_iter()
+            .flatten()
             .flatten()
             .chain(input_error_responses)
             .collect();
@@ -278,7 +279,7 @@ impl CompassApp {
     pub fn run_single_query(
         &self,
         query: serde_json::Value,
-    ) -> Result<serde_json::Value, CompassAppError> {
+    ) -> Result<Vec<serde_json::Value>, CompassAppError> {
         let search_result = self.search_app.run_vertex_oriented(&query);
         let output = apply_output_processing(
             (&query, search_result),
@@ -337,7 +338,7 @@ pub fn apply_output_processing(
     response_data: (&serde_json::Value, Result<SearchAppResult, CompassAppError>),
     search_app: &SearchApp,
     output_plugins: &Vec<Box<dyn OutputPlugin>>,
-) -> serde_json::Value {
+) -> Vec<serde_json::Value> {
     let (req, res) = response_data;
     match res {
         Err(e) => {
@@ -345,7 +346,7 @@ pub fn apply_output_processing(
                 "request": req,
                 "error": e.to_string()
             });
-            error_output
+            vec![error_output]
         }
         Ok(result) => {
             // should be moved into TraversalModel::summary, queries requesting
@@ -367,20 +368,20 @@ pub fn apply_output_processing(
             let route = result.route.to_vec();
             let last_edge_traversal = match route.last() {
                 None => {
-                    return serde_json::json!({
+                    return vec![serde_json::json!({
                         "request": req,
                         "error": "route was empty"
-                    });
+                    })];
                 }
                 Some(et) => et,
             };
 
             let tmodel = match search_app.get_traversal_model_reference(req) {
                 Err(e) => {
-                    return serde_json::json!({
+                    return vec![serde_json::json!({
                         "request": req,
                         "error": e.to_string()
-                    })
+                    })]
                 }
                 Ok(tmodel) => tmodel,
             };
@@ -395,20 +396,35 @@ pub fn apply_output_processing(
                 "tree_edge_count": result.tree.len(),
                 "traversal_summary": tmodel.serialize_state_with_info(&last_edge_traversal.result_state),
             });
-            let init_acc: Result<serde_json::Value, PluginError> = Ok(init_output);
-            let json_result = output_plugins
+            let init_acc: Result<Vec<serde_json::Value>, PluginError> = Ok(vec![init_output]);
+            let json_result = output_plugins 
                 .iter()
-                .fold(init_acc, move |acc, plugin| match acc {
-                    Err(e) => Err(e),
-                    Ok(json) => plugin.process(&json, Ok(&result)),
+                .fold(init_acc, |acc, p| {
+                    acc.and_then(|outer| {
+                        outer
+                            .iter()
+                            .map(|output| p.process(output, Ok(&result)))
+                            .collect::<Result<Vec<_>, PluginError>>()
+                            .map(|inner| {
+                                inner
+                                    .into_iter()
+                                    .flatten()
+                                    .collect::<Vec<serde_json::Value>>()
+                            })
+                    })
                 })
-                .map_err(CompassAppError::PluginError);
-            match json_result {
-                Err(e) => {
+                .map_err(|e| {
                     serde_json::json!({
                         "request": req,
                         "error": e.to_string()
                     })
+                });
+            match json_result {
+                Err(e) => {
+                    vec![serde_json::json!({
+                        "request": req,
+                        "error": e.to_string()
+                    })]
                 }
                 Ok(json) => json,
             }
