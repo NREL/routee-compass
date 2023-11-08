@@ -8,7 +8,7 @@ use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;
 use routee_compass_core::util::unit::*;
 use std::path::Path;
-use std::path::PathBuf;
+
 use std::sync::Arc;
 
 #[cfg(feature = "onnx")]

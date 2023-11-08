@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::{Path};
 
 use crate::model::graph::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
@@ -191,7 +191,6 @@ mod tests {
             graph::{edge_id::EdgeId, vertex_id::VertexId},
             property::{edge::Edge, vertex::Vertex},
         },
-        util::unit::Grade,
     };
     use geo::coord;
     use std::path::PathBuf;

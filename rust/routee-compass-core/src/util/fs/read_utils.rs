@@ -3,7 +3,7 @@ use csv::ReaderBuilder;
 use flate2::read::GzDecoder;
 use std::{
     fs::File,
-    io::{self, BufRead, BufReader, Read},
+    io::{self, BufRead, BufReader},
     path::Path,
 };
 
