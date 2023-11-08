@@ -397,7 +397,7 @@ pub fn apply_output_processing(
                 "traversal_summary": tmodel.serialize_state_with_info(&last_edge_traversal.result_state),
             });
             let init_acc: Result<Vec<serde_json::Value>, PluginError> = Ok(vec![init_output]);
-            let json_result = output_plugins 
+            let json_result = output_plugins
                 .iter()
                 .fold(init_acc, |acc, p| {
                     acc.and_then(|outer| {
