@@ -9,7 +9,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Installation &#8212; RouteE Compass</title>
+    <title>RouteE Compass &#8212; RouteE Compass</title>
   
   
   
@@ -62,11 +62,9 @@ const thebe_selector_input = "pre"
 const thebe_selector_output = ".output, .cell_output"
 </script>
     <script async="async" src="_static/sphinx-thebe.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'installation';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'README';</script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Running" href="running.html" />
-    <link rel="prev" title="RouteE Compass" href="intro.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="python"/>
   </head>
@@ -168,8 +166,8 @@ const thebe_selector_output = ".output, .cell_output"
             </li>
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">Installation</a></li>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="running.html">Running</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
@@ -254,7 +252,7 @@ const thebe_selector_output = ".output, .cell_output"
       
       
       
-      <li><a href="https://github.com/NREL/routee-compass/issues/new?title=Issue%20on%20page%20%2Finstallation.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NREL/routee-compass/issues/new?title=Issue%20on%20page%20%2FREADME.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -284,7 +282,7 @@ const thebe_selector_output = ".output, .cell_output"
       
       
       
-      <li><a href="_sources/installation.md" target="_blank"
+      <li><a href="_sources/README.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -366,7 +364,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Installation</h1>
+    <h1>RouteE Compass</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -376,13 +374,7 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python">python</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conda-recommended">conda (recommended)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pip">pip</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-source">from source</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rust">rust</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quickstart">Quickstart</a></li>
 </ul>
             </nav>
         </div>
@@ -394,60 +386,20 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article" role="main">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">#</a></h1>
-<section id="python">
-<h2>python<a class="headerlink" href="#python" title="Permalink to this heading">#</a></h2>
-<section id="conda-recommended">
-<span id="conda-install"></span><h3>conda (recommended)<a class="headerlink" href="#conda-recommended" title="Permalink to this heading">#</a></h3>
-<p>The recommended way to get started with RouteE Compass is to use <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a> and <a class="reference external" href="https://pypi.org/project/pip/">pip</a> to install the python package:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda create -n routee-compass -c conda-forge python=3.10 toml rasterio gdal osmnx</span>
-<span class="go">conda activate routee-compass</span>
-<span class="go">pip install nrel.routee.compass</span>
-</pre></div>
-</div>
-<p>This creates a new conda environment and then installs several dependencies into it. After that, we activate the environment and then install RouteE Compass into it.</p>
-<p>This method is recommended if you want everything included or don't already have any road network data on your system.</p>
-</section>
-<section id="pip">
-<h3>pip<a class="headerlink" href="#pip" title="Permalink to this heading">#</a></h3>
-<p>You can also just directly install the package directly with <a class="reference external" href="https://pypi.org/project/pip/">pip</a> and none of the optional dependnecies:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install nrel.routee.compass</span>
-</pre></div>
-</div>
-<p>This is useful if you already have a road network dataset (see <a class="reference internal" href="notebooks/open_street_maps_example.html"><span class="doc std std-doc">here</span></a>) on your system and you just want to compute routes.</p>
-</section>
-<section id="from-source">
-<span id="python-from-source"></span><h3>from source<a class="headerlink" href="#from-source" title="Permalink to this heading">#</a></h3>
-<p>You can also install the python package from source with a couple of extra steps.</p>
-<p>The core engine is written in Rust and so we'll need access to a Rust compiler.
-There are a couple of ways to do this:</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="routee-compass">
+<h1>RouteE Compass<a class="headerlink" href="#routee-compass" title="Permalink to this heading">#</a></h1>
+<p>RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:</p>
+<ul class="simple">
+<li><p>Dynamic and extensible search objectives that allow customized blends of distance, time, cost, and energy (via RouteE Powertrain) at query-time</p></li>
+<li><p>Core engine written in Rust for improved runtimes, parallel query execution, and the ability to load nation-sized road networks into memory</p></li>
+<li><p>Rust, HTTP, and Python APIs for integration into different research pipelines and other software</p></li>
+</ul>
+<section id="quickstart">
+<h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p>The recommended way to install rust is to <a class="reference external" href="https://www.rust-lang.org/tools/install">use rustup</a>.</p></li>
-<li><p>An alternative way to get rust is to use the anaconda package manager <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">rust</span></code>.</p></li>
+<li><p>Follow the <a class="reference external" href="https://nrel.github.io/routee-compass/installation.html">install instructions</a> for the python package.</p></li>
+<li><p>Follow this <a class="reference external" href="https://nrel.github.io/routee-compass/notebooks/open_street_maps_example.html">example</a> to start routing over Open Street Maps data.</p></li>
 </ol>
-<p>Once you have rust available on your system, you can use <a class="reference external" href="https://pypi.org/project/pip/">pip</a> to install the package from source while in the repository root directory:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install .</span>
-</pre></div>
-</div>
-</section>
-</section>
-<section id="rust">
-<h2>rust<a class="headerlink" href="#rust" title="Permalink to this heading">#</a></h2>
-<p>In addition to the python package, you can also build the core rust application from source and run the application from the command line.</p>
-<p>Assuming you have rust on your system (see the <a class="reference internal" href="#python-from-source"><span class="std std-ref">from source</span></a> section above), you can build the application using <code class="docutils literal notranslate"><span class="pre">cargo</span></code>:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git clone https://github.com/NREL/routee-compass.git</span>
-
-<span class="go">cd routee-compass/rust</span>
-
-<span class="go">cargo build --release</span>
-</pre></div>
-</div>
-<p>This will build the command line application into the location <code class="docutils literal notranslate"><span class="pre">path/to/routee-compass/rust/target/release/routee-compass</span></code></p>
-<p>You can optionally alias the application to make it easier to run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">alias</span><span class="w"> </span>routee-compass<span class="o">=</span>path/to/routee-compass/rust/target/release/routee-compass
-</pre></div>
-</div>
 </section>
 </section>
 
@@ -481,24 +433,6 @@ There are a couple of ways to do this:</p>
                 <footer class="prev-next-footer">
                   <!-- Previous / next buttons -->
 <div class="prev-next-area">
-    <a class="left-prev"
-       href="intro.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">RouteE Compass</p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="running.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Running</p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
 </div>
                 </footer>
               
@@ -514,13 +448,7 @@ There are a couple of ways to do this:</p>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python">python</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conda-recommended">conda (recommended)</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pip">pip</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#from-source">from source</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rust">rust</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quickstart">Quickstart</a></li>
 </ul>
   </nav></div>
 

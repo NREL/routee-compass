@@ -2,53 +2,58 @@
 
 ## python
 
-### PyPI
+(conda-install)=
 
-You can install this package from PyPI using pip:
+### conda (recommended)
 
-```bash
+The recommended way to get started with RouteE Compass is to use [conda](https://docs.conda.io/en/latest/) and [pip](https://pypi.org/project/pip/) to install the python package:
+
+```console
+conda create -n routee-compass -c conda-forge python=3.10 toml rasterio gdal osmnx
+conda activate routee-compass
 pip install nrel.routee.compass
 ```
 
-Or, if you want plotting and OSM features:
+This creates a new conda environment and then installs several dependencies into it. After that, we activate the environment and then install RouteE Compass into it.
 
-```bash
-pip install 'nrel.routee.compass[all]'
+This method is recommended if you want everything included or don't already have any road network data on your system.
+
+### pip
+
+You can also just directly install the package directly with [pip](https://pypi.org/project/pip/) and none of the optional dependnecies:
+
+```console
+pip install nrel.routee.compass
 ```
+
+This is useful if you already have a road network dataset (see [here](notebooks/open_street_maps_example.ipynb)) on your system and you just want to compute routes.
+
+(python-from-source)=
 
 ### from source
 
-You can also install from source by running the following from the root folder of this repository:
-
-```bash
-pip install '.[all]'
-```
-
-## rust
-
-### get rust
+You can also install the python package from source with a couple of extra steps.
 
 The core engine is written in Rust and so we'll need access to a Rust compiler.
 There are a couple of ways to do this:
 
-#### rustup
+1. The recommended way to install rust is to [use rustup](https://www.rust-lang.org/tools/install).
 
-The recommended way to install rust is to [use rustup](https://www.rust-lang.org/tools/install).
+1. An alternative way to get rust is to use the anaconda package manager `conda install rust`.
 
-#### conda
+Once you have rust available on your system, you can use [pip](https://pypi.org/project/pip/) to install the package from source while in the repository root directory:
 
-An alternative way to get rust is to use the anaconda package manager:
-
-```bash
-conda create -n routee-compass python=3.10 rust
-conda activate routee-compass
+```console
+pip install .
 ```
 
-### build
+## rust
 
-Building the application from source can be done using `cargo`:
+In addition to the python package, you can also build the core rust application from source and run the application from the command line.
 
-```bash
+Assuming you have rust on your system (see the [from source](python-from-source) section above), you can build the application using `cargo`:
+
+```console
 git clone https://github.com/NREL/routee-compass.git
 
 cd routee-compass/rust
@@ -56,10 +61,10 @@ cd routee-compass/rust
 cargo build --release
 ```
 
-This will build the application into the location `path/to/routee-compass/rust/target/release/routee-compass`
+This will build the command line application into the location `path/to/routee-compass/rust/target/release/routee-compass`
 
 You can optionally alias the application to make it easier to run:
 
 ```bash
-alias compass-app=path/to/routee-compass/rust/target/release/routee-compass
+alias routee-compass=path/to/routee-compass/rust/target/release/routee-compass
 ```

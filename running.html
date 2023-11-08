@@ -395,7 +395,7 @@ document.write(`
 <section id="python">
 <h2>Python<a class="headerlink" href="#python" title="Permalink to this heading">#</a></h2>
 <p>We provide python bindings for the core engine that allow you to run queries from within python.
-After following the <span class="xref myst">installation instructions</span>, you can load an application and run queries like this:</p>
+After following the <a class="reference internal" href="installation.html"><span class="doc std std-doc">installation instructions</span></a>, you can load an application and run queries like this:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nrel.routee.compass</span> <span class="kn">import</span> <span class="n">CompassApp</span>
 
 <span class="n">app</span> <span class="o">=</span> <span class="n">CompassApp</span><span class="o">.</span><span class="n">from_config_file</span><span class="p">(</span><span class="s2">&quot;path/to/config.toml&quot;</span><span class="p">)</span>
@@ -412,11 +412,12 @@ After following the <span class="xref myst">installation instructions</span>, yo
 <span class="n">result</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>For a more detailed example, head <a class="reference internal" href="notebooks/open_street_maps_example.html"><span class="doc std std-doc">here</span></a>.</p>
 </section>
 <section id="command-line-application">
 <h2>Command line application<a class="headerlink" href="#command-line-application" title="Permalink to this heading">#</a></h2>
 <p>You can also just build the rust application and run it from the command line.
-After following the <span class="xref myst">installation instructions</span>, you can run the application like this:</p>
+After following the <a class="reference internal" href="installation.html"><span class="doc std std-doc">installation instructions</span></a>, you can run the application like this:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>path/to/routee-compass/rust/target/release/compass-app<span class="w"> </span>--config<span class="w"> </span>path/to/config.toml<span class="w"> </span>path/to/query.json
 </pre></div>
 </div>

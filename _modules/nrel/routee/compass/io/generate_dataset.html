@@ -343,7 +343,7 @@ document.write(`
 
 <div class="viewcode-block" id="generate_compass_dataset"><a class="viewcode-back" href="../../../../../python_api_docs.html#nrel.routee.compass.io.generate_dataset.generate_compass_dataset">[docs]</a><span class="k">def</span> <span class="nf">generate_compass_dataset</span><span class="p">(</span>
     <span class="n">g</span><span class="p">,</span>
-    <span class="n">output_directory</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">output_directory</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
     <span class="n">hwy_speeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fallback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">agg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -359,7 +359,7 @@ document.write(`
 
 <span class="sd">    Args:</span>
 <span class="sd">        g (MultiDiGraph): A network graph.</span>
-<span class="sd">        output_directory (Path): Directory path to use for writing new Compass files.</span>
+<span class="sd">        output_directory (Union[str, Path]): Directory path to use for writing new Compass files.</span>
 <span class="sd">        hwy_speeds (Optional[Dict], optional): OSM highway types and values = typical speeds (km per</span>
 <span class="sd">            hour) to assign to edges of that highway type for any edges missing</span>
 <span class="sd">            speed data. Any edges with highway type not in `hwy_speeds` will be</span>
@@ -396,6 +396,8 @@ document.write(`
             <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
                 <span class="s2">&quot;requires Python 3.11 tomllib or pip install toml for earier Python versions&quot;</span>
             <span class="p">)</span>
+
+    <span class="n">output_directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_directory</span><span class="p">)</span>
 
     <span class="c1"># default aggregation is via numpy mean operation</span>
     <span class="n">agg</span> <span class="o">=</span> <span class="n">agg</span> <span class="k">if</span> <span class="n">agg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span>

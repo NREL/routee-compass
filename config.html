@@ -435,26 +435,39 @@ We added some annotations to describe the different sections:</p>
 <span class="k">[traversal]</span>
 <span class="c1"># the speed_grade_energy_model can compute routes using time or energy as costs</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;speed_grade_energy_model&quot;</span>
-<span class="c1"># what underlying machine learn framework to use [smartcore | onnx]</span>
-<span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;smartcore&quot;</span>
 <span class="c1"># speeds for each edge in the graph</span>
 <span class="n">speed_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
-<span class="c1"># the file for the routee-powertrain model</span>
-<span class="n">energy_model_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2016_TOYOTA_Camry_4cyl_2WD.bin&quot;</span>
-<span class="c1"># the &quot;best case&quot; energy rate for this particular vehicle (something like highway mpg) that&#39;s used in the a-star algorithm</span>
-<span class="n">ideal_energy_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.02857142857</span>
 <span class="c1"># the units of the above speed table</span>
 <span class="n">speed_table_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kilometers_per_hour&quot;</span>
-<span class="c1"># the units of what the routee-powertrain model expects speed to be in</span>
-<span class="n">energy_model_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles_per_hour&quot;</span>
-<span class="c1"># the units of what the routee-powertrain model expects grade to be in</span>
-<span class="n">energy_model_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;decimal&quot;</span>
-<span class="c1"># the units of what the routee-powertrain model outputs for energy</span>
-<span class="n">energy_model_energy_rate_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gallons_gasoline_per_mile&quot;</span>
+<span class="c1"># grades for each edge in the graph</span>
+<span class="n">grade_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-grade-enumerated.txt.gz&quot;</span>
+<span class="c1"># the units of the above graph table</span>
+<span class="n">grade_table_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;decimal&quot;</span>
 <span class="c1"># the units of what the traversal model outputs for time</span>
 <span class="n">output_time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;minutes&quot;</span>
 <span class="c1"># the units of what the traversal model outputs for distance</span>
 <span class="n">output_distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles&quot;</span>
+
+<span class="c1"># here, we specify which energy models to make available at query time</span>
+<span class="c1"># if you wanted to add more models, you would make a new [[traversal.energy_models]] section.</span>
+<span class="k">[[traversal.energy_models]]</span>
+<span class="c1"># the name of the model that can be passed in from a query as &quot;model_name&quot;</span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2012_Ford_Focus&quot;</span>
+<span class="c1"># the file for the routee-powertrain model</span>
+<span class="n">model_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;models/2012_Ford_Focus.bin&quot;</span>
+<span class="c1"># what underlying machine learn framework to use [smartcore | onnx]</span>
+<span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;smartcore&quot;</span>
+<span class="c1"># the units of what the routee-powertrain model expects speed to be in</span>
+<span class="n">speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles_per_hour&quot;</span>
+<span class="c1"># the units of what the routee-powertrain model expects grade to be in</span>
+<span class="n">grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;decimal&quot;</span>
+<span class="c1"># the units of what the routee-powertrain model outputs for energy</span>
+<span class="n">energy_rate_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;gallons_gasoline_per_mile&quot;</span>
+<span class="c1"># the &quot;best case&quot; energy rate for this particular vehicle (something like highway mpg) that&#39;s used in the a-star algorithm</span>
+<span class="n">ideal_energy_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.02857143</span>
+<span class="c1"># A real world adjustment factor for things like temperature and auxillary loads</span>
+<span class="n">real_world_energy_adjustment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.166</span>
+
 
 <span class="c1"># which plugins should be activated?</span>
 <span class="k">[plugin]</span>
