@@ -21,7 +21,7 @@ use config::Config;
 use itertools::{Either, Itertools};
 use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::{
-    algorithm::search::search_algorithm::SearchAlgorithm, model::cost::cost::Cost,
+    algorithm::search::search_algorithm::SearchAlgorithm,
     util::duration_extension::DurationExtension,
 };
 use std::path::{Path, PathBuf};
