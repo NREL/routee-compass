@@ -2,11 +2,11 @@ name: Python build release for platforms
 
 on:
   release:
-    types: [ published ]
+    types: [published]
 
 jobs:
   build:
-    if: startsWith(github.ref, 'refs/tags/py-') # 
+    if: startsWith(github.ref, 'refs/tags/py-') #
     name: build py3.${{ matrix.python-version }} on ${{ matrix.platform || matrix.os }}
     strategy:
       fail-fast: false
@@ -19,6 +19,7 @@ jobs:
           - "9"
           - "10"
           - "11"
+          - "12"
         include:
           - os: ubuntu
             platform: linux
@@ -39,7 +40,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly 
+          toolchain: nightly
           override: true
       - run: rustup target add aarch64-apple-darwin
         if: matrix.os == 'macos'
@@ -48,7 +49,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly 
+          toolchain: nightly
           override: true
       - run: cd rust/ && cargo test
 
@@ -60,7 +61,7 @@ jobs:
         run: |
           pip install -U maturin
           maturin build --sdist --out dist/
-      
+
       - name: build ${{ matrix.platform || matrix.os }} binaries
         run: cibuildwheel --output-dir dist
         env:
@@ -71,7 +72,7 @@ jobs:
           # CIBW_TEST_COMMAND: "pytest {project}/tests -s"
           CIBW_ENVIRONMENT: 'PATH="$HOME/.cargo/bin:$PATH"'
           CIBW_ENVIRONMENT_WINDOWS: 'PATH="$UserProfile\.cargo\bin;$PATH"'
-          CIBW_ARCHS_MACOS: 'universal2'
+          CIBW_ARCHS_MACOS: "universal2"
           # see https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2
           # CIBW_TEST_SKIP: '*_universal2:arm64'
           CIBW_BEFORE_BUILD: >
@@ -83,12 +84,11 @@ jobs:
             curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=nightly --profile=minimal -y &&
             rustup show
 
-      - name: upload artifacts 
+      - name: upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: wheels 
-          path: dist 
-
+          name: wheels
+          path: dist
 #   upload:
 #     needs: build
 #     runs-on: ubuntu-latest
@@ -96,13 +96,13 @@ jobs:
 #       name: pypi
 #       url: https://pypi.org/p/altrios
 #     permissions:
-#       id-token: write 
+#       id-token: write
 #     steps:
 #       - name: Download all workflow run artifacts
 #         uses: actions/download-artifact@v2
 #         with:
 #           name: wheels
-#           path: dist 
+#           path: dist
 
 #       - name: publish package
 #         uses: pypa/gh-action-pypi-publish@release/v1

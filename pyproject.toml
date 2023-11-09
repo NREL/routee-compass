@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "nrel.routee.compass"
-version = "0.2.1"
+version = "0.3.0"
 description = "An eco-routing tool build upon RouteE-Powertrain"
 readme = "README.md"
 documentation = "nrel.github.io/routee-compass"
@@ -22,11 +22,8 @@ classifiers = [
 keywords = ["eco routing"]
 dependencies = []
 [project.optional-dependencies]
-all = ["nrel.routee.compass[osm]", "nrel.routee.compass[plot]"]
-osm = ['osmnx', 'toml']
-plot = ["folium", "matplotlib", "shapely>2"]
 dev = [
-    "nrel.routee.compass[all]",
+    "nrel.routee.compass",
     "black",
     "pytest",
     "maturin",
