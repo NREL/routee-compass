@@ -1,8 +1,8 @@
 query_timeout_ms = 3600000
 
 [graph]
-edge_list_file = "routee-compass/src/app/compass/test/energy_test/test_edges.csv"
-vertex_list_file = "routee-compass/src/app/compass/test/energy_test/test_vertices.csv"
+edge_list_input_file = "routee-compass/src/app/compass/test/energy_test/test_edges.csv"
+vertex_list_input_file = "routee-compass/src/app/compass/test/energy_test/test_vertices.csv"
 verbose = true
 
 [algorithm]
@@ -12,8 +12,8 @@ bidirectional = false
 [traversal]
 type = "speed_grade_energy_model"
 model_type = "smartcore"
-speed_table_file = "routee-compass/src/app/compass/test/energy_test/test_edge_speeds.csv"
-energy_model_file = "../routee-compass-powertrain/src/routee/test/Toyota_Camry.bin"
+speed_table_input_file = "routee-compass/src/app/compass/test/energy_test/test_edge_speeds.csv"
+energy_model_input_file = "../routee-compass-powertrain/src/routee/test/Toyota_Camry.bin"
 speed_table_speed_unit = "kilometers_per_hour"
 energy_model_speed_unit = "miles_per_hour"
 energy_model_energy_rate_unit = "gallons_gasoline_per_mile"

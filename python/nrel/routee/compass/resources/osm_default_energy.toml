@@ -1,31 +1,31 @@
 parallelism = 2
 
 [graph]
-edge_list_file = "edges-compass.csv.gz"
-vertex_list_file = "vertices-compass.csv.gz"
+edge_list_input_file = "edges-compass.csv.gz"
+vertex_list_input_file = "vertices-compass.csv.gz"
 verbose = true
 
 [plugin]
 input_plugins = [
     { type = "grid_search" },
-    { type = "vertex_rtree", vertices_file = "vertices-compass.csv.gz" },
+    { type = "vertex_rtree", vertices_input_file = "vertices-compass.csv.gz" },
 ]
 output_plugins = [
     { type = "summary" },
-    { type = "traversal", route = "geo_json", tree = "geo_json", geometry_file = "edges-geometries-enumerated.txt.gz" },
-    { type = "uuid", uuid_file = "vertices-uuid-enumerated.txt.gz" },
+    { type = "traversal", route = "geo_json", tree = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
+    { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
 ]
 
 [traversal]
 type = "speed_grade_energy_model"
-speed_table_file = "edges-posted-speed-enumerated.txt.gz"
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_table_speed_unit = "kilometers_per_hour"
 output_time_unit = "minutes"
 output_distance_unit = "miles"
 
 [[traversal.energy_models]]
 name = "2012_Ford_Focus"
-model_file = "models/2012_Ford_Focus.bin"
+model_input_file = "models/2012_Ford_Focus.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -35,7 +35,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2012_Ford_Fusion"
-model_file = "models/2012_Ford_Fusion.bin"
+model_input_file = "models/2012_Ford_Fusion.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -45,7 +45,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2016_AUDI_A3_4cyl_2WD"
-model_file = "models/2016_AUDI_A3_4cyl_2WD.bin"
+model_input_file = "models/2016_AUDI_A3_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -55,7 +55,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2016_BMW_328d_4cyl_2WD"
-model_file = "models/2016_BMW_328d_4cyl_2WD.bin"
+model_input_file = "models/2016_BMW_328d_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -65,7 +65,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2016_CHEVROLET_Malibu_4cyl_2WD"
-model_file = "models/2016_CHEVROLET_Malibu_4cyl_2WD.bin"
+model_input_file = "models/2016_CHEVROLET_Malibu_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -75,7 +75,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2016_CHEVROLET_Spark_EV"
-model_file = "models/2016_CHEVROLET_Spark_EV.bin"
+model_input_file = "models/2016_CHEVROLET_Spark_EV.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -85,7 +85,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2016_FORD_C-MAX_HEV"
-model_file = "models/2016_FORD_C-MAX_HEV.bin"
+model_input_file = "models/2016_FORD_C-MAX_HEV.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -95,7 +95,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.energy_models]]
 name = "2016_FORD_Escape_4cyl_2WD"
-model_file = "models/2016_FORD_Escape_4cyl_2WD.bin"
+model_input_file = "models/2016_FORD_Escape_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -105,7 +105,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2016_FORD_Explorer_4cyl_2WD"
-model_file = "models/2016_FORD_Explorer_4cyl_2WD.bin"
+model_input_file = "models/2016_FORD_Explorer_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -115,7 +115,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2016_HYUNDAI_Elantra_4cyl_2WD"
-model_file = "models/2016_HYUNDAI_Elantra_4cyl_2WD.bin"
+model_input_file = "models/2016_HYUNDAI_Elantra_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -125,7 +125,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2016_KIA_Optima_Hybrid"
-model_file = "models/2016_KIA_Optima_Hybrid.bin"
+model_input_file = "models/2016_KIA_Optima_Hybrid.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -135,7 +135,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.energy_models]]
 name = "2016_Leaf_24_kWh"
-model_file = "models/2016_Leaf_24_kWh.bin"
+model_input_file = "models/2016_Leaf_24_kWh.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -145,7 +145,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2016_MITSUBISHI_i-MiEV"
-model_file = "models/2016_MITSUBISHI_i-MiEV.bin"
+model_input_file = "models/2016_MITSUBISHI_i-MiEV.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -155,7 +155,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2016_Nissan_Leaf_30_kWh"
-model_file = "models/2016_Nissan_Leaf_30_kWh.bin"
+model_input_file = "models/2016_Nissan_Leaf_30_kWh.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -165,7 +165,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2016_TESLA_Model_S60_2WD"
-model_file = "models/2016_TESLA_Model_S60_2WD.bin"
+model_input_file = "models/2016_TESLA_Model_S60_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -175,7 +175,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2016_TOYOTA_Camry_4cyl_2WD"
-model_file = "models/2016_TOYOTA_Camry_4cyl_2WD.bin"
+model_input_file = "models/2016_TOYOTA_Camry_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -185,7 +185,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2016_TOYOTA_Corolla_4cyl_2WD"
-model_file = "models/2016_TOYOTA_Corolla_4cyl_2WD.bin"
+model_input_file = "models/2016_TOYOTA_Corolla_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -195,7 +195,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2016_TOYOTA_Highlander_Hybrid"
-model_file = "models/2016_TOYOTA_Highlander_Hybrid.bin"
+model_input_file = "models/2016_TOYOTA_Highlander_Hybrid.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -205,7 +205,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.energy_models]]
 name = "2016_Toyota_Prius_Two_FWD"
-model_file = "models/2016_Toyota_Prius_Two_FWD.bin"
+model_input_file = "models/2016_Toyota_Prius_Two_FWD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -215,7 +215,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.energy_models]]
 name = "2017_CHEVROLET_Bolt"
-model_file = "models/2017_CHEVROLET_Bolt.bin"
+model_input_file = "models/2017_CHEVROLET_Bolt.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -225,7 +225,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2017_Maruti_Dzire_VDI"
-model_file = "models/2017_Maruti_Dzire_VDI.bin"
+model_input_file = "models/2017_Maruti_Dzire_VDI.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -235,7 +235,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2017_Toyota_Highlander_3.5_L"
-model_file = "models/2017_Toyota_Highlander_3.5_L.bin"
+model_input_file = "models/2017_Toyota_Highlander_3.5_L.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -245,7 +245,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2020_Chevrolet_Colorado_2WD_Diesel"
-model_file = "models/2020_Chevrolet_Colorado_2WD_Diesel.bin"
+model_input_file = "models/2020_Chevrolet_Colorado_2WD_Diesel.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -255,7 +255,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2020_VW_Golf_1.5TSI"
-model_file = "models/2020_VW_Golf_1.5TSI.bin"
+model_input_file = "models/2020_VW_Golf_1.5TSI.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -265,7 +265,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2020_VW_Golf_2.0TDI"
-model_file = "models/2020_VW_Golf_2.0TDI.bin"
+model_input_file = "models/2020_VW_Golf_2.0TDI.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -275,7 +275,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2021_Fiat_Panda_Mild_Hybrid"
-model_file = "models/2021_Fiat_Panda_Mild_Hybrid.bin"
+model_input_file = "models/2021_Fiat_Panda_Mild_Hybrid.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -285,7 +285,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2021_Peugot_3008"
-model_file = "models/2021_Peugot_3008.bin"
+model_input_file = "models/2021_Peugot_3008.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -295,7 +295,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.energy_models]]
 name = "2022_Ford_F-150_Lightning_4WD"
-model_file = "models/2022_Ford_F-150_Lightning_4WD.bin"
+model_input_file = "models/2022_Ford_F-150_Lightning_4WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -305,7 +305,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2022_Renault_Zoe_ZE50_R135"
-model_file = "models/2022_Renault_Zoe_ZE50_R135.bin"
+model_input_file = "models/2022_Renault_Zoe_ZE50_R135.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -315,7 +315,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2022_Tesla_Model_3_RWD"
-model_file = "models/2022_Tesla_Model_3_RWD.bin"
+model_input_file = "models/2022_Tesla_Model_3_RWD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -325,7 +325,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2022_Tesla_Model_Y_RWD"
-model_file = "models/2022_Tesla_Model_Y_RWD.bin"
+model_input_file = "models/2022_Tesla_Model_Y_RWD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -335,7 +335,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2022_Toyota_Yaris_Hybrid_Mid"
-model_file = "models/2022_Toyota_Yaris_Hybrid_Mid.bin"
+model_input_file = "models/2022_Toyota_Yaris_Hybrid_Mid.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -345,7 +345,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.energy_models]]
 name = "2022_Volvo_XC40_Recharge_twin"
-model_file = "models/2022_Volvo_XC40_Recharge_twin.bin"
+model_input_file = "models/2022_Volvo_XC40_Recharge_twin.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"
@@ -355,7 +355,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.energy_models]]
 name = "2023_Mitsubishi_Pajero_Sport"
-model_file = "models/2023_Mitsubishi_Pajero_Sport.bin"
+model_input_file = "models/2023_Mitsubishi_Pajero_Sport.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
 grade_unit = "decimal"

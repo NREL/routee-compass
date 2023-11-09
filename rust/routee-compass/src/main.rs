@@ -39,10 +39,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let user_queries = user_json.get_queries()?;
     info!("Query: {:?}", user_json);
 
-    // run searches and return result
-    let output_rows = compass_app.run(user_queries)?;
-    let output_contents = serde_json::to_string(&output_rows)?;
-    std::fs::write("result.json", output_contents)?;
+    let results = compass_app.run(user_queries)?;
+
+    // scan the results and log any json values that have "error" in them
+    for result in results.iter() {
+        if let Some(error) = result.get("error") {
+            error!("Error: {}", error);
+        }
+    }
 
     return Ok(());
 }

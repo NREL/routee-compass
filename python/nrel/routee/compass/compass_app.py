@@ -3,10 +3,13 @@ from __future__ import annotations
 import json
 
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
+
+Query = Dict[str, Any]
+Result = List[Dict[str, Any]]
 
 
 class CompassApp:
@@ -40,9 +43,7 @@ class CompassApp:
         app = CompassAppWrapper._from_config_file(str(config_path.absolute()))
         return cls(app)
 
-    def run(
-        self, query: Union[Dict[str, Any], List[Dict[str, Any]]]
-    ) -> List[Dict[str, Any]]:
+    def run(self, query: Union[Query, List[Query]]) -> Result:
         """
         Run a query (or multiple queries) against the CompassApp
 

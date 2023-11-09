@@ -1,9 +1,10 @@
 use super::json_extensions::UUIDJsonExtensions;
+use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError};
 use kdam::Bar;
 use kdam::BarExt;
-use routee_compass_core::algorithm::search::search_error::SearchError;
+
 use routee_compass_core::util::fs::{fs_utils, read_utils::read_raw_file};
 use std::path::Path;
 
@@ -15,10 +16,7 @@ impl UUIDOutputPlugin {
     pub fn from_file<P: AsRef<Path>>(filename: &P) -> Result<UUIDOutputPlugin, PluginError> {
         let count =
             fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename)).map_err(|e| {
-                PluginError::FileReadError {
-                    filename: filename.as_ref().to_path_buf(),
-                    message: e.to_string(),
-                }
+                PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
             })?;
 
         let mut pb = Bar::builder()
@@ -33,10 +31,7 @@ impl UUIDOutputPlugin {
         });
 
         let uuids = read_raw_file(&filename, |_idx, row| Ok(row), Some(cb)).map_err(|e| {
-            PluginError::FileReadError {
-                filename: filename.as_ref().to_path_buf(),
-                message: e.to_string(),
-            }
+            PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
         })?;
         print!("\n");
         Ok(UUIDOutputPlugin { uuids })
@@ -47,8 +42,8 @@ impl OutputPlugin for UUIDOutputPlugin {
     fn process(
         &self,
         output: &serde_json::Value,
-        _search_result: Result<&SearchAppResult, SearchError>,
-    ) -> Result<serde_json::Value, PluginError> {
+        _search_result: &Result<SearchAppResult, CompassAppError>,
+    ) -> Result<Vec<serde_json::Value>, PluginError> {
         let mut updated_output = output.clone();
         let (origin_vertex_id, destination_vertex_id) = output.get_od_vertex_ids()?;
         let origin_uuid = self
@@ -62,6 +57,6 @@ impl OutputPlugin for UUIDOutputPlugin {
 
         updated_output.add_od_uuids(origin_uuid.clone(), destination_uuid.clone())?;
 
-        Ok(updated_output)
+        Ok(vec![updated_output])
     }
 }

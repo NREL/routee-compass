@@ -27,8 +27,8 @@ An example traversal model configuration that uses this crate may look like this
 [traversal]
 type = "speed_grade_energy_model"
 model_type = "smartcore"
-speed_table_file = "edges-posted-speed-enumerated.txt.gz"
-energy_model_file = "2016_TOYOTA_Camry_4cyl_2WD.bin"
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
+energy_model_input_file = "2016_TOYOTA_Camry_4cyl_2WD.bin"
 ideal_energy_rate = 0.02857142857
 speed_table_speed_unit = "kilometers_per_hour"
 energy_model_speed_unit = "miles_per_hour"
@@ -36,7 +36,7 @@ energy_model_grade_unit = "decimal"
 energy_model_energy_rate_unit = "gallons_gasoline_per_mile"
 output_time_unit = "minutes"
 output_distance_unit = "miles"
-grade_table_file = "edges-grade-enumerated.txt.gz"
+grade_table_input_file = "edges-grade-enumerated.txt.gz"
 grade_table_grade_unit = "decimal"
 ```
 

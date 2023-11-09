@@ -1,13 +1,13 @@
 use super::json_extensions::TraversalJsonField;
 use super::traversal_output_format::TraversalOutputFormat;
 use super::utils::parse_linestring;
+use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
 use geo::LineString;
 use kdam::Bar;
 use kdam::BarExt;
-use routee_compass_core::algorithm::search::search_error::SearchError;
 use routee_compass_core::util::fs::fs_utils;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 use std::path::Path;
@@ -26,10 +26,7 @@ impl TraversalPlugin {
     ) -> Result<TraversalPlugin, PluginError> {
         let count =
             fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename)).map_err(|e| {
-                PluginError::FileReadError {
-                    filename: filename.as_ref().to_path_buf(),
-                    message: e.to_string(),
-                }
+                PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
             })?;
 
         let mut pb = Bar::builder()
@@ -43,10 +40,7 @@ impl TraversalPlugin {
             pb.update(1);
         });
         let geoms = read_raw_file(&filename, parse_linestring, Some(cb)).map_err(|e| {
-            PluginError::FileReadError {
-                filename: filename.as_ref().to_path_buf(),
-                message: e.to_string(),
-            }
+            PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
         })?;
         print!("\n");
         Ok(TraversalPlugin { geoms, route, tree })
@@ -57,10 +51,10 @@ impl OutputPlugin for TraversalPlugin {
     fn process(
         &self,
         output: &serde_json::Value,
-        search_result: Result<&SearchAppResult, SearchError>,
-    ) -> Result<serde_json::Value, PluginError> {
+        search_result: &Result<SearchAppResult, CompassAppError>,
+    ) -> Result<Vec<serde_json::Value>, PluginError> {
         match search_result {
-            Err(_) => Ok(output.clone()),
+            Err(_) => Ok(vec![output.clone()]),
             Ok(result) => {
                 let mut output_mut = output.clone();
                 let updated = output_mut
@@ -88,7 +82,7 @@ impl OutputPlugin for TraversalPlugin {
                     }
                 }
 
-                Ok(serde_json::Value::Object(updated.to_owned()))
+                Ok(vec![serde_json::Value::Object(updated.to_owned())])
             }
         }
     }
@@ -177,9 +171,9 @@ mod tests {
             TraversalPlugin::from_file(&filename, Some(TraversalOutputFormat::Wkt), None).unwrap();
 
         let result = geom_plugin
-            .process(&output_result, Ok(&search_result))
+            .process(&output_result, &Ok(search_result))
             .unwrap();
-        let geometry_wkt = result.get_route_geometry_wkt().unwrap();
+        let geometry_wkt = result[0].get_route_geometry_wkt().unwrap();
         assert_eq!(geometry_wkt, expected_geometry);
     }
 }
