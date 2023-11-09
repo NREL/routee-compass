@@ -86,7 +86,6 @@ impl PointDistance for RTreeVertex {
 /// # Returns
 ///
 /// * An input plugin that uses an RTree to find the nearest vertex to the origin and destination coordinates.
-
 pub struct RTreePlugin {
     vertex_rtree: VertexRTree,
 }
@@ -108,19 +107,26 @@ impl InputPlugin for RTreePlugin {
     fn process(&self, input: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
         let mut updated = input.clone();
         let origin_coord = input.get_origin_coordinate()?;
-        let destination_coord = input.get_destination_coordinate()?;
+        let destination_coord_option = input.get_destination_coordinate()?;
 
         let origin_vertex = self
             .vertex_rtree
             .nearest_vertex(origin_coord)
             .ok_or(PluginError::NearestVertexNotFound(origin_coord))?;
 
-        let destination_vertex = self
-            .vertex_rtree
-            .nearest_vertex(destination_coord)
-            .ok_or(PluginError::NearestVertexNotFound(destination_coord))?;
         updated.add_origin_vertex(origin_vertex.vertex_id)?;
-        updated.add_destination_vertex(destination_vertex.vertex_id)?;
+
+        match destination_coord_option {
+            None => {}
+            Some(destination_coord) => {
+                let destination_vertex = self
+                    .vertex_rtree
+                    .nearest_vertex(destination_coord)
+                    .ok_or(PluginError::NearestVertexNotFound(destination_coord))?;
+                updated.add_destination_vertex(destination_vertex.vertex_id)?;
+            }
+        }
+
         Ok(vec![updated])
     }
 }

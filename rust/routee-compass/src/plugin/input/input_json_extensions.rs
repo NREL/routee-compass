@@ -6,7 +6,7 @@ use serde_json;
 
 pub trait InputJsonExtensions {
     fn get_origin_coordinate(&self) -> Result<geo::Coord<f64>, PluginError>;
-    fn get_destination_coordinate(&self) -> Result<geo::Coord<f64>, PluginError>;
+    fn get_destination_coordinate(&self) -> Result<Option<geo::Coord<f64>>, PluginError>;
     fn add_origin_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
     fn add_destination_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
     fn get_origin_vertex(&self) -> Result<VertexId, PluginError>;
@@ -36,28 +36,33 @@ impl InputJsonExtensions for serde_json::Value {
             ))?;
         Ok(geo::Coord::from((origin_x, origin_y)))
     }
-    fn get_destination_coordinate(&self) -> Result<geo::Coord<f64>, PluginError> {
-        let destination_x = self
-            .get(InputField::DestinationX.to_string())
-            .ok_or(PluginError::MissingField(
-                InputField::DestinationX.to_string(),
-            ))?
-            .as_f64()
-            .ok_or(PluginError::ParseError(
-                InputField::DestinationX.to_string(),
-                String::from("f64"),
-            ))?;
-        let destination_y = self
-            .get(InputField::DestinationY.to_string())
-            .ok_or(PluginError::MissingField(
-                InputField::DestinationY.to_string(),
-            ))?
-            .as_f64()
-            .ok_or(PluginError::ParseError(
-                InputField::DestinationY.to_string(),
-                String::from("f64"),
-            ))?;
-        Ok(geo::Coord::from((destination_x, destination_y)))
+    fn get_destination_coordinate(&self) -> Result<Option<geo::Coord<f64>>, PluginError> {
+        let x_field = InputField::DestinationX.to_string();
+        let y_field = InputField::DestinationY.to_string();
+        let x_opt = self.get(&x_field);
+        let y_opt = self.get(&y_field);
+        match (x_opt, y_opt) {
+            (None, None) => Ok(None),
+            (None, Some(_)) => Err(PluginError::MissingField(format!(
+                "{} provided without {}",
+                &y_field, &x_field
+            ))),
+            (Some(_), None) => Err(PluginError::MissingField(format!(
+                "{} provided without {}",
+                &x_field, &y_field
+            ))),
+            (Some(x_json), Some(y_json)) => {
+                let x = x_json.as_f64().ok_or(PluginError::ParseError(
+                    x_field.clone(),
+                    String::from("f64"),
+                ))?;
+                let y = y_json.as_f64().ok_or(PluginError::ParseError(
+                    y_field.clone(),
+                    String::from("f64"),
+                ))?;
+                Ok(Some(geo::Coord::from((x, y))))
+            }
+        }
     }
     fn add_origin_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError> {
         match self {
