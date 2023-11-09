@@ -333,10 +333,13 @@ document.write(`
 <span class="kn">import</span> <span class="nn">json</span>
 
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">nrel.routee.compass.routee_compass_py</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">CompassAppWrapper</span><span class="p">,</span>
 <span class="p">)</span>
+
+<span class="n">Query</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="n">Result</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
 
 
 <div class="viewcode-block" id="CompassApp"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp">[docs]</a><span class="k">class</span> <span class="nc">CompassApp</span><span class="p">:</span>
@@ -370,9 +373,7 @@ document.write(`
         <span class="n">app</span> <span class="o">=</span> <span class="n">CompassAppWrapper</span><span class="o">.</span><span class="n">_from_config_file</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="o">.</span><span class="n">absolute</span><span class="p">()))</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">app</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CompassApp.run"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<div class="viewcode-block" id="CompassApp.run"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Query</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Query</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run a query (or multiple queries) against the CompassApp</span>
 

@@ -384,22 +384,14 @@ document.write(`
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plugins">Plugins</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-plugins">Input Plugins</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grid-search">Grid Search</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#config">Config</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertex-rtree">Vertex RTree</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Config</a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grid-search">Grid Search</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertex-rtree">Vertex RTree</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-plugins">Output Plugins</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Config</a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#to-disk">To Disk</a></li>
 </ul>
 </li>
 </ul>
@@ -425,9 +417,9 @@ We added some annotations to describe the different sections:</p>
 <span class="c1"># the parameters for the underlying road network graph</span>
 <span class="k">[graph]</span>
 <span class="c1"># a file containing all the graph edges and their adjacencies</span>
-<span class="n">edge_list_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-compass.csv.gz&quot;</span>
+<span class="n">edge_list_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-compass.csv.gz&quot;</span>
 <span class="c1"># a file containing all the graph verticies</span>
-<span class="n">vertex_list_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
+<span class="n">vertex_list_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
 <span class="c1"># if verbose is true, you&#39;ll see more information when loading the graph</span>
 <span class="n">verbose</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
 
@@ -436,11 +428,11 @@ We added some annotations to describe the different sections:</p>
 <span class="c1"># the speed_grade_energy_model can compute routes using time or energy as costs</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;speed_grade_energy_model&quot;</span>
 <span class="c1"># speeds for each edge in the graph</span>
-<span class="n">speed_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
+<span class="n">speed_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
 <span class="c1"># the units of the above speed table</span>
 <span class="n">speed_table_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kilometers_per_hour&quot;</span>
 <span class="c1"># grades for each edge in the graph</span>
-<span class="n">grade_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-grade-enumerated.txt.gz&quot;</span>
+<span class="n">grade_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-grade-enumerated.txt.gz&quot;</span>
 <span class="c1"># the units of the above graph table</span>
 <span class="n">grade_table_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;decimal&quot;</span>
 <span class="c1"># the units of what the traversal model outputs for time</span>
@@ -454,7 +446,7 @@ We added some annotations to describe the different sections:</p>
 <span class="c1"># the name of the model that can be passed in from a query as &quot;model_name&quot;</span>
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2012_Ford_Focus&quot;</span>
 <span class="c1"># the file for the routee-powertrain model</span>
-<span class="n">model_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;models/2012_Ford_Focus.bin&quot;</span>
+<span class="n">model_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;models/2012_Ford_Focus.bin&quot;</span>
 <span class="c1"># what underlying machine learn framework to use [smartcore | onnx]</span>
 <span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;smartcore&quot;</span>
 <span class="c1"># the units of what the routee-powertrain model expects speed to be in</span>
@@ -481,7 +473,7 @@ We added some annotations to describe the different sections:</p>
 <span class="c1"># a vertex based RTree for matching incoming x/y coordinates to a graph vertex</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertex_rtree&quot;</span>
 <span class="c1"># a file with all the graph verticies</span>
-<span class="n">vertices_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
+<span class="n">vertices_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
 
 <span class="c1"># output plugs get applied to the result of running a query</span>
 <span class="k">[[plugin.output_plugins]]</span>
@@ -496,13 +488,13 @@ We added some annotations to describe the different sections:</p>
 <span class="c1"># return the full search tree in a geojson format</span>
 <span class="n">tree</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;geo_json&quot;</span>
 <span class="c1"># geometry objects for all the edges in the graph</span>
-<span class="n">geometry_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-geometries-enumerated.txt.gz&quot;</span>
+<span class="n">geometry_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-geometries-enumerated.txt.gz&quot;</span>
 
 <span class="k">[[plugin.output_plugins]]</span>
 <span class="c1"># append an map specific id(like Open Street Maps Nodes) onto the compass verticies (which use a simple integer internal index)</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;uuid&quot;</span>
 <span class="c1"># a file with ids for each vertex in the graph</span>
-<span class="n">uuid_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-uuid-enumerated.txt.gz&quot;</span>
+<span class="n">uuid_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-uuid-enumerated.txt.gz&quot;</span>
 </pre></div>
 </div>
 <section id="traversal-models">
@@ -524,7 +516,7 @@ Here are the default traversal models that come with the <code class="docutils l
 <p>The speed table traversal model uses a speed lookup table to compute the fastest (or shortest time) route.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[traversal]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;speed_table&quot;</span>
-<span class="n">speed_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
+<span class="n">speed_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
 <span class="n">speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kilometers_per_hour&quot;</span>
 <span class="n">output_distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles&quot;</span>
 <span class="n">output_time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;minutes&quot;</span>
@@ -537,10 +529,10 @@ Here are the default traversal models that come with the <code class="docutils l
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[traversal]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;speed_grade_energy_model&quot;</span>
 <span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;smartcore&quot;</span>
-<span class="n">speed_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz&quot;</span>
-<span class="n">grade_table_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz&quot;</span>
+<span class="n">speed_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz&quot;</span>
+<span class="n">grade_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz&quot;</span>
 <span class="n">grade_table_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;decimal&quot;</span>
-<span class="n">energy_model_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/2016_TOYOTA_Camry_4cyl_2WD.bin&quot;</span>
+<span class="n">energy_model_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;data/2016_TOYOTA_Camry_4cyl_2WD.bin&quot;</span>
 <span class="n">ideal_energy_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.02857142857</span>
 <span class="n">speed_table_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;kilometers_per_hour&quot;</span>
 <span class="n">energy_model_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;miles_per_hour&quot;</span>
@@ -599,26 +591,20 @@ Both queries and results are valid json objects and so a plugin takes in a json 
 <span class="p">]</span>
 </pre></div>
 </div>
-<section id="config">
-<h4>Config<a class="headerlink" href="#config" title="Permalink to this heading">#</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.input_plugins]]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;grid_search&quot;</span>
 </pre></div>
 </div>
 </section>
-</section>
 <section id="vertex-rtree">
 <h3>Vertex RTree<a class="headerlink" href="#vertex-rtree" title="Permalink to this heading">#</a></h3>
 <p>The vertex RTree plugin uses an RTree to match coordiantes to graph verticies.</p>
 <p>For example, if you specify your query origin and destination as lat/lon coordinates (i.e. <code class="docutils literal notranslate"><span class="pre">origin_x</span></code>, <code class="docutils literal notranslate"><span class="pre">origin_y</span></code>) we need a way to match this to the graph and then insert an <code class="docutils literal notranslate"><span class="pre">origin_vertex</span></code> or a <code class="docutils literal notranslate"><span class="pre">destination_vertex</span></code> into the query. Those two fields are what the application expects when conducting a search.</p>
-<section id="id1">
-<h4>Config<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.input_plugins]]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertex_rtree&quot;</span>
-<span class="n">vertices_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
+<span class="n">vertices_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;vertices-compass.csv.gz&quot;</span>
 </pre></div>
 </div>
-</section>
 </section>
 </section>
 <section id="output-plugins">
@@ -635,13 +621,11 @@ Both queries and results are valid json objects and so a plugin takes in a json 
 <section id="traversal">
 <h3>Traversal<a class="headerlink" href="#traversal" title="Permalink to this heading">#</a></h3>
 <p>A plugin that appends various items to the result.</p>
-<section id="id2">
-<h4>Config<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.output_plugins]]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;traversal&quot;</span>
 <span class="n">route</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;geo_json&quot;</span>
 <span class="n">tree</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;geo_json&quot;</span>
-<span class="n">geometry_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-geometries-enumerated.txt.gz&quot;</span>
+<span class="n">geometry_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;edges-geometries-enumerated.txt.gz&quot;</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">route</span></code> key will add route information to the result depending on the type.
@@ -653,6 +637,18 @@ The <code class="docutils literal notranslate"><span class="pre">tree</span></co
 <li><p>&quot;geo_json&quot;: annotated geometry data as a FeatureCollection of LineStrings with properties assigned from traversal metrics</p></li>
 </ul>
 </section>
+<section id="to-disk">
+<h3>To Disk<a class="headerlink" href="#to-disk" title="Permalink to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">to_disk</span></code> plugin writes the results to a specified output file rather than returning them when the <code class="docutils literal notranslate"><span class="pre">run</span></code> method is called.</p>
+<p>This plugin writes the results in newline delimited JSON.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.output_plugins]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;to_disk&quot;</span>
+
+<span class="c1"># where to write the results</span>
+<span class="c1"># relative to where the application is being run</span>
+<span class="n">output_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;result.json&quot;</span>
+</pre></div>
+</div>
 </section>
 </section>
 </section>
@@ -728,22 +724,14 @@ The <code class="docutils literal notranslate"><span class="pre">tree</span></co
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#plugins">Plugins</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#input-plugins">Input Plugins</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grid-search">Grid Search</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#config">Config</a></li>
-</ul>
-</li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertex-rtree">Vertex RTree</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Config</a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grid-search">Grid Search</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertex-rtree">Vertex RTree</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-plugins">Output Plugins</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Config</a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#to-disk">To Disk</a></li>
 </ul>
 </li>
 </ul>
