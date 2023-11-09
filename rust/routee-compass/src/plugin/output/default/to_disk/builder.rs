@@ -1,4 +1,10 @@
-use std::path::PathBuf;
+use std::{
+    fs::OpenOptions,
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
+
+use std::io::prelude::*;
 
 use crate::{
     app::compass::config::{
@@ -21,21 +27,29 @@ impl OutputPluginBuilder for ToDiskOutputPluginBuilder {
         let output_filename =
             parameters.get_config_string(output_filename_key, String::from("output"))?;
 
-        let output_filepath = PathBuf::from(&output_filename);
+        let output_file_path = PathBuf::from(&output_filename);
 
-        // create empty file
-        std::fs::write(output_filepath.clone(), "").map_err(|e| {
-            PluginError::FileReadError(
-                output_filepath.clone(),
-                format!(
-                    "Error initializing output file for to_disk output plugin : {}",
-                    e
-                ),
-            )
-        })?;
+        // initialize the file with nothing
+        std::fs::write(&output_file_path, "")?;
+
+        // open the file with the option to append to it
+        let file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(&output_file_path)
+            .map_err(|e| {
+                PluginError::FileReadError(
+                    output_file_path.clone(),
+                    format!("Could not open output file: {}", e),
+                )
+            })?;
+
+        // wrap the file in a mutex so we can share it between threads
+        let output_file = Arc::new(Mutex::new(file));
 
         let to_disk_plugin = ToDiskOutputPlugin {
-            output_file: output_filepath,
+            output_file_path,
+            output_file,
         };
         Ok(Box::new(to_disk_plugin))
     }
