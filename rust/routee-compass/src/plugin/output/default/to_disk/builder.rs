@@ -4,8 +4,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use std::io::prelude::*;
-
 use crate::{
     app::compass::config::{
         builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,

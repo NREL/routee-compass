@@ -195,8 +195,6 @@ The grid search plugin would take this single query and generate two queries tha
 ]
 ```
 
-#### Config
-
 ```toml
 [[plugin.input_plugins]]
 type = "grid_search"
@@ -207,8 +205,6 @@ type = "grid_search"
 The vertex RTree plugin uses an RTree to match coordiantes to graph verticies.
 
 For example, if you specify your query origin and destination as lat/lon coordinates (i.e. `origin_x`, `origin_y`) we need a way to match this to the graph and then insert an `origin_vertex` or a `destination_vertex` into the query. Those two fields are what the application expects when conducting a search.
-
-#### Config
 
 ```toml
 [[plugin.input_plugins]]
@@ -233,8 +229,6 @@ type = "summary"
 
 A plugin that appends various items to the result.
 
-#### Config
-
 ```toml
 [[plugin.output_plugins]]
 type = "traversal"
@@ -251,3 +245,18 @@ Both the `route` and the `tree` key are optional and if omitted, the plugin will
 - "json": non-geometry output writing traversal metrics (cost, state) as JSON for a route or a tree
 - "wkt": outputs a LINESTRING for a route, or a MULTILINESTRING for a tree
 - "geo_json": annotated geometry data as a FeatureCollection of LineStrings with properties assigned from traversal metrics
+
+### To Disk
+
+The `to_disk` plugin writes the results to a specified output file rather than returning them when the `run` method is called.
+
+This plugin writes the results in newline delimited JSON.
+
+```toml
+[[plugin.output_plugins]]
+type = "to_disk"
+
+# where to write the results
+# relative to where the application is being run
+output_file = "result.json"
+```
