@@ -3,10 +3,13 @@ use std::path::Path;
 use crate::plugin::input::input_json_extensions::InputJsonExtensions;
 use crate::plugin::input::input_plugin::InputPlugin;
 use crate::plugin::plugin_error::PluginError;
-use geo::{coord, Coord};
+use geo::{coord, Coord, Point};
 use routee_compass_core::{
     model::{graph::graph::Graph, property::vertex::Vertex},
-    util::fs::read_utils,
+    util::{
+        fs::read_utils,
+        unit::{Distance, DistanceUnit, BASE_DISTANCE_UNIT},
+    },
 };
 use rstar::{PointDistance, RTree, RTreeObject, AABB};
 
@@ -88,46 +91,127 @@ impl PointDistance for RTreeVertex {
 /// * An input plugin that uses an RTree to find the nearest vertex to the origin and destination coordinates.
 pub struct RTreePlugin {
     vertex_rtree: VertexRTree,
+    tolerance: Option<(Distance, DistanceUnit)>,
 }
 
 impl RTreePlugin {
-    pub fn new(vertices: Box<[Vertex]>) -> Self {
-        Self {
-            vertex_rtree: VertexRTree::new(vertices.to_vec()),
-        }
-    }
-    pub fn from_file(vertex_file: &Path) -> Result<Self, PluginError> {
+    /// creates a new R Tree input plugin instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `vertex_file` - file containing vertices
+    /// * `tolerance_distance` - optional max distance to nearest vertex (assumed infinity if not included)
+    /// * `distance_unit` - distance unit for tolerance, assumed BASE_DISTANCE_UNIT if not provided
+    ///
+    /// # Returns
+    ///
+    /// * a plugin instance or an error from file loading
+    pub fn new(
+        vertex_file: &Path,
+        tolerance_distance: Option<Distance>,
+        distance_unit: Option<DistanceUnit>,
+    ) -> Result<Self, PluginError> {
         let vertices: Box<[Vertex]> =
             read_utils::from_csv(&vertex_file, true, None).map_err(PluginError::CsvReadError)?;
-        Ok(Self::new(vertices))
+        let vertex_rtree = VertexRTree::new(vertices.to_vec());
+        let tolerance = match (tolerance_distance, distance_unit) {
+            (None, None) => None,
+            (None, Some(_)) => None,
+            (Some(t), None) => Some((t, BASE_DISTANCE_UNIT)),
+            (Some(t), Some(u)) => Some((t, u)),
+        };
+        Ok(RTreePlugin {
+            vertex_rtree,
+            tolerance,
+        })
     }
 }
 
 impl InputPlugin for RTreePlugin {
-    fn process(&self, input: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
-        let mut updated = input.clone();
-        let origin_coord = input.get_origin_coordinate()?;
-        let destination_coord_option = input.get_destination_coordinate()?;
+    /// finds the nearest graph vertex to the user-provided origin (and optionally, destination) coordinates.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - search query assumed to have at least an origin coordinate entry
+    ///
+    /// # Returns
+    ///
+    /// * either vertex ids for the nearest coordinates to the the origin (and optionally destination),
+    ///   or, an error if not found or not within tolerance
+    fn process(&self, query: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
+        let mut updated = query.clone();
+        let src_coord = query.get_origin_coordinate()?;
+        let dst_coord_option = query.get_destination_coordinate()?;
 
-        let origin_vertex = self
-            .vertex_rtree
-            .nearest_vertex(origin_coord)
-            .ok_or(PluginError::NearestVertexNotFound(origin_coord))?;
+        let src_vertex =
+            self.vertex_rtree
+                .nearest_vertex(src_coord)
+                .ok_or(PluginError::PluginFailed(format!(
+                    "nearest vertex not found for origin coordinate {:?}",
+                    src_coord
+                )))?;
 
-        updated.add_origin_vertex(origin_vertex.vertex_id)?;
+        validate_tolerance(src_coord, src_vertex.coordinate, &self.tolerance)?;
+        updated.add_origin_vertex(src_vertex.vertex_id)?;
 
-        match destination_coord_option {
+        match dst_coord_option {
             None => {}
-            Some(destination_coord) => {
-                let destination_vertex = self
-                    .vertex_rtree
-                    .nearest_vertex(destination_coord)
-                    .ok_or(PluginError::NearestVertexNotFound(destination_coord))?;
-                updated.add_destination_vertex(destination_vertex.vertex_id)?;
+            Some(dst_coord) => {
+                let dst_vertex = self.vertex_rtree.nearest_vertex(dst_coord).ok_or(
+                    PluginError::PluginFailed(format!(
+                        "nearest vertex not found for destination coordinate {:?}",
+                        dst_coord
+                    )),
+                )?;
+                validate_tolerance(dst_coord, dst_vertex.coordinate, &self.tolerance)?;
+                updated.add_destination_vertex(dst_vertex.vertex_id)?;
             }
         }
 
         Ok(vec![updated])
+    }
+}
+
+/// confirms that two coordinates are within some stated distance tolerance.
+/// if no tolerance is provided, the dst coordinate is assumed to be a valid distance.
+///
+/// # Arguments
+///
+/// * `src` - source coordinate
+/// * `dst` - destination coordinate that may or may not be within some distance
+///           tolerance of the src coordinate
+/// * `tolerance` - tolerance parameters set by user for the rtree plugin. if this is None,
+///                 all coordinate pairs are assumed to be within distance tolerance, but this
+///                 may lead to unexpected behavior where far away coordinates are considered "matched".
+///
+/// # Returns
+///
+/// * nothing, or an error if the coordinates are not within tolerance
+fn validate_tolerance(
+    src: Coord,
+    dst: Coord,
+    tolerance: &Option<(Distance, DistanceUnit)>,
+) -> Result<(), PluginError> {
+    match tolerance {
+        Some((tolerance_distance, tolerance_distance_unit)) => {
+            let distance_base = Distance::new(src.distance_2(&dst));
+            let distance = BASE_DISTANCE_UNIT.convert(distance_base, *tolerance_distance_unit);
+            if &distance >= tolerance_distance {
+                Err(PluginError::PluginFailed(
+                    format!(
+                        "coord {:?} nearest vertex coord is {:?} which is {} {} away, exceeding the distance tolerance of {}", 
+                        src,
+                        dst,
+                        distance,
+                        tolerance_distance,
+                        tolerance_distance_unit
+                    )
+                ))
+            } else {
+                Ok(())
+            }
+        }
+        None => Ok(()),
     }
 }
 
@@ -160,7 +244,7 @@ mod test {
             .join("test")
             .join("rtree_query.json");
         let query_str = fs::read_to_string(query_filepath).unwrap();
-        let rtree_plugin = RTreePlugin::from_file(&vertices_filepath).unwrap();
+        let rtree_plugin = RTreePlugin::new(&vertices_filepath, None, None).unwrap();
         let query: serde_json::Value = serde_json::from_str(&query_str).unwrap();
         let processed_query = rtree_plugin.process(&query).unwrap();
 

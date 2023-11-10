@@ -15,8 +15,8 @@ pub enum PluginError {
     InputError(String),
     #[error("error with building plugin")]
     BuildError,
-    #[error("nearest vertex not found for coord {0:?}")]
-    NearestVertexNotFound(Coord),
+    #[error("{0}")]
+    PluginFailed(String),
     #[error("unable to read file {0} due to {1}")]
     FileReadError(PathBuf, String),
     #[error(transparent)]
