@@ -36,7 +36,9 @@ impl TimeUnit {
 
 impl std::fmt::Display for TimeUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = serde_json::to_string(self).map_err(|_| std::fmt::Error)?;
+        let s = serde_json::to_string(self)
+            .map_err(|_| std::fmt::Error)?
+            .replace("\"", "");
         write!(f, "{}", s)
     }
 }

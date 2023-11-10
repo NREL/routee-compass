@@ -15,7 +15,7 @@ output_time_unit = "minutes"
 [plugin]
 input_plugins = [
     { type = "grid_search" },
-    { type = "vertex_rtree", vertices_input_file = "vertices-compass.csv.gz" },
+    { type = "vertex_rtree", distance_tolerance = 0.2, distance_unit = "kilometers", vertices_input_file = "vertices-compass.csv.gz" },
 ]
 output_plugins = [
     { type = "summary" },
