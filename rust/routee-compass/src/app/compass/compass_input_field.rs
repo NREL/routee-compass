@@ -3,12 +3,14 @@ use std::fmt::Display;
 #[derive(Debug)]
 pub enum CompassInputField {
     Queries,
+    ConfigInputFile,
 }
 
 impl CompassInputField {
     pub fn to_str(&self) -> &'static str {
         match self {
             CompassInputField::Queries => "queries",
+            CompassInputField::ConfigInputFile => "config_input_file",
         }
     }
     pub fn to_string(&self) -> String {
