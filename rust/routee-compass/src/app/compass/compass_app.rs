@@ -351,24 +351,21 @@ pub fn apply_output_processing(
         }
         Ok(result) => {
             log::debug!(
-                "completed route for request {}: {} links, {} tree size",
+                "completed search for request {}: {} edges in route, {} in tree",
                 req,
                 result.route.len(),
                 result.tree.len()
             );
 
-            // should be moved into TraversalModel::summary, queries requesting
-            // min spanning tree result will not have a route.
-            let route = result.route.to_vec();
-            let last_edge_traversal = match route.last() {
-                None => {
-                    return vec![serde_json::json!({
-                        "request": req,
-                        "error": "route was empty"
-                    })];
-                }
-                Some(et) => et,
-            };
+            let mut init_output = serde_json::json!({
+                "request": req,
+                "search_executed_time": result.search_start_time.to_rfc3339(),
+                "search_runtime": result.search_runtime.hhmmss(),
+                "route_runtime": result.route_runtime.hhmmss(),
+                "total_runtime": result.total_runtime.hhmmss(),
+                "route_edge_count": result.route.len(),
+                "tree_edge_count": result.tree.len()
+            });
 
             let tmodel = match search_app.get_traversal_model_reference(req) {
                 Err(e) => {
@@ -380,16 +377,18 @@ pub fn apply_output_processing(
                 Ok(tmodel) => tmodel,
             };
 
-            let init_output = serde_json::json!({
-                "request": req,
-                "search_executed_time": result.search_start_time.to_rfc3339(),
-                "search_runtime": result.search_runtime.hhmmss(),
-                "route_runtime": result.route_runtime.hhmmss(),
-                "total_runtime": result.total_runtime.hhmmss(),
-                "route_edge_count": result.route.len(),
-                "tree_edge_count": result.tree.len(),
-                "traversal_summary": tmodel.serialize_state_with_info(&last_edge_traversal.result_state),
-            });
+            let route = result.route.to_vec();
+            let traversal_summary_option = route
+                .last()
+                .map(|et| tmodel.serialize_state_with_info(&et.result_state));
+
+            match traversal_summary_option {
+                Some(traversal_summary) => {
+                    init_output["traversal_summary"] = traversal_summary;
+                }
+                None => {}
+            }
+
             init_output
         }
     };
