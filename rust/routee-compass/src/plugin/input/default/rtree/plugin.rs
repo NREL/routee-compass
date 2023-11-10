@@ -197,7 +197,7 @@ fn validate_tolerance(
         Some((tolerance_distance, tolerance_distance_unit)) => {
             let distance_meters = haversine::coord_distance_meters(src, dst)
                 .map_err(|s| PluginError::PluginFailed(s))?;
-            let distance = BASE_DISTANCE_UNIT.convert(distance_meters, *tolerance_distance_unit);
+            let distance = DistanceUnit::Meters.convert(distance_meters, *tolerance_distance_unit);
             if &distance >= tolerance_distance {
                 Err(PluginError::PluginFailed(
                     format!(
