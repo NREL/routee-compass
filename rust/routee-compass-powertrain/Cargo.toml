@@ -8,6 +8,9 @@ description = "Crate providing integration between RouteE Compass and RouteE Pow
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
+exclude = [
+    "onnx-runtime/v1.15.1/**/*"
+]
 
 
 [dependencies]
