@@ -8,6 +8,7 @@ use routee_compass_core::{
     model::{graph::graph::Graph, property::vertex::Vertex},
     util::{
         fs::read_utils,
+        geo::haversine,
         unit::{Distance, DistanceUnit, BASE_DISTANCE_UNIT},
     },
 };
@@ -194,17 +195,19 @@ fn validate_tolerance(
 ) -> Result<(), PluginError> {
     match tolerance {
         Some((tolerance_distance, tolerance_distance_unit)) => {
-            let distance_base = Distance::new(src.distance_2(&dst));
-            let distance = BASE_DISTANCE_UNIT.convert(distance_base, *tolerance_distance_unit);
+            let distance_meters = haversine::coord_distance_meters(src, dst)
+                .map_err(|s| PluginError::PluginFailed(s))?;
+            let distance = BASE_DISTANCE_UNIT.convert(distance_meters, *tolerance_distance_unit);
             if &distance >= tolerance_distance {
                 Err(PluginError::PluginFailed(
                     format!(
-                        "coord {:?} nearest vertex coord is {:?} which is {} {} away, exceeding the distance tolerance of {}", 
+                        "coord {:?} nearest vertex coord is {:?} which is {} {} away, exceeding the distance tolerance of {} {}", 
                         src,
                         dst,
                         distance,
+                        tolerance_distance_unit,
                         tolerance_distance,
-                        tolerance_distance_unit
+                        tolerance_distance_unit,
                     )
                 ))
             } else {
