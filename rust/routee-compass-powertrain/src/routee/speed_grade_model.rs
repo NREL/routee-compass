@@ -144,8 +144,6 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
     ) -> Result<Self, Self::Error> {
         let (service, conf) = input;
 
-        let model_names: Vec<&String> = service.energy_model_library.keys().collect();
-
         let energy_cost_coefficient = match conf.get(String::from("energy_cost_coefficient")) {
             None => {
                 log::debug!("no energy_cost_coefficient provided");
@@ -178,10 +176,11 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
 
         let model_record = match service.energy_model_library.get(&prediction_model_name) {
             None => {
+                let model_names: Vec<&String> = service.energy_model_library.keys().collect();
                 return Err(TraversalModelError::BuildError(format!(
-                    "No energy model found with name '{}', try one of: {:?}",
+                    "No energy model found with model_name = '{}', try one of: {:?}",
                     prediction_model_name, model_names
-                )))
+                )));
             }
             Some(mr) => mr.clone(),
         };
