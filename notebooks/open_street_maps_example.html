@@ -511,7 +511,7 @@ We'll pick <code class="docutils literal notranslate"><span class="pre">osm_defa
 <p>With our application loaded we can start computing routes by passing queries to the app.
 To demonstrate, we'll route between two locations in Golden, CO utilzing the grid search input plugin to run two separate searches.</p>
 <p>The energy cost coefficient indicates how much we should factor energy into our route search, 0.0 indicating that we should not factor in energy at all (shortest time route) and 1.0 indicating that we should only factor energy in (least energy route)</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">model_name</span></code> parameter specifies which energy model to use. This can anything that was included in the config as a ``[traveral.energy_models]]` section. We'll use the 2016 Toyota Camry.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">model_name</span></code> parameter specifies which energy model to use. This can anything that was included in the config as a <code class="docutils literal notranslate"><span class="pre">[[traveral.energy_models]]</span></code> section. We'll use the 2016 Toyota Camry.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">query</span> <span class="o">=</span> <span class="p">{</span>
