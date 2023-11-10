@@ -17,14 +17,6 @@ use std::sync::Arc;
 
 const ZERO_ENERGY: f64 = 1e-9;
 
-const NO_MODEL_NAME_ERROR: &str = r#"
-Expected key 'model_name' in requeset to specify which routee-powertrain model to use.
-Try adding the following to your request:
-{
-    "model_name": "2016_TOYOTA_Camry_4cyl_2WD"
-}
-"#;
-
 pub struct SpeedGradeModel {
     pub service: Arc<SpeedGradeModelService>,
     pub model_record: Arc<SpeedGradePredictionModelRecord>,
@@ -152,6 +144,8 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
     ) -> Result<Self, Self::Error> {
         let (service, conf) = input;
 
+        let model_names: Vec<&String> = service.energy_model_library.keys().collect();
+
         let energy_cost_coefficient = match conf.get(String::from("energy_cost_coefficient")) {
             None => {
                 log::debug!("no energy_cost_coefficient provided");
@@ -174,7 +168,7 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
         let prediction_model_name = conf
             .get("model_name".to_string())
             .ok_or(TraversalModelError::BuildError(
-                NO_MODEL_NAME_ERROR.to_string(),
+                "No 'model_name' key provided in query".to_string(),
             ))?
             .as_str()
             .ok_or(TraversalModelError::BuildError(
@@ -185,8 +179,8 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
         let model_record = match service.energy_model_library.get(&prediction_model_name) {
             None => {
                 return Err(TraversalModelError::BuildError(format!(
-                    "No energy model found with name {}",
-                    prediction_model_name
+                    "No energy model found with name '{}', try one of: {:?}",
+                    prediction_model_name, model_names
                 )))
             }
             Some(mr) => mr.clone(),
