@@ -72,10 +72,7 @@ impl SpeedGradePredictionModelRecord {
             Some(ier) => ier,
         };
 
-        let real_world_energy_adjustment = match real_world_energy_adjustment_option {
-            Some(rwea) => rwea,
-            None => 1.0,
-        };
+        let real_world_energy_adjustment = real_world_energy_adjustment_option.unwrap_or(1.0);
 
         Ok(Self {
             name,

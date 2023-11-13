@@ -15,7 +15,7 @@ impl FrontierModel for RoadClassFrontierModel {
         _state: &TraversalState,
     ) -> Result<bool, FrontierModelError> {
         self.road_class_lookup
-            .get(edge.edge_id.0.clone() as usize)
+            .get(edge.edge_id.0)
             .ok_or(FrontierModelError::MissingIndex(format!(
                 "{}",
                 edge.edge_id

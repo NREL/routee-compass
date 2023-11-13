@@ -9,8 +9,8 @@ where
     T: Clone + Copy,
 {
     fn from(sets: &'a Vec<Vec<T>>) -> Self {
-        let final_pos: Vec<usize> = sets.into_iter().map(|v| v.len() - 1).collect();
-        let pos: Option<Vec<usize>> = Some(vec![0 as usize; sets.len()]);
+        let final_pos: Vec<usize> = sets.iter().map(|v| v.len() - 1).collect();
+        let pos: Option<Vec<usize>> = Some(vec![0_usize; sets.len()]);
         MultiSet {
             sets,
             pos,
@@ -41,7 +41,7 @@ where
                 let mut finished = false;
                 for idx in 0..self.sets.len() {
                     if next_pos[idx] < self.final_pos[idx] {
-                        next_pos[idx] = next_pos[idx] + 1;
+                        next_pos[idx] += 1;
                         break;
                     } else if idx == self.sets.len() - 1 {
                         finished = true;

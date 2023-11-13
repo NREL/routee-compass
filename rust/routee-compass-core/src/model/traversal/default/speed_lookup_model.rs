@@ -50,7 +50,7 @@ impl SpeedLookupModel {
             output_distance_unit,
             output_time_unit,
             speed_unit,
-            max_speed: max_speed.clone(),
+            max_speed,
         };
         Ok(model)
     }
@@ -68,13 +68,13 @@ impl TraversalModel for SpeedLookupModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.output_distance_unit.clone());
+        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.output_distance_unit);
         let speed = get_speed(&self.speed_table, edge.edge_id)?;
         let time = Time::create(
             speed,
-            self.speed_unit.clone(),
+            self.speed_unit,
             distance,
-            self.output_distance_unit.clone(),
+            self.output_distance_unit,
             self.output_time_unit.clone(),
         )?;
 
@@ -96,7 +96,7 @@ impl TraversalModel for SpeedLookupModel {
         let distance = haversine::coord_distance(
             src.coordinate,
             dst.coordinate,
-            self.output_distance_unit.clone(),
+            self.output_distance_unit,
         )
         .map_err(TraversalModelError::NumericError)?;
 
@@ -106,9 +106,9 @@ impl TraversalModel for SpeedLookupModel {
 
         let time = Time::create(
             self.max_speed,
-            self.speed_unit.clone(),
+            self.speed_unit,
             distance,
-            self.output_distance_unit.clone(),
+            self.output_distance_unit,
             self.output_time_unit.clone(),
         )?;
         Ok(Cost::from(time))
@@ -166,7 +166,7 @@ pub fn get_max_speed(speed_table: &Box<[Speed]>) -> Result<Speed, TraversalModel
         speed_table
             .iter()
             .fold((Speed::ZERO, 0), |(acc_max, acc_cnt), row| {
-                let next_max = if acc_max > *row { acc_max } else { row.clone() };
+                let next_max = if acc_max > *row { acc_max } else { *row };
                 (next_max, acc_cnt + 1)
             });
 
@@ -207,14 +207,14 @@ mod tests {
         }
     }
     fn filepath() -> PathBuf {
-        let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
             .join("traversal")
             .join("default")
             .join("test")
-            .join("velocities.txt");
-        filepath
+            .join("velocities.txt")
     }
 
     fn approx_eq(a: f64, b: f64, error: f64) {

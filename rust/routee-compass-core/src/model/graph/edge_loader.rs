@@ -45,7 +45,7 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
         let mut missing_vertices: HashSet<VertexId> = HashSet::new();
         let cb = Box::new(|edge: &Edge| {
             // the Edge provides us with all id information to build our adjacency lists as well
-            match adj.get_mut(edge.src_vertex_id.0 as usize) {
+            match adj.get_mut(edge.src_vertex_id.0) {
                 None => {
                     missing_vertices.insert(edge.src_vertex_id);
                 }
@@ -53,7 +53,7 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
                     out_links.insert(edge.edge_id, edge.dst_vertex_id);
                 }
             }
-            match rev.get_mut(edge.dst_vertex_id.0 as usize) {
+            match rev.get_mut(edge.dst_vertex_id.0) {
                 None => {
                     missing_vertices.insert(edge.dst_vertex_id);
                 }
@@ -66,7 +66,7 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
 
         let edges = read_utils::from_csv(&c.edge_list_csv, true, Some(cb))?;
 
-        print!("\n");
+        println!();
         let result = EdgeLoader {
             edges,
             adj: adj.into_boxed_slice(),

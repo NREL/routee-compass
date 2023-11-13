@@ -163,8 +163,8 @@ pub trait TraversalModel: Send + Sync {
     /// and `serialize_state_info`.
     fn serialize_state_with_info(&self, state: &TraversalState) -> serde_json::Value {
         use serde_json::Value as Json;
-        let mut summary = self.serialize_state(&state);
-        let summary_info = match self.serialize_state_info(&state) {
+        let mut summary = self.serialize_state(state);
+        let summary_info = match self.serialize_state_info(state) {
             Json::Null => serde_json::Map::new().into_iter(),
             Json::Object(m) => m.into_iter(),
             other => {

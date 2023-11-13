@@ -186,13 +186,13 @@ mod tests {
         }
 
         // Construct the Graph instance.
-        let graph = Graph {
+        
+        Graph {
             adj: adj.into_boxed_slice(),
             rev: rev.into_boxed_slice(),
             edges: edges.into_boxed_slice(),
             vertices: vertices.into_boxed_slice(),
-        };
-        graph
+        }
     }
 
     #[test]

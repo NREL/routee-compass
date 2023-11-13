@@ -39,7 +39,7 @@ impl TraversalModel for SpeedGradeModel {
         let distance = haversine::coord_distance(
             src.coordinate,
             dst.coordinate,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
         )
         .map_err(TraversalModelError::NumericError)?;
 
@@ -49,16 +49,16 @@ impl TraversalModel for SpeedGradeModel {
 
         let (energy, _energy_unit) = Energy::create(
             self.model_record.ideal_energy_rate,
-            self.model_record.energy_rate_unit.clone(),
+            self.model_record.energy_rate_unit,
             distance,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
         )?;
 
         let time: Time = Time::create(
-            self.service.max_speed.clone(),
-            self.service.speeds_table_speed_unit.clone(),
+            self.service.max_speed,
+            self.service.speeds_table_speed_unit,
             distance,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
             self.service.output_time_unit.clone(),
         )?;
 
@@ -79,9 +79,9 @@ impl TraversalModel for SpeedGradeModel {
 
         let time: Time = Time::create(
             speed,
-            self.service.speeds_table_speed_unit.clone(),
+            self.service.speeds_table_speed_unit,
             distance,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
             self.service.output_time_unit.clone(),
         )?;
 
@@ -96,9 +96,9 @@ impl TraversalModel for SpeedGradeModel {
 
         let (mut energy, _energy_unit) = Energy::create(
             energy_rate_real_world,
-            self.model_record.energy_rate_unit.clone(),
+            self.model_record.energy_rate_unit,
             distance,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
         )?;
 
         if energy.as_f64() < 0.0 {
@@ -107,7 +107,7 @@ impl TraversalModel for SpeedGradeModel {
         }
 
         let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
-        let updated_state = update_state(&state, distance, time, energy);
+        let updated_state = update_state(state, distance, time, energy);
         let result = TraversalResult {
             total_cost,
             updated_state,
@@ -154,7 +154,7 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
                     "expected 'energy_cost_coefficient' value to be numeric, found {}",
                     v
                 )))?;
-                if f < 0.0 || 1.0 < f {
+                if !(0.0..=1.0).contains(&f) {
                     return Err(TraversalModelError::BuildError(format!("expected 'energy_cost_coefficient' value to be numeric in range [0.0, 1.0], found {}", f)));
                 } else {
                     log::debug!("using energy_cost_coefficient of {}", f);
@@ -198,8 +198,8 @@ fn create_cost(energy: Energy, time: Time, energy_percent: f64) -> Cost {
     let energy_cost = Cost::from(energy_scaled);
     let time_scaled = time * (1.0 - energy_percent);
     let time_cost = Cost::from(time_scaled);
-    let total_cost = energy_cost + time_cost;
-    total_cost
+    
+    energy_cost + time_cost
 }
 
 fn update_state(

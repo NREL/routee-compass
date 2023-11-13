@@ -34,7 +34,7 @@ impl TraversalModel for DistanceModel {
         _dst: &Vertex,
         state: &Vec<StateVar>,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.distance_unit.clone());
+        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.distance_unit);
         let mut updated_state = state.clone();
         updated_state[0] = state[0] + StateVar::from(distance);
         let result = TraversalResult {
@@ -49,8 +49,8 @@ impl TraversalModel for DistanceModel {
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        coord_distance(src.coordinate, dst.coordinate, self.distance_unit.clone())
-            .map(|d| Cost::from(d))
+        coord_distance(src.coordinate, dst.coordinate, self.distance_unit)
+            .map(Cost::from)
             .map_err(TraversalModelError::NumericError)
     }
     fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {

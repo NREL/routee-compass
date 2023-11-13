@@ -56,7 +56,7 @@ impl EdgeTraversal {
             Some(prev_e) => {
                 let prev_edge = g.get_edge(prev_e).map_err(SearchError::GraphError)?;
                 let prev_src_v = g.get_vertex(prev_edge.src_vertex_id)?;
-                m.access_cost(&prev_src_v, &prev_edge, &src, &edge, &dst, &prev_state)
+                m.access_cost(prev_src_v, prev_edge, src, edge, dst, prev_state)
             }
             None => Ok(AccessResult::no_cost()),
         }

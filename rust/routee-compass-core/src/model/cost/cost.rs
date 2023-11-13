@@ -64,9 +64,9 @@ impl From<f64> for Cost {
     }
 }
 
-impl Into<f64> for Cost {
-    fn into(self) -> f64 {
-        self.0.into_inner()
+impl From<Cost> for f64 {
+    fn from(val: Cost) -> Self {
+        val.0.into_inner()
     }
 }
 

@@ -39,10 +39,7 @@ where
         Err(_) => false,
         Ok(file) => {
             let gz = GzDecoder::new(io::BufReader::new(file));
-            match gz.header() {
-                Some(_) => true,
-                None => false,
-            }
+            gz.header().is_some()
         }
     }
 }

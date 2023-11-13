@@ -24,11 +24,11 @@ impl TryFrom<VertexLoaderConfig> for Box<[Vertex]> {
 
         let cb = Box::new(|_v: &Vertex| {
             let _ = pb.update(1);
-            processed = processed + 1;
+            processed += 1;
         });
         let result: Box<[Vertex]> = read_utils::from_csv(&conf.vertex_list_csv, true, Some(cb))?;
 
-        print!("\n");
+        println!();
         Ok(result)
     }
 }

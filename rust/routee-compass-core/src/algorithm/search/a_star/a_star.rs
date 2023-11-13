@@ -122,7 +122,7 @@ pub fn run_a_star(
         for (src_id, edge_id, dst_id) in neighbor_triplets {
             // first make sure we have a valid edge
             let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
-            if !f.valid_frontier(&e, &current.state)? {
+            if !f.valid_frontier(e, &current.state)? {
                 continue;
             }
             let et = EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
@@ -238,7 +238,7 @@ pub fn run_a_star_edge_oriented(
 
             if source == target_edge {
                 let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
-                return Ok(empty)
+                Ok(empty)
             } else if source_edge_dst_vertex_id == target_edge_src_vertex_id {
                 // route is simply source -> target
                 let init_state = m.initial_state();
@@ -318,7 +318,7 @@ pub fn h_cost(
 ) -> Result<Cost, SearchError> {
     let src_vertex = g.get_vertex(src)?;
     let dst_vertex = g.get_vertex(dst)?;
-    let cost_estimate = m.cost_estimate(&src_vertex, &dst_vertex, &state)?;
+    let cost_estimate = m.cost_estimate(src_vertex, dst_vertex, state)?;
     Ok(cost_estimate)
 }
 
@@ -364,13 +364,13 @@ mod tests {
             rev[edge.dst_vertex_id.0].insert(edge.edge_id, edge.src_vertex_id);
         }
 
-        let graph = Graph {
+        
+        Graph {
             adj: adj.into_boxed_slice(),
             rev: rev.into_boxed_slice(),
             edges: edges.into_boxed_slice(),
             vertices: vertices.into_boxed_slice(),
-        };
-        graph
+        }
     }
 
     #[test]

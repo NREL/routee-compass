@@ -33,16 +33,16 @@ pub fn haversine_distance_meters(
     dst_x: f64,
     dst_y: f64,
 ) -> Result<Distance, String> {
-    if src_x < -180.0 || 180.0 < src_x {
+    if !(-180.0..=180.0).contains(&src_x) {
         return Err(format!("src x value not in range [-180, 180]: {}", src_x));
     }
-    if dst_x < -180.0 || 180.0 < dst_x {
+    if !(-180.0..=180.0).contains(&dst_x) {
         return Err(format!("dst x value not in range [-180, 180]: {}", dst_x));
     }
-    if src_y < -90.0 || 90.0 < src_y {
+    if !(-90.0..=90.0).contains(&src_y) {
         return Err(format!("src y value not in range [-90, 90]: {}", src_y));
     }
-    if dst_y < -90.0 || 90.0 < dst_y {
+    if !(-90.0..=90.0).contains(&dst_y) {
         return Err(format!("dst y value not in range [-90, 90]: {}", dst_y));
     }
 
