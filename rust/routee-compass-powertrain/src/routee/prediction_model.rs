@@ -50,10 +50,10 @@ impl SpeedGradePredictionModelRecord {
                 #[cfg(feature = "onnx")]
                 {
                     let model = OnnxSpeedGradeModel::new(
-                        energy_model_path.clone(),
-                        energy_model_speed_unit,
-                        energy_model_grade_unit,
-                        energy_model_energy_rate_unit,
+                        model_path,
+                        speed_unit,
+                        grade_unit,
+                        energy_rate_unit,
                     )?;
                     Arc::new(model)
                 }
