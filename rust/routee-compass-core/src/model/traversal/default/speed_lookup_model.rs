@@ -5,7 +5,7 @@ use crate::util::unit::{Distance, DistanceUnit};
 use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
-        cost::cost::Cost,
+        cost::Cost,
         property::{edge::Edge, vertex::Vertex},
         traversal::{
             state::{state_variable::StateVar, traversal_state::TraversalState},
@@ -93,12 +93,9 @@ impl TraversalModel for SpeedLookupModel {
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        let distance = haversine::coord_distance(
-            src.coordinate,
-            dst.coordinate,
-            self.output_distance_unit,
-        )
-        .map_err(TraversalModelError::NumericError)?;
+        let distance =
+            haversine::coord_distance(src.coordinate, dst.coordinate, self.output_distance_unit)
+                .map_err(TraversalModelError::NumericError)?;
 
         if distance == Distance::ZERO {
             return Ok(Cost::ZERO);
@@ -147,10 +144,7 @@ fn get_time_from_state(state: &TraversalState) -> Time {
 }
 
 /// look up a speed from the speed table
-pub fn get_speed(
-    speed_table: &Box<[Speed]>,
-    edge_id: EdgeId,
-) -> Result<Speed, TraversalModelError> {
+pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, TraversalModelError> {
     let speed: &Speed = speed_table.get(edge_id.as_usize()).ok_or(
         TraversalModelError::MissingIdInTabularCostFunction(
             format!("{}", edge_id),
@@ -161,7 +155,7 @@ pub fn get_speed(
     Ok(*speed)
 }
 
-pub fn get_max_speed(speed_table: &Box<[Speed]>) -> Result<Speed, TraversalModelError> {
+pub fn get_max_speed(speed_table: &[Speed]) -> Result<Speed, TraversalModelError> {
     let (max_speed, count) =
         speed_table
             .iter()
@@ -207,7 +201,6 @@ mod tests {
         }
     }
     fn filepath() -> PathBuf {
-        
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")

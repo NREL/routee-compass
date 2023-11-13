@@ -26,7 +26,7 @@ impl TraversalOutputFormat {
     pub fn generate_route_output(
         &self,
         route: &Vec<EdgeTraversal>,
-        geoms: &Box<[LineString<f64>]>,
+        geoms: &[LineString<f64>],
     ) -> Result<serde_json::Value, PluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
@@ -49,20 +49,20 @@ impl TraversalOutputFormat {
     pub fn generate_tree_output(
         &self,
         tree: &HashMap<VertexId, SearchTreeBranch>,
-        geoms: &Box<[LineString<f64>]>,
+        geoms: &[LineString<f64>],
     ) -> Result<serde_json::Value, PluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
-                let route_geometry = ops::create_tree_multilinestring(&tree, geoms)?;
+                let route_geometry = ops::create_tree_multilinestring(tree, geoms)?;
                 let route_wkt = route_geometry.wkt_string();
                 Ok(serde_json::Value::String(route_wkt))
             }
             TraversalOutputFormat::Json => {
-                let result = serde_json::to_value(&tree.values().collect::<Vec<_>>())?;
+                let result = serde_json::to_value(tree.values().collect::<Vec<_>>())?;
                 Ok(result)
             }
             TraversalOutputFormat::GeoJson => {
-                let result = ops::create_tree_geojson(&tree, geoms)?;
+                let result = ops::create_tree_geojson(tree, geoms)?;
                 Ok(result)
             }
         }
@@ -77,9 +77,7 @@ mod test {
     use geo::{coord, LineString};
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::{
-            cost::cost::Cost, graph::edge_id::EdgeId, traversal::state::state_variable::StateVar,
-        },
+        model::{cost::Cost, graph::edge_id::EdgeId, traversal::state::state_variable::StateVar},
     };
     use std::{collections::HashMap, time::Duration};
 

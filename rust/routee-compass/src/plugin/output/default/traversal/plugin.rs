@@ -42,7 +42,7 @@ impl TraversalPlugin {
         let geoms = read_raw_file(&filename, parse_linestring, Some(cb)).map_err(|e| {
             PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
         })?;
-        print!("\n");
+        println!();
         Ok(TraversalPlugin { geoms, route, tree })
     }
 }
@@ -95,9 +95,7 @@ mod tests {
     use chrono::Local;
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::{
-            cost::cost::Cost, graph::edge_id::EdgeId, traversal::state::state_variable::StateVar,
-        },
+        model::{cost::Cost, graph::edge_id::EdgeId, traversal::state::state_variable::StateVar},
         util::fs::read_utils::read_raw_file,
     };
     use std::collections::HashMap;

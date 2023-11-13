@@ -6,8 +6,8 @@ use crate::{model::property::vertex::Vertex, util::fs::fs_utils::line_count};
 
 use super::{
     edge_loader::{EdgeLoader, EdgeLoaderConfig},
-    graph::Graph,
     graph_error::GraphError,
+    graph_struct::Graph,
     vertex_loader::VertexLoaderConfig,
 };
 

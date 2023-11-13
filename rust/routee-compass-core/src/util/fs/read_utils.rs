@@ -8,6 +8,8 @@ use std::{
     path::Path,
 };
 
+type RowCallback<'a, T> = Option<Box<dyn FnMut(&T) + 'a>>;
+
 /// reads from a CSV into an iterator of T records.
 /// building the iterator may fail with an io::Error.
 /// each row hasn't yet been decoded so it is provided in a Result<T, csv::Error>
@@ -15,7 +17,7 @@ use std::{
 pub fn iterator_from_csv<'a, F, T>(
     filepath: &F,
     has_headers: bool,
-    mut row_callback: Option<Box<dyn FnMut(&T) + 'a>>,
+    mut row_callback: RowCallback<'a, T>,
 ) -> Result<Box<dyn Iterator<Item = Result<T, csv::Error>> + 'a>, io::Error>
 where
     F: AsRef<Path>,
@@ -48,7 +50,7 @@ where
 pub fn from_csv<'a, F, T>(
     filepath: &F,
     has_headers: bool,
-    row_callback: Option<Box<dyn FnMut(&T) + 'a>>,
+    row_callback: RowCallback<'a, T>,
 ) -> Result<Box<[T]>, csv::Error>
 where
     F: AsRef<Path>,

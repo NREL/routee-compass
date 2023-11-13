@@ -44,7 +44,7 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
 
         let geoms = read_utils::read_raw_file(&conf.edge_file, op, Some(cb))
             .map_err(CompassAppError::IOError)?;
-        print!("\n");
+        println!();
         let app = GeomApp { geoms };
         Ok(app)
     }
@@ -72,7 +72,7 @@ impl GeomApp {
             let edge_idx = row
                 .parse::<usize>()
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-            let result = self.geoms.get(edge_idx).map(|g| g.clone()).ok_or({
+            let result = self.geoms.get(edge_idx).cloned().ok_or({
                 std::io::Error::new(
                     ErrorKind::InvalidData,
                     format!("EdgeId {} is out of bounds, should be in range [0, )", idx),

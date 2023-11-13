@@ -1,12 +1,12 @@
 use serde::Serialize;
 
 use crate::model::graph::edge_id::EdgeId;
-use crate::model::graph::graph::Graph;
+use crate::model::graph::graph_struct::Graph;
 use crate::model::traversal::access_result::AccessResult;
 use crate::model::traversal::traversal_model::TraversalModel;
 
 use super::search_error::SearchError;
-use crate::model::cost::cost::Cost;
+use crate::model::cost::Cost;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use std::sync::Arc;
 use std::{fmt::Display, sync::RwLockReadGuard};

@@ -1,6 +1,6 @@
 use crate::model::traversal::traversal_result::TraversalResult;
 use crate::model::{
-    cost::cost::Cost,
+    cost::Cost,
     property::{edge::Edge, vertex::Vertex},
     traversal::{
         state::{state_variable::StateVar, traversal_state::TraversalState},

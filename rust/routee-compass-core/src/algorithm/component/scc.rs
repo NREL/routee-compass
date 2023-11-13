@@ -1,4 +1,4 @@
-use crate::model::graph::graph::Graph;
+use crate::model::graph::graph_struct::Graph;
 use crate::model::graph::{graph_error::GraphError, vertex_id::VertexId};
 use std::collections::HashSet;
 
@@ -26,7 +26,7 @@ pub fn depth_first_search(
     stack: &mut Vec<VertexId>,
 ) -> Result<(), GraphError> {
     if visited.contains(&vertex) {
-        return Ok(())
+        return Ok(());
     }
 
     visited.insert(vertex);
@@ -66,7 +66,7 @@ pub fn reverse_depth_first_search(
     stack: &mut Vec<VertexId>,
 ) -> Result<(), GraphError> {
     if visited.contains(&vertex) {
-        return Ok(())
+        return Ok(());
     }
 
     visited.insert(vertex);
@@ -186,7 +186,7 @@ mod tests {
         }
 
         // Construct the Graph instance.
-        
+
         Graph {
             adj: adj.into_boxed_slice(),
             rev: rev.into_boxed_slice(),

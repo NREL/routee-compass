@@ -1,6 +1,6 @@
 use super::prediction_model::SpeedGradePredictionModelRecord;
 use super::speed_grade_model_service::SpeedGradeModelService;
-use routee_compass_core::model::cost::cost::Cost;
+use routee_compass_core::model::cost::Cost;
 use routee_compass_core::model::graph::edge_id::EdgeId;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
@@ -198,7 +198,7 @@ fn create_cost(energy: Energy, time: Time, energy_percent: f64) -> Cost {
     let energy_cost = Cost::from(energy_scaled);
     let time_scaled = time * (1.0 - energy_percent);
     let time_cost = Cost::from(time_scaled);
-    
+
     energy_cost + time_cost
 }
 
@@ -286,7 +286,7 @@ mod tests {
                 src_vertex_id: VertexId(0),
                 dst_vertex_id: VertexId(1),
                 distance: Distance::new(100.0),
-            };
+            }
         }
         let model_record = SpeedGradePredictionModelRecord::new(
             "Toyota_Camry".to_string(),

@@ -3,10 +3,10 @@ use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::algorithm::search::MinSearchTree;
-use crate::model::cost::cost::Cost;
+use crate::model::cost::Cost;
 use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::graph::edge_id::EdgeId;
-use crate::model::graph::graph::Graph;
+use crate::model::graph::graph_struct::Graph;
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
@@ -33,7 +33,7 @@ pub fn run_a_star(
 ) -> Result<MinSearchTree, SearchError> {
     if target.map_or(false, |t| t == source) {
         let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
-        return Ok(empty)
+        return Ok(empty);
     }
 
     // context for the search (graph, search functions, frontier priority queue)
@@ -257,7 +257,7 @@ pub fn run_a_star_edge_oriented(
                     (target_edge_dst_vertex_id, src_traversal),
                     (source_edge_dst_vertex_id, dst_traversal),
                 ]);
-                return Ok(tree)
+                return Ok(tree);
             } else {
                 // run a search and append source/target edges to result
                 let mut tree: HashMap<VertexId, SearchTreeBranch> = run_a_star(
@@ -328,7 +328,7 @@ mod tests {
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::model::frontier::default::no_restriction;
-    use crate::model::graph::graph::Graph;
+    use crate::model::graph::graph_struct::Graph;
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
     use crate::model::traversal::default::distance::DistanceModel;
@@ -364,7 +364,6 @@ mod tests {
             rev[edge.dst_vertex_id.0].insert(edge.edge_id, edge.src_vertex_id);
         }
 
-        
         Graph {
             adj: adj.into_boxed_slice(),
             rev: rev.into_boxed_slice(),

@@ -203,13 +203,13 @@ impl CompassApp {
             Vec<serde_json::Value>,
         ) = queries
             .iter()
-            .map(|q| apply_input_plugins(&q, &self.input_plugins))
+            .map(|q| apply_input_plugins(q, &self.input_plugins))
             .partition_map(|r| match r {
                 Ok(values) => Either::Left(values),
                 Err(error_response) => Either::Right(error_response),
             });
         let input_queries: Vec<serde_json::Value> = input_bundles.into_iter().flatten().collect();
-        if input_queries.len() == 0 {
+        if input_queries.is_empty() {
             return Ok(input_error_responses);
         }
 
@@ -273,7 +273,7 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
     dur.to_std().map_err(|e| {
         CompassAppError::InternalError(format!(
             "unexpected internal error mapping chrono duration to std duration: {}",
-            e.to_string()
+            e
         ))
     })
 }
@@ -281,7 +281,7 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
 /// helper that applies the input plugins to a query, returning the result(s) or an error if failed
 pub fn apply_input_plugins(
     query: &serde_json::Value,
-    plugins: &Vec<Box<dyn InputPlugin>>,
+    plugins: &[Box<dyn InputPlugin>],
 ) -> Result<Vec<serde_json::Value>, serde_json::Value> {
     let init = Ok(vec![query.clone()]);
     let result = plugins
@@ -315,7 +315,7 @@ pub fn apply_input_plugins(
 pub fn apply_output_processing(
     response_data: (&serde_json::Value, Result<SearchAppResult, CompassAppError>),
     search_app: &SearchApp,
-    output_plugins: &Vec<Box<dyn OutputPlugin>>,
+    output_plugins: &[Box<dyn OutputPlugin>],
 ) -> Vec<serde_json::Value> {
     let (req, res) = response_data;
 
@@ -360,11 +360,8 @@ pub fn apply_output_processing(
                 .last()
                 .map(|et| tmodel.serialize_state_with_info(&et.result_state));
 
-            match traversal_summary_option {
-                Some(traversal_summary) => {
-                    init_output["traversal_summary"] = traversal_summary;
-                }
-                None => {}
+            if let Some(traversal_summary) = traversal_summary_option {
+                init_output["traversal_summary"] = traversal_summary;
             }
 
             init_output

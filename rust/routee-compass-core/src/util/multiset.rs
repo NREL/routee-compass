@@ -27,9 +27,7 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         match &self.pos {
-            None => {
-                None
-            }
+            None => None,
             Some(position) => {
                 let result: Vec<T> = position
                     .iter()
@@ -47,8 +45,8 @@ where
                         finished = true;
                         break;
                     } else {
-                        for r_idx in 0..(idx + 1) {
-                            next_pos[r_idx] = 0;
+                        for r in next_pos.iter_mut().take(idx + 1) {
+                            *r = 0;
                         }
                     }
                 }

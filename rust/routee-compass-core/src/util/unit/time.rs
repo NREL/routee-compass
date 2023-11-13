@@ -3,7 +3,9 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
-use super::{as_f64::AsF64, unit, Distance, DistanceUnit, Speed, SpeedUnit, TimeUnit, UnitError};
+use super::{
+    as_f64::AsF64, builders, Distance, DistanceUnit, Speed, SpeedUnit, TimeUnit, UnitError,
+};
 
 #[derive(
     Copy,
@@ -67,7 +69,7 @@ impl Time {
         distance_unit: DistanceUnit,
         time_unit: TimeUnit,
     ) -> Result<Time, UnitError> {
-        unit::create_time(speed, speed_unit, distance, distance_unit, time_unit)
+        builders::create_time(speed, speed_unit, distance, distance_unit, time_unit)
     }
     pub fn to_f64(&self) -> f64 {
         (self.0).0

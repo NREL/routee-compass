@@ -1,6 +1,6 @@
 use super::access_result::AccessResult;
 use super::traversal_model_error::TraversalModelError;
-use crate::model::cost::cost::Cost;
+use crate::model::cost::Cost;
 use crate::model::property::{edge::Edge, vertex::Vertex};
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_result::TraversalResult;

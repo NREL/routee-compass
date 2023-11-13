@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
 use super::{
-    as_f64::AsF64, unit::create_energy, Distance, DistanceUnit, EnergyRate, EnergyRateUnit,
+    as_f64::AsF64, builders::create_energy, Distance, DistanceUnit, EnergyRate, EnergyRateUnit,
     EnergyUnit, UnitError,
 };
 

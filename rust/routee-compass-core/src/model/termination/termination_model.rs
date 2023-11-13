@@ -199,9 +199,11 @@ mod tests {
         assert!(terminate);
         let msg = cm.explain_termination(&start_time, solution_limit + 1, iteration_limit + 1);
         let expected = Some(
-            ["exceeded runtime limit of 0:00:02.000",
+            [
+                "exceeded runtime limit of 0:00:02.000",
                 "exceeded iteration limit of 5",
-                "exceeded solution size limit of 3"]
+                "exceeded solution size limit of 3",
+            ]
             .join(", "),
         );
         assert_eq!(msg, expected);
@@ -235,8 +237,10 @@ mod tests {
         assert!(terminate);
         let msg = cm.explain_termination(&start_time, solution_limit - 1, iteration_limit + 1);
         let expected = Some(
-            ["exceeded runtime limit of 0:00:02.000",
-                "exceeded iteration limit of 5"]
+            [
+                "exceeded runtime limit of 0:00:02.000",
+                "exceeded iteration limit of 5",
+            ]
             .join(", "),
         );
         assert_eq!(msg, expected);

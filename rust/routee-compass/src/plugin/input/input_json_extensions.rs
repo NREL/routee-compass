@@ -24,7 +24,7 @@ impl InputJsonExtensions for serde_json::Value {
             .as_f64()
             .ok_or(PluginError::ParseError(
                 InputField::OriginX.to_string(),
-                String::from(String::from("f64")),
+                String::from("f64"),
             ))?;
         let origin_y = self
             .get(InputField::OriginY.to_string())
@@ -32,7 +32,7 @@ impl InputJsonExtensions for serde_json::Value {
             .as_f64()
             .ok_or(PluginError::ParseError(
                 InputField::OriginY.to_string(),
-                String::from(String::from("f64")),
+                String::from("f64"),
             ))?;
         Ok(geo::Coord::from((origin_x, origin_y)))
     }

@@ -24,6 +24,7 @@ pub struct SpeedGradePredictionModelRecord {
 }
 
 impl SpeedGradePredictionModelRecord {
+    #[allow(clippy::too_many_arguments)]
     pub fn new<P: AsRef<Path>>(
         name: String,
         model_path: &P,

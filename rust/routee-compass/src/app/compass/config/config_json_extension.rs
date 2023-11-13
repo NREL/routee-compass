@@ -187,7 +187,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                 key.clone(),
                 String::from("64-bit floating point"),
             ))?;
-        return Ok(value)
+        Ok(value)
     }
 
     fn get_config_from_str<T: FromStr>(
@@ -212,7 +212,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                 format!("failed to parse type from string {}", value),
             )
         })?;
-        return Ok(result)
+        Ok(result)
     }
 
     fn get_config_serde<T: de::DeserializeOwned>(
@@ -234,7 +234,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                 String::from("string-parseable"),
             )
         })?;
-        return Ok(result)
+        Ok(result)
     }
     fn get_config_serde_optional<T: de::DeserializeOwned>(
         &self,
@@ -246,7 +246,7 @@ impl ConfigJsonExtensions for serde_json::Value {
             Some(value) => {
                 let result: T = serde_json::from_value(value.clone())
                     .map_err(CompassConfigurationError::SerdeDeserializationError)?;
-                return Ok(Some(result));
+                Ok(Some(result))
             }
         }
     }
@@ -287,7 +287,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                     Some(parent) => parent,
                     None => Path::new(""),
                 };
-                let new_path = root_config_parent.join(&path);
+                let new_path = root_config_parent.join(path);
                 let new_path_string = new_path
                     .to_str()
                     .ok_or(CompassConfigurationError::FileNormalizationError(

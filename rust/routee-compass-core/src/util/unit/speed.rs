@@ -1,4 +1,6 @@
-use super::{as_f64::AsF64, unit, Distance, DistanceUnit, SpeedUnit, Time, TimeUnit, UnitError};
+use super::{
+    as_f64::AsF64, builders, Distance, DistanceUnit, SpeedUnit, Time, TimeUnit, UnitError,
+};
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
@@ -84,7 +86,7 @@ impl Speed {
         distance_unit: DistanceUnit,
         speed_unit: SpeedUnit,
     ) -> Result<Speed, UnitError> {
-        unit::create_speed(time, time_unit, distance, distance_unit, speed_unit)
+        builders::create_speed(time, time_unit, distance, distance_unit, speed_unit)
     }
     pub fn to_f64(&self) -> f64 {
         (self.0).0
