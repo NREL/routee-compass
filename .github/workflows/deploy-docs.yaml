@@ -6,6 +6,7 @@ on:
     - main 
     paths:
     - docs/**
+    - .github/workflows/deploy-docs.yml
 
 jobs:
   deploy-docs:
@@ -21,7 +22,7 @@ jobs:
     - name: Install dependencies
       shell: bash -el {0}
       run: |
-        conda install rasterio gdal
+        conda install rasterio gdal toml osmnx
         pip install ".[dev]"
     
     - name: Build book
