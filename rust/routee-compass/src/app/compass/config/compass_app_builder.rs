@@ -56,7 +56,7 @@ use std::{collections::HashMap, sync::Arc};
 /// * `output_plugin_builders` - a mapping of OutputPlugin `type` names to builders
 ///
 pub struct CompassAppBuilder {
-    pub tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>>,
+    pub traversal_model_builders: HashMap<String, Box<dyn TraversalModelBuilder>>,
     pub frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>>,
     pub input_plugin_builders: HashMap<String, Box<dyn InputPluginBuilder>>,
     pub output_plugin_builders: HashMap<String, Box<dyn OutputPluginBuilder>>,
@@ -75,11 +75,27 @@ impl CompassAppBuilder {
     /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
     pub fn new() -> CompassAppBuilder {
         CompassAppBuilder {
-            tm_builders: HashMap::new(),
+            traversal_model_builders: HashMap::new(),
             frontier_builders: HashMap::new(),
             input_plugin_builders: HashMap::new(),
             output_plugin_builders: HashMap::new(),
         }
+    }
+
+    pub fn add_traversal_model(&mut self, name: String, builder: Box<dyn TraversalModelBuilder>) {
+        let _ = self.traversal_model_builders.insert(name, builder);
+    }
+
+    pub fn add_frontier_model(&mut self, name: String, builder: Box<dyn FrontierModelBuilder>) {
+        let _ = self.frontier_builders.insert(name, builder);
+    }
+
+    pub fn add_input_plugin(&mut self, name: String, builder: Box<dyn InputPluginBuilder>) {
+        let _ = self.input_plugin_builders.insert(name, builder);
+    }
+
+    pub fn add_output_plugin(&mut self, name: String, builder: Box<dyn OutputPluginBuilder>) {
+        let _ = self.output_plugin_builders.insert(name, builder);
     }
 
     /// Builds the default builder.
@@ -131,7 +147,7 @@ impl CompassAppBuilder {
         ]);
 
         CompassAppBuilder {
-            tm_builders,
+            traversal_model_builders: tm_builders,
             frontier_builders,
             input_plugin_builders,
             output_plugin_builders,
@@ -158,7 +174,7 @@ impl CompassAppBuilder {
                 String::from("String"),
             ))?
             .into();
-        self.tm_builders
+        self.traversal_model_builders
             .get(&tm_type)
             .ok_or(CompassConfigurationError::UnknownModelNameForComponent(
                 tm_type.clone(),

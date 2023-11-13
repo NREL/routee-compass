@@ -1,8 +1,9 @@
-use super::config::compass_app_builder::CompassAppBuilder;
+use super::{compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder};
 use crate::{
     app::{
         compass::{
             compass_app_error::CompassAppError,
+            compass_input_field::CompassInputField,
             config::{
                 compass_configuration_field::CompassConfigurationField,
                 config_json_extension::ConfigJsonExtensions, graph_builder::DefaultGraphBuilder,
@@ -25,8 +26,6 @@ use routee_compass_core::{
     util::duration_extension::DurationExtension,
 };
 use std::path::{Path, PathBuf};
-
-pub const CONFIG_FILE_KEY: &str = "config_input_file";
 
 /// Instance of RouteE Compass as an application.
 /// When constructed, it holds
@@ -59,29 +58,7 @@ impl TryFrom<&Path> for CompassApp {
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(conf_file: &Path) -> Result<Self, Self::Error> {
-        let default_config = config::File::from_str(
-            include_str!("config.default.toml"),
-            config::FileFormat::Toml,
-        );
-
-        // We want to store the location of where the config file
-        // was found so we can use it later to resolve relative paths
-        let conf_file_string = conf_file
-            .to_str()
-            .ok_or(CompassAppError::InternalError(
-                "Could not parse incoming config file path".to_string(),
-            ))?
-            .to_string();
-
-        let config = Config::builder()
-            .add_source(default_config)
-            .add_source(config::File::from(conf_file))
-            .set_override(CONFIG_FILE_KEY, conf_file_string)?
-            .build()
-            .map_err(CompassAppError::ConfigError)?;
-
-        log::debug!("Loaded config: {:?}", config);
-
+        let config = ops::read_config(conf_file)?;
         let builder = CompassAppBuilder::default();
         let compass_app = CompassApp::try_from((&config, &builder))?;
         return Ok(compass_app);
@@ -113,7 +90,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // Get the root config path so we can resolve paths relative
         // to where the config file is located.
-        let root_config_path = config.get::<PathBuf>(CONFIG_FILE_KEY)?;
+        let root_config_path =
+            config.get::<PathBuf>(CompassInputField::ConfigInputFile.to_str())?;
 
         let config_json = config
             .clone()
