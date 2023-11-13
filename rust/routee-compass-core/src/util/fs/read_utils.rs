@@ -60,7 +60,7 @@ where
         .into_iter()
         .collect::<Result<Vec<T>, csv::Error>>()?
         .into_boxed_slice();
-    return Ok(result);
+    Ok(result)
 }
 
 /// reads in a raw file and deserializes each line of the file into a type T
@@ -77,9 +77,9 @@ where
     F: AsRef<Path>,
 {
     if fs_utils::is_gzip(filepath) {
-        return Ok(read_gzip(filepath, op, row_callback)?);
+        Ok(read_gzip(filepath, op, row_callback)?)
     } else {
-        return Ok(read_regular(filepath, op, row_callback)?);
+        Ok(read_regular(filepath, op, row_callback)?)
     }
 }
 
@@ -105,7 +105,7 @@ where
             Ok(deserialized)
         })
         .collect();
-    return result;
+    result
 }
 
 fn read_gzip<'a, F, T>(
@@ -127,7 +127,7 @@ where
         }
         result.push(deserialized);
     }
-    return Ok(result.into_boxed_slice());
+    Ok(result.into_boxed_slice())
 }
 
 #[cfg(test)]

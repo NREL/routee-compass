@@ -77,7 +77,7 @@ impl EdgeListJsonExtensions for serde_json::Value {
                     })
                     .collect();
 
-                return result;
+                result
             }
             _ => Err(PluginError::InputError(String::from(
                 "OutputResult is not a JSON object",

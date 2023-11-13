@@ -61,7 +61,7 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
                     in_links.insert(edge.edge_id, edge.src_vertex_id);
                 }
             }
-            pb.update(1);
+            let _ = pb.update(1);
         });
 
         let edges = read_utils::from_csv(&c.edge_list_csv, true, Some(cb))?;

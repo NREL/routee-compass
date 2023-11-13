@@ -168,7 +168,7 @@ pub trait TraversalModel: Send + Sync {
             Json::Null => serde_json::Map::new().into_iter(),
             Json::Object(m) => m.into_iter(),
             other => {
-                // this is just a fallback implementation in case TraversalModel builders return something
+                // this is just a fallback implementation in case TraversalModel builders something
                 // other than what we expected
                 let mut m = serde_json::Map::new();
                 m.insert(String::from("info"), other);
@@ -178,6 +178,6 @@ pub trait TraversalModel: Send + Sync {
         for (k, v) in summary_info {
             summary[k] = v;
         }
-        return summary;
+        summary
     }
 }

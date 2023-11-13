@@ -105,7 +105,7 @@ impl CompassAppBuilder {
     /// # Returns
     ///
     /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
-    pub fn default() -> CompassAppBuilder {
+    fn default() -> CompassAppBuilder {
         // Traversal model builders
         let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
         let velo: Box<dyn TraversalModelBuilder> = Box::new(SpeedLookupBuilder {});
@@ -251,7 +251,7 @@ impl CompassAppBuilder {
             let input_plugin = builder.build(&plugin_json)?;
             plugins.push(input_plugin);
         }
-        return Ok(plugins);
+        Ok(plugins)
     }
 
     pub fn build_output_plugins(
@@ -293,6 +293,12 @@ impl CompassAppBuilder {
             let output_plugin = builder.build(&plugin_json)?;
             plugins.push(output_plugin);
         }
-        return Ok(plugins);
+        Ok(plugins)
+    }
+}
+
+impl Default for CompassAppBuilder {
+    fn default() -> Self {
+        CompassAppBuilder::default()
     }
 }

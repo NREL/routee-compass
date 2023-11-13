@@ -11,7 +11,6 @@ use super::{as_f64::AsF64, unit, Distance, DistanceUnit, Speed, SpeedUnit, TimeU
     Serialize,
     Deserialize,
     PartialEq,
-    PartialOrd,
     Eq,
     Hash,
     Debug,
@@ -36,6 +35,12 @@ impl From<(Distance, Speed)> for Time {
         let (distance, speed) = value;
         let time = distance.as_f64() / speed.as_f64();
         Time::new(time)
+    }
+}
+
+impl PartialOrd for Time {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.0.cmp(&other.0))
     }
 }
 

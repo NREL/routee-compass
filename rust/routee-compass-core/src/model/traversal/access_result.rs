@@ -8,9 +8,9 @@ pub struct AccessResult {
 
 impl AccessResult {
     pub fn no_cost() -> AccessResult {
-        return AccessResult {
+        AccessResult {
             cost: Cost::ZERO,
             updated_state: None,
-        };
+        }
     }
 }

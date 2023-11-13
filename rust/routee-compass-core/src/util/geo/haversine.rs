@@ -3,7 +3,7 @@ use geo::Coord;
 // pub const APPROX_EARTH_RADIUS_KM: f64 = 6372.8;
 pub const APPROX_EARTH_RADIUS_M: f64 = 6_371_000.0;
 
-/// get the distance between two coordinates and return the value
+/// get the distance between two coordinates and the value
 /// in the base distance unit, which is meters.
 /// coordinates are assumed to be in the WGS84 Coordinate System.
 pub fn coord_distance_meters(src: Coord, dst: Coord) -> Result<Distance, String> {
@@ -11,7 +11,7 @@ pub fn coord_distance_meters(src: Coord, dst: Coord) -> Result<Distance, String>
     Ok(distance_meters)
 }
 
-/// get the distance between two coordinates and return the value
+/// get the distance between two coordinates and the value
 /// in the requested distance unit
 /// coordinates are assumed to be in the WGS84 Coordinate System.
 pub fn coord_distance(
@@ -54,5 +54,5 @@ pub fn haversine_distance_meters(
     let a = (d_lat / 2.0).sin().powi(2) + (d_lon / 2.0).sin().powi(2) * lat1.cos() * lat2.cos();
     let c = 2.0 * a.sqrt().asin();
     let distance_meters = APPROX_EARTH_RADIUS_M * c;
-    return Ok(Distance::new(distance_meters));
+    Ok(Distance::new(distance_meters))
 }

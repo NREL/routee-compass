@@ -49,9 +49,9 @@ impl TraversalModel for DistanceModel {
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        return coord_distance(src.coordinate, dst.coordinate, self.distance_unit.clone())
+        coord_distance(src.coordinate, dst.coordinate, self.distance_unit.clone())
             .map(|d| Cost::from(d))
-            .map_err(TraversalModelError::NumericError);
+            .map_err(TraversalModelError::NumericError)
     }
     fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
         let total_distance = state[0].0;

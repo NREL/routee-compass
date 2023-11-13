@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use geo::Coord;
 use routee_compass_core::{
     algorithm::search::search_error::SearchError, model::graph::edge_id::EdgeId,
 };

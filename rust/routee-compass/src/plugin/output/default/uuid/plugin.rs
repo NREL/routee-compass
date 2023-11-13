@@ -27,7 +27,7 @@ impl UUIDOutputPlugin {
             .map_err(PluginError::InternalError)?;
 
         let cb = Box::new(|| {
-            pb.update(1);
+            let _ = pb.update(1);
         });
 
         let uuids = read_raw_file(&filename, |_idx, row| Ok(row), Some(cb)).map_err(|e| {

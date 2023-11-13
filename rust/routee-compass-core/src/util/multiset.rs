@@ -11,11 +11,11 @@ where
     fn from(sets: &'a Vec<Vec<T>>) -> Self {
         let final_pos: Vec<usize> = sets.into_iter().map(|v| v.len() - 1).collect();
         let pos: Option<Vec<usize>> = Some(vec![0 as usize; sets.len()]);
-        return MultiSet {
+        MultiSet {
             sets,
             pos,
             final_pos,
-        };
+        }
     }
 }
 
@@ -28,7 +28,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         match &self.pos {
             None => {
-                return None;
+                None
             }
             Some(position) => {
                 let result: Vec<T> = position
@@ -57,7 +57,7 @@ where
                 } else {
                     self.pos = Some(next_pos);
                 }
-                return Some(result);
+                Some(result)
             }
         }
     }

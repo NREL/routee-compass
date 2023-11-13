@@ -3,7 +3,7 @@ use std::path::Path;
 use crate::plugin::input::input_json_extensions::InputJsonExtensions;
 use crate::plugin::input::input_plugin::InputPlugin;
 use crate::plugin::plugin_error::PluginError;
-use geo::{coord, Coord, Point};
+use geo::{coord, Coord};
 use routee_compass_core::{
     model::{graph::graph::Graph, property::vertex::Vertex},
     util::{

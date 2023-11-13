@@ -113,6 +113,6 @@ impl TerminationModelBuilder {
             }?;
 
         log::info!("app termination model: {:?}", result);
-        return Ok(result);
+        Ok(result)
     }
 }

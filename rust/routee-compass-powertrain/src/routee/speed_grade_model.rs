@@ -212,19 +212,19 @@ fn update_state(
     updated_state[0] = state[0] + distance.into();
     updated_state[1] = state[1] + time.into();
     updated_state[2] = state[2] + energy.into();
-    return updated_state;
+    updated_state
 }
 
 fn get_distance_from_state(state: &TraversalState) -> Distance {
-    return Distance::new(state[0].0);
+    Distance::new(state[0].0)
 }
 
 fn get_time_from_state(state: &TraversalState) -> Time {
-    return Time::new(state[1].0);
+    Time::new(state[1].0)
 }
 
 fn get_energy_from_state(state: &TraversalState) -> Energy {
-    return Energy::new(state[2].0);
+    Energy::new(state[2].0)
 }
 
 /// look up the grade from the grade table
@@ -281,7 +281,7 @@ mod tests {
             coordinate: coord! {x: -86.67, y: 36.12},
         };
         fn mock_edge(edge_id: usize) -> Edge {
-            return Edge {
+            Edge {
                 edge_id: EdgeId(edge_id),
                 src_vertex_id: VertexId(0),
                 dst_vertex_id: VertexId(1),

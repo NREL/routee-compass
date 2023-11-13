@@ -26,7 +26,7 @@ pub fn depth_first_search(
     stack: &mut Vec<VertexId>,
 ) -> Result<(), GraphError> {
     if visited.contains(&vertex) {
-        return Ok(());
+        return Ok(())
     }
 
     visited.insert(vertex);
@@ -59,14 +59,14 @@ pub fn depth_first_search(
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-fn reverse_depth_first_search(
+pub fn reverse_depth_first_search(
     graph: &Graph,
     vertex: VertexId,
     visited: &mut HashSet<VertexId>,
     stack: &mut Vec<VertexId>,
 ) -> Result<(), GraphError> {
     if visited.contains(&vertex) {
-        return Ok(());
+        return Ok(())
     }
 
     visited.insert(vertex);
@@ -94,7 +94,7 @@ fn reverse_depth_first_search(
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-fn all_strongly_connected_componenets(graph: &Graph) -> Result<Vec<Vec<VertexId>>, GraphError> {
+pub fn all_strongly_connected_componenets(graph: &Graph) -> Result<Vec<Vec<VertexId>>, GraphError> {
     let mut visited: HashSet<VertexId> = HashSet::new();
     let mut container: Vec<VertexId> = Vec::new();
 
@@ -131,7 +131,7 @@ fn all_strongly_connected_componenets(graph: &Graph) -> Result<Vec<Vec<VertexId>
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexId>, GraphError> {
+pub fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexId>, GraphError> {
     let components = all_strongly_connected_componenets(graph)?;
 
     let mut largest_component: Vec<VertexId> = Vec::new();

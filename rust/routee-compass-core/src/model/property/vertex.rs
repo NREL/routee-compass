@@ -111,10 +111,10 @@ impl<'de> de::Deserialize<'de> for Vertex {
                     }
                 }
 
-                return match vertex_result {
+                match vertex_result {
                     None => Err(de::Error::custom("failed to deserialize Vertex")),
                     Some(vertex) => Ok(vertex),
-                };
+                }
             }
         }
 

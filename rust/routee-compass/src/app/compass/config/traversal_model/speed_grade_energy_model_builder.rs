@@ -114,7 +114,7 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             service: inner_service,
         };
 
-        return Ok(Arc::new(service));
+        Ok(Arc::new(service))
     }
 }
 

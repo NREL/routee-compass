@@ -9,7 +9,6 @@ use std::{cmp::Ordering, fmt::Display};
     Serialize,
     Deserialize,
     PartialEq,
-    PartialOrd,
     Eq,
     Hash,
     Debug,
@@ -22,6 +21,12 @@ use std::{cmp::Ordering, fmt::Display};
     Neg,
 )]
 pub struct Untyped(pub OrderedFloat<f64>);
+
+impl PartialOrd for Untyped {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.0.cmp(&other.0))
+    }
+}
 
 impl Ord for Untyped {
     fn cmp(&self, other: &Self) -> Ordering {

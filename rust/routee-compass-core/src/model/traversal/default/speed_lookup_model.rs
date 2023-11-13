@@ -52,7 +52,7 @@ impl SpeedLookupModel {
             speed_unit,
             max_speed: max_speed.clone(),
         };
-        return Ok(model);
+        Ok(model)
     }
 }
 
@@ -135,15 +135,15 @@ fn update_state(state: &TraversalState, distance: Distance, time: Time) -> Trave
     let mut updated_state = state.clone();
     updated_state[0] = state[0] + distance.into();
     updated_state[1] = state[1] + time.into();
-    return updated_state;
+    updated_state
 }
 
 fn get_distance_from_state(state: &TraversalState) -> Distance {
-    return Distance::new(state[0].0);
+    Distance::new(state[0].0)
 }
 
 fn get_time_from_state(state: &TraversalState) -> Time {
-    return Time::new(state[1].0);
+    Time::new(state[1].0)
 }
 
 /// look up a speed from the speed table
@@ -172,12 +172,12 @@ pub fn get_max_speed(speed_table: &Box<[Speed]>) -> Result<Speed, TraversalModel
 
     if count == 0 {
         let msg = format!("parsed {} entries for speed table", count);
-        return Err(TraversalModelError::BuildError(msg));
+        Err(TraversalModelError::BuildError(msg))
     } else if max_speed == Speed::ZERO {
         let msg = format!("max speed was zero in speed table with {} entries", count);
-        return Err(TraversalModelError::BuildError(msg));
+        Err(TraversalModelError::BuildError(msg))
     } else {
-        return Ok(max_speed);
+        Ok(max_speed)
     }
 }
 
@@ -193,18 +193,18 @@ mod tests {
     use std::path::PathBuf;
 
     fn mock_vertex() -> Vertex {
-        return Vertex {
+        Vertex {
             vertex_id: VertexId(0),
             coordinate: coord! {x: -86.67, y: 36.12},
-        };
+        }
     }
     fn mock_edge(edge_id: usize) -> Edge {
-        return Edge {
+        Edge {
             edge_id: EdgeId(edge_id),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
             distance: Distance::new(100.0),
-        };
+        }
     }
     fn filepath() -> PathBuf {
         let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))

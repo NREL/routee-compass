@@ -118,7 +118,7 @@ pub fn create_route_linestring(
         })
         .collect::<Result<Vec<&LineString>, PluginError>>()?;
     let geometry = concat_linestrings(edge_linestrings);
-    return Ok(geometry);
+    Ok(geometry)
 }
 
 pub fn create_tree_multilinestring(
@@ -140,5 +140,5 @@ pub fn create_tree_multilinestring(
         })
         .collect::<Result<Vec<LineString>, PluginError>>()?;
     let geometry = MultiLineString::new(tree_linestrings);
-    return Ok(geometry);
+    Ok(geometry)
 }

@@ -22,7 +22,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Ok(app) => app,
         Err(e) => {
             error!("Could not build CompassApp from config file: {}", e);
-            return Err(Box::new(e));
+            return Err(Box::new(e))
         }
     };
 
@@ -48,5 +48,5 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    return Ok(());
+    Ok(())
 }

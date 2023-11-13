@@ -27,12 +27,12 @@ pub fn create_time(
     let d = distance_unit.convert(distance, BASE_DISTANCE_UNIT);
     let s = speed_unit.convert(speed, BASE_SPEED_UNIT);
     if s <= Speed::ZERO || d <= Distance::ZERO {
-        return Err(UnitError::TimeFromSpeedAndDistanceError(
+        Err(UnitError::TimeFromSpeedAndDistanceError(
             speed,
             speed_unit,
             distance,
             distance_unit,
-        ));
+        ))
     } else {
         let time = (d, s).into();
         let result = BASE_TIME_UNIT.convert(time, time_unit);
@@ -54,7 +54,7 @@ pub fn create_speed(
     let d = distance_unit.convert(distance, BASE_DISTANCE_UNIT);
     let t = time_unit.convert(time, BASE_TIME_UNIT);
     if t <= Time::ZERO {
-        return Err(UnitError::SpeedFromTimeAndDistanceError(time, distance));
+        Err(UnitError::SpeedFromTimeAndDistanceError(time, distance))
     } else {
         let speed = (d, t).into();
         let result = BASE_SPEED_UNIT.convert(speed, speed_unit);

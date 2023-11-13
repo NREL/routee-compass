@@ -77,7 +77,7 @@ impl Graph {
     /// beginning at zero.
     pub fn edge_ids(&self) -> Box<dyn Iterator<Item = EdgeId>> {
         let range = (0..self.n_edges()).map(EdgeId);
-        return Box::new(range);
+        Box::new(range)
     }
 
     /// helper function for creating a range of all vertex ids in the graph.
@@ -85,7 +85,7 @@ impl Graph {
     /// beginning at zero.
     pub fn vertex_ids(&self) -> Box<dyn Iterator<Item = VertexId>> {
         let range = (0..self.n_vertices()).map(VertexId);
-        return Box::new(range);
+        Box::new(range)
     }
 
     /// retrieve an `Edge` record from the graph

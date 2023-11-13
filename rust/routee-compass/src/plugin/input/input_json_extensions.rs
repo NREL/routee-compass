@@ -158,7 +158,7 @@ impl InputJsonExtensions for serde_json::Value {
 //     op: DecodeOp<T>,
 // ) -> Result<T, PluginError> {
 //     let at_field = value.get(field.to_string());
-//     return match at_field {
+//     match at_field {
 //         None => Err(PluginError::MissingField(field.to_string())),
 //         Some(v) => op(v).ok_or(PluginError::ParseError(field.to_string(), ())),
 //     };

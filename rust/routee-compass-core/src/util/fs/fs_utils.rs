@@ -18,11 +18,11 @@ where
 
     if is_gzip {
         let reader = BufReader::new(GzDecoder::new(file));
-        return Ok(reader.lines().count());
+        Ok(reader.lines().count())
     } else {
         let reader = BufReader::new(file);
         let count = reader.lines().count();
-        return Ok(count);
+        Ok(count)
     }
 }
 

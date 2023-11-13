@@ -100,16 +100,16 @@ impl ConfigJsonExtensions for serde_json::Value {
         let path_string = self.get_config_string(key.clone(), parent_key.clone())?;
         let path = PathBuf::from(&path_string);
 
-        // if file can be found, just return it
+        // if file can be found, just it
         if path.is_file() {
-            return Ok(path);
+            Ok(path)
         } else {
             // can't find the file
-            return Err(CompassConfigurationError::FileNotFoundForComponent(
+            Err(CompassConfigurationError::FileNotFoundForComponent(
                 path_string,
                 key,
                 parent_key,
-            ));
+            ))
         }
     }
     fn get_config_string(
@@ -129,7 +129,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                 key.clone(),
                 String::from("String"),
             ))?;
-        return Ok(value);
+        Ok(value)
     }
 
     fn get_config_array(
@@ -168,7 +168,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                 key.clone(),
                 String::from("64-bit signed integer"),
             ))?;
-        return Ok(value);
+        Ok(value)
     }
 
     fn get_config_f64(
@@ -187,7 +187,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                 key.clone(),
                 String::from("64-bit floating point"),
             ))?;
-        return Ok(value);
+        return Ok(value)
     }
 
     fn get_config_from_str<T: FromStr>(
@@ -212,7 +212,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                 format!("failed to parse type from string {}", value),
             )
         })?;
-        return Ok(result);
+        return Ok(result)
     }
 
     fn get_config_serde<T: de::DeserializeOwned>(
@@ -234,7 +234,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                 String::from("string-parseable"),
             )
         })?;
-        return Ok(result);
+        return Ok(result)
     }
     fn get_config_serde_optional<T: de::DeserializeOwned>(
         &self,

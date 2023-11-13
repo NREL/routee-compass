@@ -31,9 +31,6 @@ impl CompassConfigurationField {
             CompassConfigurationField::OutputPlugins => "output_plugins",
         }
     }
-    pub fn to_string(&self) -> String {
-        self.to_str().to_string()
-    }
 }
 
 impl From<CompassConfigurationField> for String {

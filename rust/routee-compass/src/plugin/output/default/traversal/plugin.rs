@@ -37,7 +37,7 @@ impl TraversalPlugin {
             .map_err(PluginError::InternalError)?;
 
         let cb = Box::new(|| {
-            pb.update(1);
+            let _ = pb.update(1);
         });
         let geoms = read_raw_file(&filename, parse_linestring, Some(cb)).map_err(|e| {
             PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
@@ -96,25 +96,13 @@ mod tests {
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
         model::{
-            cost::cost::Cost,
-            graph::{edge_id::EdgeId, vertex_id::VertexId},
-            property::edge::Edge,
-            traversal::state::state_variable::StateVar,
+            cost::cost::Cost, graph::edge_id::EdgeId, traversal::state::state_variable::StateVar,
         },
-        util::{fs::read_utils::read_raw_file, unit::Distance},
+        util::fs::read_utils::read_raw_file,
     };
     use std::collections::HashMap;
     use std::path::PathBuf;
     use std::time::Duration;
-
-    fn mock_edge(edge_id: usize) -> Edge {
-        return Edge {
-            edge_id: EdgeId(edge_id),
-            src_vertex_id: VertexId(0),
-            dst_vertex_id: VertexId(1),
-            distance: Distance::new(100.0),
-        };
-    }
 
     fn mock_geometry_file() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))

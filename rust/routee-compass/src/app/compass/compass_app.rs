@@ -61,7 +61,7 @@ impl TryFrom<&Path> for CompassApp {
         let config = ops::read_config(conf_file)?;
         let builder = CompassAppBuilder::default();
         let compass_app = CompassApp::try_from((&config, &builder))?;
-        return Ok(compass_app);
+        Ok(compass_app)
     }
 }
 
@@ -173,12 +173,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             plugins_duration.hhmmss()
         );
 
-        return Ok(CompassApp {
+        Ok(CompassApp {
             search_app,
             input_plugins,
             output_plugins,
             parallelism,
-        });
+        })
     }
 }
 
@@ -239,7 +239,7 @@ impl CompassApp {
             .chain(input_error_responses)
             .collect();
 
-        return Ok(run_result);
+        Ok(run_result)
     }
 
     /// Helper function that runs CompassApp on a single query.
@@ -306,7 +306,7 @@ pub fn apply_input_plugins(
                 "error": e.to_string()
             })
         })?;
-    return Ok(result);
+    Ok(result)
 }
 
 // helper that applies the output processing. this includes

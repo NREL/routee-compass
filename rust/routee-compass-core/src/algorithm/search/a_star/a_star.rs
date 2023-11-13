@@ -33,7 +33,7 @@ pub fn run_a_star(
 ) -> Result<MinSearchTree, SearchError> {
     if target.map_or(false, |t| t == source) {
         let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
-        return Ok(empty);
+        return Ok(empty)
     }
 
     // context for the search (graph, search functions, frontier priority queue)
@@ -166,9 +166,9 @@ pub fn run_a_star(
 
         // match (costs.pop(), target) {
         //     (None, Some(target_vertex_id)) => {
-        //         return Err(SearchError::NoPathExists(source, target_vertex_id))
+        //         Err(SearchError::NoPathExists(source, target_vertex_id))
         //     }
-        //     (None, None) => return Ok(solution),
+        //     (None, None) => Ok(solution),
         //     Some((current_vertex_id, _)) if current_vertex_id == target => {
         //         break;
         //     }
@@ -183,7 +183,7 @@ pub fn run_a_star(
         solution.len()
     );
 
-    return Ok(solution);
+    Ok(solution)
 }
 
 /// convenience method when origin and destination are specified using
@@ -238,7 +238,7 @@ pub fn run_a_star_edge_oriented(
 
             if source == target_edge {
                 let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
-                return Ok(empty);
+                return Ok(empty)
             } else if source_edge_dst_vertex_id == target_edge_src_vertex_id {
                 // route is simply source -> target
                 let init_state = m.initial_state();
@@ -257,7 +257,7 @@ pub fn run_a_star_edge_oriented(
                     (target_edge_dst_vertex_id, src_traversal),
                     (source_edge_dst_vertex_id, dst_traversal),
                 ]);
-                return Ok(tree);
+                return Ok(tree)
             } else {
                 // run a search and append source/target edges to result
                 let mut tree: HashMap<VertexId, SearchTreeBranch> = run_a_star(
@@ -303,7 +303,7 @@ pub fn run_a_star_edge_oriented(
                     tree.extend([(target_edge_dst_vertex_id, dst_traversal)]);
                 }
 
-                return Ok(tree);
+                Ok(tree)
             }
         }
     }
@@ -319,7 +319,7 @@ pub fn h_cost(
     let src_vertex = g.get_vertex(src)?;
     let dst_vertex = g.get_vertex(dst)?;
     let cost_estimate = m.cost_estimate(&src_vertex, &dst_vertex, &state)?;
-    return Ok(cost_estimate);
+    Ok(cost_estimate)
 }
 
 #[cfg(test)]

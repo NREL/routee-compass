@@ -21,12 +21,12 @@ pub fn with_progress_bar<'a, R, E>(
         .build()
         .map_err(|e| error(e))?;
     let cb = Box::new(move || {
-        pb.update(1);
+        let _ = pb.update(1);
     });
 
     let result = closure(cb);
 
     print!("\n"); // create a newline once the progress bar is complete
 
-    return result;
+    result
 }

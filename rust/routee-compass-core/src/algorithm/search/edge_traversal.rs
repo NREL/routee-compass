@@ -21,7 +21,7 @@ pub struct EdgeTraversal {
 
 impl EdgeTraversal {
     pub fn edge_cost(&self) -> Cost {
-        return self.access_cost + self.traversal_cost;
+        self.access_cost + self.traversal_cost
     }
 }
 

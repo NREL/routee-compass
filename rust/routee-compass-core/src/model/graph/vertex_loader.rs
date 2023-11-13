@@ -23,7 +23,7 @@ impl TryFrom<VertexLoaderConfig> for Box<[Vertex]> {
             .map_err(|e| GraphError::ProgressBarBuildError(String::from("vertex list"), e))?;
 
         let cb = Box::new(|_v: &Vertex| {
-            pb.update(1);
+            let _ = pb.update(1);
             processed = processed + 1;
         });
         let result: Box<[Vertex]> = read_utils::from_csv(&conf.vertex_list_csv, true, Some(cb))?;

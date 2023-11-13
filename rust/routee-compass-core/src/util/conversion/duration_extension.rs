@@ -27,6 +27,6 @@ impl DurationExtension for serde_json::Value {
         let h = &group["h"].parse::<u64>()?;
         let m = &group["m"].parse::<u64>()?;
         let s = &group["s"].parse::<u64>()?;
-        return Ok(Duration::from_secs(h * 3600 + m * 60 + s));
+        Ok(Duration::from_secs(h * 3600 + m * 60 + s))
     }
 }
