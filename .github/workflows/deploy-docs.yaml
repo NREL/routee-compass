@@ -21,9 +21,7 @@ jobs:
 
     - name: Install dependencies
       shell: bash -el {0}
-      run: |
-        conda install rasterio gdal toml osmnx
-        pip install ".[dev]"
+      run: conda install nrel.routee.compass jupyter-book 
     
     - name: Build book
       shell: bash -el {0}
