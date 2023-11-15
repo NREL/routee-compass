@@ -1,8 +1,8 @@
 use crate::{
     model::{
+        property::edge::Edge,
         road_network::graph_error::GraphError,
         road_network::{edge_id::EdgeId, vertex_id::VertexId},
-        property::edge::Edge,
     },
     util::fs::read_utils,
 };

@@ -77,7 +77,9 @@ mod test {
     use geo::{coord, LineString};
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::{cost::Cost, road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar},
+        model::{
+            cost::Cost, road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar,
+        },
     };
     use std::{collections::HashMap, time::Duration};
 

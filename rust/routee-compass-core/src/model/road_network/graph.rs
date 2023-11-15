@@ -1,8 +1,8 @@
 use crate::algorithm::search::direction::Direction;
-use crate::model::road_network::graph_error::GraphError;
-use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
+use crate::model::road_network::graph_error::GraphError;
+use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use std::collections::HashMap;
 use std::path::Path;
 

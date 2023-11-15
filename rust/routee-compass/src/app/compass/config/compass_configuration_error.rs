@@ -1,7 +1,8 @@
 use config::ConfigError;
 use routee_compass_core::{
     model::{
-        road_network::graph_error::GraphError, traversal::traversal_model_error::TraversalModelError,
+        road_network::graph_error::GraphError,
+        traversal::traversal_model_error::TraversalModelError,
     },
     util::conversion::conversion_error::ConversionError,
 };
