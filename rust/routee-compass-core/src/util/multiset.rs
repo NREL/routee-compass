@@ -10,7 +10,7 @@ where
 {
     fn from(sets: &'a Vec<Vec<T>>) -> Self {
         let final_pos: Vec<usize> = sets.iter().map(|v| v.len() - 1).collect();
-        let pos: Option<Vec<usize>> = Some(vec![0_usize; sets.len()]);
+        let pos: Option<Vec<usize>> = Some(vec![0; sets.len()]);
         MultiSet {
             sets,
             pos,
