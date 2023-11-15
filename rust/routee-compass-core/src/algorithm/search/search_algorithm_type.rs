@@ -1,5 +1,5 @@
 use crate::algorithm::search::search_error::SearchError;
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 pub enum SearchAlgorithmType {
     AStar,
@@ -12,8 +12,11 @@ impl SearchAlgorithmType {
             A::AStar => "a*",
         }
     }
-    pub fn to_string(&self) -> String {
-        self.to_str().to_string()
+}
+
+impl Display for SearchAlgorithmType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_str())
     }
 }
 

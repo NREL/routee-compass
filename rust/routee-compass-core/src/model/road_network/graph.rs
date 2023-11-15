@@ -1,8 +1,8 @@
 use crate::algorithm::search::direction::Direction;
-use crate::model::graph::graph_error::GraphError;
-use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
+use crate::model::road_network::graph_error::GraphError;
+use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -77,7 +77,7 @@ impl Graph {
     /// beginning at zero.
     pub fn edge_ids(&self) -> Box<dyn Iterator<Item = EdgeId>> {
         let range = (0..self.n_edges()).map(EdgeId);
-        return Box::new(range);
+        Box::new(range)
     }
 
     /// helper function for creating a range of all vertex ids in the graph.
@@ -85,7 +85,7 @@ impl Graph {
     /// beginning at zero.
     pub fn vertex_ids(&self) -> Box<dyn Iterator<Item = VertexId>> {
         let range = (0..self.n_vertices()).map(VertexId);
-        return Box::new(range);
+        Box::new(range)
     }
 
     /// retrieve an `Edge` record from the graph
@@ -98,7 +98,7 @@ impl Graph {
     ///
     /// The associated `Edge` or an error if the id is missing
     pub fn get_edge(&self, edge_id: EdgeId) -> Result<&Edge, GraphError> {
-        match self.edges.get(edge_id.0 as usize) {
+        match self.edges.get(edge_id.0) {
             None => Err(GraphError::EdgeAttributeNotFound { edge_id }),
             Some(edge) => Ok(edge),
         }
@@ -114,7 +114,7 @@ impl Graph {
     ///
     /// The associated `Vertex` or an error if the id is missing
     pub fn get_vertex(&self, vertex_id: VertexId) -> Result<&Vertex, GraphError> {
-        match self.vertices.get(vertex_id.0 as usize) {
+        match self.vertices.get(vertex_id.0) {
             None => Err(GraphError::VertexAttributeNotFound { vertex_id }),
             Some(vertex) => Ok(vertex),
         }
@@ -131,7 +131,7 @@ impl Graph {
     /// A list of `EdgeIds` for outbound edges that leave this `VertexId`, or an error
     /// if the vertex is missing from the Graph adjacency matrix.
     pub fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
-        match self.adj.get(src.0 as usize) {
+        match self.adj.get(src.0) {
             None => Err(GraphError::VertexWithoutOutEdges { vertex_id: src }),
             Some(out_map) => {
                 let edge_ids = out_map.keys().cloned().collect();
@@ -151,7 +151,7 @@ impl Graph {
     /// A list of `EdgeIds` for inbound edges that arrive at this `VertexId`, or an error
     /// if the vertex is missing from the Graph adjacency matrix.
     pub fn in_edges(&self, dst: VertexId) -> Result<Vec<EdgeId>, GraphError> {
-        match self.rev.get(dst.0 as usize) {
+        match self.rev.get(dst.0) {
             None => Err(GraphError::VertexWithoutInEdges { vertex_id: dst }),
             Some(in_map) => {
                 let edge_ids = in_map.keys().cloned().collect();

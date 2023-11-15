@@ -1,11 +1,11 @@
-use crate::model::graph::edge_id::EdgeId;
+use crate::model::road_network::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
 use crate::util::geo::haversine;
 use crate::util::unit::{Distance, DistanceUnit};
 use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
-        cost::cost::Cost,
+        cost::Cost,
         property::{edge::Edge, vertex::Vertex},
         traversal::{
             state::{state_variable::StateVar, traversal_state::TraversalState},
@@ -50,9 +50,9 @@ impl SpeedLookupModel {
             output_distance_unit,
             output_time_unit,
             speed_unit,
-            max_speed: max_speed.clone(),
+            max_speed,
         };
-        return Ok(model);
+        Ok(model)
     }
 }
 
@@ -68,13 +68,13 @@ impl TraversalModel for SpeedLookupModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.output_distance_unit.clone());
+        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.output_distance_unit);
         let speed = get_speed(&self.speed_table, edge.edge_id)?;
         let time = Time::create(
             speed,
-            self.speed_unit.clone(),
+            self.speed_unit,
             distance,
-            self.output_distance_unit.clone(),
+            self.output_distance_unit,
             self.output_time_unit.clone(),
         )?;
 
@@ -93,12 +93,9 @@ impl TraversalModel for SpeedLookupModel {
         dst: &Vertex,
         _state: &TraversalState,
     ) -> Result<Cost, TraversalModelError> {
-        let distance = haversine::coord_distance(
-            src.coordinate,
-            dst.coordinate,
-            self.output_distance_unit.clone(),
-        )
-        .map_err(TraversalModelError::NumericError)?;
+        let distance =
+            haversine::coord_distance(src.coordinate, dst.coordinate, self.output_distance_unit)
+                .map_err(TraversalModelError::NumericError)?;
 
         if distance == Distance::ZERO {
             return Ok(Cost::ZERO);
@@ -106,9 +103,9 @@ impl TraversalModel for SpeedLookupModel {
 
         let time = Time::create(
             self.max_speed,
-            self.speed_unit.clone(),
+            self.speed_unit,
             distance,
-            self.output_distance_unit.clone(),
+            self.output_distance_unit,
             self.output_time_unit.clone(),
         )?;
         Ok(Cost::from(time))
@@ -135,22 +132,19 @@ fn update_state(state: &TraversalState, distance: Distance, time: Time) -> Trave
     let mut updated_state = state.clone();
     updated_state[0] = state[0] + distance.into();
     updated_state[1] = state[1] + time.into();
-    return updated_state;
+    updated_state
 }
 
 fn get_distance_from_state(state: &TraversalState) -> Distance {
-    return Distance::new(state[0].0);
+    Distance::new(state[0].0)
 }
 
 fn get_time_from_state(state: &TraversalState) -> Time {
-    return Time::new(state[1].0);
+    Time::new(state[1].0)
 }
 
 /// look up a speed from the speed table
-pub fn get_speed(
-    speed_table: &Box<[Speed]>,
-    edge_id: EdgeId,
-) -> Result<Speed, TraversalModelError> {
+pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, TraversalModelError> {
     let speed: &Speed = speed_table.get(edge_id.as_usize()).ok_or(
         TraversalModelError::MissingIdInTabularCostFunction(
             format!("{}", edge_id),
@@ -161,23 +155,23 @@ pub fn get_speed(
     Ok(*speed)
 }
 
-pub fn get_max_speed(speed_table: &Box<[Speed]>) -> Result<Speed, TraversalModelError> {
+pub fn get_max_speed(speed_table: &[Speed]) -> Result<Speed, TraversalModelError> {
     let (max_speed, count) =
         speed_table
             .iter()
             .fold((Speed::ZERO, 0), |(acc_max, acc_cnt), row| {
-                let next_max = if acc_max > *row { acc_max } else { row.clone() };
+                let next_max = if acc_max > *row { acc_max } else { *row };
                 (next_max, acc_cnt + 1)
             });
 
     if count == 0 {
         let msg = format!("parsed {} entries for speed table", count);
-        return Err(TraversalModelError::BuildError(msg));
+        Err(TraversalModelError::BuildError(msg))
     } else if max_speed == Speed::ZERO {
         let msg = format!("max speed was zero in speed table with {} entries", count);
-        return Err(TraversalModelError::BuildError(msg));
+        Err(TraversalModelError::BuildError(msg))
     } else {
-        return Ok(max_speed);
+        Ok(max_speed)
     }
 }
 
@@ -185,36 +179,35 @@ pub fn get_max_speed(speed_table: &Box<[Speed]>) -> Result<Speed, TraversalModel
 mod tests {
     use super::*;
     use crate::model::{
-        graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, vertex::Vertex},
+        road_network::{edge_id::EdgeId, vertex_id::VertexId},
     };
     use crate::util::unit::Distance;
     use geo::coord;
     use std::path::PathBuf;
 
     fn mock_vertex() -> Vertex {
-        return Vertex {
+        Vertex {
             vertex_id: VertexId(0),
             coordinate: coord! {x: -86.67, y: 36.12},
-        };
+        }
     }
     fn mock_edge(edge_id: usize) -> Edge {
-        return Edge {
+        Edge {
             edge_id: EdgeId(edge_id),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
             distance: Distance::new(100.0),
-        };
+        }
     }
     fn filepath() -> PathBuf {
-        let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
             .join("traversal")
             .join("default")
             .join("test")
-            .join("velocities.txt");
-        filepath
+            .join("velocities.txt")
     }
 
     fn approx_eq(a: f64, b: f64, error: f64) {

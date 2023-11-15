@@ -27,13 +27,13 @@ impl UUIDOutputPlugin {
             .map_err(PluginError::InternalError)?;
 
         let cb = Box::new(|| {
-            pb.update(1);
+            let _ = pb.update(1);
         });
 
         let uuids = read_raw_file(&filename, |_idx, row| Ok(row), Some(cb)).map_err(|e| {
             PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
         })?;
-        print!("\n");
+        println!();
         Ok(UUIDOutputPlugin { uuids })
     }
 }
@@ -48,11 +48,11 @@ impl OutputPlugin for UUIDOutputPlugin {
         let (origin_vertex_id, destination_vertex_id) = output.get_od_vertex_ids()?;
         let origin_uuid = self
             .uuids
-            .get(origin_vertex_id.0 as usize)
+            .get(origin_vertex_id.0)
             .ok_or(PluginError::UUIDMissing(origin_vertex_id.0))?;
         let destination_uuid = self
             .uuids
-            .get(destination_vertex_id.0 as usize)
+            .get(destination_vertex_id.0)
             .ok_or(PluginError::UUIDMissing(destination_vertex_id.0))?;
 
         updated_output.add_od_uuids(origin_uuid.clone(), destination_uuid.clone())?;

@@ -23,7 +23,6 @@ keywords = ["eco routing"]
 dependencies = []
 [project.optional-dependencies]
 dev = [
-    "nrel.routee.compass",
     "black",
     "pytest",
     "maturin",
@@ -32,7 +31,7 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.nrel.gov/MBAP/routee-compass"
+Homepage = "https://github.com/NREL/routee-compass"
 
 [tool.maturin]
 python-source = "python"

@@ -1,4 +1,4 @@
-use crate::model::graph::vertex_id::VertexId;
+use crate::model::road_network::vertex_id::VertexId;
 use geo::{coord, Coord};
 use serde::de;
 
@@ -111,10 +111,10 @@ impl<'de> de::Deserialize<'de> for Vertex {
                     }
                 }
 
-                return match vertex_result {
+                match vertex_result {
                     None => Err(de::Error::custom("failed to deserialize Vertex")),
                     Some(vertex) => Ok(vertex),
-                };
+                }
             }
         }
 
@@ -130,7 +130,7 @@ mod tests {
     use csv;
     use geo::Coord;
 
-    use crate::model::{graph::vertex_id::VertexId, property::vertex::Vertex};
+    use crate::model::{property::vertex::Vertex, road_network::vertex_id::VertexId};
 
     #[test]
     fn test_deserialize_csv() {

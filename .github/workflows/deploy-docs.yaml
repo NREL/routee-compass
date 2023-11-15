@@ -6,6 +6,7 @@ on:
     - main 
     paths:
     - docs/**
+    - .github/workflows/deploy-docs.yml
 
 jobs:
   deploy-docs:
@@ -20,9 +21,7 @@ jobs:
 
     - name: Install dependencies
       shell: bash -el {0}
-      run: |
-        conda install rasterio gdal
-        pip install ".[dev]"
+      run: conda install nrel.routee.compass jupyter-book 
     
     - name: Build book
       shell: bash -el {0}

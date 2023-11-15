@@ -11,7 +11,6 @@ use super::as_f64::AsF64;
     Serialize,
     Deserialize,
     PartialEq,
-    PartialOrd,
     Eq,
     Hash,
     Debug,
@@ -28,6 +27,12 @@ pub struct Grade(pub OrderedFloat<f64>);
 impl AsF64 for Grade {
     fn as_f64(&self) -> f64 {
         (self.0).0
+    }
+}
+
+impl PartialOrd for Grade {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.0.cmp(&other.0))
     }
 }
 

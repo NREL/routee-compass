@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use crate::routee::prediction_model::SpeedGradePredictionModel;
 use ndarray::CowArray;
 use ort::{
@@ -23,14 +25,14 @@ impl SpeedGradePredictionModel for OnnxSpeedGradeModel {
         grade: Grade,
         grade_unit: GradeUnit,
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
-        let speed_value: f32 = speed_unit.convert(speed, self.speed_unit.clone()).as_f64() as f32;
-        let grade_value: f32 = grade_unit.convert(grade, self.grade_unit.clone()).as_f64() as f32;
+        let speed_value: f32 = speed_unit.convert(speed, self.speed_unit).as_f64() as f32;
+        let grade_value: f32 = grade_unit.convert(grade, self.grade_unit).as_f64() as f32;
         let array = ndarray::Array1::from(vec![speed_value, grade_value])
             .into_shape((1, 2))
             .map_err(|e| {
                 TraversalModelError::PredictionModel(format!(
                     "Failed to reshape input for prediction: {}",
-                    e.to_string()
+                    e
                 ))
             })?;
 
@@ -38,7 +40,7 @@ impl SpeedGradePredictionModel for OnnxSpeedGradeModel {
         let value = Value::from_array(self.session.allocator(), &x).map_err(|e| {
             TraversalModelError::PredictionModel(format!(
                 "Failed to create input value for prediction: {}",
-                e.to_string()
+                e
             ))
         })?;
         let input = vec![value];
@@ -48,13 +50,13 @@ impl SpeedGradePredictionModel for OnnxSpeedGradeModel {
         let output_f64 = result.view().to_owned().into_raw_vec()[0] as f64;
 
         let energy_rate = EnergyRate::new(output_f64);
-        Ok((energy_rate, self.energy_rate_unit.clone()))
+        Ok((energy_rate, self.energy_rate_unit))
     }
 }
 
 impl OnnxSpeedGradeModel {
-    pub fn new(
-        onnx_model_path: String,
+    pub fn new<P: AsRef<Path>>(
+        onnx_model_path: &P,
         speed_unit: SpeedUnit,
         grade_unit: GradeUnit,
         energy_rate_unit: EnergyRateUnit,
@@ -68,7 +70,7 @@ impl OnnxSpeedGradeModel {
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
             .with_intra_threads(1)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
-            .with_optimization_level(GraphOptimizationLevel::Level1)
+            .with_optimization_level(GraphOptimizationLevel::Level3)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
             .with_model_from_file(onnx_model_path)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;

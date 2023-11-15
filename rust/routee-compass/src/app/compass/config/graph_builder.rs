@@ -1,4 +1,4 @@
-use routee_compass_core::model::graph::graph::Graph;
+use routee_compass_core::model::road_network::graph::Graph;
 
 use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 

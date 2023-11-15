@@ -1,7 +1,7 @@
 use super::input_field::InputField;
 use crate::plugin::plugin_error::PluginError;
 use geo;
-use routee_compass_core::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
+use routee_compass_core::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use serde_json;
 
 pub trait InputJsonExtensions {
@@ -24,7 +24,7 @@ impl InputJsonExtensions for serde_json::Value {
             .as_f64()
             .ok_or(PluginError::ParseError(
                 InputField::OriginX.to_string(),
-                String::from(String::from("f64")),
+                String::from("f64"),
             ))?;
         let origin_y = self
             .get(InputField::OriginY.to_string())
@@ -32,7 +32,7 @@ impl InputJsonExtensions for serde_json::Value {
             .as_f64()
             .ok_or(PluginError::ParseError(
                 InputField::OriginY.to_string(),
-                String::from(String::from("f64")),
+                String::from("f64"),
             ))?;
         Ok(geo::Coord::from((origin_x, origin_y)))
     }
@@ -158,7 +158,7 @@ impl InputJsonExtensions for serde_json::Value {
 //     op: DecodeOp<T>,
 // ) -> Result<T, PluginError> {
 //     let at_field = value.get(field.to_string());
-//     return match at_field {
+//     match at_field {
 //         None => Err(PluginError::MissingField(field.to_string())),
 //         Some(v) => op(v).ok_or(PluginError::ParseError(field.to_string(), ())),
 //     };

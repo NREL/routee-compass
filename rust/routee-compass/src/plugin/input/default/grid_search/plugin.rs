@@ -20,14 +20,11 @@ impl InputPlugin for GridSearchPlugin {
                 let mut multiset_input: Vec<Vec<serde_json::Value>> = vec![];
                 let mut multiset_indices: Vec<Vec<usize>> = vec![];
                 for (k, v) in map {
-                    match v {
-                        serde_json::Value::Array(values) => {
-                            keys.push(k.to_string());
-                            multiset_input.push(values.to_vec());
-                            let indices = (0..values.len()).collect();
-                            multiset_indices.push(indices);
-                        }
-                        _ => {}
+                    if let Some(v) = v.as_array() {
+                        keys.push(k.to_string());
+                        multiset_input.push(v.to_vec());
+                        let indices = (0..v.len()).collect();
+                        multiset_indices.push(indices);
                     }
                 }
                 // for each combination, copy the grid search values into a fresh

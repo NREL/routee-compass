@@ -4,7 +4,7 @@ use crate::app::{
 };
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::plugin_error::PluginError;
-use routee_compass_core::model::cost::cost::Cost;
+use routee_compass_core::model::cost::Cost;
 use serde_json;
 
 pub struct SummaryOutputPlugin {}
@@ -40,7 +40,7 @@ mod tests {
     use chrono::Local;
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::{graph::edge_id::EdgeId, traversal::state::state_variable::StateVar},
+        model::{road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar},
     };
 
     use super::*;

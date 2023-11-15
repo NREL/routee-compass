@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::plugin::plugin_error::PluginError;
 
 pub enum TraversalJsonField {
@@ -6,15 +8,17 @@ pub enum TraversalJsonField {
 }
 
 impl TraversalJsonField {
-    pub fn as_str(self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             TraversalJsonField::RouteOutput => "route",
             TraversalJsonField::TreeOutput => "tree",
         }
     }
+}
 
-    pub fn to_string(self) -> String {
-        self.as_str().to_string()
+impl Display for TraversalJsonField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 

@@ -47,6 +47,6 @@ impl FrontierModelBuilder for RoadClassBuilder {
                 .collect();
 
         let m: Box<dyn FrontierModel> = Box::new(RoadClassFrontierModel { road_class_lookup });
-        return Ok(m);
+        Ok(m)
     }
 }

@@ -14,6 +14,6 @@ impl InputPluginBuilder for GridSearchBuilder {
         &self,
         _parameters: &serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
-        return Ok(Box::new(GridSearchPlugin {}));
+        Ok(Box::new(GridSearchPlugin {}))
     }
 }

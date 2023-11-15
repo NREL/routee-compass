@@ -1,9 +1,9 @@
 use super::prediction_model::SpeedGradePredictionModelRecord;
 use super::speed_grade_model_service::SpeedGradeModelService;
-use routee_compass_core::model::cost::cost::Cost;
-use routee_compass_core::model::graph::edge_id::EdgeId;
+use routee_compass_core::model::cost::Cost;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
+use routee_compass_core::model::road_network::edge_id::EdgeId;
 use routee_compass_core::model::traversal::default::speed_lookup_model::get_speed;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
@@ -39,7 +39,7 @@ impl TraversalModel for SpeedGradeModel {
         let distance = haversine::coord_distance(
             src.coordinate,
             dst.coordinate,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
         )
         .map_err(TraversalModelError::NumericError)?;
 
@@ -49,16 +49,16 @@ impl TraversalModel for SpeedGradeModel {
 
         let (energy, _energy_unit) = Energy::create(
             self.model_record.ideal_energy_rate,
-            self.model_record.energy_rate_unit.clone(),
+            self.model_record.energy_rate_unit,
             distance,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
         )?;
 
         let time: Time = Time::create(
-            self.service.max_speed.clone(),
-            self.service.speeds_table_speed_unit.clone(),
+            self.service.max_speed,
+            self.service.speeds_table_speed_unit,
             distance,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
             self.service.output_time_unit.clone(),
         )?;
 
@@ -79,9 +79,9 @@ impl TraversalModel for SpeedGradeModel {
 
         let time: Time = Time::create(
             speed,
-            self.service.speeds_table_speed_unit.clone(),
+            self.service.speeds_table_speed_unit,
             distance,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
             self.service.output_time_unit.clone(),
         )?;
 
@@ -96,9 +96,9 @@ impl TraversalModel for SpeedGradeModel {
 
         let (mut energy, _energy_unit) = Energy::create(
             energy_rate_real_world,
-            self.model_record.energy_rate_unit.clone(),
+            self.model_record.energy_rate_unit,
             distance,
-            self.service.output_distance_unit.clone(),
+            self.service.output_distance_unit,
         )?;
 
         if energy.as_f64() < 0.0 {
@@ -107,7 +107,7 @@ impl TraversalModel for SpeedGradeModel {
         }
 
         let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
-        let updated_state = update_state(&state, distance, time, energy);
+        let updated_state = update_state(state, distance, time, energy);
         let result = TraversalResult {
             total_cost,
             updated_state,
@@ -154,7 +154,7 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
                     "expected 'energy_cost_coefficient' value to be numeric, found {}",
                     v
                 )))?;
-                if f < 0.0 || 1.0 < f {
+                if !(0.0..=1.0).contains(&f) {
                     return Err(TraversalModelError::BuildError(format!("expected 'energy_cost_coefficient' value to be numeric in range [0.0, 1.0], found {}", f)));
                 } else {
                     log::debug!("using energy_cost_coefficient of {}", f);
@@ -198,8 +198,8 @@ fn create_cost(energy: Energy, time: Time, energy_percent: f64) -> Cost {
     let energy_cost = Cost::from(energy_scaled);
     let time_scaled = time * (1.0 - energy_percent);
     let time_cost = Cost::from(time_scaled);
-    let total_cost = energy_cost + time_cost;
-    total_cost
+
+    energy_cost + time_cost
 }
 
 fn update_state(
@@ -212,19 +212,19 @@ fn update_state(
     updated_state[0] = state[0] + distance.into();
     updated_state[1] = state[1] + time.into();
     updated_state[2] = state[2] + energy.into();
-    return updated_state;
+    updated_state
 }
 
 fn get_distance_from_state(state: &TraversalState) -> Distance {
-    return Distance::new(state[0].0);
+    Distance::new(state[0].0)
 }
 
 fn get_time_from_state(state: &TraversalState) -> Time {
-    return Time::new(state[1].0);
+    Time::new(state[1].0)
 }
 
 fn get_energy_from_state(state: &TraversalState) -> Energy {
-    return Energy::new(state[2].0);
+    Energy::new(state[2].0)
 }
 
 /// look up the grade from the grade table
@@ -254,8 +254,8 @@ mod tests {
     use super::*;
     use geo::coord;
     use routee_compass_core::model::{
-        graph::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, vertex::Vertex},
+        road_network::{edge_id::EdgeId, vertex_id::VertexId},
     };
     use std::{collections::HashMap, path::PathBuf};
 
@@ -281,12 +281,12 @@ mod tests {
             coordinate: coord! {x: -86.67, y: 36.12},
         };
         fn mock_edge(edge_id: usize) -> Edge {
-            return Edge {
+            Edge {
                 edge_id: EdgeId(edge_id),
                 src_vertex_id: VertexId(0),
                 dst_vertex_id: VertexId(1),
                 distance: Distance::new(100.0),
-            };
+            }
         }
         let model_record = SpeedGradePredictionModelRecord::new(
             "Toyota_Camry".to_string(),

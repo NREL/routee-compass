@@ -1,4 +1,6 @@
-use super::{as_f64::AsF64, unit, Distance, DistanceUnit, SpeedUnit, Time, TimeUnit, UnitError};
+use super::{
+    as_f64::AsF64, builders, Distance, DistanceUnit, SpeedUnit, Time, TimeUnit, UnitError,
+};
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
@@ -10,7 +12,6 @@ use std::{cmp::Ordering, fmt::Display, str::FromStr};
     Serialize,
     Deserialize,
     PartialEq,
-    PartialOrd,
     Eq,
     Hash,
     Debug,
@@ -38,6 +39,12 @@ impl From<(Distance, Time)> for Speed {
     }
 }
 
+impl PartialOrd for Speed {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.0.cmp(&other.0))
+    }
+}
+
 impl Ord for Speed {
     fn cmp(&self, other: &Self) -> Ordering {
         self.0.cmp(&other.0)
@@ -58,12 +65,12 @@ impl FromStr for Speed {
             .parse::<f64>()
             .map_err(|_| format!("could not parse {} as a number", s))?;
         if value < 0.0 {
-            return Err(format!(
+            Err(format!(
                 "speed value {} invalid, must be strictly positive (0, +inf]",
                 value
-            ));
+            ))
         } else {
-            return Ok(Speed::new(value));
+            Ok(Speed::new(value))
         }
     }
 }
@@ -79,7 +86,7 @@ impl Speed {
         distance_unit: DistanceUnit,
         speed_unit: SpeedUnit,
     ) -> Result<Speed, UnitError> {
-        unit::create_speed(time, time_unit, distance, distance_unit, speed_unit)
+        builders::create_speed(time, time_unit, distance, distance_unit, speed_unit)
     }
     pub fn to_f64(&self) -> f64 {
         (self.0).0

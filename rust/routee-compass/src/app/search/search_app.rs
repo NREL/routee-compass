@@ -10,7 +10,7 @@ use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{backtrack, search_algorithm::SearchAlgorithm},
     model::{
-        frontier::frontier_model::FrontierModel, graph::graph::Graph,
+        frontier::frontier_model::FrontierModel, road_network::graph::Graph,
         termination::termination_model::TerminationModel,
         traversal::traversal_model::TraversalModel,
     },
@@ -41,13 +41,13 @@ impl SearchApp {
         let traversal_model_service = Arc::new(DriverReadOnlyLock::new(traversal_model_service));
         let frontier_model = Arc::new(DriverReadOnlyLock::new(frontier_model));
         let termination_model = Arc::new(DriverReadOnlyLock::new(termination_model));
-        return SearchApp {
+        SearchApp {
             search_algorithm,
             graph,
             traversal_model_service,
             frontier_model,
             termination_model,
-        };
+        }
     }
 
     /// runs a single vertex oriented query
@@ -196,6 +196,6 @@ impl SearchApp {
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
             .build(query)?;
-        return Ok(tm);
+        Ok(tm)
     }
 }

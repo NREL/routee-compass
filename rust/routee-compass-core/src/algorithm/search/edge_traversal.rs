@@ -1,12 +1,12 @@
 use serde::Serialize;
 
-use crate::model::graph::edge_id::EdgeId;
-use crate::model::graph::graph::Graph;
+use crate::model::road_network::edge_id::EdgeId;
+use crate::model::road_network::graph::Graph;
 use crate::model::traversal::access_result::AccessResult;
 use crate::model::traversal::traversal_model::TraversalModel;
 
 use super::search_error::SearchError;
-use crate::model::cost::cost::Cost;
+use crate::model::cost::Cost;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use std::sync::Arc;
 use std::{fmt::Display, sync::RwLockReadGuard};
@@ -21,7 +21,7 @@ pub struct EdgeTraversal {
 
 impl EdgeTraversal {
     pub fn edge_cost(&self) -> Cost {
-        return self.access_cost + self.traversal_cost;
+        self.access_cost + self.traversal_cost
     }
 }
 
@@ -56,7 +56,7 @@ impl EdgeTraversal {
             Some(prev_e) => {
                 let prev_edge = g.get_edge(prev_e).map_err(SearchError::GraphError)?;
                 let prev_src_v = g.get_vertex(prev_edge.src_vertex_id)?;
-                m.access_cost(&prev_src_v, &prev_edge, &src, &edge, &dst, &prev_state)
+                m.access_cost(prev_src_v, prev_edge, src, edge, dst, prev_state)
             }
             None => Ok(AccessResult::no_cost()),
         }

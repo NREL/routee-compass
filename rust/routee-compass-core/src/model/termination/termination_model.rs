@@ -51,7 +51,7 @@ impl TerminationModel {
         }
     }
 
-    /// this method will return a string explaining why a model terminated. if the
+    /// this method will a string explaining why a model terminated. if the
     /// conditions do not merit termination, then the result will be None.
     pub fn explain_termination(
         &self,
@@ -67,8 +67,7 @@ impl TerminationModel {
             T::Combined { models } => {
                 let combined_explanations: String = models
                     .iter()
-                    .map(|m| m.explain_termination(start_time, solution_size, iterations))
-                    .flatten()
+                    .filter_map(|m| m.explain_termination(start_time, solution_size, iterations))
                     .collect::<Vec<_>>()
                     .join(", ");
                 if combined_explanations.is_empty() {
@@ -119,7 +118,7 @@ mod tests {
         for iteration in 0..(frequency + 1) {
             let result = m.terminate_search(&start_time, 0, iteration).unwrap();
             // in all iterations, the result should be false, though for iterations 1-9, that will be due to the sample frequency
-            assert_eq!(result, false);
+            assert!(!result);
         }
     }
 
@@ -136,14 +135,14 @@ mod tests {
             if iteration == 0 {
                 // edge case. when iteration == 0, we will run the test, and it should fail, since 10 % 0 == 0 is true.
                 // but let's continue testing iterations 1-10 to explore the expected range of behaviors.
-                assert_eq!(result, true);
+                assert!(result);
             } else if iteration != frequency {
                 // from iterations 1 to 9, terminate is false because of the frequency argument of 10
                 // bypasses the runtime test
-                assert_eq!(result, false);
+                assert!(!result);
             } else {
                 // on iteration 10, terminate is true because "exceeds_limit_time" is greater than the limit duration
-                assert_eq!(result, true);
+                assert!(result);
             }
         }
     }
@@ -155,9 +154,9 @@ mod tests {
         let t_good = m.terminate_search(&i, 4, 4).unwrap();
         let t_bad1 = m.terminate_search(&i, 5, 5).unwrap();
         let t_bad2 = m.terminate_search(&i, 6, 6).unwrap();
-        assert_eq!(t_good, false);
-        assert_eq!(t_bad1, true);
-        assert_eq!(t_bad2, true);
+        assert!(!t_good);
+        assert!(t_bad1);
+        assert!(t_bad2);
     }
 
     #[test]
@@ -167,9 +166,9 @@ mod tests {
         let t_good = m.terminate_search(&i, 4, 4).unwrap();
         let t_bad1 = m.terminate_search(&i, 5, 5).unwrap();
         let t_bad2 = m.terminate_search(&i, 6, 6).unwrap();
-        assert_eq!(t_good, false);
-        assert_eq!(t_bad1, false);
-        assert_eq!(t_bad2, true);
+        assert!(!t_good);
+        assert!(!t_bad1);
+        assert!(t_bad2);
     }
 
     #[test]
@@ -197,10 +196,10 @@ mod tests {
         let terminate = cm
             .terminate_search(&start_time, solution_limit + 1, iteration_limit + 1)
             .unwrap();
-        assert_eq!(terminate, true);
+        assert!(terminate);
         let msg = cm.explain_termination(&start_time, solution_limit + 1, iteration_limit + 1);
         let expected = Some(
-            vec![
+            [
                 "exceeded runtime limit of 0:00:02.000",
                 "exceeded iteration limit of 5",
                 "exceeded solution size limit of 3",
@@ -235,10 +234,10 @@ mod tests {
         let terminate = cm
             .terminate_search(&start_time, solution_limit - 1, iteration_limit + 1)
             .unwrap();
-        assert_eq!(terminate, true);
+        assert!(terminate);
         let msg = cm.explain_termination(&start_time, solution_limit - 1, iteration_limit + 1);
         let expected = Some(
-            vec![
+            [
                 "exceeded runtime limit of 0:00:02.000",
                 "exceeded iteration limit of 5",
             ]
