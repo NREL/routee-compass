@@ -1,9 +1,11 @@
+use crate::routee::speed_grade_model_ops::ZERO_ENERGY;
+
 use super::prediction_model::SpeedGradePredictionModelRecord;
+use super::speed_grade_model_ops::get_grade;
 use super::speed_grade_model_service::SpeedGradeModelService;
 use routee_compass_core::model::cost::Cost;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
-use routee_compass_core::model::road_network::edge_id::EdgeId;
 use routee_compass_core::model::traversal::default::speed_lookup_model::get_speed;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
@@ -15,22 +17,24 @@ use routee_compass_core::util::unit::as_f64::AsF64;
 use routee_compass_core::util::unit::*;
 use std::sync::Arc;
 
-const ZERO_ENERGY: f64 = 1e-9;
-
-
-pub struct SpeedGradeModel {
+pub struct SpeedGradePHEVModel {
     pub service: Arc<SpeedGradeModelService>,
-    pub model_records: Arc<SpeedGradePredictionModelRecord>,
+    pub charge_sustain_model_record: Arc<SpeedGradePredictionModelRecord>,
+    pub charge_deplete_model_record: Arc<SpeedGradePredictionModelRecord>,
     pub energy_cost_coefficient: f64,
+    pub starting_soc: f64,
 }
 
-impl TraversalModel for SpeedGradeModel {
+impl TraversalModel for SpeedGradePHEVModel {
     fn initial_state(&self) -> TraversalState {
-        // distance, time, energy
-        vec![StateVar(0.0), StateVar(0.0), StateVar(0.0)]
+        vec![
+            StateVar(0.0), // accumulated distance
+            StateVar(0.0), // accumulated time
+            StateVar(0.0), // accumulated electrical energy
+            StateVar(0.0), // accumulated gasoline energy
+            StateVar(0.0), // battery energy remaining
+        ]
     }
-    /// estimate the cost of traveling between two vertices.
-    /// given a distance estimate,
     fn cost_estimate(
         &self,
         src: &Vertex,
@@ -48,9 +52,10 @@ impl TraversalModel for SpeedGradeModel {
             return Ok(Cost::ZERO);
         }
 
-        let (energy, _energy_unit) = Energy::create(
-            self.model_records.ideal_energy_rate,
-            self.model_records.energy_rate_unit,
+        // assume lowest energy cost scenario for a PHEV is to just use the battery
+        let (electrical_energy, energy_unit) = Energy::create(
+            self.charge_deplete_model_record.ideal_energy_rate,
+            self.charge_deplete_model_record.energy_rate_unit,
             distance,
             self.service.output_distance_unit,
         )?;
@@ -63,7 +68,16 @@ impl TraversalModel for SpeedGradeModel {
             self.service.output_time_unit.clone(),
         )?;
 
-        let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
+        let total_cost = create_cost(
+            electrical_energy,
+            energy_unit,
+            Energy::new(0.0),
+            self.charge_sustain_model_record
+                .energy_rate_unit
+                .associated_energy_unit(),
+            time,
+            self.energy_cost_coefficient,
+        );
         Ok(total_cost)
     }
 
@@ -86,29 +100,20 @@ impl TraversalModel for SpeedGradeModel {
             self.service.output_time_unit.clone(),
         )?;
 
-        let (energy_rate, _energy_rate_unit) = self.model_records.prediction_model.predict(
-            speed,
-            self.service.speeds_table_speed_unit,
-            grade,
-            self.service.grade_table_grade_unit,
-        )?;
+        let battery_soc_percentage = get_battery_soc_percent(self, state)?;
 
-        let energy_rate_real_world = energy_rate * self.model_records.real_world_energy_adjustment;
+        let (electrical_energy, electrical_energy_unit, gasoline_energy, gasoline_energy_unit) =
+            get_phev_energy(self, battery_soc_percentage, speed, grade, distance)?;
 
-        let (mut energy, _energy_unit) = Energy::create(
-            energy_rate_real_world,
-            self.model_records.energy_rate_unit,
-            distance,
-            self.service.output_distance_unit,
-        )?;
-
-        if energy.as_f64() < 0.0 {
-            energy = Energy::new(ZERO_ENERGY);
-            log::debug!("negative energy encountered, setting to 1e-9");
-        }
-
-        let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
-        let updated_state = update_state(state, distance, time, energy);
+        let total_cost = create_cost(
+            electrical_energy,
+            electrical_energy_unit,
+            gasoline_energy,
+            gasoline_energy_unit,
+            time,
+            self.energy_cost_coefficient,
+        );
+        let updated_state = update_state(state, distance, time, electrical_energy, gasoline_energy);
         let result = TraversalResult {
             total_cost,
             updated_state,
@@ -119,20 +124,26 @@ impl TraversalModel for SpeedGradeModel {
     fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
         let distance = get_distance_from_state(state);
         let time = get_time_from_state(state);
-        let energy = get_energy_from_state(state);
+        let electrical_energy = get_electrical_energy_from_state(state);
+        let gasoline_energy = get_gasoline_energy_from_state(state);
+        let battery_soc_percent = get_battery_soc_percent(self, state).unwrap_or(0.0);
         serde_json::json!({
             "distance": distance,
             "time": time,
-            "energy": energy,
+            "electrical_energy": electrical_energy,
+            "gasoline_energy": gasoline_energy,
+            "final_battery_soc": battery_soc_percent,
         })
     }
 
     fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
-        let energy_unit = self.model_records.energy_rate_unit.associated_energy_unit();
+        let electrical_energy_unit = self.charge_deplete_model_record.energy_rate_unit.associated_energy_unit();
+        let gasoline_energy_unit = self.charge_sustain_model_record.energy_rate_unit.associated_energy_unit();
         serde_json::json!({
             "distance_unit": self.service.output_distance_unit,
             "time_unit": self.service.output_time_unit,
-            "energy_unit": energy_unit,
+            "electrical_energy_unit": electrical_energy_unit,
+            "gasoline_energy_unit": gasoline_energy_unit,
         })
     }
 }
@@ -188,14 +199,26 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
 
         Ok(SpeedGradeModel {
             service,
-            model_records: model_record,
+            model_record,
             energy_cost_coefficient,
         })
     }
 }
 
-fn create_cost(energy: Energy, time: Time, energy_percent: f64) -> Cost {
-    let energy_scaled = energy * energy_percent;
+fn create_cost(
+    electrical_energy: Energy,
+    electrical_energy_unit: EnergyUnit,
+    gasoline_energy: Energy,
+    gasoline_energy_unit: EnergyUnit,
+    time: Time,
+    energy_percent: f64,
+) -> Cost {
+    let electrical_energy_kwh =
+        electrical_energy_unit.convert(electrical_energy, EnergyUnit::KilowattHours);
+    let gasoline_energy_kwh =
+        gasoline_energy_unit.convert(gasoline_energy, EnergyUnit::KilowattHours);
+    let total_energy_kwh = electrical_energy_kwh + gasoline_energy_kwh;
+    let energy_scaled = total_energy_kwh * energy_percent;
     let energy_cost = Cost::from(energy_scaled);
     let time_scaled = time * (1.0 - energy_percent);
     let time_cost = Cost::from(time_scaled);
@@ -207,12 +230,17 @@ fn update_state(
     state: &TraversalState,
     distance: Distance,
     time: Time,
-    energy: Energy,
+    electrical_energy: Energy,
+    gasoline_energy: Energy,
 ) -> TraversalState {
+    let current_battery_energy = get_remaining_battery_energy_from_state(state);
+    let new_battery_energy = current_battery_energy - electrical_energy;
     let mut updated_state = state.clone();
     updated_state[0] = state[0] + distance.into();
     updated_state[1] = state[1] + time.into();
-    updated_state[2] = state[2] + energy.into();
+    updated_state[2] = state[2] + electrical_energy.into();
+    updated_state[3] = state[3] + gasoline_energy.into();
+    updated_state[4] = state[4] + new_battery_energy.into();
     updated_state
 }
 
@@ -224,27 +252,133 @@ fn get_time_from_state(state: &TraversalState) -> Time {
     Time::new(state[1].0)
 }
 
-fn get_energy_from_state(state: &TraversalState) -> Energy {
+fn get_electrical_energy_from_state(state: &TraversalState) -> Energy {
     Energy::new(state[2].0)
 }
 
-/// look up the grade from the grade table
-pub fn get_grade(
-    grade_table: &Option<Box<[Grade]>>,
-    edge_id: EdgeId,
-) -> Result<Grade, TraversalModelError> {
-    match grade_table {
-        None => Ok(Grade::ZERO),
-        Some(gt) => {
-            let grade: &Grade = gt.get(edge_id.as_usize()).ok_or(
-                TraversalModelError::MissingIdInTabularCostFunction(
-                    format!("{}", edge_id),
-                    String::from("EdgeId"),
-                    String::from("grade table"),
-                ),
+fn get_gasoline_energy_from_state(state: &TraversalState) -> Energy {
+    Energy::new(state[3].0)
+}
+
+fn get_remaining_battery_energy_from_state(state: &TraversalState) -> Energy {
+    Energy::new(state[4].0)
+}
+
+fn get_battery_soc_percent(
+    model: &SpeedGradePHEVModel,
+    state: &TraversalState,
+) -> Result<f64, TraversalModelError> {
+    let battery_capacity = model.charge_deplete_model_record.battery_capacity.ok_or(
+        TraversalModelError::InternalError("battery capacity not set on PHEV model".to_string()),
+    )?;
+    let battery_capacity_unit = model
+        .charge_deplete_model_record
+        .battery_capacity_unit
+        .ok_or(TraversalModelError::InternalError(
+            "battery capacity unit not set on PHEV model".to_string(),
+        ))?;
+    let battery_capacity_kwh =
+        battery_capacity_unit.convert(battery_capacity, EnergyUnit::KilowattHours);
+
+    let remaining_battery_energy = get_remaining_battery_energy_from_state(state);
+    let remaining_battery_energy_unit = model
+        .charge_deplete_model_record
+        .energy_rate_unit
+        .associated_energy_unit();
+
+    let remaining_battery_energy_kwh =
+        remaining_battery_energy_unit.convert(remaining_battery_energy, EnergyUnit::KilowattHours);
+
+    let battery_soc_percent =
+        (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100;
+    Ok(battery_soc_percent)
+}
+
+/// Compute the energy for the PHEV by converting gasoline to kWh.
+/// This uses a simplified operation in which we assume that if the battery
+/// SOC is greater than zero we can just operate on battery to traverse a link.
+/// This is not entirely realistic as it's possible to arrive at a link with
+/// 0.001% SOC and still need to use gasoline to traverse the link.
+///
+/// In the future we could make this more sophisticated by calculating
+/// the energy required to traverse the link using the battery and then
+/// finding the point at which we would have to switch to gasoline
+///
+/// Returns a tuple of (electrical_energy, electrical_energy_unit, gasoline_energy, gasoline_energy_unit)
+fn get_phev_energy(
+    model: &SpeedGradePHEVModel,
+    battery_soc_percent: f64,
+    speed: Speed,
+    grade: Grade,
+    distance: Distance,
+) -> Result<(Energy, EnergyUnit, Energy, EnergyUnit), TraversalModelError> {
+    let electrical_energy_unit = model
+        .charge_deplete_model_record
+        .energy_rate_unit
+        .associated_energy_unit();
+    let gasoline_energy_unit = model
+        .charge_sustain_model_record
+        .energy_rate_unit
+        .associated_energy_unit();
+
+    if battery_soc_percent > 0.0 {
+        // assume we can just use the battery
+        let (pred_energy_rate, pred_energy_rate_unit) =
+            model.charge_deplete_model_record.prediction_model.predict(
+                speed,
+                model.service.speeds_table_speed_unit,
+                grade,
+                model.service.grade_table_grade_unit,
             )?;
-            Ok(*grade)
+        let pred_energy_rate = pred_energy_rate
+            * model
+                .charge_deplete_model_record
+                .real_world_energy_adjustment;
+        let (mut pred_energy, pred_energy_unit) = Energy::create(
+            pred_energy_rate,
+            pred_energy_rate_unit,
+            distance,
+            model.service.output_distance_unit,
+        )?;
+        if pred_energy.as_f64() < 0.0 {
+            pred_energy = Energy::new(ZERO_ENERGY);
+            log::debug!("negative energy encountered, setting to 1e-9");
         }
+        return Ok((
+            pred_energy,
+            pred_energy_unit,
+            Energy::new(0.0),
+            gasoline_energy_unit,
+        ));
+    } else {
+        // just use the gasoline engine
+        let (pred_energy_rate, pred_energy_rate_unit) =
+            model.charge_sustain_model_record.prediction_model.predict(
+                speed,
+                model.service.speeds_table_speed_unit,
+                grade,
+                model.service.grade_table_grade_unit,
+            )?;
+        let pred_energy_rate = pred_energy_rate
+            * model
+                .charge_deplete_model_record
+                .real_world_energy_adjustment;
+        let (mut pred_energy, pred_energy_unit) = Energy::create(
+            pred_energy_rate,
+            pred_energy_rate_unit,
+            distance,
+            model.service.output_distance_unit,
+        )?;
+        if pred_energy.as_f64() < 0.0 {
+            pred_energy = Energy::new(ZERO_ENERGY);
+            log::debug!("negative energy encountered, setting to 1e-9");
+        }
+        return Ok((
+            Energy::new(0.0),
+            electrical_energy_unit,
+            pred_energy,
+            pred_energy_unit,
+        ));
     }
 }
 

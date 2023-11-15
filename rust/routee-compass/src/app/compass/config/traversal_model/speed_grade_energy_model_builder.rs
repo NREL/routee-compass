@@ -13,7 +13,7 @@ use routee_compass_core::util::unit::{
 };
 use routee_compass_powertrain::routee::model_type::ModelType;
 use routee_compass_powertrain::routee::prediction_model::SpeedGradePredictionModelRecord;
-use routee_compass_powertrain::routee::speed_grade_model::SpeedGradeModel;
+use routee_compass_powertrain::routee::speed_grade_generic_model::SpeedGradeModel;
 use routee_compass_powertrain::routee::speed_grade_model_service::SpeedGradeModelService;
 
 pub struct SpeedGradeEnergyModelBuilder {}
