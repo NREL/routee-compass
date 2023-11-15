@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
 use routee_compass_core::{
     algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
-    model::graph::vertex_id::VertexId,
+    model::road_network::vertex_id::VertexId,
 };
 use std::{collections::HashMap, time::Duration};
 

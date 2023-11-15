@@ -5,13 +5,13 @@ use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::algorithm::search::MinSearchTree;
 use crate::model::cost::Cost;
 use crate::model::frontier::frontier_model::FrontierModel;
-use crate::model::graph::edge_id::EdgeId;
-use crate::model::graph::graph_struct::Graph;
+use crate::model::road_network::edge_id::EdgeId;
+use crate::model::road_network::graph::Graph;
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
-use crate::{algorithm::search::direction::Direction, model::graph::vertex_id::VertexId};
+use crate::{algorithm::search::direction::Direction, model::road_network::vertex_id::VertexId};
 use priority_queue::PriorityQueue;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -328,13 +328,13 @@ mod tests {
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::model::frontier::default::no_restriction;
-    use crate::model::graph::graph_struct::Graph;
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
+    use crate::model::road_network::graph::Graph;
     use crate::model::traversal::default::distance::DistanceModel;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::util::unit::DistanceUnit;
-    use crate::{model::graph::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
+    use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
 
     fn build_mock_graph() -> Graph {

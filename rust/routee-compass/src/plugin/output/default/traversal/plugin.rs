@@ -95,7 +95,9 @@ mod tests {
     use chrono::Local;
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::{cost::Cost, graph::edge_id::EdgeId, traversal::state::state_variable::StateVar},
+        model::{
+            cost::Cost, road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar,
+        },
         util::fs::read_utils::read_raw_file,
     };
     use std::collections::HashMap;

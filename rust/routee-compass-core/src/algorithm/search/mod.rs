@@ -1,5 +1,5 @@
 use self::search_tree_branch::SearchTreeBranch;
-use crate::model::graph::vertex_id::VertexId;
+use crate::model::road_network::vertex_id::VertexId;
 use std::collections::HashMap;
 
 pub mod a_star;

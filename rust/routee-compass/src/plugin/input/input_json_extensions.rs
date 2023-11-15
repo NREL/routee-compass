@@ -1,7 +1,7 @@
 use super::input_field::InputField;
 use crate::plugin::plugin_error::PluginError;
 use geo;
-use routee_compass_core::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
+use routee_compass_core::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use serde_json;
 
 pub trait InputJsonExtensions {
