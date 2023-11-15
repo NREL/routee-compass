@@ -6,17 +6,17 @@
 
 ### conda (recommended)
 
-The recommended way to get started with RouteE Compass is to use [conda](https://docs.conda.io/en/latest/) and [pip](https://pypi.org/project/pip/) to install the python package:
+The recommended way to get started with RouteE Compass is to use [conda](https://docs.conda.io/en/latest/) to install the python package:
 
 ```console
-conda create -n routee-compass -c conda-forge python=3.10 toml rasterio gdal osmnx
-conda activate routee-compass
-pip install nrel.routee.compass
+conda create -n routee-compass -c conda-forge python=3.11 nrel.routee.compass
 ```
 
-This creates a new conda environment and then installs several dependencies into it. After that, we activate the environment and then install RouteE Compass into it.
+This creates a new conda environment with python 3.11 and then installs RouteE Compass into it.
 
-This method is recommended if you want everything included or don't already have any road network data on your system.
+The conda distribution includes several optional dependencies and is recommended if you want everything included or don't already have any road network data on your system.
+
+(pip-install)=
 
 ### pip
 

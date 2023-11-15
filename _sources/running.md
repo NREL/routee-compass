@@ -32,7 +32,7 @@ You can also just build the rust application and run it from the command line.
 After following the [installation instructions](installation), you can run the application like this:
 
 ```bash
-path/to/routee-compass/rust/target/release/compass-app --config path/to/config.toml path/to/query.json
+path/to/routee-compass/rust/target/release/routee-compass --config path/to/config.toml path/to/query.json
 ```
 
 This will load the graph and then run the query (or queries) from your `query.json` file, outputing results to a file called `results.json` in the current working directory.

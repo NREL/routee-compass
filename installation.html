@@ -400,17 +400,15 @@ document.write(`
 <h2>python<a class="headerlink" href="#python" title="Permalink to this heading">#</a></h2>
 <section id="conda-recommended">
 <span id="conda-install"></span><h3>conda (recommended)<a class="headerlink" href="#conda-recommended" title="Permalink to this heading">#</a></h3>
-<p>The recommended way to get started with RouteE Compass is to use <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a> and <a class="reference external" href="https://pypi.org/project/pip/">pip</a> to install the python package:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda create -n routee-compass -c conda-forge python=3.10 toml rasterio gdal osmnx</span>
-<span class="go">conda activate routee-compass</span>
-<span class="go">pip install nrel.routee.compass</span>
+<p>The recommended way to get started with RouteE Compass is to use <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a> to install the python package:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">conda create -n routee-compass -c conda-forge python=3.11 nrel.routee.compass</span>
 </pre></div>
 </div>
-<p>This creates a new conda environment and then installs several dependencies into it. After that, we activate the environment and then install RouteE Compass into it.</p>
-<p>This method is recommended if you want everything included or don't already have any road network data on your system.</p>
+<p>This creates a new conda environment with python 3.11 and then installs RouteE Compass into it.</p>
+<p>The conda distribution includes several optional dependencies and is recommended if you want everything included or don't already have any road network data on your system.</p>
 </section>
 <section id="pip">
-<h3>pip<a class="headerlink" href="#pip" title="Permalink to this heading">#</a></h3>
+<span id="pip-install"></span><h3>pip<a class="headerlink" href="#pip" title="Permalink to this heading">#</a></h3>
 <p>You can also just directly install the package directly with <a class="reference external" href="https://pypi.org/project/pip/">pip</a> and none of the optional dependnecies:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install nrel.routee.compass</span>
 </pre></div>
