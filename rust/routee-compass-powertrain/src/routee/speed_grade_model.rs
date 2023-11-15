@@ -17,9 +17,10 @@ use std::sync::Arc;
 
 const ZERO_ENERGY: f64 = 1e-9;
 
+
 pub struct SpeedGradeModel {
     pub service: Arc<SpeedGradeModelService>,
-    pub model_record: Arc<SpeedGradePredictionModelRecord>,
+    pub model_records: Arc<SpeedGradePredictionModelRecord>,
     pub energy_cost_coefficient: f64,
 }
 
@@ -48,8 +49,8 @@ impl TraversalModel for SpeedGradeModel {
         }
 
         let (energy, _energy_unit) = Energy::create(
-            self.model_record.ideal_energy_rate,
-            self.model_record.energy_rate_unit,
+            self.model_records.ideal_energy_rate,
+            self.model_records.energy_rate_unit,
             distance,
             self.service.output_distance_unit,
         )?;
@@ -85,18 +86,18 @@ impl TraversalModel for SpeedGradeModel {
             self.service.output_time_unit.clone(),
         )?;
 
-        let (energy_rate, _energy_rate_unit) = self.model_record.prediction_model.predict(
+        let (energy_rate, _energy_rate_unit) = self.model_records.prediction_model.predict(
             speed,
             self.service.speeds_table_speed_unit,
             grade,
             self.service.grade_table_grade_unit,
         )?;
 
-        let energy_rate_real_world = energy_rate * self.model_record.real_world_energy_adjustment;
+        let energy_rate_real_world = energy_rate * self.model_records.real_world_energy_adjustment;
 
         let (mut energy, _energy_unit) = Energy::create(
             energy_rate_real_world,
-            self.model_record.energy_rate_unit,
+            self.model_records.energy_rate_unit,
             distance,
             self.service.output_distance_unit,
         )?;
@@ -127,7 +128,7 @@ impl TraversalModel for SpeedGradeModel {
     }
 
     fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
-        let energy_unit = self.model_record.energy_rate_unit.associated_energy_unit();
+        let energy_unit = self.model_records.energy_rate_unit.associated_energy_unit();
         serde_json::json!({
             "distance_unit": self.service.output_distance_unit,
             "time_unit": self.service.output_time_unit,
@@ -187,7 +188,7 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
 
         Ok(SpeedGradeModel {
             service,
-            model_record,
+            model_records: model_record,
             energy_cost_coefficient,
         })
     }
