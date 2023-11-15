@@ -24,6 +24,7 @@ pub struct SpeedGradePredictionModelRecord {
 }
 
 impl SpeedGradePredictionModelRecord {
+    #[allow(clippy::too_many_arguments)]
     pub fn new<P: AsRef<Path>>(
         name: String,
         model_path: &P,
@@ -49,10 +50,10 @@ impl SpeedGradePredictionModelRecord {
                 #[cfg(feature = "onnx")]
                 {
                     let model = OnnxSpeedGradeModel::new(
-                        energy_model_path.clone(),
-                        energy_model_speed_unit,
-                        energy_model_grade_unit,
-                        energy_model_energy_rate_unit,
+                        model_path,
+                        speed_unit,
+                        grade_unit,
+                        energy_rate_unit,
                     )?;
                     Arc::new(model)
                 }
@@ -72,10 +73,7 @@ impl SpeedGradePredictionModelRecord {
             Some(ier) => ier,
         };
 
-        let real_world_energy_adjustment = match real_world_energy_adjustment_option {
-            Some(rwea) => rwea,
-            None => 1.0,
-        };
+        let real_world_energy_adjustment = real_world_energy_adjustment_option.unwrap_or(1.0);
 
         Ok(Self {
             name,

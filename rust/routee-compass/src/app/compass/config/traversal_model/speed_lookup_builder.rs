@@ -40,7 +40,7 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
         let m = SpeedLookupModel::new(&filename, speed_unit, distance_unit, time_unit)
             .map_err(CompassConfigurationError::TraversalModelError)?;
         let service = Arc::new(SpeedLookupService { m: Arc::new(m) });
-        return Ok(service);
+        Ok(service)
     }
 }
 
@@ -49,6 +49,6 @@ impl TraversalModelService for SpeedLookupService {
         &self,
         _parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
-        return Ok(self.m.clone());
+        Ok(self.m.clone())
     }
 }

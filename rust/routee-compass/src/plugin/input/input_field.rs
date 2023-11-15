@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 pub enum InputField {
     OriginX,
     OriginY,
@@ -25,7 +27,10 @@ impl InputField {
             I::GridSearch => "grid_search",
         }
     }
-    pub fn to_string(&self) -> String {
-        self.to_str().to_string()
+}
+
+impl Display for InputField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_str())
     }
 }

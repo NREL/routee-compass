@@ -1,4 +1,6 @@
-use routee_compass_core::model::graph::vertex_id::VertexId;
+use std::fmt::Display;
+
+use routee_compass_core::model::road_network::vertex_id::VertexId;
 
 use crate::plugin::plugin_error::PluginError;
 
@@ -11,7 +13,7 @@ pub enum UUIDJsonField {
 }
 
 impl UUIDJsonField {
-    pub fn as_str(self) -> &'static str {
+    pub fn as_str(&self) -> &'static str {
         match self {
             UUIDJsonField::Request => "request",
             UUIDJsonField::OriginVertexId => "origin_vertex",
@@ -20,9 +22,11 @@ impl UUIDJsonField {
             UUIDJsonField::DestinationVertexUUID => "destination_vertex_uuid",
         }
     }
+}
 
-    pub fn to_string(self) -> String {
-        self.as_str().to_string()
+impl Display for UUIDJsonField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 

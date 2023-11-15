@@ -39,9 +39,9 @@ impl ModelType {
         let model: Arc<dyn SpeedGradePredictionModel> = match self {
             ModelType::Smartcore => Arc::new(SmartcoreSpeedGradeModel::new(
                 energy_model_path.clone(),
-                energy_model_speed_unit.clone(),
-                energy_model_grade_unit.clone(),
-                energy_model_energy_rate_unit.clone(),
+                energy_model_speed_unit,
+                energy_model_grade_unit,
+                energy_model_energy_rate_unit,
             )?),
             ModelType::Onnx => {
                 #[cfg(feature = "onnx")]

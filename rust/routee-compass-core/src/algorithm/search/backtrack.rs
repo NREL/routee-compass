@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    model::graph::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
+    model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
     util::read_only_lock::ExecutorReadOnlyLock,
 };
 
@@ -22,7 +22,7 @@ pub fn vertex_oriented_route(
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let mut result: Vec<EdgeTraversal> = vec![];
     let mut visited: HashSet<EdgeId> = HashSet::new();
-    let mut this_vertex = target_id.clone();
+    let mut this_vertex = target_id;
     loop {
         if this_vertex == source_id {
             break;

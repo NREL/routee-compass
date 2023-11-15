@@ -3,9 +3,9 @@ use std::path::Path;
 use crate::plugin::input::input_json_extensions::InputJsonExtensions;
 use crate::plugin::input::input_plugin::InputPlugin;
 use crate::plugin::plugin_error::PluginError;
-use geo::{coord, Coord, Point};
+use geo::{coord, Coord};
 use routee_compass_core::{
-    model::{graph::graph::Graph, property::vertex::Vertex},
+    model::{property::vertex::Vertex, road_network::graph::Graph},
     util::{
         fs::read_utils,
         geo::haversine,
@@ -195,8 +195,8 @@ fn validate_tolerance(
 ) -> Result<(), PluginError> {
     match tolerance {
         Some((tolerance_distance, tolerance_distance_unit)) => {
-            let distance_meters = haversine::coord_distance_meters(src, dst)
-                .map_err(|s| PluginError::PluginFailed(s))?;
+            let distance_meters =
+                haversine::coord_distance_meters(src, dst).map_err(PluginError::PluginFailed)?;
             let distance = DistanceUnit::Meters.convert(distance_meters, *tolerance_distance_unit);
             if &distance >= tolerance_distance {
                 Err(PluginError::PluginFailed(

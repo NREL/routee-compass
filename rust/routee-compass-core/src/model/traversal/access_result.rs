@@ -1,4 +1,4 @@
-use crate::model::cost::cost::Cost;
+use crate::model::cost::Cost;
 use crate::model::traversal::state::traversal_state::TraversalState;
 
 pub struct AccessResult {
@@ -8,9 +8,9 @@ pub struct AccessResult {
 
 impl AccessResult {
     pub fn no_cost() -> AccessResult {
-        return AccessResult {
+        AccessResult {
             cost: Cost::ZERO,
             updated_state: None,
-        };
+        }
     }
 }

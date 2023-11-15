@@ -18,11 +18,11 @@ where
 
     if is_gzip {
         let reader = BufReader::new(GzDecoder::new(file));
-        return Ok(reader.lines().count());
+        Ok(reader.lines().count())
     } else {
         let reader = BufReader::new(file);
         let count = reader.lines().count();
-        return Ok(count);
+        Ok(count)
     }
 }
 
@@ -39,10 +39,7 @@ where
         Err(_) => false,
         Ok(file) => {
             let gz = GzDecoder::new(io::BufReader::new(file));
-            match gz.header() {
-                Some(_) => true,
-                None => false,
-            }
+            gz.header().is_some()
         }
     }
 }

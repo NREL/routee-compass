@@ -29,7 +29,7 @@ impl TraversalModelBuilder for DistanceBuilder {
         )?;
         let distance_unit = distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
         let m: Arc<dyn TraversalModelService> = Arc::new(DistanceService { distance_unit });
-        return Ok(m);
+        Ok(m)
     }
 }
 
@@ -39,6 +39,6 @@ impl TraversalModelService for DistanceService {
         _parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
         let m: Arc<dyn TraversalModel> = Arc::new(DistanceModel::new(self.distance_unit));
-        return Ok(m);
+        Ok(m)
     }
 }

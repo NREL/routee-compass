@@ -3,15 +3,15 @@ use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::algorithm::search::MinSearchTree;
-use crate::model::cost::cost::Cost;
+use crate::model::cost::Cost;
 use crate::model::frontier::frontier_model::FrontierModel;
-use crate::model::graph::edge_id::EdgeId;
-use crate::model::graph::graph::Graph;
+use crate::model::road_network::edge_id::EdgeId;
+use crate::model::road_network::graph::Graph;
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
-use crate::{algorithm::search::direction::Direction, model::graph::vertex_id::VertexId};
+use crate::{algorithm::search::direction::Direction, model::road_network::vertex_id::VertexId};
 use priority_queue::PriorityQueue;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -122,7 +122,7 @@ pub fn run_a_star(
         for (src_id, edge_id, dst_id) in neighbor_triplets {
             // first make sure we have a valid edge
             let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
-            if !f.valid_frontier(&e, &current.state)? {
+            if !f.valid_frontier(e, &current.state)? {
                 continue;
             }
             let et = EdgeTraversal::new(edge_id, current.prev_edge_id, &current.state, &g, &m)?;
@@ -166,9 +166,9 @@ pub fn run_a_star(
 
         // match (costs.pop(), target) {
         //     (None, Some(target_vertex_id)) => {
-        //         return Err(SearchError::NoPathExists(source, target_vertex_id))
+        //         Err(SearchError::NoPathExists(source, target_vertex_id))
         //     }
-        //     (None, None) => return Ok(solution),
+        //     (None, None) => Ok(solution),
         //     Some((current_vertex_id, _)) if current_vertex_id == target => {
         //         break;
         //     }
@@ -183,7 +183,7 @@ pub fn run_a_star(
         solution.len()
     );
 
-    return Ok(solution);
+    Ok(solution)
 }
 
 /// convenience method when origin and destination are specified using
@@ -238,7 +238,7 @@ pub fn run_a_star_edge_oriented(
 
             if source == target_edge {
                 let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
-                return Ok(empty);
+                Ok(empty)
             } else if source_edge_dst_vertex_id == target_edge_src_vertex_id {
                 // route is simply source -> target
                 let init_state = m.initial_state();
@@ -303,7 +303,7 @@ pub fn run_a_star_edge_oriented(
                     tree.extend([(target_edge_dst_vertex_id, dst_traversal)]);
                 }
 
-                return Ok(tree);
+                Ok(tree)
             }
         }
     }
@@ -318,8 +318,8 @@ pub fn h_cost(
 ) -> Result<Cost, SearchError> {
     let src_vertex = g.get_vertex(src)?;
     let dst_vertex = g.get_vertex(dst)?;
-    let cost_estimate = m.cost_estimate(&src_vertex, &dst_vertex, &state)?;
-    return Ok(cost_estimate);
+    let cost_estimate = m.cost_estimate(src_vertex, dst_vertex, state)?;
+    Ok(cost_estimate)
 }
 
 #[cfg(test)]
@@ -328,13 +328,13 @@ mod tests {
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::model::frontier::default::no_restriction;
-    use crate::model::graph::graph::Graph;
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
+    use crate::model::road_network::graph::Graph;
     use crate::model::traversal::default::distance::DistanceModel;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::util::unit::DistanceUnit;
-    use crate::{model::graph::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
+    use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
 
     fn build_mock_graph() -> Graph {
@@ -364,13 +364,12 @@ mod tests {
             rev[edge.dst_vertex_id.0].insert(edge.edge_id, edge.src_vertex_id);
         }
 
-        let graph = Graph {
+        Graph {
             adj: adj.into_boxed_slice(),
             rev: rev.into_boxed_slice(),
             edges: edges.into_boxed_slice(),
             vertices: vertices.into_boxed_slice(),
-        };
-        graph
+        }
     }
 
     #[test]

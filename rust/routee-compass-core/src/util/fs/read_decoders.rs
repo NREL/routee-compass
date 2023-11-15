@@ -11,5 +11,5 @@ where
 }
 
 pub fn string(_idx: usize, row: String) -> Result<String, std::io::Error> {
-    return Ok(row);
+    Ok(row)
 }

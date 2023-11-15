@@ -19,9 +19,9 @@ impl Display for StateVar {
     }
 }
 
-impl Into<f64> for StateVar {
-    fn into(self) -> f64 {
-        self.0
+impl From<StateVar> for f64 {
+    fn from(val: StateVar) -> Self {
+        val.0
     }
 }
 

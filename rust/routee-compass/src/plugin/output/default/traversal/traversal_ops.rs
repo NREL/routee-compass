@@ -5,18 +5,18 @@ use geojson::feature::Id;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::edge_traversal::EdgeTraversal;
 use routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch;
-use routee_compass_core::model::graph::vertex_id::VertexId;
+use routee_compass_core::model::road_network::vertex_id::VertexId;
 use std::collections::HashMap;
 
 pub fn create_tree_geojson(
     tree: &HashMap<VertexId, SearchTreeBranch>,
-    geoms: &Box<[LineString<f64>]>,
+    geoms: &[LineString<f64>],
 ) -> Result<serde_json::Value, PluginError> {
     let features = tree
         .values()
         .map(|t| {
             let row_result = geoms
-                .get(t.edge_traversal.edge_id.0 as usize)
+                .get(t.edge_traversal.edge_id.0)
                 .cloned()
                 .ok_or(PluginError::EdgeGeometryMissing(t.edge_traversal.edge_id))
                 .and_then(|g| create_geojson_feature(&t.edge_traversal, g));
@@ -35,17 +35,17 @@ pub fn create_tree_geojson(
 }
 
 pub fn create_route_geojson(
-    route: &Vec<EdgeTraversal>,
-    geoms: &Box<[LineString<f64>]>,
+    route: &[EdgeTraversal],
+    geoms: &[LineString<f64>],
 ) -> Result<serde_json::Value, PluginError> {
     let features = route
         .iter()
         .map(|t| {
             let row_result = geoms
-                .get(t.edge_id.0 as usize)
+                .get(t.edge_id.0)
                 .cloned()
                 .ok_or(PluginError::EdgeGeometryMissing(t.edge_id))
-                .and_then(|g| create_geojson_feature(&t, g));
+                .and_then(|g| create_geojson_feature(t, g));
 
             row_result
         })
@@ -61,7 +61,7 @@ pub fn create_route_geojson(
 }
 
 pub fn create_geojson_feature(t: &EdgeTraversal, g: LineString) -> Result<Feature, PluginError> {
-    let props = match serde_json::to_value(&t).map(|v| v.as_object().cloned()) {
+    let props = match serde_json::to_value(t).map(|v| v.as_object().cloned()) {
         Ok(None) => Err(PluginError::InternalError(format!(
             "serialized EdgeTraversal was not a JSON object for {}",
             t
@@ -84,24 +84,24 @@ pub fn create_geojson_feature(t: &EdgeTraversal, g: LineString) -> Result<Featur
 
 pub fn create_edge_geometry(
     edge: &EdgeTraversal,
-    geoms: &Box<[LineString<f64>]>,
+    geoms: &[LineString<f64>],
 ) -> Result<LineString, PluginError> {
     geoms
-        .get(edge.edge_id.0 as usize)
+        .get(edge.edge_id.0)
         .cloned()
         .ok_or(PluginError::EdgeGeometryMissing(edge.edge_id))
 }
 
 pub fn create_branch_geometry(
     branch: &SearchTreeBranch,
-    geoms: &Box<[LineString<f64>]>,
+    geoms: &[LineString<f64>],
 ) -> Result<LineString, PluginError> {
     create_edge_geometry(&branch.edge_traversal, geoms)
 }
 
 pub fn create_route_linestring(
-    route: &Vec<EdgeTraversal>,
-    geoms: &Box<[LineString<f64>]>,
+    route: &[EdgeTraversal],
+    geoms: &[LineString<f64>],
 ) -> Result<LineString, PluginError> {
     let edge_ids = route
         .iter()
@@ -112,18 +112,18 @@ pub fn create_route_linestring(
         .iter()
         .map(|eid| {
             let geom = geoms
-                .get(eid.0 as usize)
+                .get(eid.0)
                 .ok_or(PluginError::EdgeGeometryMissing(*eid));
             geom
         })
         .collect::<Result<Vec<&LineString>, PluginError>>()?;
     let geometry = concat_linestrings(edge_linestrings);
-    return Ok(geometry);
+    Ok(geometry)
 }
 
 pub fn create_tree_multilinestring(
     tree: &HashMap<VertexId, SearchTreeBranch>,
-    geoms: &Box<[LineString<f64>]>,
+    geoms: &[LineString<f64>],
 ) -> Result<MultiLineString, PluginError> {
     let edge_ids = tree
         .values()
@@ -134,11 +134,11 @@ pub fn create_tree_multilinestring(
         .iter()
         .map(|eid| {
             let geom = geoms
-                .get(eid.0 as usize)
+                .get(eid.0)
                 .ok_or(PluginError::EdgeGeometryMissing(*eid));
             geom.cloned()
         })
         .collect::<Result<Vec<LineString>, PluginError>>()?;
     let geometry = MultiLineString::new(tree_linestrings);
-    return Ok(geometry);
+    Ok(geometry)
 }

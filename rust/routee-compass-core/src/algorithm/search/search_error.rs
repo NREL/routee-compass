@@ -1,7 +1,7 @@
 use crate::model::{
     frontier::frontier_model_error::FrontierModelError,
-    graph::graph_error::GraphError,
-    graph::{edge_id::EdgeId, vertex_id::VertexId},
+    road_network::graph_error::GraphError,
+    road_network::{edge_id::EdgeId, vertex_id::VertexId},
     termination::termination_model_error::TerminationModelError,
     traversal::traversal_model_error::TraversalModelError,
 };

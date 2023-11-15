@@ -13,9 +13,6 @@ impl CompassInputField {
             CompassInputField::ConfigInputFile => "config_input_file",
         }
     }
-    pub fn to_string(&self) -> String {
-        self.to_str().to_string()
-    }
 }
 
 impl Display for CompassInputField {

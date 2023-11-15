@@ -34,19 +34,19 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
             .map_err(CompassAppError::UXError)?;
 
         let cb = Box::new(|| {
-            pb.update(1);
+            let _ = pb.update(1);
         });
 
         let op = |idx: usize, row: String| {
             let result = parse_linestring(idx, row)?;
-            return Ok(result);
+            Ok(result)
         };
 
         let geoms = read_utils::read_raw_file(&conf.edge_file, op, Some(cb))
             .map_err(CompassAppError::IOError)?;
-        print!("\n");
+        println!();
         let app = GeomApp { geoms };
-        return Ok(app);
+        Ok(app)
     }
 }
 
@@ -65,24 +65,24 @@ impl GeomApp {
             .map_err(CompassAppError::UXError)?;
 
         let cb = Box::new(|| {
-            pb.update(1);
+            let _ = pb.update(1);
         });
 
         let op = |idx: usize, row: String| {
             let edge_idx = row
                 .parse::<usize>()
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-            let result = self.geoms.get(edge_idx).map(|g| g.clone()).ok_or({
+            let result = self.geoms.get(edge_idx).cloned().ok_or({
                 std::io::Error::new(
                     ErrorKind::InvalidData,
                     format!("EdgeId {} is out of bounds, should be in range [0, )", idx),
                 )
             });
-            return result;
+            result
         };
 
         let result: Box<[LineString]> =
             read_utils::read_raw_file(&file, op, Some(cb)).map_err(CompassAppError::IOError)?;
-        return Ok(result);
+        Ok(result)
     }
 }

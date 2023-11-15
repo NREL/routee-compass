@@ -1,4 +1,6 @@
-use routee_compass_core::model::cost::cost::Cost;
+use std::fmt::Display;
+
+use routee_compass_core::model::cost::Cost;
 
 use crate::plugin::plugin_error::PluginError;
 
@@ -23,15 +25,17 @@ impl TryFrom<String> for SummaryField {
 }
 
 impl SummaryField {
-    fn as_str(self) -> &'static str {
+    fn as_str(&self) -> &'static str {
         match self {
             SummaryField::Cost => "cost",
             SummaryField::Distance => "distance",
         }
     }
+}
 
-    fn to_string(self) -> String {
-        self.as_str().to_string()
+impl Display for SummaryField {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
     }
 }
 

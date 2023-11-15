@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
 use super::{
-    as_f64::AsF64, unit::create_energy, Distance, DistanceUnit, EnergyRate, EnergyRateUnit,
+    as_f64::AsF64, builders::create_energy, Distance, DistanceUnit, EnergyRate, EnergyRateUnit,
     EnergyUnit, UnitError,
 };
 
@@ -14,7 +14,6 @@ use super::{
     Serialize,
     Deserialize,
     PartialEq,
-    PartialOrd,
     Eq,
     Hash,
     Debug,
@@ -39,6 +38,12 @@ impl From<(EnergyRate, Distance)> for Energy {
         let (energy_rate, distance) = value;
         let energy_value = energy_rate.as_f64() * distance.as_f64();
         Energy::new(energy_value)
+    }
+}
+
+impl PartialOrd for Energy {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.0.cmp(&other.0))
     }
 }
 

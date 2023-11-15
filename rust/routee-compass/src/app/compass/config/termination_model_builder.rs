@@ -101,8 +101,8 @@ impl TerminationModelBuilder {
                             String::from("JSON array"),
                         ))?;
                     let models = models_val
-                        .into_iter()
-                        .map(|c| TerminationModelBuilder::build(c))
+                        .iter()
+                        .map(TerminationModelBuilder::build)
                         .collect::<Result<Vec<_>, _>>()?;
                     Ok(T::Combined { models })
                 }
@@ -113,6 +113,6 @@ impl TerminationModelBuilder {
             }?;
 
         log::info!("app termination model: {:?}", result);
-        return Ok(result);
+        Ok(result)
     }
 }

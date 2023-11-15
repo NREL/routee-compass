@@ -33,7 +33,7 @@ impl SpeedGradePredictionModel for SmartcoreSpeedGradeModel {
             .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
 
         let energy_rate = EnergyRate::new(y[0]);
-        Ok((energy_rate, self.energy_rate_unit.clone()))
+        Ok((energy_rate, self.energy_rate_unit))
     }
 }
 

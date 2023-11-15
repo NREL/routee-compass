@@ -9,13 +9,13 @@ where
     T: Clone + Copy,
 {
     fn from(sets: &'a Vec<Vec<T>>) -> Self {
-        let final_pos: Vec<usize> = sets.into_iter().map(|v| v.len() - 1).collect();
-        let pos: Option<Vec<usize>> = Some(vec![0 as usize; sets.len()]);
-        return MultiSet {
+        let final_pos: Vec<usize> = sets.iter().map(|v| v.len() - 1).collect();
+        let pos: Option<Vec<usize>> = Some(vec![0; sets.len()]);
+        MultiSet {
             sets,
             pos,
             final_pos,
-        };
+        }
     }
 }
 
@@ -27,9 +27,7 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         match &self.pos {
-            None => {
-                return None;
-            }
+            None => None,
             Some(position) => {
                 let result: Vec<T> = position
                     .iter()
@@ -41,14 +39,14 @@ where
                 let mut finished = false;
                 for idx in 0..self.sets.len() {
                     if next_pos[idx] < self.final_pos[idx] {
-                        next_pos[idx] = next_pos[idx] + 1;
+                        next_pos[idx] += 1;
                         break;
                     } else if idx == self.sets.len() - 1 {
                         finished = true;
                         break;
                     } else {
-                        for r_idx in 0..(idx + 1) {
-                            next_pos[r_idx] = 0;
+                        for r in next_pos.iter_mut().take(idx + 1) {
+                            *r = 0;
                         }
                     }
                 }
@@ -57,7 +55,7 @@ where
                 } else {
                     self.pos = Some(next_pos);
                 }
-                return Some(result);
+                Some(result)
             }
         }
     }

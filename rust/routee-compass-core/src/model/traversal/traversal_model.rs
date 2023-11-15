@@ -1,6 +1,6 @@
 use super::access_result::AccessResult;
 use super::traversal_model_error::TraversalModelError;
-use crate::model::cost::cost::Cost;
+use crate::model::cost::Cost;
 use crate::model::property::{edge::Edge, vertex::Vertex};
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_result::TraversalResult;
@@ -163,12 +163,12 @@ pub trait TraversalModel: Send + Sync {
     /// and `serialize_state_info`.
     fn serialize_state_with_info(&self, state: &TraversalState) -> serde_json::Value {
         use serde_json::Value as Json;
-        let mut summary = self.serialize_state(&state);
-        let summary_info = match self.serialize_state_info(&state) {
+        let mut summary = self.serialize_state(state);
+        let summary_info = match self.serialize_state_info(state) {
             Json::Null => serde_json::Map::new().into_iter(),
             Json::Object(m) => m.into_iter(),
             other => {
-                // this is just a fallback implementation in case TraversalModel builders return something
+                // this is just a fallback implementation in case TraversalModel builders something
                 // other than what we expected
                 let mut m = serde_json::Map::new();
                 m.insert(String::from("info"), other);
@@ -178,6 +178,6 @@ pub trait TraversalModel: Send + Sync {
         for (k, v) in summary_info {
             summary[k] = v;
         }
-        return summary;
+        summary
     }
 }

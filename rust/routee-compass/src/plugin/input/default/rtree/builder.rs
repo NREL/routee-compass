@@ -31,6 +31,6 @@ impl InputPluginBuilder for VertexRTreeBuilder {
         let rtree = RTreePlugin::new(&vertex_path, tolerance_distance, distance_unit)
             .map_err(CompassConfigurationError::PluginError)?;
         let m: Box<dyn InputPlugin> = Box::new(rtree);
-        return Ok(m);
+        Ok(m)
     }
 }

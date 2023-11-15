@@ -1,4 +1,4 @@
-use routee_compass_core::model::graph::edge_id::EdgeId;
+use routee_compass_core::model::road_network::edge_id::EdgeId;
 
 use crate::plugin::plugin_error::PluginError;
 
@@ -33,12 +33,12 @@ impl EdgeListField {
 }
 
 pub trait EdgeListJsonExtensions {
-    fn add_edge_list(&mut self, edge_list: &Vec<EdgeId>) -> Result<(), PluginError>;
+    fn add_edge_list(&mut self, edge_list: &[EdgeId]) -> Result<(), PluginError>;
     fn get_edge_list(&self) -> Result<Vec<EdgeId>, PluginError>;
 }
 
 impl EdgeListJsonExtensions for serde_json::Value {
-    fn add_edge_list(&mut self, edge_list: &Vec<EdgeId>) -> Result<(), PluginError> {
+    fn add_edge_list(&mut self, edge_list: &[EdgeId]) -> Result<(), PluginError> {
         match self {
             serde_json::Value::Object(map) => {
                 let edges_json = edge_list.iter().map(|e| serde_json::json!(e.0)).collect();
@@ -77,7 +77,7 @@ impl EdgeListJsonExtensions for serde_json::Value {
                     })
                     .collect();
 
-                return result;
+                result
             }
             _ => Err(PluginError::InputError(String::from(
                 "OutputResult is not a JSON object",
