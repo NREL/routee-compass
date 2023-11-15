@@ -20,7 +20,7 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
     ///
     /// builds a GeomApp instance. this reads and decodes a file with LINESTRINGs enumerated
     /// by their row index, starting from zero, treated as EdgeIds.
-    /// the app can then process a file which provides a list of EdgeIds and the corresponding LINESTRINGs.
+    /// the app can then process a file which provides a list of EdgeIds and return the corresponding LINESTRINGs.
     fn try_from(conf: &GeomAppConfig) -> Result<Self, Self::Error> {
         let count =
             fs_utils::line_count(conf.edge_file.clone(), fs_utils::is_gzip(&conf.edge_file))

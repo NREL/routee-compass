@@ -38,7 +38,7 @@ impl OutputPlugin for ToDiskOutputPlugin {
             )
         })?;
 
-        // empty vec since we already wrote the result to a file
+        // return empty vec since we already wrote the result to a file
         Ok(Vec::new())
     }
 }
