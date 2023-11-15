@@ -7,7 +7,7 @@ use config::ConfigError;
 use routee_compass_core::{
     algorithm::search::search_error::SearchError,
     model::{
-        graph::graph_error::GraphError, traversal::traversal_model_error::TraversalModelError,
+        road_network::graph_error::GraphError, traversal::traversal_model_error::TraversalModelError,
     },
 };
 

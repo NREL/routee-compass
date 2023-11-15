@@ -7,7 +7,7 @@ use crate::{model::property::vertex::Vertex, util::fs::fs_utils::line_count};
 use super::{
     edge_loader::{EdgeLoader, EdgeLoaderConfig},
     graph_error::GraphError,
-    graph_struct::Graph,
+    graph::Graph,
     vertex_loader::VertexLoaderConfig,
 };
 

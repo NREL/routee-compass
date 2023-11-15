@@ -5,7 +5,7 @@ use crate::plugin::plugin_error::PluginError;
 use geo::LineString;
 use routee_compass_core::{
     algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
-    model::graph::vertex_id::VertexId,
+    model::road_network::vertex_id::VertexId,
 };
 use serde::{Deserialize, Serialize};
 use wkt::ToWkt;
@@ -77,7 +77,7 @@ mod test {
     use geo::{coord, LineString};
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::{cost::Cost, graph::edge_id::EdgeId, traversal::state::state_variable::StateVar},
+        model::{cost::Cost, road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar},
     };
     use std::{collections::HashMap, time::Duration};
 

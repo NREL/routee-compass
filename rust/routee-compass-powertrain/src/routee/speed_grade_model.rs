@@ -1,7 +1,7 @@
 use super::prediction_model::SpeedGradePredictionModelRecord;
 use super::speed_grade_model_service::SpeedGradeModelService;
 use routee_compass_core::model::cost::Cost;
-use routee_compass_core::model::graph::edge_id::EdgeId;
+use routee_compass_core::model::road_network::edge_id::EdgeId;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
 use routee_compass_core::model::traversal::default::speed_lookup_model::get_speed;
@@ -254,7 +254,7 @@ mod tests {
     use super::*;
     use geo::coord;
     use routee_compass_core::model::{
-        graph::{edge_id::EdgeId, vertex_id::VertexId},
+        road_network::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, vertex::Vertex},
     };
     use std::{collections::HashMap, path::PathBuf};

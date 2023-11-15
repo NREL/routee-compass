@@ -10,7 +10,7 @@ use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{backtrack, search_algorithm::SearchAlgorithm},
     model::{
-        frontier::frontier_model::FrontierModel, graph::graph_struct::Graph,
+        frontier::frontier_model::FrontierModel, road_network::graph::Graph,
         termination::termination_model::TerminationModel,
         traversal::traversal_model::TraversalModel,
     },

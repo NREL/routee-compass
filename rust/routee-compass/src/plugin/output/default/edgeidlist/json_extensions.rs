@@ -1,4 +1,4 @@
-use routee_compass_core::model::graph::edge_id::EdgeId;
+use routee_compass_core::model::road_network::edge_id::EdgeId;
 
 use crate::plugin::plugin_error::PluginError;
 

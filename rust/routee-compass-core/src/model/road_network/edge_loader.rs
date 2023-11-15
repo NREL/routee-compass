@@ -1,7 +1,7 @@
 use crate::{
     model::{
-        graph::graph_error::GraphError,
-        graph::{edge_id::EdgeId, vertex_id::VertexId},
+        road_network::graph_error::GraphError,
+        road_network::{edge_id::EdgeId, vertex_id::VertexId},
         property::edge::Edge,
     },
     util::fs::read_utils,

@@ -1,4 +1,4 @@
-use crate::model::graph::edge_id::EdgeId;
+use crate::model::road_network::edge_id::EdgeId;
 use crate::util::fs::read_decoders;
 use crate::util::geo::haversine;
 use crate::util::unit::{Distance, DistanceUnit};
@@ -179,7 +179,7 @@ pub fn get_max_speed(speed_table: &[Speed]) -> Result<Speed, TraversalModelError
 mod tests {
     use super::*;
     use crate::model::{
-        graph::{edge_id::EdgeId, vertex_id::VertexId},
+        road_network::{edge_id::EdgeId, vertex_id::VertexId},
         property::{edge::Edge, vertex::Vertex},
     };
     use crate::util::unit::Distance;

@@ -1,4 +1,4 @@
-use crate::{algorithm::search::edge_traversal::EdgeTraversal, model::graph::vertex_id::VertexId};
+use crate::{algorithm::search::edge_traversal::EdgeTraversal, model::road_network::vertex_id::VertexId};
 use serde::Serialize;
 use std::fmt::Display;
 

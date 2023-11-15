@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    model::graph::{edge_id::EdgeId, graph_struct::Graph, vertex_id::VertexId},
+    model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
     util::read_only_lock::ExecutorReadOnlyLock,
 };
 

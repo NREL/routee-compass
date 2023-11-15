@@ -1,7 +1,7 @@
 use std::{hash::Hash, hash::Hasher};
 
 use crate::model::{
-    graph::edge_id::EdgeId, graph::vertex_id::VertexId,
+    road_network::edge_id::EdgeId, road_network::vertex_id::VertexId,
     traversal::state::traversal_state::TraversalState,
 };
 

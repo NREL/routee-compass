@@ -40,7 +40,7 @@ mod tests {
     use chrono::Local;
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::{graph::edge_id::EdgeId, traversal::state::state_variable::StateVar},
+        model::{road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar},
     };
 
     use super::*;

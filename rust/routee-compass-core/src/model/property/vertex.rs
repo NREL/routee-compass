@@ -1,4 +1,4 @@
-use crate::model::graph::vertex_id::VertexId;
+use crate::model::road_network::vertex_id::VertexId;
 use geo::{coord, Coord};
 use serde::de;
 
@@ -130,7 +130,7 @@ mod tests {
     use csv;
     use geo::Coord;
 
-    use crate::model::{graph::vertex_id::VertexId, property::vertex::Vertex};
+    use crate::model::{road_network::vertex_id::VertexId, property::vertex::Vertex};
 
     #[test]
     fn test_deserialize_csv() {

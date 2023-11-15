@@ -1,4 +1,4 @@
-use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::util::unit::Distance;
 use serde::{Deserialize, Serialize};
 

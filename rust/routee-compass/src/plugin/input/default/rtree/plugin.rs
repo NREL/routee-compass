@@ -5,7 +5,7 @@ use crate::plugin::input::input_plugin::InputPlugin;
 use crate::plugin::plugin_error::PluginError;
 use geo::{coord, Coord};
 use routee_compass_core::{
-    model::{graph::graph_struct::Graph, property::vertex::Vertex},
+    model::{road_network::graph::Graph, property::vertex::Vertex},
     util::{
         fs::read_utils,
         geo::haversine,
