@@ -2,7 +2,9 @@ use std::{path::Path, sync::Arc};
 
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit, Energy, EnergyUnit},
+    util::unit::{
+        Energy, EnergyRate, EnergyRateUnit, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit,
+    },
 };
 
 use super::{
@@ -22,7 +24,7 @@ pub struct SpeedGradePredictionModelRecord {
     pub ideal_energy_rate: EnergyRate,
     pub real_world_energy_adjustment: f64,
     pub battery_capacity: Option<Energy>,
-    pub battery_capacity_unit: Option<EnergyUnit>
+    pub battery_capacity_unit: Option<EnergyUnit>,
 }
 
 impl SpeedGradePredictionModelRecord {
@@ -37,7 +39,7 @@ impl SpeedGradePredictionModelRecord {
         ideal_energy_rate_option: Option<EnergyRate>,
         real_world_energy_adjustment_option: Option<f64>,
         battery_capacity: Option<Energy>,
-        battery_capacity_unit: Option<EnergyUnit>
+        battery_capacity_unit: Option<EnergyUnit>,
     ) -> Result<Self, TraversalModelError> {
         // Load random forest binary file
         let prediction_model: Arc<dyn SpeedGradePredictionModel> = match model_type {
@@ -89,7 +91,7 @@ impl SpeedGradePredictionModelRecord {
             ideal_energy_rate,
             real_world_energy_adjustment,
             battery_capacity,
-            battery_capacity_unit
+            battery_capacity_unit,
         })
     }
 }

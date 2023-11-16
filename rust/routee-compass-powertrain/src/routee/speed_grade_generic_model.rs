@@ -17,8 +17,6 @@ use routee_compass_core::util::unit::as_f64::AsF64;
 use routee_compass_core::util::unit::*;
 use std::sync::Arc;
 
-
-
 pub struct SpeedGradeModel {
     pub service: Arc<SpeedGradeModelService>,
     pub model_record: Arc<SpeedGradePredictionModelRecord>,
@@ -229,7 +227,6 @@ fn get_energy_from_state(state: &TraversalState) -> Energy {
     Energy::new(state[2].0)
 }
 
-
 #[cfg(test)]
 mod tests {
     use crate::routee::model_type::ModelType;
@@ -281,7 +278,7 @@ mod tests {
             None,
             None,
             None,
-            None
+            None,
         )
         .unwrap();
         let mut model_library = HashMap::new();
