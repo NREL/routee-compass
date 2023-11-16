@@ -137,8 +137,14 @@ impl TraversalModel for SpeedGradePHEVModel {
     }
 
     fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
-        let electrical_energy_unit = self.charge_deplete_model_record.energy_rate_unit.associated_energy_unit();
-        let gasoline_energy_unit = self.charge_sustain_model_record.energy_rate_unit.associated_energy_unit();
+        let electrical_energy_unit = self
+            .charge_deplete_model_record
+            .energy_rate_unit
+            .associated_energy_unit();
+        let gasoline_energy_unit = self
+            .charge_sustain_model_record
+            .energy_rate_unit
+            .associated_energy_unit();
         serde_json::json!({
             "distance_unit": self.service.output_distance_unit,
             "time_unit": self.service.output_time_unit,
@@ -148,7 +154,7 @@ impl TraversalModel for SpeedGradePHEVModel {
     }
 }
 
-impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeModel {
+impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradePHEVModel {
     type Error = TraversalModelError;
 
     fn try_from(
@@ -175,32 +181,68 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
             }
         };
 
-        let prediction_model_name = conf
-            .get("model_name".to_string())
+        let charge_sustain_name = conf
+            .get("charge_sustain_model_name".to_string())
             .ok_or(TraversalModelError::BuildError(
                 "No 'model_name' key provided in query".to_string(),
             ))?
             .as_str()
             .ok_or(TraversalModelError::BuildError(
-                "Expected 'model_name' value to be string".to_string(),
+                "Expected 'charge_sustain_model_name' value to be string".to_string(),
             ))?
             .to_string();
 
-        let model_record = match service.energy_model_library.get(&prediction_model_name) {
-            None => {
-                let model_names: Vec<&String> = service.energy_model_library.keys().collect();
-                return Err(TraversalModelError::BuildError(format!(
-                    "No energy model found with model_name = '{}', try one of: {:?}",
-                    prediction_model_name, model_names
+        let charge_sustain_model_record =
+            match service.energy_model_library.get(&charge_sustain_name) {
+                None => {
+                    let model_names: Vec<&String> = service.energy_model_library.keys().collect();
+                    return Err(TraversalModelError::BuildError(format!(
+                    "No energy model found with charge_sustain_model_name = '{}', try one of: {:?}",
+                    charge_sustain_name, model_names
                 )));
-            }
-            Some(mr) => mr.clone(),
-        };
+                }
+                Some(mr) => mr.clone(),
+            };
 
-        Ok(SpeedGradeModel {
+        let charge_deplete_name = conf
+            .get("charge_deplete_model_name".to_string())
+            .ok_or(TraversalModelError::BuildError(
+                "No 'model_name' key provided in query".to_string(),
+            ))?
+            .as_str()
+            .ok_or(TraversalModelError::BuildError(
+                "Expected 'charge_deplete_model_name' value to be string".to_string(),
+            ))?
+            .to_string();
+
+        let charge_deplete_model_record =
+            match service.energy_model_library.get(&charge_deplete_name) {
+                None => {
+                    let model_names: Vec<&String> = service.energy_model_library.keys().collect();
+                    return Err(TraversalModelError::BuildError(format!(
+                    "No energy model found with charge_deplete_model_name = '{}', try one of: {:?}",
+                    charge_deplete_name, model_names
+                )));
+                }
+                Some(mr) => mr.clone(),
+            };
+
+        let starting_soc = conf
+            .get("starting_soc".to_string())
+            .ok_or(TraversalModelError::BuildError(
+                "No 'starting_soc' key provided in query".to_string(),
+            ))?
+            .as_f64()
+            .ok_or(TraversalModelError::BuildError(
+                "Expected 'starting_soc' value to be numeric".to_string(),
+            ))?;
+
+        Ok(SpeedGradePHEVModel {
             service,
-            model_record,
+            charge_sustain_model_record,
+            charge_deplete_model_record,
             energy_cost_coefficient,
+            starting_soc,
         })
     }
 }
@@ -290,7 +332,7 @@ fn get_battery_soc_percent(
         remaining_battery_energy_unit.convert(remaining_battery_energy, EnergyUnit::KilowattHours);
 
     let battery_soc_percent =
-        (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100;
+        (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100.0;
     Ok(battery_soc_percent)
 }
 
@@ -344,12 +386,12 @@ fn get_phev_energy(
             pred_energy = Energy::new(ZERO_ENERGY);
             log::debug!("negative energy encountered, setting to 1e-9");
         }
-        return Ok((
+        Ok((
             pred_energy,
             pred_energy_unit,
             Energy::new(0.0),
             gasoline_energy_unit,
-        ));
+        ))
     } else {
         // just use the gasoline engine
         let (pred_energy_rate, pred_energy_rate_unit) =
@@ -373,12 +415,12 @@ fn get_phev_energy(
             pred_energy = Energy::new(ZERO_ENERGY);
             log::debug!("negative energy encountered, setting to 1e-9");
         }
-        return Ok((
+        Ok((
             Energy::new(0.0),
             electrical_energy_unit,
             pred_energy,
             pred_energy_unit,
-        ));
+        ))
     }
 }
 
@@ -430,6 +472,8 @@ mod tests {
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             EnergyRateUnit::GallonsGasolinePerMile,
+            None,
+            None,
             None,
             None,
         )
