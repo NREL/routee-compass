@@ -362,3 +362,111 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
+
+[[traversal.energy_models]]
+name = "2016_BMW_i3_REx_PHEV_Charge_Depleting"
+model_input_file = "models/2016_BMW_i3_REx_PHEV_Charge_Depleting.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "kilowatt_hours_per_mile"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+
+[[traversal.energy_models]]
+name = "2016_BMW_i3_REx_PHEV_Charge_Sustaining"
+model_input_file = "models/2016_BMW_i3_REx_PHEV_Charge_Sustaining.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.1252 
+
+[[traversal.energy_models]]
+name = "2016_CHEVROLET_Volt_Charge_Depleting"
+model_input_file = "models/2016_CHEVROLET_Volt_Charge_Depleting.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "kilowatt_hours_per_mile"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+battery_capacity = 12
+battery_capacity_unit = "kilowatt_hours"
+
+[[traversal.energy_models]]
+name = "2016_CHEVROLET_Volt_Charge_Sustaining"
+model_input_file = "models/2016_CHEVROLET_Volt_Charge_Sustaining.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.1252 
+
+[[traversal.energy_models]]
+name = "2016_FORD_C-MAX_(PHEV)_Charge_Depleting"
+model_input_file = "models/2016_FORD_C-MAX_(PHEV)_Charge_Depleting.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "kilowatt_hours_per_mile"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+battery_capacity = 7.6 
+battery_capacity_unit = "kilowatt_hours"
+
+[[traversal.energy_models]]
+name = "2016_FORD_C-MAX_(PHEV)_Charge_Sustaining"
+model_input_file = "models/2016_FORD_C-MAX_(PHEV)_Charge_Sustaining.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.1252 
+
+[[traversal.energy_models]]
+name = "2016_HYUNDAI_Sonata_PHEV_Charge_Depleting"
+model_input_file = "models/2016_HYUNDAI_Sonata_PHEV_Charge_Depleting.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "kilowatt_hours_per_mile"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+battery_capacity = 9.8 
+battery_capacity_unit = "kilowatt_hours"
+
+[[traversal.energy_models]]
+name = "2016_HYUNDAI_Sonata_PHEV_Charge_Sustaining"
+model_input_file = "models/2016_HYUNDAI_Sonata_PHEV_Charge_Sustaining.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.1252 
+
+[[traversal.energy_models]]
+name = "2017_Prium_Prime_Charge_Depleting"
+model_input_file = "models/2017_Prium_Prime_Charge_Depleting.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "kilowatt_hours_per_mile"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+battery_capacity = 8 
+battery_capacity_unit = "kilowatt_hours"
+
+[[traversal.energy_models]]
+name = "2017_Prium_Prime_Charge_Sustaining"
+model_input_file = "models/2017_Prium_Prime_Charge_Sustaining.bin"
+model_type = "smartcore"
+speed_unit = "miles_per_hour"
+grade_unit = "decimal"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.1252 

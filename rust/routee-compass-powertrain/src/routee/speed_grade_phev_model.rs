@@ -22,17 +22,17 @@ pub struct SpeedGradePHEVModel {
     pub charge_sustain_model_record: Arc<SpeedGradePredictionModelRecord>,
     pub charge_deplete_model_record: Arc<SpeedGradePredictionModelRecord>,
     pub energy_cost_coefficient: f64,
-    pub starting_soc: f64,
+    pub starting_battery_energy: Energy,
 }
 
 impl TraversalModel for SpeedGradePHEVModel {
     fn initial_state(&self) -> TraversalState {
         vec![
-            StateVar(0.0), // accumulated distance
-            StateVar(0.0), // accumulated time
-            StateVar(0.0), // accumulated electrical energy
-            StateVar(0.0), // accumulated gasoline energy
-            StateVar(0.0), // battery energy remaining
+            StateVar(0.0),                                   // accumulated distance
+            StateVar(0.0),                                   // accumulated time
+            StateVar(0.0),                                   // accumulated electrical energy
+            StateVar(0.0),                                   // accumulated gasoline energy
+            StateVar(self.starting_battery_energy.as_f64()), // battery energy remaining
         ]
     }
     fn cost_estimate(
@@ -181,16 +181,18 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradePH
             }
         };
 
-        let charge_sustain_name = conf
-            .get("charge_sustain_model_name".to_string())
+        let model_name = conf
+            .get("model_name".to_string())
             .ok_or(TraversalModelError::BuildError(
                 "No 'model_name' key provided in query".to_string(),
             ))?
             .as_str()
             .ok_or(TraversalModelError::BuildError(
-                "Expected 'charge_sustain_model_name' value to be string".to_string(),
+                "Expected 'model_name' value to be string".to_string(),
             ))?
             .to_string();
+
+        let charge_sustain_name = format!("{}_Charge_Sustaining", model_name);
 
         let charge_sustain_model_record =
             match service.energy_model_library.get(&charge_sustain_name) {
@@ -204,16 +206,18 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradePH
                 Some(mr) => mr.clone(),
             };
 
-        let charge_deplete_name = conf
-            .get("charge_deplete_model_name".to_string())
-            .ok_or(TraversalModelError::BuildError(
-                "No 'model_name' key provided in query".to_string(),
-            ))?
-            .as_str()
-            .ok_or(TraversalModelError::BuildError(
-                "Expected 'charge_deplete_model_name' value to be string".to_string(),
-            ))?
-            .to_string();
+        if charge_sustain_model_record
+            .energy_rate_unit
+            .associated_energy_unit()
+            != EnergyUnit::GallonsGasoline
+        {
+            return Err(TraversalModelError::BuildError(format!(
+                "charge_sustain_model_name = '{}' must use gasoline energy, i.e. energy_rate_unit = 'gallons_gasoline_per_mile'",
+                charge_sustain_name
+            )));
+        }
+
+        let charge_deplete_name = format!("{}_Charge_Depleting", model_name);
 
         let charge_deplete_model_record =
             match service.energy_model_library.get(&charge_deplete_name) {
@@ -227,22 +231,41 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradePH
                 Some(mr) => mr.clone(),
             };
 
-        let starting_soc = conf
-            .get("starting_soc".to_string())
+        if charge_deplete_model_record
+            .energy_rate_unit
+            .associated_energy_unit()
+            != EnergyUnit::KilowattHours
+        {
+            return Err(TraversalModelError::BuildError(format!(
+                "charge_deplete_model_name = '{}' must use electrical energy, i.e. energy_rate_unit = 'kilowatt_hours_per_mile'",
+                charge_deplete_name
+            )));
+        }
+
+        let starting_soc_percent = conf
+            .get("starting_soc_percent".to_string())
             .ok_or(TraversalModelError::BuildError(
-                "No 'starting_soc' key provided in query".to_string(),
+                "No 'starting_soc_percent' key provided in query".to_string(),
             ))?
             .as_f64()
             .ok_or(TraversalModelError::BuildError(
-                "Expected 'starting_soc' value to be numeric".to_string(),
+                "Expected 'starting_soc_percent' value to be numeric".to_string(),
             ))?;
+
+        let battery_capacity = charge_deplete_model_record.battery_capacity.ok_or(
+            TraversalModelError::InternalError(
+                "battery capacity not set on PHEV model".to_string(),
+            ),
+        )?;
+
+        let starting_battery_energy = battery_capacity * (starting_soc_percent / 100.0);
 
         Ok(SpeedGradePHEVModel {
             service,
             charge_sustain_model_record,
             charge_deplete_model_record,
             energy_cost_coefficient,
-            starting_soc,
+            starting_battery_energy,
         })
     }
 }
@@ -276,13 +299,13 @@ fn update_state(
     gasoline_energy: Energy,
 ) -> TraversalState {
     let current_battery_energy = get_remaining_battery_energy_from_state(state);
-    let new_battery_energy = current_battery_energy - electrical_energy;
+    let new_battery_energy = (current_battery_energy - electrical_energy).max(Energy::new(0.0));
     let mut updated_state = state.clone();
     updated_state[0] = state[0] + distance.into();
     updated_state[1] = state[1] + time.into();
     updated_state[2] = state[2] + electrical_energy.into();
     updated_state[3] = state[3] + gasoline_energy.into();
-    updated_state[4] = state[4] + new_battery_energy.into();
+    updated_state[4] = new_battery_energy.into();
     updated_state
 }
 
@@ -436,8 +459,7 @@ mod tests {
     };
     use std::{collections::HashMap, path::PathBuf};
 
-    #[test]
-    fn test_edge_cost_lookup_from_file() {
+    fn mock_model(conf: serde_json::Value) -> SpeedGradePHEVModel {
         let speed_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
@@ -448,38 +470,52 @@ mod tests {
             .join("routee")
             .join("test")
             .join("grades.txt");
-        let model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        let charge_sustain_model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
             .join("test")
-            .join("Toyota_Camry.bin");
-        let v = Vertex {
-            vertex_id: VertexId(0),
-            coordinate: coord! {x: -86.67, y: 36.12},
-        };
-        fn mock_edge(edge_id: usize) -> Edge {
-            Edge {
-                edge_id: EdgeId(edge_id),
-                src_vertex_id: VertexId(0),
-                dst_vertex_id: VertexId(1),
-                distance: Distance::new(100.0),
-            }
-        }
-        let model_record = SpeedGradePredictionModelRecord::new(
-            "Toyota_Camry".to_string(),
-            &model_file_path,
+            .join("2016_CHEVROLET_Volt_Charge_Sustaining.bin");
+        let charge_deplete_model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("routee")
+            .join("test")
+            .join("2016_CHEVROLET_Volt_Charge_Depleting.bin");
+
+        let charge_sustain_model_record = SpeedGradePredictionModelRecord::new(
+            "Chevy_Volt_Charge_Sustaining".to_string(),
+            &charge_sustain_model_file_path,
             ModelType::Smartcore,
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             EnergyRateUnit::GallonsGasolinePerMile,
-            None,
-            None,
+            Some(EnergyRate::new(0.02)),
+            Some(1.1252),
             None,
             None,
         )
         .unwrap();
+        let charge_deplete_model_record = SpeedGradePredictionModelRecord::new(
+            "Chevy_Volt_Charge_Depleting".to_string(),
+            &charge_deplete_model_file_path,
+            ModelType::Smartcore,
+            SpeedUnit::MilesPerHour,
+            GradeUnit::Decimal,
+            EnergyRateUnit::KilowattHoursPerMile,
+            Some(EnergyRate::new(0.2)),
+            Some(1.3958),
+            Some(Energy::new(12.0)),
+            Some(EnergyUnit::KilowattHours),
+        )
+        .unwrap();
         let mut model_library = HashMap::new();
-        model_library.insert("Toyota_Camry".to_string(), Arc::new(model_record));
+        model_library.insert(
+            "Chevy_Volt_Charge_Depleting".to_string(),
+            Arc::new(charge_deplete_model_record),
+        );
+        model_library.insert(
+            "Chevy_Volt_Charge_Sustaining".to_string(),
+            Arc::new(charge_sustain_model_record),
+        );
 
         let service = SpeedGradeModelService::new(
             &speed_file_path,
@@ -492,15 +528,81 @@ mod tests {
         )
         .unwrap();
         let arc_service = Arc::new(service);
+        SpeedGradePHEVModel::try_from((arc_service, &conf)).unwrap()
+    }
+
+    fn mock_vertex() -> Vertex {
+        Vertex {
+            vertex_id: VertexId(0),
+            coordinate: coord! {x: -86.67, y: 36.12},
+        }
+    }
+    fn mock_edge(distance_meters: f64) -> Edge {
+        Edge {
+            edge_id: EdgeId(0),
+            src_vertex_id: VertexId(0),
+            dst_vertex_id: VertexId(1),
+            distance: Distance::new(distance_meters),
+        }
+    }
+
+    #[test]
+    fn test_phev_energy_model_just_electric() {
         let conf = serde_json::json!({
-            "model_name": "Toyota_Camry",
+            "model_name": "Chevy_Volt",
+            "starting_soc_percent": 100.0,
             "energy_cost_coefficient": 0.5,
         });
-        let model = SpeedGradeModel::try_from((arc_service, &conf)).unwrap();
+
+        let model = mock_model(conf);
         let initial = model.initial_state();
-        let e1 = mock_edge(0);
-        // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
+
+        // starting at 100% SOC, we should be able to traverse 1000 meters
+        // without using any gasoline
+        let e1 = mock_edge(1000.0);
+        let v = mock_vertex();
+
         let result = model.traversal_cost(&v, &e1, &v, &initial).unwrap();
-        println!("{}, {:?}", result.total_cost, result.updated_state);
+        let gasoline_energy = get_gasoline_energy_from_state(&result.updated_state);
+        assert!(gasoline_energy.as_f64() < 1e-9);
+
+        let electrical_energy = get_electrical_energy_from_state(&result.updated_state);
+        assert!(electrical_energy.as_f64() > 0.0);
+
+        let battery_percent_soc = get_battery_soc_percent(&model, &result.updated_state).unwrap();
+        assert!(battery_percent_soc < 100.0);
+    }
+
+    #[test]
+    fn test_phev_energy_model_gas_and_electric() {
+        let conf = serde_json::json!({
+            "model_name": "Chevy_Volt",
+            "starting_soc_percent": 100.0,
+            "energy_cost_coefficient": 0.5,
+        });
+
+        let model = mock_model(conf);
+        let initial = model.initial_state();
+
+        // now let's traverse a really long link to deplete the battery
+        let distance_meters = 100.0 * 1609.344; // 100 miles
+        let e1 = mock_edge(distance_meters);
+        let v = mock_vertex();
+
+        let result = model.traversal_cost(&v, &e1, &v, &initial).unwrap();
+        let electrical_energy = get_electrical_energy_from_state(&result.updated_state);
+        let battery_percent_soc = get_battery_soc_percent(&model, &result.updated_state).unwrap();
+
+        assert!(electrical_energy.as_f64() > 0.0);
+        assert!(battery_percent_soc < 1e-9);
+
+        // and then traverse the same distance but this time we should only use gasoline energy
+        let result2 = model
+            .traversal_cost(&v, &e1, &v, &result.updated_state)
+            .unwrap();
+
+        let gasoline_energy = get_gasoline_energy_from_state(&result2.updated_state);
+
+        assert!(gasoline_energy.as_f64() > 0.0);
     }
 }
