@@ -45,7 +45,7 @@ pub struct CompassApp {
 impl TryFrom<&Path> for CompassApp {
     type Error = CompassAppError;
 
-    /// Builds a CompassApp from a configuration filepath, using the default CompassAppBuilder.
+    /// Builds a CompassApp from a configuration filepath, using the default CompasksAppBuilder.
     /// Builds all components such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
     /// Also builds the input and output plugins.
     /// Returns a persistent application that can run user queries in parallel.
@@ -58,7 +58,7 @@ impl TryFrom<&Path> for CompassApp {
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(conf_file: &Path) -> Result<Self, Self::Error> {
-        let config = ops::read_config(conf_file)?;
+        let config = ops::read_config_from_file(conf_file)?;
         let builder = CompassAppBuilder::default();
         let compass_app = CompassApp::try_from((&config, &builder))?;
         Ok(compass_app)

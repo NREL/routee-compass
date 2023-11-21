@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 keywords = ["eco routing"]
-dependencies = []
+dependencies = ["toml"]
 [project.optional-dependencies]
 dev = [
     "black",
