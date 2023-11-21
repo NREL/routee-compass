@@ -45,7 +45,7 @@ pub struct CompassApp {
 impl TryFrom<&Path> for CompassApp {
     type Error = CompassAppError;
 
-    /// Builds a CompassApp from a configuration filepath, using the default CompasksAppBuilder.
+    /// Builds a CompassApp from a configuration filepath, using the default CompassAppBuilder.
     /// Builds all components such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
     /// Also builds the input and output plugins.
     /// Returns a persistent application that can run user queries in parallel.
