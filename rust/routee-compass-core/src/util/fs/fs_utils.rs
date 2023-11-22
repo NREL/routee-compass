@@ -30,7 +30,7 @@ where
 /// then returns true. some inefficiency here due to throwing out the
 /// stream object that could have been used later, but in typical Compass
 /// settings, this isn't a real bottleneck.
-pub fn is_gzip<P>(filepath: &P) -> bool
+pub fn is_gzip<P>(filepath: P) -> bool
 where
     P: AsRef<Path>,
 {
