@@ -17,7 +17,9 @@ use super::{
 };
 use crate::plugin::{
     input::{
-        default::{grid_search::builder::GridSearchBuilder, rtree::builder::VertexRTreeBuilder},
+        default::{
+            grid_search::builder::GridSearchBuilder, vertex_rtree::builder::VertexRTreeBuilder,
+        },
         input_plugin::InputPlugin,
     },
     output::{
