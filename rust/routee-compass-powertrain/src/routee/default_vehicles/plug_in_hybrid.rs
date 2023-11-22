@@ -1,23 +1,17 @@
-use std::{path::Path, sync::Arc};
-
 use routee_compass_core::{
     model::traversal::{
         state::{state_variable::StateVar, traversal_state::TraversalState},
         traversal_model_error::TraversalModelError,
     },
     util::unit::{
-        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit,
-        Grade, GradeUnit, Speed, SpeedUnit,
+        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
+        SpeedUnit,
     },
 };
 
 use crate::routee::{
-    energy_model_ops::ZERO_ENERGY,
-    model_type::ModelType,
-    prediction_model::{
-        find_min_energy_rate, load_prediction_model, PredictionModel, PredictionModelRecord,
-    },
-    vehicle::{Vehicle, VehicleEnergyResult, VehicleState},
+    prediction_model::{PredictionModel, PredictionModelRecord},
+    vehicle::{Vehicle, VehicleEnergyResult},
 };
 
 pub struct PlugInHybrid {
@@ -166,10 +160,7 @@ fn get_battery_soc_percent(vehicle: &PlugInHybrid, state: &[StateVar]) -> f64 {
     let remaining_battery_energy_kwh =
         battery_energy_unit.convert(remaining_battery_energy, EnergyUnit::KilowattHours);
 
-    let battery_soc_percent =
-        (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100.0;
-
-    battery_soc_percent
+    (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100.0
 }
 
 /// Compute the energy for the PHEV by converting gasoline to kWh.
@@ -229,12 +220,8 @@ mod tests {
     use crate::routee::model_type::ModelType;
 
     use super::*;
-    use geo::coord;
-    use routee_compass_core::model::{
-        property::{edge::Edge, vertex::Vertex},
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
-    };
-    use std::{collections::HashMap, path::PathBuf};
+
+    use std::path::PathBuf;
 
     fn mock_vehicle() -> PlugInHybrid {
         let charge_sustain_model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))

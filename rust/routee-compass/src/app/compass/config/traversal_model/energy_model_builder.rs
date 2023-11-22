@@ -9,14 +9,12 @@ use crate::app::compass::config::{
 };
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::util::unit::{
-    DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit, GradeUnit, SpeedUnit, TimeUnit,
+    DistanceUnit, EnergyRate, EnergyRateUnit, GradeUnit, SpeedUnit, TimeUnit,
 };
 use routee_compass_powertrain::routee::energy_model_service::EnergyModelService;
 use routee_compass_powertrain::routee::energy_traversal_model::EnergyTraversalModel;
 use routee_compass_powertrain::routee::model_type::ModelType;
-use routee_compass_powertrain::routee::prediction_model::{
-    load_prediction_model, PredictionModelRecord,
-};
+use routee_compass_powertrain::routee::prediction_model::load_prediction_model;
 
 pub struct SpeedGradeEnergyModelBuilder {}
 

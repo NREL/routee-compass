@@ -1,22 +1,15 @@
-use std::{path::Path, sync::Arc};
-
 use routee_compass_core::{
     model::traversal::{
-        state::{state_variable::StateVar, traversal_state::TraversalState},
-        traversal_model_error::TraversalModelError,
+        state::state_variable::StateVar, traversal_model_error::TraversalModelError,
     },
     util::unit::{
-        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit,
-        Grade, GradeUnit, Speed, SpeedUnit,
+        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
+        SpeedUnit,
     },
 };
 
 use crate::routee::{
-    energy_model_ops::ZERO_ENERGY,
-    model_type::ModelType,
-    prediction_model::{
-        self, find_min_energy_rate, load_prediction_model, PredictionModel, PredictionModelRecord,
-    },
+    prediction_model::{PredictionModel, PredictionModelRecord},
     vehicle::{Vehicle, VehicleEnergyResult, VehicleState},
 };
 

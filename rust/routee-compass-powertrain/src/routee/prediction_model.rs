@@ -3,8 +3,8 @@ use std::{path::Path, sync::Arc};
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
     util::unit::{
-        Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed,
-        SpeedUnit, EnergyUnit,
+        Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit, Grade, GradeUnit,
+        Speed, SpeedUnit,
     },
 };
 

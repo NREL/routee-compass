@@ -227,7 +227,10 @@ fn get_vehicle_state_from_state(state: &TraversalState) -> &[StateVar] {
 
 #[cfg(test)]
 mod tests {
-    use crate::routee::{model_type::ModelType, prediction_model::load_prediction_model, default_vehicles::conventional::ConventionalVehicle};
+    use crate::routee::{
+        default_vehicles::conventional::ConventionalVehicle, model_type::ModelType,
+        prediction_model::load_prediction_model,
+    };
 
     use super::*;
     use geo::coord;

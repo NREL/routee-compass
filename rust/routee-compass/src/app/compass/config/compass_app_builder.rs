@@ -10,8 +10,7 @@ use super::{
         no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
     },
     traversal_model::{
-        distance_builder::DistanceBuilder,
-        energy_model_builder::SpeedGradeEnergyModelBuilder,
+        distance_builder::DistanceBuilder, energy_model_builder::SpeedGradeEnergyModelBuilder,
         speed_lookup_builder::SpeedLookupBuilder,
     },
 };
