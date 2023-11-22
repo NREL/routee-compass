@@ -29,6 +29,7 @@ use crate::plugin::{
         output_plugin::OutputPlugin,
     },
 };
+use itertools::Itertools;
 use routee_compass_core::model::frontier::frontier_model::FrontierModel;
 use std::{collections::HashMap, sync::Arc};
 
@@ -178,6 +179,7 @@ impl CompassAppBuilder {
             .ok_or(CompassConfigurationError::UnknownModelNameForComponent(
                 tm_type.clone(),
                 String::from("traversal"),
+                self.traversal_model_builders.keys().join(", "),
             ))
             .and_then(|b| b.build(config))
     }
@@ -207,6 +209,7 @@ impl CompassAppBuilder {
             .ok_or(CompassConfigurationError::UnknownModelNameForComponent(
                 fm_type.clone(),
                 String::from("frontier"),
+                self.frontier_builders.keys().join(", "),
             ))
             .and_then(|b| b.build(&config))
     }
@@ -245,6 +248,7 @@ impl CompassAppBuilder {
                 CompassConfigurationError::UnknownModelNameForComponent(
                     plugin_type.clone(),
                     String::from("Input Plugin"),
+                    self.input_plugin_builders.keys().join(", "),
                 ),
             )?;
             let input_plugin = builder.build(&plugin_json)?;
@@ -287,6 +291,7 @@ impl CompassAppBuilder {
                 CompassConfigurationError::UnknownModelNameForComponent(
                     plugin_type.clone(),
                     String::from("Output Plugin"),
+                    self.output_plugin_builders.keys().join(", "),
                 ),
             )?;
             let output_plugin = builder.build(&plugin_json)?;

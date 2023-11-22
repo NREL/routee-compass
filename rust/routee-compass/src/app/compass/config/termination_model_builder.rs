@@ -109,6 +109,7 @@ impl TerminationModelBuilder {
                 _ => Err(CompassConfigurationError::UnknownModelNameForComponent(
                     term_type,
                     CompassConfigurationField::Termination.to_string(),
+                    String::from("query_runtime, iterations, solution_size, combined"),
                 )),
             }?;
 

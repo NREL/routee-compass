@@ -57,6 +57,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 CompassConfigurationError::UnknownModelNameForComponent(
                     vehicle_type.clone(),
                     "vehicle".to_string(),
+                    "[conventional, plug_in_hybrid]".to_string(),
                 ),
             )?;
             let vehicle = vehicle_builder.build(&vehicle_config)?;
