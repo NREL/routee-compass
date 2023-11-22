@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use routee_compass_core::{
     model::traversal::{
         state::state_variable::StateVar, traversal_model_error::TraversalModelError,
@@ -33,4 +35,10 @@ pub trait Vehicle: Send + Sync {
 
     fn serialize_state(&self, state: &VehicleState) -> serde_json::Value;
     fn serialize_state_info(&self, state: &VehicleState) -> serde_json::Value;
+
+    /// Give the vehicle a chance to update itself from the incoming query
+    fn update_from_query(
+        &self,
+        query: &serde_json::Value,
+    ) -> Result<Arc<dyn Vehicle>, TraversalModelError>;
 }

@@ -1,4 +1,4 @@
-use super::vehicle::Vehicle;
+use super::vehicles::Vehicle;
 use routee_compass_core::model::traversal::default::speed_lookup_model::get_max_speed;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::util::fs::read_decoders;

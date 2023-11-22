@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use routee_compass_core::{
     model::traversal::{
         state::{state_variable::StateVar, traversal_state::TraversalState},
@@ -10,14 +12,14 @@ use routee_compass_core::{
 };
 
 use crate::routee::{
-    prediction_model::{PredictionModel, PredictionModelRecord},
-    vehicle::{Vehicle, VehicleEnergyResult},
+    prediction::PredictionModelRecord,
+    vehicles::vehicle_trait::{Vehicle, VehicleEnergyResult},
 };
 
 pub struct PlugInHybrid {
     pub name: String,
-    pub charge_sustain_model: PredictionModelRecord,
-    pub charge_deplete_model: PredictionModelRecord,
+    pub charge_sustain_model: Arc<PredictionModelRecord>,
+    pub charge_deplete_model: Arc<PredictionModelRecord>,
     pub battery_capacity: Energy,
     pub starting_battery_energy: Energy,
     pub battery_energy_unit: EnergyUnit,
@@ -34,8 +36,8 @@ impl PlugInHybrid {
     ) -> Result<Self, TraversalModelError> {
         Ok(Self {
             name,
-            charge_sustain_model,
-            charge_deplete_model,
+            charge_sustain_model: Arc::new(charge_sustain_model),
+            charge_deplete_model: Arc::new(charge_deplete_model),
             battery_capacity,
             starting_battery_energy,
             battery_energy_unit,
@@ -114,6 +116,38 @@ impl Vehicle for PlugInHybrid {
             "battery_energy_unit": battery_energy_unit.to_string(),
             "fuel_energy_unit": fuel_energy_unit.to_string(),
         })
+    }
+
+    fn update_from_query(
+        &self,
+        query: &serde_json::Value,
+    ) -> Result<Arc<dyn Vehicle>, TraversalModelError> {
+        let starting_soc_percent = query
+            .get("starting_soc_percent".to_string())
+            .ok_or(TraversalModelError::BuildError(
+                "No 'starting_soc_percent' key provided in query".to_string(),
+            ))?
+            .as_f64()
+            .ok_or(TraversalModelError::BuildError(
+                "Expected 'starting_soc_percent' value to be numeric".to_string(),
+            ))?;
+        if starting_soc_percent < 0.0 || starting_soc_percent > 100.0 {
+            return Err(TraversalModelError::BuildError(
+                "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),
+            ));
+        }
+        let starting_battery_energy = self.battery_capacity * (starting_soc_percent / 100.0);
+
+        let new_phev = PlugInHybrid {
+            name: self.name.clone(),
+            charge_sustain_model: self.charge_sustain_model.clone(),
+            charge_deplete_model: self.charge_deplete_model.clone(),
+            battery_capacity: self.battery_capacity,
+            starting_battery_energy,
+            battery_energy_unit: self.battery_energy_unit,
+        };
+
+        Ok(Arc::new(new_phev))
     }
 }
 
@@ -217,7 +251,9 @@ fn get_phev_energy(
 
 #[cfg(test)]
 mod tests {
-    use crate::routee::model_type::ModelType;
+    use routee_compass_core::util::unit::{EnergyRate, EnergyRateUnit};
+
+    use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
 
     use super::*;
 

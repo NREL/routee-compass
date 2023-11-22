@@ -13,7 +13,7 @@ use super::{
 };
 
 #[cfg(feature = "onnx")]
-use crate::routee::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
+use crate::routee::prediction::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
 
 pub trait PredictionModel: Send + Sync {
     fn predict(
@@ -57,6 +57,7 @@ impl PredictionModelRecord {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn load_prediction_model<P: AsRef<Path>>(
     model_name: String,
     model_path: &P,

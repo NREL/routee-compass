@@ -2,7 +2,7 @@ use crate::routee::energy_model_ops::ZERO_ENERGY;
 
 use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
-use super::vehicle::{Vehicle, VehicleState};
+use super::vehicles::vehicle_trait::{Vehicle, VehicleState};
 
 use routee_compass_core::model::cost::Cost;
 use routee_compass_core::model::property::edge::Edge;
@@ -159,7 +159,6 @@ impl TryFrom<(Arc<EnergyModelService>, &serde_json::Value)> for EnergyTraversalM
                 }
             }
         };
-
         let prediction_model_name = conf
             .get("model_name".to_string())
             .ok_or(TraversalModelError::BuildError(
@@ -174,13 +173,14 @@ impl TryFrom<(Arc<EnergyModelService>, &serde_json::Value)> for EnergyTraversalM
         let vehicle = match service.vehicle_library.get(&prediction_model_name) {
             None => {
                 let model_names: Vec<&String> = service.vehicle_library.keys().collect();
-                return Err(TraversalModelError::BuildError(format!(
+                Err(TraversalModelError::BuildError(format!(
                     "No vehicle found with model_name = '{}', try one of: {:?}",
                     prediction_model_name, model_names
-                )));
+                )))
             }
-            Some(mr) => mr.clone(),
-        };
+            Some(mr) => Ok(mr.clone()),
+        }?
+        .update_from_query(conf)?;
 
         Ok(EnergyTraversalModel {
             service,
@@ -228,8 +228,8 @@ fn get_vehicle_state_from_state(state: &TraversalState) -> &[StateVar] {
 #[cfg(test)]
 mod tests {
     use crate::routee::{
-        default_vehicles::conventional::ConventionalVehicle, model_type::ModelType,
-        prediction_model::load_prediction_model,
+        prediction::model_type::ModelType, prediction::prediction_model::load_prediction_model,
+        vehicles::default::conventional::ConventionalVehicle,
     };
 
     use super::*;

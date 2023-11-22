@@ -13,16 +13,18 @@ use routee_compass_core::util::unit::{
 };
 use routee_compass_powertrain::routee::energy_model_service::EnergyModelService;
 use routee_compass_powertrain::routee::energy_traversal_model::EnergyTraversalModel;
-use routee_compass_powertrain::routee::model_type::ModelType;
-use routee_compass_powertrain::routee::prediction_model::load_prediction_model;
+use routee_compass_powertrain::routee::prediction::load_prediction_model;
+use routee_compass_powertrain::routee::prediction::model_type::ModelType;
 
-pub struct SpeedGradeEnergyModelBuilder {}
+use super::energy_model_vehicle_builders::{
+    ConventionalVehicleBuilder, PlugInHybridBuilder, VehicleBuilder,
+};
 
-pub struct SpeedGradeEnergyModelService {
-    service: EnergyModelService,
+pub struct EnergyModelBuilder {
+    pub vehicle_builders: HashMap<String, Box<dyn VehicleBuilder>>,
 }
 
-impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
+impl TraversalModelBuilder for EnergyModelBuilder {
     fn build(
         &self,
         params: &serde_json::Value,
@@ -47,48 +49,22 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             traversal_key.clone(),
         )?;
 
-        let energy_model_configs =
-            params.get_config_array("energy_models".to_string(), traversal_key.clone())?;
+        let vehicle_configs =
+            params.get_config_array("vehicles".to_string(), traversal_key.clone())?;
 
-        let mut energy_model_library = HashMap::new();
+        let mut vehicle_library = HashMap::new();
 
-        for energy_model_config in energy_model_configs {
-            let name = energy_model_config
-                .get_config_string(String::from("name"), traversal_key.clone())?;
-            let model_path = energy_model_config
-                .get_config_path(String::from("model_input_file"), traversal_key.clone())?;
-            let model_type = energy_model_config
-                .get_config_serde::<ModelType>(String::from("model_type"), traversal_key.clone())?;
-            let speed_unit = energy_model_config
-                .get_config_serde::<SpeedUnit>(String::from("speed_unit"), traversal_key.clone())?;
-            let ideal_energy_rate_option = energy_model_config
-                .get_config_serde_optional::<EnergyRate>(
-                    String::from("ideal_energy_rate"),
-                    traversal_key.clone(),
-                )?;
-            let grade_unit = energy_model_config
-                .get_config_serde::<GradeUnit>(String::from("grade_unit"), traversal_key.clone())?;
-
-            let energy_rate_unit = energy_model_config.get_config_serde::<EnergyRateUnit>(
-                String::from("energy_rate_unit"),
-                traversal_key.clone(),
+        for vehicle_config in vehicle_configs {
+            let vehicle_type =
+                vehicle_config.get_config_string(String::from("type"), traversal_key.clone())?;
+            let vehicle_builder = self.vehicle_builders.get(&vehicle_type).ok_or(
+                CompassConfigurationError::UnknownModelNameForComponent(
+                    vehicle_type.clone(),
+                    "vehicle".to_string(),
+                ),
             )?;
-            let real_world_energy_adjustment_option = params.get_config_serde_optional::<f64>(
-                String::from("real_world_energy_adjustment"),
-                traversal_key.clone(),
-            )?;
-
-            let model_record = load_prediction_model(
-                name.clone(),
-                &model_path,
-                model_type,
-                speed_unit,
-                grade_unit,
-                energy_rate_unit,
-                ideal_energy_rate_option,
-                real_world_energy_adjustment_option,
-            )?;
-            energy_model_library.insert(name, Arc::new(model_record));
+            let vehicle = vehicle_builder.build(&vehicle_config)?;
+            vehicle_library.insert(vehicle_type, vehicle);
         }
 
         let output_time_unit_option = params.get_config_serde_optional::<TimeUnit>(
@@ -100,31 +76,43 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             traversal_key.clone(),
         )?;
 
-        let inner_service = EnergyModelService::new(
+        let service = EnergyModelService::new(
             &speed_table_path,
             speed_table_speed_unit,
             &grade_table_path,
             grade_table_grade_unit,
             output_time_unit_option,
             output_distance_unit_option,
-            HashMap::new(),
+            vehicle_library,
         )
         .map_err(CompassConfigurationError::TraversalModelError)?;
-        let service = SpeedGradeEnergyModelService {
-            service: inner_service,
-        };
 
         Ok(Arc::new(service))
     }
 }
 
-impl TraversalModelService for SpeedGradeEnergyModelService {
+impl TraversalModelService for EnergyModelService {
     fn build(
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
-        let arc_self = Arc::new(self.service.clone());
+        let arc_self = Arc::new(self.clone());
         let model = EnergyTraversalModel::try_from((arc_self, parameters))?;
         Ok(Arc::new(model))
+    }
+}
+
+impl Default for EnergyModelBuilder {
+    fn default() -> Self {
+        let mut vehicle_builders: HashMap<String, Box<dyn VehicleBuilder>> = HashMap::new();
+        vehicle_builders.insert(
+            "conventional".to_string(),
+            Box::new(ConventionalVehicleBuilder {}),
+        );
+        vehicle_builders.insert(
+            "plug_in_hybrid".to_string(),
+            Box::new(PlugInHybridBuilder {}),
+        );
+        Self { vehicle_builders }
     }
 }

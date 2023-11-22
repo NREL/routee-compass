@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use routee_compass_core::{
     model::traversal::{
         state::state_variable::StateVar, traversal_model_error::TraversalModelError,
@@ -9,13 +11,13 @@ use routee_compass_core::{
 };
 
 use crate::routee::{
-    prediction_model::{PredictionModel, PredictionModelRecord},
-    vehicle::{Vehicle, VehicleEnergyResult, VehicleState},
+    prediction::{PredictionModel, PredictionModelRecord},
+    vehicles::{Vehicle, VehicleEnergyResult, VehicleState},
 };
 
 pub struct ConventionalVehicle {
     pub name: String,
-    pub prediction_model_record: PredictionModelRecord,
+    pub prediction_model_record: Arc<PredictionModelRecord>,
 }
 
 impl ConventionalVehicle {
@@ -25,7 +27,7 @@ impl ConventionalVehicle {
     ) -> Result<Self, TraversalModelError> {
         Ok(Self {
             name,
-            prediction_model_record,
+            prediction_model_record: Arc::new(prediction_model_record),
         })
     }
 }
@@ -82,6 +84,17 @@ impl Vehicle for ConventionalVehicle {
         serde_json::json!({
             "energy_unit": energy_unit.to_string(),
         })
+    }
+
+    fn update_from_query(
+        &self,
+        _query: &serde_json::Value,
+    ) -> Result<Arc<dyn Vehicle>, TraversalModelError> {
+        // just return a clone of self
+        Ok(Arc::new(ConventionalVehicle {
+            name: self.name.clone(),
+            prediction_model_record: self.prediction_model_record.clone(),
+        }))
     }
 }
 
