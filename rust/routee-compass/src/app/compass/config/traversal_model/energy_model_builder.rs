@@ -11,16 +11,17 @@ use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::util::unit::{
     DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit, GradeUnit, SpeedUnit, TimeUnit,
 };
+use routee_compass_powertrain::routee::energy_model_service::EnergyModelService;
+use routee_compass_powertrain::routee::energy_traversal_model::EnergyTraversalModel;
 use routee_compass_powertrain::routee::model_type::ModelType;
-use routee_compass_powertrain::routee::prediction_model::SpeedGradePredictionModelRecord;
-use routee_compass_powertrain::routee::speed_grade_generic_model::SpeedGradeModel;
-use routee_compass_powertrain::routee::speed_grade_model_service::SpeedGradeModelService;
-use routee_compass_powertrain::routee::speed_grade_phev_model::SpeedGradePHEVModel;
+use routee_compass_powertrain::routee::prediction_model::{
+    load_prediction_model, PredictionModelRecord,
+};
 
 pub struct SpeedGradeEnergyModelBuilder {}
 
 pub struct SpeedGradeEnergyModelService {
-    service: SpeedGradeModelService,
+    service: EnergyModelService,
 }
 
 impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
@@ -78,17 +79,8 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
                 String::from("real_world_energy_adjustment"),
                 traversal_key.clone(),
             )?;
-            let battery_capacity = energy_model_config.get_config_serde_optional::<Energy>(
-                String::from("battery_capacity"),
-                traversal_key.clone(),
-            )?;
-            let battery_capcity_unit = energy_model_config
-                .get_config_serde_optional::<EnergyUnit>(
-                    String::from("battery_capacity_unit"),
-                    traversal_key.clone(),
-                )?;
 
-            let model_record = SpeedGradePredictionModelRecord::new(
+            let model_record = load_prediction_model(
                 name.clone(),
                 &model_path,
                 model_type,
@@ -97,8 +89,6 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
                 energy_rate_unit,
                 ideal_energy_rate_option,
                 real_world_energy_adjustment_option,
-                battery_capacity,
-                battery_capcity_unit,
             )?;
             energy_model_library.insert(name, Arc::new(model_record));
         }
@@ -112,14 +102,14 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
             traversal_key.clone(),
         )?;
 
-        let inner_service = SpeedGradeModelService::new(
+        let inner_service = EnergyModelService::new(
             &speed_table_path,
             speed_table_speed_unit,
             &grade_table_path,
             grade_table_grade_unit,
             output_time_unit_option,
             output_distance_unit_option,
-            energy_model_library,
+            HashMap::new(),
         )
         .map_err(CompassConfigurationError::TraversalModelError)?;
         let service = SpeedGradeEnergyModelService {
@@ -136,23 +126,7 @@ impl TraversalModelService for SpeedGradeEnergyModelService {
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
         let arc_self = Arc::new(self.service.clone());
-
-        let phev_mode: bool = match parameters.get("phev_mode") {
-            None => false,
-            Some(v) => v
-                .as_bool()
-                .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                    "phev_mode".to_string(),
-                    "boolean".to_string(),
-                ))?,
-        };
-
-        if phev_mode {
-            let phev_m = SpeedGradePHEVModel::try_from((arc_self, parameters))?;
-            Ok(Arc::new(phev_m))
-        } else {
-            let generic_m = SpeedGradeModel::try_from((arc_self, parameters))?;
-            Ok(Arc::new(generic_m))
-        }
+        let model = EnergyTraversalModel::try_from((arc_self, parameters))?;
+        Ok(Arc::new(model))
     }
 }

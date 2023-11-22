@@ -1,4 +1,4 @@
-use super::prediction_model::SpeedGradePredictionModelRecord;
+use super::vehicle::Vehicle;
 use routee_compass_core::model::traversal::default::speed_lookup_model::get_max_speed;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::util::fs::read_decoders;
@@ -9,7 +9,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 #[derive(Clone)]
-pub struct SpeedGradeModelService {
+pub struct EnergyModelService {
     pub speed_table: Arc<Box<[Speed]>>,
     pub speeds_table_speed_unit: SpeedUnit,
     pub max_speed: Speed,
@@ -17,10 +17,10 @@ pub struct SpeedGradeModelService {
     pub grade_table_grade_unit: GradeUnit,
     pub output_time_unit: TimeUnit,
     pub output_distance_unit: DistanceUnit,
-    pub energy_model_library: HashMap<String, Arc<SpeedGradePredictionModelRecord>>,
+    pub vehicle_library: HashMap<String, Arc<dyn Vehicle>>,
 }
 
-impl SpeedGradeModelService {
+impl EnergyModelService {
     pub fn new<P: AsRef<Path>>(
         speed_table_path: &P,
         speeds_table_speed_unit: SpeedUnit,
@@ -28,7 +28,7 @@ impl SpeedGradeModelService {
         grade_table_grade_unit_option: Option<GradeUnit>,
         output_time_unit_option: Option<TimeUnit>,
         output_distance_unit_option: Option<DistanceUnit>,
-        energy_model_library: HashMap<String, Arc<SpeedGradePredictionModelRecord>>,
+        vehicle_library: HashMap<String, Arc<dyn Vehicle>>,
     ) -> Result<Self, TraversalModelError> {
         let output_time_unit = output_time_unit_option.unwrap_or(BASE_TIME_UNIT);
         let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
@@ -60,7 +60,7 @@ impl SpeedGradeModelService {
 
         let max_speed = get_max_speed(&speed_table)?;
 
-        Ok(SpeedGradeModelService {
+        Ok(EnergyModelService {
             speed_table,
             speeds_table_speed_unit,
             max_speed,
@@ -68,7 +68,7 @@ impl SpeedGradeModelService {
             grade_table_grade_unit,
             output_time_unit,
             output_distance_unit,
-            energy_model_library,
+            vehicle_library,
         })
     }
 }

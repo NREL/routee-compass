@@ -11,7 +11,7 @@ use super::{
     },
     traversal_model::{
         distance_builder::DistanceBuilder,
-        speed_grade_energy_model_builder::SpeedGradeEnergyModelBuilder,
+        energy_model_builder::SpeedGradeEnergyModelBuilder,
         speed_lookup_builder::SpeedLookupBuilder,
     },
 };

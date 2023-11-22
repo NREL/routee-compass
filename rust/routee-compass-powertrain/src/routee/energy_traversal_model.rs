@@ -1,8 +1,9 @@
-use crate::routee::speed_grade_model_ops::ZERO_ENERGY;
+use crate::routee::energy_model_ops::ZERO_ENERGY;
 
-use super::prediction_model::SpeedGradePredictionModelRecord;
-use super::speed_grade_model_ops::get_grade;
-use super::speed_grade_model_service::SpeedGradeModelService;
+use super::energy_model_ops::get_grade;
+use super::energy_model_service::EnergyModelService;
+use super::vehicle::{Vehicle, VehicleState};
+
 use routee_compass_core::model::cost::Cost;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
@@ -17,16 +18,22 @@ use routee_compass_core::util::unit::as_f64::AsF64;
 use routee_compass_core::util::unit::*;
 use std::sync::Arc;
 
-pub struct SpeedGradeModel {
-    pub service: Arc<SpeedGradeModelService>,
-    pub model_record: Arc<SpeedGradePredictionModelRecord>,
+pub struct EnergyTraversalModel {
+    pub service: Arc<EnergyModelService>,
+    pub vehicle: Arc<dyn Vehicle>,
     pub energy_cost_coefficient: f64,
 }
 
-impl TraversalModel for SpeedGradeModel {
+impl TraversalModel for EnergyTraversalModel {
     fn initial_state(&self) -> TraversalState {
-        // distance, time, energy
-        vec![StateVar(0.0), StateVar(0.0), StateVar(0.0)]
+        // distance, time
+        let mut initial_state = vec![StateVar(0.0), StateVar(0.0)];
+
+        // vehicle state gets slots 2..n
+        let vehicle_state = self.vehicle.initial_state();
+        initial_state.extend(vehicle_state);
+
+        initial_state
     }
     /// estimate the cost of traveling between two vertices.
     /// given a distance estimate,
@@ -47,12 +54,9 @@ impl TraversalModel for SpeedGradeModel {
             return Ok(Cost::ZERO);
         }
 
-        let (energy, _energy_unit) = Energy::create(
-            self.model_record.ideal_energy_rate,
-            self.model_record.energy_rate_unit,
-            distance,
-            self.service.output_distance_unit,
-        )?;
+        let (energy, _energy_unit) = self
+            .vehicle
+            .best_case_energy((distance, self.service.output_distance_unit))?;
 
         let time: Time = Time::create(
             self.service.max_speed,
@@ -85,29 +89,24 @@ impl TraversalModel for SpeedGradeModel {
             self.service.output_time_unit.clone(),
         )?;
 
-        let (energy_rate, _energy_rate_unit) = self.model_record.prediction_model.predict(
-            speed,
-            self.service.speeds_table_speed_unit,
-            grade,
-            self.service.grade_table_grade_unit,
+        let energy_result = self.vehicle.predict_energy(
+            (speed, self.service.speeds_table_speed_unit),
+            (grade, self.service.grade_table_grade_unit),
+            (distance, self.service.output_distance_unit),
+            get_vehicle_state_from_state(state),
         )?;
 
-        let energy_rate_real_world = energy_rate * self.model_record.real_world_energy_adjustment;
+        let mut energy = energy_result.energy;
 
-        let (mut energy, _energy_unit) = Energy::create(
-            energy_rate_real_world,
-            self.model_record.energy_rate_unit,
-            distance,
-            self.service.output_distance_unit,
-        )?;
-
+        // for now we need to truncate the energy at zero until we can handle these being negative
         if energy.as_f64() < 0.0 {
             energy = Energy::new(ZERO_ENERGY);
             log::debug!("negative energy encountered, setting to 1e-9");
         }
 
         let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
-        let updated_state = update_state(state, distance, time, energy);
+
+        let updated_state = update_state(state, distance, time, energy_result.updated_state);
         let result = TraversalResult {
             total_cost,
             updated_state,
@@ -118,30 +117,28 @@ impl TraversalModel for SpeedGradeModel {
     fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
         let distance = get_distance_from_state(state);
         let time = get_time_from_state(state);
-        let energy = get_energy_from_state(state);
+        let vehicle_state = self.vehicle.serialize_state(state);
         serde_json::json!({
             "distance": distance,
             "time": time,
-            "energy": energy,
+            "vehicle": vehicle_state,
         })
     }
 
-    fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
-        let energy_unit = self.model_record.energy_rate_unit.associated_energy_unit();
+    fn serialize_state_info(&self, state: &TraversalState) -> serde_json::Value {
+        let vehicle_info = self.vehicle.serialize_state_info(state);
         serde_json::json!({
             "distance_unit": self.service.output_distance_unit,
             "time_unit": self.service.output_time_unit,
-            "energy_unit": energy_unit,
+            "vehicle_info": vehicle_info,
         })
     }
 }
 
-impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeModel {
+impl TryFrom<(Arc<EnergyModelService>, &serde_json::Value)> for EnergyTraversalModel {
     type Error = TraversalModelError;
 
-    fn try_from(
-        input: (Arc<SpeedGradeModelService>, &serde_json::Value),
-    ) -> Result<Self, Self::Error> {
+    fn try_from(input: (Arc<EnergyModelService>, &serde_json::Value)) -> Result<Self, Self::Error> {
         let (service, conf) = input;
 
         let energy_cost_coefficient = match conf.get(String::from("energy_cost_coefficient")) {
@@ -174,20 +171,20 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
             ))?
             .to_string();
 
-        let model_record = match service.energy_model_library.get(&prediction_model_name) {
+        let vehicle = match service.vehicle_library.get(&prediction_model_name) {
             None => {
-                let model_names: Vec<&String> = service.energy_model_library.keys().collect();
+                let model_names: Vec<&String> = service.vehicle_library.keys().collect();
                 return Err(TraversalModelError::BuildError(format!(
-                    "No energy model found with model_name = '{}', try one of: {:?}",
+                    "No vehicle found with model_name = '{}', try one of: {:?}",
                     prediction_model_name, model_names
                 )));
             }
             Some(mr) => mr.clone(),
         };
 
-        Ok(SpeedGradeModel {
+        Ok(EnergyTraversalModel {
             service,
-            model_record,
+            vehicle,
             energy_cost_coefficient,
         })
     }
@@ -206,12 +203,13 @@ fn update_state(
     state: &TraversalState,
     distance: Distance,
     time: Time,
-    energy: Energy,
+    vehicle_state: VehicleState,
 ) -> TraversalState {
-    let mut updated_state = state.clone();
-    updated_state[0] = state[0] + distance.into();
-    updated_state[1] = state[1] + time.into();
-    updated_state[2] = state[2] + energy.into();
+    let mut updated_state = Vec::new();
+
+    updated_state.push(state[0] + distance.into());
+    updated_state.push(state[1] + time.into());
+    updated_state.extend(vehicle_state);
     updated_state
 }
 
@@ -223,13 +221,13 @@ fn get_time_from_state(state: &TraversalState) -> Time {
     Time::new(state[1].0)
 }
 
-fn get_energy_from_state(state: &TraversalState) -> Energy {
-    Energy::new(state[2].0)
+fn get_vehicle_state_from_state(state: &TraversalState) -> &[StateVar] {
+    &state[2..]
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::routee::model_type::ModelType;
+    use crate::routee::{model_type::ModelType, prediction_model::load_prediction_model, default_vehicles::conventional::ConventionalVehicle};
 
     use super::*;
     use geo::coord;
@@ -268,7 +266,7 @@ mod tests {
                 distance: Distance::new(100.0),
             }
         }
-        let model_record = SpeedGradePredictionModelRecord::new(
+        let model_record = load_prediction_model(
             "Toyota_Camry".to_string(),
             &model_file_path,
             ModelType::Smartcore,
@@ -277,14 +275,15 @@ mod tests {
             EnergyRateUnit::GallonsGasolinePerMile,
             None,
             None,
-            None,
-            None,
         )
         .unwrap();
-        let mut model_library = HashMap::new();
-        model_library.insert("Toyota_Camry".to_string(), Arc::new(model_record));
 
-        let service = SpeedGradeModelService::new(
+        let camry = ConventionalVehicle::new("Toyota_Camry".to_string(), model_record).unwrap();
+
+        let mut model_library: HashMap<String, Arc<dyn Vehicle>> = HashMap::new();
+        model_library.insert("Toyota_Camry".to_string(), Arc::new(camry));
+
+        let service = EnergyModelService::new(
             &speed_file_path,
             SpeedUnit::KilometersPerHour,
             &Some(grade_file_path),
@@ -299,7 +298,7 @@ mod tests {
             "model_name": "Toyota_Camry",
             "energy_cost_coefficient": 0.5,
         });
-        let model = SpeedGradeModel::try_from((arc_service, &conf)).unwrap();
+        let model = EnergyTraversalModel::try_from((arc_service, &conf)).unwrap();
         let initial = model.initial_state();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)

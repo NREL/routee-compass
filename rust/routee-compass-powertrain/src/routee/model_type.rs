@@ -1,5 +1,5 @@
 use super::{
-    prediction_model::SpeedGradePredictionModel,
+    prediction_model::PredictionModel,
     smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel,
 };
 use routee_compass_core::{
@@ -34,9 +34,9 @@ impl ModelType {
         energy_model_speed_unit: SpeedUnit,
         energy_model_grade_unit: GradeUnit,
         energy_model_energy_rate_unit: EnergyRateUnit,
-    ) -> Result<Arc<dyn SpeedGradePredictionModel>, TraversalModelError> {
+    ) -> Result<Arc<dyn PredictionModel>, TraversalModelError> {
         // Load random forest binary file
-        let model: Arc<dyn SpeedGradePredictionModel> = match self {
+        let model: Arc<dyn PredictionModel> = match self {
             ModelType::Smartcore => Arc::new(SmartcoreSpeedGradeModel::new(
                 energy_model_path.clone(),
                 energy_model_speed_unit,
