@@ -16,10 +16,6 @@ use routee_compass_powertrain::routee::speed_grade_energy_model_service::SpeedGr
 
 pub struct SpeedGradeEnergyModelBuilder {}
 
-// pub struct SpeedGradeEnergyModelService {
-//     service: SpeedGradeModelService,
-// }
-
 impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
     fn build(
         &self,
@@ -140,14 +136,3 @@ impl TraversalModelBuilder for SpeedGradeEnergyModelBuilder {
         Ok(result)
     }
 }
-
-// impl TraversalModelService for SpeedGradeEnergyModelService {
-//     fn build(
-//         &self,
-//         parameters: &serde_json::Value,
-//     ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
-//         let arc_self = Arc::new(self.service.clone());
-//         let m = SpeedGradeModel::try_from((arc_self, parameters)).map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
-//         Ok(Arc::new(m))
-//     }
-// }
