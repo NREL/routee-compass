@@ -89,8 +89,7 @@ mod test {
     use std::path::PathBuf;
 
     use crate::routee::{
-        prediction::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel,
-        prediction::PredictionModel,
+        prediction::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel, prediction::PredictionModel,
     };
     use rayon::prelude::*;
     use routee_compass_core::{
@@ -138,7 +137,10 @@ mod test {
 
         // assert that all the results are the same
         let (expected_er, expected_eru) = model
-            .predict((input_speed, input_speed_unit), (input_grade, input_grade_unit))
+            .predict(
+                (input_speed, input_speed_unit),
+                (input_grade, input_grade_unit),
+            )
             .unwrap();
         assert!(results.iter().all(|r| match r {
             Err(e) => panic!("{}", e),

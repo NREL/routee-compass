@@ -134,7 +134,7 @@ impl Vehicle for PlugInHybrid {
             .ok_or(TraversalModelError::BuildError(
                 "Expected 'starting_soc_percent' value to be numeric".to_string(),
             ))?;
-        if starting_soc_percent < 0.0 || starting_soc_percent > 100.0 {
+        if !(0.0..=100.0).contains(&starting_soc_percent) {
             return Err(TraversalModelError::BuildError(
                 "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),
             ));

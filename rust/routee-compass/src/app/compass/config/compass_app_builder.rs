@@ -108,7 +108,7 @@ impl CompassAppBuilder {
         // Traversal model builders
         let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
         let velo: Box<dyn TraversalModelBuilder> = Box::new(SpeedLookupBuilder {});
-        let energy_model: Box<dyn TraversalModelBuilder> = Box::new(EnergyModelBuilder::default());
+        let energy_model: Box<dyn TraversalModelBuilder> = Box::<EnergyModelBuilder>::default();
         let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),
             (String::from("speed_table"), velo),

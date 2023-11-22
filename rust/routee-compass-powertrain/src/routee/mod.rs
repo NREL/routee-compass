@@ -3,6 +3,3 @@ pub mod energy_model_service;
 pub mod energy_traversal_model;
 pub mod prediction;
 pub mod vehicles;
-
-#[cfg(feature = "onnx")]
-pub mod onnx;

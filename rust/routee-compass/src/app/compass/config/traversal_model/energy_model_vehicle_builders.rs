@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
-use routee_compass_core::{
-    model::traversal::traversal_model_error::TraversalModelError,
-    util::unit::{Energy, EnergyRate, EnergyRateUnit, EnergyUnit, GradeUnit, SpeedUnit},
+use routee_compass_core::util::unit::{
+    Energy, EnergyRate, EnergyRateUnit, EnergyUnit, GradeUnit, SpeedUnit,
 };
 use routee_compass_powertrain::routee::{
     prediction::{load_prediction_model, model_type::ModelType, PredictionModelRecord},
@@ -12,13 +11,10 @@ use routee_compass_powertrain::routee::{
     },
 };
 
-use crate::app::compass::{
-    compass_app_error::CompassAppError,
-    config::{
-        compass_configuration_error::CompassConfigurationError,
-        compass_configuration_field::CompassConfigurationField,
-        config_json_extension::ConfigJsonExtensions,
-    },
+use crate::app::compass::config::{
+    compass_configuration_error::CompassConfigurationError,
+    compass_configuration_field::CompassConfigurationField,
+    config_json_extension::ConfigJsonExtensions,
 };
 
 pub trait VehicleBuilder {

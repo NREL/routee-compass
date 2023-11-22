@@ -8,13 +8,9 @@ use crate::app::compass::config::{
     builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
 };
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
-use routee_compass_core::util::unit::{
-    DistanceUnit, EnergyRate, EnergyRateUnit, GradeUnit, SpeedUnit, TimeUnit,
-};
+use routee_compass_core::util::unit::{DistanceUnit, GradeUnit, SpeedUnit, TimeUnit};
 use routee_compass_powertrain::routee::energy_model_service::EnergyModelService;
 use routee_compass_powertrain::routee::energy_traversal_model::EnergyTraversalModel;
-use routee_compass_powertrain::routee::prediction::load_prediction_model;
-use routee_compass_powertrain::routee::prediction::model_type::ModelType;
 
 use super::energy_model_vehicle_builders::{
     ConventionalVehicleBuilder, PlugInHybridBuilder, VehicleBuilder,
