@@ -1,9 +1,9 @@
 use crate::app::compass::compass_app_error::CompassAppError;
-use crate::plugin::output::default::traversal::utils::parse_linestring;
 use geo::LineString;
 use kdam::Bar;
 use kdam::BarExt;
 use routee_compass_core::util::fs::{fs_utils, read_utils};
+use routee_compass_core::util::geo::geo_io_utils::parse_linestring;
 use std::io::ErrorKind;
 
 pub struct GeomAppConfig {
