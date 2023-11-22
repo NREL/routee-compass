@@ -1,7 +1,6 @@
 use super::compass_configuration_error::CompassConfigurationError;
 use crate::plugin::{input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin};
 use routee_compass_core::model::frontier::frontier_model::FrontierModel;
-use std::sync::Arc;
 
 /// A [`FrontierModelBuilder`] takes a JSON object describing the configuration of a
 /// frontier model and builds a [FrontierModel].
