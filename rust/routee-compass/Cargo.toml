@@ -28,7 +28,7 @@ csv = { workspace = true }
 geo = { workspace = true }
 geojson = { workspace = true }
 rstar = { workspace = true }
-wkt = { version = "0.10.3", features = ["serde"] }
+wkt = { workspace = true }
 env_logger = { workspace = true }
 kdam = { workspace = true }
 log = { workspace = true }
