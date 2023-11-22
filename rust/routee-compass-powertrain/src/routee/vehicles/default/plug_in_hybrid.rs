@@ -46,6 +46,9 @@ impl PlugInHybrid {
 }
 
 impl Vehicle for PlugInHybrid {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
     fn initial_state(&self) -> TraversalState {
         vec![
             StateVar(0.0),                                   // accumulated electrical energy
@@ -95,7 +98,7 @@ impl Vehicle for PlugInHybrid {
             updated_state,
         })
     }
-    fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
+    fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
         let battery_energy = get_electrical_energy_from_state(state);
         let gasoline_energy = get_gasoline_energy_from_state(state);
         let battery_soc_percent = get_battery_soc_percent(self, state);
@@ -106,7 +109,7 @@ impl Vehicle for PlugInHybrid {
         })
     }
 
-    fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
+    fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
         let battery_energy_unit = self.battery_energy_unit;
         let fuel_energy_unit = self
             .charge_sustain_model

@@ -16,6 +16,7 @@ pub struct VehicleEnergyResult {
 }
 
 pub trait Vehicle: Send + Sync {
+    fn name(&self) -> String;
     fn predict_energy(
         &self,
         speed: (Speed, SpeedUnit),
@@ -33,8 +34,8 @@ pub trait Vehicle: Send + Sync {
     /// Return the initial state of the vehicle
     fn initial_state(&self) -> VehicleState;
 
-    fn serialize_state(&self, state: &VehicleState) -> serde_json::Value;
-    fn serialize_state_info(&self, state: &VehicleState) -> serde_json::Value;
+    fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value;
+    fn serialize_state_info(&self, state: &[StateVar]) -> serde_json::Value;
 
     /// Give the vehicle a chance to update itself from the incoming query
     fn update_from_query(

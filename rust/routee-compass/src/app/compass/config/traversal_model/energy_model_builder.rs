@@ -64,7 +64,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 ),
             )?;
             let vehicle = vehicle_builder.build(&vehicle_config)?;
-            vehicle_library.insert(vehicle_type, vehicle);
+            vehicle_library.insert(vehicle.name(), vehicle);
         }
 
         let output_time_unit_option = params.get_config_serde_optional::<TimeUnit>(

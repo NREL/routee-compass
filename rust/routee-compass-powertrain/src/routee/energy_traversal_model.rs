@@ -117,20 +117,22 @@ impl TraversalModel for EnergyTraversalModel {
     fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
         let distance = get_distance_from_state(state);
         let time = get_time_from_state(state);
-        let vehicle_state = self.vehicle.serialize_state(state);
+        let vehicle_state = get_vehicle_state_from_state(state);
+        let vehicle_state_summary = self.vehicle.serialize_state(vehicle_state);
         serde_json::json!({
             "distance": distance,
             "time": time,
-            "vehicle": vehicle_state,
+            "vehicle": vehicle_state_summary,
         })
     }
 
     fn serialize_state_info(&self, state: &TraversalState) -> serde_json::Value {
-        let vehicle_info = self.vehicle.serialize_state_info(state);
+        let vehicle_state = get_vehicle_state_from_state(state);
+        let vehicle_state_info = self.vehicle.serialize_state_info(vehicle_state);
         serde_json::json!({
             "distance_unit": self.service.output_distance_unit,
             "time_unit": self.service.output_time_unit,
-            "vehicle_info": vehicle_info,
+            "vehicle_info": vehicle_state_info,
         })
     }
 }

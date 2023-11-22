@@ -33,6 +33,9 @@ impl ConventionalVehicle {
 }
 
 impl Vehicle for ConventionalVehicle {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
     fn initial_state(&self) -> VehicleState {
         // accumulated energy
         vec![StateVar(0.0)]
@@ -69,14 +72,14 @@ impl Vehicle for ConventionalVehicle {
             updated_state,
         })
     }
-    fn serialize_state(&self, state: &VehicleState) -> serde_json::Value {
+    fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
         let energy = get_energy_from_state(state);
         serde_json::json!({
             "energy": energy.as_f64(),
         })
     }
 
-    fn serialize_state_info(&self, _state: &VehicleState) -> serde_json::Value {
+    fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
         let energy_unit = self
             .prediction_model_record
             .energy_rate_unit
@@ -104,7 +107,7 @@ fn update_state(state: &[StateVar], energy: Energy) -> VehicleState {
     new_state
 }
 
-fn get_energy_from_state(state: &VehicleState) -> Energy {
+fn get_energy_from_state(state: &[StateVar]) -> Energy {
     let energy = state[0].0;
     Energy::new(energy)
 }
