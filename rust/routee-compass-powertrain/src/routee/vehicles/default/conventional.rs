@@ -11,7 +11,7 @@ use routee_compass_core::{
 };
 
 use crate::routee::{
-    prediction::{PredictionModel, PredictionModelRecord},
+    prediction::PredictionModelRecord,
     vehicles::{Vehicle, VehicleEnergyResult, VehicleState},
 };
 
