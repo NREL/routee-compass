@@ -317,7 +317,15 @@ impl ConfigJsonExtensions for serde_json::Value {
             serde_json::Value::Array(arr) => {
                 let mut new_arr = Vec::new();
                 for value in arr.iter() {
-                    new_arr.push(value.normalize_file_paths(root_config_path)?);
+                    match value {
+                        serde_json::Value::Array(_) => {
+                            new_arr.push(value.normalize_file_paths(root_config_path)?)
+                        }
+                        serde_json::Value::Object(_) => {
+                            new_arr.push(value.normalize_file_paths(root_config_path)?)
+                        }
+                        _ => {}
+                    }
                 }
                 Ok(serde_json::Value::Array(new_arr))
             }
