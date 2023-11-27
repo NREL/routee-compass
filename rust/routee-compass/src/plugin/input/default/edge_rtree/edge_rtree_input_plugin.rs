@@ -16,6 +16,19 @@ pub struct EdgeRtreeInputPlugin {
     pub tolerance: Option<(Distance, DistanceUnit)>,
 }
 
+impl InputPlugin for EdgeRtreeInputPlugin {
+    fn process(
+        &self,
+        input: &serde_json::Value,
+    ) -> Result<Vec<serde_json::Value>, crate::plugin::plugin_error::PluginError> {
+        // does the list of valid road classes come from the plugin config, or,
+        // from the query?
+        // use the nearest_neighbor_iter_with_distance_2 method on rtree, but
+        // stop iterating if we exceed the tolerance, if specified
+        todo!()
+    }
+}
+
 impl EdgeRtreeInputPlugin {
     pub fn new(
         road_class_file: &Path,
@@ -54,18 +67,5 @@ impl EdgeRtreeInputPlugin {
         };
 
         Ok(EdgeRtreeInputPlugin { rtree, tolerance })
-    }
-}
-
-impl InputPlugin for EdgeRtreeInputPlugin {
-    fn process(
-        &self,
-        input: &serde_json::Value,
-    ) -> Result<Vec<serde_json::Value>, crate::plugin::plugin_error::PluginError> {
-        // does the list of valid road classes come from the plugin config, or,
-        // from the query?
-        // use the nearest_neighbor_iter_with_distance_2 method on rtree, but
-        // stop iterating if we exceed the tolerance, if specified
-        todo!()
     }
 }
