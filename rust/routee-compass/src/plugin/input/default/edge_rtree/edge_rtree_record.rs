@@ -1,18 +1,23 @@
 use geo::{Centroid, LineString, Point};
-use routee_compass_core::util::{
-    geo::haversine,
-    unit::{as_f64::AsF64, Distance},
+use routee_compass_core::{
+    model::road_network::edge_id::EdgeId,
+    util::{
+        geo::haversine,
+        unit::{as_f64::AsF64, Distance},
+    },
 };
 use rstar::{PointDistance, RTreeObject, AABB};
 
 pub struct EdgeRtreeRecord {
+    pub edge_id: EdgeId,
     pub geometry: LineString,
     pub road_class: String,
 }
 
 impl EdgeRtreeRecord {
-    pub fn new(geometry: LineString, road_class: String) -> EdgeRtreeRecord {
+    pub fn new(edge_id: EdgeId, geometry: LineString, road_class: String) -> EdgeRtreeRecord {
         EdgeRtreeRecord {
+            edge_id,
             geometry,
             road_class,
         }
