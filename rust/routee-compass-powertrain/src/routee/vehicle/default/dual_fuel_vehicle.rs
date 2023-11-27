@@ -11,7 +11,10 @@ use routee_compass_core::{
     },
 };
 
-use crate::routee::{prediction::PredictionModelRecord, vehicle::{vehicle_type::VehicleType, VehicleEnergyResult}};
+use crate::routee::{
+    prediction::PredictionModelRecord,
+    vehicle::{vehicle_type::VehicleType, VehicleEnergyResult},
+};
 
 pub struct DualFuelVehicle {
     pub name: String,

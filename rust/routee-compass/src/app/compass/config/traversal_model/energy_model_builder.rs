@@ -94,4 +94,3 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         Ok(Arc::new(service))
     }
 }
-

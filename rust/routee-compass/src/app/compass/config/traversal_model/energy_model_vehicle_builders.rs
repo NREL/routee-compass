@@ -6,7 +6,7 @@ use routee_compass_core::util::unit::{
 use routee_compass_powertrain::routee::{
     prediction::{load_prediction_model, model_type::ModelType, PredictionModelRecord},
     vehicle::{
-        default::{single_fuel_vehicle::SingleFuelVehicle, dual_fuel_vehicle::DualFuelVehicle},
+        default::{dual_fuel_vehicle::DualFuelVehicle, single_fuel_vehicle::SingleFuelVehicle},
         VehicleType,
     },
 };

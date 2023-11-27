@@ -12,7 +12,7 @@ use routee_compass_core::{
 
 use crate::routee::{
     prediction::PredictionModelRecord,
-    vehicle::{VehicleType, VehicleEnergyResult, VehicleState},
+    vehicle::{VehicleEnergyResult, VehicleState, VehicleType},
 };
 
 pub struct SingleFuelVehicle {

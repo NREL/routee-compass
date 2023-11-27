@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit, Distance, DistanceUnit, Energy, EnergyUnit},
+    util::unit::{
+        Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit, Grade, GradeUnit,
+        Speed, SpeedUnit,
+    },
 };
 
 use super::{model_type::ModelType, PredictionModel};

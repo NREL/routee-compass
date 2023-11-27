@@ -2,7 +2,7 @@ use crate::routee::energy_model_ops::ZERO_ENERGY;
 
 use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
-use super::vehicle::vehicle_type::{VehicleType, VehicleState};
+use super::vehicle::vehicle_type::{VehicleState, VehicleType};
 
 use routee_compass_core::model::cost::Cost;
 use routee_compass_core::model::property::edge::Edge;
