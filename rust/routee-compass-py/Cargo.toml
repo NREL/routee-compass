@@ -13,6 +13,7 @@ documentation = "https://docs.rs/routee-compass"
 routee-compass = { path = "../routee-compass", version = "0.3.0" }
 pyo3 = { version = "0.19", features = ["extension-module"] }
 serde_json = { workspace = true }
+config = {workspace = true }
 
 [lib]
 name = "routee_compass_py"

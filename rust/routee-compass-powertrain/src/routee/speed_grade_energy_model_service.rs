@@ -1,6 +1,9 @@
 use super::prediction_model::SpeedGradePredictionModelRecord;
+use super::speed_grade_energy_model::SpeedGradeEnergyModel;
 use routee_compass_core::model::traversal::default::speed_lookup_model::get_max_speed;
+use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
+use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
 use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;
 use routee_compass_core::util::unit::*;
@@ -9,7 +12,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 #[derive(Clone)]
-pub struct SpeedGradeModelService {
+pub struct SpeedGradeEnergyModelService {
     pub speed_table: Arc<Box<[Speed]>>,
     pub speeds_table_speed_unit: SpeedUnit,
     pub max_speed: Speed,
@@ -17,10 +20,21 @@ pub struct SpeedGradeModelService {
     pub grade_table_grade_unit: GradeUnit,
     pub output_time_unit: TimeUnit,
     pub output_distance_unit: DistanceUnit,
-    pub energy_model_library: HashMap<String, Arc<SpeedGradePredictionModelRecord>>,
+    pub energy_model_library: Arc<HashMap<String, Arc<SpeedGradePredictionModelRecord>>>,
 }
 
-impl SpeedGradeModelService {
+impl TraversalModelService for SpeedGradeEnergyModelService {
+    fn build(
+        &self,
+        query: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        let arc_self = Arc::new(self.clone());
+        let m = SpeedGradeEnergyModel::try_from((arc_self, query))?;
+        Ok(Arc::new(m))
+    }
+}
+
+impl SpeedGradeEnergyModelService {
     pub fn new<P: AsRef<Path>>(
         speed_table_path: &P,
         speeds_table_speed_unit: SpeedUnit,
@@ -60,7 +74,7 @@ impl SpeedGradeModelService {
 
         let max_speed = get_max_speed(&speed_table)?;
 
-        Ok(SpeedGradeModelService {
+        Ok(SpeedGradeEnergyModelService {
             speed_table,
             speeds_table_speed_unit,
             max_speed,
@@ -68,7 +82,7 @@ impl SpeedGradeModelService {
             grade_table_grade_unit,
             output_time_unit,
             output_distance_unit,
-            energy_model_library,
+            energy_model_library: Arc::new(energy_model_library),
         })
     }
 }

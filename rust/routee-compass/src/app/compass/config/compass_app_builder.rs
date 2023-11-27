@@ -1,8 +1,5 @@
 use super::{
-    builders::{
-        FrontierModelBuilder, InputPluginBuilder, OutputPluginBuilder, TraversalModelBuilder,
-        TraversalModelService,
-    },
+    builders::{FrontierModelBuilder, InputPluginBuilder, OutputPluginBuilder},
     compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
@@ -33,7 +30,13 @@ use crate::plugin::{
     },
 };
 use itertools::Itertools;
-use routee_compass_core::model::frontier::frontier_model::FrontierModel;
+use routee_compass_core::model::{
+    frontier::frontier_model::FrontierModel,
+    traversal::{
+        traversal_model_builder::TraversalModelBuilder,
+        traversal_model_service::TraversalModelService,
+    },
+};
 use std::{collections::HashMap, sync::Arc};
 
 /// Upstream component factory of [`crate::app::compass::compass_app::CompassApp`]
@@ -177,14 +180,19 @@ impl CompassAppBuilder {
                 String::from("String"),
             ))?
             .into();
-        self.traversal_model_builders
+        let result = self
+            .traversal_model_builders
             .get(&tm_type)
             .ok_or(CompassConfigurationError::UnknownModelNameForComponent(
                 tm_type.clone(),
                 String::from("traversal"),
                 self.traversal_model_builders.keys().join(", "),
             ))
-            .and_then(|b| b.build(config))
+            .and_then(|b| {
+                b.build(config)
+                    .map_err(CompassConfigurationError::TraversalModelError)
+            });
+        result
     }
 
     /// builds a frontier model with the specified type name with the provided

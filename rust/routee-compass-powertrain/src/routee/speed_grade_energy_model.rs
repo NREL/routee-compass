@@ -1,5 +1,5 @@
 use super::prediction_model::SpeedGradePredictionModelRecord;
-use super::speed_grade_model_service::SpeedGradeModelService;
+use super::speed_grade_energy_model_service::SpeedGradeEnergyModelService;
 use routee_compass_core::model::cost::Cost;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
@@ -17,13 +17,13 @@ use std::sync::Arc;
 
 const ZERO_ENERGY: f64 = 1e-9;
 
-pub struct SpeedGradeModel {
-    pub service: Arc<SpeedGradeModelService>,
+pub struct SpeedGradeEnergyModel {
+    pub service: Arc<SpeedGradeEnergyModelService>,
     pub model_record: Arc<SpeedGradePredictionModelRecord>,
     pub energy_cost_coefficient: f64,
 }
 
-impl TraversalModel for SpeedGradeModel {
+impl TraversalModel for SpeedGradeEnergyModel {
     fn initial_state(&self) -> TraversalState {
         // distance, time, energy
         vec![StateVar(0.0), StateVar(0.0), StateVar(0.0)]
@@ -136,11 +136,11 @@ impl TraversalModel for SpeedGradeModel {
     }
 }
 
-impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeModel {
+impl TryFrom<(Arc<SpeedGradeEnergyModelService>, &serde_json::Value)> for SpeedGradeEnergyModel {
     type Error = TraversalModelError;
 
     fn try_from(
-        input: (Arc<SpeedGradeModelService>, &serde_json::Value),
+        input: (Arc<SpeedGradeEnergyModelService>, &serde_json::Value),
     ) -> Result<Self, Self::Error> {
         let (service, conf) = input;
 
@@ -185,7 +185,7 @@ impl TryFrom<(Arc<SpeedGradeModelService>, &serde_json::Value)> for SpeedGradeMo
             Some(mr) => mr.clone(),
         };
 
-        Ok(SpeedGradeModel {
+        Ok(SpeedGradeEnergyModel {
             service,
             model_record,
             energy_cost_coefficient,
@@ -302,7 +302,7 @@ mod tests {
         let mut model_library = HashMap::new();
         model_library.insert("Toyota_Camry".to_string(), Arc::new(model_record));
 
-        let service = SpeedGradeModelService::new(
+        let service = SpeedGradeEnergyModelService::new(
             &speed_file_path,
             SpeedUnit::KilometersPerHour,
             &Some(grade_file_path),
@@ -317,7 +317,7 @@ mod tests {
             "model_name": "Toyota_Camry",
             "energy_cost_coefficient": 0.5,
         });
-        let model = SpeedGradeModel::try_from((arc_service, &conf)).unwrap();
+        let model = SpeedGradeEnergyModel::try_from((arc_service, &conf)).unwrap();
         let initial = model.initial_state();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)

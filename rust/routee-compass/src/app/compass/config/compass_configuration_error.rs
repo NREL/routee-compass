@@ -1,3 +1,4 @@
+use crate::plugin::plugin_error::PluginError;
 use config::ConfigError;
 use routee_compass_core::{
     model::{
@@ -6,8 +7,6 @@ use routee_compass_core::{
     },
     util::conversion::conversion_error::ConversionError,
 };
-
-use crate::plugin::plugin_error::PluginError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CompassConfigurationError {
