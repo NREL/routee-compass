@@ -55,20 +55,7 @@ class CompassApp:
 
         # inject the output file override into the to_disk plugin config
         if output_file is not None:
-            override = False
-            plugins = toml_config.get("plugin")
-            if plugins is not None:
-                output_plugins = plugins.get("output_plugins")
-                if output_plugins is not None:
-                    for plugin in output_plugins:
-                        if plugin.get("type") == "to_disk":
-                            override = True
-                            plugin["output_file"] = output_file
-            if not override:
-                log.warning(
-                    f"Output file override {output_file} was provided but "
-                    "to_disk plugin was not found in config file"
-                )
+            toml_config = inject_to_disk_plugin(output_file, toml_config)
 
         toml_string = toml.dumps(toml_config)
         config_path_string = str(config_path.absolute())
@@ -122,3 +109,38 @@ class CompassApp:
         if single_query and len(results) == 1:
             return results[0]
         return results
+
+
+def inject_to_disk_plugin(output_file: str, toml_config: dict) -> dict:
+    """
+    Inject or override the to_disk plugin in the config dictionary
+
+    Args:
+        output_file (str): Path to the output file
+        toml_config (dict): The existing config dictionary
+
+    Returns:
+        dict: A dictionary with the to_disk plugin injected or overriden
+    """
+    plugins = toml_config.get("plugin")
+    if plugins is None:
+        # inject a whole plugin section with the to_disk output plugin
+        toml_config["plugin"] = {
+            "output_plugins": [{"type": "to_disk", "output_file": output_file}]
+        }
+    else:
+        output_plugins = plugins.get("output_plugins")
+        if output_plugins is None:
+            # inject the to_disk output plugin into the existing plugin section
+            plugins["output_plugins"] = [
+                {"type": "to_disk", "output_file": output_file}
+            ]
+        else:
+            to_disk_exists = False
+            for plugin in output_plugins:
+                if plugin.get("type") == "to_disk":
+                    to_disk_exists = True
+                    plugin["output_file"] = output_file
+            if not to_disk_exists:
+                output_plugins.append({"type": "to_disk", "output_file": output_file})
+    return toml_config
