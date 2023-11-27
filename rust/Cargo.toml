@@ -23,3 +23,4 @@ csv = { version = "1.2.2" }
 itertools = { version = "0.11.0" }
 chrono = "0.4.26"
 regex = "1.9.5"
+config = "0.13.3"
