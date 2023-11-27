@@ -15,6 +15,7 @@ use super::{
 use crate::plugin::{
     input::{
         default::{
+            edge_rtree::edge_rtree_input_plugin_builder::EdgeRtreeInputPluginBuilder,
             grid_search::builder::GridSearchBuilder, vertex_rtree::builder::VertexRTreeBuilder,
         },
         input_plugin::InputPlugin,
@@ -131,11 +132,13 @@ impl CompassAppBuilder {
         ]);
 
         // Input plugin builders
-        let vertex_tree: Box<dyn InputPluginBuilder> = Box::new(VertexRTreeBuilder {});
         let grid_search: Box<dyn InputPluginBuilder> = Box::new(GridSearchBuilder {});
+        let vertex_tree: Box<dyn InputPluginBuilder> = Box::new(VertexRTreeBuilder {});
+        let edge_rtree: Box<dyn InputPluginBuilder> = Box::new(EdgeRtreeInputPluginBuilder {});
         let input_plugin_builders = HashMap::from([
             (String::from("grid_search"), grid_search),
             (String::from("vertex_rtree"), vertex_tree),
+            (String::from("edge_rtree"), edge_rtree),
         ]);
 
         // Output plugin builders
