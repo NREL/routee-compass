@@ -1,12 +1,16 @@
-use super::vehicles::Vehicle;
 use routee_compass_core::model::traversal::default::speed_lookup_model::get_max_speed;
+use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
+use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
 use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;
 use routee_compass_core::util::unit::*;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
+
+use super::energy_traversal_model::EnergyTraversalModel;
+use super::vehicles::Vehicle;
 
 #[derive(Clone)]
 pub struct EnergyModelService {
@@ -70,5 +74,16 @@ impl EnergyModelService {
             output_distance_unit,
             vehicle_library,
         })
+    }
+}
+
+impl TraversalModelService for EnergyModelService {
+    fn build(
+        &self,
+        parameters: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        let arc_self = Arc::new(self.clone());
+        let model = EnergyTraversalModel::try_from((arc_self, parameters))?;
+        Ok(Arc::new(model))
     }
 }

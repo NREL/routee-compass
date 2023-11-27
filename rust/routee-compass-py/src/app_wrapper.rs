@@ -1,7 +1,10 @@
 use std::path::Path;
 
 use pyo3::{exceptions::PyException, prelude::*, types::PyType};
-use routee_compass::app::compass::compass_app::CompassApp;
+use routee_compass::app::compass::{
+    compass_app::CompassApp, compass_app_ops::read_config_from_string,
+    config::compass_app_builder::CompassAppBuilder,
+};
 
 #[pyclass]
 pub struct CompassAppWrapper {
@@ -10,6 +13,33 @@ pub struct CompassAppWrapper {
 
 #[pymethods]
 impl CompassAppWrapper {
+    #[classmethod]
+    pub fn _from_config_toml_string(
+        _cls: &PyType,
+        config_string: String,
+        original_file_path: String,
+    ) -> PyResult<Self> {
+        let config = read_config_from_string(
+            config_string.clone(),
+            config::FileFormat::Toml,
+            original_file_path,
+        )
+        .map_err(|e| {
+            PyException::new_err(format!(
+                "Could not create CompassApp from config string: {}",
+                e
+            ))
+        })?;
+        let builder = CompassAppBuilder::default();
+        let routee_compass = CompassApp::try_from((&config, &builder)).map_err(|e| {
+            PyException::new_err(format!(
+                "Could not create CompassApp from config string {}: {}",
+                config_string.clone(),
+                e
+            ))
+        })?;
+        Ok(CompassAppWrapper { routee_compass })
+    }
     #[classmethod]
     pub fn _from_config_file(_cls: &PyType, config_file: String) -> PyResult<Self> {
         let config_path = Path::new(&config_file);

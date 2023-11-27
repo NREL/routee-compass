@@ -1,16 +1,13 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::app::compass::config::builders::TraversalModelService;
 use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
-use crate::app::compass::config::{
-    builders::TraversalModelBuilder, compass_configuration_error::CompassConfigurationError,
-};
-use routee_compass_core::model::traversal::traversal_model::TraversalModel;
+use routee_compass_core::model::traversal::traversal_model_builder::TraversalModelBuilder;
+use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
+use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
 use routee_compass_core::util::unit::{DistanceUnit, GradeUnit, SpeedUnit, TimeUnit};
 use routee_compass_powertrain::routee::energy_model_service::EnergyModelService;
-use routee_compass_powertrain::routee::energy_traversal_model::EnergyTraversalModel;
 
 use super::energy_model_vehicle_builders::{
     ConventionalVehicleBuilder, PlugInHybridBuilder, VehicleBuilder,
@@ -24,54 +21,70 @@ impl TraversalModelBuilder for EnergyModelBuilder {
     fn build(
         &self,
         params: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn TraversalModelService>, TraversalModelError> {
         let traversal_key = CompassConfigurationField::Traversal.to_string();
 
-        let speed_table_path = params.get_config_path(
-            String::from("speed_table_input_file"),
-            traversal_key.clone(),
-        )?;
-        let speed_table_speed_unit = params.get_config_serde::<SpeedUnit>(
-            String::from("speed_table_speed_unit"),
-            traversal_key.clone(),
-        )?;
+        let speed_table_path = params
+            .get_config_path(
+                String::from("speed_table_input_file"),
+                traversal_key.clone(),
+            )
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
+        let speed_table_speed_unit = params
+            .get_config_serde::<SpeedUnit>(
+                String::from("speed_table_speed_unit"),
+                traversal_key.clone(),
+            )
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
-        let grade_table_path = params.get_config_path_optional(
-            String::from("grade_table_input_file"),
-            traversal_key.clone(),
-        )?;
-        let grade_table_grade_unit = params.get_config_serde_optional::<GradeUnit>(
-            String::from("graph_grade_unit"),
-            traversal_key.clone(),
-        )?;
+        let grade_table_path = params
+            .get_config_path_optional(
+                String::from("grade_table_input_file"),
+                traversal_key.clone(),
+            )
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
+        let grade_table_grade_unit = params
+            .get_config_serde_optional::<GradeUnit>(
+                String::from("graph_grade_unit"),
+                traversal_key.clone(),
+            )
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
-        let vehicle_configs =
-            params.get_config_array("vehicles".to_string(), traversal_key.clone())?;
+        let vehicle_configs = params
+            .get_config_array("vehicles".to_string(), traversal_key.clone())
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let mut vehicle_library = HashMap::new();
 
         for vehicle_config in vehicle_configs {
-            let vehicle_type =
-                vehicle_config.get_config_string(String::from("type"), traversal_key.clone())?;
-            let vehicle_builder = self.vehicle_builders.get(&vehicle_type).ok_or(
-                CompassConfigurationError::UnknownModelNameForComponent(
-                    vehicle_type.clone(),
-                    "vehicle".to_string(),
-                    "[conventional, plug_in_hybrid]".to_string(),
-                ),
-            )?;
-            let vehicle = vehicle_builder.build(&vehicle_config)?;
+            let vehicle_type = vehicle_config
+                .get_config_string(String::from("type"), traversal_key.clone())
+                .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
+            let vehicle_builder =
+                self.vehicle_builders
+                    .get(&vehicle_type)
+                    .ok_or(TraversalModelError::BuildError(format!(
+                        "vehicle type {} not found in config",
+                        vehicle_type
+                    )))?;
+            let vehicle = vehicle_builder
+                .build(&vehicle_config)
+                .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
             vehicle_library.insert(vehicle.name(), vehicle);
         }
 
-        let output_time_unit_option = params.get_config_serde_optional::<TimeUnit>(
-            String::from("output_time_unit"),
-            traversal_key.clone(),
-        )?;
-        let output_distance_unit_option = params.get_config_serde_optional::<DistanceUnit>(
-            String::from("output_distance_unit"),
-            traversal_key.clone(),
-        )?;
+        let output_time_unit_option = params
+            .get_config_serde_optional::<TimeUnit>(
+                String::from("output_time_unit"),
+                traversal_key.clone(),
+            )
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
+        let output_distance_unit_option = params
+            .get_config_serde_optional::<DistanceUnit>(
+                String::from("output_distance_unit"),
+                traversal_key.clone(),
+            )
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let service = EnergyModelService::new(
             &speed_table_path,
@@ -81,21 +94,9 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             output_time_unit_option,
             output_distance_unit_option,
             vehicle_library,
-        )
-        .map_err(CompassConfigurationError::TraversalModelError)?;
+        )?;
 
         Ok(Arc::new(service))
-    }
-}
-
-impl TraversalModelService for EnergyModelService {
-    fn build(
-        &self,
-        parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModel>, CompassConfigurationError> {
-        let arc_self = Arc::new(self.clone());
-        let model = EnergyTraversalModel::try_from((arc_self, parameters))?;
-        Ok(Arc::new(model))
     }
 }
 
