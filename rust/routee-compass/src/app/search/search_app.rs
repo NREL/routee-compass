@@ -1,18 +1,18 @@
 use super::search_app_result::SearchAppResult;
 use crate::{
-    app::{
-        compass::compass_app_error::CompassAppError,
-        compass::config::builders::TraversalModelService,
-    },
+    app::compass::compass_app_error::CompassAppError,
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
 use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{backtrack, search_algorithm::SearchAlgorithm},
     model::{
-        frontier::frontier_model::FrontierModel, road_network::graph::Graph,
+        frontier::frontier_model::FrontierModel,
+        road_network::graph::Graph,
         termination::termination_model::TerminationModel,
-        traversal::traversal_model::TraversalModel,
+        traversal::{
+            traversal_model::TraversalModel, traversal_model_service::TraversalModelService,
+        },
     },
     util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
 };
