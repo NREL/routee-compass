@@ -12,15 +12,15 @@ use routee_compass_core::{
 
 use crate::routee::{
     prediction::PredictionModelRecord,
-    vehicles::{Vehicle, VehicleEnergyResult, VehicleState},
+    vehicle::{VehicleType, VehicleEnergyResult, VehicleState},
 };
 
-pub struct ConventionalVehicle {
+pub struct SingleFuelVehicle {
     pub name: String,
     pub prediction_model_record: Arc<PredictionModelRecord>,
 }
 
-impl ConventionalVehicle {
+impl SingleFuelVehicle {
     pub fn new(
         name: String,
         prediction_model_record: PredictionModelRecord,
@@ -32,7 +32,7 @@ impl ConventionalVehicle {
     }
 }
 
-impl Vehicle for ConventionalVehicle {
+impl VehicleType for SingleFuelVehicle {
     fn name(&self) -> String {
         self.name.clone()
     }
@@ -53,7 +53,7 @@ impl Vehicle for ConventionalVehicle {
         )?;
         Ok(energy)
     }
-    fn predict_energy(
+    fn consume_energy(
         &self,
         speed: (Speed, SpeedUnit),
         grade: (Grade, GradeUnit),
@@ -92,9 +92,9 @@ impl Vehicle for ConventionalVehicle {
     fn update_from_query(
         &self,
         _query: &serde_json::Value,
-    ) -> Result<Arc<dyn Vehicle>, TraversalModelError> {
+    ) -> Result<Arc<dyn VehicleType>, TraversalModelError> {
         // just return a clone of self
-        Ok(Arc::new(ConventionalVehicle {
+        Ok(Arc::new(SingleFuelVehicle {
             name: self.name.clone(),
             prediction_model_record: self.prediction_model_record.clone(),
         }))

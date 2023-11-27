@@ -9,13 +9,9 @@ use routee_compass_core::model::traversal::traversal_model_service::TraversalMod
 use routee_compass_core::util::unit::{DistanceUnit, GradeUnit, SpeedUnit, TimeUnit};
 use routee_compass_powertrain::routee::energy_model_service::EnergyModelService;
 
-use super::energy_model_vehicle_builders::{
-    ConventionalVehicleBuilder, PlugInHybridBuilder, VehicleBuilder,
-};
+use super::energy_model_vehicle_builders::VehicleBuilder;
 
-pub struct EnergyModelBuilder {
-    pub vehicle_builders: HashMap<String, Box<dyn VehicleBuilder>>,
-}
+pub struct EnergyModelBuilder {}
 
 impl TraversalModelBuilder for EnergyModelBuilder {
     fn build(
@@ -60,13 +56,12 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             let vehicle_type = vehicle_config
                 .get_config_string(String::from("type"), traversal_key.clone())
                 .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
-            let vehicle_builder =
-                self.vehicle_builders
-                    .get(&vehicle_type)
-                    .ok_or(TraversalModelError::BuildError(format!(
-                        "vehicle type {} not found in config",
-                        vehicle_type
-                    )))?;
+            let vehicle_builder = VehicleBuilder::from_string(vehicle_type).map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Error building vehicle builder: {}",
+                    e.to_string()
+                ))
+            })?;
             let vehicle = vehicle_builder
                 .build(&vehicle_config)
                 .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
@@ -100,17 +95,3 @@ impl TraversalModelBuilder for EnergyModelBuilder {
     }
 }
 
-impl Default for EnergyModelBuilder {
-    fn default() -> Self {
-        let mut vehicle_builders: HashMap<String, Box<dyn VehicleBuilder>> = HashMap::new();
-        vehicle_builders.insert(
-            "conventional".to_string(),
-            Box::new(ConventionalVehicleBuilder {}),
-        );
-        vehicle_builders.insert(
-            "plug_in_hybrid".to_string(),
-            Box::new(PlugInHybridBuilder {}),
-        );
-        Self { vehicle_builders }
-    }
-}

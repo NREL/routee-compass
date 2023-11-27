@@ -11,25 +11,22 @@ use routee_compass_core::{
     },
 };
 
-use crate::routee::{
-    prediction::PredictionModelRecord,
-    vehicles::vehicle_trait::{Vehicle, VehicleEnergyResult},
-};
+use crate::routee::{prediction::PredictionModelRecord, vehicle::{vehicle_type::VehicleType, VehicleEnergyResult}};
 
-pub struct PlugInHybrid {
+pub struct DualFuelVehicle {
     pub name: String,
     pub charge_sustain_model: Arc<PredictionModelRecord>,
-    pub charge_deplete_model: Arc<PredictionModelRecord>,
+    pub charge_depleting_model: Arc<PredictionModelRecord>,
     pub battery_capacity: Energy,
     pub starting_battery_energy: Energy,
     pub battery_energy_unit: EnergyUnit,
 }
 
-impl PlugInHybrid {
+impl DualFuelVehicle {
     pub fn new(
         name: String,
         charge_sustain_model: PredictionModelRecord,
-        charge_deplete_model: PredictionModelRecord,
+        charge_depleting_model: PredictionModelRecord,
         battery_capacity: Energy,
         starting_battery_energy: Energy,
         battery_energy_unit: EnergyUnit,
@@ -37,7 +34,7 @@ impl PlugInHybrid {
         Ok(Self {
             name,
             charge_sustain_model: Arc::new(charge_sustain_model),
-            charge_deplete_model: Arc::new(charge_deplete_model),
+            charge_depleting_model: Arc::new(charge_depleting_model),
             battery_capacity,
             starting_battery_energy,
             battery_energy_unit,
@@ -45,7 +42,7 @@ impl PlugInHybrid {
     }
 }
 
-impl Vehicle for PlugInHybrid {
+impl VehicleType for DualFuelVehicle {
     fn name(&self) -> String {
         self.name.clone()
     }
@@ -64,14 +61,14 @@ impl Vehicle for PlugInHybrid {
 
         // assume lowest energy cost scenario for a PHEV is to just use the battery
         let energy = Energy::create(
-            self.charge_deplete_model.ideal_energy_rate,
-            self.charge_deplete_model.energy_rate_unit,
+            self.charge_depleting_model.ideal_energy_rate,
+            self.charge_depleting_model.energy_rate_unit,
             distance,
             distance_unit,
         )?;
         Ok(energy)
     }
-    fn predict_energy(
+    fn consume_energy(
         &self,
         speed: (Speed, SpeedUnit),
         grade: (Grade, GradeUnit),
@@ -124,7 +121,7 @@ impl Vehicle for PlugInHybrid {
     fn update_from_query(
         &self,
         query: &serde_json::Value,
-    ) -> Result<Arc<dyn Vehicle>, TraversalModelError> {
+    ) -> Result<Arc<dyn VehicleType>, TraversalModelError> {
         let starting_soc_percent = query
             .get("starting_soc_percent".to_string())
             .ok_or(TraversalModelError::BuildError(
@@ -141,10 +138,10 @@ impl Vehicle for PlugInHybrid {
         }
         let starting_battery_energy = self.battery_capacity * (starting_soc_percent / 100.0);
 
-        let new_phev = PlugInHybrid {
+        let new_phev = DualFuelVehicle {
             name: self.name.clone(),
             charge_sustain_model: self.charge_sustain_model.clone(),
-            charge_deplete_model: self.charge_deplete_model.clone(),
+            charge_depleting_model: self.charge_depleting_model.clone(),
             battery_capacity: self.battery_capacity,
             starting_battery_energy,
             battery_energy_unit: self.battery_energy_unit,
@@ -186,7 +183,7 @@ fn get_remaining_battery_energy_from_state(state: &[StateVar]) -> Energy {
     Energy::new(state[2].0)
 }
 
-fn get_battery_soc_percent(vehicle: &PlugInHybrid, state: &[StateVar]) -> f64 {
+fn get_battery_soc_percent(vehicle: &DualFuelVehicle, state: &[StateVar]) -> f64 {
     let battery_energy_unit = vehicle.battery_energy_unit;
 
     let battery_capacity_kwh =
@@ -212,14 +209,14 @@ fn get_battery_soc_percent(vehicle: &PlugInHybrid, state: &[StateVar]) -> f64 {
 ///
 /// Returns a tuple of (electrical_energy, electrical_energy_unit, gasoline_energy, gasoline_energy_unit)
 fn get_phev_energy(
-    vehicle: &PlugInHybrid,
+    vehicle: &DualFuelVehicle,
     battery_soc_percent: f64,
     speed: (Speed, SpeedUnit),
     grade: (Grade, GradeUnit),
     distance: (Distance, DistanceUnit),
 ) -> Result<(Energy, EnergyUnit, Energy, EnergyUnit), TraversalModelError> {
     let electrical_energy_unit = vehicle
-        .charge_deplete_model
+        .charge_depleting_model
         .energy_rate_unit
         .associated_energy_unit();
     let gasoline_energy_unit = vehicle
@@ -230,7 +227,7 @@ fn get_phev_energy(
     if battery_soc_percent > 0.0 {
         // assume we can just use the battery
         let (electrical_energy, electrical_energy_unit) = vehicle
-            .charge_deplete_model
+            .charge_depleting_model
             .predict(speed, grade, distance)?;
         Ok((
             electrical_energy,
@@ -262,13 +259,13 @@ mod tests {
 
     use std::path::PathBuf;
 
-    fn mock_vehicle() -> PlugInHybrid {
+    fn mock_vehicle() -> DualFuelVehicle {
         let charge_sustain_model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
             .join("test")
             .join("2016_CHEVROLET_Volt_Charge_Sustaining.bin");
-        let charge_deplete_model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        let charge_depleting_model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
             .join("test")
@@ -285,9 +282,9 @@ mod tests {
             Some(1.1252),
         )
         .unwrap();
-        let charge_deplete_model_record = load_prediction_model(
+        let charge_depleting_model_record = load_prediction_model(
             "Chevy_Volt_Charge_Depleting".to_string(),
-            &charge_deplete_model_file_path,
+            &charge_depleting_model_file_path,
             ModelType::Smartcore,
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
@@ -297,10 +294,10 @@ mod tests {
         )
         .unwrap();
 
-        PlugInHybrid::new(
+        DualFuelVehicle::new(
             "Chevy_Volt".to_string(),
             charge_sustain_model_record,
-            charge_deplete_model_record,
+            charge_depleting_model_record,
             Energy::new(12.0),
             Energy::new(12.0),
             EnergyUnit::KilowattHours,
@@ -320,7 +317,7 @@ mod tests {
         let grade = (Grade::new(0.0), GradeUnit::Decimal);
 
         let result = vehicle
-            .predict_energy(speed, grade, distance, &initial)
+            .consume_energy(speed, grade, distance, &initial)
             .unwrap();
 
         let gasoline_energy = get_gasoline_energy_from_state(&result.updated_state);
@@ -344,7 +341,7 @@ mod tests {
         let grade = (Grade::new(0.0), GradeUnit::Decimal);
 
         let result = vehicle
-            .predict_energy(speed, grade, distance, &initial)
+            .consume_energy(speed, grade, distance, &initial)
             .unwrap();
 
         let electrical_energy = get_electrical_energy_from_state(&result.updated_state);
@@ -355,7 +352,7 @@ mod tests {
 
         // and then traverse the same distance but this time we should only use gasoline energy
         let result2 = vehicle
-            .predict_energy(speed, grade, distance, &result.updated_state)
+            .consume_energy(speed, grade, distance, &result.updated_state)
             .unwrap();
 
         let gasoline_energy = get_gasoline_energy_from_state(&result2.updated_state);

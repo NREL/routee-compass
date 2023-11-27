@@ -13,8 +13,8 @@ pub enum CompassConfigurationField {
     Parallelism,
     QueryTimeoutMs,
     IncludeTree,
-    ChargeDeplete,
-    ChargeSustain,
+    ChargeDepleting,
+    ChargeSustaining,
 }
 
 impl CompassConfigurationField {
@@ -31,8 +31,8 @@ impl CompassConfigurationField {
             CompassConfigurationField::Plugins => "plugin",
             CompassConfigurationField::InputPlugins => "input_plugins",
             CompassConfigurationField::OutputPlugins => "output_plugins",
-            CompassConfigurationField::ChargeDeplete => "charge_deplete",
-            CompassConfigurationField::ChargeSustain => "charge_sustain",
+            CompassConfigurationField::ChargeDepleting => "charge_depleting",
+            CompassConfigurationField::ChargeSustaining => "charge_sustaining",
         }
     }
 }

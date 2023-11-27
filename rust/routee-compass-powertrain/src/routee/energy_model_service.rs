@@ -10,7 +10,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use super::energy_traversal_model::EnergyTraversalModel;
-use super::vehicles::Vehicle;
+use super::vehicle::VehicleType;
 
 #[derive(Clone)]
 pub struct EnergyModelService {
@@ -21,7 +21,7 @@ pub struct EnergyModelService {
     pub grade_table_grade_unit: GradeUnit,
     pub output_time_unit: TimeUnit,
     pub output_distance_unit: DistanceUnit,
-    pub vehicle_library: HashMap<String, Arc<dyn Vehicle>>,
+    pub vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
 }
 
 impl EnergyModelService {
@@ -32,7 +32,7 @@ impl EnergyModelService {
         grade_table_grade_unit_option: Option<GradeUnit>,
         output_time_unit_option: Option<TimeUnit>,
         output_distance_unit_option: Option<DistanceUnit>,
-        vehicle_library: HashMap<String, Arc<dyn Vehicle>>,
+        vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
     ) -> Result<Self, TraversalModelError> {
         let output_time_unit = output_time_unit_option.unwrap_or(BASE_TIME_UNIT);
         let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);

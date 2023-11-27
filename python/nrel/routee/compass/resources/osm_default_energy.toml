@@ -25,7 +25,7 @@ output_distance_unit = "miles"
 
 [[traversal.vehicles]]
 name = "2012_Ford_Focus"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2012_Ford_Focus.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -36,7 +36,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2012_Ford_Fusion"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2012_Ford_Fusion.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -47,7 +47,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2016_AUDI_A3_4cyl_2WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_AUDI_A3_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -58,7 +58,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2016_BMW_328d_4cyl_2WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_BMW_328d_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -69,7 +69,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2016_CHEVROLET_Malibu_4cyl_2WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_CHEVROLET_Malibu_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -80,7 +80,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2016_CHEVROLET_Spark_EV"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_CHEVROLET_Spark_EV.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -91,7 +91,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2016_FORD_C-MAX_HEV"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_FORD_C-MAX_HEV.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -102,7 +102,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.vehicles]]
 name = "2016_FORD_Escape_4cyl_2WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_FORD_Escape_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -113,7 +113,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2016_FORD_Explorer_4cyl_2WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_FORD_Explorer_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -124,7 +124,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2016_HYUNDAI_Elantra_4cyl_2WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_HYUNDAI_Elantra_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -135,7 +135,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2016_KIA_Optima_Hybrid"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_KIA_Optima_Hybrid.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -146,7 +146,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.vehicles]]
 name = "2016_Leaf_24_kWh"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_Leaf_24_kWh.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -157,7 +157,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2016_MITSUBISHI_i-MiEV"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_MITSUBISHI_i-MiEV.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -168,7 +168,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2016_Nissan_Leaf_30_kWh"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_Nissan_Leaf_30_kWh.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -179,7 +179,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2016_TESLA_Model_S60_2WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_TESLA_Model_S60_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -190,7 +190,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2016_TOYOTA_Camry_4cyl_2WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_TOYOTA_Camry_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -201,7 +201,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2016_TOYOTA_Corolla_4cyl_2WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_TOYOTA_Corolla_4cyl_2WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -212,7 +212,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2016_TOYOTA_Highlander_Hybrid"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_TOYOTA_Highlander_Hybrid.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -223,7 +223,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.vehicles]]
 name = "2016_Toyota_Prius_Two_FWD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2016_Toyota_Prius_Two_FWD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -234,7 +234,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.vehicles]]
 name = "2017_CHEVROLET_Bolt"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2017_CHEVROLET_Bolt.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -245,7 +245,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2017_Maruti_Dzire_VDI"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2017_Maruti_Dzire_VDI.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -256,7 +256,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2017_Toyota_Highlander_3.5_L"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2017_Toyota_Highlander_3.5_L.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -267,7 +267,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2020_Chevrolet_Colorado_2WD_Diesel"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2020_Chevrolet_Colorado_2WD_Diesel.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -278,7 +278,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2020_VW_Golf_1.5TSI"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2020_VW_Golf_1.5TSI.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -289,7 +289,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2020_VW_Golf_2.0TDI"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2020_VW_Golf_2.0TDI.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -300,7 +300,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2021_Fiat_Panda_Mild_Hybrid"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2021_Fiat_Panda_Mild_Hybrid.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -311,7 +311,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2021_Peugot_3008"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2021_Peugot_3008.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -322,7 +322,7 @@ real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
 name = "2022_Ford_F-150_Lightning_4WD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2022_Ford_F-150_Lightning_4WD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -333,7 +333,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2022_Renault_Zoe_ZE50_R135"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2022_Renault_Zoe_ZE50_R135.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -344,7 +344,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2022_Tesla_Model_3_RWD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2022_Tesla_Model_3_RWD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -355,7 +355,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2022_Tesla_Model_Y_RWD"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2022_Tesla_Model_Y_RWD.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -366,7 +366,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2022_Toyota_Yaris_Hybrid_Mid"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2022_Toyota_Yaris_Hybrid_Mid.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -377,7 +377,7 @@ real_world_energy_adjustment = 1.1252
 
 [[traversal.vehicles]]
 name = "2022_Volvo_XC40_Recharge_twin"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2022_Volvo_XC40_Recharge_twin.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -388,7 +388,7 @@ real_world_energy_adjustment = 1.3958
 
 [[traversal.vehicles]]
 name = "2023_Mitsubishi_Pajero_Sport"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2023_Mitsubishi_Pajero_Sport.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"
@@ -398,11 +398,11 @@ ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
 
 [[traversal.vehicles]]
-type = "plug_in_hybrid"
+type = "dual_fuel"
 name = "2016_BMW_i3_REx_PHEV"
 battery_capacity = 12
 battery_capacity_unit = "kilowatt_hours"
-[traversal.vehicles.charge_deplete]
+[traversal.vehicles.charge_depleting]
 name = "2016_BMW_i3_REx_PHEV_Charge_Depleting"
 model_input_file = "models/2016_BMW_i3_REx_PHEV_Charge_Depleting.bin"
 model_type = "smartcore"
@@ -411,7 +411,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.charge_sustain]
+[traversal.vehicles.charge_sustaining]
 name = "2016_BMW_i3_REx_PHEV_Charge_Sustaining"
 model_input_file = "models/2016_BMW_i3_REx_PHEV_Charge_Sustaining.bin"
 model_type = "smartcore"
@@ -422,11 +422,11 @@ ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252 
 
 [[traversal.vehicles]]
-type = "plug_in_hybrid"
+type = "dual_fuel"
 name = "2016_CHEVROLET_Volt"
 battery_capacity = 12
 battery_capacity_unit = "kilowatt_hours"
-[traversal.vehicles.charge_deplete]
+[traversal.vehicles.charge_depleting]
 name = "2016_CHEVROLET_Volt_Charge_Depleting"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Depleting.bin"
 model_type = "smartcore"
@@ -435,7 +435,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.charge_sustain]
+[traversal.vehicles.charge_sustaining]
 name = "2016_CHEVROLET_Volt_Charge_Sustaining"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Sustaining.bin"
 model_type = "smartcore"
@@ -446,11 +446,11 @@ ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252 
 
 [[traversal.vehicles]]
-type = "plug_in_hybrid"
+type = "dual_fuel"
 name = "2016_FORD_C-MAX_(PHEV)"
 battery_capacity = 7.6 
 battery_capacity_unit = "kilowatt_hours"
-[traversal.vehicles.charge_deplete]
+[traversal.vehicles.charge_depleting]
 name = "2016_FORD_C-MAX_(PHEV)_Charge_Depleting"
 model_input_file = "models/2016_FORD_C-MAX_(PHEV)_Charge_Depleting.bin"
 model_type = "smartcore"
@@ -459,7 +459,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.charge_sustain]
+[traversal.vehicles.charge_sustaining]
 name = "2016_FORD_C-MAX_(PHEV)_Charge_Sustaining"
 model_input_file = "models/2016_FORD_C-MAX_(PHEV)_Charge_Sustaining.bin"
 model_type = "smartcore"
@@ -470,11 +470,11 @@ ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252 
 
 [[traversal.vehicles]]
-type = "plug_in_hybrid"
+type = "dual_fuel"
 name = "2016_HYUNDAI_Sonata_PHEV"
 battery_capacity = 9.8 
 battery_capacity_unit = "kilowatt_hours"
-[traversal.vehicles.charge_deplete]
+[traversal.vehicles.charge_depleting]
 name = "2016_HYUNDAI_Sonata_PHEV_Charge_Depleting"
 model_input_file = "models/2016_HYUNDAI_Sonata_PHEV_Charge_Depleting.bin"
 model_type = "smartcore"
@@ -483,7 +483,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.charge_sustain]
+[traversal.vehicles.charge_sustaining]
 name = "2016_HYUNDAI_Sonata_PHEV_Charge_Sustaining"
 model_input_file = "models/2016_HYUNDAI_Sonata_PHEV_Charge_Sustaining.bin"
 model_type = "smartcore"
@@ -494,11 +494,11 @@ ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252 
 
 [[traversal.vehicles]]
-type = "plug_in_hybrid"
+type = "dual_fuel"
 name = "2017_Prius_Prime"
 battery_capacity = 8 
 battery_capacity_unit = "kilowatt_hours"
-[traversal.vehicles.charge_deplete]
+[traversal.vehicles.charge_depleting]
 name = "2017_Prius_Prime_Charge_Depleting"
 model_input_file = "models/2017_Prius_Prime_Charge_Depleting.bin"
 model_type = "smartcore"
@@ -507,7 +507,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.charge_sustain]
+[traversal.vehicles.charge_sustaining]
 name = "2017_Prius_Prime_Charge_Sustaining"
 model_input_file = "models/2017_Prius_Prime_Charge_Sustaining.bin"
 model_type = "smartcore"

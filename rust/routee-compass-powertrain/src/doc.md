@@ -33,7 +33,7 @@ output_distance_unit = "miles"
 
 [[traversal.vehicles]]
 name = "2012_Ford_Focus"
-type = "conventional"
+type = "single_fuel"
 model_input_file = "models/2012_Ford_Focus.bin"
 model_type = "smartcore"
 speed_unit = "miles_per_hour"

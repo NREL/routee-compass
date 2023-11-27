@@ -2,7 +2,7 @@ use crate::routee::energy_model_ops::ZERO_ENERGY;
 
 use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
-use super::vehicles::vehicle_trait::{Vehicle, VehicleState};
+use super::vehicle::vehicle_type::{VehicleType, VehicleState};
 
 use routee_compass_core::model::cost::Cost;
 use routee_compass_core::model::property::edge::Edge;
@@ -20,7 +20,7 @@ use std::sync::Arc;
 
 pub struct EnergyTraversalModel {
     pub service: Arc<EnergyModelService>,
-    pub vehicle: Arc<dyn Vehicle>,
+    pub vehicle: Arc<dyn VehicleType>,
     pub energy_cost_coefficient: f64,
 }
 
@@ -89,7 +89,7 @@ impl TraversalModel for EnergyTraversalModel {
             self.service.output_time_unit.clone(),
         )?;
 
-        let energy_result = self.vehicle.predict_energy(
+        let energy_result = self.vehicle.consume_energy(
             (speed, self.service.speeds_table_speed_unit),
             (grade, self.service.grade_table_grade_unit),
             (distance, self.service.output_distance_unit),
@@ -230,8 +230,8 @@ fn get_vehicle_state_from_state(state: &TraversalState) -> &[StateVar] {
 #[cfg(test)]
 mod tests {
     use crate::routee::{
-        prediction::model_type::ModelType, prediction::prediction_model::load_prediction_model,
-        vehicles::default::conventional::ConventionalVehicle,
+        prediction::load_prediction_model, prediction::model_type::ModelType,
+        vehicle::default::single_fuel_vehicle::SingleFuelVehicle,
     };
 
     use super::*;
@@ -283,9 +283,9 @@ mod tests {
         )
         .unwrap();
 
-        let camry = ConventionalVehicle::new("Toyota_Camry".to_string(), model_record).unwrap();
+        let camry = SingleFuelVehicle::new("Toyota_Camry".to_string(), model_record).unwrap();
 
-        let mut model_library: HashMap<String, Arc<dyn Vehicle>> = HashMap::new();
+        let mut model_library: HashMap<String, Arc<dyn VehicleType>> = HashMap::new();
         model_library.insert("Toyota_Camry".to_string(), Arc::new(camry));
 
         let service = EnergyModelService::new(
