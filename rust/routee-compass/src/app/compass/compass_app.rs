@@ -258,7 +258,10 @@ impl CompassApp {
         &self,
         query: serde_json::Value,
     ) -> Result<Vec<serde_json::Value>, CompassAppError> {
-        let search_result = self.search_app.run_vertex_oriented(&query);
+        let search_result = self
+            .search_app
+            .run_vertex_oriented(&query)
+            .or_else(|_| self.search_app.run_edge_oriented(&query));
         let output = apply_output_processing(
             (&query, search_result),
             &self.search_app,
