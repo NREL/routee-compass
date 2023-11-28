@@ -53,9 +53,9 @@ impl TerminationModelBuilder {
 
                 let models = models_val
                     .iter()
-                    .map(|c| {
-                        let next_scope =
-                            format!("{}.{}", local_scope.clone(), String::from("combined"));
+                    .enumerate()
+                    .map(|(idx, c)| {
+                        let next_scope = format!("{}.combined[{}]", local_scope.clone(), idx);
                         TerminationModelBuilder::build(c, Some(next_scope))
                     })
                     .collect::<Result<Vec<_>, _>>()?;
