@@ -26,29 +26,6 @@ impl FrontierModelBuilder for RoadClassBuilder {
         let road_classes_vec = parameters
             .get_config_serde::<Vec<String>>(valid_road_class_key.clone(), frontier_key.clone())?;
         let road_classes: HashSet<String> = HashSet::from_iter(road_classes_vec.to_vec());
-        // let road_classes_json = parameters
-        //     .get(valid_road_class_key.clone())
-        //     .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-        //         valid_road_class_key.clone(),
-        //         frontier_key.clone(),
-        //     ))?
-        //     .as_array()
-        //     .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-        //         valid_road_class_key.clone(),
-        //         String::from("Array"),
-        //     ))?;
-        // let road_classes: HashSet<String> = road_classes_json
-        //     .iter()
-        //     .enumerate()
-        //     .map(|(idx, rc)| {
-        //         rc.as_str()
-        //             .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-        //                 format!("valid_road_classes[{}]", idx),
-        //                 String::from("String"),
-        //             ))
-        //             .map(|s| s.to_string())
-        //     })
-        //     .collect::<Result<HashSet<String>, _>>()?;
 
         log::debug!("valid road classes (raw/hashset): {:?}", road_classes_vec);
 
