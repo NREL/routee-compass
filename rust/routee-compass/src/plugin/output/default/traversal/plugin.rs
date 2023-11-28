@@ -10,7 +10,6 @@ use kdam::BarExt;
 use routee_compass_core::util::fs::fs_utils;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 use routee_compass_core::util::geo::geo_io_utils;
-use routee_compass_core::util::geo::geo_io_utils::parse_linestring;
 use std::path::Path;
 
 pub struct TraversalPlugin {
