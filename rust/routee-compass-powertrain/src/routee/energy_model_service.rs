@@ -39,7 +39,7 @@ impl EnergyModelService {
 
         // load speeds table
         let speed_table: Arc<Box<[Speed]>> = Arc::new(
-            read_utils::read_raw_file(&speed_table_path, read_decoders::default, None).map_err(
+            read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
                 |e| {
                     TraversalModelError::FileReadError(
                         speed_table_path.as_ref().to_path_buf(),
@@ -51,7 +51,7 @@ impl EnergyModelService {
 
         let grade_table: Arc<Option<Box<[Grade]>>> = match grade_table_path_option {
             Some(gtp) => Arc::new(Some(
-                read_utils::read_raw_file(&gtp, read_decoders::default, None).map_err(|e| {
+                read_utils::read_raw_file(gtp, read_decoders::default, None).map_err(|e| {
                     TraversalModelError::FileReadError(
                         speed_table_path.as_ref().to_path_buf(),
                         e.to_string(),

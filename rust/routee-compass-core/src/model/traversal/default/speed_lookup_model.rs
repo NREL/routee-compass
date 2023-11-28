@@ -34,7 +34,7 @@ impl SpeedLookupModel {
         output_time_unit_opt: Option<TimeUnit>,
     ) -> Result<SpeedLookupModel, TraversalModelError> {
         let speed_table: Box<[Speed]> =
-            read_utils::read_raw_file(&speed_table_path, read_decoders::default, None).map_err(
+            read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
                 |e| {
                     TraversalModelError::FileReadError(
                         speed_table_path.as_ref().to_path_buf(),

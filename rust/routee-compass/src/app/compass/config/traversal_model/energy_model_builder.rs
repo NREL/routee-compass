@@ -57,10 +57,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 .get_config_string(String::from("type"), traversal_key.clone())
                 .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
             let vehicle_builder = VehicleBuilder::from_string(vehicle_type).map_err(|e| {
-                TraversalModelError::BuildError(format!(
-                    "Error building vehicle builder: {}",
-                    e.to_string()
-                ))
+                TraversalModelError::BuildError(format!("Error building vehicle builder: {}", e))
             })?;
             let vehicle = vehicle_builder
                 .build(&vehicle_config)

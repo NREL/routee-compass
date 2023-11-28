@@ -10,7 +10,6 @@ use kdam::BarExt;
 use routee_compass_core::util::fs::fs_utils;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 use routee_compass_core::util::geo::geo_io_utils;
-use routee_compass_core::util::geo::geo_io_utils::parse_linestring;
 use std::path::Path;
 
 pub struct TraversalPlugin {
@@ -26,7 +25,7 @@ impl TraversalPlugin {
         tree: Option<TraversalOutputFormat>,
     ) -> Result<TraversalPlugin, PluginError> {
         let count =
-            fs_utils::line_count(filename.clone(), fs_utils::is_gzip(&filename)).map_err(|e| {
+            fs_utils::line_count(filename.clone(), fs_utils::is_gzip(filename)).map_err(|e| {
                 PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
             })?;
 
@@ -41,7 +40,7 @@ impl TraversalPlugin {
             let _ = pb.update(1);
         });
         let geoms =
-            read_raw_file(&filename, geo_io_utils::parse_linestring, Some(cb)).map_err(|e| {
+            read_raw_file(filename, geo_io_utils::parse_linestring, Some(cb)).map_err(|e| {
                 PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
             })?;
         println!();
@@ -100,7 +99,7 @@ mod tests {
         model::{
             cost::Cost, road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar,
         },
-        util::fs::read_utils::read_raw_file,
+        util::{fs::read_utils::read_raw_file, geo::geo_io_utils::parse_linestring},
     };
     use std::collections::HashMap;
     use std::path::PathBuf;

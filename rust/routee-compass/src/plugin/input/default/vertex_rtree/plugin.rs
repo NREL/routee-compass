@@ -113,7 +113,7 @@ impl RTreePlugin {
         distance_unit: Option<DistanceUnit>,
     ) -> Result<Self, PluginError> {
         let vertices: Box<[Vertex]> =
-            read_utils::from_csv(&vertex_file, true, None).map_err(PluginError::CsvReadError)?;
+            read_utils::from_csv(vertex_file, true, None).map_err(PluginError::CsvReadError)?;
         let vertex_rtree = VertexRTree::new(vertices.to_vec());
         let tolerance = match (tolerance_distance, distance_unit) {
             (None, None) => None,
