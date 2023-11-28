@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::routee::prediction_model::SpeedGradePredictionModel;
+use crate::routee::prediction::prediction_model::PredictionModel;
 use ndarray::CowArray;
 use ort::{
     tensor::OrtOwnedTensor, Environment, GraphOptimizationLevel, Session, SessionBuilder, Value,
@@ -17,14 +17,14 @@ pub struct OnnxSpeedGradeModel {
     energy_rate_unit: EnergyRateUnit,
 }
 
-impl SpeedGradePredictionModel for OnnxSpeedGradeModel {
+impl PredictionModel for OnnxSpeedGradeModel {
     fn predict(
         &self,
-        speed: Speed,
-        speed_unit: SpeedUnit,
-        grade: Grade,
-        grade_unit: GradeUnit,
+        speed: (Speed, SpeedUnit),
+        grade: (Grade, GradeUnit),
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
+        let (speed, speed_unit) = speed;
+        let (grade, grade_unit) = grade;
         let speed_value: f32 = speed_unit.convert(speed, self.speed_unit).as_f64() as f32;
         let grade_value: f32 = grade_unit.convert(grade, self.grade_unit).as_f64() as f32;
         let array = ndarray::Array1::from(vec![speed_value, grade_value])
@@ -89,8 +89,7 @@ mod test {
     use std::path::PathBuf;
 
     use crate::routee::{
-        onnx::onnx_speed_grade_model::OnnxSpeedGradeModel,
-        prediction_model::SpeedGradePredictionModel,
+        prediction::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel, prediction::PredictionModel,
     };
     use rayon::prelude::*;
     use routee_compass_core::{
@@ -106,13 +105,10 @@ mod test {
             .join("src")
             .join("routee")
             .join("test")
-            .join("Toyota_Camry.onnx")
-            .to_str()
-            .unwrap()
-            .into();
-        let model: Box<dyn SpeedGradePredictionModel> = Box::new(
+            .join("Toyota_Camry.onnx");
+        let model: Box<dyn PredictionModel> = Box::new(
             OnnxSpeedGradeModel::new(
-                model_file_path,
+                &model_file_path,
                 SpeedUnit::MilesPerHour,
                 GradeUnit::Decimal,
                 routee_compass_core::util::unit::EnergyRateUnit::GallonsGasolinePerMile,
@@ -132,7 +128,7 @@ mod test {
         let results = inputs
             .par_iter()
             .map(|(speed, speed_unit, grade, grade_unit)| {
-                model.predict(*speed, *speed_unit, *grade, *grade_unit)
+                model.predict((*speed, *speed_unit), (*grade, *grade_unit))
             })
             .collect::<Vec<Result<(EnergyRate, EnergyRateUnit), TraversalModelError>>>();
 
@@ -141,7 +137,10 @@ mod test {
 
         // assert that all the results are the same
         let (expected_er, expected_eru) = model
-            .predict(input_speed, input_speed_unit, input_grade, input_grade_unit)
+            .predict(
+                (input_speed, input_speed_unit),
+                (input_grade, input_grade_unit),
+            )
             .unwrap();
         assert!(results.iter().all(|r| match r {
             Err(e) => panic!("{}", e),

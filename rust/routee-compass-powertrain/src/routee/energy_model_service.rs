@@ -1,5 +1,3 @@
-use super::prediction_model::SpeedGradePredictionModelRecord;
-use super::speed_grade_energy_model::SpeedGradeEnergyModel;
 use routee_compass_core::model::traversal::default::speed_lookup_model::get_max_speed;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
@@ -11,8 +9,11 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 
+use super::energy_traversal_model::EnergyTraversalModel;
+use super::vehicle::VehicleType;
+
 #[derive(Clone)]
-pub struct SpeedGradeEnergyModelService {
+pub struct EnergyModelService {
     pub speed_table: Arc<Box<[Speed]>>,
     pub speeds_table_speed_unit: SpeedUnit,
     pub max_speed: Speed,
@@ -20,21 +21,10 @@ pub struct SpeedGradeEnergyModelService {
     pub grade_table_grade_unit: GradeUnit,
     pub output_time_unit: TimeUnit,
     pub output_distance_unit: DistanceUnit,
-    pub energy_model_library: Arc<HashMap<String, Arc<SpeedGradePredictionModelRecord>>>,
+    pub vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
 }
 
-impl TraversalModelService for SpeedGradeEnergyModelService {
-    fn build(
-        &self,
-        query: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        let arc_self = Arc::new(self.clone());
-        let m = SpeedGradeEnergyModel::try_from((arc_self, query))?;
-        Ok(Arc::new(m))
-    }
-}
-
-impl SpeedGradeEnergyModelService {
+impl EnergyModelService {
     pub fn new<P: AsRef<Path>>(
         speed_table_path: &P,
         speeds_table_speed_unit: SpeedUnit,
@@ -42,7 +32,7 @@ impl SpeedGradeEnergyModelService {
         grade_table_grade_unit_option: Option<GradeUnit>,
         output_time_unit_option: Option<TimeUnit>,
         output_distance_unit_option: Option<DistanceUnit>,
-        energy_model_library: HashMap<String, Arc<SpeedGradePredictionModelRecord>>,
+        vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
     ) -> Result<Self, TraversalModelError> {
         let output_time_unit = output_time_unit_option.unwrap_or(BASE_TIME_UNIT);
         let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
@@ -74,7 +64,7 @@ impl SpeedGradeEnergyModelService {
 
         let max_speed = get_max_speed(&speed_table)?;
 
-        Ok(SpeedGradeEnergyModelService {
+        Ok(EnergyModelService {
             speed_table,
             speeds_table_speed_unit,
             max_speed,
@@ -82,7 +72,18 @@ impl SpeedGradeEnergyModelService {
             grade_table_grade_unit,
             output_time_unit,
             output_distance_unit,
-            energy_model_library: Arc::new(energy_model_library),
+            vehicle_library,
         })
+    }
+}
+
+impl TraversalModelService for EnergyModelService {
+    fn build(
+        &self,
+        parameters: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        let arc_self = Arc::new(self.clone());
+        let model = EnergyTraversalModel::try_from((arc_self, parameters))?;
+        Ok(Arc::new(model))
     }
 }

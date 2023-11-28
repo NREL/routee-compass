@@ -7,8 +7,7 @@ use super::{
         no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
     },
     traversal_model::{
-        distance_builder::DistanceBuilder,
-        speed_grade_energy_model_builder::SpeedGradeEnergyModelBuilder,
+        distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
         speed_lookup_builder::SpeedLookupBuilder,
     },
 };
@@ -113,11 +112,11 @@ impl CompassAppBuilder {
         // Traversal model builders
         let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
         let velo: Box<dyn TraversalModelBuilder> = Box::new(SpeedLookupBuilder {});
-        let smartcore: Box<dyn TraversalModelBuilder> = Box::new(SpeedGradeEnergyModelBuilder {});
+        let energy_model: Box<dyn TraversalModelBuilder> = Box::new(EnergyModelBuilder {});
         let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),
             (String::from("speed_table"), velo),
-            (String::from("speed_grade_energy_model"), smartcore),
+            (String::from("energy_model"), energy_model),
         ]);
 
         // Frontier model builders

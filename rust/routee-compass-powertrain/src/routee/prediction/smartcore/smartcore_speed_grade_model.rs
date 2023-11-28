@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::routee::prediction_model::SpeedGradePredictionModel;
+use crate::routee::prediction::prediction_model::PredictionModel;
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
     util::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
@@ -16,14 +16,14 @@ pub struct SmartcoreSpeedGradeModel {
     energy_rate_unit: EnergyRateUnit,
 }
 
-impl SpeedGradePredictionModel for SmartcoreSpeedGradeModel {
+impl PredictionModel for SmartcoreSpeedGradeModel {
     fn predict(
         &self,
-        speed: Speed,
-        speed_unit: SpeedUnit,
-        grade: Grade,
-        grade_unit: GradeUnit,
+        speed: (Speed, SpeedUnit),
+        grade: (Grade, GradeUnit),
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
+        let (speed, speed_unit) = speed;
+        let (grade, grade_unit) = grade;
         let speed_value = speed_unit.convert(speed, self.speed_unit).as_f64();
         let grade_value = grade_unit.convert(grade, self.grade_unit).as_f64();
         let x = DenseMatrix::from_2d_vec(&vec![vec![speed_value, grade_value]]);

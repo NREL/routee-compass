@@ -1,8 +1,5 @@
-pub mod model_type;
-pub mod prediction_model;
-pub mod smartcore;
-pub mod speed_grade_energy_model;
-pub mod speed_grade_energy_model_service;
-
-#[cfg(feature = "onnx")]
-pub mod onnx;
+pub mod energy_model_ops;
+pub mod energy_model_service;
+pub mod energy_traversal_model;
+pub mod prediction;
+pub mod vehicle;
