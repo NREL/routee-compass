@@ -15,7 +15,7 @@ type RowCallback<'a, T> = Option<Box<dyn FnMut(&T) + 'a>>;
 /// each row hasn't yet been decoded so it is provided in a Result<T, csv::Error>
 ///
 pub fn iterator_from_csv<'a, F, T>(
-    filepath: &F,
+    filepath: F,
     has_headers: bool,
     mut row_callback: RowCallback<'a, T>,
 ) -> Result<Box<dyn Iterator<Item = Result<T, csv::Error>> + 'a>, io::Error>
@@ -23,7 +23,7 @@ where
     F: AsRef<Path>,
     T: serde::de::DeserializeOwned + 'a,
 {
-    let f = File::open(filepath)?;
+    let f = File::open(filepath.as_ref())?;
     let r: Box<dyn io::Read> = if fs_utils::is_gzip(filepath) {
         Box::new(BufReader::new(GzDecoder::new(f)))
     } else {
@@ -48,7 +48,7 @@ where
 /// reads a csv file into a vector. not space-optimized since size is not
 /// known.
 pub fn from_csv<'a, F, T>(
-    filepath: &F,
+    filepath: F,
     has_headers: bool,
     row_callback: RowCallback<'a, T>,
 ) -> Result<Box<[T]>, csv::Error>
@@ -71,14 +71,14 @@ where
 /// the row index (starting from zero) is passed to the deserialization op
 /// as in most cases, the row number is an id.
 pub fn read_raw_file<'a, F: AsRef<Path>, T>(
-    filepath: &F,
+    filepath: F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
     row_callback: Option<Box<dyn FnMut() + 'a>>,
 ) -> Result<Box<[T]>, io::Error>
 where
     F: AsRef<Path>,
 {
-    if fs_utils::is_gzip(filepath) {
+    if fs_utils::is_gzip(filepath.as_ref()) {
         Ok(read_gzip(filepath, op, row_callback)?)
     } else {
         Ok(read_regular(filepath, op, row_callback)?)
@@ -86,7 +86,7 @@ where
 }
 
 fn read_regular<'a, F, T>(
-    filepath: &F,
+    filepath: F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
     mut row_callback: Option<Box<dyn FnMut() + 'a>>,
 ) -> Result<Box<[T]>, io::Error>
@@ -111,7 +111,7 @@ where
 }
 
 fn read_gzip<'a, F, T>(
-    filepath: &F,
+    filepath: F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
     mut row_callback: Option<Box<dyn FnMut() + 'a>>,
 ) -> Result<Box<[T]>, io::Error>

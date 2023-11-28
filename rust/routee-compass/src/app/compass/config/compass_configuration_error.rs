@@ -10,6 +10,8 @@ use routee_compass_core::{
 
 #[derive(thiserror::Error, Debug)]
 pub enum CompassConfigurationError {
+    #[error("{0}")]
+    UserConfigurationError(String),
     #[error("expected field {0} for component {1} provided by configuration")]
     ExpectedFieldForComponent(String, String),
     #[error("expected field {0} with type {1} was unable to deserialize")]

@@ -1,4 +1,3 @@
-use super::utils::concat_linestrings;
 use crate::plugin::plugin_error::PluginError;
 use geo::{LineString, MultiLineString};
 use geojson::feature::Id;
@@ -6,6 +5,7 @@ use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::edge_traversal::EdgeTraversal;
 use routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch;
 use routee_compass_core::model::road_network::vertex_id::VertexId;
+use routee_compass_core::util::geo::geo_io_utils;
 use std::collections::HashMap;
 
 pub fn create_tree_geojson(
@@ -117,7 +117,7 @@ pub fn create_route_linestring(
             geom
         })
         .collect::<Result<Vec<&LineString>, PluginError>>()?;
-    let geometry = concat_linestrings(edge_linestrings);
+    let geometry = geo_io_utils::concat_linestrings(edge_linestrings);
     Ok(geometry)
 }
 

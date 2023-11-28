@@ -9,6 +9,8 @@ pub trait InputJsonExtensions {
     fn get_destination_coordinate(&self) -> Result<Option<geo::Coord<f64>>, PluginError>;
     fn add_origin_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
     fn add_destination_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
+    fn add_origin_edge(&mut self, edge_id: EdgeId) -> Result<(), PluginError>;
+    fn add_destination_edge(&mut self, edge_id: EdgeId) -> Result<(), PluginError>;
     fn get_origin_vertex(&self) -> Result<VertexId, PluginError>;
     fn get_destination_vertex(&self) -> Result<Option<VertexId>, PluginError>;
     fn get_origin_edge(&self) -> Result<EdgeId, PluginError>;
@@ -147,6 +149,36 @@ impl InputJsonExtensions for serde_json::Value {
     }
     fn get_grid_search(&self) -> Option<&serde_json::Value> {
         self.get(InputField::GridSearch.to_string())
+    }
+
+    fn add_origin_edge(&mut self, edge_id: EdgeId) -> Result<(), PluginError> {
+        match self {
+            serde_json::Value::Object(map) => {
+                map.insert(
+                    InputField::OriginEdge.to_string(),
+                    serde_json::Value::from(edge_id.0),
+                );
+                Ok(())
+            }
+            _ => Err(PluginError::InputError(String::from(
+                "InputQuery is not a JSON object",
+            ))),
+        }
+    }
+
+    fn add_destination_edge(&mut self, edge_id: EdgeId) -> Result<(), PluginError> {
+        match self {
+            serde_json::Value::Object(map) => {
+                map.insert(
+                    InputField::DestinationEdge.to_string(),
+                    serde_json::Value::from(edge_id.0),
+                );
+                Ok(())
+            }
+            _ => Err(PluginError::InputError(String::from(
+                "InputQuery is not a JSON object",
+            ))),
+        }
     }
 }
 

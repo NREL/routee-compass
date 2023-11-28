@@ -1,5 +1,27 @@
+use crate::util::fs::{fs_utils, read_utils};
 use geo::{LineString, Point};
+use kdam::{Bar, BarExt};
+use std::path::Path;
 use wkt::TryFromWkt;
+
+/// reads a collection of LINESTRINGS
+pub fn read_linestring_text_file(file: &Path) -> Result<Box<[LineString]>, std::io::Error> {
+    let is_gzip = fs_utils::is_gzip(file);
+    let count = fs_utils::line_count(file, is_gzip)?;
+
+    let mut pb = Bar::builder()
+        .total(count)
+        .animation("fillup")
+        .desc("geometry file")
+        .build()
+        .map_err(|s| std::io::Error::new(std::io::ErrorKind::Interrupted, s.as_str()))?;
+
+    let cb = Box::new(|| {
+        let _ = pb.update(1);
+    });
+    let geoms: Box<[LineString]> = read_utils::read_raw_file(file, parse_linestring, Some(cb))?;
+    Ok(geoms)
+}
 
 /// Concatenate a vector of linestrings into a single linestring
 ///
@@ -15,7 +37,7 @@ use wkt::TryFromWkt;
 ///
 /// ```rust
 /// use geo::{LineString, Point};
-/// use routee_compass::plugin::output::default::traversal::utils::concat_linestrings;
+/// use routee_compass_core::util::geo::geo_io_utils::concat_linestrings;
 ///
 /// let line1 = LineString::from(vec![
 ///     Point::from((0.0, 0.0)),

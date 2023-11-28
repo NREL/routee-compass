@@ -275,29 +275,29 @@ impl ConfigJsonExtensions for serde_json::Value {
 
                 // no need to modify if the file exists
                 if path.is_file() {
-                    return Ok(serde_json::Value::String(path_string.clone()));
-                }
-
-                // next we try adding the root config path and see if that exists
-                let root_config_parent = match root_config_path.parent() {
-                    Some(parent) => parent,
-                    None => Path::new(""),
-                };
-                let new_path = root_config_parent.join(path);
-                let new_path_string = new_path
-                    .to_str()
-                    .ok_or(CompassConfigurationError::FileNormalizationError(
-                        path_string.clone(),
-                    ))?
-                    .to_string();
-                if new_path.is_file() {
-                    Ok(serde_json::Value::String(new_path_string))
+                    Ok(serde_json::Value::String(path_string.clone()))
                 } else {
-                    // if we can't find the file in either location, we throw an error
-                    Err(CompassConfigurationError::FileNormalizationNotFound(
-                        path_string.clone(),
-                        new_path_string,
-                    ))
+                    // next we try adding the root config path and see if that exists
+                    let root_config_parent = match root_config_path.parent() {
+                        Some(parent) => parent,
+                        None => Path::new(""),
+                    };
+                    let new_path = root_config_parent.join(path);
+                    let new_path_string = new_path
+                        .to_str()
+                        .ok_or(CompassConfigurationError::FileNormalizationError(
+                            path_string.clone(),
+                        ))?
+                        .to_string();
+                    if new_path.is_file() {
+                        Ok(serde_json::Value::String(new_path_string))
+                    } else {
+                        // if we can't find the file in either location, we throw an error
+                        Err(CompassConfigurationError::FileNormalizationNotFound(
+                            path_string.clone(),
+                            new_path_string,
+                        ))
+                    }
                 }
             }
             serde_json::Value::Object(obj) => {
@@ -324,7 +324,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                         serde_json::Value::Object(_) => {
                             new_arr.push(value.normalize_file_paths(root_config_path)?)
                         }
-                        _ => {}
+                        _ => new_arr.push(value.clone()),
                     }
                 }
                 Ok(serde_json::Value::Array(new_arr))

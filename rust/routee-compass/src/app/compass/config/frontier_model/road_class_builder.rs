@@ -23,28 +23,24 @@ impl FrontierModelBuilder for RoadClassBuilder {
         let road_class_file =
             parameters.get_config_path(road_class_file_key.clone(), frontier_key.clone())?;
 
-        let road_classes_json = parameters
-            .get(valid_road_class_key.clone())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                valid_road_class_key.clone(),
-                frontier_key.clone(),
-            ))?
-            .as_array()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                valid_road_class_key.clone(),
-                String::from("Array"),
-            ))?;
-        let road_classes: HashSet<String> = road_classes_json
-            .iter()
-            .map(|rc| serde_json::from_value::<String>(rc.clone()))
-            .collect::<Result<HashSet<String>, _>>()
-            .map_err(CompassConfigurationError::SerdeDeserializationError)?;
+        let road_classes_vec = parameters
+            .get_config_serde::<Vec<String>>(valid_road_class_key.clone(), frontier_key.clone())?;
+        let road_classes: HashSet<String> = HashSet::from_iter(road_classes_vec.to_vec());
+
+        log::debug!("valid road classes (raw/hashset): {:?}", road_classes_vec);
 
         let road_class_lookup: Vec<bool> =
-            read_utils::read_raw_file(&road_class_file, read_decoders::string, None)?
+            read_utils::read_raw_file(road_class_file, read_decoders::string, None)?
                 .iter()
-                .map(|rc| road_classes.contains(rc))
+                .map(|rc| road_classes.contains(rc.trim()))
                 .collect();
+
+        let n_good = road_class_lookup.iter().filter(|r| **r).count();
+        log::debug!(
+            "{}/{} links have a valid road class",
+            n_good,
+            road_class_lookup.len()
+        );
 
         let m: Box<dyn FrontierModel> = Box::new(RoadClassFrontierModel { road_class_lookup });
         Ok(m)

@@ -1,6 +1,5 @@
 use super::json_extensions::TraversalJsonField;
 use super::traversal_output_format::TraversalOutputFormat;
-use super::utils::parse_linestring;
 use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
@@ -10,6 +9,8 @@ use kdam::Bar;
 use kdam::BarExt;
 use routee_compass_core::util::fs::fs_utils;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
+use routee_compass_core::util::geo::geo_io_utils;
+use routee_compass_core::util::geo::geo_io_utils::parse_linestring;
 use std::path::Path;
 
 pub struct TraversalPlugin {
@@ -39,9 +40,10 @@ impl TraversalPlugin {
         let cb = Box::new(|| {
             let _ = pb.update(1);
         });
-        let geoms = read_raw_file(&filename, parse_linestring, Some(cb)).map_err(|e| {
-            PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
-        })?;
+        let geoms =
+            read_raw_file(&filename, geo_io_utils::parse_linestring, Some(cb)).map_err(|e| {
+                PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
+            })?;
         println!();
         Ok(TraversalPlugin { geoms, route, tree })
     }
