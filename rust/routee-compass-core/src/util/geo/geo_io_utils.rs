@@ -37,7 +37,7 @@ pub fn read_linestring_text_file(file: &Path) -> Result<Box<[LineString]>, std::
 ///
 /// ```rust
 /// use geo::{LineString, Point};
-/// use routee_compass::plugin::output::default::traversal::utils::concat_linestrings;
+/// use routee_compass_core::util::geo::geo_io_utils::concat_linestrings;
 ///
 /// let line1 = LineString::from(vec![
 ///     Point::from((0.0, 0.0)),
