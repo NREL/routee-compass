@@ -130,7 +130,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         // build termination model
         let termination_model_json =
             config_json.get_config_section(CompassConfigurationField::Termination)?;
-        let termination_model = TerminationModelBuilder::build(&termination_model_json)?;
+        let termination_model = TerminationModelBuilder::build(&termination_model_json, None)?;
 
         // build graph
         let graph_start = Local::now();

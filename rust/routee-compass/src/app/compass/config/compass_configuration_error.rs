@@ -18,7 +18,9 @@ pub enum CompassConfigurationError {
     ExpectedFieldWithType(String, String),
     #[error("expected field {0} for component {1} had unrecognized value {2}")]
     ExpectedFieldWithTypeUnrecognized(String, String, String),
-    #[error("unknown module {0} for component {1} provided by configuration, must be one of {2}")]
+    #[error(
+        "unknown module '{0}' for component '{1}' provided by configuration, must be one of {2}"
+    )]
     UnknownModelNameForComponent(String, String, String),
     #[error(
         r#"
