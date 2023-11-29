@@ -21,7 +21,9 @@ jobs:
 
     - name: Install dependencies
       shell: bash -el {0}
-      run: conda install -c conda-forge nrel.routee.compass jupyter-book 
+      run: |
+        conda install -c conda-forge nrel.routee.compass 
+        pip install jupyter-book
     
     - name: Build book
       shell: bash -el {0}
