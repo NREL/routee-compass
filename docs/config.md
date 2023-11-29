@@ -250,7 +250,9 @@ For example, if you specify your query origin and destination as lat/lon coordin
 
 The Edge RTree has some additional paramters as comparted to the Vertex RTree.
 Specifically, the Edge RTree takes in geomteries for each edge as well as road classes for each edge.
-It uses the geometries for computing the distance between the incoming points and the edge and it uses the road classes to optionally filter out road classes that need to be excluded at query time.
+It uses the geometries for computing the distance between the incoming points and the edge.
+
+In addition, it uses the road classes to optionally filter out road classes that need to be excluded at query time by supplying a "road_classes" argument to the query with a list of strings to match against.
 
 ```toml
 [[plugin.input_plugins]]
