@@ -89,20 +89,21 @@ jobs:
         with:
           name: wheels
           path: dist
-#   upload:
-#     needs: build
-#     runs-on: ubuntu-latest
-#     environment:
-#       name: pypi
-#       url: https://pypi.org/p/altrios
-#     permissions:
-#       id-token: write
-#     steps:
-#       - name: Download all workflow run artifacts
-#         uses: actions/download-artifact@v2
-#         with:
-#           name: wheels
-#           path: dist
+  upload:
+    needs: build
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/nrel.routee.compass 
+    permissions:
+      id-token: write
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: wheels
+          path: dist
 
-#       - name: publish package
-#         uses: pypa/gh-action-pypi-publish@release/v1
+      - name: publish package
+        uses: pypa/gh-action-pypi-publish@release/v1
