@@ -19,16 +19,12 @@ jobs:
         auto-update-conda: true
         python-version: "3.10" 
 
-    - name: Install dependencies
-      shell: bash -el {0}
-      run: |
-        conda install -c conda-forge nrel.routee.compass 
-        pip install jupyter-book
-    
-    - name: Build book
+    - name: Install and build 
       shell: bash -el {0}
       working-directory: ${{runner.workspace}}/routee-compass/docs/
       run: |
+        conda install -c conda-forge nrel.routee.compass 
+        pip install jupyter-book
         jupyter-book build .
 
     # Push the book's HTML to github-pages
