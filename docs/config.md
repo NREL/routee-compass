@@ -21,8 +21,8 @@ verbose = true
 
 # which traversal model to use and its parameters
 [traversal]
-# the speed_grade_energy_model can compute routes using time or energy as costs
-type = "speed_grade_energy_model"
+# the energy_model can compute routes using time or energy as costs
+type = "energy_model"
 # speeds for each edge in the graph
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 # the units of the above speed table
@@ -36,11 +36,15 @@ output_time_unit = "minutes"
 # the units of what the traversal model outputs for distance
 output_distance_unit = "miles"
 
-# here, we specify which energy models to make available at query time
-# if you wanted to add more models, you would make a new [[traversal.energy_models]] section.
-[[traversal.energy_models]]
+# here, we specify which vehicles to make available at query time
+# if you wanted to add more models, you would make a new [[traversal.vehicles]] section.
+[[traversal.vehicles]]
 # the name of the model that can be passed in from a query as "model_name"
 name = "2012_Ford_Focus"
+# the type of the vehicle, currently either:
+# - "single_fuel" i.e. Internal Combustion Engine (ICE) or Battery Electric (BEV)
+# - "duel_fuel" i.e. Plug in Hybrid Electric (PHEV)
+type = "single_fuel"
 # the file for the routee-powertrain model
 model_input_file = "models/2012_Ford_Focus.bin"
 # what underlying machine learn framework to use [smartcore | onnx]
@@ -122,25 +126,50 @@ output_distance_unit = "miles"
 output_time_unit = "minutes"
 ```
 
-### Speed Grade Energy Model
+### Energy Model
 
-The speed grade energy model computes energy (with a routee-powertrain vehicle model) and speed over an edge. This model also takes in an additional query argument `energy_cost_coefficient` that specifies how much to value energy in the resulting cost. For example, an `energy_cost_coefficient` of `0.0` would not value energy at all and would return a pure shortest time route whereas an `energy_cost_coefficient` of `1.0` would not value time at all and would return a pure least energy route.
+The energy model computes energy (with a routee-powertrain vehicle model) and speed over an edge. This model also takes in an additional query argument `energy_cost_coefficient` that specifies how much to value energy in the resulting cost. For example, an `energy_cost_coefficient` of `0.0` would not value energy at all and would return a pure shortest time route whereas an `energy_cost_coefficient` of `1.0` would not value time at all and would return a pure least energy route.
 
 ```toml
 [traversal]
-type = "speed_grade_energy_model"
-model_type = "smartcore"
-speed_table_input_file = "data/tomtom_metro_denver_network/edges-free-flow-speed-enumerated.txt.gz"
-grade_table_input_file = "data/tomtom_metro_denver_network/edges-grade-enumerated.txt.gz"
-grade_table_grade_unit = "decimal"
-energy_model_input_file = "data/2016_TOYOTA_Camry_4cyl_2WD.bin"
-ideal_energy_rate = 0.02857142857
+# the energy_model can compute routes using time or energy as costs
+type = "energy_model"
+# speeds for each edge in the graph
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
+# the units of the above speed table
 speed_table_speed_unit = "kilometers_per_hour"
-energy_model_speed_unit = "miles_per_hour"
-energy_model_grade_unit = "decimal"
-energy_model_energy_rate_unit = "gallons_gasoline_per_mile"
+# grades for each edge in the graph
+grade_table_input_file = "edges-grade-enumerated.txt.gz"
+# the units of the above graph table
+grade_table_grade_unit = "decimal"
+# the units of what the traversal model outputs for time
 output_time_unit = "minutes"
+# the units of what the traversal model outputs for distance
 output_distance_unit = "miles"
+
+# here, we specify which vehicles to make available at query time
+# if you wanted to add more models, you would make a new [[traversal.vehicles]] section.
+[[traversal.vehicles]]
+# the name of the model that can be passed in from a query as "model_name"
+name = "2012_Ford_Focus"
+# the type of the vehicle, currently either:
+# - "single_fuel" i.e. Internal Combustion Engine (ICE) or Battery Electric (BEV)
+# - "duel_fuel" i.e. Plug in Hybrid Electric (PHEV)
+type = "single_fuel"
+# the file for the routee-powertrain model
+model_input_file = "models/2012_Ford_Focus.bin"
+# what underlying machine learn framework to use [smartcore | onnx]
+model_type = "smartcore"
+# the units of what the routee-powertrain model expects speed to be in
+speed_unit = "miles_per_hour"
+# the units of what the routee-powertrain model expects grade to be in
+grade_unit = "decimal"
+# the units of what the routee-powertrain model outputs for energy
+energy_rate_unit = "gallons_gasoline_per_mile"
+# the "best case" energy rate for this particular vehicle (something like highway mpg) that's used in the a-star algorithm
+ideal_energy_rate = 0.02857143
+# A real world adjustment factor for things like temperature and auxillary loads
+real_world_energy_adjustment = 1.166
 ```
 
 ## Plugins
@@ -209,7 +238,33 @@ For example, if you specify your query origin and destination as lat/lon coordin
 ```toml
 [[plugin.input_plugins]]
 type = "vertex_rtree"
+# the vertices of the graph; enumerated to match the index of the graph vertex file
 vertices_input_file = "vertices-compass.csv.gz"
+```
+
+### Edge RTree
+
+The edge RTree plugin uses an RTree to match coordiantes to graph edges.
+
+For example, if you specify your query origin and destination as lat/lon coordinates (i.e. `origin_x`, `origin_y`) we need a way to match this to the graph and then insert an `origin_edge` or a `destination_edge` into the query.
+
+The Edge RTree has some additional paramters as comparted to the Vertex RTree.
+Specifically, the Edge RTree takes in geomteries for each edge as well as road classes for each edge.
+It uses the geometries for computing the distance between the incoming points and the edge.
+
+In addition, it uses the road classes to optionally filter out road classes that need to be excluded at query time by supplying a "road_classes" argument to the query with a list of strings to match against.
+
+```toml
+[[plugin.input_plugins]]
+type = "edge_rtree"
+# geometries for each edge; enumerated to match the index of the graph edge file
+geometry_input_file = "edge-geometries.csv.gz"
+# road classes for each edge; enumerated to match the index of the graph edge file
+road_class_input_file = "road-classes.csv.gz"
+# how far around the point to search (smaller could improve performance but too small might result in no matches)
+distance_tolerance = 100
+# unit of the distance tolerance
+distance_unit = "meters"
 ```
 
 ## Output Plugins

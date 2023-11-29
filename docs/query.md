@@ -56,7 +56,7 @@ Here's an example:
 
 If you have the `grid_search` input plugin enabled, you can also provide a `grid_search` key that the plugin will use to generate multiple queries from a single query.
 
-For example, if you're using the `speed_grade_energy_model` traversal model, it takes an additional key `energy_cost_coefficient` and so if you wanted to sweep this value you could do something like:
+For example, if you're using the `energy_model` traversal model, it takes an additional key `energy_cost_coefficient` and so if you wanted to sweep this value you could do something like:
 
 ```json
 query = {
@@ -66,6 +66,7 @@ query = {
     "origin_y": 39.726570,
     "destination_x": -105.234964,
     "destination_y": 39.768477,
+    "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
     "grid_search": {
         "energy_cost_coefficient": [0.0, 0.5, 1.0]
     }
@@ -84,6 +85,7 @@ query = {
     "origin_y": 39.726570,
     "destination_x": -105.234964,
     "destination_y": 39.768477,
+    "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
     "grid_search": {
         "test_cases": [
             {"energy_cost_coefficient": 0.0, "name": "Shortest Time"},
