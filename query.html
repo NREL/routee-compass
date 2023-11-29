@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 
 
-<html lang="python" >
+<html lang="python" data-content_root="" >
 
   <head>
     <meta charset="utf-8" />
@@ -19,12 +19,12 @@
   </script>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
-<link href="_static/styles/bootstrap.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=5b4479735964841361fd" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=5b4479735964841361fd" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=5b4479735964841361fd" rel="stylesheet" />
 
   
-  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=365ca57ee442770a23c6" rel="stylesheet" />
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=5b4479735964841361fd" rel="stylesheet" />
   <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
 <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
@@ -38,9 +38,9 @@
     <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
   
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6" />
-  <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=365ca57ee442770a23c6"></script>
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=5b4479735964841361fd" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd" />
+  <script src="_static/vendor/fontawesome/6.1.2/js/all.min.js?digest=5b4479735964841361fd"></script>
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
@@ -139,6 +139,7 @@ const thebe_selector_output = ".output, .cell_output"
   
     <div class="sidebar-primary-items__start sidebar-primary__section">
         <div class="sidebar-primary-item">
+
   
 
 <a class="navbar-brand logo" href="intro.html">
@@ -336,6 +337,7 @@ const thebe_selector_output = ".output, .cell_output"
 </button>
 
 
+
 <script>
 document.write(`
   <button class="btn btn-sm navbar-btn theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
@@ -345,6 +347,7 @@ document.write(`
   </button>
 `);
 </script>
+
 
 <script>
 document.write(`
@@ -442,7 +445,7 @@ You can provide any arbitrary key if you want to pass information through.</p>
 <section id="grid-search">
 <h2>Grid Search<a class="headerlink" href="#grid-search" title="Permalink to this heading">#</a></h2>
 <p>If you have the <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> input plugin enabled, you can also provide a <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> key that the plugin will use to generate multiple queries from a single query.</p>
-<p>For example, if you're using the <code class="docutils literal notranslate"><span class="pre">speed_grade_energy_model</span></code> traversal model, it takes an additional key <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> and so if you wanted to sweep this value you could do something like:</p>
+<p>For example, if you're using the <code class="docutils literal notranslate"><span class="pre">energy_model</span></code> traversal model, it takes an additional key <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> and so if you wanted to sweep this value you could do something like:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span>query = {
     &quot;origin_name&quot;: &quot;Government Center Station&quot;,
     &quot;destination_name&quot;: &quot;Cannonball Creek Brewery&quot;,
@@ -450,6 +453,7 @@ You can provide any arbitrary key if you want to pass information through.</p>
     &quot;origin_y&quot;: 39.726570,
     &quot;destination_x&quot;: -105.234964,
     &quot;destination_y&quot;: 39.768477,
+    &quot;model_name&quot;: &quot;2016_TOYOTA_Camry_4cyl_2WD&quot;,
     &quot;grid_search&quot;: {
         &quot;energy_cost_coefficient&quot;: [0.0, 0.5, 1.0]
     }
@@ -465,6 +469,7 @@ You can provide any arbitrary key if you want to pass information through.</p>
     &quot;origin_y&quot;: 39.726570,
     &quot;destination_x&quot;: -105.234964,
     &quot;destination_y&quot;: 39.768477,
+    &quot;model_name&quot;: &quot;2016_TOYOTA_Camry_4cyl_2WD&quot;,
     &quot;grid_search&quot;: {
         &quot;test_cases&quot;: [
             {&quot;energy_cost_coefficient&quot;: 0.0, &quot;name&quot;: &quot;Shortest Time&quot;},
@@ -507,7 +512,7 @@ You can provide any arbitrary key if you want to pass information through.</p>
               
               
                 <footer class="prev-next-footer">
-                  <!-- Previous / next buttons -->
+                  
 <div class="prev-next-area">
     <a class="left-prev"
        href="notebooks/open_street_maps_example.html"
@@ -566,6 +571,7 @@ By National Renewable Energy Laboratory
   
   <div class="footer-item">
     
+
   <p class="copyright">
     
       © Copyright 2022.
@@ -592,8 +598,8 @@ By National Renewable Energy Laboratory
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/bootstrap.js?digest=365ca57ee442770a23c6"></script>
-<script src="_static/scripts/pydata-sphinx-theme.js?digest=365ca57ee442770a23c6"></script>
+  <script src="_static/scripts/bootstrap.js?digest=5b4479735964841361fd"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=5b4479735964841361fd"></script>
 
   <footer class="bd-footer">
   </footer>
