@@ -201,14 +201,13 @@ impl CompassApp {
         &self,
         queries: Vec<serde_json::Value>,
     ) -> Result<Vec<serde_json::Value>, CompassAppError> {
-        log::info!("starting run method");
-        let pb = Bar::builder()
+        let input_pb = Bar::builder()
             .total(queries.len())
             .animation("fillup")
             .desc("input plugins")
             .build()
             .map_err(CompassAppError::UXError)?;
-        let pb_shared = Arc::new(Mutex::new(pb));
+        let input_pb_shared = Arc::new(Mutex::new(input_pb));
 
         // input plugins need to be flattened, and queries that fail input processing need to be
         // returned at the end.
@@ -220,7 +219,7 @@ impl CompassApp {
                     .iter()
                     .map(|q| {
                         let inner_processed = apply_input_plugins(q, &self.input_plugins);
-                        if let Ok(mut pb_local) = pb_shared.lock() {
+                        if let Ok(mut pb_local) = input_pb_shared.lock() {
                             let _ = pb_local.update(1);
                         }
                         inner_processed
@@ -258,12 +257,25 @@ impl CompassApp {
             query_chunk_size
         );
 
+        let search_pb = Bar::builder()
+            .total(processed_inputs.len())
+            .animation("fillup")
+            .desc("search")
+            .build()
+            .map_err(CompassAppError::UXError)?;
+        let search_pb_shared = Arc::new(Mutex::new(search_pb));
         let run_query_result = processed_inputs
             .par_chunks(query_chunk_size)
             .map(|queries| {
                 queries
                     .iter()
-                    .map(|q| self.run_single_query(q.clone()))
+                    .map(|q| {
+                        let inner_search = self.run_single_query(q.clone());
+                        if let Ok(mut pb_local) = search_pb_shared.lock() {
+                            let _ = pb_local.update(1);
+                        }
+                        inner_search
+                    })
                     .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()
             })
             .collect::<Result<Vec<Vec<Vec<serde_json::Value>>>, CompassAppError>>()?;
