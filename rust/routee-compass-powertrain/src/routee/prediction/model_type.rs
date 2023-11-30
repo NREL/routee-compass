@@ -38,7 +38,7 @@ impl ModelType {
         // Load random forest binary file
         let model: Arc<dyn PredictionModel> = match self {
             ModelType::Smartcore => Arc::new(SmartcoreSpeedGradeModel::new(
-                energy_model_path.clone(),
+                energy_model_path,
                 energy_model_speed_unit,
                 energy_model_grade_unit,
                 energy_model_energy_rate_unit,
