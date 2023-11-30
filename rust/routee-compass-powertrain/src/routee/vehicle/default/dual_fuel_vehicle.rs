@@ -23,6 +23,7 @@ pub struct DualFuelVehicle {
     pub battery_capacity: Energy,
     pub starting_battery_energy: Energy,
     pub battery_energy_unit: EnergyUnit,
+    pub custom_liquid_fuel_to_kwh: Option<f64>,
 }
 
 impl DualFuelVehicle {
@@ -33,6 +34,7 @@ impl DualFuelVehicle {
         battery_capacity: Energy,
         starting_battery_energy: Energy,
         battery_energy_unit: EnergyUnit,
+        custom_liquid_fuel_to_kwh: Option<f64>,
     ) -> Result<Self, TraversalModelError> {
         Ok(Self {
             name,
@@ -41,6 +43,7 @@ impl DualFuelVehicle {
             battery_capacity,
             starting_battery_energy,
             battery_energy_unit,
+            custom_liquid_fuel_to_kwh,
         })
     }
 }
@@ -52,7 +55,7 @@ impl VehicleType for DualFuelVehicle {
     fn initial_state(&self) -> TraversalState {
         vec![
             StateVar(0.0),                                   // accumulated electrical energy
-            StateVar(0.0),                                   // accumulated gasoline energy
+            StateVar(0.0),                                   // accumulated liquid_fuel energy
             StateVar(self.starting_battery_energy.as_f64()), // battery energy remaining
         ]
     }
@@ -80,17 +83,29 @@ impl VehicleType for DualFuelVehicle {
     ) -> Result<VehicleEnergyResult, TraversalModelError> {
         let battery_soc_percentage = get_battery_soc_percent(self, state);
 
-        let (electrical_energy, electrical_energy_unit, gasoline_energy, gasoline_energy_unit) =
-            get_phev_energy(self, battery_soc_percentage, speed, grade, distance)?;
+        let (
+            electrical_energy,
+            electrical_energy_unit,
+            liquid_fuel_energy,
+            liquid_fuel_energy_unit,
+        ) = get_phev_energy(self, battery_soc_percentage, speed, grade, distance)?;
 
         // convert both energy sources to kWh
         let electrical_energy_kwh =
             electrical_energy_unit.convert(electrical_energy, EnergyUnit::KilowattHours);
-        let gasoline_energy_kwh =
-            gasoline_energy_unit.convert(gasoline_energy, EnergyUnit::KilowattHours);
-        let total_energy_kwh = electrical_energy_kwh + gasoline_energy_kwh;
+        let liquid_fuel_energy_kwh = match self.custom_liquid_fuel_to_kwh {
+            Some(custom_fuel_to_kwh) => {
+                // use the custom conversion factor
+                Energy::new(custom_fuel_to_kwh * liquid_fuel_energy.as_f64())
+            }
+            None => {
+                // just use the default conversion factors
+                liquid_fuel_energy_unit.convert(liquid_fuel_energy, EnergyUnit::KilowattHours)
+            }
+        };
+        let total_energy_kwh = electrical_energy_kwh + liquid_fuel_energy_kwh;
 
-        let updated_state = update_state(state, electrical_energy, gasoline_energy);
+        let updated_state = update_state(state, electrical_energy, liquid_fuel_energy);
 
         Ok(VehicleEnergyResult {
             energy: total_energy_kwh,
@@ -100,11 +115,11 @@ impl VehicleType for DualFuelVehicle {
     }
     fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
         let battery_energy = get_electrical_energy_from_state(state);
-        let gasoline_energy = get_gasoline_energy_from_state(state);
+        let liquid_fuel_energy = get_liquid_fuel_energy_from_state(state);
         let battery_soc_percent = get_battery_soc_percent(self, state);
         serde_json::json!({
             "battery_energy": battery_energy.as_f64(),
-            "fuel_energy": gasoline_energy.as_f64(),
+            "fuel_energy": liquid_fuel_energy.as_f64(),
             "battery_soc_percent": battery_soc_percent,
         })
     }
@@ -148,6 +163,7 @@ impl VehicleType for DualFuelVehicle {
             battery_capacity: self.battery_capacity,
             starting_battery_energy,
             battery_energy_unit: self.battery_energy_unit,
+            custom_liquid_fuel_to_kwh: self.custom_liquid_fuel_to_kwh,
         };
 
         Ok(Arc::new(new_phev))
@@ -157,7 +173,7 @@ impl VehicleType for DualFuelVehicle {
 fn update_state(
     state: &[StateVar],
     electrical_energy: Energy,
-    gasoline_energy: Energy,
+    liquid_fuel_energy: Energy,
 ) -> TraversalState {
     let mut updated_state = Vec::with_capacity(state.len());
 
@@ -165,7 +181,7 @@ fn update_state(
     updated_state.push(state[0] + electrical_energy.into());
 
     // accumulated fuel energy
-    updated_state.push(state[1] + gasoline_energy.into());
+    updated_state.push(state[1] + liquid_fuel_energy.into());
 
     // remaining battery energy
     let current_battery_energy = get_remaining_battery_energy_from_state(state);
@@ -178,7 +194,7 @@ fn get_electrical_energy_from_state(state: &[StateVar]) -> Energy {
     Energy::new(state[0].0)
 }
 
-fn get_gasoline_energy_from_state(state: &[StateVar]) -> Energy {
+fn get_liquid_fuel_energy_from_state(state: &[StateVar]) -> Energy {
     Energy::new(state[1].0)
 }
 
@@ -200,17 +216,17 @@ fn get_battery_soc_percent(vehicle: &DualFuelVehicle, state: &[StateVar]) -> f64
     (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100.0
 }
 
-/// Compute the energy for the PHEV by converting gasoline to kWh.
+/// Compute the energy for the PHEV by converting liquid_fuel to kWh.
 /// This uses a simplified operation in which we assume that if the battery
 /// SOC is greater than zero we can just operate on battery to traverse a link.
 /// This is not entirely realistic as it's possible to arrive at a link with
-/// 0.001% SOC and still need to use gasoline to traverse the link.
+/// 0.001% SOC and still need to use liquid_fuel to traverse the link.
 ///
 /// In the future we could make this more sophisticated by calculating
 /// the energy required to traverse the link using the battery and then
-/// finding the point at which we would have to switch to gasoline
+/// finding the point at which we would have to switch to liquid_fuel
 ///
-/// Returns a tuple of (electrical_energy, electrical_energy_unit, gasoline_energy, gasoline_energy_unit)
+/// Returns a tuple of (electrical_energy, electrical_energy_unit, liquid_fuel_energy, liquid_fuel_energy_unit)
 fn get_phev_energy(
     vehicle: &DualFuelVehicle,
     battery_soc_percent: f64,
@@ -222,7 +238,7 @@ fn get_phev_energy(
         .charge_depleting_model
         .energy_rate_unit
         .associated_energy_unit();
-    let gasoline_energy_unit = vehicle
+    let liquid_fuel_energy_unit = vehicle
         .charge_sustain_model
         .energy_rate_unit
         .associated_energy_unit();
@@ -236,18 +252,18 @@ fn get_phev_energy(
             electrical_energy,
             electrical_energy_unit,
             Energy::new(0.0),
-            gasoline_energy_unit,
+            liquid_fuel_energy_unit,
         ))
     } else {
-        // just use the gasoline engine
-        let (gasoline_energy, gasoline_energy_unit) = vehicle
+        // just use the liquid_fuel engine
+        let (liquid_fuel_energy, liquid_fuel_energy_unit) = vehicle
             .charge_sustain_model
             .predict(speed, grade, distance)?;
         Ok((
             Energy::new(0.0),
             electrical_energy_unit,
-            gasoline_energy,
-            gasoline_energy_unit,
+            liquid_fuel_energy,
+            liquid_fuel_energy_unit,
         ))
     }
 }
@@ -304,6 +320,7 @@ mod tests {
             Energy::new(12.0),
             Energy::new(12.0),
             EnergyUnit::KilowattHours,
+            None,
         )
         .unwrap()
     }
@@ -314,7 +331,7 @@ mod tests {
         let initial = vehicle.initial_state();
 
         // starting at 100% SOC, we should be able to traverse 1000 meters
-        // without using any gasoline
+        // without using any liquid_fuel
         let distance = (Distance::new(1000.0), DistanceUnit::Meters);
         let speed = (Speed::new(60.0), SpeedUnit::MilesPerHour);
         let grade = (Grade::new(0.0), GradeUnit::Decimal);
@@ -323,8 +340,8 @@ mod tests {
             .consume_energy(speed, grade, distance, &initial)
             .unwrap();
 
-        let gasoline_energy = get_gasoline_energy_from_state(&result.updated_state);
-        assert!(gasoline_energy.as_f64() < 1e-9);
+        let liquid_fuel_energy = get_liquid_fuel_energy_from_state(&result.updated_state);
+        assert!(liquid_fuel_energy.as_f64() < 1e-9);
 
         let electrical_energy = get_electrical_energy_from_state(&result.updated_state);
         assert!(electrical_energy.as_f64() > 0.0);
@@ -353,13 +370,13 @@ mod tests {
         assert!(electrical_energy.as_f64() > 0.0);
         assert!(battery_percent_soc < 1e-9);
 
-        // and then traverse the same distance but this time we should only use gasoline energy
+        // and then traverse the same distance but this time we should only use liquid_fuel energy
         let result2 = vehicle
             .consume_energy(speed, grade, distance, &result.updated_state)
             .unwrap();
 
-        let gasoline_energy = get_gasoline_energy_from_state(&result2.updated_state);
+        let liquid_fuel_energy = get_liquid_fuel_energy_from_state(&result2.updated_state);
 
-        assert!(gasoline_energy.as_f64() > 0.0);
+        assert!(liquid_fuel_energy.as_f64() > 0.0);
     }
 }
