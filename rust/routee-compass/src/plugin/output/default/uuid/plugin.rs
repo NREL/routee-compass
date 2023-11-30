@@ -14,10 +14,9 @@ pub struct UUIDOutputPlugin {
 
 impl UUIDOutputPlugin {
     pub fn from_file<P: AsRef<Path>>(filename: &P) -> Result<UUIDOutputPlugin, PluginError> {
-        let count =
-            fs_utils::line_count(filename.clone(), fs_utils::is_gzip(filename)).map_err(|e| {
-                PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
-            })?;
+        let count = fs_utils::line_count(filename, fs_utils::is_gzip(filename)).map_err(|e| {
+            PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
+        })?;
 
         let mut pb = Bar::builder()
             .total(count)

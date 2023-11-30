@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 pub enum EnergyRateUnit {
     GallonsGasolinePerMile,
+    GallonsDieselPerMile,
     KilowattHoursPerMile,
     KilowattHoursPerKilometer,
     KilowattHoursPerMeter,
@@ -17,6 +18,7 @@ impl EnergyRateUnit {
         use EnergyRateUnit as ERU;
         match self {
             ERU::GallonsGasolinePerMile => DU::Miles,
+            ERU::GallonsDieselPerMile => DU::Miles,
             ERU::KilowattHoursPerMile => DU::Miles,
             ERU::KilowattHoursPerKilometer => DU::Kilometers,
             ERU::KilowattHoursPerMeter => DU::Meters,
@@ -29,6 +31,7 @@ impl EnergyRateUnit {
 
         match self {
             ERU::GallonsGasolinePerMile => EU::GallonsGasoline,
+            ERU::GallonsDieselPerMile => EU::GallonsDiesel,
             ERU::KilowattHoursPerMile => EU::KilowattHours,
             ERU::KilowattHoursPerKilometer => EU::KilowattHours,
             ERU::KilowattHoursPerMeter => EU::KilowattHours,

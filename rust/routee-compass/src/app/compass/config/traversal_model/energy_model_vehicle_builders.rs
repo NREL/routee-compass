@@ -84,6 +84,11 @@ fn build_plugin_hybrid(
         String::from("battery_capacity_unit"),
         vehicle_key.clone(),
     )?;
+
+    let custom_liquid_fuel_to_kwh = parameters.get_config_serde_optional::<f64>(
+        String::from("custom_liquid_fuel_to_kwh"),
+        vehicle_key.clone(),
+    )?;
     let starting_battery_energy = battery_capacity;
     let phev = DualFuelVehicle::new(
         name,
@@ -92,6 +97,7 @@ fn build_plugin_hybrid(
         battery_capacity,
         starting_battery_energy,
         battery_energy_unit,
+        custom_liquid_fuel_to_kwh,
     )?;
     Ok(Arc::new(phev))
 }

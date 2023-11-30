@@ -24,10 +24,9 @@ impl TraversalPlugin {
         route: Option<TraversalOutputFormat>,
         tree: Option<TraversalOutputFormat>,
     ) -> Result<TraversalPlugin, PluginError> {
-        let count =
-            fs_utils::line_count(filename.clone(), fs_utils::is_gzip(filename)).map_err(|e| {
-                PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
-            })?;
+        let count = fs_utils::line_count(filename, fs_utils::is_gzip(filename)).map_err(|e| {
+            PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
+        })?;
 
         let mut pb = Bar::builder()
             .total(count)
@@ -117,7 +116,7 @@ mod tests {
 
     #[test]
     fn test_geometry_deserialization() {
-        let result = read_raw_file(&mock_geometry_file(), parse_linestring, None).unwrap();
+        let result = read_raw_file(mock_geometry_file(), parse_linestring, None).unwrap();
         assert_eq!(result.len(), 3);
     }
 

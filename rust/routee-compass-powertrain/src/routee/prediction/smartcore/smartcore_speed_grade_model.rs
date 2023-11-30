@@ -45,7 +45,7 @@ impl SmartcoreSpeedGradeModel {
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
         // Load random forest binary file
-        let rf_binary = std::fs::read(routee_model_path.clone()).map_err(|e| {
+        let rf_binary = std::fs::read(routee_model_path).map_err(|e| {
             TraversalModelError::FileReadError(
                 routee_model_path.as_ref().to_path_buf(),
                 e.to_string(),
