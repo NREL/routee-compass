@@ -60,7 +60,7 @@ pub trait ConfigJsonExtensions {
     ) -> Result<Option<T>, CompassConfigurationError>;
     fn normalize_file_paths(
         &self,
-        parent_key: &String,
+        parent_key: &str,
         root_config_path: &Path,
     ) -> Result<serde_json::Value, CompassConfigurationError>;
 }
@@ -268,7 +268,7 @@ impl ConfigJsonExtensions for serde_json::Value {
     /// * `Result<serde_json::Value, CompassConfigurationError>` - The JSON object with normalized paths.
     fn normalize_file_paths(
         &self,
-        parent_key: &String,
+        parent_key: &str,
         root_config_path: &Path,
     ) -> Result<serde_json::Value, CompassConfigurationError> {
         match self {
@@ -296,7 +296,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                     } else {
                         // if we can't find the file in either location, we throw an error
                         Err(CompassConfigurationError::FileNormalizationNotFound(
-                            parent_key.clone(),
+                            parent_key.to_string(),
                             path_string.clone(),
                             new_path_string,
                         ))
