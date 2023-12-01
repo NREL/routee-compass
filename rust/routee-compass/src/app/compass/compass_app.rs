@@ -101,7 +101,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let config_json = config
             .clone()
             .try_deserialize::<serde_json::Value>()?
-            .normalize_file_paths(&root_config_path)?;
+            .normalize_file_paths(&"".to_string(), &root_config_path)?;
 
         let alg_params = config_json.get_config_section(CompassConfigurationField::Algorithm)?;
         let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
