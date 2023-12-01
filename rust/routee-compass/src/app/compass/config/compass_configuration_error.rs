@@ -39,8 +39,16 @@ pub enum CompassConfigurationError {
     FileNotFoundForComponent(String, String, String),
     #[error("could not normalize incoming file {0}")]
     FileNormalizationError(String),
-    #[error("Could not find incoming configuration file, tried {0} and {1}. Make sure the file exists and that the config key ends with '_input_file'")]
-    FileNormalizationNotFound(String, String),
+    #[error(
+        r#"
+        Could not find incoming configuration file '{1}' for key '{0}'
+
+        Tried: 
+         - '{1}'
+         - '{2}'
+        "#
+    )]
+    FileNormalizationNotFound(String, String, String),
     #[error("{0}")]
     InsertError(String),
     #[error(transparent)]
