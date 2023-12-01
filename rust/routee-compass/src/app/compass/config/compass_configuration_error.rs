@@ -46,8 +46,6 @@ pub enum CompassConfigurationError {
         Tried: 
          - '{1}'
          - '{2}'
-
-        Make sure the file exists and that the config key ends with '_input_file'.
         "#
     )]
     FileNormalizationNotFound(String, String, String),

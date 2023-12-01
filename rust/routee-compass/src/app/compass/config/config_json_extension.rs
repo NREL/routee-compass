@@ -256,7 +256,7 @@ impl ConfigJsonExtensions for serde_json::Value {
     /// 3. Relative path to where the application is being run
     ///
     /// This function scans each key value pair in the config and for any key that
-    /// ends with `_file`, it will attempt to normalize the path such that the application
+    /// ends with `_input_file`, it will attempt to normalize the path such that the application
     /// can find the file regardless of where it is being executed.
     ///
     /// Arguments:
