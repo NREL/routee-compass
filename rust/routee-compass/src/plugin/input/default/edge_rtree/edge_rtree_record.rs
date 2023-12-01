@@ -47,8 +47,15 @@ impl PointDistance for EdgeRtreeRecord {
             .geometry
             .centroid()
             .unwrap_or_else(|| panic!("empty linestring in geometry file"));
-        let distance = haversine::coord_distance_meters(this_point.0, point.0)
-            .unwrap_or(Distance::new(f64::MAX));
-        distance.as_f64()
+        // as noted in the comments for PointDistance, this should return the squared distance.
+        // haversine *should* work but squared haversine in meters is giving weird results for
+        // the vertex rtree plugin, so, i'm reverting this to euclidean for now. -rjf 2023-12-01
+        // let distance = haversine::coord_distance_meters(this_point.0, point.0)
+        //     .unwrap_or(Distance::new(f64::MAX))
+        //     .as_f64();
+        // distance * distance
+        let dx = this_point.x() - point.x();
+        let dy = this_point.y() - point.y();
+        dx * dx + dy * dy
     }
 }
