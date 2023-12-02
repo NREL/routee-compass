@@ -26,3 +26,4 @@ chrono = "0.4.26"
 regex = "1.9.5"
 wkt = { version = "0.10.3", features = ["serde"] }
 config = "0.13.3"
+ordered-float = { version = "4.1.1", features = ["serde"] }

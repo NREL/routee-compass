@@ -40,3 +40,4 @@ chrono = { workspace = true }
 config = { workspace = true }
 clap = { version = "4.3.19", features = ["derive"] }
 itertools = { workspace = true }
+ordered-float = { workspace = true }
