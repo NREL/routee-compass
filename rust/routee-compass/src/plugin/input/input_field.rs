@@ -10,6 +10,7 @@ pub enum InputField {
     OriginEdge,
     DestinationEdge,
     GridSearch,
+    QueryWeightEstimate,
 }
 
 impl InputField {
@@ -25,6 +26,7 @@ impl InputField {
             I::OriginEdge => "origin_edge",
             I::DestinationEdge => "destination_edge",
             I::GridSearch => "grid_search",
+            I::QueryWeightEstimate => "query_weight_estimate",
         }
     }
 }
