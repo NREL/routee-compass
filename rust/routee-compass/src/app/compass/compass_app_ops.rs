@@ -1,5 +1,7 @@
 use super::{compass_app_error::CompassAppError, compass_input_field::CompassInputField};
+use crate::plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError};
 use config::Config;
+use ordered_float::OrderedFloat;
 use std::path::Path;
 
 /// reads the compass configuration TOML file from a path
@@ -76,4 +78,37 @@ pub fn read_config_from_string(
         .map_err(CompassAppError::ConfigError)?;
 
     Ok(config)
+}
+
+/// applies the weight balancing policy set by the LoadBalancerPlugin InputPlugin.
+/// sorts all queries in ascending order then lays them (striped by weight) in bins
+/// so that each incremental cost weight is fairly assigned.
+///
+/// todo: an ideal version checks every $paralellism steps during assignment, sums
+/// values in each bin, and re-sorts the bin ordering to ensure the fairest assignment.
+pub fn construct_load_balancing_index(
+    queries: &Vec<serde_json::Value>,
+    parallelism: usize,
+) -> Result<Vec<usize>, CompassAppError> {
+    let mut weighted = queries
+        .iter()
+        .enumerate()
+        .map(|(idx, q)| {
+            let w = q.get_query_weight_estimate()?.unwrap_or(1.0);
+            Ok((w, idx))
+        })
+        .collect::<Result<Vec<(f64, usize)>, PluginError>>()
+        .map_err(CompassAppError::PluginError)?;
+    weighted.sort_by_key(|(w, _idx)| OrderedFloat(*w));
+    let mut bins: Vec<Vec<usize>> = vec![vec![]; parallelism];
+    for (_w, idx) in weighted.iter() {
+        let bin = idx % parallelism;
+        bins[bin].push(*idx);
+    }
+    let result = bins
+        .into_iter()
+        .flatten()
+        // .flat_map(|idx| queries.)
+        .collect();
+    Ok(result)
 }
