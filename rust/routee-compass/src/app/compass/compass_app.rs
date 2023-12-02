@@ -242,14 +242,22 @@ impl CompassApp {
             .flatten()
             .flatten()
             .collect();
+        let load_balancing_index =
+            ops::construct_load_balancing_index(&processed_inputs, self.parallelism)?;
+        let balanced_inputs: &Vec<Value> = &processed_inputs
+            .into_iter()
+            .zip(load_balancing_index.iter())
+            .sorted_by_key(|(_v, ord)| *ord)
+            .map(|(v, _ord)| v)
+            .collect();
         let error_inputs: Vec<Value> = error_inputs_nested.into_iter().flatten().collect();
-        if processed_inputs.is_empty() {
+        if balanced_inputs.is_empty() {
             return Ok(error_inputs);
         }
 
         // run parallel searches using a rayon thread pool
         let query_chunk_size =
-            (processed_inputs.len() as f64 / self.parallelism as f64).ceil() as usize;
+            (balanced_inputs.len() as f64 / self.parallelism as f64).ceil() as usize;
         log::info!(
             "creating {} parallel batches across {} threads to run queries with chunk size {}",
             self.parallelism,
@@ -258,13 +266,13 @@ impl CompassApp {
         );
 
         let search_pb = Bar::builder()
-            .total(processed_inputs.len())
+            .total((balanced_inputs).len())
             .animation("fillup")
             .desc("search")
             .build()
             .map_err(CompassAppError::UXError)?;
         let search_pb_shared = Arc::new(Mutex::new(search_pb));
-        let run_query_result = processed_inputs
+        let run_query_result = balanced_inputs
             .par_chunks(query_chunk_size)
             .map(|queries| {
                 queries
