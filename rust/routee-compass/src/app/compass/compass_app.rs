@@ -242,43 +242,47 @@ impl CompassApp {
             .flatten()
             .flatten()
             .collect();
-        let load_balancing_index =
-            ops::construct_load_balancing_index(&processed_inputs, self.parallelism)?;
-        let balanced_inputs: &Vec<Value> = &processed_inputs
-            .into_iter()
-            .zip(load_balancing_index.iter())
-            .sorted_by_key(|(_v, ord)| *ord)
-            .map(|(v, _ord)| v)
-            .collect();
+        let load_balanced_inputs =
+            ops::apply_load_balancing_policy(&processed_inputs, self.parallelism, 1.0)?;
         let error_inputs: Vec<Value> = error_inputs_nested.into_iter().flatten().collect();
-        if balanced_inputs.is_empty() {
+        if load_balanced_inputs.is_empty() {
             return Ok(error_inputs);
         }
 
-        // run parallel searches using a rayon thread pool
-        let query_chunk_size =
-            (balanced_inputs.len() as f64 / self.parallelism as f64).ceil() as usize;
         log::info!(
-            "creating {} parallel batches across {} threads to run queries with chunk size {}",
+            "creating {} parallel batches across {} threads to run queries",
             self.parallelism,
             current_num_threads(),
-            query_chunk_size
         );
+        let proc_batch_sizes = load_balanced_inputs
+            .iter()
+            .map(|qs| qs.len())
+            .collect::<Vec<_>>();
+        log::info!("queries assigned per executor: {:?}", proc_batch_sizes);
 
+        // set up search progress bar
+        let num_balanced_inputs = load_balanced_inputs
+            .iter()
+            .flatten()
+            .collect::<Vec<_>>()
+            .len();
         let search_pb = Bar::builder()
-            .total((balanced_inputs).len())
+            .total(num_balanced_inputs)
             .animation("fillup")
             .desc("search")
             .build()
             .map_err(CompassAppError::UXError)?;
         let search_pb_shared = Arc::new(Mutex::new(search_pb));
-        let run_query_result = balanced_inputs
-            .par_chunks(query_chunk_size)
+
+        // run parallel searches as organized by the (optional) load balancing policy
+        // across a thread pool managed by rayon
+        let run_query_result = load_balanced_inputs
+            .par_iter()
             .map(|queries| {
                 queries
                     .iter()
                     .map(|q| {
-                        let inner_search = self.run_single_query(q.clone());
+                        let inner_search = self.run_single_query((**q).clone());
                         if let Ok(mut pb_local) = search_pb_shared.lock() {
                             let _ = pb_local.update(1);
                         }
