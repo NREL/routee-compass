@@ -9,6 +9,7 @@ verbose = true
 input_plugins = [
     { type = "grid_search" },
     { type = "vertex_rtree", distance_tolerance = 0.2, distance_unit = "kilometers", vertices_input_file = "vertices-compass.csv.gz" },
+    { type = "load_balancer", heuristic = { type = "haversine" } },
 ]
 output_plugins = [
     { type = "summary" },
@@ -419,7 +420,7 @@ speed_unit = "miles_per_hour"
 grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
-real_world_energy_adjustment = 1.1252 
+real_world_energy_adjustment = 1.1252
 
 [[traversal.vehicles]]
 type = "dual_fuel"
@@ -443,12 +444,12 @@ speed_unit = "miles_per_hour"
 grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
-real_world_energy_adjustment = 1.1252 
+real_world_energy_adjustment = 1.1252
 
 [[traversal.vehicles]]
 type = "dual_fuel"
 name = "2016_FORD_C-MAX_(PHEV)"
-battery_capacity = 7.6 
+battery_capacity = 7.6
 battery_capacity_unit = "kilowatt_hours"
 [traversal.vehicles.charge_depleting]
 name = "2016_FORD_C-MAX_(PHEV)_Charge_Depleting"
@@ -467,12 +468,12 @@ speed_unit = "miles_per_hour"
 grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
-real_world_energy_adjustment = 1.1252 
+real_world_energy_adjustment = 1.1252
 
 [[traversal.vehicles]]
 type = "dual_fuel"
 name = "2016_HYUNDAI_Sonata_PHEV"
-battery_capacity = 9.8 
+battery_capacity = 9.8
 battery_capacity_unit = "kilowatt_hours"
 [traversal.vehicles.charge_depleting]
 name = "2016_HYUNDAI_Sonata_PHEV_Charge_Depleting"
@@ -491,12 +492,12 @@ speed_unit = "miles_per_hour"
 grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
-real_world_energy_adjustment = 1.1252 
+real_world_energy_adjustment = 1.1252
 
 [[traversal.vehicles]]
 type = "dual_fuel"
 name = "2017_Prius_Prime"
-battery_capacity = 8 
+battery_capacity = 8
 battery_capacity_unit = "kilowatt_hours"
 [traversal.vehicles.charge_depleting]
 name = "2017_Prius_Prime_Charge_Depleting"
@@ -515,4 +516,4 @@ speed_unit = "miles_per_hour"
 grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
-real_world_energy_adjustment = 1.1252 
+real_world_energy_adjustment = 1.1252

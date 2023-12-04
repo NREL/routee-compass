@@ -10,12 +10,13 @@ type = "distance"
 distance_unit = "miles"
 
 [plugin]
-input_plugins = [
-    { type = "grid_search" },
-    { type = "vertex_rtree", distance_tolerance = 0.2, distance_unit = "kilometers", vertices_input_file = "vertices-compass.csv.gz" },
-]
 output_plugins = [
     { type = "summary" },
     { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
     { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
+]
+input_plugins = [
+    { type = "grid_search" },
+    { type = "vertex_rtree", distance_tolerance = 0.2, distance_unit = "kilometers", vertices_input_file = "vertices-compass.csv.gz" },
+    { type = "load_balancer", heuristic = { type = "haversine" } },
 ]
