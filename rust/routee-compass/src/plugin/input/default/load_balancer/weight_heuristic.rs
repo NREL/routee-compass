@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum WeightHeuristic {
     /// computes a weight directly as the haversine distance estimation between
-    /// trip origin and destination, in meters.
+    /// trip origin and destination, in kilometers.
     Haversine,
 }
 
