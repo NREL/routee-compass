@@ -10,25 +10,19 @@ use serde::{Deserialize, Serialize};
 pub enum WeightHeuristic {
     /// computes a weight directly as the haversine distance estimation between
     /// trip origin and destination, in meters.
-    ///
-    /// # Arguments
-    ///
-    /// * `default` - fill value if no destination is provided
-    Haversine { default: (Distance, DistanceUnit) },
+    Haversine,
 }
 
 impl WeightHeuristic {
     pub fn estimate_weight(&self, query: serde_json::Value) -> Result<f64, PluginError> {
         match self {
-            WeightHeuristic::Haversine { default } => {
-                let (default_distance, distance_unit) = default;
-                let default_meters = DistanceUnit::Meters
-                    .convert(*default_distance, *distance_unit)
-                    .as_f64();
+            WeightHeuristic::Haversine => {
                 let o = query.get_origin_coordinate()?;
                 let d_option = query.get_destination_coordinate()?;
                 match d_option {
-                    None => Ok(default_meters),
+                    None => Err(PluginError::InputError(String::from(
+                        "cannot estimate search size without destination coordinate",
+                    ))),
                     Some(d) => haversine::coord_distance_meters(o, d)
                         .map(|d| d.as_f64())
                         .map_err(|s| {
