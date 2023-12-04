@@ -1,3 +1,4 @@
+use super::custom_weight_type::CustomWeightType;
 use crate::plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError};
 use routee_compass_core::util::{
     geo::haversine,
@@ -5,12 +6,17 @@ use routee_compass_core::util::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum WeightHeuristic {
     /// computes a weight directly as the haversine distance estimation between
     /// trip origin and destination, in kilometers.
     Haversine,
+    /// user provides a field of some custom weight type that is used directly
+    /// for weight estimates.
+    Custom {
+        custom_weight_type: CustomWeightType,
+    },
 }
 
 impl WeightHeuristic {
@@ -33,6 +39,7 @@ impl WeightHeuristic {
                         }),
                 }
             }
+            WeightHeuristic::Custom { custom_weight_type } => custom_weight_type.get_weight(query),
         }
     }
 }
