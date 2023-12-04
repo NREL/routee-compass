@@ -267,6 +267,26 @@ distance_tolerance = 100
 distance_unit = "meters"
 ```
 
+### Load Balancer
+
+The load balancer plugin estimates the runtime for each query. That information is used by `CompassApp` in order to best leverage parallelism.
+
+For example, we have configured a parallelism of 2 and have 4 queries, but one query is a cross-country trip and will take a very long time to run. 
+With the load balancer plugin, Compass will identify this and bundle the three smaller queries together:
+
+```
+naive = [[long, short], [short, short]]
+balanced = [[long], [short, short, short]]
+```
+
+```toml
+[[plugin.input_plugins]]
+type = "load_balancer"
+# method for estimating query runtime, currently only haversine distance in kilometers is supported.
+# this heuristic only works for trips with origin/destination pairs.
+weight_heuristic = { type = "haversine" }
+```
+
 ## Output Plugins
 
 Here are the default output plugins that are provided:

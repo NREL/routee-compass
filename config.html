@@ -390,6 +390,7 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grid-search">Grid Search</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertex-rtree">Vertex RTree</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#edge-rtree">Edge RTree</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#load-balancer">Load Balancer</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-plugins">Output Plugins</a><ul class="nav section-nav flex-column">
@@ -661,6 +662,23 @@ It uses the geometries for computing the distance between the incoming points an
 </pre></div>
 </div>
 </section>
+<section id="load-balancer">
+<h3>Load Balancer<a class="headerlink" href="#load-balancer" title="Permalink to this heading">#</a></h3>
+<p>The load balancer plugin estimates the runtime for each query. That information is used by <code class="docutils literal notranslate"><span class="pre">CompassApp</span></code> in order to best leverage parallelism.</p>
+<p>For example, we have configured a parallelism of 2 and have 4 queries, but one query is a cross-country trip and will take a very long time to run.
+With the load balancer plugin, Compass will identify this and bundle the three smaller queries together:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">naive</span> <span class="o">=</span> <span class="p">[[</span><span class="n">long</span><span class="p">,</span> <span class="n">short</span><span class="p">],</span> <span class="p">[</span><span class="n">short</span><span class="p">,</span> <span class="n">short</span><span class="p">]]</span>
+<span class="n">balanced</span> <span class="o">=</span> <span class="p">[[</span><span class="n">long</span><span class="p">],</span> <span class="p">[</span><span class="n">short</span><span class="p">,</span> <span class="n">short</span><span class="p">,</span> <span class="n">short</span><span class="p">]]</span>
+</pre></div>
+</div>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.input_plugins]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;load_balancer&quot;</span>
+<span class="c1"># method for estimating query runtime, currently only haversine distance in kilometers is supported.</span>
+<span class="c1"># this heuristic only works for trips with origin/destination pairs.</span>
+<span class="n">weight_heuristic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;haversine&quot;</span><span class="w"> </span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="output-plugins">
 <h2>Output Plugins<a class="headerlink" href="#output-plugins" title="Permalink to this heading">#</a></h2>
@@ -782,6 +800,7 @@ The <code class="docutils literal notranslate"><span class="pre">tree</span></co
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#grid-search">Grid Search</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#vertex-rtree">Vertex RTree</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#edge-rtree">Edge RTree</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#load-balancer">Load Balancer</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-plugins">Output Plugins</a><ul class="nav section-nav flex-column">

@@ -334,6 +334,7 @@ document.write(`
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
@@ -341,8 +342,14 @@ document.write(`
     <span class="n">CompassAppWrapper</span><span class="p">,</span>
 <span class="p">)</span>
 
+<span class="kn">import</span> <span class="nn">toml</span>
+
+
 <span class="n">Query</span> <span class="o">=</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 <span class="n">Result</span> <span class="o">=</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="CompassApp"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp">[docs]</a><span class="k">class</span> <span class="nc">CompassApp</span><span class="p">:</span>
@@ -356,12 +363,15 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
 
 <div class="viewcode-block" id="CompassApp.from_config_file"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.from_config_file">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_config_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">CompassApp</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_config_file</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">config_file</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">output_file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompassApp</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a CompassApp from a config file</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            config_file (Union[str, Path]): Path to the config file</span>
+<span class="sd">            output_file (Optional[str]): Path to the output file. This overrides whatever is in the config file</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            CompassApp: A CompassApp object</span>
@@ -373,7 +383,19 @@ document.write(`
         <span class="n">config_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">config_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="si">}</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
-        <span class="n">app</span> <span class="o">=</span> <span class="n">CompassAppWrapper</span><span class="o">.</span><span class="n">_from_config_file</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="o">.</span><span class="n">absolute</span><span class="p">()))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">toml_config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="c1"># inject the output file override into the to_disk plugin config</span>
+        <span class="k">if</span> <span class="n">output_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">toml_config</span> <span class="o">=</span> <span class="n">inject_to_disk_plugin</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">toml_config</span><span class="p">)</span>
+
+        <span class="n">toml_string</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">toml_config</span><span class="p">)</span>
+        <span class="n">config_path_string</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="o">.</span><span class="n">absolute</span><span class="p">())</span>
+
+        <span class="n">app</span> <span class="o">=</span> <span class="n">CompassAppWrapper</span><span class="o">.</span><span class="n">_from_config_toml_string</span><span class="p">(</span>
+            <span class="n">toml_string</span><span class="p">,</span> <span class="n">config_path_string</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">app</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="CompassApp.run"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Query</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Query</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Result</span><span class="p">:</span>
@@ -420,6 +442,41 @@ document.write(`
         <span class="k">if</span> <span class="n">single_query</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">results</span></div></div>
+
+
+<div class="viewcode-block" id="inject_to_disk_plugin"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.inject_to_disk_plugin">[docs]</a><span class="k">def</span> <span class="nf">inject_to_disk_plugin</span><span class="p">(</span><span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">toml_config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Inject or override the to_disk plugin in the config dictionary</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        output_file (str): Path to the output file</span>
+<span class="sd">        toml_config (dict): The existing config dictionary</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary with the to_disk plugin injected or overriden</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">plugins</span> <span class="o">=</span> <span class="n">toml_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;plugin&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">plugins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># inject a whole plugin section with the to_disk output plugin</span>
+        <span class="n">toml_config</span><span class="p">[</span><span class="s2">&quot;plugin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;output_plugins&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;to_disk&quot;</span><span class="p">,</span> <span class="s2">&quot;output_file&quot;</span><span class="p">:</span> <span class="n">output_file</span><span class="p">}]</span>
+        <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_plugins</span> <span class="o">=</span> <span class="n">plugins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;output_plugins&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">output_plugins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># inject the to_disk output plugin into the existing plugin section</span>
+            <span class="n">plugins</span><span class="p">[</span><span class="s2">&quot;output_plugins&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;to_disk&quot;</span><span class="p">,</span> <span class="s2">&quot;output_file&quot;</span><span class="p">:</span> <span class="n">output_file</span><span class="p">}</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">to_disk_exists</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="n">output_plugins</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">plugin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;to_disk&quot;</span><span class="p">:</span>
+                    <span class="n">to_disk_exists</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">plugin</span><span class="p">[</span><span class="s2">&quot;output_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_file</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">to_disk_exists</span><span class="p">:</span>
+                <span class="n">output_plugins</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;to_disk&quot;</span><span class="p">,</span> <span class="s2">&quot;output_file&quot;</span><span class="p">:</span> <span class="n">output_file</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">toml_config</span></div>
 </pre></div>
 
                 </article>
