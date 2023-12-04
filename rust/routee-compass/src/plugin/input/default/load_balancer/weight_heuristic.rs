@@ -23,7 +23,7 @@ impl WeightHeuristic {
                     None => Err(PluginError::InputError(String::from(
                         "cannot estimate search size without destination coordinate",
                     ))),
-                    Some(d) => haversine::coord_distance_meters(o, d)
+                    Some(d) => haversine::coord_distance(o, d, DistanceUnit::Kilometers)
                         .map(|d| d.as_f64())
                         .map_err(|s| {
                             PluginError::PluginFailed(format!(
