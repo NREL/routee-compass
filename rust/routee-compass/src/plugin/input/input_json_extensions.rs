@@ -2,7 +2,7 @@ use super::input_field::InputField;
 use crate::plugin::plugin_error::PluginError;
 use geo;
 use routee_compass_core::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
-use serde_json;
+use serde_json::{self, json};
 
 pub trait InputJsonExtensions {
     fn get_origin_coordinate(&self) -> Result<geo::Coord<f64>, PluginError>;
@@ -16,6 +16,8 @@ pub trait InputJsonExtensions {
     fn get_origin_edge(&self) -> Result<EdgeId, PluginError>;
     fn get_destination_edge(&self) -> Result<Option<EdgeId>, PluginError>;
     fn get_grid_search(&self) -> Option<&serde_json::Value>;
+    fn add_query_weight_estimate(&mut self, weight: f64) -> Result<(), PluginError>;
+    fn get_query_weight_estimate(&self) -> Result<Option<f64>, PluginError>;
 }
 
 impl InputJsonExtensions for serde_json::Value {
@@ -178,6 +180,28 @@ impl InputJsonExtensions for serde_json::Value {
             _ => Err(PluginError::InputError(String::from(
                 "InputQuery is not a JSON object",
             ))),
+        }
+    }
+
+    fn add_query_weight_estimate(&mut self, weight: f64) -> Result<(), PluginError> {
+        match self {
+            serde_json::Value::Object(map) => {
+                map.insert(InputField::QueryWeightEstimate.to_string(), json!(weight));
+                Ok(())
+            }
+            _ => Err(PluginError::InputError(String::from(
+                "InputQuery is not a JSON object",
+            ))),
+        }
+    }
+
+    fn get_query_weight_estimate(&self) -> Result<Option<f64>, PluginError> {
+        match self.get(InputField::QueryWeightEstimate.to_string()) {
+            None => Ok(None),
+            Some(v) => v.as_f64().map(Some).ok_or(PluginError::ParseError(
+                InputField::QueryWeightEstimate.to_string(),
+                String::from("f64"),
+            )),
         }
     }
 }
