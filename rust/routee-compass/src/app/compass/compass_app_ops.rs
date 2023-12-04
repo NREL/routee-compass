@@ -81,34 +81,137 @@ pub fn read_config_from_string(
 }
 
 /// applies the weight balancing policy set by the LoadBalancerPlugin InputPlugin.
-/// sorts all queries in ascending order then lays them (striped by weight) in bins
-/// so that each incremental cost weight is fairly assigned.
 ///
-/// todo: an ideal version checks every $paralellism steps during assignment, sums
-/// values in each bin, and re-sorts the bin ordering to ensure the fairest assignment.
-pub fn construct_load_balancing_index(
-    queries: &Vec<serde_json::Value>,
+/// # Arguments
+///
+/// * `queries` - user queries to load balance based on a query weight heuristic.
+/// * `parallelism` - number of chunks to split inputs into, set by user
+/// * `default` - weight value if weight heuristic fails to produce an estimate
+///
+/// # Returns
+///
+/// An index for sorting the values so that, when fed into rayon's par_chunks iterator,
+/// load balances the queries across processes based on the estimates. the resulting
+/// batches are not equal-sized
+pub fn apply_load_balancing_policy(
+    queries: &[serde_json::Value],
     parallelism: usize,
-) -> Result<Vec<usize>, CompassAppError> {
-    let mut weighted = queries
-        .iter()
-        .enumerate()
-        .map(|(idx, q)| {
-            let w = q.get_query_weight_estimate()?.unwrap_or(1.0);
-            Ok((w, idx))
-        })
-        .collect::<Result<Vec<(f64, usize)>, PluginError>>()
-        .map_err(CompassAppError::PluginError)?;
-    weighted.sort_by_key(|(w, _idx)| OrderedFloat(*w));
-    let mut bins: Vec<Vec<usize>> = vec![vec![]; parallelism];
-    for (_w, idx) in weighted.iter() {
-        let bin = idx % parallelism;
-        bins[bin].push(*idx);
+    default: f64,
+) -> Result<Vec<Vec<&serde_json::Value>>, CompassAppError> {
+    if queries.is_empty() {
+        return Ok(vec![]);
     }
-    let result = bins
-        .into_iter()
-        .flatten()
-        // .flat_map(|idx| queries.)
-        .collect();
-    Ok(result)
+    let mut bin_totals = vec![0.0; parallelism];
+    let mut assignments: Vec<Vec<&serde_json::Value>> = vec![vec![]; parallelism];
+    for q in queries.iter() {
+        let w = q.get_query_weight_estimate()?.unwrap_or(default);
+        let min_bin = min_bin(&bin_totals)?;
+        bin_totals[min_bin] += w;
+        assignments[min_bin].push(q);
+    }
+    Ok(assignments)
+}
+
+fn min_bin(bins: &[f64]) -> Result<usize, PluginError> {
+    bins.iter()
+        .enumerate()
+        .min_by_key(|(_i, w)| OrderedFloat(**w))
+        .map(|(i, _w)| i)
+        .ok_or(PluginError::InternalError(String::from(
+            "cannot find min bin of empty slice",
+        )))
+}
+
+#[cfg(test)]
+mod test {
+    use super::apply_load_balancing_policy;
+    use crate::plugin::input::input_field::InputField;
+    use serde_json::json;
+
+    fn test_run_policy(queries: Vec<serde_json::Value>, parallelism: usize) -> Vec<Vec<i64>> {
+        apply_load_balancing_policy(&queries, parallelism, 1.0)
+            .unwrap()
+            .iter()
+            .map(|qs| {
+                let is: Vec<i64> = qs
+                    .iter()
+                    .map(|q| q.get("index").unwrap().as_i64().unwrap())
+                    .collect();
+                is
+            })
+            .collect::<Vec<_>>()
+    }
+
+    #[test]
+    fn test_uniform_input() {
+        // striped
+        let queries: Vec<serde_json::Value> = (0..12)
+            .map(|i| {
+                json!({
+                    "index": i,
+                    InputField::QueryWeightEstimate.to_str(): 1
+                })
+            })
+            .collect();
+        let parallelism = 4;
+        let result = test_run_policy(queries, parallelism);
+        let expected: Vec<Vec<i64>> =
+            vec![vec![0, 4, 8], vec![1, 5, 9], vec![2, 6, 10], vec![3, 7, 11]];
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_incremental_input() {
+        // this produces the same layout as the uniform input
+        let queries: Vec<serde_json::Value> = (0..12)
+            .map(|i| {
+                json!({
+                    "index": i,
+                    InputField::QueryWeightEstimate.to_str(): i + 1
+                })
+            })
+            .collect();
+        let parallelism = 4;
+        let result = test_run_policy(queries, parallelism);
+        let expected: Vec<Vec<i64>> =
+            vec![vec![0, 4, 8], vec![1, 5, 9], vec![2, 6, 10], vec![3, 7, 11]];
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_cycling_input() {
+        // an input one can verify via debugging that produces the expected output below
+        let queries: Vec<serde_json::Value> = vec![1, 4, 1, 2, 1, 4, 1, 2, 1, 4, 1, 2]
+            .iter()
+            .enumerate()
+            .map(|(i, estimate)| {
+                json!({
+                    "index": i,
+                    InputField::QueryWeightEstimate.to_str(): estimate
+                })
+            })
+            .collect();
+        let parallelism = 4;
+        let result = test_run_policy(queries, parallelism);
+        let expected = vec![vec![0, 4, 6, 8, 9], vec![1, 10], vec![2, 5], vec![3, 7, 11]];
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_big_outlier() {
+        let queries: Vec<serde_json::Value> = vec![14, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            .iter()
+            .enumerate()
+            .map(|(idx, est)| {
+                json!({
+                    "index": idx,
+                    InputField::QueryWeightEstimate.to_str(): est
+                })
+            })
+            .collect();
+        let parallelism = 4;
+        let result = test_run_policy(queries, parallelism);
+        let expected = vec![vec![0], vec![1, 4, 7, 10], vec![2, 5, 8, 11], vec![3, 6, 9]];
+        assert_eq!(result, expected);
+    }
 }
