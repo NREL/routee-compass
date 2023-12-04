@@ -199,7 +199,7 @@ mod test {
 
     #[test]
     fn test_big_outlier() {
-        let queries: Vec<serde_json::Value> = vec![14, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        let queries: Vec<serde_json::Value> = vec![4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
             .iter()
             .enumerate()
             .map(|(idx, est)| {
