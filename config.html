@@ -673,9 +673,34 @@ With the load balancer plugin, Compass will identify this and bundle the three s
 </div>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.input_plugins]]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;load_balancer&quot;</span>
-<span class="c1"># method for estimating query runtime, currently only haversine distance in kilometers is supported.</span>
+<span class="c1"># method for estimating query runtime, in this case haversine distance in kilometers.</span>
 <span class="c1"># this heuristic only works for trips with origin/destination pairs.</span>
 <span class="n">weight_heuristic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;haversine&quot;</span><span class="w"> </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>if a user has fields on their queries that can be used directly or mapped to weight values, they may use
+the custom weight heuristic. this numeric example expects a field <code class="docutils literal notranslate"><span class="pre">my_weight_value:</span> <span class="pre">float</span></code> on each query:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.input_plugins]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;load_balancer&quot;</span>
+<span class="k">[plugin.input_plugins.weight_heuristic]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;custom&quot;</span>
+<span class="k">[plugin.input_plugins.weight_heuristic.custom_weight_type]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;numeric&quot;</span>
+<span class="n">column_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;my_weight_value&quot;</span>
+</pre></div>
+</div>
+<p>categorical fields are also supported by providing a mapping. this example expects a <code class="docutils literal notranslate"><span class="pre">mode</span></code> field
+and uses values <code class="docutils literal notranslate"><span class="pre">[walk,</span> <span class="pre">bike,</span> <span class="pre">drive]</span></code> to map to weight values of 1, 10, and 100, for example
+based on observed search sizes for each travel mode.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.input_plugins]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;load_balancer&quot;</span>
+<span class="k">[plugin.input_plugins.weight_heuristic]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;custom&quot;</span>
+<span class="k">[plugin.input_plugins.weight_heuristic.custom_weight_type]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;categorical&quot;</span>
+<span class="n">column_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;mode&quot;</span>
+<span class="n">default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="n">mapping</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;walk&quot;</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;bike&quot;</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;drive&quot;</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="p">}</span>
 </pre></div>
 </div>
 </section>
