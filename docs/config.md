@@ -282,9 +282,38 @@ balanced = [[long], [short, short, short]]
 ```toml
 [[plugin.input_plugins]]
 type = "load_balancer"
-# method for estimating query runtime, currently only haversine distance in kilometers is supported.
+# method for estimating query runtime, in this case haversine distance in kilometers.
 # this heuristic only works for trips with origin/destination pairs.
 weight_heuristic = { type = "haversine" }
+```
+
+if a user has fields on their queries that can be used directly or mapped to weight values, they may use
+the custom weight heuristic. this numeric example expects a field `my_weight_value: float` on each query:
+
+```toml
+[[plugin.input_plugins]]
+type = "load_balancer"
+[plugin.input_plugins.weight_heuristic]
+type = "custom"
+[plugin.input_plugins.weight_heuristic.custom_weight_type]
+type = "numeric"
+column_name = "my_weight_value"
+```
+
+categorical fields are also supported by providing a mapping. this example expects a `mode` field
+and uses values `[walk, bike, drive]` to map to weight values of 1, 10, and 100, for example
+based on observed search sizes for each travel mode.
+
+```toml
+[[plugin.input_plugins]]
+type = "load_balancer"
+[plugin.input_plugins.weight_heuristic]
+type = "custom"
+[plugin.input_plugins.weight_heuristic.custom_weight_type]
+type = "categorical"
+column_name = "mode"
+default = 1
+mapping = { "walk" = 1, "bike" = 10, "drive" = 100 }
 ```
 
 ## Output Plugins
