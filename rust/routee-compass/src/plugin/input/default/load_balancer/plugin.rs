@@ -9,7 +9,7 @@ pub struct LoadBalancerPlugin {
 
 impl InputPlugin for LoadBalancerPlugin {
     fn process(&self, query: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
-        let w = self.heuristic.estimate_weight(query.clone())?;
+        let w = self.heuristic.estimate_weight(query)?;
         let mut updated = query.clone();
         updated.add_query_weight_estimate(w)?;
         Ok(vec![updated])

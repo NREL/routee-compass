@@ -14,7 +14,7 @@ pub enum WeightHeuristic {
 }
 
 impl WeightHeuristic {
-    pub fn estimate_weight(&self, query: serde_json::Value) -> Result<f64, PluginError> {
+    pub fn estimate_weight(&self, query: &serde_json::Value) -> Result<f64, PluginError> {
         match self {
             WeightHeuristic::Haversine => {
                 let o = query.get_origin_coordinate()?;
