@@ -22,13 +22,7 @@ classifiers = [
 keywords = ["eco routing"]
 dependencies = ["toml"]
 [project.optional-dependencies]
-dev = [
-    "black",
-    "pytest",
-    "maturin",
-    "jupyter-book",
-    "sphinx-book-theme",
-]
+dev = ["black", "pytest", "maturin", "jupyter-book", "sphinx-book-theme"]
 
 [project.urls]
 Homepage = "https://github.com/NREL/routee-compass"
@@ -41,10 +35,9 @@ manifest-path = "rust/routee-compass-py/Cargo.toml"
 include = [
     "python/nrel/routee/compass/resources/models/*.bin",
     "python/nrel/routee/compass/resources/*.toml",
+    ".cargo/config.toml"
 ]
-exclude = [
-    "rust/routee-compass-powertrain/onnx-runtime/v1.15.1/**/*"
-]
+exclude = ["rust/routee-compass-powertrain/onnx-runtime/**"]
 
 [tool.mypy]
 ignore_missing_imports = true

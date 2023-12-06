@@ -19,7 +19,7 @@ categories = ["science", "science::geo"]
 
 [dependencies]
 routee-compass-core = { path = "../routee-compass-core", version = "0.4.0" }
-routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.4.0" }
+routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.4.0", features=["onnx"]}
 thiserror = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }

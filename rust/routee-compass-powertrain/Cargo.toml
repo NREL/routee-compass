@@ -8,9 +8,6 @@ description = "Crate providing integration between RouteE Compass and RouteE Pow
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
-exclude = [
-    "onnx-runtime/v1.15.1/**/*"
-]
 
 
 [dependencies]
@@ -29,4 +26,11 @@ ort = { version = "1.15.3", optional = true }
 rayon = { workspace = true }
 
 [features]
-onnx = ["ort"]
+default = ["onnx"]
+onnx = ["ort", "ureq", "flate2", "tar", "zip"]
+
+[build-dependencies]
+ureq = { version = "2.9", optional = true }
+flate2 = { workspace = true, optional = true }
+tar = { version = "0.4", optional = true }
+zip = { version = "0.6", optional = true }
