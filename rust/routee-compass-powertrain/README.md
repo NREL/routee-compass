@@ -1,10 +1,10 @@
-routee-compass-powertrain
-============
-Crate containing core routing modules of RouteE Compass used by all downstream crates. 
+# routee-compass-powertrain
+
+Crate containing core routing modules of RouteE Compass used by all downstream crates.
 
 [![crates.io](https://img.shields.io/crates/v/routee-compass-powertrain.svg)](https://crates.io/crates/routee-compass-powertrain)
 
-### Usage
+## Usage
 
 This crate only includes code for running RouteE Powertrain models from RouteE Compass. For installing and running an application instance of RouteE Compass, consider instead installing the downstream [complete application crate](https://crates.io/crates/routee-compass).
 
@@ -12,12 +12,12 @@ To install as a library in Rust, add routee-compass-powertrain to your Cargo.tom
 
 ```toml
 [dependencies]
-routee-compass-powertrain = { version = "0.3.0" }
+routee-compass-powertrain = { version = "0.4.0" }
 ```
 
 Please see the [documentation](https://docs.rs/routee-compass-powertrain/latest/routee_compass_powertrain/) for usage.
 
-### License
+## License
 
 Copyright 2023 Alliance for Sustainable Energy, LLC
 
