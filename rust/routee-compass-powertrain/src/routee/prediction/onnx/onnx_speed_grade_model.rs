@@ -122,7 +122,7 @@ mod test {
         let input_grade_unit = GradeUnit::Decimal;
         let input_row = (input_speed, input_speed_unit, input_grade, input_grade_unit);
         let inputs: Vec<(Speed, SpeedUnit, Grade, GradeUnit)> =
-            (0..1000).map(|_i| input_row.clone()).collect();
+            (0..1000).map(|_i| input_row).collect();
 
         // map the model.get_energy function over the inputs using rayon
         let results = inputs
@@ -145,7 +145,7 @@ mod test {
         assert!(results.iter().all(|r| match r {
             Err(e) => panic!("{}", e),
             Ok((er, eru)) => {
-                er.to_owned() == expected_er && eru.to_owned() == expected_eru
+                *er == expected_er && *eru == expected_eru
             }
         }));
     }

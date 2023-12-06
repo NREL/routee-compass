@@ -47,10 +47,10 @@ impl ModelType {
                 #[cfg(feature = "onnx")]
                 {
                     Arc::new(OnnxSpeedGradeModel::new(
-                        energy_model_path.clone(),
-                        energy_model_speed_unit.clone(),
-                        energy_model_grade_unit.clone(),
-                        energy_model_energy_rate_unit.clone(),
+                        energy_model_path,
+                        energy_model_speed_unit,
+                        energy_model_grade_unit,
+                        energy_model_energy_rate_unit,
                     )?)
                 }
                 #[cfg(not(feature = "onnx"))]
