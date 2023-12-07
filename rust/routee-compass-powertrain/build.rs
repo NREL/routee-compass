@@ -68,11 +68,10 @@ fn main() {
     }
 
     let (archive_type, url, file_hash) = match env::var("TARGET").unwrap().as_str() {
-        "x86_64-apple-darwin" => (ArchiveType::Tgz, "https://github.com/supertone-inc/onnxruntime-build/releases/download/v1.15.1/onnxruntime-osx-universal2-static_lib-1.15.1.tgz", MACOS_UNIVERSAL2_CHECKSUM),
+        "x86_64-apple-darwin" | "aarch64-apple-darwin" => (ArchiveType::Tgz, "https://github.com/supertone-inc/onnxruntime-build/releases/download/v1.15.1/onnxruntime-osx-universal2-static_lib-1.15.1.tgz", MACOS_UNIVERSAL2_CHECKSUM),
         "x86_64-unknown-linux-gnu" => (ArchiveType::Tgz, "https://github.com/supertone-inc/onnxruntime-build/releases/download/v1.15.1/onnxruntime-linux-x64-static_lib-1.15.1.tgz", LINUX_X64_CHECKSUM),
         "aarch64-unknown-linux-gnu" => (ArchiveType::Tgz, "https://github.com/supertone-inc/onnxruntime-build/releases/download/v1.15.1/onnxruntime-linux-aarch64-static_lib-1.15.1.tgz", LINUX_AARCH64_CHECKSUM),
-        "x86_64-pc-windows-msvc" => (ArchiveType::Zip,"https://github.com/supertone-inc/onnxruntime-build/releases/download/v1.15.1/onnxruntime-win-x64-static_lib-1.15.1.zip", WINDOWS_X64_CHECKSUM),
-        "x86_64-pc-windows-gnu" => (ArchiveType::Zip, "https://github.com/supertone-inc/onnxruntime-build/releases/download/v1.15.1/onnxruntime-win-x64-static_lib-1.15.1.zip", WINDOWS_X64_CHECKSUM),
+        "x86_64-pc-windows-msvc" | "x86_64-pc-windows-gnu" => (ArchiveType::Zip,"https://github.com/supertone-inc/onnxruntime-build/releases/download/v1.15.1/onnxruntime-win-x64-static_lib-1.15.1.zip", WINDOWS_X64_CHECKSUM),
         t => panic!("Unsupported target:  {t}"),
     };
 
