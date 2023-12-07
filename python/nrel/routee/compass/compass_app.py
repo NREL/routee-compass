@@ -109,7 +109,7 @@ class CompassApp:
         if single_query and len(results) == 1:
             return results[0]
         return results
-    
+
     def graph_edge_origin(self, edge_id: int) -> int:
         return self._app.graph_edge_origin(edge_id)
 
