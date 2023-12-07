@@ -27,21 +27,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # - uses: conda-incubator/setup-miniconda@v2
-      #   with:
-      #     auto-update-conda: true
-      #     python-version: "3.9"
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: "3.9"
 
       - name: Setup Rust
         run: |
-          sudo apt-get update
-          sudo apt-get install libstdc++-10-dev
           rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }} 
           rustup component add rustfmt
 
       - name: Build
         working-directory: ./rust
         run: |
+          conda install -c conda-forge cxx-compiler
           cargo build --verbose
 
       - name: Run tests
