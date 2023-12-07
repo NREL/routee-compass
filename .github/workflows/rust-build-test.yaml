@@ -27,13 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Cpp
-        uses: aminya/setup-cpp@v0.36.1
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          compiler: gcc
+          auto-update-conda: true
+          python-version: "3.10"
 
-      - name: Setup Rust
+      - name: Setup Cpp and Rust
         run: |
+          conda install -c conda-forge cxx-compiler 
           rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }} 
           rustup component add rustfmt
 
