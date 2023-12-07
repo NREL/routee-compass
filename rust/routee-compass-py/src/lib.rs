@@ -1,5 +1,6 @@
 #![doc = include_str!("doc.md")]
 
+pub mod app_graph_ops;
 pub mod app_wrapper;
 
 use app_wrapper::CompassAppWrapper;

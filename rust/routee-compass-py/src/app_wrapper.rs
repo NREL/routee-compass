@@ -1,18 +1,47 @@
 use std::path::Path;
 
+use crate::app_graph_ops as ops;
 use pyo3::{exceptions::PyException, prelude::*, types::PyType};
-use routee_compass::app::compass::{
-    compass_app::CompassApp, compass_app_ops::read_config_from_string,
-    config::compass_app_builder::CompassAppBuilder,
+use routee_compass::app::{
+    compass::{
+        compass_app::CompassApp, compass_app_ops::read_config_from_string,
+        config::compass_app_builder::CompassAppBuilder,
+    },
+    search::search_app_graph_ops::SearchAppGraphOps,
 };
+use routee_compass_core::model::road_network::edge_id::EdgeId;
 
 #[pyclass]
 pub struct CompassAppWrapper {
-    routee_compass: CompassApp,
+    pub routee_compass: CompassApp,
 }
 
 #[pymethods]
 impl CompassAppWrapper {
+    pub fn graph_edge_origin(&self, edge_id: usize) -> PyResult<usize> {
+        ops::graph_edge_origin(self, edge_id)
+    }
+
+    pub fn graph_edge_destination(&self, edge_id: usize) -> PyResult<usize> {
+        ops::graph_edge_destination(self, edge_id)
+    }
+
+    pub fn graph_edge_distance(
+        &self,
+        edge_id: usize,
+        distance_unit: Option<String>,
+    ) -> PyResult<f64> {
+        ops::graph_edge_distance(self, edge_id, distance_unit)
+    }
+
+    pub fn graph_get_out_edge_ids(&self, vertex_id: usize) -> PyResult<Vec<usize>> {
+        ops::get_out_edge_ids(self, vertex_id)
+    }
+
+    pub fn graph_get_in_edge_ids(&self, vertex_id: usize) -> PyResult<Vec<usize>> {
+        ops::get_in_edge_ids(self, vertex_id)
+    }
+
     #[classmethod]
     pub fn _from_config_toml_string(
         _cls: &PyType,

@@ -11,6 +11,7 @@ documentation = "https://docs.rs/routee-compass"
 
 [dependencies]
 routee-compass = { path = "../routee-compass", version = "0.4.0" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.4.0" }
 pyo3 = { version = "0.20.0", features = ["extension-module"] }
 serde_json = { workspace = true }
 config = { workspace = true }

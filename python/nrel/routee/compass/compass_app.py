@@ -109,6 +109,21 @@ class CompassApp:
         if single_query and len(results) == 1:
             return results[0]
         return results
+    
+    def graph_edge_origin(self, edge_id: int) -> int:
+        return self._app.graph_edge_origin(edge_id)
+
+    def graph_edge_destination(self, edge_id: int) -> int:
+        return self._app.graph_edge_destination(edge_id)
+
+    def graph_edge_distance(self, edge_id: int, distance_unit: Optional[str]) -> float:
+        return self._app.graph_edge_distance(edge_id, distance_unit)
+
+    def graph_get_out_edge_ids(self, vertex_id: int) -> List[int]:
+        return self._app.graph_get_out_edge_ids(vertex_id)
+
+    def graph_get_in_edge_ids(self, vertex_id: int) -> List[int]:
+        return self._app.graph_get_in_edge_ids(vertex_id)
 
 
 def inject_to_disk_plugin(output_file: str, toml_config: dict) -> dict:
