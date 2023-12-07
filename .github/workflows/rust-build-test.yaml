@@ -32,15 +32,17 @@ jobs:
           auto-update-conda: true
           python-version: "3.10"
 
-      - name: Setup Cpp and Rust
+      - name: Setup Rust
         run: |
-          conda install -c conda-forge cxx-compiler 
           rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }} 
           rustup component add rustfmt
 
       - name: Build
         working-directory: ./rust
-        run: cargo build --verbose
+        shell: bash -el {0}
+        run: |
+          conda install -c conda-forge cxx-compiler 
+          cargo build --verbose
 
       - name: Run tests
         working-directory: ./rust
