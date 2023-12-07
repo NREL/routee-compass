@@ -27,11 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: "3.9"
-
       - name: Setup Rust
         run: |
           rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }} 
@@ -40,7 +35,6 @@ jobs:
       - name: Build
         working-directory: ./rust
         run: |
-          conda install -c conda-forge cxx-compiler
           cargo build --verbose
 
       - name: Run tests

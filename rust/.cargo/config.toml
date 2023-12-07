@@ -1,3 +1,0 @@
-[env]
-ORT_STRATEGY = { value = "system" }
-ORT_LIB_LOCATION = { value = "routee-compass-powertrain/onnx-runtime/lib", relative = true }
