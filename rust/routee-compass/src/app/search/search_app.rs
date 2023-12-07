@@ -7,7 +7,7 @@ use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{backtrack, search_algorithm::SearchAlgorithm},
     model::{
-        frontier::frontier_model::FrontierModel,
+        frontier::frontier_model_service::FrontierModelService,
         road_network::graph::Graph,
         termination::termination_model::TerminationModel,
         traversal::{
@@ -23,7 +23,7 @@ pub struct SearchApp {
     search_algorithm: SearchAlgorithm,
     graph: Arc<DriverReadOnlyLock<Graph>>,
     traversal_model_service: Arc<DriverReadOnlyLock<Arc<dyn TraversalModelService>>>,
-    frontier_model: Arc<DriverReadOnlyLock<Box<dyn FrontierModel>>>,
+    frontier_model_service: Arc<DriverReadOnlyLock<Arc<dyn FrontierModelService>>>,
     termination_model: Arc<DriverReadOnlyLock<TerminationModel>>,
 }
 
@@ -34,18 +34,18 @@ impl SearchApp {
         search_algorithm: SearchAlgorithm,
         graph: Graph,
         traversal_model_service: Arc<dyn TraversalModelService>,
-        frontier_model: Box<dyn FrontierModel>,
+        frontier_model_service: Arc<dyn FrontierModelService>,
         termination_model: TerminationModel,
     ) -> Self {
         let graph = Arc::new(DriverReadOnlyLock::new(graph));
         let traversal_model_service = Arc::new(DriverReadOnlyLock::new(traversal_model_service));
-        let frontier_model = Arc::new(DriverReadOnlyLock::new(frontier_model));
+        let frontier_model_service = Arc::new(DriverReadOnlyLock::new(frontier_model_service));
         let termination_model = Arc::new(DriverReadOnlyLock::new(termination_model));
         SearchApp {
             search_algorithm,
             graph,
             traversal_model_service,
-            frontier_model,
+            frontier_model_service,
             termination_model,
         }
     }
@@ -71,7 +71,14 @@ impl SearchApp {
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
             .build(query)?;
-        let fm_inner = Arc::new(self.frontier_model.read_only());
+
+        let fm_inner = self
+            .frontier_model_service
+            .read_only()
+            .read()
+            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
+            .build(query)?;
+
         let rm_inner = Arc::new(self.termination_model.read_only());
         self.search_algorithm
             .run_vertex_oriented(o, d, dg_inner, tm_inner, fm_inner, rm_inner)
@@ -132,7 +139,12 @@ impl SearchApp {
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
             .build(query)?;
-        let fm_inner = Arc::new(self.frontier_model.read_only());
+        let fm_inner = self
+            .frontier_model_service
+            .read_only()
+            .read()
+            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
+            .build(query)?;
         let rm_inner = Arc::new(self.termination_model.read_only());
         self.search_algorithm
             .run_edge_oriented(o, d, dg_inner_search, tm_inner, fm_inner, rm_inner)

@@ -7,7 +7,7 @@ use config::ConfigError;
 use routee_compass_core::{
     algorithm::search::search_error::SearchError,
     model::{
-        road_network::graph_error::GraphError,
+        frontier::frontier_model_error::FrontierModelError, road_network::graph_error::GraphError,
         traversal::traversal_model_error::TraversalModelError,
     },
 };
@@ -16,6 +16,8 @@ use routee_compass_core::{
 pub enum CompassAppError {
     #[error(transparent)]
     SearchError(#[from] SearchError),
+    #[error(transparent)]
+    FrontierModelError(#[from] FrontierModelError),
     #[error(transparent)]
     TraversalModelError(#[from] TraversalModelError),
     #[error(transparent)]

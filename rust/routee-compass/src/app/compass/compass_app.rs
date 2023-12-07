@@ -123,7 +123,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let frontier_start = Local::now();
         let frontier_params =
             config_json.get_config_section(CompassConfigurationField::Frontier)?;
-        let frontier_model = builder.build_frontier_model(frontier_params)?;
+        let frontier_model_service = builder.build_frontier_model_service(frontier_params)?;
         let frontier_duration = (Local::now() - frontier_start)
             .to_std()
             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
@@ -156,7 +156,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             search_algorithm,
             graph,
             traversal_model_service,
-            frontier_model,
+            frontier_model_service,
             termination_model,
         );
         let search_app_duration = to_std(Local::now() - search_app_start)?;

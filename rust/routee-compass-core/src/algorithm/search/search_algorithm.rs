@@ -32,7 +32,7 @@ impl SearchAlgorithm {
         destination: Option<VertexId>,
         graph: Arc<ExecutorReadOnlyLock<Graph>>,
         traversal_model: Arc<dyn TraversalModel>,
-        frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
+        frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
     ) -> Result<MinSearchTree, SearchError> {
         match self {
@@ -52,7 +52,7 @@ impl SearchAlgorithm {
         destination: Option<EdgeId>,
         graph: Arc<ExecutorReadOnlyLock<Graph>>,
         traversal_model: Arc<dyn TraversalModel>,
-        frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
+        frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
     ) -> Result<MinSearchTree, SearchError> {
         match self {
