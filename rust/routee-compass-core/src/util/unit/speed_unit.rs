@@ -1,6 +1,8 @@
 use super::Speed;
 use super::{DistanceUnit, TimeUnit};
+use crate::util::serde_ops::string_deserialize;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
@@ -16,6 +18,14 @@ impl std::fmt::Display for SpeedUnit {
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
         write!(f, "{}", s)
+    }
+}
+
+impl FromStr for SpeedUnit {
+    type Err = serde_json::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        string_deserialize(s)
     }
 }
 
