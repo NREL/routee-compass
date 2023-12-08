@@ -1,12 +1,12 @@
-use pyo3::{exceptions::PyException, PyErr, PyResult};
+use crate::app_wrapper::CompassAppWrapper;
+use pyo3::{exceptions::PyException, PyResult};
 use routee_compass::app::search::search_app_graph_ops::SearchAppGraphOps;
 use routee_compass_core::{
     algorithm::search::direction::Direction,
     model::road_network::{edge_id::EdgeId, vertex_id::VertexId},
     util::unit::{as_f64::AsF64, DistanceUnit},
 };
-
-use crate::app_wrapper::CompassAppWrapper;
+use std::str::FromStr;
 
 pub fn graph_edge_origin(app: &CompassAppWrapper, edge_id: usize) -> PyResult<usize> {
     let edge_id_internal = EdgeId(edge_id);
@@ -43,13 +43,7 @@ pub fn graph_edge_distance(
 ) -> PyResult<f64> {
     let du_internal_result: PyResult<Option<DistanceUnit>> = match distance_unit {
         Some(du_str) => {
-            // `DistanceUnit` is a non-parameterized enum with a snake-case deserializer.
-            // by surrounding the incoming string with quotes, it becomes valid JSON, which
-            // we can deserialize via serde_json.
-            let mut enquoted = du_str.clone();
-            enquoted.insert(0, '"');
-            enquoted.push('"');
-            let du = serde_json::from_str::<DistanceUnit>(enquoted.as_str()).map_err(|_| {
+            let du = DistanceUnit::from_str(du_str.as_str()).map_err(|_| {
                 PyException::new_err(format!("could not deserialize distance unit '{}'", du_str))
             })?;
 
