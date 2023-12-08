@@ -9,7 +9,7 @@ use super::{frontier_model::FrontierModel, frontier_model_error::FrontierModelEr
 /// [`FrontierModelService`] must be read across the thread pool and so it implements
 /// Send and Sync.
 ///
-/// [TraversalModel]: routee_compass_core::model::traversal::traversal_model::TraversalModel
+/// [FrontierModel]: routee_compass_core::model::traversal::traversal_model::FrontierModel
 pub trait FrontierModelService: Send + Sync {
     /// Builds a [FrontierModel] for the incoming query, used as parameters for this
     /// build operation.
