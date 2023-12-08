@@ -1,7 +1,9 @@
+.cargo/
+
 Cargo.lock
 
 # onnx runtimes get downloaded here:
-onnx-runtime/
+onnxruntime/
 
 .DS_Store
 *.code-workspace
