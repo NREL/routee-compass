@@ -2,12 +2,12 @@ name: Rust build and test on push + pull request
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths-ignore:
       - "docs/**"
       - "**.md"
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths-ignore:
       - "docs/**"
       - "**.md"
@@ -16,7 +16,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  
   build:
     name: RouteE-Compass Rust Build
     runs-on: ubuntu-latest
@@ -26,21 +25,22 @@ jobs:
           - stable
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup
-      run: |
-        rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }} 
-        rustup component add rustfmt
+      - name: Setup Rust
+        run: |
+          rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }} 
+          rustup component add rustfmt
 
-    - name: Build
-      working-directory: ./rust
-      run: cargo build --verbose
-    
-    - name: Run tests
-      working-directory: ./rust
-      run: cargo test --workspace --verbose
+      - name: Build
+        working-directory: ./rust
+        run: |
+          cargo build --verbose
 
-    - name: Run formatting
-      working-directory: ./rust
-      run: cargo fmt --all -- --check
+      - name: Run tests
+        working-directory: ./rust
+        run: cargo test --workspace --verbose
+
+      - name: Run formatting
+        working-directory: ./rust
+        run: cargo fmt --all -- --check

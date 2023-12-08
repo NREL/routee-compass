@@ -2,7 +2,7 @@ use super::custom_weight_type::CustomWeightType;
 use crate::plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError};
 use routee_compass_core::util::{
     geo::haversine,
-    unit::{as_f64::AsF64, Distance, DistanceUnit},
+    unit::{as_f64::AsF64, DistanceUnit},
 };
 use serde::{Deserialize, Serialize};
 

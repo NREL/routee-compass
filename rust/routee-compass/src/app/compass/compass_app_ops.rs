@@ -181,7 +181,7 @@ mod test {
     #[test]
     fn test_cycling_input() {
         // an input one can verify via debugging that produces the expected output below
-        let queries: Vec<serde_json::Value> = vec![1, 4, 1, 2, 1, 4, 1, 2, 1, 4, 1, 2]
+        let queries: Vec<serde_json::Value> = [1, 4, 1, 2, 1, 4, 1, 2, 1, 4, 1, 2]
             .iter()
             .enumerate()
             .map(|(i, estimate)| {
@@ -199,7 +199,7 @@ mod test {
 
     #[test]
     fn test_big_outlier() {
-        let queries: Vec<serde_json::Value> = vec![4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        let queries: Vec<serde_json::Value> = [4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
             .iter()
             .enumerate()
             .map(|(idx, est)| {

@@ -1,10 +1,8 @@
 use std::path::Path;
 
 use crate::routee::prediction::prediction_model::PredictionModel;
-use ndarray::CowArray;
-use ort::{
-    tensor::OrtOwnedTensor, Environment, GraphOptimizationLevel, Session, SessionBuilder, Value,
-};
+
+use ort::{GraphOptimizationLevel, Session, Value};
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
     util::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
@@ -36,17 +34,21 @@ impl PredictionModel for OnnxSpeedGradeModel {
                 ))
             })?;
 
-        let x = CowArray::from(array).into_dyn();
-        let value = Value::from_array(self.session.allocator(), &x).map_err(|e| {
+        let value = Value::from_array(array).map_err(|e| {
             TraversalModelError::PredictionModel(format!(
                 "Failed to create input value for prediction: {}",
                 e
             ))
         })?;
-        let input = vec![value];
+        let input = ort::inputs![value].map_err(|e| {
+            TraversalModelError::PredictionModel(format!(
+                "Failed to create input for prediction: {}",
+                e
+            ))
+        })?;
 
-        let result: OrtOwnedTensor<f32, _> =
-            self.session.run(input).unwrap()[0].try_extract().unwrap();
+        let results = self.session.run(input).unwrap();
+        let result = results[0].extract_tensor::<f32>().unwrap();
         let output_f64 = result.view().to_owned().into_raw_vec()[0] as f64;
 
         let energy_rate = EnergyRate::new(output_f64);
@@ -61,12 +63,7 @@ impl OnnxSpeedGradeModel {
         grade_unit: GradeUnit,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
-        let env = Environment::builder()
-            .build()
-            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
-            .into_arc();
-
-        let session = SessionBuilder::new(&env)
+        let session = Session::builder()
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
             .with_intra_threads(1)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?
@@ -122,7 +119,7 @@ mod test {
         let input_grade_unit = GradeUnit::Decimal;
         let input_row = (input_speed, input_speed_unit, input_grade, input_grade_unit);
         let inputs: Vec<(Speed, SpeedUnit, Grade, GradeUnit)> =
-            (0..1000).map(|_i| input_row.clone()).collect();
+            (0..1000).map(|_i| input_row).collect();
 
         // map the model.get_energy function over the inputs using rayon
         let results = inputs
@@ -145,7 +142,7 @@ mod test {
         assert!(results.iter().all(|r| match r {
             Err(e) => panic!("{}", e),
             Ok((er, eru)) => {
-                er.to_owned() == expected_er && eru.to_owned() == expected_eru
+                *er == expected_er && *eru == expected_eru
             }
         }));
     }
