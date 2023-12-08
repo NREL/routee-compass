@@ -43,6 +43,9 @@ pub fn graph_edge_distance(
 ) -> PyResult<f64> {
     let du_internal_result: PyResult<Option<DistanceUnit>> = match distance_unit {
         Some(du_str) => {
+            // `DistanceUnit` is a non-parameterized enum with a snake-case deserializer.
+            // by surrounding the incoming string with quotes, it becomes valid JSON, which
+            // we can deserialize via serde_json.
             let mut enquoted = du_str.clone();
             enquoted.insert(0, '"');
             enquoted.push('"');
