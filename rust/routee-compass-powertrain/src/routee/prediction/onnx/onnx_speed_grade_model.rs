@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use crate::routee::prediction::prediction_model::PredictionModel;
-use ndarray::CowArray;
-use ort::{GraphOptimizationLevel, Session, SessionBuilder, Value};
+
+use ort::{GraphOptimizationLevel, Session, Value};
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
     util::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
