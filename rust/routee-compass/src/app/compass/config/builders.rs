@@ -1,31 +1,5 @@
 use super::compass_configuration_error::CompassConfigurationError;
 use crate::plugin::{input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin};
-use routee_compass_core::model::frontier::frontier_model::FrontierModel;
-
-/// A [`FrontierModelBuilder`] takes a JSON object describing the configuration of a
-/// frontier model and builds a [FrontierModel].
-///
-/// A [`FrontierModelBuilder`] instance should be an empty struct that implements
-/// this trait.
-///
-/// [FrontierModel]: compass_core::model::frontier::frontier_model::FrontierModel
-pub trait FrontierModelBuilder {
-    /// Builds a [FrontierModel] from JSON configuration.
-    ///
-    /// # Arguments
-    ///
-    /// * `parameters` - the contents of the "frontier" TOML config section
-    ///
-    /// # Returns
-    ///
-    /// A [FrontierModel] designed to persist the duration of the CompassApp.
-    ///
-    /// [FrontierModel]: compass_core::model::frontier::frontier_model::FrontierModel
-    fn build(
-        &self,
-        parameters: &serde_json::Value,
-    ) -> Result<Box<dyn FrontierModel>, CompassConfigurationError>;
-}
 
 /// A [`InputPluginBuilder`] takes a JSON object describing the configuration of an
 /// input plugin and builds a [InputPlugin].

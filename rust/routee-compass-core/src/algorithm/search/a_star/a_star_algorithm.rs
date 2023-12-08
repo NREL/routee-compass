@@ -28,7 +28,7 @@ pub fn run_a_star(
     target: Option<VertexId>,
     directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
-    frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
+    f: Arc<dyn FrontierModel>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
     if target.map_or(false, |t| t == source) {
@@ -38,9 +38,6 @@ pub fn run_a_star(
 
     // context for the search (graph, search functions, frontier priority queue)
     let g = directed_graph
-        .read()
-        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let f = frontier_model
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
     let t = termination_model
@@ -197,7 +194,7 @@ pub fn run_a_star_edge_oriented(
     target: Option<EdgeId>,
     directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
-    frontier_model: Arc<ExecutorReadOnlyLock<Box<dyn FrontierModel>>>,
+    f: Arc<dyn FrontierModel>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
@@ -224,7 +221,7 @@ pub fn run_a_star_edge_oriented(
                 None,
                 directed_graph.clone(),
                 m.clone(),
-                frontier_model.clone(),
+                f.clone(),
                 termination_model,
             )?;
             if !tree.contains_key(&source_edge_dst_vertex_id) {
@@ -265,7 +262,7 @@ pub fn run_a_star_edge_oriented(
                     Some(target_edge_src_vertex_id),
                     directed_graph.clone(),
                     m.clone(),
-                    frontier_model.clone(),
+                    f.clone(),
                     termination_model,
                 )?;
 
@@ -327,7 +324,7 @@ mod tests {
 
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
-    use crate::model::frontier::default::no_restriction;
+    use crate::model::frontier::default::no_restriction::{self, NoRestriction};
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
     use crate::model::road_network::graph::Graph;
@@ -424,12 +421,10 @@ mod tests {
         let graph = build_mock_graph();
         let driver_dg = Arc::new(DriverReadOnlyLock::new(graph));
 
-        let no_restriction: Box<dyn FrontierModel> = Box::new(no_restriction::NoRestriction {});
+        // let no_restriction: Arc<dyn FrontierModel> = Arc::new(no_restriction::NoRestriction {});
         let driver_rm = Arc::new(DriverReadOnlyLock::new(TerminationModel::IterationsLimit {
             limit: 20,
         }));
-        // let driver_tm = Arc::new(DriverReadOnlyLock::new(dist_tm));
-        let driver_fm = Arc::new(DriverReadOnlyLock::new(no_restriction));
 
         // execute the route search
         let result: Vec<Result<MinSearchTree, SearchError>> = queries
@@ -439,7 +434,7 @@ mod tests {
                 let dg_inner = Arc::new(driver_dg.read_only());
                 let dist_tm: Arc<dyn TraversalModel> =
                     Arc::new(DistanceModel::new(DistanceUnit::Meters));
-                let fm_inner = Arc::new(driver_fm.read_only());
+                let fm_inner = Arc::new(NoRestriction {});
                 let rm_inner = Arc::new(driver_rm.read_only());
                 run_a_star(o, Some(d), dg_inner, dist_tm, fm_inner, rm_inner)
             })

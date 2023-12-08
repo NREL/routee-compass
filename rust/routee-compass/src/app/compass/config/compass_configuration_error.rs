@@ -2,7 +2,7 @@ use crate::plugin::plugin_error::PluginError;
 use config::ConfigError;
 use routee_compass_core::{
     model::{
-        road_network::graph_error::GraphError,
+        frontier::frontier_model_error::FrontierModelError, road_network::graph_error::GraphError,
         traversal::traversal_model_error::TraversalModelError,
     },
     util::conversion::conversion_error::ConversionError,
@@ -63,6 +63,8 @@ pub enum CompassConfigurationError {
     ConversionError(#[from] ConversionError),
     #[error(transparent)]
     TraversalModelError(#[from] TraversalModelError),
+    #[error(transparent)]
+    FrontierModelError(#[from] FrontierModelError),
     #[error(transparent)]
     PluginError(#[from] PluginError),
 }

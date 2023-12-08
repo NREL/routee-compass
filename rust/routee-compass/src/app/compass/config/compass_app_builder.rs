@@ -1,5 +1,5 @@
 use super::{
-    builders::{FrontierModelBuilder, InputPluginBuilder, OutputPluginBuilder},
+    builders::{InputPluginBuilder, OutputPluginBuilder},
     compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
@@ -32,7 +32,9 @@ use crate::plugin::{
 };
 use itertools::Itertools;
 use routee_compass_core::model::{
-    frontier::frontier_model::FrontierModel,
+    frontier::{
+        frontier_model_builder::FrontierModelBuilder, frontier_model_service::FrontierModelService,
+    },
     traversal::{
         traversal_model_builder::TraversalModelBuilder,
         traversal_model_service::TraversalModelService,
@@ -202,10 +204,10 @@ impl CompassAppBuilder {
 
     /// builds a frontier model with the specified type name with the provided
     /// frontier model configuration JSON
-    pub fn build_frontier_model(
+    pub fn build_frontier_model_service(
         &self,
         config: serde_json::Value,
-    ) -> Result<Box<dyn FrontierModel>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn FrontierModelService>, CompassConfigurationError> {
         let fm_type_obj =
             config
                 .get("type")
@@ -227,7 +229,10 @@ impl CompassAppBuilder {
                 String::from("frontier"),
                 self.frontier_builders.keys().join(", "),
             ))
-            .and_then(|b| b.build(&config))
+            .and_then(|b| {
+                b.build(&config)
+                    .map_err(CompassConfigurationError::FrontierModelError)
+            })
     }
 
     pub fn build_input_plugins(
