@@ -131,10 +131,12 @@ class CompassApp:
 
         Returns:
             int: the vertex id at the destination of the edge
-        """ 
+        """
         return self._app.graph_edge_destination(edge_id)
 
-    def graph_edge_distance(self, edge_id: int, distance_unit: Optional[str] = None) -> float:
+    def graph_edge_distance(
+        self, edge_id: int, distance_unit: Optional[str] = None
+    ) -> float:
         """
         get the distance for some edge
 
