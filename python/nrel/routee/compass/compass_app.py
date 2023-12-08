@@ -116,7 +116,7 @@ class CompassApp:
     def graph_edge_destination(self, edge_id: int) -> int:
         return self._app.graph_edge_destination(edge_id)
 
-    def graph_edge_distance(self, edge_id: int, distance_unit: Optional[str]) -> float:
+    def graph_edge_distance(self, edge_id: int, distance_unit: Optional[str] = None) -> float:
         return self._app.graph_edge_distance(edge_id, distance_unit)
 
     def graph_get_out_edge_ids(self, vertex_id: int) -> List[int]:
