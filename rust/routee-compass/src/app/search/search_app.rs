@@ -210,4 +210,8 @@ impl SearchApp {
             .build(query)?;
         Ok(tm)
     }
+
+    pub fn get_graph_reference(&self) -> Arc<ExecutorReadOnlyLock<Graph>> {
+        Arc::new(self.graph.read_only())
+    }
 }

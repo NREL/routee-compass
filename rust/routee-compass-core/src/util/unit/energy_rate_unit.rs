@@ -1,5 +1,7 @@
 use super::{DistanceUnit, EnergyUnit};
+use crate::util::serde_ops::string_deserialize;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Copy)]
 #[serde(rename_all = "snake_case")]
@@ -45,5 +47,13 @@ impl std::fmt::Display for EnergyRateUnit {
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
         write!(f, "{}", s)
+    }
+}
+
+impl FromStr for EnergyRateUnit {
+    type Err = serde_json::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        string_deserialize(s)
     }
 }

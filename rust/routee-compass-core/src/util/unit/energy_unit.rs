@@ -1,6 +1,7 @@
-use serde::{Deserialize, Serialize};
-
 use super::Energy;
+use crate::util::serde_ops::string_deserialize;
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Copy)]
 #[serde(rename_all = "snake_case")]
@@ -34,5 +35,13 @@ impl std::fmt::Display for EnergyUnit {
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
         write!(f, "{}", s)
+    }
+}
+
+impl FromStr for EnergyUnit {
+    type Err = serde_json::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        string_deserialize(s)
     }
 }

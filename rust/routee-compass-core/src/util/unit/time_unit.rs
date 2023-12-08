@@ -1,5 +1,7 @@
 use super::Time;
+use crate::util::serde_ops::string_deserialize;
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
@@ -40,6 +42,14 @@ impl std::fmt::Display for TimeUnit {
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
         write!(f, "{}", s)
+    }
+}
+
+impl FromStr for TimeUnit {
+    type Err = serde_json::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        string_deserialize(s)
     }
 }
 

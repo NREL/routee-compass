@@ -110,6 +110,69 @@ class CompassApp:
             return results[0]
         return results
 
+    def graph_edge_origin(self, edge_id: int) -> int:
+        """
+        get the origin vertex id for some edge
+
+        Args:
+            edge_id (int): the id of the edge
+
+        Returns:
+            int: the vertex id at the source of the edge
+        """
+        return self._app.graph_edge_origin(edge_id)
+
+    def graph_edge_destination(self, edge_id: int) -> int:
+        """
+        get the destination vertex id for some edge
+
+        Args:
+            edge_id (int): the id of the edge
+
+        Returns:
+            int: the vertex id at the destination of the edge
+        """
+        return self._app.graph_edge_destination(edge_id)
+
+    def graph_edge_distance(
+        self, edge_id: int, distance_unit: Optional[str] = None
+    ) -> float:
+        """
+        get the distance for some edge
+
+        Args:
+            edge_id (int): the id of the edge
+            distance_unit (Optional[str]): distance unit, by default meters
+
+        Returns:
+            int: the distance covered by traversing the edge
+        """
+        return self._app.graph_edge_distance(edge_id, distance_unit)
+
+    def graph_get_out_edge_ids(self, vertex_id: int) -> List[int]:
+        """
+        get the list of edge ids that depart from some vertex
+
+        Args:
+            vertex_id (int): the id of the vertex
+
+        Returns:
+            List[int]: the edge ids of edges departing from this vertex
+        """
+        return self._app.graph_get_out_edge_ids(vertex_id)
+
+    def graph_get_in_edge_ids(self, vertex_id: int) -> List[int]:
+        """
+        get the list of edge ids that arrive from some vertex
+
+        Args:
+            vertex_id (int): the id of the vertex
+
+        Returns:
+            List[int]: the edge ids of edges arriving at this vertex
+        """
+        return self._app.graph_get_in_edge_ids(vertex_id)
+
 
 def inject_to_disk_plugin(output_file: str, toml_config: dict) -> dict:
     """
