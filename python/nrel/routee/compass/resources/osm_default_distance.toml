@@ -1,4 +1,5 @@
 parallelism = 2
+search_orientation = "vertex"
 
 [graph]
 edge_list_input_file = "edges-compass.csv.gz"
