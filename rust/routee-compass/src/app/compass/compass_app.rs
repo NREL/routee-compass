@@ -1,4 +1,7 @@
-use super::{compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder};
+use super::{
+    compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder,
+    search_orientation::SearchOrientation,
+};
 use crate::{
     app::{
         compass::{
@@ -45,6 +48,7 @@ pub struct CompassApp {
     pub input_plugins: Vec<Box<dyn InputPlugin>>,
     pub output_plugins: Vec<Box<dyn OutputPlugin>>,
     pub parallelism: usize,
+    pub search_orientation: SearchOrientation,
 }
 
 impl TryFrom<&Path> for CompassApp {
@@ -150,19 +154,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         );
 
         // build search app
-        let search_app_start = Local::now();
-        let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
         let search_app: SearchApp = SearchApp::new(
             search_algorithm,
             graph,
             traversal_model_service,
             frontier_model_service,
             termination_model,
-        );
-        let search_app_duration = to_std(Local::now() - search_app_start)?;
-        log::info!(
-            "finished building search app with duration {}",
-            search_app_duration.hhmmss()
         );
 
         // build plugins
@@ -178,11 +175,17 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             plugins_duration.hhmmss()
         );
 
+        // other parameters
+        let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
+        let search_orientation = config
+            .get::<SearchOrientation>(CompassConfigurationField::SearchOrientation.to_str())?;
+
         Ok(CompassApp {
             search_app,
             input_plugins,
             output_plugins,
             parallelism,
+            search_orientation,
         })
     }
 }
@@ -318,10 +321,10 @@ impl CompassApp {
         &self,
         query: serde_json::Value,
     ) -> Result<Vec<serde_json::Value>, CompassAppError> {
-        let search_result = self
-            .search_app
-            .run_vertex_oriented(&query)
-            .or_else(|_| self.search_app.run_edge_oriented(&query));
+        let search_result = match self.search_orientation {
+            SearchOrientation::Vertex => self.search_app.run_vertex_oriented(&query),
+            SearchOrientation::Edge => self.search_app.run_edge_oriented(&query),
+        };
         let output = apply_output_processing(
             (&query, search_result),
             &self.search_app,

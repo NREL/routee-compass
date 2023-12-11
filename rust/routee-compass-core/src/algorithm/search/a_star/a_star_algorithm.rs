@@ -324,7 +324,7 @@ mod tests {
 
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
-    use crate::model::frontier::default::no_restriction::{self, NoRestriction};
+    use crate::model::frontier::default::no_restriction::{NoRestriction};
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
     use crate::model::road_network::graph::Graph;
