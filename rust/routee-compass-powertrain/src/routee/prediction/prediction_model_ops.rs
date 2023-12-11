@@ -1,5 +1,10 @@
-use std::{path::Path, sync::Arc};
+use std::{
+    num::NonZeroUsize,
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
+use lru::LruCache;
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
     util::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
@@ -23,6 +28,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
     energy_rate_unit: EnergyRateUnit,
     ideal_energy_rate_option: Option<EnergyRate>,
     real_world_energy_adjustment_option: Option<f64>,
+    max_cache_size: Option<usize>,
 ) -> Result<PredictionModelRecord, TraversalModelError> {
     let prediction_model: Arc<dyn PredictionModel> = match model_type {
         ModelType::Smartcore => {
@@ -57,8 +63,8 @@ pub fn load_prediction_model<P: AsRef<Path>>(
 
     let real_world_energy_adjustment = real_world_energy_adjustment_option.unwrap_or(1.0);
 
-    Ok(PredictionModelRecord {
-        name: model_name,
+    PredictionModelRecord::new(
+        model_name,
         prediction_model,
         model_type,
         speed_unit,
@@ -66,7 +72,8 @@ pub fn load_prediction_model<P: AsRef<Path>>(
         energy_rate_unit,
         ideal_energy_rate,
         real_world_energy_adjustment,
-    })
+        max_cache_size,
+    )
 }
 
 /// sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model

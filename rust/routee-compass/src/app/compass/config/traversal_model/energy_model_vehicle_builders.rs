@@ -127,6 +127,11 @@ fn get_model_record_from_params(
         parent_key.clone(),
     )?;
 
+    let maximum_cache_size = parameters.get_config_serde_optional::<usize>(
+        String::from("maximum_cache_size"),
+        parent_key.clone(),
+    )?;
+
     let model_record = load_prediction_model(
         name.clone(),
         &model_path,
@@ -136,6 +141,7 @@ fn get_model_record_from_params(
         energy_rate_unit,
         ideal_energy_rate_option,
         real_world_energy_adjustment_option,
+        maximum_cache_size,
     )?;
 
     Ok(model_record)

@@ -280,6 +280,7 @@ mod tests {
             EnergyRateUnit::GallonsGasolinePerMile,
             None,
             None,
+            None,
         )
         .unwrap();
 

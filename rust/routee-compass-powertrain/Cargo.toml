@@ -23,15 +23,9 @@ serde_repr = "0.1"
 serde_json = { workspace = true }
 ndarray = "0.15"
 ort = { version = "2.0.0-alpha.2", optional = true }
+lru = { version = "0.12" }
 rayon = { workspace = true }
 
 [features]
 default = ["onnx"]
-onnx = ["ort", "ureq", "flate2", "tar", "zip", "sha256"]
-
-[build-dependencies]
-sha256 = { version = "1.4", optional = true }
-ureq = { version = "2.9", optional = true }
-flate2 = { workspace = true, optional = true }
-tar = { version = "0.4", optional = true }
-zip = { version = "0.6", optional = true }
+onnx = ["ort"]
