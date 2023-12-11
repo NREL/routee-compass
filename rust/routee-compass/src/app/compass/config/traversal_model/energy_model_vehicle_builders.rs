@@ -127,10 +127,8 @@ fn get_model_record_from_params(
         parent_key.clone(),
     )?;
 
-    let cache_size = parameters.get_config_serde_optional::<usize>(
-        String::from("cache_size"),
-        parent_key.clone(),
-    )?;
+    let cache_size = parameters
+        .get_config_serde_optional::<usize>(String::from("cache_size"), parent_key.clone())?;
 
     let model_record = load_prediction_model(
         name.clone(),
