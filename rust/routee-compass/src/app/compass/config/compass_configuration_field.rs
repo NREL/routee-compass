@@ -15,6 +15,7 @@ pub enum CompassConfigurationField {
     IncludeTree,
     ChargeDepleting,
     ChargeSustaining,
+    SearchOrientation,
 }
 
 impl CompassConfigurationField {
@@ -33,6 +34,7 @@ impl CompassConfigurationField {
             CompassConfigurationField::OutputPlugins => "output_plugins",
             CompassConfigurationField::ChargeDepleting => "charge_depleting",
             CompassConfigurationField::ChargeSustaining => "charge_sustaining",
+            CompassConfigurationField::SearchOrientation => "search_orientation",
         }
     }
 }
