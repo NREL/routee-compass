@@ -1,3 +1,4 @@
+use super::road_class_service::RoadClassFrontierService;
 use crate::app::compass::config::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
@@ -9,9 +10,7 @@ use routee_compass_core::{
     },
     util::fs::{read_decoders, read_utils},
 };
-use std::{collections::HashSet, sync::Arc};
-
-use super::road_class_service::RoadClassFrontierService;
+use std::sync::Arc;
 
 pub struct RoadClassBuilder {}
 
