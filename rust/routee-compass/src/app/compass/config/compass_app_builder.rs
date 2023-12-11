@@ -4,7 +4,8 @@ use super::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
     frontier_model::{
-        no_restriction_builder::NoRestrictionBuilder, road_class_builder::RoadClassBuilder,
+        no_restriction_builder::NoRestrictionBuilder,
+        road_class::road_class_builder::RoadClassBuilder,
     },
     traversal_model::{
         distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
