@@ -7,9 +7,8 @@ use routee_compass::app::{
         compass_app::CompassApp, compass_app_ops::read_config_from_string,
         config::compass_app_builder::CompassAppBuilder,
     },
-    search::search_app_graph_ops::SearchAppGraphOps,
 };
-use routee_compass_core::model::road_network::edge_id::EdgeId;
+
 
 #[pyclass]
 pub struct CompassAppWrapper {
