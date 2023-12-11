@@ -1,10 +1,9 @@
 use std::{
-    num::NonZeroUsize,
     path::Path,
-    sync::{Arc, Mutex},
+    sync::{Arc},
 };
 
-use lru::LruCache;
+
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
     util::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
