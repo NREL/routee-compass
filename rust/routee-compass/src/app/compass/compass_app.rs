@@ -180,6 +180,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let search_orientation = config
             .get::<SearchOrientation>(CompassConfigurationField::SearchOrientation.to_str())?;
 
+        log::info!(
+            "additional parameters - parallelism={}, search orientation={:?}",
+            parallelism,
+            search_orientation
+        );
+
         Ok(CompassApp {
             search_app,
             input_plugins,
