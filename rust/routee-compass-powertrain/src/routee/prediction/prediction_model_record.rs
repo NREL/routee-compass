@@ -23,10 +23,11 @@ pub struct PredictionModelRecord {
     pub energy_rate_unit: EnergyRateUnit,
     pub ideal_energy_rate: EnergyRate,
     pub real_world_energy_adjustment: f64,
-    cache: Mutex<LruCache<(i32, i32), EnergyRate>>,
+    cache: Option<Mutex<LruCache<(i32, i32), EnergyRate>>>,
 }
 
 impl PredictionModelRecord {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         name: String,
         prediction_model: Arc<dyn PredictionModel>,
@@ -38,12 +39,17 @@ impl PredictionModelRecord {
         real_world_energy_adjustment: f64,
         max_cache_size: Option<usize>,
     ) -> Result<Self, TraversalModelError> {
-        let max_cache_size = NonZeroUsize::new(max_cache_size.unwrap_or(10000)).ok_or(
-            TraversalModelError::BuildError(
-                "maximum_cache_size must be greater than 0".to_string(),
-            ),
-        )?;
-        let cache = LruCache::new(max_cache_size);
+        let cache = match max_cache_size {
+            Some(s) => {
+                let size = NonZeroUsize::new(s).ok_or(TraversalModelError::BuildError(
+                    "maximum_cache_size must be greater than 0".to_string(),
+                ))?;
+                let cache = LruCache::new(size);
+                Some(Mutex::new(cache))
+            }
+            None => None,
+        };
+
         Ok(Self {
             name,
             prediction_model,
@@ -53,7 +59,7 @@ impl PredictionModelRecord {
             energy_rate_unit,
             ideal_energy_rate,
             real_world_energy_adjustment,
-            cache: Mutex::new(cache),
+            cache,
         })
     }
     pub fn predict(
@@ -63,25 +69,37 @@ impl PredictionModelRecord {
         distance: (Distance, DistanceUnit),
     ) -> Result<(Energy, EnergyUnit), TraversalModelError> {
         let (distance, distance_unit) = distance;
-        // convert speed to kph and then round to nearest integer
-        let speed_kph_int = speed
-            .1
-            .convert(speed.0, SpeedUnit::KilometersPerHour)
-            .as_f64()
-            .round() as i32;
-        let grade_millis_int = grade.1.convert(grade.0, GradeUnit::Millis).as_f64().round() as i32;
 
-        let mut cache = self.cache.lock().unwrap();
-        let energy_rate = match cache.get(&(speed_kph_int, grade_millis_int)) {
-            Some(er) => *er,
+        let energy_rate = match &self.cache {
+            Some(cache) => {
+                // convert speed to kph and then round to nearest integer
+                let speed_kph_int = speed
+                    .1
+                    .convert(speed.0, SpeedUnit::KilometersPerHour)
+                    .as_f64()
+                    .round() as i32;
+                let grade_millis_int =
+                    grade.1.convert(grade.0, GradeUnit::Millis).as_f64().round() as i32;
+
+                let mut cache = cache.lock().unwrap();
+                let energy_rate = match cache.get(&(speed_kph_int, grade_millis_int)) {
+                    Some(er) => *er,
+                    None => {
+                        let (energy_rate, _energy_rate_unit) =
+                            self.prediction_model.predict(speed, grade)?;
+                        energy_rate
+                    }
+                };
+                cache.put((speed_kph_int, grade_millis_int), energy_rate);
+                std::mem::drop(cache);
+                energy_rate
+            }
             None => {
                 let (energy_rate, _energy_rate_unit) =
                     self.prediction_model.predict(speed, grade)?;
                 energy_rate
             }
         };
-        cache.put((speed_kph_int, grade_millis_int), energy_rate);
-        std::mem::drop(cache);
 
         let energy_rate_real_world = energy_rate * self.real_world_energy_adjustment;
 
