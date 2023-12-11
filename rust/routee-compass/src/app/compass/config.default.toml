@@ -1,4 +1,5 @@
 parallelism = 2
+search_orientation = "vertex"
 
 [graph]
 verbose = true
