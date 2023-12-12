@@ -36,5 +36,4 @@ let model: Arc<dyn TraversalModel> = service.build(&query);
 
 the **builder** object instances are wrapped in a `Box` referenced by the `CompassAppBuilder` and used when creating `CompassApp` instances. once we build a **service** from the **builder**, the app requires that they are wrapped in an `Arc`, which is a thread-safe pointer. this way, the **service** can be shared across threads so we can build a **model** for a specific user query from within a query thread.
 
-building a **service** may be expensive. for example, with `SpeedLookupBuilder`, we must load a file with $|E(G)|$ speed values (one for each edge in the graph). but in order to share the speed values with a **model**, we need to clone the contents loaded via the **service**. 
 
