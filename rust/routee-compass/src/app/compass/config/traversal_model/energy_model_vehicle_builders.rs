@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
-use routee_compass_core::util::unit::{
-    Energy, EnergyRate, EnergyRateUnit, EnergyUnit, GradeUnit, SpeedUnit,
+use routee_compass_core::util::{
+    cache_policy::float_cache_policy::{FloatCachePolicy, FloatCachePolicyConfig},
+    unit::{Energy, EnergyRate, EnergyRateUnit, EnergyUnit, GradeUnit, SpeedUnit},
 };
 use routee_compass_powertrain::routee::{
     prediction::{load_prediction_model, model_type::ModelType, PredictionModelRecord},
@@ -127,8 +128,15 @@ fn get_model_record_from_params(
         parent_key.clone(),
     )?;
 
-    let cache_size = parameters
-        .get_config_serde_optional::<usize>(String::from("cache_size"), parent_key.clone())?;
+    let cache_config = parameters.get_config_serde_optional::<FloatCachePolicyConfig>(
+        String::from("float_cache_policy"),
+        parent_key.clone(),
+    )?;
+
+    let cache = match cache_config {
+        Some(config) => Some(FloatCachePolicy::from_config(config)?),
+        None => None,
+    };
 
     let model_record = load_prediction_model(
         name.clone(),
@@ -139,7 +147,7 @@ fn get_model_record_from_params(
         energy_rate_unit,
         ideal_energy_rate_option,
         real_world_energy_adjustment_option,
-        cache_size,
+        cache,
     )?;
 
     Ok(model_record)
