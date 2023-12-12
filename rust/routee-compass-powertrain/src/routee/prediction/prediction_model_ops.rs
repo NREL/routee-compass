@@ -1,8 +1,4 @@
-use std::{
-    path::Path,
-    sync::{Arc},
-};
-
+use std::{path::Path, sync::Arc};
 
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
