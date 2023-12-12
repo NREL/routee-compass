@@ -378,6 +378,7 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections">Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-builder-service-model-convention-in-routee-compass">The Builder, Service, Model Convention in RouteE Compass</a></li>
 </ul>
             </nav>
         </div>
@@ -400,6 +401,51 @@ let output: Box&lt;[T]&gt; = data.into_boxed_slice();
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">Vec</span></code> is preferred for smaller or non-persistent datasets, or when the additional features of <code class="docutils literal notranslate"><span class="pre">Vec</span></code> are used, such as iteration or dynamic allocation.</p>
+</section>
+<section id="the-builder-service-model-convention-in-routee-compass">
+<h2>The Builder, Service, Model Convention in RouteE Compass<a class="headerlink" href="#the-builder-service-model-convention-in-routee-compass" title="Permalink to this heading">#</a></h2>
+<p>in RouteE Compass, large Traversal and Frontier objects are loaded once and shared across threads.
+they are built in two phases: once at application initialization, and once again for each query, so that query-specific parameters can be applied.
+these phases are represented by the following types:</p>
+<table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>phase</p></th>
+<th class="head"><p>description</p></th>
+<th class="head"><p>lifetime</p></th>
+<th class="head"><p>Frontier</p></th>
+<th class="head"><p>Traversal</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>builder</strong></p></td>
+<td><p>an empty struct with a <code class="docutils literal notranslate"><span class="pre">build</span></code> method that creates a <strong>service</strong></p></td>
+<td><p>app initialization only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FrontierModelBuilder</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TraversalModelBuilder</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>service</strong></p></td>
+<td><p>struct with a <code class="docutils literal notranslate"><span class="pre">build</span></code> method that creates a <strong>model</strong></p></td>
+<td><p>entire program lifetime (same as CompassApp instance)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FrontierModelService</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TraversalModelService</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>model</strong></p></td>
+<td><p>object used by the search algorithm</p></td>
+<td><p>duration of a single query</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">FrontierModel</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p>when we apply the <code class="docutils literal notranslate"><span class="pre">build</span></code> methods, we get these results (using the travel time <code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code> as an example):</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="kd">let</span><span class="w"> </span><span class="n">config</span>: <span class="nc">serde_json</span>::<span class="n">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">!</span><span class="p">();</span><span class="w"> </span><span class="c1">// application configuration</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">query</span>: <span class="nc">serde_json</span>::<span class="n">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">!</span><span class="p">();</span><span class="w">  </span><span class="c1">// a single user search query</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">builder</span>: <span class="nb">Box</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">TraversalModelBuilder</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Box</span>::<span class="n">new</span><span class="p">(</span><span class="n">SpeedLookupBuilder</span><span class="w"> </span><span class="p">{});</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">service</span>: <span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">TraversalModelService</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">config</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">model</span>: <span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">TraversalModel</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">service</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">query</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>the <strong>builder</strong> object instances are wrapped in a <code class="docutils literal notranslate"><span class="pre">Box</span></code> referenced by the <code class="docutils literal notranslate"><span class="pre">CompassAppBuilder</span></code> and used when creating <code class="docutils literal notranslate"><span class="pre">CompassApp</span></code> instances. once we build a <strong>service</strong> from the <strong>builder</strong>, the app requires that they are wrapped in an <code class="docutils literal notranslate"><span class="pre">Arc</span></code>, which is a thread-safe pointer. this way, the <strong>service</strong> can be shared across threads so we can build a <strong>model</strong> for a specific user query from within a query thread.</p>
 </section>
 </section>
 
@@ -449,6 +495,7 @@ let output: Box&lt;[T]&gt; = data.into_boxed_slice();
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections">Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-builder-service-model-convention-in-routee-compass">The Builder, Service, Model Convention in RouteE Compass</a></li>
 </ul>
   </nav></div>
 
