@@ -16,7 +16,7 @@ use crate::routee::{
     vehicle::{vehicle_type::VehicleType, VehicleEnergyResult},
 };
 
-pub struct DualFuelVehicle {
+pub struct PHEV {
     pub name: String,
     pub charge_sustain_model: Arc<PredictionModelRecord>,
     pub charge_depleting_model: Arc<PredictionModelRecord>,
@@ -26,7 +26,7 @@ pub struct DualFuelVehicle {
     pub custom_liquid_fuel_to_kwh: Option<f64>,
 }
 
-impl DualFuelVehicle {
+impl PHEV {
     pub fn new(
         name: String,
         charge_sustain_model: PredictionModelRecord,
@@ -48,7 +48,7 @@ impl DualFuelVehicle {
     }
 }
 
-impl VehicleType for DualFuelVehicle {
+impl VehicleType for PHEV {
     fn name(&self) -> String {
         self.name.clone()
     }
@@ -156,7 +156,7 @@ impl VehicleType for DualFuelVehicle {
         }
         let starting_battery_energy = self.battery_capacity * (starting_soc_percent / 100.0);
 
-        let new_phev = DualFuelVehicle {
+        let new_phev = PHEV {
             name: self.name.clone(),
             charge_sustain_model: self.charge_sustain_model.clone(),
             charge_depleting_model: self.charge_depleting_model.clone(),
@@ -202,7 +202,7 @@ fn get_remaining_battery_energy_from_state(state: &[StateVar]) -> Energy {
     Energy::new(state[2].0)
 }
 
-fn get_battery_soc_percent(vehicle: &DualFuelVehicle, state: &[StateVar]) -> f64 {
+fn get_battery_soc_percent(vehicle: &PHEV, state: &[StateVar]) -> f64 {
     let battery_energy_unit = vehicle.battery_energy_unit;
 
     let battery_capacity_kwh =
@@ -228,7 +228,7 @@ fn get_battery_soc_percent(vehicle: &DualFuelVehicle, state: &[StateVar]) -> f64
 ///
 /// Returns a tuple of (electrical_energy, electrical_energy_unit, liquid_fuel_energy, liquid_fuel_energy_unit)
 fn get_phev_energy(
-    vehicle: &DualFuelVehicle,
+    vehicle: &PHEV,
     battery_soc_percent: f64,
     speed: (Speed, SpeedUnit),
     grade: (Grade, GradeUnit),
@@ -278,7 +278,7 @@ mod tests {
 
     use std::path::PathBuf;
 
-    fn mock_vehicle() -> DualFuelVehicle {
+    fn mock_vehicle() -> PHEV {
         let charge_sustain_model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
@@ -315,7 +315,7 @@ mod tests {
         )
         .unwrap();
 
-        DualFuelVehicle::new(
+        PHEV::new(
             "Chevy_Volt".to_string(),
             charge_sustain_model_record,
             charge_depleting_model_record,

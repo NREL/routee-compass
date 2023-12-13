@@ -7,7 +7,7 @@ use routee_compass_core::util::{
 use routee_compass_powertrain::routee::{
     prediction::{load_prediction_model, model_type::ModelType, PredictionModelRecord},
     vehicle::{
-        default::{dual_fuel_vehicle::DualFuelVehicle, single_fuel_vehicle::SingleFuelVehicle},
+        default::{ice::ICE, phev::PHEV},
         VehicleType,
     },
 };
@@ -53,7 +53,7 @@ fn build_conventional(
 
     let model_record = get_model_record_from_params(parameters, name.clone())?;
 
-    let vehicle = SingleFuelVehicle::new(name, model_record)?;
+    let vehicle = ICE::new(name, model_record)?;
 
     Ok(Arc::new(vehicle))
 }
@@ -91,7 +91,7 @@ fn build_plugin_hybrid(
         vehicle_key.clone(),
     )?;
     let starting_battery_energy = battery_capacity;
-    let phev = DualFuelVehicle::new(
+    let phev = PHEV::new(
         name,
         charge_sustain_record,
         charge_depleting_record,
