@@ -5,7 +5,7 @@ use routee_compass_core::{
         frontier::frontier_model_error::FrontierModelError, road_network::graph_error::GraphError,
         traversal::traversal_model_error::TraversalModelError,
     },
-    util::conversion::conversion_error::ConversionError,
+    util::{cache_policy::cache_error::CacheError, conversion::conversion_error::ConversionError},
 };
 
 #[derive(thiserror::Error, Debug)]
@@ -61,6 +61,8 @@ pub enum CompassConfigurationError {
     SerdeDeserializationError(#[from] serde_json::Error),
     #[error(transparent)]
     ConversionError(#[from] ConversionError),
+    #[error(transparent)]
+    CacheError(#[from] CacheError),
     #[error(transparent)]
     TraversalModelError(#[from] TraversalModelError),
     #[error(transparent)]

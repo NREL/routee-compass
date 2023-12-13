@@ -2,7 +2,10 @@ use std::{path::Path, sync::Arc};
 
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    util::{
+        cache_policy::float_cache_policy::FloatCachePolicy,
+        unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    },
 };
 
 use super::{
@@ -15,7 +18,7 @@ use crate::routee::prediction::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel
 
 #[allow(clippy::too_many_arguments)]
 pub fn load_prediction_model<P: AsRef<Path>>(
-    model_name: String,
+    name: String,
     model_path: &P,
     model_type: ModelType,
     speed_unit: SpeedUnit,
@@ -23,6 +26,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
     energy_rate_unit: EnergyRateUnit,
     ideal_energy_rate_option: Option<EnergyRate>,
     real_world_energy_adjustment_option: Option<f64>,
+    cache: Option<FloatCachePolicy>,
 ) -> Result<PredictionModelRecord, TraversalModelError> {
     let prediction_model: Arc<dyn PredictionModel> = match model_type {
         ModelType::Smartcore => {
@@ -58,7 +62,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
     let real_world_energy_adjustment = real_world_energy_adjustment_option.unwrap_or(1.0);
 
     Ok(PredictionModelRecord {
-        name: model_name,
+        name,
         prediction_model,
         model_type,
         speed_unit,
@@ -66,6 +70,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
         energy_rate_unit,
         ideal_energy_rate,
         real_world_energy_adjustment,
+        cache,
     })
 }
 

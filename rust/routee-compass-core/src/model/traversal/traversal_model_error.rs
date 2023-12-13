@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use super::state::traversal_state::TraversalState;
+use crate::util::cache_policy::cache_error::CacheError;
 use crate::util::unit::UnitError;
 
 #[derive(thiserror::Error, Debug)]
@@ -19,6 +20,8 @@ pub enum TraversalModelError {
     InternalError(String),
     #[error(transparent)]
     TraversalUnitsError(#[from] UnitError),
+    #[error(transparent)]
+    CacheError(#[from] CacheError),
     #[error("prediction model failed with error {0}")]
     PredictionModel(String),
 }

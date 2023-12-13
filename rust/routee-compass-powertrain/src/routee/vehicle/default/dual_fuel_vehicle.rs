@@ -299,6 +299,7 @@ mod tests {
             EnergyRateUnit::GallonsGasolinePerMile,
             Some(EnergyRate::new(0.02)),
             Some(1.1252),
+            None,
         )
         .unwrap();
         let charge_depleting_model_record = load_prediction_model(
@@ -310,6 +311,7 @@ mod tests {
             EnergyRateUnit::KilowattHoursPerMile,
             Some(EnergyRate::new(0.2)),
             Some(1.3958),
+            None,
         )
         .unwrap();
 
