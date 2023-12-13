@@ -170,6 +170,30 @@ energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 # A real world adjustment factor for things like temperature and auxillary loads
 real_world_energy_adjustment = 1.166
+
+# An optional cache that will keep track of recent energy values with the same input.
+# If this is ommitted from the config, the model will compute the energy for every link in a search.
+# See note below for some considerations when using this.
+[traversal.vehicles.float_cache_policy]
+cache_size = 10_000
+key_precisions = [
+    2, # speed goes from 71.23 to 7123
+    4, # grade goes from 0.123 (decimal) to 1230 or 123 (millis) to 1230000
+]
+```
+
+```{note}
+When using the float cache it's possible that you might get slightly different final energy values versus the same query run with no caching.
+
+The reason for this is how the input floating point values get converted into an integer for storage in the cache.
+
+If your key precision for a grade value is 4, an incoming value of 0.123456 would get converted into 1234 and stored in the cache as such.
+This is done to make sure we're actually getting cache hits and improving performance.
+If we used a precision of 10, there might not be many other links in the road network that share the same exact properties at that resolution.
+But, the tradeoff here is that if you used a key precision of 1, grade values of 0.14 and 0.05 would both result in the integer 1 being stored in the cache.
+This would render grades of 5% and 14% to be equal to each other from an energy perspective and they are clearly not.
+
+So, usage of this cache can result in improved runtimes for the energy traversal model but the user should make sure the precision values are appropriate for the application.
 ```
 
 ## Plugins
@@ -271,7 +295,7 @@ distance_unit = "meters"
 
 The load balancer plugin estimates the runtime for each query. That information is used by `CompassApp` in order to best leverage parallelism.
 
-For example, we have configured a parallelism of 2 and have 4 queries, but one query is a cross-country trip and will take a very long time to run. 
+For example, we have configured a parallelism of 2 and have 4 queries, but one query is a cross-country trip and will take a very long time to run.
 With the load balancer plugin, Compass will identify this and bundle the three smaller queries together:
 
 ```
