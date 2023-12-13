@@ -574,7 +574,28 @@ Here are the default traversal models that come with the <code class="docutils l
 <span class="n">ideal_energy_rate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.02857143</span>
 <span class="c1"># A real world adjustment factor for things like temperature and auxillary loads</span>
 <span class="n">real_world_energy_adjustment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.166</span>
+
+<span class="c1"># An optional cache that will keep track of recent energy values with the same input.</span>
+<span class="c1"># If this is ommitted from the config, the model will compute the energy for every link in a search.</span>
+<span class="c1"># See note below for some considerations when using this.</span>
+<span class="k">[traversal.vehicles.float_cache_policy]</span>
+<span class="n">cache_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10_000</span>
+<span class="n">key_precisions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="c1"># speed goes from 71.23 to 7123</span>
+<span class="w">    </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="c1"># grade goes from 0.123 (decimal) to 1230 or 123 (millis) to 1230000</span>
+<span class="p">]</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using the float cache it's possible that you might get slightly different final energy values versus the same query run with no caching.</p>
+<p>The reason for this is how the input floating point values get converted into an integer for storage in the cache.</p>
+<p>If your key precision for a grade value is 4, an incoming value of 0.123456 would get converted into 1234 and stored in the cache as such.
+This is done to make sure we're actually getting cache hits and improving performance.
+If we used a precision of 10, there might not be many other links in the road network that share the same exact properties at that resolution.
+But, the tradeoff here is that if you used a key precision of 1, grade values of 0.14 and 0.05 would both result in the integer 1 being stored in the cache.
+This would render grades of 5% and 14% to be equal to each other from an energy perspective and they are clearly not.</p>
+<p>So, usage of this cache can result in improved runtimes for the energy traversal model but the user should make sure the precision values are appropriate for the application.</p>
 </div>
 </section>
 </section>
