@@ -7,7 +7,7 @@ use routee_compass_core::util::{
 use routee_compass_powertrain::routee::{
     prediction::{load_prediction_model, model_type::ModelType, PredictionModelRecord},
     vehicle::{
-        default::{ice::ICE, phev::PHEV},
+        default::{bev::BEV, ice::ICE, phev::PHEV},
         VehicleType,
     },
 };
@@ -19,15 +19,17 @@ use crate::app::compass::config::{
 };
 
 pub enum VehicleBuilder {
-    SingleFuel,
-    DualFuel,
+    ICE,
+    BEV,
+    PHEV,
 }
 
 impl VehicleBuilder {
     pub fn from_string(vehicle_type: String) -> Result<VehicleBuilder, CompassConfigurationError> {
         match vehicle_type.as_str() {
-            "single_fuel" => Ok(VehicleBuilder::SingleFuel),
-            "dual_fuel" => Ok(VehicleBuilder::DualFuel),
+            "ice" => Ok(VehicleBuilder::ICE),
+            "bev" => Ok(VehicleBuilder::BEV),
+            "phev" => Ok(VehicleBuilder::PHEV),
             _ => Err(CompassConfigurationError::ExpectedFieldWithType(
                 "vehicle.type".to_string(),
                 "string".to_string(),
@@ -39,8 +41,9 @@ impl VehicleBuilder {
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn VehicleType>, CompassConfigurationError> {
         match self {
-            VehicleBuilder::SingleFuel => build_conventional(parameters),
-            VehicleBuilder::DualFuel => build_plugin_hybrid(parameters),
+            VehicleBuilder::ICE => build_conventional(parameters),
+            VehicleBuilder::BEV => build_battery_electric(parameters),
+            VehicleBuilder::PHEV => build_plugin_hybrid(parameters),
         }
     }
 }
@@ -48,7 +51,7 @@ impl VehicleBuilder {
 fn build_conventional(
     parameters: &serde_json::Value,
 ) -> Result<Arc<dyn VehicleType>, CompassConfigurationError> {
-    let vehicle_key = String::from("single_fuel");
+    let vehicle_key = String::from("ice");
     let name = parameters.get_config_string(String::from("name"), vehicle_key.clone())?;
 
     let model_record = get_model_record_from_params(parameters, name.clone())?;
@@ -58,10 +61,37 @@ fn build_conventional(
     Ok(Arc::new(vehicle))
 }
 
+fn build_battery_electric(
+    parameters: &serde_json::Value,
+) -> Result<Arc<dyn VehicleType>, CompassConfigurationError> {
+    let vehicle_key = String::from("bev");
+    let name = parameters.get_config_string(String::from("name"), vehicle_key.clone())?;
+
+    let model_record = get_model_record_from_params(parameters, name.clone())?;
+
+    let battery_capacity = parameters
+        .get_config_serde::<Energy>(String::from("battery_capacity"), vehicle_key.clone())?;
+    let battery_energy_unit = parameters.get_config_serde::<EnergyUnit>(
+        String::from("battery_capacity_unit"),
+        vehicle_key.clone(),
+    )?;
+    let starting_battery_energy = battery_capacity;
+
+    let vehicle = BEV::new(
+        name,
+        model_record,
+        battery_capacity,
+        starting_battery_energy,
+        battery_energy_unit,
+    );
+
+    Ok(Arc::new(vehicle))
+}
+
 fn build_plugin_hybrid(
     parameters: &serde_json::Value,
 ) -> Result<Arc<dyn VehicleType>, CompassConfigurationError> {
-    let vehicle_key = String::from("dual_fuel");
+    let vehicle_key = String::from("phev");
     let name = parameters.get_config_string(String::from("name"), vehicle_key.clone())?;
 
     let charge_depleting_params =

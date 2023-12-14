@@ -79,8 +79,11 @@ impl VehicleType for BEV {
 
         let updated_state = update_state(state, electrical_energy, self.battery_capacity);
 
+        // offset the electrical energy by the battery capacity to capture negative values
+        let offset_energy = electrical_energy + self.battery_capacity;
+
         Ok(VehicleEnergyResult {
-            energy: electrical_energy,
+            energy: offset_energy,
             energy_unit: electrical_energy_unit,
             updated_state,
         })
@@ -105,15 +108,12 @@ impl VehicleType for BEV {
         &self,
         query: &serde_json::Value,
     ) -> Result<Arc<dyn VehicleType>, TraversalModelError> {
-        let starting_soc_percent = query
-            .get("starting_soc_percent".to_string())
-            .ok_or(TraversalModelError::BuildError(
-                "No 'starting_soc_percent' key provided in query".to_string(),
-            ))?
-            .as_f64()
-            .ok_or(TraversalModelError::BuildError(
+        let starting_soc_percent = match query.get("starting_soc_percent".to_string()) {
+            Some(soc_string) => soc_string.as_f64().ok_or(TraversalModelError::BuildError(
                 "Expected 'starting_soc_percent' value to be numeric".to_string(),
-            ))?;
+            ))?,
+            None => 100.0,
+        };
         if !(0.0..=100.0).contains(&starting_soc_percent) {
             return Err(TraversalModelError::BuildError(
                 "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),
