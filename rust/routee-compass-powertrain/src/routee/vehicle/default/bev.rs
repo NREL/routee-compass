@@ -22,6 +22,7 @@ pub struct BEV {
     pub battery_capacity: Energy,
     pub starting_battery_energy: Energy,
     pub battery_energy_unit: EnergyUnit,
+    pub max_link_energy_delta: Energy,
 }
 
 impl BEV {
@@ -31,13 +32,19 @@ impl BEV {
         battery_capacity: Energy,
         starting_battery_energy: Energy,
         battery_energy_unit: EnergyUnit,
+        max_link_energy_delta: Option<Energy>,
     ) -> Self {
+        let max_link_energy_delta = match max_link_energy_delta {
+            Some(max_link_energy_delta) => max_link_energy_delta,
+            None => EnergyUnit::KilowattHours.convert(Energy::new(1.0), battery_energy_unit),
+        };
         Self {
             name,
             prediction_model_record: Arc::new(prediction_model_record),
             battery_capacity,
             starting_battery_energy,
             battery_energy_unit,
+            max_link_energy_delta,
         }
     }
 }
@@ -79,11 +86,8 @@ impl VehicleType for BEV {
 
         let updated_state = update_state(state, electrical_energy, self.battery_capacity);
 
-        // offset the electrical energy by the battery capacity to capture negative values
-        let offset_energy = electrical_energy + self.battery_capacity;
-
         Ok(VehicleEnergyResult {
-            energy: offset_energy,
+            energy: electrical_energy,
             energy_unit: electrical_energy_unit,
             updated_state,
         })
@@ -127,9 +131,24 @@ impl VehicleType for BEV {
             battery_capacity: self.battery_capacity,
             starting_battery_energy,
             battery_energy_unit: self.battery_energy_unit,
+            max_link_energy_delta: self.max_link_energy_delta,
         };
 
         Ok(Arc::new(new_bev))
+    }
+
+    fn normalize_energy(&self, energy: (Energy, EnergyUnit)) -> f64 {
+        let (energy, _energy_unit) = energy;
+
+        // Here we offset the energy by the battery capacity to make sure it never goes negative.
+        // Then, we normalize it to get a value between 0 and 1.
+        // This assumes that a single link pass will never consume (or regen) more than max_link_energy_delta of energy
+        let min_energy = self.battery_capacity - self.max_link_energy_delta;
+        let max_energy = self.battery_capacity + self.max_link_energy_delta;
+        let offset_energy = energy + self.battery_capacity;
+        let normalized_energy = (offset_energy - min_energy) / (max_energy - min_energy);
+
+        normalized_energy.as_f64()
     }
 }
 
@@ -217,6 +236,7 @@ mod tests {
             battery_capacity,
             staring_battery_energy,
             EnergyUnit::KilowattHours,
+            None,
         )
     }
 

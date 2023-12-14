@@ -1,6 +1,7 @@
-use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
+use derive_more::{Add, Mul, Neg, Sub, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
+use std::ops::Div;
 use std::{cmp::Ordering, fmt::Display};
 
 use super::{
@@ -20,7 +21,6 @@ use super::{
     Add,
     Sub,
     Mul,
-    Div,
     Sum,
     Neg,
 )]
@@ -43,6 +43,14 @@ impl From<(Distance, Speed)> for Time {
 impl PartialOrd for Time {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.0.cmp(&other.0))
+    }
+}
+
+impl Div for Time {
+    type Output = Time;
+    fn div(self, rhs: Self) -> Self::Output {
+        let value = self.0 / rhs.0;
+        Time(value)
     }
 }
 

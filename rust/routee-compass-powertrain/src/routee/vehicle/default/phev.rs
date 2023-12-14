@@ -24,6 +24,7 @@ pub struct PHEV {
     pub starting_battery_energy: Energy,
     pub battery_energy_unit: EnergyUnit,
     pub custom_liquid_fuel_to_kwh: Option<f64>,
+    pub max_link_engine_energy_delta: Energy,
 }
 
 impl PHEV {
@@ -35,8 +36,18 @@ impl PHEV {
         starting_battery_energy: Energy,
         battery_energy_unit: EnergyUnit,
         custom_liquid_fuel_to_kwh: Option<f64>,
-    ) -> Result<Self, TraversalModelError> {
-        Ok(Self {
+        max_link_engine_energy_delta: Option<Energy>,
+    ) -> Self {
+        let max_engine_energy_delta = match max_link_engine_energy_delta {
+            Some(max_engine_energy_delta) => max_engine_energy_delta,
+            None => EnergyUnit::GallonsGasoline.convert(
+                Energy::new(0.25),
+                charge_sustain_model
+                    .energy_rate_unit
+                    .associated_energy_unit(),
+            ),
+        };
+        Self {
             name,
             charge_sustain_model: Arc::new(charge_sustain_model),
             charge_depleting_model: Arc::new(charge_depleting_model),
@@ -44,7 +55,8 @@ impl PHEV {
             starting_battery_energy,
             battery_energy_unit,
             custom_liquid_fuel_to_kwh,
-        })
+            max_link_engine_energy_delta: max_engine_energy_delta,
+        }
     }
 }
 
@@ -164,9 +176,35 @@ impl VehicleType for PHEV {
             starting_battery_energy,
             battery_energy_unit: self.battery_energy_unit,
             custom_liquid_fuel_to_kwh: self.custom_liquid_fuel_to_kwh,
+            max_link_engine_energy_delta: self.max_link_engine_energy_delta,
         };
 
         Ok(Arc::new(new_phev))
+    }
+    fn normalize_energy(&self, energy: (Energy, EnergyUnit)) -> f64 {
+        let (energy, energy_unit) = energy;
+        let energy_kwh = energy_unit.convert(energy, EnergyUnit::KilowattHours);
+        let engine_energy_unit = self
+            .charge_sustain_model
+            .energy_rate_unit
+            .associated_energy_unit();
+        let max_energy_delta_kwh = engine_energy_unit
+            .convert(self.max_link_engine_energy_delta, EnergyUnit::KilowattHours);
+        let battery_capacity_kwh = self
+            .battery_energy_unit
+            .convert(self.battery_capacity, EnergyUnit::KilowattHours);
+
+        // It's possible that this value could have been generated from the engine or the battery.
+        // So, we'll offset it by the battery capacity to make sure it's always positive.
+        // Then, since the engine energy will typically be much larger than the battery energy,
+        // we'll normalize the value to be in the range of the min/max of what the engine might produce.
+        let offset_energy_kwh = energy_kwh + battery_capacity_kwh;
+        let min_energy_kwh = battery_capacity_kwh - max_energy_delta_kwh;
+        let max_energy_kwh = battery_capacity_kwh + max_energy_delta_kwh;
+        let normalized_energy =
+            (offset_energy_kwh - min_energy_kwh) / (max_energy_kwh - min_energy_kwh);
+
+        normalized_energy.as_f64()
     }
 }
 
@@ -323,8 +361,8 @@ mod tests {
             Energy::new(12.0),
             EnergyUnit::KilowattHours,
             None,
+            None,
         )
-        .unwrap()
     }
 
     #[test]

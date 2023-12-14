@@ -18,17 +18,29 @@ use crate::routee::{
 pub struct ICE {
     pub name: String,
     pub prediction_model_record: Arc<PredictionModelRecord>,
+    pub max_link_energy_delta: Energy,
 }
 
 impl ICE {
     pub fn new(
         name: String,
         prediction_model_record: PredictionModelRecord,
-    ) -> Result<Self, TraversalModelError> {
-        Ok(Self {
+        max_link_energy_delta: Option<Energy>,
+    ) -> Self {
+        let max_energy_delta = match max_link_energy_delta {
+            Some(max_energy_delta) => max_energy_delta,
+            None => EnergyUnit::GallonsGasoline.convert(
+                Energy::new(0.25),
+                prediction_model_record
+                    .energy_rate_unit
+                    .associated_energy_unit(),
+            ),
+        };
+        Self {
             name,
             prediction_model_record: Arc::new(prediction_model_record),
-        })
+            max_link_energy_delta: max_energy_delta,
+        }
     }
 }
 
@@ -97,7 +109,14 @@ impl VehicleType for ICE {
         Ok(Arc::new(ICE {
             name: self.name.clone(),
             prediction_model_record: self.prediction_model_record.clone(),
+            max_link_energy_delta: self.max_link_energy_delta,
         }))
+    }
+
+    fn normalize_energy(&self, energy: (Energy, EnergyUnit)) -> f64 {
+        let (energy, _energy_unit) = energy;
+        let normalized_energy = energy / self.max_link_energy_delta;
+        normalized_energy.as_f64()
     }
 }
 

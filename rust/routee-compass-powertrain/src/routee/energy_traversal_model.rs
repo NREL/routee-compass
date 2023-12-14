@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::routee::energy_model_ops::ZERO_ENERGY;
 
 use super::energy_model_ops::get_grade;
@@ -16,7 +18,6 @@ use routee_compass_core::model::traversal::traversal_result::TraversalResult;
 use routee_compass_core::util::geo::haversine;
 use routee_compass_core::util::unit::as_f64::AsF64;
 use routee_compass_core::util::unit::*;
-use std::sync::Arc;
 
 pub struct EnergyTraversalModel {
     pub service: Arc<EnergyModelService>,
@@ -54,7 +55,7 @@ impl TraversalModel for EnergyTraversalModel {
             return Ok(Cost::ZERO);
         }
 
-        let (energy, _energy_unit) = self
+        let (energy, energy_unit) = self
             .vehicle
             .best_case_energy((distance, self.service.output_distance_unit))?;
 
@@ -63,10 +64,15 @@ impl TraversalModel for EnergyTraversalModel {
             self.service.speeds_table_speed_unit,
             distance,
             self.service.output_distance_unit,
-            self.service.output_time_unit.clone(),
+            self.service.output_time_unit,
         )?;
 
-        let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
+        let total_cost = create_cost(
+            (energy, energy_unit),
+            (time, self.service.output_time_unit),
+            self.energy_cost_coefficient,
+            self.vehicle.clone(),
+        );
         Ok(total_cost)
     }
 
@@ -86,7 +92,7 @@ impl TraversalModel for EnergyTraversalModel {
             self.service.speeds_table_speed_unit,
             distance,
             self.service.output_distance_unit,
-            self.service.output_time_unit.clone(),
+            self.service.output_time_unit,
         )?;
 
         let energy_result = self.vehicle.consume_energy(
@@ -104,7 +110,12 @@ impl TraversalModel for EnergyTraversalModel {
             log::debug!("negative energy encountered, setting to 1e-9");
         }
 
-        let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
+        let total_cost = create_cost(
+            (energy, energy_result.energy_unit),
+            (time, self.service.output_time_unit),
+            self.energy_cost_coefficient,
+            self.vehicle.clone(),
+        );
 
         let updated_state = update_state(state, distance, time, energy_result.updated_state);
         let result = TraversalResult {
@@ -192,10 +203,23 @@ impl TryFrom<(Arc<EnergyModelService>, &serde_json::Value)> for EnergyTraversalM
     }
 }
 
-fn create_cost(energy: Energy, time: Time, energy_percent: f64) -> Cost {
-    let energy_scaled = energy * energy_percent;
+const MAX_LINK_TIME_MINUTES: f64 = 5.0;
+
+fn create_cost(
+    energy: (Energy, EnergyUnit),
+    time: (Time, TimeUnit),
+    energy_percent: f64,
+    vehicle: Arc<dyn VehicleType>,
+) -> Cost {
+    let (time, time_unit) = time;
+    let normalized_energy = vehicle.normalize_energy(energy);
+
+    let time_minutes = time_unit.convert(time, TimeUnit::Minutes).as_f64();
+    let normalized_time = time_minutes / MAX_LINK_TIME_MINUTES;
+
+    let energy_scaled = normalized_energy * energy_percent;
     let energy_cost = Cost::from(energy_scaled);
-    let time_scaled = time * (1.0 - energy_percent);
+    let time_scaled = normalized_time * (1.0 - energy_percent);
     let time_cost = Cost::from(time_scaled);
 
     energy_cost + time_cost
@@ -284,7 +308,7 @@ mod tests {
         )
         .unwrap();
 
-        let camry = ICE::new("Toyota_Camry".to_string(), model_record).unwrap();
+        let camry = ICE::new("Toyota_Camry".to_string(), model_record, None);
 
         let mut model_library: HashMap<String, Arc<dyn VehicleType>> = HashMap::new();
         model_library.insert("Toyota_Camry".to_string(), Arc::new(camry));

@@ -3,7 +3,7 @@ use crate::util::serde_ops::string_deserialize;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum TimeUnit {
     Hours,

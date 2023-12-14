@@ -79,4 +79,13 @@ pub trait VehicleType: Send + Sync {
         &self,
         query: &serde_json::Value,
     ) -> Result<Arc<dyn VehicleType>, TraversalModelError>;
+
+    /// Normalize the energy into a value between 0 and 1
+    ///
+    /// Arguments:
+    /// * `energy` - The energy to normalize
+    ///
+    /// Returns:
+    /// * `f64` - The normalized energy in range [0, 1]
+    fn normalize_energy(&self, energy: (Energy, EnergyUnit)) -> f64;
 }

@@ -56,7 +56,12 @@ fn build_conventional(
 
     let model_record = get_model_record_from_params(parameters, name.clone())?;
 
-    let vehicle = ICE::new(name, model_record)?;
+    let max_energy_delta = parameters.get_config_serde_optional::<Energy>(
+        String::from("max_link_energy_delta"),
+        vehicle_key.clone(),
+    )?;
+
+    let vehicle = ICE::new(name, model_record, max_energy_delta);
 
     Ok(Arc::new(vehicle))
 }
@@ -77,12 +82,18 @@ fn build_battery_electric(
     )?;
     let starting_battery_energy = battery_capacity;
 
+    let max_energy_delta = parameters.get_config_serde_optional::<Energy>(
+        String::from("max_link_energy_delta"),
+        vehicle_key.clone(),
+    )?;
+
     let vehicle = BEV::new(
         name,
         model_record,
         battery_capacity,
         starting_battery_energy,
         battery_energy_unit,
+        max_energy_delta,
     );
 
     Ok(Arc::new(vehicle))
@@ -120,6 +131,10 @@ fn build_plugin_hybrid(
         String::from("custom_liquid_fuel_to_kwh"),
         vehicle_key.clone(),
     )?;
+    let max_energy_delta = parameters.get_config_serde_optional::<Energy>(
+        String::from("max_link_engine_energy_delta"),
+        vehicle_key.clone(),
+    )?;
     let starting_battery_energy = battery_capacity;
     let phev = PHEV::new(
         name,
@@ -129,7 +144,8 @@ fn build_plugin_hybrid(
         starting_battery_energy,
         battery_energy_unit,
         custom_liquid_fuel_to_kwh,
-    )?;
+        max_energy_delta,
+    );
     Ok(Arc::new(phev))
 }
 

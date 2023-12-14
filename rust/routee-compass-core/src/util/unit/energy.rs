@@ -1,6 +1,7 @@
-use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
+use derive_more::{Add, Mul, Neg, Sub, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
+use std::ops::Div;
 use std::{cmp::Ordering, fmt::Display};
 
 use super::{
@@ -21,7 +22,6 @@ use super::{
     Add,
     Sub,
     Mul,
-    Div,
     Sum,
     Neg,
 )]
@@ -38,6 +38,14 @@ impl From<(EnergyRate, Distance)> for Energy {
         let (energy_rate, distance) = value;
         let energy_value = energy_rate.as_f64() * distance.as_f64();
         Energy::new(energy_value)
+    }
+}
+
+impl Div for Energy {
+    type Output = Energy;
+    fn div(self, rhs: Self) -> Self::Output {
+        let value = self.0 / rhs.0;
+        Energy(value)
     }
 }
 
