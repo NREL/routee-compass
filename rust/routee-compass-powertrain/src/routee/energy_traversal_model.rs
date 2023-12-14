@@ -231,7 +231,7 @@ fn get_vehicle_state_from_state(state: &TraversalState) -> &[StateVar] {
 mod tests {
     use crate::routee::{
         prediction::load_prediction_model, prediction::model_type::ModelType,
-        vehicle::default::single_fuel_vehicle::SingleFuelVehicle,
+        vehicle::default::ice::ICE,
     };
 
     use super::*;
@@ -284,7 +284,7 @@ mod tests {
         )
         .unwrap();
 
-        let camry = SingleFuelVehicle::new("Toyota_Camry".to_string(), model_record).unwrap();
+        let camry = ICE::new("Toyota_Camry".to_string(), model_record).unwrap();
 
         let mut model_library: HashMap<String, Arc<dyn VehicleType>> = HashMap::new();
         model_library.insert("Toyota_Camry".to_string(), Arc::new(camry));

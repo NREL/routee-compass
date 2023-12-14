@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use super::cache_error::CacheError;
 
 fn to_precision(value: f64, precision: i32) -> i64 {
-    let multiplier = 10f64.powi(precision as i32);
+    let multiplier = 10f64.powi(precision);
     (value * multiplier).round() as i64
 }
 

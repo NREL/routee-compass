@@ -15,12 +15,12 @@ use crate::routee::{
     vehicle::{VehicleEnergyResult, VehicleState, VehicleType},
 };
 
-pub struct SingleFuelVehicle {
+pub struct ICE {
     pub name: String,
     pub prediction_model_record: Arc<PredictionModelRecord>,
 }
 
-impl SingleFuelVehicle {
+impl ICE {
     pub fn new(
         name: String,
         prediction_model_record: PredictionModelRecord,
@@ -32,7 +32,7 @@ impl SingleFuelVehicle {
     }
 }
 
-impl VehicleType for SingleFuelVehicle {
+impl VehicleType for ICE {
     fn name(&self) -> String {
         self.name.clone()
     }
@@ -94,7 +94,7 @@ impl VehicleType for SingleFuelVehicle {
         _query: &serde_json::Value,
     ) -> Result<Arc<dyn VehicleType>, TraversalModelError> {
         // just return a clone of self
-        Ok(Arc::new(SingleFuelVehicle {
+        Ok(Arc::new(ICE {
             name: self.name.clone(),
             prediction_model_record: self.prediction_model_record.clone(),
         }))
