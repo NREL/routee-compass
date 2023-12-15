@@ -24,8 +24,8 @@ pub fn create_time(
     distance_unit: DistanceUnit,
     time_unit: TimeUnit,
 ) -> Result<Time, UnitError> {
-    let d = distance_unit.convert(distance, BASE_DISTANCE_UNIT);
-    let s = speed_unit.convert(speed, BASE_SPEED_UNIT);
+    let d = distance_unit.convert(&distance, &BASE_DISTANCE_UNIT);
+    let s = speed_unit.convert(&speed, &BASE_SPEED_UNIT);
     if s <= Speed::ZERO || d <= Distance::ZERO {
         Err(UnitError::TimeFromSpeedAndDistanceError(
             speed,
@@ -51,13 +51,13 @@ pub fn create_speed(
     distance_unit: DistanceUnit,
     speed_unit: SpeedUnit,
 ) -> Result<Speed, UnitError> {
-    let d = distance_unit.convert(distance, BASE_DISTANCE_UNIT);
+    let d = distance_unit.convert(&distance, &BASE_DISTANCE_UNIT);
     let t = time_unit.convert(time, BASE_TIME_UNIT);
     if t <= Time::ZERO {
         Err(UnitError::SpeedFromTimeAndDistanceError(time, distance))
     } else {
-        let speed = (d, t).into();
-        let result = BASE_SPEED_UNIT.convert(speed, speed_unit);
+        let speed: Speed = Speed::from((&d, &t));
+        let result = BASE_SPEED_UNIT.convert(&speed, &speed_unit);
         Ok(result)
     }
 }
@@ -74,7 +74,7 @@ pub fn create_energy(
     // instead, we rely on the associated units to direct our calculation.
     let rate_distance_unit = energy_rate_unit.associated_distance_unit();
     let energy_unit = energy_rate_unit.associated_energy_unit();
-    let calc_distance = distance_unit.convert(distance, rate_distance_unit);
+    let calc_distance = distance_unit.convert(&distance, &rate_distance_unit);
     let energy = (energy_rate, calc_distance).into();
     Ok((energy, energy_unit))
 }
@@ -172,7 +172,7 @@ mod test {
             BASE_SPEED_UNIT,
         )
         .unwrap();
-        let expected = SpeedUnit::KilometersPerHour.convert(Speed::ONE, BASE_SPEED_UNIT);
+        let expected = SpeedUnit::KilometersPerHour.convert(&Speed::ONE, &BASE_SPEED_UNIT);
         approx_eq_speed(speed_kph, expected, 0.001);
     }
 
@@ -186,7 +186,8 @@ mod test {
             SpeedUnit::KilometersPerHour,
         )
         .unwrap();
-        let expected = SpeedUnit::MetersPerSecond.convert(Speed::ONE, SpeedUnit::KilometersPerHour);
+        let expected =
+            SpeedUnit::MetersPerSecond.convert(&Speed::ONE, &SpeedUnit::KilometersPerHour);
         approx_eq_speed(speed_kph, expected, 0.001);
     }
 
@@ -200,7 +201,7 @@ mod test {
             BASE_SPEED_UNIT,
         )
         .unwrap();
-        let expected = SpeedUnit::MilesPerHour.convert(Speed::ONE, BASE_SPEED_UNIT);
+        let expected = SpeedUnit::MilesPerHour.convert(&Speed::ONE, &BASE_SPEED_UNIT);
         approx_eq_speed(speed_kph, expected, 0.001);
     }
 
@@ -214,7 +215,7 @@ mod test {
             SpeedUnit::MilesPerHour,
         )
         .unwrap();
-        let expected = SpeedUnit::MetersPerSecond.convert(Speed::ONE, SpeedUnit::MilesPerHour);
+        let expected = SpeedUnit::MetersPerSecond.convert(&Speed::ONE, &SpeedUnit::MilesPerHour);
         approx_eq_speed(speed_kph, expected, 0.001);
     }
 

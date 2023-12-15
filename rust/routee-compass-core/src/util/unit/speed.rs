@@ -31,8 +31,8 @@ impl AsF64 for Speed {
     }
 }
 
-impl From<(Distance, Time)> for Speed {
-    fn from(value: (Distance, Time)) -> Self {
+impl From<(&Distance, &Time)> for Speed {
+    fn from(value: (&Distance, &Time)) -> Self {
         let (distance, time) = value;
         let speed = distance.as_f64() / time.as_f64();
         Speed::new(speed)

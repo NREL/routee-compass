@@ -12,18 +12,18 @@ pub enum DistanceUnit {
 }
 
 impl DistanceUnit {
-    pub fn convert(&self, value: Distance, target: DistanceUnit) -> Distance {
+    pub fn convert(&self, value: &Distance, target: &DistanceUnit) -> Distance {
         use DistanceUnit as S;
         match (self, target) {
-            (S::Meters, S::Meters) => value,
-            (S::Meters, S::Kilometers) => value * 0.001,
-            (S::Meters, S::Miles) => value * 0.0006215040398,
-            (S::Kilometers, S::Meters) => value * 1000.0,
-            (S::Kilometers, S::Kilometers) => value,
-            (S::Kilometers, S::Miles) => value * 0.6215040398,
-            (S::Miles, S::Meters) => value * 1609.34,
-            (S::Miles, S::Kilometers) => value * 1.60934,
-            (S::Miles, S::Miles) => value,
+            (S::Meters, S::Meters) => *value,
+            (S::Meters, S::Kilometers) => *value * 0.001,
+            (S::Meters, S::Miles) => *value * 0.0006215040398,
+            (S::Kilometers, S::Meters) => *value * 1000.0,
+            (S::Kilometers, S::Kilometers) => *value,
+            (S::Kilometers, S::Miles) => *value * 0.6215040398,
+            (S::Miles, S::Meters) => *value * 1609.34,
+            (S::Miles, S::Kilometers) => *value * 1.60934,
+            (S::Miles, S::Miles) => *value,
         }
     }
 }
@@ -69,47 +69,47 @@ mod test {
     #[test]
     fn test_conversions() {
         assert_approx_eq(
-            D::Meters.convert(Distance::ONE, D::Meters),
+            D::Meters.convert(&Distance::ONE, &D::Meters),
             Distance::ONE,
             0.001,
         );
         assert_approx_eq(
-            D::Meters.convert(Distance::ONE, D::Kilometers),
+            D::Meters.convert(&Distance::ONE, &D::Kilometers),
             Distance::new(0.001),
             0.001,
         );
         assert_approx_eq(
-            D::Meters.convert(Distance::ONE, D::Miles),
+            D::Meters.convert(&Distance::ONE, &D::Miles),
             Distance::new(0.000621371),
             0.001,
         );
         assert_approx_eq(
-            D::Kilometers.convert(Distance::ONE, D::Meters),
+            D::Kilometers.convert(&Distance::ONE, &D::Meters),
             Distance::new(1000.0),
             0.001,
         );
         assert_approx_eq(
-            D::Kilometers.convert(Distance::ONE, D::Kilometers),
+            D::Kilometers.convert(&Distance::ONE, &D::Kilometers),
             Distance::ONE,
             0.001,
         );
         assert_approx_eq(
-            D::Kilometers.convert(Distance::ONE, D::Miles),
+            D::Kilometers.convert(&Distance::ONE, &D::Miles),
             Distance::new(0.621371),
             0.001,
         );
         assert_approx_eq(
-            D::Miles.convert(Distance::ONE, D::Meters),
+            D::Miles.convert(&Distance::ONE, &D::Meters),
             Distance::new(1609.34),
             0.001,
         );
         assert_approx_eq(
-            D::Miles.convert(Distance::ONE, D::Kilometers),
+            D::Miles.convert(&Distance::ONE, &D::Kilometers),
             Distance::new(1.60934),
             0.001,
         );
         assert_approx_eq(
-            D::Miles.convert(Distance::ONE, D::Miles),
+            D::Miles.convert(&Distance::ONE, &D::Miles),
             Distance::ONE,
             0.001,
         );
