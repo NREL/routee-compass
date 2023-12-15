@@ -1,5 +1,6 @@
 use crate::plugin::plugin_error::PluginError;
-use geo::{LineString, MultiLineString};
+use geo::{LineString, MultiLineString, Point};
+use geo_types::MultiPoint;
 use geojson::feature::Id;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::edge_traversal::EdgeTraversal;
@@ -140,5 +141,38 @@ pub fn create_tree_multilinestring(
         })
         .collect::<Result<Vec<LineString>, PluginError>>()?;
     let geometry = MultiLineString::new(tree_linestrings);
+    Ok(geometry)
+}
+
+pub fn create_tree_multipoint(
+    tree: &HashMap<VertexId, SearchTreeBranch>,
+    geoms: &[LineString<f64>],
+) -> Result<MultiPoint, PluginError> {
+    let edge_ids = tree
+        .values()
+        .map(|traversal| traversal.edge_traversal.edge_id)
+        .collect::<Vec<_>>();
+
+    let tree_destinations = edge_ids
+        .iter()
+        .map(|eid| {
+            let geom = geoms
+                .get(eid.0)
+                .ok_or(PluginError::EdgeGeometryMissing(*eid))
+                .map(|l| {
+                    l.points().last().ok_or(PluginError::InputError(format!(
+                        "linestring is invalid for edge_id {}",
+                        eid
+                    )))
+                });
+            match geom {
+                // rough "result flatten"
+                Ok(Ok(p)) => Ok(p),
+                Ok(Err(e)) => Err(e),
+                Err(e) => Err(e),
+            }
+        })
+        .collect::<Result<Vec<Point>, PluginError>>()?;
+    let geometry = MultiPoint::new(tree_destinations);
     Ok(geometry)
 }
