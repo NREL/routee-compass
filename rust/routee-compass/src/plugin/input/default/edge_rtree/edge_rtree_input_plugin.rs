@@ -153,7 +153,7 @@ fn within_tolerance(tolerance: Option<(Distance, DistanceUnit)>, distance_meters
         None => true,
         Some((tolerance, distance_unit)) => {
             let tolerance_meters = distance_unit
-                .convert(tolerance, DistanceUnit::Meters)
+                .convert(&tolerance, &DistanceUnit::Meters)
                 .as_f64();
 
             distance_meters <= &tolerance_meters

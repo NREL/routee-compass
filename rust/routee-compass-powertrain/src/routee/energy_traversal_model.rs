@@ -77,7 +77,8 @@ impl TraversalModel for EnergyTraversalModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.service.output_distance_unit);
+        let distance =
+            BASE_DISTANCE_UNIT.convert(&edge.distance, &self.service.output_distance_unit);
         let speed = get_speed(&self.service.speed_table, edge.edge_id)?;
         let grade = get_grade(&self.service.grade_table, edge.edge_id)?;
 

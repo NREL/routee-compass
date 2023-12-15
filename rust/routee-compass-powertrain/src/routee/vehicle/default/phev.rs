@@ -92,7 +92,7 @@ impl VehicleType for PHEV {
 
         // convert both energy sources to kWh
         let electrical_energy_kwh =
-            electrical_energy_unit.convert(electrical_energy, EnergyUnit::KilowattHours);
+            electrical_energy_unit.convert(&electrical_energy, &EnergyUnit::KilowattHours);
         let liquid_fuel_energy_kwh = match self.custom_liquid_fuel_to_kwh {
             Some(custom_fuel_to_kwh) => {
                 // use the custom conversion factor
@@ -100,7 +100,7 @@ impl VehicleType for PHEV {
             }
             None => {
                 // just use the default conversion factors
-                liquid_fuel_energy_unit.convert(liquid_fuel_energy, EnergyUnit::KilowattHours)
+                liquid_fuel_energy_unit.convert(&liquid_fuel_energy, &EnergyUnit::KilowattHours)
             }
         };
         let total_energy_kwh = electrical_energy_kwh + liquid_fuel_energy_kwh;
@@ -206,12 +206,12 @@ fn get_battery_soc_percent(vehicle: &PHEV, state: &[StateVar]) -> f64 {
     let battery_energy_unit = vehicle.battery_energy_unit;
 
     let battery_capacity_kwh =
-        battery_energy_unit.convert(vehicle.battery_capacity, EnergyUnit::KilowattHours);
+        battery_energy_unit.convert(&vehicle.battery_capacity, &EnergyUnit::KilowattHours);
 
     let remaining_battery_energy = get_remaining_battery_energy_from_state(state);
 
     let remaining_battery_energy_kwh =
-        battery_energy_unit.convert(remaining_battery_energy, EnergyUnit::KilowattHours);
+        battery_energy_unit.convert(&remaining_battery_energy, &EnergyUnit::KilowattHours);
 
     (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100.0
 }

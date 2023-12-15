@@ -53,7 +53,7 @@ impl SearchAppGraphOps for SearchApp {
         };
         let result_base: Distance = graph_op(self, &op)?;
         let result = match distance_unit {
-            Some(du) => DistanceUnit::Meters.convert(result_base, du),
+            Some(du) => DistanceUnit::Meters.convert(&result_base, &du),
             None => result_base,
         };
         Ok(result)

@@ -24,8 +24,8 @@ impl PredictionModel for OnnxSpeedGradeModel {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
 
-        let speed_value: f32 = speed_unit.convert(speed, self.speed_unit).as_f64() as f32;
-        let grade_value: f32 = grade_unit.convert(grade, self.grade_unit).as_f64() as f32;
+        let speed_value: f32 = speed_unit.convert(&speed, &self.speed_unit).as_f64() as f32;
+        let grade_value: f32 = grade_unit.convert(&grade, &self.grade_unit).as_f64() as f32;
         let array = ndarray::Array1::from(vec![speed_value, grade_value])
             .into_shape((1, 2))
             .map_err(|e| {
