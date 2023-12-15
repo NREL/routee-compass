@@ -168,12 +168,12 @@ fn get_battery_soc_percent(vehicle: &BEV, state: &[StateVar]) -> f64 {
     let battery_energy_unit = vehicle.battery_energy_unit;
 
     let battery_capacity_kwh =
-        battery_energy_unit.convert(vehicle.battery_capacity, EnergyUnit::KilowattHours);
+        battery_energy_unit.convert(&vehicle.battery_capacity, &EnergyUnit::KilowattHours);
 
     let remaining_battery_energy = get_remaining_battery_energy_from_state(state);
 
     let remaining_battery_energy_kwh =
-        battery_energy_unit.convert(remaining_battery_energy, EnergyUnit::KilowattHours);
+        battery_energy_unit.convert(&remaining_battery_energy, &EnergyUnit::KilowattHours);
 
     (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100.0
 }

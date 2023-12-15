@@ -68,7 +68,7 @@ impl TraversalModel for SpeedLookupModel {
         _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.output_distance_unit);
+        let distance = BASE_DISTANCE_UNIT.convert(&edge.distance, &self.output_distance_unit);
         let speed = get_speed(&self.speed_table, edge.edge_id)?;
         let time = Time::create(
             speed,

@@ -34,7 +34,7 @@ impl TraversalModel for DistanceModel {
         _dst: &Vertex,
         state: &Vec<StateVar>,
     ) -> Result<TraversalResult, TraversalModelError> {
-        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.distance_unit);
+        let distance = BASE_DISTANCE_UNIT.convert(&edge.distance, &self.distance_unit);
         let mut updated_state = state.clone();
         updated_state[0] = state[0] + StateVar::from(distance);
         let result = TraversalResult {
