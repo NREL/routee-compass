@@ -47,13 +47,12 @@ where
 
 /// reads a csv file into a vector. not space-optimized since size is not
 /// known.
-pub fn from_csv<'a, F, T>(
-    filepath: F,
+pub fn from_csv<'a, T>(
+    filepath: &dyn AsRef<Path>,
     has_headers: bool,
     row_callback: RowCallback<'a, T>,
 ) -> Result<Box<[T]>, csv::Error>
 where
-    F: AsRef<Path>,
     T: serde::de::DeserializeOwned + 'a,
 {
     let iter: Box<dyn Iterator<Item = Result<T, csv::Error>>> =
