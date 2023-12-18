@@ -16,19 +16,13 @@ impl InputPluginBuilder for EdgeRtreeInputPluginBuilder {
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
         let parent_key = String::from("edge_rtree");
-        let linestring_file =
-            parameters.get_config_path(String::from("geometry_input_file"), parent_key.clone())?;
-        let road_class_file = parameters
-            .get_config_path(String::from("road_class_input_file"), parent_key.clone())?;
+        let linestring_file = parameters.get_config_path(&"geometry_input_file", &parent_key)?;
+        let road_class_file = parameters.get_config_path(&"road_class_input_file", &parent_key)?;
 
-        let distance_tolerance_option = parameters.get_config_serde_optional::<Distance>(
-            String::from("distance_tolerance"),
-            parent_key.clone(),
-        )?;
-        let distance_unit_option = parameters.get_config_serde_optional::<DistanceUnit>(
-            String::from("distance_unit"),
-            parent_key.clone(),
-        )?;
+        let distance_tolerance_option =
+            parameters.get_config_serde_optional::<Distance>(&"distance_tolerance", &parent_key)?;
+        let distance_unit_option =
+            parameters.get_config_serde_optional::<DistanceUnit>(&"distance_unit", &parent_key)?;
 
         let plugin = EdgeRtreeInputPlugin::new(
             &road_class_file,

@@ -40,16 +40,12 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
         let parent_key = String::from("traversal");
-        let geometry_filename_key = String::from("geometry_input_file");
-        let route_geometry_key = String::from("route");
-        let tree_geometry_key = String::from("tree");
 
-        let geometry_filename =
-            parameters.get_config_path(geometry_filename_key, parent_key.clone())?;
+        let geometry_filename = parameters.get_config_path(&"geometry_input_file", &parent_key)?;
         let route: Option<TraversalOutputFormat> =
-            parameters.get_config_serde_optional(route_geometry_key, parent_key.clone())?;
+            parameters.get_config_serde_optional(&"route", &parent_key)?;
         let tree: Option<TraversalOutputFormat> =
-            parameters.get_config_serde_optional(tree_geometry_key, parent_key.clone())?;
+            parameters.get_config_serde_optional(&"tree", &parent_key)?;
 
         let geom_plugin = TraversalPlugin::from_file(&geometry_filename, route, tree)?;
         Ok(Box::new(geom_plugin))

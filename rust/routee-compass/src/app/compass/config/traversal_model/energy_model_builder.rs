@@ -21,40 +21,28 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         let traversal_key = CompassConfigurationField::Traversal.to_string();
 
         let speed_table_path = params
-            .get_config_path(
-                String::from("speed_table_input_file"),
-                traversal_key.clone(),
-            )
+            .get_config_path(&"speed_table_input_file", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
         let speed_table_speed_unit = params
-            .get_config_serde::<SpeedUnit>(
-                String::from("speed_table_speed_unit"),
-                traversal_key.clone(),
-            )
+            .get_config_serde::<SpeedUnit>(&"speed_table_speed_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let grade_table_path = params
-            .get_config_path_optional(
-                String::from("grade_table_input_file"),
-                traversal_key.clone(),
-            )
+            .get_config_path_optional(&"grade_table_input_file", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
         let grade_table_grade_unit = params
-            .get_config_serde_optional::<GradeUnit>(
-                String::from("graph_grade_unit"),
-                traversal_key.clone(),
-            )
+            .get_config_serde_optional::<GradeUnit>(&"graph_grade_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let vehicle_configs = params
-            .get_config_array("vehicles".to_string(), traversal_key.clone())
+            .get_config_array(&"vehicles", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let mut vehicle_library = HashMap::new();
 
         for vehicle_config in vehicle_configs {
             let vehicle_type = vehicle_config
-                .get_config_string(String::from("type"), traversal_key.clone())
+                .get_config_string(&"type", &traversal_key)
                 .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
             let vehicle_builder = VehicleBuilder::from_string(vehicle_type).map_err(|e| {
                 TraversalModelError::BuildError(format!("Error building vehicle builder: {}", e))
@@ -66,16 +54,10 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         }
 
         let output_time_unit_option = params
-            .get_config_serde_optional::<TimeUnit>(
-                String::from("output_time_unit"),
-                traversal_key.clone(),
-            )
+            .get_config_serde_optional::<TimeUnit>(&"output_time_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
         let output_distance_unit_option = params
-            .get_config_serde_optional::<DistanceUnit>(
-                String::from("output_distance_unit"),
-                traversal_key.clone(),
-            )
+            .get_config_serde_optional::<DistanceUnit>(&"output_distance_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let service = EnergyModelService::new(

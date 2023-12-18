@@ -22,25 +22,16 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
         let traversal_key = CompassConfigurationField::Traversal.to_string();
         // todo: optional output time unit
         let filename = params
-            .get_config_path(
-                String::from("speed_table_input_file"),
-                traversal_key.clone(),
-            )
+            .get_config_path(&"speed_table_input_file", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
         let speed_unit = params
-            .get_config_serde::<SpeedUnit>(String::from("speed_unit"), traversal_key.clone())
+            .get_config_serde::<SpeedUnit>(&"speed_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
         let distance_unit = params
-            .get_config_serde_optional::<DistanceUnit>(
-                String::from("output_distance_unit"),
-                traversal_key.clone(),
-            )
+            .get_config_serde_optional::<DistanceUnit>(&"output_distance_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
         let time_unit = params
-            .get_config_serde_optional::<TimeUnit>(
-                String::from("output_time_unit"),
-                traversal_key.clone(),
-            )
+            .get_config_serde_optional::<TimeUnit>(&"output_time_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let m = SpeedLookupModel::new(&filename, speed_unit, distance_unit, time_unit)?;

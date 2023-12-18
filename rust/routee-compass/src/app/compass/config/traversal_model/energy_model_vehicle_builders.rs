@@ -52,9 +52,9 @@ fn build_conventional(
     parameters: &serde_json::Value,
 ) -> Result<Arc<dyn VehicleType>, CompassConfigurationError> {
     let vehicle_key = String::from("ice");
-    let name = parameters.get_config_string(String::from("name"), vehicle_key.clone())?;
+    let name = parameters.get_config_string(&"name", &vehicle_key)?;
 
-    let model_record = get_model_record_from_params(parameters, name.clone())?;
+    let model_record = get_model_record_from_params(parameters, &name)?;
 
     let vehicle = ICE::new(name, model_record)?;
 
@@ -64,17 +64,13 @@ fn build_conventional(
 fn build_battery_electric(
     parameters: &serde_json::Value,
 ) -> Result<Arc<dyn VehicleType>, CompassConfigurationError> {
-    let vehicle_key = String::from("bev");
-    let name = parameters.get_config_string(String::from("name"), vehicle_key.clone())?;
+    let name = parameters.get_config_string(&"name", &"bev")?;
 
-    let model_record = get_model_record_from_params(parameters, name.clone())?;
+    let model_record = get_model_record_from_params(parameters, &name)?;
 
-    let battery_capacity = parameters
-        .get_config_serde::<Energy>(String::from("battery_capacity"), vehicle_key.clone())?;
-    let battery_energy_unit = parameters.get_config_serde::<EnergyUnit>(
-        String::from("battery_capacity_unit"),
-        vehicle_key.clone(),
-    )?;
+    let battery_capacity = parameters.get_config_serde::<Energy>(&"battery_capacity", &"bev")?;
+    let battery_energy_unit =
+        parameters.get_config_serde::<EnergyUnit>(&"battery_capacity_unit", &"bev")?;
     let starting_battery_energy = battery_capacity;
 
     let vehicle = BEV::new(
@@ -91,35 +87,29 @@ fn build_battery_electric(
 fn build_plugin_hybrid(
     parameters: &serde_json::Value,
 ) -> Result<Arc<dyn VehicleType>, CompassConfigurationError> {
-    let vehicle_key = String::from("phev");
-    let name = parameters.get_config_string(String::from("name"), vehicle_key.clone())?;
+    let name = parameters.get_config_string(&"name", &"phev")?;
 
     let charge_depleting_params =
         parameters.get_config_section(CompassConfigurationField::ChargeDepleting)?;
 
     let charge_depleting_record = get_model_record_from_params(
         &charge_depleting_params,
-        format!("charge_depleting: {}", name.clone()),
+        &format!("charge_depleting: {}", &name),
     )?;
     let charge_sustain_params =
         parameters.get_config_section(CompassConfigurationField::ChargeSustaining)?;
 
     let charge_sustain_record = get_model_record_from_params(
         &charge_sustain_params,
-        format!("charge_sustain: {}", name.clone()),
+        &format!("charge_sustain: {}", &name),
     )?;
 
-    let battery_capacity = parameters
-        .get_config_serde::<Energy>(String::from("battery_capacity"), vehicle_key.clone())?;
-    let battery_energy_unit = parameters.get_config_serde::<EnergyUnit>(
-        String::from("battery_capacity_unit"),
-        vehicle_key.clone(),
-    )?;
+    let battery_capacity = parameters.get_config_serde::<Energy>(&"battery_capacity", &"phev")?;
+    let battery_energy_unit =
+        parameters.get_config_serde::<EnergyUnit>(&"battery_capacity_unit", &"phev")?;
 
-    let custom_liquid_fuel_to_kwh = parameters.get_config_serde_optional::<f64>(
-        String::from("custom_liquid_fuel_to_kwh"),
-        vehicle_key.clone(),
-    )?;
+    let custom_liquid_fuel_to_kwh =
+        parameters.get_config_serde_optional::<f64>(&"custom_liquid_fuel_to_kwh", &"phev")?;
     let starting_battery_energy = battery_capacity;
     let phev = PHEV::new(
         name,
@@ -135,33 +125,23 @@ fn build_plugin_hybrid(
 
 fn get_model_record_from_params(
     parameters: &serde_json::Value,
-    parent_key: String,
+    parent_key: &String,
 ) -> Result<PredictionModelRecord, CompassConfigurationError> {
-    let name = parameters.get_config_string(String::from("name"), parent_key.clone())?;
-    let model_path =
-        parameters.get_config_path(String::from("model_input_file"), parent_key.clone())?;
-    let model_type =
-        parameters.get_config_serde::<ModelType>(String::from("model_type"), parent_key.clone())?;
-    let speed_unit =
-        parameters.get_config_serde::<SpeedUnit>(String::from("speed_unit"), parent_key.clone())?;
-    let ideal_energy_rate_option = parameters.get_config_serde_optional::<EnergyRate>(
-        String::from("ideal_energy_rate"),
-        parent_key.clone(),
-    )?;
-    let grade_unit =
-        parameters.get_config_serde::<GradeUnit>(String::from("grade_unit"), parent_key.clone())?;
+    let name = parameters.get_config_string(&"name", &parent_key)?;
+    let model_path = parameters.get_config_path(&"model_input_file", &parent_key)?;
+    let model_type = parameters.get_config_serde::<ModelType>(&"model_type", &parent_key)?;
+    let speed_unit = parameters.get_config_serde::<SpeedUnit>(&"speed_unit", &parent_key)?;
+    let ideal_energy_rate_option =
+        parameters.get_config_serde_optional::<EnergyRate>(&"ideal_energy_rate", &parent_key)?;
+    let grade_unit = parameters.get_config_serde::<GradeUnit>(&"grade_unit", &parent_key)?;
 
-    let energy_rate_unit = parameters
-        .get_config_serde::<EnergyRateUnit>(String::from("energy_rate_unit"), parent_key.clone())?;
-    let real_world_energy_adjustment_option = parameters.get_config_serde_optional::<f64>(
-        String::from("real_world_energy_adjustment"),
-        parent_key.clone(),
-    )?;
+    let energy_rate_unit =
+        parameters.get_config_serde::<EnergyRateUnit>(&"energy_rate_unit", &parent_key)?;
+    let real_world_energy_adjustment_option = parameters
+        .get_config_serde_optional::<f64>(&"real_world_energy_adjustment", &parent_key)?;
 
-    let cache_config = parameters.get_config_serde_optional::<FloatCachePolicyConfig>(
-        String::from("float_cache_policy"),
-        parent_key.clone(),
-    )?;
+    let cache_config = parameters
+        .get_config_serde_optional::<FloatCachePolicyConfig>(&"float_cache_policy", parent_key)?;
 
     let cache = match cache_config {
         Some(config) => Some(FloatCachePolicy::from_config(config)?),

@@ -45,6 +45,12 @@ impl From<CompassConfigurationField> for String {
     }
 }
 
+impl AsRef<str> for CompassConfigurationField {
+    fn as_ref(&self) -> &str {
+        self.to_str()
+    }
+}
+
 impl Display for CompassConfigurationField {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.to_str())

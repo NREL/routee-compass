@@ -34,7 +34,7 @@ impl CustomWeightType {
                     .to_owned()
                     .unwrap_or(InputField::QueryWeightEstimate.to_string());
                 let value = query
-                    .get_config_f64(col.clone(), String::from("custom_weight_type"))
+                    .get_config_f64(&col, &"custom_weight_type")
                     .map_err(|_| PluginError::ParseError(col, String::from("String")))?;
                 Ok(value)
             }
@@ -47,7 +47,7 @@ impl CustomWeightType {
                     .to_owned()
                     .unwrap_or(InputField::QueryWeightEstimate.to_string());
                 let categorical_value = query
-                    .get_config_string(col.clone(), String::from("custom_weight_type"))
+                    .get_config_string(&col, &"custom_weight_type")
                     .map_err(|_| PluginError::ParseError(col.clone(), String::from("String")))?;
                 match (mapping.get(&categorical_value), default) {
                     (Some(result), _) => Ok(*result),

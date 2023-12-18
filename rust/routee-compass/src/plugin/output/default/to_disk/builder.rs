@@ -21,10 +21,7 @@ impl OutputPluginBuilder for ToDiskOutputPluginBuilder {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
-        let output_filename_key = String::from("output_file");
-        let output_filename =
-            parameters.get_config_string(output_filename_key, String::from("output"))?;
-
+        let output_filename = parameters.get_config_string(&"output_file", &"output")?;
         let output_file_path = PathBuf::from(&output_filename);
 
         // initialize the file with nothing

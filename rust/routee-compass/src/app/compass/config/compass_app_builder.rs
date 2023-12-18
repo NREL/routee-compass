@@ -243,8 +243,8 @@ impl CompassAppBuilder {
         config: &serde_json::Value,
     ) -> Result<Vec<Box<dyn InputPlugin>>, CompassConfigurationError> {
         let input_plugins = config.get_config_array(
-            CompassConfigurationField::InputPlugins.to_string(),
-            CompassConfigurationField::Plugins.to_string(),
+            &CompassConfigurationField::InputPlugins,
+            &CompassConfigurationField::Plugins,
         )?;
 
         let mut plugins: Vec<Box<dyn InputPlugin>> = Vec::new();
@@ -286,8 +286,8 @@ impl CompassAppBuilder {
         config: &serde_json::Value,
     ) -> Result<Vec<Box<dyn OutputPlugin>>, CompassConfigurationError> {
         let output_plugins = config.get_config_array(
-            CompassConfigurationField::OutputPlugins.to_string(),
-            CompassConfigurationField::Plugins.to_string(),
+            &CompassConfigurationField::OutputPlugins,
+            &CompassConfigurationField::Plugins,
         )?;
 
         let mut plugins: Vec<Box<dyn OutputPlugin>> = Vec::new();

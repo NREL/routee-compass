@@ -15,10 +15,8 @@ impl InputPluginBuilder for LoadBalancerBuilder {
         &self,
         params: &serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
-        let heuristic = params.get_config_serde::<WeightHeuristic>(
-            String::from("weight_heuristic"),
-            String::from("load_balancer"),
-        )?;
+        let heuristic =
+            params.get_config_serde::<WeightHeuristic>(&"weight_heuristic", &"load_balancer")?;
         Ok(Box::new(LoadBalancerPlugin { heuristic }))
     }
 }
