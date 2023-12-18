@@ -1,7 +1,7 @@
 use super::{
     builders::{InputPluginBuilder, OutputPluginBuilder},
     compass_configuration_error::CompassConfigurationError,
-    compass_configuration_field::CompassConfigurationField as ConfField,
+    compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
     frontier_model::{
         no_restriction_builder::NoRestrictionBuilder,
@@ -180,7 +180,7 @@ impl CompassAppBuilder {
             config
                 .get("type")
                 .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                    ConfField::Traversal.to_string(),
+                    CompassConfigurationField::Traversal.to_string(),
                     String::from("type"),
                 ))?;
         let tm_type: String = tm_type_obj
@@ -215,7 +215,7 @@ impl CompassAppBuilder {
             config
                 .get("type")
                 .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                    ConfField::Frontier.to_string(),
+                    CompassConfigurationField::Frontier.to_string(),
                     String::from("type"),
                 ))?;
         let fm_type: String = fm_type_obj
@@ -242,8 +242,10 @@ impl CompassAppBuilder {
         &self,
         config: &serde_json::Value,
     ) -> Result<Vec<Box<dyn InputPlugin>>, CompassConfigurationError> {
-        let input_plugins =
-            config.get_config_array(&ConfField::InputPlugins, &ConfField::Plugins)?;
+        let input_plugins = config.get_config_array(
+            &CompassConfigurationField::InputPlugins,
+            &CompassConfigurationField::Plugins,
+        )?;
 
         let mut plugins: Vec<Box<dyn InputPlugin>> = Vec::new();
         for plugin_json in input_plugins.into_iter() {
@@ -257,7 +259,7 @@ impl CompassAppBuilder {
             let plugin_type: String = plugin_type_obj
                 .get("type")
                 .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                    ConfField::InputPlugins.to_string(),
+                    CompassConfigurationField::InputPlugins.to_string(),
                     String::from("type"),
                 ))?
                 .as_str()
@@ -283,8 +285,10 @@ impl CompassAppBuilder {
         &self,
         config: &serde_json::Value,
     ) -> Result<Vec<Box<dyn OutputPlugin>>, CompassConfigurationError> {
-        let output_plugins =
-            config.get_config_array(&ConfField::OutputPlugins, &ConfField::Plugins)?;
+        let output_plugins = config.get_config_array(
+            &CompassConfigurationField::OutputPlugins,
+            &CompassConfigurationField::Plugins,
+        )?;
 
         let mut plugins: Vec<Box<dyn OutputPlugin>> = Vec::new();
         for plugin_json in output_plugins.into_iter() {
@@ -298,7 +302,7 @@ impl CompassAppBuilder {
             let plugin_type: String = plugin_json_obj
                 .get("type")
                 .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                    ConfField::OutputPlugins.to_string(),
+                    CompassConfigurationField::OutputPlugins.to_string(),
                     String::from("type"),
                 ))?
                 .as_str()
