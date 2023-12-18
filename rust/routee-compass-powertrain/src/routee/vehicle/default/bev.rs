@@ -64,6 +64,7 @@ impl VehicleType for BEV {
             distance,
             distance_unit,
         )?;
+
         Ok(energy)
     }
     fn consume_energy(
@@ -79,11 +80,8 @@ impl VehicleType for BEV {
 
         let updated_state = update_state(state, electrical_energy, self.battery_capacity);
 
-        // offset the electrical energy by the battery capacity to capture negative values
-        let offset_energy = electrical_energy + self.battery_capacity;
-
         Ok(VehicleEnergyResult {
-            energy: offset_energy,
+            energy: electrical_energy,
             energy_unit: electrical_energy_unit,
             updated_state,
         })
