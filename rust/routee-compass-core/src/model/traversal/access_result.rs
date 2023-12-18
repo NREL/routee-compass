@@ -1,4 +1,4 @@
-use crate::model::cost::Cost;
+use crate::model::cost_function::cost::Cost;
 use crate::model::traversal::state::traversal_state::TraversalState;
 
 pub struct AccessResult {

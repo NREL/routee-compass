@@ -1,4 +1,4 @@
-pub mod cost;
+pub mod cost_function;
 pub mod frontier;
 pub mod property;
 pub mod road_network;

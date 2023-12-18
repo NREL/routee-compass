@@ -3,7 +3,7 @@ use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::algorithm::search::MinSearchTree;
-use crate::model::cost::Cost;
+use crate::model::cost_function::cost::Cost;
 use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::graph::Graph;
