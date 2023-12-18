@@ -1,10 +1,8 @@
-use std::fmt::Display;
-
+use crate::util::unit::{as_f64::AsF64, *};
 use derive_more::{Add, Div, Mul, Neg, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
-
-use crate::util::unit::{as_f64::AsF64, *};
+use std::fmt::Display;
 
 /// Represents the cost for traversing a graph edge.
 /// A cost does not carry any units but can be built from a unit type like [`Time`] or [`Energy`]  
@@ -25,11 +23,14 @@ use crate::util::unit::{as_f64::AsF64, *};
     Serialize,
     Deserialize,
 )]
-pub struct Cost(pub OrderedFloat<f64>);
+pub struct Cost(OrderedFloat<f64>);
 
 impl Cost {
-    /// represents zero cost
+    /// represents zero cost, unit of addition operation
     pub const ZERO: Cost = Cost(OrderedFloat(0.0));
+
+    /// represents one cost, unit of multiplication operation
+    pub const ONE: Cost = Cost(OrderedFloat(1.0));
     /// represents the maximum possible cost
     pub const INFINITY: Cost = Cost(OrderedFloat(f64::MAX));
     pub fn new(value: f64) -> Cost {
@@ -61,6 +62,12 @@ impl From<Speed> for Cost {
 impl From<f64> for Cost {
     fn from(f: f64) -> Self {
         Cost(OrderedFloat(f))
+    }
+}
+
+impl AsF64 for Cost {
+    fn as_f64(&self) -> f64 {
+        self.0 .0
     }
 }
 
