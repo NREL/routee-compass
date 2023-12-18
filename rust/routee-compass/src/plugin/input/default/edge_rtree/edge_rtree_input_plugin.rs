@@ -30,9 +30,8 @@ impl InputPlugin for EdgeRtreeInputPlugin {
     /// finds the nearest edge ids to the user-provided origin and destination coordinates.
     /// optionally restricts the search to a subset of road classes tagged by the user.
     fn process(&self, query: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
-        let road_classes_key = String::from("road_classes");
         let road_classes = query
-            .get_config_serde_optional::<HashSet<String>>(road_classes_key, String::from(""))
+            .get_config_serde_optional::<HashSet<String>>(&"road_classes", &"")
             .map_err(|e| {
                 PluginError::InputError(format!("unable to deserialize as array: {}", e))
             })?;

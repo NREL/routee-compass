@@ -14,11 +14,9 @@ impl InputPluginBuilder for InjectPluginBuilder {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
-        let key = parameters.get_config_string(String::from("key"), String::from("inject"))?;
-        let value_string =
-            parameters.get_config_string(String::from("value"), String::from("inject"))?;
-        let format: InjectFormat =
-            parameters.get_config_serde(String::from("format"), String::from("inject"))?;
+        let key = parameters.get_config_string(&"key", &"inject")?;
+        let value_string = parameters.get_config_string(&"value", &"inject")?;
+        let format: InjectFormat = parameters.get_config_serde(&"format", &"inject")?;
         let value = format.to_json(&value_string)?;
         let plugin = InjectInputPlugin::new(key, value);
         Ok(Box::new(plugin))

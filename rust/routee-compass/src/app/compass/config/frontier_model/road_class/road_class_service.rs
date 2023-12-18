@@ -17,9 +17,8 @@ impl FrontierModelService for RoadClassFrontierService {
         query: &serde_json::Value,
     ) -> Result<Arc<dyn FrontierModel>, FrontierModelError> {
         let service: Arc<RoadClassFrontierService> = Arc::new(self.clone());
-        let road_classes_key = String::from("road_classes");
         let road_classes = query
-            .get_config_serde_optional::<HashSet<String>>(road_classes_key, String::from(""))
+            .get_config_serde_optional::<HashSet<String>>(&"road_classes", &"")
             .map_err(|e| {
                 FrontierModelError::BuildError(format!("unable to deserialize as array: {}", e))
             })?;

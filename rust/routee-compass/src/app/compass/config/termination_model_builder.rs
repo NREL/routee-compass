@@ -17,7 +17,7 @@ impl TerminationModelBuilder {
     ) -> Result<TerminationModel, CompassConfigurationError> {
         use routee_compass_core::model::termination::termination_model::TerminationModel as T;
         let local_scope = scope.unwrap_or(CompassConfigurationField::Termination.to_string());
-        let term_type = config.get_config_string(String::from("type"), local_scope.clone())?;
+        let term_type = config.get_config_string(&"type", &local_scope)?;
 
         let result = match term_type.to_lowercase().as_str() {
             "query_runtime" => {
@@ -28,28 +28,24 @@ impl TerminationModelBuilder {
                     ),
                 )?;
                 let dur = dur_val.as_duration()?;
-                let freq =
-                    config.get_config_i64(String::from("frequency"), local_scope.clone())? as u64;
+                let freq = config.get_config_i64(&"frequency", &local_scope)? as u64;
                 Ok(T::QueryRuntimeLimit {
                     limit: dur,
                     frequency: freq,
                 })
             }
             "iterations" => {
-                let iterations =
-                    config.get_config_i64(String::from("limit"), local_scope.clone())? as u64;
+                let iterations = config.get_config_i64(&"limit", &local_scope)? as u64;
                 Ok(T::IterationsLimit { limit: iterations })
             }
             "solution_size" => {
-                let solution_size =
-                    config.get_config_i64(String::from("limit"), local_scope.clone())? as usize;
+                let solution_size = config.get_config_i64(&"limit", &local_scope)? as usize;
                 Ok(T::SolutionSizeLimit {
                     limit: solution_size,
                 })
             }
             "combined" => {
-                let models_val =
-                    config.get_config_array(String::from("models"), local_scope.clone())?;
+                let models_val = config.get_config_array(&"models", &local_scope)?;
 
                 let models = models_val
                     .iter()

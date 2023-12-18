@@ -23,10 +23,7 @@ impl TraversalModelBuilder for DistanceBuilder {
     ) -> Result<Arc<dyn TraversalModelService>, TraversalModelError> {
         let traversal_key = CompassConfigurationField::Traversal.to_string();
         let distance_unit_option = parameters
-            .get_config_serde_optional::<DistanceUnit>(
-                String::from("distance_unit"),
-                traversal_key.clone(),
-            )
+            .get_config_serde_optional::<DistanceUnit>(&"distance_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
         let distance_unit = distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
         let m: Arc<dyn TraversalModelService> = Arc::new(DistanceService { distance_unit });
