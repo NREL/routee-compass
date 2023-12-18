@@ -13,54 +13,54 @@ pub trait ConfigJsonExtensions {
         &self,
         section: CompassConfigurationField,
     ) -> Result<serde_json::Value, CompassConfigurationError>;
-    fn get_config_path(
+    fn get_config_path<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<PathBuf, CompassConfigurationError>;
-    fn get_config_path_optional(
+    fn get_config_path_optional<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<Option<PathBuf>, CompassConfigurationError>;
-    fn get_config_string(
+    fn get_config_string<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<String, CompassConfigurationError>;
-    fn get_config_array(
+    fn get_config_array<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<Vec<serde_json::Value>, CompassConfigurationError>;
-    fn get_config_i64(
+    fn get_config_i64<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<i64, CompassConfigurationError>;
-    fn get_config_f64(
+    fn get_config_f64<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<f64, CompassConfigurationError>;
-    fn get_config_from_str<T: FromStr>(
+    fn get_config_from_str<A: Into<String>, B: Into<String>, T: FromStr>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<T, CompassConfigurationError>;
-    fn get_config_serde<T: de::DeserializeOwned>(
+    fn get_config_serde<A: Into<String>, B: Into<String>, T: de::DeserializeOwned>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<T, CompassConfigurationError>;
-    fn get_config_serde_optional<T: de::DeserializeOwned>(
+    fn get_config_serde_optional<A: Into<String>, B: Into<String>, T: de::DeserializeOwned>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<Option<T>, CompassConfigurationError>;
-    fn normalize_file_paths(
+    fn normalize_file_paths<S: Into<String>>(
         &self,
-        parent_key: &str,
+        parent_key: &S,
         root_config_path: &Path,
     ) -> Result<serde_json::Value, CompassConfigurationError>;
 }
@@ -80,12 +80,13 @@ impl ConfigJsonExtensions for serde_json::Value {
 
         Ok(section)
     }
-    fn get_config_path_optional(
+    fn get_config_path_optional<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<Option<PathBuf>, CompassConfigurationError> {
-        match self.get(key.clone()) {
+        let index: String = (*key).into();
+        match self.get(index) {
             None => Ok(None),
             Some(_) => {
                 let config_path = self.get_config_path(key, parent_key)?;
@@ -93,12 +94,12 @@ impl ConfigJsonExtensions for serde_json::Value {
             }
         }
     }
-    fn get_config_path(
+    fn get_config_path<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<PathBuf, CompassConfigurationError> {
-        let path_string = self.get_config_string(key.clone(), parent_key.clone())?;
+        let path_string = self.get_config_string(key, parent_key)?;
         let path = PathBuf::from(&path_string);
 
         // if file can be found, just it
@@ -108,124 +109,130 @@ impl ConfigJsonExtensions for serde_json::Value {
             // can't find the file
             Err(CompassConfigurationError::FileNotFoundForComponent(
                 path_string,
-                key,
-                parent_key,
+                (*key).into(),
+                (*parent_key).into(),
             ))
         }
     }
-    fn get_config_string(
+    fn get_config_string<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<String, CompassConfigurationError> {
+        let index: String = (*key).into();
         let value = self
-            .get(&key)
+            .get(index)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                key.clone(),
-                parent_key.clone(),
+                (*key).into(),
+                (*parent_key).into(),
             ))?
             .as_str()
             .map(String::from)
             .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                key.clone(),
+                (*key).into(),
                 String::from("String"),
             ))?;
         Ok(value)
     }
 
-    fn get_config_array(
+    fn get_config_array<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<Vec<serde_json::Value>, CompassConfigurationError> {
+        let index: String = (*key).into();
         let array = self
-            .get(&key)
+            .get(index)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                key.clone(),
-                parent_key.clone(),
+                (*key).into(),
+                (*parent_key).into(),
             ))?
             .as_array()
             .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                key.clone(),
+                (*key).into(),
                 String::from("Array"),
             ))?
             .to_owned();
         Ok(array)
     }
 
-    fn get_config_i64(
+    fn get_config_i64<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<i64, CompassConfigurationError> {
+        let index: String = (*key).into();
         let value = self
-            .get(&key)
+            .get(index)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                key.clone(),
-                parent_key.clone(),
+                (*key).into(),
+                (*parent_key).into(),
             ))?
             .as_i64()
             .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                key.clone(),
+                (*key).into(),
                 String::from("64-bit signed integer"),
             ))?;
         Ok(value)
     }
 
-    fn get_config_f64(
+    fn get_config_f64<A: Into<String>, B: Into<String>>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<f64, CompassConfigurationError> {
+        let index: String = (*key).into();
         let value = self
-            .get(&key)
+            .get(index)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                key.clone(),
-                parent_key.clone(),
+                (*key).into(),
+                (*parent_key).into(),
             ))?
             .as_f64()
             .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                key.clone(),
+                (*key).into(),
                 String::from("64-bit floating point"),
             ))?;
         Ok(value)
     }
 
-    fn get_config_from_str<T: FromStr>(
+    fn get_config_from_str<A: Into<String>, B: Into<String>, T: FromStr>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<T, CompassConfigurationError> {
+        let index: String = (*key).into();
         let value = self
-            .get(&key)
+            .get(index)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                key.clone(),
-                parent_key.clone(),
+                (*key).into(),
+                (*parent_key).into(),
             ))?
             .as_str()
             .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                key.clone(),
+                (*key).into(),
                 String::from("string-parseable"),
             ))?;
         let result = T::from_str(value).map_err(|_| {
             CompassConfigurationError::ExpectedFieldWithType(
-                key.clone(),
+                (*key).into(),
                 format!("failed to parse type from string {}", value),
             )
         })?;
         Ok(result)
     }
 
-    fn get_config_serde<T: de::DeserializeOwned>(
+    fn get_config_serde<A: Into<String>, B: Into<String>, T: de::DeserializeOwned>(
         &self,
-        key: String,
-        parent_key: String,
+        key: &A,
+        parent_key: &B,
     ) -> Result<T, CompassConfigurationError> {
+        let index: String = (*key).into();
         let value = self
-            .get(key.clone())
+            .get(index)
             .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                key.clone(),
-                parent_key.clone(),
+                (*key).into(),
+                (*parent_key).into(),
             ))?
             .to_owned();
 
@@ -233,15 +240,16 @@ impl ConfigJsonExtensions for serde_json::Value {
             .map_err(CompassConfigurationError::SerdeDeserializationError)?;
         Ok(result)
     }
-    fn get_config_serde_optional<T: de::DeserializeOwned>(
+    fn get_config_serde_optional<A: Into<String>, B: Into<String>, T: de::DeserializeOwned>(
         &self,
-        key: String,
-        _parent_key: String,
+        key: &A,
+        _parent_key: &B,
     ) -> Result<Option<T>, CompassConfigurationError> {
-        match self.get(key.clone()) {
+        let index: String = (*key).into();
+        match self.get(index) {
             None => Ok(None),
             Some(value) => {
-                let result: T = serde_json::from_value(value.clone())
+                let result: T = serde_json::from_value(*value)
                     .map_err(CompassConfigurationError::SerdeDeserializationError)?;
                 Ok(Some(result))
             }
@@ -266,9 +274,9 @@ impl ConfigJsonExtensions for serde_json::Value {
     /// Returns:
     ///
     /// * `Result<serde_json::Value, CompassConfigurationError>` - The JSON object with normalized paths.
-    fn normalize_file_paths(
+    fn normalize_file_paths<S: Into<String>>(
         &self,
-        parent_key: &str,
+        parent_key: &S,
         root_config_path: &Path,
     ) -> Result<serde_json::Value, CompassConfigurationError> {
         match self {
@@ -296,7 +304,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                     } else {
                         // if we can't find the file in either location, we throw an error
                         Err(CompassConfigurationError::FileNormalizationNotFound(
-                            parent_key.to_string(),
+                            (*parent_key).into(),
                             path_string.clone(),
                             new_path_string,
                         ))
@@ -311,11 +319,11 @@ impl ConfigJsonExtensions for serde_json::Value {
                         || value.is_array()
                     {
                         new_obj.insert(
-                            key.clone(),
+                            (*key).into(),
                             value.normalize_file_paths(key, root_config_path)?,
                         );
                     } else {
-                        new_obj.insert(key.clone(), value.clone());
+                        new_obj.insert((*key).into(), value.clone());
                     }
                 }
                 Ok(serde_json::Value::Object(new_obj))
