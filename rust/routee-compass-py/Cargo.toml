@@ -1,6 +1,6 @@
 [package]
 name = "routee-compass-py"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -10,8 +10,8 @@ repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
 
 [dependencies]
-routee-compass = { path = "../routee-compass", version = "0.4.0" }
-routee-compass-core = { path = "../routee-compass-core", version = "0.4.0" }
+routee-compass = { path = "../routee-compass", version = "0.5.0" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.5.0" }
 pyo3 = { version = "0.20.0", features = ["extension-module"] }
 serde_json = { workspace = true }
 config = { workspace = true }

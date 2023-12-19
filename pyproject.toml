@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "nrel.routee.compass"
-version = "0.4.0"
+version = "0.5.0"
 description = "An eco-routing tool build upon RouteE-Powertrain"
 readme = "README.md"
 documentation = "nrel.github.io/routee-compass"
@@ -35,9 +35,8 @@ manifest-path = "rust/routee-compass-py/Cargo.toml"
 include = [
     "python/nrel/routee/compass/resources/models/*.bin",
     "python/nrel/routee/compass/resources/*.toml",
-    ".cargo/config.toml"
 ]
-exclude = ["rust/routee-compass-powertrain/onnx-runtime/**"]
+exclude = ["rust/routee-compass-powertrain/onnxruntime/**"]
 
 [tool.mypy]
 ignore_missing_imports = true
