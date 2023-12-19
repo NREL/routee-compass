@@ -1,12 +1,12 @@
 use crate::model::traversal::traversal_result::TraversalResult;
 use crate::model::{
-    cost_function::cost::Cost,
     property::{edge::Edge, vertex::Vertex},
     traversal::{
         state::{state_variable::StateVar, traversal_state::TraversalState},
         traversal_model::TraversalModel,
         traversal_model_error::TraversalModelError,
     },
+    utility::cost::Cost,
 };
 use crate::util::geo::haversine::coord_distance;
 use crate::util::unit::DistanceUnit;

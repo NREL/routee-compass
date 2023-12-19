@@ -1,5 +1,5 @@
 use crate::{
-    model::{cost_function::cost::Cost, traversal::state::state_variable::StateVar},
+    model::{traversal::state::state_variable::StateVar, utility::cost::Cost},
     util::unit::as_f64::AsF64,
 };
 

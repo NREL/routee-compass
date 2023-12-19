@@ -1,9 +1,8 @@
+use crate::model::utility::utility_error::UtilityError;
 use crate::model::{
-    cost_function::{
-        cost::Cost, cost_aggregation::CostAggregation, cost_mapping_error::CostMappingError,
-    },
     road_network::edge_id::EdgeId,
     traversal::state::state_variable::StateVar,
+    utility::{cost::Cost, cost_aggregation::CostAggregation},
 };
 use std::collections::HashMap;
 
@@ -27,7 +26,7 @@ impl NetworkCostMapping {
         &self,
         state: &[StateVar],
         edge_id: &EdgeId,
-    ) -> Result<Cost, CostMappingError> {
+    ) -> Result<Cost, UtilityError> {
         match self {
             NetworkCostMapping::EdgeLookup { lookup } => todo!(),
             NetworkCostMapping::EdgeEdgeLookup { lookup } => Ok(Cost::ZERO),
@@ -35,7 +34,7 @@ impl NetworkCostMapping {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.traversal_cost(state, edge_id))
-                    .collect::<Result<Vec<Cost>, CostMappingError>>()?;
+                    .collect::<Result<Vec<Cost>, UtilityError>>()?;
                 let cost = op.agg(&mapped);
 
                 Ok(cost)
@@ -58,7 +57,7 @@ impl NetworkCostMapping {
         state: &[StateVar],
         src_edge: &EdgeId,
         dst_edge: &EdgeId,
-    ) -> Result<Cost, CostMappingError> {
+    ) -> Result<Cost, UtilityError> {
         match self {
             NetworkCostMapping::EdgeLookup { lookup } => Ok(Cost::ZERO),
             NetworkCostMapping::EdgeEdgeLookup { lookup } => {
@@ -69,7 +68,7 @@ impl NetworkCostMapping {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.access_cost(state, src_edge, dst_edge))
-                    .collect::<Result<Vec<Cost>, CostMappingError>>()?;
+                    .collect::<Result<Vec<Cost>, UtilityError>>()?;
                 let cost = op.agg(&mapped);
 
                 Ok(cost)

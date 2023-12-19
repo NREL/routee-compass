@@ -1,8 +1,8 @@
 use super::network_cost_mapping::NetworkCostMapping;
+use crate::model::utility::utility_error::UtilityError;
 use crate::{
-    model::cost_function::{
+    model::utility::{
         cost_aggregation::CostAggregation,
-        cost_mapping_error::CostMappingError,
         network::{
             network_access_cost_row::NetworkAccessCostRow,
             network_traversal_cost_row::NetworkTraversalCostRow,
@@ -24,14 +24,14 @@ pub enum NetworkCostMappingBuilder {
 }
 
 impl NetworkCostMappingBuilder {
-    pub fn build(&self) -> Result<NetworkCostMapping, CostMappingError> {
+    pub fn build(&self) -> Result<NetworkCostMapping, UtilityError> {
         use NetworkCostMapping as NCM;
         use NetworkCostMappingBuilder as Builder;
         match self {
             Builder::EdgeLookupBuilder { cost_input_file } => {
                 let lookup =
                     read_utils::from_csv::<NetworkTraversalCostRow>(cost_input_file, true, None)
-                        .map_err(|source| CostMappingError::LookupFileIOError { source })?
+                        .map_err(|source| UtilityError::CsvIoError { source })?
                         .iter()
                         .map(|row| (row.edge_id, row.cost))
                         .collect::<HashMap<_, _>>();
@@ -40,7 +40,7 @@ impl NetworkCostMappingBuilder {
             Builder::EdgeEdgeLookupBuilder { cost_input_file } => {
                 let lookup =
                     read_utils::from_csv::<NetworkAccessCostRow>(cost_input_file, true, None)
-                        .map_err(|source| CostMappingError::LookupFileIOError { source })?
+                        .map_err(|source| UtilityError::CsvIoError { source })?
                         .iter()
                         .map(|row| ((row.source, row.destination), row.cost))
                         .collect::<HashMap<_, _>>();
@@ -51,7 +51,7 @@ impl NetworkCostMappingBuilder {
                 let mappings = builders
                     .iter()
                     .map(|b| b.build())
-                    .collect::<Result<Vec<_>, CostMappingError>>()?;
+                    .collect::<Result<Vec<_>, UtilityError>>()?;
                 Ok(NCM::Combined(mappings, *aggregate_op))
             }
         }

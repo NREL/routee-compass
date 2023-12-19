@@ -1,9 +1,9 @@
 use super::access_result::AccessResult;
 use super::traversal_model_error::TraversalModelError;
-use crate::model::cost_function::cost::Cost;
 use crate::model::property::{edge::Edge, vertex::Vertex};
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_result::TraversalResult;
+use crate::model::utility::cost::Cost;
 
 /// Dictates how state transitions occur and how to evaluate the costs
 /// while traversing a graph in a search algorithm.

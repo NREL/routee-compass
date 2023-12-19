@@ -1,5 +1,6 @@
 pub mod cost;
 pub mod cost_aggregation;
-pub mod cost_mapping_error;
 pub mod network;
+pub mod utility_error;
+pub mod utility_model;
 pub mod vehicle;

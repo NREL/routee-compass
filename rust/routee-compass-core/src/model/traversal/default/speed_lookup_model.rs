@@ -5,7 +5,6 @@ use crate::util::unit::{Distance, DistanceUnit};
 use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
-        cost_function::cost::Cost,
         property::{edge::Edge, vertex::Vertex},
         traversal::{
             state::{state_variable::StateVar, traversal_state::TraversalState},
@@ -13,6 +12,7 @@ use crate::{
             traversal_model_error::TraversalModelError,
             traversal_result::TraversalResult,
         },
+        utility::cost::Cost,
     },
     util::{fs::read_utils, unit::Speed},
 };
