@@ -1,7 +1,6 @@
 use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::{VehicleState, VehicleType};
-use crate::routee::energy_model_ops::ZERO_ENERGY;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
 use routee_compass_core::model::traversal::default::speed_traversal_model::get_speed;
@@ -9,9 +8,7 @@ use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
-use routee_compass_core::model::utility::cost::Cost;
 use routee_compass_core::util::geo::haversine;
-use routee_compass_core::util::unit::as_f64::AsF64;
 use routee_compass_core::util::unit::*;
 use std::sync::Arc;
 

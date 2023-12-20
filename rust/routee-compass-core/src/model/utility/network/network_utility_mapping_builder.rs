@@ -1,12 +1,9 @@
 use super::network_utility_mapping::NetworkUtilityMapping;
 use crate::model::utility::utility_error::UtilityError;
 use crate::{
-    model::utility::{
-        cost_aggregation::CostAggregation,
-        network::{
-            network_access_utility_row::NetworkAccessUtilityRow,
-            network_traversal_utility_row::NetworkTraversalUtilityRow,
-        },
+    model::utility::network::{
+        network_access_utility_row::NetworkAccessUtilityRow,
+        network_traversal_utility_row::NetworkTraversalUtilityRow,
     },
     util::fs::read_utils,
 };
