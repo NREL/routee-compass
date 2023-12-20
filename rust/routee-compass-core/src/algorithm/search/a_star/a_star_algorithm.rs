@@ -345,7 +345,7 @@ mod tests {
     use crate::model::road_network::graph::Graph;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
     use crate::model::traversal::traversal_model::TraversalModel;
-    use crate::model::utility::cost_aggregation::{self, CostAggregation};
+    use crate::model::utility::cost_aggregation::{CostAggregation};
     use crate::model::utility::vehicle::vehicle_utility_mapping::VehicleUtilityMapping;
     use crate::util::unit::DistanceUnit;
     use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
