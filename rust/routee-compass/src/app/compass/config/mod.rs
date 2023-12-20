@@ -7,3 +7,4 @@ pub mod frontier_model;
 pub mod graph_builder;
 pub mod termination_model_builder;
 pub mod traversal_model;
+pub mod utility_model;

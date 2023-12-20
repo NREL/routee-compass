@@ -8,7 +8,7 @@ use crate::{
 ///
 /// when multiple mappings are specified they are applied sequentially (in user-defined order)
 /// to the state value.
-pub enum VehicleCostMapping {
+pub enum VehicleUtilityMapping {
     /// use a value directly as a cost
     Raw,
     /// multiply a value by a factor to become a cost
@@ -19,13 +19,13 @@ pub enum VehicleCostMapping {
     Offset {
         offset: f64,
     },
-    Combined(Vec<VehicleCostMapping>),
+    Combined(Vec<VehicleUtilityMapping>),
     // leaving room for extension if we need to do any fancier math, maybe not needed
     // Poly2 { x0: f64, x1: f64 },
     // Exp { base: f64, exp_coefficient: f64 },
 }
 
-impl VehicleCostMapping {
+impl VehicleUtilityMapping {
     /// maps a state variable to a Cost value based on a user-configured mapping.
     ///
     /// # Arguments
@@ -38,10 +38,10 @@ impl VehicleCostMapping {
     /// other Cost values in a common unit space.
     pub fn map_value(&self, state: StateVar) -> Cost {
         match self {
-            VehicleCostMapping::Raw => Cost::new(state.0),
-            VehicleCostMapping::Factor { factor } => Cost::new(state.0 * factor),
-            VehicleCostMapping::Offset { offset } => Cost::new(state.0 + offset),
-            VehicleCostMapping::Combined(mappings) => {
+            VehicleUtilityMapping::Raw => Cost::new(state.0),
+            VehicleUtilityMapping::Factor { factor } => Cost::new(state.0 * factor),
+            VehicleUtilityMapping::Offset { offset } => Cost::new(state.0 + offset),
+            VehicleUtilityMapping::Combined(mappings) => {
                 mappings.iter().fold(Cost::new(state.0), |acc, f| {
                     f.map_value(StateVar(acc.as_f64()))
                 })
