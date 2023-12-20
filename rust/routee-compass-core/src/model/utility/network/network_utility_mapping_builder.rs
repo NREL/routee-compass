@@ -1,11 +1,11 @@
-use super::network_cost_mapping::NetworkCostMapping;
+use super::network_utility_mapping::NetworkUtilityMapping;
 use crate::model::utility::utility_error::UtilityError;
 use crate::{
     model::utility::{
         cost_aggregation::CostAggregation,
         network::{
-            network_access_cost_row::NetworkAccessCostRow,
-            network_traversal_cost_row::NetworkTraversalCostRow,
+            network_access_utility_row::NetworkAccessUtilityRow,
+            network_traversal_utility_row::NetworkTraversalUtilityRow,
         },
     },
     util::fs::read_utils,
@@ -14,23 +14,23 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
-pub enum NetworkCostMappingBuilder {
+pub enum NetworkUtilityMappingBuilder {
     #[serde(rename = "traversal_lookup")]
     EdgeLookupBuilder { cost_input_file: String },
     #[serde(rename = "access_lookup")]
     EdgeEdgeLookupBuilder { cost_input_file: String },
     #[serde(rename = "combined")]
-    Combined(Vec<NetworkCostMappingBuilder>, CostAggregation),
+    Combined(Vec<NetworkUtilityMappingBuilder>, CostAggregation),
 }
 
-impl NetworkCostMappingBuilder {
-    pub fn build(&self) -> Result<NetworkCostMapping, UtilityError> {
-        use NetworkCostMapping as NCM;
-        use NetworkCostMappingBuilder as Builder;
+impl NetworkUtilityMappingBuilder {
+    pub fn build(&self) -> Result<NetworkUtilityMapping, UtilityError> {
+        use NetworkUtilityMapping as NCM;
+        use NetworkUtilityMappingBuilder as Builder;
         match self {
             Builder::EdgeLookupBuilder { cost_input_file } => {
                 let lookup =
-                    read_utils::from_csv::<NetworkTraversalCostRow>(cost_input_file, true, None)
+                    read_utils::from_csv::<NetworkTraversalUtilityRow>(cost_input_file, true, None)
                         .map_err(|source| UtilityError::CsvIoError { source })?
                         .iter()
                         .map(|row| (row.edge_id, row.cost))
@@ -39,7 +39,7 @@ impl NetworkCostMappingBuilder {
             }
             Builder::EdgeEdgeLookupBuilder { cost_input_file } => {
                 let lookup =
-                    read_utils::from_csv::<NetworkAccessCostRow>(cost_input_file, true, None)
+                    read_utils::from_csv::<NetworkAccessUtilityRow>(cost_input_file, true, None)
                         .map_err(|source| UtilityError::CsvIoError { source })?
                         .iter()
                         .map(|row| ((row.source, row.destination), row.cost))
