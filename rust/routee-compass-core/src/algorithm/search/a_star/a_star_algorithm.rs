@@ -345,7 +345,7 @@ mod tests {
     use crate::model::road_network::graph::Graph;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
     use crate::model::traversal::traversal_model::TraversalModel;
-    use crate::model::utility::cost_aggregation;
+    use crate::model::utility::cost_aggregation::{self, CostAggregation};
     use crate::model::utility::vehicle::vehicle_utility_mapping::VehicleUtilityMapping;
     use crate::util::unit::DistanceUnit;
     use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
@@ -451,7 +451,7 @@ mod tests {
                 let dg_inner = Arc::new(driver_dg.read_only());
                 let dist_tm: Arc<dyn TraversalModel> =
                     Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters));
-                let dist_um: Arc<UtilityModel> = Arc::new(UtilityModel::new(
+                let dist_um: UtilityModel = UtilityModel::new(
                     vec![(String::from("distance"), 0usize)],
                     Arc::new(HashMap::from([(
                         String::from("distance"),
@@ -459,7 +459,7 @@ mod tests {
                     )])),
                     Arc::new(HashMap::new()),
                     CostAggregation::Sum,
-                ));
+                );
                 let fm_inner = Arc::new(NoRestriction {});
                 let rm_inner = Arc::new(driver_rm.read_only());
                 run_a_star(o, Some(d), dg_inner, dist_tm, dist_um, fm_inner, rm_inner)
