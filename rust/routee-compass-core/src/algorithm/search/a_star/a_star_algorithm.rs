@@ -343,7 +343,6 @@ mod tests {
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
     use crate::model::road_network::graph::Graph;
-    use crate::model::traversal::default::distance::DistanceModel;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::util::unit::DistanceUnit;
