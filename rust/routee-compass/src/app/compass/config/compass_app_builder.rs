@@ -11,7 +11,6 @@ use super::{
         distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
         speed_lookup_builder::SpeedLookupBuilder,
     },
-    utility_model::utility_model_builder::UtilityModelBuilder,
 };
 use crate::plugin::{
     input::{
