@@ -1,8 +1,8 @@
 use crate::app::compass::config::compass_configuration_error::CompassConfigurationError;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::model::utility::{
-    cost_aggregation::CostAggregation, utility_model::UtilityModel,
-    vehicle::vehicle_utility_mapping::VehicleUtilityMapping,
+    cost_aggregation::CostAggregation, network::network_utility_mapping::NetworkUtilityMapping,
+    utility_model::UtilityModel, vehicle::vehicle_utility_mapping::VehicleUtilityMapping,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -11,6 +11,7 @@ use std::{
 
 pub struct UtilityModelService {
     vehicle_mapping: Arc<HashMap<String, VehicleUtilityMapping>>,
+    network_mapping: Arc<HashMap<String, NetworkUtilityMapping>>,
 }
 
 impl UtilityModelService {
@@ -53,7 +54,12 @@ impl UtilityModelService {
         let cost_aggregation: CostAggregation =
             query.get_config_serde(&"cost_aggregation", &"utility_model")?;
 
-        let model = UtilityModel::new(dimensions, self.vehicle_mapping.clone(), cost_aggregation);
+        let model = UtilityModel::new(
+            dimensions,
+            self.vehicle_mapping.clone(),
+            self.network_mapping.clone(),
+            cost_aggregation,
+        );
 
         Ok(model)
     }
