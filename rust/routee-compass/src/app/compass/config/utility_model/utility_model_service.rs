@@ -61,16 +61,22 @@ impl UtilityModelService {
     }
 
     pub fn default_vehicle_mapping() -> HashMap<String, VehicleUtilityMapping> {
-        HashMap::from([(String::from("distance"), VehicleUtilityMapping::Raw)])
+        HashMap::from([
+            (String::from("distance"), VehicleUtilityMapping::Raw),
+            (String::from("time"), VehicleUtilityMapping::Raw),
+            (String::from("energy"), VehicleUtilityMapping::Raw),
+            (String::from("energy_liquid"), VehicleUtilityMapping::Raw),
+            (String::from("energy_electric"), VehicleUtilityMapping::Raw),
+        ])
     }
 
     /// a default cost model interprets raw distance values for costs
     pub fn default_utility_model() -> UtilityModelService {
-        log::warn!("using default distance utility model");
+        log::warn!("using default utility model");
         UtilityModelService {
             vehicle_mapping: Arc::new(UtilityModelService::default_vehicle_mapping()),
             network_mapping: Arc::new(HashMap::new()),
-            default_vehicle_dimensions: HashSet::from([String::from("distance")]),
+            default_vehicle_dimensions: HashSet::from([String::from("time")]),
             default_cost_aggregation: CostAggregation::Sum,
         }
     }

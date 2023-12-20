@@ -24,9 +24,9 @@ impl UtilityModelBuilder {
         let network_mapping: Option<HashMap<String, NetworkUtilityMapping>> =
             config.get_config_serde_optional(&"network_mapping", &"utility")?;
         let default_vehicle_dimensions: Option<HashSet<String>> =
-            config.get_config_serde_optional(&"vehicle_dimensions", &"utility")?;
+            config.get_config_serde_optional(&"default_vehicle_dimensions", &"utility")?;
         let default_cost_aggregation: Option<CostAggregation> =
-            config.get_config_serde_optional(&"cost_aggregation", &"utility")?;
+            config.get_config_serde_optional(&"default_cost_aggregation", &"utility")?;
         let model = UtilityModelService::new(
             vehicle_mapping,
             network_mapping,
