@@ -36,7 +36,7 @@ impl TraversalModel for EnergyTraversalModel {
     fn state_dimensions(&self) -> Vec<String> {
         let mut dims = vec![String::from("distance"), String::from("time")];
         dims.extend(self.vehicle.state_dimensions());
-        return dims;
+        dims
     }
 
     fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
@@ -63,9 +63,9 @@ impl TraversalModel for EnergyTraversalModel {
 
     fn traverse_edge(
         &self,
-        src: &Vertex,
+        _src: &Vertex,
         edge: &Edge,
-        dst: &Vertex,
+        _dst: &Vertex,
         state: &TraversalState,
     ) -> Result<TraversalState, TraversalModelError> {
         let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.service.output_distance_unit);
@@ -87,25 +87,18 @@ impl TraversalModel for EnergyTraversalModel {
             get_vehicle_state_from_state(state),
         )?;
 
-        let mut energy = energy_result.energy;
-
-        // for now we need to truncate the energy at zero until we can handle these being negative
-        if energy.as_f64() < 0.0 {
-            energy = Energy::new(ZERO_ENERGY);
-            log::debug!("negative energy encountered, setting to 1e-9");
-        }
         let updated_state = update_state(state, distance, time, energy_result.updated_state);
         Ok(updated_state)
     }
 
     fn access_edge(
         &self,
-        v1: &Vertex,
-        src: &Edge,
-        v2: &Vertex,
-        dst: &Edge,
-        v3: &Vertex,
-        state: &TraversalState,
+        _v1: &Vertex,
+        _src: &Edge,
+        _v2: &Vertex,
+        _dst: &Edge,
+        _v3: &Vertex,
+        _state: &TraversalState,
     ) -> Result<Option<TraversalState>, TraversalModelError> {
         Ok(None)
     }
@@ -197,15 +190,6 @@ impl TryFrom<(Arc<EnergyModelService>, &serde_json::Value)> for EnergyTraversalM
             energy_cost_coefficient,
         })
     }
-}
-
-fn create_cost(energy: Energy, time: Time, energy_percent: f64) -> Cost {
-    let energy_scaled = energy * energy_percent;
-    let energy_cost = Cost::from(energy_scaled);
-    let time_scaled = time * (1.0 - energy_percent);
-    let time_cost = Cost::from(time_scaled);
-
-    energy_cost + time_cost
 }
 
 fn update_state(
