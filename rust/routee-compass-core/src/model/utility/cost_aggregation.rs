@@ -15,7 +15,7 @@ impl CostAggregation {
         match self {
             CostAggregation::Sum => costs.iter().fold(Cost::ZERO, |acc, c| acc + *c),
             CostAggregation::Mul => {
-                if costs.len() == 0 {
+                if costs.is_empty() {
                     Cost::ZERO
                 } else {
                     costs

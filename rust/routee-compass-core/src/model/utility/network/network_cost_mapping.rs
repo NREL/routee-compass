@@ -24,16 +24,19 @@ pub enum NetworkCostMapping {
 impl NetworkCostMapping {
     pub fn traversal_cost(
         &self,
-        state: &[StateVar],
+        _state: &[StateVar],
         edge_id: &EdgeId,
     ) -> Result<Cost, UtilityError> {
         match self {
-            NetworkCostMapping::EdgeLookup { lookup } => todo!(),
-            NetworkCostMapping::EdgeEdgeLookup { lookup } => Ok(Cost::ZERO),
+            NetworkCostMapping::EdgeEdgeLookup { lookup: _ } => Ok(Cost::ZERO),
+            NetworkCostMapping::EdgeLookup { lookup } => {
+                let cost = lookup.get(edge_id).unwrap_or(&Cost::ZERO).to_owned();
+                Ok(cost)
+            }
             NetworkCostMapping::Combined(mappings, op) => {
                 let mapped = mappings
                     .iter()
-                    .map(|f| f.traversal_cost(state, edge_id))
+                    .map(|f| f.traversal_cost(_state, edge_id))
                     .collect::<Result<Vec<Cost>, UtilityError>>()?;
                 let cost = op.agg(&mapped);
 
@@ -54,12 +57,12 @@ impl NetworkCostMapping {
     /// other Cost values in a common unit space.
     pub fn access_cost(
         &self,
-        state: &[StateVar],
+        _state: &[StateVar],
         src_edge: &EdgeId,
         dst_edge: &EdgeId,
     ) -> Result<Cost, UtilityError> {
         match self {
-            NetworkCostMapping::EdgeLookup { lookup } => Ok(Cost::ZERO),
+            NetworkCostMapping::EdgeLookup { lookup: _ } => Ok(Cost::ZERO),
             NetworkCostMapping::EdgeEdgeLookup { lookup } => {
                 let result = lookup.get(&(*src_edge, *dst_edge)).unwrap_or(&Cost::ZERO);
                 Ok(*result)
@@ -67,7 +70,7 @@ impl NetworkCostMapping {
             NetworkCostMapping::Combined(mappings, op) => {
                 let mapped = mappings
                     .iter()
-                    .map(|f| f.access_cost(state, src_edge, dst_edge))
+                    .map(|f| f.access_cost(_state, src_edge, dst_edge))
                     .collect::<Result<Vec<Cost>, UtilityError>>()?;
                 let cost = op.agg(&mapped);
 
