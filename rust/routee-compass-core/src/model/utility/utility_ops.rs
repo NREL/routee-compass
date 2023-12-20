@@ -63,7 +63,7 @@ pub fn calculate_network_traversal_costs(
 pub fn calculate_network_access_costs(
     prev_state: &[StateVar],
     next_state: &[StateVar],
-    prev_edge: Option<&Edge>,
+    prev_edge: &Edge,
     next_edge: &Edge,
     dimensions: &[(String, usize)],
     mappings: Arc<HashMap<String, NetworkUtilityMapping>>,

@@ -1,6 +1,6 @@
 use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
-use routee_compass_core::model::traversal::default::speed_lookup_model::SpeedLookupModel;
+use routee_compass_core::model::traversal::default::speed_traversal_model::SpeedTraversalModel;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_builder::TraversalModelBuilder;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
@@ -11,7 +11,7 @@ use std::sync::Arc;
 pub struct SpeedLookupBuilder {}
 
 pub struct SpeedLookupService {
-    m: Arc<SpeedLookupModel>,
+    m: Arc<SpeedTraversalModel>,
 }
 
 impl TraversalModelBuilder for SpeedLookupBuilder {
@@ -34,7 +34,7 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
             .get_config_serde_optional::<TimeUnit>(&"output_time_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
-        let m = SpeedLookupModel::new(&filename, speed_unit, distance_unit, time_unit)?;
+        let m = SpeedTraversalModel::new(&filename, speed_unit, distance_unit, time_unit)?;
         let service = Arc::new(SpeedLookupService { m: Arc::new(m) });
         Ok(service)
     }

@@ -43,7 +43,7 @@ impl UtilityModel {
     /// # Returns
     ///
     /// Either a traversal cost or an error.
-    fn traversal_cost(
+    pub fn traversal_cost(
         &self,
         edge: &Edge,
         prev_state: &[StateVar],
@@ -84,9 +84,9 @@ impl UtilityModel {
     /// # Returns
     ///
     /// Either an access result or an error.
-    fn access_cost(
+    pub fn access_cost(
         &self,
-        prev_edge: Option<&Edge>,
+        prev_edge: &Edge,
         next_edge: &Edge,
         prev_state: &[StateVar],
         next_state: &[StateVar],
@@ -123,7 +123,7 @@ impl UtilityModel {
     /// # Returns
     ///
     /// Either a cost estimate or an error.
-    fn cost_estimate(
+    pub fn cost_estimate(
         &self,
         src_state: &[StateVar],
         dst_state: &[StateVar],

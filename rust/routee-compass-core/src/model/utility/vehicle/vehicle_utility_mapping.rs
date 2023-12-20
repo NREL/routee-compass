@@ -2,12 +2,14 @@ use crate::{
     model::{traversal::state::state_variable::StateVar, utility::cost::Cost},
     util::unit::as_f64::AsF64,
 };
-
+use serde::{Deserialize, Serialize};
 /// a mapping for how to transform vehicle state values into a Cost.
 /// mappings can be a single instance of Raw, Factor, or Offset mapping.
 ///
 /// when multiple mappings are specified they are applied sequentially (in user-defined order)
 /// to the state value.
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum VehicleUtilityMapping {
     /// use a value directly as a cost
     Raw,

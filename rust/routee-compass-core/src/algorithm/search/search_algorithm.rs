@@ -7,6 +7,7 @@ use crate::model::road_network::graph::Graph;
 use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::traversal_model::TraversalModel;
+use crate::model::utility::utility_model::UtilityModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use std::sync::Arc;
 
@@ -32,6 +33,7 @@ impl SearchAlgorithm {
         destination: Option<VertexId>,
         graph: Arc<ExecutorReadOnlyLock<Graph>>,
         traversal_model: Arc<dyn TraversalModel>,
+        utility_model: UtilityModel,
         frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
     ) -> Result<MinSearchTree, SearchError> {
@@ -41,6 +43,7 @@ impl SearchAlgorithm {
                 destination,
                 graph,
                 traversal_model,
+                utility_model,
                 frontier_model,
                 termination_model,
             ),
@@ -52,6 +55,7 @@ impl SearchAlgorithm {
         destination: Option<EdgeId>,
         graph: Arc<ExecutorReadOnlyLock<Graph>>,
         traversal_model: Arc<dyn TraversalModel>,
+        utility_model: UtilityModel,
         frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
     ) -> Result<MinSearchTree, SearchError> {
@@ -61,6 +65,7 @@ impl SearchAlgorithm {
                 destination,
                 graph,
                 traversal_model,
+                utility_model,
                 frontier_model,
                 termination_model,
             ),

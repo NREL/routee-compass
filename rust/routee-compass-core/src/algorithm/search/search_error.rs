@@ -4,6 +4,7 @@ use crate::model::{
     road_network::{edge_id::EdgeId, vertex_id::VertexId},
     termination::termination_model_error::TerminationModelError,
     traversal::traversal_model_error::TraversalModelError,
+    utility::utility_error::UtilityError,
 };
 
 #[derive(thiserror::Error, Debug)]
@@ -18,6 +19,8 @@ pub enum SearchError {
     TraversalModelFailure(#[from] TraversalModelError),
     #[error(transparent)]
     FrontierModelFailure(#[from] FrontierModelError),
+    #[error(transparent)]
+    UtilityError(#[from] UtilityError),
     #[error("loop in search result revisits edge {0}")]
     LoopInSearchResult(EdgeId),
     #[error("query terminated due to {0}")]

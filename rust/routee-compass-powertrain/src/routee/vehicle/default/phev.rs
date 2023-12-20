@@ -52,6 +52,15 @@ impl VehicleType for PHEV {
     fn name(&self) -> String {
         self.name.clone()
     }
+
+    fn state_dimensions(&self) -> Vec<String> {
+        vec![
+            String::from("energy_electric"),
+            String::from("energy_liquid"),
+            String::from("battery_state"),
+        ]
+    }
+
     fn initial_state(&self) -> TraversalState {
         vec![
             StateVar(0.0),                                   // accumulated electrical energy
@@ -74,6 +83,22 @@ impl VehicleType for PHEV {
         )?;
         Ok(energy)
     }
+
+    fn best_case_energy_state(
+        &self,
+        distance: (Distance, DistanceUnit),
+        state: &[StateVar],
+    ) -> Result<VehicleEnergyResult, TraversalModelError> {
+        let (electrical_energy, electrical_energy_unit) = self.best_case_energy(distance)?;
+        let updated_state = update_state(state, electrical_energy, Energy::ZERO);
+
+        Ok(VehicleEnergyResult {
+            energy: electrical_energy,
+            energy_unit: electrical_energy_unit,
+            updated_state,
+        })
+    }
+
     fn consume_energy(
         &self,
         speed: (Speed, SpeedUnit),

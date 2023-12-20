@@ -46,12 +46,16 @@ impl VehicleType for BEV {
     fn name(&self) -> String {
         self.name.clone()
     }
+    fn state_dimensions(&self) -> Vec<String> {
+        vec![String::from("energy"), String::from("battery_state")]
+    }
     fn initial_state(&self) -> TraversalState {
         vec![
             StateVar(0.0),                                   // accumulated electrical energy
             StateVar(self.starting_battery_energy.as_f64()), // battery energy remaining
         ]
     }
+
     fn best_case_energy(
         &self,
         distance: (Distance, DistanceUnit),
@@ -67,6 +71,22 @@ impl VehicleType for BEV {
 
         Ok(energy)
     }
+
+    fn best_case_energy_state(
+        &self,
+        distance: (Distance, DistanceUnit),
+        state: &[StateVar],
+    ) -> Result<VehicleEnergyResult, TraversalModelError> {
+        let (electrical_energy, electrical_energy_unit) = self.best_case_energy(distance)?;
+        let updated_state = update_state(state, electrical_energy, self.battery_capacity);
+
+        Ok(VehicleEnergyResult {
+            energy: electrical_energy,
+            energy_unit: electrical_energy_unit,
+            updated_state,
+        })
+    }
+
     fn consume_energy(
         &self,
         speed: (Speed, SpeedUnit),

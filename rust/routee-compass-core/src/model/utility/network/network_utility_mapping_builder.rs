@@ -14,13 +14,14 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
+#[serde(tag = "type")]
 pub enum NetworkUtilityMappingBuilder {
     #[serde(rename = "traversal_lookup")]
     EdgeLookupBuilder { cost_input_file: String },
     #[serde(rename = "access_lookup")]
     EdgeEdgeLookupBuilder { cost_input_file: String },
     #[serde(rename = "combined")]
-    Combined(Vec<NetworkUtilityMappingBuilder>, CostAggregation),
+    Combined(Vec<NetworkUtilityMappingBuilder>),
 }
 
 impl NetworkUtilityMappingBuilder {
@@ -47,12 +48,12 @@ impl NetworkUtilityMappingBuilder {
 
                 Ok(NCM::EdgeEdgeLookup { lookup })
             }
-            Builder::Combined(builders, aggregate_op) => {
+            Builder::Combined(builders) => {
                 let mappings = builders
                     .iter()
                     .map(|b| b.build())
                     .collect::<Result<Vec<_>, UtilityError>>()?;
-                Ok(NCM::Combined(mappings, *aggregate_op))
+                Ok(NCM::Combined(mappings))
             }
         }
     }

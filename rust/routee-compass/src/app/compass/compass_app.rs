@@ -9,8 +9,13 @@ use crate::{
             compass_input_field::CompassInputField,
             config::{
                 compass_configuration_field::CompassConfigurationField,
-                config_json_extension::ConfigJsonExtensions, graph_builder::DefaultGraphBuilder,
+                config_json_extension::ConfigJsonExtensions,
+                graph_builder::DefaultGraphBuilder,
                 termination_model_builder::TerminationModelBuilder,
+                utility_model::{
+                    utility_model_builder::UtilityModelBuilder,
+                    utility_model_service::UtilityModelService,
+                },
             },
         },
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
@@ -123,6 +128,13 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             traversal_duration.hhmmss()
         );
 
+        // build utility model
+        let utility_params = config_json.get_config_section(CompassConfigurationField::Utility);
+        let utility_model_service = match utility_params.ok() {
+            None => Ok(UtilityModelService::default_utility_model()),
+            Some(params) => UtilityModelBuilder {}.build(&params),
+        }?;
+
         // build frontier model
         let frontier_start = Local::now();
         let frontier_params =
@@ -158,6 +170,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             search_algorithm,
             graph,
             traversal_model_service,
+            utility_model_service,
             frontier_model_service,
             termination_model,
         );
@@ -510,6 +523,7 @@ mod tests {
             "destination_vertex": 2
         });
         let result = app.run(vec![query]).unwrap();
+        println!("{:?}", result);
         let edge_ids = result[0].get("edge_id_list").unwrap();
         // path [1] is distance-optimal; path [0, 2] is time-optimal
         let expected = serde_json::json!(vec![0, 2]);

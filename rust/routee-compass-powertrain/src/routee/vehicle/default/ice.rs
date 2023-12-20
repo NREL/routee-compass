@@ -36,6 +36,9 @@ impl VehicleType for ICE {
     fn name(&self) -> String {
         self.name.clone()
     }
+    fn state_dimensions(&self) -> Vec<String> {
+        vec![String::from("energy")]
+    }
     fn initial_state(&self) -> VehicleState {
         // accumulated energy
         vec![StateVar(0.0)]
@@ -53,6 +56,22 @@ impl VehicleType for ICE {
         )?;
         Ok(energy)
     }
+
+    fn best_case_energy_state(
+        &self,
+        distance: (Distance, DistanceUnit),
+        state: &[StateVar],
+    ) -> Result<VehicleEnergyResult, TraversalModelError> {
+        let (energy, energy_unit) = self.best_case_energy(distance)?;
+        let updated_state = update_state(state, energy);
+
+        Ok(VehicleEnergyResult {
+            energy,
+            energy_unit,
+            updated_state,
+        })
+    }
+
     fn consume_energy(
         &self,
         speed: (Speed, SpeedUnit),

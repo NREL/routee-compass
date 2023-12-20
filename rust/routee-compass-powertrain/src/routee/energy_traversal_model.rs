@@ -1,17 +1,14 @@
-use crate::routee::energy_model_ops::ZERO_ENERGY;
-
 use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::{VehicleState, VehicleType};
-
+use crate::routee::energy_model_ops::ZERO_ENERGY;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
-use routee_compass_core::model::traversal::default::speed_lookup_model::get_speed;
+use routee_compass_core::model::traversal::default::speed_traversal_model::get_speed;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
-use routee_compass_core::model::traversal::traversal_result::TraversalResult;
 use routee_compass_core::model::utility::cost::Cost;
 use routee_compass_core::util::geo::haversine;
 use routee_compass_core::util::unit::as_f64::AsF64;
@@ -35,48 +32,42 @@ impl TraversalModel for EnergyTraversalModel {
 
         initial_state
     }
-    /// estimate the cost of traveling between two vertices.
-    /// given a distance estimate,
-    fn cost_estimate(
-        &self,
-        src: &Vertex,
-        dst: &Vertex,
-        _state: &TraversalState,
-    ) -> Result<Cost, TraversalModelError> {
-        let distance = haversine::coord_distance(
-            src.coordinate,
-            dst.coordinate,
-            self.service.output_distance_unit,
-        )
-        .map_err(TraversalModelError::NumericError)?;
 
-        if distance == Distance::ZERO {
-            return Ok(Cost::ZERO);
-        }
-
-        let (energy, _energy_unit) = self
-            .vehicle
-            .best_case_energy((distance, self.service.output_distance_unit))?;
-
-        let time: Time = Time::create(
-            self.service.max_speed,
-            self.service.speeds_table_speed_unit,
-            distance,
-            self.service.output_distance_unit,
-            self.service.output_time_unit.clone(),
-        )?;
-
-        let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
-        Ok(total_cost)
+    fn state_dimensions(&self) -> Vec<String> {
+        let mut dims = vec![String::from("distance"), String::from("time")];
+        dims.extend(self.vehicle.state_dimensions());
+        return dims;
     }
 
-    fn traversal_cost(
+    fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
+        let distance = get_distance_from_state(state);
+        let time = get_time_from_state(state);
+        let vehicle_state = get_vehicle_state_from_state(state);
+        let vehicle_state_summary = self.vehicle.serialize_state(vehicle_state);
+        serde_json::json!({
+            "distance": distance,
+            "time": time,
+            "vehicle": vehicle_state_summary,
+        })
+    }
+
+    fn serialize_state_info(&self, state: &TraversalState) -> serde_json::Value {
+        let vehicle_state = get_vehicle_state_from_state(state);
+        let vehicle_state_info = self.vehicle.serialize_state_info(vehicle_state);
+        serde_json::json!({
+            "distance_unit": self.service.output_distance_unit,
+            "time_unit": self.service.output_time_unit,
+            "vehicle_info": vehicle_state_info,
+        })
+    }
+
+    fn traverse_edge(
         &self,
-        _src: &Vertex,
+        src: &Vertex,
         edge: &Edge,
-        _dst: &Vertex,
+        dst: &Vertex,
         state: &TraversalState,
-    ) -> Result<TraversalResult, TraversalModelError> {
+    ) -> Result<TraversalState, TraversalModelError> {
         let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.service.output_distance_unit);
         let speed = get_speed(&self.service.speed_table, edge.edge_id)?;
         let grade = get_grade(&self.service.grade_table, edge.edge_id)?;
@@ -103,37 +94,53 @@ impl TraversalModel for EnergyTraversalModel {
             energy = Energy::new(ZERO_ENERGY);
             log::debug!("negative energy encountered, setting to 1e-9");
         }
-
-        let total_cost = create_cost(energy, time, self.energy_cost_coefficient);
-
         let updated_state = update_state(state, distance, time, energy_result.updated_state);
-        let result = TraversalResult {
-            total_cost,
-            updated_state,
-        };
-        Ok(result)
+        Ok(updated_state)
     }
 
-    fn serialize_state(&self, state: &TraversalState) -> serde_json::Value {
-        let distance = get_distance_from_state(state);
-        let time = get_time_from_state(state);
-        let vehicle_state = get_vehicle_state_from_state(state);
-        let vehicle_state_summary = self.vehicle.serialize_state(vehicle_state);
-        serde_json::json!({
-            "distance": distance,
-            "time": time,
-            "vehicle": vehicle_state_summary,
-        })
+    fn access_edge(
+        &self,
+        v1: &Vertex,
+        src: &Edge,
+        v2: &Vertex,
+        dst: &Edge,
+        v3: &Vertex,
+        state: &TraversalState,
+    ) -> Result<Option<TraversalState>, TraversalModelError> {
+        Ok(None)
     }
 
-    fn serialize_state_info(&self, state: &TraversalState) -> serde_json::Value {
-        let vehicle_state = get_vehicle_state_from_state(state);
-        let vehicle_state_info = self.vehicle.serialize_state_info(vehicle_state);
-        serde_json::json!({
-            "distance_unit": self.service.output_distance_unit,
-            "time_unit": self.service.output_time_unit,
-            "vehicle_info": vehicle_state_info,
-        })
+    fn estimate_traversal(
+        &self,
+        src: &Vertex,
+        dst: &Vertex,
+        state: &TraversalState,
+    ) -> Result<TraversalState, TraversalModelError> {
+        let distance = haversine::coord_distance(
+            src.coordinate,
+            dst.coordinate,
+            self.service.output_distance_unit,
+        )
+        .map_err(TraversalModelError::NumericError)?;
+
+        if distance == Distance::ZERO {
+            return Ok(state.clone());
+        }
+
+        let time: Time = Time::create(
+            self.service.max_speed,
+            self.service.speeds_table_speed_unit,
+            distance,
+            self.service.output_distance_unit,
+            self.service.output_time_unit.clone(),
+        )?;
+
+        let best_case_result = self
+            .vehicle
+            .best_case_energy_state((distance, self.service.output_distance_unit), state)?;
+
+        let updated_state = update_state(state, distance, time, best_case_result.updated_state);
+        Ok(updated_state)
     }
 }
 
@@ -308,7 +315,7 @@ mod tests {
         let initial = model.initial_state();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        let result = model.traversal_cost(&v, &e1, &v, &initial).unwrap();
-        println!("{}, {:?}", result.total_cost, result.updated_state);
+        let result = model.traverse_edge(&v, &e1, &v, &initial).unwrap();
+        println!("{:?}", result);
     }
 }
