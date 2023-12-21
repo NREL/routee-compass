@@ -25,11 +25,10 @@ impl CostModelService {
         default_state_variable_coefficients: Option<HashMap<String, f64>>,
         default_cost_aggregation: Option<CostAggregation>,
     ) -> Result<CostModelService, CompassConfigurationError> {
-        let vm = vehicle_state_variable_rates
+        let vehicle_rates = vehicle_state_variable_rates
             .unwrap_or(CostModelService::default_vehicle_state_variable_rates());
-        // let vm = Arc::new(vehicle_mapping);
-        let nm = network_state_variable_rates.unwrap_or(HashMap::new());
-        let dsvc = match default_state_variable_coefficients {
+        let network_rates = network_state_variable_rates.unwrap_or(HashMap::new());
+        let coefficients = match default_state_variable_coefficients {
             Some(coefficients) => {
                 if coefficients.is_empty() {
                     Err(CompassConfigurationError::UserConfigurationError(
@@ -44,7 +43,7 @@ impl CostModelService {
                 Ok(CostModelService::default_state_variable_coefficients())
             }
         }?;
-        let dca = match default_cost_aggregation {
+        let cost_aggregation = match default_cost_aggregation {
             Some(agg) => agg,
             None => {
                 log::warn!("using default cost aggregation 'sum'");
@@ -52,10 +51,10 @@ impl CostModelService {
             }
         };
         Ok(CostModelService {
-            vehicle_state_variable_rates: Arc::new(vm),
-            network_state_variable_rates: Arc::new(nm),
-            state_variable_coefficients: Arc::new(dsvc),
-            default_cost_aggregation: dca,
+            vehicle_state_variable_rates: Arc::new(vehicle_rates),
+            network_state_variable_rates: Arc::new(network_rates),
+            state_variable_coefficients: Arc::new(coefficients),
+            default_cost_aggregation: cost_aggregation,
         })
     }
 
@@ -124,12 +123,26 @@ impl CostModelService {
             .map(Arc::new)
             .unwrap_or(self.state_variable_coefficients.clone());
 
+        // load only indices that appear in coefficients object
         let state_variable_indices = traversal_state_variable_names
             .iter()
             .enumerate()
             .filter(|(_idx, n)| state_variable_coefficients.contains_key(*n))
             .map(|(idx, n)| (n.clone(), idx))
             .collect::<Vec<_>>();
+
+        // the user can append/replace rates from the query
+        let vehicle_rates = query
+            .get_config_serde_optional::<HashMap<String, VehicleCostRate>>(
+                &"vehicle_state_variable_rates",
+                &"utility_model",
+            )?
+            .map(|query_rates| {
+                let mut rates = (*self.vehicle_state_variable_rates).clone();
+                rates.extend(query_rates);
+                Arc::new(rates)
+            })
+            .unwrap_or(self.vehicle_state_variable_rates.clone());
 
         let cost_aggregation: CostAggregation = query
             .get_config_serde_optional(&"cost_aggregation", &"utility_model")?
@@ -138,7 +151,7 @@ impl CostModelService {
         let model = CostModel::new(
             state_variable_indices,
             state_variable_coefficients,
-            self.vehicle_state_variable_rates.clone(),
+            vehicle_rates,
             self.network_state_variable_rates.clone(),
             cost_aggregation,
         );
