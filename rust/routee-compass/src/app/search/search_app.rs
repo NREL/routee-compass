@@ -2,7 +2,7 @@ use super::search_app_result::SearchAppResult;
 use crate::{
     app::compass::{
         compass_app_error::CompassAppError,
-        config::utility_model::cost_model_service::CostModelService,
+        config::cost_model::cost_model_service::CostModelService,
     },
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
@@ -10,6 +10,7 @@ use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{backtrack, search_algorithm::SearchAlgorithm},
     model::{
+        cost::cost_model::CostModel,
         frontier::frontier_model_service::FrontierModelService,
         road_network::graph::Graph,
         termination::termination_model::TerminationModel,
@@ -26,7 +27,7 @@ pub struct SearchApp {
     search_algorithm: SearchAlgorithm,
     graph: Arc<DriverReadOnlyLock<Graph>>,
     traversal_model_service: Arc<DriverReadOnlyLock<Arc<dyn TraversalModelService>>>,
-    utility_model_service: Arc<DriverReadOnlyLock<CostModelService>>,
+    cost_model_service: Arc<DriverReadOnlyLock<CostModelService>>,
     frontier_model_service: Arc<DriverReadOnlyLock<Arc<dyn FrontierModelService>>>,
     termination_model: Arc<DriverReadOnlyLock<TerminationModel>>,
 }
@@ -51,7 +52,7 @@ impl SearchApp {
             search_algorithm,
             graph,
             traversal_model_service,
-            utility_model_service,
+            cost_model_service: utility_model_service,
             frontier_model_service,
             termination_model,
         }
@@ -81,7 +82,7 @@ impl SearchApp {
         let state_variable_names = tm_inner.state_variable_names();
 
         let um_inner = self
-            .utility_model_service
+            .cost_model_service
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
@@ -158,7 +159,7 @@ impl SearchApp {
         let state_variable_names = tm_inner.state_variable_names();
 
         let um_inner = self
-            .utility_model_service
+            .cost_model_service
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
@@ -231,7 +232,7 @@ impl SearchApp {
     /// let reference = search_app.get_traversal_model_reference();
     /// let traversal_model = reference.read();
     /// // do things with TraversalModel
-    pub fn get_traversal_model_reference(
+    pub fn build_traversal_model(
         &self,
         query: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, CompassAppError> {
@@ -242,6 +243,54 @@ impl SearchApp {
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
             .build(query)?;
         Ok(tm)
+    }
+
+    /// helper function for building an instance of a CostModel
+    ///
+    /// example:
+    ///
+    /// let search_app: SearchApp = ...;
+    /// let reference = search_app.get_traversal_model_reference();
+    /// let traversal_model = reference.read();
+    /// // do things with TraversalModel
+    pub fn build_cost_model(
+        &self,
+        query: &serde_json::Value,
+    ) -> Result<CostModel, CompassAppError> {
+        let tm = self.build_traversal_model(query)?;
+        let state_variable_names = tm.state_variable_names();
+        let cm = self
+            .cost_model_service
+            .read_only()
+            .read()
+            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
+            .build(query, &state_variable_names)?;
+        Ok(cm)
+    }
+
+    /// helper function for building an instance of a CostModel
+    /// using an already-constructed traversal model (which is an
+    /// upstream dependency of building a cost model).
+    ///
+    /// example:
+    ///
+    /// let search_app: SearchApp = ...;
+    /// let reference = search_app.get_traversal_model_reference();
+    /// let traversal_model = reference.read();
+    /// // do things with TraversalModel
+    pub fn build_cost_model_for_traversal_model(
+        &self,
+        query: &serde_json::Value,
+        tm: Arc<dyn TraversalModel>,
+    ) -> Result<CostModel, CompassAppError> {
+        let state_variable_names = tm.state_variable_names();
+        let cm = self
+            .cost_model_service
+            .read_only()
+            .read()
+            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
+            .build(query, &state_variable_names)?;
+        Ok(cm)
     }
 
     pub fn get_graph_reference(&self) -> Arc<ExecutorReadOnlyLock<Graph>> {

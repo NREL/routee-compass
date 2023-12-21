@@ -10,11 +10,11 @@ use crate::{
             config::{
                 compass_configuration_field::CompassConfigurationField,
                 config_json_extension::ConfigJsonExtensions,
-                graph_builder::DefaultGraphBuilder,
-                termination_model_builder::TerminationModelBuilder,
-                utility_model::{
+                cost_model::{
                     cost_model_builder::CostModelBuilder, cost_model_service::CostModelService,
                 },
+                graph_builder::DefaultGraphBuilder,
+                termination_model_builder::TerminationModelBuilder,
             },
         },
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
@@ -429,7 +429,7 @@ pub fn apply_output_processing(
                 "tree_edge_count": result.tree.len()
             });
 
-            let tmodel = match search_app.get_traversal_model_reference(req) {
+            let tmodel = match search_app.build_traversal_model(req) {
                 Err(e) => {
                     return vec![serde_json::json!({
                         "request": req,
@@ -447,6 +447,18 @@ pub fn apply_output_processing(
             if let Some(traversal_summary) = traversal_summary_option {
                 init_output["traversal_summary"] = traversal_summary;
             }
+
+            // collect information about the cost model used
+            let cmodel = match search_app.build_cost_model_for_traversal_model(req, tmodel) {
+                Err(e) => {
+                    return vec![serde_json::json!({
+                        "request": req,
+                        "error": e.to_string()
+                    })]
+                }
+                Ok(cmodel) => cmodel,
+            };
+            init_output["cost_summary"] = cmodel.serialize_cost_info();
 
             init_output
         }

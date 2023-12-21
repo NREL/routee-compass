@@ -339,6 +339,7 @@ mod tests {
 
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
+    use crate::model::cost::cost_aggregation::CostAggregation;
     use crate::model::cost::vehicle::vehicle_cost_mapping::VehicleCostMapping;
     use crate::model::frontier::default::no_restriction::NoRestriction;
     use crate::model::property::edge::Edge;
@@ -347,7 +348,6 @@ mod tests {
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::unit::DistanceUnit;
-    use crate::model::unit_aggregation::CostAggregation;
     use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
 
@@ -453,6 +453,7 @@ mod tests {
                     Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters));
                 let dist_um: CostModel = CostModel::new(
                     vec![(String::from("distance"), 0usize)],
+                    Arc::new(HashMap::from([(String::from("distance"), 1.0)])),
                     Arc::new(HashMap::from([(
                         String::from("distance"),
                         VehicleCostMapping::Raw,

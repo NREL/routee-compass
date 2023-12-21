@@ -11,10 +11,11 @@ use std::{collections::HashMap, sync::Arc};
 pub fn calculate_vehicle_costs(
     prev_state: &[StateVar],
     next_state: &[StateVar],
-    state_variables: &[(String, usize)],
+    state_variable_indices: &[(String, usize)],
+    state_variable_coefficients: Arc<HashMap<String, f64>>,
     mappings: Arc<HashMap<String, VehicleCostMapping>>,
 ) -> Result<Vec<Cost>, CostError> {
-    let costs = state_variables
+    let costs = state_variable_indices
         .iter()
         .map(|(name, idx)| {
             let prev_state_var = prev_state
@@ -28,7 +29,12 @@ pub fn calculate_vehicle_costs(
                 .get(name)
                 .ok_or(CostError::StateDimensionNotFound(name.clone()))?;
             let cost = mapping.map_value(delta);
-            Ok(cost)
+
+            // apply coefficient if provided
+            match state_variable_coefficients.get(name) {
+                Some(coefficient) => Ok(cost * coefficient),
+                None => Ok(cost),
+            }
         })
         .collect::<Result<Vec<_>, CostError>>()?;
     Ok(costs)
@@ -38,10 +44,11 @@ pub fn calculate_network_traversal_costs(
     prev_state: &[StateVar],
     next_state: &[StateVar],
     edge: &Edge,
-    state_variables: &[(String, usize)],
+    state_variable_indices: &[(String, usize)],
+    state_variable_coefficients: Arc<HashMap<String, f64>>,
     mappings: Arc<HashMap<String, NetworkCostMapping>>,
 ) -> Result<Vec<Cost>, CostError> {
-    let costs = state_variables
+    let costs = state_variable_indices
         .iter()
         .map(|(name, idx)| match mappings.get(name) {
             None => Ok(Cost::ZERO),
@@ -52,7 +59,12 @@ pub fn calculate_network_traversal_costs(
                 let next_state_var = next_state
                     .get(*idx)
                     .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
-                m.traversal_cost(*prev_state_var, *next_state_var, edge)
+                let cost = m.traversal_cost(*prev_state_var, *next_state_var, edge)?;
+                // apply coefficient if provided
+                match state_variable_coefficients.get(name) {
+                    Some(coefficient) => Ok(cost * coefficient),
+                    None => Ok(cost),
+                }
             }
         })
         .collect::<Result<Vec<_>, CostError>>()?;
@@ -64,10 +76,11 @@ pub fn calculate_network_access_costs(
     next_state: &[StateVar],
     prev_edge: &Edge,
     next_edge: &Edge,
-    state_variables: &[(String, usize)],
+    state_variable_indices: &[(String, usize)],
+    state_variable_coefficients: Arc<HashMap<String, f64>>,
     mappings: Arc<HashMap<String, NetworkCostMapping>>,
 ) -> Result<Vec<Cost>, CostError> {
-    let costs = state_variables
+    let costs = state_variable_indices
         .iter()
         .map(|(name, idx)| match mappings.get(name) {
             None => Ok(Cost::ZERO),
@@ -78,7 +91,12 @@ pub fn calculate_network_access_costs(
                 let next_state_var = next_state
                     .get(*idx)
                     .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
-                m.access_cost(*prev_state_var, *next_state_var, prev_edge, next_edge)
+                let cost = m.access_cost(*prev_state_var, *next_state_var, prev_edge, next_edge)?;
+                // apply coefficient if provided
+                match state_variable_coefficients.get(name) {
+                    Some(coefficient) => Ok(cost * coefficient),
+                    None => Ok(cost),
+                }
             }
         })
         .collect::<Result<Vec<_>, CostError>>()?;

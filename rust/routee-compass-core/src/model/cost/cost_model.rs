@@ -11,7 +11,8 @@ use std::sync::Arc;
 
 /// implementation of a model for calculating Cost from a state transition.
 pub struct CostModel {
-    state_variables: Vec<(String, usize)>,
+    state_variable_indices: Vec<(String, usize)>,
+    state_variable_coefficients: Arc<HashMap<String, f64>>,
     vehicle_mapping: Arc<HashMap<String, VehicleCostMapping>>,
     network_mapping: Arc<HashMap<String, NetworkCostMapping>>,
     cost_aggregation: CostAggregation,
@@ -19,13 +20,15 @@ pub struct CostModel {
 
 impl CostModel {
     pub fn new(
-        state_variables: Vec<(String, usize)>,
+        state_variable_indices: Vec<(String, usize)>,
+        state_variable_coefficients: Arc<HashMap<String, f64>>,
         vehicle_mapping: Arc<HashMap<String, VehicleCostMapping>>,
         network_mapping: Arc<HashMap<String, NetworkCostMapping>>,
         cost_aggregation: CostAggregation,
     ) -> CostModel {
         CostModel {
-            state_variables,
+            state_variable_indices,
+            state_variable_coefficients,
             vehicle_mapping,
             network_mapping,
             cost_aggregation,
@@ -52,7 +55,8 @@ impl CostModel {
         let vehicle_costs = cost_ops::calculate_vehicle_costs(
             prev_state,
             next_state,
-            &self.state_variables,
+            &self.state_variable_indices,
+            self.state_variable_coefficients.clone(),
             self.vehicle_mapping.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
@@ -60,7 +64,8 @@ impl CostModel {
             prev_state,
             next_state,
             edge,
-            &self.state_variables,
+            &self.state_variable_indices,
+            self.state_variable_coefficients.clone(),
             self.network_mapping.clone(),
         )?;
         let network_cost = self.cost_aggregation.agg(&network_costs);
@@ -94,7 +99,8 @@ impl CostModel {
         let vehicle_costs = cost_ops::calculate_vehicle_costs(
             prev_state,
             next_state,
-            &self.state_variables,
+            &self.state_variable_indices,
+            self.state_variable_coefficients.clone(),
             self.vehicle_mapping.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
@@ -103,7 +109,8 @@ impl CostModel {
             next_state,
             prev_edge,
             next_edge,
-            &self.state_variables,
+            &self.state_variable_indices,
+            self.state_variable_coefficients.clone(),
             self.network_mapping.clone(),
         )?;
         let network_cost = self.cost_aggregation.agg(&network_costs);
@@ -131,10 +138,31 @@ impl CostModel {
         let vehicle_costs = cost_ops::calculate_vehicle_costs(
             src_state,
             dst_state,
-            &self.state_variables,
+            &self.state_variable_indices,
+            self.state_variable_coefficients.clone(),
             self.vehicle_mapping.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
         Ok(vehicle_cost)
+    }
+
+    /// Serializes other information about a cost model as a JSON value.
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - the state to serialize information from
+    ///
+    /// # Returns
+    ///
+    /// JSON containing information such as the units (kph, hours, etc) or other
+    /// traversal info (charge events, days traveled, etc)
+    pub fn serialize_cost_info(&self) -> serde_json::Value {
+        serde_json::json!({
+            "state_variable_indices": serde_json::json!(self.state_variable_indices),
+            "state_variable_coefficients": serde_json::json!(*self.state_variable_coefficients),
+            "vehicle_mapping": serde_json::json!(*self.vehicle_mapping),
+            "network_mapping": serde_json::json!(*self.network_mapping),
+            "cost_aggregation": serde_json::json!(self.cost_aggregation)
+        })
     }
 }
