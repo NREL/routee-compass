@@ -118,14 +118,10 @@ impl CostModelService {
     ) -> Result<CostModel, CompassConfigurationError> {
         let state_variable_coefficients: Arc<HashMap<String, f64>> = query
             .get_config_serde_optional::<HashMap<String, f64>>(
-                &"state_variable_names",
+                &"state_variable_coefficients",
                 &"utility_model",
             )?
-            .map(|coefs| {
-                let mut coef_with_defaults = (*self.state_variable_coefficients).clone();
-                coef_with_defaults.extend(coefs);
-                Arc::new(coef_with_defaults)
-            })
+            .map(Arc::new)
             .unwrap_or(self.state_variable_coefficients.clone());
 
         let state_variable_indices = traversal_state_variable_names
