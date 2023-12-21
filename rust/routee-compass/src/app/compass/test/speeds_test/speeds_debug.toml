@@ -15,8 +15,12 @@ speed_table_input_file = "compass-app/src/app/compass/test/speeds_test/test_edge
 speed_unit = "kilometers_per_hour"
 output_time_unit = "hours"
 
-[utility]
-[utility.vehicle_mapping.time]
+[cost]
+cost_aggregation = "sum"
+[cost.state_variable_coefficients]
+distance = 0
+time = 1
+[cost.vehicle_state_variable_rates.time]
 type = "raw"
 
 [plugin]
