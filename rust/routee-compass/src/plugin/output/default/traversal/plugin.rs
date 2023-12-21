@@ -96,8 +96,7 @@ mod tests {
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
         model::{
-            cost::cost::Cost, road_network::edge_id::EdgeId,
-            traversal::state::state_variable::StateVar,
+            road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar, unit::Cost,
         },
         util::{fs::read_utils::read_raw_file, geo::geo_io_utils::parse_linestring},
     };

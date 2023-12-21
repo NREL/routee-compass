@@ -92,7 +92,7 @@ mod test {
     use rayon::prelude::*;
     use routee_compass_core::{
         model::traversal::traversal_model_error::TraversalModelError,
-        util::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+        model::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
     };
 
     #[test]
