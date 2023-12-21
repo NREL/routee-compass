@@ -56,7 +56,7 @@ impl SpeedTraversalModel {
 }
 
 impl TraversalModel for SpeedTraversalModel {
-    fn state_dimensions(&self) -> Vec<String> {
+    fn state_variable_names(&self) -> Vec<String> {
         vec![String::from("distance"), String::from("time")]
     }
 

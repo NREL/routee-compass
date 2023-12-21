@@ -2,8 +2,8 @@ use crate::app::compass::config::compass_configuration_error::CompassConfigurati
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::model::cost::{
     cost_aggregation::CostAggregation, cost_model::CostModel,
-    network::network_cost_mapping::NetworkUtilityMapping,
-    vehicle::vehicle_cost_mapping::VehicleUtilityMapping,
+    network::network_cost_mapping::NetworkCostMapping,
+    vehicle::vehicle_cost_mapping::VehicleCostMapping,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -11,9 +11,9 @@ use std::{
 };
 
 pub struct CostModelService {
-    pub vehicle_mapping: Arc<HashMap<String, VehicleUtilityMapping>>,
-    pub network_mapping: Arc<HashMap<String, NetworkUtilityMapping>>,
-    pub default_vehicle_dimensions: HashSet<String>,
+    pub vehicle_mapping: Arc<HashMap<String, VehicleCostMapping>>,
+    pub network_mapping: Arc<HashMap<String, NetworkCostMapping>>,
+    pub default_state_variable_names: HashSet<String>,
     pub default_cost_aggregation: CostAggregation,
 }
 
@@ -21,28 +21,28 @@ impl CostModelService {
     /// create a new instance of a utility model service using the provided
     /// values deserialized from app configuration.
     ///
-    /// if no default vehicle dimensions are provided, fall back to "distance".
+    /// if no default vehicle state variable names are provided, fall back to "distance".
     pub fn new(
-        vehicle_mapping: Option<HashMap<String, VehicleUtilityMapping>>,
-        network_mapping: Option<HashMap<String, NetworkUtilityMapping>>,
-        default_vehicle_dimensions: Option<HashSet<String>>,
+        vehicle_mapping: Option<HashMap<String, VehicleCostMapping>>,
+        network_mapping: Option<HashMap<String, NetworkCostMapping>>,
+        default_state_variable_names: Option<HashSet<String>>,
         default_cost_aggregation: Option<CostAggregation>,
     ) -> Result<CostModelService, CompassConfigurationError> {
         let vm = vehicle_mapping.unwrap_or(CostModelService::default_vehicle_mapping());
         // let vm = Arc::new(vehicle_mapping);
         let nm = network_mapping.unwrap_or(HashMap::new());
-        let dvd = match default_vehicle_dimensions {
+        let dsvn = match default_state_variable_names {
             Some(dims) => {
                 if dims.is_empty() {
                     Err(CompassConfigurationError::UserConfigurationError(
-                        String::from("default vehicle utility dimensions cannot be empty"),
+                        String::from("default vehicle cost state_variable_names cannot be empty"),
                     ))
                 } else {
                     Ok(dims)
                 }
             }
             None => {
-                log::warn!("using default vehicle dimensions ['distance']");
+                log::warn!("using default vehicle state variable ['distance']");
                 Ok(HashSet::from([String::from("distance")]))
             }
         }?;
@@ -56,18 +56,18 @@ impl CostModelService {
         Ok(CostModelService {
             vehicle_mapping: Arc::new(vm),
             network_mapping: Arc::new(nm),
-            default_vehicle_dimensions: dvd,
+            default_state_variable_names: dsvn,
             default_cost_aggregation: dca,
         })
     }
 
-    pub fn default_vehicle_mapping() -> HashMap<String, VehicleUtilityMapping> {
+    pub fn default_vehicle_mapping() -> HashMap<String, VehicleCostMapping> {
         HashMap::from([
-            (String::from("distance"), VehicleUtilityMapping::Raw),
-            (String::from("time"), VehicleUtilityMapping::Raw),
-            (String::from("energy"), VehicleUtilityMapping::Raw),
-            (String::from("energy_liquid"), VehicleUtilityMapping::Raw),
-            (String::from("energy_electric"), VehicleUtilityMapping::Raw),
+            (String::from("distance"), VehicleCostMapping::Raw),
+            (String::from("time"), VehicleCostMapping::Raw),
+            (String::from("energy"), VehicleCostMapping::Raw),
+            (String::from("energy_liquid"), VehicleCostMapping::Raw),
+            (String::from("energy_electric"), VehicleCostMapping::Raw),
         ])
     }
 
@@ -77,30 +77,30 @@ impl CostModelService {
         CostModelService {
             vehicle_mapping: Arc::new(CostModelService::default_vehicle_mapping()),
             network_mapping: Arc::new(HashMap::new()),
-            default_vehicle_dimensions: HashSet::from([String::from("time")]),
+            default_state_variable_names: HashSet::from([String::from("time")]),
             default_cost_aggregation: CostAggregation::Sum,
         }
     }
 
     /// builds a CostModel based on the incoming query parameters along with the
-    /// state dimension names of the traversal model.
+    /// state variable names of the traversal model.
     ///
     /// the query is expected to contain the following keys:
     ///
     /// ```python
     /// {
-    ///   "vehicle_dimensions": [],  # list of state dimensions to convert to costs
+    ///   "state_variable_names": [],  # list of state variables to convert to costs
     ///   "cost_aggregation": ''     # operation for combining costs, 'sum' or 'mul'
     /// }
     /// ```
     ///
-    /// by providing vehicle dimensions for cost function
+    /// by providing vehicle state attributes for cost function
     ///
     /// # Arguments
     ///
     /// * `query` - search query
-    /// * `state_dimensions` - list of names describing each slot in the state vector
-    ///                        used by the instantiated traversal model.
+    /// * `state_variable_names` - list of names describing each slot in the state vector
+    ///                            used by the instantiated traversal model.
     ///
     /// # Result
     ///
@@ -108,16 +108,16 @@ impl CostModelService {
     pub fn build(
         &self,
         query: &serde_json::Value,
-        state_dimensions: &[String],
+        traversal_state_variable_names: &[String],
     ) -> Result<CostModel, CompassConfigurationError> {
-        let dimension_names: HashSet<String> = query
-            .get_config_serde_optional(&"vehicle_dimensions", &"utility_model")?
-            .unwrap_or(self.default_vehicle_dimensions.to_owned());
+        let state_variable_names: HashSet<String> = query
+            .get_config_serde_optional(&"state_variable_names", &"utility_model")?
+            .unwrap_or(self.default_state_variable_names.to_owned());
 
-        let dimensions = state_dimensions
+        let state_variables = traversal_state_variable_names
             .iter()
             .enumerate()
-            .filter(|(_idx, n)| dimension_names.contains(*n))
+            .filter(|(_idx, n)| state_variable_names.contains(*n))
             .map(|(idx, n)| (n.clone(), idx))
             .collect::<Vec<_>>();
 
@@ -126,7 +126,7 @@ impl CostModelService {
             .unwrap_or(self.default_cost_aggregation.to_owned());
 
         let model = CostModel::new(
-            dimensions,
+            state_variables,
             self.vehicle_mapping.clone(),
             self.network_mapping.clone(),
             cost_aggregation,

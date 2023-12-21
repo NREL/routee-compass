@@ -12,13 +12,13 @@ use crate::model::traversal::state::traversal_state::TraversalState;
 /// [SpeedLookupModel]: super::default::speed_lookup_model::SpeedLookupModel
 pub trait TraversalModel: Send + Sync {
     /// Provides the list of state variable names in the order that they
-    /// appear in the TraversalState. for each dimension name, its position
+    /// appear in the TraversalState. for each state variable name, its position
     /// in the result Vector is assumed to match the index of the state vector.
     ///
     /// # Returns
     ///
-    /// the names of the state variables
-    fn state_dimensions(&self) -> Vec<String>;
+    /// the names of the state
+    fn state_variable_names(&self) -> Vec<String>;
 
     /// Creates the initial state of a search. this should be a vector of
     /// accumulators.

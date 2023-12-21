@@ -128,7 +128,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         );
 
         // build utility model
-        let utility_params = config_json.get_config_section(CompassConfigurationField::Utility);
+        let utility_params = config_json.get_config_section(CompassConfigurationField::Cost);
         let utility_model_service = match utility_params.ok() {
             None => Ok(CostModelService::default_cost_model()),
             Some(params) => CostModelBuilder {}.build(&params),

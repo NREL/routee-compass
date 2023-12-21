@@ -45,7 +45,7 @@ impl VehicleType for BEV {
     fn name(&self) -> String {
         self.name.clone()
     }
-    fn state_dimensions(&self) -> Vec<String> {
+    fn state_variable_names(&self) -> Vec<String> {
         vec![String::from("energy"), String::from("battery_state")]
     }
     fn initial_state(&self) -> TraversalState {

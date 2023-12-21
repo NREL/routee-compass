@@ -339,7 +339,7 @@ mod tests {
 
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
-    use crate::model::cost::vehicle::vehicle_cost_mapping::VehicleUtilityMapping;
+    use crate::model::cost::vehicle::vehicle_cost_mapping::VehicleCostMapping;
     use crate::model::frontier::default::no_restriction::NoRestriction;
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
@@ -455,7 +455,7 @@ mod tests {
                     vec![(String::from("distance"), 0usize)],
                     Arc::new(HashMap::from([(
                         String::from("distance"),
-                        VehicleUtilityMapping::Raw,
+                        VehicleCostMapping::Raw,
                     )])),
                     Arc::new(HashMap::new()),
                     CostAggregation::Sum,

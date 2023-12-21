@@ -16,7 +16,7 @@ speed_unit = "kilometers_per_hour"
 output_time_unit = "hours"
 
 [utility]
-vehicle_dimensions = ["time"]
+state_variable_names = ["time"]
 [utility.vehicle_mapping.time]
 type = "raw"
 

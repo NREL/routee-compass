@@ -12,17 +12,17 @@ use std::collections::HashMap;
 /// to the state value.
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum NetworkUtilityMapping {
+pub enum NetworkCostMapping {
     EdgeLookup {
         lookup: HashMap<EdgeId, Cost>,
     },
     EdgeEdgeLookup {
         lookup: HashMap<(EdgeId, EdgeId), Cost>,
     },
-    Combined(Vec<NetworkUtilityMapping>),
+    Combined(Vec<NetworkCostMapping>),
 }
 
-impl NetworkUtilityMapping {
+impl NetworkCostMapping {
     pub fn traversal_cost(
         &self,
         _prev_state_var: StateVar,
@@ -30,12 +30,12 @@ impl NetworkUtilityMapping {
         edge: &Edge,
     ) -> Result<Cost, CostError> {
         match self {
-            NetworkUtilityMapping::EdgeEdgeLookup { lookup: _ } => Ok(Cost::ZERO),
-            NetworkUtilityMapping::EdgeLookup { lookup } => {
+            NetworkCostMapping::EdgeEdgeLookup { lookup: _ } => Ok(Cost::ZERO),
+            NetworkCostMapping::EdgeLookup { lookup } => {
                 let cost = lookup.get(&edge.edge_id).unwrap_or(&Cost::ZERO).to_owned();
                 Ok(cost)
             }
-            NetworkUtilityMapping::Combined(mappings) => {
+            NetworkCostMapping::Combined(mappings) => {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.traversal_cost(_prev_state_var, _next_state_var, edge))
@@ -68,14 +68,14 @@ impl NetworkUtilityMapping {
         next_edge: &Edge,
     ) -> Result<Cost, CostError> {
         match self {
-            NetworkUtilityMapping::EdgeLookup { lookup: _ } => Ok(Cost::ZERO),
-            NetworkUtilityMapping::EdgeEdgeLookup { lookup } => {
+            NetworkCostMapping::EdgeLookup { lookup: _ } => Ok(Cost::ZERO),
+            NetworkCostMapping::EdgeEdgeLookup { lookup } => {
                 let result = lookup
                     .get(&(prev_edge.edge_id, next_edge.edge_id))
                     .unwrap_or(&Cost::ZERO);
                 Ok(*result)
             }
-            NetworkUtilityMapping::Combined(mappings) => {
+            NetworkCostMapping::Combined(mappings) => {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.access_cost(_prev_state_var, _next_state_var, prev_edge, next_edge))

@@ -53,7 +53,7 @@ impl VehicleType for PHEV {
         self.name.clone()
     }
 
-    fn state_dimensions(&self) -> Vec<String> {
+    fn state_variable_names(&self) -> Vec<String> {
         vec![
             String::from("energy_electric"),
             String::from("energy_liquid"),

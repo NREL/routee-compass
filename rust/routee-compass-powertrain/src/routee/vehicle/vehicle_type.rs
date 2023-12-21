@@ -61,13 +61,13 @@ pub trait VehicleType: Send + Sync {
     ) -> Result<VehicleEnergyResult, TraversalModelError>;
 
     /// Provides the list of state variable names in the order that they
-    /// appear in the VehicleType. for each dimension name, its position
+    /// appear in the VehicleType. for each state variable name, its position
     /// in the result Vector is assumed to match the index of the state vector.
     ///
     /// # Returns
     ///
     /// the names of the state variables
-    fn state_dimensions(&self) -> Vec<String>;
+    fn state_variable_names(&self) -> Vec<String>;
 
     /// Return the initial state of the vehicle
     fn initial_state(&self) -> VehicleState;

@@ -30,9 +30,9 @@ impl TraversalModel for EnergyTraversalModel {
         initial_state
     }
 
-    fn state_dimensions(&self) -> Vec<String> {
+    fn state_variable_names(&self) -> Vec<String> {
         let mut dims = vec![String::from("distance"), String::from("time")];
-        dims.extend(self.vehicle.state_dimensions());
+        dims.extend(self.vehicle.state_variable_names());
         dims
     }
 

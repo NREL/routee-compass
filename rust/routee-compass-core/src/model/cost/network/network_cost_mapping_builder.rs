@@ -1,4 +1,4 @@
-use super::network_cost_mapping::NetworkUtilityMapping;
+use super::network_cost_mapping::NetworkCostMapping;
 use crate::model::cost::cost_error::CostError;
 use crate::{
     model::cost::network::{
@@ -22,8 +22,8 @@ pub enum NetworkUtilityMappingBuilder {
 }
 
 impl NetworkUtilityMappingBuilder {
-    pub fn build(&self) -> Result<NetworkUtilityMapping, CostError> {
-        use NetworkUtilityMapping as NCM;
+    pub fn build(&self) -> Result<NetworkCostMapping, CostError> {
+        use NetworkCostMapping as NCM;
         use NetworkUtilityMappingBuilder as Builder;
         match self {
             Builder::EdgeLookupBuilder { cost_input_file } => {

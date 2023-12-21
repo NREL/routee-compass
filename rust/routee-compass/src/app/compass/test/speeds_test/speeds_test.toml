@@ -15,7 +15,7 @@ speed_table_input_file = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
 speed_unit = "kilometers_per_hour"
 output_time_unit = "hours"
 
-[utility]
+[cost]
 vehicle_dimensions = ["time"]
 [utility.vehicle_mapping.time]
 type = "raw"

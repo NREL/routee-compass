@@ -1,7 +1,7 @@
 use super::cost_aggregation::CostAggregation;
 use super::cost_ops;
-use super::network::network_cost_mapping::NetworkUtilityMapping;
-use super::vehicle::vehicle_cost_mapping::VehicleUtilityMapping;
+use super::network::network_cost_mapping::NetworkCostMapping;
+use super::vehicle::vehicle_cost_mapping::VehicleCostMapping;
 use crate::model::cost::cost_error::CostError;
 use crate::model::property::edge::Edge;
 use crate::model::traversal::state::state_variable::StateVar;
@@ -11,21 +11,21 @@ use std::sync::Arc;
 
 /// implementation of a model for calculating Cost from a state transition.
 pub struct CostModel {
-    dimensions: Vec<(String, usize)>,
-    vehicle_mapping: Arc<HashMap<String, VehicleUtilityMapping>>,
-    network_mapping: Arc<HashMap<String, NetworkUtilityMapping>>,
+    state_variables: Vec<(String, usize)>,
+    vehicle_mapping: Arc<HashMap<String, VehicleCostMapping>>,
+    network_mapping: Arc<HashMap<String, NetworkCostMapping>>,
     cost_aggregation: CostAggregation,
 }
 
 impl CostModel {
     pub fn new(
-        dimensions: Vec<(String, usize)>,
-        vehicle_mapping: Arc<HashMap<String, VehicleUtilityMapping>>,
-        network_mapping: Arc<HashMap<String, NetworkUtilityMapping>>,
+        state_variables: Vec<(String, usize)>,
+        vehicle_mapping: Arc<HashMap<String, VehicleCostMapping>>,
+        network_mapping: Arc<HashMap<String, NetworkCostMapping>>,
         cost_aggregation: CostAggregation,
     ) -> CostModel {
         CostModel {
-            dimensions,
+            state_variables,
             vehicle_mapping,
             network_mapping,
             cost_aggregation,
@@ -52,7 +52,7 @@ impl CostModel {
         let vehicle_costs = cost_ops::calculate_vehicle_costs(
             prev_state,
             next_state,
-            &self.dimensions,
+            &self.state_variables,
             self.vehicle_mapping.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
@@ -60,7 +60,7 @@ impl CostModel {
             prev_state,
             next_state,
             edge,
-            &self.dimensions,
+            &self.state_variables,
             self.network_mapping.clone(),
         )?;
         let network_cost = self.cost_aggregation.agg(&network_costs);
@@ -94,7 +94,7 @@ impl CostModel {
         let vehicle_costs = cost_ops::calculate_vehicle_costs(
             prev_state,
             next_state,
-            &self.dimensions,
+            &self.state_variables,
             self.vehicle_mapping.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
@@ -103,7 +103,7 @@ impl CostModel {
             next_state,
             prev_edge,
             next_edge,
-            &self.dimensions,
+            &self.state_variables,
             self.network_mapping.clone(),
         )?;
         let network_cost = self.cost_aggregation.agg(&network_costs);
@@ -131,7 +131,7 @@ impl CostModel {
         let vehicle_costs = cost_ops::calculate_vehicle_costs(
             src_state,
             dst_state,
-            &self.dimensions,
+            &self.state_variables,
             self.vehicle_mapping.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
