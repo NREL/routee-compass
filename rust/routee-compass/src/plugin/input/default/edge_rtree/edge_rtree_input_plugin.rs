@@ -12,10 +12,10 @@ use crate::{
 use geo_types::Coord;
 use routee_compass_core::{
     model::road_network::edge_id::EdgeId,
+    model::unit::{as_f64::AsF64, Distance, DistanceUnit, BASE_DISTANCE_UNIT},
     util::{
         fs::{read_decoders, read_utils},
         geo::geo_io_utils::read_linestring_text_file,
-        unit::{as_f64::AsF64, Distance, DistanceUnit, BASE_DISTANCE_UNIT},
     },
 };
 use rstar::RTree;

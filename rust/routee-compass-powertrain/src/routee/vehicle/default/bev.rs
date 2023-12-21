@@ -1,15 +1,14 @@
-use std::sync::Arc;
-
 use routee_compass_core::{
     model::traversal::{
         state::{state_variable::StateVar, traversal_state::TraversalState},
         traversal_model_error::TraversalModelError,
     },
-    util::unit::{
+    model::unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
 };
+use std::sync::Arc;
 
 use crate::routee::{
     prediction::PredictionModelRecord,
@@ -198,7 +197,7 @@ fn get_battery_soc_percent(vehicle: &BEV, state: &[StateVar]) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use routee_compass_core::util::unit::{EnergyRate, EnergyRateUnit};
+    use routee_compass_core::model::unit::{EnergyRate, EnergyRateUnit};
 
     use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
 

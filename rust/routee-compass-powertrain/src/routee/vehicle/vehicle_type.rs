@@ -1,11 +1,10 @@
-use std::sync::Arc;
-
 use routee_compass_core::{
     model::traversal::{
         state::state_variable::StateVar, traversal_model_error::TraversalModelError,
     },
-    util::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    model::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
+use std::sync::Arc;
 
 use super::VehicleEnergyResult;
 

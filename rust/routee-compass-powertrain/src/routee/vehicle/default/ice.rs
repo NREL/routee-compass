@@ -1,14 +1,13 @@
-use std::sync::Arc;
-
 use routee_compass_core::{
     model::traversal::{
         state::state_variable::StateVar, traversal_model_error::TraversalModelError,
     },
-    util::unit::{
+    model::unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
 };
+use std::sync::Arc;
 
 use crate::routee::{
     prediction::PredictionModelRecord,

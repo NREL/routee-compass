@@ -2,13 +2,11 @@ use std::sync::Arc;
 
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::{
-        cache_policy::float_cache_policy::FloatCachePolicy,
-        unit::{
-            as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit,
-            Grade, GradeUnit, Speed, SpeedUnit,
-        },
+    model::unit::{
+        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit,
+        Grade, GradeUnit, Speed, SpeedUnit,
     },
+    util::cache_policy::float_cache_policy::FloatCachePolicy,
 };
 
 use super::{model_type::ModelType, PredictionModel};

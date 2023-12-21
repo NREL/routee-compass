@@ -4,7 +4,7 @@ use super::utility_ops;
 use super::vehicle::vehicle_utility_mapping::VehicleUtilityMapping;
 use crate::model::property::edge::Edge;
 use crate::model::traversal::state::state_variable::StateVar;
-use crate::model::utility::cost::Cost;
+use crate::model::unit::Cost;
 use crate::model::utility::utility_error::UtilityError;
 use std::collections::HashMap;
 use std::sync::Arc;

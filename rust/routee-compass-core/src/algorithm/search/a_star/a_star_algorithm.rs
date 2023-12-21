@@ -9,7 +9,7 @@ use crate::model::road_network::graph::Graph;
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::utility::cost::Cost;
+use crate::model::unit::Cost;
 use crate::model::utility::utility_model::UtilityModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{algorithm::search::direction::Direction, model::road_network::vertex_id::VertexId};
@@ -345,9 +345,9 @@ mod tests {
     use crate::model::road_network::graph::Graph;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
     use crate::model::traversal::traversal_model::TraversalModel;
-    use crate::model::utility::cost_aggregation::{CostAggregation};
+    use crate::model::unit::DistanceUnit;
+    use crate::model::unit_aggregation::CostAggregation;
     use crate::model::utility::vehicle::vehicle_utility_mapping::VehicleUtilityMapping;
-    use crate::util::unit::DistanceUnit;
     use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
 

@@ -3,7 +3,7 @@ use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::graph::Graph;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::utility::cost::Cost;
+use crate::model::unit::Cost;
 use crate::model::utility::utility_model::UtilityModel;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

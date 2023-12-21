@@ -1,8 +1,7 @@
 use crate::model::property::edge::Edge;
+use crate::model::unit::Cost;
 use crate::model::utility::utility_error::UtilityError;
-use crate::model::{
-    road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar, utility::cost::Cost,
-};
+use crate::model::{road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

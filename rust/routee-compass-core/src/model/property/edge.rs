@@ -1,5 +1,5 @@
 use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
-use crate::util::unit::Distance;
+use crate::model::unit::Distance;
 use serde::{Deserialize, Serialize};
 
 /// represents a single edge in a Graph.

@@ -5,8 +5,8 @@ use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_builder::TraversalModelBuilder;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
-use routee_compass_core::util::unit::DistanceUnit;
-use routee_compass_core::util::unit::BASE_DISTANCE_UNIT;
+use routee_compass_core::model::unit::DistanceUnit;
+use routee_compass_core::model::unit::BASE_DISTANCE_UNIT;
 use std::sync::Arc;
 
 pub struct DistanceBuilder {}

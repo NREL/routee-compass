@@ -2,10 +2,8 @@ use std::{path::Path, sync::Arc};
 
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::{
-        cache_policy::float_cache_policy::FloatCachePolicy,
-        unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
-    },
+    model::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    util::cache_policy::float_cache_policy::FloatCachePolicy,
 };
 
 use super::{

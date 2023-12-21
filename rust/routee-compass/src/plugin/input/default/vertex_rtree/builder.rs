@@ -1,4 +1,4 @@
-use routee_compass_core::util::unit::{Distance, DistanceUnit};
+use routee_compass_core::model::unit::{Distance, DistanceUnit};
 
 use crate::{
     app::compass::config::{

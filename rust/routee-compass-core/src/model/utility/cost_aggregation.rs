@@ -1,6 +1,4 @@
-use crate::util::unit::as_f64::AsF64;
-
-use super::cost::Cost;
+use crate::model::unit::{as_f64::AsF64, Cost};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone, Copy)]

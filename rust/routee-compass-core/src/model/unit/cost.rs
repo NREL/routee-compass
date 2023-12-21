@@ -1,4 +1,4 @@
-use crate::util::unit::{as_f64::AsF64, *};
+use crate::model::unit::{as_f64::AsF64, *};
 use derive_more::{Add, Div, Mul, Neg, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};

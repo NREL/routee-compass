@@ -4,7 +4,7 @@ use super::{
 };
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    util::unit::{EnergyRateUnit, GradeUnit, SpeedUnit},
+    model::unit::{EnergyRateUnit, GradeUnit, SpeedUnit},
 };
 use serde::{Deserialize, Serialize};
 use std::{path::Path, sync::Arc};

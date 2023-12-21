@@ -1,9 +1,9 @@
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::traversal::traversal_model::TraversalModel;
+use crate::model::unit::{Distance, DistanceUnit};
+use crate::model::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::util::fs::read_decoders;
 use crate::util::geo::haversine;
-use crate::util::unit::{Distance, DistanceUnit};
-use crate::util::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::{
     model::{
         property::{edge::Edge, vertex::Vertex},
@@ -11,8 +11,9 @@ use crate::{
             state::{state_variable::StateVar, traversal_state::TraversalState},
             traversal_model_error::TraversalModelError,
         },
+        unit::Speed,
     },
-    util::{fs::read_utils, unit::Speed},
+    util::fs::read_utils,
 };
 use std::path::Path;
 
@@ -189,11 +190,11 @@ pub fn get_max_speed(speed_table: &[Speed]) -> Result<Speed, TraversalModelError
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::unit::Distance;
     use crate::model::{
         property::{edge::Edge, vertex::Vertex},
         road_network::{edge_id::EdgeId, vertex_id::VertexId},
     };
-    use crate::util::unit::Distance;
     use geo::coord;
     use std::path::PathBuf;
 

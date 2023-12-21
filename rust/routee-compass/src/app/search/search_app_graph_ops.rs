@@ -1,7 +1,7 @@
 use routee_compass_core::{
     algorithm::search::direction::Direction,
     model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
-    util::unit::{Distance, DistanceUnit},
+    model::unit::{Distance, DistanceUnit},
 };
 
 use crate::app::compass::compass_app_error::CompassAppError;

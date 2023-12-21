@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use routee_compass_core::model::utility::cost::Cost;
+use routee_compass_core::model::unit::Cost;
 
 use crate::plugin::plugin_error::PluginError;
 

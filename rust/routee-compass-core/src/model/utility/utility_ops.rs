@@ -3,9 +3,8 @@ use super::{
     vehicle::vehicle_utility_mapping::VehicleUtilityMapping,
 };
 use crate::model::{
-    property::edge::Edge,
-    traversal::state::state_variable::StateVar,
-    utility::{cost::Cost, utility_error::UtilityError},
+    property::edge::Edge, traversal::state::state_variable::StateVar, unit::Cost,
+    utility::utility_error::UtilityError,
 };
 use std::{collections::HashMap, sync::Arc};
 

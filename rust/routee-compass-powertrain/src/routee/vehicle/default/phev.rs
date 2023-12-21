@@ -5,7 +5,7 @@ use routee_compass_core::{
         state::{state_variable::StateVar, traversal_state::TraversalState},
         traversal_model_error::TraversalModelError,
     },
-    util::unit::{
+    model::unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
@@ -295,7 +295,7 @@ fn get_phev_energy(
 
 #[cfg(test)]
 mod tests {
-    use routee_compass_core::util::unit::{EnergyRate, EnergyRateUnit};
+    use routee_compass_core::model::unit::{EnergyRate, EnergyRateUnit};
 
     use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
 

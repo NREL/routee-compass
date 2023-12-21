@@ -1,4 +1,6 @@
 use crate::model::traversal::traversal_model::TraversalModel;
+use crate::model::unit::DistanceUnit;
+use crate::model::unit::BASE_DISTANCE_UNIT;
 use crate::model::{
     property::{edge::Edge, vertex::Vertex},
     traversal::{
@@ -7,8 +9,6 @@ use crate::model::{
     },
 };
 use crate::util::geo::haversine;
-use crate::util::unit::DistanceUnit;
-use crate::util::unit::BASE_DISTANCE_UNIT;
 
 /// A simple traversal model that uses the edge distance as the cost of traversal.
 pub struct DistanceTraversalModel {

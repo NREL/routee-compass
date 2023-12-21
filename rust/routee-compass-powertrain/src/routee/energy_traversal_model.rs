@@ -8,8 +8,8 @@ use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
+use routee_compass_core::model::unit::*;
 use routee_compass_core::util::geo::haversine;
-use routee_compass_core::util::unit::*;
 use std::sync::Arc;
 
 pub struct EnergyTraversalModel {
