@@ -3,6 +3,7 @@ use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::algorithm::search::MinSearchTree;
+use crate::model::cost::cost_model::CostModel;
 use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::graph::Graph;
@@ -10,7 +11,6 @@ use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::Cost;
-use crate::model::utility::utility_model::UtilityModel;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{algorithm::search::direction::Direction, model::road_network::vertex_id::VertexId};
 use priority_queue::PriorityQueue;
@@ -29,7 +29,7 @@ pub fn run_a_star(
     target: Option<VertexId>,
     directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
-    u: UtilityModel,
+    u: CostModel,
     f: Arc<dyn FrontierModel>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
@@ -196,7 +196,7 @@ pub fn run_a_star_edge_oriented(
     target: Option<EdgeId>,
     directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
-    u: UtilityModel,
+    u: CostModel,
     f: Arc<dyn FrontierModel>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
@@ -324,7 +324,7 @@ pub fn h_cost(
     state: &TraversalState,
     g: &RwLockReadGuard<Graph>,
     m: &Arc<dyn TraversalModel>,
-    u: &UtilityModel,
+    u: &CostModel,
 ) -> Result<Cost, SearchError> {
     let src_vertex = g.get_vertex(src)?;
     let dst_vertex = g.get_vertex(dst)?;
@@ -339,6 +339,7 @@ mod tests {
 
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
+    use crate::model::cost::vehicle::vehicle_cost_mapping::VehicleUtilityMapping;
     use crate::model::frontier::default::no_restriction::NoRestriction;
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
@@ -347,7 +348,6 @@ mod tests {
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::unit::DistanceUnit;
     use crate::model::unit_aggregation::CostAggregation;
-    use crate::model::utility::vehicle::vehicle_utility_mapping::VehicleUtilityMapping;
     use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
 
@@ -451,7 +451,7 @@ mod tests {
                 let dg_inner = Arc::new(driver_dg.read_only());
                 let dist_tm: Arc<dyn TraversalModel> =
                     Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters));
-                let dist_um: UtilityModel = UtilityModel::new(
+                let dist_um: CostModel = CostModel::new(
                     vec![(String::from("distance"), 0usize)],
                     Arc::new(HashMap::from([(
                         String::from("distance"),

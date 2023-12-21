@@ -2,7 +2,7 @@ use super::search_app_result::SearchAppResult;
 use crate::{
     app::compass::{
         compass_app_error::CompassAppError,
-        config::utility_model::utility_model_service::UtilityModelService,
+        config::utility_model::cost_model_service::CostModelService,
     },
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
@@ -26,7 +26,7 @@ pub struct SearchApp {
     search_algorithm: SearchAlgorithm,
     graph: Arc<DriverReadOnlyLock<Graph>>,
     traversal_model_service: Arc<DriverReadOnlyLock<Arc<dyn TraversalModelService>>>,
-    utility_model_service: Arc<DriverReadOnlyLock<UtilityModelService>>,
+    utility_model_service: Arc<DriverReadOnlyLock<CostModelService>>,
     frontier_model_service: Arc<DriverReadOnlyLock<Arc<dyn FrontierModelService>>>,
     termination_model: Arc<DriverReadOnlyLock<TerminationModel>>,
 }
@@ -38,7 +38,7 @@ impl SearchApp {
         search_algorithm: SearchAlgorithm,
         graph: Graph,
         traversal_model_service: Arc<dyn TraversalModelService>,
-        utility_model_service: UtilityModelService,
+        utility_model_service: CostModelService,
         frontier_model_service: Arc<dyn FrontierModelService>,
         termination_model: TerminationModel,
     ) -> Self {

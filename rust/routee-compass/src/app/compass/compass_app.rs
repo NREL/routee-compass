@@ -13,8 +13,7 @@ use crate::{
                 graph_builder::DefaultGraphBuilder,
                 termination_model_builder::TerminationModelBuilder,
                 utility_model::{
-                    utility_model_builder::UtilityModelBuilder,
-                    utility_model_service::UtilityModelService,
+                    cost_model_builder::CostModelBuilder, cost_model_service::CostModelService,
                 },
             },
         },
@@ -131,8 +130,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         // build utility model
         let utility_params = config_json.get_config_section(CompassConfigurationField::Utility);
         let utility_model_service = match utility_params.ok() {
-            None => Ok(UtilityModelService::default_utility_model()),
-            Some(params) => UtilityModelBuilder {}.build(&params),
+            None => Ok(CostModelService::default_cost_model()),
+            Some(params) => CostModelBuilder {}.build(&params),
         }?;
 
         // build frontier model

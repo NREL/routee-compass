@@ -1,5 +1,5 @@
 #[derive(thiserror::Error, Debug)]
-pub enum UtilityError {
+pub enum CostError {
     #[error("failure reading CSV: {source}")]
     CsvIoError {
         #[from]

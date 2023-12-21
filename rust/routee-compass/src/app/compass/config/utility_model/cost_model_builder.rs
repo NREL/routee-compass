@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use routee_compass_core::model::utility::{
-    cost_aggregation::CostAggregation, network::network_utility_mapping::NetworkUtilityMapping,
-    vehicle::vehicle_utility_mapping::VehicleUtilityMapping,
+use routee_compass_core::model::cost::{
+    cost_aggregation::CostAggregation, network::network_cost_mapping::NetworkUtilityMapping,
+    vehicle::vehicle_cost_mapping::VehicleUtilityMapping,
 };
 
 use crate::app::compass::config::{
@@ -10,15 +10,15 @@ use crate::app::compass::config::{
     config_json_extension::ConfigJsonExtensions,
 };
 
-use super::utility_model_service::UtilityModelService;
+use super::cost_model_service::CostModelService;
 
-pub struct UtilityModelBuilder {}
+pub struct CostModelBuilder {}
 
-impl UtilityModelBuilder {
+impl CostModelBuilder {
     pub fn build(
         &self,
         config: &serde_json::Value,
-    ) -> Result<UtilityModelService, CompassConfigurationError> {
+    ) -> Result<CostModelService, CompassConfigurationError> {
         let vehicle_mapping: Option<HashMap<String, VehicleUtilityMapping>> =
             config.get_config_serde_optional(&"vehicle_mapping", &"utility")?;
         let network_mapping: Option<HashMap<String, NetworkUtilityMapping>> =
@@ -27,7 +27,7 @@ impl UtilityModelBuilder {
             config.get_config_serde_optional(&"default_vehicle_dimensions", &"utility")?;
         let default_cost_aggregation: Option<CostAggregation> =
             config.get_config_serde_optional(&"default_cost_aggregation", &"utility")?;
-        let model = UtilityModelService::new(
+        let model = CostModelService::new(
             vehicle_mapping,
             network_mapping,
             default_vehicle_dimensions,

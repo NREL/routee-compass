@@ -1,6 +1,6 @@
+use crate::model::cost::cost_error::CostError;
 use crate::model::property::edge::Edge;
 use crate::model::unit::Cost;
-use crate::model::utility::utility_error::UtilityError;
 use crate::model::{road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -28,7 +28,7 @@ impl NetworkUtilityMapping {
         _prev_state_var: StateVar,
         _next_state_var: StateVar,
         edge: &Edge,
-    ) -> Result<Cost, UtilityError> {
+    ) -> Result<Cost, CostError> {
         match self {
             NetworkUtilityMapping::EdgeEdgeLookup { lookup: _ } => Ok(Cost::ZERO),
             NetworkUtilityMapping::EdgeLookup { lookup } => {
@@ -39,7 +39,7 @@ impl NetworkUtilityMapping {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.traversal_cost(_prev_state_var, _next_state_var, edge))
-                    .collect::<Result<Vec<Cost>, UtilityError>>()?;
+                    .collect::<Result<Vec<Cost>, CostError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
                 Ok(cost)
@@ -66,7 +66,7 @@ impl NetworkUtilityMapping {
         _next_state_var: StateVar,
         prev_edge: &Edge,
         next_edge: &Edge,
-    ) -> Result<Cost, UtilityError> {
+    ) -> Result<Cost, CostError> {
         match self {
             NetworkUtilityMapping::EdgeLookup { lookup: _ } => Ok(Cost::ZERO),
             NetworkUtilityMapping::EdgeEdgeLookup { lookup } => {
@@ -79,7 +79,7 @@ impl NetworkUtilityMapping {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.access_cost(_prev_state_var, _next_state_var, prev_edge, next_edge))
-                    .collect::<Result<Vec<Cost>, UtilityError>>()?;
+                    .collect::<Result<Vec<Cost>, CostError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
                 Ok(cost)

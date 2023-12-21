@@ -1,10 +1,10 @@
 use super::search_error::SearchError;
+use crate::model::cost::cost_model::CostModel;
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::graph::Graph;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::Cost;
-use crate::model::utility::utility_model::UtilityModel;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::{fmt::Display, sync::RwLockReadGuard};
@@ -43,7 +43,7 @@ impl EdgeTraversal {
         prev_state: &TraversalState,
         g: &RwLockReadGuard<Graph>,
         tm: &Arc<dyn TraversalModel>,
-        um: &UtilityModel,
+        um: &CostModel,
     ) -> Result<EdgeTraversal, SearchError> {
         let (src, edge, dst) = g
             .edge_triplet_attrs(edge_id)
@@ -64,7 +64,7 @@ impl EdgeTraversal {
                         Some(next_state) => {
                             let cost = um
                                 .access_cost(prev_edge, edge, prev_state, &next_state)
-                                .map_err(SearchError::UtilityError)?;
+                                .map_err(SearchError::CostError)?;
                             Ok((next_state, cost))
                         }
                         None => Ok((prev_state.to_owned(), Cost::ZERO)),
@@ -78,7 +78,7 @@ impl EdgeTraversal {
 
         let traversal_cost = um
             .traversal_cost(edge, prev_state, &result_state)
-            .map_err(SearchError::UtilityError)?;
+            .map_err(SearchError::CostError)?;
 
         let result = EdgeTraversal {
             edge_id,

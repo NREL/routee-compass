@@ -78,8 +78,8 @@ mod test {
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
         model::{
-            road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar,
-            utility::cost::Cost,
+            cost::cost::Cost, road_network::edge_id::EdgeId,
+            traversal::state::state_variable::StateVar,
         },
     };
     use std::{collections::HashMap, time::Duration};

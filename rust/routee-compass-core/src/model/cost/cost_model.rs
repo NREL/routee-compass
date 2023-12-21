@@ -1,30 +1,30 @@
 use super::cost_aggregation::CostAggregation;
-use super::network::network_utility_mapping::NetworkUtilityMapping;
-use super::utility_ops;
-use super::vehicle::vehicle_utility_mapping::VehicleUtilityMapping;
+use super::cost_ops;
+use super::network::network_cost_mapping::NetworkUtilityMapping;
+use super::vehicle::vehicle_cost_mapping::VehicleUtilityMapping;
+use crate::model::cost::cost_error::CostError;
 use crate::model::property::edge::Edge;
 use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::unit::Cost;
-use crate::model::utility::utility_error::UtilityError;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 /// implementation of a model for calculating Cost from a state transition.
-pub struct UtilityModel {
+pub struct CostModel {
     dimensions: Vec<(String, usize)>,
     vehicle_mapping: Arc<HashMap<String, VehicleUtilityMapping>>,
     network_mapping: Arc<HashMap<String, NetworkUtilityMapping>>,
     cost_aggregation: CostAggregation,
 }
 
-impl UtilityModel {
+impl CostModel {
     pub fn new(
         dimensions: Vec<(String, usize)>,
         vehicle_mapping: Arc<HashMap<String, VehicleUtilityMapping>>,
         network_mapping: Arc<HashMap<String, NetworkUtilityMapping>>,
         cost_aggregation: CostAggregation,
-    ) -> UtilityModel {
-        UtilityModel {
+    ) -> CostModel {
+        CostModel {
             dimensions,
             vehicle_mapping,
             network_mapping,
@@ -48,15 +48,15 @@ impl UtilityModel {
         edge: &Edge,
         prev_state: &[StateVar],
         next_state: &[StateVar],
-    ) -> Result<Cost, UtilityError> {
-        let vehicle_costs = utility_ops::calculate_vehicle_costs(
+    ) -> Result<Cost, CostError> {
+        let vehicle_costs = cost_ops::calculate_vehicle_costs(
             prev_state,
             next_state,
             &self.dimensions,
             self.vehicle_mapping.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
-        let network_costs = utility_ops::calculate_network_traversal_costs(
+        let network_costs = cost_ops::calculate_network_traversal_costs(
             prev_state,
             next_state,
             edge,
@@ -90,15 +90,15 @@ impl UtilityModel {
         next_edge: &Edge,
         prev_state: &[StateVar],
         next_state: &[StateVar],
-    ) -> Result<Cost, UtilityError> {
-        let vehicle_costs = utility_ops::calculate_vehicle_costs(
+    ) -> Result<Cost, CostError> {
+        let vehicle_costs = cost_ops::calculate_vehicle_costs(
             prev_state,
             next_state,
             &self.dimensions,
             self.vehicle_mapping.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
-        let network_costs = utility_ops::calculate_network_access_costs(
+        let network_costs = cost_ops::calculate_network_access_costs(
             prev_state,
             next_state,
             prev_edge,
@@ -127,8 +127,8 @@ impl UtilityModel {
         &self,
         src_state: &[StateVar],
         dst_state: &[StateVar],
-    ) -> Result<Cost, UtilityError> {
-        let vehicle_costs = utility_ops::calculate_vehicle_costs(
+    ) -> Result<Cost, CostError> {
+        let vehicle_costs = cost_ops::calculate_vehicle_costs(
             src_state,
             dst_state,
             &self.dimensions,
