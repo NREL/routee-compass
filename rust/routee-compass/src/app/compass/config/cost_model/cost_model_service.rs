@@ -105,7 +105,7 @@ impl CostModelService {
     /// # Arguments
     ///
     /// * `query` - search query
-    /// * `state_variable_names` - list of names describing each slot in the state vector
+    /// * `traversal_state_variable_names` - list of names describing each slot in the state vector
     ///                            used by the instantiated traversal model.
     ///
     /// # Result
