@@ -26,7 +26,7 @@ pub fn calculate_vehicle_costs(
             let delta: StateVar = *next_state_var - *prev_state_var;
             let mapping = rates
                 .get(name)
-                .ok_or(CostError::StateDimensionNotFound(name.clone()))?;
+                .ok_or(CostError::StateVariableNotFound(name.clone()))?;
             let cost = mapping.map_value(delta);
 
             // apply coefficient if provided

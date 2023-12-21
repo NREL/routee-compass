@@ -5,8 +5,8 @@ pub enum CostError {
         #[from]
         source: csv::Error,
     },
-    #[error("expected state variable name {0} not found in utility mapping")]
-    StateDimensionNotFound(String),
+    #[error("expected state variable name {0} not found in cost rate table")]
+    StateVariableNotFound(String),
     #[error("index {0} for state variable {1} out of bounds, not found in traversal state")]
     StateIndexOutOfBounds(usize, String),
 }
