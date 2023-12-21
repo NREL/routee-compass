@@ -423,42 +423,49 @@ pub fn apply_output_processing(
                 "request": req,
                 "search_executed_time": result.search_start_time.to_rfc3339(),
                 "search_runtime": result.search_runtime.hhmmss(),
-                "route_runtime": result.route_runtime.hhmmss(),
                 "total_runtime": result.total_runtime.hhmmss(),
                 "route_edge_count": result.route.len(),
                 "tree_edge_count": result.tree.len()
             });
 
-            let tmodel = match search_app.build_traversal_model(req) {
-                Err(e) => {
-                    return vec![serde_json::json!({
-                        "request": req,
-                        "error": e.to_string()
-                    })]
-                }
-                Ok(tmodel) => tmodel,
-            };
-
             let route = result.route.to_vec();
-            let traversal_summary_option = route
-                .last()
-                .map(|et| tmodel.serialize_state_with_info(&et.result_state));
 
-            if let Some(traversal_summary) = traversal_summary_option {
+            // build and append summaries if there is a route
+            if let Some(et) = route.last() {
+                // build instances of traversal and cost models to compute summaries
+                let tmodel = match search_app.build_traversal_model(req) {
+                    Err(e) => {
+                        return vec![serde_json::json!({
+                            "request": req,
+                            "error": e.to_string()
+                        })]
+                    }
+                    Ok(tmodel) => tmodel,
+                };
+                let cmodel =
+                    match search_app.build_cost_model_for_traversal_model(req, tmodel.clone()) {
+                        Err(e) => {
+                            return vec![serde_json::json!({
+                                "request": req,
+                                "error": e.to_string()
+                            })]
+                        }
+                        Ok(cmodel) => cmodel,
+                    };
+
+                let traversal_summary = tmodel.serialize_state_with_info(&et.result_state);
+                let cost_summary = match cmodel.serialize_cost_with_info(&et.result_state) {
+                    Err(e) => {
+                        return vec![serde_json::json!({
+                            "request": req,
+                            "error": e.to_string()
+                        })]
+                    }
+                    Ok(json) => json,
+                };
                 init_output["traversal_summary"] = traversal_summary;
+                init_output["cost_summary"] = cost_summary;
             }
-
-            // collect information about the cost model used
-            let cmodel = match search_app.build_cost_model_for_traversal_model(req, tmodel) {
-                Err(e) => {
-                    return vec![serde_json::json!({
-                        "request": req,
-                        "error": e.to_string()
-                    })]
-                }
-                Ok(cmodel) => cmodel,
-            };
-            init_output["cost_summary"] = cmodel.serialize_cost_info();
 
             init_output
         }

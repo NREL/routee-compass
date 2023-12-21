@@ -5,6 +5,7 @@ use super::vehicle::vehicle_cost_rate::VehicleCostRate;
 use crate::model::cost::cost_error::CostError;
 use crate::model::property::edge::Edge;
 use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::unit::Cost;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -146,6 +147,45 @@ impl CostModel {
         Ok(vehicle_cost)
     }
 
+    /// Serializes the cost of a traversal state into a JSON value.
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - the state to serialize
+    ///
+    /// # Returns
+    ///
+    /// A JSON serialized version of the state. This does not need to include
+    /// additional details such as the units (kph, hours, etc), which can be
+    /// summarized in the serialize_state_info method.
+    fn serialize_cost(&self, state: &TraversalState) -> Result<serde_json::Value, CostError> {
+        let mut state_variable_costs = self
+            .state_variable_indices
+            .iter()
+            .filter(|(name, _)| self.vehicle_state_variable_rates.contains_key(name))
+            .map(move |(name, idx)| {
+                let state_var = state
+                    .get(*idx)
+                    .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+                let rate = self
+                    .vehicle_state_variable_rates
+                    .get(name)
+                    .ok_or(CostError::StateVariableNotFound(name.clone()))?;
+                let cost = rate.map_value(*state_var);
+                Ok((name.clone(), cost))
+            })
+            .collect::<Result<HashMap<String, Cost>, CostError>>()?;
+
+        let total_cost = state_variable_costs
+            .values()
+            .fold(Cost::ZERO, |a, b| a + *b);
+        state_variable_costs.insert(String::from("total_cost"), total_cost);
+
+        let result = serde_json::json!(state_variable_costs);
+
+        Ok(result)
+    }
+
     /// Serializes other information about a cost model as a JSON value.
     ///
     /// # Arguments
@@ -164,5 +204,26 @@ impl CostModel {
             "network_state_variable_rates": serde_json::json!(*self.network_state_variable_rates),
             "cost_aggregation": serde_json::json!(self.cost_aggregation)
         })
+    }
+
+    /// Serialization function called by Compass output processing code that
+    /// writes both the costs and the cost info to a JSON value.
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - the state to serialize information from
+    ///
+    /// # Returns
+    ///
+    /// JSON containing the cost values and info described in `serialize_cost`
+    /// and `serialize_cost_info`.
+    pub fn serialize_cost_with_info(
+        &self,
+        state: &TraversalState,
+    ) -> Result<serde_json::Value, CostError> {
+        let mut output = serde_json::Map::new();
+        output.insert(String::from("cost"), self.serialize_cost(state)?);
+        output.insert(String::from("info"), self.serialize_cost_info());
+        Ok(serde_json::json!(output))
     }
 }
