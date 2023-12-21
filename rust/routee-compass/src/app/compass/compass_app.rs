@@ -534,7 +534,7 @@ mod tests {
             "destination_vertex": 2
         });
         let result = app.run(vec![query]).unwrap();
-        println!("{:?}", result);
+        println!("{}", serde_json::to_string_pretty(&result).unwrap());
         let edge_ids = result[0].get("edge_id_list").unwrap();
         // path [1] is distance-optimal; path [0, 2] is time-optimal
         let expected = serde_json::json!(vec![0, 2]);
