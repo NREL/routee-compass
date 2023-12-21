@@ -1,4 +1,4 @@
-use super::network_cost_mapping::NetworkCostMapping;
+use super::network_cost_rate::NetworkCostRate;
 use crate::model::cost::cost_error::CostError;
 use crate::{
     model::cost::network::{
@@ -12,19 +12,19 @@ use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
-pub enum NetworkUtilityMappingBuilder {
+pub enum NetworkCostRateBuilder {
     #[serde(rename = "traversal_lookup")]
     EdgeLookupBuilder { cost_input_file: String },
     #[serde(rename = "access_lookup")]
     EdgeEdgeLookupBuilder { cost_input_file: String },
     #[serde(rename = "combined")]
-    Combined(Vec<NetworkUtilityMappingBuilder>),
+    Combined(Vec<NetworkCostRateBuilder>),
 }
 
-impl NetworkUtilityMappingBuilder {
-    pub fn build(&self) -> Result<NetworkCostMapping, CostError> {
-        use NetworkCostMapping as NCM;
-        use NetworkUtilityMappingBuilder as Builder;
+impl NetworkCostRateBuilder {
+    pub fn build(&self) -> Result<NetworkCostRate, CostError> {
+        use NetworkCostRate as NCM;
+        use NetworkCostRateBuilder as Builder;
         match self {
             Builder::EdgeLookupBuilder { cost_input_file } => {
                 let lookup =

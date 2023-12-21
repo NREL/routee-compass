@@ -16,10 +16,10 @@ cost_aggregation = "sum"
 [cost.state_variable_coefficients]
 distance = 1
 time = 1
-[cost.vehicle_mapping.distance]
+[cost.vehicle_state_variable_rates.distance]
 type = "factor"
 factor = 0.407085 # based on 65.5 cents per mile 2023 IRS mileage rate
-[cost.vehicle_mapping.time]
+[cost.vehicle_state_variable_rates.time]
 type = "factor"
 factor = 0.0055556 # based on $20/hr 
 

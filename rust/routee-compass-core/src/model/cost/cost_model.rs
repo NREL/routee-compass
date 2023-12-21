@@ -1,7 +1,7 @@
 use super::cost_aggregation::CostAggregation;
 use super::cost_ops;
-use super::network::network_cost_mapping::NetworkCostMapping;
-use super::vehicle::vehicle_cost_mapping::VehicleCostMapping;
+use super::network::network_cost_rate::NetworkCostRate;
+use super::vehicle::vehicle_cost_rate::VehicleCostRate;
 use crate::model::cost::cost_error::CostError;
 use crate::model::property::edge::Edge;
 use crate::model::traversal::state::state_variable::StateVar;
@@ -13,8 +13,8 @@ use std::sync::Arc;
 pub struct CostModel {
     state_variable_indices: Vec<(String, usize)>,
     state_variable_coefficients: Arc<HashMap<String, f64>>,
-    vehicle_mapping: Arc<HashMap<String, VehicleCostMapping>>,
-    network_mapping: Arc<HashMap<String, NetworkCostMapping>>,
+    vehicle_state_variable_rates: Arc<HashMap<String, VehicleCostRate>>,
+    network_state_variable_rates: Arc<HashMap<String, NetworkCostRate>>,
     cost_aggregation: CostAggregation,
 }
 
@@ -22,15 +22,15 @@ impl CostModel {
     pub fn new(
         state_variable_indices: Vec<(String, usize)>,
         state_variable_coefficients: Arc<HashMap<String, f64>>,
-        vehicle_mapping: Arc<HashMap<String, VehicleCostMapping>>,
-        network_mapping: Arc<HashMap<String, NetworkCostMapping>>,
+        vehicle_state_variable_rates: Arc<HashMap<String, VehicleCostRate>>,
+        network_state_variable_rates: Arc<HashMap<String, NetworkCostRate>>,
         cost_aggregation: CostAggregation,
     ) -> CostModel {
         CostModel {
             state_variable_indices,
             state_variable_coefficients,
-            vehicle_mapping,
-            network_mapping,
+            vehicle_state_variable_rates,
+            network_state_variable_rates,
             cost_aggregation,
         }
     }
@@ -57,7 +57,7 @@ impl CostModel {
             next_state,
             &self.state_variable_indices,
             self.state_variable_coefficients.clone(),
-            self.vehicle_mapping.clone(),
+            self.vehicle_state_variable_rates.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
         let network_costs = cost_ops::calculate_network_traversal_costs(
@@ -66,7 +66,7 @@ impl CostModel {
             edge,
             &self.state_variable_indices,
             self.state_variable_coefficients.clone(),
-            self.network_mapping.clone(),
+            self.network_state_variable_rates.clone(),
         )?;
         let network_cost = self.cost_aggregation.agg(&network_costs);
         Ok(vehicle_cost + network_cost)
@@ -101,7 +101,7 @@ impl CostModel {
             next_state,
             &self.state_variable_indices,
             self.state_variable_coefficients.clone(),
-            self.vehicle_mapping.clone(),
+            self.vehicle_state_variable_rates.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
         let network_costs = cost_ops::calculate_network_access_costs(
@@ -111,7 +111,7 @@ impl CostModel {
             next_edge,
             &self.state_variable_indices,
             self.state_variable_coefficients.clone(),
-            self.network_mapping.clone(),
+            self.network_state_variable_rates.clone(),
         )?;
         let network_cost = self.cost_aggregation.agg(&network_costs);
         Ok(vehicle_cost + network_cost)
@@ -140,7 +140,7 @@ impl CostModel {
             dst_state,
             &self.state_variable_indices,
             self.state_variable_coefficients.clone(),
-            self.vehicle_mapping.clone(),
+            self.vehicle_state_variable_rates.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
         Ok(vehicle_cost)
@@ -160,8 +160,8 @@ impl CostModel {
         serde_json::json!({
             "state_variable_indices": serde_json::json!(self.state_variable_indices),
             "state_variable_coefficients": serde_json::json!(*self.state_variable_coefficients),
-            "vehicle_mapping": serde_json::json!(*self.vehicle_mapping),
-            "network_mapping": serde_json::json!(*self.network_mapping),
+            "vehicle_state_variable_rates": serde_json::json!(*self.vehicle_state_variable_rates),
+            "network_state_variable_rates": serde_json::json!(*self.network_state_variable_rates),
             "cost_aggregation": serde_json::json!(self.cost_aggregation)
         })
     }

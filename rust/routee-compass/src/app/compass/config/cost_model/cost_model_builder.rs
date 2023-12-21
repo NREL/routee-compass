@@ -5,8 +5,8 @@ use crate::app::compass::config::{
     config_json_extension::ConfigJsonExtensions,
 };
 use routee_compass_core::model::cost::{
-    cost_aggregation::CostAggregation, network::network_cost_mapping::NetworkCostMapping,
-    vehicle::vehicle_cost_mapping::VehicleCostMapping,
+    cost_aggregation::CostAggregation, network::network_cost_rate::NetworkCostRate,
+    vehicle::vehicle_cost_rate::VehicleCostRate,
 };
 use std::collections::HashMap;
 
@@ -18,10 +18,10 @@ impl CostModelBuilder {
         config: &serde_json::Value,
     ) -> Result<CostModelService, CompassConfigurationError> {
         let parent_key = CompassConfigurationField::Cost.to_string();
-        let vehicle_mapping: Option<HashMap<String, VehicleCostMapping>> =
-            config.get_config_serde_optional(&"vehicle_mapping", &parent_key)?;
-        let network_mapping: Option<HashMap<String, NetworkCostMapping>> =
-            config.get_config_serde_optional(&"network_mapping", &parent_key)?;
+        let vehicle_state_variable_rates: Option<HashMap<String, VehicleCostRate>> =
+            config.get_config_serde_optional(&"vehicle_state_variable_rates", &parent_key)?;
+        let network_state_variable_rates: Option<HashMap<String, NetworkCostRate>> =
+            config.get_config_serde_optional(&"network_state_variable_rates", &parent_key)?;
 
         let default_state_variable_coefficients: Option<HashMap<String, f64>> =
             config.get_config_serde_optional(&"state_variable_coefficients", &parent_key)?;
@@ -29,8 +29,8 @@ impl CostModelBuilder {
             config.get_config_serde_optional(&"cost_aggregation", &parent_key)?;
 
         let model = CostModelService::new(
-            vehicle_mapping,
-            network_mapping,
+            vehicle_state_variable_rates,
+            network_state_variable_rates,
             default_state_variable_coefficients,
             default_cost_aggregation,
         )?;

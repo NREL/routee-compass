@@ -2,14 +2,13 @@ use crate::app::compass::config::compass_configuration_error::CompassConfigurati
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::model::cost::{
     cost_aggregation::CostAggregation, cost_model::CostModel,
-    network::network_cost_mapping::NetworkCostMapping,
-    vehicle::vehicle_cost_mapping::VehicleCostMapping,
+    network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
 };
 use std::{collections::HashMap, sync::Arc};
 
 pub struct CostModelService {
-    pub vehicle_mapping: Arc<HashMap<String, VehicleCostMapping>>,
-    pub network_mapping: Arc<HashMap<String, NetworkCostMapping>>,
+    pub vehicle_state_variable_rates: Arc<HashMap<String, VehicleCostRate>>,
+    pub network_state_variable_rates: Arc<HashMap<String, NetworkCostRate>>,
     pub state_variable_coefficients: Arc<HashMap<String, f64>>,
     pub default_cost_aggregation: CostAggregation,
 }
@@ -21,14 +20,15 @@ impl CostModelService {
     /// if no default vehicle state variable names are provided, fall back to "distance"
     /// defaults as defined here in this module.
     pub fn new(
-        vehicle_mapping: Option<HashMap<String, VehicleCostMapping>>,
-        network_mapping: Option<HashMap<String, NetworkCostMapping>>,
+        vehicle_state_variable_rates: Option<HashMap<String, VehicleCostRate>>,
+        network_state_variable_rates: Option<HashMap<String, NetworkCostRate>>,
         default_state_variable_coefficients: Option<HashMap<String, f64>>,
         default_cost_aggregation: Option<CostAggregation>,
     ) -> Result<CostModelService, CompassConfigurationError> {
-        let vm = vehicle_mapping.unwrap_or(CostModelService::default_vehicle_mapping());
+        let vm = vehicle_state_variable_rates
+            .unwrap_or(CostModelService::default_vehicle_state_variable_rates());
         // let vm = Arc::new(vehicle_mapping);
-        let nm = network_mapping.unwrap_or(HashMap::new());
+        let nm = network_state_variable_rates.unwrap_or(HashMap::new());
         let dsvc = match default_state_variable_coefficients {
             Some(coefficients) => {
                 if coefficients.is_empty() {
@@ -52,20 +52,20 @@ impl CostModelService {
             }
         };
         Ok(CostModelService {
-            vehicle_mapping: Arc::new(vm),
-            network_mapping: Arc::new(nm),
+            vehicle_state_variable_rates: Arc::new(vm),
+            network_state_variable_rates: Arc::new(nm),
             state_variable_coefficients: Arc::new(dsvc),
             default_cost_aggregation: dca,
         })
     }
 
-    pub fn default_vehicle_mapping() -> HashMap<String, VehicleCostMapping> {
+    pub fn default_vehicle_state_variable_rates() -> HashMap<String, VehicleCostRate> {
         HashMap::from([
-            (String::from("distance"), VehicleCostMapping::Raw),
-            (String::from("time"), VehicleCostMapping::Raw),
-            (String::from("energy"), VehicleCostMapping::Raw),
-            (String::from("energy_liquid"), VehicleCostMapping::Raw),
-            (String::from("energy_electric"), VehicleCostMapping::Raw),
+            (String::from("distance"), VehicleCostRate::Raw),
+            (String::from("time"), VehicleCostRate::Raw),
+            (String::from("energy"), VehicleCostRate::Raw),
+            (String::from("energy_liquid"), VehicleCostRate::Raw),
+            (String::from("energy_electric"), VehicleCostRate::Raw),
         ])
     }
 
@@ -77,8 +77,10 @@ impl CostModelService {
     pub fn default_cost_model() -> CostModelService {
         log::warn!("using default utility model");
         CostModelService {
-            vehicle_mapping: Arc::new(CostModelService::default_vehicle_mapping()),
-            network_mapping: Arc::new(HashMap::new()),
+            vehicle_state_variable_rates: Arc::new(
+                CostModelService::default_vehicle_state_variable_rates(),
+            ),
+            network_state_variable_rates: Arc::new(HashMap::new()),
             state_variable_coefficients: Arc::new(
                 CostModelService::default_state_variable_coefficients(),
             ),
@@ -140,8 +142,8 @@ impl CostModelService {
         let model = CostModel::new(
             state_variable_indices,
             state_variable_coefficients,
-            self.vehicle_mapping.clone(),
-            self.network_mapping.clone(),
+            self.vehicle_state_variable_rates.clone(),
+            self.network_state_variable_rates.clone(),
             cost_aggregation,
         );
 

@@ -1,1 +1,1 @@
-pub mod vehicle_cost_mapping;
+pub mod vehicle_cost_rate;

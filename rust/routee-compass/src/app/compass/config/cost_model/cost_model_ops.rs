@@ -1,15 +1,14 @@
 use std::collections::{HashMap, HashSet};
 
 use routee_compass_core::model::cost::{
-    network::network_cost_mapping::NetworkCostMapping,
-    vehicle::vehicle_cost_mapping::VehicleCostMapping,
+    network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
 };
 
 /// collects the keys from the vehicle mappings, to compile the
 /// complete collection of state variable names.
 pub fn state_variable_names(
-    vehicle_mapping: &Option<HashMap<String, VehicleCostMapping>>,
-    network_mapping: &Option<HashMap<String, NetworkCostMapping>>,
+    vehicle_mapping: &Option<HashMap<String, VehicleCostRate>>,
+    network_mapping: &Option<HashMap<String, NetworkCostRate>>,
 ) -> Option<HashSet<String>> {
     match (&vehicle_mapping, &network_mapping) {
         (None, None) => None,

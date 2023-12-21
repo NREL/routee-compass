@@ -1,6 +1,5 @@
 use super::{
-    network::network_cost_mapping::NetworkCostMapping,
-    vehicle::vehicle_cost_mapping::VehicleCostMapping,
+    network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
 };
 use crate::model::{
     cost::cost_error::CostError, property::edge::Edge, traversal::state::state_variable::StateVar,
@@ -13,7 +12,7 @@ pub fn calculate_vehicle_costs(
     next_state: &[StateVar],
     state_variable_indices: &[(String, usize)],
     state_variable_coefficients: Arc<HashMap<String, f64>>,
-    mappings: Arc<HashMap<String, VehicleCostMapping>>,
+    rates: Arc<HashMap<String, VehicleCostRate>>,
 ) -> Result<Vec<Cost>, CostError> {
     let costs = state_variable_indices
         .iter()
@@ -25,7 +24,7 @@ pub fn calculate_vehicle_costs(
                 .get(*idx)
                 .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
             let delta: StateVar = *next_state_var - *prev_state_var;
-            let mapping = mappings
+            let mapping = rates
                 .get(name)
                 .ok_or(CostError::StateDimensionNotFound(name.clone()))?;
             let cost = mapping.map_value(delta);
@@ -46,11 +45,11 @@ pub fn calculate_network_traversal_costs(
     edge: &Edge,
     state_variable_indices: &[(String, usize)],
     state_variable_coefficients: Arc<HashMap<String, f64>>,
-    mappings: Arc<HashMap<String, NetworkCostMapping>>,
+    rates: Arc<HashMap<String, NetworkCostRate>>,
 ) -> Result<Vec<Cost>, CostError> {
     let costs = state_variable_indices
         .iter()
-        .map(|(name, idx)| match mappings.get(name) {
+        .map(|(name, idx)| match rates.get(name) {
             None => Ok(Cost::ZERO),
             Some(m) => {
                 let prev_state_var = prev_state
@@ -78,11 +77,11 @@ pub fn calculate_network_access_costs(
     next_edge: &Edge,
     state_variable_indices: &[(String, usize)],
     state_variable_coefficients: Arc<HashMap<String, f64>>,
-    mappings: Arc<HashMap<String, NetworkCostMapping>>,
+    rates: Arc<HashMap<String, NetworkCostRate>>,
 ) -> Result<Vec<Cost>, CostError> {
     let costs = state_variable_indices
         .iter()
-        .map(|(name, idx)| match mappings.get(name) {
+        .map(|(name, idx)| match rates.get(name) {
             None => Ok(Cost::ZERO),
             Some(m) => {
                 let prev_state_var = prev_state
