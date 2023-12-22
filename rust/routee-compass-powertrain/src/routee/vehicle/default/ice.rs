@@ -1,14 +1,13 @@
-use std::sync::Arc;
-
 use routee_compass_core::{
     model::traversal::{
         state::state_variable::StateVar, traversal_model_error::TraversalModelError,
     },
-    util::unit::{
+    model::unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
 };
+use std::sync::Arc;
 
 use crate::routee::{
     prediction::PredictionModelRecord,
@@ -36,6 +35,9 @@ impl VehicleType for ICE {
     fn name(&self) -> String {
         self.name.clone()
     }
+    fn state_variable_names(&self) -> Vec<String> {
+        vec![String::from("energy_liquid")]
+    }
     fn initial_state(&self) -> VehicleState {
         // accumulated energy
         vec![StateVar(0.0)]
@@ -53,6 +55,22 @@ impl VehicleType for ICE {
         )?;
         Ok(energy)
     }
+
+    fn best_case_energy_state(
+        &self,
+        distance: (Distance, DistanceUnit),
+        state: &[StateVar],
+    ) -> Result<VehicleEnergyResult, TraversalModelError> {
+        let (energy, energy_unit) = self.best_case_energy(distance)?;
+        let updated_state = update_state(state, energy);
+
+        Ok(VehicleEnergyResult {
+            energy,
+            energy_unit,
+            updated_state,
+        })
+    }
+
     fn consume_energy(
         &self,
         speed: (Speed, SpeedUnit),
@@ -75,7 +93,7 @@ impl VehicleType for ICE {
     fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
         let energy = get_energy_from_state(state);
         serde_json::json!({
-            "energy": energy.as_f64(),
+            "energy_liquid": energy.as_f64(),
         })
     }
 

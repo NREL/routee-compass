@@ -1,11 +1,10 @@
-use std::sync::Arc;
-
 use routee_compass_core::{
     model::traversal::{
         state::state_variable::StateVar, traversal_model_error::TraversalModelError,
     },
-    util::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    model::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
+use std::sync::Arc;
 
 use super::VehicleEnergyResult;
 
@@ -46,6 +45,29 @@ pub trait VehicleType: Send + Sync {
         &self,
         distance: (Distance, DistanceUnit),
     ) -> Result<(Energy, EnergyUnit), TraversalModelError>;
+
+    /// Return the best case scenario for traveling a certain distance.
+    /// This is used in the a-star algorithm as a distance heuristic.
+    ///
+    /// Arguments:
+    /// * `distance` - The distance traveled
+    ///
+    /// Returns:
+    /// * `Energy` - The 'best case' energy required to travel the distance
+    fn best_case_energy_state(
+        &self,
+        distance: (Distance, DistanceUnit),
+        state: &[StateVar],
+    ) -> Result<VehicleEnergyResult, TraversalModelError>;
+
+    /// Provides the list of state variable names in the order that they
+    /// appear in the VehicleType. for each state variable name, its position
+    /// in the result Vector is assumed to match the index of the state vector.
+    ///
+    /// # Returns
+    ///
+    /// the names of the state variables
+    fn state_variable_names(&self) -> Vec<String>;
 
     /// Return the initial state of the vehicle
     fn initial_state(&self) -> VehicleState;

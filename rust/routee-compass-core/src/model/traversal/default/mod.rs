@@ -1,2 +1,2 @@
-pub mod distance;
-pub mod speed_lookup_model;
+pub mod distance_traversal_model;
+pub mod speed_traversal_model;

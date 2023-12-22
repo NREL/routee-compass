@@ -1,4 +1,4 @@
-use crate::util::unit::{Distance, DistanceUnit};
+use crate::model::unit::{Distance, DistanceUnit};
 use geo::Coord;
 // pub const APPROX_EARTH_RADIUS_KM: f64 = 6372.8;
 pub const APPROX_EARTH_RADIUS_M: f64 = 6_371_000.0;

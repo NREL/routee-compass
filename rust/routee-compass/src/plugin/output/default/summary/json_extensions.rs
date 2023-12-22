@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use routee_compass_core::model::cost::Cost;
+use routee_compass_core::model::unit::Cost;
 
 use crate::plugin::plugin_error::PluginError;
 
@@ -14,7 +14,7 @@ impl TryFrom<String> for SummaryField {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.as_str() {
-            "cost" => Ok(SummaryField::Cost),
+            "route_cost" => Ok(SummaryField::Cost),
             "distance" => Ok(SummaryField::Distance),
             _ => Err(PluginError::ParseError(
                 String::from("SummaryField"),

@@ -1,4 +1,5 @@
 use crate::model::{
+    cost::cost_error::CostError,
     frontier::frontier_model_error::FrontierModelError,
     road_network::graph_error::GraphError,
     road_network::{edge_id::EdgeId, vertex_id::VertexId},
@@ -18,6 +19,8 @@ pub enum SearchError {
     TraversalModelFailure(#[from] TraversalModelError),
     #[error(transparent)]
     FrontierModelFailure(#[from] FrontierModelError),
+    #[error(transparent)]
+    CostError(#[from] CostError),
     #[error("loop in search result revisits edge {0}")]
     LoopInSearchResult(EdgeId),
     #[error("query terminated due to {0}")]

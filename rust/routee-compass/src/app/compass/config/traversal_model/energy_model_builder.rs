@@ -6,7 +6,7 @@ use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::model::traversal::traversal_model_builder::TraversalModelBuilder;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
-use routee_compass_core::util::unit::{DistanceUnit, GradeUnit, SpeedUnit, TimeUnit};
+use routee_compass_core::model::unit::{DistanceUnit, GradeUnit, SpeedUnit, TimeUnit};
 use routee_compass_powertrain::routee::energy_model_service::EnergyModelService;
 
 use super::energy_model_vehicle_builders::VehicleBuilder;

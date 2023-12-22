@@ -15,6 +15,14 @@ speed_table_input_file = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
 speed_unit = "kilometers_per_hour"
 output_time_unit = "hours"
 
+[cost]
+cost_aggregation = "sum"
+[cost.state_variable_coefficients]
+distance = 0
+time = 1
+[cost.vehicle_state_variable_rates.time]
+type = "raw"
+
 [plugin]
 input_plugins = []
 output_plugins = [{ type = "edge_id_list" }, { type = "summary" }]

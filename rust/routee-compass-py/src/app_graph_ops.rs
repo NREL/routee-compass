@@ -4,7 +4,7 @@ use routee_compass::app::search::search_app_graph_ops::SearchAppGraphOps;
 use routee_compass_core::{
     algorithm::search::direction::Direction,
     model::road_network::{edge_id::EdgeId, vertex_id::VertexId},
-    util::unit::{as_f64::AsF64, DistanceUnit},
+    model::unit::{as_f64::AsF64, DistanceUnit},
 };
 use std::str::FromStr;
 

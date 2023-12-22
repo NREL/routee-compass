@@ -1,15 +1,14 @@
-use std::sync::Arc;
-
 use routee_compass_core::{
     model::traversal::{
         state::{state_variable::StateVar, traversal_state::TraversalState},
         traversal_model_error::TraversalModelError,
     },
-    util::unit::{
+    model::unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
 };
+use std::sync::Arc;
 
 use crate::routee::{
     prediction::PredictionModelRecord,
@@ -46,12 +45,19 @@ impl VehicleType for BEV {
     fn name(&self) -> String {
         self.name.clone()
     }
+    fn state_variable_names(&self) -> Vec<String> {
+        vec![
+            String::from("energy_electric"),
+            String::from("battery_state"),
+        ]
+    }
     fn initial_state(&self) -> TraversalState {
         vec![
             StateVar(0.0),                                   // accumulated electrical energy
             StateVar(self.starting_battery_energy.as_f64()), // battery energy remaining
         ]
     }
+
     fn best_case_energy(
         &self,
         distance: (Distance, DistanceUnit),
@@ -67,6 +73,22 @@ impl VehicleType for BEV {
 
         Ok(energy)
     }
+
+    fn best_case_energy_state(
+        &self,
+        distance: (Distance, DistanceUnit),
+        state: &[StateVar],
+    ) -> Result<VehicleEnergyResult, TraversalModelError> {
+        let (electrical_energy, electrical_energy_unit) = self.best_case_energy(distance)?;
+        let updated_state = update_state(state, electrical_energy, self.battery_capacity);
+
+        Ok(VehicleEnergyResult {
+            energy: electrical_energy,
+            energy_unit: electrical_energy_unit,
+            updated_state,
+        })
+    }
+
     fn consume_energy(
         &self,
         speed: (Speed, SpeedUnit),
@@ -87,10 +109,10 @@ impl VehicleType for BEV {
         })
     }
     fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
-        let battery_energy = get_electrical_energy_from_state(state);
+        let energy_electric = get_electrical_energy_from_state(state);
         let battery_soc_percent = get_battery_soc_percent(self, state);
         serde_json::json!({
-            "battery_energy": battery_energy.as_f64(),
+            "energy_electric": energy_electric.as_f64(),
             "battery_soc_percent": battery_soc_percent,
         })
     }
@@ -98,7 +120,7 @@ impl VehicleType for BEV {
     fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
         let battery_energy_unit = self.battery_energy_unit;
         serde_json::json!({
-            "battery_energy_unit": battery_energy_unit.to_string(),
+            "energy_unit": battery_energy_unit.to_string(),
         })
     }
 
@@ -178,7 +200,7 @@ fn get_battery_soc_percent(vehicle: &BEV, state: &[StateVar]) -> f64 {
 
 #[cfg(test)]
 mod tests {
-    use routee_compass_core::util::unit::{EnergyRate, EnergyRateUnit};
+    use routee_compass_core::model::unit::{EnergyRate, EnergyRateUnit};
 
     use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
 

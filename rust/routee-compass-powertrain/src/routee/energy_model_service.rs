@@ -1,16 +1,15 @@
-use routee_compass_core::model::traversal::default::speed_lookup_model::get_max_speed;
+use super::energy_traversal_model::EnergyTraversalModel;
+use super::vehicle::VehicleType;
+use routee_compass_core::model::traversal::default::speed_traversal_model::get_max_speed;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
+use routee_compass_core::model::unit::*;
 use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;
-use routee_compass_core::util::unit::*;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
-
-use super::energy_traversal_model::EnergyTraversalModel;
-use super::vehicle::VehicleType;
 
 #[derive(Clone)]
 pub struct EnergyModelService {

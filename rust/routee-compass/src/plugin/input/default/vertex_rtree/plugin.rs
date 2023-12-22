@@ -5,12 +5,9 @@ use crate::plugin::input::input_plugin::InputPlugin;
 use crate::plugin::plugin_error::PluginError;
 use geo::{coord, Coord};
 use routee_compass_core::{
+    model::unit::{Distance, DistanceUnit, BASE_DISTANCE_UNIT},
     model::{property::vertex::Vertex, road_network::graph::Graph},
-    util::{
-        fs::read_utils,
-        geo::haversine,
-        unit::{Distance, DistanceUnit, BASE_DISTANCE_UNIT},
-    },
+    util::{fs::read_utils, geo::haversine},
 };
 use rstar::{PointDistance, RTree, RTreeObject, AABB};
 
@@ -113,7 +110,7 @@ impl RTreePlugin {
         distance_unit: Option<DistanceUnit>,
     ) -> Result<Self, PluginError> {
         let vertices: Box<[Vertex]> =
-            read_utils::from_csv(vertex_file, true, None).map_err(PluginError::CsvReadError)?;
+            read_utils::from_csv(&vertex_file, true, None).map_err(PluginError::CsvReadError)?;
         let vertex_rtree = VertexRTree::new(vertices.to_vec());
         let tolerance = match (tolerance_distance, distance_unit) {
             (None, None) => None,

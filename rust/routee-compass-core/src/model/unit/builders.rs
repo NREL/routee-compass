@@ -83,7 +83,7 @@ pub fn create_energy(
 mod test {
 
     use super::*;
-    use crate::util::unit::as_f64::AsF64;
+    use crate::model::unit::as_f64::AsF64;
 
     fn approx_eq_time(a: Time, b: Time, error: f64) {
         let result = match (a, b) {

@@ -25,6 +25,26 @@ speed_table_speed_unit = "kilometers_per_hour"
 output_time_unit = "minutes"
 output_distance_unit = "miles"
 
+# based on 65.5 cents per mile 2023 IRS mileage rate, $/mile
+[cost.vehicle_state_variable_rates.distance]
+type = "factor"
+factor = 0.655
+
+# based on $20/hr approximation of 2023 median hourly wages, $/second
+[cost.vehicle_state_variable_rates.time]
+type = "factor"
+factor = 0.333336
+
+# based on AAA regular unleaded gas prices sampled 12/21/2023
+[cost.vehicle_state_variable_rates.energy_liquid]
+type = "factor"
+factor = 3.120
+
+# based on $0.50/kWh approximation of DCFC charge rates, $/kWhtype = "factor"
+[cost.vehicle_state_variable_rates.energy_electric]
+type = "factor"
+factor = 0.05
+
 [[traversal.vehicles]]
 name = "2012_Ford_Focus"
 type = "ice"

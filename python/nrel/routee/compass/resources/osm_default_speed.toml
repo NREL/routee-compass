@@ -13,6 +13,16 @@ speed_unit = "kilometers_per_hour"
 output_distance_unit = "miles"
 output_time_unit = "minutes"
 
+# based on 65.5 cents per mile 2023 IRS mileage rate, $/mile
+[cost.vehicle_state_variable_rates.distance]
+type = "factor"
+factor = 0.655
+
+# based on $20/hr approximation of 2023 median hourly wages, $/second
+[cost.vehicle_state_variable_rates.time]
+type = "factor"
+factor = 0.333336
+
 [plugin]
 input_plugins = [
     { type = "vertex_rtree", distance_tolerance = 0.2, distance_unit = "kilometers", vertices_input_file = "vertices-compass.csv.gz" },

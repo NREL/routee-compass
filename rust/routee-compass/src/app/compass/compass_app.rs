@@ -9,7 +9,11 @@ use crate::{
             compass_input_field::CompassInputField,
             config::{
                 compass_configuration_field::CompassConfigurationField,
-                config_json_extension::ConfigJsonExtensions, graph_builder::DefaultGraphBuilder,
+                config_json_extension::ConfigJsonExtensions,
+                cost_model::{
+                    cost_model_builder::CostModelBuilder, cost_model_service::CostModelService,
+                },
+                graph_builder::DefaultGraphBuilder,
                 termination_model_builder::TerminationModelBuilder,
             },
         },
@@ -123,6 +127,13 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             traversal_duration.hhmmss()
         );
 
+        // build utility model
+        let utility_params = config_json.get_config_section(CompassConfigurationField::Cost);
+        let utility_model_service = match utility_params.ok() {
+            None => Ok(CostModelService::default_cost_model()),
+            Some(params) => CostModelBuilder {}.build(&params),
+        }?;
+
         // build frontier model
         let frontier_start = Local::now();
         let frontier_params =
@@ -158,6 +169,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             search_algorithm,
             graph,
             traversal_model_service,
+            utility_model_service,
             frontier_model_service,
             termination_model,
         );
@@ -411,29 +423,48 @@ pub fn apply_output_processing(
                 "request": req,
                 "search_executed_time": result.search_start_time.to_rfc3339(),
                 "search_runtime": result.search_runtime.hhmmss(),
-                "route_runtime": result.route_runtime.hhmmss(),
                 "total_runtime": result.total_runtime.hhmmss(),
                 "route_edge_count": result.route.len(),
                 "tree_edge_count": result.tree.len()
             });
 
-            let tmodel = match search_app.get_traversal_model_reference(req) {
-                Err(e) => {
-                    return vec![serde_json::json!({
-                        "request": req,
-                        "error": e.to_string()
-                    })]
-                }
-                Ok(tmodel) => tmodel,
-            };
-
             let route = result.route.to_vec();
-            let traversal_summary_option = route
-                .last()
-                .map(|et| tmodel.serialize_state_with_info(&et.result_state));
 
-            if let Some(traversal_summary) = traversal_summary_option {
+            // build and append summaries if there is a route
+            if let Some(et) = route.last() {
+                // build instances of traversal and cost models to compute summaries
+                let tmodel = match search_app.build_traversal_model(req) {
+                    Err(e) => {
+                        return vec![serde_json::json!({
+                            "request": req,
+                            "error": e.to_string()
+                        })]
+                    }
+                    Ok(tmodel) => tmodel,
+                };
+                let cmodel =
+                    match search_app.build_cost_model_for_traversal_model(req, tmodel.clone()) {
+                        Err(e) => {
+                            return vec![serde_json::json!({
+                                "request": req,
+                                "error": e.to_string()
+                            })]
+                        }
+                        Ok(cmodel) => cmodel,
+                    };
+
+                let traversal_summary = tmodel.serialize_state_with_info(&et.result_state);
+                let cost_summary = match cmodel.serialize_cost_with_info(&et.result_state) {
+                    Err(e) => {
+                        return vec![serde_json::json!({
+                            "request": req,
+                            "error": e.to_string()
+                        })]
+                    }
+                    Ok(json) => json,
+                };
                 init_output["traversal_summary"] = traversal_summary;
+                init_output["cost_summary"] = cost_summary;
             }
 
             init_output
@@ -510,6 +541,7 @@ mod tests {
             "destination_vertex": 2
         });
         let result = app.run(vec![query]).unwrap();
+        println!("{}", serde_json::to_string_pretty(&result).unwrap());
         let edge_ids = result[0].get("edge_id_list").unwrap();
         // path [1] is distance-optimal; path [0, 2] is time-optimal
         let expected = serde_json::json!(vec![0, 2]);

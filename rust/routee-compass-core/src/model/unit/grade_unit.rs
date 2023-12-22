@@ -48,7 +48,7 @@ impl FromStr for GradeUnit {
 #[cfg(test)]
 mod test {
 
-    use crate::util::unit::as_f64::AsF64;
+    use crate::model::unit::as_f64::AsF64;
 
     use super::Grade;
     use super::GradeUnit as G;

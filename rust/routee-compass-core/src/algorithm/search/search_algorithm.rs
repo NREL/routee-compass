@@ -2,6 +2,7 @@ use super::a_star::a_star_algorithm;
 use super::search_error::SearchError;
 use super::MinSearchTree;
 use crate::algorithm::search::search_algorithm_type::SearchAlgorithmType;
+use crate::model::cost::cost_model::CostModel;
 use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::road_network::graph::Graph;
 use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
@@ -32,6 +33,7 @@ impl SearchAlgorithm {
         destination: Option<VertexId>,
         graph: Arc<ExecutorReadOnlyLock<Graph>>,
         traversal_model: Arc<dyn TraversalModel>,
+        cost_model: CostModel,
         frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
     ) -> Result<MinSearchTree, SearchError> {
@@ -41,6 +43,7 @@ impl SearchAlgorithm {
                 destination,
                 graph,
                 traversal_model,
+                cost_model,
                 frontier_model,
                 termination_model,
             ),
@@ -52,6 +55,7 @@ impl SearchAlgorithm {
         destination: Option<EdgeId>,
         graph: Arc<ExecutorReadOnlyLock<Graph>>,
         traversal_model: Arc<dyn TraversalModel>,
+        cost_model: CostModel,
         frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
     ) -> Result<MinSearchTree, SearchError> {
@@ -61,6 +65,7 @@ impl SearchAlgorithm {
                 destination,
                 graph,
                 traversal_model,
+                cost_model,
                 frontier_model,
                 termination_model,
             ),

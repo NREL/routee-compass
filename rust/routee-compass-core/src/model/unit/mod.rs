@@ -1,5 +1,6 @@
 pub mod as_f64;
 pub mod builders;
+pub mod cost;
 pub mod distance;
 pub mod distance_unit;
 pub mod energy;
@@ -15,6 +16,7 @@ pub mod time_unit;
 pub mod unit_error;
 pub mod untyped;
 pub use builders::{BASE_DISTANCE_UNIT, BASE_SPEED_UNIT, BASE_TIME_UNIT};
+pub use cost::Cost;
 pub use distance::Distance;
 pub use distance_unit::DistanceUnit;
 pub use energy::Energy;
