@@ -31,10 +31,35 @@ impl Cost {
 
     /// represents one cost, unit of multiplication operation
     pub const ONE: Cost = Cost(OrderedFloat(1.0));
+
     /// represents the maximum possible cost
     pub const INFINITY: Cost = Cost(OrderedFloat(f64::MAX));
+
+    /// when path search costs must be strictly positive, this value
+    /// is used as a sentinel in place of non-positive costs
+    pub const MIN_COST: Cost = Cost(OrderedFloat(0.0000000001));
+
+    /// helper to construct a Cost from an f64
     pub fn new(value: f64) -> Cost {
         Cost(OrderedFloat(value))
+    }
+
+    /// helper to enforce costs that are strictly positive
+    pub fn enforce_strictly_positive(cost: Cost) -> Cost {
+        if cost <= Cost::ZERO {
+            Cost::MIN_COST
+        } else {
+            cost
+        }
+    }
+
+    /// helper to enforce costs that are zero or greater
+    pub fn enforce_non_negative(cost: Cost) -> Cost {
+        if cost < Cost::ZERO {
+            Cost::ZERO
+        } else {
+            cost
+        }
     }
 }
 

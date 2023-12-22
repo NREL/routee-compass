@@ -70,7 +70,9 @@ impl CostModel {
             self.network_state_variable_rates.clone(),
         )?;
         let network_cost = self.cost_aggregation.agg(&network_costs);
-        Ok(vehicle_cost + network_cost)
+        let total_cost = vehicle_cost + network_cost;
+        let pos_cost = Cost::enforce_strictly_positive(total_cost);
+        Ok(pos_cost)
     }
 
     /// Calculates the cost of accessing some destination edge when coming
@@ -115,7 +117,9 @@ impl CostModel {
             self.network_state_variable_rates.clone(),
         )?;
         let network_cost = self.cost_aggregation.agg(&network_costs);
-        Ok(vehicle_cost + network_cost)
+        let total_cost = vehicle_cost + network_cost;
+        let pos_cost = Cost::enforce_strictly_positive(total_cost);
+        Ok(pos_cost)
     }
 
     /// Calculates a cost estimate for traversing between a source and destination
@@ -130,7 +134,7 @@ impl CostModel {
     ///
     /// # Returns
     ///
-    /// Either a cost estimate or an error.
+    /// Either a cost estimate or an error. cost estimates may be
     pub fn cost_estimate(
         &self,
         src_state: &[StateVar],
@@ -144,7 +148,8 @@ impl CostModel {
             self.vehicle_state_variable_rates.clone(),
         )?;
         let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
-        Ok(vehicle_cost)
+        let pos_cost = Cost::enforce_non_negative(vehicle_cost);
+        Ok(pos_cost)
     }
 
     /// Serializes the cost of a traversal state into a JSON value.
