@@ -46,7 +46,10 @@ impl VehicleType for BEV {
         self.name.clone()
     }
     fn state_variable_names(&self) -> Vec<String> {
-        vec![String::from("energy"), String::from("battery_state")]
+        vec![
+            String::from("energy_electric"),
+            String::from("battery_state"),
+        ]
     }
     fn initial_state(&self) -> TraversalState {
         vec![
@@ -106,10 +109,10 @@ impl VehicleType for BEV {
         })
     }
     fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
-        let battery_energy = get_electrical_energy_from_state(state);
+        let energy_electric = get_electrical_energy_from_state(state);
         let battery_soc_percent = get_battery_soc_percent(self, state);
         serde_json::json!({
-            "battery_energy": battery_energy.as_f64(),
+            "energy_electric": energy_electric.as_f64(),
             "battery_soc_percent": battery_soc_percent,
         })
     }
@@ -117,7 +120,7 @@ impl VehicleType for BEV {
     fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
         let battery_energy_unit = self.battery_energy_unit;
         serde_json::json!({
-            "battery_energy_unit": battery_energy_unit.to_string(),
+            "energy_unit": battery_energy_unit.to_string(),
         })
     }
 

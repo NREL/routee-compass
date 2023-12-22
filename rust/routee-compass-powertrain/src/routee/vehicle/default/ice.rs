@@ -36,7 +36,7 @@ impl VehicleType for ICE {
         self.name.clone()
     }
     fn state_variable_names(&self) -> Vec<String> {
-        vec![String::from("energy")]
+        vec![String::from("energy_liquid")]
     }
     fn initial_state(&self) -> VehicleState {
         // accumulated energy
@@ -93,7 +93,7 @@ impl VehicleType for ICE {
     fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
         let energy = get_energy_from_state(state);
         serde_json::json!({
-            "energy": energy.as_f64(),
+            "energy_liquid": energy.as_f64(),
         })
     }
 

@@ -35,11 +35,6 @@ factor = 0.655
 type = "factor"
 factor = 0.333336
 
-# based on $0.50/kWh approximation of DCFC charge rates, $/kWh
-[cost.vehicle_state_variable_rates.energy]
-type = "factor"
-factor = 0.05
-
 # based on AAA regular unleaded gas prices sampled 12/21/2023
 [cost.vehicle_state_variable_rates.energy_liquid]
 type = "factor"

@@ -62,7 +62,6 @@ impl CostModelService {
         HashMap::from([
             (String::from("distance"), VehicleCostRate::Raw),
             (String::from("time"), VehicleCostRate::Raw),
-            (String::from("energy"), VehicleCostRate::Raw),
             (String::from("energy_liquid"), VehicleCostRate::Raw),
             (String::from("energy_electric"), VehicleCostRate::Raw),
         ])
