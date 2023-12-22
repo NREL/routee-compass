@@ -413,6 +413,94 @@ document.write(`
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.graph_edge_destination">
+<span class="sig-name descname"><span class="pre">graph_edge_destination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.graph_edge_destination"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.graph_edge_destination" title="Permalink to this definition">#</a></dt>
+<dd><p>get the destination vertex id for some edge</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>edge_id</strong> (<em>int</em>) -- the id of the edge</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the vertex id at the destination of the edge</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.graph_edge_distance">
+<span class="sig-name descname"><span class="pre">graph_edge_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance_unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.graph_edge_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.graph_edge_distance" title="Permalink to this definition">#</a></dt>
+<dd><p>get the distance for some edge</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>edge_id</strong> (<em>int</em>) -- the id of the edge</p></li>
+<li><p><strong>distance_unit</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) -- distance unit, by default meters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the distance covered by traversing the edge</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.graph_edge_origin">
+<span class="sig-name descname"><span class="pre">graph_edge_origin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.graph_edge_origin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.graph_edge_origin" title="Permalink to this definition">#</a></dt>
+<dd><p>get the origin vertex id for some edge</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>edge_id</strong> (<em>int</em>) -- the id of the edge</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the vertex id at the source of the edge</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.graph_get_in_edge_ids">
+<span class="sig-name descname"><span class="pre">graph_get_in_edge_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertex_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.graph_get_in_edge_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.graph_get_in_edge_ids" title="Permalink to this definition">#</a></dt>
+<dd><p>get the list of edge ids that arrive from some vertex</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vertex_id</strong> (<em>int</em>) -- the id of the vertex</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the edge ids of edges arriving at this vertex</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.graph_get_out_edge_ids">
+<span class="sig-name descname"><span class="pre">graph_get_out_edge_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertex_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.graph_get_out_edge_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.graph_get_out_edge_ids" title="Permalink to this definition">#</a></dt>
+<dd><p>get the list of edge ids that depart from some vertex</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vertex_id</strong> (<em>int</em>) -- the id of the vertex</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the edge ids of edges departing from this vertex</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.run" title="Permalink to this definition">#</a></dt>
 <dd><p>Run a query (or multiple queries) against the CompassApp</p>

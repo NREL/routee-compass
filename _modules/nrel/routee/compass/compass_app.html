@@ -441,7 +441,70 @@ document.write(`
         <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">,</span> <span class="n">results_json</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">single_query</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">results</span></div></div>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+<div class="viewcode-block" id="CompassApp.graph_edge_origin"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.graph_edge_origin">[docs]</a>    <span class="k">def</span> <span class="nf">graph_edge_origin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get the origin vertex id for some edge</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            edge_id (int): the id of the edge</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: the vertex id at the source of the edge</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">graph_edge_origin</span><span class="p">(</span><span class="n">edge_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CompassApp.graph_edge_destination"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.graph_edge_destination">[docs]</a>    <span class="k">def</span> <span class="nf">graph_edge_destination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edge_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get the destination vertex id for some edge</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            edge_id (int): the id of the edge</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: the vertex id at the destination of the edge</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">graph_edge_destination</span><span class="p">(</span><span class="n">edge_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CompassApp.graph_edge_distance"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.graph_edge_distance">[docs]</a>    <span class="k">def</span> <span class="nf">graph_edge_distance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">edge_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">distance_unit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get the distance for some edge</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            edge_id (int): the id of the edge</span>
+<span class="sd">            distance_unit (Optional[str]): distance unit, by default meters</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: the distance covered by traversing the edge</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">graph_edge_distance</span><span class="p">(</span><span class="n">edge_id</span><span class="p">,</span> <span class="n">distance_unit</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CompassApp.graph_get_out_edge_ids"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.graph_get_out_edge_ids">[docs]</a>    <span class="k">def</span> <span class="nf">graph_get_out_edge_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vertex_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get the list of edge ids that depart from some vertex</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vertex_id (int): the id of the vertex</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[int]: the edge ids of edges departing from this vertex</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">graph_get_out_edge_ids</span><span class="p">(</span><span class="n">vertex_id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CompassApp.graph_get_in_edge_ids"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.graph_get_in_edge_ids">[docs]</a>    <span class="k">def</span> <span class="nf">graph_get_in_edge_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vertex_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get the list of edge ids that arrive from some vertex</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vertex_id (int): the id of the vertex</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[int]: the edge ids of edges arriving at this vertex</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">graph_get_in_edge_ids</span><span class="p">(</span><span class="n">vertex_id</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="inject_to_disk_plugin"><a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.inject_to_disk_plugin">[docs]</a><span class="k">def</span> <span class="nf">inject_to_disk_plugin</span><span class="p">(</span><span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">toml_config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
