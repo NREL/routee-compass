@@ -15,7 +15,6 @@ use std::sync::Arc;
 pub struct EnergyTraversalModel {
     pub service: Arc<EnergyModelService>,
     pub vehicle: Arc<dyn VehicleType>,
-    pub energy_cost_coefficient: f64,
 }
 
 impl TraversalModel for EnergyTraversalModel {
@@ -140,24 +139,6 @@ impl TryFrom<(Arc<EnergyModelService>, &serde_json::Value)> for EnergyTraversalM
     fn try_from(input: (Arc<EnergyModelService>, &serde_json::Value)) -> Result<Self, Self::Error> {
         let (service, conf) = input;
 
-        let energy_cost_coefficient = match conf.get(String::from("energy_cost_coefficient")) {
-            None => {
-                log::debug!("no energy_cost_coefficient provided");
-                1.0
-            }
-            Some(v) => {
-                let f = v.as_f64().ok_or(TraversalModelError::BuildError(format!(
-                    "expected 'energy_cost_coefficient' value to be numeric, found {}",
-                    v
-                )))?;
-                if !(0.0..=1.0).contains(&f) {
-                    return Err(TraversalModelError::BuildError(format!("expected 'energy_cost_coefficient' value to be numeric in range [0.0, 1.0], found {}", f)));
-                } else {
-                    log::debug!("using energy_cost_coefficient of {}", f);
-                    f
-                }
-            }
-        };
         let prediction_model_name = conf
             .get("model_name".to_string())
             .ok_or(TraversalModelError::BuildError(
@@ -181,11 +162,7 @@ impl TryFrom<(Arc<EnergyModelService>, &serde_json::Value)> for EnergyTraversalM
         }?
         .update_from_query(conf)?;
 
-        Ok(EnergyTraversalModel {
-            service,
-            vehicle,
-            energy_cost_coefficient,
-        })
+        Ok(EnergyTraversalModel { service, vehicle })
     }
 }
 
@@ -290,7 +267,6 @@ mod tests {
         let arc_service = Arc::new(service);
         let conf = serde_json::json!({
             "model_name": "Toyota_Camry",
-            "energy_cost_coefficient": 0.5,
         });
         let model = EnergyTraversalModel::try_from((arc_service, &conf)).unwrap();
         let initial = model.initial_state();
