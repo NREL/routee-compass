@@ -14,7 +14,7 @@ impl TryFrom<String> for SummaryField {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.as_str() {
-            "cost" => Ok(SummaryField::Cost),
+            "route_cost" => Ok(SummaryField::Cost),
             "distance" => Ok(SummaryField::Distance),
             _ => Err(PluginError::ParseError(
                 String::from("SummaryField"),
