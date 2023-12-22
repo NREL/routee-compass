@@ -124,9 +124,10 @@ impl TraversalModel for EnergyTraversalModel {
             self.service.output_time_unit.clone(),
         )?;
 
+        let vehicle_state = get_vehicle_state_from_state(state);
         let best_case_result = self
             .vehicle
-            .best_case_energy_state((distance, self.service.output_distance_unit), state)?;
+            .best_case_energy_state((distance, self.service.output_distance_unit), vehicle_state)?;
 
         let updated_state = update_state(state, distance, time, best_case_result.updated_state);
         Ok(updated_state)
