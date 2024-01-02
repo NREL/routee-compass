@@ -8,6 +8,7 @@ use crate::{
             compass_app_error::CompassAppError,
             compass_input_field::CompassInputField,
             config::{
+                compass_configuration_error::CompassConfigurationError,
                 compass_configuration_field::CompassConfigurationField,
                 config_json_extension::ConfigJsonExtensions,
                 cost_model::{
@@ -138,7 +139,24 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let frontier_start = Local::now();
         let frontier_params =
             config_json.get_config_section(CompassConfigurationField::Frontier)?;
-        let frontier_model_service = builder.build_frontier_model_service(frontier_params)?;
+
+        // if frontier params is a list, build a list of frontier models
+        // otherwise, build a list with a single frontier model
+        let frontier_model_service = match frontier_params {
+            serde_json::Value::Array(params) => params
+                .iter()
+                .map(|p| builder.build_frontier_model_service(p))
+                .collect::<Result<Vec<_>, CompassConfigurationError>>(),
+            serde_json::Value::Object(_) => {
+                let service = builder.build_frontier_model_service(&frontier_params)?;
+                Ok(vec![service])
+            }
+            _ => Err(CompassConfigurationError::ExpectedFieldWithType(
+                CompassConfigurationField::Frontier.to_str().to_string(),
+                "array or object".to_string(),
+            )),
+        }?;
+
         let frontier_duration = (Local::now() - frontier_start)
             .to_std()
             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;

@@ -30,7 +30,7 @@ pub fn run_a_star(
     directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
     u: CostModel,
-    f: Arc<dyn FrontierModel>,
+    f: &[Arc<dyn FrontierModel>],
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
     if target.map_or(false, |t| t == source) {
@@ -106,6 +106,12 @@ pub fn run_a_star(
                 current_vertex_id
             ))
         })?;
+        // grab the previous edge, if it exists
+        let previous_edge = current
+            .prev_edge_id
+            .map(|prev_edge_id| g.get_edge(prev_edge_id))
+            .transpose()
+            .map_err(SearchError::GraphError)?;
 
         // visit all neighbors of this source vertex
         let neighbor_triplets = g
@@ -114,8 +120,10 @@ pub fn run_a_star(
         for (src_id, edge_id, dst_id) in neighbor_triplets {
             // first make sure we have a valid edge
             let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
-            if !f.valid_frontier(e, &current.state)? {
-                continue;
+            for frontier_model in f {
+                if !frontier_model.valid_frontier(&e, &current.state, previous_edge)? {
+                    continue;
+                }
             }
             let et = EdgeTraversal::perform_traversal(
                 edge_id,
@@ -197,7 +205,7 @@ pub fn run_a_star_edge_oriented(
     directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
     u: CostModel,
-    f: Arc<dyn FrontierModel>,
+    f: &[Arc<dyn FrontierModel>],
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
@@ -225,7 +233,7 @@ pub fn run_a_star_edge_oriented(
                 directed_graph.clone(),
                 m.clone(),
                 u,
-                f.clone(),
+                f,
                 termination_model,
             )?;
             if !tree.contains_key(&source_edge_dst_vertex_id) {
@@ -274,7 +282,7 @@ pub fn run_a_star_edge_oriented(
                     directed_graph.clone(),
                     m.clone(),
                     u,
-                    f.clone(),
+                    f,
                     termination_model,
                 )?;
 
@@ -336,7 +344,6 @@ pub fn h_cost(
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::model::cost::cost_aggregation::CostAggregation;
@@ -461,9 +468,9 @@ mod tests {
                     Arc::new(HashMap::new()),
                     CostAggregation::Sum,
                 );
-                let fm_inner = Arc::new(NoRestriction {});
+                let fm_inner: Vec<Arc<dyn FrontierModel>> = vec![Arc::new(NoRestriction {})];
                 let rm_inner = Arc::new(driver_rm.read_only());
-                run_a_star(o, Some(d), dg_inner, dist_tm, dist_um, fm_inner, rm_inner)
+                run_a_star(o, Some(d), dg_inner, dist_tm, dist_um, &fm_inner, rm_inner)
             })
             .collect();
 

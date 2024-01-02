@@ -6,6 +6,7 @@ use super::{
     frontier_model::{
         no_restriction_builder::NoRestrictionBuilder,
         road_class::road_class_builder::RoadClassBuilder,
+        turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
     },
     traversal_model::{
         distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
@@ -129,9 +130,11 @@ impl CompassAppBuilder {
         // Frontier model builders
         let no_restriction: Box<dyn FrontierModelBuilder> = Box::new(NoRestrictionBuilder {});
         let road_class: Box<dyn FrontierModelBuilder> = Box::new(RoadClassBuilder {});
+        let turn_restruction: Box<dyn FrontierModelBuilder> = Box::new(TurnRestrictionBuilder {});
         let frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>> = HashMap::from([
             (String::from("no_restriction"), no_restriction),
             (String::from("road_class"), road_class),
+            (String::from("turn_restriction"), turn_restruction),
         ]);
 
         // Input plugin builders
@@ -209,7 +212,7 @@ impl CompassAppBuilder {
     /// frontier model configuration JSON
     pub fn build_frontier_model_service(
         &self,
-        config: serde_json::Value,
+        config: &serde_json::Value,
     ) -> Result<Arc<dyn FrontierModelService>, CompassConfigurationError> {
         let fm_type_obj =
             config
@@ -233,7 +236,7 @@ impl CompassAppBuilder {
                 self.frontier_builders.keys().join(", "),
             ))
             .and_then(|b| {
-                b.build(&config)
+                b.build(config)
                     .map_err(CompassConfigurationError::FrontierModelError)
             })
     }

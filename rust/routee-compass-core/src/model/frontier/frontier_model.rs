@@ -15,6 +15,7 @@ pub trait FrontierModel: Send + Sync {
     ///
     /// * `edge` - the edge to traverse
     /// * `state` - the state of the traversal at the beginning of this edge
+    /// * `previous_edge` - the edge that was traversed to reach this edge
     ///
     /// # Returns
     ///
@@ -23,6 +24,7 @@ pub trait FrontierModel: Send + Sync {
         &self,
         _edge: &Edge,
         _state: &TraversalState,
+        _previous_edge: Option<&Edge>,
     ) -> Result<bool, FrontierModelError> {
         Ok(true)
     }

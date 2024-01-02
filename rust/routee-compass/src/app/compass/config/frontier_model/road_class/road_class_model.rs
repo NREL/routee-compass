@@ -16,6 +16,7 @@ impl FrontierModel for RoadClassFrontierModel {
         &self,
         edge: &Edge,
         _state: &TraversalState,
+        _previous_edge: Option<&Edge>,
     ) -> Result<bool, FrontierModelError> {
         match &self.road_classes {
             None => Ok(true),
