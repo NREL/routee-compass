@@ -43,7 +43,7 @@ factor = 3.120
 # based on $0.50/kWh approximation of DCFC charge rates, $/kWhtype = "factor"
 [cost.vehicle_state_variable_rates.energy_electric]
 type = "factor"
-factor = 0.05
+factor = 0.50
 
 [[traversal.vehicles]]
 name = "2012_Ford_Focus"
