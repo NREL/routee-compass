@@ -121,7 +121,7 @@ pub fn run_a_star(
             // first make sure we have a valid edge
             let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
             for frontier_model in f {
-                if !frontier_model.valid_frontier(&e, &current.state, previous_edge)? {
+                if !frontier_model.valid_frontier(e, &current.state, previous_edge)? {
                     continue;
                 }
             }

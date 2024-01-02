@@ -27,7 +27,7 @@ impl CostModelService {
     ) -> Result<CostModelService, CompassConfigurationError> {
         let vehicle_rates = vehicle_state_variable_rates
             .unwrap_or(CostModelService::default_vehicle_state_variable_rates());
-        let network_rates = network_state_variable_rates.unwrap_or(HashMap::new());
+        let network_rates = network_state_variable_rates.unwrap_or_default();
         let coefficients = match default_state_variable_coefficients {
             Some(coefficients) => {
                 if coefficients.is_empty() {
