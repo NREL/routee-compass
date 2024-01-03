@@ -233,8 +233,8 @@ mod test {
             .join("plugin")
             .join("input")
             .join("default")
-            .join("test")
             .join("vertex_rtree")
+            .join("test")
             .join("rtree_vertices.csv");
 
         let query_filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -242,8 +242,8 @@ mod test {
             .join("plugin")
             .join("input")
             .join("default")
-            .join("test")
             .join("vertex_rtree")
+            .join("test")
             .join("rtree_query.json");
         let query_str = fs::read_to_string(query_filepath).unwrap();
         let rtree_plugin = RTreePlugin::new(&vertices_filepath, None, None).unwrap();
