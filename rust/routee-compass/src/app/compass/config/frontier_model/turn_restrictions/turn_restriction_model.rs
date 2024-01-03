@@ -5,7 +5,7 @@ use routee_compass_core::model::{
 };
 use std::sync::Arc;
 
-use super::turn_restriction_service::TurnRestrictionFrontierService;
+use super::turn_restriction_service::{RestrictedEdgePair, TurnRestrictionFrontierService};
 
 pub struct TurnRestrictionFrontierModel {
     pub service: Arc<TurnRestrictionFrontierService>,
@@ -21,8 +21,11 @@ impl FrontierModel for TurnRestrictionFrontierModel {
         match previous_edge {
             None => Ok(true),
             Some(previous_edge) => {
-                let edge_id_tuple = (previous_edge.edge_id, edge.edge_id);
-                if self.service.restricted_edges.contains(&edge_id_tuple) {
+                let edge_pair = RestrictedEdgePair {
+                    prev_edge_id: previous_edge.edge_id,
+                    next_edge_id: edge.edge_id,
+                };
+                if self.service.restricted_edge_pairs.contains(&edge_pair) {
                     return Ok(false);
                 }
                 Ok(true)
