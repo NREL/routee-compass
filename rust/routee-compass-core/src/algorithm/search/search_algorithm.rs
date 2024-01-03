@@ -27,6 +27,7 @@ impl TryFrom<&serde_json::Value> for SearchAlgorithm {
 }
 
 impl SearchAlgorithm {
+    #[allow(clippy::too_many_arguments)]
     pub fn run_vertex_oriented(
         &self,
         origin: VertexId,
@@ -49,6 +50,7 @@ impl SearchAlgorithm {
             ),
         }
     }
+    #[allow(clippy::too_many_arguments)]
     pub fn run_edge_oriented(
         &self,
         origin: EdgeId,

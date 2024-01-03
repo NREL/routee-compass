@@ -11,10 +11,7 @@ use routee_compass_core::{
     algorithm::search::{backtrack, search_algorithm::SearchAlgorithm},
     model::{
         cost::cost_model::CostModel,
-        frontier::{
-            frontier_model::FrontierModel, frontier_model_error::FrontierModelError,
-            frontier_model_service::FrontierModelService,
-        },
+        frontier::frontier_model_service::FrontierModelService,
         road_network::graph::Graph,
         termination::termination_model::TerminationModel,
         traversal::{
