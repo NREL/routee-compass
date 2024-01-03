@@ -154,4 +154,36 @@ mod test {
         ];
         assert_eq!(result, expected);
     }
+
+    #[test]
+    fn test_nested() {
+        let input = serde_json::json!({
+            "abc": 123,
+            "grid_search":{
+                "model_name": ["2016_TOYOTA_Camry_4cyl_2WD","2017_CHEVROLET_Bolt"],
+                "_ignore":[
+                    { "name":"d1", "state_variable_coefficients": { "distance":1, "time":0, "energy_electric":0 } },
+                    { "name":"t1", "state_variable_coefficients": { "distance":0, "time":1, "energy_electric":0 } },
+                    { "name":"e1", "state_variable_coefficients": { "distance":0, "time":0, "energy_electric":1 } }
+                ]
+            }
+        });
+        let plugin = GridSearchPlugin {};
+        let result = plugin
+            .process(&input)
+            .unwrap()
+            .iter()
+            .map(serde_json::to_string)
+            .collect::<Result<Vec<String>, serde_json::Error>>()
+            .unwrap();
+        let expected = vec![
+            String::from("{\"abc\":123,\"model_name\":\"2016_TOYOTA_Camry_4cyl_2WD\",\"name\":\"d1\",\"state_variable_coefficients\":{\"distance\":1,\"energy_electric\":0,\"time\":0}}"),
+            String::from("{\"abc\":123,\"model_name\":\"2016_TOYOTA_Camry_4cyl_2WD\",\"name\":\"t1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":0,\"time\":1}}"),
+            String::from("{\"abc\":123,\"model_name\":\"2016_TOYOTA_Camry_4cyl_2WD\",\"name\":\"e1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":1,\"time\":0}}"),
+            String::from("{\"abc\":123,\"model_name\":\"2017_CHEVROLET_Bolt\",\"name\":\"d1\",\"state_variable_coefficients\":{\"distance\":1,\"energy_electric\":0,\"time\":0}}"),
+            String::from("{\"abc\":123,\"model_name\":\"2017_CHEVROLET_Bolt\",\"name\":\"t1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":0,\"time\":1}}"),
+            String::from("{\"abc\":123,\"model_name\":\"2017_CHEVROLET_Bolt\",\"name\":\"e1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":1,\"time\":0}}"),
+        ];
+        assert_eq!(result, expected);
+    }
 }
