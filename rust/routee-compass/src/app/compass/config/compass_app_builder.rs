@@ -4,8 +4,9 @@ use super::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
     frontier_model::{
-        no_restriction_builder::NoRestrictionBuilder,
+        combined::combined_builder::CombinedBuilder, no_restriction_builder::NoRestrictionBuilder,
         road_class::road_class_builder::RoadClassBuilder,
+        turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
     },
     traversal_model::{
         distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
@@ -31,6 +32,7 @@ use crate::plugin::{
         output_plugin::OutputPlugin,
     },
 };
+
 use itertools::Itertools;
 use routee_compass_core::model::{
     frontier::{
@@ -41,7 +43,7 @@ use routee_compass_core::model::{
         traversal_model_service::TraversalModelService,
     },
 };
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 /// Upstream component factory of [`crate::app::compass::compass_app::CompassApp`]
 /// that builds components when constructing a CompassApp instance.
@@ -66,10 +68,10 @@ use std::{collections::HashMap, sync::Arc};
 /// * `output_plugin_builders` - a mapping of OutputPlugin `type` names to builders
 ///
 pub struct CompassAppBuilder {
-    pub traversal_model_builders: HashMap<String, Box<dyn TraversalModelBuilder>>,
-    pub frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>>,
-    pub input_plugin_builders: HashMap<String, Box<dyn InputPluginBuilder>>,
-    pub output_plugin_builders: HashMap<String, Box<dyn OutputPluginBuilder>>,
+    pub traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
+    pub frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
+    pub input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
+    pub output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
 }
 
 impl CompassAppBuilder {
@@ -92,19 +94,19 @@ impl CompassAppBuilder {
         }
     }
 
-    pub fn add_traversal_model(&mut self, name: String, builder: Box<dyn TraversalModelBuilder>) {
+    pub fn add_traversal_model(&mut self, name: String, builder: Rc<dyn TraversalModelBuilder>) {
         let _ = self.traversal_model_builders.insert(name, builder);
     }
 
-    pub fn add_frontier_model(&mut self, name: String, builder: Box<dyn FrontierModelBuilder>) {
+    pub fn add_frontier_model(&mut self, name: String, builder: Rc<dyn FrontierModelBuilder>) {
         let _ = self.frontier_builders.insert(name, builder);
     }
 
-    pub fn add_input_plugin(&mut self, name: String, builder: Box<dyn InputPluginBuilder>) {
+    pub fn add_input_plugin(&mut self, name: String, builder: Rc<dyn InputPluginBuilder>) {
         let _ = self.input_plugin_builders.insert(name, builder);
     }
 
-    pub fn add_output_plugin(&mut self, name: String, builder: Box<dyn OutputPluginBuilder>) {
+    pub fn add_output_plugin(&mut self, name: String, builder: Rc<dyn OutputPluginBuilder>) {
         let _ = self.output_plugin_builders.insert(name, builder);
     }
 
@@ -117,29 +119,37 @@ impl CompassAppBuilder {
     /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
     fn default() -> CompassAppBuilder {
         // Traversal model builders
-        let dist: Box<dyn TraversalModelBuilder> = Box::new(DistanceBuilder {});
-        let velo: Box<dyn TraversalModelBuilder> = Box::new(SpeedLookupBuilder {});
-        let energy_model: Box<dyn TraversalModelBuilder> = Box::new(EnergyModelBuilder {});
-        let tm_builders: HashMap<String, Box<dyn TraversalModelBuilder>> = HashMap::from([
+        let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceBuilder {});
+        let velo: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
+        let energy_model: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder {});
+        let tm_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),
             (String::from("speed_table"), velo),
             (String::from("energy_model"), energy_model),
         ]);
 
         // Frontier model builders
-        let no_restriction: Box<dyn FrontierModelBuilder> = Box::new(NoRestrictionBuilder {});
-        let road_class: Box<dyn FrontierModelBuilder> = Box::new(RoadClassBuilder {});
-        let frontier_builders: HashMap<String, Box<dyn FrontierModelBuilder>> = HashMap::from([
-            (String::from("no_restriction"), no_restriction),
-            (String::from("road_class"), road_class),
-        ]);
+        let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});
+        let road_class: Rc<dyn FrontierModelBuilder> = Rc::new(RoadClassBuilder {});
+        let turn_restruction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
+        let base_frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
+            HashMap::from([
+                (String::from("no_restriction"), no_restriction),
+                (String::from("road_class"), road_class),
+                (String::from("turn_restriction"), turn_restruction),
+            ]);
+        let combined = Rc::new(CombinedBuilder {
+            builders: base_frontier_builders.clone(),
+        });
+        let mut all_frontier_builders = base_frontier_builders.clone();
+        all_frontier_builders.insert(String::from("combined"), combined);
 
         // Input plugin builders
-        let grid_search: Box<dyn InputPluginBuilder> = Box::new(GridSearchBuilder {});
-        let vertex_tree: Box<dyn InputPluginBuilder> = Box::new(VertexRTreeBuilder {});
-        let edge_rtree: Box<dyn InputPluginBuilder> = Box::new(EdgeRtreeInputPluginBuilder {});
-        let load_balancer: Box<dyn InputPluginBuilder> = Box::new(LoadBalancerBuilder {});
-        let inject: Box<dyn InputPluginBuilder> = Box::new(InjectPluginBuilder {});
+        let grid_search: Rc<dyn InputPluginBuilder> = Rc::new(GridSearchBuilder {});
+        let vertex_tree: Rc<dyn InputPluginBuilder> = Rc::new(VertexRTreeBuilder {});
+        let edge_rtree: Rc<dyn InputPluginBuilder> = Rc::new(EdgeRtreeInputPluginBuilder {});
+        let load_balancer: Rc<dyn InputPluginBuilder> = Rc::new(LoadBalancerBuilder {});
+        let inject: Rc<dyn InputPluginBuilder> = Rc::new(InjectPluginBuilder {});
         let input_plugin_builders = HashMap::from([
             (String::from("grid_search"), grid_search),
             (String::from("vertex_rtree"), vertex_tree),
@@ -149,11 +159,11 @@ impl CompassAppBuilder {
         ]);
 
         // Output plugin builders
-        let traversal: Box<dyn OutputPluginBuilder> = Box::new(TraversalPluginBuilder {});
-        let summary: Box<dyn OutputPluginBuilder> = Box::new(SummaryOutputPluginBuilder {});
-        let uuid: Box<dyn OutputPluginBuilder> = Box::new(UUIDOutputPluginBuilder {});
-        let edge_id_list: Box<dyn OutputPluginBuilder> = Box::new(EdgeIdListOutputPluginBuilder {});
-        let to_disk: Box<dyn OutputPluginBuilder> = Box::new(ToDiskOutputPluginBuilder {});
+        let traversal: Rc<dyn OutputPluginBuilder> = Rc::new(TraversalPluginBuilder {});
+        let summary: Rc<dyn OutputPluginBuilder> = Rc::new(SummaryOutputPluginBuilder {});
+        let uuid: Rc<dyn OutputPluginBuilder> = Rc::new(UUIDOutputPluginBuilder {});
+        let edge_id_list: Rc<dyn OutputPluginBuilder> = Rc::new(EdgeIdListOutputPluginBuilder {});
+        let to_disk: Rc<dyn OutputPluginBuilder> = Rc::new(ToDiskOutputPluginBuilder {});
         let output_plugin_builders = HashMap::from([
             (String::from("traversal"), traversal),
             (String::from("summary"), summary),
@@ -164,7 +174,7 @@ impl CompassAppBuilder {
 
         CompassAppBuilder {
             traversal_model_builders: tm_builders,
-            frontier_builders,
+            frontier_builders: all_frontier_builders,
             input_plugin_builders,
             output_plugin_builders,
         }
@@ -209,7 +219,7 @@ impl CompassAppBuilder {
     /// frontier model configuration JSON
     pub fn build_frontier_model_service(
         &self,
-        config: serde_json::Value,
+        config: &serde_json::Value,
     ) -> Result<Arc<dyn FrontierModelService>, CompassConfigurationError> {
         let fm_type_obj =
             config
@@ -233,7 +243,7 @@ impl CompassAppBuilder {
                 self.frontier_builders.keys().join(", "),
             ))
             .and_then(|b| {
-                b.build(&config)
+                b.build(config)
                     .map_err(CompassConfigurationError::FrontierModelError)
             })
     }
@@ -241,13 +251,13 @@ impl CompassAppBuilder {
     pub fn build_input_plugins(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Vec<Box<dyn InputPlugin>>, CompassConfigurationError> {
+    ) -> Result<Vec<Arc<dyn InputPlugin>>, CompassConfigurationError> {
         let input_plugins = config.get_config_array(
             &CompassConfigurationField::InputPlugins,
             &CompassConfigurationField::Plugins,
         )?;
 
-        let mut plugins: Vec<Box<dyn InputPlugin>> = Vec::new();
+        let mut plugins: Vec<Arc<dyn InputPlugin>> = Vec::new();
         for plugin_json in input_plugins.into_iter() {
             let plugin_type_obj =
                 plugin_json
@@ -284,13 +294,13 @@ impl CompassAppBuilder {
     pub fn build_output_plugins(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Vec<Box<dyn OutputPlugin>>, CompassConfigurationError> {
+    ) -> Result<Vec<Arc<dyn OutputPlugin>>, CompassConfigurationError> {
         let output_plugins = config.get_config_array(
             &CompassConfigurationField::OutputPlugins,
             &CompassConfigurationField::Plugins,
         )?;
 
-        let mut plugins: Vec<Box<dyn OutputPlugin>> = Vec::new();
+        let mut plugins: Vec<Arc<dyn OutputPlugin>> = Vec::new();
         for plugin_json in output_plugins.into_iter() {
             let plugin_json_obj =
                 plugin_json

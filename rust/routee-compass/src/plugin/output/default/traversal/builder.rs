@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::{plugin::TraversalPlugin, traversal_output_format::TraversalOutputFormat};
 use crate::{
     app::compass::config::{
@@ -38,7 +40,7 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn OutputPlugin>, CompassConfigurationError> {
         let parent_key = String::from("traversal");
 
         let geometry_filename = parameters.get_config_path(&"geometry_input_file", &parent_key)?;
@@ -48,6 +50,6 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
             parameters.get_config_serde_optional(&"tree", &parent_key)?;
 
         let geom_plugin = TraversalPlugin::from_file(&geometry_filename, route, tree)?;
-        Ok(Box::new(geom_plugin))
+        Ok(Arc::new(geom_plugin))
     }
 }

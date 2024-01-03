@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     app::compass::config::{
         builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
@@ -13,7 +15,7 @@ impl InputPluginBuilder for GridSearchBuilder {
     fn build(
         &self,
         _parameters: &serde_json::Value,
-    ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
-        Ok(Box::new(GridSearchPlugin {}))
+    ) -> Result<Arc<dyn InputPlugin>, CompassConfigurationError> {
+        Ok(Arc::new(GridSearchPlugin {}))
     }
 }

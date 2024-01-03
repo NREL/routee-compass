@@ -98,7 +98,6 @@ impl SearchApp {
         let rm_inner = Arc::new(self.termination_model.read_only());
         self.search_algorithm
             .run_vertex_oriented(o, d, dg_inner, tm_inner, um_inner, fm_inner, rm_inner)
-            // run_a_star(o, Some(d), dg_inner, tm_inner, fm_inner, rm_inner)
             .and_then(|tree| {
                 let search_end_time = Local::now();
                 let search_runtime = (search_end_time - search_start_time)
@@ -171,6 +170,7 @@ impl SearchApp {
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
             .build(query)?;
+
         let rm_inner = Arc::new(self.termination_model.read_only());
         self.search_algorithm
             .run_edge_oriented(

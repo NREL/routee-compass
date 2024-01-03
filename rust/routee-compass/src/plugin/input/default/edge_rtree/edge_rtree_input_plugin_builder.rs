@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::edge_rtree_input_plugin::EdgeRtreeInputPlugin;
 use crate::{
     app::compass::config::{
@@ -14,7 +16,7 @@ impl InputPluginBuilder for EdgeRtreeInputPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn InputPlugin>, CompassConfigurationError> {
         let parent_key = String::from("edge_rtree");
         let linestring_file = parameters.get_config_path(&"geometry_input_file", &parent_key)?;
         let road_class_file = parameters.get_config_path(&"road_class_input_file", &parent_key)?;
@@ -30,6 +32,6 @@ impl InputPluginBuilder for EdgeRtreeInputPluginBuilder {
             distance_tolerance_option,
             distance_unit_option,
         )?;
-        Ok(Box::new(plugin))
+        Ok(Arc::new(plugin))
     }
 }

@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::compass_configuration_error::CompassConfigurationError;
 use crate::plugin::{input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin};
 
@@ -23,7 +25,7 @@ pub trait InputPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError>;
+    ) -> Result<Arc<dyn InputPlugin>, CompassConfigurationError>;
 }
 
 /// A [`OutputPluginBuilder`] takes a JSON object describing the configuration of an
@@ -48,5 +50,5 @@ pub trait OutputPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError>;
+    ) -> Result<Arc<dyn OutputPlugin>, CompassConfigurationError>;
 }

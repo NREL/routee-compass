@@ -106,6 +106,12 @@ pub fn run_a_star(
                 current_vertex_id
             ))
         })?;
+        // grab the previous edge, if it exists
+        let previous_edge = current
+            .prev_edge_id
+            .map(|prev_edge_id| g.get_edge(prev_edge_id))
+            .transpose()
+            .map_err(SearchError::GraphError)?;
 
         // visit all neighbors of this source vertex
         let neighbor_triplets = g
@@ -114,7 +120,7 @@ pub fn run_a_star(
         for (src_id, edge_id, dst_id) in neighbor_triplets {
             // first make sure we have a valid edge
             let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
-            if !f.valid_frontier(e, &current.state)? {
+            if !f.valid_frontier(e, &current.state, previous_edge)? {
                 continue;
             }
             let et = EdgeTraversal::perform_traversal(
@@ -225,7 +231,7 @@ pub fn run_a_star_edge_oriented(
                 directed_graph.clone(),
                 m.clone(),
                 u,
-                f.clone(),
+                f,
                 termination_model,
             )?;
             if !tree.contains_key(&source_edge_dst_vertex_id) {
@@ -274,7 +280,7 @@ pub fn run_a_star_edge_oriented(
                     directed_graph.clone(),
                     m.clone(),
                     u,
-                    f.clone(),
+                    f,
                     termination_model,
                 )?;
 
@@ -336,7 +342,6 @@ pub fn h_cost(
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::model::cost::cost_aggregation::CostAggregation;

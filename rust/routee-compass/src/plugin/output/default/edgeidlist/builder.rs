@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     app::compass::config::{
         builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,
@@ -13,7 +15,7 @@ impl OutputPluginBuilder for EdgeIdListOutputPluginBuilder {
     fn build(
         &self,
         _parameters: &serde_json::Value,
-    ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
-        Ok(Box::new(EdgeIdListOutputPlugin {}))
+    ) -> Result<Arc<dyn OutputPlugin>, CompassConfigurationError> {
+        Ok(Arc::new(EdgeIdListOutputPlugin {}))
     }
 }

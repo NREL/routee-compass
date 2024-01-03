@@ -49,8 +49,8 @@ use std::{
 /// running RouteE Compass.
 pub struct CompassApp {
     pub search_app: SearchApp,
-    pub input_plugins: Vec<Box<dyn InputPlugin>>,
-    pub output_plugins: Vec<Box<dyn OutputPlugin>>,
+    pub input_plugins: Vec<Arc<dyn InputPlugin>>,
+    pub output_plugins: Vec<Arc<dyn OutputPlugin>>,
     pub parallelism: usize,
     pub search_orientation: SearchOrientation,
 }
@@ -138,7 +138,9 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let frontier_start = Local::now();
         let frontier_params =
             config_json.get_config_section(CompassConfigurationField::Frontier)?;
-        let frontier_model_service = builder.build_frontier_model_service(frontier_params)?;
+
+        let frontier_model_service = builder.build_frontier_model_service(&frontier_params)?;
+
         let frontier_duration = (Local::now() - frontier_start)
             .to_std()
             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
@@ -365,7 +367,7 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
 /// helper that applies the input plugins to a query, returning the result(s) or an error if failed
 pub fn apply_input_plugins(
     query: &serde_json::Value,
-    plugins: &[Box<dyn InputPlugin>],
+    plugins: &[Arc<dyn InputPlugin>],
 ) -> Result<Vec<serde_json::Value>, serde_json::Value> {
     let init = Ok(vec![query.clone()]);
     let result = plugins
@@ -399,7 +401,7 @@ pub fn apply_input_plugins(
 pub fn apply_output_processing(
     response_data: (&serde_json::Value, Result<SearchAppResult, CompassAppError>),
     search_app: &SearchApp,
-    output_plugins: &[Box<dyn OutputPlugin>],
+    output_plugins: &[Arc<dyn OutputPlugin>],
 ) -> Vec<serde_json::Value> {
     let (req, res) = response_data;
 

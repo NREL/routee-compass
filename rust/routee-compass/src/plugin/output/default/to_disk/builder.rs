@@ -20,7 +20,7 @@ impl OutputPluginBuilder for ToDiskOutputPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn OutputPlugin>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn OutputPlugin>, CompassConfigurationError> {
         let output_filename = parameters.get_config_string(&"output_file", &"output")?;
         let output_file_path = PathBuf::from(&output_filename);
 
@@ -46,6 +46,6 @@ impl OutputPluginBuilder for ToDiskOutputPluginBuilder {
             output_file_path,
             output_file,
         };
-        Ok(Box::new(to_disk_plugin))
+        Ok(Arc::new(to_disk_plugin))
     }
 }
