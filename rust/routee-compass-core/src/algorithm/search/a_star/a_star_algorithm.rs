@@ -30,7 +30,7 @@ pub fn run_a_star(
     directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
     u: CostModel,
-    f: &[Arc<dyn FrontierModel>],
+    f: Arc<dyn FrontierModel>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
     if target.map_or(false, |t| t == source) {
@@ -120,10 +120,8 @@ pub fn run_a_star(
         for (src_id, edge_id, dst_id) in neighbor_triplets {
             // first make sure we have a valid edge
             let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
-            for frontier_model in f {
-                if !frontier_model.valid_frontier(e, &current.state, previous_edge)? {
-                    continue;
-                }
+            if !f.valid_frontier(e, &current.state, previous_edge)? {
+                continue;
             }
             let et = EdgeTraversal::perform_traversal(
                 edge_id,
@@ -205,7 +203,7 @@ pub fn run_a_star_edge_oriented(
     directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
     m: Arc<dyn TraversalModel>,
     u: CostModel,
-    f: &[Arc<dyn FrontierModel>],
+    f: Arc<dyn FrontierModel>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
 ) -> Result<MinSearchTree, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
@@ -468,9 +466,9 @@ mod tests {
                     Arc::new(HashMap::new()),
                     CostAggregation::Sum,
                 );
-                let fm_inner: Vec<Arc<dyn FrontierModel>> = vec![Arc::new(NoRestriction {})];
+                let fm_inner = Arc::new(NoRestriction {});
                 let rm_inner = Arc::new(driver_rm.read_only());
-                run_a_star(o, Some(d), dg_inner, dist_tm, dist_um, &fm_inner, rm_inner)
+                run_a_star(o, Some(d), dg_inner, dist_tm, dist_um, fm_inner, rm_inner)
             })
             .collect();
 

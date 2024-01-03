@@ -31,7 +31,7 @@ pub struct SearchApp {
     graph: Arc<DriverReadOnlyLock<Graph>>,
     traversal_model_service: Arc<DriverReadOnlyLock<Arc<dyn TraversalModelService>>>,
     cost_model_service: Arc<DriverReadOnlyLock<CostModelService>>,
-    frontier_model_service: Arc<DriverReadOnlyLock<Vec<Arc<dyn FrontierModelService>>>>,
+    frontier_model_service: Arc<DriverReadOnlyLock<Arc<dyn FrontierModelService>>>,
     termination_model: Arc<DriverReadOnlyLock<TerminationModel>>,
 }
 
@@ -43,7 +43,7 @@ impl SearchApp {
         graph: Graph,
         traversal_model_service: Arc<dyn TraversalModelService>,
         utility_model_service: CostModelService,
-        frontier_model_service: Vec<Arc<dyn FrontierModelService>>,
+        frontier_model_service: Arc<dyn FrontierModelService>,
         termination_model: TerminationModel,
     ) -> Self {
         let graph = Arc::new(DriverReadOnlyLock::new(graph));
@@ -96,13 +96,11 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .iter()
-            .map(|fm| fm.build(query))
-            .collect::<Result<Vec<Arc<dyn FrontierModel>>, FrontierModelError>>()?;
+            .build(query)?;
 
         let rm_inner = Arc::new(self.termination_model.read_only());
         self.search_algorithm
-            .run_vertex_oriented(o, d, dg_inner, tm_inner, um_inner, &fm_inner, rm_inner)
+            .run_vertex_oriented(o, d, dg_inner, tm_inner, um_inner, fm_inner, rm_inner)
             .and_then(|tree| {
                 let search_end_time = Local::now();
                 let search_runtime = (search_end_time - search_start_time)
@@ -174,9 +172,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .iter()
-            .map(|fm| fm.build(query))
-            .collect::<Result<Vec<Arc<dyn FrontierModel>>, FrontierModelError>>()?;
+            .build(query)?;
 
         let rm_inner = Arc::new(self.termination_model.read_only());
         self.search_algorithm
@@ -186,7 +182,7 @@ impl SearchApp {
                 dg_inner_search,
                 tm_inner,
                 um_inner,
-                &fm_inner,
+                fm_inner,
                 rm_inner,
             )
             .and_then(|tree| {

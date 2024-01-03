@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     app::compass::config::{
         builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
@@ -14,9 +16,9 @@ impl InputPluginBuilder for LoadBalancerBuilder {
     fn build(
         &self,
         params: &serde_json::Value,
-    ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn InputPlugin>, CompassConfigurationError> {
         let heuristic =
             params.get_config_serde::<WeightHeuristic>(&"weight_heuristic", &"load_balancer")?;
-        Ok(Box::new(LoadBalancerPlugin { heuristic }))
+        Ok(Arc::new(LoadBalancerPlugin { heuristic }))
     }
 }

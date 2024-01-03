@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::inject_format::InjectFormat;
 use crate::{
     app::compass::config::{
@@ -13,12 +15,12 @@ impl InputPluginBuilder for InjectPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn InputPlugin>, CompassConfigurationError> {
         let key = parameters.get_config_string(&"key", &"inject")?;
         let value_string = parameters.get_config_string(&"value", &"inject")?;
         let format: InjectFormat = parameters.get_config_serde(&"format", &"inject")?;
         let value = format.to_json(&value_string)?;
         let plugin = InjectInputPlugin::new(key, value);
-        Ok(Box::new(plugin))
+        Ok(Arc::new(plugin))
     }
 }

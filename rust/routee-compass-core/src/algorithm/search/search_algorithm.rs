@@ -34,7 +34,7 @@ impl SearchAlgorithm {
         graph: Arc<ExecutorReadOnlyLock<Graph>>,
         traversal_model: Arc<dyn TraversalModel>,
         cost_model: CostModel,
-        frontier_model: &[Arc<dyn FrontierModel>],
+        frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
     ) -> Result<MinSearchTree, SearchError> {
         match self {
@@ -56,7 +56,7 @@ impl SearchAlgorithm {
         graph: Arc<ExecutorReadOnlyLock<Graph>>,
         traversal_model: Arc<dyn TraversalModel>,
         cost_model: CostModel,
-        frontier_model: &[Arc<dyn FrontierModel>],
+        frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
     ) -> Result<MinSearchTree, SearchError> {
         match self {

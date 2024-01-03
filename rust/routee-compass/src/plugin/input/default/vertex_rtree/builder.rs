@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use routee_compass_core::model::unit::{Distance, DistanceUnit};
 
 use crate::{
@@ -16,7 +18,7 @@ impl InputPluginBuilder for VertexRTreeBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Box<dyn InputPlugin>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn InputPlugin>, CompassConfigurationError> {
         let parent_key = String::from("Vertex RTree Input Plugin");
         let vertex_path = parameters.get_config_path(&"vertices_input_file", &parent_key)?;
         let tolerance_distance =
@@ -25,7 +27,7 @@ impl InputPluginBuilder for VertexRTreeBuilder {
             parameters.get_config_serde_optional::<DistanceUnit>(&"distance_unit", &parent_key)?;
         let rtree = RTreePlugin::new(&vertex_path, tolerance_distance, distance_unit)
             .map_err(CompassConfigurationError::PluginError)?;
-        let m: Box<dyn InputPlugin> = Box::new(rtree);
+        let m: Arc<dyn InputPlugin> = Arc::new(rtree);
         Ok(m)
     }
 }
