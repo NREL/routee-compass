@@ -215,12 +215,7 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin
-            .process(&input)
-            .unwrap()
-            .iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<String>, serde_json::Error>>();
+        let result = plugin.process(&input);
         assert!(result.is_err());
     }
 }
