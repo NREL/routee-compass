@@ -233,6 +233,7 @@ mod test {
             .join("plugin")
             .join("input")
             .join("default")
+            .join("vertex_rtree")
             .join("test")
             .join("rtree_vertices.csv");
 
@@ -241,6 +242,7 @@ mod test {
             .join("plugin")
             .join("input")
             .join("default")
+            .join("vertex_rtree")
             .join("test")
             .join("rtree_query.json");
         let query_str = fs::read_to_string(query_filepath).unwrap();
