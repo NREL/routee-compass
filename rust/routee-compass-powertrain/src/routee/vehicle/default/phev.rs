@@ -314,11 +314,19 @@ mod tests {
             .join("routee")
             .join("test")
             .join("2016_CHEVROLET_Volt_Charge_Depleting.bin");
+        let model_type = ModelType::Interpolate {
+            speed_lower_bound: Speed::new(0.0),
+            speed_upper_bound: Speed::new(100.0),
+            speed_bins: 101,
+            grade_lower_bound: Grade::new(-0.20),
+            grade_upper_bound: Grade::new(0.20),
+            grade_bins: 41,
+        };
 
         let charge_sustain_model_record = load_prediction_model(
             "Chevy_Volt_Charge_Sustaining".to_string(),
             &charge_sustain_model_file_path,
-            ModelType::Smartcore,
+            model_type.clone(),
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             EnergyRateUnit::GallonsGasolinePerMile,
@@ -330,7 +338,7 @@ mod tests {
         let charge_depleting_model_record = load_prediction_model(
             "Chevy_Volt_Charge_Depleting".to_string(),
             &charge_depleting_model_file_path,
-            ModelType::Smartcore,
+            model_type.clone(),
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             EnergyRateUnit::KilowattHoursPerMile,

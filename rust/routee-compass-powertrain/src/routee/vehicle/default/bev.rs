@@ -218,7 +218,14 @@ mod tests {
         let model_record = load_prediction_model(
             "Chevy Bolt".to_string(),
             &model_file_path,
-            ModelType::Smartcore,
+            ModelType::Interpolate {
+                speed_lower_bound: Speed::new(0.0),
+                speed_upper_bound: Speed::new(100.0),
+                speed_bins: 101,
+                grade_lower_bound: Grade::new(-0.20),
+                grade_upper_bound: Grade::new(0.20),
+                grade_bins: 41,
+            },
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             EnergyRateUnit::KilowattHoursPerMile,

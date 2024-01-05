@@ -21,6 +21,7 @@ env_logger = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_repr = "0.1"
 serde_json = { workspace = true }
+ordered-float = { workspace = true }
 ndarray = "0.15"
 ort = { version = "2.0.0-alpha.4", optional = true }
 rayon = { workspace = true }

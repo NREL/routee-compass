@@ -7,6 +7,7 @@ use routee_compass_core::{
 };
 
 use super::{
+    interpolation::interpolation_speed_grade_model::InterpolationSpeedGradeModel,
     model_type::ModelType, smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel,
     PredictionModel, PredictionModelRecord,
 };
@@ -50,6 +51,26 @@ pub fn load_prediction_model<P: AsRef<Path>>(
                         .to_string(),
                 ));
             }
+        }
+        ModelType::Interpolate {
+            speed_lower_bound,
+            speed_upper_bound,
+            speed_bins: speed_bin_size,
+            grade_lower_bound,
+            grade_upper_bound,
+            grade_bins: grade_bin_size,
+        } => {
+            let model = InterpolationSpeedGradeModel::new(
+                model_path,
+                speed_unit,
+                (speed_lower_bound, speed_upper_bound),
+                speed_bin_size,
+                grade_unit,
+                (grade_lower_bound, grade_upper_bound),
+                grade_bin_size,
+                energy_rate_unit,
+            )?;
+            Arc::new(model)
         }
     };
     let ideal_energy_rate = match ideal_energy_rate_option {
