@@ -1,3 +1,4 @@
+pub mod interpolation;
 pub mod model_type;
 pub mod prediction_model;
 pub mod prediction_model_ops;
