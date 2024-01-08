@@ -1,4 +1,4 @@
-use routee_compass_core::model::unit::{Speed, Grade};
+use routee_compass_core::model::unit::{Grade, Speed};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

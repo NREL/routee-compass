@@ -171,11 +171,11 @@ impl CostModel {
             .map(move |(name, idx)| {
                 let state_var = state
                     .get(*idx)
-                    .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+                    .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
                 let rate = self
                     .vehicle_state_variable_rates
                     .get(name)
-                    .ok_or(CostError::StateVariableNotFound(name.clone()))?;
+                    .ok_or_else(|| CostError::StateVariableNotFound(name.clone()))?;
                 let cost = rate.map_value(*state_var);
                 Ok((name.clone(), cost))
             })

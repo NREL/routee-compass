@@ -142,13 +142,15 @@ impl TryFrom<(Arc<EnergyModelService>, &serde_json::Value)> for EnergyTraversalM
 
         let prediction_model_name = conf
             .get("model_name".to_string())
-            .ok_or(TraversalModelError::BuildError(
-                "No 'model_name' key provided in query".to_string(),
-            ))?
+            .ok_or_else(|| {
+                TraversalModelError::BuildError("No 'model_name' key provided in query".to_string())
+            })?
             .as_str()
-            .ok_or(TraversalModelError::BuildError(
-                "Expected 'model_name' value to be string".to_string(),
-            ))?
+            .ok_or_else(|| {
+                TraversalModelError::BuildError(
+                    "Expected 'model_name' value to be string".to_string(),
+                )
+            })?
             .to_string();
 
         let vehicle = match service.vehicle_library.get(&prediction_model_name) {

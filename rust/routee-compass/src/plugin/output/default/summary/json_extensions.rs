@@ -51,9 +51,9 @@ impl SummaryJsonExtensions for serde_json::Value {
         match self {
             serde_json::Value::Object(map) => {
                 let cost_f64: f64 = cost.into();
-                let cost_json = serde_json::Number::from_f64(cost_f64).ok_or(
-                    PluginError::ParseError(String::from("Cost"), String::from("f64")),
-                )?;
+                let cost_json = serde_json::Number::from_f64(cost_f64).ok_or_else(|| {
+                    PluginError::ParseError(String::from("Cost"), String::from("f64"))
+                })?;
                 map.insert(
                     SummaryField::Cost.to_string(),
                     serde_json::Value::Number(cost_json),
@@ -72,11 +72,10 @@ impl SummaryJsonExtensions for serde_json::Value {
                 let cost_field = SummaryField::Cost.to_string();
                 let cost_json = map
                     .get(&cost_field)
-                    .ok_or(PluginError::MissingField(cost_field))?;
-                let cost_f64 = cost_json.as_f64().ok_or(PluginError::ParseError(
-                    String::from("Cost"),
-                    String::from("f64"),
-                ))?;
+                    .ok_or_else(|| PluginError::MissingField(cost_field))?;
+                let cost_f64 = cost_json.as_f64().ok_or_else(|| {
+                    PluginError::ParseError(String::from("Cost"), String::from("f64"))
+                })?;
                 let cost = Cost::from(cost_f64);
                 Ok(cost)
             }
@@ -92,11 +91,10 @@ impl SummaryJsonExtensions for serde_json::Value {
                 let distance_field = SummaryField::Distance.to_string();
                 let distance_json = map
                     .get(&distance_field)
-                    .ok_or(PluginError::MissingField(distance_field))?;
-                let distance_f64 = distance_json.as_f64().ok_or(PluginError::ParseError(
-                    String::from("Distance"),
-                    String::from("f64"),
-                ))?;
+                    .ok_or_else(|| PluginError::MissingField(distance_field))?;
+                let distance_f64 = distance_json.as_f64().ok_or_else(|| {
+                    PluginError::ParseError(String::from("Distance"), String::from("f64"))
+                })?;
                 Ok(distance_f64)
             }
             _ => Err(PluginError::InputError(String::from(
@@ -108,9 +106,9 @@ impl SummaryJsonExtensions for serde_json::Value {
     fn add_distance(&mut self, distance: f64) -> Result<(), PluginError> {
         match self {
             serde_json::Value::Object(map) => {
-                let distance_json = serde_json::Number::from_f64(distance).ok_or(
-                    PluginError::ParseError(String::from("Distance"), String::from("f64")),
-                )?;
+                let distance_json = serde_json::Number::from_f64(distance).ok_or_else(|| {
+                    PluginError::ParseError(String::from("Distance"), String::from("f64"))
+                })?;
                 let json_string = serde_json::Value::Number(distance_json);
                 map.insert(SummaryField::Distance.to_string(), json_string);
                 Ok(())

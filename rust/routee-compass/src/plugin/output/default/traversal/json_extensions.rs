@@ -30,14 +30,14 @@ impl TraversalJsonExtensions for serde_json::Value {
     fn get_route_geometry_wkt(&self) -> Result<String, PluginError> {
         let geometry = self
             .get(TraversalJsonField::RouteOutput.as_str())
-            .ok_or(PluginError::MissingField(
-                TraversalJsonField::RouteOutput.to_string(),
-            ))?
+            .ok_or_else(|| PluginError::MissingField(TraversalJsonField::RouteOutput.to_string()))?
             .as_str()
-            .ok_or(PluginError::ParseError(
-                TraversalJsonField::RouteOutput.to_string(),
-                String::from("string"),
-            ))?
+            .ok_or_else(|| {
+                PluginError::ParseError(
+                    TraversalJsonField::RouteOutput.to_string(),
+                    String::from("string"),
+                )
+            })?
             .to_string();
         Ok(geometry)
     }

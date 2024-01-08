@@ -21,12 +21,12 @@ impl TerminationModelBuilder {
 
         let result = match term_type.to_lowercase().as_str() {
             "query_runtime" => {
-                let dur_val = config.get("limit").ok_or(
+                let dur_val = config.get("limit").ok_or_else(|| {
                     CompassConfigurationError::ExpectedFieldForComponent(
                         local_scope.clone(),
                         String::from("limit"),
-                    ),
-                )?;
+                    )
+                })?;
                 let dur = dur_val.as_duration()?;
                 let freq = config.get_config_i64(&"frequency", &local_scope)? as u64;
                 Ok(T::QueryRuntimeLimit {

@@ -141,13 +141,12 @@ impl InputPlugin for RTreePlugin {
         let src_coord = query.get_origin_coordinate()?;
         let dst_coord_option = query.get_destination_coordinate()?;
 
-        let src_vertex =
-            self.vertex_rtree
-                .nearest_vertex(src_coord)
-                .ok_or(PluginError::PluginFailed(format!(
-                    "nearest vertex not found for origin coordinate {:?}",
-                    src_coord
-                )))?;
+        let src_vertex = self.vertex_rtree.nearest_vertex(src_coord).ok_or_else(|| {
+            PluginError::PluginFailed(format!(
+                "nearest vertex not found for origin coordinate {:?}",
+                src_coord
+            ))
+        })?;
 
         validate_tolerance(src_coord, src_vertex.coordinate, &self.tolerance)?;
         updated.add_origin_vertex(src_vertex.vertex_id)?;
@@ -155,12 +154,12 @@ impl InputPlugin for RTreePlugin {
         match dst_coord_option {
             None => {}
             Some(dst_coord) => {
-                let dst_vertex = self.vertex_rtree.nearest_vertex(dst_coord).ok_or(
+                let dst_vertex = self.vertex_rtree.nearest_vertex(dst_coord).ok_or_else(|| {
                     PluginError::PluginFailed(format!(
                         "nearest vertex not found for destination coordinate {:?}",
                         dst_coord
-                    )),
-                )?;
+                    ))
+                })?;
                 validate_tolerance(dst_coord, dst_vertex.coordinate, &self.tolerance)?;
                 updated.add_destination_vertex(dst_vertex.vertex_id)?;
             }

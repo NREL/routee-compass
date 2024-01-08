@@ -8,10 +8,9 @@ pub trait DurationExtension {
 
 impl DurationExtension for serde_json::Value {
     fn as_duration(&self) -> Result<Duration, ConversionError> {
-        let d_str = self.as_str().ok_or(ConversionError::DecoderError(
-            format!("{:?}", self),
-            String::from("JSON"),
-        ))?;
+        let d_str = self.as_str().ok_or_else(|| {
+            ConversionError::DecoderError(format!("{:?}", self), String::from("JSON"))
+        })?;
 
         // regex lib recommends not building these within-the-loop, so this is not
         // good for performance to build here, but ran out of time exploring alternatives.

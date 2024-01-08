@@ -72,10 +72,12 @@ impl ConfigJsonExtensions for serde_json::Value {
     ) -> Result<serde_json::Value, CompassConfigurationError> {
         let section = self
             .get(section.to_str())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                section.to_string(),
-                String::from(""),
-            ))?
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldForComponent(
+                    section.to_string(),
+                    String::from(""),
+                )
+            })?
             .clone();
 
         Ok(section)
@@ -120,16 +122,20 @@ impl ConfigJsonExtensions for serde_json::Value {
     ) -> Result<String, CompassConfigurationError> {
         let value = self
             .get(key.as_ref())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                String::from(key.as_ref()),
-                String::from(parent_key.as_ref()),
-            ))?
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldForComponent(
+                    String::from(key.as_ref()),
+                    String::from(parent_key.as_ref()),
+                )
+            })?
             .as_str()
             .map(String::from)
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                String::from(key.as_ref()),
-                String::from("String"),
-            ))?;
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldWithType(
+                    String::from(key.as_ref()),
+                    String::from("String"),
+                )
+            })?;
         Ok(value)
     }
 
@@ -140,15 +146,19 @@ impl ConfigJsonExtensions for serde_json::Value {
     ) -> Result<Vec<serde_json::Value>, CompassConfigurationError> {
         let array = self
             .get(key.as_ref())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                String::from(key.as_ref()),
-                String::from(parent_key.as_ref()),
-            ))?
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldForComponent(
+                    String::from(key.as_ref()),
+                    String::from(parent_key.as_ref()),
+                )
+            })?
             .as_array()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                String::from(key.as_ref()),
-                String::from("Array"),
-            ))?
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldWithType(
+                    String::from(key.as_ref()),
+                    String::from("Array"),
+                )
+            })?
             .to_owned();
         Ok(array)
     }
@@ -160,15 +170,19 @@ impl ConfigJsonExtensions for serde_json::Value {
     ) -> Result<i64, CompassConfigurationError> {
         let value = self
             .get(key.as_ref())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                String::from(key.as_ref()),
-                String::from(parent_key.as_ref()),
-            ))?
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldForComponent(
+                    String::from(key.as_ref()),
+                    String::from(parent_key.as_ref()),
+                )
+            })?
             .as_i64()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                String::from(key.as_ref()),
-                String::from("64-bit signed integer"),
-            ))?;
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldWithType(
+                    String::from(key.as_ref()),
+                    String::from("64-bit signed integer"),
+                )
+            })?;
         Ok(value)
     }
 
@@ -179,15 +193,19 @@ impl ConfigJsonExtensions for serde_json::Value {
     ) -> Result<f64, CompassConfigurationError> {
         let value = self
             .get(key.as_ref())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                String::from(key.as_ref()),
-                String::from(parent_key.as_ref()),
-            ))?
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldForComponent(
+                    String::from(key.as_ref()),
+                    String::from(parent_key.as_ref()),
+                )
+            })?
             .as_f64()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                String::from(key.as_ref()),
-                String::from("64-bit floating point"),
-            ))?;
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldWithType(
+                    String::from(key.as_ref()),
+                    String::from("64-bit floating point"),
+                )
+            })?;
         Ok(value)
     }
 
@@ -198,15 +216,19 @@ impl ConfigJsonExtensions for serde_json::Value {
     ) -> Result<T, CompassConfigurationError> {
         let value = self
             .get(key.as_ref())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                String::from(key.as_ref()),
-                String::from(parent_key.as_ref()),
-            ))?
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldForComponent(
+                    String::from(key.as_ref()),
+                    String::from(parent_key.as_ref()),
+                )
+            })?
             .as_str()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                String::from(key.as_ref()),
-                String::from("string-parseable"),
-            ))?;
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldWithType(
+                    String::from(key.as_ref()),
+                    String::from("string-parseable"),
+                )
+            })?;
         let result = T::from_str(value).map_err(|_| {
             CompassConfigurationError::ExpectedFieldWithType(
                 String::from(key.as_ref()),
@@ -223,10 +245,12 @@ impl ConfigJsonExtensions for serde_json::Value {
     ) -> Result<T, CompassConfigurationError> {
         let value = self
             .get(key.as_ref())
-            .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                String::from(key.as_ref()),
-                String::from(parent_key.as_ref()),
-            ))?
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldForComponent(
+                    String::from(key.as_ref()),
+                    String::from(parent_key.as_ref()),
+                )
+            })?
             .to_owned();
 
         let result: T = serde_json::from_value(value)
@@ -287,9 +311,9 @@ impl ConfigJsonExtensions for serde_json::Value {
                     let new_path = root_config_parent.join(path);
                     let new_path_string = new_path
                         .to_str()
-                        .ok_or(CompassConfigurationError::FileNormalizationError(
-                            path_string.clone(),
-                        ))?
+                        .ok_or_else(|| {
+                            CompassConfigurationError::FileNormalizationError(path_string.clone())
+                        })?
                         .to_string();
                     if new_path.is_file() {
                         Ok(serde_json::Value::String(new_path_string))

@@ -48,11 +48,11 @@ impl OutputPlugin for UUIDOutputPlugin {
         let origin_uuid = self
             .uuids
             .get(origin_vertex_id.0)
-            .ok_or(PluginError::UUIDMissing(origin_vertex_id.0))?;
+            .ok_or_else(|| PluginError::UUIDMissing(origin_vertex_id.0))?;
         let destination_uuid = self
             .uuids
             .get(destination_vertex_id.0)
-            .ok_or(PluginError::UUIDMissing(destination_vertex_id.0))?;
+            .ok_or_else(|| PluginError::UUIDMissing(destination_vertex_id.0))?;
 
         updated_output.add_od_uuids(origin_uuid.clone(), destination_uuid.clone())?;
 

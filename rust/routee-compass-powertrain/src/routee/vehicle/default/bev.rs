@@ -129,9 +129,11 @@ impl VehicleType for BEV {
         query: &serde_json::Value,
     ) -> Result<Arc<dyn VehicleType>, TraversalModelError> {
         let starting_soc_percent = match query.get("starting_soc_percent".to_string()) {
-            Some(soc_string) => soc_string.as_f64().ok_or(TraversalModelError::BuildError(
-                "Expected 'starting_soc_percent' value to be numeric".to_string(),
-            ))?,
+            Some(soc_string) => soc_string.as_f64().ok_or_else(|| {
+                TraversalModelError::BuildError(
+                    "Expected 'starting_soc_percent' value to be numeric".to_string(),
+                )
+            })?,
             None => 100.0,
         };
         if !(0.0..=100.0).contains(&starting_soc_percent) {

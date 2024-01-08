@@ -39,12 +39,12 @@ impl InputPlugin for EdgeRtreeInputPlugin {
         let dst_coord_option = query.get_destination_coordinate()?;
 
         let source_edge_id = search(&self.rtree, src_coord, &road_classes, self.tolerance)
-            .ok_or(matching_error(&src_coord, self.tolerance))?;
+            .ok_or_else(|| matching_error(&src_coord, self.tolerance))?;
         let destination_edge_id_option = match dst_coord_option {
             None => Ok(None),
             Some(dst_coord) => search(&self.rtree, dst_coord, &road_classes, self.tolerance)
                 .map(Some)
-                .ok_or(matching_error(&dst_coord, self.tolerance)),
+                .ok_or_else(|| matching_error(&dst_coord, self.tolerance)),
         }?;
 
         let mut updated = query.clone();

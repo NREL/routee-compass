@@ -105,8 +105,7 @@ mod tests {
         // returns value at (x2, y2)
         assert_eq!(interp.interpolate(2.0, 2.0).unwrap(), values[2][2]);
 
-        // errors out for values greater than bounds 
+        // errors out for values greater than bounds
         assert!(interp.interpolate(3.0, 3.0).is_err());
-        
     }
 }

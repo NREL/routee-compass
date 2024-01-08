@@ -13,13 +13,13 @@ pub fn get_grade(
     match grade_table {
         None => Ok(Grade::ZERO),
         Some(gt) => {
-            let grade: &Grade = gt.get(edge_id.as_usize()).ok_or(
+            let grade: &Grade = gt.get(edge_id.as_usize()).ok_or_else(|| {
                 TraversalModelError::MissingIdInTabularCostFunction(
                     format!("{}", edge_id),
                     String::from("EdgeId"),
                     String::from("grade table"),
-                ),
-            )?;
+                )
+            })?;
             Ok(*grade)
         }
     }

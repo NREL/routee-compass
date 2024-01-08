@@ -57,12 +57,12 @@ impl OutputPlugin for TraversalPlugin {
             Err(_) => Ok(vec![output.clone()]),
             Ok(result) => {
                 let mut output_mut = output.clone();
-                let updated = output_mut
-                    .as_object_mut()
-                    .ok_or(PluginError::InternalError(format!(
+                let updated = output_mut.as_object_mut().ok_or_else(|| {
+                    PluginError::InternalError(format!(
                         "expected output JSON to be an object, found {}",
                         output
-                    )))?;
+                    ))
+                })?;
 
                 match self.route {
                     None => {}

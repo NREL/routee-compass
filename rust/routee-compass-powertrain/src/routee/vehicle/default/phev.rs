@@ -167,13 +167,17 @@ impl VehicleType for PHEV {
     ) -> Result<Arc<dyn VehicleType>, TraversalModelError> {
         let starting_soc_percent = query
             .get("starting_soc_percent".to_string())
-            .ok_or(TraversalModelError::BuildError(
-                "No 'starting_soc_percent' key provided in query".to_string(),
-            ))?
+            .ok_or_else(|| {
+                TraversalModelError::BuildError(
+                    "No 'starting_soc_percent' key provided in query".to_string(),
+                )
+            })?
             .as_f64()
-            .ok_or(TraversalModelError::BuildError(
-                "Expected 'starting_soc_percent' value to be numeric".to_string(),
-            ))?;
+            .ok_or_else(|| {
+                TraversalModelError::BuildError(
+                    "Expected 'starting_soc_percent' value to be numeric".to_string(),
+                )
+            })?;
         if !(0.0..=100.0).contains(&starting_soc_percent) {
             return Err(TraversalModelError::BuildError(
                 "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),

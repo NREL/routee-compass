@@ -56,9 +56,9 @@ pub struct FloatCachePolicy {
 
 impl FloatCachePolicy {
     pub fn from_config(config: FloatCachePolicyConfig) -> Result<Self, CacheError> {
-        let size = NonZeroUsize::new(config.cache_size).ok_or(CacheError::BuildError(
-            "maximum_cache_size must be greater than 0".to_string(),
-        ))?;
+        let size = NonZeroUsize::new(config.cache_size).ok_or_else(|| {
+            CacheError::BuildError("maximum_cache_size must be greater than 0".to_string())
+        })?;
         let cache = Mutex::new(LruCache::new(size));
         for precision in config.key_precisions.iter() {
             if (*precision > 10) || (*precision < -10) {
