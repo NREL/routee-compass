@@ -1,5 +1,3 @@
-
-
 use ordered_float::OrderedFloat;
 
 pub fn linspace(x0: f64, xend: f64, n: usize) -> Vec<f64> {
