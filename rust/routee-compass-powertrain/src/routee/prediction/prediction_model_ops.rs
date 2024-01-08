@@ -27,7 +27,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
     real_world_energy_adjustment_option: Option<f64>,
     cache: Option<FloatCachePolicy>,
 ) -> Result<PredictionModelRecord, TraversalModelError> {
-    let prediction_model: Arc<dyn PredictionModel> = match model_type {
+    let prediction_model: Arc<dyn PredictionModel> = match model_type.clone() {
         ModelType::Smartcore => {
             let model = SmartcoreSpeedGradeModel::new(
                 model_path,
@@ -53,6 +53,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
             }
         }
         ModelType::Interpolate {
+            underlying_model,
             speed_lower_bound,
             speed_upper_bound,
             speed_bins: speed_bin_size,
@@ -62,6 +63,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
         } => {
             let model = InterpolationSpeedGradeModel::new(
                 model_path,
+                *underlying_model,
                 speed_unit,
                 (speed_lower_bound, speed_upper_bound),
                 speed_bin_size,

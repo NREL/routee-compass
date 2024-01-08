@@ -7,6 +7,7 @@ pub enum ModelType {
     Smartcore,
     Onnx,
     Interpolate {
+        underlying_model: Box<ModelType>,
         speed_lower_bound: Speed,
         speed_upper_bound: Speed,
         speed_bins: usize,

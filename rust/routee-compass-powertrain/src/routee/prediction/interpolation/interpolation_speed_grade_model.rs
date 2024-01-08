@@ -1,16 +1,18 @@
 use std::path::Path;
 
-use crate::routee::prediction::prediction_model::PredictionModel;
+use crate::routee::prediction::{
+    load_prediction_model, model_type::ModelType, prediction_model::PredictionModel,
+};
 
 use routee_compass_core::{
     model::traversal::traversal_model_error::TraversalModelError,
-    model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
-};
-use smartcore::{
-    ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
+    model::unit::{
+        as_f64::AsF64, Distance, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit,
+    },
 };
 
-use super::utils::{linspace, BilinearInterp};
+use super::bilinear_interp::BilinearInterp;
+use super::utils::linspace;
 
 pub struct InterpolationSpeedGradeModel {
     interpolator: BilinearInterp,
@@ -54,7 +56,8 @@ impl PredictionModel for InterpolationSpeedGradeModel {
 impl InterpolationSpeedGradeModel {
     #[allow(clippy::too_many_arguments)]
     pub fn new<P: AsRef<Path>>(
-        routee_model_path: &P,
+        model_path: &P,
+        model_type: ModelType,
         speed_unit: SpeedUnit,
         speed_bounds: (Speed, Speed),
         speed_bins: usize,
@@ -63,21 +66,18 @@ impl InterpolationSpeedGradeModel {
         grade_bins: usize,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
-        // Load random forest binary file
-        let rf_binary = std::fs::read(routee_model_path).map_err(|e| {
-            TraversalModelError::FileReadError(
-                routee_model_path.as_ref().to_path_buf(),
-                e.to_string(),
-            )
-        })?;
-        // Load the random forest regressor so we can exercise it on a linear grid
-        let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
-            bincode::deserialize(&rf_binary).map_err(|e| {
-                TraversalModelError::FileReadError(
-                    routee_model_path.as_ref().to_path_buf(),
-                    e.to_string(),
-                )
-            })?;
+        // load underlying model to build the interpolation grid
+        let model = load_prediction_model(
+            "".to_string(),
+            model_path,
+            model_type,
+            speed_unit,
+            grade_unit,
+            energy_rate_unit,
+            None,
+            None,
+            None,
+        )?;
 
         // Create a linear grid of speed and grade values
         let speed_values = linspace(speed_bounds.0.as_f64(), speed_bounds.1.as_f64(), speed_bins);
@@ -85,14 +85,22 @@ impl InterpolationSpeedGradeModel {
 
         // Predict energy rate values across the whole grid
         let mut values = Vec::new();
+
+        // Use a unit distance so we can get the energy per unit distance
+        let distance = Distance::new(1.0);
+        let distance_unit = energy_rate_unit.associated_distance_unit();
+
         for speed_value in speed_values.clone().into_iter() {
             let mut row: Vec<f64> = Vec::new();
             for grade_value in grade_values.clone().into_iter() {
-                let x = DenseMatrix::from_2d_vec(&vec![vec![speed_value, grade_value]]);
-                let y = rf
-                    .predict(&x)
+                let (energy, _energy_unit) = model
+                    .predict(
+                        (Speed::new(speed_value), speed_unit),
+                        (Grade::new(grade_value), grade_unit),
+                        (distance, distance_unit),
+                    )
                     .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
-                row.push(y[0]);
+                row.push(energy.as_f64());
             }
             values.push(row);
         }
@@ -132,6 +140,7 @@ mod test {
 
         let model = InterpolationSpeedGradeModel::new(
             &model_path,
+            ModelType::Smartcore,
             SpeedUnit::MilesPerHour,
             (Speed::new(0.0), Speed::new(100.0)),
             101,
