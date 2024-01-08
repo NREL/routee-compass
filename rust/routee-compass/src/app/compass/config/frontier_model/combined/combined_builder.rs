@@ -30,27 +30,30 @@ impl CombinedBuilder {
         &self,
         config: &serde_json::Value,
     ) -> Result<Arc<dyn FrontierModelService>, CompassConfigurationError> {
-        let fm_type_obj =
-            config
-                .get("type")
-                .ok_or(CompassConfigurationError::ExpectedFieldForComponent(
-                    CompassConfigurationField::Frontier.to_string(),
-                    String::from("type"),
-                ))?;
+        let fm_type_obj = config.get("type").ok_or_else(|| {
+            CompassConfigurationError::ExpectedFieldForComponent(
+                CompassConfigurationField::Frontier.to_string(),
+                String::from("type"),
+            )
+        })?;
         let fm_type: String = fm_type_obj
             .as_str()
-            .ok_or(CompassConfigurationError::ExpectedFieldWithType(
-                String::from("type"),
-                String::from("String"),
-            ))?
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldWithType(
+                    String::from("type"),
+                    String::from("String"),
+                )
+            })?
             .into();
         self.builders
             .get(&fm_type)
-            .ok_or(CompassConfigurationError::UnknownModelNameForComponent(
-                fm_type.clone(),
-                String::from("frontier"),
-                self.builders.keys().join(", "),
-            ))
+            .ok_or_else(|| {
+                CompassConfigurationError::UnknownModelNameForComponent(
+                    fm_type.clone(),
+                    String::from("frontier"),
+                    self.builders.keys().join(", "),
+                )
+            })
             .and_then(|b| {
                 b.build(config)
                     .map_err(CompassConfigurationError::FrontierModelError)

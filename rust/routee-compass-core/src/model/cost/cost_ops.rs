@@ -19,14 +19,14 @@ pub fn calculate_vehicle_costs<'a>(
         .map(|(name, idx)| {
             let prev_state_var = prev_state
                 .get(*idx)
-                .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+                .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
             let next_state_var = next_state
                 .get(*idx)
-                .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+                .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
             let delta: StateVar = *next_state_var - *prev_state_var;
             let mapping = rates
                 .get(name)
-                .ok_or(CostError::StateVariableNotFound(name.clone()))?;
+                .ok_or_else(|| CostError::StateVariableNotFound(name.clone()))?;
             let coefficient = state_variable_coefficients.get(name).unwrap_or(&1.0);
             let delta_cost = mapping.map_value(delta);
             let cost = delta_cost * coefficient;
@@ -51,10 +51,10 @@ pub fn calculate_network_traversal_costs<'a>(
             Some(m) => {
                 let prev_state_var = prev_state
                     .get(*idx)
-                    .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+                    .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
                 let next_state_var = next_state
                     .get(*idx)
-                    .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+                    .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
                 let coefficient = state_variable_coefficients.get(name).unwrap_or(&1.0);
                 let traversal_cost = m.traversal_cost(*prev_state_var, *next_state_var, edge)?;
                 let cost = traversal_cost * coefficient;
@@ -81,10 +81,10 @@ pub fn calculate_network_access_costs<'a>(
             Some(m) => {
                 let prev_state_var = prev_state
                     .get(*idx)
-                    .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+                    .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
                 let next_state_var = next_state
                     .get(*idx)
-                    .ok_or(CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+                    .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
                 let access_cost =
                     m.access_cost(*prev_state_var, *next_state_var, prev_edge, next_edge)?;
                 let coefficient = state_variable_coefficients.get(name).unwrap_or(&1.0);

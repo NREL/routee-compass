@@ -24,9 +24,9 @@ pub fn read_config_from_file(config_path: &Path) -> Result<Config, CompassAppErr
     // was found so we can use it later to resolve relative paths
     let conf_file_string = config_path
         .to_str()
-        .ok_or(CompassAppError::InternalError(
-            "Could not parse incoming config file path".to_string(),
-        ))?
+        .ok_or_else(|| {
+            CompassAppError::InternalError("Could not parse incoming config file path".to_string())
+        })?
         .to_string();
 
     let config = Config::builder()
@@ -117,9 +117,9 @@ fn min_bin(bins: &[f64]) -> Result<usize, PluginError> {
         .enumerate()
         .min_by_key(|(_i, w)| OrderedFloat(**w))
         .map(|(i, _w)| i)
-        .ok_or(PluginError::InternalError(String::from(
-            "cannot find min bin of empty slice",
-        )))
+        .ok_or_else(|| {
+            PluginError::InternalError(String::from("cannot find min bin of empty slice"))
+        })
 }
 
 #[cfg(test)]

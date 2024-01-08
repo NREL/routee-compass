@@ -60,20 +60,19 @@ impl EdgeListJsonExtensions for serde_json::Value {
                 let edge_id_list_field = EdgeListField::EdgeIdList.into_str();
                 let edge_id_list_json = map
                     .get(edge_id_list_field)
-                    .ok_or(PluginError::MissingField(String::from(edge_id_list_field)))?;
-                let json_list = edge_id_list_json.as_array().ok_or(PluginError::ParseError(
-                    format!("{:?}", edge_id_list_json),
-                    String::from("JSON Array"),
-                ))?;
+                    .ok_or_else(|| PluginError::MissingField(String::from(edge_id_list_field)))?;
+                let json_list = edge_id_list_json.as_array().ok_or_else(|| {
+                    PluginError::ParseError(
+                        format!("{:?}", edge_id_list_json),
+                        String::from("JSON Array"),
+                    )
+                })?;
                 let result: Result<Vec<EdgeId>, PluginError> = json_list
                     .iter()
                     .map(|v| {
-                        v.as_u64()
-                            .map(|u| EdgeId(u as usize))
-                            .ok_or(PluginError::ParseError(
-                                format!("{}", v),
-                                String::from("u64"),
-                            ))
+                        v.as_u64().map(|u| EdgeId(u as usize)).ok_or_else(|| {
+                            PluginError::ParseError(format!("{}", v), String::from("u64"))
+                        })
                     })
                     .collect();
 

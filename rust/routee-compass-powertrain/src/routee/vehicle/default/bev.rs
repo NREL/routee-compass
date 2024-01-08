@@ -129,9 +129,11 @@ impl VehicleType for BEV {
         query: &serde_json::Value,
     ) -> Result<Arc<dyn VehicleType>, TraversalModelError> {
         let starting_soc_percent = match query.get("starting_soc_percent".to_string()) {
-            Some(soc_string) => soc_string.as_f64().ok_or(TraversalModelError::BuildError(
-                "Expected 'starting_soc_percent' value to be numeric".to_string(),
-            ))?,
+            Some(soc_string) => soc_string.as_f64().ok_or_else(|| {
+                TraversalModelError::BuildError(
+                    "Expected 'starting_soc_percent' value to be numeric".to_string(),
+                )
+            })?,
             None => 100.0,
         };
         if !(0.0..=100.0).contains(&starting_soc_percent) {
@@ -218,7 +220,15 @@ mod tests {
         let model_record = load_prediction_model(
             "Chevy Bolt".to_string(),
             &model_file_path,
-            ModelType::Smartcore,
+            ModelType::Interpolate {
+                underlying_model_type: Box::new(ModelType::Smartcore),
+                speed_lower_bound: Speed::new(0.0),
+                speed_upper_bound: Speed::new(100.0),
+                speed_bins: 101,
+                grade_lower_bound: Grade::new(-0.20),
+                grade_upper_bound: Grade::new(0.20),
+                grade_bins: 41,
+            },
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             EnergyRateUnit::KilowattHoursPerMile,

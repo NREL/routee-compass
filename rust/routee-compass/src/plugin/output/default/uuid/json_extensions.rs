@@ -43,35 +43,37 @@ impl UUIDJsonExtensions for serde_json::Value {
     fn get_od_vertex_ids(&self) -> Result<(VertexId, VertexId), PluginError> {
         let request = self
             .get(UUIDJsonField::Request.as_str())
-            .ok_or(PluginError::MissingField(
-                UUIDJsonField::Request.to_string(),
-            ))?
+            .ok_or_else(|| PluginError::MissingField(UUIDJsonField::Request.to_string()))?
             .as_object()
-            .ok_or(PluginError::ParseError(
-                UUIDJsonField::Request.to_string(),
-                String::from("json object"),
-            ))?;
+            .ok_or_else(|| {
+                PluginError::ParseError(
+                    UUIDJsonField::Request.to_string(),
+                    String::from("json object"),
+                )
+            })?;
 
         let origin_vertex_id = request
             .get(&UUIDJsonField::OriginVertexId.to_string())
-            .ok_or(PluginError::MissingField(
-                UUIDJsonField::OriginVertexId.to_string(),
-            ))?
+            .ok_or_else(|| PluginError::MissingField(UUIDJsonField::OriginVertexId.to_string()))?
             .as_u64()
-            .ok_or(PluginError::ParseError(
-                UUIDJsonField::OriginVertexId.to_string(),
-                String::from("u64"),
-            ))?;
+            .ok_or_else(|| {
+                PluginError::ParseError(
+                    UUIDJsonField::OriginVertexId.to_string(),
+                    String::from("u64"),
+                )
+            })?;
         let destination_vertex_id = request
             .get(&UUIDJsonField::DestinationVertexId.to_string())
-            .ok_or(PluginError::MissingField(
-                UUIDJsonField::DestinationVertexId.to_string(),
-            ))?
+            .ok_or_else(|| {
+                PluginError::MissingField(UUIDJsonField::DestinationVertexId.to_string())
+            })?
             .as_u64()
-            .ok_or(PluginError::ParseError(
-                UUIDJsonField::DestinationVertexId.to_string(),
-                String::from("u64"),
-            ))?;
+            .ok_or_else(|| {
+                PluginError::ParseError(
+                    UUIDJsonField::DestinationVertexId.to_string(),
+                    String::from("u64"),
+                )
+            })?;
         Ok((
             VertexId(origin_vertex_id as usize),
             VertexId(destination_vertex_id as usize),
@@ -84,14 +86,14 @@ impl UUIDJsonExtensions for serde_json::Value {
     ) -> Result<(), PluginError> {
         let request = self
             .get_mut(UUIDJsonField::Request.as_str())
-            .ok_or(PluginError::MissingField(
-                UUIDJsonField::Request.to_string(),
-            ))?
+            .ok_or_else(|| PluginError::MissingField(UUIDJsonField::Request.to_string()))?
             .as_object_mut()
-            .ok_or(PluginError::ParseError(
-                UUIDJsonField::Request.to_string(),
-                String::from("json object"),
-            ))?;
+            .ok_or_else(|| {
+                PluginError::ParseError(
+                    UUIDJsonField::Request.to_string(),
+                    String::from("json object"),
+                )
+            })?;
 
         request.insert(
             UUIDJsonField::OriginVertexUUID.to_string(),

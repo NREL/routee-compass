@@ -72,7 +72,7 @@ impl GeomApp {
             let edge_idx = row
                 .parse::<usize>()
                 .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-            let result = self.geoms.get(edge_idx).cloned().ok_or({
+            let result = self.geoms.get(edge_idx).cloned().ok_or_else(|| {
                 std::io::Error::new(
                     ErrorKind::InvalidData,
                     format!("EdgeId {} is out of bounds, should be in range [0, )", idx),

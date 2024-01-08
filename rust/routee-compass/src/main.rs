@@ -14,9 +14,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     // build CompassApp from config
     let args = CompassAppArgs::parse();
 
-    let conf_file = args.config.ok_or(CompassAppError::NoInputFile(
-        "No configuration file specified".to_string(),
-    ))?;
+    let conf_file = args.config.ok_or_else(|| {
+        CompassAppError::NoInputFile("No configuration file specified".to_string())
+    })?;
 
     let compass_app = match CompassApp::try_from(conf_file.as_path()) {
         Ok(app) => app,

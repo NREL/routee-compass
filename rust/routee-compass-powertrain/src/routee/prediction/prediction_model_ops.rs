@@ -7,6 +7,7 @@ use routee_compass_core::{
 };
 
 use super::{
+    interpolation::interpolation_speed_grade_model::InterpolationSpeedGradeModel,
     model_type::ModelType, smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel,
     PredictionModel, PredictionModelRecord,
 };
@@ -26,7 +27,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
     real_world_energy_adjustment_option: Option<f64>,
     cache: Option<FloatCachePolicy>,
 ) -> Result<PredictionModelRecord, TraversalModelError> {
-    let prediction_model: Arc<dyn PredictionModel> = match model_type {
+    let prediction_model: Arc<dyn PredictionModel> = match model_type.clone() {
         ModelType::Smartcore => {
             let model = SmartcoreSpeedGradeModel::new(
                 model_path,
@@ -50,6 +51,29 @@ pub fn load_prediction_model<P: AsRef<Path>>(
                         .to_string(),
                 ));
             }
+        }
+        ModelType::Interpolate {
+            underlying_model_type: underlying_model,
+            speed_lower_bound,
+            speed_upper_bound,
+            speed_bins: speed_bin_size,
+            grade_lower_bound,
+            grade_upper_bound,
+            grade_bins: grade_bin_size,
+        } => {
+            let model = InterpolationSpeedGradeModel::new(
+                model_path,
+                *underlying_model,
+                name.clone(),
+                speed_unit,
+                (speed_lower_bound, speed_upper_bound),
+                speed_bin_size,
+                grade_unit,
+                (grade_lower_bound, grade_upper_bound),
+                grade_bin_size,
+                energy_rate_unit,
+            )?;
+            Arc::new(model)
         }
     };
     let ideal_energy_rate = match ideal_energy_rate_option {
