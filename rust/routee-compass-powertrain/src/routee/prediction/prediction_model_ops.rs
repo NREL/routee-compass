@@ -64,6 +64,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
             let model = InterpolationSpeedGradeModel::new(
                 model_path,
                 *underlying_model,
+                name.clone(),
                 speed_unit,
                 (speed_lower_bound, speed_upper_bound),
                 speed_bin_size,

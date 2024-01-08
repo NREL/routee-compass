@@ -27,6 +27,18 @@ impl BilinearInterp {
         Ok(BilinearInterp { x, y, values })
     }
 
+    /// Interpolate a value at a given point (x, y) using bilinear interpolation
+    /// Based on https://en.wikipedia.org/wiki/Bilinear_interpolation
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - x coordinate to interpolate at
+    /// * `y` - y coordinate to interpolate at
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(f64)` - interpolated value
+    /// * `Err(&str)` - An error if the point is outside of the grid bounds
     pub fn interpolate(&self, x: f64, y: f64) -> Result<f64, &'static str> {
         let x_index = find_nearest_index(&self.x, OrderedFloat(x));
         let y_index = find_nearest_index(&self.y, OrderedFloat(y));

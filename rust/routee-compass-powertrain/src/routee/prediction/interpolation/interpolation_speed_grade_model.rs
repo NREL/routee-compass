@@ -56,8 +56,9 @@ impl PredictionModel for InterpolationSpeedGradeModel {
 impl InterpolationSpeedGradeModel {
     #[allow(clippy::too_many_arguments)]
     pub fn new<P: AsRef<Path>>(
-        model_path: &P,
-        model_type: ModelType,
+        underlying_model_path: &P,
+        underlying_model_type: ModelType,
+        underlying_model_name: String,
         speed_unit: SpeedUnit,
         speed_bounds: (Speed, Speed),
         speed_bins: usize,
@@ -68,9 +69,9 @@ impl InterpolationSpeedGradeModel {
     ) -> Result<Self, TraversalModelError> {
         // load underlying model to build the interpolation grid
         let model = load_prediction_model(
-            "".to_string(),
-            model_path,
-            model_type,
+            underlying_model_name,
+            underlying_model_path,
+            underlying_model_type,
             speed_unit,
             grade_unit,
             energy_rate_unit,
@@ -141,6 +142,7 @@ mod test {
         let model = InterpolationSpeedGradeModel::new(
             &model_path,
             ModelType::Smartcore,
+            "Toyota Camry".to_string(),
             SpeedUnit::MilesPerHour,
             (Speed::new(0.0), Speed::new(100.0)),
             101,
