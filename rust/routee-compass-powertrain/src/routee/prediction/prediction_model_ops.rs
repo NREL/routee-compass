@@ -53,7 +53,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
             }
         }
         ModelType::Interpolate {
-            underlying_model,
+            underlying_model_type: underlying_model,
             speed_lower_bound,
             speed_upper_bound,
             speed_bins: speed_bin_size,

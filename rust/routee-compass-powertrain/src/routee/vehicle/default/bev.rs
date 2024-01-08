@@ -221,7 +221,7 @@ mod tests {
             "Chevy Bolt".to_string(),
             &model_file_path,
             ModelType::Interpolate {
-                underlying_model: Box::new(ModelType::Smartcore),
+                underlying_model_type: Box::new(ModelType::Smartcore),
                 speed_lower_bound: Speed::new(0.0),
                 speed_upper_bound: Speed::new(100.0),
                 speed_bins: 101,

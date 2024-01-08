@@ -319,7 +319,7 @@ mod tests {
             .join("test")
             .join("2016_CHEVROLET_Volt_Charge_Depleting.bin");
         let model_type = ModelType::Interpolate {
-            underlying_model: Box::new(ModelType::Smartcore),
+            underlying_model_type: Box::new(ModelType::Smartcore),
             speed_lower_bound: Speed::new(0.0),
             speed_upper_bound: Speed::new(100.0),
             speed_bins: 101,
