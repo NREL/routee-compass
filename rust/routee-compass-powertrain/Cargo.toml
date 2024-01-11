@@ -1,6 +1,6 @@
 [package]
 name = "routee-compass-powertrain"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -11,7 +11,7 @@ documentation = "https://docs.rs/routee-compass"
 
 
 [dependencies]
-routee-compass-core = { path = "../routee-compass-core", version = "0.5.0" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.6.0" }
 smartcore = { version = "0.3.1", features = ["serde"] }                      # random forest
 thiserror = { workspace = true }
 log = { workspace = true }
