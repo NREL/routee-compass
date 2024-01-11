@@ -3,6 +3,8 @@ use routee_compass_core::model::{
     unit::Grade,
 };
 
+use super::energy_model_service::EdgeHeading;
+
 pub const ZERO_ENERGY: f64 = 1e-9;
 
 /// look up the grade from the grade table
@@ -23,4 +25,23 @@ pub fn get_grade(
             Ok(*grade)
         }
     }
+}
+
+/// lookup up the edge heading from the headings table
+pub fn get_headings(
+    headings_table: &[EdgeHeading],
+    edge_id: EdgeId,
+) -> Result<EdgeHeading, TraversalModelError> {
+    let heading: &EdgeHeading = headings_table.get(edge_id.as_usize()).ok_or_else(|| {
+        TraversalModelError::MissingIdInTabularCostFunction(
+            format!("{}", edge_id),
+            String::from("EdgeId"),
+            String::from("headings table"),
+        )
+    })?;
+    Ok(*heading)
+}
+
+pub fn compute_headings_angle(a: EdgeHeading, b: EdgeHeading) -> i16 {
+    (b.start_heading - a.end_heading + 180) % 360 - 180
 }

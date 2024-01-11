@@ -7,9 +7,23 @@ use routee_compass_core::model::traversal::traversal_model_service::TraversalMod
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;
+use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
+
+#[derive(Copy, Clone, Deserialize)]
+pub struct EdgeHeading {
+    pub start_heading: i16,
+    pub end_heading: i16,
+}
+
+impl EdgeHeading {
+    pub const ZERO: EdgeHeading = EdgeHeading {
+        start_heading: 0,
+        end_heading: 0,
+    };
+}
 
 #[derive(Clone)]
 pub struct EnergyModelService {
@@ -21,9 +35,11 @@ pub struct EnergyModelService {
     pub output_time_unit: TimeUnit,
     pub output_distance_unit: DistanceUnit,
     pub vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
+    pub headings_table: Arc<Option<Box<[EdgeHeading]>>>,
 }
 
 impl EnergyModelService {
+    #[allow(clippy::too_many_arguments)]
     pub fn new<P: AsRef<Path>>(
         speed_table_path: &P,
         speeds_table_speed_unit: SpeedUnit,
@@ -32,6 +48,7 @@ impl EnergyModelService {
         output_time_unit_option: Option<TimeUnit>,
         output_distance_unit_option: Option<DistanceUnit>,
         vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
+        headings_table_path: &Option<P>,
     ) -> Result<Self, TraversalModelError> {
         let output_time_unit = output_time_unit_option.unwrap_or(BASE_TIME_UNIT);
         let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
@@ -63,6 +80,20 @@ impl EnergyModelService {
 
         let max_speed = get_max_speed(&speed_table)?;
 
+        let headings_table: Arc<Option<Box<[EdgeHeading]>>> = match headings_table_path {
+            Some(headings_path) => {
+                let headings_table: Box<[EdgeHeading]> =
+                    read_utils::from_csv(headings_path, true, None).map_err(|e| {
+                        TraversalModelError::FileReadError(
+                            headings_path.as_ref().to_path_buf(),
+                            e.to_string(),
+                        )
+                    })?;
+                Arc::new(Some(headings_table))
+            }
+            None => Arc::new(None),
+        };
+
         Ok(EnergyModelService {
             speed_table,
             speeds_table_speed_unit,
@@ -72,6 +103,7 @@ impl EnergyModelService {
             output_time_unit,
             output_distance_unit,
             vehicle_library,
+            headings_table,
         })
     }
 }

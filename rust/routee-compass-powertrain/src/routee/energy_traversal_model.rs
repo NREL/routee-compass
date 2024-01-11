@@ -1,4 +1,4 @@
-use super::energy_model_ops::get_grade;
+use super::energy_model_ops::{compute_headings_angle, get_grade, get_headings};
 use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::{VehicleState, VehicleType};
 use routee_compass_core::model::property::edge::Edge;
@@ -90,13 +90,40 @@ impl TraversalModel for EnergyTraversalModel {
     fn access_edge(
         &self,
         _v1: &Vertex,
-        _src: &Edge,
+        src: &Edge,
         _v2: &Vertex,
-        _dst: &Edge,
+        dst: &Edge,
         _v3: &Vertex,
-        _state: &TraversalState,
+        state: &TraversalState,
     ) -> Result<Option<TraversalState>, TraversalModelError> {
-        Ok(None)
+        match self.service.headings_table.as_deref() {
+            None => Ok(None),
+            Some(headings_table) => {
+                let src_heading = get_headings(headings_table, src.edge_id)?;
+                let dst_heading = get_headings(headings_table, dst.edge_id)?;
+                let angle = compute_headings_angle(src_heading, dst_heading);
+                let mut time_cost = Time::new(0.0);
+                if (-45..=45).contains(&angle) {
+                    // no penalty for slight turns
+                    return Ok(None);
+                } else if (45..=90).contains(&angle) {
+                    // 1 second penalty for moderate right turns
+                    time_cost = Time::new(1.0);
+                } else if (90..=180).contains(&angle) {
+                    // 2 second penalty for sharp right turns
+                    time_cost = Time::new(2.0);
+                } else if (-90..=-45).contains(&angle) {
+                    // 3 second penalty for moderate left turns
+                    time_cost = Time::new(3.0);
+                } else if (-180..=-90).contains(&angle) {
+                    // 4 second penalty for sharp left turns
+                    time_cost = Time::new(4.0);
+                }
+                let time = TimeUnit::Seconds.convert(time_cost, &self.service.output_time_unit);
+                let updated_state = add_time_to_state(state, time);
+                Ok(Some(updated_state))
+            }
+        }
     }
 
     fn estimate_traversal(
@@ -183,6 +210,11 @@ fn update_state(
     updated_state
 }
 
+fn add_time_to_state(state: &TraversalState, time: Time) -> TraversalState {
+    let mut updated_state = state.clone();
+    updated_state[1] = state[1] + time.into();
+    updated_state
+}
 fn get_distance_from_state(state: &TraversalState) -> Distance {
     Distance::new(state[0].0)
 }
@@ -222,6 +254,11 @@ mod tests {
             .join("routee")
             .join("test")
             .join("grades.txt");
+        let heading_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("routee")
+            .join("test")
+            .join("headings.csv");
         let model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
@@ -265,6 +302,7 @@ mod tests {
             None,
             None,
             model_library,
+            &Some(heading_file_path),
         )
         .unwrap();
         let arc_service = Arc::new(service);
