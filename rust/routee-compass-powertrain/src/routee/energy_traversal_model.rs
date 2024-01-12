@@ -1,8 +1,9 @@
-use super::energy_model_ops::{compute_headings_angle, get_grade, get_headings};
+use super::energy_model_ops::{get_grade, get_headings};
 use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::{VehicleState, VehicleType};
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
+use routee_compass_core::model::road_network::turn::Turn;
 use routee_compass_core::model::traversal::default::speed_traversal_model::get_speed;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
@@ -101,24 +102,42 @@ impl TraversalModel for EnergyTraversalModel {
             Some(headings_table) => {
                 let src_heading = get_headings(headings_table, src.edge_id)?;
                 let dst_heading = get_headings(headings_table, dst.edge_id)?;
-                let angle = compute_headings_angle(src_heading, dst_heading);
-                let mut time_cost = Time::new(0.0);
-                if (-45..=45).contains(&angle) {
-                    // no penalty for slight turns
-                    return Ok(None);
-                } else if (45..=90).contains(&angle) {
-                    // 1 second penalty for moderate right turns
-                    time_cost = Time::new(1.0);
-                } else if (90..=180).contains(&angle) {
-                    // 2 second penalty for sharp right turns
-                    time_cost = Time::new(2.0);
-                } else if (-90..=-45).contains(&angle) {
-                    // 3 second penalty for moderate left turns
-                    time_cost = Time::new(3.0);
-                } else if (-180..=-90).contains(&angle) {
-                    // 4 second penalty for sharp left turns
-                    time_cost = Time::new(4.0);
-                }
+                let angle = src_heading.next_edge_angle(&dst_heading);
+                let turn = Turn::from_angle(angle)?;
+                let time_cost = match turn {
+                    Turn::NoTurn => {
+                        // no penalty for straight
+                        Time::new(0.0)
+                    }
+                    Turn::SlightRight => {
+                        // 0.5 second penalty for slight right
+                        Time::new(0.5)
+                    }
+                    Turn::Right => {
+                        // 1 second penalty for right
+                        Time::new(1.0)
+                    }
+                    Turn::SharpRight => {
+                        // 1.5 second penalty for sharp right
+                        Time::new(1.5)
+                    }
+                    Turn::SlightLeft => {
+                        // 1 second penalty for slight left
+                        Time::new(1.0)
+                    }
+                    Turn::Left => {
+                        // 2.5 second penalty for left
+                        Time::new(2.5)
+                    }
+                    Turn::SharpLeft => {
+                        // 3.5 second penalty for sharp left
+                        Time::new(3.5)
+                    }
+                    Turn::UTurn => {
+                        // 9.5 second penalty for U-turn
+                        Time::new(9.5)
+                    }
+                };
                 let time = TimeUnit::Seconds.convert(time_cost, &self.service.output_time_unit);
                 let updated_state = add_time_to_state(state, time);
                 Ok(Some(updated_state))

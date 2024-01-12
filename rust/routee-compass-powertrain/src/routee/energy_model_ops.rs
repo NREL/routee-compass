@@ -1,9 +1,7 @@
 use routee_compass_core::model::{
-    road_network::edge_id::EdgeId, traversal::traversal_model_error::TraversalModelError,
-    unit::Grade,
+    road_network::edge_heading::EdgeHeading, road_network::edge_id::EdgeId,
+    traversal::traversal_model_error::TraversalModelError, unit::Grade,
 };
-
-use super::energy_model_service::EdgeHeading;
 
 pub const ZERO_ENERGY: f64 = 1e-9;
 
@@ -40,8 +38,4 @@ pub fn get_headings(
         )
     })?;
     Ok(*heading)
-}
-
-pub fn compute_headings_angle(a: EdgeHeading, b: EdgeHeading) -> i16 {
-    (b.start_heading - a.end_heading + 180) % 360 - 180
 }

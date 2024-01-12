@@ -1,5 +1,6 @@
 use super::energy_traversal_model::EnergyTraversalModel;
 use super::vehicle::VehicleType;
+use routee_compass_core::model::road_network::edge_heading::EdgeHeading;
 use routee_compass_core::model::traversal::default::speed_traversal_model::get_max_speed;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
@@ -7,23 +8,9 @@ use routee_compass_core::model::traversal::traversal_model_service::TraversalMod
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;
-use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
-
-#[derive(Copy, Clone, Deserialize)]
-pub struct EdgeHeading {
-    pub start_heading: i16,
-    pub end_heading: i16,
-}
-
-impl EdgeHeading {
-    pub const ZERO: EdgeHeading = EdgeHeading {
-        start_heading: 0,
-        end_heading: 0,
-    };
-}
 
 #[derive(Clone)]
 pub struct EnergyModelService {

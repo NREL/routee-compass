@@ -18,6 +18,8 @@ pub enum GraphError {
     VertexWithoutInEdges { vertex_id: VertexId },
     #[error("error in test setup")]
     TestError,
+    #[error("Error with graph attribute {0}: {1}")]
+    AttributeError(String, String),
     #[error("{filename} file source was empty")]
     EmptyFileSource { filename: PathBuf },
     #[error("failure reading TomTom graph: {source}")]
