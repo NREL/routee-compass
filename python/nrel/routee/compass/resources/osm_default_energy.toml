@@ -17,14 +17,6 @@ output_plugins = [
     { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
     { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
 ]
-
-[traversal]
-type = "energy_model"
-speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-speed_table_speed_unit = "kilometers_per_hour"
-output_time_unit = "minutes"
-output_distance_unit = "miles"
-
 # based on 65.5 cents per mile 2023 IRS mileage rate, $/mile
 [cost.vehicle_state_variable_rates.distance]
 type = "factor"
@@ -44,6 +36,15 @@ factor = 3.120
 [cost.vehicle_state_variable_rates.energy_electric]
 type = "factor"
 factor = 0.50
+
+[traversal]
+type = "energy_model"
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
+speed_table_speed_unit = "kilometers_per_hour"
+output_time_unit = "minutes"
+output_distance_unit = "miles"
+headings_table_input_file = "edges-headings-enumerated.csv.gz"
+
 
 [[traversal.vehicles]]
 name = "2012_Ford_Focus"
