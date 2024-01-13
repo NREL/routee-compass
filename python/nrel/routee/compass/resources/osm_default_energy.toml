@@ -343,14 +343,6 @@ speed_bins = 101
 grade_lower_bound = -0.2
 grade_upper_bound = 0.2
 grade_bins = 41
-[traversal.vehicles.model_type.interpolate]
-underlying_model_type = "smartcore"
-speed_lower_bound = 0
-speed_upper_bound = 100
-speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
-grade_bins = 41
 
 [[traversal.vehicles]]
 name = "2016_TOYOTA_Corolla_4cyl_2WD"
@@ -701,7 +693,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -717,7 +709,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -739,7 +731,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -755,7 +747,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -777,7 +769,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -793,7 +785,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -815,7 +807,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -831,7 +823,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -853,7 +845,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -869,7 +861,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100

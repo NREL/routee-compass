@@ -162,7 +162,7 @@ def generate_compass_dataset(
     # for now we'll just use the start heading.
     headings_df["end_heading"] = None
     headings_df.to_csv(
-        output_directory / "edges-headings-enumerated.txt.gz",
+        output_directory / "edges-headings-enumerated.csv.gz",
         index=False,
         compression="gzip",
     )
