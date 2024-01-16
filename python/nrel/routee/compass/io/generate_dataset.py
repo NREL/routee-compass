@@ -76,6 +76,7 @@ def generate_compass_dataset(
     log.info("processing graph topology and speeds")
     g1 = ox.utils_graph.get_largest_component(g)
     g1 = ox.add_edge_speeds(g1, hwy_speeds=hwy_speeds, fallback=fallback, agg=agg)
+    g1 = ox.add_edge_bearings(g1)
 
     if add_grade:
         log.info("adding grade information")
@@ -151,6 +152,19 @@ def generate_compass_dataset(
         output_directory / "edges-road-class-enumerated.txt.gz",
         index=False,
         header=False,
+    )
+
+    headings = e.bearing.fillna(0).apply(lambda x: int(round(x)))
+    headings_df = headings.to_frame(name="start_heading")
+
+    # We could get more sophisticated and compute the end heading
+    # for links that might have some significant curvature, but
+    # for now we'll just use the start heading.
+    headings_df["end_heading"] = None
+    headings_df.to_csv(
+        output_directory / "edges-headings-enumerated.csv.gz",
+        index=False,
+        compression="gzip",
     )
 
     if add_grade:

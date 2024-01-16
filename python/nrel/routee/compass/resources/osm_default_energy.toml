@@ -17,14 +17,6 @@ output_plugins = [
     { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
     { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
 ]
-
-[traversal]
-type = "energy_model"
-speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-speed_table_speed_unit = "kilometers_per_hour"
-output_time_unit = "minutes"
-output_distance_unit = "miles"
-
 # based on 65.5 cents per mile 2023 IRS mileage rate, $/mile
 [cost.vehicle_state_variable_rates.distance]
 type = "factor"
@@ -44,6 +36,15 @@ factor = 3.120
 [cost.vehicle_state_variable_rates.energy_electric]
 type = "factor"
 factor = 0.50
+
+[traversal]
+type = "energy_model"
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
+speed_table_speed_unit = "kilometers_per_hour"
+output_time_unit = "minutes"
+output_distance_unit = "miles"
+headings_table_input_file = "edges-headings-enumerated.csv.gz"
+
 
 [[traversal.vehicles]]
 name = "2012_Ford_Focus"
@@ -334,14 +335,6 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
-[traversal.vehicles.model_type.interpolate]
-underlying_model_type = "smartcore"
-speed_lower_bound = 0
-speed_upper_bound = 100
-speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
-grade_bins = 41
 [traversal.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
@@ -700,7 +693,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -716,7 +709,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -738,7 +731,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -754,7 +747,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -776,7 +769,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -792,7 +785,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -814,7 +807,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -830,7 +823,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -852,7 +845,7 @@ grade_unit = "decimal"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -868,7 +861,7 @@ grade_unit = "decimal"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.model_type.interpolate]
+[traversal.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100

@@ -35,7 +35,7 @@ pub fn create_time(
         ))
     } else {
         let time = (d, s).into();
-        let result = BASE_TIME_UNIT.convert(time, time_unit);
+        let result = BASE_TIME_UNIT.convert(time, &time_unit);
         Ok(result)
     }
 }
@@ -52,7 +52,7 @@ pub fn create_speed(
     speed_unit: SpeedUnit,
 ) -> Result<Speed, UnitError> {
     let d = distance_unit.convert(distance, BASE_DISTANCE_UNIT);
-    let t = time_unit.convert(time, BASE_TIME_UNIT);
+    let t = time_unit.convert(time, &BASE_TIME_UNIT);
     if t <= Time::ZERO {
         Err(UnitError::SpeedFromTimeAndDistanceError(time, distance))
     } else {
@@ -253,7 +253,7 @@ mod test {
             BASE_TIME_UNIT,
         )
         .unwrap();
-        let expected = TimeUnit::Hours.convert(Time::ONE, BASE_TIME_UNIT);
+        let expected = TimeUnit::Hours.convert(Time::ONE, &BASE_TIME_UNIT);
         approx_eq_time(time, expected, 0.001);
     }
 
@@ -267,7 +267,7 @@ mod test {
             TimeUnit::Hours,
         )
         .unwrap();
-        let expected = BASE_TIME_UNIT.convert(Time::ONE, TimeUnit::Hours);
+        let expected = BASE_TIME_UNIT.convert(Time::ONE, &TimeUnit::Hours);
         approx_eq_time(time, expected, 0.001);
     }
 
@@ -281,7 +281,7 @@ mod test {
             BASE_TIME_UNIT,
         )
         .unwrap();
-        let expected = TimeUnit::Hours.convert(Time::ONE, BASE_TIME_UNIT);
+        let expected = TimeUnit::Hours.convert(Time::ONE, &BASE_TIME_UNIT);
         approx_eq_time(time, expected, 0.01);
     }
 
@@ -295,7 +295,7 @@ mod test {
             TimeUnit::Hours,
         )
         .unwrap();
-        let expected = BASE_TIME_UNIT.convert(Time::ONE, TimeUnit::Hours);
+        let expected = BASE_TIME_UNIT.convert(Time::ONE, &TimeUnit::Hours);
         approx_eq_time(time, expected, 0.001);
     }
 

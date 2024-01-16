@@ -1,6 +1,6 @@
 use routee_compass_core::model::{
-    road_network::edge_id::EdgeId, traversal::traversal_model_error::TraversalModelError,
-    unit::Grade,
+    road_network::edge_heading::EdgeHeading, road_network::edge_id::EdgeId,
+    traversal::traversal_model_error::TraversalModelError, unit::Grade,
 };
 
 pub const ZERO_ENERGY: f64 = 1e-9;
@@ -23,4 +23,19 @@ pub fn get_grade(
             Ok(*grade)
         }
     }
+}
+
+/// lookup up the edge heading from the headings table
+pub fn get_headings(
+    headings_table: &[EdgeHeading],
+    edge_id: EdgeId,
+) -> Result<EdgeHeading, TraversalModelError> {
+    let heading: &EdgeHeading = headings_table.get(edge_id.as_usize()).ok_or_else(|| {
+        TraversalModelError::MissingIdInTabularCostFunction(
+            format!("{}", edge_id),
+            String::from("EdgeId"),
+            String::from("headings table"),
+        )
+    })?;
+    Ok(*heading)
 }

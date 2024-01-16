@@ -60,6 +60,10 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             .get_config_serde_optional::<DistanceUnit>(&"output_distance_unit", &traversal_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
+        let headings_table_path = params
+            .get_config_path_optional(&"headings_table_input_file", &traversal_key)
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
+
         let service = EnergyModelService::new(
             &speed_table_path,
             speed_table_speed_unit,
@@ -68,6 +72,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             output_time_unit_option,
             output_distance_unit_option,
             vehicle_library,
+            &headings_table_path,
         )?;
 
         Ok(Arc::new(service))
