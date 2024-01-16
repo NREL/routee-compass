@@ -47,7 +47,7 @@ name = "2012_Ford_Focus"
 type = "single_fuel"
 # the file for the routee-powertrain model
 model_input_file = "models/2012_Ford_Focus.bin"
-# what underlying machine learn framework to use [smartcore | interpolate]
+# what underlying machine learn framework to use [smartcore | interpolate | onnx]
 model_type = "smartcore"
 # the units of what the routee-powertrain model expects speed to be in
 speed_unit = "miles_per_hour"
@@ -158,7 +158,7 @@ name = "2012_Ford_Focus"
 type = "single_fuel"
 # the file for the routee-powertrain model
 model_input_file = "models/2012_Ford_Focus.bin"
-# what underlying machine learn framework to use [smartcore | interpolate]
+# what underlying machine learn framework to use [smartcore | interpolate | onnx]
 model_type = "smartcore"
 # the units of what the routee-powertrain model expects speed to be in
 speed_unit = "miles_per_hour"
