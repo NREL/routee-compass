@@ -3,7 +3,7 @@ Traceback (most recent call last):
     executenb(
   File "/usr/share/miniconda/envs/test/lib/python3.10/site-packages/nbclient/client.py", line 1305, in execute
     return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
-  File "/usr/share/miniconda/envs/test/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 172, in wrapped
+  File "/usr/share/miniconda/envs/test/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
     return loop.run_until_complete(inner)
   File "/usr/share/miniconda/envs/test/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
     return future.result()
@@ -15,14 +15,37 @@ Traceback (most recent call last):
     raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
 nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
 ------------------
-shortest_time_result["cost_summary"]
+import osmnx as ox
+from nrel.routee.compass.io import generate_compass_dataset
+from nrel.routee.compass import CompassApp
 ------------------
 
 
 [0;31m---------------------------------------------------------------------------[0m
-[0;31mKeyError[0m                                  Traceback (most recent call last)
-Cell [0;32mIn[10], line 1[0m
-[0;32m----> 1[0m [43mshortest_time_result[49m[43m[[49m[38;5;124;43m"[39;49m[38;5;124;43mcost_summary[39;49m[38;5;124;43m"[39;49m[43m][49m
+[0;31mImportError[0m                               Traceback (most recent call last)
+Cell [0;32mIn[1], line 1[0m
+[0;32m----> 1[0m [38;5;28;01mimport[39;00m [38;5;21;01mosmnx[39;00m [38;5;28;01mas[39;00m [38;5;21;01mox[39;00m
+[1;32m      2[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnrel[39;00m[38;5;21;01m.[39;00m[38;5;21;01mroutee[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompass[39;00m[38;5;21;01m.[39;00m[38;5;21;01mio[39;00m [38;5;28;01mimport[39;00m generate_compass_dataset
+[1;32m      3[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnrel[39;00m[38;5;21;01m.[39;00m[38;5;21;01mroutee[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompass[39;00m [38;5;28;01mimport[39;00m CompassApp
 
-[0;31mKeyError[0m: 'cost_summary'
+File [0;32m/usr/share/miniconda/envs/test/lib/python3.10/site-packages/osmnx/__init__.py:3[0m
+[1;32m      1[0m [38;5;124;03m"""OSMnx init."""[39;00m
+[0;32m----> 3[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01m_api[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+[1;32m      4[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01m_version[39;00m [38;5;28;01mimport[39;00m __version__
+
+File [0;32m/usr/share/miniconda/envs/test/lib/python3.10/site-packages/osmnx/_api.py:16[0m
+[1;32m     14[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mgeocoder[39;00m [38;5;28;01mimport[39;00m geocode
+[1;32m     15[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mgeocoder[39;00m [38;5;28;01mimport[39;00m geocode_to_gdf
+[0;32m---> 16[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mgeometries[39;00m [38;5;28;01mimport[39;00m geometries_from_address
+[1;32m     17[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mgeometries[39;00m [38;5;28;01mimport[39;00m geometries_from_bbox
+[1;32m     18[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mgeometries[39;00m [38;5;28;01mimport[39;00m geometries_from_place
+
+File [0;32m/usr/share/miniconda/envs/test/lib/python3.10/site-packages/osmnx/geometries.py:19[0m
+[1;32m     17[0m [38;5;28;01mfrom[39;00m [38;5;21;01mshapely[39;00m[38;5;21;01m.[39;00m[38;5;21;01mgeometry[39;00m [38;5;28;01mimport[39;00m Point
+[1;32m     18[0m [38;5;28;01mfrom[39;00m [38;5;21;01mshapely[39;00m[38;5;21;01m.[39;00m[38;5;21;01mgeometry[39;00m [38;5;28;01mimport[39;00m Polygon
+[0;32m---> 19[0m [38;5;28;01mfrom[39;00m [38;5;21;01mshapely[39;00m[38;5;21;01m.[39;00m[38;5;21;01mgeos[39;00m [38;5;28;01mimport[39;00m TopologicalError
+[1;32m     20[0m [38;5;28;01mfrom[39;00m [38;5;21;01mshapely[39;00m[38;5;21;01m.[39;00m[38;5;21;01mops[39;00m [38;5;28;01mimport[39;00m linemerge
+[1;32m     21[0m [38;5;28;01mfrom[39;00m [38;5;21;01mshapely[39;00m[38;5;21;01m.[39;00m[38;5;21;01mops[39;00m [38;5;28;01mimport[39;00m polygonize
+
+[0;31mImportError[0m: cannot import name 'TopologicalError' from 'shapely.geos' (/usr/share/miniconda/envs/test/lib/python3.10/site-packages/shapely/geos.py)
 
