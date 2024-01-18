@@ -1,6 +1,7 @@
 use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::model::traversal::default::speed_traversal_model::SpeedTraversalModel;
+use routee_compass_core::model::traversal::default::speed_traversal_service::SpeedLookupService;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_builder::TraversalModelBuilder;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
@@ -10,9 +11,9 @@ use std::sync::Arc;
 
 pub struct SpeedLookupBuilder {}
 
-pub struct SpeedLookupService {
-    m: Arc<SpeedTraversalModel>,
-}
+// pub struct SpeedLookupService {
+//     m: Arc<SpeedTraversalModel>,
+// }
 
 impl TraversalModelBuilder for SpeedLookupBuilder {
     fn build(
@@ -40,11 +41,11 @@ impl TraversalModelBuilder for SpeedLookupBuilder {
     }
 }
 
-impl TraversalModelService for SpeedLookupService {
-    fn build(
-        &self,
-        _parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        Ok(self.m.clone())
-    }
-}
+// impl TraversalModelService for SpeedLookupService {
+//     fn build(
+//         &self,
+//         _parameters: &serde_json::Value,
+//     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+//         Ok(self.m.clone())
+//     }
+// }
