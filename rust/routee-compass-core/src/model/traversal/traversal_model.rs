@@ -1,3 +1,4 @@
+use super::state::state_variable::StateVar;
 use super::traversal_model_error::TraversalModelError;
 use crate::model::property::{edge::Edge, vertex::Vertex};
 use crate::model::traversal::state::traversal_state::TraversalState;
@@ -19,6 +20,27 @@ pub trait TraversalModel: Send + Sync {
     ///
     /// the names of the state
     fn state_variable_names(&self) -> Vec<String>;
+
+    /// Extracts a state variable based on its name.
+    ///
+    /// A naive implementation would generate the state variable names, find their
+    /// indices, and then find a match, but this is inefficient. Therefore, TraversalModels
+    /// should hold a HashMap<String, usize> lookup table to give us the correct index
+    /// quickly.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - the variable name
+    /// * `state` - the state to extract state from
+    ///
+    /// # Returns
+    ///
+    /// The state variable, or an error
+    fn get_state_variable(
+        &self,
+        key: &str,
+        state: &[StateVar],
+    ) -> Result<StateVar, TraversalModelError>;
 
     /// Creates the initial state of a search. this should be a vector of
     /// accumulators.
@@ -45,7 +67,7 @@ pub trait TraversalModel: Send + Sync {
         src: &Vertex,
         edge: &Edge,
         dst: &Vertex,
-        state: &TraversalState,
+        state: &[StateVar],
     ) -> Result<TraversalState, TraversalModelError>;
 
     /// Updates the traversal state by accessing some destination edge
@@ -75,7 +97,7 @@ pub trait TraversalModel: Send + Sync {
         v2: &Vertex,
         dst: &Edge,
         v3: &Vertex,
-        state: &TraversalState,
+        state: &[StateVar],
     ) -> Result<Option<TraversalState>, TraversalModelError>;
 
     /// Estimates the traversal state by traversing between two vertices without
@@ -94,7 +116,7 @@ pub trait TraversalModel: Send + Sync {
         &self,
         src: &Vertex,
         dst: &Vertex,
-        state: &TraversalState,
+        state: &[StateVar],
     ) -> Result<TraversalState, TraversalModelError>;
 
     /// Serializes the traversal state into a JSON value.
@@ -111,7 +133,7 @@ pub trait TraversalModel: Send + Sync {
     /// A JSON serialized version of the state. This does not need to include
     /// additional details such as the units (kph, hours, etc), which can be
     /// summarized in the serialize_state_info method.
-    fn serialize_state(&self, _state: &TraversalState) -> serde_json::Value {
+    fn serialize_state(&self, _state: &[StateVar]) -> serde_json::Value {
         serde_json::json!({})
     }
 
@@ -128,7 +150,7 @@ pub trait TraversalModel: Send + Sync {
     ///
     /// JSON containing information such as the units (kph, hours, etc) or other
     /// traversal info (charge events, days traveled, etc)
-    fn serialize_state_info(&self, _state: &TraversalState) -> serde_json::Value {
+    fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
         serde_json::json!({})
     }
 
@@ -143,7 +165,7 @@ pub trait TraversalModel: Send + Sync {
     ///
     /// JSON containing the state values and info described in `serialize_state`
     /// and `serialize_state_info`.
-    fn serialize_state_with_info(&self, state: &TraversalState) -> serde_json::Value {
+    fn serialize_state_with_info(&self, state: &[StateVar]) -> serde_json::Value {
         use serde_json::Value as Json;
         let mut summary = self.serialize_state(state);
         let summary_info = match self.serialize_state_info(state) {
