@@ -40,7 +40,10 @@ impl TraversalModel for EnergyTraversalModel {
     }
 
     fn state_variable_names(&self) -> Vec<String> {
-        self.state_variables.into_keys().collect::<Vec<_>>()
+        self.state_variables
+            .keys()
+            .map(|k| k.clone())
+            .collect::<Vec<_>>()
         // let mut dims = vec![String::from("distance"), String::from("time")];
         // dims.extend(self.vehicle.state_variable_names());
         // dims
