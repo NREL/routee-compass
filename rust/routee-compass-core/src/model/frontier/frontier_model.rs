@@ -1,4 +1,4 @@
-use crate::model::{property::edge::Edge, traversal::state::traversal_state::TraversalState};
+use crate::model::{property::edge::Edge, traversal::state::{traversal_state::TraversalState, state_variable::StateVar}};
 
 use super::frontier_model_error::FrontierModelError;
 
@@ -23,7 +23,7 @@ pub trait FrontierModel: Send + Sync {
     fn valid_frontier(
         &self,
         _edge: &Edge,
-        _state: &TraversalState,
+        _state: &[StateVar],
         _previous_edge: Option<&Edge>,
     ) -> Result<bool, FrontierModelError> {
         Ok(true)

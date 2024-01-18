@@ -8,6 +8,7 @@ use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::graph::Graph;
 use crate::model::termination::termination_model::TerminationModel;
+use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::Cost;
@@ -57,7 +58,7 @@ pub fn run_a_star(
     let origin = AStarFrontier {
         vertex_id: source,
         prev_edge_id: None,
-        state: initial_state.clone(),
+        state: initial_state.to_vec(),
     };
 
     let origin_cost = match target {
@@ -143,7 +144,7 @@ pub fn run_a_star(
             if tentative_gscore < existing_gscore {
                 traversal_costs.insert(dst_id, tentative_gscore);
 
-                let result_state = et.result_state.clone();
+                let result_state = et.result_state.to_vec();
 
                 // update solution
                 let traversal = SearchTreeBranch {
@@ -327,7 +328,7 @@ pub fn run_a_star_edge_oriented(
 pub fn h_cost(
     src: VertexId,
     dst: VertexId,
-    state: &TraversalState,
+    state: &[StateVar],
     g: &RwLockReadGuard<Graph>,
     m: &Arc<dyn TraversalModel>,
     u: &CostModel,

@@ -15,7 +15,7 @@ impl FrontierModel for TurnRestrictionFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
-        _state: &TraversalState,
+        _state: &[StateVar],
         previous_edge: Option<&Edge>,
     ) -> Result<bool, FrontierModelError> {
         match previous_edge {

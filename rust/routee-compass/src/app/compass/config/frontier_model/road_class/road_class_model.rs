@@ -15,7 +15,7 @@ impl FrontierModel for RoadClassFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
-        _state: &TraversalState,
+        _state: &[StateVar],
         _previous_edge: Option<&Edge>,
     ) -> Result<bool, FrontierModelError> {
         match &self.road_classes {

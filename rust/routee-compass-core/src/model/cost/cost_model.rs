@@ -163,7 +163,7 @@ impl CostModel {
     /// A JSON serialized version of the state. This does not need to include
     /// additional details such as the units (kph, hours, etc), which can be
     /// summarized in the serialize_state_info method.
-    fn serialize_cost(&self, state: &TraversalState) -> Result<serde_json::Value, CostError> {
+    fn serialize_cost(&self, state: &[StateVar]) -> Result<serde_json::Value, CostError> {
         let mut state_variable_costs = self
             .state_variable_indices
             .iter()
@@ -224,7 +224,7 @@ impl CostModel {
     /// and `serialize_cost_info`.
     pub fn serialize_cost_with_info(
         &self,
-        state: &TraversalState,
+        state: &[StateVar],
     ) -> Result<serde_json::Value, CostError> {
         let mut output = serde_json::Map::new();
         output.insert(String::from("cost"), self.serialize_cost(state)?);

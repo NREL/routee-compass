@@ -2,6 +2,7 @@ use super::search_error::SearchError;
 use crate::model::cost::cost_model::CostModel;
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::graph::Graph;
+use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::Cost;
@@ -40,7 +41,7 @@ impl EdgeTraversal {
     pub fn perform_traversal(
         edge_id: EdgeId,
         prev_edge_id: Option<EdgeId>,
-        prev_state: &TraversalState,
+        prev_state: &[StateVar],
         g: &RwLockReadGuard<Graph>,
         tm: &Arc<dyn TraversalModel>,
         um: &CostModel,
