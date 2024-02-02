@@ -3,7 +3,7 @@ use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::{VehicleState, VehicleType};
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
-use routee_compass_core::model::road_network::turn::Turn;
+use routee_compass_core::model::traversal::access::default::turn_delays::turn::Turn;
 use routee_compass_core::model::traversal::default::speed_traversal_model::get_speed;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;

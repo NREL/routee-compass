@@ -1,5 +1,7 @@
-use super::graph_error::GraphError;
+use crate::model::traversal::access::access_model_error::AccessModelError;
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 pub enum Turn {
     NoTurn,
     SlightRight,
@@ -12,7 +14,7 @@ pub enum Turn {
 }
 
 impl Turn {
-    pub fn from_angle(angle: i16) -> Result<Self, GraphError> {
+    pub fn from_angle(angle: i16) -> Result<Self, AccessModelError> {
         match angle {
             -180..=-160 => Ok(Turn::UTurn),
             -159..=-135 => Ok(Turn::SharpLeft),
@@ -23,10 +25,10 @@ impl Turn {
             45..=134 => Ok(Turn::Right),
             135..=159 => Ok(Turn::SharpRight),
             160..=180 => Ok(Turn::UTurn),
-            _ => Err(GraphError::AttributeError(
-                "Turn".to_string(),
-                format!("Angle {} out of range of -180 to 180", angle),
-            )),
+            _ => Err(AccessModelError::RuntimeError {
+                name: String::from("turn delays"),
+                error: format!("Angle {0} out of range of -180 to 180", angle),
+            }),
         }
     }
 }

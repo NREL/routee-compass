@@ -1,6 +1,6 @@
 use super::energy_traversal_model::EnergyTraversalModel;
 use super::vehicle::VehicleType;
-use routee_compass_core::model::road_network::edge_heading::EdgeHeading;
+use routee_compass_core::model::traversal::access::default::turn_delays::edge_heading::EdgeHeading;
 use routee_compass_core::model::traversal::default::speed_traversal_model::get_max_speed;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
