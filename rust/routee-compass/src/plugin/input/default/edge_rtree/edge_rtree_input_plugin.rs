@@ -9,7 +9,7 @@ use crate::{
         plugin_error::PluginError,
     },
 };
-use geo_types::Coord;
+use geo_types::{Coord, LineString};
 use routee_compass_core::{
     model::road_network::edge_id::EdgeId,
     model::unit::{as_f64::AsF64, Distance, DistanceUnit, BASE_DISTANCE_UNIT},
@@ -67,10 +67,12 @@ impl EdgeRtreeInputPlugin {
         tolerance_distance: Option<Distance>,
         distance_unit: Option<DistanceUnit>,
     ) -> Result<Self, CompassConfigurationError> {
-        let road_class_lookup: Box<[String]> =
-            read_utils::read_raw_file(road_class_file, read_decoders::string, None)?;
+        let road_class_lookup: Vec<String> =
+            read_utils::read_raw_file(road_class_file, read_decoders::string, None)?
+            .into_vec();
         let geometries = read_linestring_text_file(linestring_file)
-            .map_err(CompassConfigurationError::IoError)?;
+            .map_err(CompassConfigurationError::IoError)?
+            .into_vec();
 
         let rcl_len = road_class_lookup.len();
         let geo_len = geometries.len();
@@ -82,12 +84,13 @@ impl EdgeRtreeInputPlugin {
             return Err(CompassConfigurationError::UserConfigurationError(msg));
         }
 
+
         let records: Vec<EdgeRtreeRecord> = geometries
-            .iter()
+            .into_iter()
             .enumerate()
-            .zip(road_class_lookup.iter())
+            .zip(road_class_lookup)
             .map(|((idx, geom), rc)| {
-                EdgeRtreeRecord::new(EdgeId(idx), geom.to_owned(), rc.to_owned())
+                EdgeRtreeRecord::new(EdgeId(idx), geom, rc)
             })
             .collect();
 
