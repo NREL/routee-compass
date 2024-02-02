@@ -28,3 +28,4 @@ itertools = { workspace = true }
 chrono = { workspace = true }
 regex = { workspace = true }
 wkt = { workspace = true }
+allocative = { workspace = true }

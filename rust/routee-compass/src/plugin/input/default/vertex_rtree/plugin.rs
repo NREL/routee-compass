@@ -148,7 +148,7 @@ impl InputPlugin for RTreePlugin {
             ))
         })?;
 
-        validate_tolerance(src_coord, src_vertex.coordinate, &self.tolerance)?;
+        validate_tolerance(src_coord, src_vertex.coordinate.0, &self.tolerance)?;
         updated.add_origin_vertex(src_vertex.vertex_id)?;
 
         match dst_coord_option {
@@ -160,7 +160,7 @@ impl InputPlugin for RTreePlugin {
                         dst_coord
                     ))
                 })?;
-                validate_tolerance(dst_coord, dst_vertex.coordinate, &self.tolerance)?;
+                validate_tolerance(dst_coord, dst_vertex.coordinate.0, &self.tolerance)?;
                 updated.add_destination_vertex(dst_vertex.vertex_id)?;
             }
         }

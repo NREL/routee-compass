@@ -152,8 +152,8 @@ impl TraversalModel for EnergyTraversalModel {
         state: &TraversalState,
     ) -> Result<TraversalState, TraversalModelError> {
         let distance = haversine::coord_distance(
-            src.coordinate,
-            dst.coordinate,
+            src.coordinate.0,
+            dst.coordinate.0,
             self.service.output_distance_unit,
         )
         .map_err(TraversalModelError::NumericError)?;
@@ -256,7 +256,7 @@ mod tests {
     use super::*;
     use geo::coord;
     use routee_compass_core::model::{
-        property::{edge::Edge, vertex::Vertex},
+        property::{edge::Edge, vertex::{CoordWrapper, Vertex}},
         road_network::{edge_id::EdgeId, vertex_id::VertexId},
     };
     use std::{collections::HashMap, path::PathBuf};
@@ -285,7 +285,7 @@ mod tests {
             .join("Toyota_Camry.bin");
         let v = Vertex {
             vertex_id: VertexId(0),
-            coordinate: coord! {x: -86.67, y: 36.12},
+            coordinate: CoordWrapper(coord! {x: -86.67, y: 36.12}),
         };
         fn mock_edge(edge_id: usize) -> Edge {
             Edge {

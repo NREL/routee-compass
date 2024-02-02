@@ -24,6 +24,7 @@ use crate::{
         plugin_error::PluginError,
     },
 };
+use allocative::FlameGraphBuilder;
 use chrono::{Duration, Local};
 use config::Config;
 use itertools::{Either, Itertools};
@@ -35,9 +36,9 @@ use routee_compass_core::{
 };
 use serde_json::Value;
 use std::{
-    path::{Path, PathBuf},
-    sync::{Arc, Mutex},
+    fs::File, io::Write, path::{Path, PathBuf}, sync::{Arc, Mutex}
 };
+
 
 /// Instance of RouteE Compass as an application.
 /// When constructed, it holds
@@ -165,6 +166,18 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             "finished reading graph with duration {}",
             graph_duration.hhmmss()
         );
+
+        let graph_bytes = allocative::size_of_unique_allocated_data(&graph);
+        log::info!("graph size: {} GB", graph_bytes as f64 / 1e9); 
+
+        let mut flamegraph = FlameGraphBuilder::default();
+        flamegraph.visit_root(&graph);
+        let output = flamegraph.finish_and_write_flame_graph();
+
+        // write the output to a file
+        let mut output_file = File::create("flamegraph.out").unwrap();
+        output_file.write_all(output.as_bytes()).unwrap();
+        
 
         // build search app
         let search_app: SearchApp = SearchApp::new(
