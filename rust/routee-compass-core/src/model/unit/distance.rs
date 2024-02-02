@@ -65,19 +65,19 @@ impl AsF64 for Distance {
 
 impl PartialOrd for Distance {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.0.0.cmp(&other.0.0))
+        Some(self.0 .0.cmp(&other.0 .0))
     }
 }
 
 impl Ord for Distance {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.0.0.cmp(&other.0.0)
+        self.0 .0.cmp(&other.0 .0)
     }
 }
 
 impl Display for Distance {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0.0)
+        write!(f, "{}", self.0 .0)
     }
 }
 
@@ -86,7 +86,7 @@ impl Distance {
         Distance(FloatWrapper(OrderedFloat(value)))
     }
     pub fn to_ordered_float(&self) -> OrderedFloat<f64> {
-        self.0.0
+        self.0 .0
     }
     pub const ZERO: Distance = Distance(FloatWrapper(OrderedFloat(0.0)));
     pub const ONE: Distance = Distance(FloatWrapper(OrderedFloat(1.0)));

@@ -10,7 +10,7 @@ impl Allocative for CoordWrapper {
     fn visit<'a, 'b: 'a>(&self, visitor: &'a mut allocative::Visitor<'b>) {
         visitor.visit_simple_sized::<Self>()
     }
-} 
+}
 
 /// represents a vertex in a Graph
 /// this struct implements Serialize and Deserialize to support reading
@@ -137,9 +137,9 @@ mod tests {
 
     use std::path::PathBuf;
 
+    use super::CoordWrapper;
     use csv;
     use geo::Coord;
-    use super::CoordWrapper;
 
     use crate::model::{property::vertex::Vertex, road_network::vertex_id::VertexId};
 

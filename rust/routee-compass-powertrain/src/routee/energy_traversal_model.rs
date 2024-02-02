@@ -256,7 +256,10 @@ mod tests {
     use super::*;
     use geo::coord;
     use routee_compass_core::model::{
-        property::{edge::Edge, vertex::{CoordWrapper, Vertex}},
+        property::{
+            edge::Edge,
+            vertex::{CoordWrapper, Vertex},
+        },
         road_network::{edge_id::EdgeId, vertex_id::VertexId},
     };
     use std::{collections::HashMap, path::PathBuf};
