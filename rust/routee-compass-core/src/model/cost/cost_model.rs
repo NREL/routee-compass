@@ -51,6 +51,9 @@ impl CostModel {
                 .unwrap_or_default();
             network_state_variable_rates[*idx] = rate.clone();
         }
+        if state_variable_coefficients.iter().sum::<f64>() == 0.0 {
+            return Err(CostError::InvalidCostVariables);
+        }
         Ok(CostModel {
             state_variable_indices,
             state_variable_coefficients,
