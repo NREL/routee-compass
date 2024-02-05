@@ -153,7 +153,13 @@ impl CostModelService {
             vehicle_rates,
             self.network_state_variable_rates.clone(),
             cost_aggregation,
-        );
+        )
+        .map_err(|e| {
+            CompassConfigurationError::UserConfigurationError(format!(
+                "failed to build cost model: {}",
+                e
+            ))
+        })?;
 
         Ok(model)
     }

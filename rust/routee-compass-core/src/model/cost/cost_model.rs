@@ -13,27 +13,51 @@ use std::sync::Arc;
 /// implementation of a model for calculating Cost from a state transition.
 pub struct CostModel {
     state_variable_indices: Vec<(String, usize)>,
-    state_variable_coefficients: Arc<HashMap<String, f64>>,
-    vehicle_state_variable_rates: Arc<HashMap<String, VehicleCostRate>>,
-    network_state_variable_rates: Arc<HashMap<String, NetworkCostRate>>,
+    state_variable_coefficients: Vec<f64>,
+    vehicle_state_variable_rates: Vec<VehicleCostRate>,
+    network_state_variable_rates: Vec<NetworkCostRate>,
     cost_aggregation: CostAggregation,
 }
 
 impl CostModel {
     pub fn new(
         state_variable_indices: Vec<(String, usize)>,
-        state_variable_coefficients: Arc<HashMap<String, f64>>,
-        vehicle_state_variable_rates: Arc<HashMap<String, VehicleCostRate>>,
-        network_state_variable_rates: Arc<HashMap<String, NetworkCostRate>>,
+        state_variable_coefficients_map: Arc<HashMap<String, f64>>,
+        vehicle_state_variable_rates_map: Arc<HashMap<String, VehicleCostRate>>,
+        network_state_variable_rates_map: Arc<HashMap<String, NetworkCostRate>>,
         cost_aggregation: CostAggregation,
-    ) -> CostModel {
-        CostModel {
+    ) -> Result<CostModel, CostError> {
+        // map the state variable coefficiencies and rates to the state variable indices
+        let mut state_variable_coefficients = vec![0.0; state_variable_indices.len()];
+        let mut vehicle_state_variable_rates =
+            vec![VehicleCostRate::default(); state_variable_indices.len()];
+        let mut network_state_variable_rates =
+            vec![NetworkCostRate::default(); state_variable_indices.len()];
+        for (name, idx) in &state_variable_indices {
+            let coef = state_variable_coefficients_map.get(name).unwrap_or(&1.0);
+            state_variable_coefficients[*idx] = *coef;
+        }
+        for (name, idx) in &state_variable_indices {
+            let rate = vehicle_state_variable_rates_map
+                .get(name)
+                .cloned()
+                .unwrap_or_default();
+            vehicle_state_variable_rates[*idx] = rate.clone();
+        }
+        for (name, idx) in &state_variable_indices {
+            let rate = network_state_variable_rates_map
+                .get(name)
+                .cloned()
+                .unwrap_or_default();
+            network_state_variable_rates[*idx] = rate.clone();
+        }
+        Ok(CostModel {
             state_variable_indices,
             state_variable_coefficients,
             vehicle_state_variable_rates,
             network_state_variable_rates,
             cost_aggregation,
-        }
+        })
     }
 
     /// Calculates the cost of traversing an edge due to some state transition.
@@ -53,23 +77,23 @@ impl CostModel {
         prev_state: &[StateVar],
         next_state: &[StateVar],
     ) -> Result<Cost, CostError> {
-        let vehicle_costs = cost_ops::calculate_vehicle_costs(
+        let vehicle_cost = cost_ops::calculate_vehicle_costs(
             prev_state,
             next_state,
             &self.state_variable_indices,
-            self.state_variable_coefficients.clone(),
-            self.vehicle_state_variable_rates.clone(),
+            &self.state_variable_coefficients,
+            &self.vehicle_state_variable_rates,
+            &self.cost_aggregation,
         )?;
-        let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
-        let network_costs = cost_ops::calculate_network_traversal_costs(
+        let network_cost = cost_ops::calculate_network_traversal_costs(
             prev_state,
             next_state,
             edge,
             &self.state_variable_indices,
-            self.state_variable_coefficients.clone(),
-            self.network_state_variable_rates.clone(),
+            &self.state_variable_coefficients,
+            &self.network_state_variable_rates,
+            &self.cost_aggregation,
         )?;
-        let network_cost = self.cost_aggregation.agg(&network_costs);
         let total_cost = vehicle_cost + network_cost;
         let pos_cost = Cost::enforce_strictly_positive(total_cost);
         Ok(pos_cost)
@@ -99,24 +123,24 @@ impl CostModel {
         prev_state: &[StateVar],
         next_state: &[StateVar],
     ) -> Result<Cost, CostError> {
-        let vehicle_costs = cost_ops::calculate_vehicle_costs(
+        let vehicle_cost = cost_ops::calculate_vehicle_costs(
             prev_state,
             next_state,
             &self.state_variable_indices,
-            self.state_variable_coefficients.clone(),
-            self.vehicle_state_variable_rates.clone(),
+            &self.state_variable_coefficients,
+            &self.vehicle_state_variable_rates,
+            &self.cost_aggregation,
         )?;
-        let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
-        let network_costs = cost_ops::calculate_network_access_costs(
+        let network_cost = cost_ops::calculate_network_access_costs(
             prev_state,
             next_state,
             prev_edge,
             next_edge,
             &self.state_variable_indices,
-            self.state_variable_coefficients.clone(),
-            self.network_state_variable_rates.clone(),
+            &self.state_variable_coefficients,
+            &self.network_state_variable_rates,
+            &self.cost_aggregation,
         )?;
-        let network_cost = self.cost_aggregation.agg(&network_costs);
         let total_cost = vehicle_cost + network_cost;
         let pos_cost = Cost::enforce_strictly_positive(total_cost);
         Ok(pos_cost)
@@ -140,14 +164,14 @@ impl CostModel {
         src_state: &[StateVar],
         dst_state: &[StateVar],
     ) -> Result<Cost, CostError> {
-        let vehicle_costs = cost_ops::calculate_vehicle_costs(
+        let vehicle_cost = cost_ops::calculate_vehicle_costs(
             src_state,
             dst_state,
             &self.state_variable_indices,
-            self.state_variable_coefficients.clone(),
-            self.vehicle_state_variable_rates.clone(),
+            &self.state_variable_coefficients,
+            &self.vehicle_state_variable_rates,
+            &self.cost_aggregation,
         )?;
-        let vehicle_cost = self.cost_aggregation.agg(&vehicle_costs);
         let pos_cost = Cost::enforce_non_negative(vehicle_cost);
         Ok(pos_cost)
     }
@@ -167,14 +191,13 @@ impl CostModel {
         let mut state_variable_costs = self
             .state_variable_indices
             .iter()
-            .filter(|(name, _)| self.vehicle_state_variable_rates.contains_key(name))
             .map(move |(name, idx)| {
                 let state_var = state
                     .get(*idx)
                     .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
                 let rate = self
                     .vehicle_state_variable_rates
-                    .get(name)
+                    .get(*idx)
                     .ok_or_else(|| CostError::StateVariableNotFound(name.clone()))?;
                 let cost = rate.map_value(*state_var);
                 Ok((name.clone(), cost))
