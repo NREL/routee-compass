@@ -28,8 +28,8 @@ pub fn calculate_vehicle_costs(
         let cost = delta_cost * coefficient;
         Ok((name, cost))
     });
-    let cost = cost_aggregation.agg_iter(costs);
-    cost
+
+    cost_aggregation.agg_iter(costs)
 }
 
 pub fn calculate_network_traversal_costs(
@@ -58,8 +58,8 @@ pub fn calculate_network_traversal_costs(
                 Ok((name, cost))
             }
         });
-    let cost = cost_aggregation.agg_iter(costs);
-    cost
+
+    cost_aggregation.agg_iter(costs)
 }
 
 pub fn calculate_network_access_costs(
@@ -90,6 +90,6 @@ pub fn calculate_network_access_costs(
                 Ok((name, cost))
             }
         });
-    let cost = cost_aggregation.agg_iter(costs);
-    cost
+
+    cost_aggregation.agg_iter(costs)
 }
