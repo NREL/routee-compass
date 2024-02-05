@@ -465,8 +465,7 @@ mod tests {
                     )])),
                     Arc::new(HashMap::new()),
                     CostAggregation::Sum,
-                )
-                .unwrap();
+                )?;
                 let fm_inner = Arc::new(NoRestriction {});
                 let rm_inner = Arc::new(driver_rm.read_only());
                 run_a_star(o, Some(d), dg_inner, dist_tm, dist_um, fm_inner, rm_inner)
