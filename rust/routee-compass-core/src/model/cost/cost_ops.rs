@@ -62,6 +62,7 @@ pub fn calculate_network_traversal_costs(
     cost_aggregation.agg_iter(costs)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn calculate_network_access_costs(
     prev_state: &[StateVar],
     next_state: &[StateVar],

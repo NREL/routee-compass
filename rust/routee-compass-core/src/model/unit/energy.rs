@@ -1,11 +1,10 @@
+use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
-use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
 use super::{
-    as_f64::AsF64, builders::create_energy, Distance, DistanceUnit, EnergyRate, EnergyRateUnit,
-    EnergyUnit, UnitError,
+    as_f64::AsF64, builders::create_energy, internal_float::InternalFloat, Distance, DistanceUnit, EnergyRate, EnergyRateUnit, EnergyUnit, UnitError
 };
 
 #[derive(
@@ -24,8 +23,9 @@ use super::{
     Div,
     Sum,
     Neg,
+    Allocative,
 )]
-pub struct Energy(pub OrderedFloat<f64>);
+pub struct Energy(pub InternalFloat);
 
 impl AsF64 for Energy {
     fn as_f64(&self) -> f64 {
@@ -55,13 +55,13 @@ impl Ord for Energy {
 
 impl Display for Energy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{:?}", self.0)
     }
 }
 
 impl Energy {
     pub fn new(value: f64) -> Energy {
-        Energy(OrderedFloat(value))
+        Energy(InternalFloat::new(value))
     }
     pub fn create(
         energy_rate: EnergyRate,
@@ -71,6 +71,6 @@ impl Energy {
     ) -> Result<(Energy, EnergyUnit), UnitError> {
         create_energy(energy_rate, energy_rate_unit, distance, distance_unit)
     }
-    pub const ZERO: Energy = Energy(OrderedFloat(0.0));
-    pub const ONE: Energy = Energy(OrderedFloat(1.0));
+    pub const ZERO: Energy = Energy(InternalFloat::ZERO);
+    pub const ONE: Energy = Energy(InternalFloat::ONE);
 }

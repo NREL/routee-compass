@@ -1,8 +1,10 @@
 use crate::model::unit::{as_f64::AsF64, *};
+use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sum};
-use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
+
+use self::internal_float::InternalFloat;
 
 /// Represents the cost for traversing a graph edge.
 /// A cost does not carry any units but can be built from a unit type like [`Time`] or [`Energy`]  
@@ -22,26 +24,27 @@ use std::fmt::Display;
     Neg,
     Serialize,
     Deserialize,
+    Allocative,
 )]
-pub struct Cost(OrderedFloat<f64>);
+pub struct Cost(InternalFloat);
 
 impl Cost {
     /// represents zero cost, unit of addition operation
-    pub const ZERO: Cost = Cost(OrderedFloat(0.0));
+    pub const ZERO: Cost = Cost(InternalFloat::ZERO);
 
     /// represents one cost, unit of multiplication operation
-    pub const ONE: Cost = Cost(OrderedFloat(1.0));
+    pub const ONE: Cost = Cost(InternalFloat::ONE);
 
     /// represents the maximum possible cost
-    pub const INFINITY: Cost = Cost(OrderedFloat(f64::MAX));
+    pub const INFINITY: Cost = Cost(InternalFloat::INFINITY);
 
     /// when path search costs must be strictly positive, this value
     /// is used as a sentinel in place of non-positive costs
-    pub const MIN_COST: Cost = Cost(OrderedFloat(0.0000000001));
+    pub const MIN_COST: Cost = Cost(InternalFloat::MIN);
 
     /// helper to construct a Cost from an f64
     pub fn new(value: f64) -> Cost {
-        Cost(OrderedFloat(value))
+        Cost(InternalFloat::new(value))
     }
 
     /// helper to enforce costs that are strictly positive
@@ -86,7 +89,7 @@ impl From<Speed> for Cost {
 
 impl From<f64> for Cost {
     fn from(f: f64) -> Self {
-        Cost(OrderedFloat(f))
+        Cost(InternalFloat::new(f))
     }
 }
 
@@ -104,6 +107,6 @@ impl From<Cost> for f64 {
 
 impl Display for Cost {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{:?}", self.0)
     }
 }
