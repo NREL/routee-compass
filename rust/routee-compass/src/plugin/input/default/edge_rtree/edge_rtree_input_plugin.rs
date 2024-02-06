@@ -67,10 +67,11 @@ impl EdgeRtreeInputPlugin {
         tolerance_distance: Option<Distance>,
         distance_unit: Option<DistanceUnit>,
     ) -> Result<Self, CompassConfigurationError> {
-        let road_class_lookup: Box<[String]> =
-            read_utils::read_raw_file(road_class_file, read_decoders::string, None)?;
+        let road_class_lookup: Vec<String> =
+            read_utils::read_raw_file(road_class_file, read_decoders::string, None)?.into_vec();
         let geometries = read_linestring_text_file(linestring_file)
-            .map_err(CompassConfigurationError::IoError)?;
+            .map_err(CompassConfigurationError::IoError)?
+            .into_vec();
 
         let rcl_len = road_class_lookup.len();
         let geo_len = geometries.len();
@@ -83,12 +84,10 @@ impl EdgeRtreeInputPlugin {
         }
 
         let records: Vec<EdgeRtreeRecord> = geometries
-            .iter()
+            .into_iter()
             .enumerate()
-            .zip(road_class_lookup.iter())
-            .map(|((idx, geom), rc)| {
-                EdgeRtreeRecord::new(EdgeId(idx), geom.to_owned(), rc.to_owned())
-            })
+            .zip(road_class_lookup)
+            .map(|((idx, geom), rc)| EdgeRtreeRecord::new(EdgeId(idx), geom, rc))
             .collect();
 
         let rtree = RTree::bulk_load(records);

@@ -10,9 +10,11 @@ use std::collections::HashMap;
 ///
 /// when multiple mappings are specified they are applied sequentially (in user-defined order)
 /// to the state value.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum NetworkCostRate {
+    #[default]
+    Zero,
     EdgeLookup {
         lookup: HashMap<EdgeId, Cost>,
     },
@@ -30,6 +32,7 @@ impl NetworkCostRate {
         edge: &Edge,
     ) -> Result<Cost, CostError> {
         match self {
+            NetworkCostRate::Zero => Ok(Cost::ZERO),
             NetworkCostRate::EdgeEdgeLookup { lookup: _ } => Ok(Cost::ZERO),
             NetworkCostRate::EdgeLookup { lookup } => {
                 let cost = lookup.get(&edge.edge_id).unwrap_or(&Cost::ZERO).to_owned();
@@ -68,6 +71,7 @@ impl NetworkCostRate {
         next_edge: &Edge,
     ) -> Result<Cost, CostError> {
         match self {
+            NetworkCostRate::Zero => Ok(Cost::ZERO),
             NetworkCostRate::EdgeLookup { lookup: _ } => Ok(Cost::ZERO),
             NetworkCostRate::EdgeEdgeLookup { lookup } => {
                 let result = lookup
