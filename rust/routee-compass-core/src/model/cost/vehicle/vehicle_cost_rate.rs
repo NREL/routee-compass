@@ -5,10 +5,11 @@ use serde::{Deserialize, Serialize};
 ///
 /// when multiple mappings are specified they are applied sequentially (in user-defined order)
 /// to the state value.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum VehicleCostRate {
     /// use a value directly as a cost
+    #[default]
     Raw,
     /// multiply a value by a factor to become a cost
     Factor {
