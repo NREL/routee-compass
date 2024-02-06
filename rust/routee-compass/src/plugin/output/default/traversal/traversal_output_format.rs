@@ -107,7 +107,7 @@ mod test {
         ];
         let result = SearchAppResult {
             route,
-            tree: HashMap::new(),
+            tree: Some(HashMap::new()),
             search_start_time: Local::now().to_rfc3339(),
             search_runtime: Duration::ZERO,
             route_runtime: Duration::ZERO,

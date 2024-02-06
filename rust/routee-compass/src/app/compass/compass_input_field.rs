@@ -1,6 +1,8 @@
 use std::fmt::Display;
 
-#[derive(Debug)]
+use allocative::Allocative;
+
+#[derive(Debug, Allocative)]
 pub enum CompassInputField {
     Queries,
     ConfigInputFile,

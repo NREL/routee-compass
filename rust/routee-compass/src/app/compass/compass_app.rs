@@ -428,20 +428,19 @@ pub fn apply_output_processing(
             error_output
         }
         Ok(result) => {
+            let tree_len = match &result.tree {
+                None => 0,
+                Some(tree) => tree.len(),
+            };
             log::debug!(
                 "completed search for request {}: {} edges in route, {} in tree",
                 req,
                 result.route.len(),
-                result.tree.len()
+                tree_len,
             );
 
             let mut init_output = serde_json::json!({
                 "request": req,
-                "search_executed_time": result.search_start_time,
-                "search_runtime": result.search_runtime.hhmmss(),
-                "total_runtime": result.total_runtime.hhmmss(),
-                "route_edge_count": result.route.len(),
-                "tree_edge_count": result.tree.len()
             });
 
             let route = result.route.to_vec();
