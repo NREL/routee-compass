@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
 use super::{
-    as_f64::AsF64, builders::create_energy, internal_float::InternalFloat, Distance, DistanceUnit, EnergyRate, EnergyRateUnit, EnergyUnit, UnitError
+    as_f64::AsF64, builders::create_energy, internal_float::InternalFloat, Distance, DistanceUnit,
+    EnergyRate, EnergyRateUnit, EnergyUnit, UnitError,
 };
 
 #[derive(

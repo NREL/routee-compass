@@ -1,16 +1,7 @@
-use crate::model::road_network::vertex_id::VertexId;
+use crate::{model::road_network::vertex_id::VertexId, util::geo::coord::InternalCoord};
 use allocative::Allocative;
-use geo::{coord, Coord};
+use geo::coord;
 use serde::de;
-
-#[derive(Copy, Clone, Default, Debug)]
-pub struct CoordWrapper(pub Coord);
-
-impl Allocative for CoordWrapper {
-    fn visit<'a, 'b: 'a>(&self, visitor: &'a mut allocative::Visitor<'b>) {
-        visitor.visit_simple_sized::<Self>()
-    }
-}
 
 /// represents a vertex in a Graph
 /// this struct implements Serialize and Deserialize to support reading
@@ -18,26 +9,26 @@ impl Allocative for CoordWrapper {
 #[derive(Copy, Clone, Default, Debug, Allocative)]
 pub struct Vertex {
     pub vertex_id: VertexId,
-    pub coordinate: CoordWrapper,
+    pub coordinate: InternalCoord,
 }
 
 impl Vertex {
     pub fn new(vertex_id: usize, x: f64, y: f64) -> Self {
         Self {
             vertex_id: VertexId(vertex_id),
-            coordinate: CoordWrapper(coord! {x: x, y: y}),
+            coordinate: InternalCoord(coord! {x: x, y: y}),
         }
     }
     pub fn to_tuple_underlying(&self) -> (f64, f64) {
-        (self.coordinate.0.x, self.coordinate.0.y)
+        (self.coordinate.x, self.coordinate.y)
     }
 
     pub fn x(&self) -> f64 {
-        self.coordinate.0.x
+        self.coordinate.x
     }
 
     pub fn y(&self) -> f64 {
-        self.coordinate.0.y
+        self.coordinate.y
     }
 }
 
@@ -137,11 +128,13 @@ mod tests {
 
     use std::path::PathBuf;
 
-    use super::CoordWrapper;
     use csv;
     use geo::Coord;
 
-    use crate::model::{property::vertex::Vertex, road_network::vertex_id::VertexId};
+    use crate::{
+        model::{property::vertex::Vertex, road_network::vertex_id::VertexId},
+        util::geo::coord::InternalCoord,
+    };
 
     #[test]
     fn test_deserialize_csv() {
@@ -155,21 +148,21 @@ mod tests {
         let expected: Vec<Vertex> = vec![
             Vertex {
                 vertex_id: VertexId(5),
-                coordinate: CoordWrapper(Coord {
+                coordinate: InternalCoord(Coord {
                     x: -105.2042387,
                     y: 39.712214,
                 }),
             },
             Vertex {
                 vertex_id: VertexId(10),
-                coordinate: CoordWrapper(Coord {
+                coordinate: InternalCoord(Coord {
                     x: -105.2292743,
                     y: 39.7584272,
                 }),
             },
             Vertex {
                 vertex_id: VertexId(15),
-                coordinate: CoordWrapper(Coord {
+                coordinate: InternalCoord(Coord {
                     x: -105.1972541,
                     y: 39.760731,
                 }),
@@ -189,7 +182,7 @@ mod tests {
                 "vertex ids didn't match expected"
             );
             assert_eq!(
-                result[idx].coordinate.0, expected[idx].coordinate.0,
+                result[idx].coordinate, expected[idx].coordinate,
                 "coordinate didn't match expected"
             );
         }

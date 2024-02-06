@@ -120,7 +120,7 @@ impl TraversalModel for SpeedTraversalModel {
         state: &TraversalState,
     ) -> Result<TraversalState, TraversalModelError> {
         let distance =
-            haversine::coord_distance(src.coordinate.0, dst.coordinate.0, self.distance_unit)
+            haversine::coord_distance(&src.coordinate, &dst.coordinate, self.distance_unit)
                 .map_err(TraversalModelError::NumericError)?;
 
         if distance == Distance::ZERO {
@@ -190,19 +190,19 @@ pub fn get_max_speed(speed_table: &[Speed]) -> Result<Speed, TraversalModelError
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::property::vertex::CoordWrapper;
     use crate::model::unit::Distance;
     use crate::model::{
         property::{edge::Edge, vertex::Vertex},
         road_network::{edge_id::EdgeId, vertex_id::VertexId},
     };
+    use crate::util::geo::coord::InternalCoord;
     use geo::coord;
     use std::path::PathBuf;
 
     fn mock_vertex() -> Vertex {
         Vertex {
             vertex_id: VertexId(0),
-            coordinate: CoordWrapper(coord! {x: -86.67, y: 36.12}),
+            coordinate: InternalCoord(coord! {x: -86.67, y: 36.12}),
         }
     }
     fn mock_edge(edge_id: usize) -> Edge {

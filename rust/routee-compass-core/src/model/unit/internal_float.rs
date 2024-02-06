@@ -29,7 +29,7 @@ impl InternalFloat {
     pub fn new(value: f64) -> InternalFloat {
         InternalFloat(OrderedFloat(value))
     }
-    pub const ZERO: InternalFloat = InternalFloat(OrderedFloat(0.0)); 
+    pub const ZERO: InternalFloat = InternalFloat(OrderedFloat(0.0));
     pub const ONE: InternalFloat = InternalFloat(OrderedFloat(1.0));
     pub const INFINITY: InternalFloat = InternalFloat(OrderedFloat(f64::INFINITY));
     pub const MIN: InternalFloat = InternalFloat(OrderedFloat(0.0000000001));
@@ -58,5 +58,19 @@ impl Deref for InternalFloat {
 impl DerefMut for InternalFloat {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use allocative;
+
+    #[test]
+    fn test_visit() {
+        let float = InternalFloat::new(1.0);
+        let memory_bytes = allocative::size_of_unique(&float);
+        // should only have one f64 at 8 bytes
+        assert_eq!(memory_bytes, 8);
     }
 }

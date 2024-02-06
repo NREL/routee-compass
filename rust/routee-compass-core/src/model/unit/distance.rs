@@ -2,10 +2,7 @@ use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
-use std::{
-    cmp::Ordering,
-    fmt::Display,
-};
+use std::{cmp::Ordering, fmt::Display};
 
 use super::{as_f64::AsF64, internal_float::InternalFloat};
 

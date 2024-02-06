@@ -437,7 +437,7 @@ pub fn apply_output_processing(
 
             let mut init_output = serde_json::json!({
                 "request": req,
-                "search_executed_time": result.search_start_time.to_rfc3339(),
+                "search_executed_time": result.search_start_time,
                 "search_runtime": result.search_runtime.hhmmss(),
                 "total_runtime": result.total_runtime.hhmmss(),
                 "route_edge_count": result.route.len(),
