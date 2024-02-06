@@ -25,8 +25,8 @@ impl OutputPlugin for SummaryOutputPlugin {
                         output
                     ))
                 })?;
-                let memory_usage_mb = allocative::size_of_unique(result) as f64 / 1024.0 / 1024.0;
-                updated.insert("result_memory_usage_mb".to_string(), memory_usage_mb.into());
+                let memory_usage = allocative::size_of_unique(result) as f64;
+                updated.insert("result_memory_usage_bytes".to_string(), memory_usage.into());
 
                 updated.insert(
                     "search_executed_time".to_string(),
