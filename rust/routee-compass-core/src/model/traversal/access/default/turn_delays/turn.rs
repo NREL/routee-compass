@@ -1,7 +1,8 @@
 use crate::model::traversal::access::access_model_error::AccessModelError;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[serde(rename = "snake_case")]
 pub enum Turn {
     NoTurn,
     SlightRight,
@@ -11,6 +12,12 @@ pub enum Turn {
     SharpRight,
     SharpLeft,
     UTurn,
+}
+
+impl ToString for Turn {
+    fn to_string(&self) -> String {
+        serde_json::to_string(self).unwrap_or_else(|_| String::from("<internal error>"))
+    }
 }
 
 impl Turn {
