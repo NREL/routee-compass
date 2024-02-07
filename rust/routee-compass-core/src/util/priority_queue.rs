@@ -27,6 +27,6 @@ impl<H: Hash + Eq + Allocative, I: Ord + Allocative, S> Allocative
     for InternalPriorityQueue<H, I, S>
 {
     fn visit<'a, 'b: 'a>(&self, visitor: &'a mut allocative::Visitor<'b>) {
-        let mut visitor = visitor.enter_self_sized::<Self>();
+        let _visitor = visitor.enter_self_sized::<Self>();
     }
 }

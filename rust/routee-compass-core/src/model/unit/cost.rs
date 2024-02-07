@@ -125,7 +125,7 @@ impl From<Cost> for ReverseCost {
 
 impl Allocative for ReverseCost {
     fn visit<'a, 'b: 'a>(&self, visitor: &'a mut allocative::Visitor<'b>) {
-        let mut visitor = visitor.enter_self_sized::<Self>();
+        let _visitor = visitor.enter_self_sized::<Self>();
     }
 }
 
