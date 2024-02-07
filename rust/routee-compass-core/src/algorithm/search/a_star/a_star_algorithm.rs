@@ -208,7 +208,8 @@ pub fn run_a_star(
             Some(tid) => format!("{}_to_{}", source, tid),
         };
 
-        let mut flamegraph_file = File::create(format!("search_memory_flamegraph_{}.out", search_name)).unwrap();
+        let mut flamegraph_file =
+            File::create(format!("search_memory_flamegraph_{}.out", search_name)).unwrap();
         flamegraph_file.write_all(output.as_bytes()).unwrap();
     }
 

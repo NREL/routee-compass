@@ -180,7 +180,6 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             // write the output to a file
             let mut output_file = File::create("graph_memory_flamegraph.out").unwrap();
             output_file.write_all(output.as_bytes()).unwrap();
-
         }
         // build search app
         let search_app: SearchApp = SearchApp::new(
