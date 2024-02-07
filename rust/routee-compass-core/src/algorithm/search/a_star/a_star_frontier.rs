@@ -1,11 +1,13 @@
 use std::{hash::Hash, hash::Hasher};
 
+use allocative::Allocative;
+
 use crate::model::{
     road_network::edge_id::EdgeId, road_network::vertex_id::VertexId,
     traversal::state::traversal_state::TraversalState,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Allocative)]
 pub struct AStarFrontier {
     pub vertex_id: VertexId,
     pub prev_edge_id: Option<EdgeId>,

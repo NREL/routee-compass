@@ -2,7 +2,7 @@ use crate::model::unit::{as_f64::AsF64, *};
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sum};
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::{fmt::Display, ops::{Deref, DerefMut}};
 
 use self::internal_float::InternalFloat;
 
@@ -108,5 +108,44 @@ impl From<Cost> for f64 {
 impl Display for Cost {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.0)
+    }
+}
+
+#[derive(
+    Copy,
+    Clone,
+    Debug,
+    Eq,
+    PartialEq,
+    PartialOrd,
+    Ord,
+    Serialize,
+    Deserialize,
+)]
+pub struct ReverseCost(std::cmp::Reverse<Cost>);
+
+impl From<Cost> for ReverseCost {
+    fn from(cost: Cost) -> Self {
+        ReverseCost(std::cmp::Reverse(cost))
+    }
+}
+
+impl Allocative for ReverseCost {
+    fn visit<'a, 'b: 'a>(&self, visitor: &'a mut allocative::Visitor<'b>) {
+        let mut visitor = visitor.enter_self_sized::<Self>();
+    }
+}
+
+impl Deref for ReverseCost {
+    type Target = std::cmp::Reverse<Cost>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for ReverseCost {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
