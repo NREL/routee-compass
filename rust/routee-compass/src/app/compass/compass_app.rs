@@ -172,14 +172,16 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let graph_bytes = allocative::size_of_unique_allocated_data(&graph);
         log::info!("graph size: {} GB", graph_bytes as f64 / 1e9);
 
-        let mut flamegraph = FlameGraphBuilder::default();
-        flamegraph.visit_root(&graph);
-        let output = flamegraph.finish_and_write_flame_graph();
+        if std::env::var("DEBUG_MODE").is_ok() {
+            let mut flamegraph = FlameGraphBuilder::default();
+            flamegraph.visit_root(&graph);
+            let output = flamegraph.finish_and_write_flame_graph();
 
-        // write the output to a file
-        let mut output_file = File::create("flamegraph.out").unwrap();
-        output_file.write_all(output.as_bytes()).unwrap();
+            // write the output to a file
+            let mut output_file = File::create("graph_memory_flamegraph.out").unwrap();
+            output_file.write_all(output.as_bytes()).unwrap();
 
+        }
         // build search app
         let search_app: SearchApp = SearchApp::new(
             search_algorithm,
