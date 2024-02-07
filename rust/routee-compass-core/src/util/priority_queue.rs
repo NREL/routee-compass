@@ -1,12 +1,13 @@
 use std::{
-    hash::{Hash, RandomState},
+    collections::hash_map::RandomState,
+    hash::Hash,
     ops::{Deref, DerefMut},
 };
 
 use allocative::Allocative;
 use priority_queue::PriorityQueue;
 
-pub struct InternalPriorityQueue<I: Hash + Eq, P: Ord, S=RandomState>(pub PriorityQueue<I, P, S>);
+pub struct InternalPriorityQueue<I: Hash + Eq, P: Ord, S = RandomState>(pub PriorityQueue<I, P, S>);
 
 impl<H: Hash + Eq, I: Ord, S> Deref for InternalPriorityQueue<H, I, S> {
     type Target = PriorityQueue<H, I, S>;

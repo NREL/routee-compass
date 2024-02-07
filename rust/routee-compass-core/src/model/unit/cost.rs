@@ -2,7 +2,10 @@ use crate::model::unit::{as_f64::AsF64, *};
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sum};
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, ops::{Deref, DerefMut}};
+use std::{
+    fmt::Display,
+    ops::{Deref, DerefMut},
+};
 
 use self::internal_float::InternalFloat;
 
@@ -111,17 +114,7 @@ impl Display for Cost {
     }
 }
 
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    Eq,
-    PartialEq,
-    PartialOrd,
-    Ord,
-    Serialize,
-    Deserialize,
-)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ReverseCost(std::cmp::Reverse<Cost>);
 
 impl From<Cost> for ReverseCost {

@@ -20,8 +20,13 @@ pub struct EnergyTraversalModel {
 
 impl TraversalModel for EnergyTraversalModel {
     fn initial_state(&self) -> TraversalState {
-        // distance, time
-        let mut initial_state = vec![StateVar(0.0), StateVar(0.0)];
+        let state_size = 2 + self.vehicle.number_of_state_variables();
+        let mut initial_state = Vec::with_capacity(state_size);
+
+        // distance
+        initial_state.push(StateVar(0.0));
+        // time
+        initial_state.push(StateVar(0.0));
 
         // vehicle state gets slots 2..n
         let vehicle_state = self.vehicle.initial_state();
@@ -221,7 +226,7 @@ fn update_state(
     time: Time,
     vehicle_state: VehicleState,
 ) -> TraversalState {
-    let mut updated_state = Vec::new();
+    let mut updated_state = Vec::with_capacity(state.len());
 
     updated_state.push(state[0] + distance.into());
     updated_state.push(state[1] + time.into());

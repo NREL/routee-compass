@@ -1,0 +1,685 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1200" height="246" onload="init(evt)" viewBox="0 0 1200 246" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs>
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	text { font-family:Verdana; font-size:12px; fill:rgb(0,0,0); }
+	#search, #ignorecase { opacity:0.1; cursor:pointer; }
+	#search:hover, #search.show, #ignorecase:hover, #ignorecase.show { opacity:1; }
+	#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+	#title { text-anchor:middle; font-size:17px}
+	#unzoom { cursor:pointer; }
+	#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.hide { display:none; }
+	.parent { opacity:0.5; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	"use strict";
+	var details, searchbtn, unzoombtn, matchedtxt, svg, searching, currentSearchTerm, ignorecase, ignorecaseBtn;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		ignorecaseBtn = document.getElementById("ignorecase");
+		unzoombtn = document.getElementById("unzoom");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+		currentSearchTerm = null;
+
+		// use GET parameters to restore a flamegraphs state.
+		var params = get_params();
+		if (params.x && params.y)
+			zoom(find_group(document.querySelector('[x="' + params.x + '"][y="' + params.y + '"]')));
+                if (params.s) search(params.s);
+	}
+
+	// event listeners
+	window.addEventListener("click", function(e) {
+		var target = find_group(e.target);
+		if (target) {
+			if (target.nodeName == "a") {
+				if (e.ctrlKey === false) return;
+				e.preventDefault();
+			}
+			if (target.classList.contains("parent")) unzoom(true);
+			zoom(target);
+			if (!document.querySelector('.parent')) {
+				// we have basically done a clearzoom so clear the url
+				var params = get_params();
+				if (params.x) delete params.x;
+				if (params.y) delete params.y;
+				history.replaceState(null, null, parse_params(params));
+				unzoombtn.classList.add("hide");
+				return;
+			}
+
+			// set parameters for zoom state
+			var el = target.querySelector("rect");
+			if (el && el.attributes && el.attributes.y && el.attributes._orig_x) {
+				var params = get_params()
+				params.x = el.attributes._orig_x.value;
+				params.y = el.attributes.y.value;
+				history.replaceState(null, null, parse_params(params));
+			}
+		}
+		else if (e.target.id == "unzoom") clearzoom();
+		else if (e.target.id == "search") search_prompt();
+		else if (e.target.id == "ignorecase") toggle_ignorecase();
+	}, false)
+
+	// mouse-over for info
+	// show
+	window.addEventListener("mouseover", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = "Function: " + g_to_text(target);
+	}, false)
+
+	// clear
+	window.addEventListener("mouseout", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = ' ';
+	}, false)
+
+	// ctrl-F for search
+	// ctrl-I to toggle case-sensitive search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+		else if (e.ctrlKey && e.keyCode === 73) {
+			e.preventDefault();
+			toggle_ignorecase();
+		}
+	}, false)
+
+	// functions
+	function get_params() {
+		var params = {};
+		var paramsarr = window.location.search.substr(1).split('&');
+		for (var i = 0; i < paramsarr.length; ++i) {
+			var tmp = paramsarr[i].split("=");
+			if (!tmp[0] || !tmp[1]) continue;
+			params[tmp[0]]  = decodeURIComponent(tmp[1]);
+		}
+		return params;
+	}
+	function parse_params(params) {
+		var uri = "?";
+		for (var key in params) {
+			uri += key + '=' + encodeURIComponent(params[key]) + '&';
+		}
+		if (uri.slice(-1) == "&")
+			uri = uri.substring(0, uri.length - 1);
+		if (uri == '?')
+			uri = window.location.href.split('?')[0];
+		return uri;
+	}
+	function find_child(node, selector) {
+		var children = node.querySelectorAll(selector);
+		if (children.length) return children[0];
+	}
+	function find_group(node) {
+		var parent = node.parentElement;
+		if (!parent) return;
+		if (parent.id == "frames") return node;
+		return find_group(parent);
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_" + attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_" + attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes.width.value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2 * 12 * 0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		var sl = t.getSubStringLength(0, txt.length);
+		// check if only whitespace or if we can fit the entire string into width w
+		if (/^ *$/.test(txt) || sl < w)
+			return;
+
+		// this isn't perfect, but gives a good starting point
+		// and avoids calling getSubStringLength too often
+		var start = Math.floor((w/sl) * txt.length);
+		for (var x = start; x > 0; x = x-2) {
+			if (t.getSubStringLength(0, x + 2) <= w) {
+				t.textContent = txt.substring(0, x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - 10) * ratio + 10;
+				if (e.tagName == "text")
+					e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_child(c[i], x - 10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = 10;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseInt(svg.width.baseVal.value) - (10 * 2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr.width.value);
+		var xmin = parseFloat(attr.x.value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr.y.value);
+		var ratio = (svg.width.baseVal.value - 2 * 10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		unzoombtn.classList.remove("hide");
+
+		var el = document.getElementById("frames").children;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a.x.value);
+			var ew = parseFloat(a.width.value);
+			var upstack;
+			// Is it an ancestor
+			if (0 == 0) {
+				upstack = parseFloat(a.y.value) > ymin;
+			} else {
+				upstack = parseFloat(a.y.value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.classList.add("parent");
+					zoom_parent(e);
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.classList.add("hide");
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.classList.add("hide");
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					update_text(e);
+				}
+			}
+		}
+		search();
+	}
+	function unzoom(dont_update_text) {
+		unzoombtn.classList.add("hide");
+		var el = document.getElementById("frames").children;
+		for(var i = 0; i < el.length; i++) {
+			el[i].classList.remove("parent");
+			el[i].classList.remove("hide");
+			zoom_reset(el[i]);
+			if(!dont_update_text) update_text(el[i]);
+		}
+		search();
+	}
+	function clearzoom() {
+		unzoom();
+
+		// remove zoom state
+		var params = get_params();
+		if (params.x) delete params.x;
+		if (params.y) delete params.y;
+		history.replaceState(null, null, parse_params(params));
+	}
+
+	// search
+	function toggle_ignorecase() {
+		ignorecase = !ignorecase;
+		if (ignorecase) {
+			ignorecaseBtn.classList.add("show");
+		} else {
+			ignorecaseBtn.classList.remove("show");
+		}
+		reset_search();
+		search();
+	}
+	function reset_search() {
+		var el = document.querySelectorAll("#frames rect");
+		for (var i = 0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+		var params = get_params();
+		delete params.s;
+		history.replaceState(null, null, parse_params(params));
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)"
+			    + (ignorecase ? ", ignoring case" : "")
+			    + "\nPress Ctrl-i to toggle case sensitivity", "");
+			if (term != null) search(term);
+		} else {
+			reset_search();
+			searching = 0;
+			currentSearchTerm = null;
+			searchbtn.classList.remove("show");
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.classList.add("hide");
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		if (term) currentSearchTerm = term;
+
+		var re = new RegExp(currentSearchTerm, ignorecase ? 'i' : '');
+		var el = document.getElementById("frames").children;
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes.width.value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes.x.value);
+				orig_save(rect, "fill");
+				rect.attributes.fill.value = "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+		var params = get_params();
+		params.s = currentSearchTerm;
+		history.replaceState(null, null, parse_params(params));
+
+		searchbtn.classList.add("show");
+		searchbtn.firstChild.nodeValue = "Reset Search";
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.classList.remove("hide");
+		var pct = 100 * count / maxwidth;
+		if (pct != 100) pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1200.0" height="246.0" fill="url(#background)"  />
+<text id="title" x="600.00" y="24" >Flame Graph</text>
+<text id="details" x="10.00" y="229" > </text>
+<text id="unzoom" x="10.00" y="24" class="hide">Reset Zoom</text>
+<text id="search" x="1090.00" y="24" >Search</text>
+<text id="ignorecase" x="1174.00" y="24" >ic</text>
+<text id="matched" x="1090.00" y="229" > </text>
+<g id="frames">
+<g >
+<title>routee_compass_core::model::unit::internal_float::InternalFloat (219,080 samples, 4.00%)</title><rect x="1142.8" y="101" width="47.2" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="1145.80" y="111.5" >rout..</text>
+</g>
+<g >
+<title>routee_compass_core::model::road_network::edge_id::EdgeId (219,072 samples, 4.00%)</title><rect x="104.4" y="69" width="47.2" height="15.0" fill="rgb(219,64,15)" rx="2" ry="2" />
+<text  x="107.44" y="79.5" >rout..</text>
+</g>
+<g >
+<title>key (219,080 samples, 4.00%)</title><rect x="10.0" y="149" width="47.2" height="15.0" fill="rgb(238,152,36)" rx="2" ry="2" />
+<text  x="13.04" y="159.5" >key</text>
+</g>
+<g >
+<title>0 (219,080 samples, 4.00%)</title><rect x="1142.8" y="117" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="1145.80" y="127.5" >0</text>
+</g>
+<g >
+<title>routee_compass_core::model::road_network::vertex_id::VertexId (219,080 samples, 4.00%)</title><rect x="482.0" y="101" width="47.2" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="485.02" y="111.5" >rout..</text>
+</g>
+<g >
+<title>usize (219,072 samples, 4.00%)</title><rect x="1048.4" y="69" width="47.2" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="1051.40" y="79.5" >usize</text>
+</g>
+<g >
+<title>data (2,409,888 samples, 44.00%)</title><rect x="10.0" y="165" width="519.2" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="13.04" y="175.5" >data</text>
+</g>
+<g >
+<title>data (438,168 samples, 8.00%)</title><rect x="1095.6" y="165" width="94.4" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="1098.60" y="175.5" >data</text>
+</g>
+<g >
+<title>key (219,072 samples, 4.00%)</title><rect x="529.2" y="149" width="47.2" height="15.0" fill="rgb(238,152,36)" rx="2" ry="2" />
+<text  x="532.23" y="159.5" >key</text>
+</g>
+<g >
+<title>vertex_id (219,080 samples, 4.00%)</title><rect x="482.0" y="117" width="47.2" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="485.02" y="127.5" >vert..</text>
+</g>
+<g >
+<title>ptr (1,095,360 samples, 20.00%)</title><rect x="765.2" y="53" width="236.0" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="768.22" y="63.5" >ptr</text>
+</g>
+<g >
+<title>0 (219,072 samples, 4.00%)</title><rect x="1001.2" y="53" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="1004.20" y="63.5" >0</text>
+</g>
+<g >
+<title>usize (219,080 samples, 4.00%)</title><rect x="10.0" y="101" width="47.2" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="13.04" y="111.5" >usize</text>
+</g>
+<g >
+<title>data (2,628,872 samples, 48.00%)</title><rect x="529.2" y="165" width="566.4" height="15.0" fill="rgb(214,45,10)" rx="2" ry="2" />
+<text  x="532.23" y="175.5" >data</text>
+</g>
+<g >
+<title>routee_compass_core::model::road_network::vertex_id::VertexId (219,072 samples, 4.00%)</title><rect x="529.2" y="133" width="47.2" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="532.23" y="143.5" >rout..</text>
+</g>
+<g >
+<title>value (2,409,792 samples, 44.00%)</title><rect x="576.4" y="149" width="519.2" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="579.43" y="159.5" >value</text>
+</g>
+<g >
+<title>routee_compass_core::model::unit::cost::Cost (219,072 samples, 4.00%)</title><rect x="576.4" y="69" width="47.2" height="15.0" fill="rgb(231,119,28)" rx="2" ry="2" />
+<text  x="579.43" y="79.5" >rout..</text>
+</g>
+<g >
+<title>0 (219,072 samples, 4.00%)</title><rect x="104.4" y="53" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="107.44" y="63.5" >0</text>
+</g>
+<g >
+<title>0 (219,080 samples, 4.00%)</title><rect x="10.0" y="117" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="13.04" y="127.5" >0</text>
+</g>
+<g >
+<title>value (219,080 samples, 4.00%)</title><rect x="1142.8" y="149" width="47.2" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="1145.80" y="159.5" >value</text>
+</g>
+<g >
+<title>traversal_cost (219,072 samples, 4.00%)</title><rect x="1001.2" y="85" width="47.2" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="1004.20" y="95.5" >trav..</text>
+</g>
+<g >
+<title>routee_compass_core::algorithm::search::a_star::a_star_frontier::AStarFrontier (2,190,800 samples, 40.00%)</title><rect x="57.2" y="133" width="472.0" height="15.0" fill="rgb(221,77,18)" rx="2" ry="2" />
+<text  x="60.24" y="143.5" >routee_compass_core::algorithm::search::a_star::a_star_frontier:..</text>
+</g>
+<g >
+<title>ptr (1,095,400 samples, 20.00%)</title><rect x="246.0" y="85" width="236.0" height="15.0" fill="rgb(254,226,54)" rx="2" ry="2" />
+<text  x="249.03" y="95.5" >ptr</text>
+</g>
+<g >
+<title>core::option::Option&lt;routee_compass_core::model::road_network::edge_id::EdgeId&gt; (438,160 samples, 8.00%)</title><rect x="57.2" y="101" width="94.4" height="15.0" fill="rgb(251,215,51)" rx="2" ry="2" />
+<text  x="60.24" y="111.5" >core::optio..</text>
+</g>
+<g >
+<title>routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch (2,409,792 samples, 44.00%)</title><rect x="576.4" y="133" width="519.2" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="579.43" y="143.5" >routee_compass_core::algorithm::search::search_tree_branch::SearchTreeB..</text>
+</g>
+<g >
+<title>routee_compass_core::algorithm::search::edge_traversal::EdgeTraversal (2,190,720 samples, 40.00%)</title><rect x="576.4" y="101" width="472.0" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="579.43" y="111.5" >routee_compass_core::algorithm::search::edge_traversal::EdgeTrav..</text>
+</g>
+<g >
+<title>value (2,190,800 samples, 40.00%)</title><rect x="57.2" y="149" width="472.0" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="60.24" y="159.5" >value</text>
+</g>
+<g >
+<title>std::collections::hash::map::HashMap&lt;routee_compass_core::model::road_network::vertex_id::VertexId, routee_compass_core::algorithm::search::a_star::a_star_frontier::AStarFrontier&gt; (2,409,928 samples, 44.00%)</title><rect x="10.0" y="181" width="519.2" height="15.0" fill="rgb(225,94,22)" rx="2" ry="2" />
+<text  x="13.03" y="191.5" >std::collections::hash::map::HashMap&lt;routee_compass_core::model::road_n..</text>
+</g>
+<g >
+<title>all (5,477,176 samples, 100%)</title><rect x="10.0" y="197" width="1180.0" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="13.00" y="207.5" ></text>
+</g>
+<g >
+<title>key (219,080 samples, 4.00%)</title><rect x="1095.6" y="149" width="47.2" height="15.0" fill="rgb(238,152,36)" rx="2" ry="2" />
+<text  x="1098.60" y="159.5" >key</text>
+</g>
+<g >
+<title>edge_traversal (2,190,720 samples, 40.00%)</title><rect x="576.4" y="117" width="472.0" height="15.0" fill="rgb(252,220,52)" rx="2" ry="2" />
+<text  x="579.43" y="127.5" >edge_traversal</text>
+</g>
+<g >
+<title>alloc::vec::Vec&lt;routee_compass_core::model::traversal::state::state_variable::StateVar&gt; (1,533,560 samples, 28.00%)</title><rect x="151.6" y="101" width="330.4" height="15.0" fill="rgb(217,59,14)" rx="2" ry="2" />
+<text  x="154.63" y="111.5" >alloc::vec::Vec&lt;routee_compass_core::model::..</text>
+</g>
+<g >
+<title>routee_compass_core::model::traversal::state::state_variable::StateVar (876,320 samples, 16.00%)</title><rect x="293.2" y="69" width="188.8" height="15.0" fill="rgb(235,138,33)" rx="2" ry="2" />
+<text  x="296.23" y="79.5" >routee_compass_core::mod..</text>
+</g>
+<g >
+<title>alloc::vec::Vec&lt;routee_compass_core::model::traversal::state::state_variable::StateVar&gt; (1,533,504 samples, 28.00%)</title><rect x="670.8" y="69" width="330.4" height="15.0" fill="rgb(217,59,14)" rx="2" ry="2" />
+<text  x="673.82" y="79.5" >alloc::vec::Vec&lt;routee_compass_core::model::..</text>
+</g>
+<g >
+<title>routee_compass_core::model::unit::cost::Cost (219,080 samples, 4.00%)</title><rect x="1142.8" y="133" width="47.2" height="15.0" fill="rgb(231,119,28)" rx="2" ry="2" />
+<text  x="1145.80" y="143.5" >rout..</text>
+</g>
+<g >
+<title>usize (219,080 samples, 4.00%)</title><rect x="1095.6" y="101" width="47.2" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="1098.60" y="111.5" >usize</text>
+</g>
+<g >
+<title>routee_compass_core::model::traversal::state::state_variable::StateVar (876,288 samples, 16.00%)</title><rect x="812.4" y="37" width="188.8" height="15.0" fill="rgb(235,138,33)" rx="2" ry="2" />
+<text  x="815.41" y="47.5" >routee_compass_core::mod..</text>
+</g>
+<g >
+<title>routee_compass_core::model::road_network::edge_id::EdgeId (219,072 samples, 4.00%)</title><rect x="623.6" y="69" width="47.2" height="15.0" fill="rgb(219,64,15)" rx="2" ry="2" />
+<text  x="626.63" y="79.5" >rout..</text>
+</g>
+<g >
+<title>usize (219,080 samples, 4.00%)</title><rect x="482.0" y="69" width="47.2" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="485.02" y="79.5" >usize</text>
+</g>
+<g >
+<title>state (1,533,560 samples, 28.00%)</title><rect x="151.6" y="117" width="330.4" height="15.0" fill="rgb(242,174,41)" rx="2" ry="2" />
+<text  x="154.63" y="127.5" >state</text>
+</g>
+<g >
+<title>access_cost (219,072 samples, 4.00%)</title><rect x="576.4" y="85" width="47.2" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="579.43" y="95.5" >acce..</text>
+</g>
+<g >
+<title>terminal_vertex (219,072 samples, 4.00%)</title><rect x="1048.4" y="117" width="47.2" height="15.0" fill="rgb(216,51,12)" rx="2" ry="2" />
+<text  x="1051.40" y="127.5" >term..</text>
+</g>
+<g >
+<title>edge_id (219,072 samples, 4.00%)</title><rect x="623.6" y="85" width="47.2" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="626.63" y="95.5" >edge..</text>
+</g>
+<g >
+<title>std::collections::hash::map::HashMap&lt;routee_compass_core::model::road_network::vertex_id::VertexId, routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch&gt; (2,628,912 samples, 48.00%)</title><rect x="529.2" y="181" width="566.4" height="15.0" fill="rgb(206,6,1)" rx="2" ry="2" />
+<text  x="532.22" y="191.5" >std::collections::hash::map::HashMap&lt;routee_compass_core::model::road_network..</text>
+</g>
+<g >
+<title>routee_compass_core::model::road_network::vertex_id::VertexId (219,072 samples, 4.00%)</title><rect x="1048.4" y="101" width="47.2" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="1051.40" y="111.5" >rout..</text>
+</g>
+<g >
+<title>result_state (1,533,504 samples, 28.00%)</title><rect x="670.8" y="85" width="330.4" height="15.0" fill="rgb(244,182,43)" rx="2" ry="2" />
+<text  x="673.82" y="95.5" >result_state</text>
+</g>
+<g >
+<title>routee_compass_core::model::unit::internal_float::InternalFloat (219,072 samples, 4.00%)</title><rect x="576.4" y="37" width="47.2" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="579.43" y="47.5" >rout..</text>
+</g>
+<g >
+<title>routee_compass_core::model::unit::internal_float::InternalFloat (219,072 samples, 4.00%)</title><rect x="1001.2" y="37" width="47.2" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="1004.20" y="47.5" >rout..</text>
+</g>
+<g >
+<title>usize (219,072 samples, 4.00%)</title><rect x="104.4" y="37" width="47.2" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="107.44" y="47.5" >usize</text>
+</g>
+<g >
+<title>usize (219,072 samples, 4.00%)</title><rect x="623.6" y="37" width="47.2" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="626.63" y="47.5" >usize</text>
+</g>
+<g >
+<title>0 (219,072 samples, 4.00%)</title><rect x="529.2" y="117" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="532.23" y="127.5" >0</text>
+</g>
+<g >
+<title>usize (219,072 samples, 4.00%)</title><rect x="529.2" y="101" width="47.2" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="532.23" y="111.5" >usize</text>
+</g>
+<g >
+<title>prev_edge_id (438,160 samples, 8.00%)</title><rect x="57.2" y="117" width="94.4" height="15.0" fill="rgb(220,73,17)" rx="2" ry="2" />
+<text  x="60.24" y="127.5" >prev_edge_id</text>
+</g>
+<g >
+<title>std::collections::hash::map::HashMap&lt;routee_compass_core::model::road_network::vertex_id::VertexId, routee_compass_core::model::unit::cost::Cost&gt; (438,208 samples, 8.00%)</title><rect x="1095.6" y="181" width="94.4" height="15.0" fill="rgb(234,136,32)" rx="2" ry="2" />
+<text  x="1098.59" y="191.5" >std::collec..</text>
+</g>
+<g >
+<title>0 (219,080 samples, 4.00%)</title><rect x="1095.6" y="117" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="1098.60" y="127.5" >0</text>
+</g>
+<g >
+<title>routee_compass_core::model::road_network::vertex_id::VertexId (219,080 samples, 4.00%)</title><rect x="1095.6" y="133" width="47.2" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="1098.60" y="143.5" >rout..</text>
+</g>
+<g >
+<title>0 (219,072 samples, 4.00%)</title><rect x="576.4" y="53" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="579.43" y="63.5" >0</text>
+</g>
+<g >
+<title>0 (219,072 samples, 4.00%)</title><rect x="1048.4" y="85" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="1051.40" y="95.5" >0</text>
+</g>
+<g >
+<title>0 (219,072 samples, 4.00%)</title><rect x="623.6" y="53" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="626.63" y="63.5" >0</text>
+</g>
+<g >
+<title>routee_compass_core::model::unit::cost::Cost (219,072 samples, 4.00%)</title><rect x="1001.2" y="69" width="47.2" height="15.0" fill="rgb(231,119,28)" rx="2" ry="2" />
+<text  x="1004.20" y="79.5" >rout..</text>
+</g>
+<g >
+<title>routee_compass_core::model::road_network::vertex_id::VertexId (219,080 samples, 4.00%)</title><rect x="10.0" y="133" width="47.2" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="13.04" y="143.5" >rout..</text>
+</g>
+<g >
+<title>Some (219,072 samples, 4.00%)</title><rect x="104.4" y="85" width="47.2" height="15.0" fill="rgb(253,224,53)" rx="2" ry="2" />
+<text  x="107.44" y="95.5" >Some</text>
+</g>
+<g >
+<title>0 (219,080 samples, 4.00%)</title><rect x="482.0" y="85" width="47.2" height="15.0" fill="rgb(253,222,53)" rx="2" ry="2" />
+<text  x="485.02" y="95.5" >0</text>
+</g>
+</g>
+</svg>
