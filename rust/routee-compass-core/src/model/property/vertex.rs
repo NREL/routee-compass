@@ -1,21 +1,22 @@
-use crate::model::road_network::vertex_id::VertexId;
-use geo::{coord, Coord};
+use crate::{model::road_network::vertex_id::VertexId, util::geo::coord::InternalCoord};
+use allocative::Allocative;
+use geo::coord;
 use serde::de;
 
 /// represents a vertex in a Graph
 /// this struct implements Serialize and Deserialize to support reading
 /// vertex records from CSV files.
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Copy, Clone, Default, Debug, Allocative)]
 pub struct Vertex {
     pub vertex_id: VertexId,
-    pub coordinate: Coord,
+    pub coordinate: InternalCoord,
 }
 
 impl Vertex {
     pub fn new(vertex_id: usize, x: f64, y: f64) -> Self {
         Self {
             vertex_id: VertexId(vertex_id),
-            coordinate: coord! {x: x, y: y},
+            coordinate: InternalCoord(coord! {x: x, y: y}),
         }
     }
     pub fn to_tuple_underlying(&self) -> (f64, f64) {
@@ -130,7 +131,10 @@ mod tests {
     use csv;
     use geo::Coord;
 
-    use crate::model::{property::vertex::Vertex, road_network::vertex_id::VertexId};
+    use crate::{
+        model::{property::vertex::Vertex, road_network::vertex_id::VertexId},
+        util::geo::coord::InternalCoord,
+    };
 
     #[test]
     fn test_deserialize_csv() {
@@ -144,24 +148,24 @@ mod tests {
         let expected: Vec<Vertex> = vec![
             Vertex {
                 vertex_id: VertexId(5),
-                coordinate: Coord {
+                coordinate: InternalCoord(Coord {
                     x: -105.2042387,
                     y: 39.712214,
-                },
+                }),
             },
             Vertex {
                 vertex_id: VertexId(10),
-                coordinate: Coord {
+                coordinate: InternalCoord(Coord {
                     x: -105.2292743,
                     y: 39.7584272,
-                },
+                }),
             },
             Vertex {
                 vertex_id: VertexId(15),
-                coordinate: Coord {
+                coordinate: InternalCoord(Coord {
                     x: -105.1972541,
                     y: 39.760731,
-                },
+                }),
             },
         ];
 

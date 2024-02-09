@@ -1,8 +1,6 @@
-use routee_compass_core::{
-    model::traversal::{
-        state::state_variable::StateVar, traversal_model_error::TraversalModelError,
-    },
-    model::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
+use routee_compass_core::model::{
+    traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
+    unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use std::sync::Arc;
 
@@ -59,6 +57,9 @@ pub trait VehicleType: Send + Sync {
         distance: (Distance, DistanceUnit),
         state: &[StateVar],
     ) -> Result<VehicleEnergyResult, TraversalModelError>;
+
+    /// Return the number of state variables in the vehicle type
+    fn number_of_state_variables(&self) -> usize;
 
     /// Provides the list of state variable names in the order that they
     /// appear in the VehicleType. for each state variable name, its position

@@ -20,8 +20,13 @@ pub struct EnergyTraversalModel {
 
 impl TraversalModel for EnergyTraversalModel {
     fn initial_state(&self) -> TraversalState {
-        // distance, time
-        let mut initial_state = vec![StateVar(0.0), StateVar(0.0)];
+        let state_size = 2 + self.vehicle.number_of_state_variables();
+        let mut initial_state = Vec::with_capacity(state_size);
+
+        // distance
+        initial_state.push(StateVar(0.0));
+        // time
+        initial_state.push(StateVar(0.0));
 
         // vehicle state gets slots 2..n
         let vehicle_state = self.vehicle.initial_state();
@@ -152,8 +157,8 @@ impl TraversalModel for EnergyTraversalModel {
         state: &TraversalState,
     ) -> Result<TraversalState, TraversalModelError> {
         let distance = haversine::coord_distance(
-            src.coordinate,
-            dst.coordinate,
+            &src.coordinate,
+            &dst.coordinate,
             self.service.output_distance_unit,
         )
         .map_err(TraversalModelError::NumericError)?;
@@ -221,7 +226,7 @@ fn update_state(
     time: Time,
     vehicle_state: VehicleState,
 ) -> TraversalState {
-    let mut updated_state = Vec::new();
+    let mut updated_state = Vec::with_capacity(state.len());
 
     updated_state.push(state[0] + distance.into());
     updated_state.push(state[1] + time.into());
@@ -255,9 +260,12 @@ mod tests {
 
     use super::*;
     use geo::coord;
-    use routee_compass_core::model::{
-        property::{edge::Edge, vertex::Vertex},
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
+    use routee_compass_core::{
+        model::{
+            property::{edge::Edge, vertex::Vertex},
+            road_network::{edge_id::EdgeId, vertex_id::VertexId},
+        },
+        util::geo::coord::InternalCoord,
     };
     use std::{collections::HashMap, path::PathBuf};
 
@@ -285,7 +293,7 @@ mod tests {
             .join("Toyota_Camry.bin");
         let v = Vertex {
             vertex_id: VertexId(0),
-            coordinate: coord! {x: -86.67, y: 36.12},
+            coordinate: InternalCoord(coord! {x: -86.67, y: 36.12}),
         };
         fn mock_edge(edge_id: usize) -> Edge {
             Edge {

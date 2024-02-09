@@ -123,7 +123,7 @@ impl SearchApp {
                 Ok(SearchAppResult {
                     route,
                     tree,
-                    search_start_time,
+                    search_start_time: search_start_time.to_rfc3339(),
                     search_runtime,
                     route_runtime,
                     total_runtime: search_runtime + route_runtime,
@@ -201,7 +201,7 @@ impl SearchApp {
                 Ok(SearchAppResult {
                     route,
                     tree,
-                    search_start_time,
+                    search_start_time: search_start_time.to_rfc3339(),
                     search_runtime,
                     route_runtime,
                     total_runtime: search_runtime + route_runtime,

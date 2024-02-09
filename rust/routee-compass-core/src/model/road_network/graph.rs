@@ -8,6 +8,8 @@ use std::path::Path;
 
 use super::graph_loader::graph_from_files;
 
+use allocative::Allocative;
+
 /// Road network topology represented as an adjacency list.
 /// The `EdgeId` and `VertexId` values correspond to edge and
 /// vertex indices in the `edges` and `vertices` vectors.
@@ -27,7 +29,7 @@ use super::graph_loader::graph_from_files;
 /// into Vecs because of error handling or lifetimes, but those cases will only produce a
 /// smaller subset of the source data.
 
-#[derive(Debug)]
+#[derive(Debug, Allocative)]
 pub struct Graph {
     pub adj: Box<[HashMap<EdgeId, VertexId>]>,
     pub rev: Box<[HashMap<EdgeId, VertexId>]>,

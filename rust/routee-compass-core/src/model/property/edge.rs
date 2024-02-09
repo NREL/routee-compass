@@ -1,11 +1,12 @@
 use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::unit::Distance;
+use allocative::Allocative;
 use serde::{Deserialize, Serialize};
 
 /// represents a single edge in a Graph.
 /// this struct implements Serialize and Deserialize to support reading
 /// edge records from CSV files.
-#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug, Allocative)]
 pub struct Edge {
     pub edge_id: EdgeId,
     pub src_vertex_id: VertexId,

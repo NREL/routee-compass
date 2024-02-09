@@ -35,6 +35,9 @@ impl VehicleType for ICE {
     fn name(&self) -> String {
         self.name.clone()
     }
+    fn number_of_state_variables(&self) -> usize {
+        1
+    }
     fn state_variable_names(&self) -> Vec<String> {
         vec![String::from("energy_liquid")]
     }

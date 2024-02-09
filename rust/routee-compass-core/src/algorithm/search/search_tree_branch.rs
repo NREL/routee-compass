@@ -1,10 +1,11 @@
 use crate::{
     algorithm::search::edge_traversal::EdgeTraversal, model::road_network::vertex_id::VertexId,
 };
+use allocative::Allocative;
 use serde::Serialize;
 use std::fmt::Display;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Serialize, Allocative)]
 pub struct SearchTreeBranch {
     pub terminal_vertex: VertexId,
     pub edge_traversal: EdgeTraversal,

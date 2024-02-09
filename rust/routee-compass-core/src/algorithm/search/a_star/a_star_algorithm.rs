@@ -10,7 +10,9 @@ use crate::model::road_network::graph::Graph;
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
+use crate::model::unit::cost::ReverseCost;
 use crate::model::unit::Cost;
+use crate::util::priority_queue::InternalPriorityQueue;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{algorithm::search::direction::Direction, model::road_network::vertex_id::VertexId};
 use priority_queue::PriorityQueue;
@@ -46,7 +48,8 @@ pub fn run_a_star(
         .read()
         .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
 
-    let mut costs: PriorityQueue<VertexId, std::cmp::Reverse<Cost>> = PriorityQueue::new();
+    let mut costs: InternalPriorityQueue<VertexId, ReverseCost> =
+        InternalPriorityQueue(PriorityQueue::new());
     let mut frontier: HashMap<VertexId, AStarFrontier> = HashMap::new();
     let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
@@ -64,7 +67,7 @@ pub fn run_a_star(
         None => Cost::ZERO,
         Some(target_vertex_id) => h_cost(source, target_vertex_id, &initial_state, &g, &m, &u)?,
     };
-    costs.push(source, std::cmp::Reverse(origin_cost));
+    costs.push(source, origin_cost.into());
     frontier.insert(source, origin);
 
     let start_time = Instant::now();
@@ -163,7 +166,7 @@ pub fn run_a_star(
                     Some(target_v) => h_cost(dst_id, target_v, &current.state, &g, &m, &u)?,
                 };
                 let f_score_value = tentative_gscore + dst_h_cost;
-                costs.push_increase(f.vertex_id, std::cmp::Reverse(f_score_value));
+                costs.push_increase(f.vertex_id, f_score_value.into());
                 frontier.insert(f.vertex_id, f);
             }
         }
@@ -187,6 +190,40 @@ pub fn run_a_star(
         iterations,
         solution.len()
     );
+
+    #[cfg(debug_assertions)]
+    {
+        use std::io::Write;
+        use std::path::PathBuf;
+
+        log::debug!("Building flamegraph for search memory usage..");
+        let mut flamegraph = allocative::FlameGraphBuilder::default();
+        flamegraph.visit_root(&costs);
+        flamegraph.visit_root(&frontier);
+        flamegraph.visit_root(&traversal_costs);
+        flamegraph.visit_root(&solution);
+        let output = flamegraph.finish_and_write_flame_graph();
+
+        let search_name = match target {
+            None => format!("{}_to_all", source),
+            Some(tid) => format!("{}_to_{}", source, tid),
+        };
+
+        let outdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("target")
+            .join("flamegraph");
+
+        if !outdir.exists() {
+            std::fs::create_dir(&outdir).unwrap();
+        }
+
+        let mut flamegraph_file = std::fs::File::create(
+            outdir.join(format!("search_memory_flamegraph_{}.out", search_name)),
+        )
+        .unwrap();
+        flamegraph_file.write_all(output.as_bytes()).unwrap();
+    }
 
     Ok(solution)
 }

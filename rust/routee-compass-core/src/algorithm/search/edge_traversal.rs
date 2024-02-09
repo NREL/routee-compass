@@ -5,11 +5,12 @@ use crate::model::road_network::graph::Graph;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::Cost;
+use allocative::Allocative;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::{fmt::Display, sync::RwLockReadGuard};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Allocative)]
 pub struct EdgeTraversal {
     pub edge_id: EdgeId,
     pub access_cost: Cost,

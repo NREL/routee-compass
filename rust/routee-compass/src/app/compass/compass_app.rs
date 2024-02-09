@@ -166,6 +166,36 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             graph_duration.hhmmss()
         );
 
+        let graph_bytes = allocative::size_of_unique_allocated_data(&graph);
+        log::info!("graph size: {} GB", graph_bytes as f64 / 1e9);
+
+        #[cfg(debug_assertions)]
+        {
+            use std::io::Write;
+
+            log::debug!("Building flamegraph for graph memory usage..");
+
+            let mut flamegraph = allocative::FlameGraphBuilder::default();
+            flamegraph.visit_root(&graph);
+            let output = flamegraph.finish_and_write_flame_graph();
+
+            let outdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .join("target")
+                .join("flamegraph");
+
+            if !outdir.exists() {
+                std::fs::create_dir(&outdir).unwrap();
+            }
+
+            let outfile = outdir.join("graph_memory_flamegraph.out");
+
+            log::debug!("writing graph flamegraph to {:?}", outfile);
+
+            let mut output_file = std::fs::File::create(outfile).unwrap();
+            output_file.write_all(output.as_bytes()).unwrap();
+        }
+
         // build search app
         let search_app: SearchApp = SearchApp::new(
             search_algorithm,
@@ -418,16 +448,11 @@ pub fn apply_output_processing(
                 "completed search for request {}: {} edges in route, {} in tree",
                 req,
                 result.route.len(),
-                result.tree.len()
+                result.tree.len(),
             );
 
             let mut init_output = serde_json::json!({
                 "request": req,
-                "search_executed_time": result.search_start_time.to_rfc3339(),
-                "search_runtime": result.search_runtime.hhmmss(),
-                "total_runtime": result.total_runtime.hhmmss(),
-                "route_edge_count": result.route.len(),
-                "tree_edge_count": result.tree.len()
             });
 
             let route = result.route.to_vec();

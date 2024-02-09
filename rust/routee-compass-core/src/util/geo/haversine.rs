@@ -6,7 +6,7 @@ pub const APPROX_EARTH_RADIUS_M: f64 = 6_371_000.0;
 /// get the distance between two coordinates and return the value
 /// in the base distance unit, which is meters.
 /// coordinates are assumed to be in the WGS84 Coordinate System.
-pub fn coord_distance_meters(src: Coord, dst: Coord) -> Result<Distance, String> {
+pub fn coord_distance_meters(src: &Coord, dst: &Coord) -> Result<Distance, String> {
     let distance_meters = haversine_distance_meters(src.x, src.y, dst.x, dst.y)?;
     Ok(distance_meters)
 }
@@ -15,8 +15,8 @@ pub fn coord_distance_meters(src: Coord, dst: Coord) -> Result<Distance, String>
 /// in the requested distance unit
 /// coordinates are assumed to be in the WGS84 Coordinate System.
 pub fn coord_distance(
-    src: Coord,
-    dst: Coord,
+    src: &Coord,
+    dst: &Coord,
     distance_unit: DistanceUnit,
 ) -> Result<Distance, String> {
     let distance_meters = haversine_distance_meters(src.x, src.y, dst.x, dst.y)?;
