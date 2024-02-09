@@ -45,12 +45,7 @@ impl OutputPlugin for SummaryOutputPlugin {
 
                 updated.insert("route_edge_count".to_string(), result.route.len().into());
 
-                let tree_len = match &result.tree {
-                    None => 0,
-                    Some(tree) => tree.len(),
-                };
-
-                updated.insert("tree_edge_count".to_string(), tree_len.into());
+                updated.insert("tree_edge_count".to_string(), result.tree.len().into());
 
                 Ok(vec![updated_output])
             }

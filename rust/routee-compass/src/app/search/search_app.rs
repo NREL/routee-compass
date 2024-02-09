@@ -122,7 +122,7 @@ impl SearchApp {
                 );
                 Ok(SearchAppResult {
                     route,
-                    tree: Some(tree),
+                    tree,
                     search_start_time: search_start_time.to_rfc3339(),
                     search_runtime,
                     route_runtime,
@@ -200,7 +200,7 @@ impl SearchApp {
                     .unwrap_or(time::Duration::ZERO);
                 Ok(SearchAppResult {
                     route,
-                    tree: Some(tree),
+                    tree,
                     search_start_time: search_start_time.to_rfc3339(),
                     search_runtime,
                     route_runtime,

@@ -24,7 +24,6 @@ use crate::{
         plugin_error::PluginError,
     },
 };
-use allocative::FlameGraphBuilder;
 use chrono::{Duration, Local};
 use config::Config;
 use itertools::{Either, Itertools};
@@ -36,8 +35,6 @@ use routee_compass_core::{
 };
 use serde_json::Value;
 use std::{
-    fs::File,
-    io::Write,
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
@@ -172,15 +169,33 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let graph_bytes = allocative::size_of_unique_allocated_data(&graph);
         log::info!("graph size: {} GB", graph_bytes as f64 / 1e9);
 
-        if std::env::var("DEBUG_MODE").is_ok() {
-            let mut flamegraph = FlameGraphBuilder::default();
+        #[cfg(debug_assertions)]
+        {
+            use std::io::Write;
+
+            log::debug!("Building flamegraph for graph memory usage..");
+
+            let mut flamegraph = allocative::FlameGraphBuilder::default();
             flamegraph.visit_root(&graph);
             let output = flamegraph.finish_and_write_flame_graph();
 
-            // write the output to a file
-            let mut output_file = File::create("graph_memory_flamegraph.out").unwrap();
+            let outdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("..")
+                .join("target")
+                .join("flamegraph");
+
+            if !outdir.exists() {
+                std::fs::create_dir(&outdir).unwrap();
+            }
+
+            let outfile = outdir.join("graph_memory_flamegraph.out");
+
+            log::debug!("writing graph flamegraph to {:?}", outfile);
+
+            let mut output_file = std::fs::File::create(outfile).unwrap();
             output_file.write_all(output.as_bytes()).unwrap();
         }
+
         // build search app
         let search_app: SearchApp = SearchApp::new(
             search_algorithm,
@@ -429,15 +444,11 @@ pub fn apply_output_processing(
             error_output
         }
         Ok(result) => {
-            let tree_len = match &result.tree {
-                None => 0,
-                Some(tree) => tree.len(),
-            };
             log::debug!(
                 "completed search for request {}: {} edges in route, {} in tree",
                 req,
                 result.route.len(),
-                tree_len,
+                result.tree.len(),
             );
 
             let mut init_output = serde_json::json!({

@@ -76,14 +76,9 @@ impl OutputPlugin for TraversalPlugin {
                 match self.tree {
                     None => {}
                     Some(tree_args) => {
-                        if let Some(tree) = &result.tree {
-                            let tree_output = tree_args.generate_tree_output(tree, &self.geoms)?;
-                            updated.insert(TraversalJsonField::TreeOutput.to_string(), tree_output);
-                        } else {
-                            return Err(PluginError::InternalError(
-                                "expected search result to contain a tree".to_string(),
-                            ));
-                        }
+                        let tree_output =
+                            tree_args.generate_tree_output(&result.tree, &self.geoms)?;
+                        updated.insert(TraversalJsonField::TreeOutput.to_string(), tree_output);
                     }
                 }
 
@@ -151,7 +146,7 @@ mod tests {
         ];
         let search_result = SearchAppResult {
             route,
-            tree: Some(HashMap::new()),
+            tree: HashMap::new(),
             search_start_time: Local::now().to_rfc3339(),
             search_runtime: Duration::ZERO,
             route_runtime: Duration::ZERO,

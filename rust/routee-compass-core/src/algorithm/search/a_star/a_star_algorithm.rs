@@ -15,11 +15,8 @@ use crate::model::unit::Cost;
 use crate::util::priority_queue::InternalPriorityQueue;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use crate::{algorithm::search::direction::Direction, model::road_network::vertex_id::VertexId};
-use allocative::FlameGraphBuilder;
 use priority_queue::PriorityQueue;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::Write;
 use std::sync::Arc;
 use std::sync::RwLockReadGuard;
 use std::time::Instant;
@@ -194,9 +191,13 @@ pub fn run_a_star(
         solution.len()
     );
 
-    // check if DEBUG_MODE is set
-    if std::env::var("DEBUG_MODE").is_ok() {
-        let mut flamegraph = FlameGraphBuilder::default();
+    #[cfg(debug_assertions)]
+    {
+        use std::io::Write;
+        use std::path::PathBuf;
+
+        log::debug!("Building flamegraph for search memory usage..");
+        let mut flamegraph = allocative::FlameGraphBuilder::default();
         flamegraph.visit_root(&costs);
         flamegraph.visit_root(&frontier);
         flamegraph.visit_root(&traversal_costs);
@@ -208,8 +209,19 @@ pub fn run_a_star(
             Some(tid) => format!("{}_to_{}", source, tid),
         };
 
-        let mut flamegraph_file =
-            File::create(format!("search_memory_flamegraph_{}.out", search_name)).unwrap();
+        let outdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("target")
+            .join("flamegraph");
+
+        if !outdir.exists() {
+            std::fs::create_dir(&outdir).unwrap();
+        }
+
+        let mut flamegraph_file = std::fs::File::create(
+            outdir.join(format!("search_memory_flamegraph_{}.out", search_name)),
+        )
+        .unwrap();
         flamegraph_file.write_all(output.as_bytes()).unwrap();
     }
 
