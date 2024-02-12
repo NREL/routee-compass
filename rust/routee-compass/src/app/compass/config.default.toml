@@ -13,22 +13,10 @@ distance_unit = "kilometers"
 
 [cost]
 cost_aggregation = "sum"
-
-[cost.state_variable_coefficients]
-distance = 1
-time = 1
-energy = 1
-energy_liquid = 1
-energy_electric = 1
-
-[cost.vehicle_state_variable_rates.distance]
-type = "raw"
-[cost.vehicle_state_variable_rates.time]
-type = "raw"
-[cost.vehicle_state_variable_rates.energy_liquid]
-type = "raw"
-[cost.vehicle_state_variable_rates.energy_electric]
-type = "raw"
+network_state_variable_rates = {}
+# cost.state_variable_coefficients = { distance = 1 }
+# [cost.vehicle_state_variable_rates.distance]
+# type = "raw"
 
 [frontier]
 type = "no_restriction"
