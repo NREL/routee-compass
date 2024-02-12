@@ -537,29 +537,7 @@ pub fn apply_output_processing(
                 "error": e.to_string()
             })]
         }
-        Ok(json) => {
-            json
-            // let output_plugin_runtime = chrono::Local::now() - start_time;
-            // let output_plugin_runtime_str = output_plugin_runtime
-            //     .to_std()
-            //     .unwrap_or(time::Duration::ZERO)
-            //     .hhmmss();
-            // json.iter()
-            //     .map(|j| {
-            //         let mut mj = j.clone();
-            //         match mj.as_object_mut().ok_or(PluginError::JsonError) {
-            //             Ok(map) => {
-            //                 map.insert(
-            //                     String::from("output_plugin_runtime"),
-            //                     serde_json::json!(output_plugin_runtime_str),
-            //                 );
-            //                 serde_json::json!(map)
-            //             }
-            //             Err(_) => j.clone(),
-            //         }
-            //     })
-            //     .collect::<Vec<_>>()
-        }
+        Ok(json) => json,
     }
 }
 
