@@ -10,9 +10,7 @@ use crate::{
             config::{
                 compass_configuration_field::CompassConfigurationField,
                 config_json_extension::ConfigJsonExtensions,
-                cost_model::{
-                    cost_model_builder::CostModelBuilder,
-                },
+                cost_model::cost_model_builder::CostModelBuilder,
                 graph_builder::DefaultGraphBuilder,
                 termination_model_builder::TerminationModelBuilder,
             },
