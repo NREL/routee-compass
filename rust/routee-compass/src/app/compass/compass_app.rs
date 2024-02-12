@@ -37,6 +37,7 @@ use serde_json::Value;
 use std::{
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
+    time,
 };
 
 /// Instance of RouteE Compass as an application.
@@ -128,11 +129,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         );
 
         // build utility model
-        let utility_params = config_json.get_config_section(CompassConfigurationField::Cost);
-        let utility_model_service = match utility_params.ok() {
-            None => Ok(CostModelService::default_cost_model()),
-            Some(params) => CostModelBuilder {}.build(&params),
-        }?;
+        let cost_params = config_json.get_config_section(CompassConfigurationField::Cost)?;
+        let cost_model_service = CostModelBuilder {}.build(&cost_params)?;
 
         // build frontier model
         let frontier_start = Local::now();
@@ -201,7 +199,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             search_algorithm,
             graph,
             traversal_model_service,
-            utility_model_service,
+            cost_model_service,
             frontier_model_service,
             termination_model,
         );
@@ -433,6 +431,7 @@ pub fn apply_output_processing(
     search_app: &SearchApp,
     output_plugins: &[Arc<dyn OutputPlugin>],
 ) -> Vec<serde_json::Value> {
+    let start_time = chrono::Local::now();
     let (req, res) = response_data;
 
     let init_output = match &res {
@@ -494,6 +493,16 @@ pub fn apply_output_processing(
                 init_output["cost_summary"] = cost_summary;
             }
 
+            // append the runtime required to compute these summaries
+            let output_plugin_executed_time = chrono::Local::now();
+            let basic_summary_runtime = output_plugin_executed_time - start_time;
+            let basic_summary_runtime_str = basic_summary_runtime
+                .to_std()
+                .unwrap_or(time::Duration::ZERO)
+                .hhmmss();
+            init_output["basic_summary_runtime"] = serde_json::json!(basic_summary_runtime_str);
+            init_output["output_plugin_executed_time"] =
+                serde_json::json!(output_plugin_executed_time.to_rfc3339());
             init_output
         }
     };
@@ -528,7 +537,29 @@ pub fn apply_output_processing(
                 "error": e.to_string()
             })]
         }
-        Ok(json) => json,
+        Ok(json) => {
+            json
+            // let output_plugin_runtime = chrono::Local::now() - start_time;
+            // let output_plugin_runtime_str = output_plugin_runtime
+            //     .to_std()
+            //     .unwrap_or(time::Duration::ZERO)
+            //     .hhmmss();
+            // json.iter()
+            //     .map(|j| {
+            //         let mut mj = j.clone();
+            //         match mj.as_object_mut().ok_or(PluginError::JsonError) {
+            //             Ok(map) => {
+            //                 map.insert(
+            //                     String::from("output_plugin_runtime"),
+            //                     serde_json::json!(output_plugin_runtime_str),
+            //                 );
+            //                 serde_json::json!(map)
+            //             }
+            //             Err(_) => j.clone(),
+            //         }
+            //     })
+            //     .collect::<Vec<_>>()
+        }
     }
 }
 

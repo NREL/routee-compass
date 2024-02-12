@@ -9,8 +9,8 @@ use std::{collections::HashMap, time::Duration};
 pub struct SearchAppResult {
     pub route: Vec<EdgeTraversal>,
     pub tree: HashMap<VertexId, SearchTreeBranch>,
-    pub search_start_time: String,
-    pub search_runtime: Duration,
+    pub search_executed_time: String,
+    pub algorithm_runtime: Duration,
     pub route_runtime: Duration,
-    pub total_runtime: Duration,
+    pub search_app_runtime: Duration,
 }

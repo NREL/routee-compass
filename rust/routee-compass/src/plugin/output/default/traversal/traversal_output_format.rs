@@ -108,10 +108,10 @@ mod test {
         let result = SearchAppResult {
             route,
             tree: HashMap::new(),
-            search_start_time: Local::now().to_rfc3339(),
-            search_runtime: Duration::ZERO,
+            search_executed_time: Local::now().to_rfc3339(),
+            algorithm_runtime: Duration::ZERO,
             route_runtime: Duration::ZERO,
-            total_runtime: Duration::ZERO,
+            search_app_runtime: Duration::ZERO,
         };
 
         let geoms = vec![
