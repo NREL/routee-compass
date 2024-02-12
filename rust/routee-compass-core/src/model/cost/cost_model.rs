@@ -20,6 +20,13 @@ pub struct CostModel {
 }
 
 impl CostModel {
+    /// builds a cost model for a specific query.
+    ///
+    /// at configuration time, a list of rates are specified. at query time,
+    /// a specialized cost model is built that takes the state variable indices from
+    /// the specialized traversal model and creates a mapping into this cost
+    /// model instance.
+    ///
     pub fn new(
         state_variable_indices: Vec<(String, usize)>,
         state_variable_coefficients_map: Arc<HashMap<String, f64>>,
@@ -27,30 +34,40 @@ impl CostModel {
         network_state_variable_rates_map: Arc<HashMap<String, NetworkCostRate>>,
         cost_aggregation: CostAggregation,
     ) -> Result<CostModel, CostError> {
+        if state_variable_indices.is_empty() {
+            return Err(CostError::InvalidConfiguration(String::from(
+                "no state variables listed",
+            )));
+        }
+
+        let mut state_variable_coefficients = vec![];
+        let mut vehicle_state_variable_rates = vec![];
+        let mut network_state_variable_rates = vec![];
+
         // map the state variable coefficiencies and rates to the state variable indices
-        let mut state_variable_coefficients = vec![0.0; state_variable_indices.len()];
-        let mut vehicle_state_variable_rates =
-            vec![VehicleCostRate::default(); state_variable_indices.len()];
-        let mut network_state_variable_rates =
-            vec![NetworkCostRate::default(); state_variable_indices.len()];
-        for (name, idx) in &state_variable_indices {
-            let coef = state_variable_coefficients_map.get(name).unwrap_or(&1.0);
-            state_variable_coefficients[*idx] = *coef;
-        }
-        for (name, idx) in &state_variable_indices {
-            let rate = vehicle_state_variable_rates_map
+        for (name, _state_idx) in state_variable_indices.iter() {
+            let coef = state_variable_coefficients_map.get(name).ok_or_else(|| {
+                CostError::InvalidConfiguration(format!("coefficient for {} not provided", name))
+            })?;
+            let v_rate = vehicle_state_variable_rates_map
+                .get(name)
+                .cloned()
+                .ok_or_else(|| {
+                    CostError::InvalidConfiguration(format!(
+                        "vehicle rate for {} not provided",
+                        name
+                    ))
+                })?;
+            let n_rate = network_state_variable_rates_map
                 .get(name)
                 .cloned()
                 .unwrap_or_default();
-            vehicle_state_variable_rates[*idx] = rate.clone();
+
+            state_variable_coefficients.push(*coef);
+            vehicle_state_variable_rates.push(v_rate.clone());
+            network_state_variable_rates.push(n_rate.clone());
         }
-        for (name, idx) in &state_variable_indices {
-            let rate = network_state_variable_rates_map
-                .get(name)
-                .cloned()
-                .unwrap_or_default();
-            network_state_variable_rates[*idx] = rate.clone();
-        }
+
         if state_variable_coefficients.iter().sum::<f64>() == 0.0 {
             return Err(CostError::InvalidCostVariables);
         }
@@ -198,10 +215,12 @@ impl CostModel {
                 let state_var = state
                     .get(*idx)
                     .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
-                let rate = self
-                    .vehicle_state_variable_rates
-                    .get(*idx)
-                    .ok_or_else(|| CostError::StateVariableNotFound(name.clone()))?;
+                let rate = self.vehicle_state_variable_rates.get(*idx).ok_or_else(|| {
+                    CostError::StateVariableNotFound(
+                        name.clone(),
+                        String::from("vehicle cost rates"),
+                    )
+                })?;
                 let cost = rate.map_value(*state_var);
                 Ok((name.clone(), cost))
             })

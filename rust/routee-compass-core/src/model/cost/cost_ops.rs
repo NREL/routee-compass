@@ -12,22 +12,25 @@ pub fn calculate_vehicle_costs(
     rates: &[VehicleCostRate],
     cost_aggregation: &CostAggregation,
 ) -> Result<Cost, CostError> {
-    let costs = state_variable_indices.iter().map(|(name, idx)| {
-        let prev_state_var = prev_state
-            .get(*idx)
-            .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
-        let next_state_var = next_state
-            .get(*idx)
-            .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
-        let delta: StateVar = *next_state_var - *prev_state_var;
-        let mapping = rates
-            .get(*idx)
-            .ok_or_else(|| CostError::StateVariableNotFound(name.clone()))?;
-        let coefficient = state_variable_coefficients.get(*idx).unwrap_or(&1.0);
-        let delta_cost = mapping.map_value(delta);
-        let cost = delta_cost * coefficient;
-        Ok((name, cost))
-    });
+    let costs = state_variable_indices
+        .iter()
+        .enumerate()
+        .map(|(model_idx, (name, state_idx))| {
+            let prev_state_var = prev_state
+                .get(*state_idx)
+                .ok_or_else(|| CostError::StateIndexOutOfBounds(*state_idx, name.clone()))?;
+            let next_state_var = next_state
+                .get(*state_idx)
+                .ok_or_else(|| CostError::StateIndexOutOfBounds(*state_idx, name.clone()))?;
+            let delta: StateVar = *next_state_var - *prev_state_var;
+            let mapping = rates.get(model_idx).ok_or_else(|| {
+                CostError::StateVariableNotFound(name.clone(), String::from("vehicle_cost_rates"))
+            })?;
+            let coefficient = state_variable_coefficients.get(model_idx).unwrap_or(&1.0);
+            let delta_cost = mapping.map_value(delta);
+            let cost = delta_cost * coefficient;
+            Ok((name, cost))
+        });
 
     cost_aggregation.agg_iter(costs)
 }
