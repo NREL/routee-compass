@@ -4,88 +4,19 @@ use routee_compass_core::model::cost::{
     cost_aggregation::CostAggregation, cost_model::CostModel,
     network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
 };
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 pub struct CostModelService {
     pub vehicle_state_variable_rates: Arc<HashMap<String, VehicleCostRate>>,
     pub network_state_variable_rates: Arc<HashMap<String, NetworkCostRate>>,
     pub state_variable_coefficients: Arc<HashMap<String, f64>>,
-    pub default_cost_aggregation: CostAggregation,
+    pub cost_aggregation: CostAggregation,
 }
 
 impl CostModelService {
-    /// create a new instance of a utility model service using the provided
-    /// values deserialized from app configuration.
-    ///
-    /// if no default vehicle state variable names are provided, fall back to "distance"
-    /// defaults as defined here in this module.
-    pub fn new(
-        vehicle_state_variable_rates: Option<HashMap<String, VehicleCostRate>>,
-        network_state_variable_rates: Option<HashMap<String, NetworkCostRate>>,
-        default_state_variable_coefficients: Option<HashMap<String, f64>>,
-        default_cost_aggregation: Option<CostAggregation>,
-    ) -> Result<CostModelService, CompassConfigurationError> {
-        let vehicle_rates = vehicle_state_variable_rates
-            .unwrap_or(CostModelService::default_vehicle_state_variable_rates());
-        let network_rates = network_state_variable_rates.unwrap_or_default();
-        let coefficients = match default_state_variable_coefficients {
-            Some(coefficients) => {
-                if coefficients.is_empty() {
-                    Err(CompassConfigurationError::UserConfigurationError(
-                        String::from("default vehicle state_variable_coefficients cannot be empty"),
-                    ))
-                } else {
-                    Ok(coefficients)
-                }
-            }
-            None => {
-                log::warn!("using default vehicle state variable ['distance']");
-                Ok(CostModelService::default_state_variable_coefficients())
-            }
-        }?;
-        let cost_aggregation = match default_cost_aggregation {
-            Some(agg) => agg,
-            None => {
-                log::warn!("using default cost aggregation 'sum'");
-                CostAggregation::Sum
-            }
-        };
-        Ok(CostModelService {
-            vehicle_state_variable_rates: Arc::new(vehicle_rates),
-            network_state_variable_rates: Arc::new(network_rates),
-            state_variable_coefficients: Arc::new(coefficients),
-            default_cost_aggregation: cost_aggregation,
-        })
-    }
-
-    pub fn default_vehicle_state_variable_rates() -> HashMap<String, VehicleCostRate> {
-        HashMap::from([
-            (String::from("distance"), VehicleCostRate::Raw),
-            (String::from("time"), VehicleCostRate::Raw),
-            (String::from("energy_liquid"), VehicleCostRate::Raw),
-            (String::from("energy_electric"), VehicleCostRate::Raw),
-        ])
-    }
-
-    pub fn default_state_variable_coefficients() -> HashMap<String, f64> {
-        HashMap::from([(String::from("distance"), 1.0)])
-    }
-
-    /// a default cost model interprets raw distance values for costs
-    pub fn default_cost_model() -> CostModelService {
-        log::warn!("using default utility model");
-        CostModelService {
-            vehicle_state_variable_rates: Arc::new(
-                CostModelService::default_vehicle_state_variable_rates(),
-            ),
-            network_state_variable_rates: Arc::new(HashMap::new()),
-            state_variable_coefficients: Arc::new(
-                CostModelService::default_state_variable_coefficients(),
-            ),
-            default_cost_aggregation: CostAggregation::Sum,
-        }
-    }
-
     /// builds a CostModel based on the incoming query parameters along with the
     /// state variable names of the traversal model.
     ///
@@ -114,14 +45,18 @@ impl CostModelService {
         query: &serde_json::Value,
         traversal_state_variable_names: &[String],
     ) -> Result<CostModel, CompassConfigurationError> {
+        // user-provided coefficients used to prioritize each state variable in the cost model
+        // at minimum, we default to the "distance" traveled.
+        // invariant: this hashmap dictates the list of keys for all subsequent CostModel hashmaps.
         let state_variable_coefficients: Arc<HashMap<String, f64>> = query
             .get_config_serde_optional::<HashMap<String, f64>>(
                 &"state_variable_coefficients",
-                &"utility_model",
+                &"cost_model",
             )?
             .map(Arc::new)
             .unwrap_or(self.state_variable_coefficients.clone());
 
+        // union the requested state variables with those in the existing traversal model
         // load only indices that appear in coefficients object
         let state_variable_indices = traversal_state_variable_names
             .iter()
@@ -130,22 +65,38 @@ impl CostModelService {
             .map(|(idx, n)| (n.clone(), idx))
             .collect::<Vec<_>>();
 
+        // validate user input, no query state variables provided that are unknown to traversal model
+        if state_variable_coefficients.len() != state_variable_indices.len() {
+            let names_lookup: HashSet<&String> = traversal_state_variable_names
+                .iter()
+                .collect::<HashSet<_>>();
+
+            let extras = state_variable_coefficients
+                .clone()
+                .keys()
+                .filter(|n| !names_lookup.contains(n))
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(",");
+
+            let msg = format!("unknown state variables in query: [{}]", extras);
+            return Err(CompassConfigurationError::UserConfigurationError(msg));
+        }
+
         // the user can append/replace rates from the query
         let vehicle_rates = query
             .get_config_serde_optional::<HashMap<String, VehicleCostRate>>(
                 &"vehicle_state_variable_rates",
-                &"utility_model",
-            )?
-            .map(|query_rates| {
-                let mut rates = (*self.vehicle_state_variable_rates).clone();
-                rates.extend(query_rates);
-                Arc::new(rates)
-            })
-            .unwrap_or(self.vehicle_state_variable_rates.clone());
+                &"cost_model",
+            )
+            .map(|opt_rates| match opt_rates {
+                Some(rates) => Arc::new(rates),
+                None => self.vehicle_state_variable_rates.clone(),
+            })?;
 
         let cost_aggregation: CostAggregation = query
-            .get_config_serde_optional(&"cost_aggregation", &"utility_model")?
-            .unwrap_or(self.default_cost_aggregation.to_owned());
+            .get_config_serde_optional(&"cost_aggregation", &"cost_model")?
+            .unwrap_or(self.cost_aggregation.to_owned());
 
         let model = CostModel::new(
             state_variable_indices,
