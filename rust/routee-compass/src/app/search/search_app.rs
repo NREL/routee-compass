@@ -123,10 +123,10 @@ impl SearchApp {
                 Ok(SearchAppResult {
                     route,
                     tree,
-                    search_start_time: search_start_time.to_rfc3339(),
-                    search_runtime,
+                    search_executed_time: search_start_time.to_rfc3339(),
+                    algorithm_runtime: search_runtime,
                     route_runtime,
-                    total_runtime: search_runtime + route_runtime,
+                    search_app_runtime: search_runtime + route_runtime,
                 })
             })
             .map_err(CompassAppError::SearchError)
@@ -201,10 +201,10 @@ impl SearchApp {
                 Ok(SearchAppResult {
                     route,
                     tree,
-                    search_start_time: search_start_time.to_rfc3339(),
-                    search_runtime,
+                    search_executed_time: search_start_time.to_rfc3339(),
+                    algorithm_runtime: search_runtime,
                     route_runtime,
-                    total_runtime: search_runtime + route_runtime,
+                    search_app_runtime: search_runtime + route_runtime,
                 })
             })
             .map_err(CompassAppError::SearchError)

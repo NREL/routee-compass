@@ -30,17 +30,17 @@ impl OutputPlugin for SummaryOutputPlugin {
 
                 updated.insert(
                     "search_executed_time".to_string(),
-                    result.search_start_time.clone().into(),
+                    result.search_executed_time.clone().into(),
                 );
 
                 updated.insert(
-                    "search_runtime".to_string(),
-                    result.search_runtime.hhmmss().into(),
+                    "algorithm_runtime".to_string(),
+                    result.algorithm_runtime.hhmmss().into(),
                 );
 
                 updated.insert(
-                    "total_runtime".to_string(),
-                    result.total_runtime.hhmmss().into(),
+                    "search_app_runtime".to_string(),
+                    result.search_app_runtime.hhmmss().into(),
                 );
 
                 updated.insert("route_edge_count".to_string(), result.route.len().into());

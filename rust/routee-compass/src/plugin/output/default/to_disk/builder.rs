@@ -29,7 +29,6 @@ impl OutputPluginBuilder for ToDiskOutputPluginBuilder {
 
         // open the file with the option to append to it
         let file = OpenOptions::new()
-            .write(true)
             .append(true)
             .open(&output_file_path)
             .map_err(|e| {
