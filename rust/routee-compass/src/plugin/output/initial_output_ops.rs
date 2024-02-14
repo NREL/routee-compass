@@ -66,7 +66,7 @@ pub fn package_error<E: ToString>(req: &Value, error: E) -> Value {
 }
 
 pub fn get_traversal_model(
-    et: &EdgeTraversal,
+    _et: &EdgeTraversal,
     req: &Value,
     app: &SearchApp,
 ) -> Result<Arc<dyn TraversalModel>, Value> {
@@ -77,7 +77,7 @@ pub fn get_traversal_model(
 }
 
 pub fn get_cost_model(
-    et: &EdgeTraversal,
+    _et: &EdgeTraversal,
     req: &Value,
     app: &SearchApp,
     tmodel: Arc<dyn TraversalModel>,

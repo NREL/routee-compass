@@ -161,7 +161,7 @@ mod tests {
         let geom_plugin =
             TraversalPlugin::from_file(&filename, Some(TraversalOutputFormat::Wkt), None).unwrap();
 
-        let result = geom_plugin
+        geom_plugin
             .process(&mut output_result, &Ok(search_result))
             .unwrap();
         let geometry_wkt = output_result.get_route_geometry_wkt().unwrap();
