@@ -1,17 +1,13 @@
-use std::{hash::Hash, hash::Hasher};
+use std::hash::{Hash, Hasher};
 
 use allocative::Allocative;
 
-use crate::model::{
-    road_network::edge_id::EdgeId, road_network::vertex_id::VertexId,
-    traversal::state::traversal_state::TraversalState,
-};
+use crate::model::{road_network::edge_id::EdgeId, road_network::vertex_id::VertexId};
 
 #[derive(Clone, Debug, Allocative)]
 pub struct AStarFrontier {
     pub vertex_id: VertexId,
     pub prev_edge_id: Option<EdgeId>,
-    pub state: TraversalState,
 }
 
 impl PartialEq for AStarFrontier {

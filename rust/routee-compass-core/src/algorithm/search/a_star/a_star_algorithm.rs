@@ -60,7 +60,6 @@ pub fn run_a_star(
     let origin = AStarFrontier {
         vertex_id: source,
         prev_edge_id: None,
-        state: initial_state.clone(),
     };
 
     let origin_cost = match target {
@@ -116,6 +115,23 @@ pub fn run_a_star(
             .transpose()
             .map_err(SearchError::GraphError)?;
 
+        // grab the current state from the solution
+        let current_state = if iterations == 0 {
+            initial_state.clone()
+        } else {
+            solution
+                .get(&current.vertex_id)
+                .ok_or_else(|| {
+                    SearchError::InternalSearchError(format!(
+                        "expected vertex id {} missing from solution",
+                        current_vertex_id
+                    ))
+                })?
+                .edge_traversal
+                .result_state
+                .clone()
+        };
+
         // visit all neighbors of this source vertex
         let neighbor_triplets = g
             .incident_triplets(current.vertex_id, Direction::Forward)
@@ -123,13 +139,13 @@ pub fn run_a_star(
         for (src_id, edge_id, dst_id) in neighbor_triplets {
             // first make sure we have a valid edge
             let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
-            if !f.valid_frontier(e, &current.state, previous_edge)? {
+            if !f.valid_frontier(e, &current_state, previous_edge)? {
                 continue;
             }
             let et = EdgeTraversal::perform_traversal(
                 edge_id,
                 current.prev_edge_id,
-                &current.state,
+                &current_state,
                 &g,
                 &m,
                 &u,
@@ -146,8 +162,6 @@ pub fn run_a_star(
             if tentative_gscore < existing_gscore {
                 traversal_costs.insert(dst_id, tentative_gscore);
 
-                let result_state = et.result_state.clone();
-
                 // update solution
                 let traversal = SearchTreeBranch {
                     terminal_vertex: src_id,
@@ -159,11 +173,10 @@ pub fn run_a_star(
                 let f = AStarFrontier {
                     vertex_id: dst_id,
                     prev_edge_id: Some(edge_id),
-                    state: result_state,
                 };
                 let dst_h_cost = match target {
                     None => Cost::ZERO,
-                    Some(target_v) => h_cost(dst_id, target_v, &current.state, &g, &m, &u)?,
+                    Some(target_v) => h_cost(dst_id, target_v, &current_state, &g, &m, &u)?,
                 };
                 let f_score_value = tentative_gscore + dst_h_cost;
                 costs.push_increase(f.vertex_id, f_score_value.into());
