@@ -36,7 +36,7 @@ pub trait OutputPlugin: Send + Sync {
     /// [internal representation]: crate::app::search::search_app_result::SearchAppResult
     fn process(
         &self,
-        output: &serde_json::Value,
+        output: &mut serde_json::Value,
         result: &Result<SearchAppResult, CompassAppError>,
-    ) -> Result<Vec<serde_json::Value>, PluginError>;
+    ) -> Result<(), PluginError>;
 }

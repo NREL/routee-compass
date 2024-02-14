@@ -18,9 +18,9 @@ pub struct ToDiskOutputPlugin {
 impl OutputPlugin for ToDiskOutputPlugin {
     fn process(
         &self,
-        output: &serde_json::Value,
+        output: &mut serde_json::Value,
         _result: &Result<SearchAppResult, CompassAppError>,
-    ) -> Result<Vec<serde_json::Value>, PluginError> {
+    ) -> Result<(), PluginError> {
         let file_ref = Arc::clone(&self.output_file);
         let mut file = file_ref.lock().map_err(|e| {
             PluginError::FileReadError(
@@ -39,6 +39,6 @@ impl OutputPlugin for ToDiskOutputPlugin {
         })?;
 
         // return empty vec since we already wrote the result to a file
-        Ok(Vec::new())
+        Ok(())
     }
 }

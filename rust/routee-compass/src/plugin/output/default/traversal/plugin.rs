@@ -16,6 +16,8 @@ pub struct TraversalPlugin {
     geoms: Box<[LineString<f64>]>,
     route: Option<TraversalOutputFormat>,
     tree: Option<TraversalOutputFormat>,
+    route_key: String,
+    tree_key: String,
 }
 
 impl TraversalPlugin {
@@ -43,33 +45,34 @@ impl TraversalPlugin {
                 PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
             })?;
         println!();
-        Ok(TraversalPlugin { geoms, route, tree })
+
+        let route_key = TraversalJsonField::RouteOutput.to_string();
+        let tree_key = TraversalJsonField::TreeOutput.to_string();
+        Ok(TraversalPlugin {
+            geoms,
+            route,
+            tree,
+            route_key,
+            tree_key,
+        })
     }
 }
 
 impl OutputPlugin for TraversalPlugin {
     fn process(
         &self,
-        output: &serde_json::Value,
+        output: &mut serde_json::Value,
         search_result: &Result<SearchAppResult, CompassAppError>,
-    ) -> Result<Vec<serde_json::Value>, PluginError> {
+    ) -> Result<(), PluginError> {
         match search_result {
-            Err(_) => Ok(vec![output.clone()]),
+            Err(_) => Ok(()),
             Ok(result) => {
-                let mut output_mut = output.clone();
-                let updated = output_mut.as_object_mut().ok_or_else(|| {
-                    PluginError::InternalError(format!(
-                        "expected output JSON to be an object, found {}",
-                        output
-                    ))
-                })?;
-
                 match self.route {
                     None => {}
                     Some(route_args) => {
                         let route_output =
                             route_args.generate_route_output(&result.route, &self.geoms)?;
-                        updated.insert(TraversalJsonField::RouteOutput.to_string(), route_output);
+                        output[&self.route_key] = route_output;
                     }
                 }
 
@@ -78,11 +81,11 @@ impl OutputPlugin for TraversalPlugin {
                     Some(tree_args) => {
                         let tree_output =
                             tree_args.generate_tree_output(&result.tree, &self.geoms)?;
-                        updated.insert(TraversalJsonField::TreeOutput.to_string(), tree_output);
+                        output[&self.tree_key] = tree_output;
                     }
                 }
 
-                Ok(vec![serde_json::Value::Object(updated.to_owned())])
+                Ok(())
             }
         }
     }
@@ -123,7 +126,7 @@ mod tests {
     #[test]
     fn test_add_geometry() {
         let expected_geometry = String::from("LINESTRING(0 0,1 1,2 2,3 3,4 4,5 5,6 6,7 7,8 8)");
-        let output_result = serde_json::json!({});
+        let mut output_result = serde_json::json!({});
         let route = vec![
             EdgeTraversal {
                 edge_id: EdgeId(0),
@@ -159,9 +162,9 @@ mod tests {
             TraversalPlugin::from_file(&filename, Some(TraversalOutputFormat::Wkt), None).unwrap();
 
         let result = geom_plugin
-            .process(&output_result, &Ok(search_result))
+            .process(&mut output_result, &Ok(search_result))
             .unwrap();
-        let geometry_wkt = result[0].get_route_geometry_wkt().unwrap();
+        let geometry_wkt = output_result.get_route_geometry_wkt().unwrap();
         assert_eq!(geometry_wkt, expected_geometry);
     }
 }

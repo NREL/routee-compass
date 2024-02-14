@@ -18,7 +18,8 @@ use crate::{
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
     plugin::{
-        input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin,
+        input::input_plugin::InputPlugin,
+        output::{initial_output_ops as out_ops, output_plugin::OutputPlugin},
         plugin_error::PluginError,
     },
 };
@@ -337,13 +338,12 @@ impl CompassApp {
                         }
                         inner_search
                     })
-                    .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()
+                    .collect::<Result<Vec<serde_json::Value>, CompassAppError>>()
             })
-            .collect::<Result<Vec<Vec<Vec<serde_json::Value>>>, CompassAppError>>()?;
+            .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()?;
 
         let run_result = run_query_result
             .into_iter()
-            .flatten()
             .flatten()
             .chain(error_inputs)
             .collect();
@@ -366,7 +366,7 @@ impl CompassApp {
     pub fn run_single_query(
         &self,
         query: serde_json::Value,
-    ) -> Result<Vec<serde_json::Value>, CompassAppError> {
+    ) -> Result<serde_json::Value, CompassAppError> {
         let search_result = match self.search_orientation {
             SearchOrientation::Vertex => self.search_app.run_vertex_oriented(&query),
             SearchOrientation::Edge => self.search_app.run_edge_oriented(&query),
@@ -428,115 +428,21 @@ pub fn apply_output_processing(
     response_data: (&serde_json::Value, Result<SearchAppResult, CompassAppError>),
     search_app: &SearchApp,
     output_plugins: &[Arc<dyn OutputPlugin>],
-) -> Vec<serde_json::Value> {
-    let start_time = chrono::Local::now();
+) -> serde_json::Value {
     let (req, res) = response_data;
 
-    let init_output = match &res {
-        Err(e) => {
-            let error_output = serde_json::json!({
-                "request": req,
-                "error": e.to_string()
-            });
-            error_output
-        }
-        Ok(result) => {
-            log::debug!(
-                "completed search for request {}: {} edges in route, {} in tree",
-                req,
-                result.route.len(),
-                result.tree.len(),
-            );
-
-            let mut init_output = serde_json::json!({
-                "request": req,
-            });
-
-            let route = result.route.to_vec();
-
-            // build and append summaries if there is a route
-            if let Some(et) = route.last() {
-                // build instances of traversal and cost models to compute summaries
-                let tmodel = match search_app.build_traversal_model(req) {
-                    Err(e) => {
-                        return vec![serde_json::json!({
-                            "request": req,
-                            "error": e.to_string()
-                        })]
-                    }
-                    Ok(tmodel) => tmodel,
-                };
-                let cmodel =
-                    match search_app.build_cost_model_for_traversal_model(req, tmodel.clone()) {
-                        Err(e) => {
-                            return vec![serde_json::json!({
-                                "request": req,
-                                "error": e.to_string()
-                            })]
-                        }
-                        Ok(cmodel) => cmodel,
-                    };
-
-                let traversal_summary = tmodel.serialize_state_with_info(&et.result_state);
-                let cost_summary = match cmodel.serialize_cost_with_info(&et.result_state) {
-                    Err(e) => {
-                        return vec![serde_json::json!({
-                            "request": req,
-                            "error": e.to_string()
-                        })]
-                    }
-                    Ok(json) => json,
-                };
-                init_output["traversal_summary"] = traversal_summary;
-                init_output["cost_summary"] = cost_summary;
-            }
-
-            // append the runtime required to compute these summaries
-            let output_plugin_executed_time = chrono::Local::now();
-            let basic_summary_runtime = output_plugin_executed_time - start_time;
-            let basic_summary_runtime_str = basic_summary_runtime
-                .to_std()
-                .unwrap_or(time::Duration::ZERO)
-                .hhmmss();
-            init_output["basic_summary_runtime"] = serde_json::json!(basic_summary_runtime_str);
-            init_output["output_plugin_executed_time"] =
-                serde_json::json!(output_plugin_executed_time.to_rfc3339());
-            init_output
-        }
+    let mut initial: Value = match out_ops::create_initial_output(req, &res, search_app) {
+        Ok(value) => value,
+        Err(error_value) => return error_value,
     };
-
-    let init_acc: Result<Vec<serde_json::Value>, PluginError> = Ok(vec![init_output]);
-    let json_result = output_plugins
-        .iter()
-        .fold(init_acc, |acc, p| {
-            acc.and_then(|outer| {
-                outer
-                    .iter()
-                    .map(|output| p.process(output, &res))
-                    .collect::<Result<Vec<_>, PluginError>>()
-                    .map(|inner| {
-                        inner
-                            .into_iter()
-                            .flatten()
-                            .collect::<Vec<serde_json::Value>>()
-                    })
-            })
-        })
-        .map_err(|e| {
-            serde_json::json!({
-                "request": req,
-                "error": e.to_string()
-            })
-        });
-    match json_result {
-        Err(e) => {
-            vec![serde_json::json!({
-                "request": req,
-                "error": e.to_string()
-            })]
+    for output_plugin in output_plugins.iter() {
+        match output_plugin.process(&mut initial, &res) {
+            Ok(()) => {}
+            Err(e) => return out_ops::package_error(req, e),
         }
-        Ok(json) => json,
     }
+
+    initial
 }
 
 #[cfg(test)]
