@@ -50,7 +50,6 @@ pub fn run_a_star(
 
     let mut costs: InternalPriorityQueue<VertexId, ReverseCost> =
         InternalPriorityQueue(PriorityQueue::new());
-    let mut frontier: HashMap<VertexId, AStarFrontier> = HashMap::new();
     let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
 
@@ -67,7 +66,6 @@ pub fn run_a_star(
         Some(target_vertex_id) => h_cost(source, target_vertex_id, &initial_state, &g, &m, &u)?,
     };
     costs.push(source, origin_cost.into());
-    frontier.insert(source, origin);
 
     let start_time = Instant::now();
     let mut iterations = 0;
@@ -102,25 +100,29 @@ pub fn run_a_star(
             (Some((current_vertex_id, _)), _) => current_vertex_id,
         };
 
-        let current = frontier.get(&current_vertex_id).cloned().ok_or_else(|| {
-            SearchError::InternalSearchError(format!(
-                "expected vertex id {} missing from frontier",
-                current_vertex_id
-            ))
-        })?;
-        // grab the previous edge, if it exists
-        let previous_edge = current
-            .prev_edge_id
-            .map(|prev_edge_id| g.get_edge(prev_edge_id))
-            .transpose()
-            .map_err(SearchError::GraphError)?;
+        let previous_edge = if iterations == 0 {
+            None
+        } else {
+            let edge_id = solution
+                .get(&current_vertex_id)
+                .ok_or_else(|| {
+                    SearchError::InternalSearchError(format!(
+                        "expected vertex id {} missing from solution",
+                        current_vertex_id
+                    ))
+                })?
+                .edge_traversal
+                .edge_id;
+            let edge = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
+            Some(edge)
+        };
 
         // grab the current state from the solution
         let current_state = if iterations == 0 {
             initial_state.clone()
         } else {
             solution
-                .get(&current.vertex_id)
+                .get(&current_vertex_id)
                 .ok_or_else(|| {
                     SearchError::InternalSearchError(format!(
                         "expected vertex id {} missing from solution",
@@ -134,7 +136,7 @@ pub fn run_a_star(
 
         // visit all neighbors of this source vertex
         let neighbor_triplets = g
-            .incident_triplets(current.vertex_id, Direction::Forward)
+            .incident_triplets(current_vertex_id, Direction::Forward)
             .map_err(SearchError::GraphError)?;
         for (src_id, edge_id, dst_id) in neighbor_triplets {
             // first make sure we have a valid edge
@@ -144,7 +146,7 @@ pub fn run_a_star(
             }
             let et = EdgeTraversal::perform_traversal(
                 edge_id,
-                current.prev_edge_id,
+                previous_edge.map(|pe| pe.edge_id),
                 &current_state,
                 &g,
                 &m,
@@ -169,18 +171,12 @@ pub fn run_a_star(
                 };
                 solution.insert(dst_id, traversal);
 
-                // update search state
-                let f = AStarFrontier {
-                    vertex_id: dst_id,
-                    prev_edge_id: Some(edge_id),
-                };
                 let dst_h_cost = match target {
                     None => Cost::ZERO,
                     Some(target_v) => h_cost(dst_id, target_v, &current_state, &g, &m, &u)?,
                 };
                 let f_score_value = tentative_gscore + dst_h_cost;
-                costs.push_increase(f.vertex_id, f_score_value.into());
-                frontier.insert(f.vertex_id, f);
+                costs.push_increase(dst_id, f_score_value.into());
             }
         }
         iterations += 1;
@@ -212,7 +208,6 @@ pub fn run_a_star(
         log::debug!("Building flamegraph for search memory usage..");
         let mut flamegraph = allocative::FlameGraphBuilder::default();
         flamegraph.visit_root(&costs);
-        flamegraph.visit_root(&frontier);
         flamegraph.visit_root(&traversal_costs);
         flamegraph.visit_root(&solution);
         let output = flamegraph.finish_and_write_flame_graph();
