@@ -1,8 +1,10 @@
+use super::response::response_output_policy::ResponseOutputPolicy;
+use super::response::response_writer::ResponseWriter;
 use super::{
     compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder,
     search_orientation::SearchOrientation,
 };
-use crate::app::compass::response_persistence_policy::ResponsePersistencePolicy;
+use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
 use crate::{
     app::{
         compass::{
@@ -54,6 +56,7 @@ pub struct CompassApp {
     pub parallelism: usize,
     pub search_orientation: SearchOrientation,
     pub response_persistence_policy: ResponsePersistencePolicy,
+    pub response_output_policy: ResponseOutputPolicy,
 }
 
 impl TryFrom<&Path> for CompassApp {
@@ -222,7 +225,10 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let search_orientation = config
             .get::<SearchOrientation>(CompassConfigurationField::SearchOrientation.to_str())?;
         let response_persistence_policy = config.get::<ResponsePersistencePolicy>(
-            CompassConfigurationField::ReturnResponses.to_str(),
+            CompassConfigurationField::ResponsePersistencePolicy.to_str(),
+        )?;
+        let response_output_policy = config.get::<ResponseOutputPolicy>(
+            CompassConfigurationField::ResponseOutputPolicy.to_str(),
         )?;
 
         log::info!(
@@ -238,6 +244,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             parallelism,
             search_orientation,
             response_persistence_policy,
+            response_output_policy,
         })
     }
 }
@@ -252,10 +259,41 @@ impl CompassApp {
     /// only  errors should cause CompassApp to halt. if there are
     /// errors due to the user, they should be propagated along into the output
     /// JSON in an error format along with the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `queries` - list of search queries to execute
+    /// * `config` - configuration for this run batch which may override default configurations
+    ///
+    /// # Result
+    ///
+    /// if
     pub fn run(
         &self,
         queries: Vec<serde_json::Value>,
+        config: Option<&serde_json::Value>,
     ) -> Result<Vec<serde_json::Value>, CompassAppError> {
+        // allow the user to overwrite global configurations
+        let parallelism: usize = get_optional_run_config(
+            &CompassConfigurationField::Parallelism.to_str(),
+            &"run configuration",
+            config,
+        )?
+        .unwrap_or(self.parallelism);
+        let response_persistence_policy: ResponsePersistencePolicy = get_optional_run_config(
+            &CompassConfigurationField::ResponsePersistencePolicy.to_str(),
+            &"run configuration",
+            config,
+        )?
+        .unwrap_or(self.response_persistence_policy);
+        let response_output_policy: ResponseOutputPolicy = get_optional_run_config(
+            &CompassConfigurationField::ResponseOutputPolicy.to_str(),
+            &"run configuration",
+            config,
+        )?
+        .unwrap_or_else(|| self.response_output_policy.clone());
+        let response_writer = response_output_policy.build()?;
+
         let input_pb = Bar::builder()
             .total(queries.len())
             .animation("fillup")
@@ -298,7 +336,7 @@ impl CompassApp {
             .flatten()
             .collect();
         let load_balanced_inputs =
-            ops::apply_load_balancing_policy(&processed_inputs, self.parallelism, 1.0)?;
+            ops::apply_load_balancing_policy(&processed_inputs, parallelism, 1.0)?;
         let error_inputs: Vec<Value> = error_inputs_nested.into_iter().flatten().collect();
         if load_balanced_inputs.is_empty() {
             return Ok(error_inputs);
@@ -331,12 +369,13 @@ impl CompassApp {
 
         // run parallel searches as organized by the (optional) load balancing policy
         // across a thread pool managed by rayon
-        let run_query_result = match self.response_persistence_policy {
+        let run_query_result = match response_persistence_policy {
             ResponsePersistencePolicy::PersistResponseInMemory => run_batch_with_responses(
                 &load_balanced_inputs,
                 &self.search_orientation,
                 &self.output_plugins,
                 &self.search_app,
+                &response_writer,
                 search_pb_shared,
             )?,
             ResponsePersistencePolicy::DiscardResponseFromMemory => run_batch_without_responses(
@@ -344,6 +383,7 @@ impl CompassApp {
                 &self.search_orientation,
                 &self.output_plugins,
                 &self.search_app,
+                &response_writer,
                 search_pb_shared,
             )?,
         };
@@ -353,6 +393,23 @@ impl CompassApp {
     }
 }
 
+pub fn get_optional_run_config<'a, K, T>(
+    key: &K,
+    parent_key: &K,
+    config: Option<&serde_json::Value>,
+) -> Result<Option<T>, CompassAppError>
+where
+    K: AsRef<str>,
+    T: serde::de::DeserializeOwned + 'a,
+{
+    match config {
+        Some(c) => {
+            let value = c.get_config_serde_optional::<T>(key, parent_key)?;
+            Ok(value)
+        }
+        None => Ok(None),
+    }
+}
 /// Helper function that runs CompassApp on a single query.
 /// It is assumed that all pre-processing from InputPlugins have been applied.
 /// This function runs a vertex-oriented search and feeds the result into the
@@ -397,6 +454,7 @@ pub fn run_batch_with_responses(
     search_orientation: &SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
+    response_writer: &ResponseWriter,
     pb: Arc<Mutex<Bar>>,
 ) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
     let run_query_result = load_balanced_inputs
@@ -405,12 +463,13 @@ pub fn run_batch_with_responses(
             queries
                 .iter()
                 .map(|q| {
-                    let inner_search =
-                        run_single_query(q, search_orientation, output_plugins, search_app);
+                    let response =
+                        run_single_query(q, search_orientation, output_plugins, search_app)?;
                     if let Ok(mut pb_local) = pb.lock() {
                         let _ = pb_local.update(1);
                     }
-                    inner_search
+                    response_writer.write_response(&response)?;
+                    Ok(response)
                 })
                 .collect::<Result<Vec<serde_json::Value>, CompassAppError>>()
         })
@@ -430,24 +489,28 @@ pub fn run_batch_without_responses(
     search_orientation: &SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
+    response_writer: &ResponseWriter,
     pb: Arc<Mutex<Bar>>,
 ) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
     // run the computations, discard values that do not trigger an error
     let _ = load_balanced_inputs
         .par_iter()
         .map(|queries| {
-            queries
-                .iter()
-                .map(|q| {
-                    let inner = run_single_query(q, search_orientation, output_plugins, search_app);
-                    if let Ok(mut pb_local) = pb.lock() {
-                        let _ = pb_local.update(1);
-                    }
-                    inner
-                })
-                .collect::<Result<Vec<_>, _>>()
+            // fold over query iterator allows us to propagate failures up while still using constant
+            // memory to hold the state of the result object. we can't similarly return error values from
+            // within a for loop or for_each call, and map creates more allocations. open to other ideas!
+            let initial: Result<(), CompassAppError> = Ok(());
+            let _ = queries.iter().fold(initial, |_, q| {
+                let response = run_single_query(q, search_orientation, output_plugins, search_app)?;
+                if let Ok(mut pb_local) = pb.lock() {
+                    let _ = pb_local.update(1);
+                }
+                response_writer.write_response(&response)?;
+                Ok(())
+            });
+            Ok(())
         })
-        .collect::<Result<Vec<Vec<_>>, _>>()?;
+        .collect::<Result<Vec<_>, CompassAppError>>()?;
 
     Ok(Box::new(std::iter::empty::<Value>()))
 }
@@ -542,7 +605,7 @@ mod tests {
             "origin_vertex": 0,
             "destination_vertex": 2
         });
-        let result = app.run(vec![query]).unwrap();
+        let result = app.run(vec![query], None).unwrap();
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
         let edge_ids = result[0].get("edge_id_list").unwrap();
         // path [1] is distance-optimal; path [0, 2] is time-optimal

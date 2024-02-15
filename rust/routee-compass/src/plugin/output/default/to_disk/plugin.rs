@@ -1,15 +1,15 @@
-use std::fs::File;
-use std::io::prelude::*;
-use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
-
 use crate::{
     app::{
         compass::compass_app_error::CompassAppError, search::search_app_result::SearchAppResult,
     },
     plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError},
 };
+use std::fs::File;
+use std::io::prelude::*;
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 
+/// Deprecated: use ResponseOutputPolicy instead.
 pub struct ToDiskOutputPlugin {
     pub output_file_path: PathBuf,
     pub output_file: Arc<Mutex<File>>,

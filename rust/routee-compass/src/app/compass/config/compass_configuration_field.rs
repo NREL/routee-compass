@@ -17,7 +17,8 @@ pub enum CompassConfigurationField {
     ChargeDepleting,
     ChargeSustaining,
     SearchOrientation,
-    ReturnResponses,
+    ResponsePersistencePolicy,
+    ResponseOutputPolicy,
 }
 
 impl CompassConfigurationField {
@@ -38,7 +39,8 @@ impl CompassConfigurationField {
             CompassConfigurationField::ChargeDepleting => "charge_depleting",
             CompassConfigurationField::ChargeSustaining => "charge_sustaining",
             CompassConfigurationField::SearchOrientation => "search_orientation",
-            CompassConfigurationField::ReturnResponses => "return_responses",
+            CompassConfigurationField::ResponsePersistencePolicy => "response_persistence_policy",
+            CompassConfigurationField::ResponseOutputPolicy => "response_output_policy",
         }
     }
 }

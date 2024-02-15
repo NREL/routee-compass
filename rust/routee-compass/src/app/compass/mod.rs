@@ -5,5 +5,5 @@ pub mod compass_app_ops;
 pub mod compass_input_field;
 pub mod compass_json_extensions;
 pub mod config;
-pub mod response_persistence_policy;
+pub mod response;
 pub mod search_orientation;

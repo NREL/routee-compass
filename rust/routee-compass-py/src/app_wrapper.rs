@@ -1,7 +1,11 @@
 use std::path::Path;
 
 use crate::app_graph_ops as ops;
-use pyo3::{exceptions::PyException, prelude::*, types::PyType};
+use pyo3::{
+    exceptions::PyException,
+    prelude::*,
+    types::{PyDict, PyFloat, PyType},
+};
 use routee_compass::app::compass::{
     compass_app::CompassApp, compass_app_ops::read_config_from_string,
     config::compass_app_builder::CompassAppBuilder,
@@ -83,7 +87,21 @@ impl CompassAppWrapper {
     ///
     /// # Returns
     /// * a list of json strings containing the results of the queries
-    pub fn _run_queries(&self, queries: Vec<String>) -> PyResult<Vec<String>> {
+    pub fn _run_queries(
+        &self,
+        queries: Vec<String>,
+        config: Option<String>,
+    ) -> PyResult<Vec<String>> {
+        let config_inner: Option<serde_json::Value> = match config {
+            Some(c) => {
+                let c_serde: serde_json::Value = serde_json::from_str(&c).map_err(|e| {
+                    PyException::new_err(format!("Could not parse configuration: {}", e))
+                })?;
+                Some(c_serde)
+            }
+            None => None,
+        };
+
         let json_queries = queries
             .iter()
             .map(|q| serde_json::from_str(q))
@@ -92,7 +110,7 @@ impl CompassAppWrapper {
 
         let results = self
             .routee_compass
-            .run(json_queries)
+            .run(json_queries, config_inner.as_ref())
             .map_err(|e| PyException::new_err(format!("Could not run queries: {}", e)))?;
 
         let string_results: Vec<String> = results.iter().map(|r| r.to_string()).collect();

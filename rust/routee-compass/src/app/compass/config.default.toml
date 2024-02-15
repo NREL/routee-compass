@@ -1,5 +1,11 @@
 parallelism = 2
 search_orientation = "vertex"
+response_persistence_policy = "persist_response_in_memory"
+
+[response_output_policy]
+type = "run_batch_file_sink"
+filename = "output.json"
+format = { type = "json", newline_delimited = true }
 
 [graph]
 verbose = true
@@ -20,7 +26,7 @@ type = "no_restriction"
 
 [termination]
 type = "query_runtime"
-limit = "00:02:00"
+limit = "00:10:00"
 frequency = 100_000
 
 [plugin]
