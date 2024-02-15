@@ -7,6 +7,7 @@ use std::{
 };
 
 pub enum ResponseWriter {
+    NoOutputWriter,
     RunBatchFileSink {
         filename: String,
         file: Arc<Mutex<File>>,
@@ -18,6 +19,7 @@ pub enum ResponseWriter {
 impl ResponseWriter {
     pub fn write_response(&self, response: &serde_json::Value) -> Result<(), CompassAppError> {
         match self {
+            ResponseWriter::NoOutputWriter => Ok(()),
             ResponseWriter::RunBatchFileSink {
                 filename: _,
                 file,
@@ -49,6 +51,7 @@ impl ResponseWriter {
 
     pub fn close(&self) -> Result<String, CompassAppError> {
         match self {
+            ResponseWriter::NoOutputWriter => Ok(String::from("")),
             ResponseWriter::RunBatchFileSink {
                 filename,
                 file,

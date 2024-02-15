@@ -10,6 +10,7 @@ use std::{
 #[derive(Deserialize, Serialize, Clone, Debug)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum ResponseOutputPolicy {
+    NoOutput,
     RunBatchFileSink {
         filename: String,
         format: ResponseOutputFormat,
@@ -22,6 +23,7 @@ impl ResponseOutputPolicy {
     /// such as a file header.
     pub fn build(&self) -> Result<ResponseWriter, CompassAppError> {
         match self {
+            ResponseOutputPolicy::NoOutput => Ok(ResponseWriter::NoOutputWriter),
             ResponseOutputPolicy::RunBatchFileSink { filename, format } => {
                 let output_file_path = PathBuf::from(filename);
 
