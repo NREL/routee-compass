@@ -22,7 +22,7 @@ impl ResponseWriter {
                 filename: _,
                 file,
                 format,
-                delimiter,
+                delimiter: _,
             } => {
                 let file_ref = Arc::clone(file);
                 let mut file_attained = file_ref.lock().map_err(|e| {
@@ -53,7 +53,7 @@ impl ResponseWriter {
                 filename,
                 file,
                 format,
-                delimiter,
+                delimiter: _,
             } => {
                 let file_ref = Arc::clone(file);
                 let mut file_attained = file_ref.lock().map_err(|e| {

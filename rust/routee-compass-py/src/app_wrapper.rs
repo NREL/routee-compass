@@ -1,15 +1,10 @@
-use std::path::Path;
-
 use crate::app_graph_ops as ops;
-use pyo3::{
-    exceptions::PyException,
-    prelude::*,
-    types::{PyDict, PyFloat, PyType},
-};
+use pyo3::{exceptions::PyException, prelude::*, types::PyType};
 use routee_compass::app::compass::{
     compass_app::CompassApp, compass_app_ops::read_config_from_string,
     config::compass_app_builder::CompassAppBuilder,
 };
+use std::path::Path;
 
 #[pyclass]
 pub struct CompassAppWrapper {
