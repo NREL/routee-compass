@@ -2,7 +2,7 @@ use super::{
     compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder,
     search_orientation::SearchOrientation,
 };
-use crate::app::compass::response_memory_persistence::ResponseMemoryPersistence;
+use crate::app::compass::response_persistence_policy::ResponsePersistencePolicy;
 use crate::{
     app::{
         compass::{
@@ -53,7 +53,7 @@ pub struct CompassApp {
     pub output_plugins: Vec<Arc<dyn OutputPlugin>>,
     pub parallelism: usize,
     pub search_orientation: SearchOrientation,
-    pub response_memory_persistence: ResponseMemoryPersistence,
+    pub response_persistence_policy: ResponsePersistencePolicy,
 }
 
 impl TryFrom<&Path> for CompassApp {
@@ -221,7 +221,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
         let search_orientation = config
             .get::<SearchOrientation>(CompassConfigurationField::SearchOrientation.to_str())?;
-        let response_memory_persistence = config.get::<ResponseMemoryPersistence>(
+        let response_persistence_policy = config.get::<ResponsePersistencePolicy>(
             CompassConfigurationField::ReturnResponses.to_str(),
         )?;
 
@@ -237,7 +237,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             output_plugins,
             parallelism,
             search_orientation,
-            response_memory_persistence,
+            response_persistence_policy,
         })
     }
 }
@@ -331,15 +331,15 @@ impl CompassApp {
 
         // run parallel searches as organized by the (optional) load balancing policy
         // across a thread pool managed by rayon
-        let run_query_result = match self.response_memory_persistence {
-            ResponseMemoryPersistence::PersistResponseInMemory => run_batch_with_responses(
+        let run_query_result = match self.response_persistence_policy {
+            ResponsePersistencePolicy::PersistResponseInMemory => run_batch_with_responses(
                 &load_balanced_inputs,
                 &self.search_orientation,
                 &self.output_plugins,
                 &self.search_app,
                 search_pb_shared,
             )?,
-            ResponseMemoryPersistence::DiscardResponseFromMemory => run_batch_without_responses(
+            ResponsePersistencePolicy::DiscardResponseFromMemory => run_batch_without_responses(
                 &load_balanced_inputs,
                 &self.search_orientation,
                 &self.output_plugins,
