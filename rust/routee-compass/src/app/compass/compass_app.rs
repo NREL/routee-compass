@@ -2,6 +2,7 @@ use super::{
     compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder,
     search_orientation::SearchOrientation,
 };
+use crate::app::compass::response_memory_persistence::ResponseMemoryPersistence;
 use crate::{
     app::{
         compass::{
@@ -52,6 +53,7 @@ pub struct CompassApp {
     pub output_plugins: Vec<Arc<dyn OutputPlugin>>,
     pub parallelism: usize,
     pub search_orientation: SearchOrientation,
+    pub response_memory_persistence: ResponseMemoryPersistence,
 }
 
 impl TryFrom<&Path> for CompassApp {
@@ -219,6 +221,9 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
         let search_orientation = config
             .get::<SearchOrientation>(CompassConfigurationField::SearchOrientation.to_str())?;
+        let response_memory_persistence = config.get::<ResponseMemoryPersistence>(
+            CompassConfigurationField::ReturnResponses.to_str(),
+        )?;
 
         log::info!(
             "additional parameters - parallelism={}, search orientation={:?}",
@@ -232,6 +237,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             output_plugins,
             parallelism,
             search_orientation,
+            response_memory_persistence,
         })
     }
 }
@@ -325,58 +331,53 @@ impl CompassApp {
 
         // run parallel searches as organized by the (optional) load balancing policy
         // across a thread pool managed by rayon
-        let run_query_result = load_balanced_inputs
-            .par_iter()
-            .map(|queries| {
-                queries
-                    .iter()
-                    .map(|q| {
-                        let inner_search = self.run_single_query((**q).clone());
-                        if let Ok(mut pb_local) = search_pb_shared.lock() {
-                            let _ = pb_local.update(1);
-                        }
-                        inner_search
-                    })
-                    .collect::<Result<Vec<serde_json::Value>, CompassAppError>>()
-            })
-            .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()?;
+        let run_query_result = match self.response_memory_persistence {
+            ResponseMemoryPersistence::PersistResponseInMemory => run_batch_with_responses(
+                &load_balanced_inputs,
+                &self.search_orientation,
+                &self.output_plugins,
+                &self.search_app,
+                search_pb_shared,
+            )?,
+            ResponseMemoryPersistence::DiscardResponseFromMemory => run_batch_without_responses(
+                &load_balanced_inputs,
+                &self.search_orientation,
+                &self.output_plugins,
+                &self.search_app,
+                search_pb_shared,
+            )?,
+        };
 
-        let run_result = run_query_result
-            .into_iter()
-            .flatten()
-            .chain(error_inputs)
-            .collect();
-
+        let run_result = run_query_result.chain(error_inputs).collect();
         Ok(run_result)
     }
+}
 
-    /// Helper function that runs CompassApp on a single query.
-    /// It is assumed that all pre-processing from InputPlugins have been applied.
-    /// This function runs a vertex-oriented search and feeds the result into the
-    /// OutputPlugins for post-processing, returning the result as JSON.
-    ///
-    /// # Arguments
-    ///
-    /// * `query` - a single search query that has been processed by InputPlugins
-    ///
-    /// # Returns
-    ///
-    /// * The result of the search and post-processing as a JSON object, or, an error
-    pub fn run_single_query(
-        &self,
-        query: serde_json::Value,
-    ) -> Result<serde_json::Value, CompassAppError> {
-        let search_result = match self.search_orientation {
-            SearchOrientation::Vertex => self.search_app.run_vertex_oriented(&query),
-            SearchOrientation::Edge => self.search_app.run_edge_oriented(&query),
-        };
-        let output = apply_output_processing(
-            (&query, search_result),
-            &self.search_app,
-            &self.output_plugins,
-        );
-        Ok(output)
-    }
+/// Helper function that runs CompassApp on a single query.
+/// It is assumed that all pre-processing from InputPlugins have been applied.
+/// This function runs a vertex-oriented search and feeds the result into the
+/// OutputPlugins for post-processing, returning the result as JSON.
+///
+/// # Arguments
+///
+/// * `query` - a single search query that has been processed by InputPlugins
+///
+/// # Returns
+///
+/// * The result of the search and post-processing as a JSON object, or, an error
+pub fn run_single_query(
+    query: &serde_json::Value,
+    search_orientation: &SearchOrientation,
+    output_plugins: &[Arc<dyn OutputPlugin>],
+    search_app: &SearchApp,
+) -> Result<serde_json::Value, CompassAppError> {
+    let search_result = match search_orientation {
+        SearchOrientation::Vertex => search_app.run_vertex_oriented(query),
+        SearchOrientation::Edge => search_app.run_edge_oriented(query),
+    };
+    let output = apply_output_processing((query, search_result), search_app, output_plugins);
+    // TODO: write to output if requested
+    Ok(output)
 }
 
 /// helper for handling conversion from Chrono Duration to std Duration
@@ -387,6 +388,68 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
             e
         ))
     })
+}
+
+/// runs a query batch which has been sorted into parallel chunks
+/// and retains the responses from each search in memory.
+pub fn run_batch_with_responses(
+    load_balanced_inputs: &Vec<Vec<&Value>>,
+    search_orientation: &SearchOrientation,
+    output_plugins: &[Arc<dyn OutputPlugin>],
+    search_app: &SearchApp,
+    pb: Arc<Mutex<Bar>>,
+) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
+    let run_query_result = load_balanced_inputs
+        .par_iter()
+        .map(|queries| {
+            queries
+                .iter()
+                .map(|q| {
+                    let inner_search =
+                        run_single_query(q, search_orientation, output_plugins, search_app);
+                    if let Ok(mut pb_local) = pb.lock() {
+                        let _ = pb_local.update(1);
+                    }
+                    inner_search
+                })
+                .collect::<Result<Vec<serde_json::Value>, CompassAppError>>()
+        })
+        .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()?;
+
+    let run_result = run_query_result.into_iter().flatten();
+    // .chain(error_inputs)
+    // .collect();
+
+    Ok(Box::new(run_result))
+}
+
+/// runs a query batch which has been sorted into parallel chunks.
+/// the search result is not persisted in memory.
+pub fn run_batch_without_responses(
+    load_balanced_inputs: &Vec<Vec<&Value>>,
+    search_orientation: &SearchOrientation,
+    output_plugins: &[Arc<dyn OutputPlugin>],
+    search_app: &SearchApp,
+    pb: Arc<Mutex<Bar>>,
+) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
+    // run the computations, discard values that do not trigger an error
+    let _ = load_balanced_inputs
+        .par_iter()
+        .map(|queries| {
+            queries
+                .iter()
+                .map(|q| {
+                    let inner = run_single_query(q, search_orientation, output_plugins, search_app);
+                    if let Ok(mut pb_local) = pb.lock() {
+                        let _ = pb_local.update(1);
+                    }
+                    inner
+                })
+                .collect::<Result<Vec<_>, _>>()
+        })
+        .collect::<Result<Vec<Vec<_>>, _>>()?;
+
+    Ok(Box::new(std::iter::empty::<Value>()))
 }
 
 /// helper that applies the input plugins to a query, returning the result(s) or an error if failed
