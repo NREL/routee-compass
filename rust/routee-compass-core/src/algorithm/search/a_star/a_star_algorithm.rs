@@ -1,4 +1,3 @@
-use super::a_star_frontier::AStarFrontier;
 use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
@@ -56,11 +55,6 @@ pub fn run_a_star(
     // setup initial search state
     traversal_costs.insert(source, Cost::ZERO);
     let initial_state = m.initial_state();
-    let origin = AStarFrontier {
-        vertex_id: source,
-        prev_edge_id: None,
-    };
-
     let origin_cost = match target {
         None => Cost::ZERO,
         Some(target_vertex_id) => h_cost(source, target_vertex_id, &initial_state, &g, &m, &u)?,
@@ -100,7 +94,7 @@ pub fn run_a_star(
             (Some((current_vertex_id, _)), _) => current_vertex_id,
         };
 
-        let previous_edge = if iterations == 0 {
+        let previous_edge = if current_vertex_id == source {
             None
         } else {
             let edge_id = solution
@@ -118,7 +112,7 @@ pub fn run_a_star(
         };
 
         // grab the current state from the solution
-        let current_state = if iterations == 0 {
+        let current_state = if current_vertex_id == source {
             initial_state.clone()
         } else {
             solution
