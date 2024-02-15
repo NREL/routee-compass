@@ -26,7 +26,7 @@ impl TraversalOutputFormat {
     pub fn generate_route_output(
         &self,
         route: &Vec<EdgeTraversal>,
-        geoms: &[LineString<f64>],
+        geoms: &[LineString<f32>],
     ) -> Result<serde_json::Value, PluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
@@ -49,7 +49,7 @@ impl TraversalOutputFormat {
     pub fn generate_tree_output(
         &self,
         tree: &HashMap<VertexId, SearchTreeBranch>,
-        geoms: &[LineString<f64>],
+        geoms: &[LineString<f32>],
     ) -> Result<serde_json::Value, PluginError> {
         match self {
             TraversalOutputFormat::Wkt => {

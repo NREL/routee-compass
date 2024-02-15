@@ -32,8 +32,8 @@ impl FrontierModelBuilder for RoadClassBuilder {
                 ))
             })?;
 
-        let road_class_lookup: Box<[String]> =
-            read_utils::read_raw_file(&road_class_file, read_decoders::string, None).map_err(
+        let road_class_lookup: Box<[u8]> =
+            read_utils::read_raw_file(&road_class_file, read_decoders::u8, None).map_err(
                 |e| {
                     FrontierModelError::BuildError(format!(
                         "failed to load file at {:?}: {}",
@@ -45,6 +45,7 @@ impl FrontierModelBuilder for RoadClassBuilder {
 
         let m: Arc<dyn FrontierModelService> = Arc::new(RoadClassFrontierService {
             road_class_lookup: Arc::new(road_class_lookup),
+            road_class_mapping: None,
         });
         Ok(m)
     }

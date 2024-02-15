@@ -9,25 +9,25 @@ use serde::de;
 #[derive(Copy, Clone, Default, Debug, Allocative)]
 pub struct Vertex {
     pub vertex_id: VertexId,
-    pub coordinate: InternalCoord,
+    pub coordinate: InternalCoord<f32>,
 }
 
 impl Vertex {
-    pub fn new(vertex_id: usize, x: f64, y: f64) -> Self {
+    pub fn new(vertex_id: usize, x: f32, y: f32) -> Self {
         Self {
             vertex_id: VertexId(vertex_id),
             coordinate: InternalCoord(coord! {x: x, y: y}),
         }
     }
-    pub fn to_tuple_underlying(&self) -> (f64, f64) {
+    pub fn to_tuple_underlying(&self) -> (f32, f32) {
         (self.coordinate.x, self.coordinate.y)
     }
 
-    pub fn x(&self) -> f64 {
+    pub fn x(&self) -> f32 {
         self.coordinate.x
     }
 
-    pub fn y(&self) -> f64 {
+    pub fn y(&self) -> f32 {
         self.coordinate.y
     }
 }
@@ -59,8 +59,8 @@ impl<'de> de::Deserialize<'de> for Vertex {
                 // written to allow fields to appear in arbitrary order. we store each expected, deserialized value
                 // as we find them, ignoring unexpected fields. if we find all three, we build a Vertex and end the loop.
                 let mut vertex_id_result: Option<usize> = None;
-                let mut x_result: Option<f64> = None;
-                let mut y_result: Option<f64> = None;
+                let mut x_result: Option<f32> = None;
+                let mut y_result: Option<f32> = None;
                 let mut vertex_result: Option<Vertex> = None;
                 let mut next: Option<(&str, &str)> = map.next_entry()?;
                 while next.is_some() {
@@ -77,7 +77,7 @@ impl<'de> de::Deserialize<'de> for Vertex {
                                 vertex_id_result = Some(id);
                             }
                             X_COORDINATE => {
-                                let x_coord: f64 = value.parse().map_err(|e| {
+                                let x_coord: f32 = value.parse().map_err(|e| {
                                     de::Error::custom(format!(
                                         "unable to parse x '{}': {}",
                                         &value, e
@@ -86,7 +86,7 @@ impl<'de> de::Deserialize<'de> for Vertex {
                                 x_result = Some(x_coord);
                             }
                             Y_COORDINATE => {
-                                let y_coord: f64 = value.parse().map_err(|e| {
+                                let y_coord: f32 = value.parse().map_err(|e| {
                                     de::Error::custom(format!(
                                         "unable to parse y '{}': {}",
                                         &value, e

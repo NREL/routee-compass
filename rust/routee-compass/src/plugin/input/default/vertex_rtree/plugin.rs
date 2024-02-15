@@ -19,10 +19,10 @@ impl RTreeVertex {
     pub fn new(vertex: Vertex) -> Self {
         Self { vertex }
     }
-    pub fn x(&self) -> f64 {
+    pub fn x(&self) -> f32 {
         self.vertex.x()
     }
-    pub fn y(&self) -> f64 {
+    pub fn y(&self) -> f32 {
         self.vertex.y()
     }
 }
@@ -43,14 +43,14 @@ impl VertexRTree {
         Self::new(vertices)
     }
 
-    pub fn nearest_vertex(&self, point: Coord<f64>) -> Option<&Vertex> {
+    pub fn nearest_vertex(&self, point: Coord<f32>) -> Option<&Vertex> {
         match self.rtree.nearest_neighbor(&point) {
             Some(rtree_vertex) => Some(&rtree_vertex.vertex),
             None => None,
         }
     }
 
-    pub fn nearest_vertices(&self, point: Coord<f64>, n: usize) -> Vec<&Vertex> {
+    pub fn nearest_vertices(&self, point: Coord<f32>, n: usize) -> Vec<&Vertex> {
         self.rtree
             .nearest_neighbor_iter(&point)
             .take(n)
@@ -60,7 +60,7 @@ impl VertexRTree {
 }
 
 impl RTreeObject for RTreeVertex {
-    type Envelope = AABB<Coord>;
+    type Envelope = AABB<Coord<f32>>;
 
     fn envelope(&self) -> Self::Envelope {
         AABB::from_corners(
@@ -71,7 +71,7 @@ impl RTreeObject for RTreeVertex {
 }
 
 impl PointDistance for RTreeVertex {
-    fn distance_2(&self, point: &Coord) -> f64 {
+    fn distance_2(&self, point: &Coord<f32>) -> f32 {
         let dx = self.x() - point.x;
         let dy = self.y() - point.y;
         dx * dx + dy * dy
@@ -185,8 +185,8 @@ impl InputPlugin for RTreePlugin {
 ///
 /// * nothing, or an error if the coordinates are not within tolerance
 fn validate_tolerance(
-    src: &Coord,
-    dst: &Coord,
+    src: &Coord<f32>,
+    dst: &Coord<f32>,
     tolerance: &Option<(Distance, DistanceUnit)>,
 ) -> Result<(), PluginError> {
     match tolerance {

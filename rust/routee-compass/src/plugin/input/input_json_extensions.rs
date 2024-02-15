@@ -5,8 +5,8 @@ use routee_compass_core::model::road_network::{edge_id::EdgeId, vertex_id::Verte
 use serde_json::{self, json};
 
 pub trait InputJsonExtensions {
-    fn get_origin_coordinate(&self) -> Result<geo::Coord<f64>, PluginError>;
-    fn get_destination_coordinate(&self) -> Result<Option<geo::Coord<f64>>, PluginError>;
+    fn get_origin_coordinate(&self) -> Result<geo::Coord<f32>, PluginError>;
+    fn get_destination_coordinate(&self) -> Result<Option<geo::Coord<f32>>, PluginError>;
     fn add_origin_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
     fn add_destination_vertex(&mut self, vertex_id: VertexId) -> Result<(), PluginError>;
     fn add_origin_edge(&mut self, edge_id: EdgeId) -> Result<(), PluginError>;
@@ -21,7 +21,7 @@ pub trait InputJsonExtensions {
 }
 
 impl InputJsonExtensions for serde_json::Value {
-    fn get_origin_coordinate(&self) -> Result<geo::Coord<f64>, PluginError> {
+    fn get_origin_coordinate(&self) -> Result<geo::Coord<f32>, PluginError> {
         let origin_x = self
             .get(InputField::OriginX.to_string())
             .ok_or_else(|| PluginError::MissingField(InputField::OriginX.to_string()))?
@@ -36,9 +36,9 @@ impl InputJsonExtensions for serde_json::Value {
             .ok_or_else(|| {
                 PluginError::ParseError(InputField::OriginY.to_string(), String::from("f64"))
             })?;
-        Ok(geo::Coord::from((origin_x, origin_y)))
+        Ok(geo::Coord::from((origin_x as f32, origin_y as f32)))
     }
-    fn get_destination_coordinate(&self) -> Result<Option<geo::Coord<f64>>, PluginError> {
+    fn get_destination_coordinate(&self) -> Result<Option<geo::Coord<f32>>, PluginError> {
         let x_field = InputField::DestinationX.to_string();
         let y_field = InputField::DestinationY.to_string();
         let x_opt = self.get(&x_field);
@@ -60,7 +60,7 @@ impl InputJsonExtensions for serde_json::Value {
                 let y = y_json
                     .as_f64()
                     .ok_or_else(|| PluginError::ParseError(y_field.clone(), String::from("f64")))?;
-                Ok(Some(geo::Coord::from((x, y))))
+                Ok(Some(geo::Coord::from((x as f32, y as f32))))
             }
         }
     }

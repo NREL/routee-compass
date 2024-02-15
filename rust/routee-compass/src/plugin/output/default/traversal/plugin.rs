@@ -13,7 +13,7 @@ use routee_compass_core::util::geo::geo_io_utils;
 use std::path::Path;
 
 pub struct TraversalPlugin {
-    geoms: Box<[LineString<f64>]>,
+    geoms: Box<[LineString<f32>]>,
     route: Option<TraversalOutputFormat>,
     tree: Option<TraversalOutputFormat>,
 }
