@@ -129,17 +129,16 @@ pub fn run_a_star(
         };
 
         // visit all neighbors of this source vertex
-        let neighbor_triplets = g
-            .incident_triplets(current_vertex_id, Direction::Forward)
-            .map_err(SearchError::GraphError)?;
-        for (src_id, edge_id, dst_id) in neighbor_triplets {
-            // first make sure we have a valid edge
-            let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
+        for edge_id in g.out_edges_iter(current_vertex_id)? {
+            let e = g.get_edge(*edge_id)?;
+            let src_id = e.src_vertex_id;
+            let dst_id = e.dst_vertex_id;
+
             if !f.valid_frontier(e, &current_state, previous_edge)? {
                 continue;
             }
             let et = EdgeTraversal::perform_traversal(
-                edge_id,
+                *edge_id,
                 previous_edge.map(|pe| pe.edge_id),
                 &current_state,
                 &g,

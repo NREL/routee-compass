@@ -149,22 +149,22 @@ mod tests {
             Vertex {
                 vertex_id: VertexId(5),
                 coordinate: InternalCoord(Coord {
-                    x: -105.2042387,
-                    y: 39.712214,
+                    x: -105.20423,
+                    y: 39.71221,
                 }),
             },
             Vertex {
                 vertex_id: VertexId(10),
                 coordinate: InternalCoord(Coord {
-                    x: -105.2292743,
-                    y: 39.7584272,
+                    x: -105.22927,
+                    y: 39.75842,
                 }),
             },
             Vertex {
                 vertex_id: VertexId(15),
                 coordinate: InternalCoord(Coord {
-                    x: -105.1972541,
-                    y: 39.760731,
+                    x: -105.19725,
+                    y: 39.76073,
                 }),
             },
         ];

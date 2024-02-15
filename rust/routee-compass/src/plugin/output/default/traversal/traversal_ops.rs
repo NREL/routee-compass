@@ -61,7 +61,10 @@ pub fn create_route_geojson(
     Ok(result)
 }
 
-pub fn create_geojson_feature(t: &EdgeTraversal, g: LineString<f32>) -> Result<Feature, PluginError> {
+pub fn create_geojson_feature(
+    t: &EdgeTraversal,
+    g: LineString<f32>,
+) -> Result<Feature, PluginError> {
     let props = match serde_json::to_value(t).map(|v| v.as_object().cloned()) {
         Ok(None) => Err(PluginError::InternalError(format!(
             "serialized EdgeTraversal was not a JSON object for {}",

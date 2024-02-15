@@ -19,7 +19,8 @@ pub fn read_linestring_text_file(file: &Path) -> Result<Box<[LineString<f32>]>, 
     let cb = Box::new(|| {
         let _ = pb.update(1);
     });
-    let geoms: Box<[LineString<f32>]> = read_utils::read_raw_file(file, parse_linestring, Some(cb))?;
+    let geoms: Box<[LineString<f32>]> =
+        read_utils::read_raw_file(file, parse_linestring, Some(cb))?;
     Ok(geoms)
 }
 
