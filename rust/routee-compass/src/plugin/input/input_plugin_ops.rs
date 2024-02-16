@@ -85,9 +85,14 @@ pub fn json_array_op<'a>(query: &'a mut Value, op: ArrayOp<'a>) -> Result<(), Va
 /// that the nesting and types are correct. the flatten operation effect occurs
 /// in-place on the function argument via a memory swap.
 pub fn json_array_flatten_in_place(result: &mut Value) -> Result<(), Value> {
-    let mut flattened: Vec<&mut Value> = vec![];
-
     if let Value::Array(top_array) = result {
+        if top_array.iter().all(|v| !v.is_array()) {
+            // short circuit if there are no nested arrays
+            return Ok(());
+        }
+
+        // de-nest sub-arrays into new vector
+        let mut flattened: Vec<&mut Value> = vec![];
         for v1 in top_array.iter_mut() {
             match v1 {
                 Value::Array(sub_array) => {
@@ -98,14 +103,13 @@ pub fn json_array_flatten_in_place(result: &mut Value) -> Result<(), Value> {
                 other => flattened.push(other),
             }
         }
+        let mut flat_result = json![flattened];
+        std::mem::swap(result, &mut flat_result);
+        Ok(())
     } else {
         let error_response = package_invariant_error(Some(result), None);
-        return Err(error_response);
+        Err(error_response)
     }
-
-    let mut flat_result = json![flattened];
-    std::mem::swap(result, &mut flat_result);
-    Ok(())
 }
 
 /// flattens the result of input processing into a response vector, ensuring
