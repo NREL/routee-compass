@@ -3,6 +3,7 @@ use crate::{
     app::compass::config::{
         compass_configuration_error::CompassConfigurationError,
         config_json_extension::ConfigJsonExtensions,
+        frontier_model::road_class::road_class_parser::RoadClassParser,
     },
     plugin::{
         input::{input_json_extensions::InputJsonExtensions, input_plugin::InputPlugin},
@@ -24,17 +25,19 @@ use std::{collections::HashSet, path::Path};
 pub struct EdgeRtreeInputPlugin {
     pub rtree: RTree<EdgeRtreeRecord>,
     pub tolerance: Option<(Distance, DistanceUnit)>,
+    pub road_class_parser: RoadClassParser,
 }
 
 impl InputPlugin for EdgeRtreeInputPlugin {
     /// finds the nearest edge ids to the user-provided origin and destination coordinates.
     /// optionally restricts the search to a subset of road classes tagged by the user.
     fn process(&self, query: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
-        let road_classes = query
-            .get_config_serde_optional::<HashSet<u8>>(&"road_classes", &"")
-            .map_err(|e| {
-                PluginError::InputError(format!("unable to deserialize as array: {}", e))
-            })?;
+        let road_classes = self.road_class_parser.read_query(query).map_err(|e| {
+            PluginError::InputError(format!(
+                "Unable to process EdgeRtree Input Plugin due to: {}",
+                e
+            ))
+        })?;
         let src_coord = query.get_origin_coordinate()?;
         let dst_coord_option = query.get_destination_coordinate()?;
 
@@ -66,6 +69,7 @@ impl EdgeRtreeInputPlugin {
         linestring_file: &Path,
         tolerance_distance: Option<Distance>,
         distance_unit: Option<DistanceUnit>,
+        road_class_parser: RoadClassParser,
     ) -> Result<Self, CompassConfigurationError> {
         let road_class_lookup: Vec<u8> =
             read_utils::read_raw_file(road_class_file, read_decoders::u8, None)?.into_vec();
@@ -99,7 +103,11 @@ impl EdgeRtreeInputPlugin {
             (Some(t), Some(u)) => Some((t, u)),
         };
 
-        Ok(EdgeRtreeInputPlugin { rtree, tolerance })
+        Ok(EdgeRtreeInputPlugin {
+            rtree,
+            tolerance,
+            road_class_parser,
+        })
     }
 }
 

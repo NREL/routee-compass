@@ -5,6 +5,7 @@ use crate::{
     app::compass::config::{
         builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
         config_json_extension::ConfigJsonExtensions,
+        frontier_model::road_class::road_class_parser::RoadClassParser,
     },
     plugin::input::input_plugin::InputPlugin,
 };
@@ -26,11 +27,19 @@ impl InputPluginBuilder for EdgeRtreeInputPluginBuilder {
         let distance_unit_option =
             parameters.get_config_serde_optional::<DistanceUnit>(&"distance_unit", &parent_key)?;
 
+        let road_class_parser = parameters
+            .get_config_serde_optional::<RoadClassParser>(
+                &"road_class_parser",
+                &"RoadClassFrontierModel",
+            )?
+            .unwrap_or_default();
+
         let plugin = EdgeRtreeInputPlugin::new(
             &road_class_file,
             &linestring_file,
             distance_tolerance_option,
             distance_unit_option,
+            road_class_parser,
         )?;
         Ok(Arc::new(plugin))
     }

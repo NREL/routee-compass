@@ -1,4 +1,4 @@
-use super::road_class_service::RoadClassFrontierService;
+use super::{road_class_parser::RoadClassParser, road_class_service::RoadClassFrontierService};
 use crate::app::compass::config::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
@@ -41,9 +41,22 @@ impl FrontierModelBuilder for RoadClassBuilder {
                 ))
             })?;
 
+        let road_class_parser = parameters
+            .get_config_serde_optional::<RoadClassParser>(
+                &"road_class_parser",
+                &"RoadClassFrontierModel",
+            )
+            .map_err(|e| {
+                FrontierModelError::BuildError(format!(
+                    "unable to deserialize road_class_parser: {}",
+                    e
+                ))
+            })?
+            .unwrap_or_default();
+
         let m: Arc<dyn FrontierModelService> = Arc::new(RoadClassFrontierService {
             road_class_lookup: Arc::new(road_class_lookup),
-            road_class_mapping: None,
+            road_class_parser,
         });
         Ok(m)
     }
