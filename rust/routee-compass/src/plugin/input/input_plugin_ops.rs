@@ -32,7 +32,7 @@ pub fn package_invariant_error(
             let json = serde_json::to_string_pretty(q).unwrap_or_else(|e| {
                 format!(
                     "oops, i can't even serialize that query because of an error: {}",
-                    e.to_string()
+                    e
                 )
             });
             format!("{}\n\n{}", json_intro, json)
@@ -46,7 +46,7 @@ pub fn package_invariant_error(
             let ss_json = serde_json::to_string_pretty(&ss).unwrap_or_else(|e| {
                 format!(
                     "oops, i can't even serialize that sub-section because of an error: {}",
-                    e.to_string()
+                    e
                 )
             });
 
@@ -93,7 +93,7 @@ pub fn json_array_flatten(result: &mut Value) -> Result<Vec<Value>, Value> {
     let mut error: Option<&mut Value> = None;
     match result {
         Value::Array(sub_array) => {
-            for sub_obj in sub_array.into_iter() {
+            for sub_obj in sub_array.iter_mut() {
                 match sub_obj {
                     Value::Object(obj) => {
                         flattened.push(json![obj]);

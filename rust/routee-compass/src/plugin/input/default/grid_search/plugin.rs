@@ -72,7 +72,7 @@ impl InputPlugin for GridSearchPlugin {
                 // let new_array = serde_json::Value::Array(result);
 
                 let mut replacement = serde_json::json![result];
-                std::mem::swap(&mut replacement, &mut input);
+                std::mem::swap(&mut replacement, input);
                 Ok(())
             }
         }

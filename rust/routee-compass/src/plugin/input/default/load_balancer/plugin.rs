@@ -10,7 +10,7 @@ pub struct LoadBalancerPlugin {
 impl InputPlugin for LoadBalancerPlugin {
     fn process(&self, query: &mut serde_json::Value) -> Result<(), PluginError> {
         let w = self.heuristic.estimate_weight(query)?;
-        let mut updated = query.clone();
+        let _updated = query.clone();
         query.add_query_weight_estimate(w)?;
         Ok(())
     }
