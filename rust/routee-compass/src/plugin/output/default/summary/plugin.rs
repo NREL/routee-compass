@@ -12,42 +12,20 @@ impl OutputPlugin for SummaryOutputPlugin {
     /// append "Cost" value to the output JSON
     fn process(
         &self,
-        output: &serde_json::Value,
+        output: &mut serde_json::Value,
         search_result: &Result<SearchAppResult, CompassAppError>,
-    ) -> Result<Vec<serde_json::Value>, PluginError> {
+    ) -> Result<(), PluginError> {
         match search_result {
-            Err(_e) => Ok(vec![output.clone()]),
+            Err(_e) => Ok(()),
             Ok(result) => {
-                let mut updated_output = output.clone();
-                let updated = updated_output.as_object_mut().ok_or_else(|| {
-                    PluginError::InternalError(format!(
-                        "expected output JSON to be an object, found {}",
-                        output
-                    ))
-                })?;
                 let memory_usage = allocative::size_of_unique(result) as f64;
-                updated.insert("result_memory_usage_bytes".to_string(), memory_usage.into());
-
-                updated.insert(
-                    "search_executed_time".to_string(),
-                    result.search_executed_time.clone().into(),
-                );
-
-                updated.insert(
-                    "algorithm_runtime".to_string(),
-                    result.algorithm_runtime.hhmmss().into(),
-                );
-
-                updated.insert(
-                    "search_app_runtime".to_string(),
-                    result.search_app_runtime.hhmmss().into(),
-                );
-
-                updated.insert("route_edge_count".to_string(), result.route.len().into());
-
-                updated.insert("tree_edge_count".to_string(), result.tree.len().into());
-
-                Ok(vec![updated_output])
+                output["result_memory_usage_bytes"] = memory_usage.into();
+                output["search_executed_time"] = result.search_executed_time.clone().into();
+                output["algorithm_runtime"] = result.algorithm_runtime.hhmmss().into();
+                output["search_app_runtime"] = result.search_app_runtime.hhmmss().into();
+                output["route_edge_count"] = result.route.len().into();
+                output["tree_edge_count"] = result.tree.len().into();
+                Ok(())
             }
         }
     }

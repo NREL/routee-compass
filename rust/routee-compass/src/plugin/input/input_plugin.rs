@@ -26,5 +26,5 @@ pub trait InputPlugin: Send + Sync {
     /// # Returns
     ///
     /// A `Vec` of JSON values to replace the input JSON, or an error
-    fn process(&self, input: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError>;
+    fn process(&self, input: &mut serde_json::Value) -> Result<(), PluginError>;
 }

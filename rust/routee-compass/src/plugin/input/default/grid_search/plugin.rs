@@ -9,9 +9,9 @@ use routee_compass_core::util::multiset::MultiSet;
 pub struct GridSearchPlugin {}
 
 impl InputPlugin for GridSearchPlugin {
-    fn process(&self, input: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
+    fn process(&self, input: &mut serde_json::Value) -> Result<(), PluginError> {
         match input.get_grid_search() {
-            None => Ok(vec![input.clone()]),
+            None => Ok(()),
             Some(grid_search_input) => {
                 // prevent recursion due to nested grid search keys
                 let recurses = serde_json::to_string(grid_search_input)
@@ -69,7 +69,9 @@ impl InputPlugin for GridSearchPlugin {
                     })
                     .collect();
 
-                Ok(result)
+                let mut replacement = serde_json::json![result];
+                std::mem::swap(&mut replacement, input);
+                Ok(())
             }
         }
     }
@@ -77,40 +79,37 @@ impl InputPlugin for GridSearchPlugin {
 
 #[cfg(test)]
 mod test {
-
     use super::GridSearchPlugin;
     use crate::plugin::input::input_plugin::InputPlugin;
+    use serde_json::json;
 
     #[test]
     fn test_grid_search_empty_parent_object() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "grid_search": {
                 "bar": ["a", "b", "c"],
                 "foo": [1.2, 3.4]
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin
-            .process(&input)
-            .unwrap()
-            .iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<String>, serde_json::Error>>()
-            .unwrap();
+        plugin.process(&mut input).unwrap();
         let expected = vec![
-            String::from("{\"bar\":\"a\",\"foo\":1.2}"),
-            String::from("{\"bar\":\"b\",\"foo\":1.2}"),
-            String::from("{\"bar\":\"c\",\"foo\":1.2}"),
-            String::from("{\"bar\":\"a\",\"foo\":3.4}"),
-            String::from("{\"bar\":\"b\",\"foo\":3.4}"),
-            String::from("{\"bar\":\"c\",\"foo\":3.4}"),
+            json![{"bar":"a","foo":1.2}],
+            json![{"bar":"b","foo":1.2}],
+            json![{"bar":"c","foo":1.2}],
+            json![{"bar":"a","foo":3.4}],
+            json![{"bar":"b","foo":3.4}],
+            json![{"bar":"c","foo":3.4}],
         ];
-        assert_eq!(result, expected);
+        match input {
+            serde_json::Value::Array(result) => assert_eq!(result, expected),
+            other => panic!("expected array result, found {}", other),
+        }
     }
 
     #[test]
     fn test_grid_search_persisted_parent_keys() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "ignored_key": "ignored_value",
             "grid_search": {
                 "bar": ["a", "b", "c"],
@@ -118,27 +117,25 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin
-            .process(&input)
-            .unwrap()
-            .iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<String>, serde_json::Error>>()
-            .unwrap();
+        plugin.process(&mut input).unwrap();
+
         let expected = vec![
-            String::from("{\"bar\":\"a\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"b\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"c\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"a\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"b\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"c\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
+            json![{"bar":"a","foo":1.2,"ignored_key": "ignored_value"}],
+            json![{"bar":"b","foo":1.2,"ignored_key": "ignored_value"}],
+            json![{"bar":"c","foo":1.2,"ignored_key": "ignored_value"}],
+            json![{"bar":"a","foo":3.4,"ignored_key": "ignored_value"}],
+            json![{"bar":"b","foo":3.4,"ignored_key": "ignored_value"}],
+            json![{"bar":"c","foo":3.4,"ignored_key": "ignored_value"}],
         ];
-        assert_eq!(result, expected);
+        match input {
+            serde_json::Value::Array(result) => assert_eq!(result, expected),
+            other => panic!("expected array result, found {}", other),
+        }
     }
 
     #[test]
     fn test_grid_search_using_objects() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "ignored_key": "ignored_value",
             "grid_search": {
                 "a": [1, 2],
@@ -149,25 +146,23 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin
-            .process(&input)
-            .unwrap()
-            .iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<String>, serde_json::Error>>()
-            .unwrap();
+        plugin.process(&mut input).unwrap();
         let expected = vec![
-            String::from("{\"a\":1,\"ignored_key\":\"ignored_value\",\"x\":0,\"y\":0}"),
-            String::from("{\"a\":2,\"ignored_key\":\"ignored_value\",\"x\":0,\"y\":0}"),
-            String::from("{\"a\":1,\"ignored_key\":\"ignored_value\",\"x\":1,\"y\":1}"),
-            String::from("{\"a\":2,\"ignored_key\":\"ignored_value\",\"x\":1,\"y\":1}"),
+            json![{"a":1,"ignored_key":"ignored_value","x":0,"y":0}],
+            json![{"a":2,"ignored_key":"ignored_value","x":0,"y":0}],
+            json![{"a":1,"ignored_key":"ignored_value","x":1,"y":1}],
+            json![ {"a":2,"ignored_key":"ignored_value","x":1,"y":1}],
         ];
-        assert_eq!(result, expected);
+        // assert_eq!(result, expected);
+        match input {
+            serde_json::Value::Array(result) => assert_eq!(result, expected),
+            other => panic!("expected array result, found {}", other),
+        }
     }
 
     #[test]
     fn test_nested() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "abc": 123,
             "grid_search":{
                 "model_name": ["2016_TOYOTA_Camry_4cyl_2WD","2017_CHEVROLET_Bolt"],
@@ -179,27 +174,24 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin
-            .process(&input)
-            .unwrap()
-            .iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<String>, serde_json::Error>>()
-            .unwrap();
+        plugin.process(&mut input).unwrap();
         let expected = vec![
-            String::from("{\"abc\":123,\"model_name\":\"2016_TOYOTA_Camry_4cyl_2WD\",\"name\":\"d1\",\"state_variable_coefficients\":{\"distance\":1,\"energy_electric\":0,\"time\":0}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2016_TOYOTA_Camry_4cyl_2WD\",\"name\":\"t1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":0,\"time\":1}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2016_TOYOTA_Camry_4cyl_2WD\",\"name\":\"e1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":1,\"time\":0}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2017_CHEVROLET_Bolt\",\"name\":\"d1\",\"state_variable_coefficients\":{\"distance\":1,\"energy_electric\":0,\"time\":0}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2017_CHEVROLET_Bolt\",\"name\":\"t1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":0,\"time\":1}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2017_CHEVROLET_Bolt\",\"name\":\"e1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":1,\"time\":0}}"),
+            json![{"abc":123,"model_name":"2016_TOYOTA_Camry_4cyl_2WD","name":"d1","state_variable_coefficients":{"distance":1,"energy_electric":0,"time":0}}],
+            json![{"abc":123,"model_name":"2016_TOYOTA_Camry_4cyl_2WD","name":"t1","state_variable_coefficients":{"distance":0,"energy_electric":0,"time":1}}],
+            json![{"abc":123,"model_name":"2016_TOYOTA_Camry_4cyl_2WD","name":"e1","state_variable_coefficients":{"distance":0,"energy_electric":1,"time":0}}],
+            json![{"abc":123,"model_name":"2017_CHEVROLET_Bolt","name":"d1","state_variable_coefficients":{"distance":1,"energy_electric":0,"time":0}}],
+            json![{"abc":123,"model_name":"2017_CHEVROLET_Bolt","name":"t1","state_variable_coefficients":{"distance":0,"energy_electric":0,"time":1}}],
+            json![{"abc":123,"model_name":"2017_CHEVROLET_Bolt","name":"e1","state_variable_coefficients":{"distance":0,"energy_electric":1,"time":0}}],
         ];
-        assert_eq!(result, expected);
+        match input {
+            serde_json::Value::Array(result) => assert_eq!(result, expected),
+            other => panic!("expected array result, found {}", other),
+        }
     }
 
     #[test]
     pub fn test_handle_recursion() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "abc": 123,
             "grid_search":{
                 "grid_search": {
@@ -208,7 +200,7 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin.process(&input);
+        let result = plugin.process(&mut input);
         assert!(result.is_err());
     }
 }

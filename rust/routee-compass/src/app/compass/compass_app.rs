@@ -1,7 +1,10 @@
+use super::response::response_output_policy::ResponseOutputPolicy;
+use super::response::response_writer::ResponseWriter;
 use super::{
     compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder,
     search_orientation::SearchOrientation,
 };
+use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
 use crate::{
     app::{
         compass::{
@@ -18,8 +21,8 @@ use crate::{
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
     plugin::{
-        input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin,
-        plugin_error::PluginError,
+        input::{input_plugin::InputPlugin, input_plugin_ops as in_ops},
+        output::{output_plugin::OutputPlugin, output_plugin_ops as out_ops},
     },
 };
 use chrono::{Duration, Local};
@@ -32,10 +35,10 @@ use routee_compass_core::{
     util::duration_extension::DurationExtension,
 };
 use serde_json::Value;
+use std::rc::Rc;
 use std::{
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
-    time,
 };
 
 /// Instance of RouteE Compass as an application.
@@ -52,6 +55,8 @@ pub struct CompassApp {
     pub output_plugins: Vec<Arc<dyn OutputPlugin>>,
     pub parallelism: usize,
     pub search_orientation: SearchOrientation,
+    pub response_persistence_policy: ResponsePersistencePolicy,
+    pub response_output_policy: ResponseOutputPolicy,
 }
 
 impl TryFrom<&Path> for CompassApp {
@@ -219,6 +224,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
         let search_orientation = config
             .get::<SearchOrientation>(CompassConfigurationField::SearchOrientation.to_str())?;
+        let response_persistence_policy = config.get::<ResponsePersistencePolicy>(
+            CompassConfigurationField::ResponsePersistencePolicy.to_str(),
+        )?;
+        let response_output_policy = config.get::<ResponseOutputPolicy>(
+            CompassConfigurationField::ResponseOutputPolicy.to_str(),
+        )?;
 
         log::info!(
             "additional parameters - parallelism={}, search orientation={:?}",
@@ -232,6 +243,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             output_plugins,
             parallelism,
             search_orientation,
+            response_persistence_policy,
+            response_output_policy,
         })
     }
 }
@@ -246,10 +259,41 @@ impl CompassApp {
     /// only  errors should cause CompassApp to halt. if there are
     /// errors due to the user, they should be propagated along into the output
     /// JSON in an error format along with the request.
+    ///
+    /// # Arguments
+    ///
+    /// * `queries` - list of search queries to execute
+    /// * `config` - configuration for this run batch which may override default configurations
+    ///
+    /// # Result
+    ///
+    /// if
     pub fn run(
         &self,
         queries: Vec<serde_json::Value>,
+        config: Option<&serde_json::Value>,
     ) -> Result<Vec<serde_json::Value>, CompassAppError> {
+        // allow the user to overwrite global configurations
+        let parallelism: usize = get_optional_run_config(
+            &CompassConfigurationField::Parallelism.to_str(),
+            &"run configuration",
+            config,
+        )?
+        .unwrap_or(self.parallelism);
+        let response_persistence_policy: ResponsePersistencePolicy = get_optional_run_config(
+            &CompassConfigurationField::ResponsePersistencePolicy.to_str(),
+            &"run configuration",
+            config,
+        )?
+        .unwrap_or(self.response_persistence_policy);
+        let response_output_policy: ResponseOutputPolicy = get_optional_run_config(
+            &CompassConfigurationField::ResponseOutputPolicy.to_str(),
+            &"run configuration",
+            config,
+        )?
+        .unwrap_or_else(|| self.response_output_policy.clone());
+        let response_writer = response_output_policy.build()?;
+
         let input_pb = Bar::builder()
             .total(queries.len())
             .animation("fillup")
@@ -292,7 +336,7 @@ impl CompassApp {
             .flatten()
             .collect();
         let load_balanced_inputs =
-            ops::apply_load_balancing_policy(&processed_inputs, self.parallelism, 1.0)?;
+            ops::apply_load_balancing_policy(&processed_inputs, parallelism, 1.0)?;
         let error_inputs: Vec<Value> = error_inputs_nested.into_iter().flatten().collect();
         if load_balanced_inputs.is_empty() {
             return Ok(error_inputs);
@@ -325,59 +369,72 @@ impl CompassApp {
 
         // run parallel searches as organized by the (optional) load balancing policy
         // across a thread pool managed by rayon
-        let run_query_result = load_balanced_inputs
-            .par_iter()
-            .map(|queries| {
-                queries
-                    .iter()
-                    .map(|q| {
-                        let inner_search = self.run_single_query((**q).clone());
-                        if let Ok(mut pb_local) = search_pb_shared.lock() {
-                            let _ = pb_local.update(1);
-                        }
-                        inner_search
-                    })
-                    .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()
-            })
-            .collect::<Result<Vec<Vec<Vec<serde_json::Value>>>, CompassAppError>>()?;
+        let run_query_result = match response_persistence_policy {
+            ResponsePersistencePolicy::PersistResponseInMemory => run_batch_with_responses(
+                &load_balanced_inputs,
+                &self.search_orientation,
+                &self.output_plugins,
+                &self.search_app,
+                &response_writer,
+                search_pb_shared,
+            )?,
+            ResponsePersistencePolicy::DiscardResponseFromMemory => run_batch_without_responses(
+                &load_balanced_inputs,
+                &self.search_orientation,
+                &self.output_plugins,
+                &self.search_app,
+                &response_writer,
+                search_pb_shared,
+            )?,
+        };
 
-        let run_result = run_query_result
-            .into_iter()
-            .flatten()
-            .flatten()
-            .chain(error_inputs)
-            .collect();
-
+        let run_result = run_query_result.chain(error_inputs).collect();
         Ok(run_result)
     }
+}
 
-    /// Helper function that runs CompassApp on a single query.
-    /// It is assumed that all pre-processing from InputPlugins have been applied.
-    /// This function runs a vertex-oriented search and feeds the result into the
-    /// OutputPlugins for post-processing, returning the result as JSON.
-    ///
-    /// # Arguments
-    ///
-    /// * `query` - a single search query that has been processed by InputPlugins
-    ///
-    /// # Returns
-    ///
-    /// * The result of the search and post-processing as a JSON object, or, an error
-    pub fn run_single_query(
-        &self,
-        query: serde_json::Value,
-    ) -> Result<Vec<serde_json::Value>, CompassAppError> {
-        let search_result = match self.search_orientation {
-            SearchOrientation::Vertex => self.search_app.run_vertex_oriented(&query),
-            SearchOrientation::Edge => self.search_app.run_edge_oriented(&query),
-        };
-        let output = apply_output_processing(
-            (&query, search_result),
-            &self.search_app,
-            &self.output_plugins,
-        );
-        Ok(output)
+pub fn get_optional_run_config<'a, K, T>(
+    key: &K,
+    parent_key: &K,
+    config: Option<&serde_json::Value>,
+) -> Result<Option<T>, CompassAppError>
+where
+    K: AsRef<str>,
+    T: serde::de::DeserializeOwned + 'a,
+{
+    match config {
+        Some(c) => {
+            let value = c.get_config_serde_optional::<T>(key, parent_key)?;
+            Ok(value)
+        }
+        None => Ok(None),
     }
+}
+/// Helper function that runs CompassApp on a single query.
+/// It is assumed that all pre-processing from InputPlugins have been applied.
+/// This function runs a vertex-oriented search and feeds the result into the
+/// OutputPlugins for post-processing, returning the result as JSON.
+///
+/// # Arguments
+///
+/// * `query` - a single search query that has been processed by InputPlugins
+///
+/// # Returns
+///
+/// * The result of the search and post-processing as a JSON object, or, an error
+pub fn run_single_query(
+    query: &serde_json::Value,
+    search_orientation: &SearchOrientation,
+    output_plugins: &[Arc<dyn OutputPlugin>],
+    search_app: &SearchApp,
+) -> Result<serde_json::Value, CompassAppError> {
+    let search_result = match search_orientation {
+        SearchOrientation::Vertex => search_app.run_vertex_oriented(query),
+        SearchOrientation::Edge => search_app.run_edge_oriented(query),
+    };
+    let output = apply_output_processing((query, search_result), search_app, output_plugins);
+    // TODO: write to output if requested
+    Ok(output)
 }
 
 /// helper for handling conversion from Chrono Duration to std Duration
@@ -390,34 +447,86 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
     })
 }
 
+/// runs a query batch which has been sorted into parallel chunks
+/// and retains the responses from each search in memory.
+pub fn run_batch_with_responses(
+    load_balanced_inputs: &Vec<Vec<&Value>>,
+    search_orientation: &SearchOrientation,
+    output_plugins: &[Arc<dyn OutputPlugin>],
+    search_app: &SearchApp,
+    response_writer: &ResponseWriter,
+    pb: Arc<Mutex<Bar>>,
+) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
+    let run_query_result = load_balanced_inputs
+        .par_iter()
+        .map(|queries| {
+            queries
+                .iter()
+                .map(|q| {
+                    let response =
+                        run_single_query(q, search_orientation, output_plugins, search_app)?;
+                    if let Ok(mut pb_local) = pb.lock() {
+                        let _ = pb_local.update(1);
+                    }
+                    response_writer.write_response(&response)?;
+                    Ok(response)
+                })
+                .collect::<Result<Vec<serde_json::Value>, CompassAppError>>()
+        })
+        .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()?;
+
+    let run_result = run_query_result.into_iter().flatten();
+    // .chain(error_inputs)
+    // .collect();
+
+    Ok(Box::new(run_result))
+}
+
+/// runs a query batch which has been sorted into parallel chunks.
+/// the search result is not persisted in memory.
+pub fn run_batch_without_responses(
+    load_balanced_inputs: &Vec<Vec<&Value>>,
+    search_orientation: &SearchOrientation,
+    output_plugins: &[Arc<dyn OutputPlugin>],
+    search_app: &SearchApp,
+    response_writer: &ResponseWriter,
+    pb: Arc<Mutex<Bar>>,
+) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
+    // run the computations, discard values that do not trigger an error
+    let _ = load_balanced_inputs
+        .par_iter()
+        .map(|queries| {
+            // fold over query iterator allows us to propagate failures up while still using constant
+            // memory to hold the state of the result object. we can't similarly return error values from
+            // within a for loop or for_each call, and map creates more allocations. open to other ideas!
+            let initial: Result<(), CompassAppError> = Ok(());
+            let _ = queries.iter().fold(initial, |_, q| {
+                let response = run_single_query(q, search_orientation, output_plugins, search_app)?;
+                if let Ok(mut pb_local) = pb.lock() {
+                    let _ = pb_local.update(1);
+                }
+                response_writer.write_response(&response)?;
+                Ok(())
+            });
+            Ok(())
+        })
+        .collect::<Result<Vec<_>, CompassAppError>>()?;
+
+    Ok(Box::new(std::iter::empty::<Value>()))
+}
+
 /// helper that applies the input plugins to a query, returning the result(s) or an error if failed
 pub fn apply_input_plugins(
     query: &serde_json::Value,
-    plugins: &[Arc<dyn InputPlugin>],
+    plugins: &Vec<Arc<dyn InputPlugin>>,
 ) -> Result<Vec<serde_json::Value>, serde_json::Value> {
-    let init = Ok(vec![query.clone()]);
-    let result = plugins
-        .iter()
-        .fold(init, |acc, p| {
-            acc.and_then(|outer| {
-                outer
-                    .iter()
-                    .map(|q| p.process(q))
-                    .collect::<Result<Vec<_>, PluginError>>()
-                    .map(|inner| {
-                        inner
-                            .into_iter()
-                            .flatten()
-                            .collect::<Vec<serde_json::Value>>()
-                    })
-            })
-        })
-        .map_err(|e| {
-            serde_json::json!({
-                "request": query,
-                "error": e.to_string()
-            })
-        })?;
+    let mut plugin_state = serde_json::Value::Array(vec![query.clone()]);
+    for plugin in plugins {
+        let p = plugin.clone();
+        let op: in_ops::ArrayOp = Rc::new(|q| p.process(q));
+        in_ops::json_array_op(&mut plugin_state, op)?
+    }
+    let result = in_ops::json_array_flatten(&mut plugin_state)?;
     Ok(result)
 }
 
@@ -428,115 +537,21 @@ pub fn apply_output_processing(
     response_data: (&serde_json::Value, Result<SearchAppResult, CompassAppError>),
     search_app: &SearchApp,
     output_plugins: &[Arc<dyn OutputPlugin>],
-) -> Vec<serde_json::Value> {
-    let start_time = chrono::Local::now();
+) -> serde_json::Value {
     let (req, res) = response_data;
 
-    let init_output = match &res {
-        Err(e) => {
-            let error_output = serde_json::json!({
-                "request": req,
-                "error": e.to_string()
-            });
-            error_output
-        }
-        Ok(result) => {
-            log::debug!(
-                "completed search for request {}: {} edges in route, {} in tree",
-                req,
-                result.route.len(),
-                result.tree.len(),
-            );
-
-            let mut init_output = serde_json::json!({
-                "request": req,
-            });
-
-            let route = result.route.to_vec();
-
-            // build and append summaries if there is a route
-            if let Some(et) = route.last() {
-                // build instances of traversal and cost models to compute summaries
-                let tmodel = match search_app.build_traversal_model(req) {
-                    Err(e) => {
-                        return vec![serde_json::json!({
-                            "request": req,
-                            "error": e.to_string()
-                        })]
-                    }
-                    Ok(tmodel) => tmodel,
-                };
-                let cmodel =
-                    match search_app.build_cost_model_for_traversal_model(req, tmodel.clone()) {
-                        Err(e) => {
-                            return vec![serde_json::json!({
-                                "request": req,
-                                "error": e.to_string()
-                            })]
-                        }
-                        Ok(cmodel) => cmodel,
-                    };
-
-                let traversal_summary = tmodel.serialize_state_with_info(&et.result_state);
-                let cost_summary = match cmodel.serialize_cost_with_info(&et.result_state) {
-                    Err(e) => {
-                        return vec![serde_json::json!({
-                            "request": req,
-                            "error": e.to_string()
-                        })]
-                    }
-                    Ok(json) => json,
-                };
-                init_output["traversal_summary"] = traversal_summary;
-                init_output["cost_summary"] = cost_summary;
-            }
-
-            // append the runtime required to compute these summaries
-            let output_plugin_executed_time = chrono::Local::now();
-            let basic_summary_runtime = output_plugin_executed_time - start_time;
-            let basic_summary_runtime_str = basic_summary_runtime
-                .to_std()
-                .unwrap_or(time::Duration::ZERO)
-                .hhmmss();
-            init_output["basic_summary_runtime"] = serde_json::json!(basic_summary_runtime_str);
-            init_output["output_plugin_executed_time"] =
-                serde_json::json!(output_plugin_executed_time.to_rfc3339());
-            init_output
-        }
+    let mut initial: Value = match out_ops::create_initial_output(req, &res, search_app) {
+        Ok(value) => value,
+        Err(error_value) => return error_value,
     };
-
-    let init_acc: Result<Vec<serde_json::Value>, PluginError> = Ok(vec![init_output]);
-    let json_result = output_plugins
-        .iter()
-        .fold(init_acc, |acc, p| {
-            acc.and_then(|outer| {
-                outer
-                    .iter()
-                    .map(|output| p.process(output, &res))
-                    .collect::<Result<Vec<_>, PluginError>>()
-                    .map(|inner| {
-                        inner
-                            .into_iter()
-                            .flatten()
-                            .collect::<Vec<serde_json::Value>>()
-                    })
-            })
-        })
-        .map_err(|e| {
-            serde_json::json!({
-                "request": req,
-                "error": e.to_string()
-            })
-        });
-    match json_result {
-        Err(e) => {
-            vec![serde_json::json!({
-                "request": req,
-                "error": e.to_string()
-            })]
+    for output_plugin in output_plugins.iter() {
+        match output_plugin.process(&mut initial, &res) {
+            Ok(()) => {}
+            Err(e) => return out_ops::package_error(req, e),
         }
-        Ok(json) => json,
     }
+
+    initial
 }
 
 #[cfg(test)]
@@ -574,7 +589,7 @@ mod tests {
             "origin_vertex": 0,
             "destination_vertex": 2
         });
-        let result = app.run(vec![query]).unwrap();
+        let result = app.run(vec![query], None).unwrap();
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
         let edge_ids = result[0].get("edge_id_list").unwrap();
         // path [1] is distance-optimal; path [0, 2] is time-optimal
