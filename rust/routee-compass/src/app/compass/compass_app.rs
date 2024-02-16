@@ -516,7 +516,7 @@ pub fn run_batch_without_responses(
 }
 
 /// helper that applies the input plugins to a query, returning the result(s) or an error if failed
-pub fn apply_input_plugins<'a>(
+pub fn apply_input_plugins(
     query: &serde_json::Value,
     plugins: &Vec<Arc<dyn InputPlugin>>,
 ) -> Result<Vec<serde_json::Value>, serde_json::Value> {
@@ -528,29 +528,6 @@ pub fn apply_input_plugins<'a>(
     }
     let result = in_ops::json_array_flatten(&mut plugin_state)?;
     Ok(result)
-    // let init = Ok(vec![query.clone()]);
-    // let result = plugins
-    //     .iter()
-    //     .fold(init, |acc, p| {
-    //         acc.and_then(|outer| {
-    //             outer
-    //                 .iter()
-    //                 .map(|q| p.process(q))
-    //                 .collect::<Result<Vec<_>, PluginError>>()
-    //                 .map(|inner| {
-    //                     inner
-    //                         .into_iter()
-    //                         .flatten()
-    //                         .collect::<Vec<serde_json::Value>>()
-    //                 })
-    //         })
-    //     })
-    //     .map_err(|e| {
-    //         serde_json::json!({
-    //             "request": query,
-    //             "error": e.to_string()
-    //         })
-    //     })?;
 }
 
 // helper that applies the output processing. this includes
