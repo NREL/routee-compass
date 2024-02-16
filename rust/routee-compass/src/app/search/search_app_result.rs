@@ -13,4 +13,5 @@ pub struct SearchAppResult {
     pub algorithm_runtime: Duration,
     pub route_runtime: Duration,
     pub search_app_runtime: Duration,
+    pub iterations: u64,
 }

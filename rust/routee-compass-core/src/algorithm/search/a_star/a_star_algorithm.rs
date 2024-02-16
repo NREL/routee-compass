@@ -1,7 +1,7 @@
 use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
+use crate::algorithm::search::search_result::SearchResult;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
-use crate::algorithm::search::MinSearchTree;
 use crate::model::cost::cost_model::CostModel;
 use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::road_network::edge_id::EdgeId;
@@ -33,10 +33,9 @@ pub fn run_a_star(
     u: CostModel,
     f: Arc<dyn FrontierModel>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
-) -> Result<MinSearchTree, SearchError> {
+) -> Result<SearchResult, SearchError> {
     if target.map_or(false, |t| t == source) {
-        let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
-        return Ok(empty);
+        return Ok(SearchResult::default());
     }
 
     // context for the search (graph, search functions, frontier priority queue)
@@ -173,19 +172,6 @@ pub fn run_a_star(
             }
         }
         iterations += 1;
-
-        // match (costs.pop(), target) {
-        //     (None, Some(target_vertex_id)) => {
-        //         Err(SearchError::NoPathExists(source, target_vertex_id))
-        //     }
-        //     (None, None) => Ok(solution),
-        //     Some((current_vertex_id, _)) if current_vertex_id == target => {
-        //         break;
-        //     }
-        //     Some((current_vertex_id, _)) => {
-
-        //     }
-        // }
     }
     log::debug!(
         "search iterations: {}, size of search tree: {}",
@@ -226,7 +212,8 @@ pub fn run_a_star(
         flamegraph_file.write_all(output.as_bytes()).unwrap();
     }
 
-    Ok(solution)
+    let result = SearchResult::new(solution, iterations);
+    Ok(result)
 }
 
 /// convenience method when origin and destination are specified using
@@ -243,7 +230,7 @@ pub fn run_a_star_edge_oriented(
     u: CostModel,
     f: Arc<dyn FrontierModel>,
     termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
-) -> Result<MinSearchTree, SearchError> {
+) -> Result<SearchResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let g = directed_graph
         .read()
@@ -263,7 +250,10 @@ pub fn run_a_star_edge_oriented(
 
     match target {
         None => {
-            let mut tree: HashMap<VertexId, SearchTreeBranch> = run_a_star(
+            let SearchResult {
+                mut tree,
+                iterations,
+            } = run_a_star(
                 source_edge_dst_vertex_id,
                 None,
                 directed_graph.clone(),
@@ -275,15 +265,18 @@ pub fn run_a_star_edge_oriented(
             if !tree.contains_key(&source_edge_dst_vertex_id) {
                 tree.extend([(source_edge_dst_vertex_id, src_traversal)]);
             }
-            Ok(tree)
+            let updated = SearchResult {
+                tree,
+                iterations: iterations + 1,
+            };
+            Ok(updated)
         }
         Some(target_edge) => {
             let target_edge_src_vertex_id = g.src_vertex_id(target_edge)?;
             let target_edge_dst_vertex_id = g.dst_vertex_id(target_edge)?;
 
             if source == target_edge {
-                let empty: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
-                Ok(empty)
+                Ok(SearchResult::default())
             } else if source_edge_dst_vertex_id == target_edge_src_vertex_id {
                 // route is simply source -> target
                 let init_state = m.initial_state();
@@ -309,10 +302,17 @@ pub fn run_a_star_edge_oriented(
                     (target_edge_dst_vertex_id, src_traversal),
                     (source_edge_dst_vertex_id, dst_traversal),
                 ]);
-                return Ok(tree);
+                let result = SearchResult {
+                    tree,
+                    iterations: 1,
+                };
+                return Ok(result);
             } else {
                 // run a search and append source/target edges to result
-                let mut tree: HashMap<VertexId, SearchTreeBranch> = run_a_star(
+                let SearchResult {
+                    mut tree,
+                    iterations,
+                } = run_a_star(
                     source_edge_dst_vertex_id,
                     Some(target_edge_src_vertex_id),
                     directed_graph.clone(),
@@ -356,7 +356,11 @@ pub fn run_a_star_edge_oriented(
                     tree.extend([(target_edge_dst_vertex_id, dst_traversal)]);
                 }
 
-                Ok(tree)
+                let result = SearchResult {
+                    tree,
+                    iterations: iterations + 2,
+                };
+                Ok(result)
             }
         }
     }
@@ -382,6 +386,7 @@ pub fn h_cost(
 mod tests {
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
+    use crate::algorithm::search::MinSearchTree;
     use crate::model::cost::cost_aggregation::CostAggregation;
     use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
@@ -507,6 +512,7 @@ mod tests {
                 let fm_inner = Arc::new(NoRestriction {});
                 let rm_inner = Arc::new(driver_rm.read_only());
                 run_a_star(o, Some(d), dg_inner, dist_tm, dist_um, fm_inner, rm_inner)
+                    .map(|search_result| search_result.tree)
             })
             .collect();
 
