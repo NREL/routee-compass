@@ -79,7 +79,7 @@ impl InputPlugin for GridSearchPlugin {
 
 #[cfg(test)]
 mod test {
-
+    use serde_json::json;
     use super::GridSearchPlugin;
     use crate::plugin::input::input_plugin::InputPlugin;
 
@@ -92,22 +92,31 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin
-            .process(&mut input)
-            .unwrap()
-            .iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<String>, serde_json::Error>>()
-            .unwrap();
+        plugin.process(&mut input).unwrap();
+        // .iter()
+        // .map(serde_json::to_string)
+        // .collect::<Result<Vec<String>, serde_json::Error>>()
+        // .unwrap();
+        // let expected = vec![
+        //     String::from("{\"bar\":\"a\",\"foo\":1.2}"),
+        //     String::from("{\"bar\":\"b\",\"foo\":1.2}"),
+        //     String::from("{\"bar\":\"c\",\"foo\":1.2}"),
+        //     String::from("{\"bar\":\"a\",\"foo\":3.4}"),
+        //     String::from("{\"bar\":\"b\",\"foo\":3.4}"),
+        //     String::from("{\"bar\":\"c\",\"foo\":3.4}"),
+        // ];
         let expected = vec![
-            String::from("{\"bar\":\"a\",\"foo\":1.2}"),
-            String::from("{\"bar\":\"b\",\"foo\":1.2}"),
-            String::from("{\"bar\":\"c\",\"foo\":1.2}"),
-            String::from("{\"bar\":\"a\",\"foo\":3.4}"),
-            String::from("{\"bar\":\"b\",\"foo\":3.4}"),
-            String::from("{\"bar\":\"c\",\"foo\":3.4}"),
+            json![{"bar":"a","foo":1.2}],
+            json![{"bar":"b","foo":1.2}],
+            json![{"bar":"c","foo":1.2}],
+            json![{"bar":"a","foo":3.4}],
+            json![{"bar":"b","foo":3.4}],
+            json![{"bar":"c","foo":3.4}],
         ];
-        assert_eq!(result, expected);
+        match input {
+            serde_json::Value::Array(result) => assert_eq!(result, expected),
+            other => panic!("expected array result, found {}", other),
+        }
     }
 
     #[test]
@@ -120,22 +129,28 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin
-            .process(&mut input)
-            .unwrap()
-            .iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<String>, serde_json::Error>>()
-            .unwrap();
+        plugin.process(&mut input).unwrap();
+
+        // let expected = vec![
+        //     String::from("{\"bar\":\"a\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
+        //     String::from("{\"bar\":\"b\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
+        //     String::from("{\"bar\":\"c\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
+        //     String::from("{\"bar\":\"a\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
+        //     String::from("{\"bar\":\"b\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
+        //     String::from("{\"bar\":\"c\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
+        // ];
         let expected = vec![
-            String::from("{\"bar\":\"a\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"b\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"c\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"a\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"b\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
-            String::from("{\"bar\":\"c\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
+            json![{"bar":"a","foo":1.2,"ignored_key": "ignored_value"}],
+            json![{"bar":"b","foo":1.2,"ignored_key": "ignored_value"}],
+            json![{"bar":"c","foo":1.2,"ignored_key": "ignored_value"}],
+            json![{"bar":"a","foo":3.4,"ignored_key": "ignored_value"}],
+            json![{"bar":"b","foo":3.4,"ignored_key": "ignored_value"}],
+            json![{"bar":"c","foo":3.4,"ignored_key": "ignored_value"}],
         ];
-        assert_eq!(result, expected);
+        match input {
+            serde_json::Value::Array(result) => assert_eq!(result, expected),
+            other => panic!("expected array result, found {}", other),
+        }
     }
 
     #[test]
@@ -151,20 +166,18 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin
-            .process(&mut input)
-            .unwrap()
-            .iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<String>, serde_json::Error>>()
-            .unwrap();
+        plugin.process(&mut input).unwrap();
         let expected = vec![
-            String::from("{\"a\":1,\"ignored_key\":\"ignored_value\",\"x\":0,\"y\":0}"),
-            String::from("{\"a\":2,\"ignored_key\":\"ignored_value\",\"x\":0,\"y\":0}"),
-            String::from("{\"a\":1,\"ignored_key\":\"ignored_value\",\"x\":1,\"y\":1}"),
-            String::from("{\"a\":2,\"ignored_key\":\"ignored_value\",\"x\":1,\"y\":1}"),
+            json![{"a":1,"ignored_key":"ignored_value","x":0,"y":0}],
+            json![{"a":2,"ignored_key":"ignored_value","x":0,"y":0}],
+            json![{"a":1,"ignored_key":"ignored_value","x":1,"y":1}],
+            json![ {"a":2,"ignored_key":"ignored_value","x":1,"y":1}],
         ];
-        assert_eq!(result, expected);
+        // assert_eq!(result, expected);
+        match input {
+            serde_json::Value::Array(result) => assert_eq!(result, expected),
+            other => panic!("expected array result, found {}", other),
+        }
     }
 
     #[test]
@@ -181,22 +194,19 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin
-            .process(&mut input)
-            .unwrap()
-            .iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<String>, serde_json::Error>>()
-            .unwrap();
+        plugin.process(&mut input).unwrap();
         let expected = vec![
-            String::from("{\"abc\":123,\"model_name\":\"2016_TOYOTA_Camry_4cyl_2WD\",\"name\":\"d1\",\"state_variable_coefficients\":{\"distance\":1,\"energy_electric\":0,\"time\":0}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2016_TOYOTA_Camry_4cyl_2WD\",\"name\":\"t1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":0,\"time\":1}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2016_TOYOTA_Camry_4cyl_2WD\",\"name\":\"e1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":1,\"time\":0}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2017_CHEVROLET_Bolt\",\"name\":\"d1\",\"state_variable_coefficients\":{\"distance\":1,\"energy_electric\":0,\"time\":0}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2017_CHEVROLET_Bolt\",\"name\":\"t1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":0,\"time\":1}}"),
-            String::from("{\"abc\":123,\"model_name\":\"2017_CHEVROLET_Bolt\",\"name\":\"e1\",\"state_variable_coefficients\":{\"distance\":0,\"energy_electric\":1,\"time\":0}}"),
+            json![{"abc":123,"model_name":"2016_TOYOTA_Camry_4cyl_2WD","name":"d1","state_variable_coefficients":{"distance":1,"energy_electric":0,"time":0}}],
+            json![{"abc":123,"model_name":"2016_TOYOTA_Camry_4cyl_2WD","name":"t1","state_variable_coefficients":{"distance":0,"energy_electric":0,"time":1}}],
+            json![{"abc":123,"model_name":"2016_TOYOTA_Camry_4cyl_2WD","name":"e1","state_variable_coefficients":{"distance":0,"energy_electric":1,"time":0}}],
+            json![{"abc":123,"model_name":"2017_CHEVROLET_Bolt","name":"d1","state_variable_coefficients":{"distance":1,"energy_electric":0,"time":0}}],
+            json![{"abc":123,"model_name":"2017_CHEVROLET_Bolt","name":"t1","state_variable_coefficients":{"distance":0,"energy_electric":0,"time":1}}],
+            json![{"abc":123,"model_name":"2017_CHEVROLET_Bolt","name":"e1","state_variable_coefficients":{"distance":0,"energy_electric":1,"time":0}}],
         ];
-        assert_eq!(result, expected);
+        match input {
+            serde_json::Value::Array(result) => assert_eq!(result, expected),
+            other => panic!("expected array result, found {}", other),
+        }
     }
 
     #[test]

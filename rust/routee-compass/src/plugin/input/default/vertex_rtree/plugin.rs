@@ -246,20 +246,25 @@ mod test {
         let query_str = fs::read_to_string(query_filepath).unwrap();
         let rtree_plugin = RTreePlugin::new(&vertices_filepath, None, None).unwrap();
         let mut query: serde_json::Value = serde_json::from_str(&query_str).unwrap();
-        let processed_query = rtree_plugin.process(&mut query).unwrap();
+        rtree_plugin.process(&mut query).unwrap();
 
-        assert_eq!(
-            processed_query[0],
-            json!(
-                {
-                    InputField::OriginX.to_str(): 0.1,
-                    InputField::OriginY.to_str(): 0.1,
-                    InputField::DestinationX.to_str(): 1.9,
-                    InputField::DestinationY.to_str(): 2.1,
-                    InputField::OriginVertex.to_str(): 0,
-                    InputField::DestinationVertex.to_str(): 2,
-                }
-            )
-        );
+        match query {
+            serde_json::Value::Object(obj) => {
+                assert_eq!(
+                    json![obj],
+                    json!(
+                        {
+                            InputField::OriginX.to_str(): 0.1,
+                            InputField::OriginY.to_str(): 0.1,
+                            InputField::DestinationX.to_str(): 1.9,
+                            InputField::DestinationY.to_str(): 2.1,
+                            InputField::OriginVertex.to_str(): 0,
+                            InputField::DestinationVertex.to_str(): 2,
+                        }
+                    )
+                );
+            }
+            other => panic!("expected object result, found {}", other),
+        }
     }
 }
