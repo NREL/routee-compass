@@ -72,13 +72,40 @@ pub fn json_array_op<'a>(query: &'a mut Value, op: ArrayOp<'a>) -> Result<(), Va
             for q in queries.iter_mut() {
                 op(q).map_err(|e| package_error(&json![{}], e))?;
             }
-            Ok(())
+            json_array_flatten_in_place(query)
         }
         other => {
             let error = package_invariant_error(None, Some(other));
             Err(error)
         }
     }
+}
+
+/// flattens the result of input processing into a response vector, ensuring
+/// that the nesting and types are correct. the flatten operation effect occurs
+/// in-place on the function argument via a memory swap.
+pub fn json_array_flatten_in_place(result: &mut Value) -> Result<(), Value> {
+    let mut flattened: Vec<&mut Value> = vec![];
+
+    if let Value::Array(top_array) = result {
+        for v1 in top_array.iter_mut() {
+            match v1 {
+                Value::Array(sub_array) => {
+                    for v2 in sub_array.iter_mut() {
+                        flattened.push(v2)
+                    }
+                }
+                other => flattened.push(other),
+            }
+        }
+    } else {
+        let error_response = package_invariant_error(Some(result), None);
+        return Err(error_response);
+    }
+
+    let mut flat_result = json![flattened];
+    std::mem::swap(result, &mut flat_result);
+    Ok(())
 }
 
 /// flattens the result of input processing into a response vector, ensuring

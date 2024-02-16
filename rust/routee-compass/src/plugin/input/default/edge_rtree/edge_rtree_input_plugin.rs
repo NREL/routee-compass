@@ -50,12 +50,11 @@ impl InputPlugin for EdgeRtreeInputPlugin {
                 .ok_or_else(|| matching_error(&dst_coord, self.tolerance)),
         }?;
 
-        let mut updated = query.clone();
-        updated.add_origin_edge(source_edge_id)?;
+        query.add_origin_edge(source_edge_id)?;
         match destination_edge_id_option {
             None => {}
             Some(destination_edge_id) => {
-                updated.add_destination_edge(destination_edge_id)?;
+                query.add_destination_edge(destination_edge_id)?;
             }
         }
 
