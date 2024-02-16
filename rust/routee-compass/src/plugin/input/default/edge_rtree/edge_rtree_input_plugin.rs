@@ -33,7 +33,7 @@ impl InputPlugin for EdgeRtreeInputPlugin {
     fn process(&self, query: &mut serde_json::Value) -> Result<(), PluginError> {
         let road_classes = self.road_class_parser.read_query(query).map_err(|e| {
             PluginError::InputError(format!(
-                "Unable to process EdgeRtree Input Plugin due to: {}",
+                "Unable to apply EdgeRtree Input Plugin due to:\n\n{}",
                 e
             ))
         })?;

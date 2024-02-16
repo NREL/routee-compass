@@ -28,3 +28,4 @@ wkt = { version = "0.10.3", features = ["serde"] }
 config = "0.14"
 ordered-float = { version = "4.1.1", features = ["serde"] }
 allocative = "0.3.1"
+indoc = "2"
