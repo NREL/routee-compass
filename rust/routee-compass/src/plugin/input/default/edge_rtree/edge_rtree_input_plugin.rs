@@ -2,7 +2,6 @@ use super::edge_rtree_record::EdgeRtreeRecord;
 use crate::{
     app::compass::config::{
         compass_configuration_error::CompassConfigurationError,
-        config_json_extension::ConfigJsonExtensions,
         frontier_model::road_class::road_class_parser::RoadClassParser,
     },
     plugin::{
