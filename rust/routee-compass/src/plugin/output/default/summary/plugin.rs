@@ -25,6 +25,7 @@ impl OutputPlugin for SummaryOutputPlugin {
                 output["search_app_runtime"] = result.search_app_runtime.hhmmss().into();
                 output["route_edge_count"] = result.route.len().into();
                 output["tree_edge_count"] = result.tree.len().into();
+                output["iterations"] = result.iterations.into();
                 Ok(())
             }
         }

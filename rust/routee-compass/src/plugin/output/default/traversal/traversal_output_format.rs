@@ -112,6 +112,7 @@ mod test {
             algorithm_runtime: Duration::ZERO,
             route_runtime: Duration::ZERO,
             search_app_runtime: Duration::ZERO,
+            iterations: 0,
         };
 
         let geoms = vec![
