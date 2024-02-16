@@ -76,7 +76,9 @@ class CompassApp:
         app = CompassAppWrapper._from_config_toml_string(toml_string, path_str)
         return cls(app)
 
-    def run(self, query: Union[Query, List[Query]], config: Optional[Dict] = None) -> Result:
+    def run(
+        self, query: Union[Query, List[Query]], config: Optional[Dict] = None
+    ) -> Result:
         """
         Run a query (or multiple queries) against the CompassApp
 
