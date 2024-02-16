@@ -9,7 +9,7 @@ use routee_compass_core::util::multiset::MultiSet;
 pub struct GridSearchPlugin {}
 
 impl InputPlugin for GridSearchPlugin {
-    fn process(&self, mut input: &mut serde_json::Value) -> Result<(), PluginError> {
+    fn process(&self, input: &mut serde_json::Value) -> Result<(), PluginError> {
         match input.get_grid_search() {
             None => Ok(()),
             Some(grid_search_input) => {
@@ -68,8 +68,6 @@ impl InputPlugin for GridSearchPlugin {
                         instance
                     })
                     .collect();
-
-                // let new_array = serde_json::Value::Array(result);
 
                 let mut replacement = serde_json::json![result];
                 std::mem::swap(&mut replacement, input);
