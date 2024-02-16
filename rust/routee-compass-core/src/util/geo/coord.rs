@@ -1,26 +1,26 @@
 use std::ops::{Deref, DerefMut};
 
 use allocative::Allocative;
-use geo::Coord;
+use geo::{Coord, CoordNum};
 
 #[derive(Copy, Clone, Default, Debug, PartialEq)]
-pub struct InternalCoord(pub Coord);
+pub struct InternalCoord<T: CoordNum>(pub Coord<T>);
 
-impl Allocative for InternalCoord {
+impl<T: CoordNum> Allocative for InternalCoord<T> {
     fn visit<'a, 'b: 'a>(&self, visitor: &'a mut allocative::Visitor<'b>) {
         visitor.enter_self_sized::<Self>().exit();
     }
 }
 
-impl Deref for InternalCoord {
-    type Target = Coord;
+impl<T: CoordNum> Deref for InternalCoord<T> {
+    type Target = Coord<T>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl DerefMut for InternalCoord {
+impl<T: CoordNum> DerefMut for InternalCoord<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
     }

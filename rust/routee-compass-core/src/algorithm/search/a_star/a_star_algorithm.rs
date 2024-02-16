@@ -6,6 +6,7 @@ use crate::model::cost::cost_model::CostModel;
 use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::graph::Graph;
+use crate::model::road_network::vertex_id::VertexId;
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
@@ -13,7 +14,6 @@ use crate::model::unit::cost::ReverseCost;
 use crate::model::unit::Cost;
 use crate::util::priority_queue::InternalPriorityQueue;
 use crate::util::read_only_lock::ExecutorReadOnlyLock;
-use crate::{algorithm::search::direction::Direction, model::road_network::vertex_id::VertexId};
 use priority_queue::PriorityQueue;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -129,17 +129,16 @@ pub fn run_a_star(
         };
 
         // visit all neighbors of this source vertex
-        let neighbor_triplets = g
-            .incident_triplets(current_vertex_id, Direction::Forward)
-            .map_err(SearchError::GraphError)?;
-        for (src_id, edge_id, dst_id) in neighbor_triplets {
-            // first make sure we have a valid edge
-            let e = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
+        for edge_id in g.out_edges_iter(current_vertex_id)? {
+            let e = g.get_edge(*edge_id)?;
+            let src_id = e.src_vertex_id;
+            let dst_id = e.dst_vertex_id;
+
             if !f.valid_frontier(e, &current_state, previous_edge)? {
                 continue;
             }
             let et = EdgeTraversal::perform_traversal(
-                edge_id,
+                *edge_id,
                 previous_edge.map(|pe| pe.edge_id),
                 &current_state,
                 &g,
