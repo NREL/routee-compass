@@ -79,9 +79,9 @@ impl InputPlugin for GridSearchPlugin {
 
 #[cfg(test)]
 mod test {
-    use serde_json::json;
     use super::GridSearchPlugin;
     use crate::plugin::input::input_plugin::InputPlugin;
+    use serde_json::json;
 
     #[test]
     fn test_grid_search_empty_parent_object() {
@@ -93,18 +93,6 @@ mod test {
         });
         let plugin = GridSearchPlugin {};
         plugin.process(&mut input).unwrap();
-        // .iter()
-        // .map(serde_json::to_string)
-        // .collect::<Result<Vec<String>, serde_json::Error>>()
-        // .unwrap();
-        // let expected = vec![
-        //     String::from("{\"bar\":\"a\",\"foo\":1.2}"),
-        //     String::from("{\"bar\":\"b\",\"foo\":1.2}"),
-        //     String::from("{\"bar\":\"c\",\"foo\":1.2}"),
-        //     String::from("{\"bar\":\"a\",\"foo\":3.4}"),
-        //     String::from("{\"bar\":\"b\",\"foo\":3.4}"),
-        //     String::from("{\"bar\":\"c\",\"foo\":3.4}"),
-        // ];
         let expected = vec![
             json![{"bar":"a","foo":1.2}],
             json![{"bar":"b","foo":1.2}],
@@ -131,14 +119,6 @@ mod test {
         let plugin = GridSearchPlugin {};
         plugin.process(&mut input).unwrap();
 
-        // let expected = vec![
-        //     String::from("{\"bar\":\"a\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
-        //     String::from("{\"bar\":\"b\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
-        //     String::from("{\"bar\":\"c\",\"foo\":1.2,\"ignored_key\":\"ignored_value\"}"),
-        //     String::from("{\"bar\":\"a\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
-        //     String::from("{\"bar\":\"b\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
-        //     String::from("{\"bar\":\"c\",\"foo\":3.4,\"ignored_key\":\"ignored_value\"}"),
-        // ];
         let expected = vec![
             json![{"bar":"a","foo":1.2,"ignored_key": "ignored_value"}],
             json![{"bar":"b","foo":1.2,"ignored_key": "ignored_value"}],
