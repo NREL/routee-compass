@@ -8,4 +8,6 @@ pub struct CompassAppArgs {
     pub query_file: PathBuf,
     #[arg(short, long, value_name = "FILE")]
     pub config: Option<PathBuf>,
+    #[arg(short, long, value_name = "RUN_CONFIGURATION")]
+    pub run_config: Option<PathBuf>,
 }
