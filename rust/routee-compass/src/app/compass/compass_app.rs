@@ -21,9 +21,8 @@ use crate::{
         search::{search_app::SearchApp, search_app_result::SearchAppResult},
     },
     plugin::{
-        input::input_plugin::InputPlugin,
-        output::{initial_output_ops as out_ops, output_plugin::OutputPlugin},
-        plugin_error::PluginError,
+        input::{input_plugin::InputPlugin, input_plugin_ops as in_ops},
+        output::{output_plugin::OutputPlugin, output_plugin_ops as out_ops},
     },
 };
 use chrono::{Duration, Local};
@@ -36,6 +35,7 @@ use routee_compass_core::{
     util::duration_extension::DurationExtension,
 };
 use serde_json::Value;
+use std::rc::Rc;
 use std::{
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
@@ -516,34 +516,41 @@ pub fn run_batch_without_responses(
 }
 
 /// helper that applies the input plugins to a query, returning the result(s) or an error if failed
-pub fn apply_input_plugins(
+pub fn apply_input_plugins<'a>(
     query: &serde_json::Value,
-    plugins: &[Arc<dyn InputPlugin>],
+    plugins: &Vec<Arc<dyn InputPlugin>>,
 ) -> Result<Vec<serde_json::Value>, serde_json::Value> {
-    let init = Ok(vec![query.clone()]);
-    let result = plugins
-        .iter()
-        .fold(init, |acc, p| {
-            acc.and_then(|outer| {
-                outer
-                    .iter()
-                    .map(|q| p.process(q))
-                    .collect::<Result<Vec<_>, PluginError>>()
-                    .map(|inner| {
-                        inner
-                            .into_iter()
-                            .flatten()
-                            .collect::<Vec<serde_json::Value>>()
-                    })
-            })
-        })
-        .map_err(|e| {
-            serde_json::json!({
-                "request": query,
-                "error": e.to_string()
-            })
-        })?;
+    let mut plugin_state = serde_json::Value::Array(vec![query.clone()]);
+    for plugin in plugins {
+        let p = plugin.clone();
+        let op: in_ops::ArrayOp = Rc::new(|q| p.process(q));
+        in_ops::json_array_op(&mut plugin_state, op)?
+    }
+    let result = in_ops::json_array_flatten(&mut plugin_state)?;
     Ok(result)
+    // let init = Ok(vec![query.clone()]);
+    // let result = plugins
+    //     .iter()
+    //     .fold(init, |acc, p| {
+    //         acc.and_then(|outer| {
+    //             outer
+    //                 .iter()
+    //                 .map(|q| p.process(q))
+    //                 .collect::<Result<Vec<_>, PluginError>>()
+    //                 .map(|inner| {
+    //                     inner
+    //                         .into_iter()
+    //                         .flatten()
+    //                         .collect::<Vec<serde_json::Value>>()
+    //                 })
+    //         })
+    //     })
+    //     .map_err(|e| {
+    //         serde_json::json!({
+    //             "request": query,
+    //             "error": e.to_string()
+    //         })
+    //     })?;
 }
 
 // helper that applies the output processing. this includes

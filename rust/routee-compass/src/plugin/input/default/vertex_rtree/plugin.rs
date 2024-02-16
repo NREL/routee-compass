@@ -136,8 +136,7 @@ impl InputPlugin for RTreePlugin {
     ///
     /// * either vertex ids for the nearest coordinates to the the origin (and optionally destination),
     ///   or, an error if not found or not within tolerance
-    fn process(&self, query: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
-        let mut updated = query.clone();
+    fn process(&self, query: &mut serde_json::Value) -> Result<(), PluginError> {
         let src_coord = query.get_origin_coordinate()?;
         let dst_coord_option = query.get_destination_coordinate()?;
 
@@ -149,7 +148,7 @@ impl InputPlugin for RTreePlugin {
         })?;
 
         validate_tolerance(&src_coord, &src_vertex.coordinate, &self.tolerance)?;
-        updated.add_origin_vertex(src_vertex.vertex_id)?;
+        query.add_origin_vertex(src_vertex.vertex_id)?;
 
         match dst_coord_option {
             None => {}
@@ -161,11 +160,11 @@ impl InputPlugin for RTreePlugin {
                     ))
                 })?;
                 validate_tolerance(&dst_coord, &dst_vertex.coordinate, &self.tolerance)?;
-                updated.add_destination_vertex(dst_vertex.vertex_id)?;
+                query.add_destination_vertex(dst_vertex.vertex_id)?;
             }
         }
 
-        Ok(vec![updated])
+        Ok(())
     }
 }
 
@@ -246,8 +245,8 @@ mod test {
             .join("rtree_query.json");
         let query_str = fs::read_to_string(query_filepath).unwrap();
         let rtree_plugin = RTreePlugin::new(&vertices_filepath, None, None).unwrap();
-        let query: serde_json::Value = serde_json::from_str(&query_str).unwrap();
-        let processed_query = rtree_plugin.process(&query).unwrap();
+        let mut query: serde_json::Value = serde_json::from_str(&query_str).unwrap();
+        let processed_query = rtree_plugin.process(&mut query).unwrap();
 
         assert_eq!(
             processed_query[0],

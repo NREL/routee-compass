@@ -29,7 +29,7 @@ pub struct EdgeRtreeInputPlugin {
 impl InputPlugin for EdgeRtreeInputPlugin {
     /// finds the nearest edge ids to the user-provided origin and destination coordinates.
     /// optionally restricts the search to a subset of road classes tagged by the user.
-    fn process(&self, query: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
+    fn process(&self, query: &mut serde_json::Value) -> Result<(), PluginError> {
         let road_classes = query
             .get_config_serde_optional::<HashSet<String>>(&"road_classes", &"")
             .map_err(|e| {
@@ -48,15 +48,15 @@ impl InputPlugin for EdgeRtreeInputPlugin {
         }?;
 
         let mut updated = query.clone();
-        updated.add_origin_edge(source_edge_id)?;
+        query.add_origin_edge(source_edge_id)?;
         match destination_edge_id_option {
             None => {}
             Some(destination_edge_id) => {
-                updated.add_destination_edge(destination_edge_id)?;
+                query.add_destination_edge(destination_edge_id)?;
             }
         }
 
-        Ok(vec![updated])
+        Ok(())
     }
 }
 

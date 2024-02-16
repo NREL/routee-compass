@@ -1,3 +1,3 @@
 pub mod default;
-pub mod initial_output_ops;
 pub mod output_plugin;
+pub mod output_plugin_ops;

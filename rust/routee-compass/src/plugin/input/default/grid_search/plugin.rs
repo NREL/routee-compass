@@ -9,9 +9,9 @@ use routee_compass_core::util::multiset::MultiSet;
 pub struct GridSearchPlugin {}
 
 impl InputPlugin for GridSearchPlugin {
-    fn process(&self, input: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
+    fn process(&self, mut input: &mut serde_json::Value) -> Result<(), PluginError> {
         match input.get_grid_search() {
-            None => Ok(vec![input.clone()]),
+            None => Ok(()),
             Some(grid_search_input) => {
                 // prevent recursion due to nested grid search keys
                 let recurses = serde_json::to_string(grid_search_input)
@@ -69,7 +69,11 @@ impl InputPlugin for GridSearchPlugin {
                     })
                     .collect();
 
-                Ok(result)
+                // let new_array = serde_json::Value::Array(result);
+
+                let mut replacement = serde_json::json![result];
+                std::mem::swap(&mut replacement, &mut input);
+                Ok(())
             }
         }
     }
@@ -83,7 +87,7 @@ mod test {
 
     #[test]
     fn test_grid_search_empty_parent_object() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "grid_search": {
                 "bar": ["a", "b", "c"],
                 "foo": [1.2, 3.4]
@@ -91,7 +95,7 @@ mod test {
         });
         let plugin = GridSearchPlugin {};
         let result = plugin
-            .process(&input)
+            .process(&mut input)
             .unwrap()
             .iter()
             .map(serde_json::to_string)
@@ -110,7 +114,7 @@ mod test {
 
     #[test]
     fn test_grid_search_persisted_parent_keys() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "ignored_key": "ignored_value",
             "grid_search": {
                 "bar": ["a", "b", "c"],
@@ -119,7 +123,7 @@ mod test {
         });
         let plugin = GridSearchPlugin {};
         let result = plugin
-            .process(&input)
+            .process(&mut input)
             .unwrap()
             .iter()
             .map(serde_json::to_string)
@@ -138,7 +142,7 @@ mod test {
 
     #[test]
     fn test_grid_search_using_objects() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "ignored_key": "ignored_value",
             "grid_search": {
                 "a": [1, 2],
@@ -150,7 +154,7 @@ mod test {
         });
         let plugin = GridSearchPlugin {};
         let result = plugin
-            .process(&input)
+            .process(&mut input)
             .unwrap()
             .iter()
             .map(serde_json::to_string)
@@ -167,7 +171,7 @@ mod test {
 
     #[test]
     fn test_nested() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "abc": 123,
             "grid_search":{
                 "model_name": ["2016_TOYOTA_Camry_4cyl_2WD","2017_CHEVROLET_Bolt"],
@@ -180,7 +184,7 @@ mod test {
         });
         let plugin = GridSearchPlugin {};
         let result = plugin
-            .process(&input)
+            .process(&mut input)
             .unwrap()
             .iter()
             .map(serde_json::to_string)
@@ -199,7 +203,7 @@ mod test {
 
     #[test]
     pub fn test_handle_recursion() {
-        let input = serde_json::json!({
+        let mut input = serde_json::json!({
             "abc": 123,
             "grid_search":{
                 "grid_search": {
@@ -208,7 +212,7 @@ mod test {
             }
         });
         let plugin = GridSearchPlugin {};
-        let result = plugin.process(&input);
+        let result = plugin.process(&mut input);
         assert!(result.is_err());
     }
 }

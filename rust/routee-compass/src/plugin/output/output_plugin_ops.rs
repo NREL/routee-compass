@@ -58,6 +58,8 @@ pub fn create_initial_output(
     }
 }
 
+/// helper to return errors as JSON response objects which include the
+/// original request along with the error message
 pub fn package_error<E: ToString>(req: &Value, error: E) -> Value {
     json!({
         "request": req,

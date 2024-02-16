@@ -1,5 +1,3 @@
-use serde_json::json;
-
 use crate::plugin::{input::input_plugin::InputPlugin, plugin_error::PluginError};
 
 pub struct InjectInputPlugin {
@@ -14,15 +12,8 @@ impl InjectInputPlugin {
 }
 
 impl InputPlugin for InjectInputPlugin {
-    fn process(&self, input: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
-        let mut updated_obj = input.clone();
-        let updated = updated_obj.as_object_mut().ok_or_else(|| {
-            PluginError::InternalError(format!(
-                "expected input JSON to be an object, found {}",
-                input
-            ))
-        })?;
-        updated.insert(self.key.clone(), self.value.clone());
-        Ok(vec![json!(updated)])
+    fn process(&self, input: &mut serde_json::Value) -> Result<(), PluginError> {
+        input[self.key.clone()] = self.value.clone();
+        Ok(())
     }
 }
