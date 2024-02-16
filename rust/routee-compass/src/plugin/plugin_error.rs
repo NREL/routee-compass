@@ -10,7 +10,7 @@ pub enum PluginError {
     ParseError(String, String),
     #[error("missing field {0}")]
     MissingField(String),
-    #[error("error with parsing inputs: {0}")]
+    #[error("error with parsing query inputs:\n{0}")]
     InputError(String),
     #[error("error with building plugin")]
     BuildError,

@@ -54,7 +54,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     // scan the results and log any json values that have "error" in them
     for result in results.iter() {
         if let Some(error) = result.get("error") {
-            error!("Error: {}", error);
+            let error_string = error.to_string().replace("\\n", "\n");
+            error!("Error: {}", error_string);
         }
     }
 

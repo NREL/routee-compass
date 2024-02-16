@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
+use indoc::formatdoc;
 use serde::Deserialize;
 
 use crate::app::compass::compass_app_error::CompassAppError;
@@ -23,15 +24,15 @@ impl RoadClassParser {
                     .or_else(|_| {
                         if self.mapping.is_empty() {
                             // if we don't have a road class mapping then we fail
+                            let value_string = value.to_string();
                             Err(CompassAppError::InvalidInput(
-                                String::from(
-                                    r#"
-                                    Could not parse incoming query valid road_classes as an array of integers 
+                                formatdoc! {r#"
+                                    Could not parse incoming query valid road_classes of {value_string} as an array of integers 
                                     and this FrontierModel does not specify a mapping of string to integer. 
                                     Either pass a valid array of integers or reload the application with a 
                                     mapping from string road class to integer road class.
                                     "#
-                                )
+                                }.to_string()
                             ))
                         } else {
                                 let strings =

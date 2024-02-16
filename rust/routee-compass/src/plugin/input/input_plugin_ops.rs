@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
 use crate::plugin::plugin_error::PluginError;
+use indoc::indoc;
 use serde_json::{json, Value};
 
 /// helper to return errors as JSON response objects which include the
 /// original request along with the error message
-pub fn package_error<E: ToString>(query: &Value, error: E) -> Value {
+pub fn package_error<E: ToString>(query: &mut Value, error: E) -> Value {
     json!({
         "request": query,
         "error": error.to_string()
@@ -16,12 +17,13 @@ pub fn package_invariant_error(
     query: Option<&mut Value>,
     sub_section: Option<&mut Value>,
 ) -> Value {
-    let intro = r#"
+    let intro = indoc! {r#"
     an input plugin has broken the invariant of the query state which requires
     that the query's JSON representation has a top-level JSON Array ([]) whose only
     elements are JSON objects ({}). please confirm that all included InputPlugin 
     instances do not break this invariant.
-    "#;
+    "#
+    };
 
     let json_msg = match query {
         None => String::from(
@@ -56,7 +58,7 @@ pub fn package_invariant_error(
 
     match query {
         Some(q) => package_error(q, msg),
-        None => package_error(&json![{"error": "unable to display query"}], msg),
+        None => package_error(&mut json![{"error": "unable to display query"}], msg),
     }
 }
 
@@ -70,7 +72,7 @@ pub fn json_array_op<'a>(query: &'a mut Value, op: ArrayOp<'a>) -> Result<(), Va
     match query {
         Value::Array(queries) => {
             for q in queries.iter_mut() {
-                op(q).map_err(|e| package_error(&json![{}], e))?;
+                op(q).map_err(|e| package_error(q, e))?;
             }
             Ok(())
         }
