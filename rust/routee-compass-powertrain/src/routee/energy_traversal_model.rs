@@ -4,7 +4,6 @@ use super::vehicle::vehicle_type::{VehicleState, VehicleType};
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
 use routee_compass_core::model::road_network::turn::Turn;
-use routee_compass_core::model::traversal::default::speed_traversal_model::get_speed;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
@@ -242,7 +241,7 @@ impl TraversalModel for EnergyTraversalModel {
         let distance = haversine::coord_distance(
             &src.coordinate,
             &dst.coordinate,
-            self.service.output_distance_unit,
+            self.energy_model_service.output_distance_unit,
         )
         .map_err(TraversalModelError::NumericError)?;
 

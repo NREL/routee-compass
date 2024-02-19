@@ -123,7 +123,7 @@ impl CompassAppBuilder {
         let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceBuilder {});
         let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
         let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder::new(
-            HashMap::from([(String::from("speed_table"), speed)]),
+            HashMap::from([(String::from("speed_table"), speed.clone())]),
         ));
         let tm_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),

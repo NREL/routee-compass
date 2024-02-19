@@ -101,7 +101,8 @@ impl TraversalModelService for EnergyModelService {
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let arc_self = Arc::new(self.clone());
-        let model = EnergyTraversalModel::new(arc_self, self.time_model_service, parameters)?;
+        let model =
+            EnergyTraversalModel::new(arc_self, self.time_model_service.clone(), parameters)?;
         Ok(Arc::new(model))
     }
 }
