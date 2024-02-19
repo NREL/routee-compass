@@ -1,10 +1,11 @@
+use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
-use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
 use super::{
-    as_f64::AsF64, builders, Distance, DistanceUnit, Speed, SpeedUnit, TimeUnit, UnitError,
+    as_f64::AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, Speed,
+    SpeedUnit, TimeUnit, UnitError,
 };
 
 #[derive(
@@ -23,8 +24,9 @@ use super::{
     Div,
     Sum,
     Neg,
+    Allocative,
 )]
-pub struct Time(pub OrderedFloat<f64>);
+pub struct Time(pub InternalFloat);
 
 impl AsF64 for Time {
     fn as_f64(&self) -> f64 {
@@ -54,13 +56,13 @@ impl Ord for Time {
 
 impl Display for Time {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{:?}", self.0)
     }
 }
 
 impl Time {
     pub fn new(value: f64) -> Time {
-        Time(OrderedFloat(value))
+        Time(InternalFloat::new(value))
     }
     pub fn create(
         speed: Speed,
@@ -74,6 +76,6 @@ impl Time {
     pub fn to_f64(&self) -> f64 {
         (self.0).0
     }
-    pub const ZERO: Time = Time(OrderedFloat(0.0));
-    pub const ONE: Time = Time(OrderedFloat(1.0));
+    pub const ZERO: Time = Time(InternalFloat::ZERO);
+    pub const ONE: Time = Time(InternalFloat::ONE);
 }

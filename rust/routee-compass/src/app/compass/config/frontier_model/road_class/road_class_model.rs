@@ -8,7 +8,7 @@ use std::{collections::HashSet, sync::Arc};
 
 pub struct RoadClassFrontierModel {
     pub service: Arc<RoadClassFrontierService>,
-    pub road_classes: Option<HashSet<String>>,
+    pub road_classes: Option<HashSet<u8>>,
 }
 
 impl FrontierModel for RoadClassFrontierModel {

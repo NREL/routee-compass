@@ -39,12 +39,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     let user_queries = user_json.get_queries()?;
     info!("Query: {:?}", user_json);
 
-    let results = compass_app.run(user_queries)?;
+    let run_config = match args.run_config {
+        Some(run_config_path) => {
+            let f = File::open(run_config_path)?;
+            let r = std::io::BufReader::new(f);
+            let j: serde_json::Value = serde_json::from_reader(r)?;
+            Some(j)
+        }
+        None => None,
+    };
+
+    let results = compass_app.run(user_queries, run_config.as_ref())?;
 
     // scan the results and log any json values that have "error" in them
     for result in results.iter() {
         if let Some(error) = result.get("error") {
-            error!("Error: {}", error);
+            let error_string = error.to_string().replace("\\n", "\n");
+            error!("Error: {}", error_string);
         }
     }
 

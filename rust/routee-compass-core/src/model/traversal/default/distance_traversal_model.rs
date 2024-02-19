@@ -95,7 +95,7 @@ impl TraversalModel for DistanceTraversalModel {
         state: &[StateVar],
     ) -> Result<TraversalState, TraversalModelError> {
         let distance =
-            haversine::coord_distance(src.coordinate, dst.coordinate, self.distance_unit)
+            haversine::coord_distance(&src.coordinate, &dst.coordinate, self.distance_unit)
                 .map_err(TraversalModelError::NumericError)?;
         let mut updated_state = state.to_vec();
         updated_state[0] = state[0] + StateVar::from(distance);

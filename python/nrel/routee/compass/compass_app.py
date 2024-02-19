@@ -31,14 +31,13 @@ class CompassApp:
 
     @classmethod
     def from_config_file(
-        cls, config_file: Union[str, Path], output_file: Optional[str] = None
+        cls, config_file: Union[str, Path]  # , output_file: Optional[str] = None
     ) -> CompassApp:
         """
         Build a CompassApp from a config file
 
         Args:
             config_file (Union[str, Path]): Path to the config file
-            output_file (Optional[str]): Path to the output file. This overrides whatever is in the config file
 
         Returns:
             CompassApp: A CompassApp object
@@ -53,19 +52,33 @@ class CompassApp:
         with open(config_path) as f:
             toml_config = toml.load(f)
 
-        # inject the output file override into the to_disk plugin config
-        if output_file is not None:
-            toml_config = inject_to_disk_plugin(output_file, toml_config)
+        return CompassApp.from_dict(toml_config, config_path)
 
-        toml_string = toml.dumps(toml_config)
-        config_path_string = str(config_path.absolute())
+    @classmethod
+    def from_dict(cls, config: Dict, working_dir: Optional[Path] = None) -> CompassApp:
+        """
+        Build a CompassApp from a configuration object
 
-        app = CompassAppWrapper._from_config_toml_string(
-            toml_string, config_path_string
-        )
+        Args:
+            config (Dict): Configuration dictionary
+            working_dir (Path): optional path to working directory
+
+        Returns:
+            CompassApp: a CompassApp object
+
+        Example:
+            >>> from nrel.routee.compass import CompassApp
+            >>> conf = { parallelism: 2 }
+            >>> app = CompassApp.from_config(conf)
+        """
+        path_str = str(working_dir.absolute()) if working_dir is not None else ""
+        toml_string = toml.dumps(config)
+        app = CompassAppWrapper._from_config_toml_string(toml_string, path_str)
         return cls(app)
 
-    def run(self, query: Union[Query, List[Query]]) -> Result:
+    def run(
+        self, query: Union[Query, List[Query]], config: Optional[Dict] = None
+    ) -> Result:
         """
         Run a query (or multiple queries) against the CompassApp
 
@@ -101,9 +114,10 @@ class CompassApp:
                 f"Query must be a dict or list of dicts, not {type(query)}"
             )
 
-        queries_json = list(map(json.dumps, queries))
+        queries_str = list(map(json.dumps, queries))
+        config_str = json.dumps(config) if config is not None else None
 
-        results_json: List[str] = self._app._run_queries(queries_json)
+        results_json: List[str] = self._app._run_queries(queries_str, config_str)
 
         results = list(map(json.loads, results_json))
         if single_query and len(results) == 1:
@@ -174,36 +188,36 @@ class CompassApp:
         return self._app.graph_get_in_edge_ids(vertex_id)
 
 
-def inject_to_disk_plugin(output_file: str, toml_config: dict) -> dict:
-    """
-    Inject or override the to_disk plugin in the config dictionary
+# def inject_to_disk_plugin(output_file: str, toml_config: dict) -> dict:
+#     """
+#     Inject or override the to_disk plugin in the config dictionary
 
-    Args:
-        output_file (str): Path to the output file
-        toml_config (dict): The existing config dictionary
+#     Args:
+#         output_file (str): Path to the output file
+#         toml_config (dict): The existing config dictionary
 
-    Returns:
-        dict: A dictionary with the to_disk plugin injected or overriden
-    """
-    plugins = toml_config.get("plugin")
-    if plugins is None:
-        # inject a whole plugin section with the to_disk output plugin
-        toml_config["plugin"] = {
-            "output_plugins": [{"type": "to_disk", "output_file": output_file}]
-        }
-    else:
-        output_plugins = plugins.get("output_plugins")
-        if output_plugins is None:
-            # inject the to_disk output plugin into the existing plugin section
-            plugins["output_plugins"] = [
-                {"type": "to_disk", "output_file": output_file}
-            ]
-        else:
-            to_disk_exists = False
-            for plugin in output_plugins:
-                if plugin.get("type") == "to_disk":
-                    to_disk_exists = True
-                    plugin["output_file"] = output_file
-            if not to_disk_exists:
-                output_plugins.append({"type": "to_disk", "output_file": output_file})
-    return toml_config
+#     Returns:
+#         dict: A dictionary with the to_disk plugin injected or overriden
+#     """
+#     plugins = toml_config.get("plugin")
+#     if plugins is None:
+#         # inject a whole plugin section with the to_disk output plugin
+#         toml_config["plugin"] = {
+#             "output_plugins": [{"type": "to_disk", "output_file": output_file}]
+#         }
+#     else:
+#         output_plugins = plugins.get("output_plugins")
+#         if output_plugins is None:
+#             # inject the to_disk output plugin into the existing plugin section
+#             plugins["output_plugins"] = [
+#                 {"type": "to_disk", "output_file": output_file}
+#             ]
+#         else:
+#             to_disk_exists = False
+#             for plugin in output_plugins:
+#                 if plugin.get("type") == "to_disk":
+#                     to_disk_exists = True
+#                     plugin["output_file"] = output_file
+#             if not to_disk_exists:
+#                 output_plugins.append({"type": "to_disk", "output_file": output_file})
+#     return toml_config

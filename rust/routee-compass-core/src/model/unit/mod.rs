@@ -9,6 +9,7 @@ pub mod energy_rate_unit;
 pub mod energy_unit;
 pub mod grade;
 pub mod grade_unit;
+pub mod internal_float;
 pub mod speed;
 pub mod speed_unit;
 pub mod time;

@@ -8,6 +8,8 @@ use std::path::Path;
 
 use super::graph_loader::graph_from_files;
 
+use allocative::Allocative;
+
 /// Road network topology represented as an adjacency list.
 /// The `EdgeId` and `VertexId` values correspond to edge and
 /// vertex indices in the `edges` and `vertices` vectors.
@@ -27,7 +29,7 @@ use super::graph_loader::graph_from_files;
 /// into Vecs because of error handling or lifetimes, but those cases will only produce a
 /// smaller subset of the source data.
 
-#[derive(Debug)]
+#[derive(Debug, Allocative)]
 pub struct Graph {
     pub adj: Box<[HashMap<EdgeId, VertexId>]>,
     pub rev: Box<[HashMap<EdgeId, VertexId>]>,
@@ -140,6 +142,19 @@ impl Graph {
         }
     }
 
+    pub fn out_edges_iter(
+        &self,
+        src: VertexId,
+    ) -> Result<impl Iterator<Item = &EdgeId>, GraphError> {
+        match self.adj.get(src.0) {
+            None => Err(GraphError::VertexWithoutOutEdges { vertex_id: src }),
+            Some(out_map) => {
+                let edge_ids = out_map.keys();
+                Ok(edge_ids)
+            }
+        }
+    }
+
     /// retrieve a list of `EdgeId`s for edges that arrive at the given `VertexId`
     ///
     /// # Arguments
@@ -155,6 +170,19 @@ impl Graph {
             None => Err(GraphError::VertexWithoutInEdges { vertex_id: dst }),
             Some(in_map) => {
                 let edge_ids = in_map.keys().cloned().collect();
+                Ok(edge_ids)
+            }
+        }
+    }
+
+    pub fn in_edges_iter(
+        &self,
+        dst: VertexId,
+    ) -> Result<impl Iterator<Item = &EdgeId>, GraphError> {
+        match self.rev.get(dst.0) {
+            None => Err(GraphError::VertexWithoutInEdges { vertex_id: dst }),
+            Some(in_map) => {
+                let edge_ids = in_map.keys();
                 Ok(edge_ids)
             }
         }

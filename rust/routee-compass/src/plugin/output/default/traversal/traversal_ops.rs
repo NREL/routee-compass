@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 pub fn create_tree_geojson(
     tree: &HashMap<VertexId, SearchTreeBranch>,
-    geoms: &[LineString<f64>],
+    geoms: &[LineString<f32>],
 ) -> Result<serde_json::Value, PluginError> {
     let features = tree
         .values()
@@ -37,7 +37,7 @@ pub fn create_tree_geojson(
 
 pub fn create_route_geojson(
     route: &[EdgeTraversal],
-    geoms: &[LineString<f64>],
+    geoms: &[LineString<f32>],
 ) -> Result<serde_json::Value, PluginError> {
     let features = route
         .iter()
@@ -61,7 +61,10 @@ pub fn create_route_geojson(
     Ok(result)
 }
 
-pub fn create_geojson_feature(t: &EdgeTraversal, g: LineString) -> Result<Feature, PluginError> {
+pub fn create_geojson_feature(
+    t: &EdgeTraversal,
+    g: LineString<f32>,
+) -> Result<Feature, PluginError> {
     let props = match serde_json::to_value(t).map(|v| v.as_object().cloned()) {
         Ok(None) => Err(PluginError::InternalError(format!(
             "serialized EdgeTraversal was not a JSON object for {}",
@@ -85,8 +88,8 @@ pub fn create_geojson_feature(t: &EdgeTraversal, g: LineString) -> Result<Featur
 
 pub fn create_edge_geometry(
     edge: &EdgeTraversal,
-    geoms: &[LineString<f64>],
-) -> Result<LineString, PluginError> {
+    geoms: &[LineString<f32>],
+) -> Result<LineString<f32>, PluginError> {
     geoms
         .get(edge.edge_id.0)
         .cloned()
@@ -95,15 +98,15 @@ pub fn create_edge_geometry(
 
 pub fn create_branch_geometry(
     branch: &SearchTreeBranch,
-    geoms: &[LineString<f64>],
-) -> Result<LineString, PluginError> {
+    geoms: &[LineString<f32>],
+) -> Result<LineString<f32>, PluginError> {
     create_edge_geometry(&branch.edge_traversal, geoms)
 }
 
 pub fn create_route_linestring(
     route: &[EdgeTraversal],
-    geoms: &[LineString<f64>],
-) -> Result<LineString, PluginError> {
+    geoms: &[LineString<f32>],
+) -> Result<LineString<f32>, PluginError> {
     let edge_ids = route
         .iter()
         .map(|traversal| traversal.edge_id)
@@ -117,15 +120,15 @@ pub fn create_route_linestring(
                 .ok_or_else(|| PluginError::EdgeGeometryMissing(*eid));
             geom
         })
-        .collect::<Result<Vec<&LineString>, PluginError>>()?;
+        .collect::<Result<Vec<&LineString<f32>>, PluginError>>()?;
     let geometry = geo_io_utils::concat_linestrings(edge_linestrings);
     Ok(geometry)
 }
 
 pub fn create_tree_multilinestring(
     tree: &HashMap<VertexId, SearchTreeBranch>,
-    geoms: &[LineString<f64>],
-) -> Result<MultiLineString, PluginError> {
+    geoms: &[LineString<f32>],
+) -> Result<MultiLineString<f32>, PluginError> {
     let edge_ids = tree
         .values()
         .map(|traversal| traversal.edge_traversal.edge_id)
@@ -139,7 +142,7 @@ pub fn create_tree_multilinestring(
                 .ok_or_else(|| PluginError::EdgeGeometryMissing(*eid));
             geom.cloned()
         })
-        .collect::<Result<Vec<LineString>, PluginError>>()?;
+        .collect::<Result<Vec<LineString<f32>>, PluginError>>()?;
     let geometry = MultiLineString::new(tree_linestrings);
     Ok(geometry)
 }

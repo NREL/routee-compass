@@ -1,10 +1,24 @@
 use crate::model::unit::{as_f64::AsF64, Distance, Energy, Time};
+use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 #[derive(
-    Copy, Clone, PartialEq, PartialOrd, Add, Sub, Mul, Div, Sum, Neg, Debug, Deserialize, Serialize,
+    Copy,
+    Clone,
+    PartialEq,
+    PartialOrd,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Sum,
+    Neg,
+    Debug,
+    Deserialize,
+    Serialize,
+    Allocative,
 )]
 pub struct StateVar(pub f64);
 

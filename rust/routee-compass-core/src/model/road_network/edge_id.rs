@@ -1,8 +1,9 @@
 use std::{cmp::Ordering, fmt::Display};
 
+use allocative::Allocative;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug, Default)]
+#[derive(Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, Debug, Default, Allocative)]
 pub struct EdgeId(pub usize);
 
 impl PartialOrd for EdgeId {

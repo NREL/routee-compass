@@ -19,10 +19,10 @@ impl RTreeVertex {
     pub fn new(vertex: Vertex) -> Self {
         Self { vertex }
     }
-    pub fn x(&self) -> f64 {
+    pub fn x(&self) -> f32 {
         self.vertex.x()
     }
-    pub fn y(&self) -> f64 {
+    pub fn y(&self) -> f32 {
         self.vertex.y()
     }
 }
@@ -43,14 +43,14 @@ impl VertexRTree {
         Self::new(vertices)
     }
 
-    pub fn nearest_vertex(&self, point: Coord<f64>) -> Option<&Vertex> {
+    pub fn nearest_vertex(&self, point: Coord<f32>) -> Option<&Vertex> {
         match self.rtree.nearest_neighbor(&point) {
             Some(rtree_vertex) => Some(&rtree_vertex.vertex),
             None => None,
         }
     }
 
-    pub fn nearest_vertices(&self, point: Coord<f64>, n: usize) -> Vec<&Vertex> {
+    pub fn nearest_vertices(&self, point: Coord<f32>, n: usize) -> Vec<&Vertex> {
         self.rtree
             .nearest_neighbor_iter(&point)
             .take(n)
@@ -60,7 +60,7 @@ impl VertexRTree {
 }
 
 impl RTreeObject for RTreeVertex {
-    type Envelope = AABB<Coord>;
+    type Envelope = AABB<Coord<f32>>;
 
     fn envelope(&self) -> Self::Envelope {
         AABB::from_corners(
@@ -71,7 +71,7 @@ impl RTreeObject for RTreeVertex {
 }
 
 impl PointDistance for RTreeVertex {
-    fn distance_2(&self, point: &Coord) -> f64 {
+    fn distance_2(&self, point: &Coord<f32>) -> f32 {
         let dx = self.x() - point.x;
         let dy = self.y() - point.y;
         dx * dx + dy * dy
@@ -136,8 +136,7 @@ impl InputPlugin for RTreePlugin {
     ///
     /// * either vertex ids for the nearest coordinates to the the origin (and optionally destination),
     ///   or, an error if not found or not within tolerance
-    fn process(&self, query: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
-        let mut updated = query.clone();
+    fn process(&self, query: &mut serde_json::Value) -> Result<(), PluginError> {
         let src_coord = query.get_origin_coordinate()?;
         let dst_coord_option = query.get_destination_coordinate()?;
 
@@ -148,8 +147,8 @@ impl InputPlugin for RTreePlugin {
             ))
         })?;
 
-        validate_tolerance(src_coord, src_vertex.coordinate, &self.tolerance)?;
-        updated.add_origin_vertex(src_vertex.vertex_id)?;
+        validate_tolerance(&src_coord, &src_vertex.coordinate, &self.tolerance)?;
+        query.add_origin_vertex(src_vertex.vertex_id)?;
 
         match dst_coord_option {
             None => {}
@@ -160,12 +159,12 @@ impl InputPlugin for RTreePlugin {
                         dst_coord
                     ))
                 })?;
-                validate_tolerance(dst_coord, dst_vertex.coordinate, &self.tolerance)?;
-                updated.add_destination_vertex(dst_vertex.vertex_id)?;
+                validate_tolerance(&dst_coord, &dst_vertex.coordinate, &self.tolerance)?;
+                query.add_destination_vertex(dst_vertex.vertex_id)?;
             }
         }
 
-        Ok(vec![updated])
+        Ok(())
     }
 }
 
@@ -185,8 +184,8 @@ impl InputPlugin for RTreePlugin {
 ///
 /// * nothing, or an error if the coordinates are not within tolerance
 fn validate_tolerance(
-    src: Coord,
-    dst: Coord,
+    src: &Coord<f32>,
+    dst: &Coord<f32>,
     tolerance: &Option<(Distance, DistanceUnit)>,
 ) -> Result<(), PluginError> {
     match tolerance {
@@ -246,21 +245,26 @@ mod test {
             .join("rtree_query.json");
         let query_str = fs::read_to_string(query_filepath).unwrap();
         let rtree_plugin = RTreePlugin::new(&vertices_filepath, None, None).unwrap();
-        let query: serde_json::Value = serde_json::from_str(&query_str).unwrap();
-        let processed_query = rtree_plugin.process(&query).unwrap();
+        let mut query: serde_json::Value = serde_json::from_str(&query_str).unwrap();
+        rtree_plugin.process(&mut query).unwrap();
 
-        assert_eq!(
-            processed_query[0],
-            json!(
-                {
-                    InputField::OriginX.to_str(): 0.1,
-                    InputField::OriginY.to_str(): 0.1,
-                    InputField::DestinationX.to_str(): 1.9,
-                    InputField::DestinationY.to_str(): 2.1,
-                    InputField::OriginVertex.to_str(): 0,
-                    InputField::DestinationVertex.to_str(): 2,
-                }
-            )
-        );
+        match query {
+            serde_json::Value::Object(obj) => {
+                assert_eq!(
+                    json![obj],
+                    json!(
+                        {
+                            InputField::OriginX.to_str(): 0.1,
+                            InputField::OriginY.to_str(): 0.1,
+                            InputField::DestinationX.to_str(): 1.9,
+                            InputField::DestinationY.to_str(): 2.1,
+                            InputField::OriginVertex.to_str(): 0,
+                            InputField::DestinationVertex.to_str(): 2,
+                        }
+                    )
+                );
+            }
+            other => panic!("expected object result, found {}", other),
+        }
     }
 }

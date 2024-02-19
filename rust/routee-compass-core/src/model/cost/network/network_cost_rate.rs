@@ -10,7 +10,7 @@ use std::collections::HashMap;
 ///
 /// when multiple mappings are specified they are applied sequentially (in user-defined order)
 /// to the state value.
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone, Default, Debug)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum NetworkCostRate {
     #[default]

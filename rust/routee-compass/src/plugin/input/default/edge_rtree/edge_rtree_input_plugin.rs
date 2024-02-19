@@ -2,7 +2,7 @@ use super::edge_rtree_record::EdgeRtreeRecord;
 use crate::{
     app::compass::config::{
         compass_configuration_error::CompassConfigurationError,
-        config_json_extension::ConfigJsonExtensions,
+        frontier_model::road_class::road_class_parser::RoadClassParser,
     },
     plugin::{
         input::{input_json_extensions::InputJsonExtensions, input_plugin::InputPlugin},
@@ -24,17 +24,19 @@ use std::{collections::HashSet, path::Path};
 pub struct EdgeRtreeInputPlugin {
     pub rtree: RTree<EdgeRtreeRecord>,
     pub tolerance: Option<(Distance, DistanceUnit)>,
+    pub road_class_parser: RoadClassParser,
 }
 
 impl InputPlugin for EdgeRtreeInputPlugin {
     /// finds the nearest edge ids to the user-provided origin and destination coordinates.
     /// optionally restricts the search to a subset of road classes tagged by the user.
-    fn process(&self, query: &serde_json::Value) -> Result<Vec<serde_json::Value>, PluginError> {
-        let road_classes = query
-            .get_config_serde_optional::<HashSet<String>>(&"road_classes", &"")
-            .map_err(|e| {
-                PluginError::InputError(format!("unable to deserialize as array: {}", e))
-            })?;
+    fn process(&self, query: &mut serde_json::Value) -> Result<(), PluginError> {
+        let road_classes = self.road_class_parser.read_query(query).map_err(|e| {
+            PluginError::InputError(format!(
+                "Unable to apply EdgeRtree Input Plugin due to:\n\n{}",
+                e
+            ))
+        })?;
         let src_coord = query.get_origin_coordinate()?;
         let dst_coord_option = query.get_destination_coordinate()?;
 
@@ -47,16 +49,15 @@ impl InputPlugin for EdgeRtreeInputPlugin {
                 .ok_or_else(|| matching_error(&dst_coord, self.tolerance)),
         }?;
 
-        let mut updated = query.clone();
-        updated.add_origin_edge(source_edge_id)?;
+        query.add_origin_edge(source_edge_id)?;
         match destination_edge_id_option {
             None => {}
             Some(destination_edge_id) => {
-                updated.add_destination_edge(destination_edge_id)?;
+                query.add_destination_edge(destination_edge_id)?;
             }
         }
 
-        Ok(vec![updated])
+        Ok(())
     }
 }
 
@@ -66,9 +67,10 @@ impl EdgeRtreeInputPlugin {
         linestring_file: &Path,
         tolerance_distance: Option<Distance>,
         distance_unit: Option<DistanceUnit>,
+        road_class_parser: RoadClassParser,
     ) -> Result<Self, CompassConfigurationError> {
-        let road_class_lookup: Vec<String> =
-            read_utils::read_raw_file(road_class_file, read_decoders::string, None)?.into_vec();
+        let road_class_lookup: Vec<u8> =
+            read_utils::read_raw_file(road_class_file, read_decoders::u8, None)?.into_vec();
         let geometries = read_linestring_text_file(linestring_file)
             .map_err(CompassConfigurationError::IoError)?
             .into_vec();
@@ -99,7 +101,11 @@ impl EdgeRtreeInputPlugin {
             (Some(t), Some(u)) => Some((t, u)),
         };
 
-        Ok(EdgeRtreeInputPlugin { rtree, tolerance })
+        Ok(EdgeRtreeInputPlugin {
+            rtree,
+            tolerance,
+            road_class_parser,
+        })
     }
 }
 
@@ -117,8 +123,8 @@ impl EdgeRtreeInputPlugin {
 /// the EdgeId of the nearest edge that meets the tolerance requirement, if provided
 fn search(
     rtree: &RTree<EdgeRtreeRecord>,
-    coord: Coord<f64>,
-    road_classes: &Option<HashSet<String>>,
+    coord: Coord<f32>,
+    road_classes: &Option<HashSet<u8>>,
     tolerance: Option<(Distance, DistanceUnit)>,
 ) -> Option<EdgeId> {
     let point = geo::Point(coord);
@@ -137,7 +143,7 @@ fn search(
 }
 
 /// helper to build a matching error response
-fn matching_error(coord: &Coord<f64>, tolerance: Option<(Distance, DistanceUnit)>) -> PluginError {
+fn matching_error(coord: &Coord<f32>, tolerance: Option<(Distance, DistanceUnit)>) -> PluginError {
     let mut message = format!("unable to match coordinate {:?} to network edge", coord);
     if let Some((dist, unit)) = tolerance {
         message.push_str(&format!(" within tolerance of {} {}", dist, unit))
@@ -146,13 +152,13 @@ fn matching_error(coord: &Coord<f64>, tolerance: Option<(Distance, DistanceUnit)
 }
 
 /// helper to test if some distance in meters is within the optionally-provided tolerance
-fn within_tolerance(tolerance: Option<(Distance, DistanceUnit)>, distance_meters: &f64) -> bool {
+fn within_tolerance(tolerance: Option<(Distance, DistanceUnit)>, distance_meters: &f32) -> bool {
     match tolerance {
         None => true,
         Some((tolerance, distance_unit)) => {
             let tolerance_meters = distance_unit
                 .convert(tolerance, DistanceUnit::Meters)
-                .as_f64();
+                .as_f64() as f32;
 
             distance_meters <= &tolerance_meters
         }

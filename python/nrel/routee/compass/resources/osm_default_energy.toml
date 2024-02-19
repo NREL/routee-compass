@@ -37,6 +37,12 @@ factor = 3.120
 type = "factor"
 factor = 0.50
 
+[cost.state_variable_coefficients]
+distance = 1
+time = 1
+energy_liquid = 1
+energy_electric = 1
+
 [traversal]
 type = "energy_model"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
