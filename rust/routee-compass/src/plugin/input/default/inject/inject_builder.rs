@@ -3,7 +3,8 @@ use std::sync::Arc;
 use super::inject_format::InjectFormat;
 use crate::{
     app::compass::config::{
-        builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
+        builder::input_plugin_builder::InputPluginBuilder,
+        compass_configuration_error::CompassConfigurationError,
         config_json_extension::ConfigJsonExtensions,
     },
     plugin::input::{default::inject::inject_plugin::InjectInputPlugin, input_plugin::InputPlugin},

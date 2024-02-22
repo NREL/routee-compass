@@ -4,7 +4,8 @@ use routee_compass_core::model::unit::{Distance, DistanceUnit};
 
 use crate::{
     app::compass::config::{
-        builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
+        builder::input_plugin_builder::InputPluginBuilder,
+        compass_configuration_error::CompassConfigurationError,
         config_json_extension::ConfigJsonExtensions,
     },
     plugin::input::input_plugin::InputPlugin,

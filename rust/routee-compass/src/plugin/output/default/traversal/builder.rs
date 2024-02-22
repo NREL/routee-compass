@@ -3,7 +3,8 @@ use std::sync::Arc;
 use super::{plugin::TraversalPlugin, traversal_output_format::TraversalOutputFormat};
 use crate::{
     app::compass::config::{
-        builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,
+        builder::output_plugin_builder::OutputPluginBuilder,
+        compass_configuration_error::CompassConfigurationError,
         config_json_extension::ConfigJsonExtensions,
     },
     plugin::output::output_plugin::OutputPlugin,

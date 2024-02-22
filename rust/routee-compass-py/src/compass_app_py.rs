@@ -2,17 +2,17 @@ use crate::app_graph_ops as ops;
 use pyo3::{exceptions::PyException, prelude::*, types::PyType};
 use routee_compass::app::compass::{
     compass_app::CompassApp, compass_app_ops::read_config_from_string,
-    config::compass_app_builder::CompassAppBuilder,
+    config::builder::compass_app_builder::CompassAppBuilder,
 };
 use std::path::Path;
 
 #[pyclass]
-pub struct CompassAppWrapper {
+pub struct CompassAppPy {
     pub routee_compass: CompassApp,
 }
 
 #[pymethods]
-impl CompassAppWrapper {
+impl CompassAppPy {
     pub fn graph_edge_origin(&self, edge_id: usize) -> PyResult<usize> {
         ops::graph_edge_origin(self, edge_id)
     }
@@ -62,7 +62,7 @@ impl CompassAppWrapper {
                 e
             ))
         })?;
-        Ok(CompassAppWrapper { routee_compass })
+        Ok(CompassAppPy { routee_compass })
     }
     #[classmethod]
     pub fn _from_config_file(_cls: &PyType, config_file: String) -> PyResult<Self> {
@@ -73,7 +73,7 @@ impl CompassAppWrapper {
                 config_file, e
             ))
         })?;
-        Ok(CompassAppWrapper { routee_compass })
+        Ok(CompassAppPy { routee_compass })
     }
 
     /// Runs a set of queries and returns the results

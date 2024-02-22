@@ -1,7 +1,7 @@
 use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_writer::ResponseWriter;
 use super::{
-    compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder,
+    compass_app_ops as ops, config::builder::compass_app_builder::CompassAppBuilder,
     search_orientation::SearchOrientation,
 };
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
@@ -11,11 +11,11 @@ use crate::{
             compass_app_error::CompassAppError,
             compass_input_field::CompassInputField,
             config::{
+                builder::graph_builder::DefaultGraphBuilder,
+                builder::termination_model_builder::TerminationModelBuilder,
                 compass_configuration_field::CompassConfigurationField,
                 config_json_extension::ConfigJsonExtensions,
                 cost_model::cost_model_builder::CostModelBuilder,
-                graph_builder::DefaultGraphBuilder,
-                termination_model_builder::TerminationModelBuilder,
             },
         },
         search::{search_app::SearchApp, search_app_result::SearchAppResult},

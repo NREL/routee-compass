@@ -1,4 +1,4 @@
-use super::compass_configuration_error::CompassConfigurationError;
+use crate::app::compass::config::compass_configuration_error::CompassConfigurationError;
 use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use log;

@@ -1,11 +1,9 @@
-use routee_compass_core::model::road_network::graph::Graph;
-
 use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
-
-use super::{
+use crate::app::compass::config::{
     compass_configuration_error::CompassConfigurationError,
     config_json_extension::ConfigJsonExtensions,
 };
+use routee_compass_core::model::road_network::graph::Graph;
 
 pub struct DefaultGraphBuilder {}
 

@@ -2,7 +2,45 @@ use super::{compass_app_error::CompassAppError, compass_input_field::CompassInpu
 use crate::plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError};
 use config::Config;
 use ordered_float::OrderedFloat;
-use std::path::Path;
+use std::{io::Read, path::Path};
+
+/// reads the compass configuration TOML file from a path
+/// combines it with a configuration file that provides library defaults
+///
+/// # Arguments
+///
+/// * `config` - streaming source of configuration, such as a file or string
+/// * `format` - input format, such as toml, etc.
+/// * `filepath` - original file path to source, used to update any paths in the config
+///
+/// # Returns
+///
+/// A config object read from file, or an error
+pub fn read_config<C: Read>(
+    source: C,
+    format: config::FileFormat,
+    filepath: Option<String>,
+) -> Result<Config, CompassAppError> {
+    let default_config = config::File::from_str(
+        include_str!("config.default.toml"),
+        config::FileFormat::Toml,
+    );
+    let string = std::io::read_to_string(source)?;
+    let user_config = config::File::from_str(&string, format);
+    let filepath_or_default = filepath.unwrap_or(String::from(""));
+
+    let config = Config::builder()
+        .add_source(default_config)
+        .add_source(user_config)
+        .set_override(
+            CompassInputField::ConfigInputFile.to_string(),
+            filepath_or_default,
+        )?
+        .build()
+        .map_err(CompassAppError::ConfigError)?;
+
+    Ok(config)
+}
 
 /// reads the compass configuration TOML file from a path
 /// combines it with a configuration file that provides library defaults

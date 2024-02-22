@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use crate::{
     app::compass::config::{
-        builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,
+        builder::output_plugin_builder::OutputPluginBuilder,
+        compass_configuration_error::CompassConfigurationError,
     },
     plugin::output::output_plugin::OutputPlugin,
 };

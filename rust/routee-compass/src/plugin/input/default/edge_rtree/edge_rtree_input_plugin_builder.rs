@@ -3,7 +3,8 @@ use std::sync::Arc;
 use super::edge_rtree_input_plugin::EdgeRtreeInputPlugin;
 use crate::{
     app::compass::config::{
-        builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
+        builder::input_plugin_builder::InputPluginBuilder,
+        compass_configuration_error::CompassConfigurationError,
         config_json_extension::ConfigJsonExtensions,
         frontier_model::road_class::road_class_parser::RoadClassParser,
     },

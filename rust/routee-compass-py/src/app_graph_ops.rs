@@ -1,4 +1,4 @@
-use crate::app_wrapper::CompassAppWrapper;
+use crate::compass_app_py::CompassAppPy;
 use pyo3::{exceptions::PyException, PyResult};
 use routee_compass::app::search::search_app_graph_ops::SearchAppGraphOps;
 use routee_compass_core::{
@@ -8,7 +8,7 @@ use routee_compass_core::{
 };
 use std::str::FromStr;
 
-pub fn graph_edge_origin(app: &CompassAppWrapper, edge_id: usize) -> PyResult<usize> {
+pub fn graph_edge_origin(app: &CompassAppPy, edge_id: usize) -> PyResult<usize> {
     let edge_id_internal = EdgeId(edge_id);
     app.routee_compass
         .search_app
@@ -22,7 +22,7 @@ pub fn graph_edge_origin(app: &CompassAppWrapper, edge_id: usize) -> PyResult<us
         })
 }
 
-pub fn graph_edge_destination(app: &CompassAppWrapper, edge_id: usize) -> PyResult<usize> {
+pub fn graph_edge_destination(app: &CompassAppPy, edge_id: usize) -> PyResult<usize> {
     let edge_id_internal = EdgeId(edge_id);
     app.routee_compass
         .search_app
@@ -37,7 +37,7 @@ pub fn graph_edge_destination(app: &CompassAppWrapper, edge_id: usize) -> PyResu
 }
 
 pub fn graph_edge_distance(
-    app: &CompassAppWrapper,
+    app: &CompassAppPy,
     edge_id: usize,
     distance_unit: Option<String>,
 ) -> PyResult<f64> {
@@ -66,7 +66,7 @@ pub fn graph_edge_distance(
         })
 }
 
-pub fn get_out_edge_ids(app: &CompassAppWrapper, vertex_id: usize) -> PyResult<Vec<usize>> {
+pub fn get_out_edge_ids(app: &CompassAppPy, vertex_id: usize) -> PyResult<Vec<usize>> {
     let vertex_id_internal = VertexId(vertex_id);
     app.routee_compass
         .search_app
@@ -80,7 +80,7 @@ pub fn get_out_edge_ids(app: &CompassAppWrapper, vertex_id: usize) -> PyResult<V
         })
 }
 
-pub fn get_in_edge_ids(app: &CompassAppWrapper, vertex_id: usize) -> PyResult<Vec<usize>> {
+pub fn get_in_edge_ids(app: &CompassAppPy, vertex_id: usize) -> PyResult<Vec<usize>> {
     let vertex_id_internal = VertexId(vertex_id);
     app.routee_compass
         .search_app

@@ -1,5 +1,6 @@
-use super::{
-    builders::{InputPluginBuilder, OutputPluginBuilder},
+use crate::app::compass::config::{
+    builder::input_plugin_builder::InputPluginBuilder,
+    builder::output_plugin_builder::OutputPluginBuilder,
     compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
@@ -63,7 +64,7 @@ use std::{collections::HashMap, rc::Rc, sync::Arc};
 ///
 /// # Arguments
 ///
-/// * `tm_builders` - a mapping of TraversalModel `type` names to builders
+/// * `traversal_model_builders` - a mapping of TraversalModel `type` names to builders
 /// * `frontier_builders` - a mapping of FrontierModel `type` names to builders
 /// * `input_plugin_builders` - a mapping of InputPlugin `type` names to builders
 /// * `output_plugin_builders` - a mapping of OutputPlugin `type` names to builders
