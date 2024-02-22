@@ -5,7 +5,9 @@ members = [
     "routee-compass-powertrain",
     "routee-compass",
     "routee-compass-py",
+    "routee-compass-macros"
 ]
+# exclude = ["routee-compass-macros"]
 
 [workspace.dependencies]
 serde = { version = "1.0.160", features = ["derive"] }
