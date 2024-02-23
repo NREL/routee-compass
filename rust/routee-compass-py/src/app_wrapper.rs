@@ -1,5 +1,9 @@
-use routee_compass::app::compass::{
-    compass_app::CompassApp, config::compass_app_builder::CompassAppBuilder,
+use routee_compass::app::{
+    bindings::CompassAppBindings,
+    compass::{
+        compass_app::CompassApp, compass_app_error::CompassAppError,
+        config::compass_app_builder::CompassAppBuilder,
+    },
 };
 use routee_compass_macros::pybindings;
 
@@ -8,12 +12,19 @@ pub struct CompassAppWrapper {
     pub app: CompassApp,
 }
 
-
 impl CompassAppBindings for CompassAppWrapper {
-    fn new(app: CompassApp) -> Self {
-        CompassAppWrapper { app }
+    fn from_config_toml_string(
+        config_string: String,
+        original_file_path: String,
+    ) -> Result<Self, CompassAppError>
+    where
+        Self: Sized,
+    {
+        let builder = CompassAppBuilder::default();
+        let app =
+            CompassApp::try_from_config_toml_string(config_string, original_file_path, &builder)?;
+        Ok(CompassAppWrapper { app })
     }
-
     fn app(&self) -> &CompassApp {
         &self.app
     }

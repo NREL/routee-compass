@@ -14,7 +14,10 @@ use crate::app::search::search_app_graph_ops::SearchAppGraphOps;
 
 pub trait CompassAppBindings {
     // Functions to be implemented
-    fn new(app: CompassApp) -> Self
+    fn from_config_toml_string(
+        config_string: String,
+        original_file_path: String,
+    ) -> Result<Self, CompassAppError>
     where
         Self: Sized;
     fn app(&self) -> &CompassApp;
@@ -72,5 +75,35 @@ pub trait CompassAppBindings {
             .search_app
             .get_incident_edge_ids(vertex_id_internal, Direction::Reverse)
             .map(|es| es.iter().map(|e| e.0).collect())
+    }
+
+    /// Runs a set of queries and returns the results
+    /// # Arguments
+    /// * `queries` - a list of queries to run as json strings
+    ///
+    /// # Returns
+    /// * a list of json strings containing the results of the queries
+    fn run_queries(
+        &self,
+        queries: Vec<String>,
+        config: Option<String>,
+    ) -> Result<Vec<String>, CompassAppError> {
+        let config_inner: Option<serde_json::Value> = match config {
+            Some(c) => {
+                let c_serde: serde_json::Value = serde_json::from_str(&c)?;
+                Some(c_serde)
+            }
+            None => None,
+        };
+
+        let json_queries = queries
+            .iter()
+            .map(|q| serde_json::from_str(q))
+            .collect::<Result<Vec<serde_json::Value>, serde_json::Error>>()?;
+
+        let results = self.app().run(json_queries, config_inner.as_ref())?;
+
+        let string_results: Vec<String> = results.iter().map(|r| r.to_string()).collect();
+        Ok(string_results)
     }
 }

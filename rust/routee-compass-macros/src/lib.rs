@@ -1,7 +1,7 @@
 extern crate proc_macro;
-extern crate syn;
-extern crate quote;
 extern crate proc_macro_error;
+extern crate quote;
+extern crate syn;
 
 use proc_macro::TokenStream;
 use proc_macro_error::proc_macro_error;
@@ -17,7 +17,6 @@ pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         use pyo3::{exceptions::PyException, prelude::*, types::PyType, PyResult};
-        use routee_compass::app::bindings::CompassAppBindings;
 
         #[pyclass]
         #input
@@ -64,9 +63,31 @@ pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     ))
                 })
             }
+            #[classmethod]
+            pub fn _from_config_toml_string(
+                _cls: &PyType,
+                config_string: String,
+                original_file_path: String,
+            ) -> PyResult<#name> {
+                CompassAppBindings::from_config_toml_string(config_string, original_file_path).map_err(
+                    |e| {
+                        PyException::new_err(format!(
+                            "Error while creating CompassApp from config toml string: {}",
+                            e
+                        ))
+                    },
+                )
+            }
+
+            pub fn _run_queries(
+                &self,
+                queries: Vec<String>,
+                config: Option<String>,
+            ) -> PyResult<Vec<String>> {
+                CompassAppBindings::run_queries(self, queries, config)
+                    .map_err(|e| PyException::new_err(format!("Error while running queries: {}", e)))
+            }
         }
-
-
     };
 
     TokenStream::from(expanded)
