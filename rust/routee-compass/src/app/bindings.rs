@@ -1,4 +1,4 @@
-use std::{path::Path, str::FromStr};
+use std::str::FromStr;
 
 use routee_compass_core::{
     algorithm::search::direction::Direction,
