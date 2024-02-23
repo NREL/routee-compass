@@ -3,7 +3,6 @@ use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::{VehicleState, VehicleType};
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
-use routee_compass_core::model::resources::{Resource, Resources};
 use routee_compass_core::model::road_network::turn::Turn;
 use routee_compass_core::model::traversal::default::speed_traversal_model::get_speed;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
@@ -13,13 +12,6 @@ use routee_compass_core::model::traversal::traversal_model_error::TraversalModel
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::geo::haversine;
 use std::sync::Arc;
-
-pub struct SpeedTable {
-    pub speed_table: Box<[Speed]>,
-    pub speed_unit: SpeedUnit,
-}
-
-impl Resource for SpeedTable {}
 
 pub struct EnergyTraversalModel {
     pub service: Arc<EnergyModelService>,
