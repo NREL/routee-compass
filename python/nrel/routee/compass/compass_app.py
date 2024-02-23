@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 from nrel.routee.compass.routee_compass_py import (
-    CompassAppWrapper,
+    CompassAppPy,
 )
 
 import toml
@@ -24,9 +24,9 @@ class CompassApp:
     The CompassApp holds everything needed to run a route query.
     """
 
-    _app: CompassAppWrapper
+    _app: CompassAppPy
 
-    def __init__(self, app: CompassAppWrapper):
+    def __init__(self, app: CompassAppPy):
         self._app = app
 
     @classmethod
@@ -73,7 +73,7 @@ class CompassApp:
         """
         path_str = str(working_dir.absolute()) if working_dir is not None else ""
         toml_string = toml.dumps(config)
-        app = CompassAppWrapper._from_config_toml_string(toml_string, path_str)
+        app = CompassAppPy._from_config_toml_string(toml_string, path_str)
         return cls(app)
 
     def run(

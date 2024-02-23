@@ -45,7 +45,7 @@ use routee_compass_core::model::{
         traversal_model_service::TraversalModelService,
     },
 };
-use std::{collections::HashMap, rc::Rc, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 /// Upstream component factory of [`crate::app::compass::compass_app::CompassApp`]
 /// that builds components when constructing a CompassApp instance.
@@ -69,11 +69,12 @@ use std::{collections::HashMap, rc::Rc, sync::Arc};
 /// * `input_plugin_builders` - a mapping of InputPlugin `type` names to builders
 /// * `output_plugin_builders` - a mapping of OutputPlugin `type` names to builders
 ///
+#[derive(Clone)]
 pub struct CompassAppBuilder {
-    pub traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
-    pub frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
-    pub input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
-    pub output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
+    pub traversal_model_builders: HashMap<String, Arc<dyn TraversalModelBuilder + Send + Sync>>,
+    pub frontier_builders: HashMap<String, Arc<dyn FrontierModelBuilder + Send + Sync>>,
+    pub input_plugin_builders: HashMap<String, Arc<dyn InputPluginBuilder + Send + Sync>>,
+    pub output_plugin_builders: HashMap<String, Arc<dyn OutputPluginBuilder + Send + Sync>>,
 }
 
 impl CompassAppBuilder {
@@ -96,19 +97,19 @@ impl CompassAppBuilder {
         }
     }
 
-    pub fn add_traversal_model(&mut self, name: String, builder: Rc<dyn TraversalModelBuilder>) {
+    pub fn add_traversal_model(&mut self, name: String, builder: Arc<dyn TraversalModelBuilder + Send + Sync>) {
         let _ = self.traversal_model_builders.insert(name, builder);
     }
 
-    pub fn add_frontier_model(&mut self, name: String, builder: Rc<dyn FrontierModelBuilder>) {
+    pub fn add_frontier_model(&mut self, name: String, builder: Arc<dyn FrontierModelBuilder + Send + Sync>) {
         let _ = self.frontier_builders.insert(name, builder);
     }
 
-    pub fn add_input_plugin(&mut self, name: String, builder: Rc<dyn InputPluginBuilder>) {
+    pub fn add_input_plugin(&mut self, name: String, builder: Arc<dyn InputPluginBuilder + Send + Sync>) {
         let _ = self.input_plugin_builders.insert(name, builder);
     }
 
-    pub fn add_output_plugin(&mut self, name: String, builder: Rc<dyn OutputPluginBuilder>) {
+    pub fn add_output_plugin(&mut self, name: String, builder: Arc<dyn OutputPluginBuilder + Send + Sync>) {
         let _ = self.output_plugin_builders.insert(name, builder);
     }
 
@@ -121,38 +122,38 @@ impl CompassAppBuilder {
     /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
     fn default() -> CompassAppBuilder {
         // Traversal model builders
-        let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceBuilder {});
-        let velo: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
-        let energy_model: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder {});
-        let tm_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> = HashMap::from([
+        let dist: Arc<dyn TraversalModelBuilder + Send + Sync> = Arc::new(DistanceBuilder {});
+        let velo: Arc<dyn TraversalModelBuilder + Send + Sync> = Arc::new(SpeedLookupBuilder {});
+        let energy_model: Arc<dyn TraversalModelBuilder + Send + Sync> = Arc::new(EnergyModelBuilder {});
+        let tm_builders: HashMap<String, Arc<dyn TraversalModelBuilder + Send + Sync >> = HashMap::from([
             (String::from("distance"), dist),
             (String::from("speed_table"), velo),
             (String::from("energy_model"), energy_model),
         ]);
 
         // Frontier model builders
-        let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});
-        let road_class: Rc<dyn FrontierModelBuilder> = Rc::new(RoadClassBuilder {});
-        let turn_restruction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
-        let base_frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
+        let no_restriction: Arc<dyn FrontierModelBuilder + Send + Sync> = Arc::new(NoRestrictionBuilder {});
+        let road_class: Arc<dyn FrontierModelBuilder + Send + Sync> = Arc::new(RoadClassBuilder {});
+        let turn_restruction: Arc<dyn FrontierModelBuilder + Send + Sync> = Arc::new(TurnRestrictionBuilder {});
+        let base_frontier_builders: HashMap<String, Arc<dyn FrontierModelBuilder + Send + Sync>> =
             HashMap::from([
                 (String::from("no_restriction"), no_restriction),
                 (String::from("road_class"), road_class),
                 (String::from("turn_restriction"), turn_restruction),
             ]);
-        let combined = Rc::new(CombinedBuilder {
+        let combined = Arc::new(CombinedBuilder {
             builders: base_frontier_builders.clone(),
         });
         let mut all_frontier_builders = base_frontier_builders.clone();
         all_frontier_builders.insert(String::from("combined"), combined);
 
         // Input plugin builders
-        let grid_search: Rc<dyn InputPluginBuilder> = Rc::new(GridSearchBuilder {});
-        let vertex_tree: Rc<dyn InputPluginBuilder> = Rc::new(VertexRTreeBuilder {});
-        let edge_rtree: Rc<dyn InputPluginBuilder> = Rc::new(EdgeRtreeInputPluginBuilder {});
-        let load_balancer: Rc<dyn InputPluginBuilder> = Rc::new(LoadBalancerBuilder {});
-        let inject: Rc<dyn InputPluginBuilder> = Rc::new(InjectPluginBuilder {});
-        let debug: Rc<dyn InputPluginBuilder> = Rc::new(DebugInputPluginBuilder {});
+        let grid_search: Arc<dyn InputPluginBuilder + Send + Sync> = Arc::new(GridSearchBuilder {});
+        let vertex_tree: Arc<dyn InputPluginBuilder + Send + Sync> = Arc::new(VertexRTreeBuilder {});
+        let edge_rtree: Arc<dyn InputPluginBuilder + Send + Sync> = Arc::new(EdgeRtreeInputPluginBuilder {});
+        let load_balancer: Arc<dyn InputPluginBuilder + Send + Sync> = Arc::new(LoadBalancerBuilder {});
+        let inject: Arc<dyn InputPluginBuilder + Send + Sync> = Arc::new(InjectPluginBuilder {});
+        let debug: Arc<dyn InputPluginBuilder + Send + Sync> = Arc::new(DebugInputPluginBuilder {});
         let input_plugin_builders = HashMap::from([
             (String::from("grid_search"), grid_search),
             (String::from("vertex_rtree"), vertex_tree),
@@ -163,11 +164,11 @@ impl CompassAppBuilder {
         ]);
 
         // Output plugin builders
-        let traversal: Rc<dyn OutputPluginBuilder> = Rc::new(TraversalPluginBuilder {});
-        let summary: Rc<dyn OutputPluginBuilder> = Rc::new(SummaryOutputPluginBuilder {});
-        let uuid: Rc<dyn OutputPluginBuilder> = Rc::new(UUIDOutputPluginBuilder {});
-        let edge_id_list: Rc<dyn OutputPluginBuilder> = Rc::new(EdgeIdListOutputPluginBuilder {});
-        let to_disk: Rc<dyn OutputPluginBuilder> = Rc::new(ToDiskOutputPluginBuilder {});
+        let traversal: Arc<dyn OutputPluginBuilder + Send + Sync> = Arc::new(TraversalPluginBuilder {});
+        let summary: Arc<dyn OutputPluginBuilder + Send + Sync> = Arc::new(SummaryOutputPluginBuilder {});
+        let uuid: Arc<dyn OutputPluginBuilder + Send + Sync> = Arc::new(UUIDOutputPluginBuilder {});
+        let edge_id_list: Arc<dyn OutputPluginBuilder + Send + Sync> = Arc::new(EdgeIdListOutputPluginBuilder {});
+        let to_disk: Arc<dyn OutputPluginBuilder + Send + Sync> = Arc::new(ToDiskOutputPluginBuilder {});
         let output_plugin_builders = HashMap::from([
             (String::from("traversal"), traversal),
             (String::from("summary"), summary),

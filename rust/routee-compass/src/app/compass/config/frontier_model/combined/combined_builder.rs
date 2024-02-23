@@ -8,19 +8,19 @@ use routee_compass_core::model::frontier::{
     frontier_model_builder::FrontierModelBuilder, frontier_model_error::FrontierModelError,
     frontier_model_service::FrontierModelService,
 };
-use std::{collections::HashMap, rc::Rc, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use super::combined_service::CombinedFrontierService;
 
 pub struct CombinedBuilder {
-    pub builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
+    pub builders: HashMap<String, Arc<dyn FrontierModelBuilder + Send + Sync>>,
 }
 
 impl CombinedBuilder {
     pub fn register_builder(
         &self,
         builder_key: String,
-        builder: Rc<dyn FrontierModelBuilder>,
+        builder: Arc<dyn FrontierModelBuilder + Send + Sync>,
     ) -> Self {
         let mut builders = self.builders.clone();
         builders.insert(builder_key, builder);

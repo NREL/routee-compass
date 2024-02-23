@@ -1,8 +1,13 @@
 use crate::app_graph_ops as ops;
-use pyo3::{exceptions::PyException, prelude::*, types::PyType};
+use pyo3::{
+    exceptions::PyException,
+    prelude::*,
+    types::{PyFunction, PyType},
+};
 use routee_compass::app::compass::{
     compass_app::CompassApp, compass_app_ops::read_config_from_string,
     config::builder::compass_app_builder::CompassAppBuilder,
+    config::builder::compass_app_py_builder::CompassAppPyBuilder,
 };
 use std::path::Path;
 
@@ -42,6 +47,7 @@ impl CompassAppPy {
         _cls: &PyType,
         config_string: String,
         original_file_path: String,
+        custom_builder: Option<&PyCell<CompassAppPyBuilder>>,
     ) -> PyResult<Self> {
         let config = read_config_from_string(
             config_string.clone(),
@@ -54,7 +60,21 @@ impl CompassAppPy {
                 e
             ))
         })?;
-        let builder = CompassAppBuilder::default();
+
+        let builder = match custom_builder {
+            Some(cell) => {
+                let py_ref = cell.try_borrow().map_err(|e| {
+                    PyException::new_err(format!(
+                        "Could not borrow custom builder: {}",
+                        e
+                    ))
+                })?;
+                let builder = &*py_ref;
+                builder.builder.clone()
+            }
+            None => CompassAppBuilder::default(),
+        };
+
         let routee_compass = CompassApp::try_from((&config, &builder)).map_err(|e| {
             PyException::new_err(format!(
                 "Could not create CompassApp from config string {}: {}",

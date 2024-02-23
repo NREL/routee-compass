@@ -8,7 +8,9 @@ use std::sync::Arc;
 ///
 /// A [`TraversalModelBuilder`] instance should be an empty struct that implements
 /// this trait.
-pub trait TraversalModelBuilder {
+pub trait TraversalModelBuilder
+where Self: Send + Sync + 'static
+{
     /// Builds a [`TraversalModelService`] from configuration.
     ///
     /// # Arguments
