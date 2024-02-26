@@ -1,7 +1,7 @@
 use routee_compass_core::model::{
     frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
     property::edge::Edge,
-    traversal::state::{state_variable::StateVar, traversal_state::TraversalState},
+    traversal::state::{state_variable::StateVar},
 };
 use std::sync::Arc;
 

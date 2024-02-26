@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
+
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use itertools::Itertools;
 use routee_compass_core::model::traversal::traversal_model_builder::TraversalModelBuilder;
