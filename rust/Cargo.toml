@@ -5,6 +5,7 @@ members = [
     "routee-compass-powertrain",
     "routee-compass",
     "routee-compass-py",
+    "routee-compass-macros"
 ]
 
 [workspace.dependencies]

@@ -30,6 +30,16 @@ class CompassApp:
         self._app = app
 
     @classmethod
+    def get_constructor(cls):
+        """
+        Return the underlying constructor for the application.
+        This allows a child class to inherit the CompassApp python class
+        and implement its own rust based app constructor, while still using
+        the original python methods.
+        """
+        return CompassAppWrapper
+
+    @classmethod
     def from_config_file(
         cls, config_file: Union[str, Path]  # , output_file: Optional[str] = None
     ) -> CompassApp:
@@ -52,7 +62,7 @@ class CompassApp:
         with open(config_path) as f:
             toml_config = toml.load(f)
 
-        return CompassApp.from_dict(toml_config, config_path)
+        return cls.from_dict(toml_config, config_path)
 
     @classmethod
     def from_dict(cls, config: Dict, working_dir: Optional[Path] = None) -> CompassApp:
@@ -73,7 +83,7 @@ class CompassApp:
         """
         path_str = str(working_dir.absolute()) if working_dir is not None else ""
         toml_string = toml.dumps(config)
-        app = CompassAppWrapper._from_config_toml_string(toml_string, path_str)
+        app = cls.get_constructor()._from_config_toml_string(toml_string, path_str)
         return cls(app)
 
     def run(
@@ -186,38 +196,3 @@ class CompassApp:
             List[int]: the edge ids of edges arriving at this vertex
         """
         return self._app.graph_get_in_edge_ids(vertex_id)
-
-
-# def inject_to_disk_plugin(output_file: str, toml_config: dict) -> dict:
-#     """
-#     Inject or override the to_disk plugin in the config dictionary
-
-#     Args:
-#         output_file (str): Path to the output file
-#         toml_config (dict): The existing config dictionary
-
-#     Returns:
-#         dict: A dictionary with the to_disk plugin injected or overriden
-#     """
-#     plugins = toml_config.get("plugin")
-#     if plugins is None:
-#         # inject a whole plugin section with the to_disk output plugin
-#         toml_config["plugin"] = {
-#             "output_plugins": [{"type": "to_disk", "output_file": output_file}]
-#         }
-#     else:
-#         output_plugins = plugins.get("output_plugins")
-#         if output_plugins is None:
-#             # inject the to_disk output plugin into the existing plugin section
-#             plugins["output_plugins"] = [
-#                 {"type": "to_disk", "output_file": output_file}
-#             ]
-#         else:
-#             to_disk_exists = False
-#             for plugin in output_plugins:
-#                 if plugin.get("type") == "to_disk":
-#                     to_disk_exists = True
-#                     plugin["output_file"] = output_file
-#             if not to_disk_exists:
-#                 output_plugins.append({"type": "to_disk", "output_file": output_file})
-#     return toml_config
