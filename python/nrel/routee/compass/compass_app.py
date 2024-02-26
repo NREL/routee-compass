@@ -31,6 +31,12 @@ class CompassApp:
 
     @classmethod
     def get_constructor(cls):
+        """
+        Return the underlying constructor for the application.
+        This allows a child class to inherit the CompassApp python class
+        and implement its own rust based app constructor, while still using
+        the original python methods.
+        """
         return CompassAppWrapper
 
     @classmethod

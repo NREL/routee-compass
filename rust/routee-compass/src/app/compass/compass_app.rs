@@ -60,6 +60,17 @@ pub struct CompassApp {
 }
 
 impl CompassApp {
+    /// Builds a CompassApp from a configuration TOML string, using a custom CompassAppBuilder.
+    ///
+    /// # Arguments
+    ///
+    /// * `config_string` - a string containing the configuration in TOML format
+    /// * `original_file_path` - the original file path of the configuration file
+    /// * `builder` - a custom CompassAppBuilder instance
+    ///
+    /// # Returns
+    ///
+    /// * an instance of [`CompassApp`], or an error if load failed.
     pub fn try_from_config_toml_string(
         config_string: String,
         original_file_path: String,
