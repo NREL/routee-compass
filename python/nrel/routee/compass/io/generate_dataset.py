@@ -73,13 +73,13 @@ def generate_compass_dataset(
     agg = agg if agg is not None else np.mean
 
     # pre-process the graph
-    log.info("processing graph topology and speeds")
+    print("processing graph topology and speeds")
     g1 = ox.utils_graph.get_largest_component(g)
     g1 = ox.add_edge_speeds(g1, hwy_speeds=hwy_speeds, fallback=fallback, agg=agg)
     g1 = ox.add_edge_bearings(g1)
 
     if add_grade:
-        log.info("adding grade information")
+        print("adding grade information")
         g1 = add_grade_to_graph(
             g1, resolution_arc_seconds=raster_resolution_arc_seconds
         )
@@ -87,12 +87,12 @@ def generate_compass_dataset(
     v, e = ox.graph_to_gdfs(g1)
 
     # process vertices
-    log.info("processing vertices")
+    print("processing vertices")
     v = v.reset_index(drop=False).rename(columns={"osmid": "vertex_uuid"})
     v["vertex_id"] = range(len(v))
 
     # process edges
-    log.info("processing edges")
+    print("processing edges")
     lookup = v.set_index("vertex_uuid")
 
     def replace_id(vertex_uuid):
@@ -114,7 +114,7 @@ def generate_compass_dataset(
     # WRITE NETWORK FILES
     output_directory.mkdir(parents=True, exist_ok=True)
     #   vertex tables
-    log.info("writing vertex files")
+    print("writing vertex files")
     v.to_csv(output_directory / "vertices-complete.csv.gz", index=False)
     v[["vertex_id", "vertex_uuid"]].to_csv(
         output_directory / "vertices-mapping.csv.gz", index=False
@@ -127,7 +127,7 @@ def generate_compass_dataset(
     )
 
     #   edge tables (CSV)
-    log.info("writing edge files")
+    print("writing edge files")
     compass_cols = ["edge_id", "src_vertex_id", "dst_vertex_id", "distance"]
     e.to_csv(output_directory / "edges-complete.csv.gz", index=False)
     e[compass_cols].to_csv(output_directory / "edges-compass.csv.gz", index=False)
@@ -136,7 +136,7 @@ def generate_compass_dataset(
     )
 
     #   edge tables (TXT)
-    log.info("writing edge attribute files")
+    print("writing edge attribute files")
     e.edge_uuid.to_csv(
         output_directory / "edges-uuid-enumerated.txt.gz", index=False, header=False
     )
@@ -176,7 +176,7 @@ def generate_compass_dataset(
 
     # COPY DEFAULT CONFIGURATION FILES
     if default_config:
-        log.info("copying default configuration TOML files")
+        print("copying default configuration TOML files")
         for filename in [
             "osm_default_distance.toml",
             "osm_default_speed.toml",
@@ -197,7 +197,7 @@ def generate_compass_dataset(
                 f.write(toml.dumps(init_toml))
 
     # COPY ROUTEE ENERGY MODEL CATALOG
-    log.info("copying RouteE Powertrain models")
+    print("copying RouteE Powertrain models")
     model_directory = importlib.resources.files("nrel.routee.compass.resources.models")
     model_output_directory = output_directory / "models"
     if not model_output_directory.exists():

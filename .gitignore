@@ -14,7 +14,7 @@ onnxruntime/
 cache/
 
 # osmnx notebook test case output directory name
-golden_co/
+denver_co/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
