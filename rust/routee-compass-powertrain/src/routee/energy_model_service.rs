@@ -15,13 +15,11 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct EnergyModelService {
     pub time_model_service: Arc<dyn TraversalModelService>,
-    // pub speed_table: Arc<Box<[Speed]>>,
-    // pub speeds_table_speed_unit: SpeedUnit,
-    // pub max_speed: Speed,
+    pub time_model_speed_unit: SpeedUnit,
     pub grade_table: Arc<Option<Box<[Grade]>>>,
     pub grade_table_grade_unit: GradeUnit,
-    pub output_time_unit: TimeUnit,
-    pub output_distance_unit: DistanceUnit,
+    pub time_unit: TimeUnit,
+    pub distance_unit: DistanceUnit,
     pub vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
     pub headings_table: Arc<Option<Box<[EdgeHeading]>>>,
 }
@@ -30,8 +28,7 @@ impl EnergyModelService {
     #[allow(clippy::too_many_arguments)]
     pub fn new<P: AsRef<Path>>(
         time_model_service: Arc<dyn TraversalModelService>,
-        // speed_table_path: &P,
-        // speeds_table_speed_unit: SpeedUnit,
+        time_model_speed_unit: SpeedUnit,
         grade_table_path_option: &Option<P>,
         grade_table_grade_unit_option: Option<GradeUnit>,
         output_time_unit_option: Option<TimeUnit>,
@@ -42,18 +39,6 @@ impl EnergyModelService {
         let output_time_unit = output_time_unit_option.unwrap_or(BASE_TIME_UNIT);
         let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
 
-        // // load speeds table
-        // let speed_table: Arc<Box<[Speed]>> = Arc::new(
-        //     read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
-        //         |e| {
-        //             TraversalModelError::FileReadError(
-        //                 speed_table_path.as_ref().to_path_buf(),
-        //                 e.to_string(),
-        //             )
-        //         },
-        //     )?,
-        // );
-
         let grade_table: Arc<Option<Box<[Grade]>>> = match grade_table_path_option {
             Some(gtp) => Arc::new(Some(
                 read_utils::read_raw_file(gtp, read_decoders::default, None).map_err(|e| {
@@ -63,8 +48,6 @@ impl EnergyModelService {
             None => Arc::new(None),
         };
         let grade_table_grade_unit = grade_table_grade_unit_option.unwrap_or(GradeUnit::Decimal);
-
-        // let max_speed = get_max_speed(&speed_table)?;
 
         let headings_table: Arc<Option<Box<[EdgeHeading]>>> = match headings_table_path {
             Some(headings_path) => {
@@ -82,13 +65,11 @@ impl EnergyModelService {
 
         Ok(EnergyModelService {
             time_model_service,
-            // speed_table,
-            // speeds_table_speed_unit,
-            // max_speed,
+            time_model_speed_unit,
             grade_table,
             grade_table_grade_unit,
-            output_time_unit,
-            output_distance_unit,
+            time_unit: output_time_unit,
+            distance_unit: output_distance_unit,
             vehicle_library,
             headings_table,
         })

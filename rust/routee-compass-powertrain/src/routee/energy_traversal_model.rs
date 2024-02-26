@@ -24,28 +24,16 @@ pub struct EnergyTraversalModel {
 
 impl TraversalModel for EnergyTraversalModel {
     fn initial_state(&self) -> TraversalState {
-        // // distance, time
-        // let mut initial_state = vec![StateVar(0.0), StateVar(0.0)];
-
-        // // vehicle state gets slots 2..n
-        // let vehicle_state = self.vehicle.initial_state();
-        // initial_state.extend(vehicle_state);
-
-        // initial_state
-
+        // the state representation is split between two underlying models, appearing in this order:
+        // 1. time traversal model state
+        // 2. energy traversal model state (the vehicle model)
         let mut state = self.time_model.initial_state();
         state.extend(self.vehicle.initial_state());
         state
     }
 
     fn state_variable_names(&self) -> Vec<String> {
-        self.state_variables
-            .keys()
-            .map(|k| k.clone())
-            .collect::<Vec<_>>()
-        // let mut dims = vec![String::from("distance"), String::from("time")];
-        // dims.extend(self.vehicle.state_variable_names());
-        // dims
+        self.state_variables.keys().cloned().collect::<Vec<_>>()
     }
 
     fn get_state_variable(
@@ -68,50 +56,30 @@ impl TraversalModel for EnergyTraversalModel {
     fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
         let time_state = &state[0..self.vehicle_state_index];
         let vehicle_state = &state[self.vehicle_state_index..];
-        let mut time_json = self.time_model.serialize_state(time_state);
+        let time_json = self.time_model.serialize_state(time_state);
         let energy_json = self.vehicle.serialize_state(vehicle_state);
 
         use serde_json::Value::Object;
-        let result = match (time_json, energy_json) {
-            (Object(ref mut a), Object(ref b)) => {
-                for (k, v) in b.to_owned() {
-                    a.insert(k, v);
+
+        match (time_json, energy_json) {
+            (Object(ref mut t), Object(ref e)) => {
+                for (k, v) in e {
+                    t.insert(k.clone(), v.clone());
                 }
-                serde_json::json!(a)
+                serde_json::json!(t)
             }
             _ => {
                 serde_json::json!({"internal error": "unable to serialize energy and time states as expected"})
             }
-        };
-        result
-
-        // if let Some(obj) = self.time_model.serialize_state(state).as_object_mut() {
-        //     let vehicle_state = &state[self.vehicle_state_index..];
-        //     self.vehicle.vehicle_state(vehicle_state)
-        //     for (k, v) in vehicle_json {
-
-        //     }
-        // }
-        // let mut json = self.time_model.serialize_state(state);
-
-        // // let mut obj = json.as_object_mut();
-        // let distance = get_distance_from_state(state);
-        // let time = get_time_from_state(state);
-        // let vehicle_state = get_vehicle_state_from_state(state);
-        // let vehicle_state_summary = self.vehicle.serialize_state(vehicle_state);
-        // serde_json::json!({
-        //     "distance": distance,
-        //     "time": time,
-        //     "vehicle": vehicle_state_summary,
-        // })
+        }
     }
 
     fn serialize_state_info(&self, state: &[StateVar]) -> serde_json::Value {
-        let vehicle_state = get_vehicle_state_from_state(state);
+        let vehicle_state = &state[self.vehicle_state_index..];
         let vehicle_state_info = self.vehicle.serialize_state_info(vehicle_state);
         serde_json::json!({
-            "distance_unit": self.energy_model_service.output_distance_unit,
-            "time_unit": self.energy_model_service.output_time_unit,
+            "distance_unit": self.energy_model_service.distance_unit,
+            "time_unit": self.energy_model_service.time_unit,
             "vehicle_info": vehicle_state_info,
         })
     }
@@ -123,113 +91,90 @@ impl TraversalModel for EnergyTraversalModel {
         dst: &Vertex,
         state: &[StateVar],
     ) -> Result<TraversalState, TraversalModelError> {
-        let distance = BASE_DISTANCE_UNIT.convert(
-            edge.distance,
-            self.energy_model_service.output_distance_unit,
-        );
+        let distance =
+            BASE_DISTANCE_UNIT.convert(edge.distance, self.energy_model_service.distance_unit);
 
+        // perform time traversal
         let time_state = &state[0..self.vehicle_state_index];
         let vehicle_state = &state[self.vehicle_state_index..];
-        let time_state_02 = self.time_model.traverse_edge(src, edge, dst, time_state)?;
-
-        // 1. grab the "time" value from the time state and calculate the delta from the previous time
-        // DONE
-        let time_next = self.time_model.get_state_variable("time", &time_state_02)?;
+        let mut updated_state = self.time_model.traverse_edge(src, edge, dst, time_state)?;
+        let time_next = self.time_model.get_state_variable("time", &updated_state)?;
         let time_prev = self.get_state_variable("time", state)?;
         let time_delta: Time = Time::new(time_next.0 - time_prev.0);
-        let speed = Speed::from((distance, time_delta));
 
-        // 2. using the distance, compute the speed and speed unit
-        // UH OH, we don't have access to the speed unit from here!
-        // we don't have a clean way to find out :'(
-        // let speed_unit = SpeedUnit::from((
-        //     self.energy_model_service.output_distance_unit,
-        //     self.time_model,
-        // ));
-
-        // 3. pass that into the energy model
-
-        // let time_diff =
-
-        // let speed = get_speed(&self.energy_model_service.speed_table, edge.edge_id)?;
+        // perform vehicle energy traversal
         let grade = get_grade(&self.energy_model_service.grade_table, edge.edge_id)?;
+        let speed = Speed::from((distance, time_delta));
+        let energy_result = self.vehicle.consume_energy(
+            (speed, self.energy_model_service.time_model_speed_unit),
+            (grade, self.energy_model_service.grade_table_grade_unit),
+            (distance, self.energy_model_service.distance_unit),
+            vehicle_state,
+        )?;
 
-        // let time: Time = Time::create(
-        //     speed,
-        //     self.energy_model_service.speeds_table_speed_unit,
-        //     distance,
-        //     self.energy_model_service.output_distance_unit,
-        //     self.energy_model_service.output_time_unit.clone(),
-        // )?;
-
-        // let energy_result = self.vehicle.consume_energy(
-        //     (speed, self.energy_model_service.speeds_table_speed_unit),
-        //     (grade, self.energy_model_service.grade_table_grade_unit),
-        //     (distance, self.energy_model_service.output_distance_unit),
-        //     get_vehicle_state_from_state(state),
-        // )?;
-
-        // let updated_state = update_state(state, distance, time, energy_result.updated_state);
-        let updated_state = vec![];
+        updated_state.extend(energy_result.updated_state);
         Ok(updated_state)
     }
 
     fn access_edge(
         &self,
-        _v1: &Vertex,
+        v1: &Vertex,
         src: &Edge,
-        _v2: &Vertex,
+        v2: &Vertex,
         dst: &Edge,
-        _v3: &Vertex,
+        v3: &Vertex,
         state: &[StateVar],
     ) -> Result<Option<TraversalState>, TraversalModelError> {
-        match self.energy_model_service.headings_table.as_deref() {
-            None => Ok(None),
-            Some(headings_table) => {
-                let src_heading = get_headings(headings_table, src.edge_id)?;
-                let dst_heading = get_headings(headings_table, dst.edge_id)?;
-                let angle = src_heading.next_edge_angle(&dst_heading);
-                let turn = Turn::from_angle(angle)?;
-                let time_cost = match turn {
-                    Turn::NoTurn => {
-                        // no penalty for straight
-                        Time::new(0.0)
-                    }
-                    Turn::SlightRight => {
-                        // 0.5 second penalty for slight right
-                        Time::new(0.5)
-                    }
-                    Turn::Right => {
-                        // 1 second penalty for right
-                        Time::new(1.0)
-                    }
-                    Turn::SharpRight => {
-                        // 1.5 second penalty for sharp right
-                        Time::new(1.5)
-                    }
-                    Turn::SlightLeft => {
-                        // 1 second penalty for slight left
-                        Time::new(1.0)
-                    }
-                    Turn::Left => {
-                        // 2.5 second penalty for left
-                        Time::new(2.5)
-                    }
-                    Turn::SharpLeft => {
-                        // 3.5 second penalty for sharp left
-                        Time::new(3.5)
-                    }
-                    Turn::UTurn => {
-                        // 9.5 second penalty for U-turn
-                        Time::new(9.5)
-                    }
-                };
-                let time = TimeUnit::Seconds
-                    .convert(time_cost, &self.energy_model_service.output_time_unit);
-                let updated_state = add_time_to_state(state, time);
-                Ok(Some(updated_state))
-            }
-        }
+        // defer access updates to time model
+        self.time_model.access_edge(v1, src, v2, dst, v3, state)
+        // match self.energy_model_service.headings_table.as_deref() {
+        //     None => Ok(None),
+        //     Some(headings_table) => {
+        // let src_heading = get_headings(headings_table, src.edge_id)?;
+        // let dst_heading = get_headings(headings_table, dst.edge_id)?;
+        // let angle = src_heading.next_edge_angle(&dst_heading);
+        // let turn = Turn::from_angle(angle)?;
+        // let time_cost = match turn {
+        //     Turn::NoTurn => {
+        //         // no penalty for straight
+        //         Time::new(0.0)
+        //     }
+        //     Turn::SlightRight => {
+        //         // 0.5 second penalty for slight right
+        //         Time::new(0.5)
+        //     }
+        //     Turn::Right => {
+        //         // 1 second penalty for right
+        //         Time::new(1.0)
+        //     }
+        //     Turn::SharpRight => {
+        //         // 1.5 second penalty for sharp right
+        //         Time::new(1.5)
+        //     }
+        //     Turn::SlightLeft => {
+        //         // 1 second penalty for slight left
+        //         Time::new(1.0)
+        //     }
+        //     Turn::Left => {
+        //         // 2.5 second penalty for left
+        //         Time::new(2.5)
+        //     }
+        //     Turn::SharpLeft => {
+        //         // 3.5 second penalty for sharp left
+        //         Time::new(3.5)
+        //     }
+        //     Turn::UTurn => {
+        //         // 9.5 second penalty for U-turn
+        //         Time::new(9.5)
+        //     }
+        // };
+        // let time =
+        //     TimeUnit::Seconds.convert(time_cost, &self.energy_model_service.time_unit);
+        // let time_idx = self.time_model.get_state_variable(&"time", state)?;
+        // let mut updated_state = state.clone();
+        // Ok(Some(updated_state))
+        // }
+        // }
     }
 
     fn estimate_traversal(
@@ -241,7 +186,7 @@ impl TraversalModel for EnergyTraversalModel {
         let distance = haversine::coord_distance(
             &src.coordinate,
             &dst.coordinate,
-            self.energy_model_service.output_distance_unit,
+            self.energy_model_service.distance_unit,
         )
         .map_err(TraversalModelError::NumericError)?;
 
@@ -249,25 +194,15 @@ impl TraversalModel for EnergyTraversalModel {
             return Ok(state.to_vec());
         }
 
-        // 1. self.time_model.estimate_traversal
         let time_state = &state[0..self.vehicle_state_index];
         let vehicle_state = &state[self.vehicle_state_index..];
         let mut updated_state = self.time_model.estimate_traversal(src, dst, time_state)?;
-        // let time: Time = Time::create(
-        //     self.energy_model_service.max_speed,
-        //     self.energy_model_service.speeds_table_speed_unit,
-        //     distance,
-        //     self.energy_model_service.output_distance_unit,
-        //     self.energy_model_service.output_time_unit.clone(),
-        // )?;
-
         let best_case_result = self.vehicle.best_case_energy_state(
-            (distance, self.energy_model_service.output_distance_unit),
+            (distance, self.energy_model_service.distance_unit),
             vehicle_state,
         )?;
 
         updated_state.extend(best_case_result.updated_state);
-        // let updated_state = update_state(state, distance, time, best_case_result.updated_state);
         Ok(updated_state)
     }
 }
@@ -325,37 +260,6 @@ impl EnergyTraversalModel {
             state_variables,
         })
     }
-}
-
-fn update_state(
-    state: &[StateVar],
-    distance: Distance,
-    time: Time,
-    vehicle_state: VehicleState,
-) -> TraversalState {
-    let mut updated_state = Vec::with_capacity(state.len());
-
-    updated_state.push(state[0] + distance.into());
-    updated_state.push(state[1] + time.into());
-    updated_state.extend(vehicle_state);
-    updated_state
-}
-
-fn add_time_to_state(state: &[StateVar], time: Time) -> TraversalState {
-    let mut updated_state = state.to_vec();
-    updated_state[1] = state[1] + time.into();
-    updated_state
-}
-fn get_distance_from_state(state: &[StateVar]) -> Distance {
-    Distance::new(state[0].0)
-}
-
-fn get_time_from_state(state: &[StateVar]) -> Time {
-    Time::new(state[1].0)
-}
-
-fn get_vehicle_state_from_state(state: &[StateVar]) -> &[StateVar] {
-    &state[2..]
 }
 
 #[cfg(test)]
@@ -441,6 +345,7 @@ mod tests {
 
         let service = EnergyModelService::new(
             time_service,
+            SpeedUnit::MilesPerHour,
             // &speed_file_path,
             &Some(grade_file_path),
             // SpeedUnit::KilometersPerHour,

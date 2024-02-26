@@ -31,7 +31,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         let parent_key = String::from("energy traversal model");
 
         // load the underlying travel time model
-        let time_model_params = params.get(&"time_model").ok_or_else(|| {
+        let time_model_params = params.get("time_model").ok_or_else(|| {
             TraversalModelError::BuildError(
                 format!("{} missing time_model parameters", parent_key,),
             )
@@ -47,19 +47,15 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 time_model_type, valid_models
             ))
         })?;
-        let time_model_service = time_builder.build(&time_model_params)?;
+        let time_model_service = time_builder.build(time_model_params)?;
+        let time_model_speed_unit = time_model_params
+            .get_config_serde::<SpeedUnit>(&"speed_unit", &"time_model")
+            .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
-        // let speed_table_path = params
-        //     .get_config_path(&"speed_table_input_file", &parent_key)
-        //     .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
-        // let speed_table_speed_unit = params
-        //     .get_config_serde::<SpeedUnit>(&"speed_table_speed_unit", &parent_key)
-        //     .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
-
-        let grade_table_path = params
+        let grade_table_path_option = params
             .get_config_path_optional(&"grade_table_input_file", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
-        let grade_table_grade_unit = params
+        let grade_table_grade_unit_option = params
             .get_config_serde_optional::<GradeUnit>(&"graph_grade_unit", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
@@ -95,8 +91,9 @@ impl TraversalModelBuilder for EnergyModelBuilder {
 
         let service = EnergyModelService::new(
             time_model_service,
-            &grade_table_path,
-            grade_table_grade_unit,
+            time_model_speed_unit,
+            &grade_table_path_option,
+            grade_table_grade_unit_option,
             output_time_unit_option,
             output_distance_unit_option,
             vehicle_library,
