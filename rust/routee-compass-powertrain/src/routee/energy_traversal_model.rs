@@ -1,9 +1,9 @@
-use super::energy_model_ops::{get_grade, get_headings};
+use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
-use super::vehicle::vehicle_type::{VehicleState, VehicleType};
+use super::vehicle::vehicle_type::VehicleType;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
-use routee_compass_core::model::road_network::turn::Turn;
+
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
@@ -210,10 +210,9 @@ impl TraversalModel for EnergyTraversalModel {
 impl EnergyTraversalModel {
     pub fn new(
         energy_model_service: Arc<EnergyModelService>,
-        time_model_service: Arc<dyn TraversalModelService>,
         conf: &serde_json::Value,
     ) -> Result<EnergyTraversalModel, TraversalModelError> {
-        let time_model = time_model_service.build(conf)?;
+        let time_model = energy_model_service.time_model_service.build(conf)?;
         let vehicle_state_index = time_model.initial_state().len();
 
         let prediction_model_name = conf
@@ -360,7 +359,7 @@ mod tests {
         let conf = serde_json::json!({
             "model_name": "Toyota_Camry",
         });
-        let model = EnergyTraversalModel::try_from((arc_service, &conf)).unwrap();
+        let model = EnergyTraversalModel::new(arc_service, &conf).unwrap();
         let initial = model.initial_state();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
