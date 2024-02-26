@@ -2,7 +2,7 @@ use super::road_class_service::RoadClassFrontierService;
 use routee_compass_core::model::{
     frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
     property::edge::Edge,
-    traversal::state::{state_variable::StateVar},
+    traversal::state::state_variable::StateVar,
 };
 use std::{collections::HashSet, sync::Arc};
 
