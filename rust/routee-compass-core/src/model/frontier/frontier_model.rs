@@ -1,6 +1,5 @@
-use crate::model::{property::edge::Edge, traversal::state::{traversal_state::TraversalState, state_variable::StateVar}};
-
 use super::frontier_model_error::FrontierModelError;
+use crate::model::{property::edge::Edge, traversal::state::state_variable::StateVar};
 
 /// Validates edge and traversal states. Provides an API for removing edges from
 /// the frontier in a way that could be more efficient than modifying the [TraversalModel].

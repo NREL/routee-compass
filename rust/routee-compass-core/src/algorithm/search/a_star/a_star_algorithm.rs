@@ -9,7 +9,7 @@ use crate::model::road_network::graph::Graph;
 use crate::model::road_network::vertex_id::VertexId;
 use crate::model::termination::termination_model::TerminationModel;
 use crate::model::traversal::state::state_variable::StateVar;
-use crate::model::traversal::state::traversal_state::TraversalState;
+
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::cost::ReverseCost;
 use crate::model::unit::Cost;

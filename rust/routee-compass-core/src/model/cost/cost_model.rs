@@ -5,7 +5,7 @@ use super::vehicle::vehicle_cost_rate::VehicleCostRate;
 use crate::model::cost::cost_error::CostError;
 use crate::model::property::edge::Edge;
 use crate::model::traversal::state::state_variable::StateVar;
-use crate::model::traversal::state::traversal_state::TraversalState;
+
 use crate::model::unit::Cost;
 use std::collections::HashMap;
 use std::sync::Arc;
