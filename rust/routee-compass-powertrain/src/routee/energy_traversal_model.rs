@@ -3,12 +3,10 @@ use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::VehicleType;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
-
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
-use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::geo::haversine;
 use std::collections::HashMap;
@@ -343,7 +341,7 @@ mod tests {
         };
 
         let service = EnergyModelService::new(
-            time_service,
+            Arc::new(time_service),
             SpeedUnit::MilesPerHour,
             // &speed_file_path,
             &Some(grade_file_path),
