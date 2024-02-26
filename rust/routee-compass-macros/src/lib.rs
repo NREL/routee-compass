@@ -8,6 +8,8 @@ use proc_macro_error::proc_macro_error;
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput};
 
+/// A procedural macro that generates python bindings for a struct that implements the `CompassAppBindings` trait.
+/// This allows custom applications to be exposed to python in a similar manner as the original python compass app.
 #[proc_macro_error]
 #[proc_macro_attribute]
 pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {

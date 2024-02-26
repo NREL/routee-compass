@@ -1,23 +1,20 @@
-# routee-compass-py
+# routee-compass-macros
 
-This crate provides Python bindings to CompassApp.
+This crate provides some macros for the routee-compass project.
 
-[![crates.io](https://img.shields.io/crates/v/routee-compass-py.svg)](https://crates.io/crates/routee-compass-py)
+[![crates.io](https://img.shields.io/crates/v/routee-compass-macros.svg)](https://crates.io/crates/routee-compass-macros)
 
 ## Usage
 
-This app can be installed in python using the [provided python library](../../python) via [pip](https://pypi.org/project/nrel.routee.compass/):
-
-```bash
-pip install nrel.routee.compass
-```
-
-To install as a library in Rust, add routee-compass-py to your Cargo.toml file:
+To install as a library in Rust, add routee-compass-macros to your Cargo.toml file:
 
 ```toml
 [dependencies]
-routee-compass-py = { version = "0.6.1" }
+routee-compass-macros = { version = "0.6.1" }
 ```
+
+This crate currently just provides a single macro for wrapping a compass application with python bindings.
+Usage is simply adding the `#[pybindings]` attribute to an struct that implements the `CompassAppBindings` trait.
 
 ## License
 
