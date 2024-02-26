@@ -59,6 +59,33 @@ pub struct CompassApp {
     pub response_output_policy: ResponseOutputPolicy,
 }
 
+impl CompassApp {
+    /// Builds a CompassApp from a configuration TOML string, using a custom CompassAppBuilder.
+    ///
+    /// # Arguments
+    ///
+    /// * `config_string` - a string containing the configuration in TOML format
+    /// * `original_file_path` - the original file path of the configuration file
+    /// * `builder` - a custom CompassAppBuilder instance
+    ///
+    /// # Returns
+    ///
+    /// * an instance of [`CompassApp`], or an error if load failed.
+    pub fn try_from_config_toml_string(
+        config_string: String,
+        original_file_path: String,
+        builder: &CompassAppBuilder,
+    ) -> Result<Self, CompassAppError> {
+        let config = ops::read_config_from_string(
+            config_string.clone(),
+            config::FileFormat::Toml,
+            original_file_path,
+        )?;
+        let app = CompassApp::try_from((&config, builder))?;
+        Ok(app)
+    }
+}
+
 impl TryFrom<&Path> for CompassApp {
     type Error = CompassAppError;
 
