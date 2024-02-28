@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;
 
-
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use itertools::Itertools;
 use routee_compass_core::model::traversal::traversal_model_builder::TraversalModelBuilder;
@@ -78,11 +77,11 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             vehicle_library.insert(vehicle.name(), vehicle);
         }
 
-        let output_time_unit_option = params
-            .get_config_serde_optional::<TimeUnit>(&"output_time_unit", &parent_key)
+        let time_unit_option = params
+            .get_config_serde_optional::<TimeUnit>(&"time_unit", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
-        let output_distance_unit_option = params
-            .get_config_serde_optional::<DistanceUnit>(&"output_distance_unit", &parent_key)
+        let distance_unit_option = params
+            .get_config_serde_optional::<DistanceUnit>(&"distance_unit", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let headings_table_path = params
@@ -94,8 +93,8 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             time_model_speed_unit,
             &grade_table_path_option,
             grade_table_grade_unit_option,
-            output_time_unit_option,
-            output_distance_unit_option,
+            time_unit_option,
+            distance_unit_option,
             vehicle_library,
             &headings_table_path,
         )?;
