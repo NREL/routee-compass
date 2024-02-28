@@ -31,7 +31,12 @@ impl TraversalModel for EnergyTraversalModel {
     }
 
     fn state_variable_names(&self) -> Vec<String> {
-        self.state_variables.keys().cloned().collect::<Vec<_>>()
+        // provide names sorted by index
+        let mut result = vec![String::default(); self.state_variables.len()];
+        for (name, idx) in self.state_variables.iter() {
+            result[*idx] = name.clone();
+        }
+        result
     }
 
     fn get_state_variable(

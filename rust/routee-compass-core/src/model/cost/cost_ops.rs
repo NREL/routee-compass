@@ -24,7 +24,17 @@ pub fn calculate_vehicle_costs(
                 .ok_or_else(|| CostError::StateIndexOutOfBounds(*state_idx, name.clone()))?;
             let delta: StateVar = *next_state_var - *prev_state_var;
             let mapping = rates.get(model_idx).ok_or_else(|| {
-                CostError::StateVariableNotFound(name.clone(), String::from("vehicle_cost_rates"))
+                let alternatives = state_variable_indices
+                    .iter()
+                    .filter(|(_, idx)| *idx < rates.len())
+                    .map(|(n, _)| n.to_string())
+                    .collect::<Vec<_>>()
+                    .join(",");
+                CostError::StateVariableNotFound(
+                    name.clone(),
+                    String::from("vehicle cost rates while calculating costs"),
+                    alternatives,
+                )
             })?;
             let coefficient = state_variable_coefficients.get(model_idx).unwrap_or(&1.0);
             let delta_cost = mapping.map_value(delta);

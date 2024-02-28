@@ -12,13 +12,13 @@ use crate::model::traversal::state::traversal_state::TraversalState;
 /// [DistanceModel]: super::default::distance::DistanceModel
 /// [SpeedLookupModel]: super::default::speed_lookup_model::SpeedLookupModel
 pub trait TraversalModel: Send + Sync {
-    /// Provides the list of state variable names in the order that they
-    /// appear in the TraversalState. for each state variable name, its position
-    /// in the result Vector is assumed to match the index of the state vector.
+    /// Provides the list of state variable names, sorted by index so that the names appear in the order
+    /// that the variables appear in the TraversalState. the resulting names vector can be used to support
+    /// communication in a heirarchical TraversalModel.
     ///
     /// # Returns
     ///
-    /// the names of the state
+    /// the names of the state variables in their index ordering
     fn state_variable_names(&self) -> Vec<String>;
 
     /// Extracts a state variable based on its name.

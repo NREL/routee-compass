@@ -215,10 +215,19 @@ impl CostModel {
                 let state_var = state
                     .get(*idx)
                     .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+
                 let rate = self.vehicle_state_variable_rates.get(*idx).ok_or_else(|| {
+                    let alternatives = self
+                        .state_variable_indices
+                        .iter()
+                        .filter(|(_, idx)| *idx < self.vehicle_state_variable_rates.len())
+                        .map(|(n, _)| n.to_string())
+                        .collect::<Vec<_>>()
+                        .join(",");
                     CostError::StateVariableNotFound(
                         name.clone(),
-                        String::from("vehicle cost rates"),
+                        String::from("vehicle cost rates while serializing cost"),
+                        alternatives,
                     )
                 })?;
                 let cost = rate.map_value(*state_var);
