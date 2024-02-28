@@ -121,12 +121,14 @@ impl CompassAppBuilder {
     fn default() -> CompassAppBuilder {
         // Traversal model builders
         let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceBuilder {});
-        let velo: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
-        let energy_model: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder {});
+        let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
+        let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder::new(
+            HashMap::from([(String::from("speed_table"), speed.clone())]),
+        ));
         let tm_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> = HashMap::from([
             (String::from("distance"), dist),
-            (String::from("speed_table"), velo),
-            (String::from("energy_model"), energy_model),
+            (String::from("speed_table"), speed),
+            (String::from("energy_model"), energy),
         ]);
 
         // Frontier model builders

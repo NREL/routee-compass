@@ -5,7 +5,7 @@ use super::vehicle::vehicle_cost_rate::VehicleCostRate;
 use crate::model::cost::cost_error::CostError;
 use crate::model::property::edge::Edge;
 use crate::model::traversal::state::state_variable::StateVar;
-use crate::model::traversal::state::traversal_state::TraversalState;
+
 use crate::model::unit::Cost;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -207,7 +207,7 @@ impl CostModel {
     /// A JSON serialized version of the state. This does not need to include
     /// additional details such as the units (kph, hours, etc), which can be
     /// summarized in the serialize_state_info method.
-    fn serialize_cost(&self, state: &TraversalState) -> Result<serde_json::Value, CostError> {
+    fn serialize_cost(&self, state: &[StateVar]) -> Result<serde_json::Value, CostError> {
         let mut state_variable_costs = self
             .state_variable_indices
             .iter()
@@ -215,10 +215,19 @@ impl CostModel {
                 let state_var = state
                     .get(*idx)
                     .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+
                 let rate = self.vehicle_state_variable_rates.get(*idx).ok_or_else(|| {
+                    let alternatives = self
+                        .state_variable_indices
+                        .iter()
+                        .filter(|(_, idx)| *idx < self.vehicle_state_variable_rates.len())
+                        .map(|(n, _)| n.to_string())
+                        .collect::<Vec<_>>()
+                        .join(",");
                     CostError::StateVariableNotFound(
                         name.clone(),
-                        String::from("vehicle cost rates"),
+                        String::from("vehicle cost rates while serializing cost"),
+                        alternatives,
                     )
                 })?;
                 let cost = rate.map_value(*state_var);
@@ -269,7 +278,7 @@ impl CostModel {
     /// and `serialize_cost_info`.
     pub fn serialize_cost_with_info(
         &self,
-        state: &TraversalState,
+        state: &[StateVar],
     ) -> Result<serde_json::Value, CostError> {
         let mut output = serde_json::Map::new();
         output.insert(String::from("cost"), self.serialize_cost(state)?);

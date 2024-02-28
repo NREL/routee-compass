@@ -8,7 +8,8 @@ use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::graph::Graph;
 use crate::model::road_network::vertex_id::VertexId;
 use crate::model::termination::termination_model::TerminationModel;
-use crate::model::traversal::state::traversal_state::TraversalState;
+use crate::model::traversal::state::state_variable::StateVar;
+
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::cost::ReverseCost;
 use crate::model::unit::Cost;
@@ -369,7 +370,7 @@ pub fn run_a_star_edge_oriented(
 pub fn h_cost(
     src: VertexId,
     dst: VertexId,
-    state: &TraversalState,
+    state: &[StateVar],
     g: &RwLockReadGuard<Graph>,
     m: &Arc<dyn TraversalModel>,
     u: &CostModel,

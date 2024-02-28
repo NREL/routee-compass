@@ -1,7 +1,7 @@
 use routee_compass_core::model::{
     frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
     property::edge::Edge,
-    traversal::state::traversal_state::TraversalState,
+    traversal::state::state_variable::StateVar,
 };
 use std::sync::Arc;
 
@@ -13,7 +13,7 @@ impl FrontierModel for CombinedFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
-        state: &TraversalState,
+        state: &[StateVar],
         previous_edge: Option<&Edge>,
     ) -> Result<bool, FrontierModelError> {
         // If any of the inner models return an invalid frontier, it invalidates the whole set and we
