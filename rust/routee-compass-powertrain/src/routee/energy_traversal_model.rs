@@ -9,6 +9,7 @@ use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::geo::haversine;
+use routee_compass_core::util::serde::serde_json_extension::SerdeJsonExtension;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -61,30 +62,15 @@ impl TraversalModel for EnergyTraversalModel {
         let vehicle_state = &state[self.vehicle_state_index..];
         let time_json = self.time_model.serialize_state(time_state);
         let energy_json = self.vehicle.serialize_state(vehicle_state);
-
-        use serde_json::Value::Object;
-
-        match (time_json, energy_json) {
-            (Object(ref mut t), Object(ref e)) => {
-                for (k, v) in e {
-                    t.insert(k.clone(), v.clone());
-                }
-                serde_json::json!(t)
-            }
-            _ => {
-                serde_json::json!({"internal error": "unable to serialize energy and time states as expected"})
-            }
-        }
+        time_json.merge(&energy_json).unwrap_or_default()
     }
 
     fn serialize_state_info(&self, state: &[StateVar]) -> serde_json::Value {
+        let time_state = &state[0..self.vehicle_state_index];
         let vehicle_state = &state[self.vehicle_state_index..];
-        let vehicle_state_info = self.vehicle.serialize_state_info(vehicle_state);
-        serde_json::json!({
-            "distance_unit": self.energy_model_service.distance_unit,
-            "time_unit": self.energy_model_service.time_unit,
-            "vehicle_info": vehicle_state_info,
-        })
+        let time_json = self.time_model.serialize_state_info(state);
+        let energy_json = self.vehicle.serialize_state_info(vehicle_state);
+        time_json.merge(&energy_json).unwrap_or_default()
     }
 
     fn traverse_edge(
