@@ -66,7 +66,7 @@ impl TraversalModel for EnergyTraversalModel {
     }
 
     fn serialize_state_info(&self, state: &[StateVar]) -> serde_json::Value {
-        let time_state = &state[0..self.vehicle_state_index];
+        let _time_state = &state[0..self.vehicle_state_index];
         let vehicle_state = &state[self.vehicle_state_index..];
         let time_json = self.time_model.serialize_state_info(state);
         let energy_json = self.vehicle.serialize_state_info(vehicle_state);
