@@ -1,4 +1,4 @@
-use routee_compass_core::util::serde_ops;
+use routee_compass_core::util::serde::serde_ops;
 use serde::{Deserialize, Serialize};
 
 use crate::{

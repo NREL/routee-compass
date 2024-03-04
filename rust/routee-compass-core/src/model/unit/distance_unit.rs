@@ -1,5 +1,5 @@
 use super::Distance;
-use crate::util::serde_ops::string_deserialize;
+use crate::util::serde::serde_ops::string_deserialize;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 

@@ -31,6 +31,7 @@ where
     };
     let reader = ReaderBuilder::new()
         .has_headers(has_headers)
+        .trim(csv::Trim::Fields)
         .from_reader(r)
         .into_deserialize::<T>()
         .map(move |r| {
