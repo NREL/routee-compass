@@ -23,6 +23,10 @@ factor = 0.655
 type = "factor"
 factor = 0.333336
 
+[cost.state_variable_coefficients]
+distance = 1
+time = 1
+
 [plugin]
 input_plugins = [
     { type = "vertex_rtree", distance_tolerance = 0.2, distance_unit = "kilometers", vertices_input_file = "vertices-compass.csv.gz" },

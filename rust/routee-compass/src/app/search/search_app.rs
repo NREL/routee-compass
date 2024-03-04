@@ -98,7 +98,7 @@ impl SearchApp {
         let rm_inner = Arc::new(self.termination_model.read_only());
         self.search_algorithm
             .run_vertex_oriented(o, d, dg_inner, tm_inner, um_inner, fm_inner, rm_inner)
-            .and_then(|tree| {
+            .and_then(|search_result| {
                 let search_end_time = Local::now();
                 let search_runtime = (search_end_time - search_start_time)
                     .to_std()
@@ -110,7 +110,7 @@ impl SearchApp {
                 let route_start_time = Local::now();
                 let route = match d {
                     None => vec![],
-                    Some(dest) => backtrack::vertex_oriented_route(o, dest, &tree)?,
+                    Some(dest) => backtrack::vertex_oriented_route(o, dest, &search_result.tree)?,
                 };
                 let route_end_time = Local::now();
                 let route_runtime = (route_end_time - route_start_time)
@@ -122,11 +122,12 @@ impl SearchApp {
                 );
                 Ok(SearchAppResult {
                     route,
-                    tree,
-                    search_start_time,
-                    search_runtime,
+                    tree: search_result.tree,
+                    search_executed_time: search_start_time.to_rfc3339(),
+                    algorithm_runtime: search_runtime,
                     route_runtime,
-                    total_runtime: search_runtime + route_runtime,
+                    search_app_runtime: search_runtime + route_runtime,
+                    iterations: search_result.iterations,
                 })
             })
             .map_err(CompassAppError::SearchError)
@@ -182,14 +183,17 @@ impl SearchApp {
                 fm_inner,
                 rm_inner,
             )
-            .and_then(|tree| {
+            .and_then(|search_result| {
                 let search_end_time = Local::now();
                 let route_start_time = Local::now();
                 let route = match d {
                     None => vec![],
-                    Some(dest) => {
-                        backtrack::edge_oriented_route(o, dest, &tree, dg_inner_backtrack)?
-                    }
+                    Some(dest) => backtrack::edge_oriented_route(
+                        o,
+                        dest,
+                        &search_result.tree,
+                        dg_inner_backtrack,
+                    )?,
                 };
                 let route_end_time = Local::now();
                 let search_runtime = (search_end_time - search_start_time)
@@ -200,11 +204,12 @@ impl SearchApp {
                     .unwrap_or(time::Duration::ZERO);
                 Ok(SearchAppResult {
                     route,
-                    tree,
-                    search_start_time,
-                    search_runtime,
+                    tree: search_result.tree,
+                    search_executed_time: search_start_time.to_rfc3339(),
+                    algorithm_runtime: search_runtime,
                     route_runtime,
-                    total_runtime: search_runtime + route_runtime,
+                    search_app_runtime: search_runtime + route_runtime,
+                    iterations: search_result.iterations,
                 })
             })
             .map_err(CompassAppError::SearchError)

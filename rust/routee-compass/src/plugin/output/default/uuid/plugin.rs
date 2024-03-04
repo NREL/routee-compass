@@ -1,6 +1,7 @@
 use super::json_extensions::UUIDJsonExtensions;
 use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
+use crate::plugin::output::default::uuid::json_extensions::UUIDJsonField;
 use crate::plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError};
 use kdam::Bar;
 use kdam::BarExt;
@@ -10,6 +11,8 @@ use std::path::Path;
 
 pub struct UUIDOutputPlugin {
     uuids: Box<[String]>,
+    o_key: String,
+    d_key: String,
 }
 
 impl UUIDOutputPlugin {
@@ -33,29 +36,42 @@ impl UUIDOutputPlugin {
             PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
         })?;
         println!();
-        Ok(UUIDOutputPlugin { uuids })
+
+        let o_key = UUIDJsonField::OriginVertexUUID.to_string();
+        let d_key = UUIDJsonField::DestinationVertexUUID.to_string();
+        Ok(UUIDOutputPlugin {
+            uuids,
+            o_key,
+            d_key,
+        })
     }
 }
 
 impl OutputPlugin for UUIDOutputPlugin {
     fn process(
         &self,
-        output: &serde_json::Value,
-        _search_result: &Result<SearchAppResult, CompassAppError>,
-    ) -> Result<Vec<serde_json::Value>, PluginError> {
-        let mut updated_output = output.clone();
-        let (origin_vertex_id, destination_vertex_id) = output.get_od_vertex_ids()?;
-        let origin_uuid = self
-            .uuids
-            .get(origin_vertex_id.0)
-            .ok_or_else(|| PluginError::UUIDMissing(origin_vertex_id.0))?;
-        let destination_uuid = self
-            .uuids
-            .get(destination_vertex_id.0)
-            .ok_or_else(|| PluginError::UUIDMissing(destination_vertex_id.0))?;
+        output: &mut serde_json::Value,
+        search_result: &Result<SearchAppResult, CompassAppError>,
+    ) -> Result<(), PluginError> {
+        match search_result {
+            Err(_) => Ok(()),
+            Ok(_) => {
+                let (origin_vertex_id, destination_vertex_id) = output.get_od_vertex_ids()?;
+                let origin_uuid = self
+                    .uuids
+                    .get(origin_vertex_id.0)
+                    .cloned()
+                    .ok_or_else(|| PluginError::UUIDMissing(origin_vertex_id.0))?;
+                let destination_uuid = self
+                    .uuids
+                    .get(destination_vertex_id.0)
+                    .cloned()
+                    .ok_or_else(|| PluginError::UUIDMissing(destination_vertex_id.0))?;
 
-        updated_output.add_od_uuids(origin_uuid.clone(), destination_uuid.clone())?;
-
-        Ok(vec![updated_output])
+                output[&self.o_key] = serde_json::Value::String(origin_uuid);
+                output[&self.d_key] = serde_json::Value::String(destination_uuid);
+                Ok(())
+            }
+        }
     }
 }

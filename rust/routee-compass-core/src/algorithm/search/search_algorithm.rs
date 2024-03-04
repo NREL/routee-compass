@@ -1,6 +1,6 @@
 use super::a_star::a_star_algorithm;
 use super::search_error::SearchError;
-use super::MinSearchTree;
+use super::search_result::SearchResult;
 use crate::algorithm::search::search_algorithm_type::SearchAlgorithmType;
 use crate::model::cost::cost_model::CostModel;
 use crate::model::frontier::frontier_model::FrontierModel;
@@ -37,7 +37,7 @@ impl SearchAlgorithm {
         cost_model: CostModel,
         frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
-    ) -> Result<MinSearchTree, SearchError> {
+    ) -> Result<SearchResult, SearchError> {
         match self {
             SearchAlgorithm::AStarAlgorithm => a_star_algorithm::run_a_star(
                 origin,
@@ -60,7 +60,7 @@ impl SearchAlgorithm {
         cost_model: CostModel,
         frontier_model: Arc<dyn FrontierModel>,
         termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
-    ) -> Result<MinSearchTree, SearchError> {
+    ) -> Result<SearchResult, SearchError> {
         match self {
             SearchAlgorithm::AStarAlgorithm => a_star_algorithm::run_a_star_edge_oriented(
                 origin,

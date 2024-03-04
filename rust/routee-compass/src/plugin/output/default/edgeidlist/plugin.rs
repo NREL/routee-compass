@@ -10,11 +10,11 @@ pub struct EdgeIdListOutputPlugin {}
 impl OutputPlugin for EdgeIdListOutputPlugin {
     fn process(
         &self,
-        output: &serde_json::Value,
+        output: &mut serde_json::Value,
         search_result: &Result<SearchAppResult, CompassAppError>,
-    ) -> Result<Vec<serde_json::Value>, PluginError> {
+    ) -> Result<(), PluginError> {
         match search_result {
-            Err(_e) => Ok(vec![output.clone()]),
+            Err(_e) => Ok(()),
             Ok(result) => {
                 let edge_ids = result
                     .route
@@ -22,9 +22,8 @@ impl OutputPlugin for EdgeIdListOutputPlugin {
                     .iter()
                     .map(|e| e.edge_id)
                     .collect::<Vec<_>>();
-                let mut updated = output.clone();
-                updated.add_edge_list(&edge_ids)?;
-                Ok(vec![updated])
+                output.add_edge_list(&edge_ids)?;
+                Ok(())
             }
         }
     }

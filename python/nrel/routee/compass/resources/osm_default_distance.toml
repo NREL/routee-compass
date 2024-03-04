@@ -14,6 +14,8 @@ distance_unit = "miles"
 [cost.vehicle_state_variable_rates.distance]
 type = "factor"
 factor = 0.655
+[cost.state_variable_coefficients]
+distance = 1
 
 [plugin]
 input_plugins = [

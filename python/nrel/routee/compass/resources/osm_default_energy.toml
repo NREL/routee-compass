@@ -37,14 +37,27 @@ factor = 3.120
 type = "factor"
 factor = 0.50
 
+[cost.state_variable_coefficients]
+distance = 1
+time = 1
+energy_liquid = 1
+energy_electric = 1
+
 [traversal]
 type = "energy_model"
-speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-speed_table_speed_unit = "kilometers_per_hour"
-output_time_unit = "minutes"
-output_distance_unit = "miles"
-headings_table_input_file = "edges-headings-enumerated.csv.gz"
+time_model_speed_unit = "kilometers_per_hour"
+grade_table_input_file = "edges-grade-enumerated.txt.gz"
+grade_table_grade_unit = "decimal"
+time_unit = "minutes"
+distance_unit = "miles"
+headings_table_input_file = "edges-headings-enumerated.txt.gz"
 
+[traversal.time_model]
+type = "speed_table"
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
+speed_unit = "kilometers_per_hour"
+output_distance_unit = "miles"
+output_time_unit = "minutes"
 
 [[traversal.vehicles]]
 name = "2012_Ford_Focus"

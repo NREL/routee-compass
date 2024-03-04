@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use routee_compass_core::{
-    model::traversal::{
+use routee_compass_core::model::{
+    traversal::{
         state::{state_variable::StateVar, traversal_state::TraversalState},
         traversal_model_error::TraversalModelError,
     },
-    model::unit::{
+    unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
@@ -51,6 +51,10 @@ impl PHEV {
 impl VehicleType for PHEV {
     fn name(&self) -> String {
         self.name.clone()
+    }
+
+    fn number_of_state_variables(&self) -> usize {
+        3
     }
 
     fn state_variable_names(&self) -> Vec<String> {

@@ -1,26 +1,25 @@
-routee-compass-py
-============
+# routee-compass-py
 
 This crate provides Python bindings to CompassApp.
 
 [![crates.io](https://img.shields.io/crates/v/routee-compass-py.svg)](https://crates.io/crates/routee-compass-py)
 
-### Usage
+## Usage
 
 This app can be installed in python using the [provided python library](../../python) via [pip](https://pypi.org/project/nrel.routee.compass/):
 
-```
-$ pip install nrel.routee.compass
+```bash
+pip install nrel.routee.compass
 ```
 
 To install as a library in Rust, add routee-compass-py to your Cargo.toml file:
 
 ```toml
 [dependencies]
-routee-compass-py = { version = "0.3.0" }
+routee-compass-py = { version = "0.6.1" }
 ```
 
-### License
+## License
 
 Copyright 2023 Alliance for Sustainable Energy, LLC
 

@@ -1,6 +1,5 @@
-use crate::model::{property::edge::Edge, traversal::state::traversal_state::TraversalState};
-
 use super::frontier_model_error::FrontierModelError;
+use crate::model::{property::edge::Edge, traversal::state::state_variable::StateVar};
 
 /// Validates edge and traversal states. Provides an API for removing edges from
 /// the frontier in a way that could be more efficient than modifying the [TraversalModel].
@@ -23,7 +22,7 @@ pub trait FrontierModel: Send + Sync {
     fn valid_frontier(
         &self,
         _edge: &Edge,
-        _state: &TraversalState,
+        _state: &[StateVar],
         _previous_edge: Option<&Edge>,
     ) -> Result<bool, FrontierModelError> {
         Ok(true)

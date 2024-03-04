@@ -4,12 +4,12 @@ use rstar::{PointDistance, RTreeObject, AABB};
 
 pub struct EdgeRtreeRecord {
     pub edge_id: EdgeId,
-    pub geometry: LineString,
-    pub road_class: String,
+    pub geometry: LineString<f32>,
+    pub road_class: u8,
 }
 
 impl EdgeRtreeRecord {
-    pub fn new(edge_id: EdgeId, geometry: LineString, road_class: String) -> EdgeRtreeRecord {
+    pub fn new(edge_id: EdgeId, geometry: LineString<f32>, road_class: u8) -> EdgeRtreeRecord {
         EdgeRtreeRecord {
             edge_id,
             geometry,
@@ -19,7 +19,7 @@ impl EdgeRtreeRecord {
 }
 
 impl RTreeObject for EdgeRtreeRecord {
-    type Envelope = AABB<Point>;
+    type Envelope = AABB<Point<f32>>;
     fn envelope(&self) -> Self::Envelope {
         self.geometry.envelope()
     }
@@ -36,7 +36,7 @@ impl PointDistance for EdgeRtreeRecord {
     /// # Returns
     ///
     /// * distance in meters (assumes points are in WGS84)
-    fn distance_2(&self, point: &Point) -> f64 {
+    fn distance_2(&self, point: &Point<f32>) -> f32 {
         let this_point = self
             .geometry
             .centroid()

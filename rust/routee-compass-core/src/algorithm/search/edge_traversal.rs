@@ -2,14 +2,16 @@ use super::search_error::SearchError;
 use crate::model::cost::cost_model::CostModel;
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::graph::Graph;
+use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::Cost;
+use allocative::Allocative;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::{fmt::Display, sync::RwLockReadGuard};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Allocative)]
 pub struct EdgeTraversal {
     pub edge_id: EdgeId,
     pub access_cost: Cost,
@@ -40,7 +42,7 @@ impl EdgeTraversal {
     pub fn perform_traversal(
         edge_id: EdgeId,
         prev_edge_id: Option<EdgeId>,
-        prev_state: &TraversalState,
+        prev_state: &[StateVar],
         g: &RwLockReadGuard<Graph>,
         tm: &Arc<dyn TraversalModel>,
         um: &CostModel,

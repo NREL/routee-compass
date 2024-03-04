@@ -42,6 +42,6 @@ pub enum CompassAppError {
     MissingInputField(CompassInputField),
     #[error("error accessing shared read-only dataset: {0}")]
     ReadOnlyPoisonError(String),
-    #[error("error decoding input: {0}")]
+    #[error("error decoding input:\n{0}")]
     InvalidInput(String),
 }

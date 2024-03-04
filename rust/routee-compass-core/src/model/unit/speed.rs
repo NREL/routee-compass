@@ -1,8 +1,9 @@
 use super::{
-    as_f64::AsF64, builders, Distance, DistanceUnit, SpeedUnit, Time, TimeUnit, UnitError,
+    as_f64::AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, SpeedUnit,
+    Time, TimeUnit, UnitError,
 };
+use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
-use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display, str::FromStr};
 
@@ -22,8 +23,9 @@ use std::{cmp::Ordering, fmt::Display, str::FromStr};
     Div,
     Sum,
     Neg,
+    Allocative,
 )]
-pub struct Speed(pub OrderedFloat<f64>);
+pub struct Speed(pub InternalFloat);
 
 impl AsF64 for Speed {
     fn as_f64(&self) -> f64 {
@@ -53,7 +55,7 @@ impl Ord for Speed {
 
 impl Display for Speed {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{:?}", self.0)
     }
 }
 
@@ -77,7 +79,7 @@ impl FromStr for Speed {
 
 impl Speed {
     pub fn new(value: f64) -> Speed {
-        Speed(OrderedFloat(value))
+        Speed(InternalFloat::new(value))
     }
     pub fn create(
         time: Time,
@@ -91,6 +93,6 @@ impl Speed {
     pub fn to_f64(&self) -> f64 {
         (self.0).0
     }
-    pub const ZERO: Speed = Speed(OrderedFloat(0.0));
-    pub const ONE: Speed = Speed(OrderedFloat(1.0));
+    pub const ZERO: Speed = Speed(InternalFloat::ZERO);
+    pub const ONE: Speed = Speed(InternalFloat::ONE);
 }

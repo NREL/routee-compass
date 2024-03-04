@@ -5,7 +5,7 @@ use std::path::Path;
 use wkt::TryFromWkt;
 
 /// reads a collection of LINESTRINGS
-pub fn read_linestring_text_file(file: &Path) -> Result<Box<[LineString]>, std::io::Error> {
+pub fn read_linestring_text_file(file: &Path) -> Result<Box<[LineString<f32>]>, std::io::Error> {
     let is_gzip = fs_utils::is_gzip(file);
     let count = fs_utils::line_count(file, is_gzip)?;
 
@@ -19,7 +19,8 @@ pub fn read_linestring_text_file(file: &Path) -> Result<Box<[LineString]>, std::
     let cb = Box::new(|| {
         let _ = pb.update(1);
     });
-    let geoms: Box<[LineString]> = read_utils::read_raw_file(file, parse_linestring, Some(cb))?;
+    let geoms: Box<[LineString<f32>]> =
+        read_utils::read_raw_file(file, parse_linestring, Some(cb))?;
     Ok(geoms)
 }
 
@@ -50,11 +51,11 @@ pub fn read_linestring_text_file(file: &Path) -> Result<Box<[LineString]>, std::
 ///
 /// let result = concat_linestrings(vec![&line1, &line2]);
 /// ```
-pub fn concat_linestrings(linestrings: Vec<&LineString>) -> LineString {
+pub fn concat_linestrings(linestrings: Vec<&LineString<f32>>) -> LineString<f32> {
     let all_points = linestrings
         .iter()
         .flat_map(|ls| ls.points())
-        .collect::<Vec<Point>>();
+        .collect::<Vec<Point<f32>>>();
     LineString::from_iter(all_points)
 }
 
@@ -68,8 +69,8 @@ pub fn concat_linestrings(linestrings: Vec<&LineString>) -> LineString {
 /// # Returns
 ///
 /// * a linestring
-pub fn parse_linestring(_idx: usize, row: String) -> Result<LineString, std::io::Error> {
-    let geom: LineString = LineString::try_from_wkt_str(row.as_str()).map_err(|e| {
+pub fn parse_linestring(_idx: usize, row: String) -> Result<LineString<f32>, std::io::Error> {
+    let geom: LineString<f32> = LineString::try_from_wkt_str(row.as_str()).map_err(|e| {
         let msg = format!(
             "failure decoding LineString from lookup table. source: {}; error: {}",
             row, e

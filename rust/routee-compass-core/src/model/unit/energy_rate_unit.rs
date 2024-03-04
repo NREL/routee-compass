@@ -1,5 +1,5 @@
 use super::{DistanceUnit, EnergyUnit};
-use crate::util::serde_ops::string_deserialize;
+use crate::util::serde::serde_ops::string_deserialize;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 

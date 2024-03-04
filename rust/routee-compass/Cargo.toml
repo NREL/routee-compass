@@ -19,7 +19,7 @@ categories = ["science", "science::geo"]
 
 [dependencies]
 routee-compass-core = { path = "../routee-compass-core", version = "0.6.1" }
-routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.6.1"}
+routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.6.1" }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
@@ -41,3 +41,7 @@ config = { workspace = true }
 clap = { version = "4.3.19", features = ["derive"] }
 itertools = { workspace = true }
 ordered-float = { workspace = true }
+allocative = { workspace = true }
+indoc = { workspace = true }
+
+pyo3 = { version = "0.20.0", features = ["serde"] }
