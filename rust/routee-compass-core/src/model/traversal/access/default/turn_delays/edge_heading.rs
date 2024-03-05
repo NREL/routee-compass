@@ -1,39 +1,38 @@
 use serde::Deserialize;
 
+/// simplifies the representation of directionality for a linestring
+/// to just the headings of the start and end points, using cardinal angles [0, 360).
+/// if the start and end have the same heading, the edge heading is None.
 #[derive(Copy, Clone, Deserialize)]
 pub struct EdgeHeading {
-    start_heading: i16,
-    end_heading: Option<i16>,
+    start_angle: i16,
+    end_angle: Option<i16>,
 }
 
 impl EdgeHeading {
-    pub fn with_start_and_end(start_heading: i16, end_heading: i16) -> Self {
+    /// creates an EdgeHeading from a start and end heading
+    pub fn new(start_angle: i16, end_angle: i16) -> Self {
         Self {
-            start_heading,
-            end_heading: Some(end_heading),
+            start_angle,
+            end_angle: Some(end_angle),
         }
     }
 
-    pub fn with_start(start_heading: i16) -> Self {
-        Self {
-            start_heading,
-            end_heading: None,
-        }
+    /// retrieve the start
+    pub fn start_angle(&self) -> i16 {
+        self.start_angle
     }
 
-    pub fn start_heading(&self) -> i16 {
-        self.start_heading
-    }
     /// If the end heading is not specified, it is assumed to be the same as the start heading
-    pub fn end_heading(&self) -> i16 {
-        match self.end_heading {
+    pub fn end_angle(&self) -> i16 {
+        match self.end_angle {
             Some(end_heading) => end_heading,
-            None => self.start_heading,
+            None => self.start_angle,
         }
     }
-    /// Compute the angle between this edge and the next edge
-    pub fn next_edge_angle(&self, next_edge_heading: &EdgeHeading) -> i16 {
-        let angle = next_edge_heading.start_heading() - self.end_heading();
+    /// Compute the angle between this edge and some destination edge.
+    pub fn bearing_to_destination(&self, destination: &EdgeHeading) -> i16 {
+        let angle = destination.start_angle() - self.end_angle();
         if angle > 180 {
             angle - 360
         } else if angle < -180 {
@@ -49,20 +48,20 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_next_edge_angle() {
-        let edge_heading = EdgeHeading::with_start_and_end(45, 90);
-        let next_edge_heading = EdgeHeading::with_start_and_end(90, 135);
-        assert_eq!(edge_heading.next_edge_angle(&next_edge_heading), 0);
+    fn test_simple() {
+        let edge_heading = EdgeHeading::new(45, 90);
+        let next_edge_heading = EdgeHeading::new(90, 135);
+        assert_eq!(edge_heading.bearing_to_destination(&next_edge_heading), 0);
     }
 
     #[test]
-    fn test_next_edge_angle_wrap() {
-        let edge_heading = EdgeHeading::with_start_and_end(10, 10);
-        let next_edge_heading = EdgeHeading::with_start_and_end(350, 350);
-        assert_eq!(edge_heading.next_edge_angle(&next_edge_heading), -20);
+    fn test_wrap_360() {
+        let edge_heading = EdgeHeading::new(10, 10);
+        let next_edge_heading = EdgeHeading::new(350, 350);
+        assert_eq!(edge_heading.bearing_to_destination(&next_edge_heading), -20);
 
-        let edge_heading = EdgeHeading::with_start_and_end(350, 350);
-        let next_edge_heading = EdgeHeading::with_start_and_end(10, 10);
-        assert_eq!(edge_heading.next_edge_angle(&next_edge_heading), 20);
+        let edge_heading = EdgeHeading::new(350, 350);
+        let next_edge_heading = EdgeHeading::new(10, 10);
+        assert_eq!(edge_heading.bearing_to_destination(&next_edge_heading), 20);
     }
 }
