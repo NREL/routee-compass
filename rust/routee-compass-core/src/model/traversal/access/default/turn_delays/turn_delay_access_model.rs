@@ -12,7 +12,6 @@ use crate::model::{
 pub struct TurnDelayAccessModel {
     edge_headings: Box<[EdgeHeading]>,
     turn_delay_model: TurnDelayModel,
-    time_fieldname: String,
 }
 
 impl TurnDelayAccessModel {}
@@ -20,28 +19,40 @@ impl TurnDelayAccessModel {}
 impl AccessModel for TurnDelayAccessModel {
     fn access_edge(
         &self,
-        _v1: &Vertex,
-        src: &Edge,
-        _v2: &Vertex,
-        dst: &Edge,
-        _v3: &Vertex,
+        traversal: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
         state: &TraversalState,
+        state_variable_indices: Vec<(String, usize)>,
     ) -> Result<Option<TraversalState>, TraversalModelError> {
+        let (_v1, src, _v2, dst, _v3) = traversal;
         let src_heading = get_headings(&self.edge_headings, src.edge_id)?;
         let dst_heading = get_headings(&self.edge_headings, dst.edge_id)?;
-        let angle = src_heading.next_edge_angle(&dst_heading);
+        let angle = src_heading.bearing_to_destination(&dst_heading);
 
         // TODO:
-        // - an AccessModel should be able to update the state
-        //   - turn delays (time)
-        //   - charging stations (energy)
-        // - perhaps there should be a broker that is upstream of the access and traversal
-        //   models that manages state allocation/cloning, inspection and updates
+        // WAIT, how do we get a time unit here?
+        let target_time_unit = &crate::model::unit::TimeUnit::Hours;
 
-        // let delay = self.turn_delay_model.get_delay(angle, target_time_unit)?;
-        // let updated_state = add_time_to_state(state, time);
-        // Ok(Some(updated_state))
-        todo!()
+        let delay = self.turn_delay_model.get_delay(angle, target_time_unit)?;
+        let (_, idx) = state_variable_indices
+            .iter()
+            .find(|(n, _)| n == "time")
+            .ok_or_else(|| {
+                TraversalModelError::InternalError(String::from(
+                    "turn delay model assumes a 'time' state variable which is not present",
+                ))
+            })?;
+
+        let mut updated_state = state.clone();
+        if updated_state.len() <= *idx {
+            return Err(TraversalModelError::InternalError(format!(
+                "turn delay model expected 'time' variable at index {} which is out of range for state {:?}",
+                idx,
+                state
+            )));
+        }
+
+        updated_state[*idx] = updated_state[*idx] + delay.into();
+        Ok(Some(updated_state))
     }
 }
 
