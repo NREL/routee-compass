@@ -30,6 +30,7 @@ use config::Config;
 use itertools::{Either, Itertools};
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
+use routee_compass_core::model::state::state_model::StateModel;
 use routee_compass_core::{
     algorithm::search::search_algorithm::SearchAlgorithm,
     util::duration_extension::DurationExtension,
@@ -144,6 +145,9 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         let alg_params = config_json.get_config_section(CompassConfigurationField::Algorithm)?;
         let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
+
+        let state_params = config_json.get_config_section(CompassConfigurationField::State)?;
+        let state_model = StateModel::new(&state_params)?;
 
         // build traversal model
         let traversal_start = Local::now();

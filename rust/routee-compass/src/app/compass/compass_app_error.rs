@@ -8,7 +8,7 @@ use routee_compass_core::{
     algorithm::search::search_error::SearchError,
     model::{
         frontier::frontier_model_error::FrontierModelError, road_network::graph_error::GraphError,
-        traversal::traversal_model_error::TraversalModelError,
+        state::state_error::StateError, traversal::traversal_model_error::TraversalModelError,
     },
 };
 
@@ -30,6 +30,8 @@ pub enum CompassAppError {
     ConfigError(#[from] ConfigError),
     #[error(transparent)]
     GraphError(#[from] GraphError),
+    #[error(transparent)]
+    StateError(#[from] StateError),
     #[error("Input file {0} missing")]
     NoInputFile(String),
     #[error(transparent)]

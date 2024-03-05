@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// it does not interact with our native unit system.
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "type")]
-pub enum StateVariableUnit {
+pub enum StateFeature {
     Distance { unit: unit::DistanceUnit },
     Time { unit: unit::TimeUnit },
     Liquid { unit: unit::EnergyUnit },
@@ -19,14 +19,24 @@ pub enum StateVariableUnit {
     Custom { name: String, codec: UnitCodec },
 }
 
-impl StateVariableUnit {
+impl StateFeature {
+    pub fn get_feature_name(&self) -> String {
+        match self {
+            StateFeature::Distance { unit: _ } => String::from("distance"),
+            StateFeature::Time { unit: _ } => String::from("time"),
+            StateFeature::Liquid { unit: _ } => String::from("energy_liquid"),
+            StateFeature::Electric { unit: _ } => String::from("energy_electric"),
+            StateFeature::Custom { name, codec: _ } => name.clone(),
+        }
+    }
+
     /// custom state variable units may have a custom codec
     /// for domains outside of the real number plane.
     /// this is a helper function to support generic use of the codec,
     /// regardless of unit type.
     pub fn get_codec(&self) -> UnitCodec {
         match self {
-            StateVariableUnit::Custom { name: _, codec } => *codec,
+            StateFeature::Custom { name: _, codec } => *codec,
             _ => UnitCodec::FloatingPoint,
         }
     }
