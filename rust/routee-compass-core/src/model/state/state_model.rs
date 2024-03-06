@@ -13,6 +13,29 @@ impl StateModel {
     /// the JSON array matches the order and size of the feature vector. downstream
     /// models such as the TraversalModel can look up features by name and retrieve
     /// the codec or unit representation in order to do state vector arithmetic.
+    ///
+    /// # Example
+    ///
+    /// ### Deserialization
+    ///
+    /// an example TOML representation of a StateModel:
+    ///
+    /// ```toml
+    /// [
+    ///   { "distance_unit" = "kilometers" },
+    ///   { "time_unit" = "minutes" },
+    ///   { "custom_feature_name" = "soc", codec = "floating_point" }
+    /// ]
+    ///
+    /// the same example as JSON (convert '=' into ':'):
+    ///
+    /// ```json
+    /// [
+    ///   { "distance_unit": "kilometers" },
+    ///   { "time_unit": "minutes" },
+    ///   { "custom_feature_name": "soc", codec: "floating_point" }
+    /// ]
+    /// ```
     pub fn new(config: &serde_json::Value) -> Result<StateModel, StateError> {
         let arr = config.as_array().ok_or_else(|| {
             StateError::BuildError(String::from(
