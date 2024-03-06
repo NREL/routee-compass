@@ -1,5 +1,5 @@
-use super::{state_error::StateError, unit_codec::UnitCodec};
-use crate::model::unit;
+use super::{custom_feature_format::CustomFeatureFormat, state_error::StateError};
+use crate::model::{traversal::state::state_variable::StateVar, unit};
 use serde::{Deserialize, Serialize};
 
 /// a state variable unit tracks the domain of a StateVar in a
@@ -18,46 +18,86 @@ use serde::{Deserialize, Serialize};
 ///
 /// ```toml
 /// state = [
-///   { "distance_unit" = "kilometers" },
-///   { "time_unit" = "minutes" },
-///   { "custom_feature_name" = "soc", codec = "floating_point" }
+///   { distance_unit = "kilometers" },
+///   { time_unit = "minutes" },
+///   { custom_feature_name = "soc", codec = { type = "floating_point", initial = 0.0 } }
 /// ]
 /// ```
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum StateFeature {
     Distance {
         distance_unit: unit::DistanceUnit,
+        initial: unit::Distance,
     },
     Time {
         time_unit: unit::TimeUnit,
+        initial: unit::Time,
     },
     Liquid {
         energy_liquid_unit: unit::EnergyUnit,
+        initial: unit::Energy,
     },
     Electric {
         energy_electric_unit: unit::EnergyUnit,
+        initial: unit::Energy,
     },
     Custom {
         custom_feature_name: String,
-        codec: UnitCodec,
+        custom_feature_unit: String,
+        format: CustomFeatureFormat,
     },
 }
 
 impl StateFeature {
     pub fn get_feature_name(&self) -> String {
         match self {
-            StateFeature::Distance { distance_unit: _ } => String::from("distance"),
-            StateFeature::Time { time_unit: _ } => String::from("time"),
+            StateFeature::Distance {
+                distance_unit: _,
+                initial: _,
+            } => String::from("distance"),
+            StateFeature::Time {
+                time_unit: _,
+                initial: _,
+            } => String::from("time"),
             StateFeature::Liquid {
                 energy_liquid_unit: _,
+                initial: _,
             } => String::from("energy_liquid"),
             StateFeature::Electric {
                 energy_electric_unit: _,
+                initial: _,
             } => String::from("energy_electric"),
             StateFeature::Custom {
                 custom_feature_name: name,
-                codec: _,
+                custom_feature_unit: _,
+                format: _,
             } => name.clone(),
+        }
+    }
+
+    pub fn get_feature_unit_name(&self) -> String {
+        match self {
+            StateFeature::Distance {
+                distance_unit,
+                initial: _,
+            } => distance_unit.to_string(),
+            StateFeature::Time {
+                time_unit,
+                initial: _,
+            } => time_unit.to_string(),
+            StateFeature::Liquid {
+                energy_liquid_unit,
+                initial: _,
+            } => energy_liquid_unit.to_string(),
+            StateFeature::Electric {
+                energy_electric_unit,
+                initial: _,
+            } => energy_electric_unit.to_string(),
+            StateFeature::Custom {
+                custom_feature_name: _,
+                custom_feature_unit: unit,
+                format: _,
+            } => unit.clone(),
         }
     }
 
@@ -65,20 +105,26 @@ impl StateFeature {
     /// for domains outside of the real number plane.
     /// this is a helper function to support generic use of the codec,
     /// regardless of unit type.
-    pub fn get_codec(&self) -> UnitCodec {
+    pub fn get_feature_format(&self) -> CustomFeatureFormat {
         match self {
             StateFeature::Custom {
                 custom_feature_name: _,
-                codec,
-            } => *codec,
-            _ => UnitCodec::FloatingPoint,
+                custom_feature_unit: _,
+                format,
+            } => *format,
+            _ => CustomFeatureFormat::default(),
         }
+    }
+
+    pub fn get_initial(&self) -> Result<StateVar, StateError> {
+        self.get_feature_format().initial()
     }
 
     pub fn get_distance_unit(&self) -> Result<unit::DistanceUnit, StateError> {
         match self {
             StateFeature::Distance {
                 distance_unit: unit,
+                initial: _,
             } => Ok(*unit),
             _ => Err(StateError::UnexpectedFeatureUnit(
                 String::from("distance"),
@@ -89,7 +135,10 @@ impl StateFeature {
 
     pub fn get_time_unit(&self) -> Result<unit::TimeUnit, StateError> {
         match self {
-            StateFeature::Time { time_unit: unit } => Ok(*unit),
+            StateFeature::Time {
+                time_unit: unit,
+                initial: _,
+            } => Ok(*unit),
             _ => Err(StateError::UnexpectedFeatureUnit(
                 String::from("time"),
                 self.get_feature_name(),
@@ -101,6 +150,7 @@ impl StateFeature {
         match self {
             StateFeature::Electric {
                 energy_electric_unit: unit,
+                initial: _,
             } => Ok(*unit),
             _ => Err(StateError::UnexpectedFeatureUnit(
                 String::from("energy_electric"),
@@ -113,6 +163,7 @@ impl StateFeature {
         match self {
             StateFeature::Liquid {
                 energy_liquid_unit: unit,
+                initial: _,
             } => Ok(*unit),
             _ => Err(StateError::UnexpectedFeatureUnit(
                 String::from("energy_liquid"),

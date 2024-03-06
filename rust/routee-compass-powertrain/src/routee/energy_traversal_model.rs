@@ -18,63 +18,10 @@ pub struct EnergyTraversalModel {
     pub energy_model_service: Arc<EnergyModelService>,
     pub time_model: Arc<dyn TraversalModel>,
     pub vehicle: Arc<dyn VehicleType>,
-    pub vehicle_state_index: usize,
-    pub state_variables: HashMap<String, usize>,
     pub state_model: Arc<StateModel>,
 }
 
 impl TraversalModel for EnergyTraversalModel {
-    fn initial_state(&self) -> TraversalState {
-        // the state representation is split between two underlying models, appearing in this order:
-        // 1. time traversal model state
-        // 2. energy traversal model state (the vehicle model)
-        let mut state = self.time_model.initial_state();
-        state.extend(self.vehicle.initial_state());
-        state
-    }
-
-    fn state_variable_names(&self) -> Vec<String> {
-        // provide names sorted by index
-        let mut result = vec![String::default(); self.state_variables.len()];
-        for (name, idx) in self.state_variables.iter() {
-            result[*idx] = name.clone();
-        }
-        result
-    }
-
-    fn get_state_variable(
-        &self,
-        key: &str,
-        state: &[StateVar],
-    ) -> Result<StateVar, TraversalModelError> {
-        let index = self.state_variables.get(key).ok_or_else(|| {
-            TraversalModelError::InternalError(format!("state variable {} not found in state", key))
-        })?;
-        let value_f64 = state.get(*index).ok_or_else(|| {
-            TraversalModelError::InternalError(format!(
-                "state variable index {} not found in state",
-                index
-            ))
-        })?;
-        Ok(*value_f64)
-    }
-
-    fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
-        let time_state = &state[0..self.vehicle_state_index];
-        let vehicle_state = &state[self.vehicle_state_index..];
-        let time_json = self.time_model.serialize_state(time_state);
-        let energy_json = self.vehicle.serialize_state(vehicle_state);
-        time_json.merge(&energy_json).unwrap_or_default()
-    }
-
-    fn serialize_state_info(&self, state: &[StateVar]) -> serde_json::Value {
-        let _time_state = &state[0..self.vehicle_state_index];
-        let vehicle_state = &state[self.vehicle_state_index..];
-        let time_json = self.time_model.serialize_state_info(state);
-        let energy_json = self.vehicle.serialize_state_info(vehicle_state);
-        time_json.merge(&energy_json).unwrap_or_default()
-    }
-
     fn traverse_edge(
         &self,
         src: &Vertex,
@@ -86,12 +33,14 @@ impl TraversalModel for EnergyTraversalModel {
             BASE_DISTANCE_UNIT.convert(edge.distance, self.energy_model_service.distance_unit);
 
         // perform time traversal
-        let time_state = &state[0..self.vehicle_state_index];
-        let vehicle_state = &state[self.vehicle_state_index..];
-        let mut updated_state = self.time_model.traverse_edge(src, edge, dst, time_state)?;
-        let time_next = self.time_model.get_state_variable("time", &updated_state)?;
-        let time_prev = self.get_state_variable("time", state)?;
-        let time_delta: Time = Time::new(time_next.0 - time_prev.0);
+        // let time_state = &state[0..self.vehicle_state_index];
+        // let vehicle_state = &state[self.vehicle_state_index..];
+        let mut updated_state = self.time_model.traverse_edge(src, edge, dst, state)?;
+        let time_delta_var = self.state_model.get_delta(state, &updated_state, "time")?;
+        let time_delta = Time::new(time_delta_var.0);
+        // let time_next = self.time_model.get_state_variable("time", &updated_state)?;
+        // let time_prev = self.get_state_variable("time", state)?;
+        // let time_delta: Time = Time::new(time_next.0 - time_prev.0);
 
         // perform vehicle energy traversal
         let grade = get_grade(&self.energy_model_service.grade_table, edge.edge_id)?;
@@ -100,7 +49,7 @@ impl TraversalModel for EnergyTraversalModel {
             (speed, self.energy_model_service.time_model_speed_unit),
             (grade, self.energy_model_service.grade_table_grade_unit),
             (distance, self.energy_model_service.distance_unit),
-            vehicle_state,
+            &updated_state,
         )?;
 
         updated_state.extend(energy_result.updated_state);
@@ -185,13 +134,12 @@ impl TraversalModel for EnergyTraversalModel {
             return Ok(state.to_vec());
         }
 
-        let time_state = &state[0..self.vehicle_state_index];
-        let vehicle_state = &state[self.vehicle_state_index..];
-        let mut updated_state = self.time_model.estimate_traversal(src, dst, time_state)?;
-        let best_case_result = self.vehicle.best_case_energy_state(
-            (distance, self.energy_model_service.distance_unit),
-            vehicle_state,
-        )?;
+        // let time_state = &state[0..self.vehicle_state_index];
+        // let vehicle_state = &state[self.vehicle_state_index..];
+        let mut updated_state = self.time_model.estimate_traversal(src, dst, state)?;
+        let best_case_result = self
+            .vehicle
+            .best_case_energy_state((distance, self.energy_model_service.distance_unit), state)?;
 
         updated_state.extend(best_case_result.updated_state);
         Ok(updated_state)
@@ -207,7 +155,7 @@ impl EnergyTraversalModel {
         let time_model = energy_model_service
             .time_model_service
             .build(conf, state_model.clone())?;
-        let vehicle_state_index = time_model.initial_state().len();
+        // let vehicle_state_index = time_model.initial_state().len();
 
         let prediction_model_name = conf
             .get("model_name".to_string())
@@ -238,19 +186,19 @@ impl EnergyTraversalModel {
         }?
         .update_from_query(conf)?;
 
-        let mut state_variable_names = time_model.state_variable_names();
-        state_variable_names.extend(vehicle.state_variable_names());
-        let state_variables = state_variable_names
-            .into_iter()
-            .enumerate()
-            .map(|(idx, name)| (name, idx))
-            .collect::<HashMap<_, _>>();
+        // let mut state_variable_names = time_model.state_variable_names();
+        // state_variable_names.extend(vehicle.state_variable_names());
+        // let state_variables = state_variable_names
+        //     .into_iter()
+        //     .enumerate()
+        //     .map(|(idx, name)| (name, idx))
+        //     .collect::<HashMap<_, _>>();
         Ok(EnergyTraversalModel {
             energy_model_service,
             time_model,
             vehicle,
-            vehicle_state_index,
-            state_variables,
+            // vehicle_state_index,
+            // state_variables,
             state_model,
         })
     }

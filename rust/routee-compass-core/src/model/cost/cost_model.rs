@@ -29,25 +29,19 @@ impl CostModel {
     /// model instance.
     ///
     pub fn new(
-        state_variable_indices: Vec<(String, usize)>,
         state_variable_coefficients_map: Arc<HashMap<String, f64>>,
         state_model: Arc<StateModel>,
         vehicle_state_variable_rates_map: Arc<HashMap<String, VehicleCostRate>>,
         network_state_variable_rates_map: Arc<HashMap<String, NetworkCostRate>>,
         cost_aggregation: CostAggregation,
     ) -> Result<CostModel, CostError> {
-        if state_variable_indices.is_empty() {
-            return Err(CostError::InvalidConfiguration(String::from(
-                "no state variables listed",
-            )));
-        }
-
+        let mut state_variable_indices = vec![];
         let mut state_variable_coefficients = vec![];
         let mut vehicle_state_variable_rates = vec![];
         let mut network_state_variable_rates = vec![];
 
         // map the state variable coefficiencies and rates to the state variable indices
-        for (name, _state_idx) in state_variable_indices.iter() {
+        for (name, entry) in state_model.state_model_iterator() {
             let coef = state_variable_coefficients_map.get(name).ok_or_else(|| {
                 CostError::InvalidConfiguration(format!("coefficient for {} not provided", name))
             })?;
@@ -65,6 +59,7 @@ impl CostModel {
                 .cloned()
                 .unwrap_or_default();
 
+            state_variable_indices.push((name.clone(), entry.index));
             state_variable_coefficients.push(*coef);
             vehicle_state_variable_rates.push(v_rate.clone());
             network_state_variable_rates.push(n_rate.clone());

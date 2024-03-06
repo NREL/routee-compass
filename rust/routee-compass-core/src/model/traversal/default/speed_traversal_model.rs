@@ -1,6 +1,7 @@
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::state::state_model::StateModel;
 use crate::model::traversal::traversal_model::TraversalModel;
+use crate::model::unit::as_f64::AsF64;
 use crate::model::unit::{Distance, Time, BASE_DISTANCE_UNIT};
 use crate::model::{
     property::{edge::Edge, vertex::Vertex},
@@ -33,51 +34,51 @@ impl SpeedTraversalModel {
 }
 
 impl TraversalModel for SpeedTraversalModel {
-    fn state_variable_names(&self) -> Vec<String> {
-        vec![String::from("distance"), String::from("time")]
-    }
+    // fn state_variable_names(&self) -> Vec<String> {
+    //     vec![String::from("distance"), String::from("time")]
+    // }
 
-    fn initial_state(&self) -> TraversalState {
-        vec![StateVar(0.0), StateVar(0.0)]
-    }
+    // fn initial_state(&self) -> TraversalState {
+    //     vec![StateVar(0.0), StateVar(0.0)]
+    // }
 
-    fn get_state_variable(
-        &self,
-        key: &str,
-        state: &[StateVar],
-    ) -> Result<StateVar, TraversalModelError> {
-        let index = match key {
-            "distance" => Ok(0),
-            "time" => Ok(1),
-            _ => Err(TraversalModelError::InternalError(format!(
-                "unknown state variable {}, should be one of [distance, time]",
-                key
-            ))),
-        }?;
-        let value_f64 = state.get(index).ok_or_else(|| {
-            TraversalModelError::InternalError(format!(
-                "state variable {} with index {} not found in state",
-                key, index
-            ))
-        })?;
-        Ok(*value_f64)
-    }
+    // fn get_state_variable(
+    //     &self,
+    //     key: &str,
+    //     state: &[StateVar],
+    // ) -> Result<StateVar, TraversalModelError> {
+    //     let index = match key {
+    //         "distance" => Ok(0),
+    //         "time" => Ok(1),
+    //         _ => Err(TraversalModelError::InternalError(format!(
+    //             "unknown state variable {}, should be one of [distance, time]",
+    //             key
+    //         ))),
+    //     }?;
+    //     let value_f64 = state.get(index).ok_or_else(|| {
+    //         TraversalModelError::InternalError(format!(
+    //             "state variable {} with index {} not found in state",
+    //             key, index
+    //         ))
+    //     })?;
+    //     Ok(*value_f64)
+    // }
 
-    fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
-        let distance = get_distance_from_state(state);
-        let time = get_time_from_state(state);
-        serde_json::json!({
-            "distance": distance,
-            "time": time,
-        })
-    }
+    // fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
+    //     let distance = get_distance_from_state(state);
+    //     let time = get_time_from_state(state);
+    //     serde_json::json!({
+    //         "distance": distance,
+    //         "time": time,
+    //     })
+    // }
 
-    fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
-        serde_json::json!({
-            "distance_unit": self.engine.distance_unit,
-            "time_unit": self.engine.time_unit,
-        })
-    }
+    // fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
+    //     serde_json::json!({
+    //         "distance_unit": self.engine.distance_unit,
+    //         "time_unit": self.engine.time_unit,
+    //     })
+    // }
 
     fn traverse_edge(
         &self,
@@ -86,6 +87,7 @@ impl TraversalModel for SpeedTraversalModel {
         _dst: &Vertex,
         state: &[StateVar],
     ) -> Result<TraversalState, TraversalModelError> {
+        let mut updated = state.to_vec();
         let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.engine.distance_unit);
         let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let time = Time::create(
@@ -95,9 +97,9 @@ impl TraversalModel for SpeedTraversalModel {
             self.engine.distance_unit,
             self.engine.time_unit,
         )?;
-
-        let updated_state = update_state(state, distance, time);
-        Ok(updated_state)
+        self.state_model
+            .update_add(&mut updated, "time", &StateVar(time.as_f64()))?;
+        Ok(updated)
     }
 
     fn access_edge(
@@ -118,6 +120,7 @@ impl TraversalModel for SpeedTraversalModel {
         dst: &Vertex,
         state: &[StateVar],
     ) -> Result<TraversalState, TraversalModelError> {
+        let mut updated = state.to_vec();
         let distance =
             haversine::coord_distance(&src.coordinate, &dst.coordinate, self.engine.distance_unit)
                 .map_err(TraversalModelError::NumericError)?;
@@ -133,25 +136,11 @@ impl TraversalModel for SpeedTraversalModel {
             self.engine.distance_unit,
             self.engine.time_unit,
         )?;
-
-        let updated_state = update_state(state, distance, time);
-        Ok(updated_state)
+        self.state_model
+            .update_add(&mut updated, "time", &StateVar(time.as_f64()))?;
+        // let updated_state = update_state(state, distance, time);
+        Ok(updated)
     }
-}
-
-fn update_state(state: &[StateVar], distance: Distance, time: Time) -> TraversalState {
-    let mut updated_state = state.to_vec();
-    updated_state[0] = state[0] + distance.into();
-    updated_state[1] = state[1] + time.into();
-    updated_state
-}
-
-fn get_distance_from_state(state: &[StateVar]) -> Distance {
-    Distance::new(state[0].0)
-}
-
-fn get_time_from_state(state: &[StateVar]) -> Time {
-    Time::new(state[1].0)
 }
 
 /// look up a speed from the speed table
