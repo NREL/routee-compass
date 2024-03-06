@@ -147,7 +147,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
 
         let state_params = config_json.get_config_section(CompassConfigurationField::State)?;
-        let state_model = StateModel::new(&state_params)?;
+        let state_model = Arc::new(StateModel::new(&state_params)?);
 
         // build traversal model
         let traversal_start = Local::now();
@@ -232,6 +232,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let search_app: SearchApp = SearchApp::new(
             search_algorithm,
             graph,
+            state_model,
             traversal_model_service,
             cost_model_service,
             frontier_model_service,

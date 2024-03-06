@@ -21,6 +21,7 @@ use routee_compass_core::{
         cost::cost_model::CostModel,
         frontier::frontier_model_service::FrontierModelService,
         road_network::graph::Graph,
+        state::state_model::StateModel,
         termination::termination_model::TerminationModel,
         traversal::{
             traversal_model::TraversalModel, traversal_model_service::TraversalModelService,
@@ -37,6 +38,7 @@ use std::{path::PathBuf, sync::Arc};
 pub struct SearchApp {
     search_algorithm: SearchAlgorithm,
     graph: Arc<DriverReadOnlyLock<Graph>>,
+    state_model: Arc<StateModel>,
     traversal_model_service: Arc<DriverReadOnlyLock<Arc<dyn TraversalModelService>>>,
     cost_model_service: Arc<DriverReadOnlyLock<CostModelService>>,
     frontier_model_service: Arc<DriverReadOnlyLock<Arc<dyn FrontierModelService>>>,
@@ -147,6 +149,7 @@ impl SearchApp {
     pub fn new(
         search_algorithm: SearchAlgorithm,
         graph: Graph,
+        state_model: Arc<StateModel>,
         traversal_model_service: Arc<dyn TraversalModelService>,
         utility_model_service: CostModelService,
         frontier_model_service: Arc<dyn FrontierModelService>,
@@ -160,6 +163,7 @@ impl SearchApp {
         SearchApp {
             search_algorithm,
             graph,
+            state_model,
             traversal_model_service,
             cost_model_service: utility_model_service,
             frontier_model_service,
@@ -202,7 +206,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
+            .build(query, self.state_model.clone())?;
 
         let rm_inner = Arc::new(self.termination_model.read_only());
         self.search_algorithm
@@ -279,7 +283,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
+            .build(query, self.state_model.clone())?;
 
         let rm_inner = Arc::new(self.termination_model.read_only());
         self.search_algorithm
