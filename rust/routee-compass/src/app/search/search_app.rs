@@ -199,7 +199,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query, &state_variable_names)?;
+            .build(query, &state_variable_names, self.state_model.clone())?;
 
         let fm_inner = self
             .frontier_model_service
@@ -276,7 +276,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query, &state_variable_names)?;
+            .build(query, &state_variable_names, self.state_model.clone())?;
 
         let fm_inner = self
             .frontier_model_service
@@ -382,7 +382,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query, &state_variable_names)?;
+            .build(query, &state_variable_names, self.state_model.clone())?;
         Ok(cm)
     }
 
@@ -407,7 +407,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query, &state_variable_names)?;
+            .build(query, &state_variable_names, self.state_model.clone())?;
         Ok(cm)
     }
 

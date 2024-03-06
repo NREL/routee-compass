@@ -4,6 +4,7 @@ use super::network::network_cost_rate::NetworkCostRate;
 use super::vehicle::vehicle_cost_rate::VehicleCostRate;
 use crate::model::cost::cost_error::CostError;
 use crate::model::property::edge::Edge;
+use crate::model::state::state_model::StateModel;
 use crate::model::traversal::state::state_variable::StateVar;
 
 use crate::model::unit::Cost;
@@ -30,6 +31,7 @@ impl CostModel {
     pub fn new(
         state_variable_indices: Vec<(String, usize)>,
         state_variable_coefficients_map: Arc<HashMap<String, f64>>,
+        state_model: Arc<StateModel>,
         vehicle_state_variable_rates_map: Arc<HashMap<String, VehicleCostRate>>,
         network_state_variable_rates_map: Arc<HashMap<String, NetworkCostRate>>,
         cost_aggregation: CostAggregation,

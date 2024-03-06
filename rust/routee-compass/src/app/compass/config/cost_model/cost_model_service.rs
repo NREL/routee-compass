@@ -1,8 +1,11 @@
 use crate::app::compass::config::compass_configuration_error::CompassConfigurationError;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
-use routee_compass_core::model::cost::{
-    cost_aggregation::CostAggregation, cost_model::CostModel,
-    network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
+use routee_compass_core::model::{
+    cost::{
+        cost_aggregation::CostAggregation, cost_model::CostModel,
+        network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
+    },
+    state::state_model::StateModel,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -44,6 +47,7 @@ impl CostModelService {
         &self,
         query: &serde_json::Value,
         traversal_state_variable_names: &[String],
+        state_model: Arc<StateModel>,
     ) -> Result<CostModel, CompassConfigurationError> {
         // user-provided coefficients used to prioritize each state variable in the cost model
         // at minimum, we default to the "distance" traveled.
@@ -101,6 +105,7 @@ impl CostModelService {
         let model = CostModel::new(
             state_variable_indices,
             state_variable_coefficients,
+            state_model,
             vehicle_rates,
             self.network_state_variable_rates.clone(),
             cost_aggregation,
