@@ -1,3 +1,5 @@
+use crate::model::state::state_model::StateModel;
+
 use super::{traversal_model::TraversalModel, traversal_model_error::TraversalModelError};
 use std::sync::Arc;
 
@@ -28,5 +30,6 @@ pub trait TraversalModelService: Send + Sync {
     fn build(
         &self,
         query: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError>;
 }

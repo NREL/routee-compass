@@ -1,57 +1,34 @@
 use crate::model::road_network::edge_id::EdgeId;
+use crate::model::state::state_model::StateModel;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::{Distance, DistanceUnit};
-use crate::model::unit::{SpeedUnit, Time, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
-use crate::util::fs::read_decoders;
-use crate::util::geo::haversine;
-use crate::{
-    model::{
-        property::{edge::Edge, vertex::Vertex},
-        traversal::{
-            state::{state_variable::StateVar, traversal_state::TraversalState},
-            traversal_model_error::TraversalModelError,
-        },
-        unit::Speed,
+use crate::model::unit::{Distance, Time, BASE_DISTANCE_UNIT};
+use crate::model::{
+    property::{edge::Edge, vertex::Vertex},
+    traversal::{
+        state::{state_variable::StateVar, traversal_state::TraversalState},
+        traversal_model_error::TraversalModelError,
     },
-    util::fs::read_utils,
+    unit::Speed,
 };
-use std::path::Path;
+use crate::util::geo::haversine;
+use std::sync::Arc;
+
+use super::speed_traversal_engine::SpeedTraversalEngine;
 
 pub struct SpeedTraversalModel {
-    speed_table: Box<[Speed]>,
-    speed_unit: SpeedUnit,
-    time_unit: TimeUnit,
-    distance_unit: DistanceUnit,
-    max_speed: Speed,
+    engine: Arc<SpeedTraversalEngine>,
+    state_model: Arc<StateModel>,
 }
 
 impl SpeedTraversalModel {
-    pub fn new<P: AsRef<Path>>(
-        speed_table_path: &P,
-        speed_unit: SpeedUnit,
-        distance_unit_opt: Option<DistanceUnit>,
-        time_unit_opt: Option<TimeUnit>,
-    ) -> Result<SpeedTraversalModel, TraversalModelError> {
-        let speed_table: Box<[Speed]> =
-            read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
-                |e| {
-                    TraversalModelError::FileReadError(
-                        speed_table_path.as_ref().to_path_buf(),
-                        e.to_string(),
-                    )
-                },
-            )?;
-        let max_speed = get_max_speed(&speed_table)?;
-        let time_unit = time_unit_opt.unwrap_or(BASE_TIME_UNIT);
-        let distance_unit = distance_unit_opt.unwrap_or(BASE_DISTANCE_UNIT);
-        let model = SpeedTraversalModel {
-            speed_table,
-            distance_unit,
-            time_unit,
-            speed_unit,
-            max_speed,
-        };
-        Ok(model)
+    pub fn new(
+        engine: Arc<SpeedTraversalEngine>,
+        state_model: Arc<StateModel>,
+    ) -> SpeedTraversalModel {
+        SpeedTraversalModel {
+            engine,
+            state_model,
+        }
     }
 }
 
@@ -97,8 +74,8 @@ impl TraversalModel for SpeedTraversalModel {
 
     fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
         serde_json::json!({
-            "distance_unit": self.distance_unit,
-            "time_unit": self.time_unit,
+            "distance_unit": self.engine.distance_unit,
+            "time_unit": self.engine.time_unit,
         })
     }
 
@@ -109,14 +86,14 @@ impl TraversalModel for SpeedTraversalModel {
         _dst: &Vertex,
         state: &[StateVar],
     ) -> Result<TraversalState, TraversalModelError> {
-        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.distance_unit);
-        let speed = get_speed(&self.speed_table, edge.edge_id)?;
+        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.engine.distance_unit);
+        let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let time = Time::create(
             speed,
-            self.speed_unit,
+            self.engine.speed_unit,
             distance,
-            self.distance_unit,
-            self.time_unit.clone(),
+            self.engine.distance_unit,
+            self.engine.time_unit,
         )?;
 
         let updated_state = update_state(state, distance, time);
@@ -142,7 +119,7 @@ impl TraversalModel for SpeedTraversalModel {
         state: &[StateVar],
     ) -> Result<TraversalState, TraversalModelError> {
         let distance =
-            haversine::coord_distance(&src.coordinate, &dst.coordinate, self.distance_unit)
+            haversine::coord_distance(&src.coordinate, &dst.coordinate, self.engine.distance_unit)
                 .map_err(TraversalModelError::NumericError)?;
 
         if distance == Distance::ZERO {
@@ -150,11 +127,11 @@ impl TraversalModel for SpeedTraversalModel {
         }
 
         let time = Time::create(
-            self.max_speed,
-            self.speed_unit,
+            self.engine.max_speed,
+            self.engine.speed_unit,
             distance,
-            self.distance_unit,
-            self.time_unit.clone(),
+            self.engine.distance_unit,
+            self.engine.time_unit,
         )?;
 
         let updated_state = update_state(state, distance, time);
@@ -187,26 +164,6 @@ pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, Traver
         )
     })?;
     Ok(*speed)
-}
-
-pub fn get_max_speed(speed_table: &[Speed]) -> Result<Speed, TraversalModelError> {
-    let (max_speed, count) =
-        speed_table
-            .iter()
-            .fold((Speed::ZERO, 0), |(acc_max, acc_cnt), row| {
-                let next_max = if acc_max > *row { acc_max } else { *row };
-                (next_max, acc_cnt + 1)
-            });
-
-    if count == 0 {
-        let msg = format!("parsed {} entries for speed table", count);
-        Err(TraversalModelError::BuildError(msg))
-    } else if max_speed == Speed::ZERO {
-        let msg = format!("max speed was zero in speed table with {} entries", count);
-        Err(TraversalModelError::BuildError(msg))
-    } else {
-        Ok(max_speed)
-    }
 }
 
 #[cfg(test)]
@@ -261,18 +218,24 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_seconds_time_unit() {
         let file = filepath();
-        let lookup = SpeedTraversalModel::new(
+        let engine = SpeedTraversalEngine::new(
             &file,
             SpeedUnit::KilometersPerHour,
             None,
             Some(TimeUnit::Seconds),
         )
         .unwrap();
-        let initial = lookup.initial_state();
+        let state_model = StateModel::new(json!({
+            "distance": { "type": "distance", "unit": "kilometers"},
+            "time": { "type": "time", "unit": "seconds"}
+        }))
+        .unwrap();
+        let model = SpeedTraversalModel::new(Arc::new(engine), Arc::new(state_model));
+        let initial = model.initial_state();
         let v = mock_vertex();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        let result = lookup.traverse_edge(&v, &e1, &v, &initial).unwrap();
+        let result = model.traverse_edge(&v, &e1, &v, &initial).unwrap();
         let expected = 36.0;
         // approx_eq(result.total_cost.into(), expected, 0.001);
         // approx_eq(result.updated_state[1].into(), expected, 0.001);
@@ -282,18 +245,24 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_milliseconds_time_unit() {
         let file = filepath();
-        let lookup = SpeedTraversalModel::new(
+        let engine = SpeedTraversalEngine::new(
             &file,
             SpeedUnit::KilometersPerHour,
             None,
             Some(TimeUnit::Milliseconds),
         )
         .unwrap();
-        let initial = lookup.initial_state();
+        let state_model = StateModel::new(json!({
+            "distance": { "type": "distance", "unit": "kilometers"},
+            "time": { "type": "time", "unit": "seconds"}
+        }))
+        .unwrap();
+        let model = SpeedTraversalModel::new(Arc::new(engine), Arc::new(state_model));
+        let initial = model.initial_state();
         let v = mock_vertex();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36,000 milliseconds ((0.1/10) * 3600000)
-        let result = lookup.traverse_edge(&v, &e1, &v, &initial).unwrap();
+        let result = model.traverse_edge(&v, &e1, &v, &initial).unwrap();
         let expected = 36000.0;
         // approx_eq(result.total_cost.into(), expected, 0.001);
         // approx_eq(result.updated_state[1].into(), expected, 0.001);

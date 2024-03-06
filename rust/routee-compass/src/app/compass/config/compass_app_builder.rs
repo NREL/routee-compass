@@ -9,8 +9,8 @@ use super::{
         turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
     },
     traversal_model::{
-        distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
-        speed_lookup_builder::SpeedLookupBuilder,
+        distance_traversal_builder::DistanceTraversalBuilder,
+        energy_model_builder::EnergyModelBuilder, speed_lookup_builder::SpeedLookupBuilder,
     },
 };
 use crate::plugin::{
@@ -120,7 +120,7 @@ impl CompassAppBuilder {
     /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
     fn default() -> CompassAppBuilder {
         // Traversal model builders
-        let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceBuilder {});
+        let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceTraversalBuilder {});
         let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
         let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder::new(
             HashMap::from([(String::from("speed_table"), speed.clone())]),

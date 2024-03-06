@@ -3,6 +3,7 @@ use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::VehicleType;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
+use routee_compass_core::model::state::state_model::StateModel;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
 use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
@@ -19,6 +20,7 @@ pub struct EnergyTraversalModel {
     pub vehicle: Arc<dyn VehicleType>,
     pub vehicle_state_index: usize,
     pub state_variables: HashMap<String, usize>,
+    pub state_model: Arc<StateModel>,
 }
 
 impl TraversalModel for EnergyTraversalModel {
@@ -200,8 +202,11 @@ impl EnergyTraversalModel {
     pub fn new(
         energy_model_service: Arc<EnergyModelService>,
         conf: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<EnergyTraversalModel, TraversalModelError> {
-        let time_model = energy_model_service.time_model_service.build(conf)?;
+        let time_model = energy_model_service
+            .time_model_service
+            .build(conf, state_model.clone())?;
         let vehicle_state_index = time_model.initial_state().len();
 
         let prediction_model_name = conf
@@ -246,6 +251,7 @@ impl EnergyTraversalModel {
             vehicle,
             vehicle_state_index,
             state_variables,
+            state_model,
         })
     }
 }
@@ -264,6 +270,7 @@ mod tests {
             property::{edge::Edge, vertex::Vertex},
             road_network::{edge_id::EdgeId, vertex_id::VertexId},
             traversal::default::{
+                speed_traversal_engine::SpeedTraversalEngine,
                 speed_traversal_model::SpeedTraversalModel,
                 speed_traversal_service::SpeedLookupService,
             },
@@ -319,16 +326,19 @@ mod tests {
         )
         .unwrap();
 
+        let state_model = Arc::new(StateModel::new(json!({
+            "distance": ""
+        }))?);
         let camry = ICE::new("Toyota_Camry".to_string(), model_record).unwrap();
 
         let mut model_library: HashMap<String, Arc<dyn VehicleType>> = HashMap::new();
         model_library.insert("Toyota_Camry".to_string(), Arc::new(camry));
 
-        let time_model =
-            SpeedTraversalModel::new(&speed_file_path, SpeedUnit::KilometersPerHour, None, None)
+        let time_engine =
+            SpeedTraversalEngine::new(&speed_file_path, SpeedUnit::KilometersPerHour, None, None)
                 .unwrap();
         let time_service = SpeedLookupService {
-            m: Arc::new(time_model),
+            e: Arc::new(time_model),
         };
 
         let service = EnergyModelService::new(
@@ -348,7 +358,7 @@ mod tests {
         let conf = serde_json::json!({
             "model_name": "Toyota_Camry",
         });
-        let model = EnergyTraversalModel::new(arc_service, &conf).unwrap();
+        let model = EnergyTraversalModel::new(arc_service, &conf, state_model.clone()).unwrap();
         let initial = model.initial_state();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)

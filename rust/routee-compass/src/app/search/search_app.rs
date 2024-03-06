@@ -191,7 +191,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
+            .build(query, self.state_model.clone())?;
         let state_variable_names = tm_inner.state_variable_names();
 
         let um_inner = self
@@ -268,7 +268,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
+            .build(query, self.state_model.clone())?;
         let state_variable_names = tm_inner.state_variable_names();
 
         let um_inner = self
@@ -359,7 +359,7 @@ impl SearchApp {
             .read_only()
             .read()
             .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
+            .build(query, self.state_model.clone())?;
         Ok(tm)
     }
 

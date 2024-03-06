@@ -1,3 +1,6 @@
+use std::sync::Arc;
+
+use crate::model::state::state_model::StateModel;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::DistanceUnit;
 use crate::model::unit::BASE_DISTANCE_UNIT;
@@ -12,12 +15,19 @@ use crate::util::geo::haversine;
 
 /// A simple traversal model that uses the edge distance as the cost of traversal.
 pub struct DistanceTraversalModel {
+    state_model: Arc<StateModel>,
     distance_unit: DistanceUnit,
 }
 
 impl DistanceTraversalModel {
-    pub fn new(distance_unit: DistanceUnit) -> DistanceTraversalModel {
-        DistanceTraversalModel { distance_unit }
+    pub fn new(
+        state_model: Arc<StateModel>,
+        distance_unit: DistanceUnit,
+    ) -> DistanceTraversalModel {
+        DistanceTraversalModel {
+            state_model,
+            distance_unit,
+        }
     }
 }
 

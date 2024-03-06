@@ -1,4 +1,4 @@
-use super::unit_codec::UnitCodec;
+use super::{state_error::StateError, unit_codec::UnitCodec};
 use crate::model::unit;
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// specifies a StateVar has a custom state variable unit, then
 /// they provide a mapping codec and name for the variable, and
 /// it does not interact with our native unit system.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum StateFeature {
     Distance { unit: unit::DistanceUnit },
@@ -38,6 +38,46 @@ impl StateFeature {
         match self {
             StateFeature::Custom { name: _, codec } => *codec,
             _ => UnitCodec::FloatingPoint,
+        }
+    }
+
+    pub fn get_distance_unit(&self) -> Result<unit::DistanceUnit, StateError> {
+        match self {
+            StateFeature::Distance { unit } => Ok(*unit),
+            _ => Err(StateError::UnexpectedFeatureUnit(
+                String::from("distance"),
+                self.get_feature_name(),
+            )),
+        }
+    }
+
+    pub fn get_time_unit(&self) -> Result<unit::TimeUnit, StateError> {
+        match self {
+            StateFeature::Time { unit } => Ok(*unit),
+            _ => Err(StateError::UnexpectedFeatureUnit(
+                String::from("time"),
+                self.get_feature_name(),
+            )),
+        }
+    }
+
+    pub fn get_energy_electric_unit(&self) -> Result<unit::EnergyUnit, StateError> {
+        match self {
+            StateFeature::Electric { unit } => Ok(*unit),
+            _ => Err(StateError::UnexpectedFeatureUnit(
+                String::from("energy_electric"),
+                self.get_feature_name(),
+            )),
+        }
+    }
+
+    pub fn get_energy_liquid_unit(&self) -> Result<unit::EnergyUnit, StateError> {
+        match self {
+            StateFeature::Liquid { unit } => Ok(*unit),
+            _ => Err(StateError::UnexpectedFeatureUnit(
+                String::from("energy_liquid"),
+                self.get_feature_name(),
+            )),
         }
     }
 }
