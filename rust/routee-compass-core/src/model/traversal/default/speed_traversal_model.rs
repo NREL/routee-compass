@@ -111,13 +111,14 @@ pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, Traver
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::unit::Distance;
+    use crate::model::unit::{Distance, SpeedUnit, TimeUnit};
     use crate::model::{
         property::{edge::Edge, vertex::Vertex},
         road_network::{edge_id::EdgeId, vertex_id::VertexId},
     };
     use crate::util::geo::coord::InternalCoord;
     use geo::coord;
+    use serde_json::json;
     use std::path::PathBuf;
 
     fn mock_vertex() -> Vertex {
@@ -167,18 +168,20 @@ mod tests {
             Some(TimeUnit::Seconds),
         )
         .unwrap();
-        let state_model = StateModel::new(json!({
-            "distance": { "type": "distance", "unit": "kilometers"},
-            "time": { "type": "time", "unit": "seconds"}
-        }))
-        .unwrap();
+        let state_model = Arc::new(
+            StateModel::new(&json!({
+                "distance": { "type": "distance", "unit": "kilometers"},
+                "time": { "type": "time", "unit": "seconds"}
+            }))
+            .unwrap(),
+        );
         let model: SpeedTraversalModel =
-            SpeedTraversalModel::new(Arc::new(engine), Arc::new(state_model));
-        let mut state = model.initial_state();
+            SpeedTraversalModel::new(Arc::new(engine), state_model.clone());
+        let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        model.traverse_edge(&v, &e1, &v, state).unwrap();
+        model.traverse_edge(&v, &e1, &v, &mut state).unwrap();
 
         let expected = 36.0;
         // approx_eq(result.total_cost.into(), expected, 0.001);
@@ -196,13 +199,15 @@ mod tests {
             Some(TimeUnit::Milliseconds),
         )
         .unwrap();
-        let state_model = StateModel::new(json!({
-            "distance": { "type": "distance", "unit": "kilometers"},
-            "time": { "type": "time", "unit": "seconds"}
-        }))
-        .unwrap();
-        let model = SpeedTraversalModel::new(Arc::new(engine), Arc::new(state_model));
-        let mut state = state_model.initial_state()?;
+        let state_model = Arc::new(
+            StateModel::new(&json!({
+                "distance": { "type": "distance", "unit": "kilometers"},
+                "time": { "type": "time", "unit": "seconds"}
+            }))
+            .unwrap(),
+        );
+        let model = SpeedTraversalModel::new(Arc::new(engine), state_model.clone());
+        let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36,000 milliseconds ((0.1/10) * 3600000)

@@ -1,14 +1,10 @@
+use super::{
+    edge_traversal::EdgeTraversal, search_error::SearchError, search_tree_branch::SearchTreeBranch,
+};
+use crate::model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId};
 use std::{
     collections::{HashMap, HashSet},
     sync::Arc,
-};
-
-use crate::{
-    model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
-};
-
-use super::{
-    edge_traversal::EdgeTraversal, search_error::SearchError, search_tree_branch::SearchTreeBranch,
 };
 
 /// reconstructs a path from a minimum shortest path tree for some source and target vertex

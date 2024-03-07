@@ -22,7 +22,7 @@ pub struct EnergyTraversalModel {
 impl TraversalModel for EnergyTraversalModel {
     /// inject the state features required by the VehicleType
     fn state_features(&self) -> Vec<(String, StateFeature)> {
-        self.state_features()
+        self.vehicle.state_features()
     }
 
     fn traverse_edge(
@@ -30,7 +30,7 @@ impl TraversalModel for EnergyTraversalModel {
         src: &Vertex,
         edge: &Edge,
         dst: &Vertex,
-        mut state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVar>,
     ) -> Result<(), TraversalModelError> {
         let distance =
             BASE_DISTANCE_UNIT.convert(edge.distance, self.energy_model_service.distance_unit);
@@ -38,7 +38,7 @@ impl TraversalModel for EnergyTraversalModel {
 
         // perform time traversal
         self.time_model.traverse_edge(src, edge, dst, state)?;
-        let time_delta_var = self.state_model.get_delta(&prev, &state, "time")?;
+        let time_delta_var = self.state_model.get_delta(&prev, state, "time")?;
         let time_delta = Time::new(time_delta_var.0);
 
         // perform vehicle energy traversal
@@ -48,7 +48,7 @@ impl TraversalModel for EnergyTraversalModel {
             (speed, self.energy_model_service.time_model_speed_unit),
             (grade, self.energy_model_service.grade_table_grade_unit),
             (distance, self.energy_model_service.distance_unit),
-            &mut state,
+            state,
             &self.state_model,
         )?;
 
@@ -62,7 +62,7 @@ impl TraversalModel for EnergyTraversalModel {
         v2: &Vertex,
         dst: &Edge,
         v3: &Vertex,
-        mut state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVar>,
     ) -> Result<(), TraversalModelError> {
         // defer access updates to time model
         self.time_model.access_edge(v1, src, v2, dst, v3, state)
@@ -120,7 +120,7 @@ impl TraversalModel for EnergyTraversalModel {
         &self,
         src: &Vertex,
         dst: &Vertex,
-        mut state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVar>,
     ) -> Result<(), TraversalModelError> {
         let distance = haversine::coord_distance(
             &src.coordinate,
@@ -194,12 +194,11 @@ impl EnergyTraversalModel {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::routee::{
         prediction::load_prediction_model, prediction::model_type::ModelType,
         vehicle::default::ice::ICE,
     };
-
-    use super::*;
     use geo::coord;
     use routee_compass_core::{
         model::{
@@ -213,6 +212,7 @@ mod tests {
         },
         util::geo::coord::InternalCoord,
     };
+    use serde_json::json;
     use std::{collections::HashMap, path::PathBuf};
 
     #[test]
@@ -262,20 +262,22 @@ mod tests {
         )
         .unwrap();
 
-        let state_model = Arc::new(StateModel::new(json!({
-            "distance": ""
-        }))?);
+        let state_model = Arc::new(
+            StateModel::new(&json!({
+                "distance": "kilometers"
+            }))
+            .unwrap(),
+        );
         let camry = ICE::new("Toyota_Camry".to_string(), model_record).unwrap();
 
         let mut model_library: HashMap<String, Arc<dyn VehicleType>> = HashMap::new();
         model_library.insert("Toyota_Camry".to_string(), Arc::new(camry));
 
-        let time_engine =
+        let time_engine = Arc::new(
             SpeedTraversalEngine::new(&speed_file_path, SpeedUnit::KilometersPerHour, None, None)
-                .unwrap();
-        let time_service = SpeedLookupService {
-            e: Arc::new(time_model),
-        };
+                .unwrap(),
+        );
+        let time_service = SpeedLookupService { e: time_engine };
 
         let service = EnergyModelService::new(
             Arc::new(time_service),
@@ -295,7 +297,7 @@ mod tests {
             "model_name": "Toyota_Camry",
         });
         let model = EnergyTraversalModel::new(arc_service, &conf, state_model.clone()).unwrap();
-        let mut state = model.initial_state();
+        let mut state = state_model.initial_state().unwrap();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
         let result = model.traverse_edge(&v, &e1, &v, &mut state).unwrap();

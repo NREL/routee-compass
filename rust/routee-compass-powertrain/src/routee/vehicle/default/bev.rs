@@ -4,10 +4,7 @@ use routee_compass_core::model::{
         custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
         state_model::StateModel,
     },
-    traversal::{
-        state::{state_variable::StateVar, traversal_state::TraversalState},
-        traversal_model_error::TraversalModelError,
-    },
+    traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
     unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
@@ -272,7 +269,7 @@ mod tests {
         let state_model = StateModel::empty()
             .extend(vehicle.state_features())
             .unwrap();
-        let mut state = state_model.initial_state();
+        let mut state = state_model.initial_state().unwrap();
 
         // starting at 100% SOC, we should be able to traverse a flat 110 miles at 60 mph
         // and it should use about half of the battery since the EPA range is 238 miles
@@ -281,15 +278,17 @@ mod tests {
         let grade = (Grade::new(0.0), GradeUnit::Decimal);
 
         vehicle
-            .consume_energy(speed, grade, distance, &state, &state_model)
+            .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
         let electrical_energy = state_model
-            .get_value(state, BEV::ENERGY_FEATURE_NAME)
+            .get_value(&state, BEV::ENERGY_FEATURE_NAME)
             .unwrap();
         assert!(electrical_energy.0 > 0.0);
 
-        let battery_percent_soc = state_model.get_value(state, BEV::SOC_FEATURE_NAME).unwrap();
+        let battery_percent_soc = state_model
+            .get_value(&state, BEV::SOC_FEATURE_NAME)
+            .unwrap();
         assert!(battery_percent_soc.0 < 60.0);
         assert!(battery_percent_soc.0 > 40.0);
     }
@@ -300,7 +299,7 @@ mod tests {
         let state_model = StateModel::empty()
             .extend(vehicle.state_features())
             .unwrap();
-        let mut state = state_model.initial_state();
+        let mut state = state_model.initial_state().unwrap();
 
         // starting at 20% SOC, going downhill at -5% grade for 10 miles at 55mph, we should be see
         // some regen braking events and should end up with more energy than we started with
@@ -309,15 +308,17 @@ mod tests {
         let grade = (Grade::new(-5.0), GradeUnit::Percent);
 
         vehicle
-            .consume_energy(speed, grade, distance, &state, &state_model)
+            .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
         let electrical_energy = state_model
-            .get_value(state, BEV::ENERGY_FEATURE_NAME)
+            .get_value(&state, BEV::ENERGY_FEATURE_NAME)
             .unwrap();
         assert!(electrical_energy.0 < 0.0);
 
-        let battery_percent_soc = state_model.get_value(state, BEV::SOC_FEATURE_NAME).unwrap();
+        let battery_percent_soc = state_model
+            .get_value(&state, BEV::SOC_FEATURE_NAME)
+            .unwrap();
         assert!(battery_percent_soc.0 > 20.0);
         assert!(battery_percent_soc.0 < 30.0);
     }
@@ -329,17 +330,19 @@ mod tests {
         let state_model = StateModel::empty()
             .extend(vehicle.state_features())
             .unwrap();
-        let mut state = state_model.initial_state();
+        let mut state = state_model.initial_state().unwrap();
 
         let distance = (Distance::new(10.0), DistanceUnit::Miles);
         let speed = (Speed::new(55.0), SpeedUnit::MilesPerHour);
         let grade = (Grade::new(-5.0), GradeUnit::Percent);
 
         vehicle
-            .consume_energy(speed, grade, distance, &state, &state_model)
+            .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
-        let battery_percent_soc = state_model.get_value(state, BEV::SOC_FEATURE_NAME).unwrap();
+        let battery_percent_soc = state_model
+            .get_value(&state, BEV::SOC_FEATURE_NAME)
+            .unwrap();
         assert!(battery_percent_soc.0 <= 100.0);
     }
 
@@ -350,17 +353,19 @@ mod tests {
         let state_model = StateModel::empty()
             .extend(vehicle.state_features())
             .unwrap();
-        let mut state = state_model.initial_state();
+        let mut state = state_model.initial_state().unwrap();
 
         let distance = (Distance::new(100.0), DistanceUnit::Miles);
         let speed = (Speed::new(55.0), SpeedUnit::MilesPerHour);
         let grade = (Grade::new(5.0), GradeUnit::Percent);
 
         vehicle
-            .consume_energy(speed, grade, distance, &state, &state_model)
+            .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
-        let battery_percent_soc = state_model.get_value(state, BEV::SOC_FEATURE_NAME).unwrap();
+        let battery_percent_soc = state_model
+            .get_value(&state, BEV::SOC_FEATURE_NAME)
+            .unwrap();
         assert!(battery_percent_soc.0 >= 0.0);
     }
 }

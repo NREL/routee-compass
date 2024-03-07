@@ -332,16 +332,21 @@ mod tests {
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::algorithm::search::MinSearchTree;
     use crate::model::cost::cost_aggregation::CostAggregation;
+    use crate::model::cost::cost_model::CostModel;
     use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
     use crate::model::road_network::graph::Graph;
+    use crate::model::state::state_model::StateModel;
+    use crate::model::termination::termination_model::TerminationModel;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
     use crate::model::traversal::traversal_model::TraversalModel;
     use crate::model::unit::DistanceUnit;
     use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
     use rayon::prelude::*;
+    use serde_json::json;
+    use std::sync::Arc;
 
     fn build_mock_graph() -> Graph {
         let vertices = vec![
@@ -436,31 +441,33 @@ mod tests {
         // }));
 
         let state_model = Arc::new(
-            StateModel::new(json![[
+            StateModel::new(&json![[
                 { "distance_unit": "kilometers" }
             ]])
             .unwrap(),
         );
-        let cost_model = CostModel = CostModel::new(
-            vec![(String::from("distance"), 0usize)],
-            state_model,
+        let cost_model = CostModel::new(
+            // vec![(String::from("distance"), 0usize)],
+            Arc::new(HashMap::from([(String::from("distance"), 1.0)])),
+            state_model.clone(),
             Arc::new(HashMap::from([(
                 String::from("distance"),
                 VehicleCostRate::Raw,
             )])),
             Arc::new(HashMap::new()),
             CostAggregation::Sum,
-        )?;
+        )
+        .unwrap();
         let si = SearchInstance {
-            directed_graph: build_mock_graph(),
-            state_model,
+            directed_graph: Arc::new(build_mock_graph()),
+            state_model: state_model.clone(),
             traversal_model: Arc::new(DistanceTraversalModel::new(
-                state_model,
+                state_model.clone(),
                 DistanceUnit::Meters,
             )),
             cost_model,
             frontier_model: Arc::new(NoRestriction {}),
-            termination_model: TerminationModel::IterationsLimit { limit: 20 },
+            termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
         };
 
         // execute the route search

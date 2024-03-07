@@ -400,7 +400,7 @@ mod tests {
         let state_model = StateModel::empty()
             .extend(vehicle.state_features())
             .unwrap();
-        let mut state = state_model.initial_state();
+        let mut state = state_model.initial_state().unwrap();
 
         // starting at 100% SOC, we should be able to traverse 1000 meters
         // without using any liquid_fuel
@@ -409,21 +409,21 @@ mod tests {
         let grade = (Grade::new(0.0), GradeUnit::Decimal);
 
         vehicle
-            .consume_energy(speed, grade, distance, &state, &state_model)
+            .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
         let electrical_energy = state_model
-            .get_value(state, PHEV::ELECTRIC_FEATURE_NAME)
+            .get_value(&state, PHEV::ELECTRIC_FEATURE_NAME)
             .unwrap();
         assert!(electrical_energy.0 > 0.0);
 
         let liquid_fuel_energy = state_model
-            .get_value(state, PHEV::ELECTRIC_FEATURE_NAME)
+            .get_value(&state, PHEV::ELECTRIC_FEATURE_NAME)
             .unwrap();
         assert!(liquid_fuel_energy.0 < 1e-9);
 
         let battery_percent_soc = state_model
-            .get_value(state, PHEV::SOC_FEATURE_NAME)
+            .get_value(&state, PHEV::SOC_FEATURE_NAME)
             .unwrap();
         assert!(battery_percent_soc.0 < 100.0);
     }
@@ -434,7 +434,7 @@ mod tests {
         let state_model = StateModel::empty()
             .extend(vehicle.state_features())
             .unwrap();
-        let mut state = state_model.initial_state();
+        let mut state = state_model.initial_state().unwrap();
 
         // now let's traverse a really long link to deplete the battery
         let distance = (Distance::new(100.0), DistanceUnit::Miles);
@@ -442,17 +442,17 @@ mod tests {
         let grade = (Grade::new(0.0), GradeUnit::Decimal);
 
         vehicle
-            .consume_energy(speed, grade, distance, &state, &state_model)
+            .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
         let electrical_energy = state_model
-            .get_value(state, PHEV::ELECTRIC_FEATURE_NAME)
+            .get_value(&state, PHEV::ELECTRIC_FEATURE_NAME)
             .unwrap();
         let battery_percent_soc = state_model
-            .get_value(state, PHEV::SOC_FEATURE_NAME)
+            .get_value(&state, PHEV::SOC_FEATURE_NAME)
             .unwrap();
         let liquid_energy_1 = state_model
-            .get_value(state, PHEV::LIQUID_FEATURE_NAME)
+            .get_value(&state, PHEV::LIQUID_FEATURE_NAME)
             .unwrap();
 
         // let result = vehicle
@@ -464,15 +464,15 @@ mod tests {
 
         assert!(electrical_energy > StateVar::ZERO);
         assert!(battery_percent_soc.0 < 1e-9);
-        assert!(liquid_energy_1 = StateVar::ZERO);
+        assert!(liquid_energy_1 == StateVar::ZERO);
 
         // and then traverse the same distance but this time we should only use liquid_fuel energy
         vehicle
-            .consume_energy(speed, grade, distance, &state, &state_model)
+            .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
         let liquid_energy_2 = state_model
-            .get_value(state, PHEV::LIQUID_FEATURE_NAME)
+            .get_value(&state, PHEV::LIQUID_FEATURE_NAME)
             .unwrap();
 
         assert!(liquid_energy_2 > StateVar::ZERO);

@@ -15,7 +15,7 @@ use super::search_error::SearchError;
 /// been prepared for a specific query.
 pub struct SearchInstance {
     pub directed_graph: Arc<Graph>,
-    pub state_model: StateModel,
+    pub state_model: Arc<StateModel>,
     pub traversal_model: Arc<dyn TraversalModel>,
     pub cost_model: CostModel,
     pub frontier_model: Arc<dyn FrontierModel>,

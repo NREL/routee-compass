@@ -290,7 +290,7 @@ impl SearchApp {
 
         let search_assets = SearchInstance {
             directed_graph: self.directed_graph.clone(),
-            state_model,
+            state_model: Arc::new(state_model),
             traversal_model,
             cost_model,
             frontier_model,
