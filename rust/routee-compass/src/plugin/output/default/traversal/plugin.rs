@@ -7,6 +7,7 @@ use crate::plugin::plugin_error::PluginError;
 use geo::LineString;
 use kdam::Bar;
 use kdam::BarExt;
+use routee_compass_core::algorithm::search::search_instance::SearchInstance;
 use routee_compass_core::util::fs::fs_utils;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 use routee_compass_core::util::geo::geo_io_utils;
@@ -62,11 +63,11 @@ impl OutputPlugin for TraversalPlugin {
     fn process(
         &self,
         output: &mut serde_json::Value,
-        search_result: &Result<SearchAppResult, CompassAppError>,
+        search_result: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
     ) -> Result<(), PluginError> {
         match search_result {
             Err(_) => Ok(()),
-            Ok(result) => {
+            Ok((result, _)) => {
                 match self.route {
                     None => {}
                     Some(route_args) => {
