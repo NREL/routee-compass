@@ -19,13 +19,14 @@ impl OutputPlugin for SummaryOutputPlugin {
         match search_result {
             Err(_e) => Ok(()),
             Ok((result, _)) => {
-                let memory_usage = allocative::size_of_unique(result) as f64;
-                output["result_memory_usage_bytes"] = memory_usage.into();
+                let memory_bytes = allocative::size_of_unique(result) as f64;
+                let memory_mb = memory_bytes / 1_024_000.0;
                 output["search_executed_time"] = result.search_executed_time.clone().into();
                 output["algorithm_runtime"] = result.algorithm_runtime.hhmmss().into();
                 output["search_app_runtime"] = result.search_app_runtime.hhmmss().into();
-                output["route_edge_count"] = result.route.len().into();
-                output["tree_edge_count"] = result.tree.len().into();
+                output["route_size_count"] = result.route.len().into();
+                output["tree_size_count"] = result.tree.len().into();
+                output["tree_size_mb"] = memory_mb.into();
                 output["iterations"] = result.iterations.into();
                 Ok(())
             }
