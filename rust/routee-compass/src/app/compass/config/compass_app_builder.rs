@@ -27,7 +27,6 @@ use crate::plugin::{
         default::{
             edgeidlist::builder::EdgeIdListOutputPluginBuilder,
             summary::builder::SummaryOutputPluginBuilder,
-            to_disk::builder::ToDiskOutputPluginBuilder,
             traversal::builder::TraversalPluginBuilder, uuid::builder::UUIDOutputPluginBuilder,
         },
         output_plugin::OutputPlugin,
@@ -168,13 +167,11 @@ impl CompassAppBuilder {
         let summary: Rc<dyn OutputPluginBuilder> = Rc::new(SummaryOutputPluginBuilder {});
         let uuid: Rc<dyn OutputPluginBuilder> = Rc::new(UUIDOutputPluginBuilder {});
         let edge_id_list: Rc<dyn OutputPluginBuilder> = Rc::new(EdgeIdListOutputPluginBuilder {});
-        let to_disk: Rc<dyn OutputPluginBuilder> = Rc::new(ToDiskOutputPluginBuilder {});
         let output_plugin_builders = HashMap::from([
             (String::from("traversal"), traversal),
             (String::from("summary"), summary),
             (String::from("uuid"), uuid),
             (String::from("edge_id_list"), edge_id_list),
-            (String::from("to_disk"), to_disk),
         ]);
 
         CompassAppBuilder {
