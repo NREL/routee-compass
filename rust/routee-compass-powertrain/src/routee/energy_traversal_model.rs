@@ -206,7 +206,6 @@ mod tests {
             road_network::{edge_id::EdgeId, vertex_id::VertexId},
             traversal::default::{
                 speed_traversal_engine::SpeedTraversalEngine,
-                speed_traversal_model::SpeedTraversalModel,
                 speed_traversal_service::SpeedLookupService,
             },
         },

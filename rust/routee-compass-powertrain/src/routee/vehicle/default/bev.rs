@@ -5,10 +5,7 @@ use routee_compass_core::model::{
         state_model::StateModel,
     },
     traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
-    unit::{
-        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
-        SpeedUnit,
-    },
+    unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use std::sync::Arc;
 
