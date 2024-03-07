@@ -67,7 +67,7 @@ impl CompassApp {
     /// # Arguments
     ///
     /// * `config_string` - a string containing the configuration in TOML format
-    /// * `original_file_path` - the original file path of the configuration file
+    /// * `original_file_path` - the original file path of the TOML
     /// * `builder` - a custom CompassAppBuilder instance
     ///
     /// # Returns
@@ -144,16 +144,18 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             .try_deserialize::<serde_json::Value>()?
             .normalize_file_paths(&"", &root_config_path)?;
 
-        let alg_params = config_json.get_config_section(CompassConfigurationField::Algorithm)?;
+        let alg_params =
+            config_json.get_config_section(CompassConfigurationField::Algorithm, &"TOML")?;
         let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
 
-        let state_params = config_json.get_config_section(CompassConfigurationField::State)?;
+        let state_params =
+            config_json.get_config_section(CompassConfigurationField::State, &"TOML")?;
         let state_model = Arc::new(StateModel::new(&state_params)?);
 
         // build traversal model
         let traversal_start = Local::now();
         let traversal_params =
-            config_json.get_config_section(CompassConfigurationField::Traversal)?;
+            config_json.get_config_section(CompassConfigurationField::Traversal, &"TOML")?;
         let traversal_model_service = builder.build_traversal_model_service(&traversal_params)?;
         let traversal_duration = (Local::now() - traversal_start)
             .to_std()
@@ -164,13 +166,14 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         );
 
         // build utility model
-        let cost_params = config_json.get_config_section(CompassConfigurationField::Cost)?;
+        let cost_params =
+            config_json.get_config_section(CompassConfigurationField::Cost, &"TOML")?;
         let cost_model_service = CostModelBuilder {}.build(&cost_params)?;
 
         // build frontier model
         let frontier_start = Local::now();
         let frontier_params =
-            config_json.get_config_section(CompassConfigurationField::Frontier)?;
+            config_json.get_config_section(CompassConfigurationField::Frontier, &"TOML")?;
 
         let frontier_model_service = builder.build_frontier_model_service(&frontier_params)?;
 
@@ -184,12 +187,13 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // build termination model
         let termination_model_json =
-            config_json.get_config_section(CompassConfigurationField::Termination)?;
+            config_json.get_config_section(CompassConfigurationField::Termination, &"TOML")?;
         let termination_model = TerminationModelBuilder::build(&termination_model_json, None)?;
 
         // build graph
         let graph_start = Local::now();
-        let graph_params = config_json.get_config_section(CompassConfigurationField::Graph)?;
+        let graph_params =
+            config_json.get_config_section(CompassConfigurationField::Graph, &"TOML")?;
         let graph = DefaultGraphBuilder::build(&graph_params)?;
         let graph_duration = (Local::now() - graph_start)
             .to_std()
@@ -242,7 +246,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // build plugins
         let plugins_start = Local::now();
-        let plugins_config = config_json.get_config_section(CompassConfigurationField::Plugins)?;
+        let plugins_config =
+            config_json.get_config_section(CompassConfigurationField::Plugins, &"TOML")?;
 
         let input_plugins = builder.build_input_plugins(&plugins_config)?;
         let output_plugins = builder.build_output_plugins(&plugins_config)?;
