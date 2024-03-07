@@ -36,11 +36,11 @@ impl TraversalModel for DistanceTraversalModel {
         _src: &Vertex,
         edge: &Edge,
         _dst: &Vertex,
-        mut state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVar>,
     ) -> Result<(), TraversalModelError> {
         let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.distance_unit);
         self.state_model
-            .update_add(&mut state, "distance", &StateVar(distance.as_f64()))?;
+            .update_add(state, "distance", &StateVar(distance.as_f64()))?;
         Ok(())
     }
 
@@ -60,13 +60,13 @@ impl TraversalModel for DistanceTraversalModel {
         &self,
         src: &Vertex,
         dst: &Vertex,
-        mut state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVar>,
     ) -> Result<(), TraversalModelError> {
         let distance =
             haversine::coord_distance(&src.coordinate, &dst.coordinate, self.distance_unit)
                 .map_err(TraversalModelError::NumericError)?;
         self.state_model
-            .update_add(&mut state, "distance", &StateVar(distance.as_f64()))?;
+            .update_add(state, "distance", &StateVar(distance.as_f64()))?;
         Ok(())
     }
 

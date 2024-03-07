@@ -5,7 +5,6 @@ use std::{
 
 use crate::{
     model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
-    util::read_only_lock::ExecutorReadOnlyLock,
 };
 
 use super::{

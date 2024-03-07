@@ -59,7 +59,7 @@ impl TraversalModel for SpeedTraversalModel {
         _v2: &Vertex,
         _dst: &Edge,
         _v3: &Vertex,
-        mut state: &mut Vec<StateVar>,
+        _state: &mut Vec<StateVar>,
     ) -> Result<(), TraversalModelError> {
         Ok(())
     }
@@ -68,7 +68,7 @@ impl TraversalModel for SpeedTraversalModel {
         &self,
         src: &Vertex,
         dst: &Vertex,
-        mut state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVar>,
     ) -> Result<(), TraversalModelError> {
         let distance =
             haversine::coord_distance(&src.coordinate, &dst.coordinate, self.engine.distance_unit)
@@ -86,7 +86,7 @@ impl TraversalModel for SpeedTraversalModel {
             self.engine.time_unit,
         )?;
         self.state_model
-            .update_add(&mut state, "time", &StateVar(time.as_f64()))?;
+            .update_add(state, "time", &StateVar(time.as_f64()))?;
 
         Ok(())
     }
@@ -202,11 +202,11 @@ mod tests {
         }))
         .unwrap();
         let model = SpeedTraversalModel::new(Arc::new(engine), Arc::new(state_model));
-        let mut state = model.initial_state();
+        let mut state = state_model.initial_state()?;
         let v = mock_vertex();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36,000 milliseconds ((0.1/10) * 3600000)
-        model.traverse_edge(&v, &e1, &v, state).unwrap();
+        model.traverse_edge(&v, &e1, &v, &mut state).unwrap();
         let expected = 36000.0;
         // approx_eq(result.total_cost.into(), expected, 0.001);
         // approx_eq(result.updated_state[1].into(), expected, 0.001);

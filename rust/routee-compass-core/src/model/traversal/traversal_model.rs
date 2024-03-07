@@ -2,7 +2,7 @@ use super::state::state_variable::StateVar;
 use super::traversal_model_error::TraversalModelError;
 use crate::model::property::{edge::Edge, vertex::Vertex};
 use crate::model::state::state_feature::StateFeature;
-use crate::model::traversal::state::traversal_state::TraversalState;
+
 
 /// Dictates how state transitions occur while traversing a graph in a search algorithm.
 ///
