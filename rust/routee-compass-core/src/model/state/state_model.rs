@@ -23,18 +23,25 @@ impl StateModel {
     ///
     /// ```toml
     /// [
-    ///   { "distance_unit" = "kilometers" },
-    ///   { "time_unit" = "minutes" },
-    ///   { custom_feature_name = "soc", codec = { type = "floating_point", initial = 0.0 } }
+    ///   { "distance_unit" = "kilometers", initial = 0.0 },
+    ///   { "time_unit" = "minutes", initial = 0.0 },
+    ///   { name = "soc", unit = "percent", format = { type = "floating_point", initial = 0.0 } }
     /// ]
     ///
     /// the same example as JSON (convert '=' into ':', and enquote object keys):
     ///
     /// ```json
     /// [
-    ///   { "distance_unit": "kilometers" },
-    ///   { "time_unit": "minutes" },
-    ///   { "custom_feature_name": "soc", "codec": { "type": "floating_point", "initial": 0.0 } }
+    ///   { "distance_unit": "kilometers", "initial": 0.0 },
+    ///   { "time_unit": "minutes", "initial": 0.0 },
+    ///   {
+    ///     "name": "soc",
+    ///     "unit": "percent",
+    ///     "format": {
+    ///       "type": "floating_point",
+    ///       "initial": 0.0
+    ///     }
+    ///   }
     /// ]
     /// ```
     pub fn new(config: &serde_json::Value) -> Result<StateModel, StateError> {
@@ -337,8 +344,10 @@ fn rows_from_json(
     let iterator = arr.iter().enumerate().map(|(index, row)| {
         let feature = serde_json::from_value::<StateFeature>(row.clone()).map_err(|e| {
             StateError::BuildError(format!(
-                "unable to parse state feature row {} due to: {}",
-                index, e
+                "unable to parse state feature row {} with contents '{}' due to: {}",
+                index,
+                row.clone(),
+                e
             ))
         })?;
         let feature_name = feature.get_feature_name();

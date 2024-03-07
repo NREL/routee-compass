@@ -18,12 +18,17 @@ use serde::{Deserialize, Serialize};
 ///
 /// ```toml
 /// state = [
-///   { distance_unit = "kilometers" },
-///   { time_unit = "minutes" },
-///   { custom_feature_name = "soc", codec = { type = "floating_point", initial = 0.0 } }
+///   { distance_unit = "kilometers", initial = 0.0 },
+///   { time_unit = "minutes", initial = 0.0 },
+///   { name = "soc", unit = "percent", format = { type = "floating_point", initial = 0.0 } }
 /// ]
+///
+/// NOTE: deserialization is "untagged" so each variant must have a unique set of
+/// field names. see link for more information:
+/// https://serde.rs/enum-representations.html#untagged
 /// ```
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(untagged)]
 pub enum StateFeature {
     Distance {
         distance_unit: unit::DistanceUnit,
@@ -42,8 +47,8 @@ pub enum StateFeature {
         initial: unit::Energy,
     },
     Custom {
-        custom_feature_name: String,
-        custom_feature_unit: String,
+        name: String,
+        unit: String,
         format: CustomFeatureFormat,
     },
 }
@@ -68,8 +73,8 @@ impl StateFeature {
                 initial: _,
             } => String::from("energy_electric"),
             StateFeature::Custom {
-                custom_feature_name: name,
-                custom_feature_unit: _,
+                name,
+                unit: _,
                 format: _,
             } => name.clone(),
         }
@@ -94,8 +99,8 @@ impl StateFeature {
                 initial: _,
             } => energy_electric_unit.to_string(),
             StateFeature::Custom {
-                custom_feature_name: _,
-                custom_feature_unit: unit,
+                name: _,
+                unit,
                 format: _,
             } => unit.clone(),
         }
@@ -108,8 +113,8 @@ impl StateFeature {
     pub fn get_feature_format(&self) -> CustomFeatureFormat {
         match self {
             StateFeature::Custom {
-                custom_feature_name: _,
-                custom_feature_unit: _,
+                name: _,
+                unit: _,
                 format,
             } => *format,
             _ => CustomFeatureFormat::default(),
