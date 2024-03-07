@@ -2,11 +2,7 @@ use super::search_app_result::SearchAppResult;
 use crate::{
     app::compass::{
         compass_app_error::CompassAppError,
-        config::{
-            cost_model::{
-                cost_model_service::CostModelService,
-            },
-        },
+        config::cost_model::cost_model_service::CostModelService,
     },
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
@@ -17,18 +13,15 @@ use routee_compass_core::{
         search_instance::SearchInstance,
     },
     model::{
-        frontier::frontier_model_service::FrontierModelService,
-        road_network::graph::Graph,
-        state::state_model::StateModel,
-        termination::termination_model::TerminationModel,
-        traversal::{
-            traversal_model::TraversalModel, traversal_model_service::TraversalModelService,
-        },
+        frontier::frontier_model_service::FrontierModelService, road_network::graph::Graph,
+        state::state_model::StateModel, termination::termination_model::TerminationModel,
+        traversal::traversal_model_service::TraversalModelService,
     },
 };
+use std::sync::Arc;
 use std::time;
-use std::{sync::Arc};
 
+/// a configured and loaded application to execute searches.
 pub struct SearchApp {
     pub search_algorithm: SearchAlgorithm,
     pub directed_graph: Arc<Graph>,
@@ -38,104 +31,6 @@ pub struct SearchApp {
     pub frontier_model_service: Arc<dyn FrontierModelService>,
     pub termination_model: Arc<TerminationModel>,
 }
-
-// impl TryFrom<&serde_json::Value> for SearchApp {
-//     type Error = SearchError;
-
-//     fn try_from(config: &serde_json::Value) -> Result<Self, Self::Error> {
-//         let alg_params = config.get_config_section(CompassConfigurationField::Algorithm)?;
-//         let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
-
-//         // build traversal model
-//         let traversal_start = Local::now();
-//         let traversal_params = config.get_config_section(CompassConfigurationField::Traversal)?;
-//         let traversal_model_service = builder.build_traversal_model_service(&traversal_params)?;
-//         let traversal_duration = (Local::now() - traversal_start)
-//             .to_std()
-//             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
-//         log::info!(
-//             "finished reading traversal model with duration {}",
-//             traversal_duration.hhmmss()
-//         );
-
-//         // build utility model
-//         let cost_params = config.get_config_section(CompassConfigurationField::Cost)?;
-//         let cost_model_service = CostModelBuilder {}.build(&cost_params)?;
-
-//         // build frontier model
-//         let frontier_start = Local::now();
-//         let frontier_params = config.get_config_section(CompassConfigurationField::Frontier)?;
-
-//         let frontier_model_service = builder.build_frontier_model_service(&frontier_params)?;
-
-//         let frontier_duration = (Local::now() - frontier_start)
-//             .to_std()
-//             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
-//         log::info!(
-//             "finished reading frontier model with duration {}",
-//             frontier_duration.hhmmss()
-//         );
-
-//         // build termination model
-//         let termination_model_json =
-//             config.get_config_section(CompassConfigurationField::Termination)?;
-//         let termination_model = TerminationModelBuilder::build(&termination_model_json, None)?;
-
-//         // build graph
-//         let graph_start = Local::now();
-//         let graph_params = config.get_config_section(CompassConfigurationField::Graph)?;
-//         let graph = DefaultGraphBuilder::build(&graph_params)?;
-//         let graph_duration = (Local::now() - graph_start)
-//             .to_std()
-//             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
-//         log::info!(
-//             "finished reading graph with duration {}",
-//             graph_duration.hhmmss()
-//         );
-
-//         let graph_bytes = allocative::size_of_unique_allocated_data(&graph);
-//         log::info!("graph size: {} GB", graph_bytes as f64 / 1e9);
-
-//         #[cfg(debug_assertions)]
-//         {
-//             use std::io::Write;
-
-//             log::debug!("Building flamegraph for graph memory usage..");
-
-//             let mut flamegraph = allocative::FlameGraphBuilder::default();
-//             flamegraph.visit_root(&graph);
-//             let output = flamegraph.finish_and_write_flame_graph();
-
-//             let outdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-//                 .join("..")
-//                 .join("target")
-//                 .join("flamegraph");
-
-//             if !outdir.exists() {
-//                 std::fs::create_dir(&outdir).unwrap();
-//             }
-
-//             let outfile = outdir.join("graph_memory_flamegraph.out");
-
-//             log::debug!("writing graph flamegraph to {:?}", outfile);
-
-//             let mut output_file = std::fs::File::create(outfile).unwrap();
-//             output_file.write_all(output.as_bytes()).unwrap();
-//         }
-
-//         // build search app
-//         let search_app: SearchApp = SearchApp::new(
-//             search_algorithm,
-//             graph,
-//             traversal_model_service,
-//             cost_model_service,
-//             frontier_model_service,
-//             termination_model,
-//         );
-
-//         Ok(search_app)
-//     }
-// }
 
 impl SearchApp {
     /// builds a new SearchApp from the required components.
@@ -290,86 +185,4 @@ impl SearchApp {
 
         Ok(search_assets)
     }
-
-    // /// helper function for accessing the TraversalModel
-    // ///
-    // /// example:
-    // ///
-    // /// let search_app: SearchApp = ...;
-    // /// let reference = search_app.get_traversal_model_reference();
-    // /// let traversal_model = reference.read();
-    // /// // do things with TraversalModel
-    // pub fn get_traversal_model_service_reference(
-    //     &self,
-    // ) -> Arc<ExecutorReadOnlyLock<Arc<dyn TraversalModelService>>> {
-    //     Arc::new(self.traversal_model_service.read_only())
-    // }
-
-    // /// helper function for accessing the TraversalModel
-    // ///
-    // /// example:
-    // ///
-    // /// let search_app: SearchApp = ...;
-    // /// let reference = search_app.get_traversal_model_reference();
-    // /// let traversal_model = reference.read();
-    // /// // do things with TraversalModel
-    // pub fn build_traversal_model(
-    //     &self,
-    //     query: &serde_json::Value,
-    // ) -> Result<Arc<dyn TraversalModel>, CompassAppError> {
-    //     let tm = self
-    //         .traversal_model_service
-    //         .build(query, self.state_model.clone())?;
-    //     Ok(tm)
-    // }
-
-    // /// helper function for building an instance of a CostModel
-    // ///
-    // /// example:
-    // ///
-    // /// let search_app: SearchApp = ...;
-    // /// let reference = search_app.get_traversal_model_reference();
-    // /// let traversal_model = reference.read();
-    // /// // do things with TraversalModel
-    // pub fn build_cost_model(
-    //     &self,
-    //     query: &serde_json::Value,
-    // ) -> Result<CostModel, CompassAppError> {
-    //     let tm = self.build_traversal_model(query)?;
-    //     let cm = self
-    //         .cost_model_service
-    //         .read_only()
-    //         .read()
-    //         .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-    //         .build(query, self.state_model.clone())?;
-    //     Ok(cm)
-    // }
-
-    // /// helper function for building an instance of a CostModel
-    // /// using an already-constructed traversal model (which is an
-    // /// upstream dependency of building a cost model).
-    // ///
-    // /// example:
-    // ///
-    // /// let search_app: SearchApp = ...;
-    // /// let reference = search_app.get_traversal_model_reference();
-    // /// let traversal_model = reference.read();
-    // /// // do things with TraversalModel
-    // pub fn build_cost_model_for_traversal_model(
-    //     &self,
-    //     query: &serde_json::Value,
-    //     tm: Arc<dyn TraversalModel>,
-    // ) -> Result<CostModel, CompassAppError> {
-    //     let cm = self
-    //         .cost_model_service
-    //         .read_only()
-    //         .read()
-    //         .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-    //         .build(query, self.state_model.clone())?;
-    //     Ok(cm)
-    // }
-
-    // pub fn get_graph_reference(&self) -> Arc<ExecutorReadOnlyLock<Graph>> {
-    //     Arc::new(self.directed_graph.read_only())
-    // }
 }
