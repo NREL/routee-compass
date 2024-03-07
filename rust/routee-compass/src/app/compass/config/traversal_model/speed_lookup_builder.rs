@@ -1,7 +1,7 @@
 use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::model::traversal::default::speed_traversal_engine::SpeedTraversalEngine;
-use routee_compass_core::model::traversal::default::speed_traversal_model::SpeedTraversalModel;
+
 use routee_compass_core::model::traversal::default::speed_traversal_service::SpeedLookupService;
 use routee_compass_core::model::traversal::traversal_model_builder::TraversalModelBuilder;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;

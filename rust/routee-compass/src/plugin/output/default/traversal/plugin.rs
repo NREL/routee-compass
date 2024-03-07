@@ -94,19 +94,15 @@ impl OutputPlugin for TraversalPlugin {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::plugin::output::default::traversal::json_extensions::TraversalJsonExtensions;
-    use chrono::Local;
+    
+    
+    
     use routee_compass_core::{
-        algorithm::search::edge_traversal::EdgeTraversal,
-        model::{
-            road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar, unit::Cost,
-        },
         util::{fs::read_utils::read_raw_file, geo::geo_io_utils::parse_linestring},
     };
-    use std::collections::HashMap;
+    
     use std::path::PathBuf;
-    use std::time::Duration;
+    
 
     fn mock_geometry_file() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))

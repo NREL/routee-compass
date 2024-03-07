@@ -13,7 +13,7 @@ use std::time::Duration;
 pub fn create_initial_output(
     req: &Value,
     res: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
-    app: &SearchApp,
+    _app: &SearchApp,
 ) -> Result<Value, Value> {
     match &res {
         Err(e) => Err(package_error(req, e)),

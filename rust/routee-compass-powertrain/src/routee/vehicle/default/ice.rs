@@ -2,7 +2,7 @@ use routee_compass_core::model::{
     state::{state_feature::StateFeature, state_model::StateModel},
     traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
     unit::{
-        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
+        Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
 };
@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use crate::routee::{
     prediction::PredictionModelRecord,
-    vehicle::{VehicleEnergyResult, VehicleState, VehicleType},
+    vehicle::{VehicleType},
 };
 
 pub struct ICE {
@@ -68,7 +68,7 @@ impl VehicleType for ICE {
         state: &mut Vec<StateVar>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let (energy, energy_unit) = self.best_case_energy(distance)?;
+        let (energy, _energy_unit) = self.best_case_energy(distance)?;
         state_model.update_add(state, ICE::ENERGY_FEATURE_NAME, &energy.into())?;
         Ok(())
     }
@@ -81,7 +81,7 @@ impl VehicleType for ICE {
         state: &mut Vec<StateVar>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let (energy, energy_unit) = self
+        let (energy, _energy_unit) = self
             .prediction_model_record
             .predict(speed, grade, distance)?;
         state_model.update_add(state, ICE::ENERGY_FEATURE_NAME, &energy.into());

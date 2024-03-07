@@ -2,7 +2,7 @@ use super::search_app::SearchApp;
 use crate::app::compass::compass_app_error::CompassAppError;
 use routee_compass_core::{
     algorithm::search::direction::Direction,
-    model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
+    model::road_network::{edge_id::EdgeId, vertex_id::VertexId},
     model::unit::{Distance, DistanceUnit},
 };
 

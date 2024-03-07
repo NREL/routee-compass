@@ -3,13 +3,9 @@ use crate::{
     app::compass::{
         compass_app_error::CompassAppError,
         config::{
-            compass_configuration_field::CompassConfigurationField,
-            config_json_extension::ConfigJsonExtensions,
             cost_model::{
-                cost_model_builder::CostModelBuilder, cost_model_service::CostModelService,
+                cost_model_service::CostModelService,
             },
-            graph_builder::DefaultGraphBuilder,
-            termination_model_builder::TerminationModelBuilder,
         },
     },
     plugin::input::input_json_extensions::InputJsonExtensions,
@@ -17,11 +13,10 @@ use crate::{
 use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{
-        self, backtrack, search_algorithm::SearchAlgorithm, search_error::SearchError,
+        backtrack, search_algorithm::SearchAlgorithm, search_error::SearchError,
         search_instance::SearchInstance,
     },
     model::{
-        cost::cost_model::CostModel,
         frontier::frontier_model_service::FrontierModelService,
         road_network::graph::Graph,
         state::state_model::StateModel,
@@ -30,13 +25,9 @@ use routee_compass_core::{
             traversal_model::TraversalModel, traversal_model_service::TraversalModelService,
         },
     },
-    util::{
-        duration_extension::DurationExtension,
-        read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
-    },
 };
 use std::time;
-use std::{path::PathBuf, sync::Arc};
+use std::{sync::Arc};
 
 pub struct SearchApp {
     pub search_algorithm: SearchAlgorithm,

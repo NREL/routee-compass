@@ -341,9 +341,9 @@ mod tests {
     use crate::model::state::state_model::StateModel;
     use crate::model::termination::termination_model::TerminationModel;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
-    use crate::model::traversal::traversal_model::TraversalModel;
+    
     use crate::model::unit::DistanceUnit;
-    use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
+    use crate::{model::road_network::edge_id::EdgeId};
     use rayon::prelude::*;
     use serde_json::json;
     use std::sync::Arc;

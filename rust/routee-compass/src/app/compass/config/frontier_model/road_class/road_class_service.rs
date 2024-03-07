@@ -18,7 +18,7 @@ impl FrontierModelService for RoadClassFrontierService {
     fn build(
         &self,
         query: &serde_json::Value,
-        state_model: Arc<StateModel>,
+        _state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn FrontierModel>, FrontierModelError> {
         let service: Arc<RoadClassFrontierService> = Arc::new(self.clone());
         let road_classes = self.road_class_parser.read_query(query).map_err(|e| {
