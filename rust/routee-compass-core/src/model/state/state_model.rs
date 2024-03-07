@@ -42,6 +42,10 @@ impl StateModel {
         Ok(StateModel(state_model))
     }
 
+    pub fn empty() -> StateModel {
+        StateModel(HashMap::new())
+    }
+
     /// extends a state model by adding additional key/value pairs to the model mapping.
     /// in the case of name collision, a warning is logged to the user.
     ///
@@ -50,14 +54,17 @@ impl StateModel {
     ///
     /// # Arguments
     /// * `query` - JSON search query contents containing state model information
-    pub fn extend(
-        &self,
-        entries: Vec<(String, StateModelEntry)>,
-    ) -> Result<StateModel, StateError> {
+    pub fn extend(&self, entries: Vec<(String, StateFeature)>) -> Result<StateModel, StateError> {
+        let offset = self.len();
         let mut map = self.0.clone();
-        for row in entries.iter() {
-            let (name, entry) = row;
-            let insert_result = map.insert(name.clone(), entry.clone());
+        for row in entries.iter().enumerate() {
+            let (i, (name, feature)) = row;
+            let index = offset + i;
+            let entry = StateModelEntry {
+                index,
+                feature: feature.clone(),
+            };
+            let insert_result = map.insert(name.clone(), entry);
             if let Some(replaced) = insert_result {
                 log::warn!(
                     "user overwriting state model entry {} with {}",
@@ -163,7 +170,7 @@ impl StateModel {
     /// * `value` - new value to apply
     pub fn update_add(
         &self,
-        state: &mut Vec<StateVar>,
+        state: &mut [StateVar],
         name: &str,
         value: &StateVar,
     ) -> Result<(), StateError> {
@@ -178,7 +185,7 @@ impl StateModel {
     /// * `value` - new value to apply
     pub fn update_replace(
         &self,
-        state: &mut Vec<StateVar>,
+        state: &mut [StateVar],
         name: &str,
         value: &StateVar,
     ) -> Result<(), StateError> {
@@ -193,7 +200,7 @@ impl StateModel {
     /// * `value` - new value to apply
     pub fn update_multiply(
         &self,
-        state: &mut Vec<StateVar>,
+        state: &mut [StateVar],
         name: &str,
         value: &StateVar,
     ) -> Result<(), StateError> {
@@ -208,7 +215,7 @@ impl StateModel {
     /// * `value` - new value to apply
     pub fn update_max(
         &self,
-        state: &mut Vec<StateVar>,
+        state: &mut [StateVar],
         name: &str,
         value: &StateVar,
     ) -> Result<(), StateError> {
@@ -223,11 +230,30 @@ impl StateModel {
     /// * `value` - new value to apply
     pub fn update_min(
         &self,
-        state: &mut Vec<StateVar>,
+        state: &mut [StateVar],
         name: &str,
         value: &StateVar,
     ) -> Result<(), StateError> {
         self.update_state(state, name, value, UpdateOperation::Min)
+    }
+
+    /// convenience method for state updates where the update operation
+    /// is "add".
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - the state to update
+    /// * `name`  - feature name to update
+    /// * `value` - new value to apply
+    pub fn update_add_bounded(
+        &self,
+        state: &mut [StateVar],
+        name: &str,
+        value: &StateVar,
+        min: &StateVar,
+        max: &StateVar,
+    ) -> Result<(), StateError> {
+        self.update_state(state, name, value, UpdateOperation::AddBounded(*min, *max))
     }
 
     /// performs a state update for a feature name and value by applying some
@@ -241,7 +267,7 @@ impl StateModel {
     /// * `op`    - operation to combine/replace prev with new value
     pub fn update_state(
         &self,
-        state: &mut Vec<StateVar>,
+        state: &mut [StateVar],
         name: &str,
         value: &StateVar,
         op: UpdateOperation,

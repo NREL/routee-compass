@@ -3,15 +3,13 @@ use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::VehicleType;
 use routee_compass_core::model::property::edge::Edge;
 use routee_compass_core::model::property::vertex::Vertex;
+use routee_compass_core::model::state::state_feature::StateFeature;
 use routee_compass_core::model::state::state_model::StateModel;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
-use routee_compass_core::model::traversal::state::traversal_state::TraversalState;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::geo::haversine;
-use routee_compass_core::util::serde::serde_json_extension::SerdeJsonExtension;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 pub struct EnergyTraversalModel {
@@ -22,38 +20,39 @@ pub struct EnergyTraversalModel {
 }
 
 impl TraversalModel for EnergyTraversalModel {
+    /// inject the state features required by the VehicleType
+    fn state_features(&self) -> Vec<(String, StateFeature)> {
+        self.state_features()
+    }
+
     fn traverse_edge(
         &self,
         src: &Vertex,
         edge: &Edge,
         dst: &Vertex,
-        state: &[StateVar],
-    ) -> Result<TraversalState, TraversalModelError> {
+        mut state: &mut Vec<StateVar>,
+    ) -> Result<(), TraversalModelError> {
         let distance =
             BASE_DISTANCE_UNIT.convert(edge.distance, self.energy_model_service.distance_unit);
+        let prev = state.to_vec();
 
         // perform time traversal
-        // let time_state = &state[0..self.vehicle_state_index];
-        // let vehicle_state = &state[self.vehicle_state_index..];
-        let mut updated_state = self.time_model.traverse_edge(src, edge, dst, state)?;
-        let time_delta_var = self.state_model.get_delta(state, &updated_state, "time")?;
+        self.time_model.traverse_edge(src, edge, dst, state)?;
+        let time_delta_var = self.state_model.get_delta(&prev, &state, "time")?;
         let time_delta = Time::new(time_delta_var.0);
-        // let time_next = self.time_model.get_state_variable("time", &updated_state)?;
-        // let time_prev = self.get_state_variable("time", state)?;
-        // let time_delta: Time = Time::new(time_next.0 - time_prev.0);
 
         // perform vehicle energy traversal
         let grade = get_grade(&self.energy_model_service.grade_table, edge.edge_id)?;
         let speed = Speed::from((distance, time_delta));
-        let energy_result = self.vehicle.consume_energy(
+        self.vehicle.consume_energy(
             (speed, self.energy_model_service.time_model_speed_unit),
             (grade, self.energy_model_service.grade_table_grade_unit),
             (distance, self.energy_model_service.distance_unit),
-            &updated_state,
+            &mut state,
+            &self.state_model,
         )?;
 
-        updated_state.extend(energy_result.updated_state);
-        Ok(updated_state)
+        Ok(())
     }
 
     fn access_edge(
@@ -63,8 +62,8 @@ impl TraversalModel for EnergyTraversalModel {
         v2: &Vertex,
         dst: &Edge,
         v3: &Vertex,
-        state: &[StateVar],
-    ) -> Result<Option<TraversalState>, TraversalModelError> {
+        mut state: &mut Vec<StateVar>,
+    ) -> Result<(), TraversalModelError> {
         // defer access updates to time model
         self.time_model.access_edge(v1, src, v2, dst, v3, state)
         // match self.energy_model_service.headings_table.as_deref() {
@@ -121,8 +120,8 @@ impl TraversalModel for EnergyTraversalModel {
         &self,
         src: &Vertex,
         dst: &Vertex,
-        state: &[StateVar],
-    ) -> Result<TraversalState, TraversalModelError> {
+        mut state: &mut Vec<StateVar>,
+    ) -> Result<(), TraversalModelError> {
         let distance = haversine::coord_distance(
             &src.coordinate,
             &dst.coordinate,
@@ -131,18 +130,17 @@ impl TraversalModel for EnergyTraversalModel {
         .map_err(TraversalModelError::NumericError)?;
 
         if distance == Distance::ZERO {
-            return Ok(state.to_vec());
+            return Ok(());
         }
 
-        // let time_state = &state[0..self.vehicle_state_index];
-        // let vehicle_state = &state[self.vehicle_state_index..];
-        let mut updated_state = self.time_model.estimate_traversal(src, dst, state)?;
-        let best_case_result = self
-            .vehicle
-            .best_case_energy_state((distance, self.energy_model_service.distance_unit), state)?;
+        self.time_model.estimate_traversal(src, dst, state)?;
+        self.vehicle.best_case_energy_state(
+            (distance, self.energy_model_service.distance_unit),
+            state,
+            &self.state_model,
+        )?;
 
-        updated_state.extend(best_case_result.updated_state);
-        Ok(updated_state)
+        Ok(())
     }
 }
 
@@ -155,7 +153,6 @@ impl EnergyTraversalModel {
         let time_model = energy_model_service
             .time_model_service
             .build(conf, state_model.clone())?;
-        // let vehicle_state_index = time_model.initial_state().len();
 
         let prediction_model_name = conf
             .get("model_name".to_string())
@@ -186,19 +183,10 @@ impl EnergyTraversalModel {
         }?
         .update_from_query(conf)?;
 
-        // let mut state_variable_names = time_model.state_variable_names();
-        // state_variable_names.extend(vehicle.state_variable_names());
-        // let state_variables = state_variable_names
-        //     .into_iter()
-        //     .enumerate()
-        //     .map(|(idx, name)| (name, idx))
-        //     .collect::<HashMap<_, _>>();
         Ok(EnergyTraversalModel {
             energy_model_service,
             time_model,
             vehicle,
-            // vehicle_state_index,
-            // state_variables,
             state_model,
         })
     }
@@ -307,10 +295,10 @@ mod tests {
             "model_name": "Toyota_Camry",
         });
         let model = EnergyTraversalModel::new(arc_service, &conf, state_model.clone()).unwrap();
-        let initial = model.initial_state();
+        let mut state = model.initial_state();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        let result = model.traverse_edge(&v, &e1, &v, &initial).unwrap();
+        let result = model.traverse_edge(&v, &e1, &v, &mut state).unwrap();
         println!("{:?}", result);
     }
 }

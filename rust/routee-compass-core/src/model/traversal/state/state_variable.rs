@@ -38,7 +38,6 @@ impl From<StateVar> for f64 {
         val.0
     }
 }
-
 impl From<Distance> for StateVar {
     fn from(value: Distance) -> Self {
         StateVar(value.as_f64())

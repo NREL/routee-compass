@@ -48,15 +48,12 @@ pub fn edge_oriented_route(
     source_id: EdgeId,
     target_id: EdgeId,
     solution: &HashMap<VertexId, SearchTreeBranch>,
-    graph: Arc<ExecutorReadOnlyLock<Graph>>,
+    graph: Arc<Graph>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
-    let g_inner = graph
-        .read()
-        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let o_v = g_inner
+    let o_v = graph
         .src_vertex_id(source_id)
         .map_err(SearchError::GraphError)?;
-    let d_v = g_inner
+    let d_v = graph
         .dst_vertex_id(target_id)
         .map_err(SearchError::GraphError)?;
     vertex_oriented_route(o_v, d_v, solution)

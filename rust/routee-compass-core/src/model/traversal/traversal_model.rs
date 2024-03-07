@@ -1,6 +1,7 @@
 use super::state::state_variable::StateVar;
 use super::traversal_model_error::TraversalModelError;
 use crate::model::property::{edge::Edge, vertex::Vertex};
+use crate::model::state::state_feature::StateFeature;
 use crate::model::traversal::state::traversal_state::TraversalState;
 
 /// Dictates how state transitions occur while traversing a graph in a search algorithm.
@@ -12,6 +13,12 @@ use crate::model::traversal::state::traversal_state::TraversalState;
 /// [DistanceModel]: super::default::distance::DistanceModel
 /// [SpeedLookupModel]: super::default::speed_lookup_model::SpeedLookupModel
 pub trait TraversalModel: Send + Sync {
+    /// lists the state variables expected by this traversal model that are not
+    /// defined on the base configuration. for example, if this traversal model
+    /// has state variables that differ based on the query, they can be injected
+    /// into the state model by listing them here.
+    fn state_features(&self) -> Vec<(String, StateFeature)>;
+
     /// Updates the traversal state by traversing an edge.
     ///
     /// # Arguments
@@ -29,8 +36,8 @@ pub trait TraversalModel: Send + Sync {
         src: &Vertex,
         edge: &Edge,
         dst: &Vertex,
-        state: &[StateVar],
-    ) -> Result<TraversalState, TraversalModelError>;
+        state: &mut Vec<StateVar>,
+    ) -> Result<(), TraversalModelError>;
 
     /// Updates the traversal state by accessing some destination edge
     /// when coming from some previous edge.
@@ -59,8 +66,8 @@ pub trait TraversalModel: Send + Sync {
         v2: &Vertex,
         dst: &Edge,
         v3: &Vertex,
-        state: &[StateVar],
-    ) -> Result<Option<TraversalState>, TraversalModelError>;
+        state: &mut Vec<StateVar>,
+    ) -> Result<(), TraversalModelError>;
 
     /// Estimates the traversal state by traversing between two vertices without
     /// performing any graph traversals.
@@ -78,8 +85,8 @@ pub trait TraversalModel: Send + Sync {
         &self,
         src: &Vertex,
         dst: &Vertex,
-        state: &[StateVar],
-    ) -> Result<TraversalState, TraversalModelError>;
+        state: &mut Vec<StateVar>,
+    ) -> Result<(), TraversalModelError>;
 
     // /// Serializes the traversal state into a JSON value.
     // ///

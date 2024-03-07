@@ -1,8 +1,7 @@
-use routee_compass_core::{
-    model::traversal::{
-        state::state_variable::StateVar, traversal_model_error::TraversalModelError,
-    },
-    model::unit::{
+use routee_compass_core::model::{
+    state::{state_feature::StateFeature, state_model::StateModel},
+    traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
+    unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
@@ -20,6 +19,7 @@ pub struct ICE {
 }
 
 impl ICE {
+    const ENERGY_FEATURE_NAME: &'static str = "energy_liquid";
     pub fn new(
         name: String,
         prediction_model_record: PredictionModelRecord,
@@ -35,15 +35,18 @@ impl VehicleType for ICE {
     fn name(&self) -> String {
         self.name.clone()
     }
-    fn number_of_state_variables(&self) -> usize {
-        1
-    }
-    fn state_variable_names(&self) -> Vec<String> {
-        vec![String::from("energy_liquid")]
-    }
-    fn initial_state(&self) -> VehicleState {
-        // accumulated energy
-        vec![StateVar(0.0)]
+    fn state_features(&self) -> Vec<(String, StateFeature)> {
+        let energy_unit = self
+            .prediction_model_record
+            .energy_rate_unit
+            .associated_energy_unit();
+        vec![(
+            String::from(ICE::ENERGY_FEATURE_NAME),
+            StateFeature::Liquid {
+                energy_liquid_unit: energy_unit,
+                initial: Energy::ZERO,
+            },
+        )]
     }
     fn best_case_energy(
         &self,
@@ -62,16 +65,12 @@ impl VehicleType for ICE {
     fn best_case_energy_state(
         &self,
         distance: (Distance, DistanceUnit),
-        state: &[StateVar],
-    ) -> Result<VehicleEnergyResult, TraversalModelError> {
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError> {
         let (energy, energy_unit) = self.best_case_energy(distance)?;
-        let updated_state = update_state(state, energy);
-
-        Ok(VehicleEnergyResult {
-            energy,
-            energy_unit,
-            updated_state,
-        })
+        state_model.update_add(state, ICE::ENERGY_FEATURE_NAME, &energy.into())?;
+        Ok(())
     }
 
     fn consume_energy(
@@ -79,35 +78,14 @@ impl VehicleType for ICE {
         speed: (Speed, SpeedUnit),
         grade: (Grade, GradeUnit),
         distance: (Distance, DistanceUnit),
-        state: &[StateVar],
-    ) -> Result<VehicleEnergyResult, TraversalModelError> {
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError> {
         let (energy, energy_unit) = self
             .prediction_model_record
             .predict(speed, grade, distance)?;
-
-        let updated_state = update_state(state, energy);
-
-        Ok(VehicleEnergyResult {
-            energy,
-            energy_unit,
-            updated_state,
-        })
-    }
-    fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
-        let energy = get_energy_from_state(state);
-        serde_json::json!({
-            "energy_liquid": energy.as_f64(),
-        })
-    }
-
-    fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
-        let energy_unit = self
-            .prediction_model_record
-            .energy_rate_unit
-            .associated_energy_unit();
-        serde_json::json!({
-            "energy_unit": energy_unit.to_string(),
-        })
+        state_model.update_add(state, ICE::ENERGY_FEATURE_NAME, &energy.into());
+        Ok(())
     }
 
     fn update_from_query(
@@ -120,15 +98,4 @@ impl VehicleType for ICE {
             prediction_model_record: self.prediction_model_record.clone(),
         }))
     }
-}
-
-fn update_state(state: &[StateVar], energy: Energy) -> VehicleState {
-    let mut new_state = Vec::with_capacity(state.len());
-    new_state.push(state[0] + energy.into());
-    new_state
-}
-
-fn get_energy_from_state(state: &[StateVar]) -> Energy {
-    let energy = state[0].0;
-    Energy::new(energy)
 }

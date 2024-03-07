@@ -30,6 +30,7 @@ use config::Config;
 use itertools::{Either, Itertools};
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
+use routee_compass_core::algorithm::search::search_instance::SearchInstance;
 use routee_compass_core::model::state::state_model::StateModel;
 use routee_compass_core::{
     algorithm::search::search_algorithm::SearchAlgorithm,
@@ -464,7 +465,7 @@ pub fn run_single_query(
         SearchOrientation::Vertex => search_app.run_vertex_oriented(query),
         SearchOrientation::Edge => search_app.run_edge_oriented(query),
     };
-    let output = apply_output_processing((query, search_result), search_app, output_plugins);
+    let output = apply_output_processing(query, search_result, search_app, output_plugins);
     // TODO: write to output if requested
     Ok(output)
 }
@@ -566,20 +567,20 @@ pub fn apply_input_plugins(
 // 1. summarizing from the TraversalModel
 // 2. applying the output plugins
 pub fn apply_output_processing(
-    response_data: (&serde_json::Value, Result<SearchAppResult, CompassAppError>),
+    request_json: &serde_json::Value,
+    result: Result<(SearchAppResult, SearchInstance), CompassAppError>,
     search_app: &SearchApp,
     output_plugins: &[Arc<dyn OutputPlugin>],
 ) -> serde_json::Value {
-    let (req, res) = response_data;
-
-    let mut initial: Value = match out_ops::create_initial_output(req, &res, search_app) {
+    let mut initial: Value = match out_ops::create_initial_output(request_json, &result, search_app)
+    {
         Ok(value) => value,
         Err(error_value) => return error_value,
     };
     for output_plugin in output_plugins.iter() {
-        match output_plugin.process(&mut initial, &res) {
+        match output_plugin.process(&mut initial, &result) {
             Ok(()) => {}
-            Err(e) => return out_ops::package_error(req, e),
+            Err(e) => return out_ops::package_error(request_json, e),
         }
     }
 

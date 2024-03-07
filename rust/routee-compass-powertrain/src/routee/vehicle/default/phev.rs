@@ -1,20 +1,16 @@
-use std::sync::Arc;
-
+use crate::routee::{prediction::PredictionModelRecord, vehicle::vehicle_type::VehicleType};
 use routee_compass_core::model::{
-    traversal::{
-        state::{state_variable::StateVar, traversal_state::TraversalState},
-        traversal_model_error::TraversalModelError,
+    state::{
+        custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
+        state_model::StateModel,
     },
+    traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
     unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
 };
-
-use crate::routee::{
-    prediction::PredictionModelRecord,
-    vehicle::{vehicle_type::VehicleType, VehicleEnergyResult},
-};
+use std::sync::Arc;
 
 pub struct PHEV {
     pub name: String,
@@ -27,6 +23,10 @@ pub struct PHEV {
 }
 
 impl PHEV {
+    const LIQUID_FEATURE_NAME: &'static str = "energy_liquid";
+    const ELECTRIC_FEATURE_NAME: &'static str = "energy_electric";
+    const SOC_FEATURE_NAME: &'static str = "battery_state";
+
     pub fn new(
         name: String,
         charge_sustain_model: PredictionModelRecord,
@@ -53,25 +53,37 @@ impl VehicleType for PHEV {
         self.name.clone()
     }
 
-    fn number_of_state_variables(&self) -> usize {
-        3
-    }
-
-    fn state_variable_names(&self) -> Vec<String> {
+    fn state_features(&self) -> Vec<(String, StateFeature)> {
+        let liquid_energy_unit = self
+            .charge_sustain_model
+            .energy_rate_unit
+            .associated_energy_unit();
         vec![
-            String::from("energy_electric"),
-            String::from("energy_liquid"),
-            String::from("battery_state"),
+            (
+                String::from(PHEV::ELECTRIC_FEATURE_NAME),
+                StateFeature::Electric {
+                    energy_electric_unit: self.battery_energy_unit,
+                    initial: Energy::ZERO,
+                },
+            ),
+            (
+                String::from(PHEV::SOC_FEATURE_NAME),
+                StateFeature::Custom {
+                    custom_feature_name: String::from("soc"),
+                    custom_feature_unit: String::from("percent"),
+                    format: CustomFeatureFormat::FloatingPoint { initial: 0.0 },
+                },
+            ),
+            (
+                String::from(PHEV::LIQUID_FEATURE_NAME),
+                StateFeature::Liquid {
+                    energy_liquid_unit: liquid_energy_unit,
+                    initial: Energy::ZERO,
+                },
+            ),
         ]
     }
 
-    fn initial_state(&self) -> TraversalState {
-        vec![
-            StateVar(0.0),                                   // accumulated electrical energy
-            StateVar(0.0),                                   // accumulated liquid_fuel energy
-            StateVar(self.starting_battery_energy.as_f64()), // battery energy remaining
-        ]
-    }
     fn best_case_energy(
         &self,
         distance: (Distance, DistanceUnit),
@@ -91,16 +103,18 @@ impl VehicleType for PHEV {
     fn best_case_energy_state(
         &self,
         distance: (Distance, DistanceUnit),
-        state: &[StateVar],
-    ) -> Result<VehicleEnergyResult, TraversalModelError> {
-        let (electrical_energy, electrical_energy_unit) = self.best_case_energy(distance)?;
-        let updated_state = update_state(state, electrical_energy, Energy::ZERO);
-
-        Ok(VehicleEnergyResult {
-            energy: electrical_energy,
-            energy_unit: electrical_energy_unit,
-            updated_state,
-        })
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError> {
+        let (electrical_energy, _) = self.best_case_energy(distance)?;
+        state_model.update_add_bounded(
+            state,
+            PHEV::ELECTRIC_FEATURE_NAME,
+            &electrical_energy.into(),
+            &StateVar::ZERO,
+            &self.battery_capacity.into(),
+        )?;
+        Ok(())
     }
 
     fn consume_energy(
@@ -108,62 +122,73 @@ impl VehicleType for PHEV {
         speed: (Speed, SpeedUnit),
         grade: (Grade, GradeUnit),
         distance: (Distance, DistanceUnit),
-        state: &[StateVar],
-    ) -> Result<VehicleEnergyResult, TraversalModelError> {
-        let battery_soc_percentage = get_battery_soc_percent(self, state);
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError> {
+        let start_energy: Energy = state_model
+            .get_value(state, PHEV::ELECTRIC_FEATURE_NAME)?
+            .into();
+        let battery_soc_percentage =
+            (start_energy.as_f64() / self.battery_capacity.as_f64()) * 100.0;
 
-        let (
-            electrical_energy,
-            electrical_energy_unit,
-            liquid_fuel_energy,
-            liquid_fuel_energy_unit,
-        ) = get_phev_energy(self, battery_soc_percentage, speed, grade, distance)?;
+        let (electrical_energy, _, liquid_fuel_energy, _) =
+            get_phev_energy(self, battery_soc_percentage, speed, grade, distance)?;
 
-        // convert both energy sources to kWh
-        let electrical_energy_kwh =
-            electrical_energy_unit.convert(electrical_energy, EnergyUnit::KilowattHours);
-        let liquid_fuel_energy_kwh = match self.custom_liquid_fuel_to_kwh {
-            Some(custom_fuel_to_kwh) => {
-                // use the custom conversion factor
-                Energy::new(custom_fuel_to_kwh * liquid_fuel_energy.as_f64())
-            }
-            None => {
-                // just use the default conversion factors
-                liquid_fuel_energy_unit.convert(liquid_fuel_energy, EnergyUnit::KilowattHours)
-            }
-        };
-        let total_energy_kwh = electrical_energy_kwh + liquid_fuel_energy_kwh;
-
-        let updated_state = update_state(state, electrical_energy, liquid_fuel_energy);
-
-        Ok(VehicleEnergyResult {
-            energy: total_energy_kwh,
-            energy_unit: EnergyUnit::KilowattHours,
-            updated_state,
-        })
+        state_model.update_add_bounded(
+            state,
+            PHEV::ELECTRIC_FEATURE_NAME,
+            &electrical_energy.into(),
+            &StateVar::ZERO,
+            &self.battery_capacity.into(),
+        )?;
+        state_model.update_add(state, PHEV::LIQUID_FEATURE_NAME, &liquid_fuel_energy.into())?;
+        Ok(())
     }
-    fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
-        let battery_energy = get_electrical_energy_from_state(state);
-        let liquid_fuel_energy = get_liquid_fuel_energy_from_state(state);
-        let battery_soc_percent = get_battery_soc_percent(self, state);
-        serde_json::json!({
-            "battery_energy": battery_energy.as_f64(),
-            "fuel_energy": liquid_fuel_energy.as_f64(),
-            "battery_soc_percent": battery_soc_percent,
-        })
-    }
+    // // convert both energy sources to kWh
+    // let electrical_energy_kwh =
+    //     electrical_energy_unit.convert(electrical_energy, EnergyUnit::KilowattHours);
+    // let liquid_fuel_energy_kwh = match self.custom_liquid_fuel_to_kwh {
+    //     Some(custom_fuel_to_kwh) => {
+    //         // use the custom conversion factor
+    //         Energy::new(custom_fuel_to_kwh * liquid_fuel_energy.as_f64())
+    //     }
+    //     None => {
+    //         // just use the default conversion factors
+    //         liquid_fuel_energy_unit.convert(liquid_fuel_energy, EnergyUnit::KilowattHours)
+    //     }
+    // };
+    // let total_energy_kwh = electrical_energy_kwh + liquid_fuel_energy_kwh;
 
-    fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
-        let battery_energy_unit = self.battery_energy_unit;
-        let fuel_energy_unit = self
-            .charge_sustain_model
-            .energy_rate_unit
-            .associated_energy_unit();
-        serde_json::json!({
-            "battery_energy_unit": battery_energy_unit.to_string(),
-            "fuel_energy_unit": fuel_energy_unit.to_string(),
-        })
-    }
+    // let updated_state = update_state(state, electrical_energy, liquid_fuel_energy);
+
+    // Ok(VehicleEnergyResult {
+    //     energy: total_energy_kwh,
+    //     energy_unit: EnergyUnit::KilowattHours,
+    //     updated_state,
+    // })
+    // }
+    // fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
+    //     let battery_energy = get_electrical_energy_from_state(state);
+    //     let liquid_fuel_energy = get_liquid_fuel_energy_from_state(state);
+    //     let battery_soc_percent = get_battery_soc_percent(self, state);
+    //     serde_json::json!({
+    //         "battery_energy": battery_energy.as_f64(),
+    //         "fuel_energy": liquid_fuel_energy.as_f64(),
+    //         "battery_soc_percent": battery_soc_percent,
+    //     })
+    // }
+
+    // fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
+    //     let battery_energy_unit = self.battery_energy_unit;
+    //     let fuel_energy_unit = self
+    //         .charge_sustain_model
+    //         .energy_rate_unit
+    //         .associated_energy_unit();
+    //     serde_json::json!({
+    //         "battery_energy_unit": battery_energy_unit.to_string(),
+    //         "fuel_energy_unit": fuel_energy_unit.to_string(),
+    //     })
+    // }
 
     fn update_from_query(
         &self,
@@ -203,51 +228,51 @@ impl VehicleType for PHEV {
     }
 }
 
-fn update_state(
-    state: &[StateVar],
-    electrical_energy: Energy,
-    liquid_fuel_energy: Energy,
-) -> TraversalState {
-    let mut updated_state = Vec::with_capacity(state.len());
+// fn update_state(
+//     state: &[StateVar],
+//     electrical_energy: Energy,
+//     liquid_fuel_energy: Energy,
+// ) -> TraversalState {
+//     let mut updated_state = Vec::with_capacity(state.len());
 
-    // accumulated electrical energy
-    updated_state.push(state[0] + electrical_energy.into());
+//     // accumulated electrical energy
+//     updated_state.push(state[0] + electrical_energy.into());
 
-    // accumulated fuel energy
-    updated_state.push(state[1] + liquid_fuel_energy.into());
+//     // accumulated fuel energy
+//     updated_state.push(state[1] + liquid_fuel_energy.into());
 
-    // remaining battery energy
-    let current_battery_energy = get_remaining_battery_energy_from_state(state);
-    let new_battery_energy = (current_battery_energy - electrical_energy).max(Energy::new(0.0));
-    updated_state.push(new_battery_energy.into());
+//     // remaining battery energy
+//     let current_battery_energy = get_remaining_battery_energy_from_state(state);
+//     let new_battery_energy = (current_battery_energy - electrical_energy).max(Energy::new(0.0));
+//     updated_state.push(new_battery_energy.into());
 
-    updated_state
-}
-fn get_electrical_energy_from_state(state: &[StateVar]) -> Energy {
-    Energy::new(state[0].0)
-}
+//     updated_state
+// }
+// fn get_electrical_energy_from_state(state: &[StateVar]) -> Energy {
+//     Energy::new(state[0].0)
+// }
 
-fn get_liquid_fuel_energy_from_state(state: &[StateVar]) -> Energy {
-    Energy::new(state[1].0)
-}
+// fn get_liquid_fuel_energy_from_state(state: &[StateVar]) -> Energy {
+//     Energy::new(state[1].0)
+// }
 
-fn get_remaining_battery_energy_from_state(state: &[StateVar]) -> Energy {
-    Energy::new(state[2].0)
-}
+// fn get_remaining_battery_energy_from_state(state: &[StateVar]) -> Energy {
+//     Energy::new(state[2].0)
+// }
 
-fn get_battery_soc_percent(vehicle: &PHEV, state: &[StateVar]) -> f64 {
-    let battery_energy_unit = vehicle.battery_energy_unit;
+// fn get_battery_soc_percent(vehicle: &PHEV, state: &[StateVar]) -> f64 {
+//     let battery_energy_unit = vehicle.battery_energy_unit;
 
-    let battery_capacity_kwh =
-        battery_energy_unit.convert(vehicle.battery_capacity, EnergyUnit::KilowattHours);
+//     let battery_capacity_kwh =
+//         battery_energy_unit.convert(vehicle.battery_capacity, EnergyUnit::KilowattHours);
 
-    let remaining_battery_energy = get_remaining_battery_energy_from_state(state);
+//     let remaining_battery_energy = get_remaining_battery_energy_from_state(state);
 
-    let remaining_battery_energy_kwh =
-        battery_energy_unit.convert(remaining_battery_energy, EnergyUnit::KilowattHours);
+//     let remaining_battery_energy_kwh =
+//         battery_energy_unit.convert(remaining_battery_energy, EnergyUnit::KilowattHours);
 
-    (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100.0
-}
+//     (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100.0
+// }
 
 /// Compute the energy for the PHEV by converting liquid_fuel to kWh.
 /// This uses a simplified operation in which we assume that if the battery
@@ -372,7 +397,10 @@ mod tests {
     #[test]
     fn test_phev_energy_model_just_electric() {
         let vehicle = mock_vehicle();
-        let initial = vehicle.initial_state();
+        let state_model = StateModel::empty()
+            .extend(vehicle.state_features())
+            .unwrap();
+        let mut state = state_model.initial_state();
 
         // starting at 100% SOC, we should be able to traverse 1000 meters
         // without using any liquid_fuel
@@ -380,47 +408,73 @@ mod tests {
         let speed = (Speed::new(60.0), SpeedUnit::MilesPerHour);
         let grade = (Grade::new(0.0), GradeUnit::Decimal);
 
-        let result = vehicle
-            .consume_energy(speed, grade, distance, &initial)
+        vehicle
+            .consume_energy(speed, grade, distance, &state, &state_model)
             .unwrap();
 
-        let liquid_fuel_energy = get_liquid_fuel_energy_from_state(&result.updated_state);
-        assert!(liquid_fuel_energy.as_f64() < 1e-9);
+        let electrical_energy = state_model
+            .get_value(state, PHEV::ELECTRIC_FEATURE_NAME)
+            .unwrap();
+        assert!(electrical_energy.0 > 0.0);
 
-        let electrical_energy = get_electrical_energy_from_state(&result.updated_state);
-        assert!(electrical_energy.as_f64() > 0.0);
+        let liquid_fuel_energy = state_model
+            .get_value(state, PHEV::ELECTRIC_FEATURE_NAME)
+            .unwrap();
+        assert!(liquid_fuel_energy.0 < 1e-9);
 
-        let battery_percent_soc = get_battery_soc_percent(&vehicle, &result.updated_state);
-        assert!(battery_percent_soc < 100.0);
+        let battery_percent_soc = state_model
+            .get_value(state, PHEV::SOC_FEATURE_NAME)
+            .unwrap();
+        assert!(battery_percent_soc.0 < 100.0);
     }
 
     #[test]
     fn test_phev_energy_model_gas_and_electric() {
         let vehicle = mock_vehicle();
-        let initial = vehicle.initial_state();
+        let state_model = StateModel::empty()
+            .extend(vehicle.state_features())
+            .unwrap();
+        let mut state = state_model.initial_state();
 
         // now let's traverse a really long link to deplete the battery
         let distance = (Distance::new(100.0), DistanceUnit::Miles);
         let speed = (Speed::new(60.0), SpeedUnit::MilesPerHour);
         let grade = (Grade::new(0.0), GradeUnit::Decimal);
 
-        let result = vehicle
-            .consume_energy(speed, grade, distance, &initial)
+        vehicle
+            .consume_energy(speed, grade, distance, &state, &state_model)
             .unwrap();
 
-        let electrical_energy = get_electrical_energy_from_state(&result.updated_state);
-        let battery_percent_soc = get_battery_soc_percent(&vehicle, &result.updated_state);
+        let electrical_energy = state_model
+            .get_value(state, PHEV::ELECTRIC_FEATURE_NAME)
+            .unwrap();
+        let battery_percent_soc = state_model
+            .get_value(state, PHEV::SOC_FEATURE_NAME)
+            .unwrap();
+        let liquid_energy_1 = state_model
+            .get_value(state, PHEV::LIQUID_FEATURE_NAME)
+            .unwrap();
 
-        assert!(electrical_energy.as_f64() > 0.0);
-        assert!(battery_percent_soc < 1e-9);
+        // let result = vehicle
+        //     .consume_energy(speed, grade, distance, &initial)
+        //     .unwrap();
+
+        // let electrical_energy = get_electrical_energy_from_state(&result.updated_state);
+        // let battery_percent_soc = get_battery_soc_percent(&vehicle, &result.updated_state);
+
+        assert!(electrical_energy > StateVar::ZERO);
+        assert!(battery_percent_soc.0 < 1e-9);
+        assert!(liquid_energy_1 = StateVar::ZERO);
 
         // and then traverse the same distance but this time we should only use liquid_fuel energy
-        let result2 = vehicle
-            .consume_energy(speed, grade, distance, &result.updated_state)
+        vehicle
+            .consume_energy(speed, grade, distance, &state, &state_model)
             .unwrap();
 
-        let liquid_fuel_energy = get_liquid_fuel_energy_from_state(&result2.updated_state);
+        let liquid_energy_2 = state_model
+            .get_value(state, PHEV::LIQUID_FEATURE_NAME)
+            .unwrap();
 
-        assert!(liquid_fuel_energy.as_f64() > 0.0);
+        assert!(liquid_energy_2 > StateVar::ZERO);
     }
 }

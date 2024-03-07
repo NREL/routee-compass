@@ -41,47 +41,45 @@ impl EdgeTraversal {
         prev_edge_id: Option<EdgeId>,
         prev_state: &[StateVar],
         si: &SearchInstance,
-        // g: &RwLockReadGuard<Graph>,
-        // tm: &Arc<dyn TraversalModel>,
-        // um: &CostModel,
     ) -> Result<EdgeTraversal, SearchError> {
+        let mut result_state = prev_state.to_vec();
+        let mut access_cost = Cost::ZERO;
+
+        // find this traversal in the graph
         let (src, edge, dst) = si
             .directed_graph
             .edge_triplet_attrs(edge_id)
             .map_err(SearchError::GraphError)?;
 
-        let (access_state, access_cost) = prev_edge_id
-            .map(|prev_e| {
-                let prev_edge = si
-                    .directed_graph
-                    .get_edge(prev_e)
-                    .map_err(SearchError::GraphError)?;
-                let prev_src_v = si
-                    .directed_graph
-                    .get_vertex(prev_edge.src_vertex_id)
-                    .map_err(SearchError::GraphError)?;
+        // perform access traversal + access cost if a previous edge exists
+        if let Some(prev_e) = prev_edge_id {
+            let prev_edge = si
+                .directed_graph
+                .get_edge(prev_e)
+                .map_err(SearchError::GraphError)?;
+            let prev_src_v = si
+                .directed_graph
+                .get_vertex(prev_edge.src_vertex_id)
+                .map_err(SearchError::GraphError)?;
 
-                // we are coming from some previous edge and need to access the next edge first to proceed
-                // with traversal. if there is an access state, compute the access cost.
-                si.traversal_model
-                    .access_edge(prev_src_v, prev_edge, src, edge, dst, prev_state)
-                    .map_err(SearchError::TraversalModelFailure)
-                    .and_then(|next_state_opt| match next_state_opt {
-                        Some(next_state) => {
-                            let cost = si
-                                .cost_model
-                                .access_cost(prev_edge, edge, prev_state, &next_state)
-                                .map_err(SearchError::CostError)?;
-                            Ok((next_state, cost))
-                        }
-                        None => Ok((prev_state.to_owned(), Cost::ZERO)),
-                    })
-            })
-            .unwrap_or(Ok((prev_state.to_owned(), Cost::ZERO)))?;
+            si.traversal_model.access_edge(
+                prev_src_v,
+                prev_edge,
+                src,
+                edge,
+                dst,
+                &mut result_state,
+            )?;
 
-        let result_state = si
-            .traversal_model
-            .traverse_edge(src, edge, dst, &access_state)
+            let ac = si
+                .cost_model
+                .access_cost(prev_edge, edge, prev_state, &result_state)
+                .map_err(SearchError::CostError)?;
+            access_cost = access_cost + ac;
+        }
+
+        si.traversal_model
+            .traverse_edge(src, edge, dst, &mut result_state)
             .map_err(SearchError::TraversalModelFailure)?;
 
         let traversal_cost = si

@@ -15,7 +15,7 @@ use super::search_error::SearchError;
 /// been prepared for a specific query.
 pub struct SearchInstance {
     pub directed_graph: Arc<Graph>,
-    pub state_model: Arc<StateModel>,
+    pub state_model: StateModel,
     pub traversal_model: Arc<dyn TraversalModel>,
     pub cost_model: CostModel,
     pub frontier_model: Arc<dyn FrontierModel>,
@@ -33,10 +33,11 @@ impl SearchInstance {
     ) -> Result<Cost, SearchError> {
         let src_vertex = self.directed_graph.get_vertex(src)?;
         let dst_vertex = self.directed_graph.get_vertex(dst)?;
-        let state_estimate = self
-            .traversal_model
-            .estimate_traversal(src_vertex, dst_vertex, state)?;
-        let cost_estimate = self.cost_model.cost_estimate(state, &state_estimate)?;
+        let mut dst_state = state.to_vec();
+
+        self.traversal_model
+            .estimate_traversal(src_vertex, dst_vertex, &mut dst_state)?;
+        let cost_estimate = self.cost_model.cost_estimate(state, &dst_state)?;
         Ok(cost_estimate)
     }
 }

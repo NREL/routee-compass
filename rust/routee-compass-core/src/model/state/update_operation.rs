@@ -14,6 +14,7 @@ pub enum UpdateOperation {
     Multiply,
     Max,
     Min,
+    AddBounded(StateVar, StateVar),
     Function(GenericStateUpdateOp),
 }
 
@@ -25,6 +26,9 @@ impl UpdateOperation {
             UpdateOperation::Multiply => StateVar(prev.0 * next.0),
             UpdateOperation::Max => StateVar(prev.0.max(next.0)),
             UpdateOperation::Min => StateVar(prev.0.min(next.0)),
+            UpdateOperation::AddBounded(min, max) => {
+                StateVar(min.0.max(max.0.min(prev.0 + next.0)))
+            }
             UpdateOperation::Function(f) => f(prev, next),
         }
     }
