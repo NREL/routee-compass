@@ -1,6 +1,6 @@
 use crate::model::unit::{as_f64::AsF64, *};
 use allocative::Allocative;
-use derive_more::{Add, Div, Mul, Neg, Sum};
+use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,
@@ -21,6 +21,7 @@ use self::internal_float::InternalFloat;
     PartialOrd,
     Ord,
     Add,
+    Sub,
     Mul,
     Div,
     Sum,
