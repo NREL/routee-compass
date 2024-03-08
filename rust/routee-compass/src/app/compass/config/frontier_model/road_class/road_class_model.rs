@@ -2,6 +2,7 @@ use super::road_class_service::RoadClassFrontierService;
 use routee_compass_core::model::{
     frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
     property::edge::Edge,
+    state::state_model::StateModel,
     traversal::state::state_variable::StateVar,
 };
 use std::{collections::HashSet, sync::Arc};
@@ -17,6 +18,7 @@ impl FrontierModel for RoadClassFrontierModel {
         edge: &Edge,
         _state: &[StateVar],
         _previous_edge: Option<&Edge>,
+        _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         match &self.road_classes {
             None => Ok(true),

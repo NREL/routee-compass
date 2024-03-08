@@ -600,6 +600,13 @@ mod tests {
 
     #[test]
     fn test_speeds() {
+        let cwd_str = match std::env::current_dir() {
+            Ok(cwd_path) => String::from(cwd_path.to_str().unwrap_or("<unknown>")),
+            _ => String::from("<unknown>"),
+        };
+        println!("cwd           : {}", cwd_str);
+        println!("Cargo.toml dir: {}", env!("CARGO_MANIFEST_DIR"));
+
         // rust runs test and debug at different locations, which breaks the URLs
         // written in the referenced TOML files. here's a quick fix
         // turnaround that doesn't leak into anyone's VS Code settings.json files

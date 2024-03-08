@@ -162,9 +162,7 @@ impl SearchApp {
         &self,
         query: &serde_json::Value,
     ) -> Result<SearchInstance, SearchError> {
-        let traversal_model = self
-            .traversal_model_service
-            .build(query, self.state_model.clone())?;
+        let traversal_model = self.traversal_model_service.build(query)?;
         let cost_model = self
             .cost_model_service
             .build(query, self.state_model.clone())

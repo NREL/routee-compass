@@ -1,3 +1,4 @@
+use super::search_error::SearchError;
 use crate::model::{
     cost::cost_model::CostModel,
     frontier::frontier_model::FrontierModel,
@@ -8,8 +9,6 @@ use crate::model::{
     unit::Cost,
 };
 use std::sync::Arc;
-
-use super::search_error::SearchError;
 
 /// instances of read-only objects used for a search that have
 /// been prepared for a specific query.
@@ -31,12 +30,12 @@ impl SearchInstance {
         dst: VertexId,
         state: &[StateVar],
     ) -> Result<Cost, SearchError> {
-        let src_vertex = self.directed_graph.get_vertex(src)?;
-        let dst_vertex = self.directed_graph.get_vertex(dst)?;
+        let src = self.directed_graph.get_vertex(src)?;
+        let dst = self.directed_graph.get_vertex(dst)?;
         let mut dst_state = state.to_vec();
 
         self.traversal_model
-            .estimate_traversal(src_vertex, dst_vertex, &mut dst_state)?;
+            .estimate_traversal((src, dst), &mut dst_state, &self.state_model)?;
         let cost_estimate = self.cost_model.cost_estimate(state, &dst_state)?;
         Ok(cost_estimate)
     }

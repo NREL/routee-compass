@@ -2,7 +2,7 @@ use super::state::state_variable::StateVar;
 use super::traversal_model_error::TraversalModelError;
 use crate::model::property::{edge::Edge, vertex::Vertex};
 use crate::model::state::state_feature::StateFeature;
-
+use crate::model::state::state_model::StateModel;
 
 /// Dictates how state transitions occur while traversing a graph in a search algorithm.
 ///
@@ -33,10 +33,9 @@ pub trait TraversalModel: Send + Sync {
     /// Either a traversal result or an error.
     fn traverse_edge(
         &self,
-        src: &Vertex,
-        edge: &Edge,
-        dst: &Vertex,
+        trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVar>,
+        state_model: &StateModel,
     ) -> Result<(), TraversalModelError>;
 
     /// Updates the traversal state by accessing some destination edge
@@ -61,12 +60,9 @@ pub trait TraversalModel: Send + Sync {
     /// state updates due to access, None is returned.
     fn access_edge(
         &self,
-        v1: &Vertex,
-        src: &Edge,
-        v2: &Vertex,
-        dst: &Edge,
-        v3: &Vertex,
+        trajectory: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVar>,
+        state_model: &StateModel,
     ) -> Result<(), TraversalModelError>;
 
     /// Estimates the traversal state by traversing between two vertices without
@@ -83,74 +79,8 @@ pub trait TraversalModel: Send + Sync {
     /// Either a traversal result or an error.
     fn estimate_traversal(
         &self,
-        src: &Vertex,
-        dst: &Vertex,
+        od: (&Vertex, &Vertex),
         state: &mut Vec<StateVar>,
+        state_model: &StateModel,
     ) -> Result<(), TraversalModelError>;
-
-    // /// Serializes the traversal state into a JSON value.
-    // ///
-    // /// This default implementation can be overwritten to write stateful information
-    // /// to route and summary outputs.
-    // ///
-    // /// # Arguments
-    // ///
-    // /// * `state` - the state to serialize
-    // ///
-    // /// # Returns
-    // ///
-    // /// A JSON serialized version of the state. This does not need to include
-    // /// additional details such as the units (kph, hours, etc), which can be
-    // /// summarized in the serialize_state_info method.
-    // fn serialize_state(&self, _state: &[StateVar]) -> serde_json::Value {
-    //     serde_json::json!({})
-    // }
-
-    // /// Serializes other information about a traversal state as a JSON value.
-    // ///
-    // /// This default implementation can be overwritten to write stateful information
-    // /// to route and summary outputs.
-    // ///
-    // /// # Arguments
-    // ///
-    // /// * `state` - the state to serialize information from
-    // ///
-    // /// # Returns
-    // ///
-    // /// JSON containing information such as the units (kph, hours, etc) or other
-    // /// traversal info (charge events, days traveled, etc)
-    // fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
-    //     serde_json::json!({})
-    // }
-
-    // /// Serialization function called by Compass output processing code that
-    // /// writes both the state and the state info to a JSON value.
-    // ///
-    // /// # Arguments
-    // ///
-    // /// * `state` - the state to serialize information from
-    // ///
-    // /// # Returns
-    // ///
-    // /// JSON containing the state values and info described in `serialize_state`
-    // /// and `serialize_state_info`.
-    // fn serialize_state_with_info(&self, state: &[StateVar]) -> serde_json::Value {
-    //     use serde_json::Value as Json;
-    //     let mut summary = self.serialize_state(state);
-    //     let summary_info = match self.serialize_state_info(state) {
-    //         Json::Null => serde_json::Map::new().into_iter(),
-    //         Json::Object(m) => m.into_iter(),
-    //         other => {
-    //             // this is just a fallback implementation in case TraversalModel builders something
-    //             // other than what we expected
-    //             let mut m = serde_json::Map::new();
-    //             m.insert(String::from("info"), other);
-    //             m.into_iter()
-    //         }
-    //     };
-    //     for (k, v) in summary_info {
-    //         summary[k] = v;
-    //     }
-    //     summary
-    // }
 }

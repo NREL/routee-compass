@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 /// simple record type which couples the state variable index with the feature
 /// representation for a given state variable in the StateModel.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct StateModelEntry {
     pub index: usize,
     pub feature: StateFeature,

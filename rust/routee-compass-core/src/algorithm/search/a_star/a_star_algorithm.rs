@@ -124,10 +124,12 @@ pub fn run_a_star(
             let src_id = e.src_vertex_id;
             let dst_id = e.dst_vertex_id;
 
-            if !si
-                .frontier_model
-                .valid_frontier(e, &current_state, previous_edge)?
-            {
+            if !si.frontier_model.valid_frontier(
+                e,
+                &current_state,
+                previous_edge,
+                &si.state_model,
+            )? {
                 continue;
             }
             let et = EdgeTraversal::perform_traversal(
@@ -140,7 +142,7 @@ pub fn run_a_star(
                 .get(&src_id)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
-            let tentative_gscore = current_gscore + et.edge_cost();
+            let tentative_gscore = current_gscore + et.total_cost();
             let existing_gscore = traversal_costs
                 .get(&dst_id)
                 .unwrap_or(&Cost::INFINITY)
@@ -337,15 +339,14 @@ mod tests {
     use crate::model::frontier::default::no_restriction::NoRestriction;
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
+    use crate::model::road_network::edge_id::EdgeId;
     use crate::model::road_network::graph::Graph;
+    use crate::model::state::state_feature::StateFeature;
     use crate::model::state::state_model::StateModel;
     use crate::model::termination::termination_model::TerminationModel;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
-    
-    use crate::model::unit::DistanceUnit;
-    use crate::{model::road_network::edge_id::EdgeId};
+    use crate::model::unit::{Distance, DistanceUnit};
     use rayon::prelude::*;
-    use serde_json::json;
     use std::sync::Arc;
 
     fn build_mock_graph() -> Graph {
@@ -441,10 +442,15 @@ mod tests {
         // }));
 
         let state_model = Arc::new(
-            StateModel::new(&json![[
-                { "distance_unit": "kilometers" }
-            ]])
-            .unwrap(),
+            StateModel::empty()
+                .extend(vec![(
+                    String::from("distance"),
+                    StateFeature::Distance {
+                        distance_unit: DistanceUnit::Kilometers,
+                        initial: Distance::new(0.0),
+                    },
+                )])
+                .unwrap(),
         );
         let cost_model = CostModel::new(
             // vec![(String::from("distance"), 0usize)],
@@ -461,10 +467,7 @@ mod tests {
         let si = SearchInstance {
             directed_graph: Arc::new(build_mock_graph()),
             state_model: state_model.clone(),
-            traversal_model: Arc::new(DistanceTraversalModel::new(
-                state_model.clone(),
-                DistanceUnit::Meters,
-            )),
+            traversal_model: Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters)),
             cost_model,
             frontier_model: Arc::new(NoRestriction {}),
             termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),

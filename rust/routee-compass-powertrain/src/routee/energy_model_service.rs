@@ -1,8 +1,6 @@
 use super::energy_traversal_model::EnergyTraversalModel;
 use super::vehicle::VehicleType;
 use routee_compass_core::model::road_network::edge_heading::EdgeHeading;
-
-use routee_compass_core::model::state::state_model::StateModel;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
@@ -81,10 +79,9 @@ impl TraversalModelService for EnergyModelService {
     fn build(
         &self,
         parameters: &serde_json::Value,
-        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let arc_self = Arc::new(self.clone());
-        let model = EnergyTraversalModel::new(arc_self, parameters, state_model)?;
+        let model = EnergyTraversalModel::new(arc_self, parameters)?;
         Ok(Arc::new(model))
     }
 }

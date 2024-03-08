@@ -15,29 +15,22 @@ use std::sync::Arc;
 
 pub struct SpeedTraversalModel {
     engine: Arc<SpeedTraversalEngine>,
-    state_model: Arc<StateModel>,
 }
 
 impl SpeedTraversalModel {
-    pub fn new(
-        engine: Arc<SpeedTraversalEngine>,
-        state_model: Arc<StateModel>,
-    ) -> SpeedTraversalModel {
-        SpeedTraversalModel {
-            engine,
-            state_model,
-        }
+    pub fn new(engine: Arc<SpeedTraversalEngine>) -> SpeedTraversalModel {
+        SpeedTraversalModel { engine }
     }
 }
 
 impl TraversalModel for SpeedTraversalModel {
     fn traverse_edge(
         &self,
-        _src: &Vertex,
-        edge: &Edge,
-        _dst: &Vertex,
+        trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVar>,
+        state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
+        let (_, edge, _) = trajectory;
         let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.engine.distance_unit);
         let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let time = Time::create(
@@ -48,28 +41,26 @@ impl TraversalModel for SpeedTraversalModel {
             self.engine.time_unit,
         )?;
 
-        self.state_model.update_add(state, "time", &time.into())?;
+        state_model.update_add(state, "time", &time.into())?;
         Ok(())
     }
 
     fn access_edge(
         &self,
-        _v1: &Vertex,
-        _src: &Edge,
-        _v2: &Vertex,
-        _dst: &Edge,
-        _v3: &Vertex,
+        _trajectory: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
         _state: &mut Vec<StateVar>,
+        _state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         Ok(())
     }
 
     fn estimate_traversal(
         &self,
-        src: &Vertex,
-        dst: &Vertex,
+        od: (&Vertex, &Vertex),
         state: &mut Vec<StateVar>,
+        state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
+        let (src, dst) = od;
         let distance =
             haversine::coord_distance(&src.coordinate, &dst.coordinate, self.engine.distance_unit)
                 .map_err(TraversalModelError::NumericError)?;
@@ -85,8 +76,7 @@ impl TraversalModel for SpeedTraversalModel {
             self.engine.distance_unit,
             self.engine.time_unit,
         )?;
-        self.state_model
-            .update_add(state, "time", &StateVar(time.as_f64()))?;
+        state_model.update_add(state, "time", &StateVar(time.as_f64()))?;
 
         Ok(())
     }
@@ -111,14 +101,13 @@ pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, Traver
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::unit::{Distance, SpeedUnit, TimeUnit};
+    use crate::model::unit::{Distance, DistanceUnit, SpeedUnit, TimeUnit};
     use crate::model::{
         property::{edge::Edge, vertex::Vertex},
         road_network::{edge_id::EdgeId, vertex_id::VertexId},
     };
     use crate::util::geo::coord::InternalCoord;
     use geo::coord;
-    use serde_json::json;
     use std::path::PathBuf;
 
     fn mock_vertex() -> Vertex {
@@ -169,19 +158,33 @@ mod tests {
         )
         .unwrap();
         let state_model = Arc::new(
-            StateModel::new(&json!({
-                "distance": { "type": "distance", "unit": "kilometers"},
-                "time": { "type": "time", "unit": "seconds"}
-            }))
-            .unwrap(),
+            StateModel::empty()
+                .extend(vec![
+                    (
+                        String::from("distance"),
+                        StateFeature::Distance {
+                            distance_unit: DistanceUnit::Kilometers,
+                            initial: Distance::new(0.0),
+                        },
+                    ),
+                    (
+                        String::from("time"),
+                        StateFeature::Time {
+                            time_unit: TimeUnit::Minutes,
+                            initial: Time::new(0.0),
+                        },
+                    ),
+                ])
+                .unwrap(),
         );
-        let model: SpeedTraversalModel =
-            SpeedTraversalModel::new(Arc::new(engine), state_model.clone());
+        let model: SpeedTraversalModel = SpeedTraversalModel::new(Arc::new(engine));
         let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        model.traverse_edge(&v, &e1, &v, &mut state).unwrap();
+        model
+            .traverse_edge((&v, &e1, &v), &mut state, &state_model)
+            .unwrap();
 
         let expected = 36.0;
         // approx_eq(result.total_cost.into(), expected, 0.001);
@@ -200,18 +203,33 @@ mod tests {
         )
         .unwrap();
         let state_model = Arc::new(
-            StateModel::new(&json!({
-                "distance": { "type": "distance", "unit": "kilometers"},
-                "time": { "type": "time", "unit": "seconds"}
-            }))
-            .unwrap(),
+            StateModel::empty()
+                .extend(vec![
+                    (
+                        String::from("distance"),
+                        StateFeature::Distance {
+                            distance_unit: DistanceUnit::Kilometers,
+                            initial: Distance::new(0.0),
+                        },
+                    ),
+                    (
+                        String::from("time"),
+                        StateFeature::Time {
+                            time_unit: TimeUnit::Minutes,
+                            initial: Time::new(0.0),
+                        },
+                    ),
+                ])
+                .unwrap(),
         );
-        let model = SpeedTraversalModel::new(Arc::new(engine), state_model.clone());
+        let model = SpeedTraversalModel::new(Arc::new(engine));
         let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36,000 milliseconds ((0.1/10) * 3600000)
-        model.traverse_edge(&v, &e1, &v, &mut state).unwrap();
+        model
+            .traverse_edge((&v, &e1, &v), &mut state, &state_model)
+            .unwrap();
         let expected = 36000.0;
         // approx_eq(result.total_cost.into(), expected, 0.001);
         // approx_eq(result.updated_state[1].into(), expected, 0.001);

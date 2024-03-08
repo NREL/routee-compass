@@ -16,7 +16,6 @@ pub struct EnergyTraversalModel {
     pub energy_model_service: Arc<EnergyModelService>,
     pub time_model: Arc<dyn TraversalModel>,
     pub vehicle: Arc<dyn VehicleType>,
-    pub state_model: Arc<StateModel>,
 }
 
 impl TraversalModel for EnergyTraversalModel {
@@ -27,18 +26,19 @@ impl TraversalModel for EnergyTraversalModel {
 
     fn traverse_edge(
         &self,
-        src: &Vertex,
-        edge: &Edge,
-        dst: &Vertex,
+        trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVar>,
+        state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
+        let (_, edge, _) = trajectory;
         let distance =
             BASE_DISTANCE_UNIT.convert(edge.distance, self.energy_model_service.distance_unit);
         let prev = state.to_vec();
 
         // perform time traversal
-        self.time_model.traverse_edge(src, edge, dst, state)?;
-        let time_delta_var = self.state_model.get_delta(&prev, state, "time")?;
+        self.time_model
+            .traverse_edge(trajectory, state, state_model)?;
+        let time_delta_var = state_model.get_delta(&prev, state, "time")?;
         let time_delta = Time::new(time_delta_var.0);
 
         // perform vehicle energy traversal
@@ -49,7 +49,7 @@ impl TraversalModel for EnergyTraversalModel {
             (grade, self.energy_model_service.grade_table_grade_unit),
             (distance, self.energy_model_service.distance_unit),
             state,
-            &self.state_model,
+            state_model,
         )?;
 
         Ok(())
@@ -57,15 +57,12 @@ impl TraversalModel for EnergyTraversalModel {
 
     fn access_edge(
         &self,
-        v1: &Vertex,
-        src: &Edge,
-        v2: &Vertex,
-        dst: &Edge,
-        v3: &Vertex,
+        trajectory: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVar>,
+        state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         // defer access updates to time model
-        self.time_model.access_edge(v1, src, v2, dst, v3, state)
+        self.time_model.access_edge(trajectory, state, state_model)
         // match self.energy_model_service.headings_table.as_deref() {
         //     None => Ok(None),
         //     Some(headings_table) => {
@@ -118,10 +115,11 @@ impl TraversalModel for EnergyTraversalModel {
 
     fn estimate_traversal(
         &self,
-        src: &Vertex,
-        dst: &Vertex,
+        od: (&Vertex, &Vertex),
         state: &mut Vec<StateVar>,
+        state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
+        let (src, dst) = od;
         let distance = haversine::coord_distance(
             &src.coordinate,
             &dst.coordinate,
@@ -133,11 +131,11 @@ impl TraversalModel for EnergyTraversalModel {
             return Ok(());
         }
 
-        self.time_model.estimate_traversal(src, dst, state)?;
+        self.time_model.estimate_traversal(od, state, state_model)?;
         self.vehicle.best_case_energy_state(
             (distance, self.energy_model_service.distance_unit),
             state,
-            &self.state_model,
+            state_model,
         )?;
 
         Ok(())
@@ -148,11 +146,8 @@ impl EnergyTraversalModel {
     pub fn new(
         energy_model_service: Arc<EnergyModelService>,
         conf: &serde_json::Value,
-        state_model: Arc<StateModel>,
     ) -> Result<EnergyTraversalModel, TraversalModelError> {
-        let time_model = energy_model_service
-            .time_model_service
-            .build(conf, state_model.clone())?;
+        let time_model = energy_model_service.time_model_service.build(conf)?;
 
         let prediction_model_name = conf
             .get("model_name".to_string())
@@ -187,7 +182,6 @@ impl EnergyTraversalModel {
             energy_model_service,
             time_model,
             vehicle,
-            state_model,
         })
     }
 }
@@ -211,7 +205,6 @@ mod tests {
         },
         util::geo::coord::InternalCoord,
     };
-    use serde_json::json;
     use std::{collections::HashMap, path::PathBuf};
 
     #[test]
@@ -262,10 +255,24 @@ mod tests {
         .unwrap();
 
         let state_model = Arc::new(
-            StateModel::new(&json!({
-                "distance": "kilometers"
-            }))
-            .unwrap(),
+            StateModel::empty()
+                .extend(vec![
+                    (
+                        String::from("distance"),
+                        StateFeature::Distance {
+                            distance_unit: DistanceUnit::Kilometers,
+                            initial: Distance::ZERO,
+                        },
+                    ),
+                    (
+                        String::from("time"),
+                        StateFeature::Time {
+                            time_unit: TimeUnit::Minutes,
+                            initial: Time::ZERO,
+                        },
+                    ),
+                ])
+                .unwrap(),
         );
         let camry = ICE::new("Toyota_Camry".to_string(), model_record).unwrap();
 
@@ -295,11 +302,15 @@ mod tests {
         let conf = serde_json::json!({
             "model_name": "Toyota_Camry",
         });
-        let model = EnergyTraversalModel::new(arc_service, &conf, state_model.clone()).unwrap();
-        let mut state = state_model.initial_state().unwrap();
+        let model = EnergyTraversalModel::new(arc_service, &conf).unwrap();
+        let updated_state_model = state_model.extend(model.state_features()).unwrap();
+        println!("{:?}", updated_state_model.state_model_vec());
+        let mut state = updated_state_model.initial_state().unwrap();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        let result = model.traverse_edge(&v, &e1, &v, &mut state).unwrap();
+        let result = model
+            .traverse_edge((&v, &e1, &v), &mut state, &state_model)
+            .unwrap();
         println!("{:?}", result);
     }
 }
