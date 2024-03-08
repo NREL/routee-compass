@@ -63,24 +63,6 @@ pub trait VehicleType: Send + Sync {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError>;
 
-    // /// Serialize the state of the vehicle into JSON
-    // ///
-    // /// Arguments:
-    // /// * `state` - The state of the vehicle
-    // ///
-    // /// Returns:
-    // /// * `serde_json::Value` - The serialized state
-    // fn serialize_state(&self, state: &Vec<StateVar>) -> serde_json::Value;
-
-    // /// Serialize any supplemental state information (like units) into JSON
-    // ///
-    // /// Arguments:
-    // /// * `state` - The state of the vehicle
-    // ///
-    // /// Returns:
-    // /// * `serde_json::Value` - The serialized state information
-    // fn serialize_state_info(&self, state: &Vec<StateVar>) -> serde_json::Value;
-
     /// Give the vehicle a chance to update itself from the incoming query
     ///
     /// Arguments:
