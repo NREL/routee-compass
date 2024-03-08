@@ -94,15 +94,12 @@ impl OutputPlugin for TraversalPlugin {
 
 #[cfg(test)]
 mod tests {
-    
-    
-    
-    use routee_compass_core::{
-        util::{fs::read_utils::read_raw_file, geo::geo_io_utils::parse_linestring},
+
+    use routee_compass_core::util::{
+        fs::read_utils::read_raw_file, geo::geo_io_utils::parse_linestring,
     };
-    
+
     use std::path::PathBuf;
-    
 
     fn mock_geometry_file() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
