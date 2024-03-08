@@ -5,7 +5,10 @@ use routee_compass_core::model::{
         state_model::StateModel,
     },
     traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
-    unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    unit::{
+        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
+        SpeedUnit,
+    },
 };
 use std::sync::Arc;
 
@@ -44,6 +47,7 @@ impl VehicleType for BEV {
     }
 
     fn state_features(&self) -> Vec<(String, StateFeature)> {
+        let initial_soc = self.starting_battery_energy.as_f64() / self.battery_capacity.as_f64();
         vec![
             (
                 String::from(BEV::ENERGY_FEATURE_NAME),
@@ -57,7 +61,9 @@ impl VehicleType for BEV {
                 StateFeature::Custom {
                     name: String::from("soc"),
                     unit: String::from("percent"),
-                    format: CustomFeatureFormat::FloatingPoint { initial: 0.0 },
+                    format: CustomFeatureFormat::FloatingPoint {
+                        initial: initial_soc,
+                    },
                 },
             ),
         ]
@@ -109,30 +115,17 @@ impl VehicleType for BEV {
             &StateVar::ZERO,
             &self.battery_capacity.into(),
         )?;
-        // let updated_state = update_state(state, electrical_energy, self.battery_capacity);
+        let diff_pct = StateVar(electrical_energy.as_f64() / self.battery_capacity.as_f64());
+        state_model.update_add_bounded(
+            state,
+            BEV::SOC_FEATURE_NAME,
+            &diff_pct,
+            &StateVar::ZERO,
+            &StateVar::ONE,
+        )?;
 
         Ok(())
-        // Ok(VehicleEnergyResult {
-        //     energy: electrical_energy,
-        //     energy_unit: electrical_energy_unit,
-        //     updated_state,
-        // })
     }
-    // fn serialize_state(&self, state: &Vec<StateVar>) -> serde_json::Value {
-    //     let energy_electric = get_electrical_energy_from_state(state);
-    //     let battery_soc_percent = get_battery_soc_percent(self, state);
-    //     serde_json::json!({
-    //         "energy_electric": energy_electric.as_f64(),
-    //         "battery_soc_percent": battery_soc_percent,
-    //     })
-    // }
-
-    // fn serialize_state_info(&self, _state: &Vec<StateVar>) -> serde_json::Value {
-    //     let battery_energy_unit = self.battery_energy_unit;
-    //     serde_json::json!({
-    //         "energy_unit": battery_energy_unit.to_string(),
-    //     })
-    // }
 
     fn update_from_query(
         &self,
@@ -164,51 +157,6 @@ impl VehicleType for BEV {
         Ok(Arc::new(new_bev))
     }
 }
-
-// fn update_state(
-//     state: &Vec<StateVar>,
-//     electrical_energy: Energy,
-//     battery_energy_capacity: Energy,
-// ) -> TraversalState {
-//     let mut updated_state = Vec::with_capacity(state.len());
-
-//     // accumulated electrical energy
-//     updated_state.push(state[0] + electrical_energy.into());
-
-//     // remaining battery energy
-//     let current_battery_energy = get_remaining_battery_energy_from_state(state);
-
-//     // don't let the battery energy go below 0 or above the battery capacity
-//     let new_battery_energy = (current_battery_energy - electrical_energy)
-//         .max(Energy::new(0.0))
-//         .min(battery_energy_capacity);
-
-//     updated_state.push(new_battery_energy.into());
-
-//     updated_state
-// }
-
-// fn get_electrical_energy_from_state(state: &Vec<StateVar>) -> Energy {
-//     Energy::new(state[0].0)
-// }
-
-// fn get_remaining_battery_energy_from_state(state: &Vec<StateVar>) -> Energy {
-//     Energy::new(state[1].0)
-// }
-
-// fn get_battery_soc_percent(vehicle: &BEV, state: &Vec<StateVar>) -> f64 {
-//     let battery_energy_unit = vehicle.battery_energy_unit;
-
-//     let battery_capacity_kwh =
-//         battery_energy_unit.convert(vehicle.battery_capacity, EnergyUnit::KilowattHours);
-
-//     let remaining_battery_energy = get_remaining_battery_energy_from_state(state);
-
-//     let remaining_battery_energy_kwh =
-//         battery_energy_unit.convert(remaining_battery_energy, EnergyUnit::KilowattHours);
-
-//     (remaining_battery_energy_kwh.as_f64() / battery_capacity_kwh.as_f64()) * 100.0
-// }
 
 #[cfg(test)]
 mod tests {
