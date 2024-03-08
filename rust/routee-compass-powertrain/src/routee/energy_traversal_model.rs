@@ -309,7 +309,7 @@ mod tests {
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
         let result = model
-            .traverse_edge((&v, &e1, &v), &mut state, &state_model)
+            .traverse_edge((&v, &e1, &v), &mut state, &updated_state_model)
             .unwrap();
         println!("{:?}", result);
     }

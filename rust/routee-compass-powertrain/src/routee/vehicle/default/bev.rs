@@ -39,6 +39,10 @@ impl BEV {
             battery_energy_unit,
         }
     }
+
+    fn as_soc_percent(&self, energy: Energy) -> f64 {
+        (energy.as_f64() / self.battery_capacity.as_f64()) * 100.0
+    }
 }
 
 impl VehicleType for BEV {
@@ -47,7 +51,7 @@ impl VehicleType for BEV {
     }
 
     fn state_features(&self) -> Vec<(String, StateFeature)> {
-        let initial_soc = self.starting_battery_energy.as_f64() / self.battery_capacity.as_f64();
+        let initial_soc = self.as_soc_percent(self.starting_battery_energy);
         vec![
             (
                 String::from(BEV::ENERGY_FEATURE_NAME),
@@ -107,21 +111,16 @@ impl VehicleType for BEV {
         let (electrical_energy, _) = self
             .prediction_model_record
             .predict(speed, grade, distance)?;
+        state_model.update_add(state, BEV::ENERGY_FEATURE_NAME, &electrical_energy.into())?;
 
-        state_model.update_add_bounded(
-            state,
-            BEV::ENERGY_FEATURE_NAME,
-            &electrical_energy.into(),
-            &StateVar::ZERO,
-            &self.battery_capacity.into(),
-        )?;
-        let diff_pct = StateVar(electrical_energy.as_f64() / self.battery_capacity.as_f64());
+        // update state of charge (SOC). energy has inverse relationship with SOC.
+        let soc_diff_percent = StateVar(-self.as_soc_percent(electrical_energy));
         state_model.update_add_bounded(
             state,
             BEV::SOC_FEATURE_NAME,
-            &diff_pct,
+            &soc_diff_percent,
             &StateVar::ZERO,
-            &StateVar::ONE,
+            &StateVar::ONE_HUNDRED,
         )?;
 
         Ok(())
@@ -144,7 +143,8 @@ impl VehicleType for BEV {
                 "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),
             ));
         }
-        let starting_battery_energy = self.battery_capacity * (starting_soc_percent / 100.0);
+        let soc_percent = self.as_soc_percent(Energy::new(starting_soc_percent));
+        let starting_battery_energy = Energy::new(soc_percent);
 
         let new_bev = BEV {
             name: self.name.clone(),
@@ -169,7 +169,7 @@ mod tests {
     use std::path::PathBuf;
 
     fn mock_vehicle(starting_soc_percent: f64) -> BEV {
-        let model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        let model_file_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
             .join("test")
@@ -197,7 +197,7 @@ mod tests {
         .unwrap();
 
         let battery_capacity = Energy::new(60.0);
-        let staring_battery_energy = battery_capacity * (starting_soc_percent / 100.0);
+        let staring_battery_energy: Energy = battery_capacity * (starting_soc_percent / 100.0);
 
         BEV::new(
             "Chevy_Bolt".to_string(),
@@ -226,16 +226,17 @@ mod tests {
             .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
-        let electrical_energy = state_model
+        let elec = state_model
             .get_value(&state, BEV::ENERGY_FEATURE_NAME)
             .unwrap();
-        assert!(electrical_energy.0 > 0.0);
+        assert!(elec.0 > 0.0, "elec energy {} should be > 0.0", elec);
 
-        let battery_percent_soc = state_model
+        let soc = state_model
             .get_value(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
-        assert!(battery_percent_soc.0 < 60.0);
-        assert!(battery_percent_soc.0 > 40.0);
+
+        assert!(soc.0 < 60.0, "soc {} should be < 60.0%", soc);
+        assert!(soc.0 > 40.0, "soc {} should be > 40.0%", soc);
     }
 
     #[test]
@@ -256,16 +257,16 @@ mod tests {
             .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
-        let electrical_energy = state_model
+        let elec = state_model
             .get_value(&state, BEV::ENERGY_FEATURE_NAME)
             .unwrap();
-        assert!(electrical_energy.0 < 0.0);
+        assert!(elec.0 < 0.0, "elec energy {} should be < 0 (regen)", elec);
 
-        let battery_percent_soc = state_model
+        let soc = state_model
             .get_value(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
-        assert!(battery_percent_soc.0 > 20.0);
-        assert!(battery_percent_soc.0 < 30.0);
+        assert!(soc.0 > 20.0, "soc {} should be > 20.0", soc);
+        assert!(soc.0 < 30.0, "soc {} should be < 30.0", soc);
     }
 
     #[test]
