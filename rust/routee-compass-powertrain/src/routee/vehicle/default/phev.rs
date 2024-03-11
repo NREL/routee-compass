@@ -8,7 +8,10 @@ use routee_compass_core::model::{
         state_model::StateModel,
     },
     traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
-    unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    unit::{
+        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
+        SpeedUnit,
+    },
 };
 use std::sync::Arc;
 
@@ -175,9 +178,8 @@ impl VehicleType for PHEV {
                 "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),
             ));
         }
-        let soc_percent =
-            vehicle_ops::as_soc_percent(&Energy::new(starting_soc_percent), &self.battery_capacity);
-        let starting_battery_energy = Energy::new(soc_percent);
+        let starting_battery_energy =
+            Energy::new(starting_soc_percent * self.battery_capacity.as_f64());
 
         let new_phev = PHEV {
             name: self.name.clone(),

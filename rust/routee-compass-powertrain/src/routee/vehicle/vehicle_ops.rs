@@ -24,7 +24,7 @@ pub fn update_soc_percent(
     state_model: &StateModel,
 ) -> Result<(), StateError> {
     let start_soc = state_model.get_custom_f64(state, feature_name)?;
-    let start_battery = max.as_f64() * start_soc;
+    let start_battery = max.as_f64() * (start_soc / 100.0);
     let current_soc = soc_from_battery_and_delta(&Energy::new(start_battery), delta, max);
     state_model.set_custom_f64(state, feature_name, &current_soc)
 }
@@ -45,8 +45,7 @@ pub fn update_soc_percent(
 /// the remaining battery as a percentage [0, 100] %
 pub fn as_soc_percent(remaining_battery: &Energy, max_battery: &Energy) -> f64 {
     let percent_remaining = (remaining_battery.as_f64() / max_battery.as_f64()) * 100.0;
-    let percent_remaining_bounded = percent_remaining.max(0.0).min(100.0);
-    100.0 - percent_remaining_bounded
+    percent_remaining.max(0.0).min(100.0)
 }
 
 /// a capacitated vehicle's state of charge (SOC) is the inverse of the
@@ -71,6 +70,5 @@ pub fn soc_from_battery_and_delta(
 ) -> f64 {
     let current_energy = *start_battery - *energy_used;
     let percent_remaining = (current_energy.as_f64() / max_battery.as_f64()) * 100.0;
-    let percent_remaining_bounded = percent_remaining.max(0.0).min(100.0);
-    100.0 - percent_remaining_bounded
+    percent_remaining.max(0.0).min(100.0)
 }

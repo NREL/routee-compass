@@ -50,10 +50,8 @@ impl VehicleType for BEV {
     }
 
     fn state_features(&self) -> Vec<(String, StateFeature)> {
-        let initial_soc = vehicle_ops::as_soc_percent(
-            &self.starting_battery_energy,
-            &self.starting_battery_energy,
-        );
+        let initial_soc =
+            vehicle_ops::as_soc_percent(&self.starting_battery_energy, &self.battery_capacity);
         vec![
             (
                 String::from(BEV::ENERGY_FEATURE_NAME),
@@ -160,11 +158,9 @@ impl VehicleType for BEV {
                 "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),
             ));
         }
-        let soc_percent = vehicle_ops::as_soc_percent(
-            &Energy::new(starting_soc_percent),
-            &self.starting_battery_energy,
-        );
-        let starting_battery_energy = Energy::new(soc_percent);
+
+        let starting_battery_energy =
+            Energy::new(starting_soc_percent * self.battery_capacity.as_f64());
 
         let new_bev = BEV {
             name: self.name.clone(),
