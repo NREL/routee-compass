@@ -255,7 +255,7 @@ fn get_phev_energy(
 
 #[cfg(test)]
 mod tests {
-    use routee_compass_core::model::unit::{EnergyRate, EnergyRateUnit};
+    use routee_compass_core::model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit};
 
     use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
 
@@ -346,7 +346,7 @@ mod tests {
                 &EnergyUnit::KilowattHours,
             )
             .unwrap();
-        assert!(elec.0 > 0.0, "elec energy {} should be > 0", elec);
+        assert!(elec.as_f64() > 0.0, "elec energy {} should be > 0", elec);
 
         let liquid = state_model
             .get_energy(
@@ -356,7 +356,7 @@ mod tests {
             )
             .unwrap();
         assert!(
-            liquid.0 < 1e-9,
+            liquid.as_f64() < 1e-9,
             "liquid energy {} should be miniscule, < {}",
             liquid,
             1e-9
@@ -365,7 +365,7 @@ mod tests {
         let soc = state_model
             .get_custom_f64(&state, PHEV::SOC_FEATURE_NAME)
             .unwrap();
-        assert!(soc.0 < 100.0, "soc {} should be < 100%", soc);
+        assert!(soc < 100.0, "soc {} should be < 100%", soc);
     }
 
     #[test]
@@ -403,12 +403,9 @@ mod tests {
             )
             .unwrap();
 
-        assert!(elec > StateVar::ZERO, "elec energy {} should be > 0", elec);
-        assert!(soc.0 < 1e-9, "soc {} should be miniscule, < {}", soc, 1e-9);
-        assert!(
-            liquid == StateVar::ZERO,
-            "should not have used liquid energy"
-        );
+        assert!(elec > Energy::ZERO, "elec energy {} should be > 0", elec);
+        assert!(soc < 1e-9, "soc {} should be miniscule, < {}", soc, 1e-9);
+        assert!(liquid == Energy::ZERO, "should not have used liquid energy");
 
         // and then traverse the same distance but this time we should only use liquid_fuel energy
         vehicle
@@ -423,6 +420,6 @@ mod tests {
             )
             .unwrap();
 
-        assert!(liquid_energy_2 > StateVar::ZERO);
+        assert!(liquid_energy_2 > Energy::ZERO);
     }
 }
