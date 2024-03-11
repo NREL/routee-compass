@@ -298,7 +298,7 @@ impl StateModel {
     ) -> Result<(), StateError> {
         let prev_distance = self.get_distance(state, name, from_unit)?;
         let next_distance = prev_distance + *edge_distance;
-        self.set_distance(state, "time", &next_distance, from_unit)
+        self.set_distance(state, name, &next_distance, from_unit)
     }
 
     pub fn add_time(
@@ -310,7 +310,7 @@ impl StateModel {
     ) -> Result<(), StateError> {
         let prev_time = self.get_time(state, name, from_unit)?;
         let next_time = prev_time + *edge_time;
-        self.set_time(state, "time", &next_time, from_unit)
+        self.set_time(state, name, &next_time, from_unit)
     }
 
     pub fn add_energy(
@@ -322,7 +322,7 @@ impl StateModel {
     ) -> Result<(), StateError> {
         let prev_energy = self.get_energy(state, name, from_unit)?;
         let next_energy = prev_energy + *edge_energy;
-        self.set_energy(state, "time", &next_energy, from_unit)
+        self.set_energy(state, name, &next_energy, from_unit)
     }
 
     pub fn set_distance(
@@ -411,102 +411,6 @@ impl StateModel {
         let encoded_value = format.encode_bool(value)?;
         self.update_state(state, name, &encoded_value, UpdateOperation::Replace)
     }
-
-    // /// convenience method for state updates where the update operation
-    // /// is "add".
-    // ///
-    // /// # Arguments
-    // ///
-    // /// * `state` - the state to update
-    // /// * `name`  - feature name to update
-    // /// * `value` - new value to apply
-    // fn update_add(
-    //     &self,
-    //     state: &mut [StateVar],
-    //     name: &str,
-    //     value: &StateVar,
-    // ) -> Result<(), StateError> {
-    //     self.update_state(state, name, value, UpdateOperation::Add)
-    // }
-
-    // /// convenience method for state updates where the update operation
-    // /// is "replace".
-    // ///
-    // /// * `state` - the state to update
-    // /// * `name`  - feature name to update
-    // /// * `value` - new value to apply
-    // fn update_replace(
-    //     &self,
-    //     state: &mut [StateVar],
-    //     name: &str,
-    //     value: &StateVar,
-    // ) -> Result<(), StateError> {
-    //     self.update_state(state, name, value, UpdateOperation::Replace)
-    // }
-
-    // /// convenience method for state updates where the update operation
-    // /// is "multiply".
-    // ///
-    // /// * `state` - the state to update
-    // /// * `name`  - feature name to update
-    // /// * `value` - new value to apply
-    // fn update_multiply(
-    //     &self,
-    //     state: &mut [StateVar],
-    //     name: &str,
-    //     value: &StateVar,
-    // ) -> Result<(), StateError> {
-    //     self.update_state(state, name, value, UpdateOperation::Multiply)
-    // }
-
-    // /// convenience method for state updates where the update operation
-    // /// is "max".
-    // ///
-    // /// * `state` - the state to update
-    // /// * `name`  - feature name to update
-    // /// * `value` - new value to apply
-    // fn update_max(
-    //     &self,
-    //     state: &mut [StateVar],
-    //     name: &str,
-    //     value: &StateVar,
-    // ) -> Result<(), StateError> {
-    //     self.update_state(state, name, value, UpdateOperation::Max)
-    // }
-
-    // /// convenience method for state updates where the update operation
-    // /// is "min".
-    // ///
-    // /// * `state` - the state to update
-    // /// * `name`  - feature name to update
-    // /// * `value` - new value to apply
-    // fn update_min(
-    //     &self,
-    //     state: &mut [StateVar],
-    //     name: &str,
-    //     value: &StateVar,
-    // ) -> Result<(), StateError> {
-    //     self.update_state(state, name, value, UpdateOperation::Min)
-    // }
-
-    // /// convenience method for state updates where the update operation
-    // /// is "add".
-    // ///
-    // /// # Arguments
-    // ///
-    // /// * `state` - the state to update
-    // /// * `name`  - feature name to update
-    // /// * `value` - new value to apply
-    // fn update_add_bounded(
-    //     &self,
-    //     state: &mut [StateVar],
-    //     name: &str,
-    //     value: &StateVar,
-    //     min: &StateVar,
-    //     max: &StateVar,
-    // ) -> Result<(), StateError> {
-    //     self.update_state(state, name, value, UpdateOperation::AddBounded(*min, *max))
-    // }
 
     /// performs a state update for a feature name and value by applying some
     /// update operation that handles combining the previous and next values.
