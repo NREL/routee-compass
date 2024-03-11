@@ -345,7 +345,7 @@ mod tests {
     use crate::model::state::state_model::StateModel;
     use crate::model::termination::termination_model::TerminationModel;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
-    use crate::model::unit::{Distance, DistanceUnit};
+    use crate::model::unit::{Distance, DistanceUnit, Time};
     use rayon::prelude::*;
     use std::sync::Arc;
 
@@ -433,14 +433,6 @@ mod tests {
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
-        // let graph = build_mock_graph();
-        // let driver_dg = Arc::new(DriverReadOnlyLock::new(graph));
-
-        // // let no_restriction: Arc<dyn FrontierModel> = Arc::new(no_restriction::NoRestriction {});
-        // let driver_rm = Arc::new(DriverReadOnlyLock::new(TerminationModel::IterationsLimit {
-        //     limit: 20,
-        // }));
-
         let state_model = Arc::new(
             StateModel::empty()
                 .extend(vec![(
@@ -478,21 +470,6 @@ mod tests {
             .clone()
             .into_par_iter()
             .map(|(o, d, _expected)| {
-                // let dg_inner = Arc::new(driver_dg.read_only());
-                // let dist_tm: Arc<dyn TraversalModel> =
-                //     Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters));
-                // let dist_um: CostModel = CostModel::new(
-                //     vec![(String::from("distance"), 0usize)],
-                //     state_model,
-                //     Arc::new(HashMap::from([(
-                //         String::from("distance"),
-                //         VehicleCostRate::Raw,
-                //     )])),
-                //     Arc::new(HashMap::new()),
-                //     CostAggregation::Sum,
-                // )?;
-                // let fm_inner = Arc::new(NoRestriction {});
-                // let rm_inner = Arc::new(driver_rm.read_only());
                 run_a_star(o, Some(d), &si).map(|search_result| search_result.tree)
             })
             .collect();
