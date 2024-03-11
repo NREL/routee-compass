@@ -167,7 +167,7 @@ impl VehicleType for BEV {
 
 #[cfg(test)]
 mod tests {
-    use routee_compass_core::model::unit::{EnergyRate, EnergyRateUnit};
+    use routee_compass_core::model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit};
 
     use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
 
@@ -236,14 +236,14 @@ mod tests {
         let elec = state_model
             .get_energy(&state, BEV::ENERGY_FEATURE_NAME, &EnergyUnit::KilowattHours)
             .unwrap();
-        assert!(elec.0 > 0.0, "elec energy {} should be > 0.0", elec);
+        assert!(elec.as_f64() > 0.0, "elec energy {} should be > 0.0", elec);
 
         let soc = state_model
             .get_custom_f64(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
 
-        assert!(soc.0 < 60.0, "soc {} should be < 60.0%", soc);
-        assert!(soc.0 > 40.0, "soc {} should be > 40.0%", soc);
+        assert!(soc < 60.0, "soc {} should be < 60.0%", soc);
+        assert!(soc > 40.0, "soc {} should be > 40.0%", soc);
     }
 
     #[test]
@@ -267,13 +267,17 @@ mod tests {
         let elec = state_model
             .get_energy(&state, BEV::ENERGY_FEATURE_NAME, &EnergyUnit::KilowattHours)
             .unwrap();
-        assert!(elec.0 < 0.0, "elec energy {} should be < 0 (regen)", elec);
+        assert!(
+            elec.as_f64() < 0.0,
+            "elec energy {} should be < 0 (regen)",
+            elec
+        );
 
         let soc = state_model
             .get_custom_f64(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
-        assert!(soc.0 > 20.0, "soc {} should be > 20.0", soc);
-        assert!(soc.0 < 30.0, "soc {} should be < 30.0", soc);
+        assert!(soc > 20.0, "soc {} should be > 20.0", soc);
+        assert!(soc < 30.0, "soc {} should be < 30.0", soc);
     }
 
     #[test]
@@ -296,7 +300,7 @@ mod tests {
         let battery_percent_soc = state_model
             .get_custom_f64(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
-        assert!(battery_percent_soc.0 <= 100.0);
+        assert!(battery_percent_soc <= 100.0);
     }
 
     #[test]
@@ -319,6 +323,6 @@ mod tests {
         let battery_percent_soc = state_model
             .get_custom_f64(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
-        assert!(battery_percent_soc.0 >= 0.0);
+        assert!(battery_percent_soc >= 0.0);
     }
 }
