@@ -136,28 +136,16 @@ impl VehicleType for PHEV {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let start_soc = state_model.get_custom_f64(state, PHEV::SOC_FEATURE_NAME)?;
-        let (electrical_energy, _, liquid_fuel_energy, _) =
+        let (elec_energy, elec_unit, liq_energy, liq_unit) =
             get_phev_energy(self, start_soc, speed, grade, distance)?;
 
-        state_model.add_energy(
-            state,
-            PHEV::ELECTRIC_FEATURE_NAME,
-            &electrical_energy,
-            &self.battery_energy_unit,
-        )?;
-        state_model.add_energy(
-            state,
-            PHEV::LIQUID_FEATURE_NAME,
-            &liquid_fuel_energy,
-            &self
-                .charge_depleting_model
-                .energy_rate_unit
-                .associated_energy_unit(),
-        )?;
+        state_model.add_energy(state, PHEV::ELECTRIC_FEATURE_NAME, &elec_energy, &elec_unit)?;
+        state_model.add_energy(state, PHEV::LIQUID_FEATURE_NAME, &liq_energy, &liq_unit)?;
+        let delta = elec_unit.convert(&elec_energy, &self.battery_energy_unit);
         vehicle_ops::update_soc_percent(
             state,
             PHEV::SOC_FEATURE_NAME,
-            &electrical_energy,
+            &delta,
             &self.battery_capacity,
             state_model,
         )?;

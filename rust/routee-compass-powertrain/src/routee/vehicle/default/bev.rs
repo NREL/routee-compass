@@ -122,19 +122,20 @@ impl VehicleType for BEV {
         state: &mut Vec<StateVar>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let (energy_delta, _) = self
+        let (predicted_energy, energy_unit) = self
             .prediction_model_record
             .predict(speed, grade, distance)?;
+        let battery_delta = energy_unit.convert(&predicted_energy, &self.battery_energy_unit);
         state_model.add_energy(
             state,
             BEV::ENERGY_FEATURE_NAME,
-            &energy_delta,
-            &self.battery_energy_unit,
+            &predicted_energy,
+            &energy_unit,
         )?;
         vehicle_ops::update_soc_percent(
             state,
             BEV::SOC_FEATURE_NAME,
-            &energy_delta,
+            &battery_delta,
             &self.battery_capacity,
             state_model,
         )?;
@@ -179,12 +180,9 @@ impl VehicleType for BEV {
 
 #[cfg(test)]
 mod tests {
-    use routee_compass_core::model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit};
-
-    use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
-
     use super::*;
-
+    use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
+    use routee_compass_core::model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit};
     use std::path::PathBuf;
 
     fn mock_vehicle(starting_soc_percent: f64) -> BEV {

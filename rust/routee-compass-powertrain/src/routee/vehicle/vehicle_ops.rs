@@ -17,7 +17,7 @@ use routee_compass_core::model::{
 /// * `max`          - maximum energy for this vehicle
 /// * `state_model`  - provides API for interacting with state
 pub fn update_soc_percent(
-    state: &mut Vec<StateVar>,
+    state: &mut [StateVar],
     feature_name: &str,
     delta: &Energy,
     max: &Energy,
