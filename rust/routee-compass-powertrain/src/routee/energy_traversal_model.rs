@@ -32,7 +32,7 @@ impl TraversalModel for EnergyTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
         let distance =
-            BASE_DISTANCE_UNIT.convert(edge.distance, self.energy_model_service.distance_unit);
+            BASE_DISTANCE_UNIT.convert(&edge.distance, &self.energy_model_service.distance_unit);
         let prev = state.to_vec();
 
         // perform time traversal

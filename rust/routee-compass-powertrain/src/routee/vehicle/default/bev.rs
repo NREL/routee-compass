@@ -1,14 +1,14 @@
-use crate::routee::{prediction::PredictionModelRecord, vehicle::vehicle_type::VehicleType};
+use crate::routee::{
+    prediction::PredictionModelRecord,
+    vehicle::{vehicle_ops, vehicle_type::VehicleType},
+};
 use routee_compass_core::model::{
     state::{
         custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
         state_model::StateModel,
     },
     traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
-    unit::{
-        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
-        SpeedUnit,
-    },
+    unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use std::sync::Arc;
 
@@ -39,10 +39,6 @@ impl BEV {
             battery_energy_unit,
         }
     }
-
-    fn as_soc_percent(&self, energy: Energy) -> f64 {
-        (energy.as_f64() / self.battery_capacity.as_f64()) * 100.0
-    }
 }
 
 impl VehicleType for BEV {
@@ -51,12 +47,15 @@ impl VehicleType for BEV {
     }
 
     fn state_features(&self) -> Vec<(String, StateFeature)> {
-        let initial_soc = self.as_soc_percent(self.starting_battery_energy);
+        let initial_soc = vehicle_ops::as_soc_percent(
+            &self.starting_battery_energy,
+            &self.starting_battery_energy,
+        );
         vec![
             (
                 String::from(BEV::ENERGY_FEATURE_NAME),
-                StateFeature::Electric {
-                    energy_electric_unit: self.battery_energy_unit,
+                StateFeature::Energy {
+                    energy_unit: self.battery_energy_unit,
                     initial: Energy::ZERO,
                 },
             ),
@@ -95,8 +94,13 @@ impl VehicleType for BEV {
         state: &mut Vec<StateVar>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let (electrical_energy, _) = self.best_case_energy(distance)?;
-        state_model.update_add(state, BEV::ENERGY_FEATURE_NAME, &electrical_energy.into())?;
+        let (energy, _) = self.best_case_energy(distance)?;
+        state_model.add_energy(
+            state,
+            BEV::ENERGY_FEATURE_NAME,
+            &energy,
+            &self.battery_energy_unit,
+        )?;
         Ok(())
     }
 
@@ -108,20 +112,20 @@ impl VehicleType for BEV {
         state: &mut Vec<StateVar>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let (electrical_energy, _) = self
+        let (energy_delta, _) = self
             .prediction_model_record
             .predict(speed, grade, distance)?;
-        state_model.update_add(state, BEV::ENERGY_FEATURE_NAME, &electrical_energy.into())?;
+        state_model.add_energy(
+            state,
+            BEV::ENERGY_FEATURE_NAME,
+            &energy_delta,
+            &self.battery_energy_unit,
+        )?;
 
         // update state of charge (SOC). energy has inverse relationship with SOC.
-        let soc_diff_percent = StateVar(-self.as_soc_percent(electrical_energy));
-        state_model.update_add_bounded(
-            state,
-            BEV::SOC_FEATURE_NAME,
-            &soc_diff_percent,
-            &StateVar::ZERO,
-            &StateVar::ONE_HUNDRED,
-        )?;
+        let current_energy = state_model.get_energy(state, "energy", &self.battery_energy_unit)?;
+        let soc_diff_percent = vehicle_ops::as_soc_percent(&current_energy, &self.battery_capacity);
+        state_model.set_custom_f64(state, BEV::SOC_FEATURE_NAME, &soc_diff_percent)?;
 
         Ok(())
     }
@@ -143,7 +147,10 @@ impl VehicleType for BEV {
                 "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),
             ));
         }
-        let soc_percent = self.as_soc_percent(Energy::new(starting_soc_percent));
+        let soc_percent = vehicle_ops::as_soc_percent(
+            &Energy::new(starting_soc_percent),
+            &self.starting_battery_energy,
+        );
         let starting_battery_energy = Energy::new(soc_percent);
 
         let new_bev = BEV {
@@ -227,12 +234,12 @@ mod tests {
             .unwrap();
 
         let elec = state_model
-            .get_value(&state, BEV::ENERGY_FEATURE_NAME)
+            .get_energy(&state, BEV::ENERGY_FEATURE_NAME, &EnergyUnit::KilowattHours)
             .unwrap();
         assert!(elec.0 > 0.0, "elec energy {} should be > 0.0", elec);
 
         let soc = state_model
-            .get_value(&state, BEV::SOC_FEATURE_NAME)
+            .get_custom_f64(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
 
         assert!(soc.0 < 60.0, "soc {} should be < 60.0%", soc);
@@ -258,12 +265,12 @@ mod tests {
             .unwrap();
 
         let elec = state_model
-            .get_value(&state, BEV::ENERGY_FEATURE_NAME)
+            .get_energy(&state, BEV::ENERGY_FEATURE_NAME, &EnergyUnit::KilowattHours)
             .unwrap();
         assert!(elec.0 < 0.0, "elec energy {} should be < 0 (regen)", elec);
 
         let soc = state_model
-            .get_value(&state, BEV::SOC_FEATURE_NAME)
+            .get_custom_f64(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
         assert!(soc.0 > 20.0, "soc {} should be > 20.0", soc);
         assert!(soc.0 < 30.0, "soc {} should be < 30.0", soc);
@@ -287,7 +294,7 @@ mod tests {
             .unwrap();
 
         let battery_percent_soc = state_model
-            .get_value(&state, BEV::SOC_FEATURE_NAME)
+            .get_custom_f64(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
         assert!(battery_percent_soc.0 <= 100.0);
     }
@@ -310,7 +317,7 @@ mod tests {
             .unwrap();
 
         let battery_percent_soc = state_model
-            .get_value(&state, BEV::SOC_FEATURE_NAME)
+            .get_custom_f64(&state, BEV::SOC_FEATURE_NAME)
             .unwrap();
         assert!(battery_percent_soc.0 >= 0.0);
     }

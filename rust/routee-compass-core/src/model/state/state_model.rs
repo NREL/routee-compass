@@ -1,8 +1,12 @@
 use super::{
-    state_error::StateError, state_feature::StateFeature, state_model_entry::StateModelEntry,
+    custom_feature_format::CustomFeatureFormat, state_error::StateError,
+    state_feature::StateFeature, state_model_entry::StateModelEntry,
     update_operation::UpdateOperation,
 };
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::{
+    traversal::state::state_variable::StateVar,
+    unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
+};
 use itertools::Itertools;
 use serde_json::json;
 use std::collections::HashMap;
@@ -121,28 +125,146 @@ impl StateModel {
             .collect::<Result<Vec<_>, _>>()
     }
 
-    /// gets a value from a state by name.
+    /// retrieves a state variable that is expected to have a type of Distance
     ///
     /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    /// * `unit`  - feature is converted to this unit before returning
     ///
-    /// * `state` - the state to inspect
-    /// * `name`  - name of feature to extract
+    /// # Returns
     ///
-    /// # Result
+    /// feature value in the expected unit type, or an error
+    pub fn get_distance(
+        &self,
+        state: &[StateVar],
+        name: &str,
+        unit: &DistanceUnit,
+    ) -> Result<Distance, StateError> {
+        let value = self.get_value(state, name)?;
+        let feature = self.get_feature(name)?;
+        let result = feature.get_distance_unit()?.convert(&value.into(), unit);
+        Ok(result)
+    }
+    /// retrieves a state variable that is expected to have a type of Time
     ///
-    /// the requested state variable or an error on failure
-    pub fn get_value(&self, state: &[StateVar], name: &str) -> Result<StateVar, StateError> {
-        let idx = self.get_index(name)?;
-        if idx >= state.len() {
-            Err(StateError::RuntimeError(format!(
-                "state index {} for {} is out of range for state vector with {} entries",
-                idx,
-                name,
-                state.len()
-            )))
-        } else {
-            Ok(state[idx])
-        }
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    /// * `unit`  - feature is converted to this unit before returning
+    ///
+    /// # Returns
+    ///
+    /// feature value in the expected unit type, or an error
+    pub fn get_time(
+        &self,
+        state: &[StateVar],
+        name: &str,
+        unit: &TimeUnit,
+    ) -> Result<Time, StateError> {
+        let value = self.get_value(state, name)?;
+        let feature = self.get_feature(name)?;
+        let result = feature.get_time_unit()?.convert(&value.into(), unit);
+        Ok(result)
+    }
+    /// retrieves a state variable that is expected to have a type of Energy
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    /// * `unit`  - feature is converted to this unit before returning
+    ///
+    /// # Returns
+    ///
+    /// feature value in the expected unit type, or an error
+    pub fn get_energy(
+        &self,
+        state: &[StateVar],
+        name: &str,
+        unit: &EnergyUnit,
+    ) -> Result<Energy, StateError> {
+        let value = self.get_value(state, name)?;
+        let feature = self.get_feature(name)?;
+        let result = feature.get_energy_unit()?.convert(&value.into(), unit);
+        Ok(result)
+    }
+    /// retrieves a state variable that is expected to have a type of f64.
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    ///
+    /// # Returns
+    ///
+    /// the expected value or an error
+    pub fn get_custom_f64(&self, state: &[StateVar], name: &str) -> Result<f64, StateError> {
+        let (value, format) = self.get_custom_state_variable(state, name)?;
+        let result = format.decode_f64(&value)?;
+        Ok(result)
+    }
+    /// retrieves a state variable that is expected to have a type of i64.
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    ///
+    /// # Returns
+    ///
+    /// the expected value or an error
+    pub fn get_custom_i64(&self, state: &[StateVar], name: &str) -> Result<i64, StateError> {
+        let (value, format) = self.get_custom_state_variable(state, name)?;
+        let result = format.decode_i64(&value)?;
+        Ok(result)
+    }
+    /// retrieves a state variable that is expected to have a type of u64.
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    ///
+    /// # Returns
+    ///
+    /// the expected value or an error
+    pub fn get_custom_u64(&self, state: &[StateVar], name: &str) -> Result<u64, StateError> {
+        let (value, format) = self.get_custom_state_variable(state, name)?;
+        let result = format.decode_u64(&value)?;
+        Ok(result)
+    }
+    /// retrieves a state variable that is expected to have a type of bool.
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    ///
+    /// # Returns
+    ///
+    /// the expected value or an error
+    pub fn get_custom_bool(&self, state: &[StateVar], name: &str) -> Result<bool, StateError> {
+        let (value, format) = self.get_custom_state_variable(state, name)?;
+        let result = format.decode_bool(&value)?;
+        Ok(result)
+    }
+
+    /// internal helper function that retrieves a value as a feature vector state variable
+    /// along with the custom feature's format. this is used by the four specialized get_custom
+    /// methods for specific types.
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    ///
+    /// # Returns
+    ///
+    /// the expected value as a state variable (not decoded) or an error
+    fn get_custom_state_variable(
+        &self,
+        state: &[StateVar],
+        name: &str,
+    ) -> Result<(StateVar, &CustomFeatureFormat), StateError> {
+        let value = self.get_value(state, name)?;
+        let feature = self.get_feature(name)?;
+        let format = feature.get_custom_feature_format()?;
+        Ok((value, format))
     }
 
     /// gets the difference from some previous value to some next value by name.
@@ -167,101 +289,224 @@ impl StateModel {
         Ok(next_val - prev_val)
     }
 
-    /// convenience method for state updates where the update operation
-    /// is "add".
-    ///
-    /// # Arguments
-    ///
-    /// * `state` - the state to update
-    /// * `name`  - feature name to update
-    /// * `value` - new value to apply
-    pub fn update_add(
+    pub fn add_distance(
         &self,
         state: &mut [StateVar],
         name: &str,
-        value: &StateVar,
+        edge_distance: &Distance,
+        from_unit: &DistanceUnit,
     ) -> Result<(), StateError> {
-        self.update_state(state, name, value, UpdateOperation::Add)
+        let prev_distance = self.get_distance(state, name, from_unit)?;
+        let next_distance = prev_distance + *edge_distance;
+        self.set_distance(state, "time", &next_distance, from_unit)
     }
 
-    /// convenience method for state updates where the update operation
-    /// is "replace".
-    ///
-    /// * `state` - the state to update
-    /// * `name`  - feature name to update
-    /// * `value` - new value to apply
-    pub fn update_replace(
+    pub fn add_time(
         &self,
         state: &mut [StateVar],
         name: &str,
-        value: &StateVar,
+        edge_time: &Time,
+        from_unit: &TimeUnit,
     ) -> Result<(), StateError> {
-        self.update_state(state, name, value, UpdateOperation::Replace)
+        let prev_time = self.get_time(state, name, from_unit)?;
+        let next_time = prev_time + *edge_time;
+        self.set_time(state, "time", &next_time, from_unit)
     }
 
-    /// convenience method for state updates where the update operation
-    /// is "multiply".
-    ///
-    /// * `state` - the state to update
-    /// * `name`  - feature name to update
-    /// * `value` - new value to apply
-    pub fn update_multiply(
+    pub fn add_energy(
         &self,
         state: &mut [StateVar],
         name: &str,
-        value: &StateVar,
+        edge_energy: &Energy,
+        from_unit: &EnergyUnit,
     ) -> Result<(), StateError> {
-        self.update_state(state, name, value, UpdateOperation::Multiply)
+        let prev_energy = self.get_energy(state, name, from_unit)?;
+        let next_energy = prev_energy + *edge_energy;
+        self.set_energy(state, "time", &next_energy, from_unit)
     }
 
-    /// convenience method for state updates where the update operation
-    /// is "max".
-    ///
-    /// * `state` - the state to update
-    /// * `name`  - feature name to update
-    /// * `value` - new value to apply
-    pub fn update_max(
+    pub fn set_distance(
         &self,
         state: &mut [StateVar],
         name: &str,
-        value: &StateVar,
+        distance: &Distance,
+        from_unit: &DistanceUnit,
     ) -> Result<(), StateError> {
-        self.update_state(state, name, value, UpdateOperation::Max)
+        let feature = self.get_feature(name)?;
+        let to_unit = feature.get_distance_unit()?;
+        let value = from_unit.convert(distance, &to_unit);
+        self.update_state(state, name, &value.into(), UpdateOperation::Replace)
     }
 
-    /// convenience method for state updates where the update operation
-    /// is "min".
-    ///
-    /// * `state` - the state to update
-    /// * `name`  - feature name to update
-    /// * `value` - new value to apply
-    pub fn update_min(
+    pub fn set_time(
         &self,
         state: &mut [StateVar],
         name: &str,
-        value: &StateVar,
+        time: &Time,
+        from_unit: &TimeUnit,
     ) -> Result<(), StateError> {
-        self.update_state(state, name, value, UpdateOperation::Min)
+        let feature = self.get_feature(name)?;
+        let to_unit = feature.get_time_unit()?;
+        let value = from_unit.convert(time, &to_unit);
+        self.update_state(state, name, &value.into(), UpdateOperation::Replace)
     }
 
-    /// convenience method for state updates where the update operation
-    /// is "add".
-    ///
-    /// # Arguments
-    ///
-    /// * `state` - the state to update
-    /// * `name`  - feature name to update
-    /// * `value` - new value to apply
-    pub fn update_add_bounded(
+    pub fn set_energy(
         &self,
         state: &mut [StateVar],
         name: &str,
-        value: &StateVar,
-        min: &StateVar,
-        max: &StateVar,
+        energy: &Energy,
+        from_unit: &EnergyUnit,
     ) -> Result<(), StateError> {
-        self.update_state(state, name, value, UpdateOperation::AddBounded(*min, *max))
+        let feature = self.get_feature(name)?;
+        let to_unit = feature.get_energy_unit()?;
+        let value = from_unit.convert(energy, &to_unit);
+        self.update_state(state, name, &value.into(), UpdateOperation::Replace)
     }
+
+    pub fn set_custom_f64(
+        &self,
+        state: &mut [StateVar],
+        name: &str,
+        value: &f64,
+    ) -> Result<(), StateError> {
+        let feature = self.get_feature(name)?;
+        let format = feature.get_custom_feature_format()?;
+        let encoded_value = format.encode_f64(value)?;
+        self.update_state(state, name, &encoded_value, UpdateOperation::Replace)
+    }
+
+    pub fn set_custom_i64(
+        &self,
+        state: &mut [StateVar],
+        name: &str,
+        value: &i64,
+    ) -> Result<(), StateError> {
+        let feature = self.get_feature(name)?;
+        let format = feature.get_custom_feature_format()?;
+        let encoded_value = format.encode_i64(value)?;
+        self.update_state(state, name, &encoded_value, UpdateOperation::Replace)
+    }
+
+    pub fn set_custom_u64(
+        &self,
+        state: &mut [StateVar],
+        name: &str,
+        value: &u64,
+    ) -> Result<(), StateError> {
+        let feature = self.get_feature(name)?;
+        let format = feature.get_custom_feature_format()?;
+        let encoded_value = format.encode_u64(value)?;
+        self.update_state(state, name, &encoded_value, UpdateOperation::Replace)
+    }
+
+    pub fn set_custom_bool(
+        &self,
+        state: &mut [StateVar],
+        name: &str,
+        value: &bool,
+    ) -> Result<(), StateError> {
+        let feature = self.get_feature(name)?;
+        let format = feature.get_custom_feature_format()?;
+        let encoded_value = format.encode_bool(value)?;
+        self.update_state(state, name, &encoded_value, UpdateOperation::Replace)
+    }
+
+    // /// convenience method for state updates where the update operation
+    // /// is "add".
+    // ///
+    // /// # Arguments
+    // ///
+    // /// * `state` - the state to update
+    // /// * `name`  - feature name to update
+    // /// * `value` - new value to apply
+    // fn update_add(
+    //     &self,
+    //     state: &mut [StateVar],
+    //     name: &str,
+    //     value: &StateVar,
+    // ) -> Result<(), StateError> {
+    //     self.update_state(state, name, value, UpdateOperation::Add)
+    // }
+
+    // /// convenience method for state updates where the update operation
+    // /// is "replace".
+    // ///
+    // /// * `state` - the state to update
+    // /// * `name`  - feature name to update
+    // /// * `value` - new value to apply
+    // fn update_replace(
+    //     &self,
+    //     state: &mut [StateVar],
+    //     name: &str,
+    //     value: &StateVar,
+    // ) -> Result<(), StateError> {
+    //     self.update_state(state, name, value, UpdateOperation::Replace)
+    // }
+
+    // /// convenience method for state updates where the update operation
+    // /// is "multiply".
+    // ///
+    // /// * `state` - the state to update
+    // /// * `name`  - feature name to update
+    // /// * `value` - new value to apply
+    // fn update_multiply(
+    //     &self,
+    //     state: &mut [StateVar],
+    //     name: &str,
+    //     value: &StateVar,
+    // ) -> Result<(), StateError> {
+    //     self.update_state(state, name, value, UpdateOperation::Multiply)
+    // }
+
+    // /// convenience method for state updates where the update operation
+    // /// is "max".
+    // ///
+    // /// * `state` - the state to update
+    // /// * `name`  - feature name to update
+    // /// * `value` - new value to apply
+    // fn update_max(
+    //     &self,
+    //     state: &mut [StateVar],
+    //     name: &str,
+    //     value: &StateVar,
+    // ) -> Result<(), StateError> {
+    //     self.update_state(state, name, value, UpdateOperation::Max)
+    // }
+
+    // /// convenience method for state updates where the update operation
+    // /// is "min".
+    // ///
+    // /// * `state` - the state to update
+    // /// * `name`  - feature name to update
+    // /// * `value` - new value to apply
+    // fn update_min(
+    //     &self,
+    //     state: &mut [StateVar],
+    //     name: &str,
+    //     value: &StateVar,
+    // ) -> Result<(), StateError> {
+    //     self.update_state(state, name, value, UpdateOperation::Min)
+    // }
+
+    // /// convenience method for state updates where the update operation
+    // /// is "add".
+    // ///
+    // /// # Arguments
+    // ///
+    // /// * `state` - the state to update
+    // /// * `name`  - feature name to update
+    // /// * `value` - new value to apply
+    // fn update_add_bounded(
+    //     &self,
+    //     state: &mut [StateVar],
+    //     name: &str,
+    //     value: &StateVar,
+    //     min: &StateVar,
+    //     max: &StateVar,
+    // ) -> Result<(), StateError> {
+    //     self.update_state(state, name, value, UpdateOperation::AddBounded(*min, *max))
+    // }
 
     /// performs a state update for a feature name and value by applying some
     /// update operation that handles combining the previous and next values.
@@ -272,7 +517,7 @@ impl StateModel {
     /// * `name`  - feature name to update
     /// * `value` - new value to apply
     /// * `op`    - operation to combine/replace prev with new value
-    pub fn update_state(
+    fn update_state(
         &self,
         state: &mut [StateVar],
         name: &str,
@@ -322,6 +567,20 @@ impl StateModel {
             let names = self.names_to_string();
             StateError::UnknownStateVariableName(name.into(), names)
         })
+    }
+
+    fn get_value(&self, state: &[StateVar], name: &str) -> Result<StateVar, StateError> {
+        let idx = self.get_index(name)?;
+        if idx >= state.len() {
+            Err(StateError::RuntimeError(format!(
+                "state index {} for {} is out of range for state vector with {} entries",
+                idx,
+                name,
+                state.len()
+            )))
+        } else {
+            Ok(state[idx])
+        }
     }
 
     pub fn get_feature(&self, name: &str) -> Result<&StateFeature, StateError> {

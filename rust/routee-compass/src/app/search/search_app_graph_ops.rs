@@ -49,7 +49,7 @@ impl SearchAppGraphOps for SearchApp {
             .map_err(CompassAppError::GraphError)?;
         let result_base = edge.distance;
         let result = match distance_unit {
-            Some(du) => DistanceUnit::Meters.convert(result_base, du),
+            Some(du) => DistanceUnit::Meters.convert(&result_base, &du),
             None => result_base,
         };
         Ok(result)

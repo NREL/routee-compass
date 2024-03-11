@@ -1,11 +1,10 @@
+use crate::routee::{prediction::PredictionModelRecord, vehicle::VehicleType};
 use routee_compass_core::model::{
     state::{state_feature::StateFeature, state_model::StateModel},
     traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
     unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use std::sync::Arc;
-
-use crate::routee::{prediction::PredictionModelRecord, vehicle::VehicleType};
 
 pub struct ICE {
     pub name: String,
@@ -36,8 +35,8 @@ impl VehicleType for ICE {
             .associated_energy_unit();
         vec![(
             String::from(ICE::ENERGY_FEATURE_NAME),
-            StateFeature::Liquid {
-                energy_liquid_unit: energy_unit,
+            StateFeature::Energy {
+                energy_unit,
                 initial: Energy::ZERO,
             },
         )]
@@ -63,7 +62,15 @@ impl VehicleType for ICE {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (energy, _energy_unit) = self.best_case_energy(distance)?;
-        state_model.update_add(state, ICE::ENERGY_FEATURE_NAME, &energy.into())?;
+        state_model.add_energy(
+            state,
+            ICE::ENERGY_FEATURE_NAME,
+            &energy,
+            &self
+                .prediction_model_record
+                .energy_rate_unit
+                .associated_energy_unit(),
+        )?;
         Ok(())
     }
 
@@ -78,7 +85,15 @@ impl VehicleType for ICE {
         let (energy, _energy_unit) = self
             .prediction_model_record
             .predict(speed, grade, distance)?;
-        state_model.update_add(state, ICE::ENERGY_FEATURE_NAME, &energy.into())?;
+        state_model.add_energy(
+            state,
+            ICE::ENERGY_FEATURE_NAME,
+            &energy,
+            &self
+                .prediction_model_record
+                .energy_rate_unit
+                .associated_energy_unit(),
+        )?;
         Ok(())
     }
 

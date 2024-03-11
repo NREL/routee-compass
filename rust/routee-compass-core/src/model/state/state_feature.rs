@@ -38,12 +38,8 @@ pub enum StateFeature {
         time_unit: unit::TimeUnit,
         initial: unit::Time,
     },
-    Liquid {
-        energy_liquid_unit: unit::EnergyUnit,
-        initial: unit::Energy,
-    },
-    Electric {
-        energy_electric_unit: unit::EnergyUnit,
+    Energy {
+        energy_unit: unit::EnergyUnit,
         initial: unit::Energy,
     },
     Custom {
@@ -64,14 +60,10 @@ impl StateFeature {
                 time_unit: _,
                 initial: _,
             } => String::from("time"),
-            StateFeature::Liquid {
-                energy_liquid_unit: _,
+            StateFeature::Energy {
+                energy_unit: _,
                 initial: _,
-            } => String::from("energy_liquid"),
-            StateFeature::Electric {
-                energy_electric_unit: _,
-                initial: _,
-            } => String::from("energy_electric"),
+            } => String::from("energy"),
             StateFeature::Custom {
                 name,
                 unit: _,
@@ -90,14 +82,10 @@ impl StateFeature {
                 time_unit,
                 initial: _,
             } => time_unit.to_string(),
-            StateFeature::Liquid {
-                energy_liquid_unit,
+            StateFeature::Energy {
+                energy_unit,
                 initial: _,
-            } => energy_liquid_unit.to_string(),
-            StateFeature::Electric {
-                energy_electric_unit,
-                initial: _,
-            } => energy_electric_unit.to_string(),
+            } => energy_unit.to_string(),
             StateFeature::Custom {
                 name: _,
                 unit,
@@ -151,27 +139,28 @@ impl StateFeature {
         }
     }
 
-    pub fn get_energy_electric_unit(&self) -> Result<unit::EnergyUnit, StateError> {
+    pub fn get_energy_unit(&self) -> Result<unit::EnergyUnit, StateError> {
         match self {
-            StateFeature::Electric {
-                energy_electric_unit: unit,
+            StateFeature::Energy {
+                energy_unit,
                 initial: _,
-            } => Ok(*unit),
+            } => Ok(*energy_unit),
             _ => Err(StateError::UnexpectedFeatureUnit(
-                String::from("energy_electric"),
+                String::from("energy"),
                 self.get_feature_name(),
             )),
         }
     }
 
-    pub fn get_energy_liquid_unit(&self) -> Result<unit::EnergyUnit, StateError> {
+    pub fn get_custom_feature_format(&self) -> Result<&CustomFeatureFormat, StateError> {
         match self {
-            StateFeature::Liquid {
-                energy_liquid_unit: unit,
-                initial: _,
-            } => Ok(*unit),
+            StateFeature::Custom {
+                name: _,
+                unit: _,
+                format,
+            } => Ok(format),
             _ => Err(StateError::UnexpectedFeatureUnit(
-                String::from("energy_liquid"),
+                self.get_feature_unit_name(),
                 self.get_feature_name(),
             )),
         }

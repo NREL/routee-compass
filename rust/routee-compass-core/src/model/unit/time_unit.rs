@@ -13,25 +13,25 @@ pub enum TimeUnit {
 }
 
 impl TimeUnit {
-    pub fn convert(&self, value: Time, target: &TimeUnit) -> Time {
+    pub fn convert(&self, value: &Time, target: &TimeUnit) -> Time {
         use TimeUnit as T;
         match (self, target) {
-            (T::Hours, T::Hours) => value,
-            (T::Minutes, T::Minutes) => value,
-            (T::Seconds, T::Seconds) => value,
-            (T::Milliseconds, T::Milliseconds) => value,
-            (T::Hours, T::Minutes) => value * 60.0,
-            (T::Hours, T::Seconds) => value * 3600.0,
-            (T::Hours, T::Milliseconds) => value * 3600000.0,
-            (T::Minutes, T::Hours) => value * 0.01666666667,
-            (T::Minutes, T::Seconds) => value * 60.0,
-            (T::Minutes, T::Milliseconds) => value * 60000.0,
-            (T::Seconds, T::Hours) => value * 0.0002777777778,
-            (T::Seconds, T::Minutes) => value * 0.01666666667,
-            (T::Seconds, T::Milliseconds) => value * 1000.0,
-            (T::Milliseconds, T::Hours) => value * 0.000000277777778,
-            (T::Milliseconds, T::Minutes) => value * 0.00001666666667,
-            (T::Milliseconds, T::Seconds) => value * 0.001,
+            (T::Hours, T::Hours) => *value,
+            (T::Minutes, T::Minutes) => *value,
+            (T::Seconds, T::Seconds) => *value,
+            (T::Milliseconds, T::Milliseconds) => *value,
+            (T::Hours, T::Minutes) => *value * 60.0,
+            (T::Hours, T::Seconds) => *value * 3600.0,
+            (T::Hours, T::Milliseconds) => *value * 3600000.0,
+            (T::Minutes, T::Hours) => *value * 0.01666666667,
+            (T::Minutes, T::Seconds) => *value * 60.0,
+            (T::Minutes, T::Milliseconds) => *value * 60000.0,
+            (T::Seconds, T::Hours) => *value * 0.0002777777778,
+            (T::Seconds, T::Minutes) => *value * 0.01666666667,
+            (T::Seconds, T::Milliseconds) => *value * 1000.0,
+            (T::Milliseconds, T::Hours) => *value * 0.000000277777778,
+            (T::Milliseconds, T::Minutes) => *value * 0.00001666666667,
+            (T::Milliseconds, T::Seconds) => *value * 0.001,
         }
     }
 }
@@ -73,79 +73,79 @@ mod test {
 
     #[test]
     fn test_conversions() {
-        assert_approx_eq(T::Hours.convert(Time::ONE, &T::Hours), Time::ONE, 0.001);
+        assert_approx_eq(T::Hours.convert(&Time::ONE, &T::Hours), Time::ONE, 0.001);
         assert_approx_eq(
-            T::Hours.convert(Time::ONE, &T::Minutes),
+            T::Hours.convert(&Time::ONE, &T::Minutes),
             Time::new(60.0),
             0.001,
         );
         assert_approx_eq(
-            T::Hours.convert(Time::ONE, &T::Seconds),
+            T::Hours.convert(&Time::ONE, &T::Seconds),
             Time::new(3600.0),
             0.001,
         );
         assert_approx_eq(
-            T::Hours.convert(Time::ONE, &T::Milliseconds),
+            T::Hours.convert(&Time::ONE, &T::Milliseconds),
             Time::new(3600000.0),
             0.001,
         );
         assert_approx_eq(
-            T::Minutes.convert(Time::new(60.0), &T::Hours),
+            T::Minutes.convert(&Time::new(60.0), &T::Hours),
             Time::ONE,
             0.001,
         );
         assert_approx_eq(
-            T::Minutes.convert(Time::new(60.0), &T::Minutes),
+            T::Minutes.convert(&Time::new(60.0), &T::Minutes),
             Time::new(60.0),
             0.001,
         );
         assert_approx_eq(
-            T::Minutes.convert(Time::new(60.0), &T::Seconds),
+            T::Minutes.convert(&Time::new(60.0), &T::Seconds),
             Time::new(3600.0),
             0.001,
         );
         assert_approx_eq(
-            T::Minutes.convert(Time::new(60.0), &T::Milliseconds),
+            T::Minutes.convert(&Time::new(60.0), &T::Milliseconds),
             Time::new(3600000.0),
             0.001,
         );
         assert_approx_eq(
-            T::Seconds.convert(Time::new(3600.0), &T::Hours),
+            T::Seconds.convert(&Time::new(3600.0), &T::Hours),
             Time::ONE,
             0.001,
         );
         assert_approx_eq(
-            T::Seconds.convert(Time::new(3600.0), &T::Minutes),
+            T::Seconds.convert(&Time::new(3600.0), &T::Minutes),
             Time::new(60.0),
             0.001,
         );
         assert_approx_eq(
-            T::Seconds.convert(Time::new(3600.0), &T::Seconds),
+            T::Seconds.convert(&Time::new(3600.0), &T::Seconds),
             Time::new(3600.0),
             0.001,
         );
         assert_approx_eq(
-            T::Seconds.convert(Time::new(3600.0), &T::Milliseconds),
+            T::Seconds.convert(&Time::new(3600.0), &T::Milliseconds),
             Time::new(3600000.0),
             0.001,
         );
         assert_approx_eq(
-            T::Milliseconds.convert(Time::new(3600000.0), &T::Hours),
+            T::Milliseconds.convert(&Time::new(3600000.0), &T::Hours),
             Time::ONE,
             0.001,
         );
         assert_approx_eq(
-            T::Milliseconds.convert(Time::new(3600000.0), &T::Minutes),
+            T::Milliseconds.convert(&Time::new(3600000.0), &T::Minutes),
             Time::new(60.0),
             0.001,
         );
         assert_approx_eq(
-            T::Milliseconds.convert(Time::new(3600000.0), &T::Seconds),
+            T::Milliseconds.convert(&Time::new(3600000.0), &T::Seconds),
             Time::new(3600.0),
             0.001,
         );
         assert_approx_eq(
-            T::Milliseconds.convert(Time::new(3600000.0), &T::Milliseconds),
+            T::Milliseconds.convert(&Time::new(3600000.0), &T::Milliseconds),
             Time::new(3600000.0),
             0.001,
         );

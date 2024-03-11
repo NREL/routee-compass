@@ -3,7 +3,6 @@ use crate::model::road_network::edge_id::EdgeId;
 use crate::model::state::state_feature::StateFeature;
 use crate::model::state::state_model::StateModel;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::as_f64::AsF64;
 use crate::model::unit::{Distance, Time, BASE_DISTANCE_UNIT};
 use crate::model::{
     property::{edge::Edge, vertex::Vertex},
@@ -31,9 +30,9 @@ impl TraversalModel for SpeedTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
-        let distance = BASE_DISTANCE_UNIT.convert(edge.distance, self.engine.distance_unit);
+        let distance = BASE_DISTANCE_UNIT.convert(&edge.distance, &self.engine.distance_unit);
         let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
-        let time = Time::create(
+        let edge_time = Time::create(
             speed,
             self.engine.speed_unit,
             distance,
@@ -41,7 +40,7 @@ impl TraversalModel for SpeedTraversalModel {
             self.engine.time_unit,
         )?;
 
-        state_model.update_add(state, "time", &time.into())?;
+        state_model.add_time(state, "time", &edge_time, &self.engine.time_unit)?;
         Ok(())
     }
 
@@ -69,14 +68,14 @@ impl TraversalModel for SpeedTraversalModel {
             return Ok(());
         }
 
-        let time = Time::create(
+        let estimated_time = Time::create(
             self.engine.max_speed,
             self.engine.speed_unit,
             distance,
             self.engine.distance_unit,
             self.engine.time_unit,
         )?;
-        state_model.update_add(state, "time", &StateVar(time.as_f64()))?;
+        state_model.add_time(state, "time", &estimated_time, &self.engine.time_unit)?;
 
         Ok(())
     }
