@@ -169,7 +169,7 @@ mod tests {
                     (
                         String::from("time"),
                         StateFeature::Time {
-                            time_unit: TimeUnit::Minutes,
+                            time_unit: TimeUnit::Seconds,
                             initial: Time::new(0.0),
                         },
                     ),
@@ -214,7 +214,7 @@ mod tests {
                     (
                         String::from("time"),
                         StateFeature::Time {
-                            time_unit: TimeUnit::Minutes,
+                            time_unit: TimeUnit::Milliseconds,
                             initial: Time::new(0.0),
                         },
                     ),
