@@ -345,7 +345,7 @@ mod tests {
     use crate::model::state::state_model::StateModel;
     use crate::model::termination::termination_model::TerminationModel;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
-    use crate::model::unit::{Distance, DistanceUnit, Time};
+    use crate::model::unit::{Distance, DistanceUnit};
     use rayon::prelude::*;
     use std::sync::Arc;
 
