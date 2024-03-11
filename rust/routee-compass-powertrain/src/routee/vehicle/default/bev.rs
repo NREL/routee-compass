@@ -8,7 +8,10 @@ use routee_compass_core::model::{
         state_model::StateModel,
     },
     traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
-    unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    unit::{
+        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
+        SpeedUnit,
+    },
 };
 use std::sync::Arc;
 
@@ -101,6 +104,13 @@ impl VehicleType for BEV {
             &energy,
             &self.battery_energy_unit,
         )?;
+        vehicle_ops::update_soc_percent(
+            state,
+            BEV::SOC_FEATURE_NAME,
+            &energy,
+            &self.battery_capacity,
+            state_model,
+        )?;
         Ok(())
     }
 
@@ -121,12 +131,13 @@ impl VehicleType for BEV {
             &energy_delta,
             &self.battery_energy_unit,
         )?;
-
-        // update state of charge (SOC). energy has inverse relationship with SOC.
-        let current_energy =
-            state_model.get_energy(state, BEV::ENERGY_FEATURE_NAME, &self.battery_energy_unit)?;
-        let soc_diff_percent = vehicle_ops::as_soc_percent(&current_energy, &self.battery_capacity);
-        state_model.set_custom_f64(state, BEV::SOC_FEATURE_NAME, &soc_diff_percent)?;
+        vehicle_ops::update_soc_percent(
+            state,
+            BEV::SOC_FEATURE_NAME,
+            &energy_delta,
+            &self.battery_capacity,
+            state_model,
+        )?;
 
         Ok(())
     }

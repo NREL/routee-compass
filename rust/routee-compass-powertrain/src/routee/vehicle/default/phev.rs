@@ -117,6 +117,13 @@ impl VehicleType for PHEV {
             &electrical_energy,
             &self.battery_energy_unit,
         )?;
+        vehicle_ops::update_soc_percent(
+            state,
+            PHEV::SOC_FEATURE_NAME,
+            &electrical_energy,
+            &self.battery_capacity,
+            state_model,
+        )?;
         Ok(())
     }
 
@@ -138,16 +145,6 @@ impl VehicleType for PHEV {
             &electrical_energy,
             &self.battery_energy_unit,
         )?;
-
-        // update state of charge (SOC). energy has inverse relationship with SOC.
-        let current_energy = state_model.get_energy(
-            state,
-            PHEV::ELECTRIC_FEATURE_NAME,
-            &self.battery_energy_unit,
-        )?;
-        let current_soc = vehicle_ops::as_soc_percent(&current_energy, &self.battery_capacity);
-        state_model.set_custom_f64(state, PHEV::SOC_FEATURE_NAME, &current_soc)?;
-
         state_model.add_energy(
             state,
             PHEV::LIQUID_FEATURE_NAME,
@@ -156,6 +153,13 @@ impl VehicleType for PHEV {
                 .charge_depleting_model
                 .energy_rate_unit
                 .associated_energy_unit(),
+        )?;
+        vehicle_ops::update_soc_percent(
+            state,
+            PHEV::SOC_FEATURE_NAME,
+            &electrical_energy,
+            &self.battery_capacity,
+            state_model,
         )?;
 
         Ok(())
