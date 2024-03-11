@@ -123,7 +123,8 @@ impl VehicleType for BEV {
         )?;
 
         // update state of charge (SOC). energy has inverse relationship with SOC.
-        let current_energy = state_model.get_energy(state, "energy", &self.battery_energy_unit)?;
+        let current_energy =
+            state_model.get_energy(state, BEV::ENERGY_FEATURE_NAME, &self.battery_energy_unit)?;
         let soc_diff_percent = vehicle_ops::as_soc_percent(&current_energy, &self.battery_capacity);
         state_model.set_custom_f64(state, BEV::SOC_FEATURE_NAME, &soc_diff_percent)?;
 
