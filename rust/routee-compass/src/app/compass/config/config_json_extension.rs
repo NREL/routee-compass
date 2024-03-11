@@ -12,6 +12,7 @@ pub trait ConfigJsonExtensions {
     fn get_config_section(
         &self,
         section: CompassConfigurationField,
+        parent_key: &dyn AsRef<str>,
     ) -> Result<serde_json::Value, CompassConfigurationError>;
     fn get_config_path(
         &self,
@@ -69,13 +70,14 @@ impl ConfigJsonExtensions for serde_json::Value {
     fn get_config_section(
         &self,
         section: CompassConfigurationField,
+        parent_key: &dyn AsRef<str>,
     ) -> Result<serde_json::Value, CompassConfigurationError> {
         let section = self
             .get(section.to_str())
             .ok_or_else(|| {
                 CompassConfigurationError::ExpectedFieldForComponent(
                     section.to_string(),
-                    String::from(""),
+                    String::from(parent_key.as_ref()),
                 )
             })?
             .clone();

@@ -1,7 +1,8 @@
 use super::state::state_variable::StateVar;
 use super::traversal_model_error::TraversalModelError;
 use crate::model::property::{edge::Edge, vertex::Vertex};
-use crate::model::traversal::state::traversal_state::TraversalState;
+use crate::model::state::state_feature::StateFeature;
+use crate::model::state::state_model::StateModel;
 
 /// Dictates how state transitions occur while traversing a graph in a search algorithm.
 ///
@@ -12,43 +13,11 @@ use crate::model::traversal::state::traversal_state::TraversalState;
 /// [DistanceModel]: super::default::distance::DistanceModel
 /// [SpeedLookupModel]: super::default::speed_lookup_model::SpeedLookupModel
 pub trait TraversalModel: Send + Sync {
-    /// Provides the list of state variable names, sorted by index so that the names appear in the order
-    /// that the variables appear in the TraversalState. the resulting names vector can be used to support
-    /// communication in a heirarchical TraversalModel.
-    ///
-    /// # Returns
-    ///
-    /// the names of the state variables in their index ordering
-    fn state_variable_names(&self) -> Vec<String>;
-
-    /// Extracts a state variable based on its name.
-    ///
-    /// A naive implementation would generate the state variable names, find their
-    /// indices, and then find a match, but this is inefficient. Therefore, TraversalModels
-    /// should hold a HashMap<String, usize> lookup table to give us the correct index
-    /// quickly.
-    ///
-    /// # Arguments
-    ///
-    /// * `key` - the variable name
-    /// * `state` - the state to extract state from
-    ///
-    /// # Returns
-    ///
-    /// The state variable, or an error
-    fn get_state_variable(
-        &self,
-        key: &str,
-        state: &[StateVar],
-    ) -> Result<StateVar, TraversalModelError>;
-
-    /// Creates the initial state of a search. this should be a vector of
-    /// accumulators.
-    ///
-    /// # Returns
-    ///
-    /// an initialized, zero-valued traversal state
-    fn initial_state(&self) -> TraversalState;
+    /// lists the state variables expected by this traversal model that are not
+    /// defined on the base configuration. for example, if this traversal model
+    /// has state variables that differ based on the query, they can be injected
+    /// into the state model by listing them here.
+    fn state_features(&self) -> Vec<(String, StateFeature)>;
 
     /// Updates the traversal state by traversing an edge.
     ///
@@ -64,11 +33,10 @@ pub trait TraversalModel: Send + Sync {
     /// Either a traversal result or an error.
     fn traverse_edge(
         &self,
-        src: &Vertex,
-        edge: &Edge,
-        dst: &Vertex,
-        state: &[StateVar],
-    ) -> Result<TraversalState, TraversalModelError>;
+        trajectory: (&Vertex, &Edge, &Vertex),
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError>;
 
     /// Updates the traversal state by accessing some destination edge
     /// when coming from some previous edge.
@@ -92,13 +60,10 @@ pub trait TraversalModel: Send + Sync {
     /// state updates due to access, None is returned.
     fn access_edge(
         &self,
-        v1: &Vertex,
-        src: &Edge,
-        v2: &Vertex,
-        dst: &Edge,
-        v3: &Vertex,
-        state: &[StateVar],
-    ) -> Result<Option<TraversalState>, TraversalModelError>;
+        trajectory: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError>;
 
     /// Estimates the traversal state by traversing between two vertices without
     /// performing any graph traversals.
@@ -114,74 +79,8 @@ pub trait TraversalModel: Send + Sync {
     /// Either a traversal result or an error.
     fn estimate_traversal(
         &self,
-        src: &Vertex,
-        dst: &Vertex,
-        state: &[StateVar],
-    ) -> Result<TraversalState, TraversalModelError>;
-
-    /// Serializes the traversal state into a JSON value.
-    ///
-    /// This default implementation can be overwritten to write stateful information
-    /// to route and summary outputs.
-    ///
-    /// # Arguments
-    ///
-    /// * `state` - the state to serialize
-    ///
-    /// # Returns
-    ///
-    /// A JSON serialized version of the state. This does not need to include
-    /// additional details such as the units (kph, hours, etc), which can be
-    /// summarized in the serialize_state_info method.
-    fn serialize_state(&self, _state: &[StateVar]) -> serde_json::Value {
-        serde_json::json!({})
-    }
-
-    /// Serializes other information about a traversal state as a JSON value.
-    ///
-    /// This default implementation can be overwritten to write stateful information
-    /// to route and summary outputs.
-    ///
-    /// # Arguments
-    ///
-    /// * `state` - the state to serialize information from
-    ///
-    /// # Returns
-    ///
-    /// JSON containing information such as the units (kph, hours, etc) or other
-    /// traversal info (charge events, days traveled, etc)
-    fn serialize_state_info(&self, _state: &[StateVar]) -> serde_json::Value {
-        serde_json::json!({})
-    }
-
-    /// Serialization function called by Compass output processing code that
-    /// writes both the state and the state info to a JSON value.
-    ///
-    /// # Arguments
-    ///
-    /// * `state` - the state to serialize information from
-    ///
-    /// # Returns
-    ///
-    /// JSON containing the state values and info described in `serialize_state`
-    /// and `serialize_state_info`.
-    fn serialize_state_with_info(&self, state: &[StateVar]) -> serde_json::Value {
-        use serde_json::Value as Json;
-        let mut summary = self.serialize_state(state);
-        let summary_info = match self.serialize_state_info(state) {
-            Json::Null => serde_json::Map::new().into_iter(),
-            Json::Object(m) => m.into_iter(),
-            other => {
-                // this is just a fallback implementation in case TraversalModel builders something
-                // other than what we expected
-                let mut m = serde_json::Map::new();
-                m.insert(String::from("info"), other);
-                m.into_iter()
-            }
-        };
-        for (k, v) in summary_info {
-            summary[k] = v;
-        }
-        summary
-    }
+        od: (&Vertex, &Vertex),
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError>;
 }

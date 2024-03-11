@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use super::state::traversal_state::TraversalState;
 use crate::model::road_network::graph_error::GraphError;
+use crate::model::state::state_error::StateError;
 use crate::model::unit::UnitError;
 use crate::util::cache_policy::cache_error::CacheError;
 
@@ -25,6 +26,8 @@ pub enum TraversalModelError {
     CacheError(#[from] CacheError),
     #[error(transparent)]
     GraphError(#[from] GraphError),
+    #[error(transparent)]
+    StateError(#[from] StateError),
     #[error("prediction model failed with error {0}")]
     PredictionModel(String),
 }

@@ -1,27 +1,23 @@
-use std::{sync::Arc, time::Duration};
-
-use routee_compass_core::{
-    algorithm::search::edge_traversal::EdgeTraversal,
-    model::{cost::cost_model::CostModel, traversal::traversal_model::TraversalModel},
-    util::duration_extension::DurationExtension,
-};
-use serde_json::{json, Value};
-
 use crate::app::{
     compass::compass_app_error::CompassAppError,
     search::{search_app::SearchApp, search_app_result::SearchAppResult},
 };
+use routee_compass_core::{
+    algorithm::search::search_instance::SearchInstance, util::duration_extension::DurationExtension,
+};
+use serde_json::{json, Value};
+use std::time::Duration;
 
 /// creates the initial output with summary information from the search app,
 /// which happens regardless of the output plugin setup.
 pub fn create_initial_output(
     req: &Value,
-    res: &Result<SearchAppResult, CompassAppError>,
-    app: &SearchApp,
+    res: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
+    _app: &SearchApp,
 ) -> Result<Value, Value> {
     match &res {
         Err(e) => Err(package_error(req, e)),
-        Ok(result) => {
+        Ok((result, si)) => {
             let start_time = chrono::Local::now();
             let mut init_output = serde_json::json!({
                 "request": req,
@@ -32,10 +28,11 @@ pub fn create_initial_output(
             // build and append summaries if there is a route
             if let Some(et) = route.last() {
                 // build instances of traversal and cost models to compute summaries
-                let t = get_traversal_model(et, req, app)?;
-                let c = get_cost_model(et, req, app, t.clone())?;
-                init_output["traversal_summary"] = t.serialize_state_with_info(&et.result_state);
-                let cost_summary = match c.serialize_cost_with_info(&et.result_state) {
+                // let t = get_traversal_model(et, req, app)?;
+                // let c = get_cost_model(et, req, app, t.clone())?;
+                init_output["traversal_summary"] =
+                    si.state_model.serialize_state_and_model(&et.result_state);
+                let cost_summary = match si.cost_model.serialize_cost_with_info(&et.result_state) {
                     Ok(summary) => summary,
                     Err(e) => return Err(package_error(req, e)),
                 };
@@ -65,27 +62,4 @@ pub fn package_error<E: ToString>(req: &Value, error: E) -> Value {
         "request": req,
         "error": error.to_string()
     })
-}
-
-pub fn get_traversal_model(
-    _et: &EdgeTraversal,
-    req: &Value,
-    app: &SearchApp,
-) -> Result<Arc<dyn TraversalModel>, Value> {
-    match app.build_traversal_model(req) {
-        Err(e) => Err(package_error(req, e)),
-        Ok(tmodel) => Ok(tmodel),
-    }
-}
-
-pub fn get_cost_model(
-    _et: &EdgeTraversal,
-    req: &Value,
-    app: &SearchApp,
-    tmodel: Arc<dyn TraversalModel>,
-) -> Result<CostModel, Value> {
-    match app.build_cost_model_for_traversal_model(req, tmodel.clone()) {
-        Err(e) => Err(package_error(req, e)),
-        Ok(cmodel) => Ok(cmodel),
-    }
 }

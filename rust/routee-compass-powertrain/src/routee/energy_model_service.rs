@@ -1,7 +1,6 @@
 use super::energy_traversal_model::EnergyTraversalModel;
 use super::vehicle::VehicleType;
 use routee_compass_core::model::road_network::edge_heading::EdgeHeading;
-
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;

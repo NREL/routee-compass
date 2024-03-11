@@ -13,18 +13,18 @@ pub enum EnergyUnit {
 
 impl EnergyUnit {
     // see https://epact.energy.gov/fuel-conversion-factors
-    pub fn convert(&self, value: Energy, target: EnergyUnit) -> Energy {
+    pub fn convert(&self, value: &Energy, target: &EnergyUnit) -> Energy {
         use EnergyUnit as S;
         match (self, target) {
-            (S::GallonsGasoline, S::GallonsGasoline) => value,
-            (S::GallonsGasoline, S::KilowattHours) => value * 32.26,
-            (S::KilowattHours, S::GallonsGasoline) => value * 0.031,
-            (S::KilowattHours, S::KilowattHours) => value,
-            (S::GallonsDiesel, S::GallonsDiesel) => value,
-            (S::GallonsDiesel, S::KilowattHours) => value * 40.7,
-            (S::KilowattHours, S::GallonsDiesel) => value * 0.02457,
-            (S::GallonsDiesel, S::GallonsGasoline) => value * 1.155,
-            (S::GallonsGasoline, S::GallonsDiesel) => value * 0.866,
+            (S::GallonsGasoline, S::GallonsGasoline) => *value,
+            (S::GallonsGasoline, S::KilowattHours) => *value * 32.26,
+            (S::KilowattHours, S::GallonsGasoline) => *value * 0.031,
+            (S::KilowattHours, S::KilowattHours) => *value,
+            (S::GallonsDiesel, S::GallonsDiesel) => *value,
+            (S::GallonsDiesel, S::KilowattHours) => *value * 40.7,
+            (S::KilowattHours, S::GallonsDiesel) => *value * 0.02457,
+            (S::GallonsDiesel, S::GallonsGasoline) => *value * 1.155,
+            (S::GallonsGasoline, S::GallonsDiesel) => *value * 0.866,
         }
     }
 }

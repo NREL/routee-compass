@@ -1,3 +1,5 @@
+use routee_compass_core::algorithm::search::search_instance::SearchInstance;
+
 use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::plugin_error::PluginError;
@@ -37,6 +39,6 @@ pub trait OutputPlugin: Send + Sync {
     fn process(
         &self,
         output: &mut serde_json::Value,
-        result: &Result<SearchAppResult, CompassAppError>,
+        result: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
     ) -> Result<(), PluginError>;
 }

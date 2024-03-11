@@ -1,10 +1,9 @@
 use routee_compass_core::model::{
+    state::{state_feature::StateFeature, state_model::StateModel},
     traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
     unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use std::sync::Arc;
-
-use super::VehicleEnergyResult;
 
 pub type VehicleState = Vec<StateVar>;
 
@@ -12,6 +11,10 @@ pub type VehicleState = Vec<StateVar>;
 pub trait VehicleType: Send + Sync {
     /// Return the name of the vehicle type
     fn name(&self) -> String;
+
+    /// lists the state variables expected by this vehicle type. these are
+    /// appended to the base state model set at configuration time.
+    fn state_features(&self) -> Vec<(String, StateFeature)>;
 
     /// Return the energy required to travel a certain distance at a certain speed and grade.
     ///
@@ -28,8 +31,9 @@ pub trait VehicleType: Send + Sync {
         speed: (Speed, SpeedUnit),
         grade: (Grade, GradeUnit),
         distance: (Distance, DistanceUnit),
-        state: &[StateVar],
-    ) -> Result<VehicleEnergyResult, TraversalModelError>;
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError>;
 
     /// Return the best case scenario for traveling a certain distance.
     /// This is used in the a-star algorithm as a distance heuristic.
@@ -55,41 +59,9 @@ pub trait VehicleType: Send + Sync {
     fn best_case_energy_state(
         &self,
         distance: (Distance, DistanceUnit),
-        state: &[StateVar],
-    ) -> Result<VehicleEnergyResult, TraversalModelError>;
-
-    /// Return the number of state variables in the vehicle type
-    fn number_of_state_variables(&self) -> usize;
-
-    /// Provides the list of state variable names in the order that they
-    /// appear in the VehicleType. for each state variable name, its position
-    /// in the result Vector is assumed to match the index of the state vector.
-    ///
-    /// # Returns
-    ///
-    /// the names of the state variables
-    fn state_variable_names(&self) -> Vec<String>;
-
-    /// Return the initial state of the vehicle
-    fn initial_state(&self) -> VehicleState;
-
-    /// Serialize the state of the vehicle into JSON
-    ///
-    /// Arguments:
-    /// * `state` - The state of the vehicle
-    ///
-    /// Returns:
-    /// * `serde_json::Value` - The serialized state
-    fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value;
-
-    /// Serialize any supplemental state information (like units) into JSON
-    ///
-    /// Arguments:
-    /// * `state` - The state of the vehicle
-    ///
-    /// Returns:
-    /// * `serde_json::Value` - The serialized state information
-    fn serialize_state_info(&self, state: &[StateVar]) -> serde_json::Value;
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError>;
 
     /// Give the vehicle a chance to update itself from the incoming query
     ///

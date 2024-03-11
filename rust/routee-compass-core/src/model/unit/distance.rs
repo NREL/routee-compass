@@ -4,6 +4,8 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
+use crate::model::traversal::state::state_variable::StateVar;
+
 use super::{as_f64::AsF64, internal_float::InternalFloat};
 
 #[derive(
@@ -31,22 +33,24 @@ impl AsF64 for Distance {
         **self.0
     }
 }
-
 impl PartialOrd for Distance {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.0.cmp(&other.0))
     }
 }
-
 impl Ord for Distance {
     fn cmp(&self, other: &Self) -> Ordering {
         self.0.cmp(&other.0)
     }
 }
-
 impl Display for Distance {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.0)
+    }
+}
+impl From<StateVar> for Distance {
+    fn from(value: StateVar) -> Self {
+        Distance::new(value.0)
     }
 }
 
