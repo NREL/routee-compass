@@ -49,7 +49,7 @@ impl StateModel {
     /// ]
     /// ```
     pub fn new(config: &serde_json::Value) -> Result<StateModel, StateError> {
-        let state_model = rows_from_json(config)?.collect::<Result<HashMap<_, _>, _>>()?;
+        let state_model = deserialize_state_config(config)?;
         Ok(StateModel(state_model))
     }
 
@@ -495,27 +495,35 @@ impl StateModel {
     }
 }
 
-fn rows_from_json(
+/// reads the state configuration and produces state feature data based on the configuration.
+///
+/// # Arguments
+///
+/// * `json` - json configuration object
+fn deserialize_state_config(
     json: &serde_json::Value,
-) -> Result<impl Iterator<Item = Result<(String, StateModelEntry), StateError>> + '_, StateError> {
-    let arr = json.as_array().ok_or_else(|| {
-        StateError::BuildError(String::from(
-            "expected state model configuration to be a JSON array",
-        ))
-    })?;
-
-    let iterator = arr.iter().enumerate().map(|(index, row)| {
-        let feature = serde_json::from_value::<StateFeature>(row.clone()).map_err(|e| {
-            StateError::BuildError(format!(
-                "unable to parse state feature row {} with contents '{}' due to: {}",
-                index,
-                row.clone(),
-                e
+) -> Result<HashMap<String, StateModelEntry>, StateError> {
+    json.as_object()
+        .ok_or_else(|| {
+            StateError::BuildError(String::from(
+                "expected state model configuration to be a JSON object {}",
             ))
-        })?;
-        let feature_name = feature.get_feature_name();
-        let entry = StateModelEntry { index, feature };
-        Ok((feature_name, entry))
-    });
-    Ok(iterator)
+        })?
+        .into_iter()
+        .enumerate()
+        .map(|(index, (feature_name, feature_json))| {
+            let feature =
+                serde_json::from_value::<StateFeature>(feature_json.clone()).map_err(|e| {
+                    StateError::BuildError(format!(
+                    "unable to parse state feature row {} with name '{}' contents '{}' due to: {}",
+                    index,
+                    feature_name.clone(),
+                    feature_json.clone(),
+                    e
+                ))
+                })?;
+            let entry = StateModelEntry { index, feature };
+            Ok((feature_name.clone(), entry))
+        })
+        .collect::<Result<HashMap<_, _>, _>>()
 }
