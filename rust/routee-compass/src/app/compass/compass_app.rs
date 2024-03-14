@@ -635,7 +635,7 @@ mod tests {
         let app = match CompassApp::try_from(conf_file_test.as_path()) {
             Ok(a) => Ok(a),
             Err(CompassAppError::CompassConfigurationError(
-                CompassConfigurationError::FileNormalizationNotFound(key, f1, f2),
+                CompassConfigurationError::FileNormalizationNotFound(_key, _f1, _f2),
             )) => {
                 // could just be the run location, depending on the environment/runner/IDE
                 // try the alternative configuration that runs from the root directory
