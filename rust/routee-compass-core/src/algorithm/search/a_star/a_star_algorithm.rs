@@ -450,7 +450,6 @@ mod tests {
             Arc::new(HashMap::from([(
                 String::from("distance"),
                 VehicleCostRate::Raw,
-                state_model.clone(),
             )])),
             Arc::new(HashMap::new()),
             CostAggregation::Sum,
