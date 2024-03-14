@@ -5,7 +5,7 @@ search_orientation = "vertex"
 distance = { distance_unit = "miles", initial = 0.0 }
 time = { time_unit = "minutes", initial = 0.0 }
 energy_liquid = { energy_unit = "gallons_gasoline_per_mile", initial = 0.0 }
-energy_electric = { energy_unit = "kilowatt_hours_per_mile", initial = 0.0 }
+energy_electric = { energy_unit = "kilowatt_hours", initial = 0.0 }
 
 [graph]
 edge_list_input_file = "edges-compass.csv.gz"
