@@ -27,8 +27,8 @@ pub enum NetworkCostRate {
 impl NetworkCostRate {
     pub fn traversal_cost(
         &self,
-        prev_state_var: StateVar,
-        next_state_var: StateVar,
+        _prev_state_var: StateVar,
+        _next_state_var: StateVar,
         edge: &Edge,
     ) -> Result<Cost, CostError> {
         match self {
@@ -41,7 +41,7 @@ impl NetworkCostRate {
             NetworkCostRate::Combined(mappings) => {
                 let mapped = mappings
                     .iter()
-                    .map(|f| f.traversal_cost(prev_state_var, next_state_var, edge))
+                    .map(|f| f.traversal_cost(_prev_state_var, _next_state_var, edge))
                     .collect::<Result<Vec<Cost>, CostError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
@@ -65,8 +65,8 @@ impl NetworkCostRate {
     /// other Cost values in a common unit space.
     pub fn access_cost(
         &self,
-        prev_state_var: StateVar,
-        next_state_var: StateVar,
+        _prev_state_var: StateVar,
+        _next_state_var: StateVar,
         prev_edge: &Edge,
         next_edge: &Edge,
     ) -> Result<Cost, CostError> {
@@ -82,7 +82,7 @@ impl NetworkCostRate {
             NetworkCostRate::Combined(mappings) => {
                 let mapped = mappings
                     .iter()
-                    .map(|f| f.access_cost(prev_state_var, next_state_var, prev_edge, next_edge))
+                    .map(|f| f.access_cost(_prev_state_var, _next_state_var, prev_edge, next_edge))
                     .collect::<Result<Vec<Cost>, CostError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
