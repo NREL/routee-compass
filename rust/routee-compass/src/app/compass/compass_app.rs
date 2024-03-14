@@ -641,7 +641,7 @@ mod tests {
                 // try the alternative configuration that runs from the root directory
                 CompassApp::try_from(conf_file_debug.as_path())
             }
-            Err(other) => panic!(other),
+            Err(other) => panic!("{}", other),
         }
         .unwrap();
         let query = serde_json::json!({
