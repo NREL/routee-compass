@@ -1,4 +1,4 @@
-use super::state_model_ops::InternalStateModelOps;
+use super::internal_state_model_ops::InternalStateModelOps;
 use super::{
     custom_feature_format::CustomFeatureFormat, indexed_state_feature::IndexedStateFeature,
     state_error::StateError, state_feature::StateFeature, update_operation::UpdateOperation,
