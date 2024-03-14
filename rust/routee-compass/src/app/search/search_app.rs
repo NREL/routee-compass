@@ -163,18 +163,18 @@ impl SearchApp {
         query: &serde_json::Value,
     ) -> Result<SearchInstance, SearchError> {
         let traversal_model = self.traversal_model_service.build(query)?;
+        let state_model = Arc::new(self.state_model.extend(traversal_model.state_features())?);
         let cost_model = self
             .cost_model_service
-            .build(query, self.state_model.clone())
+            .build(query, state_model.clone())
             .map_err(|e| SearchError::BuildError(e.to_string()))?;
         let frontier_model = self
             .frontier_model_service
-            .build(query, self.state_model.clone())?;
-        let state_model = self.state_model.extend(traversal_model.state_features())?;
+            .build(query, state_model.clone())?;
 
         let search_assets = SearchInstance {
             directed_graph: self.directed_graph.clone(),
-            state_model: Arc::new(state_model),
+            state_model,
             traversal_model,
             cost_model,
             frontier_model,
