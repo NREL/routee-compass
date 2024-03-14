@@ -61,7 +61,7 @@ impl CostModelService {
 
         // // union the requested state variables with those in the existing traversal model
         // // load only indices that appear in coefficients object
-        let state_indices = state_model.state_model_vec();
+        let state_indices = state_model.to_vec();
         let query_state_indices = state_indices
             .iter()
             .filter(|(n, _idx)| state_variable_coefficients.contains_key(n))

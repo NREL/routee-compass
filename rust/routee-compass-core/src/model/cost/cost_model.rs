@@ -41,7 +41,7 @@ impl CostModel {
         let mut network_state_variable_rates = vec![];
 
         // map the state variable coefficiencies and rates to the state variable indices
-        for (name, entry) in state_model.state_model_iterator() {
+        for (index, (name, _)) in state_model.sorted_iterator().enumerate() {
             let coef = state_variable_coefficients_map.get(name).ok_or_else(|| {
                 CostError::InvalidConfiguration(format!("coefficient for {} not provided", name))
             })?;
@@ -51,7 +51,7 @@ impl CostModel {
                 .ok_or_else(|| {
                     CostError::InvalidConfiguration(format!(
                         "vehicle rate for {} not provided",
-                        name
+                        name.clone()
                     ))
                 })?;
             let n_rate = network_state_variable_rates_map
@@ -59,7 +59,7 @@ impl CostModel {
                 .cloned()
                 .unwrap_or_default();
 
-            state_variable_indices.push((name.clone(), entry.index));
+            state_variable_indices.push((name.clone(), index));
             state_variable_coefficients.push(*coef);
             vehicle_state_variable_rates.push(v_rate.clone());
             network_state_variable_rates.push(n_rate.clone());

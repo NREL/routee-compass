@@ -150,7 +150,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         let state_params =
             config_json.get_config_section(CompassConfigurationField::State, &"TOML")?;
-        let state_model = Arc::new(StateModel::new(&state_params)?);
+        let state_model = Arc::new(StateModel::try_from(&state_params)?);
 
         // build traversal model
         let traversal_start = Local::now();

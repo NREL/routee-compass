@@ -304,7 +304,7 @@ mod tests {
         });
         let model = EnergyTraversalModel::new(arc_service, &conf).unwrap();
         let updated_state_model = state_model.extend(model.state_features()).unwrap();
-        println!("{:?}", updated_state_model.state_model_vec());
+        println!("{:?}", updated_state_model.to_vec());
         let mut state = updated_state_model.initial_state().unwrap();
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)

@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use super::{custom_feature_format::CustomFeatureFormat, state_error::StateError};
 use crate::model::{traversal::state::state_variable::StateVar, unit};
 use serde::{Deserialize, Serialize};
@@ -47,6 +49,27 @@ pub enum StateFeature {
         unit: String,
         format: CustomFeatureFormat,
     },
+}
+
+impl Display for StateFeature {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StateFeature::Distance {
+                distance_unit,
+                initial,
+            } => write!(f, "unit: {}, initial: {}", distance_unit, initial),
+            StateFeature::Time { time_unit, initial } => {
+                write!(f, "unit: {}, initial: {}", time_unit, initial)
+            }
+            StateFeature::Energy {
+                energy_unit,
+                initial,
+            } => write!(f, "unit: {}, initial: {}", energy_unit, initial),
+            StateFeature::Custom { name, unit, format } => {
+                write!(f, "name: {} unit: {}, repr: {}", name, unit, format)
+            }
+        }
+    }
 }
 
 impl StateFeature {
