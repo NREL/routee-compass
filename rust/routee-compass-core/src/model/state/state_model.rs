@@ -1,7 +1,7 @@
+use super::state_model_ops::InternalStateModelOps;
 use super::{
-    custom_feature_format::CustomFeatureFormat, state_error::StateError,
-    state_feature::StateFeature, state_model_entry::StateModelEntry,
-    update_operation::UpdateOperation,
+    custom_feature_format::CustomFeatureFormat, indexed_state_feature::IndexedStateFeature,
+    state_error::StateError, state_feature::StateFeature, update_operation::UpdateOperation,
 };
 use crate::model::{
     traversal::state::state_variable::StateVar,
@@ -9,56 +9,106 @@ use crate::model::{
 };
 use itertools::Itertools;
 use serde_json::json;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-pub struct StateModel(HashMap<String, StateModelEntry>);
+/// a state model tracks information about each feature in a search state vector.
+/// in concept, it is modeled as a mapping from a feature_name String to a StateFeature
+/// object (see NFeatures, below). there are 4 additional implementations that specialize
+/// for the case where fewer than 5 features are required in order to improve CPU performance.
+pub enum StateModel {
+    OneFeature {
+        key: String,
+        value: StateFeature,
+    },
+    TwoFeatures {
+        k1: String,
+        k2: String,
+        v1: StateFeature,
+        v2: StateFeature,
+    },
+    ThreeFeatures {
+        k1: String,
+        k2: String,
+        k3: String,
+        v1: StateFeature,
+        v2: StateFeature,
+        v3: StateFeature,
+    },
+    FourFeatures {
+        k1: String,
+        k2: String,
+        k3: String,
+        k4: String,
+        v1: StateFeature,
+        v2: StateFeature,
+        v3: StateFeature,
+        v4: StateFeature,
+    },
+    NFeatures(HashMap<String, IndexedStateFeature>),
+}
 
 impl StateModel {
-    /// builds a new state model from a JSON array of deserialized StateFeatures.
-    /// the JSON array matches the order and size of the feature vector. downstream
-    /// models such as the TraversalModel can look up features by name and retrieve
-    /// the codec or unit representation in order to do state vector arithmetic.
-    ///
-    /// # Example
-    ///
-    /// ### Deserialization
-    ///
-    /// an example TOML representation of a StateModel:
-    ///
-    /// ```toml
-    /// [
-    ///   { "distance_unit" = "kilometers", initial = 0.0 },
-    ///   { "time_unit" = "minutes", initial = 0.0 },
-    ///   { name = "soc", unit = "percent", format = { type = "floating_point", initial = 0.0 } }
-    /// ]
-    ///
-    /// the same example as JSON (convert '=' into ':', and enquote object keys):
-    ///
-    /// ```json
-    /// [
-    ///   { "distance_unit": "kilometers", "initial": 0.0 },
-    ///   { "time_unit": "minutes", "initial": 0.0 },
-    ///   {
-    ///     "name": "soc",
-    ///     "unit": "percent",
-    ///     "format": {
-    ///       "type": "floating_point",
-    ///       "initial": 0.0
-    ///     }
-    ///   }
-    /// ]
-    /// ```
-    pub fn new(config: &serde_json::Value) -> Result<StateModel, StateError> {
-        let state_model = deserialize_state_config(config)?;
-        Ok(StateModel(state_model))
+    pub fn empty() -> StateModel {
+        StateModel::NFeatures(HashMap::new())
     }
 
-    pub fn empty() -> StateModel {
-        StateModel(HashMap::new())
+    pub fn new(features: Vec<(String, StateFeature)>) -> StateModel {
+        use StateModel as S;
+        let sorted = features
+            .into_iter()
+            .sorted_by_key(|(n, _)| n.clone())
+            .collect::<Vec<_>>();
+
+        match &sorted[..] {
+            [] => S::empty(),
+            [(key, value)] => S::OneFeature {
+                key: key.clone(),
+                value: value.clone(),
+            },
+            [(k1, v1), (k2, v2)] => S::TwoFeatures {
+                k1: k1.clone(),
+                k2: k2.clone(),
+                v1: v1.clone(),
+                v2: v2.clone(),
+            },
+            [(k1, v1), (k2, v2), (k3, v3)] => S::ThreeFeatures {
+                k1: k1.clone(),
+                k2: k2.clone(),
+                k3: k3.clone(),
+                v1: v1.clone(),
+                v2: v2.clone(),
+                v3: v3.clone(),
+            },
+            [(k1, v1), (k2, v2), (k3, v3), (k4, v4)] => S::FourFeatures {
+                k1: k1.clone(),
+                k2: k2.clone(),
+                k3: k3.clone(),
+                k4: k4.clone(),
+                v1: v1.clone(),
+                v2: v2.clone(),
+                v3: v3.clone(),
+                v4: v4.clone(),
+            },
+            _ => {
+                let indexed = sorted
+                    .into_iter()
+                    .enumerate()
+                    .map(|(index, (feature_name, feature))| {
+                        let indexed_feature = IndexedStateFeature {
+                            index,
+                            feature: feature.clone(),
+                        };
+                        (feature_name.clone(), indexed_feature)
+                    })
+                    .collect::<HashMap<_, _>>();
+                S::NFeatures(indexed)
+            }
+        }
     }
 
     /// extends a state model by adding additional key/value pairs to the model mapping.
-    /// in the case of name collision, a warning is logged to the user.
+    /// in the case of name collision, a warning is logged to the user and the newer
+    /// variable is used.
     ///
     /// this method is used when state models are updated by the user query as Services
     /// become Models in the SearchApp.
@@ -66,47 +116,76 @@ impl StateModel {
     /// # Arguments
     /// * `query` - JSON search query contents containing state model information
     pub fn extend(&self, entries: Vec<(String, StateFeature)>) -> Result<StateModel, StateError> {
-        let offset = self.len();
-        let mut map = self.0.clone();
-        for row in entries.iter().enumerate() {
-            let (i, (name, feature)) = row;
-            let index = offset + i;
-            let entry = StateModelEntry {
-                index,
-                feature: feature.clone(),
-            };
-            let insert_result = map.insert(name.clone(), entry);
-            if let Some(replaced) = insert_result {
-                log::warn!(
-                    "user overwriting state model entry {} with {}",
-                    name,
-                    replaced
-                );
-            }
-        }
-        Ok(StateModel(map))
-    }
+        let overwrite_keys = entries
+            .iter()
+            .flat_map(|(feature_name, state_feature)| {
+                if let Ok(old_feature) = self.get_feature(feature_name) {
+                    log::warn!(
+                        "user overwriting state model feature {}.\nold: {}\nnew: {}",
+                        feature_name,
+                        state_feature,
+                        old_feature
+                    );
+                    Some(feature_name.clone())
+                } else {
+                    None
+                }
+            })
+            .collect::<HashSet<_>>();
 
-    pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        let all_features = self
+            .sorted_iterator()
+            .filter(|(n, _)| !overwrite_keys.contains(*n))
+            .map(|(n, f)| (n.clone(), f.clone()))
+            .chain(entries)
+            .collect::<Vec<_>>();
+
+        Ok(all_features.into())
     }
 
     pub fn len(&self) -> usize {
-        self.0.len()
+        match self {
+            StateModel::OneFeature { .. } => 1,
+            StateModel::TwoFeatures { .. } => 2,
+            StateModel::ThreeFeatures { .. } => 3,
+            StateModel::FourFeatures { .. } => 4,
+            StateModel::NFeatures(f) => f.len(),
+        }
     }
 
-    /// generates an iterator presenting the state model entries sorted
-    /// by index, so that it may be zipped with a real state vector
-    pub fn state_model_iterator(&self) -> impl Iterator<Item = (&String, &StateModelEntry)> {
-        self.0.iter().sorted_by_key(|(_n, f)| f.index)
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    pub fn contains_key(&self, k: &str) -> bool {
+        self.get_index(k).is_ok()
     }
 
     /// collects the state model tuples and clones them so they can
     /// be used to build other collections
-    pub fn state_model_vec(&self) -> Vec<(String, StateModelEntry)> {
-        self.state_model_iterator()
-            .map(|(n, e)| (n.clone(), e.clone()))
+    pub fn to_vec(&self) -> Vec<(String, IndexedStateFeature)> {
+        self.sorted_iterator()
+            .enumerate()
+            .map(|(idx, (n, f))| {
+                (
+                    n.clone(),
+                    IndexedStateFeature {
+                        index: idx,
+                        feature: f.clone(),
+                    },
+                )
+            })
             .collect_vec()
+    }
+
+    pub fn sorted_iterator<'a>(
+        &'a self,
+    ) -> Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a> {
+        let iter = StateModelIter {
+            iterable: self,
+            index: 0,
+        };
+        Box::new(iter)
     }
 
     /// Creates the initial state of a search. this should be a vector of
@@ -116,9 +195,8 @@ impl StateModel {
     ///
     /// an initialized, "zero"-valued traversal state, or an error
     pub fn initial_state(&self) -> Result<Vec<StateVar>, StateError> {
-        self.state_model_iterator()
-            .map(|(n, _idx)| {
-                let feature = self.get_feature(n)?;
+        self.sorted_iterator()
+            .map(|(_, feature)| {
                 let initial = feature.get_initial()?;
                 Ok(initial)
             })
@@ -289,39 +367,42 @@ impl StateModel {
         Ok(next_val - prev_val)
     }
 
+    /// adds a distance value with distance unit to this feature vector
     pub fn add_distance(
         &self,
         state: &mut [StateVar],
         name: &str,
-        edge_distance: &Distance,
+        distance: &Distance,
         from_unit: &DistanceUnit,
     ) -> Result<(), StateError> {
         let prev_distance = self.get_distance(state, name, from_unit)?;
-        let next_distance = prev_distance + *edge_distance;
+        let next_distance = prev_distance + *distance;
         self.set_distance(state, name, &next_distance, from_unit)
     }
 
+    /// adds a time value with time unit to this feature vector
     pub fn add_time(
         &self,
         state: &mut [StateVar],
         name: &str,
-        edge_time: &Time,
+        time: &Time,
         from_unit: &TimeUnit,
     ) -> Result<(), StateError> {
         let prev_time = self.get_time(state, name, from_unit)?;
-        let next_time = prev_time + *edge_time;
+        let next_time = prev_time + *time;
         self.set_time(state, name, &next_time, from_unit)
     }
 
+    /// adds a energy value with energy unit to this feature vector
     pub fn add_energy(
         &self,
         state: &mut [StateVar],
         name: &str,
-        edge_energy: &Energy,
+        energy: &Energy,
         from_unit: &EnergyUnit,
     ) -> Result<(), StateError> {
         let prev_energy = self.get_energy(state, name, from_unit)?;
-        let next_energy = prev_energy + *edge_energy;
+        let next_energy = prev_energy + *energy;
         self.set_energy(state, name, &next_energy, from_unit)
     }
 
@@ -412,34 +493,9 @@ impl StateModel {
         self.update_state(state, name, &encoded_value, UpdateOperation::Replace)
     }
 
-    /// performs a state update for a feature name and value by applying some
-    /// update operation that handles combining the previous and next values.
-    ///
-    /// # Arguments
-    ///
-    /// * `state` - the state to update
-    /// * `name`  - feature name to update
-    /// * `value` - new value to apply
-    /// * `op`    - operation to combine/replace prev with new value
-    fn update_state(
-        &self,
-        state: &mut [StateVar],
-        name: &str,
-        value: &StateVar,
-        op: UpdateOperation,
-    ) -> Result<(), StateError> {
-        let index = self.get_index(name)?;
-        let prev = state
-            .get(index)
-            .ok_or(StateError::InvalidStateVariableIndex(index, state.len()))?;
-        let updated = op.perform_operation(prev, value);
-        state[index] = updated;
-        Ok(())
-    }
-
     pub fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
         let output = self
-            .state_model_iterator()
+            .sorted_iterator()
             .zip(state.iter())
             .map(|((name, _), state_var)| (name, state_var))
             .collect::<HashMap<_, _>>();
@@ -447,7 +503,7 @@ impl StateModel {
     }
 
     pub fn serialize_state_model(&self) -> serde_json::Value {
-        json![self.0]
+        json![self.sorted_iterator().collect::<HashMap<_, _>>()]
     }
 
     pub fn serialize_state_and_model(&self, state: &[StateVar]) -> serde_json::Value {
@@ -460,70 +516,143 @@ impl StateModel {
 
         summary
     }
+}
 
-    fn names_to_string(&self) -> String {
-        let names = self.0.keys().join(", ");
-        format!("[{}]", names)
-    }
+pub struct StateModelIter<'a> {
+    iterable: &'a StateModel,
+    index: usize,
+}
 
-    fn get_index(&self, name: &str) -> Result<usize, StateError> {
-        self.0.get(name).map(|entry| entry.index).ok_or_else(|| {
-            let names = self.names_to_string();
-            StateError::UnknownStateVariableName(name.into(), names)
-        })
-    }
+impl<'a> Iterator for StateModelIter<'a> {
+    type Item = (&'a String, &'a StateFeature);
 
-    fn get_value(&self, state: &[StateVar], name: &str) -> Result<StateVar, StateError> {
-        let idx = self.get_index(name)?;
-        if idx >= state.len() {
-            Err(StateError::RuntimeError(format!(
-                "state index {} for {} is out of range for state vector with {} entries",
-                idx,
-                name,
-                state.len()
-            )))
-        } else {
-            Ok(state[idx])
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index >= self.iterable.len() {
+            return None;
         }
-    }
-
-    pub fn get_feature(&self, name: &str) -> Result<&StateFeature, StateError> {
-        self.0.get(name).map(|entry| &entry.feature).ok_or_else(|| {
-            let names = self.names_to_string();
-            StateError::UnknownStateVariableName(name.into(), names)
-        })
+        if let Ok(tuple) = self.iterable.get(self.index) {
+            self.index += 1;
+            Some(tuple)
+        } else {
+            None
+        }
     }
 }
 
-/// reads the state configuration and produces state feature data based on the configuration.
-///
-/// # Arguments
-///
-/// * `json` - json configuration object
-fn deserialize_state_config(
-    json: &serde_json::Value,
-) -> Result<HashMap<String, StateModelEntry>, StateError> {
-    json.as_object()
-        .ok_or_else(|| {
-            StateError::BuildError(String::from(
-                "expected state model configuration to be a JSON object {}",
-            ))
-        })?
-        .into_iter()
-        .enumerate()
-        .map(|(index, (feature_name, feature_json))| {
-            let feature =
-                serde_json::from_value::<StateFeature>(feature_json.clone()).map_err(|e| {
-                    StateError::BuildError(format!(
-                    "unable to parse state feature row {} with name '{}' contents '{}' due to: {}",
-                    index,
-                    feature_name.clone(),
-                    feature_json.clone(),
-                    e
+impl IntoIterator for StateModel {
+    type Item = (String, IndexedStateFeature);
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            StateModel::OneFeature { key, value } => {
+                vec![(key, IndexedStateFeature::new(0, value))].into_iter()
+            }
+            StateModel::TwoFeatures { k1, k2, v1, v2 } => vec![
+                (k1, IndexedStateFeature::new(0, v1)),
+                (k2, IndexedStateFeature::new(1, v2)),
+            ]
+            .into_iter(),
+            StateModel::ThreeFeatures {
+                k1,
+                k2,
+                k3,
+                v1,
+                v2,
+                v3,
+            } => vec![
+                (k1, IndexedStateFeature::new(0, v1)),
+                (k2, IndexedStateFeature::new(1, v2)),
+                (k3, IndexedStateFeature::new(2, v3)),
+            ]
+            .into_iter(),
+            StateModel::FourFeatures {
+                k1,
+                k2,
+                k3,
+                k4,
+                v1,
+                v2,
+                v3,
+                v4,
+            } => vec![
+                (k1, IndexedStateFeature::new(0, v1)),
+                (k2, IndexedStateFeature::new(1, v2)),
+                (k3, IndexedStateFeature::new(2, v3)),
+                (k4, IndexedStateFeature::new(3, v4)),
+            ]
+            .into_iter(),
+            StateModel::NFeatures(f) => f.into_iter().sorted_by_key(|(_, f)| f.index),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
+    type Error = StateError;
+
+    /// builds a new state model from a JSON array of deserialized StateFeatures.
+    /// the size of the JSON object matches the size of the feature vector. downstream
+    /// models such as the TraversalModel can look up features by name and retrieve
+    /// the codec or unit representation in order to do state vector arithmetic.
+    ///
+    /// # Example
+    ///
+    /// ### Deserialization
+    ///
+    /// an example TOML representation of a StateModel:
+    ///
+    /// ```toml
+    /// [state]
+    /// distance = { "distance_unit" = "kilometers", initial = 0.0 },
+    /// time = { "time_unit" = "minutes", initial = 0.0 },
+    /// battery_soc = { name = "soc", unit = "percent", format = { type = "floating_point", initial = 0.0 } }
+    ///
+    /// the same example as JSON (convert '=' into ':', and enquote object keys):
+    ///
+    /// ```json
+    /// {
+    ///   "distance": { "distance_unit": "kilometers", "initial": 0.0 },
+    ///   "time": { "time_unit": "minutes", "initial": 0.0 },
+    ///   "battery_soc": {
+    ///     "name": "soc",
+    ///     "unit": "percent",
+    ///     "format": {
+    ///       "type": "floating_point",
+    ///       "initial": 0.0
+    ///     }
+    ///   }
+    /// }
+    /// ```
+    fn try_from(json: &'a serde_json::Value) -> Result<StateModel, StateError> {
+        let tuples = json
+            .as_object()
+            .ok_or_else(|| {
+                StateError::BuildError(String::from(
+                    "expected state model configuration to be a JSON object {}",
                 ))
-                })?;
-            let entry = StateModelEntry { index, feature };
-            Ok((feature_name.clone(), entry))
-        })
-        .collect::<Result<HashMap<_, _>, _>>()
+            })?
+            .into_iter()
+            .map(|(feature_name, feature_json)| {
+                let feature = serde_json::from_value::<StateFeature>(feature_json.clone())
+                    .map_err(|e| {
+                        StateError::BuildError(format!(
+                        "unable to parse state feature row with name '{}' contents '{}' due to: {}",
+                        feature_name.clone(),
+                        feature_json.clone(),
+                        e
+                    ))
+                    })?;
+                Ok((feature_name.clone(), feature))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let state_model = StateModel::from(tuples);
+        Ok(state_model)
+    }
+}
+
+impl From<Vec<(String, StateFeature)>> for StateModel {
+    fn from(value: Vec<(String, StateFeature)>) -> Self {
+        StateModel::new(value)
+    }
 }
