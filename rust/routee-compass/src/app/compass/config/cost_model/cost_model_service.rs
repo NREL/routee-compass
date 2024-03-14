@@ -51,7 +51,7 @@ impl CostModelService {
         // user-provided coefficients used to prioritize each state variable in the cost model
         // at minimum, we default to the "distance" traveled.
         // invariant: this hashmap dictates the list of keys for all subsequent CostModel hashmaps.
-        let state_variable_coefficients: Arc<HashMap<String, f64>> = query
+        let weights: Arc<HashMap<String, f64>> = query
             .get_config_serde_optional::<HashMap<String, f64>>(
                 &"state_variable_coefficients",
                 &"cost_model",
@@ -64,16 +64,16 @@ impl CostModelService {
         let state_indices = state_model.to_vec();
         let query_state_indices = state_indices
             .iter()
-            .filter(|(n, _idx)| state_variable_coefficients.contains_key(n))
+            .filter(|(n, _idx)| weights.contains_key(n))
             .map(|(n, idx)| (n.clone(), idx))
             .collect::<Vec<_>>();
 
         // validate user input, no query state variables provided that are unknown to traversal model
-        if state_variable_coefficients.len() != query_state_indices.len() {
+        if weights.len() != query_state_indices.len() {
             let names_lookup: HashSet<&String> =
                 query_state_indices.iter().map(|(n, _)| n).collect();
 
-            let extras = state_variable_coefficients
+            let extras = weights
                 .clone()
                 .keys()
                 .filter(|n| !names_lookup.contains(n))
@@ -101,11 +101,11 @@ impl CostModelService {
             .unwrap_or(self.cost_aggregation.to_owned());
 
         let model = CostModel::new(
-            state_variable_coefficients,
-            state_model,
+            weights,
             vehicle_rates,
             self.network_state_variable_rates.clone(),
             cost_aggregation,
+            state_model,
         )
         .map_err(|e| {
             CompassConfigurationError::UserConfigurationError(format!(
