@@ -1,7 +1,6 @@
-state = [
-    { distance_unit = "kilometers", initial = 0.0 },
-    { time_unit = "minutes", initial = 0.0 },
-]
+[state]
+distance = { distance_unit = "kilometers", initial = 0.0 }
+time = { time_unit = "minutes", initial = 0.0 }
 
 [graph]
 edge_list_input_file = "routee-compass/src/app/compass/test/speeds_test/test_edges.csv"
