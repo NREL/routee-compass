@@ -275,11 +275,11 @@ mod test {
     #[test]
     fn test_time_calculate_mph_to_base() {
         let time = create_time(
-            &&Speed::ONE,
-            &&SpeedUnit::MilesPerHour,
-            &&Distance::ONE,
-            &&DistanceUnit::Miles,
-            &&BASE_TIME_UNIT,
+            &Speed::ONE,
+            &SpeedUnit::MilesPerHour,
+            &Distance::ONE,
+            &DistanceUnit::Miles,
+            &BASE_TIME_UNIT,
         )
         .unwrap();
         let expected = TimeUnit::Hours.convert(&Time::ONE, &BASE_TIME_UNIT);
