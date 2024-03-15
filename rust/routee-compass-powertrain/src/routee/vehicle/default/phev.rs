@@ -99,10 +99,10 @@ impl VehicleType for PHEV {
 
         // assume lowest energy cost scenario for a PHEV is to just use the battery
         let energy = Energy::create(
-            self.charge_depleting_model.ideal_energy_rate,
-            self.charge_depleting_model.energy_rate_unit,
-            distance,
-            distance_unit,
+            &self.charge_depleting_model.ideal_energy_rate,
+            &self.charge_depleting_model.energy_rate_unit,
+            &distance,
+            &distance_unit,
         )?;
         Ok(energy)
     }

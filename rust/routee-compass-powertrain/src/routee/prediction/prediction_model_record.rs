@@ -55,10 +55,10 @@ impl PredictionModelRecord {
         let energy_rate_real_world = energy_rate * self.real_world_energy_adjustment;
 
         let (energy, energy_unit) = Energy::create(
-            energy_rate_real_world,
-            self.energy_rate_unit,
-            distance,
-            distance_unit,
+            &energy_rate_real_world,
+            &self.energy_rate_unit,
+            &distance,
+            &distance_unit,
         )?;
 
         Ok((energy, energy_unit))

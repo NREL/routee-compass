@@ -33,11 +33,11 @@ impl TraversalModel for SpeedTraversalModel {
         let distance = BASE_DISTANCE_UNIT.convert(&edge.distance, &self.engine.distance_unit);
         let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let edge_time = Time::create(
-            speed,
-            self.engine.speed_unit,
-            distance,
-            self.engine.distance_unit,
-            self.engine.time_unit,
+            &speed,
+            &self.engine.speed_unit,
+            &distance,
+            &self.engine.distance_unit,
+            &self.engine.time_unit,
         )?;
 
         state_model.add_time(state, "time", &edge_time, &self.engine.time_unit)?;
@@ -69,11 +69,11 @@ impl TraversalModel for SpeedTraversalModel {
         }
 
         let estimated_time = Time::create(
-            self.engine.max_speed,
-            self.engine.speed_unit,
-            distance,
-            self.engine.distance_unit,
-            self.engine.time_unit,
+            &self.engine.max_speed,
+            &self.engine.speed_unit,
+            &distance,
+            &self.engine.distance_unit,
+            &self.engine.time_unit,
         )?;
         state_model.add_time(state, "time", &estimated_time, &self.engine.time_unit)?;
 
