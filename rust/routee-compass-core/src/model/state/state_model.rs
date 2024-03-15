@@ -10,6 +10,7 @@ use crate::model::{
 use itertools::Itertools;
 use serde_json::json;
 use std::collections::{HashMap, HashSet};
+use std::iter::Enumerate;
 
 /// a state model tracks information about each feature in a search state vector.
 /// in concept, it is modeled as a mapping from a feature_name String to a StateFeature
@@ -46,6 +47,10 @@ pub enum StateModel {
     },
     NFeatures(HashMap<String, IndexedStateFeature>),
 }
+
+type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>;
+type IndexedFeatureIterator<'a> =
+    Enumerate<Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>>;
 
 impl StateModel {
     pub fn empty() -> StateModel {
@@ -134,7 +139,7 @@ impl StateModel {
             .collect::<HashSet<_>>();
 
         let all_features = self
-            .sorted_iterator()
+            .iter()
             .filter(|(n, _)| !overwrite_keys.contains(*n))
             .map(|(n, f)| (n.clone(), f.clone()))
             .chain(entries)
@@ -164,7 +169,7 @@ impl StateModel {
     /// collects the state model tuples and clones them so they can
     /// be used to build other collections
     pub fn to_vec(&self) -> Vec<(String, IndexedStateFeature)> {
-        self.sorted_iterator()
+        self.iter()
             .enumerate()
             .map(|(idx, (n, f))| {
                 (
@@ -178,14 +183,18 @@ impl StateModel {
             .collect_vec()
     }
 
-    pub fn sorted_iterator<'a>(
-        &'a self,
-    ) -> Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a> {
+    /// iterates over the features in this state in their state vector index ordering.
+    pub fn iter(&self) -> FeatureIterator {
         let iter = StateModelIter {
             iterable: self,
             index: 0,
         };
         Box::new(iter)
+    }
+
+    /// iterator that includes the state vector index along with the feature name and StateFeature
+    pub fn indexed_iter(&self) -> IndexedFeatureIterator {
+        self.iter().enumerate()
     }
 
     /// Creates the initial state of a search. this should be a vector of
@@ -195,7 +204,7 @@ impl StateModel {
     ///
     /// an initialized, "zero"-valued traversal state, or an error
     pub fn initial_state(&self) -> Result<Vec<StateVar>, StateError> {
-        self.sorted_iterator()
+        self.iter()
             .map(|(_, feature)| {
                 let initial = feature.get_initial()?;
                 Ok(initial)
@@ -495,7 +504,7 @@ impl StateModel {
 
     pub fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
         let output = self
-            .sorted_iterator()
+            .iter()
             .zip(state.iter())
             .map(|((name, _), state_var)| (name, state_var))
             .collect::<HashMap<_, _>>();
@@ -503,7 +512,7 @@ impl StateModel {
     }
 
     pub fn serialize_state_model(&self) -> serde_json::Value {
-        json![self.sorted_iterator().collect::<HashMap<_, _>>()]
+        json![self.iter().collect::<HashMap<_, _>>()]
     }
 
     pub fn serialize_state_and_model(&self, state: &[StateVar]) -> serde_json::Value {

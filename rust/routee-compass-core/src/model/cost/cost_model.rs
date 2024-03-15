@@ -48,7 +48,7 @@ impl CostModel {
         let mut vehicle_rates = vec![];
         let mut network_rates = vec![];
 
-        for (index, (name, _)) in state_model.sorted_iterator().enumerate() {
+        for (index, (name, _)) in state_model.indexed_iter() {
             // always instantiate a value for each vector, diverting to default (zero-valued) if not provided
             // which has the following effect:
             // - weight: deactivates costs for this feature (product)
