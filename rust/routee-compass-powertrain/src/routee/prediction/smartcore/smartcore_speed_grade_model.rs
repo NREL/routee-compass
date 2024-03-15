@@ -24,8 +24,8 @@ impl PredictionModel for SmartcoreSpeedGradeModel {
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
-        let speed_value = speed_unit.convert(speed, self.speed_unit).as_f64();
-        let grade_value = grade_unit.convert(grade, self.grade_unit).as_f64();
+        let speed_value = speed_unit.convert(&speed, &self.speed_unit).as_f64();
+        let grade_value = grade_unit.convert(&grade, &self.grade_unit).as_f64();
         let x = DenseMatrix::from_2d_vec(&vec![vec![speed_value, grade_value]]);
         let y = self
             .rf

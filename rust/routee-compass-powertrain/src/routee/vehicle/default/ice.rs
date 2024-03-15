@@ -47,10 +47,10 @@ impl VehicleType for ICE {
     ) -> Result<(Energy, EnergyUnit), TraversalModelError> {
         let (distance, distance_unit) = distance;
         let energy = Energy::create(
-            self.prediction_model_record.ideal_energy_rate,
-            self.prediction_model_record.energy_rate_unit,
-            distance,
-            distance_unit,
+            &self.prediction_model_record.ideal_energy_rate,
+            &self.prediction_model_record.energy_rate_unit,
+            &distance,
+            &distance_unit,
         )?;
         Ok(energy)
     }

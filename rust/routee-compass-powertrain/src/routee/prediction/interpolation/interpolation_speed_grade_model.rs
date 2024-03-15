@@ -29,8 +29,8 @@ impl PredictionModel for InterpolationSpeedGradeModel {
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
-        let speed_value = speed_unit.convert(speed, self.speed_unit).as_f64();
-        let grade_value = grade_unit.convert(grade, self.grade_unit).as_f64();
+        let speed_value = speed_unit.convert(&speed, &self.speed_unit).as_f64();
+        let grade_value = grade_unit.convert(&grade, &self.grade_unit).as_f64();
 
         // snap incoming speed and grade to the grid
         let min_speed = self.interpolator.x[0].0;

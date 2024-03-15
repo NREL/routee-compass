@@ -71,10 +71,10 @@ impl Energy {
         Energy(InternalFloat::new(value))
     }
     pub fn create(
-        energy_rate: EnergyRate,
-        energy_rate_unit: EnergyRateUnit,
-        distance: Distance,
-        distance_unit: DistanceUnit,
+        energy_rate: &EnergyRate,
+        energy_rate_unit: &EnergyRateUnit,
+        distance: &Distance,
+        distance_unit: &DistanceUnit,
     ) -> Result<(Energy, EnergyUnit), UnitError> {
         create_energy(energy_rate, energy_rate_unit, distance, distance_unit)
     }

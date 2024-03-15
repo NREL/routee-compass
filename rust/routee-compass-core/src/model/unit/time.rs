@@ -71,11 +71,11 @@ impl Time {
         Time(InternalFloat::new(value))
     }
     pub fn create(
-        speed: Speed,
-        speed_unit: SpeedUnit,
-        distance: Distance,
-        distance_unit: DistanceUnit,
-        time_unit: TimeUnit,
+        speed: &Speed,
+        speed_unit: &SpeedUnit,
+        distance: &Distance,
+        distance_unit: &DistanceUnit,
+        time_unit: &TimeUnit,
     ) -> Result<Time, UnitError> {
         builders::create_time(speed, speed_unit, distance, distance_unit, time_unit)
     }
