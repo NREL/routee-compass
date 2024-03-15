@@ -12,67 +12,66 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 /// implementation of a model for calculating Cost from a state transition.
+/// vectorized, where each index in these vectors matches the corresponding index
+/// in the state model.
 pub struct CostModel {
-    state_variable_indices: Vec<(String, usize)>,
-    state_variable_coefficients: Vec<f64>,
-    vehicle_state_variable_rates: Vec<VehicleCostRate>,
-    network_state_variable_rates: Vec<NetworkCostRate>,
+    indices: Vec<(String, usize)>,
+    weights: Vec<f64>,
+    vehicle_rates: Vec<VehicleCostRate>,
+    network_rates: Vec<NetworkCostRate>,
     cost_aggregation: CostAggregation,
 }
 
 impl CostModel {
     /// builds a cost model for a specific query.
     ///
-    /// at configuration time, a list of rates are specified. at query time,
-    /// a specialized cost model is built that takes the state variable indices from
-    /// the specialized traversal model and creates a mapping into this cost
-    /// model instance.
+    /// this search instance has a state model that dictates the location of each feature.
+    /// here we aim to vectorize a mapping from those features into the cost weights,
+    /// vehicle cost rates and network cost rates related to that feature.
+    /// at runtime, we can iterate through these vectors to compute the cost.
     ///
+    /// # Arguments
+    /// * `weights`              - user-provided weighting factors for each feature
+    /// * `vehicle_rate_mapping` - for each feature name, a vehicle cost rate for that feature
+    /// * `network_rate_mapping` - for each feature name, a network cost rate for that feature
+    /// * `cost_aggregation`     - function for aggregating each feature cost (for example, Sum)
+    /// * `state_model`          - state model instance for this search
     pub fn new(
-        state_variable_coefficients_map: Arc<HashMap<String, f64>>,
-        state_model: Arc<StateModel>,
-        vehicle_state_variable_rates_map: Arc<HashMap<String, VehicleCostRate>>,
-        network_state_variable_rates_map: Arc<HashMap<String, NetworkCostRate>>,
+        weights_mapping: Arc<HashMap<String, f64>>,
+        vehicle_rate_mapping: Arc<HashMap<String, VehicleCostRate>>,
+        network_rate_mapping: Arc<HashMap<String, NetworkCostRate>>,
         cost_aggregation: CostAggregation,
+        state_model: Arc<StateModel>,
     ) -> Result<CostModel, CostError> {
-        let mut state_variable_indices = vec![];
-        let mut state_variable_coefficients = vec![];
-        let mut vehicle_state_variable_rates = vec![];
-        let mut network_state_variable_rates = vec![];
+        let mut indices = vec![];
+        let mut weights = vec![];
+        let mut vehicle_rates = vec![];
+        let mut network_rates = vec![];
 
-        // map the state variable coefficiencies and rates to the state variable indices
-        for (name, entry) in state_model.state_model_iterator() {
-            let coef = state_variable_coefficients_map.get(name).ok_or_else(|| {
-                CostError::InvalidConfiguration(format!("coefficient for {} not provided", name))
-            })?;
-            let v_rate = vehicle_state_variable_rates_map
-                .get(name)
-                .cloned()
-                .ok_or_else(|| {
-                    CostError::InvalidConfiguration(format!(
-                        "vehicle rate for {} not provided",
-                        name
-                    ))
-                })?;
-            let n_rate = network_state_variable_rates_map
-                .get(name)
-                .cloned()
-                .unwrap_or_default();
+        for (index, (name, _)) in state_model.indexed_iter() {
+            // always instantiate a value for each vector, diverting to default (zero-valued) if not provided
+            // which has the following effect:
+            // - weight: deactivates costs for this feature (product)
+            // - v_rate: ignores vehicle costs for this feature (sum)
+            // - n_rate: ignores network costs for this feature (sum)
+            let weight = weights_mapping.get(name).cloned().unwrap_or_default();
+            let v_rate = vehicle_rate_mapping.get(name).cloned().unwrap_or_default();
+            let n_rate = network_rate_mapping.get(name).cloned().unwrap_or_default();
 
-            state_variable_indices.push((name.clone(), entry.index));
-            state_variable_coefficients.push(*coef);
-            vehicle_state_variable_rates.push(v_rate.clone());
-            network_state_variable_rates.push(n_rate.clone());
+            indices.push((name.clone(), index));
+            weights.push(weight);
+            vehicle_rates.push(v_rate.clone());
+            network_rates.push(n_rate.clone());
         }
 
-        if state_variable_coefficients.iter().sum::<f64>() == 0.0 {
+        if weights.iter().sum::<f64>() == 0.0 {
             return Err(CostError::InvalidCostVariables);
         }
         Ok(CostModel {
-            state_variable_indices,
-            state_variable_coefficients,
-            vehicle_state_variable_rates,
-            network_state_variable_rates,
+            indices,
+            weights,
+            vehicle_rates,
+            network_rates,
             cost_aggregation,
         })
     }
@@ -95,20 +94,18 @@ impl CostModel {
         next_state: &[StateVar],
     ) -> Result<Cost, CostError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
-            prev_state,
-            next_state,
-            &self.state_variable_indices,
-            &self.state_variable_coefficients,
-            &self.vehicle_state_variable_rates,
+            (prev_state, next_state),
+            &self.indices,
+            &self.weights,
+            &self.vehicle_rates,
             &self.cost_aggregation,
         )?;
         let network_cost = cost_ops::calculate_network_traversal_costs(
-            prev_state,
-            next_state,
+            (prev_state, next_state),
             edge,
-            &self.state_variable_indices,
-            &self.state_variable_coefficients,
-            &self.network_state_variable_rates,
+            &self.indices,
+            &self.weights,
+            &self.network_rates,
             &self.cost_aggregation,
         )?;
         let total_cost = vehicle_cost + network_cost;
@@ -141,21 +138,18 @@ impl CostModel {
         next_state: &[StateVar],
     ) -> Result<Cost, CostError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
-            prev_state,
-            next_state,
-            &self.state_variable_indices,
-            &self.state_variable_coefficients,
-            &self.vehicle_state_variable_rates,
+            (prev_state, next_state),
+            &self.indices,
+            &self.weights,
+            &self.vehicle_rates,
             &self.cost_aggregation,
         )?;
         let network_cost = cost_ops::calculate_network_access_costs(
-            prev_state,
-            next_state,
-            prev_edge,
-            next_edge,
-            &self.state_variable_indices,
-            &self.state_variable_coefficients,
-            &self.network_state_variable_rates,
+            (prev_state, next_state),
+            (prev_edge, next_edge),
+            &self.indices,
+            &self.weights,
+            &self.network_rates,
             &self.cost_aggregation,
         )?;
         let total_cost = vehicle_cost + network_cost;
@@ -182,11 +176,10 @@ impl CostModel {
         dst_state: &[StateVar],
     ) -> Result<Cost, CostError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
-            src_state,
-            dst_state,
-            &self.state_variable_indices,
-            &self.state_variable_coefficients,
-            &self.vehicle_state_variable_rates,
+            (src_state, dst_state),
+            &self.indices,
+            &self.weights,
+            &self.vehicle_rates,
             &self.cost_aggregation,
         )?;
         let pos_cost = Cost::enforce_non_negative(vehicle_cost);
@@ -206,18 +199,18 @@ impl CostModel {
     /// summarized in the serialize_state_info method.
     fn serialize_cost(&self, state: &[StateVar]) -> Result<serde_json::Value, CostError> {
         let mut state_variable_costs = self
-            .state_variable_indices
+            .indices
             .iter()
             .map(move |(name, idx)| {
                 let state_var = state
                     .get(*idx)
                     .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
 
-                let rate = self.vehicle_state_variable_rates.get(*idx).ok_or_else(|| {
+                let rate = self.vehicle_rates.get(*idx).ok_or_else(|| {
                     let alternatives = self
-                        .state_variable_indices
+                        .indices
                         .iter()
-                        .filter(|(_, idx)| *idx < self.vehicle_state_variable_rates.len())
+                        .filter(|(_, idx)| *idx < self.vehicle_rates.len())
                         .map(|(n, _)| n.to_string())
                         .collect::<Vec<_>>()
                         .join(",");
@@ -254,10 +247,10 @@ impl CostModel {
     /// traversal info (charge events, days traveled, etc)
     pub fn serialize_cost_info(&self) -> serde_json::Value {
         serde_json::json!({
-            "state_variable_indices": serde_json::json!(self.state_variable_indices),
-            "state_variable_coefficients": serde_json::json!(*self.state_variable_coefficients),
-            "vehicle_state_variable_rates": serde_json::json!(*self.vehicle_state_variable_rates),
-            "network_state_variable_rates": serde_json::json!(*self.network_state_variable_rates),
+            "state_variable_indices": serde_json::json!(self.indices),
+            "state_variable_coefficients": serde_json::json!(*self.weights),
+            "vehicle_state_variable_rates": serde_json::json!(*self.vehicle_rates),
+            "network_state_variable_rates": serde_json::json!(*self.network_rates),
             "cost_aggregation": serde_json::json!(self.cost_aggregation)
         })
     }

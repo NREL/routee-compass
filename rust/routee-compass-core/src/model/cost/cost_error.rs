@@ -13,6 +13,8 @@ pub enum CostError {
     StateVariableNotFound(String, String, String),
     #[error("index {0} for state variable {1} out of bounds, not found in traversal state")]
     StateIndexOutOfBounds(usize, String),
+    #[error("index {0} for {1} state vectori is out of bounds")]
+    CostVectorOutOfBounds(usize, String),
     #[error("invalid cost variables, sum of state variable coefficients must be non-zero")]
     InvalidCostVariables,
 }

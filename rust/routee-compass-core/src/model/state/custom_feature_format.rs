@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use super::{state_error::StateError, unit_codec_name::UnitCodecType};
 use crate::model::traversal::state::state_variable::StateVar;
 use serde::{Deserialize, Serialize};
@@ -29,6 +31,16 @@ pub enum CustomFeatureFormat {
 impl Default for CustomFeatureFormat {
     fn default() -> Self {
         Self::FloatingPoint { initial: 0.0 }
+    }
+}
+
+impl Display for CustomFeatureFormat {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let initial = self
+            .initial()
+            .map(|i| format!("{}", i))
+            .unwrap_or_else(|_| String::from("<invalid initial argument>"));
+        write!(f, "{}: {}", self.name(), initial)
     }
 }
 

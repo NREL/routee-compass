@@ -8,8 +8,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Default, Debug)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum VehicleCostRate {
-    /// use a value directly as a cost
+    /// no cost
     #[default]
+    Zero,
+    /// use a value directly as a cost
     Raw,
     /// multiply a value by a factor to become a cost
     Factor {
@@ -38,6 +40,7 @@ impl VehicleCostRate {
     /// other Cost values in a common unit space.
     pub fn map_value(&self, state: StateVar) -> Cost {
         match self {
+            VehicleCostRate::Zero => Cost::ZERO,
             VehicleCostRate::Raw => Cost::new(state.0),
             VehicleCostRate::Factor { factor } => Cost::new(state.0 * factor),
             VehicleCostRate::Offset { offset } => Cost::new(state.0 + offset),

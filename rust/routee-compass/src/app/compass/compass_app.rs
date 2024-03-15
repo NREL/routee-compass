@@ -150,7 +150,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         let state_params =
             config_json.get_config_section(CompassConfigurationField::State, &"TOML")?;
-        let state_model = Arc::new(StateModel::new(&state_params)?);
+        let state_model = Arc::new(StateModel::try_from(&state_params)?);
 
         // build traversal model
         let traversal_start = Local::now();
@@ -596,6 +596,11 @@ pub fn apply_output_processing(
 mod tests {
     use std::path::PathBuf;
 
+    use crate::app::compass::{
+        compass_app_error::CompassAppError,
+        config::compass_configuration_error::CompassConfigurationError,
+    };
+
     use super::CompassApp;
 
     #[test]
@@ -627,9 +632,18 @@ mod tests {
             .join("speeds_test")
             .join("speeds_debug.toml");
 
-        let app = CompassApp::try_from(conf_file_test.as_path())
-            .or(CompassApp::try_from(conf_file_debug.as_path()))
-            .unwrap();
+        let app = match CompassApp::try_from(conf_file_test.as_path()) {
+            Ok(a) => Ok(a),
+            Err(CompassAppError::CompassConfigurationError(
+                CompassConfigurationError::FileNormalizationNotFound(_key, _f1, _f2),
+            )) => {
+                // could just be the run location, depending on the environment/runner/IDE
+                // try the alternative configuration that runs from the root directory
+                CompassApp::try_from(conf_file_debug.as_path())
+            }
+            Err(other) => panic!("{}", other),
+        }
+        .unwrap();
         let query = serde_json::json!({
             "origin_vertex": 0,
             "destination_vertex": 2

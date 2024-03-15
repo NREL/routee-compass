@@ -447,13 +447,13 @@ mod tests {
         let cost_model = CostModel::new(
             // vec![(String::from("distance"), 0usize)],
             Arc::new(HashMap::from([(String::from("distance"), 1.0)])),
-            state_model.clone(),
             Arc::new(HashMap::from([(
                 String::from("distance"),
                 VehicleCostRate::Raw,
             )])),
             Arc::new(HashMap::new()),
             CostAggregation::Sum,
+            state_model.clone(),
         )
         .unwrap();
         let si = SearchInstance {
