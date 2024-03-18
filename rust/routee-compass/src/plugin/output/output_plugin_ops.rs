@@ -28,15 +28,16 @@ pub fn create_initial_output(
             // build and append summaries if there is a route
             if let Some(et) = route.last() {
                 // build instances of traversal and cost models to compute summaries
-                // let t = get_traversal_model(et, req, app)?;
-                // let c = get_cost_model(et, req, app, t.clone())?;
-                init_output["traversal_summary"] =
-                    si.state_model.serialize_state_and_model(&et.result_state);
-                let cost_summary = match si.cost_model.serialize_cost_with_info(&et.result_state) {
-                    Ok(summary) => summary,
-                    Err(e) => return Err(package_error(req, e)),
-                };
-                init_output["cost_summary"] = cost_summary;
+                init_output["traversal_summary"] = si.state_model.serialize_state(&et.result_state);
+                init_output["state_model"] = si.state_model.serialize_state_model();
+                init_output["cost"] = si
+                    .cost_model
+                    .serialize_cost(&et.result_state)
+                    .map_err(|e| package_error(req, e))?;
+                init_output["cost_model"] = si
+                    .cost_model
+                    .serialize_cost_info()
+                    .map_err(|e| package_error(req, e))?;
             }
 
             // append the runtime required to compute these summaries

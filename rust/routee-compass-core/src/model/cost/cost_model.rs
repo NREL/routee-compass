@@ -6,8 +6,8 @@ use crate::model::cost::cost_error::CostError;
 use crate::model::property::edge::Edge;
 use crate::model::state::state_model::StateModel;
 use crate::model::traversal::state::state_variable::StateVar;
-
 use crate::model::unit::Cost;
+use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -15,7 +15,7 @@ use std::sync::Arc;
 /// vectorized, where each index in these vectors matches the corresponding index
 /// in the state model.
 pub struct CostModel {
-    indices: Vec<(String, usize)>,
+    feature_indices: Vec<(String, usize)>,
     weights: Vec<f64>,
     vehicle_rates: Vec<VehicleCostRate>,
     network_rates: Vec<NetworkCostRate>,
@@ -23,6 +23,16 @@ pub struct CostModel {
 }
 
 impl CostModel {
+    const VEHICLE_RATES: &'static str = "vehicle_rates";
+    const NETWORK_RATES: &'static str = "network_rates";
+    const FEATURES: &'static str = "features";
+    const WEIGHTS: &'static str = "weights";
+    const VEHICLE_RATE: &'static str = "vehicle_rate";
+    const NETWORK_RATE: &'static str = "network_rate";
+    const FEATURE: &'static str = "feature";
+    const WEIGHT: &'static str = "weight";
+    const COST_AGGREGATION: &'static str = "cost_aggregation";
+
     /// builds a cost model for a specific query.
     ///
     /// this search instance has a state model that dictates the location of each feature.
@@ -68,7 +78,7 @@ impl CostModel {
             return Err(CostError::InvalidCostVariables);
         }
         Ok(CostModel {
-            indices,
+            feature_indices: indices,
             weights,
             vehicle_rates,
             network_rates,
@@ -95,7 +105,7 @@ impl CostModel {
     ) -> Result<Cost, CostError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
             (prev_state, next_state),
-            &self.indices,
+            &self.feature_indices,
             &self.weights,
             &self.vehicle_rates,
             &self.cost_aggregation,
@@ -103,7 +113,7 @@ impl CostModel {
         let network_cost = cost_ops::calculate_network_traversal_costs(
             (prev_state, next_state),
             edge,
-            &self.indices,
+            &self.feature_indices,
             &self.weights,
             &self.network_rates,
             &self.cost_aggregation,
@@ -139,7 +149,7 @@ impl CostModel {
     ) -> Result<Cost, CostError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
             (prev_state, next_state),
-            &self.indices,
+            &self.feature_indices,
             &self.weights,
             &self.vehicle_rates,
             &self.cost_aggregation,
@@ -147,7 +157,7 @@ impl CostModel {
         let network_cost = cost_ops::calculate_network_access_costs(
             (prev_state, next_state),
             (prev_edge, next_edge),
-            &self.indices,
+            &self.feature_indices,
             &self.weights,
             &self.network_rates,
             &self.cost_aggregation,
@@ -177,7 +187,7 @@ impl CostModel {
     ) -> Result<Cost, CostError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
             (src_state, dst_state),
-            &self.indices,
+            &self.feature_indices,
             &self.weights,
             &self.vehicle_rates,
             &self.cost_aggregation,
@@ -197,9 +207,9 @@ impl CostModel {
     /// A JSON serialized version of the state. This does not need to include
     /// additional details such as the units (kph, hours, etc), which can be
     /// summarized in the serialize_state_info method.
-    fn serialize_cost(&self, state: &[StateVar]) -> Result<serde_json::Value, CostError> {
+    pub fn serialize_cost(&self, state: &[StateVar]) -> Result<serde_json::Value, CostError> {
         let mut state_variable_costs = self
-            .indices
+            .feature_indices
             .iter()
             .map(move |(name, idx)| {
                 let state_var = state
@@ -208,7 +218,7 @@ impl CostModel {
 
                 let rate = self.vehicle_rates.get(*idx).ok_or_else(|| {
                     let alternatives = self
-                        .indices
+                        .feature_indices
                         .iter()
                         .filter(|(_, idx)| *idx < self.vehicle_rates.len())
                         .map(|(n, _)| n.to_string())
@@ -230,7 +240,7 @@ impl CostModel {
             .fold(Cost::ZERO, |a, b| a + *b);
         state_variable_costs.insert(String::from("total_cost"), total_cost);
 
-        let result = serde_json::json!(state_variable_costs);
+        let result = json!(state_variable_costs);
 
         Ok(result)
     }
@@ -245,34 +255,46 @@ impl CostModel {
     ///
     /// JSON containing information such as the units (kph, hours, etc) or other
     /// traversal info (charge events, days traveled, etc)
-    pub fn serialize_cost_info(&self) -> serde_json::Value {
-        serde_json::json!({
-            "state_variable_indices": serde_json::json!(self.indices),
-            "state_variable_coefficients": serde_json::json!(*self.weights),
-            "vehicle_state_variable_rates": serde_json::json!(*self.vehicle_rates),
-            "network_state_variable_rates": serde_json::json!(*self.network_rates),
-            "cost_aggregation": serde_json::json!(self.cost_aggregation)
-        })
-    }
+    pub fn serialize_cost_info(&self) -> Result<serde_json::Value, CostError> {
+        let mut result = serde_json::Map::with_capacity(self.feature_indices.len());
+        for (name, index) in self.feature_indices.iter() {
+            let weight = self
+                .weights
+                .get(*index)
+                .ok_or(CostError::CostVectorOutOfBounds(
+                    *index,
+                    String::from(Self::WEIGHTS),
+                ))?;
+            let veh_rate =
+                self.vehicle_rates
+                    .get(*index)
+                    .ok_or(CostError::CostVectorOutOfBounds(
+                        *index,
+                        String::from(Self::VEHICLE_RATES),
+                    ))?;
+            let net_rate =
+                self.network_rates
+                    .get(*index)
+                    .ok_or(CostError::CostVectorOutOfBounds(
+                        *index,
+                        String::from(Self::NETWORK_RATES),
+                    ))?;
+            result.insert(
+                name.clone(),
+                json![{
+                    Self::FEATURE: json![name],
+                    Self::WEIGHT: json![weight],
+                    Self::VEHICLE_RATE: json![veh_rate],
+                    Self::NETWORK_RATE: json![net_rate],
+                }],
+            );
+        }
 
-    /// Serialization function called by Compass output processing code that
-    /// writes both the costs and the cost info to a JSON value.
-    ///
-    /// # Arguments
-    ///
-    /// * `state` - the state to serialize information from
-    ///
-    /// # Returns
-    ///
-    /// JSON containing the cost values and info described in `serialize_cost`
-    /// and `serialize_cost_info`.
-    pub fn serialize_cost_with_info(
-        &self,
-        state: &[StateVar],
-    ) -> Result<serde_json::Value, CostError> {
-        let mut output = serde_json::Map::new();
-        output.insert(String::from("cost"), self.serialize_cost(state)?);
-        output.insert(String::from("info"), self.serialize_cost_info());
-        Ok(serde_json::json!(output))
+        result.insert(
+            Self::COST_AGGREGATION.to_string(),
+            json![self.cost_aggregation],
+        );
+
+        Ok(json![result])
     }
 }
