@@ -502,6 +502,13 @@ impl StateModel {
         self.update_state(state, name, &encoded_value, UpdateOperation::Replace)
     }
 
+    /// uses the state model to pretty print a state instance as a JSON object
+    ///
+    /// # Arguments
+    /// * `state` - any (valid) state vector instance
+    ///
+    /// # Result
+    /// A JSON object representation of that vector
     pub fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
         let output = self
             .iter()
@@ -511,19 +518,9 @@ impl StateModel {
         json![output]
     }
 
+    /// uses the built-in serialization codec to output the state model representation as a JSON object
     pub fn serialize_state_model(&self) -> serde_json::Value {
         json![self.iter().collect::<HashMap<_, _>>()]
-    }
-
-    pub fn serialize_state_and_model(&self, state: &[StateVar]) -> serde_json::Value {
-        let mut summary = self.serialize_state(state);
-        if let serde_json::Value::Object(m) = self.serialize_state_model() {
-            for (k, v) in m.into_iter() {
-                summary[k] = v;
-            }
-        }
-
-        summary
     }
 }
 
