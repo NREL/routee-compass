@@ -38,12 +38,35 @@ impl TraversalModel for EnergyTraversalModel {
         // perform time traversal
         self.time_model
             .traverse_edge(trajectory, state, state_model)?;
-        let time_delta_var = state_model.get_delta(&prev, state, "time")?;
-        let time_delta = Time::new(time_delta_var.0);
+        let prev_time = state_model.get_time(
+            &prev,
+            "time",
+            &self
+                .energy_model_service
+                .time_model_speed_unit
+                .associated_time_unit(),
+        )?;
+        let current_time = state_model.get_time(
+            state,
+            "time",
+            &self
+                .energy_model_service
+                .time_model_speed_unit
+                .associated_time_unit(),
+        )?;
+        let time_delta = current_time - prev_time;
 
         // perform vehicle energy traversal
         let grade = get_grade(&self.energy_model_service.grade_table, edge.edge_id)?;
-        let speed = Speed::from((distance, time_delta));
+
+        let distance_in_time_model_unit = BASE_DISTANCE_UNIT.convert(
+            &edge.distance,
+            &self
+                .energy_model_service
+                .time_model_speed_unit
+                .associated_distance_unit(),
+        );
+        let speed = Speed::from((distance_in_time_model_unit, time_delta));
         self.vehicle.consume_energy(
             (speed, self.energy_model_service.time_model_speed_unit),
             (grade, self.energy_model_service.grade_table_grade_unit),
