@@ -41,6 +41,7 @@ impl TraversalModel for SpeedTraversalModel {
         )?;
 
         state_model.add_time(state, "time", &edge_time, &self.engine.time_unit)?;
+        state_model.add_distance(state, "distance", &distance, &self.engine.distance_unit)?;
         Ok(())
     }
 
