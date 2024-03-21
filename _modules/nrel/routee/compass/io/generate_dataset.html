@@ -418,12 +418,13 @@ document.write(`
     <span class="n">agg</span> <span class="o">=</span> <span class="n">agg</span> <span class="k">if</span> <span class="n">agg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span>
 
     <span class="c1"># pre-process the graph</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;processing graph topology and speeds&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;processing graph topology and speeds&quot;</span><span class="p">)</span>
     <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">utils_graph</span><span class="o">.</span><span class="n">get_largest_component</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
     <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_edge_speeds</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">hwy_speeds</span><span class="o">=</span><span class="n">hwy_speeds</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="n">fallback</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="n">agg</span><span class="p">)</span>
+    <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_edge_bearings</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">add_grade</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;adding grade information&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;adding grade information&quot;</span><span class="p">)</span>
         <span class="n">g1</span> <span class="o">=</span> <span class="n">add_grade_to_graph</span><span class="p">(</span>
             <span class="n">g1</span><span class="p">,</span> <span class="n">resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span>
         <span class="p">)</span>
@@ -431,12 +432,12 @@ document.write(`
     <span class="n">v</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_to_gdfs</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
 
     <span class="c1"># process vertices</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;processing vertices&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;processing vertices&quot;</span><span class="p">)</span>
     <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;osmid&quot;</span><span class="p">:</span> <span class="s2">&quot;vertex_uuid&quot;</span><span class="p">})</span>
     <span class="n">v</span><span class="p">[</span><span class="s2">&quot;vertex_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
 
     <span class="c1"># process edges</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;processing edges&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;processing edges&quot;</span><span class="p">)</span>
     <span class="n">lookup</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;vertex_uuid&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">replace_id</span><span class="p">(</span><span class="n">vertex_uuid</span><span class="p">):</span>
@@ -458,7 +459,7 @@ document.write(`
     <span class="c1"># WRITE NETWORK FILES</span>
     <span class="n">output_directory</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="c1">#   vertex tables</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;writing vertex files&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;writing vertex files&quot;</span><span class="p">)</span>
     <span class="n">v</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;vertices-complete.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">v</span><span class="p">[[</span><span class="s2">&quot;vertex_id&quot;</span><span class="p">,</span> <span class="s2">&quot;vertex_uuid&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
         <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;vertices-mapping.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span>
@@ -471,7 +472,7 @@ document.write(`
     <span class="p">)</span>
 
     <span class="c1">#   edge tables (CSV)</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;writing edge files&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;writing edge files&quot;</span><span class="p">)</span>
     <span class="n">compass_cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;edge_id&quot;</span><span class="p">,</span> <span class="s2">&quot;src_vertex_id&quot;</span><span class="p">,</span> <span class="s2">&quot;dst_vertex_id&quot;</span><span class="p">,</span> <span class="s2">&quot;distance&quot;</span><span class="p">]</span>
     <span class="n">e</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-complete.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">e</span><span class="p">[</span><span class="n">compass_cols</span><span class="p">]</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-compass.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -480,7 +481,7 @@ document.write(`
     <span class="p">)</span>
 
     <span class="c1">#   edge tables (TXT)</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;writing edge attribute files&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;writing edge attribute files&quot;</span><span class="p">)</span>
     <span class="n">e</span><span class="o">.</span><span class="n">edge_uuid</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
         <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-uuid-enumerated.txt.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span>
@@ -498,6 +499,19 @@ document.write(`
         <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
 
+    <span class="n">headings</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">bearing</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+    <span class="n">headings_df</span> <span class="o">=</span> <span class="n">headings</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;start_heading&quot;</span><span class="p">)</span>
+
+    <span class="c1"># We could get more sophisticated and compute the end heading</span>
+    <span class="c1"># for links that might have some significant curvature, but</span>
+    <span class="c1"># for now we&#39;ll just use the start heading.</span>
+    <span class="n">headings_df</span><span class="p">[</span><span class="s2">&quot;end_heading&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">headings_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-headings-enumerated.txt.gz&quot;</span><span class="p">,</span>
+        <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">compression</span><span class="o">=</span><span class="s2">&quot;gzip&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
     <span class="k">if</span> <span class="n">add_grade</span><span class="p">:</span>
         <span class="n">e</span><span class="o">.</span><span class="n">grade</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
             <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span><span class="p">,</span>
@@ -507,7 +521,7 @@ document.write(`
 
     <span class="c1"># COPY DEFAULT CONFIGURATION FILES</span>
     <span class="k">if</span> <span class="n">default_config</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;copying default configuration TOML files&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;copying default configuration TOML files&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="p">[</span>
             <span class="s2">&quot;osm_default_distance.toml&quot;</span><span class="p">,</span>
             <span class="s2">&quot;osm_default_speed.toml&quot;</span><span class="p">,</span>
@@ -528,7 +542,7 @@ document.write(`
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">toml</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">init_toml</span><span class="p">))</span>
 
     <span class="c1"># COPY ROUTEE ENERGY MODEL CATALOG</span>
-    <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;copying RouteE Powertrain models&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;copying RouteE Powertrain models&quot;</span><span class="p">)</span>
     <span class="n">model_directory</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">files</span><span class="p">(</span><span class="s2">&quot;nrel.routee.compass.resources.models&quot;</span><span class="p">)</span>
     <span class="n">model_output_directory</span> <span class="o">=</span> <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;models&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">model_output_directory</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>

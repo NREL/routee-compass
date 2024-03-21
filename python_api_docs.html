@@ -389,6 +389,8 @@ document.write(`
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp"><code class="docutils literal notranslate"><span class="pre">CompassApp</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.from_config_file"><code class="docutils literal notranslate"><span class="pre">CompassApp.from_config_file()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.from_dict"><code class="docutils literal notranslate"><span class="pre">CompassApp.from_dict()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.get_constructor"><code class="docutils literal notranslate"><span class="pre">CompassApp.get_constructor()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.graph_edge_destination"><code class="docutils literal notranslate"><span class="pre">CompassApp.graph_edge_destination()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.graph_edge_distance"><code class="docutils literal notranslate"><span class="pre">CompassApp.graph_edge_distance()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.graph_edge_origin"><code class="docutils literal notranslate"><span class="pre">CompassApp.graph_edge_origin()</span></code></a></li>
@@ -397,7 +399,6 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.run"><code class="docutils literal notranslate"><span class="pre">CompassApp.run()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.inject_to_disk_plugin"><code class="docutils literal notranslate"><span class="pre">inject_to_disk_plugin()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.io.generate_dataset.generate_compass_dataset"><code class="docutils literal notranslate"><span class="pre">generate_compass_dataset()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.io.utils.TileResolution"><code class="docutils literal notranslate"><span class="pre">TileResolution</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.io.utils.add_grade_to_graph"><code class="docutils literal notranslate"><span class="pre">add_grade_to_graph()</span></code></a></li>
@@ -422,14 +423,11 @@ document.write(`
 <dd><p>The CompassApp holds everything needed to run a route query.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.from_config_file">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#nrel.routee.compass.compass_app.CompassApp" title="nrel.routee.compass.compass_app.CompassApp"><span class="pre">CompassApp</span></a></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.from_config_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.from_config_file" title="Link to this definition">#</a></dt>
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_config_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#nrel.routee.compass.compass_app.CompassApp" title="nrel.routee.compass.compass_app.CompassApp"><span class="pre">CompassApp</span></a></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.from_config_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.from_config_file" title="Link to this definition">#</a></dt>
 <dd><p>Build a CompassApp from a config file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>config_file</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>Path</em><em>]</em>) -- Path to the config file</p></li>
-<li><p><strong>output_file</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) -- Path to the output file. This overrides whatever is in the config file</p></li>
-</ul>
+<dd class="field-odd"><p><strong>config_file</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>Path</em><em>]</em>) -- Path to the config file</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A CompassApp object</p>
@@ -443,6 +441,41 @@ document.write(`
 <span class="gp">&gt;&gt;&gt; </span><span class="n">app</span> <span class="o">=</span> <span class="n">CompassApp</span><span class="o">.</span><span class="n">from_config_file</span><span class="p">(</span><span class="s2">&quot;config.toml&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">working_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#nrel.routee.compass.compass_app.CompassApp" title="nrel.routee.compass.compass_app.CompassApp"><span class="pre">CompassApp</span></a></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.from_dict" title="Link to this definition">#</a></dt>
+<dd><p>Build a CompassApp from a configuration object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>Dict</em>) -- Configuration dictionary</p></li>
+<li><p><strong>working_dir</strong> (<em>Path</em>) -- optional path to working directory</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a CompassApp object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#nrel.routee.compass.compass_app.CompassApp" title="nrel.routee.compass.compass_app.CompassApp">CompassApp</a></p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">nrel.routee.compass</span> <span class="kn">import</span> <span class="n">CompassApp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conf</span> <span class="o">=</span> <span class="p">{</span> <span class="n">parallelism</span><span class="p">:</span> <span class="mi">2</span> <span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">app</span> <span class="o">=</span> <span class="n">CompassApp</span><span class="o">.</span><span class="n">from_config</span><span class="p">(</span><span class="n">conf</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.get_constructor">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_constructor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.get_constructor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.get_constructor" title="Link to this definition">#</a></dt>
+<dd><p>Return the underlying constructor for the application.
+This allows a child class to inherit the CompassApp python class
+and implement its own rust based app constructor, while still using
+the original python methods.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -535,7 +568,7 @@ document.write(`
 
 <dl class="py method">
 <dt class="sig sig-object py" id="nrel.routee.compass.compass_app.CompassApp.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.run" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#CompassApp.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.CompassApp.run" title="Link to this definition">#</a></dt>
 <dd><p>Run a query (or multiple queries) against the CompassApp</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -566,26 +599,6 @@ document.write(`
 </div>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="nrel.routee.compass.compass_app.inject_to_disk_plugin">
-<span class="sig-prename descclassname"><span class="pre">nrel.routee.compass.compass_app.</span></span><span class="sig-name descname"><span class="pre">inject_to_disk_plugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toml_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/nrel/routee/compass/compass_app.html#inject_to_disk_plugin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nrel.routee.compass.compass_app.inject_to_disk_plugin" title="Link to this definition">#</a></dt>
-<dd><p>Inject or override the to_disk plugin in the config dictionary</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>output_file</strong> (<em>str</em>) -- Path to the output file</p></li>
-<li><p><strong>toml_config</strong> (<em>dict</em>) -- The existing config dictionary</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A dictionary with the to_disk plugin injected or overriden</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py function" id="module-nrel.routee.compass.io.generate_dataset">
@@ -800,6 +813,8 @@ for coloring the routes. Defaults to &quot;viridis&quot;.</p></li>
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp"><code class="docutils literal notranslate"><span class="pre">CompassApp</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.from_config_file"><code class="docutils literal notranslate"><span class="pre">CompassApp.from_config_file()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.from_dict"><code class="docutils literal notranslate"><span class="pre">CompassApp.from_dict()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.get_constructor"><code class="docutils literal notranslate"><span class="pre">CompassApp.get_constructor()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.graph_edge_destination"><code class="docutils literal notranslate"><span class="pre">CompassApp.graph_edge_destination()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.graph_edge_distance"><code class="docutils literal notranslate"><span class="pre">CompassApp.graph_edge_distance()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.graph_edge_origin"><code class="docutils literal notranslate"><span class="pre">CompassApp.graph_edge_origin()</span></code></a></li>
@@ -808,7 +823,6 @@ for coloring the routes. Defaults to &quot;viridis&quot;.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.CompassApp.run"><code class="docutils literal notranslate"><span class="pre">CompassApp.run()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.compass_app.inject_to_disk_plugin"><code class="docutils literal notranslate"><span class="pre">inject_to_disk_plugin()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.io.generate_dataset.generate_compass_dataset"><code class="docutils literal notranslate"><span class="pre">generate_compass_dataset()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.io.utils.TileResolution"><code class="docutils literal notranslate"><span class="pre">TileResolution</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#nrel.routee.compass.io.utils.add_grade_to_graph"><code class="docutils literal notranslate"><span class="pre">add_grade_to_graph()</span></code></a></li>
