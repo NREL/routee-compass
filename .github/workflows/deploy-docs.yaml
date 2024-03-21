@@ -17,12 +17,15 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
-        python-version: "3.10" 
+        python-version: "3.11" 
     
     - name: Install package
       run: |
         conda install -c conda-forge osmnx 
-        pip install ".[dev]"
+        pip install maturin
+        pip install jupyter-book
+        pip install sphinx-book-theme
+        pip install .
 
     - name: Build book 
       shell: bash -el {0}
