@@ -314,7 +314,7 @@ mod tests {
             // &speed_file_path,
             &Some(grade_file_path),
             // SpeedUnit::KilometersPerHour,
-            Some(GradeUnit::Millis),
+            GradeUnit::Millis,
             None,
             None,
             model_library,
