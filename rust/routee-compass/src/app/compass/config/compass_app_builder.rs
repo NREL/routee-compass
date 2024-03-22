@@ -35,7 +35,10 @@ use crate::plugin::{
 };
 use itertools::Itertools;
 use routee_compass_core::model::{
-    access::{access_model_builder::AccessModelBuilder, access_model_service::AccessModelService},
+    access::{
+        access_model_builder::AccessModelBuilder, access_model_service::AccessModelService,
+        default::no_access_model::NoAccessModel,
+    },
     frontier::{
         frontier_model_builder::FrontierModelBuilder, frontier_model_service::FrontierModelService,
     },
@@ -138,9 +141,12 @@ impl CompassAppBuilder {
         ]);
 
         // Access model builders
+        let no_access_model: Rc<dyn AccessModelBuilder> = Rc::new(NoAccessModel {});
         let turn_delay: Rc<dyn AccessModelBuilder> = Rc::new(TurnDelayAccessModelBuilder {});
-        let am_builders: HashMap<String, Rc<dyn AccessModelBuilder>> =
-            HashMap::from([(String::from("turn_delay"), turn_delay)]);
+        let am_builders: HashMap<String, Rc<dyn AccessModelBuilder>> = HashMap::from([
+            (String::from("no_access_model"), no_access_model),
+            (String::from("turn_delay"), turn_delay),
+        ]);
 
         // Frontier model builders
         let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});

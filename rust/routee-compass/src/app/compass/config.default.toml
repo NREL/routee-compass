@@ -24,6 +24,9 @@ type = "a*"
 type = "distance"
 distance_unit = "kilometers"
 
+[access]
+type = "no_access_model"
+
 [cost]
 cost_aggregation = "sum"
 network_state_variable_rates = {}

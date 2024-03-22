@@ -333,6 +333,7 @@ mod tests {
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::algorithm::search::MinSearchTree;
+    use crate::model::access::default::no_access_model::NoAccessModel;
     use crate::model::cost::cost_aggregation::CostAggregation;
     use crate::model::cost::cost_model::CostModel;
     use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;
@@ -460,6 +461,7 @@ mod tests {
             directed_graph: Arc::new(build_mock_graph()),
             state_model: state_model.clone(),
             traversal_model: Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters)),
+            access_model: Arc::new(NoAccessModel {}),
             cost_model,
             frontier_model: Arc::new(NoRestriction {}),
             termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),

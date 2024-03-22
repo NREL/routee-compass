@@ -12,7 +12,7 @@ pub struct TurnDelayAccessModelService {
 impl TurnDelayAccessModelService {}
 
 impl AccessModelService for TurnDelayAccessModelService {
-    fn build(&self, query: &serde_json::Value) -> Result<Arc<dyn AccessModel>, AccessModelError> {
+    fn build(&self, _query: &serde_json::Value) -> Result<Arc<dyn AccessModel>, AccessModelError> {
         let model = TurnDelayAccessModel {
             engine: self.engine.clone(),
         };
