@@ -1,7 +1,6 @@
-use routee_compass_core::model::traversal::access::default::turn_delays::edge_heading::EdgeHeading;
 use routee_compass_core::model::{
-    road_network::edge_id::EdgeId, traversal::traversal_model_error::TraversalModelError,
-    unit::Grade,
+    access::default::turn_delays::edge_heading::EdgeHeading, road_network::edge_id::EdgeId,
+    traversal::traversal_model_error::TraversalModelError, unit::Grade,
 };
 
 pub const ZERO_ENERGY: f64 = 1e-9;

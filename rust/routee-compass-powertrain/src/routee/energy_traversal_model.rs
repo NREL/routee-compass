@@ -78,64 +78,6 @@ impl TraversalModel for EnergyTraversalModel {
         Ok(())
     }
 
-    fn access_edge(
-        &self,
-        trajectory: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
-        state: &mut Vec<StateVar>,
-        state_model: &StateModel,
-    ) -> Result<(), TraversalModelError> {
-        // defer access updates to time model
-        self.time_model.access_edge(trajectory, state, state_model)
-        // match self.energy_model_service.headings_table.as_deref() {
-        //     None => Ok(None),
-        //     Some(headings_table) => {
-        // let src_heading = get_headings(headings_table, src.edge_id)?;
-        // let dst_heading = get_headings(headings_table, dst.edge_id)?;
-        // let angle = src_heading.next_edge_angle(&dst_heading);
-        // let turn = Turn::from_angle(angle)?;
-        // let time_cost = match turn {
-        //     Turn::NoTurn => {
-        //         // no penalty for straight
-        //         Time::new(0.0)
-        //     }
-        //     Turn::SlightRight => {
-        //         // 0.5 second penalty for slight right
-        //         Time::new(0.5)
-        //     }
-        //     Turn::Right => {
-        //         // 1 second penalty for right
-        //         Time::new(1.0)
-        //     }
-        //     Turn::SharpRight => {
-        //         // 1.5 second penalty for sharp right
-        //         Time::new(1.5)
-        //     }
-        //     Turn::SlightLeft => {
-        //         // 1 second penalty for slight left
-        //         Time::new(1.0)
-        //     }
-        //     Turn::Left => {
-        //         // 2.5 second penalty for left
-        //         Time::new(2.5)
-        //     }
-        //     Turn::SharpLeft => {
-        //         // 3.5 second penalty for sharp left
-        //         Time::new(3.5)
-        //     }
-        //     Turn::UTurn => {
-        //         // 9.5 second penalty for U-turn
-        //         Time::new(9.5)
-        //     }
-        // };
-        // let time =
-        //     TimeUnit::Seconds.convert(time_cost, &self.energy_model_service.time_unit);
-        // let time_idx = self.time_model.get_state_variable(&"time", state)?;
-        // let mut updated_state = state.clone();
-        // Ok(Some(updated_state))
-        // }
-        // }
-    }
-
     fn estimate_traversal(
         &self,
         od: (&Vertex, &Vertex),
