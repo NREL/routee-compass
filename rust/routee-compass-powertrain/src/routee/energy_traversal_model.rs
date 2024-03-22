@@ -186,11 +186,6 @@ mod tests {
             .join("routee")
             .join("test")
             .join("grades.txt");
-        let heading_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("src")
-            .join("routee")
-            .join("test")
-            .join("headings.csv");
         let model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("routee")
