@@ -1,5 +1,5 @@
 use routee_compass_core::model::{
-    road_network::edge_heading::EdgeHeading, road_network::edge_id::EdgeId,
+    access::default::turn_delays::edge_heading::EdgeHeading, road_network::edge_id::EdgeId,
     traversal::traversal_model_error::TraversalModelError, unit::Grade,
 };
 

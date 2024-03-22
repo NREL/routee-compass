@@ -1,3 +1,4 @@
+pub mod access;
 pub mod cost;
 pub mod frontier;
 pub mod property;

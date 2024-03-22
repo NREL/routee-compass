@@ -13,6 +13,9 @@ speed_table_input_file = "routee-compass/src/app/compass/test/speeds_test/test_e
 speed_unit = "kilometers_per_hour"
 output_time_unit = "hours"
 
+[access]
+type = "no_access_model"
+
 [cost]
 cost_aggregation = "sum"
 [cost.state_variable_coefficients]

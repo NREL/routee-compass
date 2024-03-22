@@ -13,6 +13,7 @@ use routee_compass_core::{
         search_instance::SearchInstance,
     },
     model::{
+        access::access_model_service::AccessModelService,
         frontier::frontier_model_service::FrontierModelService, road_network::graph::Graph,
         state::state_model::StateModel, termination::termination_model::TerminationModel,
         traversal::traversal_model_service::TraversalModelService,
@@ -27,6 +28,7 @@ pub struct SearchApp {
     pub directed_graph: Arc<Graph>,
     pub state_model: Arc<StateModel>,
     pub traversal_model_service: Arc<dyn TraversalModelService>,
+    pub access_model_service: Arc<dyn AccessModelService>,
     pub cost_model_service: Arc<CostModelService>,
     pub frontier_model_service: Arc<dyn FrontierModelService>,
     pub termination_model: Arc<TerminationModel>,
@@ -35,11 +37,13 @@ pub struct SearchApp {
 impl SearchApp {
     /// builds a new SearchApp from the required components.
     /// handles all of the specialized boxing that allows for simple parallelization.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         search_algorithm: SearchAlgorithm,
         graph: Graph,
         state_model: Arc<StateModel>,
         traversal_model_service: Arc<dyn TraversalModelService>,
+        access_model_service: Arc<dyn AccessModelService>,
         cost_model_service: CostModelService,
         frontier_model_service: Arc<dyn FrontierModelService>,
         termination_model: TerminationModel,
@@ -49,6 +53,7 @@ impl SearchApp {
             directed_graph: Arc::new(graph),
             state_model,
             traversal_model_service,
+            access_model_service,
             cost_model_service: Arc::new(cost_model_service),
             frontier_model_service,
             termination_model: Arc::new(termination_model),
@@ -163,7 +168,12 @@ impl SearchApp {
         query: &serde_json::Value,
     ) -> Result<SearchInstance, SearchError> {
         let traversal_model = self.traversal_model_service.build(query)?;
-        let state_model = Arc::new(self.state_model.extend(traversal_model.state_features())?);
+        let access_model = self.access_model_service.build(query)?;
+
+        let mut added_features = traversal_model.state_features();
+        added_features.extend(access_model.state_features());
+        let state_model = Arc::new(self.state_model.extend(added_features)?);
+
         let cost_model = self
             .cost_model_service
             .build(query, state_model.clone())
@@ -176,6 +186,7 @@ impl SearchApp {
             directed_graph: self.directed_graph.clone(),
             state_model,
             traversal_model,
+            access_model,
             cost_model,
             frontier_model,
             termination_model: self.termination_model.clone(),

@@ -1,4 +1,8 @@
 use super::{
+    access_model::{
+        combined_access_model_builder::CombinedAccessModelBuilder,
+        turn_delay_access_model_builder::TurnDelayAccessModelBuilder,
+    },
     builders::{InputPluginBuilder, OutputPluginBuilder},
     compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
@@ -32,9 +36,12 @@ use crate::plugin::{
         output_plugin::OutputPlugin,
     },
 };
-
 use itertools::Itertools;
 use routee_compass_core::model::{
+    access::{
+        access_model_builder::AccessModelBuilder, access_model_service::AccessModelService,
+        default::no_access_model::NoAccessModel,
+    },
     frontier::{
         frontier_model_builder::FrontierModelBuilder, frontier_model_service::FrontierModelService,
     },
@@ -69,6 +76,7 @@ use std::{collections::HashMap, rc::Rc, sync::Arc};
 ///
 pub struct CompassAppBuilder {
     pub traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
+    pub access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>>,
     pub frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
     pub input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
     pub output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
@@ -88,6 +96,7 @@ impl CompassAppBuilder {
     pub fn new() -> CompassAppBuilder {
         CompassAppBuilder {
             traversal_model_builders: HashMap::new(),
+            access_model_builders: HashMap::new(),
             frontier_builders: HashMap::new(),
             input_plugin_builders: HashMap::new(),
             output_plugin_builders: HashMap::new(),
@@ -96,6 +105,10 @@ impl CompassAppBuilder {
 
     pub fn add_traversal_model(&mut self, name: String, builder: Rc<dyn TraversalModelBuilder>) {
         let _ = self.traversal_model_builders.insert(name, builder);
+    }
+
+    pub fn add_access_model(&mut self, name: String, builder: Rc<dyn AccessModelBuilder>) {
+        let _ = self.access_model_builders.insert(name, builder);
     }
 
     pub fn add_frontier_model(&mut self, name: String, builder: Rc<dyn FrontierModelBuilder>) {
@@ -128,6 +141,21 @@ impl CompassAppBuilder {
             (String::from("distance"), dist),
             (String::from("speed_table"), speed),
             (String::from("energy_model"), energy),
+        ]);
+
+        // Access model builders
+        let no_access_model: Rc<dyn AccessModelBuilder> = Rc::new(NoAccessModel {});
+        let turn_delay: Rc<dyn AccessModelBuilder> = Rc::new(TurnDelayAccessModelBuilder {});
+        let combined_am: Rc<dyn AccessModelBuilder> = Rc::new(CombinedAccessModelBuilder {
+            builders: HashMap::from([
+                (String::from("no_access_model"), no_access_model.clone()),
+                (String::from("turn_delay"), turn_delay.clone()),
+            ]),
+        });
+        let am_builders: HashMap<String, Rc<dyn AccessModelBuilder>> = HashMap::from([
+            (String::from("no_access_model"), no_access_model),
+            (String::from("turn_delay"), turn_delay),
+            (String::from("combined"), combined_am),
         ]);
 
         // Frontier model builders
@@ -176,6 +204,7 @@ impl CompassAppBuilder {
 
         CompassAppBuilder {
             traversal_model_builders: tm_builders,
+            access_model_builders: am_builders,
             frontier_builders: all_frontier_builders,
             input_plugin_builders,
             output_plugin_builders,
@@ -188,21 +217,7 @@ impl CompassAppBuilder {
         &self,
         config: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
-        let tm_type_obj = config.get("type").ok_or_else(|| {
-            CompassConfigurationError::ExpectedFieldForComponent(
-                CompassConfigurationField::Traversal.to_string(),
-                String::from("type"),
-            )
-        })?;
-        let tm_type: String = tm_type_obj
-            .as_str()
-            .ok_or_else(|| {
-                CompassConfigurationError::ExpectedFieldWithType(
-                    String::from("type"),
-                    String::from("String"),
-                )
-            })?
-            .into();
+        let tm_type = config.get_config_string(&"type", &"traversal")?;
         let result = self
             .traversal_model_builders
             .get(&tm_type)
@@ -220,27 +235,35 @@ impl CompassAppBuilder {
         result
     }
 
+    pub fn build_access_model_service(
+        &self,
+        config: &serde_json::Value,
+    ) -> Result<Arc<dyn AccessModelService>, CompassConfigurationError> {
+        let tm_type = config.get_config_string(&"type", &"access")?;
+        let result = self
+            .access_model_builders
+            .get(&tm_type)
+            .ok_or_else(|| {
+                CompassConfigurationError::UnknownModelNameForComponent(
+                    tm_type.clone(),
+                    String::from("access"),
+                    self.access_model_builders.keys().join(", "),
+                )
+            })
+            .and_then(|b| {
+                b.build(config)
+                    .map_err(CompassConfigurationError::AccessModelError)
+            });
+        result
+    }
+
     /// builds a frontier model with the specified type name with the provided
     /// frontier model configuration JSON
     pub fn build_frontier_model_service(
         &self,
         config: &serde_json::Value,
     ) -> Result<Arc<dyn FrontierModelService>, CompassConfigurationError> {
-        let fm_type_obj = config.get("type").ok_or_else(|| {
-            CompassConfigurationError::ExpectedFieldForComponent(
-                CompassConfigurationField::Frontier.to_string(),
-                String::from("type"),
-            )
-        })?;
-        let fm_type: String = fm_type_obj
-            .as_str()
-            .ok_or_else(|| {
-                CompassConfigurationError::ExpectedFieldWithType(
-                    String::from("type"),
-                    String::from("String"),
-                )
-            })?
-            .into();
+        let fm_type = config.get_config_string(&"type", &"frontier")?;
         self.frontier_builders
             .get(&fm_type)
             .ok_or_else(|| {
@@ -267,28 +290,7 @@ impl CompassAppBuilder {
 
         let mut plugins: Vec<Arc<dyn InputPlugin>> = Vec::new();
         for plugin_json in input_plugins.into_iter() {
-            let plugin_type_obj = plugin_json.as_object().ok_or_else(|| {
-                CompassConfigurationError::ExpectedFieldWithType(
-                    String::from("type"),
-                    String::from("Json Object"),
-                )
-            })?;
-            let plugin_type: String = plugin_type_obj
-                .get("type")
-                .ok_or_else(|| {
-                    CompassConfigurationError::ExpectedFieldForComponent(
-                        CompassConfigurationField::InputPlugins.to_string(),
-                        String::from("type"),
-                    )
-                })?
-                .as_str()
-                .ok_or_else(|| {
-                    CompassConfigurationError::ExpectedFieldWithType(
-                        String::from("type"),
-                        String::from("String"),
-                    )
-                })?
-                .into();
+            let plugin_type = plugin_json.get_config_string(&"type", &"input_plugin")?;
             let builder = self
                 .input_plugin_builders
                 .get(&plugin_type)
@@ -316,28 +318,7 @@ impl CompassAppBuilder {
 
         let mut plugins: Vec<Arc<dyn OutputPlugin>> = Vec::new();
         for plugin_json in output_plugins.into_iter() {
-            let plugin_json_obj = plugin_json.as_object().ok_or_else(|| {
-                CompassConfigurationError::ExpectedFieldWithType(
-                    String::from("output_plugins"),
-                    String::from("Json Object"),
-                )
-            })?;
-            let plugin_type: String = plugin_json_obj
-                .get("type")
-                .ok_or_else(|| {
-                    CompassConfigurationError::ExpectedFieldForComponent(
-                        CompassConfigurationField::OutputPlugins.to_string(),
-                        String::from("type"),
-                    )
-                })?
-                .as_str()
-                .ok_or_else(|| {
-                    CompassConfigurationError::ExpectedFieldWithType(
-                        String::from("type"),
-                        String::from("String"),
-                    )
-                })?
-                .into();
+            let plugin_type = plugin_json.get_config_string(&"type", &"output_plugin")?;
             let builder = self
                 .output_plugin_builders
                 .get(&plugin_type)

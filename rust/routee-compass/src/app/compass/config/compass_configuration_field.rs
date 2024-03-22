@@ -7,6 +7,7 @@ pub enum CompassConfigurationField {
     Termination,
     State,
     Traversal,
+    Access,
     Cost,
     Algorithm,
     Plugins,
@@ -27,6 +28,7 @@ impl CompassConfigurationField {
         match self {
             CompassConfigurationField::Graph => "graph",
             CompassConfigurationField::Traversal => "traversal",
+            CompassConfigurationField::Access => "access",
             CompassConfigurationField::Cost => "cost",
             CompassConfigurationField::State => "state",
             CompassConfigurationField::Frontier => "frontier",

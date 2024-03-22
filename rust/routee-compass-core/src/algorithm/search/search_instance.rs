@@ -1,5 +1,6 @@
 use super::search_error::SearchError;
 use crate::model::{
+    access::access_model::AccessModel,
     cost::cost_model::CostModel,
     frontier::frontier_model::FrontierModel,
     road_network::{graph::Graph, vertex_id::VertexId},
@@ -16,6 +17,7 @@ pub struct SearchInstance {
     pub directed_graph: Arc<Graph>,
     pub state_model: Arc<StateModel>,
     pub traversal_model: Arc<dyn TraversalModel>,
+    pub access_model: Arc<dyn AccessModel>,
     pub cost_model: CostModel,
     pub frontier_model: Arc<dyn FrontierModel>,
     pub termination_model: Arc<TerminationModel>,
