@@ -9,8 +9,8 @@ use super::{
         turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
     },
     traversal_model::{
-        distance_builder::DistanceBuilder, energy_model_builder::EnergyModelBuilder,
-        speed_lookup_builder::SpeedLookupBuilder,
+        distance_traversal_builder::DistanceTraversalBuilder,
+        energy_model_builder::EnergyModelBuilder, speed_lookup_builder::SpeedLookupBuilder,
     },
 };
 use crate::plugin::{
@@ -27,7 +27,6 @@ use crate::plugin::{
         default::{
             edgeidlist::builder::EdgeIdListOutputPluginBuilder,
             summary::builder::SummaryOutputPluginBuilder,
-            to_disk::builder::ToDiskOutputPluginBuilder,
             traversal::builder::TraversalPluginBuilder, uuid::builder::UUIDOutputPluginBuilder,
         },
         output_plugin::OutputPlugin,
@@ -120,7 +119,7 @@ impl CompassAppBuilder {
     /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
     fn default() -> CompassAppBuilder {
         // Traversal model builders
-        let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceBuilder {});
+        let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceTraversalBuilder {});
         let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
         let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder::new(
             HashMap::from([(String::from("speed_table"), speed.clone())]),
@@ -168,13 +167,11 @@ impl CompassAppBuilder {
         let summary: Rc<dyn OutputPluginBuilder> = Rc::new(SummaryOutputPluginBuilder {});
         let uuid: Rc<dyn OutputPluginBuilder> = Rc::new(UUIDOutputPluginBuilder {});
         let edge_id_list: Rc<dyn OutputPluginBuilder> = Rc::new(EdgeIdListOutputPluginBuilder {});
-        let to_disk: Rc<dyn OutputPluginBuilder> = Rc::new(ToDiskOutputPluginBuilder {});
         let output_plugin_builders = HashMap::from([
             (String::from("traversal"), traversal),
             (String::from("summary"), summary),
             (String::from("uuid"), uuid),
             (String::from("edge_id_list"), edge_id_list),
-            (String::from("to_disk"), to_disk),
         ]);
 
         CompassAppBuilder {

@@ -1,13 +1,11 @@
-query_timeout_ms = 3600000
+[state]
+distance = { distance_unit = "kilometers", initial = 0.0 }
+time = { time_unit = "minutes", initial = 0.0 }
 
 [graph]
 edge_list_input_file = "src/app/compass/test/speeds_test/test_edges.csv"
 vertex_list_input_file = "src/app/compass/test/speeds_test/test_vertices.csv"
 verbose = true
-
-[algorithm]
-type = "a*"
-bidirectional = false
 
 [traversal]
 type = "speed_table"

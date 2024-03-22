@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use crate::model::state::state_model::StateModel;
+
 use super::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError};
 
 /// A [`FrontierModelService`] is a persistent builder of [FrontierModel] instances.
@@ -29,5 +31,6 @@ pub trait FrontierModelService: Send + Sync {
     fn build(
         &self,
         query: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn FrontierModel>, FrontierModelError>;
 }

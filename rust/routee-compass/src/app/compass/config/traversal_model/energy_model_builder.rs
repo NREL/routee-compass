@@ -54,8 +54,8 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         let grade_table_path_option = params
             .get_config_path_optional(&"grade_table_input_file", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
-        let grade_table_grade_unit_option = params
-            .get_config_serde_optional::<GradeUnit>(&"graph_grade_unit", &parent_key)
+        let grade_table_grade_unit = params
+            .get_config_serde::<GradeUnit>(&"grade_table_grade_unit", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let vehicle_configs = params
@@ -92,7 +92,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
             time_model_service,
             time_model_speed_unit,
             &grade_table_path_option,
-            grade_table_grade_unit_option,
+            grade_table_grade_unit,
             time_unit_option,
             distance_unit_option,
             vehicle_library,

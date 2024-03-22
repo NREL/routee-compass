@@ -3,6 +3,8 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
+use crate::model::traversal::state::state_variable::StateVar;
+
 use super::{
     as_f64::AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, Speed,
     SpeedUnit, TimeUnit, UnitError,
@@ -41,7 +43,11 @@ impl From<(Distance, Speed)> for Time {
         Time::new(time)
     }
 }
-
+impl From<StateVar> for Time {
+    fn from(value: StateVar) -> Self {
+        Time::new(value.0)
+    }
+}
 impl PartialOrd for Time {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.0.cmp(&other.0))
@@ -65,11 +71,11 @@ impl Time {
         Time(InternalFloat::new(value))
     }
     pub fn create(
-        speed: Speed,
-        speed_unit: SpeedUnit,
-        distance: Distance,
-        distance_unit: DistanceUnit,
-        time_unit: TimeUnit,
+        speed: &Speed,
+        speed_unit: &SpeedUnit,
+        distance: &Distance,
+        distance_unit: &DistanceUnit,
+        time_unit: &TimeUnit,
     ) -> Result<Time, UnitError> {
         builders::create_time(speed, speed_unit, distance, distance_unit, time_unit)
     }

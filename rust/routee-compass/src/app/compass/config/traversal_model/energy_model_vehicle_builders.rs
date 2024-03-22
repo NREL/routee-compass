@@ -90,14 +90,14 @@ fn build_plugin_hybrid(
     let name = parameters.get_config_string(&"name", &"phev")?;
 
     let charge_depleting_params =
-        parameters.get_config_section(CompassConfigurationField::ChargeDepleting)?;
+        parameters.get_config_section(CompassConfigurationField::ChargeDepleting, &"phev")?;
 
     let charge_depleting_record = get_model_record_from_params(
         &charge_depleting_params,
         &format!("charge_depleting: {}", &name),
     )?;
     let charge_sustain_params =
-        parameters.get_config_section(CompassConfigurationField::ChargeSustaining)?;
+        parameters.get_config_section(CompassConfigurationField::ChargeSustaining, &"phev")?;
 
     let charge_sustain_record = get_model_record_from_params(
         &charge_sustain_params,

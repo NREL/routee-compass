@@ -8,28 +8,28 @@ use crate::{
 };
 use chrono::Local;
 use routee_compass_core::{
-    algorithm::search::{backtrack, search_algorithm::SearchAlgorithm},
-    model::{
-        cost::cost_model::CostModel,
-        frontier::frontier_model_service::FrontierModelService,
-        road_network::graph::Graph,
-        termination::termination_model::TerminationModel,
-        traversal::{
-            traversal_model::TraversalModel, traversal_model_service::TraversalModelService,
-        },
+    algorithm::search::{
+        backtrack, search_algorithm::SearchAlgorithm, search_error::SearchError,
+        search_instance::SearchInstance,
     },
-    util::read_only_lock::{DriverReadOnlyLock, ExecutorReadOnlyLock},
+    model::{
+        frontier::frontier_model_service::FrontierModelService, road_network::graph::Graph,
+        state::state_model::StateModel, termination::termination_model::TerminationModel,
+        traversal::traversal_model_service::TraversalModelService,
+    },
 };
 use std::sync::Arc;
 use std::time;
 
+/// a configured and loaded application to execute searches.
 pub struct SearchApp {
-    search_algorithm: SearchAlgorithm,
-    graph: Arc<DriverReadOnlyLock<Graph>>,
-    traversal_model_service: Arc<DriverReadOnlyLock<Arc<dyn TraversalModelService>>>,
-    cost_model_service: Arc<DriverReadOnlyLock<CostModelService>>,
-    frontier_model_service: Arc<DriverReadOnlyLock<Arc<dyn FrontierModelService>>>,
-    termination_model: Arc<DriverReadOnlyLock<TerminationModel>>,
+    pub search_algorithm: SearchAlgorithm,
+    pub directed_graph: Arc<Graph>,
+    pub state_model: Arc<StateModel>,
+    pub traversal_model_service: Arc<dyn TraversalModelService>,
+    pub cost_model_service: Arc<CostModelService>,
+    pub frontier_model_service: Arc<dyn FrontierModelService>,
+    pub termination_model: Arc<TerminationModel>,
 }
 
 impl SearchApp {
@@ -38,23 +38,20 @@ impl SearchApp {
     pub fn new(
         search_algorithm: SearchAlgorithm,
         graph: Graph,
+        state_model: Arc<StateModel>,
         traversal_model_service: Arc<dyn TraversalModelService>,
-        utility_model_service: CostModelService,
+        cost_model_service: CostModelService,
         frontier_model_service: Arc<dyn FrontierModelService>,
         termination_model: TerminationModel,
     ) -> Self {
-        let graph = Arc::new(DriverReadOnlyLock::new(graph));
-        let traversal_model_service = Arc::new(DriverReadOnlyLock::new(traversal_model_service));
-        let utility_model_service = Arc::new(DriverReadOnlyLock::new(utility_model_service));
-        let frontier_model_service = Arc::new(DriverReadOnlyLock::new(frontier_model_service));
-        let termination_model = Arc::new(DriverReadOnlyLock::new(termination_model));
         SearchApp {
             search_algorithm,
-            graph,
+            directed_graph: Arc::new(graph),
+            state_model,
             traversal_model_service,
-            cost_model_service: utility_model_service,
+            cost_model_service: Arc::new(cost_model_service),
             frontier_model_service,
-            termination_model,
+            termination_model: Arc::new(termination_model),
         }
     }
 
@@ -63,7 +60,7 @@ impl SearchApp {
     pub fn run_vertex_oriented(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchAppResult, CompassAppError> {
+    ) -> Result<(SearchAppResult, SearchInstance), CompassAppError> {
         let o = query
             .get_origin_vertex()
             .map_err(CompassAppError::PluginError)?;
@@ -71,33 +68,10 @@ impl SearchApp {
             .get_destination_vertex()
             .map_err(CompassAppError::PluginError)?;
         let search_start_time = Local::now();
-        let dg_inner = Arc::new(self.graph.read_only());
 
-        let tm_inner = self
-            .traversal_model_service
-            .read_only()
-            .read()
-            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
-        let state_variable_names = tm_inner.state_variable_names();
-
-        let um_inner = self
-            .cost_model_service
-            .read_only()
-            .read()
-            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query, &state_variable_names)?;
-
-        let fm_inner = self
-            .frontier_model_service
-            .read_only()
-            .read()
-            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
-
-        let rm_inner = Arc::new(self.termination_model.read_only());
+        let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
-            .run_vertex_oriented(o, d, dg_inner, tm_inner, um_inner, fm_inner, rm_inner)
+            .run_vertex_oriented(o, d, &search_instance)
             .and_then(|search_result| {
                 let search_end_time = Local::now();
                 let search_runtime = (search_end_time - search_start_time)
@@ -120,7 +94,7 @@ impl SearchApp {
                     "Route Computed in {:?} miliseconds",
                     route_runtime.as_millis()
                 );
-                Ok(SearchAppResult {
+                let result = SearchAppResult {
                     route,
                     tree: search_result.tree,
                     search_executed_time: search_start_time.to_rfc3339(),
@@ -128,7 +102,8 @@ impl SearchApp {
                     route_runtime,
                     search_app_runtime: search_runtime + route_runtime,
                     iterations: search_result.iterations,
-                })
+                };
+                Ok((result, search_instance))
             })
             .map_err(CompassAppError::SearchError)
     }
@@ -139,7 +114,7 @@ impl SearchApp {
     pub fn run_edge_oriented(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchAppResult, CompassAppError> {
+    ) -> Result<(SearchAppResult, SearchInstance), CompassAppError> {
         let o = query
             .get_origin_edge()
             .map_err(CompassAppError::PluginError)?;
@@ -147,42 +122,9 @@ impl SearchApp {
             .get_destination_edge()
             .map_err(CompassAppError::PluginError)?;
         let search_start_time = Local::now();
-        let dg_inner_search = Arc::new(self.graph.read_only());
-        let dg_inner_backtrack = Arc::new(self.graph.read_only());
-
-        let tm_inner = self
-            .traversal_model_service
-            .read_only()
-            .read()
-            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
-        let state_variable_names = tm_inner.state_variable_names();
-
-        let um_inner = self
-            .cost_model_service
-            .read_only()
-            .read()
-            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query, &state_variable_names)?;
-
-        let fm_inner = self
-            .frontier_model_service
-            .read_only()
-            .read()
-            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
-
-        let rm_inner = Arc::new(self.termination_model.read_only());
+        let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
-            .run_edge_oriented(
-                o,
-                d,
-                dg_inner_search,
-                tm_inner,
-                um_inner,
-                fm_inner,
-                rm_inner,
-            )
+            .run_edge_oriented(o, d, &search_instance)
             .and_then(|search_result| {
                 let search_end_time = Local::now();
                 let route_start_time = Local::now();
@@ -192,7 +134,7 @@ impl SearchApp {
                         o,
                         dest,
                         &search_result.tree,
-                        dg_inner_backtrack,
+                        search_instance.directed_graph.clone(),
                     )?,
                 };
                 let route_end_time = Local::now();
@@ -202,7 +144,7 @@ impl SearchApp {
                 let route_runtime = (route_end_time - route_start_time)
                     .to_std()
                     .unwrap_or(time::Duration::ZERO);
-                Ok(SearchAppResult {
+                let result = SearchAppResult {
                     route,
                     tree: search_result.tree,
                     search_executed_time: search_start_time.to_rfc3339(),
@@ -210,95 +152,35 @@ impl SearchApp {
                     route_runtime,
                     search_app_runtime: search_runtime + route_runtime,
                     iterations: search_result.iterations,
-                })
+                };
+                Ok((result, search_instance))
             })
             .map_err(CompassAppError::SearchError)
     }
 
-    /// helper function for accessing the TraversalModel
-    ///
-    /// example:
-    ///
-    /// let search_app: SearchApp = ...;
-    /// let reference = search_app.get_traversal_model_reference();
-    /// let traversal_model = reference.read();
-    /// // do things with TraversalModel
-    pub fn get_traversal_model_service_reference(
-        &self,
-    ) -> Arc<ExecutorReadOnlyLock<Arc<dyn TraversalModelService>>> {
-        Arc::new(self.traversal_model_service.read_only())
-    }
-
-    /// helper function for accessing the TraversalModel
-    ///
-    /// example:
-    ///
-    /// let search_app: SearchApp = ...;
-    /// let reference = search_app.get_traversal_model_reference();
-    /// let traversal_model = reference.read();
-    /// // do things with TraversalModel
-    pub fn build_traversal_model(
+    pub fn build_search_instance(
         &self,
         query: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModel>, CompassAppError> {
-        let tm = self
-            .traversal_model_service
-            .read_only()
-            .read()
-            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query)?;
-        Ok(tm)
-    }
-
-    /// helper function for building an instance of a CostModel
-    ///
-    /// example:
-    ///
-    /// let search_app: SearchApp = ...;
-    /// let reference = search_app.get_traversal_model_reference();
-    /// let traversal_model = reference.read();
-    /// // do things with TraversalModel
-    pub fn build_cost_model(
-        &self,
-        query: &serde_json::Value,
-    ) -> Result<CostModel, CompassAppError> {
-        let tm = self.build_traversal_model(query)?;
-        let state_variable_names = tm.state_variable_names();
-        let cm = self
+    ) -> Result<SearchInstance, SearchError> {
+        let traversal_model = self.traversal_model_service.build(query)?;
+        let state_model = Arc::new(self.state_model.extend(traversal_model.state_features())?);
+        let cost_model = self
             .cost_model_service
-            .read_only()
-            .read()
-            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query, &state_variable_names)?;
-        Ok(cm)
-    }
+            .build(query, state_model.clone())
+            .map_err(|e| SearchError::BuildError(e.to_string()))?;
+        let frontier_model = self
+            .frontier_model_service
+            .build(query, state_model.clone())?;
 
-    /// helper function for building an instance of a CostModel
-    /// using an already-constructed traversal model (which is an
-    /// upstream dependency of building a cost model).
-    ///
-    /// example:
-    ///
-    /// let search_app: SearchApp = ...;
-    /// let reference = search_app.get_traversal_model_reference();
-    /// let traversal_model = reference.read();
-    /// // do things with TraversalModel
-    pub fn build_cost_model_for_traversal_model(
-        &self,
-        query: &serde_json::Value,
-        tm: Arc<dyn TraversalModel>,
-    ) -> Result<CostModel, CompassAppError> {
-        let state_variable_names = tm.state_variable_names();
-        let cm = self
-            .cost_model_service
-            .read_only()
-            .read()
-            .map_err(|e| CompassAppError::ReadOnlyPoisonError(e.to_string()))?
-            .build(query, &state_variable_names)?;
-        Ok(cm)
-    }
+        let search_assets = SearchInstance {
+            directed_graph: self.directed_graph.clone(),
+            state_model,
+            traversal_model,
+            cost_model,
+            frontier_model,
+            termination_model: self.termination_model.clone(),
+        };
 
-    pub fn get_graph_reference(&self) -> Arc<ExecutorReadOnlyLock<Graph>> {
-        Arc::new(self.graph.read_only())
+        Ok(search_assets)
     }
 }

@@ -20,7 +20,7 @@ pub fn coord_distance(
     distance_unit: DistanceUnit,
 ) -> Result<Distance, String> {
     let distance_meters = haversine_distance_meters(src.x, src.y, dst.x, dst.y)?;
-    Ok(DistanceUnit::Meters.convert(distance_meters, distance_unit))
+    Ok(DistanceUnit::Meters.convert(&distance_meters, &distance_unit))
 }
 
 /// haversine distance formula, based on the one published to rosetta code.

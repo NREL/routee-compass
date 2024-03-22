@@ -3,6 +3,8 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
+use crate::model::traversal::state::state_variable::StateVar;
+
 use super::{
     as_f64::AsF64, builders::create_energy, internal_float::InternalFloat, Distance, DistanceUnit,
     EnergyRate, EnergyRateUnit, EnergyUnit, UnitError,
@@ -41,7 +43,11 @@ impl From<(EnergyRate, Distance)> for Energy {
         Energy::new(energy_value)
     }
 }
-
+impl From<StateVar> for Energy {
+    fn from(value: StateVar) -> Self {
+        Energy::new(value.0)
+    }
+}
 impl PartialOrd for Energy {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.0.cmp(&other.0))
@@ -65,10 +71,10 @@ impl Energy {
         Energy(InternalFloat::new(value))
     }
     pub fn create(
-        energy_rate: EnergyRate,
-        energy_rate_unit: EnergyRateUnit,
-        distance: Distance,
-        distance_unit: DistanceUnit,
+        energy_rate: &EnergyRate,
+        energy_rate_unit: &EnergyRateUnit,
+        distance: &Distance,
+        distance_unit: &DistanceUnit,
     ) -> Result<(Energy, EnergyUnit), UnitError> {
         create_energy(energy_rate, energy_rate_unit, distance, distance_unit)
     }

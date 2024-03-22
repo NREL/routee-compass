@@ -1,24 +1,15 @@
 use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
+use crate::algorithm::search::search_instance::SearchInstance;
 use crate::algorithm::search::search_result::SearchResult;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
-use crate::model::cost::cost_model::CostModel;
-use crate::model::frontier::frontier_model::FrontierModel;
 use crate::model::road_network::edge_id::EdgeId;
-use crate::model::road_network::graph::Graph;
 use crate::model::road_network::vertex_id::VertexId;
-use crate::model::termination::termination_model::TerminationModel;
-use crate::model::traversal::state::state_variable::StateVar;
-
-use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::cost::ReverseCost;
 use crate::model::unit::Cost;
 use crate::util::priority_queue::InternalPriorityQueue;
-use crate::util::read_only_lock::ExecutorReadOnlyLock;
 use priority_queue::PriorityQueue;
 use std::collections::HashMap;
-use std::sync::Arc;
-use std::sync::RwLockReadGuard;
 use std::time::Instant;
 
 /// run an A* Search over the given directed graph model. traverses links
@@ -29,24 +20,13 @@ use std::time::Instant;
 pub fn run_a_star(
     source: VertexId,
     target: Option<VertexId>,
-    directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
-    m: Arc<dyn TraversalModel>,
-    u: CostModel,
-    f: Arc<dyn FrontierModel>,
-    termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
+    si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     if target.map_or(false, |t| t == source) {
         return Ok(SearchResult::default());
     }
 
     // context for the search (graph, search functions, frontier priority queue)
-    let g = directed_graph
-        .read()
-        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let t = termination_model
-        .read()
-        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-
     let mut costs: InternalPriorityQueue<VertexId, ReverseCost> =
         InternalPriorityQueue(PriorityQueue::new());
     let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
@@ -54,10 +34,10 @@ pub fn run_a_star(
 
     // setup initial search state
     traversal_costs.insert(source, Cost::ZERO);
-    let initial_state = m.initial_state();
+    let initial_state = si.state_model.initial_state()?;
     let origin_cost = match target {
         None => Cost::ZERO,
-        Some(target_vertex_id) => h_cost(source, target_vertex_id, &initial_state, &g, &m, &u)?,
+        Some(target) => si.estimate_traversal_cost(source, target, &initial_state)?,
     };
     costs.push(source, origin_cost.into());
 
@@ -66,8 +46,15 @@ pub fn run_a_star(
 
     loop {
         // handle app-level termination conditions
-        if t.terminate_search(&start_time, solution.len(), iterations)? {
-            match t.explain_termination(&start_time, solution.len(), iterations) {
+        let should_terminate =
+            si.termination_model
+                .terminate_search(&start_time, solution.len(), iterations)?;
+
+        if should_terminate {
+            let explanation =
+                si.termination_model
+                    .explain_termination(&start_time, solution.len(), iterations);
+            match explanation {
                 None => {
                     return Err(SearchError::InternalSearchError(format!(
                         "unable to explain termination with start_time, solution_size, iterations: {:?}, {}, {}",
@@ -107,7 +94,10 @@ pub fn run_a_star(
                 })?
                 .edge_traversal
                 .edge_id;
-            let edge = g.get_edge(edge_id).map_err(SearchError::GraphError)?;
+            let edge = si
+                .directed_graph
+                .get_edge(edge_id)
+                .map_err(SearchError::GraphError)?;
             Some(edge)
         };
 
@@ -129,27 +119,30 @@ pub fn run_a_star(
         };
 
         // visit all neighbors of this source vertex
-        for edge_id in g.out_edges_iter(current_vertex_id)? {
-            let e = g.get_edge(*edge_id)?;
+        for edge_id in si.directed_graph.out_edges_iter(current_vertex_id)? {
+            let e = si.directed_graph.get_edge(*edge_id)?;
             let src_id = e.src_vertex_id;
             let dst_id = e.dst_vertex_id;
 
-            if !f.valid_frontier(e, &current_state, previous_edge)? {
+            if !si.frontier_model.valid_frontier(
+                e,
+                &current_state,
+                previous_edge,
+                &si.state_model,
+            )? {
                 continue;
             }
             let et = EdgeTraversal::perform_traversal(
                 *edge_id,
                 previous_edge.map(|pe| pe.edge_id),
                 &current_state,
-                &g,
-                &m,
-                &u,
+                si,
             )?;
             let current_gscore = traversal_costs
                 .get(&src_id)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
-            let tentative_gscore = current_gscore + et.edge_cost();
+            let tentative_gscore = current_gscore + et.total_cost();
             let existing_gscore = traversal_costs
                 .get(&dst_id)
                 .unwrap_or(&Cost::INFINITY)
@@ -166,7 +159,9 @@ pub fn run_a_star(
 
                 let dst_h_cost = match target {
                     None => Cost::ZERO,
-                    Some(target_v) => h_cost(dst_id, target_v, &current_state, &g, &m, &u)?,
+                    Some(target_v) => {
+                        si.estimate_traversal_cost(dst_id, target_v, &current_state)?
+                    }
                 };
                 let f_score_value = tentative_gscore + dst_h_cost;
                 costs.push_increase(dst_id, f_score_value.into());
@@ -226,26 +221,19 @@ pub fn run_a_star(
 pub fn run_a_star_edge_oriented(
     source: EdgeId,
     target: Option<EdgeId>,
-    directed_graph: Arc<ExecutorReadOnlyLock<Graph>>,
-    m: Arc<dyn TraversalModel>,
-    u: CostModel,
-    f: Arc<dyn FrontierModel>,
-    termination_model: Arc<ExecutorReadOnlyLock<TerminationModel>>,
+    si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let g = directed_graph
-        .read()
-        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let source_edge_src_vertex_id = g.src_vertex_id(source)?;
-    let source_edge_dst_vertex_id = g.dst_vertex_id(source)?;
+    let e1_src = si.directed_graph.src_vertex_id(source)?;
+    let e1_dst = si.directed_graph.dst_vertex_id(source)?;
     let src_et = EdgeTraversal {
         edge_id: source,
         access_cost: Cost::ZERO,
         traversal_cost: Cost::ZERO,
-        result_state: m.initial_state(),
+        result_state: si.state_model.initial_state()?,
     };
-    let src_traversal = SearchTreeBranch {
-        terminal_vertex: source_edge_src_vertex_id,
+    let src_branch = SearchTreeBranch {
+        terminal_vertex: e1_src,
         edge_traversal: src_et,
     };
 
@@ -254,17 +242,9 @@ pub fn run_a_star_edge_oriented(
             let SearchResult {
                 mut tree,
                 iterations,
-            } = run_a_star(
-                source_edge_dst_vertex_id,
-                None,
-                directed_graph.clone(),
-                m.clone(),
-                u,
-                f,
-                termination_model,
-            )?;
-            if !tree.contains_key(&source_edge_dst_vertex_id) {
-                tree.extend([(source_edge_dst_vertex_id, src_traversal)]);
+            } = run_a_star(e1_dst, None, si)?;
+            if !tree.contains_key(&e1_dst) {
+                tree.extend([(e1_dst, src_branch)]);
             }
             let updated = SearchResult {
                 tree,
@@ -273,36 +253,30 @@ pub fn run_a_star_edge_oriented(
             Ok(updated)
         }
         Some(target_edge) => {
-            let target_edge_src_vertex_id = g.src_vertex_id(target_edge)?;
-            let target_edge_dst_vertex_id = g.dst_vertex_id(target_edge)?;
+            let e2_src = si.directed_graph.src_vertex_id(target_edge)?;
+            let e2_dst = si.directed_graph.dst_vertex_id(target_edge)?;
 
             if source == target_edge {
                 Ok(SearchResult::default())
-            } else if source_edge_dst_vertex_id == target_edge_src_vertex_id {
+            } else if e1_dst == e2_src {
                 // route is simply source -> target
-                let init_state = m.initial_state();
-                let src_et =
-                    EdgeTraversal::perform_traversal(source, None, &init_state, &g, &m, &u)?;
+                let init_state = si.state_model.initial_state()?;
+                let src_et = EdgeTraversal::perform_traversal(source, None, &init_state, si)?;
                 let dst_et = EdgeTraversal::perform_traversal(
                     target_edge,
                     Some(source),
                     &src_et.result_state,
-                    &g,
-                    &m,
-                    &u,
+                    si,
                 )?;
                 let src_traversal = SearchTreeBranch {
-                    terminal_vertex: target_edge_src_vertex_id,
+                    terminal_vertex: e2_src,
                     edge_traversal: dst_et,
                 };
                 let dst_traversal = SearchTreeBranch {
-                    terminal_vertex: source_edge_src_vertex_id,
+                    terminal_vertex: e1_src,
                     edge_traversal: src_et,
                 };
-                let tree = HashMap::from([
-                    (target_edge_dst_vertex_id, src_traversal),
-                    (source_edge_dst_vertex_id, dst_traversal),
-                ]);
+                let tree = HashMap::from([(e2_dst, src_traversal), (e1_dst, dst_traversal)]);
                 let result = SearchResult {
                     tree,
                     iterations: 1,
@@ -313,28 +287,15 @@ pub fn run_a_star_edge_oriented(
                 let SearchResult {
                     mut tree,
                     iterations,
-                } = run_a_star(
-                    source_edge_dst_vertex_id,
-                    Some(target_edge_src_vertex_id),
-                    directed_graph.clone(),
-                    m.clone(),
-                    u,
-                    f,
-                    termination_model,
-                )?;
+                } = run_a_star(e1_dst, Some(e2_src), si)?;
 
                 if tree.is_empty() {
-                    return Err(SearchError::NoPathExists(
-                        source_edge_dst_vertex_id,
-                        target_edge_src_vertex_id,
-                    ));
+                    return Err(SearchError::NoPathExists(e1_dst, e2_src));
                 }
 
                 let final_state = &tree
-                    .get(&target_edge_src_vertex_id)
-                    .ok_or_else(|| {
-                        SearchError::VertexMissingFromSearchTree(target_edge_src_vertex_id)
-                    })?
+                    .get(&e2_src)
+                    .ok_or_else(|| SearchError::VertexMissingFromSearchTree(e2_src))?
                     .edge_traversal
                     .result_state;
                 let dst_et = EdgeTraversal {
@@ -344,17 +305,17 @@ pub fn run_a_star_edge_oriented(
                     result_state: final_state.to_vec(),
                 };
                 let dst_traversal = SearchTreeBranch {
-                    terminal_vertex: target_edge_src_vertex_id,
+                    terminal_vertex: e2_src,
                     edge_traversal: dst_et,
                 };
 
                 // it is possible that the search already found these vertices. one major edge
                 // case is when the trip starts with a u-turn.
-                if !tree.contains_key(&source_edge_dst_vertex_id) {
-                    tree.extend([(source_edge_dst_vertex_id, src_traversal)]);
+                if !tree.contains_key(&e1_dst) {
+                    tree.extend([(e1_dst, src_branch)]);
                 }
-                if !tree.contains_key(&target_edge_dst_vertex_id) {
-                    tree.extend([(target_edge_dst_vertex_id, dst_traversal)]);
+                if !tree.contains_key(&e2_dst) {
+                    tree.extend([(e2_dst, dst_traversal)]);
                 }
 
                 let result = SearchResult {
@@ -367,38 +328,26 @@ pub fn run_a_star_edge_oriented(
     }
 }
 
-pub fn h_cost(
-    src: VertexId,
-    dst: VertexId,
-    state: &[StateVar],
-    g: &RwLockReadGuard<Graph>,
-    m: &Arc<dyn TraversalModel>,
-    u: &CostModel,
-) -> Result<Cost, SearchError> {
-    let src_vertex = g.get_vertex(src)?;
-    let dst_vertex = g.get_vertex(dst)?;
-
-    let state_estimate = m.estimate_traversal(src_vertex, dst_vertex, state)?;
-    let cost_estimate = u.cost_estimate(state, &state_estimate)?;
-    Ok(cost_estimate)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::algorithm::search::MinSearchTree;
     use crate::model::cost::cost_aggregation::CostAggregation;
+    use crate::model::cost::cost_model::CostModel;
     use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
     use crate::model::property::edge::Edge;
     use crate::model::property::vertex::Vertex;
+    use crate::model::road_network::edge_id::EdgeId;
     use crate::model::road_network::graph::Graph;
+    use crate::model::state::state_feature::StateFeature;
+    use crate::model::state::state_model::StateModel;
+    use crate::model::termination::termination_model::TerminationModel;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
-    use crate::model::traversal::traversal_model::TraversalModel;
-    use crate::model::unit::DistanceUnit;
-    use crate::{model::road_network::edge_id::EdgeId, util::read_only_lock::DriverReadOnlyLock};
+    use crate::model::unit::{Distance, DistanceUnit};
     use rayon::prelude::*;
+    use std::sync::Arc;
 
     fn build_mock_graph() -> Graph {
         let vertices = vec![
@@ -484,36 +433,44 @@ mod tests {
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
-        let graph = build_mock_graph();
-        let driver_dg = Arc::new(DriverReadOnlyLock::new(graph));
-
-        // let no_restriction: Arc<dyn FrontierModel> = Arc::new(no_restriction::NoRestriction {});
-        let driver_rm = Arc::new(DriverReadOnlyLock::new(TerminationModel::IterationsLimit {
-            limit: 20,
-        }));
+        let state_model = Arc::new(
+            StateModel::empty()
+                .extend(vec![(
+                    String::from("distance"),
+                    StateFeature::Distance {
+                        distance_unit: DistanceUnit::Kilometers,
+                        initial: Distance::new(0.0),
+                    },
+                )])
+                .unwrap(),
+        );
+        let cost_model = CostModel::new(
+            // vec![(String::from("distance"), 0usize)],
+            Arc::new(HashMap::from([(String::from("distance"), 1.0)])),
+            Arc::new(HashMap::from([(
+                String::from("distance"),
+                VehicleCostRate::Raw,
+            )])),
+            Arc::new(HashMap::new()),
+            CostAggregation::Sum,
+            state_model.clone(),
+        )
+        .unwrap();
+        let si = SearchInstance {
+            directed_graph: Arc::new(build_mock_graph()),
+            state_model: state_model.clone(),
+            traversal_model: Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters)),
+            cost_model,
+            frontier_model: Arc::new(NoRestriction {}),
+            termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
+        };
 
         // execute the route search
         let result: Vec<Result<MinSearchTree, SearchError>> = queries
             .clone()
             .into_par_iter()
             .map(|(o, d, _expected)| {
-                let dg_inner = Arc::new(driver_dg.read_only());
-                let dist_tm: Arc<dyn TraversalModel> =
-                    Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters));
-                let dist_um: CostModel = CostModel::new(
-                    vec![(String::from("distance"), 0usize)],
-                    Arc::new(HashMap::from([(String::from("distance"), 1.0)])),
-                    Arc::new(HashMap::from([(
-                        String::from("distance"),
-                        VehicleCostRate::Raw,
-                    )])),
-                    Arc::new(HashMap::new()),
-                    CostAggregation::Sum,
-                )?;
-                let fm_inner = Arc::new(NoRestriction {});
-                let rm_inner = Arc::new(driver_rm.read_only());
-                run_a_star(o, Some(d), dg_inner, dist_tm, dist_um, fm_inner, rm_inner)
-                    .map(|search_result| search_result.tree)
+                run_a_star(o, Some(d), &si).map(|search_result| search_result.tree)
             })
             .collect();
 

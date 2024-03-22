@@ -1,4 +1,6 @@
-use super::speed_traversal_model::SpeedTraversalModel;
+use super::{
+    speed_traversal_engine::SpeedTraversalEngine, speed_traversal_model::SpeedTraversalModel,
+};
 use crate::model::traversal::{
     traversal_model::TraversalModel, traversal_model_error::TraversalModelError,
     traversal_model_service::TraversalModelService,
@@ -6,7 +8,7 @@ use crate::model::traversal::{
 use std::sync::Arc;
 
 pub struct SpeedLookupService {
-    pub m: Arc<SpeedTraversalModel>,
+    pub e: Arc<SpeedTraversalEngine>,
 }
 
 impl TraversalModelService for SpeedLookupService {
@@ -14,6 +16,6 @@ impl TraversalModelService for SpeedLookupService {
         &self,
         _parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        Ok(self.m.clone())
+        Ok(Arc::new(SpeedTraversalModel::new(self.e.clone())))
     }
 }

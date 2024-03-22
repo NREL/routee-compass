@@ -1,15 +1,10 @@
+use super::{
+    edge_traversal::EdgeTraversal, search_error::SearchError, search_tree_branch::SearchTreeBranch,
+};
+use crate::model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId};
 use std::{
     collections::{HashMap, HashSet},
     sync::Arc,
-};
-
-use crate::{
-    model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
-    util::read_only_lock::ExecutorReadOnlyLock,
-};
-
-use super::{
-    edge_traversal::EdgeTraversal, search_error::SearchError, search_tree_branch::SearchTreeBranch,
 };
 
 /// reconstructs a path from a minimum shortest path tree for some source and target vertex
@@ -48,15 +43,12 @@ pub fn edge_oriented_route(
     source_id: EdgeId,
     target_id: EdgeId,
     solution: &HashMap<VertexId, SearchTreeBranch>,
-    graph: Arc<ExecutorReadOnlyLock<Graph>>,
+    graph: Arc<Graph>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
-    let g_inner = graph
-        .read()
-        .map_err(|e| SearchError::ReadOnlyPoisonError(e.to_string()))?;
-    let o_v = g_inner
+    let o_v = graph
         .src_vertex_id(source_id)
         .map_err(SearchError::GraphError)?;
-    let d_v = g_inner
+    let d_v = graph
         .dst_vertex_id(target_id)
         .map_err(SearchError::GraphError)?;
     vertex_oriented_route(o_v, d_v, solution)

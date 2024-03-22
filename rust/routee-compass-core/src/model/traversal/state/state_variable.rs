@@ -24,6 +24,8 @@ pub struct StateVar(pub f64);
 
 impl StateVar {
     pub const ZERO: StateVar = StateVar(0.0);
+    pub const ONE: StateVar = StateVar(1.0);
+    pub const ONE_HUNDRED: StateVar = StateVar(100.0);
     pub const MAX: StateVar = StateVar(f64::MAX);
 }
 
@@ -38,7 +40,6 @@ impl From<StateVar> for f64 {
         val.0
     }
 }
-
 impl From<Distance> for StateVar {
     fn from(value: Distance) -> Self {
         StateVar(value.as_f64())

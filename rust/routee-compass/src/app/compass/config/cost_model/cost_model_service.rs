@@ -1,8 +1,11 @@
 use crate::app::compass::config::compass_configuration_error::CompassConfigurationError;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
-use routee_compass_core::model::cost::{
-    cost_aggregation::CostAggregation, cost_model::CostModel,
-    network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
+use routee_compass_core::model::{
+    cost::{
+        cost_aggregation::CostAggregation, cost_model::CostModel,
+        network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
+    },
+    state::state_model::StateModel,
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -43,12 +46,12 @@ impl CostModelService {
     pub fn build(
         &self,
         query: &serde_json::Value,
-        traversal_state_variable_names: &[String],
+        state_model: Arc<StateModel>,
     ) -> Result<CostModel, CompassConfigurationError> {
         // user-provided coefficients used to prioritize each state variable in the cost model
         // at minimum, we default to the "distance" traveled.
         // invariant: this hashmap dictates the list of keys for all subsequent CostModel hashmaps.
-        let state_variable_coefficients: Arc<HashMap<String, f64>> = query
+        let weights: Arc<HashMap<String, f64>> = query
             .get_config_serde_optional::<HashMap<String, f64>>(
                 &"state_variable_coefficients",
                 &"cost_model",
@@ -56,22 +59,21 @@ impl CostModelService {
             .map(Arc::new)
             .unwrap_or(self.state_variable_coefficients.clone());
 
-        // union the requested state variables with those in the existing traversal model
-        // load only indices that appear in coefficients object
-        let state_variable_indices = traversal_state_variable_names
+        // // union the requested state variables with those in the existing traversal model
+        // // load only indices that appear in coefficients object
+        let state_indices = state_model.to_vec();
+        let query_state_indices = state_indices
             .iter()
-            .enumerate()
-            .filter(|(_idx, n)| state_variable_coefficients.contains_key(*n))
-            .map(|(idx, n)| (n.clone(), idx))
+            .filter(|(n, _idx)| weights.contains_key(n))
+            .map(|(n, idx)| (n.clone(), idx))
             .collect::<Vec<_>>();
 
         // validate user input, no query state variables provided that are unknown to traversal model
-        if state_variable_coefficients.len() != state_variable_indices.len() {
-            let names_lookup: HashSet<&String> = traversal_state_variable_names
-                .iter()
-                .collect::<HashSet<_>>();
+        if weights.len() != query_state_indices.len() {
+            let names_lookup: HashSet<&String> =
+                query_state_indices.iter().map(|(n, _)| n).collect();
 
-            let extras = state_variable_coefficients
+            let extras = weights
                 .clone()
                 .keys()
                 .filter(|n| !names_lookup.contains(n))
@@ -99,11 +101,11 @@ impl CostModelService {
             .unwrap_or(self.cost_aggregation.to_owned());
 
         let model = CostModel::new(
-            state_variable_indices,
-            state_variable_coefficients,
+            weights,
             vehicle_rates,
             self.network_state_variable_rates.clone(),
             cost_aggregation,
+            state_model,
         )
         .map_err(|e| {
             CompassConfigurationError::UserConfigurationError(format!(

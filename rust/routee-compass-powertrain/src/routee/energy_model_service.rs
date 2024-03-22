@@ -30,7 +30,7 @@ impl EnergyModelService {
         time_model_service: Arc<dyn TraversalModelService>,
         time_model_speed_unit: SpeedUnit,
         grade_table_path_option: &Option<P>,
-        grade_table_grade_unit_option: Option<GradeUnit>,
+        grade_table_grade_unit: GradeUnit,
         output_time_unit_option: Option<TimeUnit>,
         output_distance_unit_option: Option<DistanceUnit>,
         vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
@@ -47,7 +47,6 @@ impl EnergyModelService {
             )),
             None => Arc::new(None),
         };
-        let grade_table_grade_unit = grade_table_grade_unit_option.unwrap_or(GradeUnit::Decimal);
 
         let headings_table: Arc<Option<Box<[EdgeHeading]>>> = match headings_table_path {
             Some(headings_path) => {

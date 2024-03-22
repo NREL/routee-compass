@@ -30,6 +30,8 @@ use config::Config;
 use itertools::{Either, Itertools};
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
+use routee_compass_core::algorithm::search::search_instance::SearchInstance;
+use routee_compass_core::model::state::state_model::StateModel;
 use routee_compass_core::{
     algorithm::search::search_algorithm::SearchAlgorithm,
     util::duration_extension::DurationExtension,
@@ -65,7 +67,7 @@ impl CompassApp {
     /// # Arguments
     ///
     /// * `config_string` - a string containing the configuration in TOML format
-    /// * `original_file_path` - the original file path of the configuration file
+    /// * `original_file_path` - the original file path of the TOML
     /// * `builder` - a custom CompassAppBuilder instance
     ///
     /// # Returns
@@ -142,13 +144,18 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             .try_deserialize::<serde_json::Value>()?
             .normalize_file_paths(&"", &root_config_path)?;
 
-        let alg_params = config_json.get_config_section(CompassConfigurationField::Algorithm)?;
+        let alg_params =
+            config_json.get_config_section(CompassConfigurationField::Algorithm, &"TOML")?;
         let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
+
+        let state_params =
+            config_json.get_config_section(CompassConfigurationField::State, &"TOML")?;
+        let state_model = Arc::new(StateModel::try_from(&state_params)?);
 
         // build traversal model
         let traversal_start = Local::now();
         let traversal_params =
-            config_json.get_config_section(CompassConfigurationField::Traversal)?;
+            config_json.get_config_section(CompassConfigurationField::Traversal, &"TOML")?;
         let traversal_model_service = builder.build_traversal_model_service(&traversal_params)?;
         let traversal_duration = (Local::now() - traversal_start)
             .to_std()
@@ -159,13 +166,14 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         );
 
         // build utility model
-        let cost_params = config_json.get_config_section(CompassConfigurationField::Cost)?;
+        let cost_params =
+            config_json.get_config_section(CompassConfigurationField::Cost, &"TOML")?;
         let cost_model_service = CostModelBuilder {}.build(&cost_params)?;
 
         // build frontier model
         let frontier_start = Local::now();
         let frontier_params =
-            config_json.get_config_section(CompassConfigurationField::Frontier)?;
+            config_json.get_config_section(CompassConfigurationField::Frontier, &"TOML")?;
 
         let frontier_model_service = builder.build_frontier_model_service(&frontier_params)?;
 
@@ -179,12 +187,13 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // build termination model
         let termination_model_json =
-            config_json.get_config_section(CompassConfigurationField::Termination)?;
+            config_json.get_config_section(CompassConfigurationField::Termination, &"TOML")?;
         let termination_model = TerminationModelBuilder::build(&termination_model_json, None)?;
 
         // build graph
         let graph_start = Local::now();
-        let graph_params = config_json.get_config_section(CompassConfigurationField::Graph)?;
+        let graph_params =
+            config_json.get_config_section(CompassConfigurationField::Graph, &"TOML")?;
         let graph = DefaultGraphBuilder::build(&graph_params)?;
         let graph_duration = (Local::now() - graph_start)
             .to_std()
@@ -228,6 +237,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let search_app: SearchApp = SearchApp::new(
             search_algorithm,
             graph,
+            state_model,
             traversal_model_service,
             cost_model_service,
             frontier_model_service,
@@ -236,7 +246,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         // build plugins
         let plugins_start = Local::now();
-        let plugins_config = config_json.get_config_section(CompassConfigurationField::Plugins)?;
+        let plugins_config =
+            config_json.get_config_section(CompassConfigurationField::Plugins, &"TOML")?;
 
         let input_plugins = builder.build_input_plugins(&plugins_config)?;
         let output_plugins = builder.build_output_plugins(&plugins_config)?;
@@ -459,7 +470,7 @@ pub fn run_single_query(
         SearchOrientation::Vertex => search_app.run_vertex_oriented(query),
         SearchOrientation::Edge => search_app.run_edge_oriented(query),
     };
-    let output = apply_output_processing((query, search_result), search_app, output_plugins);
+    let output = apply_output_processing(query, search_result, search_app, output_plugins);
     // TODO: write to output if requested
     Ok(output)
 }
@@ -561,20 +572,20 @@ pub fn apply_input_plugins(
 // 1. summarizing from the TraversalModel
 // 2. applying the output plugins
 pub fn apply_output_processing(
-    response_data: (&serde_json::Value, Result<SearchAppResult, CompassAppError>),
+    request_json: &serde_json::Value,
+    result: Result<(SearchAppResult, SearchInstance), CompassAppError>,
     search_app: &SearchApp,
     output_plugins: &[Arc<dyn OutputPlugin>],
 ) -> serde_json::Value {
-    let (req, res) = response_data;
-
-    let mut initial: Value = match out_ops::create_initial_output(req, &res, search_app) {
+    let mut initial: Value = match out_ops::create_initial_output(request_json, &result, search_app)
+    {
         Ok(value) => value,
         Err(error_value) => return error_value,
     };
     for output_plugin in output_plugins.iter() {
-        match output_plugin.process(&mut initial, &res) {
+        match output_plugin.process(&mut initial, &result) {
             Ok(()) => {}
-            Err(e) => return out_ops::package_error(req, e),
+            Err(e) => return out_ops::package_error(request_json, e),
         }
     }
 
@@ -585,10 +596,22 @@ pub fn apply_output_processing(
 mod tests {
     use std::path::PathBuf;
 
+    use crate::app::compass::{
+        compass_app_error::CompassAppError,
+        config::compass_configuration_error::CompassConfigurationError,
+    };
+
     use super::CompassApp;
 
     #[test]
     fn test_speeds() {
+        let cwd_str = match std::env::current_dir() {
+            Ok(cwd_path) => String::from(cwd_path.to_str().unwrap_or("<unknown>")),
+            _ => String::from("<unknown>"),
+        };
+        println!("cwd           : {}", cwd_str);
+        println!("Cargo.toml dir: {}", env!("CARGO_MANIFEST_DIR"));
+
         // rust runs test and debug at different locations, which breaks the URLs
         // written in the referenced TOML files. here's a quick fix
         // turnaround that doesn't leak into anyone's VS Code settings.json files
@@ -609,9 +632,18 @@ mod tests {
             .join("speeds_test")
             .join("speeds_debug.toml");
 
-        let app = CompassApp::try_from(conf_file_test.as_path())
-            .or(CompassApp::try_from(conf_file_debug.as_path()))
-            .unwrap();
+        let app = match CompassApp::try_from(conf_file_test.as_path()) {
+            Ok(a) => Ok(a),
+            Err(CompassAppError::CompassConfigurationError(
+                CompassConfigurationError::FileNormalizationNotFound(_key, _f1, _f2),
+            )) => {
+                // could just be the run location, depending on the environment/runner/IDE
+                // try the alternative configuration that runs from the root directory
+                CompassApp::try_from(conf_file_debug.as_path())
+            }
+            Err(other) => panic!("{}", other),
+        }
+        .unwrap();
         let query = serde_json::json!({
             "origin_vertex": 0,
             "destination_vertex": 2

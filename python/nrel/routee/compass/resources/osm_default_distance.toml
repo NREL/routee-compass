@@ -1,6 +1,9 @@
 parallelism = 2
 search_orientation = "vertex"
 
+[state]
+distance = { distance_unit = "miles", initial = 0.0 }
+
 [graph]
 edge_list_input_file = "edges-compass.csv.gz"
 vertex_list_input_file = "vertices-compass.csv.gz"
