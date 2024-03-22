@@ -1,10 +1,6 @@
-use serde::{Deserialize, Serialize};
-
 use super::turn::Turn;
-use crate::model::{
-    access::access_model_error::AccessModelError,
-    unit::{Time, TimeUnit},
-};
+use crate::model::unit::{Time, TimeUnit};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
@@ -15,20 +11,16 @@ pub enum TurnDelayModel {
         table: HashMap<Turn, Time>,
         time_unit: TimeUnit,
     },
-}
-
-impl TurnDelayModel {
-    pub fn get_delay(&self, angle: i16) -> Result<(Time, &TimeUnit), AccessModelError> {
-        match self {
-            TurnDelayModel::TabularDiscrete { table, time_unit } => {
-                let turn = Turn::from_angle(angle)?;
-                let delay = table.get(&turn).ok_or_else(|| {
-                    let name = String::from("tabular discrete turn delay model");
-                    let error = format!("table missing entry for turn {}", turn.to_string());
-                    AccessModelError::RuntimeError { name, error }
-                })?;
-                Ok((*delay, time_unit))
-            }
-        }
-    }
+    // /// use a mapping heuristic from turn ranges and road class transitions
+    // /// to time delays
+    // /// TODO:
+    // ///   - first, move ConfigJsonExtension to core crate
+    // ///   - then we can write a TurnDelayModel::new(&serde_json::Value) method which can
+    // ///     use the JSON extension methods
+    // ///
+    // TabularDiscreteWithRoadClasses {
+    //     table: HashMap<(Turn, u8, u8), Time>,
+    //     road_classes: Box<[u8]>,
+    //     time_unit: TimeUnit,
+    // },
 }

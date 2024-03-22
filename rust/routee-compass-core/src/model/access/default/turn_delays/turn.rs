@@ -2,7 +2,7 @@ use crate::model::access::access_model_error::AccessModelError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Hash)]
-#[serde(rename = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum Turn {
     NoTurn,
     SlightRight,
