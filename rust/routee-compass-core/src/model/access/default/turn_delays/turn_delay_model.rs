@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use super::turn::Turn;
 use crate::model::{
     access::access_model_error::AccessModelError,
@@ -5,6 +7,8 @@ use crate::model::{
 };
 use std::collections::HashMap;
 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum TurnDelayModel {
     /// use a mapping heuristic from turn ranges to time delays
     TabularDiscrete {
