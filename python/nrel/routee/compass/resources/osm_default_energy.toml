@@ -49,6 +49,22 @@ time = 1
 energy_liquid = 1
 energy_electric = 1
 
+[access]
+type = "turn_delay"
+edge_heading_input_file = "edges-headings-enumerated.csv.gz"
+[access.turn_delay_model]
+type = "tabular_discrete"
+time_unit = "seconds"
+[access.turn_delay_model.table]
+no_turn = 0.0
+slight_right = 0.5
+right = 1.0
+sharp_right = 1.5
+slight_left = 1.0
+left = 2.5
+sharp_left = 3.5
+u_turn = 9.5
+
 [traversal]
 type = "energy_model"
 time_model_speed_unit = "kilometers_per_hour"
