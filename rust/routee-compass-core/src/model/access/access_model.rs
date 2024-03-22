@@ -5,7 +5,7 @@ use crate::model::{
     traversal::state::state_variable::StateVar,
 };
 
-pub trait AccessModel {
+pub trait AccessModel: Send + Sync {
     /// lists the state variables expected by this access model that are not
     /// defined on the base configuration. for example, if this access model
     /// has state variables that differ based on the query, they can be injected

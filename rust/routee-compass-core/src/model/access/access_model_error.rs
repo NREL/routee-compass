@@ -8,4 +8,6 @@ pub enum AccessModelError {
     StateError(#[from] StateError),
     #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
+    #[error("{0}")]
+    BuildError(String),
 }
