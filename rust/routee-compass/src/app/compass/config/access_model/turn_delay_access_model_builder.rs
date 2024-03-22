@@ -10,7 +10,7 @@ pub struct TurnDelayAccessModelBuilder {}
 impl AccessModelBuilder for TurnDelayAccessModelBuilder {
     fn build(
         &self,
-        parameters: &serde_json::Value,
+        _parameters: &serde_json::Value,
     ) -> Result<Arc<dyn AccessModelService>, AccessModelError> {
         todo!()
     }

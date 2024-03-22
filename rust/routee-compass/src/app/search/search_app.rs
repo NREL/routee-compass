@@ -37,6 +37,7 @@ pub struct SearchApp {
 impl SearchApp {
     /// builds a new SearchApp from the required components.
     /// handles all of the specialized boxing that allows for simple parallelization.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         search_algorithm: SearchAlgorithm,
         graph: Graph,

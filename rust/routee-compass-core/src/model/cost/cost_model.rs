@@ -25,7 +25,7 @@ pub struct CostModel {
 impl CostModel {
     const VEHICLE_RATES: &'static str = "vehicle_rates";
     const NETWORK_RATES: &'static str = "network_rates";
-    const FEATURES: &'static str = "features";
+    // const FEATURES: &'static str = "features";
     const WEIGHTS: &'static str = "weights";
     const VEHICLE_RATE: &'static str = "vehicle_rate";
     const NETWORK_RATE: &'static str = "network_rate";
