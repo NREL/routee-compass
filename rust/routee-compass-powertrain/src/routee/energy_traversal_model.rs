@@ -21,7 +21,9 @@ pub struct EnergyTraversalModel {
 impl TraversalModel for EnergyTraversalModel {
     /// inject the state features required by the VehicleType
     fn state_features(&self) -> Vec<(String, StateFeature)> {
-        self.vehicle.state_features()
+        let mut features = self.vehicle.state_features();
+        features.extend(self.time_model.state_features());
+        features
     }
 
     fn traverse_edge(

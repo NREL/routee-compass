@@ -71,9 +71,24 @@ impl TraversalModel for SpeedTraversalModel {
 
         Ok(())
     }
-    /// no additional state features are needed
+    /// track the time state feature
     fn state_features(&self) -> Vec<(String, StateFeature)> {
-        vec![]
+        vec![
+            (
+                String::from("time"),
+                StateFeature::Time {
+                    time_unit: self.engine.time_unit,
+                    initial: Time::ZERO,
+                },
+            ),
+            (
+                String::from("distance"),
+                StateFeature::Distance {
+                    distance_unit: self.engine.distance_unit,
+                    initial: Distance::ZERO,
+                },
+            ),
+        ]
     }
 }
 
