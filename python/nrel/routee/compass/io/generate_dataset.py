@@ -155,14 +155,14 @@ def generate_compass_dataset(
     )
 
     headings = e.bearing.fillna(0).apply(lambda x: int(round(x)))
-    headings_df = headings.to_frame(name="start_heading")
+    headings_df = headings.to_frame(name="arrival_heading")
 
     # We could get more sophisticated and compute the end heading
     # for links that might have some significant curvature, but
     # for now we'll just use the start heading.
-    headings_df["end_heading"] = None
+    headings_df["destination_heading"] = None
     headings_df.to_csv(
-        output_directory / "edges-headings-enumerated.txt.gz",
+        output_directory / "edges-headings-enumerated.csv.gz",
         index=False,
         compression="gzip",
     )
