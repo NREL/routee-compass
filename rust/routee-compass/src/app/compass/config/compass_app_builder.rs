@@ -1,5 +1,8 @@
 use super::{
-    access_model::turn_delay_access_model_builder::TurnDelayAccessModelBuilder,
+    access_model::{
+        combined_access_model_builder::CombinedAccessModelBuilder,
+        turn_delay_access_model_builder::TurnDelayAccessModelBuilder,
+    },
     builders::{InputPluginBuilder, OutputPluginBuilder},
     compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
@@ -143,9 +146,16 @@ impl CompassAppBuilder {
         // Access model builders
         let no_access_model: Rc<dyn AccessModelBuilder> = Rc::new(NoAccessModel {});
         let turn_delay: Rc<dyn AccessModelBuilder> = Rc::new(TurnDelayAccessModelBuilder {});
+        let combined_am: Rc<dyn AccessModelBuilder> = Rc::new(CombinedAccessModelBuilder {
+            builders: HashMap::from([
+                (String::from("no_access_model"), no_access_model.clone()),
+                (String::from("turn_delay"), turn_delay.clone()),
+            ]),
+        });
         let am_builders: HashMap<String, Rc<dyn AccessModelBuilder>> = HashMap::from([
             (String::from("no_access_model"), no_access_model),
             (String::from("turn_delay"), turn_delay),
+            (String::from("combined"), combined_am),
         ]);
 
         // Frontier model builders
