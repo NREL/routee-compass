@@ -34,15 +34,6 @@ impl TraversalModel for DistanceTraversalModel {
         Ok(())
     }
 
-    fn access_edge(
-        &self,
-        _trajectory: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
-        _state: &mut Vec<StateVar>,
-        _state_model: &StateModel,
-    ) -> Result<(), TraversalModelError> {
-        Ok(())
-    }
-
     fn estimate_traversal(
         &self,
         od: (&Vertex, &Vertex),

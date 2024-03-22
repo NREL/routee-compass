@@ -1,11 +1,17 @@
+use super::access_model_error::AccessModelError;
 use crate::model::{
     property::{edge::Edge, vertex::Vertex},
-    traversal::{
-        state::traversal_state::TraversalState, traversal_model_error::TraversalModelError,
-    },
+    state::{state_feature::StateFeature, state_model::StateModel},
+    traversal::state::state_variable::StateVar,
 };
 
 pub trait AccessModel {
+    /// lists the state variables expected by this access model that are not
+    /// defined on the base configuration. for example, if this access model
+    /// has state variables that differ based on the query, they can be injected
+    /// into the state model by listing them here.
+    fn state_features(&self) -> Vec<(String, StateFeature)>;
+
     /// Updates the traversal state by accessing some destination edge
     /// when coming from some previous edge.
     ///
@@ -27,7 +33,7 @@ pub trait AccessModel {
     fn access_edge(
         &self,
         traversal: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
-        state: &TraversalState,
-        state_variable_indices: Vec<(String, usize)>,
-    ) -> Result<Option<TraversalState>, TraversalModelError>;
+        state: &mut Vec<StateVar>,
+        state_model: &StateModel,
+    ) -> Result<(), AccessModelError>;
 }

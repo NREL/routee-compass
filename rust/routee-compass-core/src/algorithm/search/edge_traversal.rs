@@ -64,11 +64,9 @@ impl EdgeTraversal {
 
             let (v2, e2, v3) = traversal_trajectory;
             let access_trajectory = (v1, e1, v2, e2, v3);
-            si.traversal_model.access_edge(
-                access_trajectory,
-                &mut result_state,
-                &si.state_model,
-            )?;
+
+            si.access_model
+                .access_edge(access_trajectory, &mut result_state, &si.state_model)?;
 
             let ac = si
                 .cost_model

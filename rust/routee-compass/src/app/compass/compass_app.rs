@@ -165,6 +165,19 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             traversal_duration.hhmmss()
         );
 
+        // build access model
+        let access_start = Local::now();
+        let access_params =
+            config_json.get_config_section(CompassConfigurationField::Access, &"TOML")?;
+        let access_model_service = builder.build_access_model_service(&access_params)?;
+        let access_duration = (Local::now() - access_start)
+            .to_std()
+            .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
+        log::info!(
+            "finished reading access model with duration {}",
+            access_duration.hhmmss()
+        );
+
         // build utility model
         let cost_params =
             config_json.get_config_section(CompassConfigurationField::Cost, &"TOML")?;
@@ -239,6 +252,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             graph,
             state_model,
             traversal_model_service,
+            access_model_service,
             cost_model_service,
             frontier_model_service,
             termination_model,

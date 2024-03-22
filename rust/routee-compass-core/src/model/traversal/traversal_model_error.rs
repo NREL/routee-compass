@@ -1,4 +1,3 @@
-use super::access::access_model_error::AccessModelError;
 use super::state::traversal_state::TraversalState;
 use crate::model::road_network::graph_error::GraphError;
 use crate::model::state::state_error::StateError;
@@ -26,8 +25,6 @@ pub enum TraversalModelError {
     CacheError(#[from] CacheError),
     #[error(transparent)]
     GraphError(#[from] GraphError),
-    #[error(transparent)]
-    AccessModelError(#[from] AccessModelError),
     #[error(transparent)]
     StateError(#[from] StateError),
     #[error("prediction model failed with error {0}")]

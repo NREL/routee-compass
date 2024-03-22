@@ -1,6 +1,6 @@
 use super::turn::Turn;
 use crate::model::{
-    traversal::access::access_model_error::AccessModelError,
+    access::access_model_error::AccessModelError,
     unit::{Time, TimeUnit},
 };
 use std::collections::HashMap;
@@ -14,11 +14,7 @@ pub enum TurnDelayModel {
 }
 
 impl TurnDelayModel {
-    pub fn get_delay(
-        &self,
-        angle: i16,
-        target_time_unit: &TimeUnit,
-    ) -> Result<Time, AccessModelError> {
+    pub fn get_delay(&self, angle: i16) -> Result<(Time, &TimeUnit), AccessModelError> {
         match self {
             TurnDelayModel::TabularDiscrete { table, time_unit } => {
                 let turn = Turn::from_angle(angle)?;
@@ -27,8 +23,7 @@ impl TurnDelayModel {
                     let error = format!("table missing entry for turn {}", turn.to_string());
                     AccessModelError::RuntimeError { name, error }
                 })?;
-                let result = time_unit.convert(*delay, target_time_unit);
-                Ok(result)
+                Ok((*delay, time_unit))
             }
         }
     }

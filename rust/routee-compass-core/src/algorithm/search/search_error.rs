@@ -1,4 +1,5 @@
 use crate::model::{
+    access::access_model_error::AccessModelError,
     cost::cost_error::CostError,
     frontier::frontier_model_error::FrontierModelError,
     road_network::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
@@ -19,6 +20,8 @@ pub enum SearchError {
     TerminationModelError(#[from] TerminationModelError),
     #[error(transparent)]
     TraversalModelFailure(#[from] TraversalModelError),
+    #[error(transparent)]
+    AccessModelFailure(#[from] AccessModelError),
     #[error(transparent)]
     FrontierModelFailure(#[from] FrontierModelError),
     #[error(transparent)]
