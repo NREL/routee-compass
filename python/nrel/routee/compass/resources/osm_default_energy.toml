@@ -72,7 +72,6 @@ grade_table_input_file = "edges-grade-enumerated.txt.gz"
 grade_table_grade_unit = "decimal"
 time_unit = "minutes"
 distance_unit = "miles"
-headings_table_input_file = "edges-headings-enumerated.txt.gz"
 
 [traversal.time_model]
 type = "speed_table"
