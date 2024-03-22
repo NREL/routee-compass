@@ -260,7 +260,6 @@ mod tests {
             None,
             None,
             model_library,
-            &Some(heading_file_path),
         )
         .unwrap();
         let arc_service = Arc::new(service);

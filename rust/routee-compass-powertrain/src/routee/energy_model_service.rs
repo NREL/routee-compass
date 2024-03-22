@@ -1,6 +1,5 @@
 use super::energy_traversal_model::EnergyTraversalModel;
 use super::vehicle::VehicleType;
-use routee_compass_core::model::access::default::turn_delays::edge_heading::EdgeHeading;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
@@ -20,7 +19,6 @@ pub struct EnergyModelService {
     pub time_unit: TimeUnit,
     pub distance_unit: DistanceUnit,
     pub vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
-    pub headings_table: Arc<Option<Box<[EdgeHeading]>>>,
 }
 
 impl EnergyModelService {
@@ -33,7 +31,6 @@ impl EnergyModelService {
         output_time_unit_option: Option<TimeUnit>,
         output_distance_unit_option: Option<DistanceUnit>,
         vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
-        headings_table_path: &Option<P>,
     ) -> Result<Self, TraversalModelError> {
         let output_time_unit = output_time_unit_option.unwrap_or(BASE_TIME_UNIT);
         let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
@@ -47,20 +44,6 @@ impl EnergyModelService {
             None => Arc::new(None),
         };
 
-        let headings_table: Arc<Option<Box<[EdgeHeading]>>> = match headings_table_path {
-            Some(headings_path) => {
-                let headings_table: Box<[EdgeHeading]> =
-                    read_utils::from_csv(headings_path, true, None).map_err(|e| {
-                        TraversalModelError::FileReadError(
-                            headings_path.as_ref().to_path_buf(),
-                            e.to_string(),
-                        )
-                    })?;
-                Arc::new(Some(headings_table))
-            }
-            None => Arc::new(None),
-        };
-
         Ok(EnergyModelService {
             time_model_service,
             time_model_speed_unit,
@@ -69,7 +52,6 @@ impl EnergyModelService {
             time_unit: output_time_unit,
             distance_unit: output_distance_unit,
             vehicle_library,
-            headings_table,
         })
     }
 }

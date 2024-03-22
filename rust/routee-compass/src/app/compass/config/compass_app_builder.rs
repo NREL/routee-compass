@@ -290,7 +290,7 @@ impl CompassAppBuilder {
 
         let mut plugins: Vec<Arc<dyn InputPlugin>> = Vec::new();
         for plugin_json in input_plugins.into_iter() {
-            let plugin_type = config.get_config_string(&"type", &"input_plugin")?;
+            let plugin_type = plugin_json.get_config_string(&"type", &"input_plugin")?;
             let builder = self
                 .input_plugin_builders
                 .get(&plugin_type)
@@ -318,7 +318,7 @@ impl CompassAppBuilder {
 
         let mut plugins: Vec<Arc<dyn OutputPlugin>> = Vec::new();
         for plugin_json in output_plugins.into_iter() {
-            let plugin_type = config.get_config_string(&"type", &"output_plugin")?;
+            let plugin_type = plugin_json.get_config_string(&"type", &"output_plugin")?;
             let builder = self
                 .output_plugin_builders
                 .get(&plugin_type)
