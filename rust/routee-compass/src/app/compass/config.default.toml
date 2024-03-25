@@ -11,9 +11,6 @@ type = "no_output"
 # filename = "output.json"
 # format = { type = "json", newline_delimited = true }
 
-[state]
-distance = { distance_unit = "kilometers", initial = 0.0 }
-
 [graph]
 verbose = true
 
