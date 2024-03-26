@@ -72,7 +72,12 @@ def plot_route_folium(
     else:
         raise ValueError("Could not parse route geometry")
 
-    coords = [(lat, lon) for lon, lat in linestring.coords]
+    if isinstance(linestring, shapely.geometry.MultiLineString):
+        coords = []
+        for line in linestring.geoms:
+            coords.extend([(lat, lon) for lon, lat in line.coords])
+    else:
+        coords = [(lat, lon) for lon, lat in linestring.coords]
 
     if folium_map is None:
         mid = coords[int(len(coords) / 2)]
