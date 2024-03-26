@@ -434,20 +434,6 @@ document.write(`
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">line</span> <span class="mi">3</span>
-<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="kn">import</span> <span class="nn">osmnx</span> <span class="k">as</span> <span class="nn">ox</span>
-<span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="ne">----&gt; </span><span class="mi">3</span> <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="g g-Whitespace">      </span><span class="mi">5</span> <span class="kn">import</span> <span class="nn">json</span>
-<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="kn">from</span> <span class="nn">nrel.routee.compass.io</span> <span class="kn">import</span> <span class="n">generate_compass_dataset</span>
-
-<span class="ne">ModuleNotFoundError</span>: No module named &#39;matplotlib&#39;
-</pre></div>
-</div>
-</div>
 </div>
 </section>
 <section id="building-routee-compass-dataset">
@@ -459,6 +445,98 @@ document.write(`
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_from_place</span><span class="p">(</span><span class="s2">&quot;Denver, Colorado, USA&quot;</span><span class="p">,</span> <span class="n">network_type</span><span class="o">=</span><span class="s2">&quot;drive&quot;</span><span class="p">)</span>  
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">KeyboardInterrupt</span><span class="g g-Whitespace">                         </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_from_place</span><span class="p">(</span><span class="s2">&quot;Denver, Colorado, USA&quot;</span><span class="p">,</span> <span class="n">network_type</span><span class="o">=</span><span class="s2">&quot;drive&quot;</span><span class="p">)</span>  
+
+<span class="nn">File ~/.local/lib/python3.10/site-packages/osmnx/graph.py:394,</span> in <span class="ni">graph_from_place</span><span class="nt">(query, network_type, simplify, retain_all, truncate_by_edge, which_result, buffer_dist, clean_periphery, custom_filter)</span>
+<span class="g g-Whitespace">    </span><span class="mi">391</span> <span class="n">utils</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;Constructed place geometry polygon(s) to query API&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">393</span> <span class="c1"># create graph using this polygon(s) geometry</span>
+<span class="ne">--&gt; </span><span class="mi">394</span> <span class="n">G</span> <span class="o">=</span> <span class="n">graph_from_polygon</span><span class="p">(</span>
+<span class="g g-Whitespace">    </span><span class="mi">395</span>     <span class="n">polygon</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">396</span>     <span class="n">network_type</span><span class="o">=</span><span class="n">network_type</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">397</span>     <span class="n">simplify</span><span class="o">=</span><span class="n">simplify</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">398</span>     <span class="n">retain_all</span><span class="o">=</span><span class="n">retain_all</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">399</span>     <span class="n">truncate_by_edge</span><span class="o">=</span><span class="n">truncate_by_edge</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">400</span>     <span class="n">clean_periphery</span><span class="o">=</span><span class="n">clean_periphery</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">401</span>     <span class="n">custom_filter</span><span class="o">=</span><span class="n">custom_filter</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">402</span> <span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">404</span> <span class="n">utils</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;graph_from_place returned graph with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> nodes and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> edges&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">405</span> <span class="k">return</span> <span class="n">G</span>
+
+<span class="nn">File ~/.local/lib/python3.10/site-packages/osmnx/graph.py:512,</span> in <span class="ni">graph_from_polygon</span><span class="nt">(polygon, network_type, simplify, retain_all, truncate_by_edge, clean_periphery, custom_filter)</span>
+<span class="g g-Whitespace">    </span><span class="mi">505</span>     <span class="n">G_buff</span> <span class="o">=</span> <span class="n">simplification</span><span class="o">.</span><span class="n">simplify_graph</span><span class="p">(</span><span class="n">G_buff</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">507</span> <span class="c1"># truncate graph by original polygon to return graph within polygon</span>
+<span class="g g-Whitespace">    </span><span class="mi">508</span> <span class="c1"># caller wants. don&#39;t simplify again: this allows us to retain</span>
+<span class="g g-Whitespace">    </span><span class="mi">509</span> <span class="c1"># intersections along the street that may now only connect 2 street</span>
+<span class="g g-Whitespace">    </span><span class="mi">510</span> <span class="c1"># segments in the network, but in reality also connect to an</span>
+<span class="g g-Whitespace">    </span><span class="mi">511</span> <span class="c1"># intersection just outside the polygon</span>
+<span class="ne">--&gt; </span><span class="mi">512</span> <span class="n">G</span> <span class="o">=</span> <span class="n">truncate</span><span class="o">.</span><span class="n">truncate_graph_polygon</span><span class="p">(</span><span class="n">G_buff</span><span class="p">,</span> <span class="n">polygon</span><span class="p">,</span> <span class="n">retain_all</span><span class="p">,</span> <span class="n">truncate_by_edge</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">514</span> <span class="c1"># count how many physical streets in buffered graph connect to each</span>
+<span class="g g-Whitespace">    </span><span class="mi">515</span> <span class="c1"># intersection in un-buffered graph, to retain true counts for each</span>
+<span class="g g-Whitespace">    </span><span class="mi">516</span> <span class="c1"># intersection, even if some of its neighbors are outside the polygon</span>
+<span class="g g-Whitespace">    </span><span class="mi">517</span> <span class="n">spn</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">count_streets_per_node</span><span class="p">(</span><span class="n">G_buff</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+
+<span class="nn">File ~/.local/lib/python3.10/site-packages/osmnx/truncate.py:200,</span> in <span class="ni">truncate_graph_polygon</span><span class="nt">(G, polygon, retain_all, truncate_by_edge, quadrat_width, min_num)</span>
+<span class="g g-Whitespace">    </span><span class="mi">196</span> <span class="n">utils</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Removed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes_to_remove</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> nodes outside polygon&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">198</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">retain_all</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">199</span>     <span class="c1"># remove any isolated nodes and retain only the largest component</span>
+<span class="ne">--&gt; </span><span class="mi">200</span>     <span class="n">G</span> <span class="o">=</span> <span class="n">utils_graph</span><span class="o">.</span><span class="n">remove_isolated_nodes</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">201</span>     <span class="n">G</span> <span class="o">=</span> <span class="n">utils_graph</span><span class="o">.</span><span class="n">get_largest_component</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">203</span> <span class="n">utils</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;Truncated graph by polygon&quot;</span><span class="p">)</span>
+
+<span class="nn">File ~/.local/lib/python3.10/site-packages/osmnx/utils_graph.py:274,</span> in <span class="ni">remove_isolated_nodes</span><span class="nt">(G)</span>
+<span class="g g-Whitespace">    </span><span class="mi">260</span><span class="w"> </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">261</span><span class="sd"> Remove from a graph all nodes that have no incident edges.</span>
+<span class="g g-Whitespace">    </span><span class="mi">262</span><span class="sd"> </span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">    </span><span class="mi">271</span><span class="sd">     graph with all isolated nodes removed</span>
+<span class="g g-Whitespace">    </span><span class="mi">272</span><span class="sd"> &quot;&quot;&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">273</span> <span class="c1"># make a copy to not mutate original graph object caller passed in</span>
+<span class="ne">--&gt; </span><span class="mi">274</span> <span class="n">G</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="g g-Whitespace">    </span><span class="mi">276</span> <span class="c1"># get the set of all isolated nodes, then remove them</span>
+<span class="g g-Whitespace">    </span><span class="mi">277</span> <span class="n">isolated_nodes</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">degree</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">degree</span><span class="p">()</span> <span class="k">if</span> <span class="n">degree</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">}</span>
+
+<span class="nn">File ~/.local/lib/python3.10/site-packages/networkx/classes/multigraph.py:1100,</span> in <span class="ni">MultiGraph.copy</span><span class="nt">(self, as_view)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1098</span> <span class="n">G</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+<span class="nn">   1099 G.add_nodes_from((n, d.copy()) for n, d</span> in <span class="ni">self._node.items</span><span class="nt">())</span>
+<span class="ne">-&gt; </span><span class="mi">1100</span> <span class="n">G</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span>
+<span class="g g-Whitespace">   </span><span class="mi">1101</span>     <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">datadict</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+<span class="nn">   1102     for u, nbrs</span> in <span class="ni">self._adj.items</span><span class="nt">()</span>
+<span class="nn">   1103     for v, keydict</span> in <span class="ni">nbrs.items</span><span class="nt">()</span>
+<span class="nn">   1104     for key, datadict</span> in <span class="ni">keydict.items</span><span class="nt">()</span>
+<span class="g g-Whitespace">   </span><span class="mi">1105</span> <span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1106</span> <span class="k">return</span> <span class="n">G</span>
+
+<span class="nn">File ~/.local/lib/python3.10/site-packages/networkx/classes/multigraph.py:594,</span> in <span class="ni">MultiGraph.add_edges_from</span><span class="nt">(self, ebunch_to_add, **attr)</span>
+<span class="g g-Whitespace">    </span><span class="mi">526</span><span class="w"> </span><span class="sd">&quot;&quot;&quot;Add all the edges in ebunch_to_add.</span>
+<span class="g g-Whitespace">    </span><span class="mi">527</span><span class="sd"> </span>
+<span class="g g-Whitespace">    </span><span class="mi">528</span><span class="sd"> Parameters</span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">    </span><span class="mi">591</span><span class="sd"> &gt;&gt;&gt; assigned_keys = G.add_edges_from(list((5, n) for n in G.nodes))</span>
+<span class="g g-Whitespace">    </span><span class="mi">592</span><span class="sd"> &quot;&quot;&quot;</span>
+<span class="g g-Whitespace">    </span><span class="mi">593</span> <span class="n">keylist</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="ne">--&gt; </span><span class="mi">594</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ebunch_to_add</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">595</span>     <span class="n">ne</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">596</span>     <span class="k">if</span> <span class="n">ne</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+
+<span class="nn">File ~/.local/lib/python3.10/site-packages/networkx/classes/multigraph.py:1101,</span> in <span class="ni">&lt;genexpr&gt;</span><span class="nt">(.0)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1098</span> <span class="n">G</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+<span class="nn">   1099 G.add_nodes_from((n, d.copy()) for n, d</span> in <span class="ni">self._node.items</span><span class="nt">())</span>
+<span class="g g-Whitespace">   </span><span class="mi">1100</span> <span class="n">G</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span>
+<span class="ne">-&gt; </span><span class="mi">1101</span>     <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">datadict</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+<span class="nn">   1102     for u, nbrs</span> in <span class="ni">self._adj.items</span><span class="nt">()</span>
+<span class="nn">   1103     for v, keydict</span> in <span class="ni">nbrs.items</span><span class="nt">()</span>
+<span class="nn">   1104     for key, datadict</span> in <span class="ni">keydict.items</span><span class="nt">()</span>
+<span class="g g-Whitespace">   </span><span class="mi">1105</span> <span class="p">)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1106</span> <span class="k">return</span> <span class="n">G</span>
+
+<span class="ne">KeyboardInterrupt</span>: 
 </pre></div>
 </div>
 </div>
