@@ -22,6 +22,7 @@ jobs:
       - name: Install package
         run: |
           pip install osmnx
+          pip install matplotlib
           pip install maturin
           pip install jupyter-book
           pip install sphinx-book-theme
