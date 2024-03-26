@@ -148,9 +148,10 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             config_json.get_config_section(CompassConfigurationField::Algorithm, &"TOML")?;
         let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
 
-        let state_params =
-            config_json.get_config_section(CompassConfigurationField::State, &"TOML")?;
-        let state_model = Arc::new(StateModel::try_from(&state_params)?);
+        let state_model = match config_json.get(&CompassConfigurationField::State.to_string()) {
+            Some(state_config) => Arc::new(StateModel::try_from(state_config)?),
+            None => Arc::new(StateModel::empty()),
+        };
 
         // build traversal model
         let traversal_start = Local::now();
