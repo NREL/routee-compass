@@ -11,25 +11,23 @@ on:
 jobs:
   deploy-docs:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - uses: actions/checkout@v2
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: "3.11"
 
       - name: Install package
         run: |
-          pip install osmnx
-          pip install matplotlib
-          pip install maturin
-          pip install jupyter-book
-          pip install sphinx-book-theme
-          pip install .
+          conda install -c conda-forge osmnx
+          pip install ".[dev]"
 
       - name: Build book
-        shell: bash -el {0}
         working-directory: ${{runner.workspace}}/routee-compass/docs/
         run: |
           jupyter-book build .
