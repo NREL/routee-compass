@@ -500,14 +500,14 @@ document.write(`
     <span class="p">)</span>
 
     <span class="n">headings</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">bearing</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
-    <span class="n">headings_df</span> <span class="o">=</span> <span class="n">headings</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;start_heading&quot;</span><span class="p">)</span>
+    <span class="n">headings_df</span> <span class="o">=</span> <span class="n">headings</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;arrival_heading&quot;</span><span class="p">)</span>
 
     <span class="c1"># We could get more sophisticated and compute the end heading</span>
     <span class="c1"># for links that might have some significant curvature, but</span>
     <span class="c1"># for now we&#39;ll just use the start heading.</span>
-    <span class="n">headings_df</span><span class="p">[</span><span class="s2">&quot;end_heading&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">headings_df</span><span class="p">[</span><span class="s2">&quot;destination_heading&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">headings_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
-        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-headings-enumerated.txt.gz&quot;</span><span class="p">,</span>
+        <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-headings-enumerated.csv.gz&quot;</span><span class="p">,</span>
         <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">compression</span><span class="o">=</span><span class="s2">&quot;gzip&quot;</span><span class="p">,</span>
     <span class="p">)</span>
