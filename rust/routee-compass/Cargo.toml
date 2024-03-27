@@ -43,5 +43,3 @@ itertools = { workspace = true }
 ordered-float = { workspace = true }
 allocative = { workspace = true }
 indoc = { workspace = true }
-
-pyo3 = { version = "0.20.0", features = ["serde"] }
