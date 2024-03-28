@@ -1,5 +1,5 @@
 use super::response::response_output_policy::ResponseOutputPolicy;
-use super::response::response_writer::ResponseSink;
+use super::response::response_sink::ResponseSink;
 use super::{
     compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder,
     search_orientation::SearchOrientation,
