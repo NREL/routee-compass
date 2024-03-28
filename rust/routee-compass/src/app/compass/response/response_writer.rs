@@ -6,9 +6,9 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-pub enum ResponseWriter {
-    NoOutputWriter,
-    RunBatchFileSink {
+pub enum ResponseSink {
+    None,
+    File {
         filename: String,
         file: Arc<Mutex<File>>,
         format: ResponseOutputFormat,
@@ -16,11 +16,12 @@ pub enum ResponseWriter {
     },
 }
 
-impl ResponseWriter {
-    pub fn write_response(&self, response: &serde_json::Value) -> Result<(), CompassAppError> {
+impl ResponseSink {
+    /// uses a writer
+    pub fn write_response(&self, response: &mut serde_json::Value) -> Result<(), CompassAppError> {
         match self {
-            ResponseWriter::NoOutputWriter => Ok(()),
-            ResponseWriter::RunBatchFileSink {
+            ResponseSink::None => Ok(()),
+            ResponseSink::File {
                 filename: _,
                 file,
                 format,
@@ -34,14 +35,6 @@ impl ResponseWriter {
                     ))
                 })?;
 
-                // if write_delimiter {
-                //     match delimiter {
-                //         None => {}
-                //         Some(delim) => writeln!(file_attained, "{}", delim)
-                //             .map_err(CompassAppError::IOError)?,
-                //     }
-                // }
-
                 let output_row = format.format_response(response)?;
                 writeln!(file_attained, "{}", output_row).map_err(CompassAppError::IOError)?;
                 Ok(())
@@ -51,8 +44,8 @@ impl ResponseWriter {
 
     pub fn close(&self) -> Result<String, CompassAppError> {
         match self {
-            ResponseWriter::NoOutputWriter => Ok(String::from("")),
-            ResponseWriter::RunBatchFileSink {
+            ResponseSink::None => Ok(String::from("")),
+            ResponseSink::File {
                 filename,
                 file,
                 format,

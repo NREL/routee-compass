@@ -1,4 +1,4 @@
-use super::{response_output_format::ResponseOutputFormat, response_writer::ResponseWriter};
+use super::{response_output_format::ResponseOutputFormat, response_writer::ResponseSink};
 use crate::app::compass::compass_app_error::CompassAppError;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -11,7 +11,7 @@ use std::{
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum ResponseOutputPolicy {
     NoOutput,
-    RunBatchFileSink {
+    File {
         filename: String,
         format: ResponseOutputFormat,
     },
@@ -21,10 +21,10 @@ impl ResponseOutputPolicy {
     /// creates an instance of a writer which writes responses to some destination.
     /// the act of building this writer may include writing initial content to some sink,
     /// such as a file header.
-    pub fn build(&self) -> Result<ResponseWriter, CompassAppError> {
+    pub fn build(&self) -> Result<ResponseSink, CompassAppError> {
         match self {
-            ResponseOutputPolicy::NoOutput => Ok(ResponseWriter::NoOutputWriter),
-            ResponseOutputPolicy::RunBatchFileSink { filename, format } => {
+            ResponseOutputPolicy::NoOutput => Ok(ResponseSink::None),
+            ResponseOutputPolicy::File { filename, format } => {
                 let output_file_path = PathBuf::from(filename);
 
                 // initialize the file
@@ -39,10 +39,10 @@ impl ResponseOutputPolicy {
                 // wrap the file in a mutex so we can share it between threads
                 let file_shareable = Arc::new(Mutex::new(file));
 
-                Ok(ResponseWriter::RunBatchFileSink {
+                Ok(ResponseSink::File {
                     filename: filename.clone(),
                     file: file_shareable,
-                    format: *format,
+                    format: format.clone(),
                     delimiter: format.delimiter(),
                 })
             }

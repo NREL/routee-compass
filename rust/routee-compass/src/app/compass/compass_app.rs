@@ -1,5 +1,5 @@
 use super::response::response_output_policy::ResponseOutputPolicy;
-use super::response::response_writer::ResponseWriter;
+use super::response::response_writer::ResponseSink;
 use super::{
     compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder,
     search_orientation::SearchOrientation,
@@ -507,7 +507,7 @@ pub fn run_batch_with_responses(
     search_orientation: &SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
-    response_writer: &ResponseWriter,
+    response_writer: &ResponseSink,
     pb: Arc<Mutex<Bar>>,
 ) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
     let run_query_result = load_balanced_inputs
@@ -516,12 +516,12 @@ pub fn run_batch_with_responses(
             queries
                 .iter()
                 .map(|q| {
-                    let response =
+                    let mut response =
                         run_single_query(q, search_orientation, output_plugins, search_app)?;
                     if let Ok(mut pb_local) = pb.lock() {
                         let _ = pb_local.update(1);
                     }
-                    response_writer.write_response(&response)?;
+                    response_writer.write_response(&mut response)?;
                     Ok(response)
                 })
                 .collect::<Result<Vec<serde_json::Value>, CompassAppError>>()
@@ -542,7 +542,7 @@ pub fn run_batch_without_responses(
     search_orientation: &SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
-    response_writer: &ResponseWriter,
+    response_writer: &ResponseSink,
     pb: Arc<Mutex<Bar>>,
 ) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
     // run the computations, discard values that do not trigger an error
@@ -554,11 +554,12 @@ pub fn run_batch_without_responses(
             // within a for loop or for_each call, and map creates more allocations. open to other ideas!
             let initial: Result<(), CompassAppError> = Ok(());
             let _ = queries.iter().fold(initial, |_, q| {
-                let response = run_single_query(q, search_orientation, output_plugins, search_app)?;
+                let mut response =
+                    run_single_query(q, search_orientation, output_plugins, search_app)?;
                 if let Ok(mut pb_local) = pb.lock() {
                     let _ = pb_local.update(1);
                 }
-                response_writer.write_response(&response)?;
+                response_writer.write_response(&mut response)?;
                 Ok(())
             });
             Ok(())
