@@ -36,7 +36,13 @@ impl CsvMapping {
                 } else {
                     let (nums, num_errs): (Vec<_>, Vec<_>) = ok
                         .iter()
-                        .map(|v| v.as_f64().ok_or_else(|| format!("invalid number {}", v)))
+                        .map(|v| match v {
+                            serde_json::Value::Null => Ok(0.0),
+                            serde_json::Value::Number(n) => {
+                                n.as_f64().ok_or_else(|| format!("invalid number {}", v))
+                            }
+                            _ => Err(format!("expected a number, found {}", v)),
+                        })
                         .partition_result();
                     if !num_errs.is_empty() {
                         let valid = if nums.is_empty() {
