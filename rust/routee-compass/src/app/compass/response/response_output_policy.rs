@@ -1,4 +1,4 @@
-use super::{response_output_format::ResponseOutputFormat, response_writer::ResponseSink};
+use super::{response_output_format::ResponseOutputFormat, response_sink::ResponseSink};
 use crate::app::compass::compass_app_error::CompassAppError;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -10,7 +10,7 @@ use std::{
 #[derive(Deserialize, Serialize, Clone, Debug)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum ResponseOutputPolicy {
-    NoOutput,
+    None,
     File {
         filename: String,
         format: ResponseOutputFormat,
@@ -23,7 +23,7 @@ impl ResponseOutputPolicy {
     /// such as a file header.
     pub fn build(&self) -> Result<ResponseSink, CompassAppError> {
         match self {
-            ResponseOutputPolicy::NoOutput => Ok(ResponseSink::None),
+            ResponseOutputPolicy::None => Ok(ResponseSink::None),
             ResponseOutputPolicy::File { filename, format } => {
                 let output_file_path = PathBuf::from(filename);
 

@@ -2,7 +2,7 @@ parallelism = 2
 search_orientation = "vertex"
 response_persistence_policy = "persist_response_in_memory"
 [response_output_policy]
-type = "no_output"
+type = "none"
 
 # # example file output policy
 # response_persistence_policy = "discard_response_from_memory"
