@@ -2,12 +2,12 @@ parallelism = 2
 search_orientation = "vertex"
 response_persistence_policy = "persist_response_in_memory"
 [response_output_policy]
-type = "no_output"
+type = "none"
 
 # # example file output policy
 # response_persistence_policy = "discard_response_from_memory"
 # [response_output_policy]
-# type = "run_batch_file_sink"
+# type = "file"
 # filename = "output.json"
 # format = { type = "json", newline_delimited = true }
 
@@ -26,7 +26,7 @@ type = "no_access_model"
 
 [cost]
 cost_aggregation = "sum"
-network_state_variable_rates = {}
+network_rates = {}
 
 [frontier]
 type = "no_restriction"

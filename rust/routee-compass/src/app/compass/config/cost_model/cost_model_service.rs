@@ -13,9 +13,9 @@ use std::{
 };
 
 pub struct CostModelService {
-    pub vehicle_state_variable_rates: Arc<HashMap<String, VehicleCostRate>>,
-    pub network_state_variable_rates: Arc<HashMap<String, NetworkCostRate>>,
-    pub state_variable_coefficients: Arc<HashMap<String, f64>>,
+    pub vehicle_rates: Arc<HashMap<String, VehicleCostRate>>,
+    pub network_rates: Arc<HashMap<String, NetworkCostRate>>,
+    pub weights: Arc<HashMap<String, f64>>,
     pub cost_aggregation: CostAggregation,
 }
 
@@ -52,12 +52,9 @@ impl CostModelService {
         // at minimum, we default to the "distance" traveled.
         // invariant: this hashmap dictates the list of keys for all subsequent CostModel hashmaps.
         let weights: Arc<HashMap<String, f64>> = query
-            .get_config_serde_optional::<HashMap<String, f64>>(
-                &"state_variable_coefficients",
-                &"cost_model",
-            )?
+            .get_config_serde_optional::<HashMap<String, f64>>(&"weights", &"cost_model")?
             .map(Arc::new)
-            .unwrap_or(self.state_variable_coefficients.clone());
+            .unwrap_or(self.weights.clone());
 
         // // union the requested state variables with those in the existing traversal model
         // // load only indices that appear in coefficients object
@@ -88,12 +85,12 @@ impl CostModelService {
         // the user can append/replace rates from the query
         let vehicle_rates = query
             .get_config_serde_optional::<HashMap<String, VehicleCostRate>>(
-                &"vehicle_state_variable_rates",
+                &"vehicle_rates",
                 &"cost_model",
             )
             .map(|opt_rates| match opt_rates {
                 Some(rates) => Arc::new(rates),
-                None => self.vehicle_state_variable_rates.clone(),
+                None => self.vehicle_rates.clone(),
             })?;
 
         let cost_aggregation: CostAggregation = query
@@ -103,7 +100,7 @@ impl CostModelService {
         let model = CostModel::new(
             weights,
             vehicle_rates,
-            self.network_state_variable_rates.clone(),
+            self.network_rates.clone(),
             cost_aggregation,
             state_model,
         )

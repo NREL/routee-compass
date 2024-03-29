@@ -19,19 +19,19 @@ impl CostModelBuilder {
     ) -> Result<CostModelService, CompassConfigurationError> {
         let parent_key = CompassConfigurationField::Cost.to_string();
         let vehicle_rates: HashMap<String, VehicleCostRate> =
-            config.get_config_serde(&"vehicle_state_variable_rates", &parent_key)?;
+            config.get_config_serde(&"vehicle_rates", &parent_key)?;
         let network_rates: HashMap<String, NetworkCostRate> =
-            config.get_config_serde(&"network_state_variable_rates", &parent_key)?;
+            config.get_config_serde(&"network_rates", &parent_key)?;
 
         let coefficients: HashMap<String, f64> =
-            config.get_config_serde(&"state_variable_coefficients", &parent_key)?;
+            config.get_config_serde(&"weights", &parent_key)?;
         let cost_aggregation: CostAggregation =
             config.get_config_serde(&"cost_aggregation", &parent_key)?;
 
         let model = CostModelService {
-            vehicle_state_variable_rates: Arc::new(vehicle_rates),
-            network_state_variable_rates: Arc::new(network_rates),
-            state_variable_coefficients: Arc::new(coefficients),
+            vehicle_rates: Arc::new(vehicle_rates),
+            network_rates: Arc::new(network_rates),
+            weights: Arc::new(coefficients),
             cost_aggregation,
         };
         Ok(model)

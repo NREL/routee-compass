@@ -18,12 +18,12 @@ type = "no_access_model"
 
 [cost]
 cost_aggregation = "sum"
-[cost.state_variable_coefficients]
+[cost.weights]
 distance = 0
 time = 1
-[cost.vehicle_state_variable_rates.time]
+[cost.vehicle_rates.time]
 type = "raw"
-[cost.vehicle_state_variable_rates.distance]
+[cost.vehicle_rates.distance]
 type = "raw"
 
 [plugin]

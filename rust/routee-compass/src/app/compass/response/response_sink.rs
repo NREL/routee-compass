@@ -6,21 +6,23 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-pub enum ResponseWriter {
-    NoOutputWriter,
-    RunBatchFileSink {
+pub enum ResponseSink {
+    None,
+    File {
         filename: String,
         file: Arc<Mutex<File>>,
         format: ResponseOutputFormat,
         delimiter: Option<String>,
     },
+    Combined(Vec<Box<ResponseSink>>),
 }
 
-impl ResponseWriter {
-    pub fn write_response(&self, response: &serde_json::Value) -> Result<(), CompassAppError> {
+impl ResponseSink {
+    /// uses a writer
+    pub fn write_response(&self, response: &mut serde_json::Value) -> Result<(), CompassAppError> {
         match self {
-            ResponseWriter::NoOutputWriter => Ok(()),
-            ResponseWriter::RunBatchFileSink {
+            ResponseSink::None => Ok(()),
+            ResponseSink::File {
                 filename: _,
                 file,
                 format,
@@ -34,16 +36,14 @@ impl ResponseWriter {
                     ))
                 })?;
 
-                // if write_delimiter {
-                //     match delimiter {
-                //         None => {}
-                //         Some(delim) => writeln!(file_attained, "{}", delim)
-                //             .map_err(CompassAppError::IOError)?,
-                //     }
-                // }
-
                 let output_row = format.format_response(response)?;
                 writeln!(file_attained, "{}", output_row).map_err(CompassAppError::IOError)?;
+                Ok(())
+            }
+            ResponseSink::Combined(policies) => {
+                for policy in policies {
+                    policy.write_response(response)?;
+                }
                 Ok(())
             }
         }
@@ -51,8 +51,8 @@ impl ResponseWriter {
 
     pub fn close(&self) -> Result<String, CompassAppError> {
         match self {
-            ResponseWriter::NoOutputWriter => Ok(String::from("")),
-            ResponseWriter::RunBatchFileSink {
+            ResponseSink::None => Ok(String::from("")),
+            ResponseSink::File {
                 filename,
                 file,
                 format,
@@ -72,6 +72,17 @@ impl ResponseWriter {
                 writeln!(file_attained, "{}", final_contents).map_err(CompassAppError::IOError)?;
 
                 Ok(filename.clone())
+            }
+            ResponseSink::Combined(policies) => {
+                let mut out_strs = vec![];
+                for policy in policies {
+                    let out_str = policy.close()?;
+                    if !out_str.is_empty() {
+                        out_strs.push(out_str);
+                    }
+                }
+
+                Ok(out_strs.join(","))
             }
         }
     }

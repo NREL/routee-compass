@@ -34,16 +34,16 @@ sharp_left = 3.5
 u_turn = 9.5
 
 # based on 65.5 cents per mile 2023 IRS mileage rate, $/mile
-[cost.vehicle_state_variable_rates.distance]
+[cost.vehicle_rates.distance]
 type = "factor"
 factor = 0.655
 
 # based on $20/hr approximation of 2023 median hourly wages, $/second
-[cost.vehicle_state_variable_rates.time]
+[cost.vehicle_rates.time]
 type = "factor"
 factor = 0.333336
 
-[cost.state_variable_coefficients]
+[cost.weights]
 distance = 1
 time = 1
 
