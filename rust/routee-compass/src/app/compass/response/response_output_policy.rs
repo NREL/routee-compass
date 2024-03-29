@@ -52,7 +52,7 @@ impl ResponseOutputPolicy {
             ResponseOutputPolicy::Combined { policies } => {
                 let policies = policies
                     .iter()
-                    .map(|p| p.build().map(|sink| Box::new(sink)))
+                    .map(|p| p.build().map(Box::new))
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(ResponseSink::Combined(policies))
             }
