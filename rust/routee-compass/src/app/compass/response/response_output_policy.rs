@@ -15,6 +15,9 @@ pub enum ResponseOutputPolicy {
         filename: String,
         format: ResponseOutputFormat,
     },
+    Combined {
+        policies: Vec<Box<ResponseOutputPolicy>>,
+    },
 }
 
 impl ResponseOutputPolicy {
@@ -45,6 +48,13 @@ impl ResponseOutputPolicy {
                     format: format.clone(),
                     delimiter: format.delimiter(),
                 })
+            }
+            ResponseOutputPolicy::Combined { policies } => {
+                let policies = policies
+                    .iter()
+                    .map(|p| p.build().map(|sink| Box::new(sink)))
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok(ResponseSink::Combined(policies))
             }
         }
     }

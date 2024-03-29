@@ -14,6 +14,7 @@ pub enum ResponseSink {
         format: ResponseOutputFormat,
         delimiter: Option<String>,
     },
+    Combined(Vec<Box<ResponseSink>>),
 }
 
 impl ResponseSink {
@@ -37,6 +38,12 @@ impl ResponseSink {
 
                 let output_row = format.format_response(response)?;
                 writeln!(file_attained, "{}", output_row).map_err(CompassAppError::IOError)?;
+                Ok(())
+            }
+            ResponseSink::Combined(policies) => {
+                for policy in policies {
+                    policy.write_response(response)?;
+                }
                 Ok(())
             }
         }
@@ -65,6 +72,17 @@ impl ResponseSink {
                 writeln!(file_attained, "{}", final_contents).map_err(CompassAppError::IOError)?;
 
                 Ok(filename.clone())
+            }
+            ResponseSink::Combined(policies) => {
+                let mut out_strs = vec![];
+                for policy in policies {
+                    let out_str = policy.close()?;
+                    if !out_str.is_empty() {
+                        out_strs.push(out_str);
+                    }
+                }
+
+                Ok(out_strs.join(","))
             }
         }
     }
