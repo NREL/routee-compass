@@ -3,7 +3,7 @@ use crate::model::property::edge::Edge;
 use crate::model::property::vertex::Vertex;
 use crate::model::road_network::graph_error::GraphError;
 use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
-use std::collections::HashMap;
+use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use std::path::Path;
 
 use super::graph_loader::graph_from_files;
@@ -31,8 +31,8 @@ use allocative::Allocative;
 
 #[derive(Debug, Allocative)]
 pub struct Graph {
-    pub adj: Box<[HashMap<EdgeId, VertexId>]>,
-    pub rev: Box<[HashMap<EdgeId, VertexId>]>,
+    pub adj: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
+    pub rev: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
     pub edges: Box<[Edge]>,
     pub vertices: Box<[Vertex]>,
 }

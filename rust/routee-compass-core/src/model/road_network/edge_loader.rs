@@ -1,22 +1,18 @@
 use crate::{
     model::{
         property::edge::Edge,
-        road_network::graph_error::GraphError,
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
+        road_network::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
     },
-    util::fs::read_utils,
+    util::{compact_ordered_hash_map::CompactOrderedHashMap, fs::read_utils},
 };
 use kdam::Bar;
 use kdam::BarExt;
-use std::{
-    collections::{HashMap, HashSet},
-    path::PathBuf,
-};
+use std::{collections::HashSet, path::PathBuf};
 
 pub struct EdgeLoader {
     pub edges: Box<[Edge]>,
-    pub adj: Box<[HashMap<EdgeId, VertexId>]>,
-    pub rev: Box<[HashMap<EdgeId, VertexId>]>,
+    pub adj: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
+    pub rev: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
 }
 
 pub struct EdgeLoaderConfig {
@@ -29,11 +25,10 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
     type Error = GraphError;
 
     fn try_from(c: EdgeLoaderConfig) -> Result<Self, Self::Error> {
-        let min_node_connectivity: usize = 1;
-        let mut adj: Vec<HashMap<EdgeId, VertexId>> =
-            vec![HashMap::with_capacity(min_node_connectivity); c.n_vertices];
-        let mut rev: Vec<HashMap<EdgeId, VertexId>> =
-            vec![HashMap::with_capacity(min_node_connectivity); c.n_vertices];
+        let mut adj: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
+            vec![CompactOrderedHashMap::empty(); c.n_vertices];
+        let mut rev: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
+            vec![CompactOrderedHashMap::empty(); c.n_vertices];
 
         let mut pb = Bar::builder()
             .total(c.n_edges)
