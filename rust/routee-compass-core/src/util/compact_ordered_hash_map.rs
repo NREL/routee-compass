@@ -765,7 +765,7 @@ mod test {
 
         // test that ordering is correct
         let expected_values_sorted = vec![&v1, &v2, &v3, &v4, &v5];
-        for (idx, ((stored_k, stored_v), expected_v)) in map
+        for (_idx, ((_stored_k, stored_v), expected_v)) in map
             .iter()
             .zip(expected_values_sorted.into_iter())
             .enumerate()
