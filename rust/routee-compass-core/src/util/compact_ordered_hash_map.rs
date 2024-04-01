@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::iter::Enumerate;
 
@@ -59,53 +59,57 @@ type ValueIterator<'a, K, V> = Box<dyn Iterator<Item = (&'a K, &'a V)> + 'a>;
 type IndexedFeatureIterator<'a, K, V> = Enumerate<Box<dyn Iterator<Item = (&'a K, &'a V)> + 'a>>;
 
 impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
+    /// creates an empty CompactOrderedHashMap
     pub fn empty() -> CompactOrderedHashMap<K, V> {
         CompactOrderedHashMap::NEntries(HashMap::new())
     }
 
-    pub fn new(entries: Vec<(K, V)>, sort: bool) -> CompactOrderedHashMap<K, V> {
+    /// creates a CompactOrderedHashMap from a vector of values.
+    ///
+    /// # Arguments
+    /// * `entries` - the entry pairs to put in the map, assumed sorted
+    ///
+    /// # Returns
+    /// A CompactOrderedHashMap
+    pub fn new(entries: Vec<(K, V)>) -> CompactOrderedHashMap<K, V> {
         use CompactOrderedHashMap as S;
-        let sorted = if sort {
-            entries
-                .into_iter()
-                .sorted_by_key(|(n, _)| n.clone())
-                .collect::<Vec<_>>()
-        } else {
-            entries
-        };
 
-        match &sorted[..] {
+        match &entries[..] {
             [] => S::empty(),
             [(key, value)] => S::OneEntry {
                 k1: key.clone(),
                 v1: value.clone(),
             },
-            [(k1, v1), (k2, v2)] => S::TwoEntries {
+            [(k1, v1), (k2, v2)] if unique_key_len(&[k1, k2]) == 2 => S::TwoEntries {
                 k1: k1.clone(),
                 k2: k2.clone(),
                 v1: v1.clone(),
                 v2: v2.clone(),
             },
-            [(k1, v1), (k2, v2), (k3, v3)] => S::ThreeEntries {
-                k1: k1.clone(),
-                k2: k2.clone(),
-                k3: k3.clone(),
-                v1: v1.clone(),
-                v2: v2.clone(),
-                v3: v3.clone(),
-            },
-            [(k1, v1), (k2, v2), (k3, v3), (k4, v4)] => S::FourEntries {
-                k1: k1.clone(),
-                k2: k2.clone(),
-                k3: k3.clone(),
-                k4: k4.clone(),
-                v1: v1.clone(),
-                v2: v2.clone(),
-                v3: v3.clone(),
-                v4: v4.clone(),
-            },
+            [(k1, v1), (k2, v2), (k3, v3)] if unique_key_len(&[k1, k2, k3]) == 3 => {
+                S::ThreeEntries {
+                    k1: k1.clone(),
+                    k2: k2.clone(),
+                    k3: k3.clone(),
+                    v1: v1.clone(),
+                    v2: v2.clone(),
+                    v3: v3.clone(),
+                }
+            }
+            [(k1, v1), (k2, v2), (k3, v3), (k4, v4)] if unique_key_len(&[k1, k2, k3, k4]) == 4 => {
+                S::FourEntries {
+                    k1: k1.clone(),
+                    k2: k2.clone(),
+                    k3: k3.clone(),
+                    k4: k4.clone(),
+                    v1: v1.clone(),
+                    v2: v2.clone(),
+                    v3: v3.clone(),
+                    v4: v4.clone(),
+                }
+            }
             _ => {
-                let indexed = sorted
+                let indexed = entries
                     .into_iter()
                     .enumerate()
                     .map(|(index, (k, v))| {
@@ -551,8 +555,12 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> From<Vec<(K, V)>>
     for CompactOrderedHashMap<K, V>
 {
     fn from(value: Vec<(K, V)>) -> Self {
-        CompactOrderedHashMap::new(value, false)
+        CompactOrderedHashMap::new(value)
     }
+}
+
+fn unique_key_len<K: Hash + PartialEq + Eq>(entries: &[K]) -> usize {
+    entries.iter().collect::<HashSet<_>>().len()
 }
 
 #[cfg(test)]
