@@ -173,7 +173,10 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
                 v3: _,
                 v4: _,
             } => Box::new([k1, k2, k3, k4].into_iter()),
-            CompactOrderedHashMap::NEntries(map) => Box::new(map.keys()),
+            CompactOrderedHashMap::NEntries(map) => {
+                let keys = map.iter().sorted_by_key(|(_, v)| v.index).map(|(k, _)| k);
+                Box::new(keys)
+            }
         }
     }
 
