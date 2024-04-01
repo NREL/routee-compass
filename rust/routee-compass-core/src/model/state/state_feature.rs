@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 /// field names. see link for more information:
 /// https://serde.rs/enum-representations.html#untagged
 /// ```
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum StateFeature {
     Distance {

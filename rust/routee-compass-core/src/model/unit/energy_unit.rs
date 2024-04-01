@@ -3,7 +3,7 @@ use crate::util::serde::serde_ops::string_deserialize;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum EnergyUnit {
     GallonsGasoline,
