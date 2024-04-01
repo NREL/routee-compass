@@ -8,3 +8,4 @@ pub mod multiset;
 pub mod priority_queue;
 pub mod read_only_lock;
 pub mod serde;
+pub mod specialized_hash_map;
