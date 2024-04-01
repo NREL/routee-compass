@@ -347,6 +347,7 @@ mod tests {
     use crate::model::termination::termination_model::TerminationModel;
     use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
     use crate::model::unit::{Distance, DistanceUnit};
+    use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
     use rayon::prelude::*;
     use std::sync::Arc;
 
@@ -369,8 +370,8 @@ mod tests {
             Edge::new(7, 0, 3, 2.0),
         ];
 
-        let mut adj = vec![HashMap::new(); vertices.len()];
-        let mut rev = vec![HashMap::new(); vertices.len()];
+        let mut adj = vec![CompactOrderedHashMap::empty(); vertices.len()];
+        let mut rev = vec![CompactOrderedHashMap::empty(); vertices.len()];
 
         for edge in &edges {
             adj[edge.src_vertex_id.0].insert(edge.edge_id, edge.dst_vertex_id);
