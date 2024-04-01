@@ -122,6 +122,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
         }
     }
 
+    /// report the size of the collection
     pub fn len(&self) -> usize {
         match self {
             CompactOrderedHashMap::OneEntry { .. } => 1,
@@ -132,14 +133,20 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
         }
     }
 
+    /// report if the collection has no entries
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    /// wrapper around get that only returns whether the key is contained
     pub fn contains_key(&self, k: &K) -> bool {
         self.get(k).is_some()
     }
 
+    /// gets a value associated with the given key. navigates the
+    /// potential implementations of CompactOrderedHashMap, where in the
+    /// case of specialized instances, an equality scan occurs in if/else blocks.
+    /// for larger instances, we divert to the underlying HashMap::get method.
     pub fn get(&self, k: &K) -> Option<&V> {
         match self {
             CompactOrderedHashMap::OneEntry { k1, v1 } => {
@@ -202,6 +209,19 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
         }
     }
 
+    /// inserts a element in the collection at some key. navigates the
+    /// potential implementations of CompactOrderedHashMap, where in the
+    /// case of specialized instances, an equality scan occurs in if/else blocks to
+    /// test if replace logic should be used. otherwise, one more is added, which in the
+    /// specialized case, involves instantiating the next-larger implementation of CompactOrderedHashMap
+    /// and swapping memory with the old implementation.
+    ///
+    /// # Arguments
+    /// * `k` - the key to insert at
+    /// * `v` - the value to insert at the given key
+    ///
+    /// # Returns
+    /// the previous value stored at this key, if exists
     pub fn insert(&mut self, k: K, v: V) -> Option<V> {
         let mut v_insert = v.clone();
         match self {
@@ -330,7 +350,16 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
         }
     }
 
-    fn get_pair(&self, index: usize) -> Option<(&K, &V)> {
+    /// gets the (key, value) pair at some index. this method exists since
+    /// ordering is guaranteed by this collection, but the performance
+    /// is consistently O(n) as it requires a scan for all implementations.
+    ///
+    /// # Arguments
+    /// * `index` - collection index to retrieve
+    ///
+    /// # Returns
+    /// the key/value pair at the given index, if it exists
+    pub fn get_pair(&self, index: usize) -> Option<(&K, &V)> {
         match self {
             CompactOrderedHashMap::OneEntry { k1, v1 } => {
                 if index == 0 {
@@ -401,7 +430,14 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
         }
     }
 
-    fn get_index(&self, k: &K) -> Option<usize> {
+    /// retrieve the index of the value stored at the given key.
+    ///
+    /// # Arguments
+    /// * `k` - the key to retrieve an index for
+    ///
+    /// # Returns
+    /// The index of the entry, if the entry is stored in the collection.
+    pub fn get_index(&self, k: &K) -> Option<usize> {
         match self {
             CompactOrderedHashMap::OneEntry { k1, .. } => {
                 if k == k1 {
@@ -447,7 +483,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
         }
     }
 
-    /// collects the state model tuples and clones them so they can
+    /// collects the hash map tuples and clones them so they can
     /// be used to build other collections
     pub fn to_vec(&self) -> Vec<(K, IndexedEntry<V>)> {
         self.iter()
@@ -464,7 +500,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
             .collect_vec()
     }
 
-    /// iterates over the features in this state in their state vector index ordering.
+    /// iterates over the entries in this collection in their index ordering.
     pub fn iter(&self) -> ValueIterator<K, V> {
         let iter = CompactOrderedHashMapIter {
             iterable: self,
@@ -473,7 +509,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
         Box::new(iter)
     }
 
-    /// iterator that includes the state vector index along with the feature name and V
+    /// iterator that includes the IndexedEntry wrapper around each value
     pub fn indexed_iter(&self) -> IndexedFeatureIterator<K, V> {
         self.iter().enumerate()
     }
@@ -559,6 +595,8 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> From<Vec<(K, V)>>
     }
 }
 
+/// helper function that counts the number of unique entries in a slice
+/// by testing for equality in a HashSet
 fn unique_key_len<K: Hash + PartialEq + Eq>(entries: &[K]) -> usize {
     entries.iter().collect::<HashSet<_>>().len()
 }
