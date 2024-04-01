@@ -43,16 +43,22 @@ impl StateModel {
     ///
     /// # Arguments
     /// * `query` - JSON search query contents containing state model information
-    pub fn extend(&self, entries: Vec<(String, StateFeature)>) -> Result<StateModel, StateError> {
-        let mut map = self.0;
+    pub fn extend(
+        &mut self,
+        entries: Vec<(String, StateFeature)>,
+    ) -> Result<StateModel, StateError> {
+        let mut map = self
+            .0
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect::<CompactOrderedHashMap<_, _>>();
         let overwrites = entries
             .into_iter()
-            .flat_map(|(name, new)| match map.insert(name, new.clone()) {
-                Some(old) if old == new => Some((name, old, new)),
+            .flat_map(|(name, new)| match map.insert(name.clone(), new.clone()) {
+                Some(old) if old == new => Some((name.clone(), old, new)),
                 _ => None,
             })
             .collect::<Vec<_>>();
-        let rev = map.iter().map(|(k, _)| k.clone()).collect::<Vec<_>>();
         if overwrites.is_empty() {
             Ok(StateModel(map))
         } else {
