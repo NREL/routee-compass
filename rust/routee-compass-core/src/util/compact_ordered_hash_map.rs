@@ -15,7 +15,7 @@ impl<V> IndexedEntry<V> {
     }
 }
 
-/// a SpecializedHashMap is an enum that provides a similar API to the std::collections::HashMap
+/// a CompactOrderedHashMap is an enum that provides a similar API to the std::collections::HashMap
 /// but has four additional implementations that specialize for the case where fewer than five
 /// entries are required, in order to improve CPU performance for read-intensive usage. it also
 /// tracks an "index" value for each entry in order to maintain sort order. sort order is idempotent
@@ -23,7 +23,7 @@ impl<V> IndexedEntry<V> {
 /// there could be extra work done to:
 /// - match the std::collections::HashMap API
 /// - reduce cloning on insert
-pub enum SpecializedHashMap<K: Hash + Ord + PartialEq + Clone, V> {
+pub enum CompactOrderedHashMap<K: Hash + Ord + PartialEq + Clone, V> {
     OneEntry {
         k1: K,
         v1: V,
@@ -58,13 +58,13 @@ pub enum SpecializedHashMap<K: Hash + Ord + PartialEq + Clone, V> {
 type ValueIterator<'a, K, V> = Box<dyn Iterator<Item = (&'a K, &'a V)> + 'a>;
 type IndexedFeatureIterator<'a, K, V> = Enumerate<Box<dyn Iterator<Item = (&'a K, &'a V)> + 'a>>;
 
-impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
-    pub fn empty() -> SpecializedHashMap<K, V> {
-        SpecializedHashMap::NEntries(HashMap::new())
+impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
+    pub fn empty() -> CompactOrderedHashMap<K, V> {
+        CompactOrderedHashMap::NEntries(HashMap::new())
     }
 
-    pub fn new(entries: Vec<(K, V)>, sort: bool) -> SpecializedHashMap<K, V> {
-        use SpecializedHashMap as S;
+    pub fn new(entries: Vec<(K, V)>, sort: bool) -> CompactOrderedHashMap<K, V> {
+        use CompactOrderedHashMap as S;
         let sorted = if sort {
             entries
                 .into_iter()
@@ -120,11 +120,11 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
 
     pub fn len(&self) -> usize {
         match self {
-            SpecializedHashMap::OneEntry { .. } => 1,
-            SpecializedHashMap::TwoEntries { .. } => 2,
-            SpecializedHashMap::ThreeEntries { .. } => 3,
-            SpecializedHashMap::FourEntries { .. } => 4,
-            SpecializedHashMap::NEntries(f) => f.len(),
+            CompactOrderedHashMap::OneEntry { .. } => 1,
+            CompactOrderedHashMap::TwoEntries { .. } => 2,
+            CompactOrderedHashMap::ThreeEntries { .. } => 3,
+            CompactOrderedHashMap::FourEntries { .. } => 4,
+            CompactOrderedHashMap::NEntries(f) => f.len(),
         }
     }
 
@@ -138,14 +138,14 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
 
     pub fn get(&self, k: &K) -> Option<&V> {
         match self {
-            SpecializedHashMap::OneEntry { k1, v1 } => {
+            CompactOrderedHashMap::OneEntry { k1, v1 } => {
                 if k1 == k {
                     Some(v1)
                 } else {
                     None
                 }
             }
-            SpecializedHashMap::TwoEntries { k1, k2, v1, v2 } => {
+            CompactOrderedHashMap::TwoEntries { k1, k2, v1, v2 } => {
                 if k1 == k {
                     Some(v1)
                 } else if k2 == k {
@@ -154,7 +154,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::ThreeEntries {
+            CompactOrderedHashMap::ThreeEntries {
                 k1,
                 k2,
                 k3,
@@ -172,7 +172,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::FourEntries {
+            CompactOrderedHashMap::FourEntries {
                 k1,
                 k2,
                 k3,
@@ -194,25 +194,25 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::NEntries(map) => map.get(k).map(|e| &e.v),
+            CompactOrderedHashMap::NEntries(map) => map.get(k).map(|e| &e.v),
         }
     }
 
     pub fn insert(&mut self, k: K, v: V) -> Option<V> {
         let mut v_insert = v.clone();
         match self {
-            SpecializedHashMap::NEntries(_) if self.is_empty() => {
-                let mut one = SpecializedHashMap::OneEntry { k1: k, v1: v };
+            CompactOrderedHashMap::NEntries(_) if self.is_empty() => {
+                let mut one = CompactOrderedHashMap::OneEntry { k1: k, v1: v };
                 std::mem::swap(self, &mut one);
                 None
             }
-            SpecializedHashMap::OneEntry { k1, v1 } => {
+            CompactOrderedHashMap::OneEntry { k1, v1 } => {
                 if k1 == &k {
                     let out = v1.clone();
                     std::mem::swap(v1, &mut v_insert);
                     Some(out)
                 } else {
-                    let mut two = SpecializedHashMap::TwoEntries::<K, V> {
+                    let mut two = CompactOrderedHashMap::TwoEntries::<K, V> {
                         k1: k1.clone(),
                         k2: k,
                         v1: v1.clone(),
@@ -222,7 +222,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::TwoEntries { k1, k2, v1, v2 } => {
+            CompactOrderedHashMap::TwoEntries { k1, k2, v1, v2 } => {
                 if k1 == &k {
                     let out = v1.clone();
                     std::mem::swap(v1, &mut v_insert);
@@ -232,7 +232,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     std::mem::swap(v2, &mut v_insert);
                     Some(out)
                 } else {
-                    let mut three = SpecializedHashMap::ThreeEntries::<K, V> {
+                    let mut three = CompactOrderedHashMap::ThreeEntries::<K, V> {
                         k1: k1.clone(),
                         k2: k2.clone(),
                         k3: k,
@@ -244,7 +244,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::ThreeEntries {
+            CompactOrderedHashMap::ThreeEntries {
                 k1,
                 k2,
                 k3,
@@ -265,7 +265,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     std::mem::swap(v3, &mut v_insert);
                     Some(out)
                 } else {
-                    let mut four = SpecializedHashMap::FourEntries::<K, V> {
+                    let mut four = CompactOrderedHashMap::FourEntries::<K, V> {
                         k1: k1.clone(),
                         k2: k2.clone(),
                         k3: k3.clone(),
@@ -279,7 +279,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::FourEntries {
+            CompactOrderedHashMap::FourEntries {
                 k1,
                 k2,
                 k3,
@@ -314,11 +314,11 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                         (k, IndexedEntry::new(v, 4)),
                     ]);
 
-                    std::mem::swap(self, &mut SpecializedHashMap::NEntries(five));
+                    std::mem::swap(self, &mut CompactOrderedHashMap::NEntries(five));
                     None
                 }
             }
-            SpecializedHashMap::NEntries(map) => {
+            CompactOrderedHashMap::NEntries(map) => {
                 let index = map.get(&k).map(|e| e.index).unwrap_or(map.len() + 1);
                 let result = map.insert(k, IndexedEntry::new(v, index));
                 result.map(|r| r.v)
@@ -328,14 +328,14 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
 
     fn get_pair(&self, index: usize) -> Option<(&K, &V)> {
         match self {
-            SpecializedHashMap::OneEntry { k1, v1 } => {
+            CompactOrderedHashMap::OneEntry { k1, v1 } => {
                 if index == 0 {
                     Some((k1, v1))
                 } else {
                     None
                 }
             }
-            SpecializedHashMap::TwoEntries { k1, k2, v1, v2 } => {
+            CompactOrderedHashMap::TwoEntries { k1, k2, v1, v2 } => {
                 if index == 0 {
                     Some((k1, v1))
                 } else if index == 1 {
@@ -344,7 +344,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::ThreeEntries {
+            CompactOrderedHashMap::ThreeEntries {
                 k1,
                 k2,
                 k3,
@@ -362,7 +362,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::FourEntries {
+            CompactOrderedHashMap::FourEntries {
                 k1,
                 k2,
                 k3,
@@ -384,7 +384,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::NEntries(indexed) => {
+            CompactOrderedHashMap::NEntries(indexed) => {
                 if index > indexed.len() {
                     None
                 } else {
@@ -399,14 +399,14 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
 
     fn get_index(&self, k: &K) -> Option<usize> {
         match self {
-            SpecializedHashMap::OneEntry { k1, .. } => {
+            CompactOrderedHashMap::OneEntry { k1, .. } => {
                 if k == k1 {
                     Some(0)
                 } else {
                     None
                 }
             }
-            SpecializedHashMap::TwoEntries { k1, k2, .. } => {
+            CompactOrderedHashMap::TwoEntries { k1, k2, .. } => {
                 if k == k1 {
                     Some(0)
                 } else if k == k2 {
@@ -415,7 +415,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::ThreeEntries { k1, k2, k3, .. } => {
+            CompactOrderedHashMap::ThreeEntries { k1, k2, k3, .. } => {
                 if k == k1 {
                     Some(0)
                 } else if k == k2 {
@@ -426,7 +426,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::FourEntries { k1, k2, k3, k4, .. } => {
+            CompactOrderedHashMap::FourEntries { k1, k2, k3, k4, .. } => {
                 if k == k1 {
                     Some(0)
                 } else if k == k2 {
@@ -439,7 +439,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
                     None
                 }
             }
-            SpecializedHashMap::NEntries(indexed) => indexed.get(k).map(|f| f.index),
+            CompactOrderedHashMap::NEntries(indexed) => indexed.get(k).map(|f| f.index),
         }
     }
 
@@ -462,7 +462,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
 
     /// iterates over the features in this state in their state vector index ordering.
     pub fn iter(&self) -> ValueIterator<K, V> {
-        let iter = SpecializedHashMapIter {
+        let iter = CompactOrderedHashMapIter {
             iterable: self,
             index: 0,
         };
@@ -475,13 +475,13 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
     }
 }
 
-pub struct SpecializedHashMapIter<'a, K: Hash + Ord + PartialEq + Clone, V: Clone> {
-    iterable: &'a SpecializedHashMap<K, V>,
+pub struct CompactOrderedHashMapIter<'a, K: Hash + Ord + PartialEq + Clone, V: Clone> {
+    iterable: &'a CompactOrderedHashMap<K, V>,
     index: usize,
 }
 
 impl<'a, K: Hash + Ord + PartialEq + Clone, V: Clone> Iterator
-    for SpecializedHashMapIter<'a, K, V>
+    for CompactOrderedHashMapIter<'a, K, V>
 {
     type Item = (&'a K, &'a V);
 
@@ -498,22 +498,22 @@ impl<'a, K: Hash + Ord + PartialEq + Clone, V: Clone> Iterator
     }
 }
 
-impl<K: Hash + Ord + PartialEq + Clone, V: Clone> IntoIterator for SpecializedHashMap<K, V> {
+impl<K: Hash + Ord + PartialEq + Clone, V: Clone> IntoIterator for CompactOrderedHashMap<K, V> {
     type Item = (K, IndexedEntry<V>);
 
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
         match self {
-            SpecializedHashMap::OneEntry { k1: key, v1: value } => {
+            CompactOrderedHashMap::OneEntry { k1: key, v1: value } => {
                 vec![(key, IndexedEntry::new(value, 0))].into_iter()
             }
-            SpecializedHashMap::TwoEntries { k1, k2, v1, v2 } => vec![
+            CompactOrderedHashMap::TwoEntries { k1, k2, v1, v2 } => vec![
                 (k1, IndexedEntry::new(v1, 0)),
                 (k2, IndexedEntry::new(v2, 1)),
             ]
             .into_iter(),
-            SpecializedHashMap::ThreeEntries {
+            CompactOrderedHashMap::ThreeEntries {
                 k1,
                 k2,
                 k3,
@@ -526,7 +526,7 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> IntoIterator for SpecializedHa
                 (k3, IndexedEntry::new(v3, 2)),
             ]
             .into_iter(),
-            SpecializedHashMap::FourEntries {
+            CompactOrderedHashMap::FourEntries {
                 k1,
                 k2,
                 k3,
@@ -542,20 +542,22 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> IntoIterator for SpecializedHa
                 (k4, IndexedEntry::new(v4, 3)),
             ]
             .into_iter(),
-            SpecializedHashMap::NEntries(f) => f.into_iter().sorted_by_key(|(_, f)| f.index),
+            CompactOrderedHashMap::NEntries(f) => f.into_iter().sorted_by_key(|(_, f)| f.index),
         }
     }
 }
 
-impl<K: Hash + Ord + PartialEq + Clone, V: Clone> From<Vec<(K, V)>> for SpecializedHashMap<K, V> {
+impl<K: Hash + Ord + PartialEq + Clone, V: Clone> From<Vec<(K, V)>>
+    for CompactOrderedHashMap<K, V>
+{
     fn from(value: Vec<(K, V)>) -> Self {
-        SpecializedHashMap::new(value, false)
+        CompactOrderedHashMap::new(value, false)
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::SpecializedHashMap;
+    use super::CompactOrderedHashMap;
 
     #[derive(Clone, PartialEq, Eq, Debug)]
     struct TestValue {
@@ -564,9 +566,9 @@ mod test {
 
     #[test]
     fn test_inserts() {
-        let mut map: SpecializedHashMap<String, TestValue> = SpecializedHashMap::empty();
+        let mut map: CompactOrderedHashMap<String, TestValue> = CompactOrderedHashMap::empty();
         match &map {
-            SpecializedHashMap::NEntries(empty) => {
+            CompactOrderedHashMap::NEntries(empty) => {
                 assert_eq!(empty.len(), 0)
             }
             _ => assert!(false, "expected NEntries type before insert"),
@@ -593,12 +595,12 @@ mod test {
         };
         let insert_1 = map.insert(k1.clone(), v1.clone());
         match &map {
-            SpecializedHashMap::OneEntry { k1: _, v1: _ } => {}
+            CompactOrderedHashMap::OneEntry { k1: _, v1: _ } => {}
             _ => assert!(false, "expected OneEntry type after insert"),
         }
         let insert_2 = map.insert(k2.clone(), v2.clone());
         match &map {
-            SpecializedHashMap::TwoEntries {
+            CompactOrderedHashMap::TwoEntries {
                 k1: _,
                 k2: _,
                 v1: _,
@@ -608,7 +610,7 @@ mod test {
         }
         let insert_3 = map.insert(k3.clone(), v3.clone());
         match &map {
-            SpecializedHashMap::ThreeEntries {
+            CompactOrderedHashMap::ThreeEntries {
                 k1: _,
                 k2: _,
                 k3: _,
@@ -620,7 +622,7 @@ mod test {
         }
         let insert_4 = map.insert(k4.clone(), v4.clone());
         match &map {
-            SpecializedHashMap::FourEntries {
+            CompactOrderedHashMap::FourEntries {
                 k1: _,
                 k2: _,
                 k3: _,
@@ -634,7 +636,7 @@ mod test {
         }
         let insert_5 = map.insert(k5.clone(), v5.clone());
         match &map {
-            SpecializedHashMap::NEntries(_) => {}
+            CompactOrderedHashMap::NEntries(_) => {}
             _ => assert!(false, "expected NEntries type after insert"),
         }
         let r1 = map.get(&k1);
@@ -682,7 +684,7 @@ mod test {
 
     #[test]
     fn test_replace_value_at_key() {
-        let mut map: SpecializedHashMap<String, TestValue> = SpecializedHashMap::empty();
+        let mut map: CompactOrderedHashMap<String, TestValue> = CompactOrderedHashMap::empty();
         let k1 = String::from("choo choo");
         let v1 = TestValue {
             field: String::from("chugga"),

@@ -1,4 +1,5 @@
 pub mod cache_policy;
+pub mod compact_ordered_hash_map;
 pub mod conversion;
 pub mod duration_extension;
 pub mod fs;
@@ -8,4 +9,3 @@ pub mod multiset;
 pub mod priority_queue;
 pub mod read_only_lock;
 pub mod serde;
-pub mod specialized_hash_map;
