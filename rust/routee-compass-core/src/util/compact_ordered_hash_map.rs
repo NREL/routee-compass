@@ -1,9 +1,10 @@
+use allocative::Allocative;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::iter::Enumerate;
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Allocative)]
 pub struct IndexedEntry<V> {
     v: V,
     index: usize,
@@ -23,6 +24,7 @@ impl<V> IndexedEntry<V> {
 /// there could be extra work done to:
 /// - match the std::collections::HashMap API
 /// - reduce cloning on insert
+#[derive(Clone, Debug, Allocative)]
 pub enum CompactOrderedHashMap<K: Hash + Ord + PartialEq + Clone, V> {
     OneEntry {
         k1: K,
@@ -55,6 +57,7 @@ pub enum CompactOrderedHashMap<K: Hash + Ord + PartialEq + Clone, V> {
     NEntries(HashMap<K, IndexedEntry<V>>),
 }
 
+type KeyIterator<'a, K> = Box<dyn Iterator<Item = &'a K> + 'a>;
 type ValueIterator<'a, K, V> = Box<dyn Iterator<Item = (&'a K, &'a V)> + 'a>;
 type IndexedFeatureIterator<'a, K, V> = Enumerate<Box<dyn Iterator<Item = (&'a K, &'a V)> + 'a>>;
 
@@ -141,6 +144,37 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> CompactOrderedHashMap<K, V> {
     /// wrapper around get that only returns whether the key is contained
     pub fn contains_key(&self, k: &K) -> bool {
         self.get(k).is_some()
+    }
+
+    pub fn keys(&self) -> KeyIterator<K> {
+        match self {
+            CompactOrderedHashMap::OneEntry { k1, v1: _ } => Box::new([k1].into_iter()),
+            CompactOrderedHashMap::TwoEntries {
+                k1,
+                k2,
+                v1: _,
+                v2: _,
+            } => Box::new([k1, k2].into_iter()),
+            CompactOrderedHashMap::ThreeEntries {
+                k1,
+                k2,
+                k3,
+                v1: _,
+                v2: _,
+                v3: _,
+            } => Box::new([k1, k2, k3].into_iter()),
+            CompactOrderedHashMap::FourEntries {
+                k1,
+                k2,
+                k3,
+                k4,
+                v1: _,
+                v2: _,
+                v3: _,
+                v4: _,
+            } => Box::new([k1, k2, k3, k4].into_iter()),
+            CompactOrderedHashMap::NEntries(map) => Box::new(map.keys()),
+        }
     }
 
     /// gets a value associated with the given key. navigates the
