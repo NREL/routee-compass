@@ -98,7 +98,7 @@ impl VehicleType for BEV {
         let (energy, _) = self.best_case_energy(distance)?;
         state_model.add_energy(
             state,
-            BEV::ENERGY_FEATURE_NAME,
+            &BEV::ENERGY_FEATURE_NAME.into(),
             &energy,
             &self.battery_energy_unit,
         )?;
@@ -126,7 +126,7 @@ impl VehicleType for BEV {
         let battery_delta = energy_unit.convert(&predicted_energy, &self.battery_energy_unit);
         state_model.add_energy(
             state,
-            BEV::ENERGY_FEATURE_NAME,
+            &BEV::ENERGY_FEATURE_NAME.into(),
             &predicted_energy,
             &energy_unit,
         )?;

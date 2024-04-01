@@ -1,114 +1,37 @@
-use super::internal_state_model_ops::InternalStateModelOps;
 use super::{
-    custom_feature_format::CustomFeatureFormat, indexed_state_feature::IndexedStateFeature,
-    state_error::StateError, state_feature::StateFeature, update_operation::UpdateOperation,
+    custom_feature_format::CustomFeatureFormat, state_error::StateError,
+    state_feature::StateFeature, update_operation::UpdateOperation,
 };
-use crate::model::{
-    traversal::state::state_variable::StateVar,
-    unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
+use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
+use crate::{
+    model::{
+        traversal::state::state_variable::StateVar,
+        unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
+    },
+    util::compact_ordered_hash_map::IndexedEntry,
 };
 use itertools::Itertools;
 use serde_json::json;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::iter::Enumerate;
 
 /// a state model tracks information about each feature in a search state vector.
 /// in concept, it is modeled as a mapping from a feature_name String to a StateFeature
 /// object (see NFeatures, below). there are 4 additional implementations that specialize
 /// for the case where fewer than 5 features are required in order to improve CPU performance.
-pub enum StateModel {
-    OneFeature {
-        key: String,
-        value: StateFeature,
-    },
-    TwoFeatures {
-        k1: String,
-        k2: String,
-        v1: StateFeature,
-        v2: StateFeature,
-    },
-    ThreeFeatures {
-        k1: String,
-        k2: String,
-        k3: String,
-        v1: StateFeature,
-        v2: StateFeature,
-        v3: StateFeature,
-    },
-    FourFeatures {
-        k1: String,
-        k2: String,
-        k3: String,
-        k4: String,
-        v1: StateFeature,
-        v2: StateFeature,
-        v3: StateFeature,
-        v4: StateFeature,
-    },
-    NFeatures(HashMap<String, IndexedStateFeature>),
-}
-
+pub struct StateModel(CompactOrderedHashMap<String, StateFeature>);
 type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>;
 type IndexedFeatureIterator<'a> =
     Enumerate<Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>>;
 
 impl StateModel {
-    pub fn empty() -> StateModel {
-        StateModel::NFeatures(HashMap::new())
+    pub fn new(features: Vec<(String, StateFeature)>) -> StateModel {
+        let map = CompactOrderedHashMap::new(features);
+        StateModel(map)
     }
 
-    pub fn new(features: Vec<(String, StateFeature)>) -> StateModel {
-        use StateModel as S;
-        let sorted = features
-            .into_iter()
-            .sorted_by_key(|(n, _)| n.clone())
-            .collect::<Vec<_>>();
-
-        match &sorted[..] {
-            [] => S::empty(),
-            [(key, value)] => S::OneFeature {
-                key: key.clone(),
-                value: value.clone(),
-            },
-            [(k1, v1), (k2, v2)] => S::TwoFeatures {
-                k1: k1.clone(),
-                k2: k2.clone(),
-                v1: v1.clone(),
-                v2: v2.clone(),
-            },
-            [(k1, v1), (k2, v2), (k3, v3)] => S::ThreeFeatures {
-                k1: k1.clone(),
-                k2: k2.clone(),
-                k3: k3.clone(),
-                v1: v1.clone(),
-                v2: v2.clone(),
-                v3: v3.clone(),
-            },
-            [(k1, v1), (k2, v2), (k3, v3), (k4, v4)] => S::FourFeatures {
-                k1: k1.clone(),
-                k2: k2.clone(),
-                k3: k3.clone(),
-                k4: k4.clone(),
-                v1: v1.clone(),
-                v2: v2.clone(),
-                v3: v3.clone(),
-                v4: v4.clone(),
-            },
-            _ => {
-                let indexed = sorted
-                    .into_iter()
-                    .enumerate()
-                    .map(|(index, (feature_name, feature))| {
-                        let indexed_feature = IndexedStateFeature {
-                            index,
-                            feature: feature.clone(),
-                        };
-                        (feature_name.clone(), indexed_feature)
-                    })
-                    .collect::<HashMap<_, _>>();
-                S::NFeatures(indexed)
-            }
-        }
+    pub fn empty() -> StateModel {
+        StateModel(CompactOrderedHashMap::empty())
     }
 
     /// extends a state model by adding additional key/value pairs to the model mapping.
@@ -121,80 +44,58 @@ impl StateModel {
     /// # Arguments
     /// * `query` - JSON search query contents containing state model information
     pub fn extend(&self, entries: Vec<(String, StateFeature)>) -> Result<StateModel, StateError> {
-        let overwrite_keys = entries
+        let mut map = self
+            .0
             .iter()
-            .flat_map(|(feature_name, state_feature)| {
-                if let Ok(old_feature) = self.get_feature(feature_name) {
-                    log::warn!(
-                        "user overwriting state model feature {}.\nold: {}\nnew: {}",
-                        feature_name,
-                        state_feature,
-                        old_feature
-                    );
-                    Some(feature_name.clone())
-                } else {
-                    None
-                }
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect::<CompactOrderedHashMap<_, _>>();
+        let overwrites = entries
+            .into_iter()
+            .flat_map(|(name, new)| match map.insert(name.clone(), new.clone()) {
+                Some(old) if old == new => Some((name.clone(), old, new)),
+                _ => None,
             })
-            .collect::<HashSet<_>>();
-
-        let all_features = self
-            .iter()
-            .filter(|(n, _)| !overwrite_keys.contains(*n))
-            .map(|(n, f)| (n.clone(), f.clone()))
-            .chain(entries)
             .collect::<Vec<_>>();
-
-        Ok(all_features.into())
-    }
-
-    pub fn len(&self) -> usize {
-        match self {
-            StateModel::OneFeature { .. } => 1,
-            StateModel::TwoFeatures { .. } => 2,
-            StateModel::ThreeFeatures { .. } => 3,
-            StateModel::FourFeatures { .. } => 4,
-            StateModel::NFeatures(f) => f.len(),
+        if overwrites.is_empty() {
+            Ok(StateModel(map))
+        } else {
+            let msg = overwrites
+                .iter()
+                .map(|(k, old, new)| format!("{} old: {} | new: {}", k, old, new))
+                .join(", ");
+            Err(StateError::BuildError(format!(
+                "new state features overwriting existing: {}",
+                msg
+            )))
         }
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 
-    pub fn contains_key(&self, k: &str) -> bool {
-        self.get_index(k).is_ok()
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn contains_key(&self, k: &String) -> bool {
+        self.0.contains_key(k)
     }
 
     /// collects the state model tuples and clones them so they can
     /// be used to build other collections
-    pub fn to_vec(&self) -> Vec<(String, IndexedStateFeature)> {
-        self.iter()
-            .enumerate()
-            .map(|(idx, (n, f))| {
-                (
-                    n.clone(),
-                    IndexedStateFeature {
-                        index: idx,
-                        feature: f.clone(),
-                    },
-                )
-            })
-            .collect_vec()
+    pub fn to_vec(&self) -> Vec<(String, IndexedEntry<StateFeature>)> {
+        self.0.to_vec()
     }
 
     /// iterates over the features in this state in their state vector index ordering.
     pub fn iter(&self) -> FeatureIterator {
-        let iter = StateModelIter {
-            iterable: self,
-            index: 0,
-        };
-        Box::new(iter)
+        self.0.iter()
     }
 
     /// iterator that includes the state vector index along with the feature name and StateFeature
     pub fn indexed_iter(&self) -> IndexedFeatureIterator {
-        self.iter().enumerate()
+        self.0.indexed_iter()
     }
 
     /// Creates the initial state of a search. this should be a vector of
@@ -204,7 +105,8 @@ impl StateModel {
     ///
     /// an initialized, "zero"-valued traversal state, or an error
     pub fn initial_state(&self) -> Result<Vec<StateVar>, StateError> {
-        self.iter()
+        self.0
+            .iter()
             .map(|(_, feature)| {
                 let initial = feature.get_initial()?;
                 Ok(initial)
@@ -225,10 +127,10 @@ impl StateModel {
     pub fn get_distance(
         &self,
         state: &[StateVar],
-        name: &str,
+        name: &String,
         unit: &DistanceUnit,
     ) -> Result<Distance, StateError> {
-        let value = self.get_value(state, name)?;
+        let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let result = feature.get_distance_unit()?.convert(&value.into(), unit);
         Ok(result)
@@ -246,10 +148,10 @@ impl StateModel {
     pub fn get_time(
         &self,
         state: &[StateVar],
-        name: &str,
+        name: &String,
         unit: &TimeUnit,
     ) -> Result<Time, StateError> {
-        let value = self.get_value(state, name)?;
+        let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let result = feature.get_time_unit()?.convert(&value.into(), unit);
         Ok(result)
@@ -267,10 +169,10 @@ impl StateModel {
     pub fn get_energy(
         &self,
         state: &[StateVar],
-        name: &str,
+        name: &String,
         unit: &EnergyUnit,
     ) -> Result<Energy, StateError> {
-        let value = self.get_value(state, name)?;
+        let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let result = feature.get_energy_unit()?.convert(&value.into(), unit);
         Ok(result)
@@ -284,7 +186,7 @@ impl StateModel {
     /// # Returns
     ///
     /// the expected value or an error
-    pub fn get_custom_f64(&self, state: &[StateVar], name: &str) -> Result<f64, StateError> {
+    pub fn get_custom_f64(&self, state: &[StateVar], name: &String) -> Result<f64, StateError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_f64(&value)?;
         Ok(result)
@@ -298,7 +200,7 @@ impl StateModel {
     /// # Returns
     ///
     /// the expected value or an error
-    pub fn get_custom_i64(&self, state: &[StateVar], name: &str) -> Result<i64, StateError> {
+    pub fn get_custom_i64(&self, state: &[StateVar], name: &String) -> Result<i64, StateError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_i64(&value)?;
         Ok(result)
@@ -312,7 +214,7 @@ impl StateModel {
     /// # Returns
     ///
     /// the expected value or an error
-    pub fn get_custom_u64(&self, state: &[StateVar], name: &str) -> Result<u64, StateError> {
+    pub fn get_custom_u64(&self, state: &[StateVar], name: &String) -> Result<u64, StateError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_u64(&value)?;
         Ok(result)
@@ -326,7 +228,7 @@ impl StateModel {
     /// # Returns
     ///
     /// the expected value or an error
-    pub fn get_custom_bool(&self, state: &[StateVar], name: &str) -> Result<bool, StateError> {
+    pub fn get_custom_bool(&self, state: &[StateVar], name: &String) -> Result<bool, StateError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_bool(&value)?;
         Ok(result)
@@ -346,9 +248,9 @@ impl StateModel {
     fn get_custom_state_variable(
         &self,
         state: &[StateVar],
-        name: &str,
+        name: &String,
     ) -> Result<(StateVar, &CustomFeatureFormat), StateError> {
-        let value = self.get_value(state, name)?;
+        let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
         Ok((value, format))
@@ -369,10 +271,10 @@ impl StateModel {
         &self,
         prev: &[StateVar],
         next: &[StateVar],
-        name: &str,
+        name: &String,
     ) -> Result<StateVar, StateError> {
-        let prev_val = self.get_value(prev, name)?;
-        let next_val = self.get_value(next, name)?;
+        let prev_val = self.get_state_variable(prev, name)?;
+        let next_val = self.get_state_variable(next, name)?;
         Ok(next_val - prev_val)
     }
 
@@ -380,7 +282,7 @@ impl StateModel {
     pub fn add_distance(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         distance: &Distance,
         from_unit: &DistanceUnit,
     ) -> Result<(), StateError> {
@@ -393,7 +295,7 @@ impl StateModel {
     pub fn add_time(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         time: &Time,
         from_unit: &TimeUnit,
     ) -> Result<(), StateError> {
@@ -406,7 +308,7 @@ impl StateModel {
     pub fn add_energy(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         energy: &Energy,
         from_unit: &EnergyUnit,
     ) -> Result<(), StateError> {
@@ -418,7 +320,7 @@ impl StateModel {
     pub fn set_distance(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         distance: &Distance,
         from_unit: &DistanceUnit,
     ) -> Result<(), StateError> {
@@ -431,7 +333,7 @@ impl StateModel {
     pub fn set_time(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         time: &Time,
         from_unit: &TimeUnit,
     ) -> Result<(), StateError> {
@@ -444,7 +346,7 @@ impl StateModel {
     pub fn set_energy(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         energy: &Energy,
         from_unit: &EnergyUnit,
     ) -> Result<(), StateError> {
@@ -457,7 +359,7 @@ impl StateModel {
     pub fn set_custom_f64(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         value: &f64,
     ) -> Result<(), StateError> {
         let feature = self.get_feature(name)?;
@@ -469,7 +371,7 @@ impl StateModel {
     pub fn set_custom_i64(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         value: &i64,
     ) -> Result<(), StateError> {
         let feature = self.get_feature(name)?;
@@ -481,7 +383,7 @@ impl StateModel {
     pub fn set_custom_u64(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         value: &u64,
     ) -> Result<(), StateError> {
         let feature = self.get_feature(name)?;
@@ -493,7 +395,7 @@ impl StateModel {
     pub fn set_custom_bool(
         &self,
         state: &mut [StateVar],
-        name: &str,
+        name: &String,
         value: &bool,
     ) -> Result<(), StateError> {
         let feature = self.get_feature(name)?;
@@ -522,75 +424,56 @@ impl StateModel {
     pub fn serialize_state_model(&self) -> serde_json::Value {
         json![self.iter().collect::<HashMap<_, _>>()]
     }
-}
 
-pub struct StateModelIter<'a> {
-    iterable: &'a StateModel,
-    index: usize,
-}
-
-impl<'a> Iterator for StateModelIter<'a> {
-    type Item = (&'a String, &'a StateFeature);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.index >= self.iterable.len() {
-            return None;
-        }
-        if let Ok(tuple) = self.iterable.get(self.index) {
-            self.index += 1;
-            Some(tuple)
-        } else {
-            None
-        }
+    /// lists the names of the state variables in order
+    pub fn get_names(&self) -> String {
+        self.0.iter().map(|(k, _)| k.clone()).join(",")
     }
-}
 
-impl IntoIterator for StateModel {
-    type Item = (String, IndexedStateFeature);
+    fn get_feature(&self, feature_name: &String) -> Result<&StateFeature, StateError> {
+        self.0.get(feature_name).ok_or_else(|| {
+            StateError::UnknownStateVariableName(feature_name.clone(), self.get_names())
+        })
+    }
 
-    type IntoIter = std::vec::IntoIter<Self::Item>;
+    /// gets a state variable from a state vector by name
+    fn get_state_variable(
+        &self,
+        state: &[StateVar],
+        name: &String,
+    ) -> Result<StateVar, StateError> {
+        let idx = self
+            .0
+            .get_index(name)
+            .ok_or_else(|| StateError::UnknownStateVariableName(name.clone(), self.get_names()))?;
+        let value = state.get(idx).ok_or_else(|| {
+            StateError::RuntimeError(format!(
+                "state index {} for {} is out of range for state vector with {} entries",
+                idx,
+                name,
+                state.len()
+            ))
+        })?;
+        Ok(*value)
+    }
 
-    fn into_iter(self) -> Self::IntoIter {
-        match self {
-            StateModel::OneFeature { key, value } => {
-                vec![(key, IndexedStateFeature::new(0, value))].into_iter()
-            }
-            StateModel::TwoFeatures { k1, k2, v1, v2 } => vec![
-                (k1, IndexedStateFeature::new(0, v1)),
-                (k2, IndexedStateFeature::new(1, v2)),
-            ]
-            .into_iter(),
-            StateModel::ThreeFeatures {
-                k1,
-                k2,
-                k3,
-                v1,
-                v2,
-                v3,
-            } => vec![
-                (k1, IndexedStateFeature::new(0, v1)),
-                (k2, IndexedStateFeature::new(1, v2)),
-                (k3, IndexedStateFeature::new(2, v3)),
-            ]
-            .into_iter(),
-            StateModel::FourFeatures {
-                k1,
-                k2,
-                k3,
-                k4,
-                v1,
-                v2,
-                v3,
-                v4,
-            } => vec![
-                (k1, IndexedStateFeature::new(0, v1)),
-                (k2, IndexedStateFeature::new(1, v2)),
-                (k3, IndexedStateFeature::new(2, v3)),
-                (k4, IndexedStateFeature::new(3, v4)),
-            ]
-            .into_iter(),
-            StateModel::NFeatures(f) => f.into_iter().sorted_by_key(|(_, f)| f.index),
-        }
+    fn update_state(
+        &self,
+        state: &mut [StateVar],
+        name: &String,
+        value: &StateVar,
+        op: UpdateOperation,
+    ) -> Result<(), StateError> {
+        let index = self
+            .0
+            .get_index(name)
+            .ok_or_else(|| StateError::UnknownStateVariableName(name.clone(), self.get_names()))?;
+        let prev = state
+            .get(index)
+            .ok_or(StateError::InvalidStateVariableIndex(index, state.len()))?;
+        let updated = op.perform_operation(prev, value);
+        state[index] = updated;
+        Ok(())
     }
 }
 

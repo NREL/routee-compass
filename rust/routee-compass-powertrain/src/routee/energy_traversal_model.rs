@@ -42,7 +42,7 @@ impl TraversalModel for EnergyTraversalModel {
             .traverse_edge(trajectory, state, state_model)?;
         let prev_time = state_model.get_time(
             &prev,
-            "time",
+            &Self::TIME.into(),
             &self
                 .energy_model_service
                 .time_model_speed_unit
@@ -50,7 +50,7 @@ impl TraversalModel for EnergyTraversalModel {
         )?;
         let current_time = state_model.get_time(
             state,
-            "time",
+            &Self::TIME.into(),
             &self
                 .energy_model_service
                 .time_model_speed_unit
@@ -110,6 +110,8 @@ impl TraversalModel for EnergyTraversalModel {
 }
 
 impl EnergyTraversalModel {
+    const TIME: &'static str = "time";
+
     pub fn new(
         energy_model_service: Arc<EnergyModelService>,
         conf: &serde_json::Value,

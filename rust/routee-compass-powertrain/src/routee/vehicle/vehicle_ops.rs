@@ -23,10 +23,10 @@ pub fn update_soc_percent(
     max: &Energy,
     state_model: &StateModel,
 ) -> Result<(), StateError> {
-    let start_soc = state_model.get_custom_f64(state, feature_name)?;
+    let start_soc = state_model.get_custom_f64(state, &feature_name.into())?;
     let start_battery = max.as_f64() * (start_soc / 100.0);
     let current_soc = soc_from_battery_and_delta(&Energy::new(start_battery), delta, max);
-    state_model.set_custom_f64(state, feature_name, &current_soc)
+    state_model.set_custom_f64(state, &feature_name.into(), &current_soc)
 }
 
 /// a capacitated vehicle's state of charge (SOC) is the inverse of the
