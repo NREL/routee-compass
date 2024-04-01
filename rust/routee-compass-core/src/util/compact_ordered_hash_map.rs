@@ -595,6 +595,18 @@ impl<K: Hash + Ord + PartialEq + Clone, V: Clone> From<Vec<(K, V)>>
     }
 }
 
+impl<K: Hash + Ord + PartialEq + Clone, V: Clone> FromIterator<(K, V)>
+    for CompactOrderedHashMap<K, V>
+{
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
+        let mut map: CompactOrderedHashMap<K, V> = CompactOrderedHashMap::empty();
+        for (k, v) in iter {
+            let _ = map.insert(k, v);
+        }
+        map
+    }
+}
+
 /// helper function that counts the number of unique entries in a slice
 /// by testing for equality in a HashSet
 fn unique_key_len<K: Hash + PartialEq + Eq>(entries: &[K]) -> usize {
