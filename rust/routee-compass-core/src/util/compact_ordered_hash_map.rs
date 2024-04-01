@@ -691,7 +691,7 @@ mod test {
         let insert_1 = map.insert(k1.clone(), v1.clone());
         match &map {
             CompactOrderedHashMap::OneEntry { k1: _, v1: _ } => {}
-            _ => assert!(false, "expected OneEntry type after insert"),
+            _ => panic!("expected OneEntry type after insert"),
         }
         let insert_2 = map.insert(k2.clone(), v2.clone());
         match &map {
@@ -701,7 +701,7 @@ mod test {
                 v1: _,
                 v2: _,
             } => {}
-            _ => assert!(false, "expected TwoEntries type after insert"),
+            _ => panic!("expected TwoEntries type after insert"),
         }
         let insert_3 = map.insert(k3.clone(), v3.clone());
         match &map {
@@ -713,7 +713,7 @@ mod test {
                 v2: _,
                 v3: _,
             } => {}
-            _ => assert!(false, "expected ThreeEntries type after insert"),
+            _ => panic!("expected ThreeEntries type after insert"),
         }
         let insert_4 = map.insert(k4.clone(), v4.clone());
         match &map {
@@ -727,12 +727,12 @@ mod test {
                 v3: _,
                 v4: _,
             } => {}
-            _ => assert!(false, "expected FourEntries type after insert"),
+            _ => panic!("expected FourEntries type after insert"),
         }
         let insert_5 = map.insert(k5.clone(), v5.clone());
         match &map {
             CompactOrderedHashMap::NEntries(_) => {}
-            _ => assert!(false, "expected NEntries type after insert"),
+            _ => panic!("expected NEntries type after insert"),
         }
         let r1 = map.get(&k1);
         let i1 = map.get_index(&k1);
@@ -765,10 +765,8 @@ mod test {
 
         // test that ordering is correct
         let expected_values_sorted = vec![&v1, &v2, &v3, &v4, &v5];
-        for (_idx, ((_stored_k, stored_v), expected_v)) in map
-            .iter()
-            .zip(expected_values_sorted.into_iter())
-            .enumerate()
+        for ((_stored_k, stored_v), expected_v) in
+            map.iter().zip(expected_values_sorted.into_iter())
         {
             assert_eq!(
                 stored_v.field, expected_v.field,
