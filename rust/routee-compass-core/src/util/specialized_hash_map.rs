@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::iter::Enumerate;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct IndexedEntry<V> {
     v: V,
     index: usize,
@@ -58,7 +58,7 @@ pub enum SpecializedHashMap<K: Hash + Ord + PartialEq + Clone, V> {
 type ValueIterator<'a, K, V> = Box<dyn Iterator<Item = (&'a K, &'a V)> + 'a>;
 type IndexedFeatureIterator<'a, K, V> = Enumerate<Box<dyn Iterator<Item = (&'a K, &'a V)> + 'a>>;
 
-impl<'a, K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
+impl<K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
     pub fn empty() -> SpecializedHashMap<K, V> {
         SpecializedHashMap::NEntries(HashMap::new())
     }
@@ -201,6 +201,11 @@ impl<'a, K: Hash + Ord + PartialEq + Clone, V: Clone> SpecializedHashMap<K, V> {
     pub fn insert(&mut self, k: K, v: V) -> Option<V> {
         let mut v_insert = v.clone();
         match self {
+            SpecializedHashMap::NEntries(_) if self.is_empty() => {
+                let mut one = SpecializedHashMap::OneEntry { k1: k, v1: v };
+                std::mem::swap(self, &mut one);
+                None
+            }
             SpecializedHashMap::OneEntry { k1, v1 } => {
                 if k1 == &k {
                     let out = v1.clone();
@@ -493,7 +498,7 @@ impl<'a, K: Hash + Ord + PartialEq + Clone, V: Clone> Iterator
     }
 }
 
-impl<K: Hash + Ord + PartialEq + Clone, V> IntoIterator for SpecializedHashMap<K, V> {
+impl<K: Hash + Ord + PartialEq + Clone, V: Clone> IntoIterator for SpecializedHashMap<K, V> {
     type Item = (K, IndexedEntry<V>);
 
     type IntoIter = std::vec::IntoIter<Self::Item>;
@@ -545,5 +550,151 @@ impl<K: Hash + Ord + PartialEq + Clone, V> IntoIterator for SpecializedHashMap<K
 impl<K: Hash + Ord + PartialEq + Clone, V: Clone> From<Vec<(K, V)>> for SpecializedHashMap<K, V> {
     fn from(value: Vec<(K, V)>) -> Self {
         SpecializedHashMap::new(value, false)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::SpecializedHashMap;
+
+    #[derive(Clone, PartialEq, Eq, Debug)]
+    struct TestValue {
+        field: String,
+    }
+
+    #[test]
+    fn test_inserts() {
+        let mut map: SpecializedHashMap<String, TestValue> = SpecializedHashMap::empty();
+        match &map {
+            SpecializedHashMap::NEntries(empty) => {
+                assert_eq!(empty.len(), 0)
+            }
+            _ => assert!(false, "expected NEntries type before insert"),
+        }
+        let k1 = String::from("choo choo");
+        let v1 = TestValue {
+            field: String::from("chugga"),
+        };
+        let k2 = String::from("blah bloo");
+        let v2 = TestValue {
+            field: String::from("fooey"),
+        };
+        let k3 = String::from("skip");
+        let v3 = TestValue {
+            field: String::from("noggin"),
+        };
+        let k4 = String::from("chinook");
+        let v4 = TestValue {
+            field: String::from("fleas"),
+        };
+        let k5 = String::from("topographic");
+        let v5 = TestValue {
+            field: String::from("population"),
+        };
+        let insert_1 = map.insert(k1.clone(), v1.clone());
+        match &map {
+            SpecializedHashMap::OneEntry { k1: _, v1: _ } => {}
+            _ => assert!(false, "expected OneEntry type after insert"),
+        }
+        let insert_2 = map.insert(k2.clone(), v2.clone());
+        match &map {
+            SpecializedHashMap::TwoEntries {
+                k1: _,
+                k2: _,
+                v1: _,
+                v2: _,
+            } => {}
+            _ => assert!(false, "expected TwoEntries type after insert"),
+        }
+        let insert_3 = map.insert(k3.clone(), v3.clone());
+        match &map {
+            SpecializedHashMap::ThreeEntries {
+                k1: _,
+                k2: _,
+                k3: _,
+                v1: _,
+                v2: _,
+                v3: _,
+            } => {}
+            _ => assert!(false, "expected ThreeEntries type after insert"),
+        }
+        let insert_4 = map.insert(k4.clone(), v4.clone());
+        match &map {
+            SpecializedHashMap::FourEntries {
+                k1: _,
+                k2: _,
+                k3: _,
+                k4: _,
+                v1: _,
+                v2: _,
+                v3: _,
+                v4: _,
+            } => {}
+            _ => assert!(false, "expected FourEntries type after insert"),
+        }
+        let insert_5 = map.insert(k5.clone(), v5.clone());
+        match &map {
+            SpecializedHashMap::NEntries(_) => {}
+            _ => assert!(false, "expected NEntries type after insert"),
+        }
+        let r1 = map.get(&k1);
+        let i1 = map.get_index(&k1);
+        let r2 = map.get(&k2);
+        let i2 = map.get_index(&k2);
+        let r3 = map.get(&k3);
+        let i3 = map.get_index(&k3);
+        let r4 = map.get(&k4);
+        let i4 = map.get_index(&k4);
+        let r5 = map.get(&k5);
+        let i5 = map.get_index(&k5);
+
+        // no keys were overwritten
+        assert!(insert_1.is_none());
+        assert!(insert_2.is_none());
+        assert!(insert_3.is_none());
+        assert!(insert_4.is_none());
+        assert!(insert_5.is_none());
+        // values and stored indices are as expected
+        assert_eq!(Some(&v1), r1);
+        assert_eq!(Some(0), i1);
+        assert_eq!(Some(&v2), r2);
+        assert_eq!(Some(1), i2);
+        assert_eq!(Some(&v3), r3);
+        assert_eq!(Some(2), i3);
+        assert_eq!(Some(&v4), r4);
+        assert_eq!(Some(3), i4);
+        assert_eq!(Some(&v5), r5);
+        assert_eq!(Some(4), i5);
+
+        // test that ordering is correct
+        let expected_values_sorted = vec![&v1, &v2, &v3, &v4, &v5];
+        for (idx, ((stored_k, stored_v), expected_v)) in map
+            .iter()
+            .zip(expected_values_sorted.into_iter())
+            .enumerate()
+        {
+            assert_eq!(
+                stored_v.field, expected_v.field,
+                "stored values do not match, could be due to ordering logic"
+            );
+        }
+    }
+
+    #[test]
+    fn test_replace_value_at_key() {
+        let mut map: SpecializedHashMap<String, TestValue> = SpecializedHashMap::empty();
+        let k1 = String::from("choo choo");
+        let v1 = TestValue {
+            field: String::from("chugga"),
+        };
+        let v2 = TestValue {
+            field: String::from("fooey"),
+        };
+        let insert_1 = map.insert(k1.clone(), v1.clone());
+        let insert_2 = map.insert(k1.clone(), v2.clone());
+        let stored = map.get(&k1);
+        assert_eq!(None, insert_1);
+        assert_eq!(Some(&v1), insert_2.as_ref());
+        assert_eq!(Some(&v2), stored);
     }
 }
