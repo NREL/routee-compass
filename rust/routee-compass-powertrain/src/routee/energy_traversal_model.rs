@@ -42,7 +42,7 @@ impl TraversalModel for EnergyTraversalModel {
             .traverse_edge(trajectory, state, state_model)?;
         let prev_time = state_model.get_time(
             &prev,
-            "time",
+            &Self::TIME.into(),
             &self
                 .energy_model_service
                 .time_model_speed_unit
@@ -50,7 +50,7 @@ impl TraversalModel for EnergyTraversalModel {
         )?;
         let current_time = state_model.get_time(
             state,
-            "time",
+            &Self::TIME.into(),
             &self
                 .energy_model_service
                 .time_model_speed_unit
@@ -110,6 +110,8 @@ impl TraversalModel for EnergyTraversalModel {
 }
 
 impl EnergyTraversalModel {
+    const TIME: &'static str = "time";
+
     pub fn new(
         energy_model_service: Arc<EnergyModelService>,
         conf: &serde_json::Value,
@@ -216,26 +218,7 @@ mod tests {
         )
         .unwrap();
 
-        let state_model = Arc::new(
-            StateModel::empty()
-                .extend(vec![
-                    (
-                        String::from("distance"),
-                        StateFeature::Distance {
-                            distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::ZERO,
-                        },
-                    ),
-                    (
-                        String::from("time"),
-                        StateFeature::Time {
-                            time_unit: TimeUnit::Minutes,
-                            initial: Time::ZERO,
-                        },
-                    ),
-                ])
-                .unwrap(),
-        );
+        let state_model = Arc::new(StateModel::empty());
         let camry = ICE::new("Toyota_Camry".to_string(), model_record).unwrap();
 
         let mut model_library: HashMap<String, Arc<dyn VehicleType>> = HashMap::new();

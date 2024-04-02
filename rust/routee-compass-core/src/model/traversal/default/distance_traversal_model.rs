@@ -18,6 +18,7 @@ impl DistanceTraversalModel {
     pub fn new(distance_unit: DistanceUnit) -> DistanceTraversalModel {
         DistanceTraversalModel { distance_unit }
     }
+    const DISTANCE: &'static str = "distance";
 }
 
 impl TraversalModel for DistanceTraversalModel {
@@ -30,7 +31,12 @@ impl TraversalModel for DistanceTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
         let distance = BASE_DISTANCE_UNIT.convert(&edge.distance, &self.distance_unit);
-        state_model.add_distance(state, "distance", &distance, &self.distance_unit)?;
+        state_model.add_distance(
+            state,
+            &Self::DISTANCE.into(),
+            &distance,
+            &self.distance_unit,
+        )?;
         Ok(())
     }
 
@@ -44,7 +50,12 @@ impl TraversalModel for DistanceTraversalModel {
         let distance =
             haversine::coord_distance(&src.coordinate, &dst.coordinate, self.distance_unit)
                 .map_err(TraversalModelError::NumericError)?;
-        state_model.add_distance(state, "distance", &distance, &self.distance_unit)?;
+        state_model.add_distance(
+            state,
+            &Self::DISTANCE.into(),
+            &distance,
+            &self.distance_unit,
+        )?;
         Ok(())
     }
 

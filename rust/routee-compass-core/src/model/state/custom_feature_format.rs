@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use super::{state_error::StateError, unit_codec_name::UnitCodecType};
 use crate::model::traversal::state::state_variable::StateVar;
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 
 /// codec between StateVar values and basic Rust types.
@@ -19,10 +20,10 @@ use serde::{Deserialize, Serialize};
 /// warning: this could backfire, but probably in extreme cases that can be avoided.
 /// for example, if the user selects esoteric integer values that are not well-represented
 /// in floating point, then an encode -> decode roundtrip may not be idempotent.
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum CustomFeatureFormat {
-    FloatingPoint { initial: f64 },
+    FloatingPoint { initial: OrderedFloat<f64> },
     SignedInteger { initial: i64 },
     UnsignedInteger { initial: u64 },
     Boolean { initial: bool },
@@ -30,7 +31,9 @@ pub enum CustomFeatureFormat {
 
 impl Default for CustomFeatureFormat {
     fn default() -> Self {
-        Self::FloatingPoint { initial: 0.0 }
+        Self::FloatingPoint {
+            initial: OrderedFloat(0.0),
+        }
     }
 }
 

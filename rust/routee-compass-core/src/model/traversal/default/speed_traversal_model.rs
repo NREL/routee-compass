@@ -20,6 +20,8 @@ impl SpeedTraversalModel {
     pub fn new(engine: Arc<SpeedTraversalEngine>) -> SpeedTraversalModel {
         SpeedTraversalModel { engine }
     }
+    const DISTANCE: &'static str = "distance";
+    const TIME: &'static str = "time";
 }
 
 impl TraversalModel for SpeedTraversalModel {
@@ -40,8 +42,18 @@ impl TraversalModel for SpeedTraversalModel {
             &self.engine.time_unit,
         )?;
 
-        state_model.add_time(state, "time", &edge_time, &self.engine.time_unit)?;
-        state_model.add_distance(state, "distance", &distance, &self.engine.distance_unit)?;
+        state_model.add_time(
+            state,
+            &Self::TIME.into(),
+            &edge_time,
+            &self.engine.time_unit,
+        )?;
+        state_model.add_distance(
+            state,
+            &Self::DISTANCE.into(),
+            &distance,
+            &self.engine.distance_unit,
+        )?;
         Ok(())
     }
 
@@ -67,7 +79,12 @@ impl TraversalModel for SpeedTraversalModel {
             &self.engine.distance_unit,
             &self.engine.time_unit,
         )?;
-        state_model.add_time(state, "time", &estimated_time, &self.engine.time_unit)?;
+        state_model.add_time(
+            state,
+            &Self::TIME.into(),
+            &estimated_time,
+            &self.engine.time_unit,
+        )?;
 
         Ok(())
     }
@@ -75,14 +92,14 @@ impl TraversalModel for SpeedTraversalModel {
     fn state_features(&self) -> Vec<(String, StateFeature)> {
         vec![
             (
-                String::from("time"),
+                String::from(Self::TIME),
                 StateFeature::Time {
                     time_unit: self.engine.time_unit,
                     initial: Time::ZERO,
                 },
             ),
             (
-                String::from("distance"),
+                String::from(Self::DISTANCE),
                 StateFeature::Distance {
                     distance_unit: self.engine.distance_unit,
                     initial: Distance::ZERO,
