@@ -218,26 +218,7 @@ mod tests {
         )
         .unwrap();
 
-        let state_model = Arc::new(
-            StateModel::empty()
-                .extend(vec![
-                    (
-                        String::from("distance"),
-                        StateFeature::Distance {
-                            distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::ZERO,
-                        },
-                    ),
-                    (
-                        String::from("time"),
-                        StateFeature::Time {
-                            time_unit: TimeUnit::Minutes,
-                            initial: Time::ZERO,
-                        },
-                    ),
-                ])
-                .unwrap(),
-        );
+        let state_model = Arc::new(StateModel::empty());
         let camry = ICE::new("Toyota_Camry".to_string(), model_record).unwrap();
 
         let mut model_library: HashMap<String, Arc<dyn VehicleType>> = HashMap::new();
