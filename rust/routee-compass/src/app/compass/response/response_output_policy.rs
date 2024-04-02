@@ -1,5 +1,5 @@
 use super::{response_output_format::ResponseOutputFormat, response_sink::ResponseSink};
-use crate::app::compass::{compass_app::CompassApp, compass_app_error::CompassAppError};
+use crate::app::compass::compass_app_error::CompassAppError;
 use serde::{Deserialize, Serialize};
 use std::{
     fs::OpenOptions,
