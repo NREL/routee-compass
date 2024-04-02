@@ -13,6 +13,8 @@ pub enum ResponseSink {
         file: Arc<Mutex<File>>,
         format: ResponseOutputFormat,
         delimiter: Option<String>,
+        iterations_per_flush: u64,
+        iterations: Arc<Mutex<u64>>,
     },
     Combined(Vec<Box<ResponseSink>>),
 }
@@ -27,6 +29,8 @@ impl ResponseSink {
                 file,
                 format,
                 delimiter: _,
+                iterations_per_flush,
+                iterations,
             } => {
                 let file_ref = Arc::clone(file);
                 let mut file_attained = file_ref.lock().map_err(|e| {
@@ -35,9 +39,21 @@ impl ResponseSink {
                         e
                     ))
                 })?;
+                let it_ref = Arc::new(iterations);
+                let mut it_attained = it_ref.lock().map_err(|e| {
+                    CompassAppError::ReadOnlyPoisonError(format!(
+                        "Could not aquire lock on File::iterations: {}",
+                        e
+                    ))
+                })?;
 
                 let output_row = format.format_response(response)?;
                 writeln!(file_attained, "{}", output_row).map_err(CompassAppError::IOError)?;
+                *it_attained += 1;
+                if *it_attained % iterations_per_flush == 0 {
+                    file_attained.flush().map_err(CompassAppError::IOError)?;
+                }
+
                 Ok(())
             }
             ResponseSink::Combined(policies) => {
@@ -57,6 +73,8 @@ impl ResponseSink {
                 file,
                 format,
                 delimiter: _,
+                iterations_per_flush: _,
+                iterations: _,
             } => {
                 let file_ref = Arc::clone(file);
                 let mut file_attained = file_ref.lock().map_err(|e| {
