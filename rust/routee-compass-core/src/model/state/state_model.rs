@@ -52,7 +52,7 @@ impl StateModel {
         let overwrites = entries
             .into_iter()
             .flat_map(|(name, new)| match map.insert(name.clone(), new.clone()) {
-                Some(old) if old == new => Some((name.clone(), old, new)),
+                Some(old) if old != new => Some((name.clone(), old, new)),
                 _ => None,
             })
             .collect::<Vec<_>>();
