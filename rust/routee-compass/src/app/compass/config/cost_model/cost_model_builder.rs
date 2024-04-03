@@ -18,20 +18,24 @@ impl CostModelBuilder {
         config: &serde_json::Value,
     ) -> Result<CostModelService, CompassConfigurationError> {
         let parent_key = CompassConfigurationField::Cost.to_string();
-        let vehicle_rates: HashMap<String, VehicleCostRate> =
-            config.get_config_serde(&"vehicle_rates", &parent_key)?;
-        let network_rates: HashMap<String, NetworkCostRate> =
-            config.get_config_serde(&"network_rates", &parent_key)?;
+        let vehicle_rates: HashMap<String, VehicleCostRate> = config
+            .get_config_serde_optional(&"vehicle_rates", &parent_key)?
+            .unwrap_or_default();
+        let network_rates: HashMap<String, NetworkCostRate> = config
+            .get_config_serde_optional(&"network_rates", &parent_key)?
+            .unwrap_or_default();
 
-        let coefficients: HashMap<String, f64> =
-            config.get_config_serde(&"weights", &parent_key)?;
-        let cost_aggregation: CostAggregation =
-            config.get_config_serde(&"cost_aggregation", &parent_key)?;
+        let weights: HashMap<String, f64> = config
+            .get_config_serde_optional(&"weights", &parent_key)?
+            .unwrap_or_default();
+        let cost_aggregation: CostAggregation = config
+            .get_config_serde_optional(&"cost_aggregation", &parent_key)?
+            .unwrap_or_default();
 
         let model = CostModelService {
             vehicle_rates: Arc::new(vehicle_rates),
             network_rates: Arc::new(network_rates),
-            weights: Arc::new(coefficients),
+            weights: Arc::new(weights),
             cost_aggregation,
         };
         Ok(model)
