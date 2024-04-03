@@ -3,9 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use super::cost_error::CostError;
 
-#[derive(Deserialize, Serialize, Clone, Copy, Debug)]
+#[derive(Deserialize, Serialize, Clone, Copy, Debug, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum CostAggregation {
+    #[default]
     Sum,
     Mul,
 }
