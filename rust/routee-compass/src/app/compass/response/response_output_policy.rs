@@ -1,8 +1,10 @@
-use super::{response_output_format::ResponseOutputFormat, response_sink::ResponseSink};
+use super::{
+    response_output_format::ResponseOutputFormat, response_sink::ResponseSink,
+    write_mode::WriteMode,
+};
 use crate::app::compass::compass_app_error::CompassAppError;
 use serde::{Deserialize, Serialize};
 use std::{
-    fs::OpenOptions,
     path::PathBuf,
     sync::{Arc, Mutex},
 };
@@ -15,6 +17,7 @@ pub enum ResponseOutputPolicy {
         filename: String,
         format: ResponseOutputFormat,
         file_flush_rate: Option<i64>,
+        // write_mode: WriteMode,
     },
     Combined {
         policies: Vec<Box<ResponseOutputPolicy>>,
@@ -32,17 +35,10 @@ impl ResponseOutputPolicy {
                 filename,
                 format,
                 file_flush_rate,
+                // write_mode,
             } => {
                 let output_file_path = PathBuf::from(filename);
-
-                // initialize the file
-                let header = format
-                    .initial_file_contents()
-                    .unwrap_or_else(|| String::from(""));
-                std::fs::write(&output_file_path, header)?;
-
-                // open the file with the option to append to it
-                let file = OpenOptions::new().append(true).open(&output_file_path)?;
+                let file = WriteMode::Append.open_file(&output_file_path, format)?;
 
                 // wrap the file in a mutex so we can share it between threads
                 let file_shareable = Arc::new(Mutex::new(file));
