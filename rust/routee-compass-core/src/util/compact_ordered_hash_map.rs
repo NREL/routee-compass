@@ -666,7 +666,7 @@ mod test {
             CompactOrderedHashMap::NEntries(empty) => {
                 assert_eq!(empty.len(), 0)
             }
-            _ => assert!(false, "expected NEntries type before insert"),
+            _ => panic!("expected NEntries type before insert"),
         }
         let k1 = String::from("choo choo");
         let v1 = TestValue {
