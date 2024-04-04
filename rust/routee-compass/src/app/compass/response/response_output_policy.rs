@@ -17,7 +17,7 @@ pub enum ResponseOutputPolicy {
         filename: String,
         format: ResponseOutputFormat,
         file_flush_rate: Option<i64>,
-        write_mode: WriteMode,
+        // write_mode: WriteMode,
     },
     Combined {
         policies: Vec<Box<ResponseOutputPolicy>>,
@@ -35,10 +35,10 @@ impl ResponseOutputPolicy {
                 filename,
                 format,
                 file_flush_rate,
-                write_mode,
+                // write_mode,
             } => {
                 let output_file_path = PathBuf::from(filename);
-                let file = write_mode.open_file(&output_file_path, format)?;
+                let file = WriteMode::Append.open_file(&output_file_path, format)?;
 
                 // wrap the file in a mutex so we can share it between threads
                 let file_shareable = Arc::new(Mutex::new(file));
