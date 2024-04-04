@@ -128,18 +128,19 @@ fn search(
     tolerance: Option<(Distance, DistanceUnit)>,
 ) -> Option<EdgeId> {
     let point = geo::Point(coord);
-    let search_result = rtree
-        .nearest_neighbor_iter_with_distance_2(&point)
-        .find(|(record, distance_meters)| {
-            let within_distance = within_tolerance(tolerance, distance_meters);
-            let valid_class = match &road_classes {
-                None => true,
-                Some(valid_classes) => valid_classes.contains(&record.road_class),
-            };
-            within_distance && valid_class
-        })
-        .map(|(record, _dist)| record.edge_id.to_owned());
-    search_result
+    for (record, distance_meters) in rtree.nearest_neighbor_iter_with_distance_2(&point) {
+        if !within_tolerance(tolerance, &distance_meters) {
+            return None;
+        }
+        let valid_class = match &road_classes {
+            None => true,
+            Some(valid_classes) => valid_classes.contains(&record.road_class),
+        };
+        if valid_class {
+            return Some(record.edge_id);
+        }
+    }
+    None
 }
 
 /// helper to build a matching error response
