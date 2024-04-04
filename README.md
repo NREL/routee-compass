@@ -2,6 +2,9 @@
 
 <div align="left">
     <img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue"/>
+  <a href="https://anaconda.org/conda-forge/nrel.routee.compass">
+    <img src="https://img.shields.io/conda/v/conda-forge/nrel.routee.compass" alt="Conda Latest Release"/>
+  </a>
   <a href="https://pypi.org/project/nrel.routee.compass/">
     <img src="https://img.shields.io/pypi/v/nrel.routee.compass" alt="PyPi Latest Release"/>
   </a>
@@ -9,6 +12,9 @@
     <img src="https://img.shields.io/crates/v/routee-compass" alt="Crates.io Latest Release"/>
   </a>
 </div>
+
+
+
 
 RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
 
