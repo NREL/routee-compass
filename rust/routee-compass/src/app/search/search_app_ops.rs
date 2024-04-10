@@ -42,18 +42,18 @@ pub fn collect_features(
                 let fnames = model_features.keys().join(",");
                 Err(StateError::UnknownStateVariableName(name, fnames))
             }
-            Some(existing) if existing.get_feature_name() != feature.get_feature_name() => {
-                Err(StateError::UnexpectedFeatureName(
-                    feature.get_feature_name(),
-                    existing.get_feature_name(),
+            Some(existing) if existing.get_feature_type() != feature.get_feature_type() => {
+                Err(StateError::UnexpectedFeatureType(
+                    existing.get_feature_type(),
+                    feature.get_feature_type(),
                 ))
             }
             Some(existing)
                 if existing.get_feature_unit_name() != feature.get_feature_unit_name() =>
             {
                 Err(StateError::UnexpectedFeatureUnit(
-                    feature.get_feature_unit_name(),
                     existing.get_feature_unit_name(),
+                    feature.get_feature_unit_name(),
                 ))
             }
             Some(_) => Ok((name, feature)),

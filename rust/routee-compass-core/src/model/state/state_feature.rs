@@ -45,54 +45,62 @@ pub enum StateFeature {
         initial: unit::Energy,
     },
     Custom {
-        name: String,
+        r#type: String,
         unit: String,
         format: CustomFeatureFormat,
     },
 }
 
 impl PartialEq for StateFeature {
-    /// tests equality based on the unit type, ignoring the stated initial value
+    /// tests equality based on the feature type.
+    ///
+    /// for distance|time|energy, it's fine to modify either the unit
+    /// or the initial value as this should not interfere with properly-
+    /// implemented TraversalModel, AccessModel, and FrontierModel instances.
+    ///
+    /// for custom features, we are stricter about this equality test.
+    /// for instance, we cannot allow a user to change the "meaning" of a
+    /// state of charge value, that it is a floating point value in the range [0.0, 1.0].
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (
                 StateFeature::Distance {
-                    distance_unit: a,
+                    distance_unit: _,
                     initial: _,
                 },
                 StateFeature::Distance {
-                    distance_unit: b,
+                    distance_unit: _,
                     initial: _,
                 },
-            ) => a == b,
+            ) => true,
             (
                 StateFeature::Time {
-                    time_unit: a,
+                    time_unit: _,
                     initial: _,
                 },
                 StateFeature::Time {
-                    time_unit: b,
+                    time_unit: _,
                     initial: _,
                 },
-            ) => a == b,
+            ) => true,
             (
                 StateFeature::Energy {
-                    energy_unit: a,
+                    energy_unit: _,
                     initial: _,
                 },
                 StateFeature::Energy {
-                    energy_unit: b,
+                    energy_unit: _,
                     initial: _,
                 },
-            ) => a == b,
+            ) => true,
             (
                 StateFeature::Custom {
-                    name: a_name,
+                    r#type: a_name,
                     unit: a_unit,
                     format: _,
                 },
                 StateFeature::Custom {
-                    name: b_name,
+                    r#type: b_name,
                     unit: b_unit,
                     format: _,
                 },
@@ -116,7 +124,11 @@ impl Display for StateFeature {
                 energy_unit,
                 initial,
             } => write!(f, "unit: {}, initial: {}", energy_unit, initial),
-            StateFeature::Custom { name, unit, format } => {
+            StateFeature::Custom {
+                r#type: name,
+                unit,
+                format,
+            } => {
                 write!(f, "name: {} unit: {}, repr: {}", name, unit, format)
             }
         }
@@ -124,7 +136,7 @@ impl Display for StateFeature {
 }
 
 impl StateFeature {
-    pub fn get_feature_name(&self) -> String {
+    pub fn get_feature_type(&self) -> String {
         match self {
             StateFeature::Distance {
                 distance_unit: _,
@@ -139,10 +151,10 @@ impl StateFeature {
                 initial: _,
             } => String::from("energy"),
             StateFeature::Custom {
-                name,
+                r#type,
                 unit: _,
                 format: _,
-            } => name.clone(),
+            } => r#type.clone(),
         }
     }
 
@@ -161,7 +173,7 @@ impl StateFeature {
                 initial: _,
             } => energy_unit.to_string(),
             StateFeature::Custom {
-                name: _,
+                r#type: _,
                 unit,
                 format: _,
             } => unit.clone(),
@@ -175,7 +187,7 @@ impl StateFeature {
     pub fn get_feature_format(&self) -> CustomFeatureFormat {
         match self {
             StateFeature::Custom {
-                name: _,
+                r#type: _,
                 unit: _,
                 format,
             } => *format,
@@ -195,7 +207,7 @@ impl StateFeature {
             } => Ok(*unit),
             _ => Err(StateError::UnexpectedFeatureUnit(
                 String::from("distance"),
-                self.get_feature_name(),
+                self.get_feature_type(),
             )),
         }
     }
@@ -208,7 +220,7 @@ impl StateFeature {
             } => Ok(*unit),
             _ => Err(StateError::UnexpectedFeatureUnit(
                 String::from("time"),
-                self.get_feature_name(),
+                self.get_feature_type(),
             )),
         }
     }
@@ -221,7 +233,7 @@ impl StateFeature {
             } => Ok(*energy_unit),
             _ => Err(StateError::UnexpectedFeatureUnit(
                 String::from("energy"),
-                self.get_feature_name(),
+                self.get_feature_type(),
             )),
         }
     }
@@ -229,13 +241,13 @@ impl StateFeature {
     pub fn get_custom_feature_format(&self) -> Result<&CustomFeatureFormat, StateError> {
         match self {
             StateFeature::Custom {
-                name: _,
+                r#type: _,
                 unit: _,
                 format,
             } => Ok(format),
             _ => Err(StateError::UnexpectedFeatureUnit(
                 self.get_feature_unit_name(),
-                self.get_feature_name(),
+                self.get_feature_type(),
             )),
         }
     }
