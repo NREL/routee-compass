@@ -2,15 +2,11 @@ use super::{search_app_ops, search_app_result::SearchAppResult};
 use crate::{
     app::compass::{
         compass_app_error::CompassAppError,
-        config::{
-            config_json_extension::ConfigJsonExtensions,
-            cost_model::cost_model_service::CostModelService,
-        },
+        config::cost_model::cost_model_service::CostModelService,
     },
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
 use chrono::Local;
-use itertools::Itertools;
 use routee_compass_core::{
     algorithm::search::{
         backtrack, search_algorithm::SearchAlgorithm, search_error::SearchError,
@@ -18,15 +14,13 @@ use routee_compass_core::{
     },
     model::{
         access::access_model_service::AccessModelService,
-        frontier::frontier_model_service::FrontierModelService,
-        road_network::graph::Graph,
-        state::{state_feature::StateFeature, state_model::StateModel},
-        termination::termination_model::TerminationModel,
+        frontier::frontier_model_service::FrontierModelService, road_network::graph::Graph,
+        state::state_model::StateModel, termination::termination_model::TerminationModel,
         traversal::traversal_model_service::TraversalModelService,
     },
 };
+use std::sync::Arc;
 use std::time;
-use std::{collections::HashMap, sync::Arc};
 
 /// a configured and loaded application to execute searches.
 pub struct SearchApp {
