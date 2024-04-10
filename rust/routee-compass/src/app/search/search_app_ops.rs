@@ -48,14 +48,6 @@ pub fn collect_features(
                     feature.get_feature_type(),
                 ))
             }
-            Some(existing)
-                if existing.get_feature_unit_name() != feature.get_feature_unit_name() =>
-            {
-                Err(StateError::UnexpectedFeatureUnit(
-                    existing.get_feature_unit_name(),
-                    feature.get_feature_unit_name(),
-                ))
-            }
             Some(_) => Ok((name, feature)),
         })
         .collect::<Result<Vec<_>, _>>()?;
