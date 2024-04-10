@@ -1,12 +1,16 @@
-use super::search_app_result::SearchAppResult;
+use super::{search_app_ops, search_app_result::SearchAppResult};
 use crate::{
     app::compass::{
         compass_app_error::CompassAppError,
-        config::cost_model::cost_model_service::CostModelService,
+        config::{
+            config_json_extension::ConfigJsonExtensions,
+            cost_model::cost_model_service::CostModelService,
+        },
     },
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
 use chrono::Local;
+use itertools::Itertools;
 use routee_compass_core::{
     algorithm::search::{
         backtrack, search_algorithm::SearchAlgorithm, search_error::SearchError,
@@ -14,13 +18,15 @@ use routee_compass_core::{
     },
     model::{
         access::access_model_service::AccessModelService,
-        frontier::frontier_model_service::FrontierModelService, road_network::graph::Graph,
-        state::state_model::StateModel, termination::termination_model::TerminationModel,
+        frontier::frontier_model_service::FrontierModelService,
+        road_network::graph::Graph,
+        state::{state_feature::StateFeature, state_model::StateModel},
+        termination::termination_model::TerminationModel,
         traversal::traversal_model_service::TraversalModelService,
     },
 };
-use std::sync::Arc;
 use std::time;
+use std::{collections::HashMap, sync::Arc};
 
 /// a configured and loaded application to execute searches.
 pub struct SearchApp {
@@ -170,9 +176,10 @@ impl SearchApp {
         let traversal_model = self.traversal_model_service.build(query)?;
         let access_model = self.access_model_service.build(query)?;
 
-        let mut added_features = traversal_model.state_features();
-        added_features.extend(access_model.state_features());
-        let state_model = Arc::new(self.state_model.extend(added_features)?);
+        let state_features =
+            search_app_ops::collect_features(query, traversal_model.clone(), access_model.clone())?;
+        let state_model_instance = self.state_model.extend(state_features)?;
+        let state_model = Arc::new(state_model_instance);
 
         let cost_model = self
             .cost_model_service

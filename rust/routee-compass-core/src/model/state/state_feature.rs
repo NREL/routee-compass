@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 /// field names. see link for more information:
 /// https://serde.rs/enum-representations.html#untagged
 /// ```
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, Eq)]
 #[serde(untagged)]
 pub enum StateFeature {
     Distance {
@@ -49,6 +49,57 @@ pub enum StateFeature {
         unit: String,
         format: CustomFeatureFormat,
     },
+}
+
+impl PartialEq for StateFeature {
+    /// tests equality based on the unit type, ignoring the stated initial value
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                StateFeature::Distance {
+                    distance_unit: a,
+                    initial: _,
+                },
+                StateFeature::Distance {
+                    distance_unit: b,
+                    initial: _,
+                },
+            ) => a == b,
+            (
+                StateFeature::Time {
+                    time_unit: a,
+                    initial: _,
+                },
+                StateFeature::Time {
+                    time_unit: b,
+                    initial: _,
+                },
+            ) => a == b,
+            (
+                StateFeature::Energy {
+                    energy_unit: a,
+                    initial: _,
+                },
+                StateFeature::Energy {
+                    energy_unit: b,
+                    initial: _,
+                },
+            ) => a == b,
+            (
+                StateFeature::Custom {
+                    name: a_name,
+                    unit: a_unit,
+                    format: _,
+                },
+                StateFeature::Custom {
+                    name: b_name,
+                    unit: b_unit,
+                    format: _,
+                },
+            ) => a_name == b_name && a_unit == b_unit,
+            _ => false,
+        }
+    }
 }
 
 impl Display for StateFeature {

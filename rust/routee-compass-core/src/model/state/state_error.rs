@@ -12,6 +12,8 @@ pub enum StateError {
     UnknownStateVariableName(String, String),
     #[error("invalid state variable index {0}, should be in range [0, {1})")]
     InvalidStateVariableIndex(usize, usize),
+    #[error("expected feature to have name '{0}' but found '{1}'")]
+    UnexpectedFeatureName(String, String),
     #[error("expected feature to have {0} unit type but found {1}")]
     UnexpectedFeatureUnit(String, String),
     #[error("{0}")]
