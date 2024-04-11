@@ -35,8 +35,9 @@ impl StateModel {
     }
 
     /// extends a state model by adding additional key/value pairs to the model mapping.
-    /// in the case of name collision, a warning is logged to the user and the newer
-    /// variable is used.
+    /// in the case of name collision, we compare old and new state features at that name.
+    /// if the state feature has the same unit (tested by StateFeature::Eq), then it can
+    /// overwrite the existing.
     ///
     /// this method is used when state models are updated by the user query as Services
     /// become Models in the SearchApp.
