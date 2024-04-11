@@ -196,7 +196,25 @@ impl StateFeature {
     }
 
     pub fn get_initial(&self) -> Result<StateVar, StateError> {
-        self.get_feature_format().initial()
+        match self {
+            StateFeature::Distance {
+                distance_unit: _,
+                initial,
+            } => Ok((*initial).into()),
+            StateFeature::Time {
+                time_unit: _,
+                initial,
+            } => Ok((*initial).into()),
+            StateFeature::Energy {
+                energy_unit: _,
+                initial,
+            } => Ok((*initial).into()),
+            StateFeature::Custom {
+                r#type: _,
+                unit: _,
+                format,
+            } => format.initial(),
+        }
     }
 
     pub fn get_distance_unit(&self) -> Result<unit::DistanceUnit, StateError> {
