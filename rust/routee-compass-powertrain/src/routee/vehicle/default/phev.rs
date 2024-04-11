@@ -74,7 +74,7 @@ impl VehicleType for PHEV {
             (
                 String::from(PHEV::SOC_FEATURE_NAME),
                 StateFeature::Custom {
-                    name: String::from("soc"),
+                    r#type: String::from("soc"),
                     unit: String::from("percent"),
                     format: CustomFeatureFormat::FloatingPoint {
                         initial: initial_soc.into(),
