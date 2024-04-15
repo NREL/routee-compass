@@ -108,8 +108,6 @@ impl SearchApp {
         Ok((result, si))
     }
 
-    /// runs a single vertex oriented query
-    ///
     pub fn run_vertex_oriented(
         &self,
         query: &serde_json::Value,
@@ -157,6 +155,15 @@ impl SearchApp {
         self.run_vertex_oriented(&v_query)
     }
 
+    /// builds the assets that will run the search for this query instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `query` - the user query initiating this search
+    ///
+    /// # Results
+    ///
+    /// The SearchInstance which runs this search query.
     pub fn build_search_instance(
         &self,
         query: &serde_json::Value,
