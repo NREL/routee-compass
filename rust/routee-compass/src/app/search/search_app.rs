@@ -124,7 +124,7 @@ impl SearchApp {
         let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
             .run_vertex_oriented(o, d, &search_instance)
-            .and_then(|search_result| Ok((search_result, search_instance)))
+            .map(|search_result| (search_result, search_instance))
             .map_err(CompassAppError::SearchError)
     }
 
@@ -132,7 +132,6 @@ impl SearchApp {
         &self,
         query: &serde_json::Value,
     ) -> Result<(SearchAlgorithmResult, SearchInstance), CompassAppError> {
-        let search_start_time = Local::now();
         let o = query
             .get_origin_edge()
             .map_err(CompassAppError::PluginError)?;

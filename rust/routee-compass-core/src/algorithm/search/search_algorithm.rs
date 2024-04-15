@@ -42,7 +42,7 @@ impl SearchAlgorithm {
                     iterations: search_result.iterations,
                 })
             }
-            SearchAlgorithm::KspSingleVia { k, underlying } => todo!(),
+            SearchAlgorithm::KspSingleVia { k: _, underlying: _ } => todo!(),
         }
     }
     pub fn run_edge_oriented(
@@ -76,7 +76,7 @@ impl SearchAlgorithm {
                     iterations: search_result.iterations,
                 })
             }
-            SearchAlgorithm::KspSingleVia { k, underlying } => todo!(),
+            SearchAlgorithm::KspSingleVia { k: _, underlying: _ } => todo!(),
         }
     }
 }

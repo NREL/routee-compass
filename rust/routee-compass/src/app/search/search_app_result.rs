@@ -1,14 +1,11 @@
-use crate::plugin::{
-    output::default::traversal::traversal_output_format::TraversalOutputFormat,
-    plugin_error::PluginError,
-};
+
 use allocative::Allocative;
-use geo::LineString;
+
 use routee_compass_core::{
     algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
     model::road_network::vertex_id::VertexId,
 };
-use serde_json::json;
+
 use std::{collections::HashMap, time::Duration};
 
 #[derive(Allocative)]

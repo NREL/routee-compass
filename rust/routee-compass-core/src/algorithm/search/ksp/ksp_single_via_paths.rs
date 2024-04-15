@@ -7,10 +7,10 @@ use crate::{
 };
 
 pub fn run_ksp(
-    source: VertexId,
-    target: Option<VertexId>,
-    si: &SearchInstance,
-    underlying: Box<SearchAlgorithm>,
+    _source: VertexId,
+    _target: Option<VertexId>,
+    _si: &SearchInstance,
+    _underlying: Box<SearchAlgorithm>,
 ) -> Result<Vec<SearchResult>, SearchError> {
     todo!()
 }
