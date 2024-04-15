@@ -7,8 +7,8 @@ use std::{collections::HashMap, time::Duration};
 
 #[derive(Allocative)]
 pub struct SearchAppResult {
-    pub route: Vec<EdgeTraversal>,
-    pub tree: HashMap<VertexId, SearchTreeBranch>,
+    pub routes: Vec<Vec<EdgeTraversal>>,
+    pub trees: Vec<HashMap<VertexId, SearchTreeBranch>>,
     pub search_executed_time: String,
     pub algorithm_runtime: Duration,
     pub route_runtime: Duration,

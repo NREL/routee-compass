@@ -144,9 +144,8 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             .try_deserialize::<serde_json::Value>()?
             .normalize_file_paths(&"", &root_config_path)?;
 
-        let alg_params =
-            config_json.get_config_section(CompassConfigurationField::Algorithm, &"TOML")?;
-        let search_algorithm = SearchAlgorithm::try_from(&alg_params)?;
+        let search_algorithm: SearchAlgorithm =
+            config_json.get_config_serde(&CompassConfigurationField::Algorithm, &"TOML")?;
 
         let state_model = match config_json.get(&CompassConfigurationField::State.to_string()) {
             Some(state_config) => Arc::new(StateModel::try_from(state_config)?),
@@ -481,12 +480,8 @@ pub fn run_single_query(
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
 ) -> Result<serde_json::Value, CompassAppError> {
-    let search_result = match search_orientation {
-        SearchOrientation::Vertex => search_app.run_vertex_oriented(query),
-        SearchOrientation::Edge => search_app.run_edge_oriented(query),
-    };
+    let search_result = search_app.run(query, search_orientation);
     let output = apply_output_processing(query, search_result, search_app, output_plugins);
-    // TODO: write to output if requested
     Ok(output)
 }
 
