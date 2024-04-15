@@ -7,7 +7,7 @@ use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum SearchAlgorithm {
     #[serde(rename = "a*")]
     AStarAlgorithm,

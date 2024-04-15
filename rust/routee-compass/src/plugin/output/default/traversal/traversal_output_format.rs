@@ -141,25 +141,25 @@ mod test {
         println!(
             "{:?}",
             TraversalOutputFormat::Wkt
-                .generate_route_output(&result.route, &geoms)
+                .generate_route_output(&result.routes[0], &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );
         println!(
             "{:?}",
             TraversalOutputFormat::Json
-                .generate_route_output(&result.route, &geoms)
+                .generate_route_output(&result.routes[0], &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );
         println!(
             "{:?}",
             TraversalOutputFormat::GeoJson
-                .generate_route_output(&result.route, &geoms)
+                .generate_route_output(&result.routes[0], &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );
         println!(
             "{:?}",
             TraversalOutputFormat::EdgeId
-                .generate_route_output(&result.route, &geoms)
+                .generate_route_output(&result.routes[0], &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );
     }

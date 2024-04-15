@@ -661,10 +661,11 @@ mod tests {
         });
         let result = app.run(vec![query], None).unwrap();
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
-        let edge_ids = result[0].get("edge_id_list").unwrap();
+        let route_0 = result[0].get("route").unwrap();
+        let path_0 = route_0.get("path").unwrap();
         // path [1] is distance-optimal; path [0, 2] is time-optimal
         let expected = serde_json::json!(vec![0, 2]);
-        assert_eq!(edge_ids, &expected);
+        assert_eq!(path_0, &expected);
     }
 
     // #[test]

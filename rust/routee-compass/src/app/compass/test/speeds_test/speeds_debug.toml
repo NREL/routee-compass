@@ -24,4 +24,7 @@ type = "raw"
 
 [plugin]
 input_plugins = []
-output_plugins = [{ type = "edge_id_list" }, { type = "summary" }]
+output_plugins = [
+    { type = "summary" },
+    { type = "traversal", route = "edge_id", geometry_input_file = "routee-compass/src/app/compass/test/speeds_test/edge_geometries.txt" },
+]
