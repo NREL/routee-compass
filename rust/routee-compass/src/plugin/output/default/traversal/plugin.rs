@@ -7,10 +7,12 @@ use crate::plugin::plugin_error::PluginError;
 use geo::LineString;
 use kdam::Bar;
 use kdam::BarExt;
+use routee_compass_core::algorithm::search::edge_traversal::EdgeTraversal;
 use routee_compass_core::algorithm::search::search_instance::SearchInstance;
 use routee_compass_core::util::fs::fs_utils;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 use routee_compass_core::util::geo::geo_io_utils;
+use serde_json::json;
 use std::path::Path;
 
 pub struct TraversalPlugin {
@@ -67,22 +69,45 @@ impl OutputPlugin for TraversalPlugin {
     ) -> Result<(), PluginError> {
         match search_result {
             Err(_) => Ok(()),
-            Ok((result, _)) => {
+            Ok((result, si)) => {
                 match self.route {
                     None => {}
                     Some(route_args) => {
-                        let route_output =
-                            route_args.generate_route_output(&result.route, &self.geoms)?;
-                        output[&self.route_key] = route_output;
+                        let routes_serialized = result
+                            .routes
+                            .iter()
+                            .map(|route| {
+                                construct_route_output(route, si, &route_args, &self.geoms)
+                            })
+                            .collect::<Result<Vec<_>, _>>()
+                            .map_err(PluginError::PluginFailed)?;
+
+                        // vary the type of value stored at the route key. if there is
+                        // no route, store 'null'. if one, store an output object. if
+                        // more, store an array of objects.
+                        let routes_json = match routes_serialized.as_slice() {
+                            [] => serde_json::Value::Null,
+                            [route] => route.to_owned(),
+                            _ => json![routes_serialized],
+                        };
+                        output[&self.route_key] = routes_json;
                     }
                 }
 
                 match self.tree {
                     None => {}
                     Some(tree_args) => {
-                        let tree_output =
-                            tree_args.generate_tree_output(&result.tree, &self.geoms)?;
-                        output[&self.tree_key] = tree_output;
+                        let trees_serialized = result
+                            .trees
+                            .iter()
+                            .map(|tree| tree_args.generate_tree_output(tree, &self.geoms))
+                            .collect::<Result<Vec<_>, _>>()?;
+                        let trees_json = match trees_serialized.as_slice() {
+                            [] => serde_json::Value::Null,
+                            [tree] => tree.to_owned(),
+                            _ => json![trees_serialized],
+                        };
+                        output[&self.tree_key] = json![trees_json];
                     }
                 }
 
@@ -90,6 +115,39 @@ impl OutputPlugin for TraversalPlugin {
             }
         }
     }
+}
+
+/// creates the JSON output for a route.
+fn construct_route_output(
+    route: &Vec<EdgeTraversal>,
+    si: &SearchInstance,
+    output_format: &TraversalOutputFormat,
+    geoms: &[LineString<f32>],
+) -> Result<serde_json::Value, String> {
+    let last_edge = route
+        .last()
+        .ok_or_else(|| String::from("cannot find result route state when route is empty"))?;
+    let path_json = output_format
+        .generate_route_output(route, geoms)
+        .map_err(|e| e.to_string())?;
+    let traversal_summary = si.state_model.serialize_state(&last_edge.result_state);
+    let state_model = si.state_model.serialize_state_model();
+    let cost = si
+        .cost_model
+        .serialize_cost(&last_edge.result_state)
+        .map_err(|e| e.to_string())?;
+    let cost_model = si
+        .cost_model
+        .serialize_cost_info()
+        .map_err(|e| e.to_string())?;
+    let result = serde_json::json![{
+        "traversal_summary": traversal_summary,
+        "state_model": state_model,
+        "cost_model": cost_model,
+        "cost": cost,
+        "path": path_json
+    }];
+    Ok(result)
 }
 
 #[cfg(test)]

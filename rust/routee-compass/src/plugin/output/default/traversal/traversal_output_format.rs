@@ -19,6 +19,7 @@ pub enum TraversalOutputFormat {
     Json,
     // returns the geometries and properties as GeoJSON
     GeoJson,
+    EdgeId,
 }
 
 impl TraversalOutputFormat {
@@ -42,6 +43,11 @@ impl TraversalOutputFormat {
                 let result = ops::create_route_geojson(route, geoms)?;
                 Ok(result)
             }
+            TraversalOutputFormat::EdgeId => {
+                let route_ids = route.iter().map(|e| e.edge_id).collect::<Vec<_>>();
+                let json = serde_json::json![route_ids];
+                Ok(json)
+            }
         }
     }
 
@@ -64,6 +70,14 @@ impl TraversalOutputFormat {
             TraversalOutputFormat::GeoJson => {
                 let result = ops::create_tree_geojson(tree, geoms)?;
                 Ok(result)
+            }
+            TraversalOutputFormat::EdgeId => {
+                let tree_ids = tree
+                    .values()
+                    .map(|b| b.edge_traversal.edge_id)
+                    .collect::<Vec<_>>();
+                let json = serde_json::json![tree_ids];
+                Ok(json)
             }
         }
     }
@@ -106,12 +120,10 @@ mod test {
             },
         ];
         let result = SearchAppResult {
-            route,
-            tree: HashMap::new(),
+            routes: vec![route],
+            trees: vec![],
             search_executed_time: Local::now().to_rfc3339(),
-            algorithm_runtime: Duration::ZERO,
-            route_runtime: Duration::ZERO,
-            search_app_runtime: Duration::ZERO,
+            search_runtime: Duration::ZERO,
             iterations: 0,
         };
 
@@ -141,6 +153,12 @@ mod test {
         println!(
             "{:?}",
             TraversalOutputFormat::GeoJson
+                .generate_route_output(&result.route, &geoms)
+                .map(|r| serde_json::to_string_pretty(&r))
+        );
+        println!(
+            "{:?}",
+            TraversalOutputFormat::EdgeId
                 .generate_route_output(&result.route, &geoms)
                 .map(|r| serde_json::to_string_pretty(&r))
         );

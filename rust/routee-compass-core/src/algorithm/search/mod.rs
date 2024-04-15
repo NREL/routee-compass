@@ -8,6 +8,7 @@ pub mod direction;
 pub mod edge_traversal;
 pub mod ksp;
 pub mod search_algorithm;
+pub mod search_algorithm_result;
 pub mod search_error;
 pub mod search_instance;
 pub mod search_result;
