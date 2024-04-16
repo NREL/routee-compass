@@ -95,7 +95,7 @@ mod test {
             road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar, unit::Cost,
         },
     };
-    use std::{time::Duration};
+    use std::time::Duration;
 
     #[test]
     fn test() {
