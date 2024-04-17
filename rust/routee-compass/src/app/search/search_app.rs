@@ -5,7 +5,7 @@ use crate::{
         config::cost_model::cost_model_service::CostModelService,
         search_orientation::SearchOrientation,
     },
-    plugin::input::{input_field::InputField, input_json_extensions::InputJsonExtensions},
+    plugin::input::input_json_extensions::InputJsonExtensions,
 };
 use chrono::Local;
 use routee_compass_core::{
@@ -20,7 +20,6 @@ use routee_compass_core::{
         traversal::traversal_model_service::TraversalModelService,
     },
 };
-use serde_json::json;
 use std::sync::Arc;
 use std::time;
 
@@ -136,19 +135,11 @@ impl SearchApp {
         let d_opt = query
             .get_destination_edge()
             .map_err(CompassAppError::PluginError)?;
-        // let search_instance = self.build_search_instance(query)?;
-
-        // prepare the vertex-oriented JSON query
-        let mut v_query = query.clone();
-        let e1dv_id = self.directed_graph.dst_vertex_id(o)?;
-        v_query[InputField::OriginVertex.to_str()] = json![e1dv_id];
-
-        if let Some(d_id) = d_opt {
-            let e2sv_id = self.directed_graph.src_vertex_id(d_id)?;
-            v_query[InputField::DestinationVertex.to_str()] = json![e2sv_id];
-        }
-
-        self.run_vertex_oriented(&v_query)
+        let search_instance = self.build_search_instance(query)?;
+        self.search_algorithm
+            .run_edge_oriented(o, d_opt, &search_instance)
+            .map(|search_result| (search_result, search_instance))
+            .map_err(CompassAppError::SearchError)
     }
 
     /// builds the assets that will run the search for this query instance.
