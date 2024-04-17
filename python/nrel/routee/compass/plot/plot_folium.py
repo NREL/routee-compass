@@ -8,8 +8,9 @@ DEFAULT_LINE_KWARGS = {
     "opacity": 0.8,
 }
 
-# routes should exist at a "route" key
+# routes should exist at a "route.path" key
 ROUTE_KEY = "route"
+PATH_KEY = "path"
 
 
 def plot_route_folium(
@@ -50,10 +51,16 @@ def plot_route_folium(
     if not isinstance(result_dict, dict):
         raise ValueError(f"Expected to get a dictionary but got a {type(result_dict)}")
 
-    geom = result_dict.get(ROUTE_KEY)
-    if geom is None:
+    route = result_dict.get(ROUTE_KEY)
+    if route is None:
         raise KeyError(
             f"Could not find '{ROUTE_KEY}' in result. "
+            "Make sure the geometry output plugin is activated"
+        )
+    geom = route.get(PATH_KEY)
+    if geom is None:
+        raise KeyError(
+            f"Could not find '{ROUTE_KEY}.{PATH_KEY}' in result. "
             "Make sure the geometry output plugin is activated"
         )
 
