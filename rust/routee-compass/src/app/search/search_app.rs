@@ -141,15 +141,11 @@ impl SearchApp {
         // prepare the vertex-oriented JSON query
         let mut v_query = query.clone();
         let e1dv_id = self.directed_graph.dst_vertex_id(o)?;
-        let e1dv = self.directed_graph.get_vertex(e1dv_id)?;
-        v_query[InputField::OriginX.to_str()] = json![e1dv.x()];
-        v_query[InputField::OriginY.to_str()] = json![e1dv.y()];
+        v_query[InputField::OriginVertex.to_str()] = json![e1dv_id];
 
         if let Some(d_id) = d_opt {
             let e2sv_id = self.directed_graph.src_vertex_id(d_id)?;
-            let e2sv = self.directed_graph.get_vertex(e2sv_id)?;
-            v_query[InputField::DestinationX.to_str()] = json![e2sv.x()];
-            v_query[InputField::DestinationY.to_str()] = json![e2sv.y()];
+            v_query[InputField::DestinationVertex.to_str()] = json![e2sv_id];
         }
 
         self.run_vertex_oriented(&v_query)
