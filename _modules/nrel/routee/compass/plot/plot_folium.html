@@ -41,7 +41,7 @@
   <script src="../../../../../_static/vendor/fontawesome/6.5.1/js/all.min.js?digest=8d27b9dea8ad943066ae"></script>
 
     <script src="../../../../../_static/documentation_options.js?v=30a733bc"></script>
-    <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
@@ -351,8 +351,9 @@ document.write(`
     <span class="s2">&quot;opacity&quot;</span><span class="p">:</span> <span class="mf">0.8</span><span class="p">,</span>
 <span class="p">}</span>
 
-<span class="c1"># routes should exist at a &quot;route&quot; key</span>
+<span class="c1"># routes should exist at a &quot;route.path&quot; key</span>
 <span class="n">ROUTE_KEY</span> <span class="o">=</span> <span class="s2">&quot;route&quot;</span>
+<span class="n">PATH_KEY</span> <span class="o">=</span> <span class="s2">&quot;path&quot;</span>
 
 
 <div class="viewcode-block" id="plot_route_folium">
@@ -395,10 +396,16 @@ document.write(`
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected to get a dictionary but got a </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">result_dict</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">geom</span> <span class="o">=</span> <span class="n">result_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ROUTE_KEY</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">geom</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">route</span> <span class="o">=</span> <span class="n">result_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ROUTE_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">route</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Could not find &#39;</span><span class="si">{</span><span class="n">ROUTE_KEY</span><span class="si">}</span><span class="s2">&#39; in result. &quot;</span>
+            <span class="s2">&quot;Make sure the geometry output plugin is activated&quot;</span>
+        <span class="p">)</span>
+    <span class="n">geom</span> <span class="o">=</span> <span class="n">route</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PATH_KEY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">geom</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Could not find &#39;</span><span class="si">{</span><span class="n">ROUTE_KEY</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">PATH_KEY</span><span class="si">}</span><span class="s2">&#39; in result. &quot;</span>
             <span class="s2">&quot;Make sure the geometry output plugin is activated&quot;</span>
         <span class="p">)</span>
 
