@@ -307,7 +307,7 @@ fn advance_search(
 ) -> Result<Option<VertexId>, SearchError> {
     match (cost.pop(), target) {
         (None, Some(target_vertex_id)) => {
-            return Err(SearchError::NoPathExists(source, target_vertex_id))
+            Err(SearchError::NoPathExists(source, target_vertex_id))
         }
         (None, None) => Ok(None),
         (Some((current_v, _)), Some(target_v)) if current_v == target_v => Ok(None),

@@ -46,7 +46,7 @@ impl TerminationModel {
                 Some(msg) => return Err(TerminationModelError::QueryTerminated(msg)),
             }
         }
-        return Ok(());
+        Ok(())
     }
 
     /// predicate to test whether a query should terminate based on

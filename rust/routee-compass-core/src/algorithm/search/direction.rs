@@ -1,6 +1,5 @@
 use super::{
     edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
-    search_tree_branch::SearchTreeBranch,
 };
 use crate::model::{
     property::edge::Edge,
@@ -8,7 +7,7 @@ use crate::model::{
     traversal::state::state_variable::StateVar,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 #[serde(rename = "snake_case")]
