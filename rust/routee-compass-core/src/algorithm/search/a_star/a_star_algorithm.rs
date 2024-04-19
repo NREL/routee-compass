@@ -1,3 +1,4 @@
+use crate::algorithm::search::direction::Direction;
 use crate::algorithm::search::edge_traversal::EdgeTraversal;
 use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_instance::SearchInstance;
@@ -20,6 +21,7 @@ use std::time::Instant;
 pub fn run_a_star(
     source: VertexId,
     target: Option<VertexId>,
+    direction: &Direction,
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     if target.map_or(false, |t| t == source) {
@@ -221,6 +223,7 @@ pub fn run_a_star(
 pub fn run_a_star_edge_oriented(
     source: EdgeId,
     target: Option<EdgeId>,
+    direction: &Direction,
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
@@ -242,7 +245,7 @@ pub fn run_a_star_edge_oriented(
             let SearchResult {
                 mut tree,
                 iterations,
-            } = run_a_star(e1_dst, None, si)?;
+            } = run_a_star(e1_dst, None, direction, si)?;
             if !tree.contains_key(&e1_dst) {
                 tree.extend([(e1_dst, src_branch)]);
             }
@@ -287,7 +290,7 @@ pub fn run_a_star_edge_oriented(
                 let SearchResult {
                     mut tree,
                     iterations,
-                } = run_a_star(e1_dst, Some(e2_src), si)?;
+                } = run_a_star(e1_dst, Some(e2_src), direction, si)?;
 
                 if tree.is_empty() {
                     return Err(SearchError::NoPathExists(e1_dst, e2_src));
@@ -473,7 +476,8 @@ mod tests {
             .clone()
             .into_par_iter()
             .map(|(o, d, _expected)| {
-                run_a_star(o, Some(d), &si).map(|search_result| search_result.tree)
+                run_a_star(o, Some(d), &Direction::Forward, &si)
+                    .map(|search_result| search_result.tree)
             })
             .collect();
 

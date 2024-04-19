@@ -37,7 +37,7 @@ impl EdgeTraversal {
     /// collecting the access and traversal costs. returns the
     /// accumulated cost and updated search state.
     pub fn perform_traversal(
-        edge_id: EdgeId,
+        next_edge_id: EdgeId,
         prev_edge_id: Option<EdgeId>,
         prev_state: &[StateVar],
         si: &SearchInstance,
@@ -48,10 +48,12 @@ impl EdgeTraversal {
         // find this traversal in the graph
         let traversal_trajectory = si
             .directed_graph
-            .edge_triplet_attrs(edge_id)
+            .edge_triplet_attrs(next_edge_id)
             .map_err(SearchError::GraphError)?;
 
         // perform access traversal + access cost if a previous edge exists
+        // regardless of search direction, we grab the forward-oriented trajectory
+        // for computing costs: (v1)-[prev]->(v2)-[next]->(v3)
         if let Some(prev_edge_id) = prev_edge_id {
             let e1 = si
                 .directed_graph
@@ -87,7 +89,7 @@ impl EdgeTraversal {
         let traversal_cost = total_cost - access_cost;
 
         let result = EdgeTraversal {
-            edge_id,
+            edge_id: next_edge_id,
             access_cost,
             traversal_cost,
             result_state,

@@ -1,8 +1,8 @@
-use super::a_star::a_star_algorithm;
 use super::backtrack;
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
+use super::{a_star::a_star_algorithm, direction::Direction};
 use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use serde::{Deserialize, Serialize};
 
@@ -26,8 +26,12 @@ impl SearchAlgorithm {
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
             SearchAlgorithm::AStarAlgorithm => {
-                let search_result =
-                    a_star_algorithm::run_a_star(src_id, dst_id_opt, search_instance)?;
+                let search_result = a_star_algorithm::run_a_star(
+                    src_id,
+                    dst_id_opt,
+                    &Direction::Forward,
+                    search_instance,
+                )?;
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
@@ -59,6 +63,7 @@ impl SearchAlgorithm {
                 let search_result = a_star_algorithm::run_a_star_edge_oriented(
                     src_id,
                     dst_id_opt,
+                    &Direction::Forward,
                     search_instance,
                 )?;
                 let routes = match dst_id_opt {
