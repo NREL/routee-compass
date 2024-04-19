@@ -142,10 +142,10 @@ impl Graph {
         }
     }
 
-    pub fn out_edges_iter(
-        &self,
+    pub fn out_edges_iter<'a>(
+        &'a self,
         src: VertexId,
-    ) -> Result<impl Iterator<Item = &EdgeId>, GraphError> {
+    ) -> Result<Box<dyn Iterator<Item = &EdgeId> + 'a>, GraphError> {
         match self.adj.get(src.0) {
             None => Err(GraphError::VertexWithoutOutEdges { vertex_id: src }),
             Some(out_map) => {
@@ -175,10 +175,10 @@ impl Graph {
         }
     }
 
-    pub fn in_edges_iter(
-        &self,
+    pub fn in_edges_iter<'a>(
+        &'a self,
         dst: VertexId,
-    ) -> Result<impl Iterator<Item = &EdgeId>, GraphError> {
+    ) -> Result<Box<dyn Iterator<Item = &EdgeId> + 'a>, GraphError> {
         match self.rev.get(dst.0) {
             None => Err(GraphError::VertexWithoutInEdges { vertex_id: dst }),
             Some(in_map) => {

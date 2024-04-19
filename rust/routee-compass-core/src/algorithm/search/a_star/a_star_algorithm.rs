@@ -47,60 +47,18 @@ pub fn run_a_star(
     let mut iterations = 0;
 
     loop {
-        // handle app-level termination conditions
-        let should_terminate =
-            si.termination_model
-                .terminate_search(&start_time, solution.len(), iterations)?;
+        si.termination_model
+            .test(&start_time, solution.len(), iterations)?;
 
-        if should_terminate {
-            let explanation =
-                si.termination_model
-                    .explain_termination(&start_time, solution.len(), iterations);
-            match explanation {
-                None => {
-                    return Err(SearchError::InternalSearchError(format!(
-                        "unable to explain termination with start_time, solution_size, iterations: {:?}, {}, {}",
-                        &start_time,
-                        solution.len(),
-                        iterations
-                    )))
-                }
-                Some(msg) => return Err(SearchError::QueryTerminated(msg)),
-            }
-        }
-
-        // grab the current vertex id, but handle some other termination conditions
-        // based on the state of the priority queue and optional search destination
-        // - we reach the destination                                       (Ok)
-        // - if the set is ever empty and there's no destination            (Ok)
-        // - if the set is ever empty and there's a destination             (Err)
-        let current_vertex_id = match (costs.pop(), target) {
-            (None, Some(target_vertex_id)) => {
-                return Err(SearchError::NoPathExists(source, target_vertex_id))
-            }
-            (None, None) => break,
-            (Some((current_v, _)), Some(target_v)) if current_v == target_v => break,
-            (Some((current_vertex_id, _)), _) => current_vertex_id,
+        let current_vertex_id = match advance_search(&mut costs, source, target)? {
+            None => break,
+            Some(id) => id,
         };
 
-        let previous_edge = if current_vertex_id == source {
-            None
-        } else {
-            let edge_id = solution
-                .get(&current_vertex_id)
-                .ok_or_else(|| {
-                    SearchError::InternalSearchError(format!(
-                        "expected vertex id {} missing from solution",
-                        current_vertex_id
-                    ))
-                })?
-                .edge_traversal
-                .edge_id;
-            let edge = si
-                .directed_graph
-                .get_edge(edge_id)
-                .map_err(SearchError::GraphError)?;
-            Some(edge)
+        let last_edge_id = get_last_traversed_edge_id(&current_vertex_id, &source, &solution)?;
+        let last_edge = match last_edge_id {
+            Some(id) => Some(si.directed_graph.get_edge(id)?),
+            None => None,
         };
 
         // grab the current state from the solution
@@ -121,52 +79,48 @@ pub fn run_a_star(
         };
 
         // visit all neighbors of this source vertex
-        for edge_id in si.directed_graph.out_edges_iter(current_vertex_id)? {
+        let incident_edge_iterator = direction.get_incident_edges(&current_vertex_id, si)?;
+        for edge_id in incident_edge_iterator {
             let e = si.directed_graph.get_edge(*edge_id)?;
-            let src_id = e.src_vertex_id;
-            let dst_id = e.dst_vertex_id;
 
-            if !si.frontier_model.valid_frontier(
-                e,
-                &current_state,
-                previous_edge,
-                &si.state_model,
-            )? {
+            let terminal_vertex_id = direction.terminal_vertex_id(e);
+            let key_vertex_id = direction.tree_key_vertex_id(e);
+
+            let valid_frontier =
+                si.frontier_model
+                    .valid_frontier(e, &current_state, last_edge, &si.state_model)?;
+            if !valid_frontier {
                 continue;
             }
-            let et = EdgeTraversal::perform_traversal(
-                *edge_id,
-                previous_edge.map(|pe| pe.edge_id),
-                &current_state,
-                si,
-            )?;
+            let et =
+                direction.perform_edge_traversal(*edge_id, last_edge_id, &current_state, si)?;
             let current_gscore = traversal_costs
-                .get(&src_id)
+                .get(&terminal_vertex_id)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
             let tentative_gscore = current_gscore + et.total_cost();
             let existing_gscore = traversal_costs
-                .get(&dst_id)
+                .get(&key_vertex_id)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
             if tentative_gscore < existing_gscore {
-                traversal_costs.insert(dst_id, tentative_gscore);
+                traversal_costs.insert(key_vertex_id, tentative_gscore);
 
                 // update solution
                 let traversal = SearchTreeBranch {
-                    terminal_vertex: src_id,
+                    terminal_vertex: terminal_vertex_id,
                     edge_traversal: et,
                 };
-                solution.insert(dst_id, traversal);
+                solution.insert(key_vertex_id, traversal);
 
                 let dst_h_cost = match target {
                     None => Cost::ZERO,
                     Some(target_v) => {
-                        si.estimate_traversal_cost(dst_id, target_v, &current_state)?
+                        si.estimate_traversal_cost(key_vertex_id, target_v, &current_state)?
                     }
                 };
                 let f_score_value = tentative_gscore + dst_h_cost;
-                costs.push_increase(dst_id, f_score_value.into());
+                costs.push_increase(key_vertex_id, f_score_value.into());
             }
         }
         iterations += 1;
@@ -264,8 +218,8 @@ pub fn run_a_star_edge_oriented(
             } else if e1_dst == e2_src {
                 // route is simply source -> target
                 let init_state = si.state_model.initial_state()?;
-                let src_et = EdgeTraversal::perform_traversal(source, None, &init_state, si)?;
-                let dst_et = EdgeTraversal::perform_traversal(
+                let src_et = EdgeTraversal::forward_traversal(source, None, &init_state, si)?;
+                let dst_et = EdgeTraversal::forward_traversal(
                     target_edge,
                     Some(source),
                     &src_et.result_state,
@@ -328,6 +282,74 @@ pub fn run_a_star_edge_oriented(
                 Ok(result)
             }
         }
+    }
+}
+
+/// grab the current vertex id, but handle some other termination conditions
+/// based on the state of the priority queue and optional search destination
+/// - we reach the destination                                       (Ok)
+/// - if the set is ever empty and there's no destination            (Ok)
+/// - if the set is ever empty and there's a destination             (Err)
+///
+/// # Arguments
+/// * `cost`   - queue of priority-ranked vertices for exploration
+/// * `source` - search source vertex
+/// * `target` - optional search destination
+///
+/// # Results
+/// The next vertex to search. None if the queue has been exhausted in a search with no
+/// destination, or we have reached our destination.
+/// An error if no path exists for a search that includes a destination.
+fn advance_search(
+    cost: &mut InternalPriorityQueue<VertexId, ReverseCost>,
+    source: VertexId,
+    target: Option<VertexId>,
+) -> Result<Option<VertexId>, SearchError> {
+    match (cost.pop(), target) {
+        (None, Some(target_vertex_id)) => {
+            return Err(SearchError::NoPathExists(source, target_vertex_id))
+        }
+        (None, None) => Ok(None),
+        (Some((current_v, _)), Some(target_v)) if current_v == target_v => Ok(None),
+        (Some((current_vertex_id, _)), _) => Ok(Some(current_vertex_id)),
+    }
+}
+
+/// Find the last-traversed edge before reaching this vertex id.
+/// The logic is the same for forward and reverse searches but finds
+/// a different result because the trees are different.
+/// Forward case: find `prev` from v2 in `(v1)-[prev]->(v2)-[next]->(v3)`
+/// Reverse case: find `next` from v2 in `(v1)-[prev]->(v2)-[next]->(v3)`
+///
+/// # Arguments
+/// * `this_vertex_id`  - current vertex, v2 in diagram
+/// * `first_vertex_id` - source of this search, the origin vertex in a forward
+///                       search or the destination vertex in a reverse search
+/// * `tree`            - current search solution tree
+///
+/// # Returns
+///
+/// The EdgeId for the edge that was traversed to reach this vertex, or None
+/// if no edges have yet been traversed.
+fn get_last_traversed_edge_id(
+    this_vertex_id: &VertexId,
+    first_vertex_id: &VertexId,
+    tree: &HashMap<VertexId, SearchTreeBranch>,
+) -> Result<Option<EdgeId>, SearchError> {
+    if this_vertex_id == first_vertex_id {
+        Ok(None)
+    } else {
+        let edge_id = tree
+            .get(this_vertex_id)
+            .ok_or_else(|| {
+                SearchError::InternalSearchError(format!(
+                    "expected vertex id {} missing from solution",
+                    this_vertex_id
+                ))
+            })?
+            .edge_traversal
+            .edge_id;
+        Ok(Some(edge_id))
     }
 }
 
