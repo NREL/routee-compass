@@ -152,7 +152,6 @@ impl ConfigJsonExtensions for serde_json::Value {
         parent_key: &dyn AsRef<str>,
     ) -> Result<Option<String>, CompassConfigurationError> {
         let key_path = key.as_ref();
-        let parent_path = parent_key.as_ref();
         match self.get(key_path) {
             None => Ok(None),
             Some(value) => value
