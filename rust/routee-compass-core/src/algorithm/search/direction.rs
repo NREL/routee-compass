@@ -8,10 +8,10 @@ use crate::model::{
 };
 use serde::{Deserialize, Serialize};
 
-
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize, Default)]
 #[serde(rename = "snake_case")]
 pub enum Direction {
+    #[default]
     Forward,
     Reverse,
 }

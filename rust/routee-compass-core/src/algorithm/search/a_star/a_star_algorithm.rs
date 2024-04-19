@@ -29,8 +29,7 @@ pub fn run_a_star(
     }
 
     // context for the search (graph, search functions, frontier priority queue)
-    let mut costs: InternalPriorityQueue<VertexId, ReverseCost> =
-        InternalPriorityQueue(PriorityQueue::new());
+    let mut costs: InternalPriorityQueue<VertexId, ReverseCost> = InternalPriorityQueue::default();
     let mut traversal_costs: HashMap<VertexId, Cost> = HashMap::new();
     let mut solution: HashMap<VertexId, SearchTreeBranch> = HashMap::new();
 
@@ -306,9 +305,7 @@ fn advance_search(
     target: Option<VertexId>,
 ) -> Result<Option<VertexId>, SearchError> {
     match (cost.pop(), target) {
-        (None, Some(target_vertex_id)) => {
-            Err(SearchError::NoPathExists(source, target_vertex_id))
-        }
+        (None, Some(target_vertex_id)) => Err(SearchError::NoPathExists(source, target_vertex_id)),
         (None, None) => Ok(None),
         (Some((current_v, _)), Some(target_v)) if current_v == target_v => Ok(None),
         (Some((current_vertex_id, _)), _) => Ok(Some(current_vertex_id)),
