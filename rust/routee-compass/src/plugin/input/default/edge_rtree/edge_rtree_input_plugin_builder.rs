@@ -20,8 +20,7 @@ impl InputPluginBuilder for EdgeRtreeInputPluginBuilder {
     ) -> Result<Arc<dyn InputPlugin>, CompassConfigurationError> {
         let parent_key = String::from("edge_rtree");
         let linestring_file = parameters.get_config_string(&"geometry_input_file", &parent_key)?;
-        let road_class_file =
-            parameters.get_config_string_optional(&"road_class_input_file", &parent_key)?;
+        let road_class_file = parameters.get_config_string_optional(&"road_class_input_file")?;
 
         let distance_tolerance_option =
             parameters.get_config_serde_optional::<Distance>(&"distance_tolerance", &parent_key)?;

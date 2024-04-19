@@ -32,7 +32,6 @@ pub trait ConfigJsonExtensions {
     fn get_config_string_optional(
         &self,
         key: &dyn AsRef<str>,
-        parent_key: &dyn AsRef<str>,
     ) -> Result<Option<String>, CompassConfigurationError>;
     fn get_config_array(
         &self,
@@ -149,7 +148,6 @@ impl ConfigJsonExtensions for serde_json::Value {
     fn get_config_string_optional(
         &self,
         key: &dyn AsRef<str>,
-        parent_key: &dyn AsRef<str>,
     ) -> Result<Option<String>, CompassConfigurationError> {
         let key_path = key.as_ref();
         match self.get(key_path) {
