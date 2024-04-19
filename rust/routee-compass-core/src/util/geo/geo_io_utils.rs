@@ -5,9 +5,12 @@ use std::path::Path;
 use wkt::TryFromWkt;
 
 /// reads a collection of LINESTRINGS
-pub fn read_linestring_text_file(file: &Path) -> Result<Box<[LineString<f32>]>, std::io::Error> {
-    let is_gzip = fs_utils::is_gzip(file);
-    let count = fs_utils::line_count(file, is_gzip)?;
+pub fn read_linestring_text_file<F: AsRef<Path>>(
+    file: F,
+) -> Result<Box<[LineString<f32>]>, std::io::Error> {
+    let filepath: &Path = file.as_ref();
+    let is_gzip = fs_utils::is_gzip(filepath);
+    let count = fs_utils::line_count(filepath, is_gzip)?;
 
     let mut pb = Bar::builder()
         .total(count)
@@ -20,7 +23,7 @@ pub fn read_linestring_text_file(file: &Path) -> Result<Box<[LineString<f32>]>, 
         let _ = pb.update(1);
     });
     let geoms: Box<[LineString<f32>]> =
-        read_utils::read_raw_file(file, parse_linestring, Some(cb))?;
+        read_utils::read_raw_file(filepath, parse_linestring, Some(cb))?;
     Ok(geoms)
 }
 

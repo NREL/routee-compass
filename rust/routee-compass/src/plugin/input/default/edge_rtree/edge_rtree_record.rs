@@ -5,16 +5,11 @@ use rstar::{PointDistance, RTreeObject, AABB};
 pub struct EdgeRtreeRecord {
     pub edge_id: EdgeId,
     pub geometry: LineString<f32>,
-    pub road_class: u8,
 }
 
 impl EdgeRtreeRecord {
-    pub fn new(edge_id: EdgeId, geometry: LineString<f32>, road_class: u8) -> EdgeRtreeRecord {
-        EdgeRtreeRecord {
-            edge_id,
-            geometry,
-            road_class,
-        }
+    pub fn new(edge_id: EdgeId, geometry: LineString<f32>) -> EdgeRtreeRecord {
+        EdgeRtreeRecord { edge_id, geometry }
     }
 }
 

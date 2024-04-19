@@ -19,10 +19,11 @@ use routee_compass_core::{
     },
 };
 use rstar::RTree;
-use std::{collections::HashSet, path::Path};
+use std::collections::HashSet;
 
 pub struct EdgeRtreeInputPlugin {
     pub rtree: RTree<EdgeRtreeRecord>,
+    pub road_class_lookup: Option<Vec<u8>>,
     pub tolerance: Option<(Distance, DistanceUnit)>,
     pub road_class_parser: RoadClassParser,
 }
@@ -40,13 +41,25 @@ impl InputPlugin for EdgeRtreeInputPlugin {
         let src_coord = query.get_origin_coordinate()?;
         let dst_coord_option = query.get_destination_coordinate()?;
 
-        let source_edge_id = search(&self.rtree, src_coord, &road_classes, self.tolerance)
-            .ok_or_else(|| matching_error(&src_coord, self.tolerance))?;
+        let source_edge_id = search(
+            &self.rtree,
+            &self.road_class_lookup,
+            src_coord,
+            &road_classes,
+            self.tolerance,
+        )?
+        .ok_or_else(|| matching_error(&src_coord, self.tolerance))?;
         let destination_edge_id_option = match dst_coord_option {
             None => Ok(None),
-            Some(dst_coord) => search(&self.rtree, dst_coord, &road_classes, self.tolerance)
-                .map(Some)
-                .ok_or_else(|| matching_error(&dst_coord, self.tolerance)),
+            Some(dst_coord) => search(
+                &self.rtree,
+                &self.road_class_lookup,
+                dst_coord,
+                &road_classes,
+                self.tolerance,
+            )?
+            .map(Some)
+            .ok_or_else(|| matching_error(&dst_coord, self.tolerance)),
         }?;
 
         query.add_origin_edge(source_edge_id)?;
@@ -63,33 +76,38 @@ impl InputPlugin for EdgeRtreeInputPlugin {
 
 impl EdgeRtreeInputPlugin {
     pub fn new(
-        road_class_file: &Path,
-        linestring_file: &Path,
+        road_class_file: Option<String>,
+        linestring_file: String,
         tolerance_distance: Option<Distance>,
         distance_unit: Option<DistanceUnit>,
         road_class_parser: RoadClassParser,
     ) -> Result<Self, CompassConfigurationError> {
-        let road_class_lookup: Vec<u8> =
-            read_utils::read_raw_file(road_class_file, read_decoders::u8, None)?.into_vec();
+        let road_class_lookup: Option<Vec<u8>> = match road_class_file {
+            None => Ok(None),
+            Some(file) => read_utils::read_raw_file(file, read_decoders::u8, None)
+                .map(|r| Some(r.into_vec()))
+                .map_err(CompassConfigurationError::IoError),
+        }?;
         let geometries = read_linestring_text_file(linestring_file)
             .map_err(CompassConfigurationError::IoError)?
             .into_vec();
 
-        let rcl_len = road_class_lookup.len();
+        let rcl_len_opt = road_class_lookup.as_ref().map(|l| l.len());
         let geo_len = geometries.len();
-        if rcl_len != geo_len {
-            let msg = format!(
-                "edge_rtree: road class file and geometries file have different lengths ({} != {})",
-                rcl_len, geo_len
-            );
-            return Err(CompassConfigurationError::UserConfigurationError(msg));
+        if let Some(rcl_len) = rcl_len_opt {
+            if rcl_len != geo_len {
+                let msg = format!(
+                    "edge_rtree: road class file and geometries file have different lengths ({} != {})",
+                    rcl_len, geo_len
+                );
+                return Err(CompassConfigurationError::UserConfigurationError(msg));
+            }
         }
 
         let records: Vec<EdgeRtreeRecord> = geometries
             .into_iter()
             .enumerate()
-            .zip(road_class_lookup)
-            .map(|((idx, geom), rc)| EdgeRtreeRecord::new(EdgeId(idx), geom, rc))
+            .map(|(idx, geom)| EdgeRtreeRecord::new(EdgeId(idx), geom))
             .collect();
 
         let rtree = RTree::bulk_load(records);
@@ -103,6 +121,7 @@ impl EdgeRtreeInputPlugin {
 
         Ok(EdgeRtreeInputPlugin {
             rtree,
+            road_class_lookup,
             tolerance,
             road_class_parser,
         })
@@ -123,24 +142,33 @@ impl EdgeRtreeInputPlugin {
 /// the EdgeId of the nearest edge that meets the tolerance requirement, if provided
 fn search(
     rtree: &RTree<EdgeRtreeRecord>,
+    road_class_lookup: &Option<Vec<u8>>,
     coord: Coord<f32>,
     road_classes: &Option<HashSet<u8>>,
     tolerance: Option<(Distance, DistanceUnit)>,
-) -> Option<EdgeId> {
+) -> Result<Option<EdgeId>, PluginError> {
     let point = geo::Point(coord);
     for (record, distance_meters) in rtree.nearest_neighbor_iter_with_distance_2(&point) {
         if !within_tolerance(tolerance, &distance_meters) {
-            return None;
+            return Ok(None);
         }
-        let valid_class = match &road_classes {
-            None => true,
-            Some(valid_classes) => valid_classes.contains(&record.road_class),
+        let valid_class = match (road_classes, road_class_lookup) {
+            (Some(valid_classes), Some(lookup)) => {
+                let this_class = lookup.get(record.edge_id.0).ok_or_else(|| {
+                    PluginError::PluginFailed(format!(
+                        "edge rtree road class file missing edge {}",
+                        record.edge_id
+                    ))
+                })?;
+                valid_classes.contains(this_class)
+            }
+            _ => true,
         };
         if valid_class {
-            return Some(record.edge_id);
+            return Ok(Some(record.edge_id));
         }
     }
-    None
+    Ok(None)
 }
 
 /// helper to build a matching error response
