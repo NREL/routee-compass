@@ -29,6 +29,10 @@ pub trait ConfigJsonExtensions {
         key: &dyn AsRef<str>,
         parent_key: &dyn AsRef<str>,
     ) -> Result<String, CompassConfigurationError>;
+    fn get_config_string_optional(
+        &self,
+        key: &dyn AsRef<str>,
+    ) -> Result<Option<String>, CompassConfigurationError>;
     fn get_config_array(
         &self,
         key: &dyn AsRef<str>,
@@ -139,6 +143,25 @@ impl ConfigJsonExtensions for serde_json::Value {
                 )
             })?;
         Ok(value)
+    }
+
+    fn get_config_string_optional(
+        &self,
+        key: &dyn AsRef<str>,
+    ) -> Result<Option<String>, CompassConfigurationError> {
+        let key_path = key.as_ref();
+        match self.get(key_path) {
+            None => Ok(None),
+            Some(value) => value
+                .as_str()
+                .map(|v| Some(String::from(v)))
+                .ok_or_else(|| {
+                    CompassConfigurationError::ExpectedFieldWithType(
+                        String::from(key_path),
+                        String::from("String"),
+                    )
+                }),
+        }
     }
 
     fn get_config_array(
