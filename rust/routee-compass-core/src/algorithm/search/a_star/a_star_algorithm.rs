@@ -9,7 +9,7 @@ use crate::model::road_network::vertex_id::VertexId;
 use crate::model::unit::cost::ReverseCost;
 use crate::model::unit::Cost;
 use crate::util::priority_queue::InternalPriorityQueue;
-use priority_queue::PriorityQueue;
+
 use std::collections::HashMap;
 use std::time::Instant;
 
