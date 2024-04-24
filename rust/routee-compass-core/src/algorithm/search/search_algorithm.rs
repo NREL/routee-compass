@@ -198,42 +198,20 @@ pub fn run_edge_oriented(
                 if trees.is_empty() {
                     return Err(SearchError::NoPathExists(e1_dst, e2_src));
                 }
-                // let src_branch = SearchTreeBranch {
-                //     terminal_vertex: e1_src,
-                //     edge_traversal: src_et.clone(),
-                // };
 
                 // it is possible that the search already found these vertices. one major edge
                 // case is when the trip starts with a u-turn.
                 for route in routes.iter_mut() {
-                    let final_branch =
-                        trees.iter().find_map(|t| t.get(&e2_src)).ok_or_else(|| {
-                            SearchError::InternalSearchError(format!(
-                                "finished search with trees but none contain required vertex {}",
-                                e2_src
-                            ))
-                        })?;
-                    // let final_state = &tree
-                    //     .get(&e2_src)
-                    //     .ok_or_else(|| SearchError::VertexMissingFromSearchTree(e2_src))?
-                    //     .edge_traversal
-                    //     .result_state;
+                    let final_state = route.last().ok_or_else(|| {
+                        SearchError::InternalSearchError(String::from("found empty result route"))
+                    })?;
+
                     let dst_et = EdgeTraversal {
                         edge_id: target_edge,
                         access_cost: Cost::ZERO,
                         traversal_cost: Cost::ZERO,
-                        result_state: final_branch.edge_traversal.result_state.to_vec(),
+                        result_state: final_state.result_state.to_vec(),
                     };
-                    // let dst_branch = SearchTreeBranch {
-                    //     terminal_vertex: e2_src,
-                    //     edge_traversal: dst_et.clone(),
-                    // };
-                    // if !tree.contains_key(&e1_dst) {
-                    //     tree.extend([(e1_dst, src_branch.clone())]);
-                    // }
-                    // if !tree.contains_key(&e2_dst) {
-                    //     tree.extend([(e2_dst, dst_branch.clone())]);
-                    // }
                     route.insert(0, src_et.clone());
                     route.push(dst_et.clone());
                 }
