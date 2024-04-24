@@ -1,4 +1,4 @@
-use log::log;
+
 
 use super::route_similarity_function::RouteSimilarityFunction;
 use crate::{
@@ -9,7 +9,7 @@ use crate::{
         search_instance::SearchInstance,
     },
     model::{
-        road_network::vertex_id::VertexId, traversal::state::state_variable::StateVar,
+        road_network::vertex_id::VertexId,
         unit::cost::ReverseCost,
     },
     util::priority_queue::InternalPriorityQueue,
