@@ -1,11 +1,17 @@
+use log::log;
+
 use super::route_similarity_function::RouteSimilarityFunction;
 use crate::{
     algorithm::search::{
-        backtrack, direction::Direction, edge_traversal::EdgeTraversal,
-        search_algorithm::SearchAlgorithm, search_algorithm_result::SearchAlgorithmResult,
-        search_error::SearchError, search_instance::SearchInstance,
+        a_star::bidirectional_a_star_algorithm, backtrack, direction::Direction,
+        edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm,
+        search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
+        search_instance::SearchInstance,
     },
-    model::{road_network::vertex_id::VertexId, unit::cost::ReverseCost},
+    model::{
+        road_network::vertex_id::VertexId, traversal::state::state_variable::StateVar,
+        unit::cost::ReverseCost,
+    },
     util::priority_queue::InternalPriorityQueue,
 };
 use std::collections::HashMap;
@@ -67,40 +73,67 @@ pub fn run(
         }
     }
 
+    log::debug!("ksp intersection has {} vertices", intersection_queue.len());
+
     let tsp = backtrack::vertex_oriented_route(source, target, fwd_tree)?;
     let mut solution: Vec<Vec<EdgeTraversal>> = vec![tsp];
-    let mut ksp_iterations: u64 = 0;
+    let mut ksp_it: u64 = 0;
     loop {
         if solution.len() == k {
+            log::debug!("ksp:{} solution contains {} entries, quitting", ksp_it, k);
             break;
         }
-        ksp_iterations += 1;
         match intersection_queue.pop() {
-            None => break,
+            None => {
+                log::debug!("ksp:{} queue is empty, quitting", ksp_it);
+                break;
+            }
             Some((intersection_vertex_id, _)) => {
+                let mut accept_route = true;
+                // create the i'th route by backtracking both trees and concatenating the result
                 let fwd_route =
                     backtrack::vertex_oriented_route(source, intersection_vertex_id, fwd_tree)?;
-                let mut rev_route =
+                let rev_route_backward =
                     backtrack::vertex_oriented_route(target, intersection_vertex_id, rev_tree)?;
-                rev_route.reverse();
+                let rev_route = bidirectional_a_star_algorithm::reorient_reverse_route(
+                    &fwd_route,
+                    &rev_route_backward,
+                    si,
+                )?;
                 let this_route = fwd_route.into_iter().chain(rev_route).collect::<Vec<_>>();
+
+                // test loop
+                if bidirectional_a_star_algorithm::route_contains_loop(&this_route, si)? {
+                    log::debug!("ksp:{} contains loop", ksp_it);
+                    accept_route = false;
+                }
+
+                // test similarity
                 for solution_route in solution.iter() {
                     let similarity_value =
                         similarity.rank_similarity(&this_route, solution_route, si)?;
                     if !similarity.sufficiently_dissimilar(similarity_value) {
-                        break;
+                        log::debug!("ksp:{} too similar", ksp_it);
+                        accept_route = false;
                     }
                 }
-                solution.push(this_route);
+
+                if accept_route {
+                    log::debug!("ksp:{} alternative accepted", ksp_it);
+                    solution.push(this_route);
+                }
+                ksp_it += 1;
             }
         }
     }
+
+    log::debug!("ksp ran in {} iterations", ksp_it);
 
     // combine all data into this result
     let result = SearchAlgorithmResult {
         trees: vec![fwd_tree.clone(), rev_tree.clone()], // todo: figure out how to avoid this clone
         routes: solution,
-        iterations: fwd_iterations + rev_iterations + ksp_iterations, // todo: figure out how to report individually
+        iterations: fwd_iterations + rev_iterations + ksp_it, // todo: figure out how to report individually
     };
     Ok(result)
 }
