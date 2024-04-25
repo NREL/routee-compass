@@ -1,5 +1,3 @@
-
-
 use super::route_similarity_function::RouteSimilarityFunction;
 use crate::{
     algorithm::search::{
@@ -8,10 +6,7 @@ use crate::{
         search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
         search_instance::SearchInstance,
     },
-    model::{
-        road_network::vertex_id::VertexId,
-        unit::cost::ReverseCost,
-    },
+    model::{road_network::vertex_id::VertexId, unit::cost::ReverseCost},
     util::priority_queue::InternalPriorityQueue,
 };
 use std::collections::HashMap;
