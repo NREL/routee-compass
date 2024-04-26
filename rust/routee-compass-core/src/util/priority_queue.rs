@@ -30,3 +30,36 @@ impl<H: Hash + Eq + Allocative, I: Ord + Allocative, S> Allocative
         let _visitor = visitor.enter_self_sized::<Self>();
     }
 }
+
+mod tests {
+    use crate::model::{
+        road_network::vertex_id::VertexId,
+        unit::{cost::ReverseCost, Cost},
+    };
+
+    use super::*;
+
+    #[test]
+    fn test_priority_queue() {
+        let mut costs: InternalPriorityQueue<VertexId, ReverseCost> =
+            InternalPriorityQueue(PriorityQueue::new());
+
+        costs.push(VertexId(0), Cost::from(0.0003).into());
+        costs.push(VertexId(1), Cost::from(0.0001).into());
+        costs.push(VertexId(2), Cost::from(0.0002).into());
+
+        let (vertex_id, _cost) = costs.pop().unwrap();
+
+        assert_eq!(vertex_id, VertexId(1));
+
+        costs.push_increase(VertexId(0), Cost::from(0.00001).into());
+
+        let (vertex_id, cost) = costs.pop().unwrap();
+
+        assert_eq!(vertex_id, VertexId(0));
+
+        let (vertex_id, cost) = costs.pop().unwrap();
+
+        assert_eq!(vertex_id, VertexId(2));
+    }
+}
