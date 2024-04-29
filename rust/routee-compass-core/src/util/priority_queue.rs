@@ -30,3 +30,9 @@ impl<H: Hash + Eq + Allocative, I: Ord + Allocative, S> Allocative
         let _visitor = visitor.enter_self_sized::<Self>();
     }
 }
+
+impl<I: Hash + Eq, P: Ord> Default for InternalPriorityQueue<I, P, RandomState> {
+    fn default() -> InternalPriorityQueue<I, P, RandomState> {
+        InternalPriorityQueue(PriorityQueue::new())
+    }
+}

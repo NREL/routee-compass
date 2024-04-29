@@ -10,8 +10,9 @@ use crate::{
 use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{
-        search_algorithm::SearchAlgorithm, search_algorithm_result::SearchAlgorithmResult,
-        search_error::SearchError, search_instance::SearchInstance,
+        direction::Direction, search_algorithm::SearchAlgorithm,
+        search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
+        search_instance::SearchInstance,
     },
     model::{
         access::access_model_service::AccessModelService,
@@ -120,7 +121,7 @@ impl SearchApp {
 
         let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
-            .run_vertex_oriented(o, d, &search_instance)
+            .run_vertex_oriented(o, d, &Direction::Forward, &search_instance)
             .map(|search_result| (search_result, search_instance))
             .map_err(CompassAppError::SearchError)
     }
@@ -137,7 +138,7 @@ impl SearchApp {
             .map_err(CompassAppError::PluginError)?;
         let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
-            .run_edge_oriented(o, d_opt, &search_instance)
+            .run_edge_oriented(o, d_opt, &Direction::Forward, &search_instance)
             .map(|search_result| (search_result, search_instance))
             .map_err(CompassAppError::SearchError)
     }
