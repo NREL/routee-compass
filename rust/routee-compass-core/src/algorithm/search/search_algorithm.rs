@@ -38,7 +38,7 @@ impl SearchAlgorithm {
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
-                weight_factor: Some(Cost::ONE),
+                weight_factor: Some(Cost::ZERO),
             }
             .run_vertex_oriented(src_id, dst_id_opt, direction, si),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
@@ -86,7 +86,7 @@ impl SearchAlgorithm {
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
-                weight_factor: Some(Cost::ONE),
+                weight_factor: Some(Cost::ZERO),
             }
             .run_edge_oriented(src_id, dst_id_opt, direction, search_instance),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
