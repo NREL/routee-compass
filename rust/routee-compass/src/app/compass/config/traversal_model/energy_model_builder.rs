@@ -78,10 +78,10 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         }
 
         let time_unit_option = params
-            .get_config_serde_optional::<TimeUnit>(&"output_time_unit", &parent_key)
+            .get_config_serde_optional::<TimeUnit>(&"time_unit", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
         let distance_unit_option = params
-            .get_config_serde_optional::<DistanceUnit>(&"output_distance_unit", &parent_key)
+            .get_config_serde_optional::<DistanceUnit>(&"distance_unit", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         let service = EnergyModelService::new(
