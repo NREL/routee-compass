@@ -24,6 +24,31 @@ pub enum TerminationModel {
 }
 
 impl TerminationModel {
+    /// Tests if the search should terminate.
+    pub fn test(
+        &self,
+        start_time: &Instant,
+        solution_size: usize,
+        iterations: u64,
+    ) -> Result<(), TerminationModelError> {
+        let should_terminate = self.terminate_search(start_time, solution_size, iterations)?;
+        if should_terminate {
+            let explanation = self.explain_termination(start_time, solution_size, iterations);
+            match explanation {
+                None => {
+                    return Err(TerminationModelError::RuntimeError(format!(
+                        "unable to explain termination with start_time, solution_size, iterations: {:?}, {}, {}",
+                        &start_time,
+                        solution_size,
+                        iterations
+                    )))
+                }
+                Some(msg) => return Err(TerminationModelError::QueryTerminated(msg)),
+            }
+        }
+        Ok(())
+    }
+
     /// predicate to test whether a query should terminate based on
     /// application-level configurations
     pub fn terminate_search(
