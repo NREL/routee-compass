@@ -8,7 +8,7 @@ use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
 use super::{a_star::a_star_algorithm, direction::Direction};
 use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
-use crate::model::unit::as_f64::AsF64;
+
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
