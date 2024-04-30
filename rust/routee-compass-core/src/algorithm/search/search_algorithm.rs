@@ -8,6 +8,7 @@ use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
 use super::{a_star::a_star_algorithm, direction::Direction};
 use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
+
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -15,8 +16,11 @@ use std::collections::HashMap;
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum SearchAlgorithm {
+    Dijkstra,
     #[serde(rename = "a*")]
-    AStarAlgorithm,
+    AStarAlgorithm {
+        weight_factor: Option<Cost>,
+    },
     KspSingleVia {
         k: usize,
         underlying: Box<SearchAlgorithm>,
@@ -33,9 +37,18 @@ impl SearchAlgorithm {
         si: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
-            SearchAlgorithm::AStarAlgorithm => {
-                let search_result =
-                    a_star_algorithm::run_a_star(src_id, dst_id_opt, direction, si)?;
+            SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
+                weight_factor: Some(Cost::ZERO),
+            }
+            .run_vertex_oriented(src_id, dst_id_opt, direction, si),
+            SearchAlgorithm::AStarAlgorithm { weight_factor } => {
+                let search_result = a_star_algorithm::run_a_star(
+                    src_id,
+                    dst_id_opt,
+                    direction,
+                    *weight_factor,
+                    si,
+                )?;
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
@@ -72,11 +85,16 @@ impl SearchAlgorithm {
         search_instance: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
-            SearchAlgorithm::AStarAlgorithm => {
+            SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
+                weight_factor: Some(Cost::ZERO),
+            }
+            .run_edge_oriented(src_id, dst_id_opt, direction, search_instance),
+            SearchAlgorithm::AStarAlgorithm { weight_factor } => {
                 let search_result = a_star_algorithm::run_a_star_edge_oriented(
                     src_id,
                     dst_id_opt,
                     direction,
+                    *weight_factor,
                     search_instance,
                 )?;
                 let routes = match dst_id_opt {

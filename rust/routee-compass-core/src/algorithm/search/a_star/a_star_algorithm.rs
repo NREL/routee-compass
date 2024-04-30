@@ -6,6 +6,7 @@ use crate::algorithm::search::search_result::SearchResult;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
 use crate::model::road_network::edge_id::EdgeId;
 use crate::model::road_network::vertex_id::VertexId;
+use crate::model::unit::as_f64::AsF64;
 use crate::model::unit::cost::ReverseCost;
 use crate::model::unit::Cost;
 use crate::util::priority_queue::InternalPriorityQueue;
@@ -22,6 +23,7 @@ pub fn run_a_star(
     source: VertexId,
     target: Option<VertexId>,
     direction: &Direction,
+    weight_factor: Option<Cost>,
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     if target.map_or(false, |t| t == source) {
@@ -38,7 +40,10 @@ pub fn run_a_star(
     let initial_state = si.state_model.initial_state()?;
     let origin_cost = match target {
         None => Cost::ZERO,
-        Some(target) => si.estimate_traversal_cost(source, target, &initial_state)?,
+        Some(target) => {
+            let cost_est = si.estimate_traversal_cost(source, target, &initial_state)?;
+            Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
+        }
     };
     costs.push(source, origin_cost.into());
 
@@ -115,7 +120,9 @@ pub fn run_a_star(
                 let dst_h_cost = match target {
                     None => Cost::ZERO,
                     Some(target_v) => {
-                        si.estimate_traversal_cost(key_vertex_id, target_v, &current_state)?
+                        let cost_est =
+                            si.estimate_traversal_cost(key_vertex_id, target_v, &current_state)?;
+                        Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
                     }
                 };
                 let f_score_value = tentative_gscore + dst_h_cost;
@@ -177,6 +184,7 @@ pub fn run_a_star_edge_oriented(
     source: EdgeId,
     target: Option<EdgeId>,
     direction: &Direction,
+    weight_factor: Option<Cost>,
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
@@ -198,7 +206,7 @@ pub fn run_a_star_edge_oriented(
             let SearchResult {
                 mut tree,
                 iterations,
-            } = run_a_star(e1_dst, None, direction, si)?;
+            } = run_a_star(e1_dst, None, direction, weight_factor, si)?;
             if !tree.contains_key(&e1_dst) {
                 tree.extend([(e1_dst, src_branch)]);
             }
@@ -243,7 +251,7 @@ pub fn run_a_star_edge_oriented(
                 let SearchResult {
                     mut tree,
                     iterations,
-                } = run_a_star(e1_dst, Some(e2_src), direction, si)?;
+                } = run_a_star(e1_dst, Some(e2_src), direction, weight_factor, si)?;
 
                 if tree.is_empty() {
                     return Err(SearchError::NoPathExists(e1_dst, e2_src));
@@ -495,7 +503,7 @@ mod tests {
             .clone()
             .into_par_iter()
             .map(|(o, d, _expected)| {
-                run_a_star(o, Some(d), &Direction::Forward, &si)
+                run_a_star(o, Some(d), &Direction::Forward, None, &si)
                     .map(|search_result| search_result.tree)
             })
             .collect();
