@@ -17,7 +17,7 @@ pub struct CliArgs {
     pub query_file: String,
 
     /// Size of batches to load into memory at a time
-    #[arg(short, long)]
+    #[arg(long)]
     pub chunksize: Option<i64>,
 
     /// Format of JSON queries file, if regular JSON or newline-delimited JSON
