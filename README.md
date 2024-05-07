@@ -22,7 +22,7 @@ RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of sof
 - Core engine written in Rust for improved runtimes, parallel query execution, and the ability to load nation-sized road networks into memory
 - Rust, HTTP, and Python APIs for integration into different research pipelines and other software
 
-RouteE Compass is a part of the [RouteE](https://www.nrel.gov/transportation/route-energy-prediction-model.html) family of mobility tools created at the National Renewable Energy Laboratory.
+RouteE Compass is a part of the [RouteE](https://www.nrel.gov/transportation/route-energy-prediction-model.html) family of mobility tools created at the National Renewable Energy Laboratory and uses [RouteE Powertrain](https://github.com/NREL/routee-powertrain) to predict vehicle energy during the search.
 
 ## Installation
 
