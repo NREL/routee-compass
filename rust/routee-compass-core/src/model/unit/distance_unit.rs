@@ -9,6 +9,7 @@ pub enum DistanceUnit {
     Meters,
     Kilometers,
     Miles,
+    Inches,
 }
 
 impl DistanceUnit {
@@ -18,12 +19,19 @@ impl DistanceUnit {
             (S::Meters, S::Meters) => *value,
             (S::Meters, S::Kilometers) => *value * 0.001,
             (S::Meters, S::Miles) => *value * 0.0006215040398,
+            (S::Meters, S::Inches) => *value * 39.3701,
             (S::Kilometers, S::Meters) => *value * 1000.0,
             (S::Kilometers, S::Kilometers) => *value,
             (S::Kilometers, S::Miles) => *value * 0.6215040398,
+            (S::Kilometers, S::Inches) => *value * 39370.1,
             (S::Miles, S::Meters) => *value * 1609.34,
             (S::Miles, S::Kilometers) => *value * 1.60934,
             (S::Miles, S::Miles) => *value,
+            (S::Miles, S::Inches) => *value * 63360.0,
+            (S::Inches, S::Meters) => *value * 0.0254,
+            (S::Inches, S::Kilometers) => *value * 0.0000254,
+            (S::Inches, S::Miles) => *value * 0.0000157828,
+            (S::Inches, S::Inches) => *value,
         }
     }
 }

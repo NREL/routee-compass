@@ -47,6 +47,10 @@ impl From<(DistanceUnit, TimeUnit)> for SpeedUnit {
             (D::Miles, T::Minutes) => todo!(),
             (D::Miles, T::Seconds) => todo!(),
             (D::Miles, T::Milliseconds) => todo!(),
+            (D::Inches, T::Hours) => todo!(),
+            (D::Inches, T::Minutes) => todo!(),
+            (D::Inches, T::Seconds) => todo!(),
+            (D::Inches, T::Milliseconds) => todo!(),
         }
     }
 }
