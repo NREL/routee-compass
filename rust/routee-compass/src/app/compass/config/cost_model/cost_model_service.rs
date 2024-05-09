@@ -17,6 +17,7 @@ pub struct CostModelService {
     pub network_rates: Arc<HashMap<String, NetworkCostRate>>,
     pub weights: Arc<HashMap<String, f64>>,
     pub cost_aggregation: CostAggregation,
+    pub expect_exact_weights: bool,
 }
 
 impl CostModelService {
@@ -66,7 +67,7 @@ impl CostModelService {
             .collect::<Vec<_>>();
 
         // validate user input, no query state variables provided that are unknown to traversal model
-        if weights.len() != query_state_indices.len() {
+        if weights.len() != query_state_indices.len() && self.expect_exact_weights {
             let names_lookup: HashSet<&String> =
                 query_state_indices.iter().map(|(n, _)| n).collect();
 

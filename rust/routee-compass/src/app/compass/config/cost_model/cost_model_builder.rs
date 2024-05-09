@@ -32,11 +32,16 @@ impl CostModelBuilder {
             .get_config_serde_optional(&"cost_aggregation", &parent_key)?
             .unwrap_or_default();
 
+        let expect_exact_weights = config
+            .get_config_serde_optional(&"expect_exact_weights", &parent_key)?
+            .unwrap_or_default();
+
         let model = CostModelService {
             vehicle_rates: Arc::new(vehicle_rates),
             network_rates: Arc::new(network_rates),
             weights: Arc::new(weights),
             cost_aggregation,
+            expect_exact_weights,
         };
         Ok(model)
     }
