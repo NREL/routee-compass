@@ -1,5 +1,5 @@
 use super::{
-    truck_parameters::TruckParameters, truck_restriction::TruckRestriction,
+    restriction::TruckRestriction, truck_parameters::TruckParameters,
     truck_restriction_model::TruckRestrictionFrontierModel,
 };
 use routee_compass_core::model::{

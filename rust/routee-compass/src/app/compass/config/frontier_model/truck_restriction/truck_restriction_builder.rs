@@ -16,7 +16,7 @@ use serde::Deserialize;
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use super::{
-    truck_restriction::TruckRestriction, truck_restriction_service::TruckRestrictionFrontierService,
+    restriction::TruckRestriction, truck_restriction_service::TruckRestrictionFrontierService,
 };
 
 #[derive(Debug, Clone, Deserialize)]

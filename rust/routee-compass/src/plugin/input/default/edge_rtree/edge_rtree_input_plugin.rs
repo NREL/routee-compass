@@ -5,7 +5,7 @@ use crate::{
         frontier_model::{
             road_class::road_class_parser::RoadClassParser,
             truck_restriction::{
-                truck_parameters::TruckParameters, truck_restriction::TruckRestriction,
+                restriction::TruckRestriction, truck_parameters::TruckParameters,
                 truck_restriction_builder::truck_restriction_lookup_from_file,
             },
         },
