@@ -1,5 +1,6 @@
 use super::{
-    truck_parameters::TruckParameters, truck_restriction_service::TruckRestrictionFrontierService,
+    vehicle_parameters::VehicleParameters,
+    vehicle_restriction_service::VehicleRestrictionFrontierService,
 };
 use routee_compass_core::model::{
     frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
@@ -9,12 +10,12 @@ use routee_compass_core::model::{
 };
 use std::sync::Arc;
 
-pub struct TruckRestrictionFrontierModel {
-    pub service: Arc<TruckRestrictionFrontierService>,
-    pub truck_parameters: TruckParameters,
+pub struct VehicleRestrictionFrontierModel {
+    pub service: Arc<VehicleRestrictionFrontierService>,
+    pub vehicle_parameters: VehicleParameters,
 }
 
-impl FrontierModel for TruckRestrictionFrontierModel {
+impl FrontierModel for VehicleRestrictionFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
@@ -22,11 +23,11 @@ impl FrontierModel for TruckRestrictionFrontierModel {
         _previous_edge: Option<&Edge>,
         _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
-        match self.service.truck_restriction_lookup.get(&edge.edge_id) {
+        match self.service.vehicle_restriction_lookup.get(&edge.edge_id) {
             None => Ok(true),
-            Some(truck_restrictions) => {
-                for restriction in truck_restrictions.iter() {
-                    if !restriction.valid(&self.truck_parameters) {
+            Some(vehicle_restrictions) => {
+                for restriction in vehicle_restrictions.iter() {
+                    if !restriction.valid(&self.vehicle_parameters) {
                         return Ok(false);
                     }
                 }

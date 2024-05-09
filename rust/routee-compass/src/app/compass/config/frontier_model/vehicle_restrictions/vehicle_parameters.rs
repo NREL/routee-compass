@@ -5,23 +5,25 @@ use routee_compass_core::model::{
     unit::{Distance, DistanceUnit, Weight, WeightUnit},
 };
 
-pub struct TruckParameters {
-    pub truck_height: (Distance, DistanceUnit),
-    pub truck_width: (Distance, DistanceUnit),
-    pub truck_total_length: (Distance, DistanceUnit),
-    pub truck_trailer_length: (Distance, DistanceUnit),
-    pub truck_total_weight: (Weight, WeightUnit),
-    pub truck_number_of_axles: u8,
+pub struct VehicleParameters {
+    pub height: (Distance, DistanceUnit),
+    pub width: (Distance, DistanceUnit),
+    pub total_length: (Distance, DistanceUnit),
+    pub trailer_length: (Distance, DistanceUnit),
+    pub total_weight: (Weight, WeightUnit),
+    pub number_of_axles: u8,
 }
 
-impl TruckParameters {
-    pub fn from_query(query: &serde_json::Value) -> Result<TruckParameters, FrontierModelError> {
-        let truck_params = query.get("truck_parameters").ok_or_else(|| {
-            FrontierModelError::BuildError("Missing field `truck_parameters` in query".to_string())
+impl VehicleParameters {
+    pub fn from_query(query: &serde_json::Value) -> Result<VehicleParameters, FrontierModelError> {
+        let vehicle_params = query.get("vehicle_parameters").ok_or_else(|| {
+            FrontierModelError::BuildError(
+                "Missing field `vehicle_parameters` in query".to_string(),
+            )
         })?;
 
-        let height = truck_params
-            .get_config_serde::<(Distance, DistanceUnit)>(&"height", &"truck_parameters")
+        let height = vehicle_params
+            .get_config_serde::<(Distance, DistanceUnit)>(&"height", &"vehicle_parameters")
             .map_err(|e| {
                 FrontierModelError::BuildError(format!(
                     "Unable to interpret `height` parameter: {}",
@@ -29,8 +31,8 @@ impl TruckParameters {
                 ))
             })?;
 
-        let width = truck_params
-            .get_config_serde::<(Distance, DistanceUnit)>(&"width", &"truck_parameters")
+        let width = vehicle_params
+            .get_config_serde::<(Distance, DistanceUnit)>(&"width", &"vehicle_parameters")
             .map_err(|e| {
                 FrontierModelError::BuildError(format!(
                     "Unable to interpret `width` parameter: {}",
@@ -38,8 +40,8 @@ impl TruckParameters {
                 ))
             })?;
 
-        let total_length = truck_params
-            .get_config_serde::<(Distance, DistanceUnit)>(&"total_length", &"truck_parameters")
+        let total_length = vehicle_params
+            .get_config_serde::<(Distance, DistanceUnit)>(&"total_length", &"vehicle_parameters")
             .map_err(|e| {
                 FrontierModelError::BuildError(format!(
                     "Unable to interpret `total_length` parameter: {}",
@@ -47,8 +49,8 @@ impl TruckParameters {
                 ))
             })?;
 
-        let trailer_length = truck_params
-            .get_config_serde::<(Distance, DistanceUnit)>(&"trailer_length", &"truck_parameters")
+        let trailer_length = vehicle_params
+            .get_config_serde::<(Distance, DistanceUnit)>(&"trailer_length", &"vehicle_parameters")
             .map_err(|e| {
                 FrontierModelError::BuildError(format!(
                     "Unable to interpret `trailer_length` parameter: {}",
@@ -56,8 +58,8 @@ impl TruckParameters {
                 ))
             })?;
 
-        let total_weight = truck_params
-            .get_config_serde::<(Weight, WeightUnit)>(&"total_weight", &"truck_parameters")
+        let total_weight = vehicle_params
+            .get_config_serde::<(Weight, WeightUnit)>(&"total_weight", &"vehicle_parameters")
             .map_err(|e| {
                 FrontierModelError::BuildError(format!(
                     "Unable to interpret `total_weight` parameter: {}",
@@ -65,7 +67,7 @@ impl TruckParameters {
                 ))
             })?;
 
-        let number_of_axles = truck_params
+        let number_of_axles = vehicle_params
             .get("number_of_axles")
             .ok_or_else(|| {
                 FrontierModelError::BuildError(
@@ -79,13 +81,13 @@ impl TruckParameters {
                 )
             })? as u8;
 
-        let params = TruckParameters {
-            truck_height: height,
-            truck_width: width,
-            truck_total_length: total_length,
-            truck_trailer_length: trailer_length,
-            truck_total_weight: total_weight,
-            truck_number_of_axles: number_of_axles,
+        let params = VehicleParameters {
+            height,
+            width,
+            total_length,
+            trailer_length,
+            total_weight,
+            number_of_axles,
         };
         Ok(params)
     }

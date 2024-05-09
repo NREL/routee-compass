@@ -4,9 +4,9 @@ use crate::{
         compass_configuration_error::CompassConfigurationError,
         frontier_model::{
             road_class::road_class_parser::RoadClassParser,
-            truck_restriction::{
-                restriction::TruckRestriction, truck_parameters::TruckParameters,
-                truck_restriction_builder::truck_restriction_lookup_from_file,
+            vehicle_restrictions::{
+                vehicle_parameters::VehicleParameters, vehicle_restriction::VehicleRestriction,
+                vehicle_restriction_builder::vehicle_restriction_lookup_from_file,
             },
         },
     },
@@ -42,8 +42,8 @@ pub struct EdgeRtreeInputPlugin {
     pub road_class_lookup: Option<Vec<u8>>,
     pub road_class_parser: RoadClassParser,
 
-    // Truck restrictions
-    pub truck_restrictions: Option<HashMap<EdgeId, Vec<TruckRestriction>>>,
+    // Vehicle restrictions
+    pub vehicle_restrictions: Option<HashMap<EdgeId, Vec<VehicleRestriction>>>,
 }
 
 impl InputPlugin for EdgeRtreeInputPlugin {
@@ -56,7 +56,7 @@ impl InputPlugin for EdgeRtreeInputPlugin {
                 e
             ))
         })?;
-        let truck_parameters = TruckParameters::from_query(query).ok();
+        let vehicle_parameters = VehicleParameters::from_query(query).ok();
 
         let src_coord = query.get_origin_coordinate()?;
         let dst_coord_option = query.get_destination_coordinate()?;
@@ -67,8 +67,8 @@ impl InputPlugin for EdgeRtreeInputPlugin {
             self.tolerance,
             &self.road_class_lookup,
             &road_classes,
-            &self.truck_restrictions,
-            &truck_parameters,
+            &self.vehicle_restrictions,
+            &vehicle_parameters,
         )?
         .ok_or_else(|| matching_error(&src_coord, self.tolerance))?;
         let destination_edge_id_option = match dst_coord_option {
@@ -79,8 +79,8 @@ impl InputPlugin for EdgeRtreeInputPlugin {
                 self.tolerance,
                 &self.road_class_lookup,
                 &road_classes,
-                &self.truck_restrictions,
-                &truck_parameters,
+                &self.vehicle_restrictions,
+                &vehicle_parameters,
             )?
             .map(Some)
             .ok_or_else(|| matching_error(&dst_coord, self.tolerance)),
@@ -101,7 +101,7 @@ impl InputPlugin for EdgeRtreeInputPlugin {
 impl EdgeRtreeInputPlugin {
     pub fn new(
         road_class_file: Option<String>,
-        truck_restriction_file: Option<String>,
+        vehicle_restriction_file: Option<String>,
         linestring_file: String,
         tolerance_distance: Option<Distance>,
         distance_unit: Option<DistanceUnit>,
@@ -113,12 +113,12 @@ impl EdgeRtreeInputPlugin {
                 .map(|r| Some(r.into_vec()))
                 .map_err(CompassConfigurationError::IoError),
         }?;
-        let truck_restrictions: Option<HashMap<EdgeId, Vec<TruckRestriction>>> =
-            match truck_restriction_file {
+        let vehicle_restrictions: Option<HashMap<EdgeId, Vec<VehicleRestriction>>> =
+            match vehicle_restriction_file {
                 None => None,
                 Some(file) => {
                     let path = PathBuf::from(file);
-                    let trs = truck_restriction_lookup_from_file(&path)?;
+                    let trs = vehicle_restriction_lookup_from_file(&path)?;
                     Some(trs)
                 }
             };
@@ -159,7 +159,7 @@ impl EdgeRtreeInputPlugin {
             road_class_lookup,
             tolerance,
             road_class_parser,
-            truck_restrictions,
+            vehicle_restrictions,
         })
     }
 }
@@ -174,8 +174,8 @@ impl EdgeRtreeInputPlugin {
 ///                 distance/distance unit of the coord provided.
 /// * `road_class_lookup` - optional lookup table for road classes
 /// * `road_classes` - optional set of road classes to restrict search to
-/// * `truck_restrictions` - optional lookup table for truck restrictions
-/// * `truck_parameters` - truck parameters to validate against truck restrictions
+/// * `vehicle_restrictions` - optional lookup table for truck restrictions
+/// * `vehicle_parameters` - truck parameters to validate against truck restrictions
 ///
 /// # Result
 ///
@@ -186,8 +186,8 @@ fn search(
     tolerance: Option<(Distance, DistanceUnit)>,
     road_class_lookup: &Option<Vec<u8>>,
     road_classes: &Option<HashSet<u8>>,
-    truck_restrictions: &Option<HashMap<EdgeId, Vec<TruckRestriction>>>,
-    truck_parameters: &Option<TruckParameters>,
+    vehicle_restrictions: &Option<HashMap<EdgeId, Vec<VehicleRestriction>>>,
+    vehicle_parameters: &Option<VehicleParameters>,
 ) -> Result<Option<EdgeId>, PluginError> {
     let point = geo::Point(coord);
     for (record, distance_meters) in rtree.nearest_neighbor_iter_with_distance_2(&point) {
@@ -206,13 +206,13 @@ fn search(
             }
             _ => true,
         };
-        let valid_truck = match (truck_restrictions, truck_parameters) {
-            (Some(truck_restrictions), Some(truck_parameters)) => {
-                let restrictions = truck_restrictions.get(&record.edge_id);
+        let valid_truck = match (vehicle_restrictions, vehicle_parameters) {
+            (Some(vehicle_restrictions), Some(vehicle_parameters)) => {
+                let restrictions = vehicle_restrictions.get(&record.edge_id);
                 if let Some(restrictions) = restrictions {
                     restrictions
                         .iter()
-                        .all(|restriction| restriction.valid(truck_parameters))
+                        .all(|restriction| restriction.valid(vehicle_parameters))
                 } else {
                     true
                 }

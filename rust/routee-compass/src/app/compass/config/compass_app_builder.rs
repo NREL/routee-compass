@@ -10,8 +10,8 @@ use super::{
     frontier_model::{
         combined::combined_builder::CombinedBuilder, no_restriction_builder::NoRestrictionBuilder,
         road_class::road_class_builder::RoadClassBuilder,
-        truck_restriction::truck_restriction_builder::TruckRestrictionBuilder,
         turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
+        vehicle_restrictions::vehicle_restriction_builder::VehicleRestrictionBuilder,
     },
     traversal_model::{
         distance_traversal_builder::DistanceTraversalBuilder,
@@ -162,13 +162,14 @@ impl CompassAppBuilder {
         let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});
         let road_class: Rc<dyn FrontierModelBuilder> = Rc::new(RoadClassBuilder {});
         let turn_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
-        let truck_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(TruckRestrictionBuilder {});
+        let vehicle_restriction: Rc<dyn FrontierModelBuilder> =
+            Rc::new(VehicleRestrictionBuilder {});
         let base_frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
             HashMap::from([
                 (String::from("no_restriction"), no_restriction),
                 (String::from("road_class"), road_class),
                 (String::from("turn_restriction"), turn_restriction),
-                (String::from("truck_restriction"), truck_restriction),
+                (String::from("vehicle_restriction"), vehicle_restriction),
             ]);
         let combined = Rc::new(CombinedBuilder {
             builders: base_frontier_builders.clone(),
