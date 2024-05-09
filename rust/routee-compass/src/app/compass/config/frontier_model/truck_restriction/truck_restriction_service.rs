@@ -1,9 +1,8 @@
 use super::{
-    truck_parameters::{self, TruckParameters},
+    truck_parameters::TruckParameters,
     truck_restriction::TruckRestriction,
     truck_restriction_model::TruckRestrictionFrontierModel,
 };
-use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::model::{
     frontier::{
         frontier_model::FrontierModel, frontier_model_error::FrontierModelError,
@@ -11,7 +10,6 @@ use routee_compass_core::model::{
     },
     road_network::edge_id::EdgeId,
     state::state_model::StateModel,
-    unit::{Distance, DistanceUnit, Weight, WeightUnit},
 };
 use std::{collections::HashMap, sync::Arc};
 

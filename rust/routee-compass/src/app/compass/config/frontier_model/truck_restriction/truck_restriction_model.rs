@@ -26,7 +26,7 @@ impl FrontierModel for TruckRestrictionFrontierModel {
             None => Ok(true),
             Some(truck_restrictions) => {
                 for restriction in truck_restrictions.iter() {
-                    if !restriction.validate(&self.truck_parameters) {
+                    if !restriction.valid(&self.truck_parameters) {
                         return Ok(false);
                     }
                 }

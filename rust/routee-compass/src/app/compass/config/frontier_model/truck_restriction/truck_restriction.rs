@@ -15,7 +15,11 @@ pub enum TruckRestriction {
 }
 
 impl TruckRestriction {
-    pub fn validate(&self, truck_parameters: &truck_parameters::TruckParameters) -> bool {
+    /// Returns true if the truck parameters are valid for the restriction.
+    /// For example, if the restriction is MaximumTotalWeight(1000.0, "kg"),
+    /// and the truck parameters are TruckParameters { truck_total_weight: (500.0, "kg"), ... },
+    /// then the function will return true.
+    pub fn valid(&self, truck_parameters: &truck_parameters::TruckParameters) -> bool {
         match self {
             TruckRestriction::MaximumTotalWeight((restriction_weight, restriction_unit)) => {
                 let (truck_weight, truck_unit) = truck_parameters.truck_total_weight;

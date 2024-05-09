@@ -13,7 +13,7 @@ use routee_compass_core::{
     util::fs::read_utils,
 };
 use serde::Deserialize;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 use super::{
     truck_restriction::TruckRestriction, truck_restriction_service::TruckRestrictionFrontierService,
@@ -63,25 +63,8 @@ impl FrontierModelBuilder for TruckRestrictionBuilder {
                 ))
             })?;
 
-        let rows: Vec<RestrictionRow> =
-            read_utils::from_csv(&truck_restriction_input_file, true, None)
-                .map_err(|e| {
-                    FrontierModelError::BuildError(format!(
-                        "configuration error due to {}: {}",
-                        truck_restriction_input_file_key.clone(),
-                        e
-                    ))
-                })?
-                .to_vec();
-
-        let mut truck_restriction_lookup: HashMap<EdgeId, Vec<TruckRestriction>> = HashMap::new();
-        for row in rows {
-            let restriction: TruckRestriction = row.clone().to_restriction()?;
-            let restrictions = truck_restriction_lookup
-                .entry(row.edge_id)
-                .or_default();
-            restrictions.push(restriction);
-        }
+        let truck_restriction_lookup =
+            truck_restriction_lookup_from_file(&truck_restriction_input_file)?;
 
         let m = TruckRestrictionFrontierService {
             truck_restriction_lookup: Arc::new(truck_restriction_lookup),
@@ -89,4 +72,25 @@ impl FrontierModelBuilder for TruckRestrictionBuilder {
 
         Ok(Arc::new(m))
     }
+}
+
+pub fn truck_restriction_lookup_from_file(
+    truck_restriction_input_file: &PathBuf,
+) -> Result<HashMap<EdgeId, Vec<TruckRestriction>>, FrontierModelError> {
+    let rows: Vec<RestrictionRow> = read_utils::from_csv(&truck_restriction_input_file, true, None)
+        .map_err(|e| {
+            FrontierModelError::BuildError(format!(
+                "Could not load truck restriction file {:?}: {}",
+                truck_restriction_input_file, e
+            ))
+        })?
+        .to_vec();
+
+    let mut truck_restriction_lookup: HashMap<EdgeId, Vec<TruckRestriction>> = HashMap::new();
+    for row in rows {
+        let restriction: TruckRestriction = row.clone().to_restriction()?;
+        let restrictions = truck_restriction_lookup.entry(row.edge_id).or_default();
+        restrictions.push(restriction);
+    }
+    Ok(truck_restriction_lookup)
 }

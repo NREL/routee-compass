@@ -2,7 +2,13 @@ use super::edge_rtree_record::EdgeRtreeRecord;
 use crate::{
     app::compass::config::{
         compass_configuration_error::CompassConfigurationError,
-        frontier_model::road_class::road_class_parser::RoadClassParser,
+        frontier_model::{
+            road_class::road_class_parser::RoadClassParser,
+            truck_restriction::{
+                truck_parameters::TruckParameters, truck_restriction::TruckRestriction,
+                truck_restriction_builder::truck_restriction_lookup_from_file,
+            },
+        },
     },
     plugin::{
         input::{input_json_extensions::InputJsonExtensions, input_plugin::InputPlugin},
@@ -19,13 +25,25 @@ use routee_compass_core::{
     },
 };
 use rstar::RTree;
-use std::collections::HashSet;
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+};
 
 pub struct EdgeRtreeInputPlugin {
     pub rtree: RTree<EdgeRtreeRecord>,
-    pub road_class_lookup: Option<Vec<u8>>,
     pub tolerance: Option<(Distance, DistanceUnit)>,
+
+    // TODO: instead of having to load the road classes and the truck restrictions
+    // it would be cleaner to bring in the FrontierModel into scope so we can just
+    // validate an edge based on the whatever the frontier model is.
+
+    // Road class lookup table in case some road classes are restricted
+    pub road_class_lookup: Option<Vec<u8>>,
     pub road_class_parser: RoadClassParser,
+
+    // Truck restrictions
+    pub truck_restrictions: Option<HashMap<EdgeId, Vec<TruckRestriction>>>,
 }
 
 impl InputPlugin for EdgeRtreeInputPlugin {
@@ -38,25 +56,31 @@ impl InputPlugin for EdgeRtreeInputPlugin {
                 e
             ))
         })?;
+        let truck_parameters = TruckParameters::from_query(query).ok();
+
         let src_coord = query.get_origin_coordinate()?;
         let dst_coord_option = query.get_destination_coordinate()?;
 
         let source_edge_id = search(
-            &self.rtree,
-            &self.road_class_lookup,
             src_coord,
-            &road_classes,
+            &self.rtree,
             self.tolerance,
+            &self.road_class_lookup,
+            &road_classes,
+            &self.truck_restrictions,
+            &truck_parameters,
         )?
         .ok_or_else(|| matching_error(&src_coord, self.tolerance))?;
         let destination_edge_id_option = match dst_coord_option {
             None => Ok(None),
             Some(dst_coord) => search(
-                &self.rtree,
-                &self.road_class_lookup,
                 dst_coord,
-                &road_classes,
+                &self.rtree,
                 self.tolerance,
+                &self.road_class_lookup,
+                &road_classes,
+                &self.truck_restrictions,
+                &truck_parameters,
             )?
             .map(Some)
             .ok_or_else(|| matching_error(&dst_coord, self.tolerance)),
@@ -77,6 +101,7 @@ impl InputPlugin for EdgeRtreeInputPlugin {
 impl EdgeRtreeInputPlugin {
     pub fn new(
         road_class_file: Option<String>,
+        truck_restriction_file: Option<String>,
         linestring_file: String,
         tolerance_distance: Option<Distance>,
         distance_unit: Option<DistanceUnit>,
@@ -88,6 +113,16 @@ impl EdgeRtreeInputPlugin {
                 .map(|r| Some(r.into_vec()))
                 .map_err(CompassConfigurationError::IoError),
         }?;
+        let truck_restrictions: Option<HashMap<EdgeId, Vec<TruckRestriction>>> =
+            match truck_restriction_file {
+                None => None,
+                Some(file) => {
+                    let path = PathBuf::from(file);
+                    let trs = truck_restriction_lookup_from_file(&path)?;
+                    Some(trs)
+                }
+            };
+
         let geometries = read_linestring_text_file(linestring_file)
             .map_err(CompassConfigurationError::IoError)?
             .into_vec();
@@ -124,6 +159,7 @@ impl EdgeRtreeInputPlugin {
             road_class_lookup,
             tolerance,
             road_class_parser,
+            truck_restrictions,
         })
     }
 }
@@ -132,20 +168,26 @@ impl EdgeRtreeInputPlugin {
 ///
 /// # Arguments
 ///
-/// * `rtree` - search tree containing all road network edges
 /// * `coord` - coordinate from which to find a nearest edge
+/// * `rtree` - search tree containing all road network edges
 /// * `tolerance` - distance tolerance argument. if provided, result edge must be within this
 ///                 distance/distance unit of the coord provided.
+/// * `road_class_lookup` - optional lookup table for road classes
+/// * `road_classes` - optional set of road classes to restrict search to
+/// * `truck_restrictions` - optional lookup table for truck restrictions
+/// * `truck_parameters` - truck parameters to validate against truck restrictions
 ///
 /// # Result
 ///
 /// the EdgeId of the nearest edge that meets the tolerance requirement, if provided
 fn search(
-    rtree: &RTree<EdgeRtreeRecord>,
-    road_class_lookup: &Option<Vec<u8>>,
     coord: Coord<f32>,
-    road_classes: &Option<HashSet<u8>>,
+    rtree: &RTree<EdgeRtreeRecord>,
     tolerance: Option<(Distance, DistanceUnit)>,
+    road_class_lookup: &Option<Vec<u8>>,
+    road_classes: &Option<HashSet<u8>>,
+    truck_restrictions: &Option<HashMap<EdgeId, Vec<TruckRestriction>>>,
+    truck_parameters: &Option<TruckParameters>,
 ) -> Result<Option<EdgeId>, PluginError> {
     let point = geo::Point(coord);
     for (record, distance_meters) in rtree.nearest_neighbor_iter_with_distance_2(&point) {
@@ -164,7 +206,20 @@ fn search(
             }
             _ => true,
         };
-        if valid_class {
+        let valid_truck = match (truck_restrictions, truck_parameters) {
+            (Some(truck_restrictions), Some(truck_parameters)) => {
+                let restrictions = truck_restrictions.get(&record.edge_id);
+                if let Some(restrictions) = restrictions {
+                    restrictions
+                        .iter()
+                        .all(|restriction| restriction.valid(truck_parameters))
+                } else {
+                    true
+                }
+            }
+            _ => true,
+        };
+        if valid_class && valid_truck {
             return Ok(Some(record.edge_id));
         }
     }
