@@ -8,7 +8,10 @@ use super::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
     frontier_model::{
-        combined::combined_builder::CombinedBuilder, no_restriction_builder::NoRestrictionBuilder, road_class::road_class_builder::RoadClassBuilder, truck_restriction::truck_restriction_builder::TruckRestrictionBuilder, turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder
+        combined::combined_builder::CombinedBuilder, no_restriction_builder::NoRestrictionBuilder,
+        road_class::road_class_builder::RoadClassBuilder,
+        truck_restriction::truck_restriction_builder::TruckRestrictionBuilder,
+        turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
     },
     traversal_model::{
         distance_traversal_builder::DistanceTraversalBuilder,
