@@ -1,6 +1,5 @@
 use super::{
-    truck_parameters::TruckParameters,
-    truck_restriction::TruckRestriction,
+    truck_parameters::TruckParameters, truck_restriction::TruckRestriction,
     truck_restriction_model::TruckRestrictionFrontierModel,
 };
 use routee_compass_core::model::{
@@ -25,11 +24,8 @@ impl FrontierModelService for TruckRestrictionFrontierService {
         _state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn FrontierModel>, FrontierModelError> {
         let service: Arc<TruckRestrictionFrontierService> = Arc::new(self.clone());
-        let raw_truck_params = query.get("truck_parameters").ok_or_else(|| {
-            FrontierModelError::BuildError("Missing field `truck_parameters` in query".to_string())
-        })?;
 
-        let truck_parameters = TruckParameters::from_query(raw_truck_params)?;
+        let truck_parameters = TruckParameters::from_query(query)?;
 
         let model = TruckRestrictionFrontierModel {
             service,
