@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Rust Code Style &#8212; RouteE Compass</title>
+    <title>Contributing to RouteE Compass &#8212; RouteE Compass</title>
   
   
   
@@ -57,7 +57,7 @@
     <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
     <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
     <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'developers/rust_code_style';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developers/contributing';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -263,7 +263,7 @@
       
       
       
-      <li><a href="https://github.com/NREL/routee-compass/issues/new?title=Issue%20on%20page%20%2Fdevelopers/rust_code_style.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/NREL/routee-compass/issues/new?title=Issue%20on%20page%20%2Fdevelopers/contributing.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -293,7 +293,7 @@
       
       
       
-      <li><a href="../_sources/developers/rust_code_style.md" target="_blank"
+      <li><a href="../_sources/developers/contributing.md" target="_blank"
    class="btn btn-sm btn-download-source-button dropdown-item"
    title="Download source file"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -377,7 +377,7 @@ document.write(`
               
 
 <div id="jb-print-docs-body" class="onlyprint">
-    <h1>Rust Code Style</h1>
+    <h1>Contributing to RouteE Compass</h1>
     <!-- Table of contents -->
     <div id="print-main-content">
         <div id="jb-print-toc">
@@ -387,8 +387,10 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections">Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-builder-service-model-convention-in-routee-compass">The Builder, Service, Model Convention in RouteE Compass</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identifying-an-issue">Identifying an Issue</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#letting-others-know-youre-working-on-the-issue">Letting Others Know You’re Working on the Issue</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installing-the-development-environment">Installing the development environment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#opening-a-pull-request">Opening a Pull Request</a></li>
 </ul>
             </nav>
         </div>
@@ -400,62 +402,51 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="rust-code-style">
-<h1>Rust Code Style<a class="headerlink" href="#rust-code-style" title="Link to this heading">#</a></h1>
-<section id="prefer-box-t-boxed-slices-over-vec-t-for-large-collections">
-<h2>Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections<a class="headerlink" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections" title="Link to this heading">#</a></h2>
-<p>while a <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> is more common, it lacks the ability to match capacity exactly with length unless it is set beforehand. in many cases this is not possible. when dealing with large persistent datasets such as <code class="docutils literal notranslate"><span class="pre">Graph</span></code> and <code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code> data, we want to store that data in a <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code>. when constructing the dataset, the <code class="docutils literal notranslate"><span class="pre">Vec</span></code> can be used, and then converted to a <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> afterward via <code class="docutils literal notranslate"><span class="pre">into_boxed_slice</span></code>:</p>
-<div class="highlight-ignore notranslate"><div class="highlight"><pre><span></span>let path: Path = todo!();
-let data: Vec&lt;T&gt; = read_utils::from_csv(&amp;file_path, True, None)?;
-let output: Box&lt;[T]&gt; = data.into_boxed_slice();
-</pre></div>
-</div>
-<p><code class="docutils literal notranslate"><span class="pre">Vec</span></code> is preferred for smaller or non-persistent datasets, or when the additional features of <code class="docutils literal notranslate"><span class="pre">Vec</span></code> are used, such as iteration or dynamic allocation.</p>
+  <section class="tex2jax_ignore mathjax_ignore" id="contributing-to-routee-compass">
+<h1>Contributing to RouteE Compass<a class="headerlink" href="#contributing-to-routee-compass" title="Link to this heading">#</a></h1>
+<p>This simple guide will walk you through the process of contributing to RouteE Compass.</p>
+<section id="identifying-an-issue">
+<h2>Identifying an Issue<a class="headerlink" href="#identifying-an-issue" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Go to the “Issues” tab in the repository.</p></li>
+<li><p>Look for issues with labels such as “good first issue” if you’re new to the project.</p></li>
+<li><p>Read the issue description and any associated comments to make sure you understand the problem and its requirements.</p></li>
+<li><p>Choose an issue that aligns with your skills and interests.</p></li>
+</ol>
 </section>
-<section id="the-builder-service-model-convention-in-routee-compass">
-<h2>The Builder, Service, Model Convention in RouteE Compass<a class="headerlink" href="#the-builder-service-model-convention-in-routee-compass" title="Link to this heading">#</a></h2>
-<p>in RouteE Compass, large Traversal and Frontier objects are loaded once and shared across threads.
-they are built in two phases: once at application initialization, and once again for each query, so that query-specific parameters can be applied.
-these phases are represented by the following types:</p>
-<table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>phase</p></th>
-<th class="head"><p>description</p></th>
-<th class="head"><p>lifetime</p></th>
-<th class="head"><p>Frontier</p></th>
-<th class="head"><p>Traversal</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><strong>builder</strong></p></td>
-<td><p>an empty struct with a <code class="docutils literal notranslate"><span class="pre">build</span></code> method that creates a <strong>service</strong></p></td>
-<td><p>app initialization only</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FrontierModelBuilder</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">TraversalModelBuilder</span></code></p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>service</strong></p></td>
-<td><p>struct with a <code class="docutils literal notranslate"><span class="pre">build</span></code> method that creates a <strong>model</strong></p></td>
-<td><p>entire program lifetime (same as CompassApp instance)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FrontierModelService</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">TraversalModelService</span></code></p></td>
-</tr>
-<tr class="row-even"><td><p><strong>model</strong></p></td>
-<td><p>object used by the search algorithm</p></td>
-<td><p>duration of a single query</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FrontierModel</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code></p></td>
-</tr>
-</tbody>
-</table>
-<p>when we apply the <code class="docutils literal notranslate"><span class="pre">build</span></code> methods, we get these results (using the travel time <code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code> as an example):</p>
-<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="kd">let</span><span class="w"> </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="nc">serde_json</span><span class="p">::</span><span class="n">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">!</span><span class="p">();</span><span class="w"> </span><span class="c1">// application configuration</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">query</span><span class="p">:</span><span class="w"> </span><span class="nc">serde_json</span><span class="p">::</span><span class="n">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">!</span><span class="p">();</span><span class="w">  </span><span class="c1">// a single user search query</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">builder</span><span class="p">:</span><span class="w"> </span><span class="nb">Box</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">TraversalModelBuilder</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Box</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">SpeedLookupBuilder</span><span class="w"> </span><span class="p">{});</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">service</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">TraversalModelService</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">config</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">model</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">TraversalModel</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">service</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">query</span><span class="p">);</span>
-</pre></div>
-</div>
-<p>the <strong>builder</strong> object instances are wrapped in a <code class="docutils literal notranslate"><span class="pre">Box</span></code> referenced by the <code class="docutils literal notranslate"><span class="pre">CompassAppBuilder</span></code> and used when creating <code class="docutils literal notranslate"><span class="pre">CompassApp</span></code> instances. once we build a <strong>service</strong> from the <strong>builder</strong>, the app requires that they are wrapped in an <code class="docutils literal notranslate"><span class="pre">Arc</span></code>, which is a thread-safe pointer. this way, the <strong>service</strong> can be shared across threads so we can build a <strong>model</strong> for a specific user query from within a query thread.</p>
+<section id="letting-others-know-youre-working-on-the-issue">
+<h2>Letting Others Know You’re Working on the Issue<a class="headerlink" href="#letting-others-know-youre-working-on-the-issue" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Leave a comment on the issue, stating that you’d like to work on it. This helps prevent duplication of effort and lets us know someone is addressing the problem.</p></li>
+<li><p>Wait for a response from the maintainers or the issue creator. They may provide additional information or guidance, or assign the issue to you.</p></li>
+</ol>
+<p>Forking the Repository</p>
+<ol class="arabic simple">
+<li><p>Navigate to the main RouteE Compass page on GitHub.</p></li>
+<li><p>Click on the “Fork” button in the upper right corner. This creates a copy of the repository under your GitHub account.</p></li>
+<li><p>Clone your forked repository to your local machine by clicking the “Code” button and copying the URL. Then, open your terminal or command prompt and run git clone [URL], replacing [URL] with the copied URL.</p></li>
+</ol>
+</section>
+<section id="installing-the-development-environment">
+<h2>Installing the development environment<a class="headerlink" href="#installing-the-development-environment" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Create and activate a new virtual environment with the tool of your choice (e.g. venv, conda, pipenv, etc.).</p></li>
+<li><p>Install the package and dependencies by running pip install -e &quot;.[dev]&quot;. This will install the package in editable mode, so you can make changes to the code and see them reflected in your environment.</p></li>
+</ol>
+</section>
+<section id="opening-a-pull-request">
+<h2>Opening a Pull Request<a class="headerlink" href="#opening-a-pull-request" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Create a new branch in your local repository by running git checkout -b [branch-name], replacing [branch-name] with a descriptive name for your changes.</p></li>
+<li><p>Make changes to the code, addressing the issue you’ve chosen to work on.</p></li>
+<li><p>Commit your changes with a meaningful commit message. Use git add [file] to stage changes, and git commit -m “[commit-message]” to commit them.</p></li>
+<li><p>Push your changes to your forked repository using git push origin [branch-name].</p></li>
+<li><p>Go to your forked repository on GitHub and click on the “Pull requests” tab.</p></li>
+<li><p>Click on the “New Pull Request” button, and select your branch in the “compare” dropdown menu.</p></li>
+<li><p>Review your changes and click “Create Pull Request”. Add a descriptive title and a detailed explanation of the changes you made.</p></li>
+<li><p>Submit your pull request. The project maintainers will review your changes and provide feedback or merge your changes into the main repository.</p></li>
+</ol>
+<p>Thanks for taking the time to contribute to RouteE Compass!</p>
 </section>
 </section>
 
@@ -505,8 +496,10 @@ these phases are represented by the following types:</p>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections">Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-builder-service-model-convention-in-routee-compass">The Builder, Service, Model Convention in RouteE Compass</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identifying-an-issue">Identifying an Issue</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#letting-others-know-youre-working-on-the-issue">Letting Others Know You’re Working on the Issue</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#installing-the-development-environment">Installing the development environment</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#opening-a-pull-request">Opening a Pull Request</a></li>
 </ul>
   </nav></div>
 
