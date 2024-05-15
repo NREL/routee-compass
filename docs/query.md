@@ -56,44 +56,77 @@ Here's an example:
 
 If you have the `grid_search` input plugin enabled, you can also provide a `grid_search` key that the plugin will use to generate multiple queries from a single query.
 
-For example, if you're using the `energy_model` traversal model, it takes an additional key `energy_cost_coefficient` and so if you wanted to sweep this value you could do something like:
+For example if you had this query:
 
 ```json
-query = {
-    "origin_name": "Government Center Station",
-    "destination_name": "Cannonball Creek Brewery",
-    "origin_x": -105.200146,
-    "origin_y": 39.726570,
-    "destination_x": -105.234964,
-    "destination_y": 39.768477,
-    "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
-    "grid_search": {
-        "energy_cost_coefficient": [0.0, 0.5, 1.0]
-    }
+{
+  "origin_name": "Government Center Station",
+  "destination_name": "Cannonball Creek Brewery",
+  "origin_x": -105.200146,
+  "origin_y": 39.72657,
+  "destination_x": -105.234964,
+  "destination_y": 39.768477,
+  "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
+  "grid_search": {
+    "test_cases": [
+      {
+        "name": "shortest_time",
+        "weights": {
+          "distance": 0.0,
+          "time": 1.0,
+          "energy_liquid": 0.0,
+          "energy_electric": 0.0
+        }
+      },
+      {
+        "name": "least_energy",
+        "weights": {
+          "distance": 0.0,
+          "time": 0.0,
+          "energy_liquid": 1.0,
+          "energy_electric": 1.0
+        }
+      }
+    ]
+  }
 }
 ```
 
-This would generate 3 unique queries with the same origin and destination parameters and the appropriate `energy_cost_coefficient`.
-
-The `grid_search` plugin also allows you to provide objects if you wanted to pass aribrary keys through to the result:
+The grid search plugin would take this single query and generate two queries that would be fed into the application:
 
 ```json
-query = {
+[
+  {
     "origin_name": "Government Center Station",
     "destination_name": "Cannonball Creek Brewery",
     "origin_x": -105.200146,
-    "origin_y": 39.726570,
+    "origin_y": 39.72657,
     "destination_x": -105.234964,
     "destination_y": 39.768477,
     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
-    "grid_search": {
-        "test_cases": [
-            {"energy_cost_coefficient": 0.0, "name": "Shortest Time"},
-            {"energy_cost_coefficient": 0.5, "name": "Time/Energy Mix"},
-            {"energy_cost_coefficient": 1.0, "name": "Least Energy"},
-        ]
+    "name": "shortest_time",
+    "weights": {
+      "distance": 0.0,
+      "time": 1.0,
+      "energy_liquid": 0.0,
+      "energy_electric": 0.0
     }
-}
+  },
+  {
+    "origin_name": "Government Center Station",
+    "destination_name": "Cannonball Creek Brewery",
+    "origin_x": -105.200146,
+    "origin_y": 39.72657,
+    "destination_x": -105.234964,
+    "destination_y": 39.768477,
+    "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
+    "name": "least_energy",
+    "weights": {
+      "distance": 0.0,
+      "time": 0.0,
+      "energy_liquid": 1.0,
+      "energy_electric": 1.0
+    }
+  }
+]
 ```
-
-This would similarily produce three unique queries with the appropriate `energy_cost_coefficient` and `name` fields.
