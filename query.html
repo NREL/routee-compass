@@ -454,42 +454,77 @@ You can provide any arbitrary key if you want to pass information through.</p>
 <section id="grid-search">
 <h2>Grid Search<a class="headerlink" href="#grid-search" title="Link to this heading">#</a></h2>
 <p>If you have the <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> input plugin enabled, you can also provide a <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> key that the plugin will use to generate multiple queries from a single query.</p>
-<p>For example, if you're using the <code class="docutils literal notranslate"><span class="pre">energy_model</span></code> traversal model, it takes an additional key <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> and so if you wanted to sweep this value you could do something like:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="err">query</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;origin_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Government Center Station&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;destination_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cannonball Creek Brewery&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;origin_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.200146</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.726570</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;model_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;grid_search&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">]</span>
-<span class="w">    </span><span class="p">}</span>
+<p>For example if you had this query:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;origin_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Government Center Station&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;destination_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cannonball Creek Brewery&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;origin_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.200146</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.72657</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;grid_search&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;test_cases&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shortest_time&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;weights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;energy_liquid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;energy_electric&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;least_energy&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;weights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;energy_liquid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;energy_electric&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>This would generate 3 unique queries with the same origin and destination parameters and the appropriate <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code>.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">grid_search</span></code> plugin also allows you to provide objects if you wanted to pass aribrary keys through to the result:</p>
-<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="err">query</span><span class="w"> </span><span class="err">=</span><span class="w"> </span><span class="p">{</span>
+<p>The grid search plugin would take this single query and generate two queries that would be fed into the application:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;origin_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Government Center Station&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;destination_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cannonball Creek Brewery&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;origin_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.200146</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.726570</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.72657</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;model_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;grid_search&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;test_cases&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="p">{</span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Shortest Time&quot;</span><span class="p">},</span>
-<span class="w">            </span><span class="p">{</span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Time/Energy Mix&quot;</span><span class="p">},</span>
-<span class="w">            </span><span class="p">{</span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Least Energy&quot;</span><span class="p">},</span>
-<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shortest_time&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;weights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;energy_liquid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;energy_electric&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span>
 <span class="w">    </span><span class="p">}</span>
-<span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;origin_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Government Center Station&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;destination_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Cannonball Creek Brewery&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;origin_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.200146</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.72657</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;model_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;least_energy&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;weights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;energy_liquid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;energy_electric&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">]</span>
 </pre></div>
 </div>
-<p>This would similarily produce three unique queries with the appropriate <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> and <code class="docutils literal notranslate"><span class="pre">name</span></code> fields.</p>
 </section>
 </section>
 

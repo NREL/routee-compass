@@ -10,6 +10,9 @@ We added some annotations to describe the different sections:
 # how many threads should a CompassApp use to process queries?
 parallelism = 2
 
+# should we begin the search at either: "vertex" or "edge"
+search_orientation = "vertex"
+
 # the parameters for the underlying road network graph
 [graph]
 # a file containing all the graph edges and their adjacencies
@@ -21,20 +24,29 @@ verbose = true
 
 # which traversal model to use and its parameters
 [traversal]
-# the energy_model can compute routes using time or energy as costs
 type = "energy_model"
-# speeds for each edge in the graph
-speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-# the units of the above speed table
-speed_table_speed_unit = "kilometers_per_hour"
-# grades for each edge in the graph
+# the units of the speed table
+time_model_speed_unit = "kilometers_per_hour"
+# the file that has grades for each edge in the graph
 grade_table_input_file = "edges-grade-enumerated.txt.gz"
-# the units of the above graph table
+# the units of the grade table
 grade_table_grade_unit = "decimal"
-# the units of what the traversal model outputs for time
-output_time_unit = "minutes"
-# the units of what the traversal model outputs for distance
-output_distance_unit = "miles"
+
+# the internal units of the energy model
+time_unit = "minutes"
+distance_unit = "miles"
+
+# Here we specify the time model to use for the energy model
+[traversal.time_model]
+type = "speed_table"
+# the file that has speeds for each edge in the graph
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
+# the units of the speed table
+speed_unit = "kilometers_per_hour"
+
+# the internal units of the speed table
+distance_unit = "miles"
+time_unit = "minutes"
 
 # here, we specify which vehicles to make available at query time
 # if you wanted to add more models, you would make a new [[traversal.vehicles]] section.
@@ -42,13 +54,12 @@ output_distance_unit = "miles"
 # the name of the model that can be passed in from a query as "model_name"
 name = "2012_Ford_Focus"
 # the type of the vehicle, currently either:
-# - "single_fuel" i.e. Internal Combustion Engine (ICE) or Battery Electric (BEV)
-# - "duel_fuel" i.e. Plug in Hybrid Electric (PHEV)
-type = "single_fuel"
+# - "ice" i.e. Internal Combustion Engine (ICE)
+# - "bev" i.e. Battery Electric Vehicle (BEV)
+# - "phev" i.e. Plug-in Hybrid Electric Vehicle (PHEV)
+type = "ice"
 # the file for the routee-powertrain model
 model_input_file = "models/2012_Ford_Focus.bin"
-# what underlying machine learn framework to use [smartcore | interpolate | onnx]
-model_type = "smartcore"
 # the units of what the routee-powertrain model expects speed to be in
 speed_unit = "miles_per_hour"
 # the units of what the routee-powertrain model expects grade to be in
@@ -60,41 +71,84 @@ ideal_energy_rate = 0.02857143
 # A real world adjustment factor for things like temperature and auxillary loads
 real_world_energy_adjustment = 1.166
 
+# what underlying machine learn framework to use [smartcore | interpolate | onnx]
+# in this case we use a model that interpolates the underlying model type over a regular grid
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -0.2
+grade_upper_bound = 0.2
+grade_bins = 41
+
+## The cost section defines how we translate the search state into a cost that is minimized by the algorithm
+
+# The vehicle rates get applied to each component of the cost
+
+# based on 65.5 cents per mile 2023 IRS mileage rate, $/mile
+[cost.vehicle_rates.distance]
+type = "factor"
+factor = 0.655
+
+# based on $20/hr approximation of 2023 median hourly wages, $/second
+[cost.vehicle_rates.time]
+type = "factor"
+factor = 0.333336
+
+# based on AAA regular unleaded gas prices sampled 12/21/2023
+[cost.vehicle_rates.energy_liquid]
+type = "factor"
+factor = 3.120
+
+# based on $0.50/kWh approximation of DCFC charge rates, $/kWhtype = "factor"
+[cost.vehicle_rates.energy_electric]
+type = "factor"
+factor = 0.50
+
+# Each cost component get multiplied by the corresponding vehicle weight.
+# So, you could make time more important than distance by increasing the time weight.
+[cost.weights]
+distance = 1
+time = 1
+energy_liquid = 1
+energy_electric = 1
+
+## Access costs
+
+# A turn delay model that assigns a time cost to each type of turn
+[access]
+type = "turn_delay"
+edge_heading_input_file = "edges-headings-enumerated.csv.gz"
+[access.turn_delay_model]
+type = "tabular_discrete"
+time_unit = "seconds"
+[access.turn_delay_model.table]
+no_turn = 0.0
+slight_right = 0.5
+right = 1.0
+sharp_right = 1.5
+slight_left = 1.0
+left = 2.5
+sharp_left = 3.5
+u_turn = 9.5
 
 # which plugins should be activated?
 [plugin]
-
-# input plugins get applied to a query before it gets executed
-[[plugin.input_plugins]]
-# the grid search plugin allows for multiple queries to be generated from one query with the "grid_search" key
-type = "grid_search"
-
-[[plugin.input_plugins]]
-# a vertex based RTree for matching incoming x/y coordinates to a graph vertex
-type = "vertex_rtree"
-# a file with all the graph verticies
-vertices_input_file = "vertices-compass.csv.gz"
-
-# output plugs get applied to the result of running a query
-[[plugin.output_plugins]]
-# summarize the results of the search
-type = "summary"
-
-[[plugin.output_plugins]]
-# a plugin that gathers traversal specific outputs like the route geometry
-type = "traversal"
-# return the full route in a geojson format
-route = "geo_json"
-# return the full search tree in a geojson format
-tree = "geo_json"
-# geometry objects for all the edges in the graph
-geometry_input_file = "edges-geometries-enumerated.txt.gz"
-
-[[plugin.output_plugins]]
-# append an map specific id(like Open Street Maps Nodes) onto the compass verticies (which use a simple integer internal index)
-type = "uuid"
-# a file with ids for each vertex in the graph
-uuid_input_file = "vertices-uuid-enumerated.txt.gz"
+input_plugins = [
+    # The vertex RTree plugin uses an RTree to match coordiantes to graph verticies.
+    { type = "vertex_rtree", distance_tolerance = 0.2, distance_unit = "kilometers", vertices_input_file = "vertices-compass.csv.gz" },
+    # The grid search allows you to specify a "grid_search" key in the query and it will generate multiple queries from those parameters.
+    { type = "grid_search" },
+    # The load balancer estimates the runtime for each query and is used by CompassApp to best leverage parallelism.
+    { type = "load_balancer", weight_heuristic = { type = "haversine" } },
+]
+output_plugins = [
+    # The traversal plugin appends various items to the result.
+    { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
+    # The uuid plugin adds a map specific id (like Open Street Maps Nodes) onto the compass verticies
+    { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
+]
 ```
 
 ## Traversal Models
@@ -122,30 +176,39 @@ The speed table traversal model uses a speed lookup table to compute the fastest
 type = "speed_table"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kilometers_per_hour"
-output_distance_unit = "miles"
-output_time_unit = "minutes"
+distance_unit = "miles"
+time_unit = "minutes"
 ```
 
 ### Energy Model
 
-The energy model computes energy (with a routee-powertrain vehicle model) and speed over an edge. This model also takes in an additional query argument `energy_cost_coefficient` that specifies how much to value energy in the resulting cost. For example, an `energy_cost_coefficient` of `0.0` would not value energy at all and would return a pure shortest time route whereas an `energy_cost_coefficient` of `1.0` would not value time at all and would return a pure least energy route.
+The energy model computes energy (with a routee-powertrain vehicle model) and speed over an edge.
 
 ```toml
 [traversal]
-# the energy_model can compute routes using time or energy as costs
 type = "energy_model"
-# speeds for each edge in the graph
-speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-# the units of the above speed table
-speed_table_speed_unit = "kilometers_per_hour"
-# grades for each edge in the graph
+# the units of the speed table
+time_model_speed_unit = "kilometers_per_hour"
+# the file that has grades for each edge in the graph
 grade_table_input_file = "edges-grade-enumerated.txt.gz"
-# the units of the above graph table
+# the units of the grade table
 grade_table_grade_unit = "decimal"
-# the units of what the traversal model outputs for time
-output_time_unit = "minutes"
-# the units of what the traversal model outputs for distance
-output_distance_unit = "miles"
+
+# the internal units of the energy model
+time_unit = "minutes"
+distance_unit = "miles"
+
+# Here we specify the time model to use for the energy model
+[traversal.time_model]
+type = "speed_table"
+# the file that has speeds for each edge in the graph
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
+# the units of the speed table
+speed_unit = "kilometers_per_hour"
+
+# the internal units of the speed table
+distance_unit = "miles"
+time_unit = "minutes"
 
 # here, we specify which vehicles to make available at query time
 # if you wanted to add more models, you would make a new [[traversal.vehicles]] section.
@@ -153,13 +216,12 @@ output_distance_unit = "miles"
 # the name of the model that can be passed in from a query as "model_name"
 name = "2012_Ford_Focus"
 # the type of the vehicle, currently either:
-# - "single_fuel" i.e. Internal Combustion Engine (ICE) or Battery Electric (BEV)
-# - "duel_fuel" i.e. Plug in Hybrid Electric (PHEV)
-type = "single_fuel"
+# - "ice" i.e. Internal Combustion Engine (ICE)
+# - "bev" i.e. Battery Electric Vehicle (BEV)
+# - "phev" i.e. Plug-in Hybrid Electric Vehicle (PHEV)
+type = "ice"
 # the file for the routee-powertrain model
 model_input_file = "models/2012_Ford_Focus.bin"
-# what underlying machine learn framework to use [smartcore | interpolate | onnx]
-model_type = "smartcore"
 # the units of what the routee-powertrain model expects speed to be in
 speed_unit = "miles_per_hour"
 # the units of what the routee-powertrain model expects grade to be in
@@ -171,29 +233,17 @@ ideal_energy_rate = 0.02857143
 # A real world adjustment factor for things like temperature and auxillary loads
 real_world_energy_adjustment = 1.166
 
-# An optional cache that will keep track of recent energy values with the same input.
-# If this is ommitted from the config, the model will compute the energy for every link in a search.
-# See note below for some considerations when using this.
-[traversal.vehicles.float_cache_policy]
-cache_size = 10_000
-key_precisions = [
-    2, # speed goes from 71.23 to 7123
-    4, # grade goes from 0.123 (decimal) to 1230 or 123 (millis) to 1230000
-]
-```
+# what underlying machine learn framework to use [smartcore | interpolate | onnx]
+# in this case we use a model that interpolates the underlying model type over a regular grid
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -0.2
+grade_upper_bound = 0.2
+grade_bins = 41
 
-```{note}
-When using the float cache it's possible that you might get slightly different final energy values versus the same query run with no caching.
-
-The reason for this is how the input floating point values get converted into an integer for storage in the cache.
-
-If your key precision for a grade value is 4, an incoming value of 0.123456 would get converted into 1234 and stored in the cache as such.
-This is done to make sure we're actually getting cache hits and improving performance.
-If we used a precision of 10, there might not be many other links in the road network that share the same exact properties at that resolution.
-But, the tradeoff here is that if you used a key precision of 1, grade values of 0.14 and 0.05 would both result in the integer 1 being stored in the cache.
-This would render grades of 5% and 14% to be equal to each other from an energy perspective and they are clearly not.
-
-So, usage of this cache can result in improved runtimes for the energy traversal model but the user should make sure the precision values are appropriate for the application.
 ```
 
 ## Plugins
@@ -217,8 +267,28 @@ The grid search plugin allows you to specify a `grid_search` key in the query an
   "origin_y": 39.72657,
   "destination_x": -105.234964,
   "destination_y": 39.768477,
+  "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
   "grid_search": {
-    "energy_cost_coefficient": [0.0, 1.0]
+    "test_cases": [
+      {
+        "name": "shortest_time",
+        "weights": {
+          "distance": 0.0,
+          "time": 1.0,
+          "energy_liquid": 0.0,
+          "energy_electric": 0.0
+        }
+      },
+      {
+        "name": "least_energy",
+        "weights": {
+          "distance": 0.0,
+          "time": 0.0,
+          "energy_liquid": 1.0,
+          "energy_electric": 1.0
+        }
+      }
+    ]
   }
 }
 ```
@@ -234,7 +304,14 @@ The grid search plugin would take this single query and generate two queries tha
     "origin_y": 39.72657,
     "destination_x": -105.234964,
     "destination_y": 39.768477,
-    "energy_cost_coefficient": 0.0
+    "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
+    "name": "shortest_time",
+    "weights": {
+      "distance": 0.0,
+      "time": 1.0,
+      "energy_liquid": 0.0,
+      "energy_electric": 0.0
+    }
   },
   {
     "origin_name": "Government Center Station",
@@ -243,7 +320,14 @@ The grid search plugin would take this single query and generate two queries tha
     "origin_y": 39.72657,
     "destination_x": -105.234964,
     "destination_y": 39.768477,
-    "energy_cost_coefficient": 1.0
+    "name": "least_energy",
+    "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
+    "weights": {
+      "distance": 0.0,
+      "time": 0.0,
+      "energy_liquid": 1.0,
+      "energy_electric": 1.0
+    }
   }
 ]
 ```
@@ -344,15 +428,6 @@ mapping = { "walk" = 1, "bike" = 10, "drive" = 100 }
 
 Here are the default output plugins that are provided:
 
-### Summary
-
-A plugin adds a simple `traversal_summary` section to the result.
-
-```toml
-[[plugin.output_plugins]]
-type = "summary"
-```
-
 ### Traversal
 
 A plugin that appends various items to the result.
@@ -373,18 +448,3 @@ Both the `route` and the `tree` key are optional and if omitted, the plugin will
 - "json": non-geometry output writing traversal metrics (cost, state) as JSON for a route or a tree
 - "wkt": outputs a LINESTRING for a route, or a MULTILINESTRING for a tree
 - "geo_json": annotated geometry data as a FeatureCollection of LineStrings with properties assigned from traversal metrics
-
-### To Disk
-
-The `to_disk` plugin writes the results to a specified output file rather than returning them when the `run` method is called.
-
-This plugin writes the results in newline delimited JSON.
-
-```toml
-[[plugin.output_plugins]]
-type = "to_disk"
-
-# where to write the results
-# relative to where the application is being run
-output_file = "result.json"
-```

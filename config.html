@@ -403,9 +403,7 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-plugins">Output Plugins</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#to-disk">To Disk</a></li>
 </ul>
 </li>
 </ul>
@@ -428,6 +426,9 @@ We added some annotations to describe the different sections:</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># how many threads should a CompassApp use to process queries?</span>
 <span class="n">parallelism</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
 
+<span class="c1"># should we begin the search at either: &quot;vertex&quot; or &quot;edge&quot;</span>
+<span class="n">search_orientation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;vertex&quot;</span>
+
 <span class="c1"># the parameters for the underlying road network graph</span>
 <span class="k">[graph]</span>
 <span class="c1"># a file containing all the graph edges and their adjacencies</span>
@@ -439,20 +440,29 @@ We added some annotations to describe the different sections:</p>
 
 <span class="c1"># which traversal model to use and its parameters</span>
 <span class="k">[traversal]</span>
-<span class="c1"># the energy_model can compute routes using time or energy as costs</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;energy_model&quot;</span>
-<span class="c1"># speeds for each edge in the graph</span>
-<span class="n">speed_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
-<span class="c1"># the units of the above speed table</span>
-<span class="n">speed_table_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;kilometers_per_hour&quot;</span>
-<span class="c1"># grades for each edge in the graph</span>
+<span class="c1"># the units of the speed table</span>
+<span class="n">time_model_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;kilometers_per_hour&quot;</span>
+<span class="c1"># the file that has grades for each edge in the graph</span>
 <span class="n">grade_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span>
-<span class="c1"># the units of the above graph table</span>
+<span class="c1"># the units of the grade table</span>
 <span class="n">grade_table_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;decimal&quot;</span>
-<span class="c1"># the units of what the traversal model outputs for time</span>
-<span class="n">output_time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minutes&quot;</span>
-<span class="c1"># the units of what the traversal model outputs for distance</span>
-<span class="n">output_distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles&quot;</span>
+
+<span class="c1"># the internal units of the energy model</span>
+<span class="n">time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minutes&quot;</span>
+<span class="n">distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles&quot;</span>
+
+<span class="c1"># Here we specify the time model to use for the energy model</span>
+<span class="k">[traversal.time_model]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;speed_table&quot;</span>
+<span class="c1"># the file that has speeds for each edge in the graph</span>
+<span class="n">speed_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
+<span class="c1"># the units of the speed table</span>
+<span class="n">speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;kilometers_per_hour&quot;</span>
+
+<span class="c1"># the internal units of the speed table</span>
+<span class="n">distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles&quot;</span>
+<span class="n">time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minutes&quot;</span>
 
 <span class="c1"># here, we specify which vehicles to make available at query time</span>
 <span class="c1"># if you wanted to add more models, you would make a new [[traversal.vehicles]] section.</span>
@@ -460,13 +470,12 @@ We added some annotations to describe the different sections:</p>
 <span class="c1"># the name of the model that can be passed in from a query as &quot;model_name&quot;</span>
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2012_Ford_Focus&quot;</span>
 <span class="c1"># the type of the vehicle, currently either:</span>
-<span class="c1"># - &quot;single_fuel&quot; i.e. Internal Combustion Engine (ICE) or Battery Electric (BEV)</span>
-<span class="c1"># - &quot;duel_fuel&quot; i.e. Plug in Hybrid Electric (PHEV)</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;single_fuel&quot;</span>
+<span class="c1"># - &quot;ice&quot; i.e. Internal Combustion Engine (ICE)</span>
+<span class="c1"># - &quot;bev&quot; i.e. Battery Electric Vehicle (BEV)</span>
+<span class="c1"># - &quot;phev&quot; i.e. Plug-in Hybrid Electric Vehicle (PHEV)</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ice&quot;</span>
 <span class="c1"># the file for the routee-powertrain model</span>
 <span class="n">model_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;models/2012_Ford_Focus.bin&quot;</span>
-<span class="c1"># what underlying machine learn framework to use [smartcore | interpolate | onnx]</span>
-<span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;smartcore&quot;</span>
 <span class="c1"># the units of what the routee-powertrain model expects speed to be in</span>
 <span class="n">speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles_per_hour&quot;</span>
 <span class="c1"># the units of what the routee-powertrain model expects grade to be in</span>
@@ -478,41 +487,84 @@ We added some annotations to describe the different sections:</p>
 <span class="c1"># A real world adjustment factor for things like temperature and auxillary loads</span>
 <span class="n">real_world_energy_adjustment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.166</span>
 
+<span class="c1"># what underlying machine learn framework to use [smartcore | interpolate | onnx]</span>
+<span class="c1"># in this case we use a model that interpolates the underlying model type over a regular grid</span>
+<span class="k">[traversal.vehicles.model_type.interpolate]</span>
+<span class="n">underlying_model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;smartcore&quot;</span>
+<span class="n">speed_lower_bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="n">speed_upper_bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span>
+<span class="n">speed_bins</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">101</span>
+<span class="n">grade_lower_bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-0.2</span>
+<span class="n">grade_upper_bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span>
+<span class="n">grade_bins</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">41</span>
+
+<span class="c1">## The cost section defines how we translate the search state into a cost that is minimized by the algorithm</span>
+
+<span class="c1"># The vehicle rates get applied to each component of the cost</span>
+
+<span class="c1"># based on 65.5 cents per mile 2023 IRS mileage rate, $/mile</span>
+<span class="k">[cost.vehicle_rates.distance]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;factor&quot;</span>
+<span class="n">factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.655</span>
+
+<span class="c1"># based on $20/hr approximation of 2023 median hourly wages, $/second</span>
+<span class="k">[cost.vehicle_rates.time]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;factor&quot;</span>
+<span class="n">factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.333336</span>
+
+<span class="c1"># based on AAA regular unleaded gas prices sampled 12/21/2023</span>
+<span class="k">[cost.vehicle_rates.energy_liquid]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;factor&quot;</span>
+<span class="n">factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.120</span>
+
+<span class="c1"># based on $0.50/kWh approximation of DCFC charge rates, $/kWhtype = &quot;factor&quot;</span>
+<span class="k">[cost.vehicle_rates.energy_electric]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;factor&quot;</span>
+<span class="n">factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.50</span>
+
+<span class="c1"># Each cost component get multiplied by the corresponding vehicle weight.</span>
+<span class="c1"># So, you could make time more important than distance by increasing the time weight.</span>
+<span class="k">[cost.weights]</span>
+<span class="n">distance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="n">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="n">energy_liquid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="n">energy_electric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+
+<span class="c1">## Access costs</span>
+
+<span class="c1"># A turn delay model that assigns a time cost to each type of turn</span>
+<span class="k">[access]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;turn_delay&quot;</span>
+<span class="n">edge_heading_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-headings-enumerated.csv.gz&quot;</span>
+<span class="k">[access.turn_delay_model]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;tabular_discrete&quot;</span>
+<span class="n">time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;seconds&quot;</span>
+<span class="k">[access.turn_delay_model.table]</span>
+<span class="n">no_turn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">slight_right</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
+<span class="n">right</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="n">sharp_right</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.5</span>
+<span class="n">slight_left</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="n">left</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">2.5</span>
+<span class="n">sharp_left</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.5</span>
+<span class="n">u_turn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">9.5</span>
 
 <span class="c1"># which plugins should be activated?</span>
 <span class="k">[plugin]</span>
-
-<span class="c1"># input plugins get applied to a query before it gets executed</span>
-<span class="k">[[plugin.input_plugins]]</span>
-<span class="c1"># the grid search plugin allows for multiple queries to be generated from one query with the &quot;grid_search&quot; key</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;grid_search&quot;</span>
-
-<span class="k">[[plugin.input_plugins]]</span>
-<span class="c1"># a vertex based RTree for matching incoming x/y coordinates to a graph vertex</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;vertex_rtree&quot;</span>
-<span class="c1"># a file with all the graph verticies</span>
-<span class="n">vertices_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;vertices-compass.csv.gz&quot;</span>
-
-<span class="c1"># output plugs get applied to the result of running a query</span>
-<span class="k">[[plugin.output_plugins]]</span>
-<span class="c1"># summarize the results of the search</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;summary&quot;</span>
-
-<span class="k">[[plugin.output_plugins]]</span>
-<span class="c1"># a plugin that gathers traversal specific outputs like the route geometry</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;traversal&quot;</span>
-<span class="c1"># return the full route in a geojson format</span>
-<span class="n">route</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;geo_json&quot;</span>
-<span class="c1"># return the full search tree in a geojson format</span>
-<span class="n">tree</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;geo_json&quot;</span>
-<span class="c1"># geometry objects for all the edges in the graph</span>
-<span class="n">geometry_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-geometries-enumerated.txt.gz&quot;</span>
-
-<span class="k">[[plugin.output_plugins]]</span>
-<span class="c1"># append an map specific id(like Open Street Maps Nodes) onto the compass verticies (which use a simple integer internal index)</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;uuid&quot;</span>
-<span class="c1"># a file with ids for each vertex in the graph</span>
-<span class="n">uuid_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;vertices-uuid-enumerated.txt.gz&quot;</span>
+<span class="n">input_plugins</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="c1"># The vertex RTree plugin uses an RTree to match coordiantes to graph verticies.</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;vertex_rtree&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">distance_tolerance</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">0.2</span><span class="p">,</span><span class="w"> </span><span class="n">distance_unit</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;kilometers&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">vertices_input_file</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;vertices-compass.csv.gz&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="c1"># The grid search allows you to specify a &quot;grid_search&quot; key in the query and it will generate multiple queries from those parameters.</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;grid_search&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="c1"># The load balancer estimates the runtime for each query and is used by CompassApp to best leverage parallelism.</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;load_balancer&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">weight_heuristic</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;haversine&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">},</span>
+<span class="p">]</span>
+<span class="n">output_plugins</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="c1"># The traversal plugin appends various items to the result.</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;traversal&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">route</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;geo_json&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">geometry_input_file</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;edges-geometries-enumerated.txt.gz&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="c1"># The uuid plugin adds a map specific id (like Open Street Maps Nodes) onto the compass verticies</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">uuid_input_file</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;vertices-uuid-enumerated.txt.gz&quot;</span><span class="w"> </span><span class="p">},</span>
+<span class="p">]</span>
 </pre></div>
 </div>
 <section id="traversal-models">
@@ -536,29 +588,38 @@ Here are the default traversal models that come with the <code class="docutils l
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;speed_table&quot;</span>
 <span class="n">speed_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
 <span class="n">speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;kilometers_per_hour&quot;</span>
-<span class="n">output_distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles&quot;</span>
-<span class="n">output_time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minutes&quot;</span>
+<span class="n">distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles&quot;</span>
+<span class="n">time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minutes&quot;</span>
 </pre></div>
 </div>
 </section>
 <section id="energy-model">
 <h3>Energy Model<a class="headerlink" href="#energy-model" title="Link to this heading">#</a></h3>
-<p>The energy model computes energy (with a routee-powertrain vehicle model) and speed over an edge. This model also takes in an additional query argument <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> that specifies how much to value energy in the resulting cost. For example, an <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> of <code class="docutils literal notranslate"><span class="pre">0.0</span></code> would not value energy at all and would return a pure shortest time route whereas an <code class="docutils literal notranslate"><span class="pre">energy_cost_coefficient</span></code> of <code class="docutils literal notranslate"><span class="pre">1.0</span></code> would not value time at all and would return a pure least energy route.</p>
+<p>The energy model computes energy (with a routee-powertrain vehicle model) and speed over an edge.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[traversal]</span>
-<span class="c1"># the energy_model can compute routes using time or energy as costs</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;energy_model&quot;</span>
-<span class="c1"># speeds for each edge in the graph</span>
-<span class="n">speed_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
-<span class="c1"># the units of the above speed table</span>
-<span class="n">speed_table_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;kilometers_per_hour&quot;</span>
-<span class="c1"># grades for each edge in the graph</span>
+<span class="c1"># the units of the speed table</span>
+<span class="n">time_model_speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;kilometers_per_hour&quot;</span>
+<span class="c1"># the file that has grades for each edge in the graph</span>
 <span class="n">grade_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span>
-<span class="c1"># the units of the above graph table</span>
+<span class="c1"># the units of the grade table</span>
 <span class="n">grade_table_grade_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;decimal&quot;</span>
-<span class="c1"># the units of what the traversal model outputs for time</span>
-<span class="n">output_time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minutes&quot;</span>
-<span class="c1"># the units of what the traversal model outputs for distance</span>
-<span class="n">output_distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles&quot;</span>
+
+<span class="c1"># the internal units of the energy model</span>
+<span class="n">time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minutes&quot;</span>
+<span class="n">distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles&quot;</span>
+
+<span class="c1"># Here we specify the time model to use for the energy model</span>
+<span class="k">[traversal.time_model]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;speed_table&quot;</span>
+<span class="c1"># the file that has speeds for each edge in the graph</span>
+<span class="n">speed_table_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-posted-speed-enumerated.txt.gz&quot;</span>
+<span class="c1"># the units of the speed table</span>
+<span class="n">speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;kilometers_per_hour&quot;</span>
+
+<span class="c1"># the internal units of the speed table</span>
+<span class="n">distance_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles&quot;</span>
+<span class="n">time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;minutes&quot;</span>
 
 <span class="c1"># here, we specify which vehicles to make available at query time</span>
 <span class="c1"># if you wanted to add more models, you would make a new [[traversal.vehicles]] section.</span>
@@ -566,13 +627,12 @@ Here are the default traversal models that come with the <code class="docutils l
 <span class="c1"># the name of the model that can be passed in from a query as &quot;model_name&quot;</span>
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;2012_Ford_Focus&quot;</span>
 <span class="c1"># the type of the vehicle, currently either:</span>
-<span class="c1"># - &quot;single_fuel&quot; i.e. Internal Combustion Engine (ICE) or Battery Electric (BEV)</span>
-<span class="c1"># - &quot;duel_fuel&quot; i.e. Plug in Hybrid Electric (PHEV)</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;single_fuel&quot;</span>
+<span class="c1"># - &quot;ice&quot; i.e. Internal Combustion Engine (ICE)</span>
+<span class="c1"># - &quot;bev&quot; i.e. Battery Electric Vehicle (BEV)</span>
+<span class="c1"># - &quot;phev&quot; i.e. Plug-in Hybrid Electric Vehicle (PHEV)</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;ice&quot;</span>
 <span class="c1"># the file for the routee-powertrain model</span>
 <span class="n">model_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;models/2012_Ford_Focus.bin&quot;</span>
-<span class="c1"># what underlying machine learn framework to use [smartcore | interpolate | onnx]</span>
-<span class="n">model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;smartcore&quot;</span>
 <span class="c1"># the units of what the routee-powertrain model expects speed to be in</span>
 <span class="n">speed_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;miles_per_hour&quot;</span>
 <span class="c1"># the units of what the routee-powertrain model expects grade to be in</span>
@@ -584,27 +644,17 @@ Here are the default traversal models that come with the <code class="docutils l
 <span class="c1"># A real world adjustment factor for things like temperature and auxillary loads</span>
 <span class="n">real_world_energy_adjustment</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.166</span>
 
-<span class="c1"># An optional cache that will keep track of recent energy values with the same input.</span>
-<span class="c1"># If this is ommitted from the config, the model will compute the energy for every link in a search.</span>
-<span class="c1"># See note below for some considerations when using this.</span>
-<span class="k">[traversal.vehicles.float_cache_policy]</span>
-<span class="n">cache_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10_000</span>
-<span class="n">key_precisions</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="c1"># speed goes from 71.23 to 7123</span>
-<span class="w">    </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="c1"># grade goes from 0.123 (decimal) to 1230 or 123 (millis) to 1230000</span>
-<span class="p">]</span>
+<span class="c1"># what underlying machine learn framework to use [smartcore | interpolate | onnx]</span>
+<span class="c1"># in this case we use a model that interpolates the underlying model type over a regular grid</span>
+<span class="k">[traversal.vehicles.model_type.interpolate]</span>
+<span class="n">underlying_model_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;smartcore&quot;</span>
+<span class="n">speed_lower_bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="n">speed_upper_bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span>
+<span class="n">speed_bins</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">101</span>
+<span class="n">grade_lower_bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-0.2</span>
+<span class="n">grade_upper_bound</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span>
+<span class="n">grade_bins</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">41</span>
 </pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>When using the float cache it's possible that you might get slightly different final energy values versus the same query run with no caching.</p>
-<p>The reason for this is how the input floating point values get converted into an integer for storage in the cache.</p>
-<p>If your key precision for a grade value is 4, an incoming value of 0.123456 would get converted into 1234 and stored in the cache as such.
-This is done to make sure we're actually getting cache hits and improving performance.
-If we used a precision of 10, there might not be many other links in the road network that share the same exact properties at that resolution.
-But, the tradeoff here is that if you used a key precision of 1, grade values of 0.14 and 0.05 would both result in the integer 1 being stored in the cache.
-This would render grades of 5% and 14% to be equal to each other from an energy perspective and they are clearly not.</p>
-<p>So, usage of this cache can result in improved runtimes for the energy traversal model but the user should make sure the precision values are appropriate for the application.</p>
 </div>
 </section>
 </section>
@@ -626,8 +676,28 @@ Both queries and results are valid json objects and so a plugin takes in a json 
 <span class="w">  </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.72657</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;model_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;grid_search&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">]</span>
+<span class="w">    </span><span class="nt">&quot;test_cases&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shortest_time&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;weights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;energy_liquid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;energy_electric&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;least_energy&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;weights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;energy_liquid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;energy_electric&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -641,7 +711,14 @@ Both queries and results are valid json objects and so a plugin takes in a json 
 <span class="w">    </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.72657</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="w">    </span><span class="nt">&quot;model_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;shortest_time&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;weights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;energy_liquid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;energy_electric&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;origin_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Government Center Station&quot;</span><span class="p">,</span>
@@ -650,7 +727,14 @@ Both queries and results are valid json objects and so a plugin takes in a json 
 <span class="w">    </span><span class="nt">&quot;origin_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.72657</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;destination_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-105.234964</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;destination_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.768477</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;energy_cost_coefficient&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;least_energy&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;model_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;weights&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;energy_liquid&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;energy_electric&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span>
+<span class="w">    </span><span class="p">}</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">]</span>
 </pre></div>
@@ -738,14 +822,6 @@ based on observed search sizes for each travel mode.</p>
 <section id="output-plugins">
 <h2>Output Plugins<a class="headerlink" href="#output-plugins" title="Link to this heading">#</a></h2>
 <p>Here are the default output plugins that are provided:</p>
-<section id="summary">
-<h3>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h3>
-<p>A plugin adds a simple <code class="docutils literal notranslate"><span class="pre">traversal_summary</span></code> section to the result.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.output_plugins]]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;summary&quot;</span>
-</pre></div>
-</div>
-</section>
 <section id="traversal">
 <h3>Traversal<a class="headerlink" href="#traversal" title="Link to this heading">#</a></h3>
 <p>A plugin that appends various items to the result.</p>
@@ -764,19 +840,6 @@ The <code class="docutils literal notranslate"><span class="pre">tree</span></co
 <li><p>&quot;wkt&quot;: outputs a LINESTRING for a route, or a MULTILINESTRING for a tree</p></li>
 <li><p>&quot;geo_json&quot;: annotated geometry data as a FeatureCollection of LineStrings with properties assigned from traversal metrics</p></li>
 </ul>
-</section>
-<section id="to-disk">
-<h3>To Disk<a class="headerlink" href="#to-disk" title="Link to this heading">#</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">to_disk</span></code> plugin writes the results to a specified output file rather than returning them when the <code class="docutils literal notranslate"><span class="pre">run</span></code> method is called.</p>
-<p>This plugin writes the results in newline delimited JSON.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[[plugin.output_plugins]]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;to_disk&quot;</span>
-
-<span class="c1"># where to write the results</span>
-<span class="c1"># relative to where the application is being run</span>
-<span class="n">output_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;result.json&quot;</span>
-</pre></div>
-</div>
 </section>
 </section>
 </section>
@@ -860,9 +923,7 @@ The <code class="docutils literal notranslate"><span class="pre">tree</span></co
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-plugins">Output Plugins</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#to-disk">To Disk</a></li>
 </ul>
 </li>
 </ul>
