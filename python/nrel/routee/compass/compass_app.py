@@ -150,7 +150,7 @@ class CompassApp:
         Returns:
             vertex_id: the vertex id at the source of the edge
         """
-        return self._app.graph_edge_origin(edge_id)
+        return cast(int, self._app.graph_edge_origin(edge_id))
 
     def graph_edge_destination(self, edge_id: int) -> int:
         """
@@ -162,7 +162,7 @@ class CompassApp:
         Returns:
             vertex_id: the vertex id at the destination of the edge
         """
-        return self._app.graph_edge_destination(edge_id)
+        return cast(int, self._app.graph_edge_destination(edge_id))
 
     def graph_edge_distance(
         self, edge_id: int, distance_unit: Optional[str] = None
@@ -177,7 +177,7 @@ class CompassApp:
         Returns:
             dist: the distance covered by traversing the edge
         """
-        return self._app.graph_edge_distance(edge_id, distance_unit)
+        return cast(float, self._app.graph_edge_distance(edge_id, distance_unit))
 
     def graph_get_out_edge_ids(self, vertex_id: int) -> List[int]:
         """
@@ -189,7 +189,7 @@ class CompassApp:
         Returns:
             edges: the edge ids of edges departing from this vertex
         """
-        return self._app.graph_get_out_edge_ids(vertex_id)
+        return cast(List[int], self._app.graph_get_out_edge_ids(vertex_id))
 
     def graph_get_in_edge_ids(self, vertex_id: int) -> List[int]:
         """
@@ -201,4 +201,4 @@ class CompassApp:
         Returns:
             edges: the edge ids of edges arriving at this vertex
         """
-        return self._app.graph_get_in_edge_ids(vertex_id)
+        return cast(List[int], self._app.graph_get_in_edge_ids(vertex_id))
