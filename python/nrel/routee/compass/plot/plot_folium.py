@@ -123,6 +123,7 @@ def plot_routes_folium(
     results: Union[dict, list[dict]],
     value_fn: Callable[[dict], Any] = lambda r: r["request"].get("name"),
     color_map: str = "viridis",
+    folium_map = None,
 ):
     """
     Plot multiple routes from a CompassApp query on a folium map
@@ -135,6 +136,8 @@ def plot_routes_folium(
             Defaults to lambda r: r["request"].get("name").
         color_map (str, optional): The name of the matplotlib colormap to use
             for coloring the routes. Defaults to "viridis".
+        folium_map (folium.Map, optional): A existing folium map to plot the routes on.
+            Defaults to None.
 
     Returns:
         folium.Map: A folium map with the routes plotted on it
@@ -170,7 +173,6 @@ def plot_routes_folium(
         cmap_iter = ColormapCircularIterator(cmap, len(values))
         colors = [next(cmap_iter) for _ in values]
 
-    folium_map = None
     for result, value, route_color in zip(results, values, colors):
         line_kwargs = {"color": route_color, "tooltip": f"{value}"}
         folium_map = plot_route_folium(result, line_kwargs, folium_map=folium_map)
