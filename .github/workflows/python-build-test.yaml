@@ -40,9 +40,13 @@ jobs:
       # - name: Run mypy
       #   run: mypy . --ignore-missing-imports
 
-      - name: Validate formatting
+      - name: Run linter
         run: |
-          black python --check
+          ruff check python
+
+      - name: Run formatter
+        run: |
+          ruff format python
 
       - name: Run tests
         run: |
