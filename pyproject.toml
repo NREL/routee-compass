@@ -22,7 +22,17 @@ classifiers = [
 keywords = ["eco routing"]
 dependencies = ["toml"]
 [project.optional-dependencies]
-dev = ["black", "pytest", "maturin", "jupyter-book", "sphinx-book-theme"]
+dev = [
+    "black",
+    "jupyter-book",
+    "maturin",
+    "mypy",
+    "pytest",
+    "sphinx-book-theme",
+    "types-requests",
+    "types-setuptools",
+    "types-toml",
+]
 
 [project.urls]
 Homepage = "https://github.com/NREL/routee-compass"

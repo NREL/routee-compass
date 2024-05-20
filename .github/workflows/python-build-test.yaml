@@ -37,8 +37,8 @@ jobs:
         run: |
           pip install ".[dev]"
 
-      # - name: Run mypy
-      #   run: mypy . --ignore-missing-imports
+      - name: Run mypy
+        run: mypy --strict ./python/nrel
 
       - name: Validate formatting
         run: |
