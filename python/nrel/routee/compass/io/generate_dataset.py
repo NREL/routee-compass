@@ -28,7 +28,7 @@ def generate_compass_dataset(
     The input graph is assumed to be the direct output of an osmnx download.
 
     Args:
-        g: A network graph.
+        g: OSMNx graph used to generate input files
         output_directory: Directory path to use for writing new Compass files.
         hwy_speeds: OSM highway types and values = typical speeds (km per
             hour) to assign to edges of that highway type for any edges missing
