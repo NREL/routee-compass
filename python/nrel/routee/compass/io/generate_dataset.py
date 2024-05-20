@@ -74,7 +74,7 @@ def generate_compass_dataset(
 
     # pre-process the graph
     print("processing graph topology and speeds")
-    g1 = ox.utils_graph.get_largest_component(g)
+    g1 = ox.truncate.largest_component(g)
     g1 = ox.add_edge_speeds(g1, hwy_speeds=hwy_speeds, fallback=fallback, agg=agg)
     g1 = ox.add_edge_bearings(g1)
 
