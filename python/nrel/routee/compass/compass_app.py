@@ -12,6 +12,7 @@ from nrel.routee.compass.routee_compass_py import (
 import toml
 
 
+Config = Dict[str, Any]
 Query = Dict[str, Any]
 Result = List[Dict[str, Any]]
 
@@ -67,7 +68,7 @@ class CompassApp:
         return cls.from_dict(toml_config, config_path)
 
     @classmethod
-    def from_dict(cls, config: Dict, working_dir: Optional[Path] = None) -> CompassApp:
+    def from_dict(cls, config: Config, working_dir: Optional[Path] = None) -> CompassApp:
         """
         Build a CompassApp from a configuration object
 
@@ -90,7 +91,7 @@ class CompassApp:
         return cls(app)
 
     def run(
-        self, query: Union[Query, List[Query]], config: Optional[Dict] = None
+        self, query: Union[Query, List[Query]], config: Optional[Config] = None
     ) -> Result:
         """
         Run a query (or multiple queries) against the CompassApp
