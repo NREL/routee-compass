@@ -190,7 +190,7 @@ def generate_compass_dataset(
                 if filename == "osm_default_energy.toml":
                     if add_grade:
                         init_toml["traversal"][
-                            "grade_table_input_input_file"
+                            "grade_table_input_file"
                         ] = "edges-grade-enumerated.txt.gz"
                         init_toml["traversal"]["grade_table_grade_unit"] = "decimal"
             with open(output_directory / filename, "w") as f:
