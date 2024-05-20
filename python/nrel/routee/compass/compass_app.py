@@ -4,7 +4,7 @@ import json
 import logging
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
@@ -30,14 +30,15 @@ class CompassApp:
         self._app = app
 
     @classmethod
-    def get_constructor(cls):
+    def get_constructor(cls) -> type:
         """
         Return the underlying constructor for the application.
         This allows a child class to inherit the CompassApp python class
         and implement its own rust based app constructor, while still using
         the original python methods.
         """
-        return CompassAppWrapper
+        # mypy does not understand that this Rust-defined type *is* a type, so we need to cast
+        return cast(type, CompassAppWrapper)
 
     @classmethod
     def from_config_file(
@@ -84,7 +85,8 @@ class CompassApp:
         """
         path_str = str(working_dir.absolute()) if working_dir is not None else ""
         toml_string = toml.dumps(config)
-        app = cls.get_constructor()._from_config_toml_string(toml_string, path_str)
+        # mypy does not know about the attribute on this Rust-defined type
+        app = cls.get_constructor()._from_config_toml_string(toml_string, path_str)  # type: ignore
         return cls(app)
 
     def run(
