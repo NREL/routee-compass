@@ -6,7 +6,7 @@ use app_wrapper::CompassAppWrapper;
 use pyo3::prelude::*;
 
 #[pymodule]
-fn routee_compass_py(_py: Python, m: &PyModule) -> PyResult<()> {
+fn routee_compass_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<CompassAppWrapper>()?;
 
     Ok(())
