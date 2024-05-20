@@ -135,7 +135,7 @@ class CompassApp:
 
         results_json: List[str] = self._app._run_queries(queries_str, config_str)
 
-        results = list(map(json.loads, results_json))
+        results: Results = list(map(json.loads, results_json))
         if single_query and len(results) == 1:
             return results[0]
         return results
