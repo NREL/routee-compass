@@ -97,6 +97,7 @@ class CompassApp:
 
         Args:
             query: A query or list of queries to run
+            config: optional configuration
 
         Returns:
             results: A list of results (or a single result if a single query was passed)
