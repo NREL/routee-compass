@@ -123,7 +123,7 @@ def plot_routes_folium(
     results: Union[dict, list[dict]],
     value_fn: Callable[[dict], Any] = lambda r: r["request"].get("name"),
     color_map: str = "viridis",
-    folium_map = None,
+    folium_map=None,
 ):
     """
     Plot multiple routes from a CompassApp query on a folium map
