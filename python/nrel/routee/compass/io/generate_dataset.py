@@ -44,7 +44,6 @@ def generate_compass_dataset(
         add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.
         raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
         default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
-        energy_model (str, optional): Which trained RouteE Powertrain should we use? Defaults to "2016_TOYOTA_Camry_4cyl_2WD".
 
     Example:
         >>> import osmnx as ox
