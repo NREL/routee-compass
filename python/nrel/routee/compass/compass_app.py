@@ -80,7 +80,7 @@ class CompassApp:
 
         Example:
             >>> from nrel.routee.compass import CompassApp
-            >>> conf = { parallelism: 2 }
+            >>> conf = { "parallelism": 2 }
             >>> app = CompassApp.from_config(conf)
         """
         path_str = str(working_dir.absolute()) if working_dir is not None else ""
