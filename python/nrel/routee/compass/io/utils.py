@@ -8,6 +8,8 @@ import itertools
 import logging
 from typing import Union
 
+import networkx
+
 log = logging.getLogger(__name__)
 
 
@@ -63,7 +65,7 @@ def _lat_lon_to_tile(coord: tuple[int, int]) -> str:
     return f"{lat_prefix}{abs(lat)}{lon_prefix}{abs(lon)}"
 
 
-def _build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) -> str:
+def _build_download_link(tile: str, resolution: TileResolution = TileResolution.ONE_ARC_SECOND) -> str:
     base_link_fragment = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/"
     resolution_link_fragment = f"{resolution.value}/TIFF/current/{tile}/"
     filename = f"USGS_{resolution.value}_{tile}.tif"
@@ -75,7 +77,7 @@ def _build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) ->
 def _download_tile(
     tile: str,
     output_dir: Path = Path("cache"),
-    resolution=TileResolution.ONE_ARC_SECOND,
+    resolution: TileResolution = TileResolution.ONE_ARC_SECOND,
 ) -> Path:
     try:
         import requests
@@ -105,10 +107,10 @@ def _download_tile(
 
 
 def add_grade_to_graph(
-    g,
+    g: networkx.MultiDiGraph,
     output_dir: Path = Path("cache"),
     resolution_arc_seconds: Union[str, int] = 1,
-):
+) -> networkx.MultiDiGraph:
     """
     Adds grade information to the edges of a graph.
     This will download the necessary elevation data from USGS as raster tiles and cache them in the output_dir.
@@ -120,12 +122,12 @@ def add_grade_to_graph(
     * 1/3 arc-second: 350 MB
 
     Args:
-        g (nx.MultiDiGraph): The networkx graph to add grades to.
-        output_dir (Path, optional): The directory to cache the downloaded tiles in. Defaults to Path("cache").
-        resolution_arc_seconds (str, optional): The resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
+        g: The networkx graph to add grades to.
+        output_dir: The directory to cache the downloaded tiles in.
+        resolution_arc_seconds: The resolution (in arc-seconds) of the tiles to download (either 1 or 1/3).
 
     Returns:
-        nx.MultiDiGraph: The graph with grade information added to the edges.
+        g: The graph with grade information added to the edges.
 
     Example:
         >>> import osmnx as ox
