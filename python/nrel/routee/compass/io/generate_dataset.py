@@ -28,22 +28,22 @@ def generate_compass_dataset(
     The input graph is assumed to be the direct output of an osmnx download.
 
     Args:
-        g (MultiDiGraph): A network graph.
-        output_directory (Union[str, Path]): Directory path to use for writing new Compass files.
-        hwy_speeds (Optional[Dict], optional): OSM highway types and values = typical speeds (km per
+        g: A network graph.
+        output_directory: Directory path to use for writing new Compass files.
+        hwy_speeds: OSM highway types and values = typical speeds (km per
             hour) to assign to edges of that highway type for any edges missing
             speed data. Any edges with highway type not in `hwy_speeds` will be
             assigned the mean preexisting speed value of all edges of that highway
-            type. Defaults to None.
-        fallback (Optional[float], optional): Default speed value (km per hour) to assign to edges whose highway
+            type.
+        fallback: Default speed value (km per hour) to assign to edges whose highway
             type did not appear in `hwy_speeds` and had no preexisting speed
-            values on any edge. Defaults to None.
-        agg (Callable, optional): Aggregation function to impute missing values from observed values.
+            values on any edge.
+        agg: Aggregation function to impute missing values from observed values.
             The default is numpy.mean, but you might also consider for example
-            numpy.median, numpy.nanmedian, or your own custom function. Defaults to numpy.mean.
-        add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.
-        raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
-        default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
+            numpy.median, numpy.nanmedian, or your own custom function.
+        add_grade: If true, add grade information. See add_grade_to_graph() for more info.
+        raster_resolution_arc_seconds: If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3).
+        default_config: If true, copy default configuration files into the output directory.
 
     Example:
         >>> import osmnx as ox

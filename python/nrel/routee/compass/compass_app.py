@@ -48,10 +48,10 @@ class CompassApp:
         Build a CompassApp from a config file
 
         Args:
-            config_file (Union[str, Path]): Path to the config file
+            config_file: Path to the config file
 
         Returns:
-            CompassApp: A CompassApp object
+            app: A CompassApp object
 
         Example:
             >>> from nrel.routee.compass import CompassApp
@@ -71,11 +71,11 @@ class CompassApp:
         Build a CompassApp from a configuration object
 
         Args:
-            config (Dict): Configuration dictionary
-            working_dir (Path): optional path to working directory
+            config: Configuration dictionary
+            working_dir: optional path to working directory
 
         Returns:
-            CompassApp: a CompassApp object
+            app: a CompassApp object
 
         Example:
             >>> from nrel.routee.compass import CompassApp
@@ -94,10 +94,10 @@ class CompassApp:
         Run a query (or multiple queries) against the CompassApp
 
         Args:
-            query (Union[Dict[str, Any], List[Dict[str, Any]]]): A query or list of queries to run
+            query: A query or list of queries to run
 
         Returns:
-            List[Dict[str, Any]]: A list of results (or a single result if a single query was passed)
+            results: A list of results (or a single result if a single query was passed)
 
         Example:
             >>> from nrel.routee.compass import CompassApp
@@ -140,10 +140,10 @@ class CompassApp:
         get the origin vertex id for some edge
 
         Args:
-            edge_id (int): the id of the edge
+            edge_id: the id of the edge
 
         Returns:
-            int: the vertex id at the source of the edge
+            vertex_id: the vertex id at the source of the edge
         """
         return self._app.graph_edge_origin(edge_id)
 
@@ -152,10 +152,10 @@ class CompassApp:
         get the destination vertex id for some edge
 
         Args:
-            edge_id (int): the id of the edge
+            edge_id: the id of the edge
 
         Returns:
-            int: the vertex id at the destination of the edge
+            vertex_id: the vertex id at the destination of the edge
         """
         return self._app.graph_edge_destination(edge_id)
 
@@ -166,11 +166,11 @@ class CompassApp:
         get the distance for some edge
 
         Args:
-            edge_id (int): the id of the edge
-            distance_unit (Optional[str]): distance unit, by default meters
+            edge_id: the id of the edge
+            distance_unit: distance unit, by default meters
 
         Returns:
-            int: the distance covered by traversing the edge
+            dist: the distance covered by traversing the edge
         """
         return self._app.graph_edge_distance(edge_id, distance_unit)
 
@@ -179,10 +179,10 @@ class CompassApp:
         get the list of edge ids that depart from some vertex
 
         Args:
-            vertex_id (int): the id of the vertex
+            vertex_id: the id of the vertex
 
         Returns:
-            List[int]: the edge ids of edges departing from this vertex
+            edges: the edge ids of edges departing from this vertex
         """
         return self._app.graph_get_out_edge_ids(vertex_id)
 
@@ -191,9 +191,9 @@ class CompassApp:
         get the list of edge ids that arrive from some vertex
 
         Args:
-            vertex_id (int): the id of the vertex
+            vertex_id: the id of the vertex
 
         Returns:
-            List[int]: the edge ids of edges arriving at this vertex
+            edges: the edge ids of edges arriving at this vertex
         """
         return self._app.graph_get_in_edge_ids(vertex_id)
