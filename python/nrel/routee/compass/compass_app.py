@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+from string import whitespace
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -17,6 +18,11 @@ Result = List[Dict[str, Any]]
 
 
 log = logging.getLogger(__name__)
+
+
+# characters needed to strip off when trying to parse psuedo json in
+# run_in_batches
+BATCHES_STRIP = whitespace + "[],"
 
 
 class CompassApp:
@@ -133,6 +139,50 @@ class CompassApp:
         if single_query and len(results) == 1:
             return results[0]
         return results
+    
+    def run_in_batches(self,
+                       query_file: Union[str, Path],
+                       batch_size: int) -> List[Result]:
+        """
+        Reads in upto batch_size of queries from a query file before
+        calling run
+
+        Args:
+
+            query_file: Name of the file containing json or psuedo json
+                list of queries. Support regular json, and newline
+                delimited json dictionaries
+
+            batch_size: MAx number of queries to read in from the json
+                file.
+
+        Returns:
+            A list of results (or a single result if a single query was read in)
+
+        Example:
+            >>> from nrel.routee.compass import CompassApp
+            >>> app = CompassApp.from_config_file("config.toml")
+            >>> result = app.run_in_batches("query.json", 10)  
+        """
+        queries = []
+        with open(query_file) as fp:
+            query_str = ""
+            for line in fp:
+                if len(queries) >= batch_size:
+                    break
+
+                # attempt to read a line and see if we can eval it
+                line = line.strip(BATCHES_STRIP)
+                try:
+                    query_str += line
+                    query = eval(query_str)
+                except SyntaxError:
+                    continue
+
+                queries.append(query)
+                query_str = ""
+        return self.run(queries)
+
 
     def graph_edge_origin(self, edge_id: int) -> int:
         """
