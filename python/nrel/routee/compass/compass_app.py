@@ -41,7 +41,8 @@ class CompassApp:
 
     @classmethod
     def from_config_file(
-        cls, config_file: Union[str, Path]  # , output_file: Optional[str] = None
+        cls,
+        config_file: Union[str, Path],  # , output_file: Optional[str] = None
     ) -> CompassApp:
         """
         Build a CompassApp from a config file

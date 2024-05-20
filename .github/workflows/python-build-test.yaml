@@ -44,4 +44,6 @@ jobs:
         run: |
           black python --check
 
-    #   - name: Run tests
+      - name: Run tests
+        run: |
+          pytest python/tests
