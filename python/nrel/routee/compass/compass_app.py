@@ -107,9 +107,12 @@ class CompassApp:
         Args:
             query: the query or queries to geocode to get place boundary
                 polygon(s)
-            cache_dir: optional path to save necsassry files to build the
+            cache_dir: optional path to save necessary files to build the
                 CompassApp. If not set, TemporaryDirectory will be used
                 instead. Defaults to None.
+            network_type: what type of street network. Default to drive
+                List of options: ["all", "all_public", "bike", "drive",
+                                  "drive_service", "walk"]
             hwy_speeds: OSM highway types and values = typical speeds (km 
                 per hour) to assign to edges of that highway type for any
                 edges missing speed data. Any edges with highway type not
@@ -167,9 +170,12 @@ class CompassApp:
         Args:
             polygon: the shape to get network data within. coordinates
                 should be in unprojected latitude-longitude degrees
-            cache_dir: optional path to save necsassry files to build the
+            cache_dir: optional path to save necessary files to build the
                 CompassApp. If not set, TemporaryDirectory will be used
                 instead. Defaults to None.
+            network_type: what type of street network. Default to drive
+                List of options: ["all", "all_public", "bike", "drive",
+                                  "drive_service", "walk"]
             hwy_speeds: OSM highway types and values = typical speeds (km 
                 per hour) to assign to edges of that highway type for any
                 edges missing speed data. Any edges with highway type not
