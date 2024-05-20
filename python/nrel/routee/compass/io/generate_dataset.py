@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Callable, Dict, Optional, Union
 from pathlib import Path
 from pkg_resources import resource_filename
@@ -6,21 +7,28 @@ import importlib.resources
 import logging
 import shutil
 
+import pandas as pd
+import networkx
+
 from nrel.routee.compass.io.utils import add_grade_to_graph
 
 log = logging.getLogger(__name__)
 
 
+HIGHWAY_TYPE = str
+KM_PER_HR = float
+HIGHWAY_SPEED_MAP = dict[HIGHWAY_TYPE, KM_PER_HR]
+
 def generate_compass_dataset(
-    g,
+    g: networkx.MultiDiGraph,
     output_directory: Union[str, Path],
-    hwy_speeds: Optional[Dict] = None,
+    hwy_speeds: Optional[HIGHWAY_SPEED_MAP] = None,
     fallback: Optional[float] = None,
     agg: Optional[Callable] = None,
     add_grade: bool = False,
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
-):
+) -> None:
     """
     Processes a graph downloaded via OSMNx, generating the set of input
     files required for running RouteE Compass.
@@ -94,7 +102,7 @@ def generate_compass_dataset(
     print("processing edges")
     lookup = v.set_index("vertex_uuid")
 
-    def replace_id(vertex_uuid):
+    def replace_id(vertex_uuid: pd.Index) -> pd.Series[int]:
         return lookup.loc[vertex_uuid].vertex_id
 
     e = e.reset_index(drop=False).rename(
