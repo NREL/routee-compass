@@ -13,9 +13,6 @@
   </a>
 </div>
 
-
-
-
 RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
 
 - Dynamic and extensible search objectives that allow customized blends of distance, time, cost, and energy (via RouteE Powertrain) at query-time
@@ -35,6 +32,8 @@ See the [documentation](https://nrel.github.io/routee-compass/) for more informa
 ## Contributors
 
 RouteE Compass is currently maintained by Nick Reinicke ([@nreinicke](https://github.com/nreinicke)) and Rob Fitzgerald ([@robfitzgerald](https://github.com/robfitzgerald)).
+
+If you're interested in contributing, please checkout the [contributing](https://nrel.github.io/routee-compass/developers/contributing.html) guide.
 
 ## License
 
