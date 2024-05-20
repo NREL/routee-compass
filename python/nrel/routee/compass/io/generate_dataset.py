@@ -9,6 +9,7 @@ import shutil
 
 import pandas as pd
 import networkx
+from numpy.typing import ArrayLike
 
 from nrel.routee.compass.io.utils import add_grade_to_graph
 
@@ -19,12 +20,16 @@ HIGHWAY_TYPE = str
 KM_PER_HR = float
 HIGHWAY_SPEED_MAP = dict[HIGHWAY_TYPE, KM_PER_HR]
 
+# Parameters annotated with this pass through OSMnx, then GeoPandas, then to Pandas,
+# this is a best-effort annotation since the upstream doesn't really have one
+AggFunc = Callable[[ArrayLike], ArrayLike]
+
 def generate_compass_dataset(
     g: networkx.MultiDiGraph,
     output_directory: Union[str, Path],
     hwy_speeds: Optional[HIGHWAY_SPEED_MAP] = None,
     fallback: Optional[float] = None,
-    agg: Optional[Callable] = None,
+    agg: Optional[AggFunc] = None,
     add_grade: bool = False,
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
