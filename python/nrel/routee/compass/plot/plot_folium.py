@@ -1,7 +1,11 @@
-import folium
-from typing import Any, Callable, Optional, Union
-from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
 import json
+from typing import Any, Callable, Optional, Union
+
+import folium
+
+from nrel.routee.compass.compass_app import Result as QueryResult, Results as QueryResults
+from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
+
 
 DEFAULT_LINE_KWARGS = {
     "color": "blue",
@@ -13,12 +17,11 @@ DEFAULT_LINE_KWARGS = {
 ROUTE_KEY = "route"
 PATH_KEY = "path"
 
-
 def plot_route_folium(
-    result_dict: dict,
-    line_kwargs: Optional[dict] = None,
-    folium_map=None,
-):
+    result_dict: QueryResult,
+    line_kwargs: Optional[QueryResult] = None,
+    folium_map: folium.Map = None,
+) -> folium.Map:
     """
     Plots a single route from a compass query on a folium map.
 
@@ -119,10 +122,10 @@ def plot_route_folium(
 
 
 def plot_routes_folium(
-    results: Union[dict, list[dict]],
-    value_fn: Callable[[dict], Any] = lambda r: r["request"].get("name"),
+    results: Union[QueryResult, QueryResults],
+    value_fn: Callable[[QueryResult], Any] = lambda r: r["request"].get("name"),
     color_map: str = "viridis",
-):
+) -> folium.Map:
     """
     Plot multiple routes from a CompassApp query on a folium map
 
