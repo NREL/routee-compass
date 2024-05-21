@@ -26,8 +26,9 @@ class CompassApp:
 
     _app: CompassAppWrapper
 
-    def __init__(self, app: CompassAppWrapper):
+    def __init__(self, app: CompassAppWrapper, config: Dict):
         self._app = app
+        self._config = config
 
     @classmethod
     def get_constructor(cls):
@@ -85,7 +86,7 @@ class CompassApp:
         path_str = str(working_dir.absolute()) if working_dir is not None else ""
         toml_string = toml.dumps(config)
         app = cls.get_constructor()._from_config_toml_string(toml_string, path_str)
-        return cls(app)
+        return cls(app, config)
 
     def run(
         self, query: Union[Query, List[Query]], config: Optional[Dict] = None
