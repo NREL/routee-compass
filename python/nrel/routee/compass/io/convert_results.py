@@ -1,15 +1,23 @@
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, TYPE_CHECKING
 
 from nrel.routee.compass.utils.geometry import geometry_from_route
-import pandas as pd
-import geopandas as gpd
+
 from nrel.routee.compass.compass_app import Result, Results
+
+if TYPE_CHECKING:
+    from geopandas import GeoDataFrame
 
 
 def tree_result_to_geopandas(
     result: Result,
-) -> Optional[gpd.GeoDataFrame]:
+) -> Optional[GeoDataFrame]:
     """ """
+    try:
+        import geopandas as gpd
+    except ImportError:
+        raise ImportError(
+            "requires geopandas to be installed. Try 'pip install nrel.routee.compass[osm]'"
+        )
     if "error" in result:
         raise ValueError(f"Error in result: {result['error']}")
 
@@ -26,8 +34,15 @@ def tree_result_to_geopandas(
 
 def route_result_to_geopandas(
     result: Result,
-) -> Optional[gpd.GeoDataFrame]:
+) -> Optional[GeoDataFrame]:
     """ """
+    try:
+        import geopandas as gpd
+        import pandas as pd
+    except ImportError:
+        raise ImportError(
+            "requires geopandas to be installed. Try 'pip install nrel.routee.compass[osm]'"
+        )
     if "error" in result:
         raise ValueError(f"Error in result: {result['error']}")
 
@@ -56,8 +71,14 @@ def route_result_to_geopandas(
 
 def results_to_geopandas(
     results: Union[Result, Results],
-) -> Union[gpd.GeoDataFrame, Tuple[gpd.GeoDataFrame, gpd.GeoDataFrame]]:
+) -> Union[GeoDataFrame, Tuple[GeoDataFrame, GeoDataFrame]]:
     """ """
+    try:
+        import pandas as pd
+    except ImportError:
+        raise ImportError(
+            "requires pandas to be installed. Try 'pip install nrel.routee.compass[osm]'"
+        )
     if isinstance(results, dict):
         results = [results]
 
