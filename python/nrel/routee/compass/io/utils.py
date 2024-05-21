@@ -108,7 +108,7 @@ def add_grade_to_graph(
     g,
     output_dir: Path = Path("cache"),
     resolution_arc_seconds: Union[str, int] = 1,
-    api_key: str = None
+    api_key: str = None,
 ):
     """
     Adds grade information to the edges of a graph.
