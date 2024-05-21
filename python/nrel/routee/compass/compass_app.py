@@ -5,7 +5,7 @@ import logging
 from string import whitespace
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, TextIO, Generator
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
@@ -136,19 +136,17 @@ class CompassApp:
         return results
     
     def run_in_batches(self,
-                       query_file: Union[str, Path],
-                       batch_size: int) -> List[Result]:
+                       fp: TextIO,
+                       batch_size: int) -> Generator[List[Result], None, None]:
         """
         Reads in upto batch_size of queries from a query file before
         calling run
 
         Args:
 
-            query_file: Name of the file containing json or psuedo json
-                list of queries. Support regular json, and newline
-                delimited json dictionaries
+            fp: File pointer to where the queries are stored
 
-            batch_size: MAx number of queries to read in from the json
+            batch_size: Max number of queries to read in from the json
                 file.
 
         Returns:
@@ -160,30 +158,31 @@ class CompassApp:
             >>> result = app.run_in_batches("query.json", 10)  
         """
         queries = []
-        with open(query_file) as fp:
-            query_str = ""
-            for line in fp:
-                if len(queries) >= batch_size:
-                    break
+        query_str = ""
+        for line in fp:
+            if len(queries) >= batch_size:
+                yield self.run(queries)
+                queries = []
 
-                # attempt to read a line and see if we can eval it
-                line = line.strip()
-                query_str += line
-                if query_str[0] == "[":
-                    query_str = query_str[1:]
-                if query_str == "":
-                    continue
-                try:
-                    if query_str[-1] in [",", "]"]:
-                        query = eval(query_str[:-1])
-                    else:
-                        query = eval(query_str)
-                except SyntaxError:
-                    continue
-                
-                queries.append(query)
-                query_str = ""
-        return self.run(queries)
+            # attempt to read a line and see if we can eval it
+            line = line.strip()
+            query_str += line
+            if query_str[0] == "[":
+                query_str = query_str[1:]
+            if query_str == "":
+                continue
+            try:
+                if query_str[-1] in [",", "]"]:
+                    query = eval(query_str[:-1])
+                else:
+                    query = eval(query_str)
+            except SyntaxError:
+                continue
+            
+            queries.append(query)
+            query_str = ""
+        if queries:
+            yield self.run(queries)
 
 
     def graph_edge_origin(self, edge_id: int) -> int:
