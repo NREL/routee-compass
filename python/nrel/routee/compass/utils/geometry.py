@@ -1,13 +1,17 @@
+from typing import TYPE_CHECKING
+
 from nrel.routee.compass.compass_app import Route
-import shapely
 import json
+
+if TYPE_CHECKING:
+    from shapely.geometry import LineString
 
 # routes should exist at a "route.path" key
 ROUTE_KEY = "route"
 PATH_KEY = "path"
 
 
-def geometry_from_route(route: Route) -> shapely.geometry.LineString:
+def geometry_from_route(route: Route) -> "LineString":
     """
     Parse a route dictionary and return a shapely LineString object
 
@@ -22,6 +26,12 @@ def geometry_from_route(route: Route) -> shapely.geometry.LineString:
         NotImplementedError: If the route dictionary has a multi-geometry
         ValueError: If the route dictionary has an unparseable geometry
     """
+    try:
+        import shapely
+    except ImportError:
+        raise ImportError(
+            "requires shapely to be installed. Try 'pip install nrel.routee.compass[osm]'"
+        )
     geom = route.get(PATH_KEY)
     if geom is None:
         raise KeyError(
