@@ -6,9 +6,12 @@ from pathlib import Path
 import math
 import itertools
 import logging
-from typing import Union
+from typing import Union, Dict, Any
 
 log = logging.getLogger(__name__)
+
+
+Query = Dict[str, Any]
 
 
 class TileResolution(Enum):
@@ -170,3 +173,39 @@ def add_grade_to_graph(
     g = ox.add_edge_grades(g)
 
     return g
+
+
+def eval_query(query_str: str) -> Union[Query | None]:
+    """
+    Takes a query json string and parses it as a query
+
+    Args:
+
+        query_str: The query as a json string
+
+    Returns:
+
+        A query dictionary if the string can be parsed, or None if it
+            cannot be parsed
+
+    Example:
+        >>> query_str = '{"origin_name": "NREL", "destination_name": '\
+                        '"Comrade Brewing Company", "origin_x": '\
+                        '-105.1710052, "origin_y": 39.7402804, '\
+                        '"destination_x": '-104.9009913, "destination_y": '\
+                        '39.6757025}'
+        >>> query = eval_query(query_str)
+    """
+    if query_str[0] == "[":
+        query_str = query_str[1:]
+    if query_str == "":
+        return None
+    try:
+        if query_str[-1] in [",", "]"]:
+            query = eval(query_str[:-1])
+        else:
+            query = eval(query_str)
+    except SyntaxError:
+        return None
+
+    return query

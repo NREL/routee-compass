@@ -4,10 +4,11 @@ import json
 import logging
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Generator
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
+from nrel.routee.compass.io.utils import eval_query
 
 import toml
 
@@ -136,6 +137,47 @@ class CompassApp:
         if single_query and len(results) == 1:
             return results[0]
         return results
+
+    def run_in_batches(
+        self, query_file: Union[str | Path], batch_size: int
+    ) -> Generator[List[Result], None, None]:
+        """
+        Reads in up to batch_size of queries iteratively from a query file
+        before calling run
+
+        Args:
+
+            query_file: Path to a file of queries to run
+
+            batch_size: Max number of queries to read in at a time from
+                the json file.
+
+        Returns:
+            A list of results (or a single result if a single query was
+                read in). If no queries are read in, None is returned
+
+        Example:
+            >>> from nrel.routee.compass import CompassApp
+            >>> app = CompassApp.from_config_file("config.toml")
+            >>> result = app.run_in_batches("query.json", 10)
+        """
+        queries = []
+        query_str = ""
+        with open(query_file) as fp:
+            for line in fp:
+                if len(queries) >= batch_size:
+                    yield self.run(queries)
+                    queries = []
+
+                # attempt to read a line and see if we can eval it
+                line = line.strip()
+                query_str += line
+                query = eval_query(query_str)
+                if query is not None:
+                    queries.append(query)
+                    query_str = ""
+            if queries:
+                yield self.run(queries)
 
     def graph_edge_origin(self, edge_id: int) -> int:
         """
