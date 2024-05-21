@@ -274,7 +274,9 @@ def plot_routes_folium(
     results_coords = [result_dict_to_coords(result_dict) for result_dict in results]
 
     if folium_map is None:
-        folium_map = _create_empty_folium_map(fit_coords=np.concatenate(results_coords))
+        folium_map = _create_empty_folium_map(
+            fit_coords=list(np.concatenate(results_coords))
+        )
 
     for coords, value, route_color in zip(results_coords, values, colors):
         line_kwargs = {"color": route_color, "tooltip": f"{value}"}

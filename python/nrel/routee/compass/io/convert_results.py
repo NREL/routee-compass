@@ -65,13 +65,14 @@ def results_to_geopandas(
     tree_constructor = []
 
     for i, result in enumerate(results):
-        if "route" in result:
-            route_gdf = route_result_to_geopandas(result)
+        route_gdf = route_result_to_geopandas(result)
+        if route_gdf is not None:
             route_gdf["route_id"] = i
             route_gdf = route_gdf.set_index("route_id")
             route_constructor.append(route_gdf)
-        if "tree" in result:
-            tree_gdf = tree_result_to_geopandas(result)
+
+        tree_gdf = tree_result_to_geopandas(result)
+        if tree_gdf is not None:
             tree_gdf["tree_id"] = i
             tree_gdf = tree_gdf.set_index(["tree_id", "edge_id"])
             tree_constructor.append(tree_gdf)
