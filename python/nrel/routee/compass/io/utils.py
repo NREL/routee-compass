@@ -60,7 +60,7 @@ def _lat_lon_to_tile(coord: tuple[int, int]) -> str:
     else:
         lon_prefix = "e"
 
-    return f"{lat_prefix}{abs(lat)}{lon_prefix}{abs(lon)}"
+    return f"{lat_prefix}{abs(lat):02}{lon_prefix}{abs(lon):03}"
 
 
 def _build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) -> str:
