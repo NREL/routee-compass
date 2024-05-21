@@ -24,6 +24,7 @@ HIGHWAY_SPEED_MAP = dict[HIGHWAY_TYPE, KM_PER_HR]
 # this is a best-effort annotation since the upstream doesn't really have one
 AggFunc = Callable[[ArrayLike], ArrayLike]
 
+
 def generate_compass_dataset(
     g: networkx.MultiDiGraph,
     output_directory: Union[str, Path],

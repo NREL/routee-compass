@@ -22,6 +22,7 @@ class ColormapCircularIterator:
 
 RGBA_TUPLE = tuple[float, float, float, float]
 
+
 def rgba_to_hex(rgba: RGBA_TUPLE) -> str:
     return "#{:02x}{:02x}{:02x}".format(
         int(rgba[0] * 255), int(rgba[1] * 255), int(rgba[2] * 255)

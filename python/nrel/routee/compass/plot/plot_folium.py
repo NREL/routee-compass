@@ -3,7 +3,10 @@ from typing import Any, Callable, Optional, Union
 
 import folium
 
-from nrel.routee.compass.compass_app import Result as QueryResult, Results as QueryResults
+from nrel.routee.compass.compass_app import (
+    Result as QueryResult,
+    Results as QueryResults,
+)
 from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
 
 
@@ -16,6 +19,7 @@ DEFAULT_LINE_KWARGS = {
 # routes should exist at a "route.path" key
 ROUTE_KEY = "route"
 PATH_KEY = "path"
+
 
 def plot_route_folium(
     result_dict: QueryResult,

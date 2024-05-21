@@ -65,7 +65,9 @@ def _lat_lon_to_tile(coord: tuple[int, int]) -> str:
     return f"{lat_prefix}{abs(lat)}{lon_prefix}{abs(lon)}"
 
 
-def _build_download_link(tile: str, resolution: TileResolution = TileResolution.ONE_ARC_SECOND) -> str:
+def _build_download_link(
+    tile: str, resolution: TileResolution = TileResolution.ONE_ARC_SECOND
+) -> str:
     base_link_fragment = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/"
     resolution_link_fragment = f"{resolution.value}/TIFF/current/{tile}/"
     filename = f"USGS_{resolution.value}_{tile}.tif"

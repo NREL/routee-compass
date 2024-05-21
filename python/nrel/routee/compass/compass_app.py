@@ -69,7 +69,9 @@ class CompassApp:
         return cls.from_dict(toml_config, config_path)
 
     @classmethod
-    def from_dict(cls, config: Config, working_dir: Optional[Path] = None) -> CompassApp:
+    def from_dict(
+        cls, config: Config, working_dir: Optional[Path] = None
+    ) -> CompassApp:
         """
         Build a CompassApp from a configuration object
 
