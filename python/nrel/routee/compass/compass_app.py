@@ -139,18 +139,19 @@ class CompassApp:
         self, query_file: Union[str | Path], batch_size: int
     ) -> Generator[List[Result], None, None]:
         """
-        Reads in upto batch_size of queries from a query file before
-        calling run
+        Reads in up to batch_size of queries iteratively from a query file
+        before calling run
 
         Args:
 
             query_file: Path to a file of queries to run
 
-            batch_size: Max number of queries to read in from the json
-                file.
+            batch_size: Max number of queries to read in at a time from
+                the json file.
 
         Returns:
-            A list of results (or a single result if a single query was read in)
+            A list of results (or a single result if a single query was
+                read in). If no queries are read in, None is returned
 
         Example:
             >>> from nrel.routee.compass import CompassApp
