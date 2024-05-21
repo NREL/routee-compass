@@ -1,6 +1,14 @@
-from typing import Any, Callable, Optional, Union
-from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
 import json
+from typing import Any, Callable, Optional, Union
+
+import folium
+
+from nrel.routee.compass.compass_app import (
+    Result as QueryResult,
+    Results as QueryResults,
+)
+from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
+
 
 DEFAULT_LINE_KWARGS = {
     "color": "blue",
@@ -14,22 +22,20 @@ PATH_KEY = "path"
 
 
 def plot_route_folium(
-    result_dict: dict,
-    line_kwargs: Optional[dict] = None,
-    folium_map=None,
-):
+    result_dict: QueryResult,
+    line_kwargs: Optional[QueryResult] = None,
+    folium_map: folium.Map = None,
+) -> folium.Map:
     """
     Plots a single route from a compass query on a folium map.
 
     Args:
-        result_dict (Dict[str, Any]): A result dictionary from a CompassApp query
-        line_kwargs (Optional[Dict[str, Any]], optional): A dictionary of keyword
-            arguments to pass to the folium Polyline
-        folium_map (folium.Map, optional): A existing folium map to plot the route on.
-            Defaults to None.
+        result_dict: A result dictionary from a CompassApp query
+        line_kwargs: A dictionary of keyword arguments to pass to the folium Polyline
+        folium_map: A existing folium map to plot the route on.
 
     Returns:
-        folium.Map: A folium map with the route plotted on it
+        folium_map: A folium map with the route plotted on it
 
     Example:
         >>> from nrel.routee.compass import CompassApp
@@ -120,24 +126,21 @@ def plot_route_folium(
 
 
 def plot_routes_folium(
-    results: Union[dict, list[dict]],
-    value_fn: Callable[[dict], Any] = lambda r: r["request"].get("name"),
+    results: Union[QueryResult, QueryResults],
+    value_fn: Callable[[QueryResult], Any] = lambda r: r["request"].get("name"),
     color_map: str = "viridis",
-):
+) -> folium.Map:
     """
     Plot multiple routes from a CompassApp query on a folium map
 
     Args:
-        results (Union[dict, list[dict]]): A result dictionary or list of result
-            dictionaries from a CompassApp query
-        value_fn (Callable[[Dict[str, Any]], Any], optional): A function that takes a
-            result dictionary and returns a value to use for coloring the routes.
+        results: A result dictionary or list of result dictionaries from a CompassApp query
+        value_fn: A function that takes a result dictionary and returns a value to use for coloring the routes.
             Defaults to lambda r: r["request"].get("name").
-        color_map (str, optional): The name of the matplotlib colormap to use
-            for coloring the routes. Defaults to "viridis".
+        color_map: The name of the matplotlib colormap to use for coloring the routes.
 
     Returns:
-        folium.Map: A folium map with the routes plotted on it
+        folium_map: A folium map with the routes plotted on it
 
     Example:
         >>> from nrel.routee.compass import CompassApp

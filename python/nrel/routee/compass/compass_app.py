@@ -4,7 +4,7 @@ import json
 import logging
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
@@ -12,8 +12,10 @@ from nrel.routee.compass.routee_compass_py import (
 import toml
 
 
+Config = Dict[str, Any]
 Query = Dict[str, Any]
-Result = List[Dict[str, Any]]
+Result = Dict[str, Any]
+Results = List[Result]
 
 
 log = logging.getLogger(__name__)
@@ -30,14 +32,15 @@ class CompassApp:
         self._app = app
 
     @classmethod
-    def get_constructor(cls):
+    def get_constructor(cls) -> type:
         """
         Return the underlying constructor for the application.
         This allows a child class to inherit the CompassApp python class
         and implement its own rust based app constructor, while still using
         the original python methods.
         """
-        return CompassAppWrapper
+        # mypy does not understand that this Rust-defined type *is* a type, so we need to cast
+        return cast(type, CompassAppWrapper)
 
     @classmethod
     def from_config_file(
@@ -48,10 +51,10 @@ class CompassApp:
         Build a CompassApp from a config file
 
         Args:
-            config_file (Union[str, Path]): Path to the config file
+            config_file: Path to the config file
 
         Returns:
-            CompassApp: A CompassApp object
+            app: A CompassApp object
 
         Example:
             >>> from nrel.routee.compass import CompassApp
@@ -66,38 +69,42 @@ class CompassApp:
         return cls.from_dict(toml_config, config_path)
 
     @classmethod
-    def from_dict(cls, config: Dict, working_dir: Optional[Path] = None) -> CompassApp:
+    def from_dict(
+        cls, config: Config, working_dir: Optional[Path] = None
+    ) -> CompassApp:
         """
         Build a CompassApp from a configuration object
 
         Args:
-            config (Dict): Configuration dictionary
-            working_dir (Path): optional path to working directory
+            config: Configuration dictionary
+            working_dir: optional path to working directory
 
         Returns:
-            CompassApp: a CompassApp object
+            app: a CompassApp object
 
         Example:
             >>> from nrel.routee.compass import CompassApp
-            >>> conf = { parallelism: 2 }
+            >>> conf = { "parallelism": 2 }
             >>> app = CompassApp.from_config(conf)
         """
         path_str = str(working_dir.absolute()) if working_dir is not None else ""
         toml_string = toml.dumps(config)
-        app = cls.get_constructor()._from_config_toml_string(toml_string, path_str)
+        # mypy does not know about the attribute on this Rust-defined type
+        app = cls.get_constructor()._from_config_toml_string(toml_string, path_str)  # type: ignore
         return cls(app)
 
     def run(
-        self, query: Union[Query, List[Query]], config: Optional[Dict] = None
-    ) -> Result:
+        self, query: Union[Query, List[Query]], config: Optional[Config] = None
+    ) -> Union[Result, Results]:
         """
         Run a query (or multiple queries) against the CompassApp
 
         Args:
-            query (Union[Dict[str, Any], List[Dict[str, Any]]]): A query or list of queries to run
+            query: A query or list of queries to run
+            config: optional configuration
 
         Returns:
-            List[Dict[str, Any]]: A list of results (or a single result if a single query was passed)
+            results: A list of results (or a single result if a single query was passed)
 
         Example:
             >>> from nrel.routee.compass import CompassApp
@@ -130,7 +137,7 @@ class CompassApp:
 
         results_json: List[str] = self._app._run_queries(queries_str, config_str)
 
-        results = list(map(json.loads, results_json))
+        results: Results = list(map(json.loads, results_json))
         if single_query and len(results) == 1:
             return results[0]
         return results
@@ -140,24 +147,24 @@ class CompassApp:
         get the origin vertex id for some edge
 
         Args:
-            edge_id (int): the id of the edge
+            edge_id: the id of the edge
 
         Returns:
-            int: the vertex id at the source of the edge
+            vertex_id: the vertex id at the source of the edge
         """
-        return self._app.graph_edge_origin(edge_id)
+        return cast(int, self._app.graph_edge_origin(edge_id))
 
     def graph_edge_destination(self, edge_id: int) -> int:
         """
         get the destination vertex id for some edge
 
         Args:
-            edge_id (int): the id of the edge
+            edge_id: the id of the edge
 
         Returns:
-            int: the vertex id at the destination of the edge
+            vertex_id: the vertex id at the destination of the edge
         """
-        return self._app.graph_edge_destination(edge_id)
+        return cast(int, self._app.graph_edge_destination(edge_id))
 
     def graph_edge_distance(
         self, edge_id: int, distance_unit: Optional[str] = None
@@ -166,34 +173,34 @@ class CompassApp:
         get the distance for some edge
 
         Args:
-            edge_id (int): the id of the edge
-            distance_unit (Optional[str]): distance unit, by default meters
+            edge_id: the id of the edge
+            distance_unit: distance unit, by default meters
 
         Returns:
-            int: the distance covered by traversing the edge
+            dist: the distance covered by traversing the edge
         """
-        return self._app.graph_edge_distance(edge_id, distance_unit)
+        return cast(float, self._app.graph_edge_distance(edge_id, distance_unit))
 
     def graph_get_out_edge_ids(self, vertex_id: int) -> List[int]:
         """
         get the list of edge ids that depart from some vertex
 
         Args:
-            vertex_id (int): the id of the vertex
+            vertex_id: the id of the vertex
 
         Returns:
-            List[int]: the edge ids of edges departing from this vertex
+            edges: the edge ids of edges departing from this vertex
         """
-        return self._app.graph_get_out_edge_ids(vertex_id)
+        return cast(List[int], self._app.graph_get_out_edge_ids(vertex_id))
 
     def graph_get_in_edge_ids(self, vertex_id: int) -> List[int]:
         """
         get the list of edge ids that arrive from some vertex
 
         Args:
-            vertex_id (int): the id of the vertex
+            vertex_id: the id of the vertex
 
         Returns:
-            List[int]: the edge ids of edges arriving at this vertex
+            edges: the edge ids of edges arriving at this vertex
         """
-        return self._app.graph_get_in_edge_ids(vertex_id)
+        return cast(List[int], self._app.graph_get_in_edge_ids(vertex_id))
