@@ -20,7 +20,17 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 keywords = ["eco routing"]
-dependencies = ["toml"]
+dependencies = [
+    "toml",
+    "numpy",
+    "pandas",
+    "geopandas",
+    "shapely",
+    "networkx",
+    "folium",
+    "osmnx",
+]
+
 [project.optional-dependencies]
 dev = ["pytest", "maturin", "jupyter-book", "ruff", "sphinx-book-theme"]
 
