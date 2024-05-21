@@ -20,11 +20,6 @@ Result = List[Dict[str, Any]]
 log = logging.getLogger(__name__)
 
 
-# characters needed to strip off when trying to parse psuedo json in
-# run_in_batches
-BATCHES_STRIP = whitespace + "[],"
-
-
 class CompassApp:
     """
     The CompassApp holds everything needed to run a route query.
@@ -172,13 +167,20 @@ class CompassApp:
                     break
 
                 # attempt to read a line and see if we can eval it
-                line = line.strip(BATCHES_STRIP)
+                line = line.strip()
+                query_str += line
+                if query_str[0] == "[":
+                    query_str = query_str[1:]
+                if query_str == "":
+                    continue
                 try:
-                    query_str += line
-                    query = eval(query_str)
+                    if query_str[-1] in [",", "]"]:
+                        query = eval(query_str[:-1])
+                    else:
+                        query = eval(query_str)
                 except SyntaxError:
                     continue
-
+                
                 queries.append(query)
                 query_str = ""
         return self.run(queries)
