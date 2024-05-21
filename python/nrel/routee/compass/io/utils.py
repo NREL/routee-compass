@@ -6,7 +6,7 @@ from pathlib import Path
 import math
 import itertools
 import logging
-from typing import Union
+from typing import Union, Optional
 
 log = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ def add_grade_to_graph(
     g,
     output_dir: Path = Path("cache"),
     resolution_arc_seconds: Union[str, int] = 1,
-    api_key: str = None,
+    api_key: Optional[str] = None,
 ):
     """
     Adds grade information to the edges of a graph.
