@@ -35,7 +35,7 @@ jobs:
 
       - name: Install package
         run: |
-          pip install ".[dev]"
+          pip install ".[all]"
 
       # - name: Run mypy
       #   run: mypy . --ignore-missing-imports
