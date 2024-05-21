@@ -1,4 +1,4 @@
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Sequence, Tuple, Union
 from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
 import json
 
@@ -13,39 +13,30 @@ ROUTE_KEY = "route"
 PATH_KEY = "path"
 
 
-def plot_route_folium(
-    result_dict: dict,
-    line_kwargs: Optional[dict] = None,
-    folium_map=None,
-):
+def result_dict_to_coords(result_dict: dict) -> Sequence[Tuple[float, float]]:
     """
-    Plots a single route from a compass query on a folium map.
+    Converts the CompassApp results to coords to be sent to the folium map.
 
     Args:
         result_dict (Dict[str, Any]): A result dictionary from a CompassApp query
-        line_kwargs (Optional[Dict[str, Any]], optional): A dictionary of keyword
-            arguments to pass to the folium Polyline
-        folium_map (folium.Map, optional): A existing folium map to plot the route on.
-            Defaults to None.
 
     Returns:
-        folium.Map: A folium map with the route plotted on it
+        Sequence[(float, float)]: A sequence of latitude and longitude tuples.
 
     Example:
         >>> from nrel.routee.compass import CompassApp
-        >>> from nrel.routee.compass.plot import plot_route_folium
+        >>> from nrel.routee.compass.plot import result_dict_to_coords
         >>> app = CompassApp.from_config_file("config.toml")
         >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
         >>> result = app.run(query)
-        >>> m = plot_route_folium(result)
+        >>> coords = result_dict_to_coords(result)
 
     """
     try:
-        import folium
         import shapely
     except ImportError:
         raise ImportError(
-            "You need to install the folium and shapely packages to use this function"
+            "You need to install the shapely package to use this function"
         )
 
     if not isinstance(result_dict, dict):
@@ -86,16 +77,143 @@ def plot_route_folium(
     else:
         coords = [(lat, lon) for lon, lat in linestring.coords]
 
+    return coords
+
+
+def _calculate_folium_args(fit_coords: Sequence[Tuple[float, float]]) -> dict:
+    """
+    Calculates where the center of the map and the bounds that the map
+    should fit.
+
+    Args:
+        fit_coords (Sequence[Tuple[float, float]): The list of coords that needs to fit in the map
+
+    Returns:
+        dict: A dict with two keys. "location" contains the center of the map and "fit_bounds"
+            represents a rectangle that covers all the coords.
+
+    Example:
+        >>> from nrel.routee.compass import CompassApp
+        >>> from nrel.routee.compass.plot import _create_empty_folium_map
+        >>> app = CompassApp.from_config_file("config.toml")
+        >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
+        >>> result = app.run(query)
+        >>> coords = result_dict_to_coords(result)
+        >>> folium_args = _calculate_folium_args(coords)
+
+    """
+    max_x = max(coord[0] for coord in fit_coords)
+    min_x = min(coord[0] for coord in fit_coords)
+    max_y = max(coord[1] for coord in fit_coords)
+    min_y = min(coord[1] for coord in fit_coords)
+    return {
+        "location": ((max_x + min_x) / 2, (max_y + min_y) / 2),
+        "fit_bounds": ([min_x, min_y], [max_x, max_y]),
+    }
+
+
+def _create_empty_folium_map(fit_coords: Sequence[Tuple[float, float]]):
+    """
+    Creates an empty folium.Map calculating the center and the fit_bounds
+    using _calculate_folium_args.
+
+    Args:
+        fit_coords (Sequence[Tuple[float, float]): The list of coords that needs to fit in the map
+
+    Returns:
+        folium.Map: An empty folium map centered to fit all the coordinates
+
+    Example:
+        >>> from nrel.routee.compass import CompassApp
+        >>> from nrel.routee.compass.plot import _create_empty_folium_map
+        >>> app = CompassApp.from_config_file("config.toml")
+        >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
+        >>> result = app.run(query)
+        >>> coords = result_dict_to_coords(result)
+        >>> empty_folium_map = _create_empty_folium_map(coords)
+
+
+    """
+    try:
+        import folium
+    except ImportError:
+        raise ImportError("You need to install the folium package to use this function")
+
+    folium_args = _calculate_folium_args(fit_coords)
+    folium_map = folium.Map(location=folium_args["location"], zoom_start=12)
+    folium_map.fit_bounds(folium_args["fit_bounds"], max_zoom=12)
+    return folium_map
+
+
+def plot_route_folium(
+    result_dict: dict,
+    line_kwargs: Optional[dict] = None,
+    folium_map=None,
+):
+    """
+    Plots a single route from a compass query on a folium map.
+
+    Args:
+        result_dict (Dict[str, Any]): A result dictionary from a CompassApp query
+        line_kwargs (Optional[Dict[str, Any]], optional): A dictionary of keyword
+            arguments to pass to the folium Polyline
+        folium_map (folium.Map, optional): A existing folium map to plot the route on.
+            Defaults to None.
+
+    Returns:
+        folium.Map: A folium map with the route plotted on it
+
+    Example:
+        >>> from nrel.routee.compass import CompassApp
+        >>> from nrel.routee.compass.plot import plot_route_folium
+        >>> app = CompassApp.from_config_file("config.toml")
+        >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
+        >>> result = app.run(query)
+        >>> m = plot_route_folium(result)
+
+    """
+    coords = result_dict_to_coords(result_dict)
+
+    return plot_coords_folium(coords, line_kwargs, folium_map)
+
+
+def plot_coords_folium(
+    coords: Sequence[Tuple[float, float]],
+    line_kwargs: Optional[dict] = None,
+    folium_map=None,
+):
+    """
+    Plots a sequence of pairs of latitude and longitude on a folium map as a route.
+
+    Args:
+        coords (Sequence[Tuple[float, float]]): A sequence of pairs of latitude and longitude
+        line_kwargs (Optional[Dict[str, Any]], optional): A dictionary of keyword
+            arguments to pass to the folium Polyline
+        folium_map (folium.Map, optional): A existing folium map to plot the route on.
+            Defaults to None.
+
+    Returns:
+        folium.Map: A folium map with the route plotted on it
+
+    Example:
+        >>> from nrel.routee.compass import CompassApp
+        >>> from nrel.routee.compass.plot import plot_route_folium
+        >>> app = CompassApp.from_config_file("config.toml")
+        >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
+        >>> result = app.run(query)
+        >>> coords = result_dict_to_coords(result[0])
+        >>> m = plot_coords_folium(coords)
+
+    """
+    try:
+        import folium
+    except ImportError:
+        raise ImportError("You need to install the folium package to use this function")
+
     if folium_map is None:
-        mid = coords[int(len(coords) / 2)]
+        folium_map = _create_empty_folium_map(coords)
 
-        folium_map = folium.Map(location=mid, zoom_start=12)
-
-    if line_kwargs is None:
-        kwargs = DEFAULT_LINE_KWARGS
-    else:
-        kwargs = DEFAULT_LINE_KWARGS
-        kwargs.update(line_kwargs)
+    kwargs = {**DEFAULT_LINE_KWARGS, **(line_kwargs or {})}
 
     folium.PolyLine(
         locations=coords,
@@ -123,6 +241,7 @@ def plot_routes_folium(
     results: Union[dict, list[dict]],
     value_fn: Callable[[dict], Any] = lambda r: r["request"].get("name"),
     color_map: str = "viridis",
+    folium_map=None,
 ):
     """
     Plot multiple routes from a CompassApp query on a folium map
@@ -135,6 +254,8 @@ def plot_routes_folium(
             Defaults to lambda r: r["request"].get("name").
         color_map (str, optional): The name of the matplotlib colormap to use
             for coloring the routes. Defaults to "viridis".
+        folium_map (folium.Map, optional): A existing folium map to plot the routes on.
+            Defaults to None.
 
     Returns:
         folium.Map: A folium map with the routes plotted on it
@@ -147,7 +268,6 @@ def plot_routes_folium(
         >>> result = app.run(query)
         >>> m = plot_results_folium(result)
 
-
     """
     try:
         import matplotlib.pyplot as plt
@@ -156,6 +276,10 @@ def plot_routes_folium(
         raise ImportError(
             "You need to install the matplotlib package to use this function"
         )
+    try:
+        import numpy as np
+    except ImportError:
+        raise ImportError("requires numpy to be installed. ")
 
     if isinstance(results, dict):
         results = [results]
@@ -170,8 +294,12 @@ def plot_routes_folium(
         cmap_iter = ColormapCircularIterator(cmap, len(values))
         colors = [next(cmap_iter) for _ in values]
 
-    folium_map = None
-    for result, value, route_color in zip(results, values, colors):
+    results_coords = [result_dict_to_coords(result_dict) for result_dict in results]
+
+    if folium_map is None:
+        folium_map = _create_empty_folium_map(fit_coords=np.concatenate(results_coords))
+
+    for coords, value, route_color in zip(results_coords, values, colors):
         line_kwargs = {"color": route_color, "tooltip": f"{value}"}
-        folium_map = plot_route_folium(result, line_kwargs, folium_map=folium_map)
+        folium_map = plot_coords_folium(coords, line_kwargs, folium_map=folium_map)
     return folium_map

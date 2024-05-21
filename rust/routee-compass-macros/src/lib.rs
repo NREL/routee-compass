@@ -65,9 +65,8 @@ pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     ))
                 })
             }
-            #[classmethod]
+            #[staticmethod]
             pub fn _from_config_toml_string(
-                _cls: &PyType,
                 config_string: String,
                 original_file_path: String,
             ) -> PyResult<#name> {
