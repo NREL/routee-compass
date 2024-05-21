@@ -6,14 +6,15 @@ import os
 from tempfile import TemporaryDirectory
 
 from pathlib import Path
-from shapely.geometry import Polygon, MultiPolygon
-from typing import Any, Dict, List, Optional, Union, Callable
+from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
 from nrel.routee.compass.io.generate_dataset import generate_compass_dataset
 
-import osmnx as ox
+if TYPE_CHECKING:
+    from shapely.geometry import Polygon, MultiPolygon
+
 import toml
 
 
@@ -147,6 +148,12 @@ class CompassApp:
         """
         # temp_dir will not be used but is needed to keep the Temporary Directory active until
         # CompassApp is built
+        try:
+            import osmnx as ox
+        except ImportError:
+            raise ImportError(
+                "requires osmnx to be installed. " "Try 'pip install osmnx'"
+            )
         cache_dir, temp_dir = cls._get_cache_dir(cache_dir)
         graph = ox.graph_from_place(query, network_type=network_type)
         generate_compass_dataset(
@@ -221,6 +228,12 @@ class CompassApp:
         """
         # temp_dir will not be used but is needed to keep the Temporary Directory active until
         # CompassApp is built
+        try:
+            import osmnx as ox
+        except ImportError:
+            raise ImportError(
+                "requires osmnx to be installed. " "Try 'pip install osmnx'"
+            )
         cache_dir, temp_dir = cls._get_cache_dir(cache_dir)
         graph = ox.graph_from_polygon(polygon, network_type=network_type)
         generate_compass_dataset(
