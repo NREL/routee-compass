@@ -95,7 +95,7 @@ impl Interpolator {
         }
         Ok(())
     }
-    
+
     pub fn interpolate(&self, point: &[f64], strategy: &Strategy) -> Result<f64, String> {
         self.validate_inputs(point, strategy)?;
         match self {
