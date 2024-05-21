@@ -136,7 +136,7 @@ def add_grade_to_graph(
         >>> g = ox.graph_from_place("Denver, Colorado, USA")
         >>> g = add_grade_to_graph(g)
         >>> g2 = ox.graph_from_place("Denver, Colorado, USA")
-        >>> g2 = add_grade_to_graph(g2, "AlzaSyAs-AoPi0VEcL7feKFQRkNpAdjznxqFi3k")
+        >>> g2 = add_grade_to_graph(g2, api_key="AlzaSyAs-AoPi0VEcL7feKFQRkNpAdjznxqFi3k")
     """
     try:
         import osmnx as ox
