@@ -420,7 +420,7 @@ document.write(`
 
     <span class="c1"># pre-process the graph</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;processing graph topology and speeds&quot;</span><span class="p">)</span>
-    <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">utils_graph</span><span class="o">.</span><span class="n">get_largest_component</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+    <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">truncate</span><span class="o">.</span><span class="n">largest_component</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
     <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_edge_speeds</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">hwy_speeds</span><span class="o">=</span><span class="n">hwy_speeds</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="n">fallback</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="n">agg</span><span class="p">)</span>
     <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_edge_bearings</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
 
