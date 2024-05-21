@@ -20,19 +20,15 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 keywords = ["eco routing"]
-dependencies = [
-    "toml",
-    "numpy",
-    "pandas",
-    "geopandas",
-    "shapely",
-    "networkx",
-    "folium",
-    "osmnx",
-]
+dependencies = ["toml"]
 
 [project.optional-dependencies]
 dev = ["pytest", "maturin", "jupyter-book", "ruff", "sphinx-book-theme"]
+osm = ["osmnx", "geopandas", "shapely", "networkx", "folium", "pandas", "numpy"]
+all = [
+    "nrel.routee.compass[osm]",
+    "nrel.routee.compass[dev]",
+]
 
 [project.urls]
 Homepage = "https://github.com/NREL/routee-compass"
