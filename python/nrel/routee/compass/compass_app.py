@@ -91,17 +91,19 @@ class CompassApp:
         toml_string = toml.dumps(config)
         app = cls.get_constructor()._from_config_toml_string(toml_string, path_str)
         return cls(app)
-    
+
     @classmethod
-    def from_place(cls,
-                   query:Union[str | dict | list], 
-                   cache_dir: Union[str, Path]=None,
-                   network_type:str = "drive",
-                   hwy_speeds: Optional[Dict] = None,
-                   fallback: Optional[float] = None,
-                   agg: Optional[Callable] = None,
-                   add_grade: bool = False,
-                   raster_resolution_arc_seconds: Union[str, int] = 1,) -> CompassApp:
+    def from_place(
+        cls,
+        query: Union[str | dict | list],
+        cache_dir: Union[str, Path] = None,
+        network_type: str = "drive",
+        hwy_speeds: Optional[Dict] = None,
+        fallback: Optional[float] = None,
+        agg: Optional[Callable] = None,
+        add_grade: bool = False,
+        raster_resolution_arc_seconds: Union[str, int] = 1,
+    ) -> CompassApp:
         """
         Build a CompassApp from a place
 
@@ -114,7 +116,7 @@ class CompassApp:
             network_type: what type of street network. Default to drive
                 List of options: ["all", "all_public", "bike", "drive",
                                   "drive_service", "walk"]
-            hwy_speeds: OSM highway types and values = typical speeds (km 
+            hwy_speeds: OSM highway types and values = typical speeds (km
                 per hour) to assign to edges of that highway type for any
                 edges missing speed data. Any edges with highway type not
                 in `hwy_speeds` will be assigned the mean preexisting
@@ -145,26 +147,30 @@ class CompassApp:
         # CompassApp is built
         cache_dir, temp_dir = cls._get_cache_dir(cache_dir)
         graph = ox.graph_from_place(query, network_type=network_type)
-        generate_compass_dataset(graph, 
-                                 output_directory=cache_dir,
-                                 hwy_speeds=hwy_speeds,
-                                 fallback=fallback,
-                                 agg=agg,
-                                 add_grade=add_grade,
-                                 raster_resolution_arc_seconds=raster_resolution_arc_seconds,
-                                 default_config=True)
+        generate_compass_dataset(
+            graph,
+            output_directory=cache_dir,
+            hwy_speeds=hwy_speeds,
+            fallback=fallback,
+            agg=agg,
+            add_grade=add_grade,
+            raster_resolution_arc_seconds=raster_resolution_arc_seconds,
+            default_config=True,
+        )
         return cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
 
     @classmethod
-    def from_polygon(cls,
-                     polygon: Union[Polygon | MultiPolygon], 
-                     cache_dir: Union[str, Path]=None,
-                     network_type:str = "drive",
-                     hwy_speeds: Optional[Dict] = None,
-                     fallback: Optional[float] = None,
-                     agg: Optional[Callable] = None,
-                     add_grade: bool = False,
-                     raster_resolution_arc_seconds: Union[str, int] = 1,) -> CompassApp:
+    def from_polygon(
+        cls,
+        polygon: Union[Polygon | MultiPolygon],
+        cache_dir: Union[str, Path] = None,
+        network_type: str = "drive",
+        hwy_speeds: Optional[Dict] = None,
+        fallback: Optional[float] = None,
+        agg: Optional[Callable] = None,
+        add_grade: bool = False,
+        raster_resolution_arc_seconds: Union[str, int] = 1,
+    ) -> CompassApp:
         """
         Build a CompassApp from a polygon
 
@@ -177,7 +183,7 @@ class CompassApp:
             network_type: what type of street network. Default to drive
                 List of options: ["all", "all_public", "bike", "drive",
                                   "drive_service", "walk"]
-            hwy_speeds: OSM highway types and values = typical speeds (km 
+            hwy_speeds: OSM highway types and values = typical speeds (km
                 per hour) to assign to edges of that highway type for any
                 edges missing speed data. Any edges with highway type not
                 in `hwy_speeds` will be assigned the mean preexisting
@@ -215,18 +221,22 @@ class CompassApp:
         # CompassApp is built
         cache_dir, temp_dir = cls._get_cache_dir(cache_dir)
         graph = ox.graph_from_polygon(polygon, network_type=network_type)
-        generate_compass_dataset(graph, 
-                                 output_directory=cache_dir,
-                                 hwy_speeds=hwy_speeds,
-                                 fallback=fallback,
-                                 agg=agg,
-                                 add_grade=add_grade,
-                                 raster_resolution_arc_seconds=raster_resolution_arc_seconds,
-                                 default_config=True)
+        generate_compass_dataset(
+            graph,
+            output_directory=cache_dir,
+            hwy_speeds=hwy_speeds,
+            fallback=fallback,
+            agg=agg,
+            add_grade=add_grade,
+            raster_resolution_arc_seconds=raster_resolution_arc_seconds,
+            default_config=True,
+        )
         return cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
 
     @staticmethod
-    def _get_cache_dir(cache_dir: Union[str, Path]) -> tuple[Union[str, Path], Union[str, Path]]:
+    def _get_cache_dir(
+        cache_dir: Union[str, Path],
+    ) -> tuple[Union[str, Path], Union[str, Path]]:
         """
         Helper function to ensure the cache directory is created
 
