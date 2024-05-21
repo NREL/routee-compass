@@ -62,7 +62,6 @@ u_turn = 9.5
 [traversal]
 type = "energy_model"
 time_model_speed_unit = "kilometers_per_hour"
-grade_table_input_file = "edges-grade-enumerated.txt.gz"
 grade_table_grade_unit = "decimal"
 time_unit = "minutes"
 distance_unit = "miles"
