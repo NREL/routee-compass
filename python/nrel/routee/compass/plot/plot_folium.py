@@ -1,16 +1,13 @@
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
-import json
+
+from nrel.routee.compass.utils.geometry import ROUTE_KEY, geometry_from_route
 
 DEFAULT_LINE_KWARGS = {
     "color": "blue",
     "weight": 10,
     "opacity": 0.8,
 }
-
-# routes should exist at a "route.path" key
-ROUTE_KEY = "route"
-PATH_KEY = "path"
 
 
 def result_dict_to_coords(result_dict: dict) -> Sequence[Tuple[float, float]]:
@@ -48,27 +45,7 @@ def result_dict_to_coords(result_dict: dict) -> Sequence[Tuple[float, float]]:
             f"Could not find '{ROUTE_KEY}' in result. "
             "Make sure the geometry output plugin is activated"
         )
-    geom = route.get(PATH_KEY)
-    if geom is None:
-        raise KeyError(
-            f"Could not find '{ROUTE_KEY}.{PATH_KEY}' in result. "
-            "Make sure the geometry output plugin is activated"
-        )
-
-    if isinstance(geom, shapely.geometry.LineString):
-        linestring = geom
-    if isinstance(geom, str):
-        linestring = shapely.from_wkt(geom)
-    elif isinstance(geom, bytes):
-        linestring = shapely.from_wkb(geom)
-    elif isinstance(geom, dict) and geom.get("features") is not None:
-        # RouteE Compass can output GeoJson as a GeometryCollection
-        # and we expect we can concatenate the result as a single linestring
-        feature_collection = shapely.from_geojson(json.dumps(geom))
-        multilinestring = shapely.MultiLineString(feature_collection.geoms)
-        linestring = shapely.line_merge(multilinestring)
-    else:
-        raise ValueError("Could not parse route geometry")
+    linestring = geometry_from_route(route)
 
     if isinstance(linestring, shapely.geometry.MultiLineString):
         coords = []
@@ -297,7 +274,9 @@ def plot_routes_folium(
     results_coords = [result_dict_to_coords(result_dict) for result_dict in results]
 
     if folium_map is None:
-        folium_map = _create_empty_folium_map(fit_coords=np.concatenate(results_coords))
+        folium_map = _create_empty_folium_map(
+            fit_coords=list(np.concatenate(results_coords))
+        )
 
     for coords, value, route_color in zip(results_coords, values, colors):
         line_kwargs = {"color": route_color, "tooltip": f"{value}"}
