@@ -1,5 +1,5 @@
 use itertools::Itertools;
-use ndarray::prelude::*;
+use ndarray::{prelude::*, Slice};
 
 #[derive(Debug)]
 pub enum Interpolator {
