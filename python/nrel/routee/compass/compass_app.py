@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import logging
-from string import whitespace
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union, TextIO, Generator
@@ -135,10 +134,10 @@ class CompassApp:
         if single_query and len(results) == 1:
             return results[0]
         return results
-    
-    def run_in_batches(self,
-                       fp: TextIO,
-                       batch_size: int) -> Generator[List[Result], None, None]:
+
+    def run_in_batches(
+        self, fp: TextIO, batch_size: int
+    ) -> Generator[List[Result], None, None]:
         """
         Reads in upto batch_size of queries from a query file before
         calling run
@@ -156,7 +155,7 @@ class CompassApp:
         Example:
             >>> from nrel.routee.compass import CompassApp
             >>> app = CompassApp.from_config_file("config.toml")
-            >>> result = app.run_in_batches("query.json", 10)  
+            >>> result = app.run_in_batches("query.json", 10)
         """
         queries = []
         query_str = ""
@@ -179,12 +178,11 @@ class CompassApp:
                     query = eval(query_str)
             except SyntaxError:
                 continue
-            
+
             queries.append(query)
             query_str = ""
         if queries:
             yield self.run(queries)
-
 
     def graph_edge_origin(self, edge_id: int) -> int:
         """
