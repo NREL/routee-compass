@@ -108,10 +108,12 @@ def add_grade_to_graph(
     g,
     output_dir: Path = Path("cache"),
     resolution_arc_seconds: Union[str, int] = 1,
+    api_key: str = None
 ):
     """
     Adds grade information to the edges of a graph.
-    This will download the necessary elevation data from USGS as raster tiles and cache them in the output_dir.
+    If using an api_key will try and download the grades from Google API, otherwise
+    this will download the necessary elevation data from USGS as raster tiles and cache them in the output_dir.
     The resolution of the tiles can be specified with the resolution parameter.
     USGS has elevation data in increasing resolutions of: 1 arc-second and 1/3 arc-second
     Average tile file sizes for each resolution are about:
@@ -123,6 +125,8 @@ def add_grade_to_graph(
         g (nx.MultiDiGraph): The networkx graph to add grades to.
         output_dir (Path, optional): The directory to cache the downloaded tiles in. Defaults to Path("cache").
         resolution_arc_seconds (str, optional): The resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
+        api_key: The google API key to pull down grade information. If
+            None will use USGS raster elevation tiles
 
     Returns:
         nx.MultiDiGraph: The graph with grade information added to the edges.
@@ -131,42 +135,47 @@ def add_grade_to_graph(
         >>> import osmnx as ox
         >>> g = ox.graph_from_place("Denver, Colorado, USA")
         >>> g = add_grade_to_graph(g)
+        >>> g2 = ox.graph_from_place("Denver, Colorado, USA")
+        >>> g2 = add_grade_to_graph(g2, "AlzaSyAs-AoPi0VEcL7feKFQRkNpAdjznxqFi3k")
     """
     try:
         import osmnx as ox
     except ImportError:
         raise ImportError("requires osmnx to be installed. Try 'pip install osmnx'")
 
-    node_gdf = ox.graph_to_gdfs(g, nodes=True, edges=False)
+    if api_key is None:
+        node_gdf = ox.graph_to_gdfs(g, nodes=True, edges=False)
 
-    min_lat = node_gdf.y.min()
-    max_lat = node_gdf.y.max()
-    min_lon = node_gdf.x.min()
-    max_lon = node_gdf.x.max()
+        min_lat = node_gdf.y.min()
+        max_lat = node_gdf.y.max()
+        min_lon = node_gdf.x.min()
+        max_lon = node_gdf.x.max()
 
-    lats = _cover_floats_with_integers(min_lat, max_lat)
-    lons = _cover_floats_with_integers(min_lon, max_lon)
+        lats = _cover_floats_with_integers(min_lat, max_lat)
+        lons = _cover_floats_with_integers(min_lon, max_lon)
 
-    tiles = map(_lat_lon_to_tile, itertools.product(lats, lons))
+        tiles = map(_lat_lon_to_tile, itertools.product(lats, lons))
 
-    if isinstance(resolution_arc_seconds, int):
-        resolution = TileResolution.from_int(resolution_arc_seconds)
-    elif isinstance(resolution_arc_seconds, str):
-        resolution = TileResolution.from_string(resolution_arc_seconds)
+        if isinstance(resolution_arc_seconds, int):
+            resolution = TileResolution.from_int(resolution_arc_seconds)
+        elif isinstance(resolution_arc_seconds, str):
+            resolution = TileResolution.from_string(resolution_arc_seconds)
+        else:
+            raise ValueError(
+                f"invalid type for resolution {resolution_arc_seconds}."
+                "Must be one of: int, str"
+            )
+
+        files = []
+        for tile in tiles:
+            downloaded_file = _download_tile(
+                tile, output_dir=output_dir, resolution=resolution
+            )
+            files.append(str(downloaded_file))
+
+        g = ox.add_node_elevations_raster(g, files)
     else:
-        raise ValueError(
-            f"invalid type for resolution {resolution_arc_seconds}."
-            "Must be one of: int, str"
-        )
-
-    files = []
-    for tile in tiles:
-        downloaded_file = _download_tile(
-            tile, output_dir=output_dir, resolution=resolution
-        )
-        files.append(str(downloaded_file))
-
-    g = ox.add_node_elevations_raster(g, files)
+        g = ox.add_node_elevations_google(g, api_key=api_key)
     g = ox.add_edge_grades(g)
 
     return g
