@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Optional, Union, Generator
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
+from nrel.routee.compass.io.utils import eval_query
 
 import toml
 
@@ -169,20 +170,10 @@ class CompassApp:
                 # attempt to read a line and see if we can eval it
                 line = line.strip()
                 query_str += line
-                if query_str[0] == "[":
-                    query_str = query_str[1:]
-                if query_str == "":
-                    continue
-                try:
-                    if query_str[-1] in [",", "]"]:
-                        query = eval(query_str[:-1])
-                    else:
-                        query = eval(query_str)
-                except SyntaxError:
-                    continue
-
-                queries.append(query)
-                query_str = ""
+                query = eval_query(query_str)
+                if query is not None:
+                    queries.append(query)
+                    query_str = ""
             if queries:
                 yield self.run(queries)
 
