@@ -24,6 +24,7 @@ This simple guide will walk you through the process of contributing to RouteE Co
 
 1. Create and activate a new virtual environment with the tool of your choice (e.g. venv, conda, pipenv, etc.).
 1. Install the package and dependencies by running pip install -e ".[dev]". This will install the package in editable mode, so you can make changes to the code and see them reflected in your environment.
+1. Make sure everything is working by running the tests with pytest. `pytest python/tests`
 
 ## Opening a Pull Request
 

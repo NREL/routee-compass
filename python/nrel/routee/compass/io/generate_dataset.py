@@ -74,7 +74,7 @@ def generate_compass_dataset(
 
     # pre-process the graph
     print("processing graph topology and speeds")
-    g1 = ox.utils_graph.get_largest_component(g)
+    g1 = ox.truncate.largest_component(g)
     g1 = ox.add_edge_speeds(g1, hwy_speeds=hwy_speeds, fallback=fallback, agg=agg)
     g1 = ox.add_edge_bearings(g1)
 
@@ -189,9 +189,9 @@ def generate_compass_dataset(
                 init_toml = toml.loads(f.read())
                 if filename == "osm_default_energy.toml":
                     if add_grade:
-                        init_toml["traversal"][
-                            "grade_table_input_file"
-                        ] = "edges-grade-enumerated.txt.gz"
+                        init_toml["traversal"]["grade_table_input_file"] = (
+                            "edges-grade-enumerated.txt.gz"
+                        )
                         init_toml["traversal"]["grade_table_grade_unit"] = "decimal"
             with open(output_directory / filename, "w") as f:
                 f.write(toml.dumps(init_toml))
