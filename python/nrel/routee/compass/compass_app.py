@@ -13,8 +13,9 @@ import toml
 
 
 Query = Dict[str, Any]
-Result = List[Dict[str, Any]]
-
+Result = Dict[str, Any]
+Results = List[Result]
+Route = Dict[str, Any]
 
 log = logging.getLogger(__name__)
 
@@ -89,7 +90,7 @@ class CompassApp:
 
     def run(
         self, query: Union[Query, List[Query]], config: Optional[Dict] = None
-    ) -> Result:
+    ) -> Union[Result, Results]:
         """
         Run a query (or multiple queries) against the CompassApp
 
