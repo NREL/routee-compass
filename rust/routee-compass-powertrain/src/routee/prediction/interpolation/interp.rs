@@ -1,5 +1,11 @@
+// This file contains code adapted from FASTSim, another NREL-developed tool
+// https://www.nrel.gov/transportation/fastsim.html
+// https://github.com/NREL/fastsim/
+
 use itertools::Itertools;
 use ndarray::{prelude::*, Slice};
+
+use super::utils::find_nearest_index;
 
 #[derive(Debug)]
 pub enum Interpolator {
@@ -17,14 +23,14 @@ impl Interpolator {
         match self {
             Self::Interp1D(interp) => {
                 if !interp.x.windows(2).all(|w| w[0] < w[1]) {
-                    return Err("Supplied x-values must be sorted and non-repeating".into());
+                    return Err("Supplied x-values must be sorted and non-repeating".to_string());
                 }
             }
             Self::Interp2D(interp) => {
                 if !(interp.x.windows(2).all(|w| w[0] < w[1])
                     && interp.y.windows(2).all(|w| w[0] < w[1]))
                 {
-                    return Err("Supplied values must be sorted and non-repeating".into());
+                    return Err("Supplied values must be sorted and non-repeating".to_string());
                 }
             }
             Self::Interp3D(interp) => {
@@ -32,7 +38,7 @@ impl Interpolator {
                     && interp.y.windows(2).all(|w| w[0] < w[1])
                     && interp.z.windows(2).all(|w| w[0] < w[1]))
                 {
-                    return Err("Supplied values must be sorted and non-repeating".into());
+                    return Err("Supplied values must be sorted and non-repeating".to_string());
                 }
             }
             Self::InterpND(interp) => {
@@ -49,14 +55,14 @@ impl Interpolator {
         match self {
             Self::Interp1D(interp) => {
                 if interp.x.len() != interp.f_x.len() {
-                    return Err("Supplied grid and values are not compatible shapes".into());
+                    return Err("Supplied grid and values are not compatible shapes".to_string());
                 }
             }
             Self::Interp2D(interp) => {
                 if !(interp.x.len() == interp.f_xy.len() && interp.y.len() == interp.f_xy[0].len())
                 {
                     // TODO: protect against different length y-data
-                    return Err("Supplied grid and values are not compatible shapes".into());
+                    return Err("Supplied grid and values are not compatible shapes".to_string());
                 }
             }
             Self::Interp3D(interp) => {
@@ -65,7 +71,7 @@ impl Interpolator {
                     && interp.z.len() == interp.f_xyz[0][0].len())
                 {
                     // TODO: protect against different length y-data, as well as different length z-data
-                    return Err("Supplied grid and values are not compatible shapes".into());
+                    return Err("Supplied grid and values are not compatible shapes".to_string());
                 }
             }
             Self::InterpND(interp) => {
@@ -148,19 +154,26 @@ impl Interpolator {
         // Check supplied point dimensionality
         if n == 0 {
             if !point.is_empty() {
-                return Err("No point should be provided for 0-D interpolation".into());
+                return Err("No point should be provided for 0-D interpolation".to_string());
             }
         } else {
             if point.len() != n {
                 return Err(
-                    "Supplied point slice should have length {n} for {n}-D interpolation".into(),
+                    "Supplied point slice should have length {n} for {n}-D interpolation"
+                        .to_string(),
                 );
             }
         }
         // Check that point is within grid in each dimension
         match self {
             Self::Interp1D(interp) => {
-                if !(interp.x[0] <= point[0] && point[0] <= *interp.x.last().unwrap()) {
+                if !(interp.x[0] <= point[0]
+                    && &point[0]
+                        <= interp.x.last().ok_or_else(|| {
+                            "Could not get last grid value for x-dimension, is x-grid empty?"
+                                .to_string()
+                        })?)
+                {
                     return Err(format!(
                         "Supplied point must be within grid: point = {point:?}, x = {:?}",
                         interp.x
@@ -168,8 +181,18 @@ impl Interpolator {
                 }
             }
             Self::Interp2D(interp) => {
-                if !((interp.x[0] <= point[0] && point[0] <= *interp.x.last().unwrap())
-                    && (interp.y[0] <= point[1] && point[1] <= *interp.y.last().unwrap()))
+                if !((interp.x[0] <= point[0]
+                    && &point[0]
+                        <= interp.x.last().ok_or_else(|| {
+                            "Could not get last grid value for x-dimension, is x-grid empty?"
+                                .to_string()
+                        })?)
+                    && (interp.y[0] <= point[1]
+                        && &point[1]
+                            <= interp.y.last().ok_or_else(|| {
+                                "Could not get last grid value for y-dimension, is y-grid empty?"
+                                    .to_string()
+                            })?))
                 {
                     return Err(format!(
                         "Supplied point must be within grid: point = {point:?}, x = {:?}, y = {:?}",
@@ -178,9 +201,24 @@ impl Interpolator {
                 }
             }
             Self::Interp3D(interp) => {
-                if !((interp.x[0] <= point[0] && point[0] <= *interp.x.last().unwrap())
-                    && (interp.y[0] <= point[1] && point[1] <= *interp.y.last().unwrap())
-                    && (interp.z[0] <= point[2] && point[2] <= *interp.z.last().unwrap()))
+                if !((interp.x[0] <= point[0]
+                    && &point[0]
+                        <= interp.x.last().ok_or_else(|| {
+                            "Could not get last grid value for x-dimension, is x-grid empty?"
+                                .to_string()
+                        })?)
+                    && (interp.y[0] <= point[1]
+                        && &point[1]
+                            <= interp.y.last().ok_or_else(|| {
+                                "Could not get last grid value for y-dimension, is y-grid empty?"
+                                    .to_string()
+                            })?)
+                    && (interp.z[0] <= point[2]
+                        && &point[2]
+                            <= interp.z.last().ok_or_else(|| {
+                                "Could not get last grid value for z-dimension, is z-grid empty?"
+                                    .to_string()
+                            })?))
                 {
                     return Err(format!("Supplied point must be within grid: point = {point:?}, x = {:?}, y = {:?}, z = {:?}",
                     interp.x,
@@ -191,7 +229,12 @@ impl Interpolator {
             Self::InterpND(interp) => {
                 for i in 0..n {
                     if !(interp.grid[i][0] <= point[i]
-                        && point[i] <= *interp.grid[i].last().unwrap())
+                        && &point[i]
+                            <= interp.grid[i].last().ok_or_else(|| {
+                                format!(
+                                "Could not get last grid value for dimension {i}, is grid empty?"
+                            )
+                            })?)
                     {
                         return Err(format!("Supplied point must be within grid for dimension {i}: point[{i}] = {:?}, grid[{i}] = {:?}",
                         point[i],
@@ -247,11 +290,7 @@ impl Interp1D {
         if let Some(i) = self.x.iter().position(|&x_val| x_val == point) {
             return Ok(self.f_x[i]);
         }
-        let lower_index = self
-            .x
-            .windows(2)
-            .position(|w| w[0] <= point && point < w[1])
-            .unwrap_or(self.x.len() - 2);
+        let lower_index = find_nearest_index(&self.x, point)?;
         let diff = (point - self.x[lower_index]) / (self.x[lower_index + 1] - self.x[lower_index]);
         Ok(self.f_x[lower_index] * (1.0 - diff) + self.f_x[lower_index + 1] * diff)
     }
@@ -260,11 +299,7 @@ impl Interp1D {
         if let Some(i) = self.x.iter().position(|&x_val| x_val == point) {
             return Ok(self.f_x[i]);
         }
-        let lower_index = self
-            .x
-            .windows(2)
-            .position(|w| w[0] <= point && point < w[1])
-            .unwrap_or(self.x.len() - 2);
+        let lower_index = find_nearest_index(&self.x, point)?;
         Ok(self.f_x[lower_index])
     }
 
@@ -284,16 +319,16 @@ impl Interp1D {
         if let Some(i) = self.x.iter().position(|&x_val| x_val == point) {
             return Ok(self.f_x[i]);
         }
-        let lower_index = self
-            .x
-            .windows(2)
-            .position(|w| w[0] <= point && point < w[1])
-            .unwrap_or(self.x.len() - 2);
-        let diff = (point - self.x[lower_index]) / (self.x[lower_index + 1] - self.x[lower_index]);
-        Ok(if diff < 0.5 {
-            self.f_x[lower_index]
+        let x_l = find_nearest_index(&self.x, point)?;
+        let x_diff = if x_l < self.x.len() - 1 {
+            (point - self.x[x_l]) / (self.x[x_l + 1] - self.x[x_l])
         } else {
-            self.f_x[lower_index + 1]
+            0.
+        };
+        Ok(if x_diff < 0.5 {
+            self.f_x[x_l]
+        } else {
+            self.f_x[x_l + 1]
         })
     }
 }
@@ -307,19 +342,11 @@ pub struct Interp2D {
 }
 impl Interp2D {
     pub fn linear(&self, point: &[f64]) -> Result<f64, String> {
-        let x_l = self
-            .x
-            .windows(2)
-            .position(|w| w[0] <= point[0] && point[0] < w[1])
-            .unwrap_or(self.x.len() - 2);
+        let x_l = find_nearest_index(&self.x, point[0])?;
         let x_u = x_l + 1;
         let x_diff = (point[0] - self.x[x_l]) / (self.x[x_u] - self.x[x_l]);
 
-        let y_l = self
-            .y
-            .windows(2)
-            .position(|w| w[0] <= point[1] && point[1] < w[1])
-            .unwrap_or(self.y.len() - 2);
+        let y_l = find_nearest_index(&self.y, point[1])?;
         let y_u = y_l + 1;
         let y_diff = (point[1] - self.y[y_l]) / (self.y[y_u] - self.y[y_l]);
 
@@ -342,27 +369,15 @@ pub struct Interp3D {
 }
 impl Interp3D {
     pub fn linear(&self, point: &[f64]) -> Result<f64, String> {
-        let x_l = self
-            .x
-            .windows(2)
-            .position(|w| w[0] <= point[0] && point[0] < w[1])
-            .unwrap_or(self.x.len() - 2);
+        let x_l = find_nearest_index(&self.x, point[0])?;
         let x_u = x_l + 1;
         let x_diff = (point[0] - self.x[x_l]) / (self.x[x_u] - self.x[x_l]);
 
-        let y_l = self
-            .y
-            .windows(2)
-            .position(|w| w[0] <= point[1] && point[1] < w[1])
-            .unwrap_or(self.y.len() - 2);
+        let y_l = find_nearest_index(&self.y, point[1])?;
         let y_u = y_l + 1;
         let y_diff = (point[1] - self.y[y_l]) / (self.y[y_u] - self.y[y_l]);
 
-        let z_l = self
-            .z
-            .windows(2)
-            .position(|w| w[0] <= point[2] && point[2] < w[1])
-            .unwrap_or(self.z.len() - 2);
+        let z_l = find_nearest_index(&self.z, point[2])?;
         let z_u = z_l + 1;
         let z_diff = (point[2] - self.z[z_l]) / (self.z[z_u] - self.z[z_l]);
 
@@ -411,7 +426,9 @@ impl InterpND {
         }
         if values_view.len() == 1 {
             // Supplied point is coincident with a grid point, so just return the value
-            return Ok(*values_view.first().unwrap());
+            return values_view.first().map(|v| *v).ok_or_else(|| {
+                "Could not extract value (on grid) during multilinear interpolation".to_string()
+            });
         }
         // Simplified dimensionality
         n = values_view.ndim();
@@ -421,10 +438,7 @@ impl InterpND {
         let mut lower_idxs = Vec::with_capacity(n);
         let mut interp_diffs = Vec::with_capacity(n);
         for dim in 0..n {
-            let lower_idx = grid[dim]
-                .windows(2)
-                .position(|w| w[0] < point[dim] && point[dim] < w[1])
-                .unwrap();
+            let lower_idx = find_nearest_index(&grid[dim], point[dim])?;
             let interp_diff = (point[dim] - grid[dim][lower_idx])
                 / (grid[dim][lower_idx + 1] - grid[dim][lower_idx]);
             lower_idxs.push(lower_idx);
@@ -470,7 +484,10 @@ impl InterpND {
         }
 
         // return the only value contained within the 0-dimensional array
-        Ok(*interp_vals.first().unwrap())
+        interp_vals
+            .first()
+            .map(|v| *v)
+            .ok_or_else(|| "Could not extract value during multilinear interpolation".to_string())
     }
 
     fn get_index_permutations(&self, shape: &[usize]) -> Vec<Vec<usize>> {
@@ -487,8 +504,20 @@ impl InterpND {
 
 #[allow(non_snake_case)]
 #[cfg(test)]
-mod tests_0D {
+mod tests {
     use super::*;
+
+    // TODO: maybe this should live somewhere available to the whole workspace,
+    // and be annotated with #[cfg(test)]
+    fn assert_approx_eq(a: f64, b: f64, error: f64) {
+        assert!(
+            (a - b).abs() < error,
+            "{} ~= {} is not true within an error of {}",
+            a,
+            b,
+            error
+        )
+    }
 
     #[test]
     fn test_0D() {
@@ -496,16 +525,10 @@ mod tests_0D {
         let expected = 0.5;
         let interp = Interpolator::Interp0D(expected);
         interp.validate().unwrap();
-        assert_eq!(interp.interpolate(&[], &strategy).unwrap(), expected);
+        assert_approx_eq(interp.interpolate(&[], &strategy).unwrap(), expected, 1e-6);
         assert!(interp.interpolate(&[0.], &strategy).is_err());
         assert!(interp.interpolate(&[], &Strategy::Linear).is_err());
     }
-}
-
-#[allow(non_snake_case)]
-#[cfg(test)]
-mod tests_1D {
-    use super::*;
 
     fn setup_1D() -> Interpolator {
         // f(x) = 0.2x + 0.2
@@ -518,23 +541,23 @@ mod tests_1D {
     }
 
     #[test]
-    fn test_invalid_args() {
+    fn test_0D_invalid_args() {
         let interp = setup_1D();
         assert!(interp.interpolate(&[], &Strategy::Linear).is_err());
         assert!(interp.interpolate(&[1.0], &Strategy::None).is_err());
     }
 
     #[test]
-    fn test_linear() {
+    fn test_1D_linear() {
         let strategy = Strategy::Linear;
         let interp = setup_1D();
-        assert_eq!(interp.interpolate(&[3.00], &strategy).unwrap(), 0.8);
-        assert_eq!(interp.interpolate(&[3.75], &strategy).unwrap(), 0.95);
-        assert_eq!(interp.interpolate(&[4.00], &strategy).unwrap(), 1.0);
+        assert_approx_eq(interp.interpolate(&[3.00], &strategy).unwrap(), 0.8, 1e-6);
+        assert_approx_eq(interp.interpolate(&[3.75], &strategy).unwrap(), 0.95, 1e-6);
+        assert_approx_eq(interp.interpolate(&[4.00], &strategy).unwrap(), 1.0, 1e-6);
     }
 
     #[test]
-    fn test_left_nearest() {
+    fn test_1D_left_nearest() {
         let strategy = Strategy::LeftNearest;
         let interp = setup_1D();
         assert_eq!(interp.interpolate(&[3.00], &strategy).unwrap(), 0.8);
@@ -543,7 +566,7 @@ mod tests_1D {
     }
 
     #[test]
-    fn test_right_nearest() {
+    fn test_1D_right_nearest() {
         let strategy = Strategy::RightNearest;
         let interp = setup_1D();
         assert_eq!(interp.interpolate(&[3.00], &strategy).unwrap(), 0.8);
@@ -552,7 +575,7 @@ mod tests_1D {
     }
 
     #[test]
-    fn test_nearest() {
+    fn test_1D_nearest() {
         let strategy = Strategy::Nearest;
         let interp = setup_1D();
         assert_eq!(interp.interpolate(&[3.00], &strategy).unwrap(), 0.8);
@@ -561,15 +584,9 @@ mod tests_1D {
         assert_eq!(interp.interpolate(&[3.75], &strategy).unwrap(), 1.0);
         assert_eq!(interp.interpolate(&[4.00], &strategy).unwrap(), 1.0);
     }
-}
-
-#[allow(non_snake_case)]
-#[cfg(test)]
-mod tests_2D {
-    use super::*;
 
     #[test]
-    fn test_linear() {
+    fn test_2D_linear() {
         let strategy = Strategy::Linear;
         let x = vec![0.05, 0.10, 0.15];
         let y = vec![0.10, 0.20, 0.30];
@@ -580,12 +597,20 @@ mod tests_2D {
             f_xy: f_xy.clone(),
         });
         interp.validate().unwrap();
-        assert_eq!(interp.interpolate(&[x[2], y[1]], &strategy).unwrap(), 7.);
-        assert_eq!(interp.interpolate(&[x[2], y[1]], &strategy).unwrap(), 7.);
+        assert_approx_eq(
+            interp.interpolate(&[x[2], y[1]], &strategy).unwrap(),
+            7.,
+            1e-6,
+        );
+        assert_approx_eq(
+            interp.interpolate(&[x[2], y[1]], &strategy).unwrap(),
+            7.,
+            1e-6,
+        );
     }
 
     #[test]
-    fn test_linear_offset() {
+    fn test_2D_linear_offset() {
         let interp = Interpolator::Interp2D(Interp2D {
             x: vec![0., 1.],
             y: vec![0., 1.],
@@ -595,17 +620,11 @@ mod tests_2D {
         let interp_res = interp
             .interpolate(&[0.25, 0.65], &Strategy::Linear)
             .unwrap();
-        assert_eq!(interp_res, 1.1500000000000001) // 1.15
+        assert_approx_eq(interp_res, 1.15, 1e-6)
     }
-}
-
-#[allow(non_snake_case)]
-#[cfg(test)]
-mod tests_3D {
-    use super::*;
 
     #[test]
-    fn test_linear() {
+    fn test_3D_linear() {
         let strategy: Strategy = Strategy::Linear;
         let x = vec![0.05, 0.10, 0.15];
         let y = vec![0.10, 0.20, 0.30];
@@ -630,41 +649,48 @@ mod tests_3D {
         for i in 0..x.len() {
             for j in 0..y.len() {
                 for k in 0..z.len() {
-                    assert_eq!(
+                    assert_approx_eq(
                         interp.interpolate(&[x[i], y[j], z[k]], &strategy).unwrap(),
-                        f_xyz[i][j][k]
+                        f_xyz[i][j][k],
+                        1e-6,
                     );
                 }
             }
         }
-        assert_eq!(
+        assert_approx_eq(
             interp.interpolate(&[x[0], y[0], 0.3], &strategy).unwrap(),
-            0.4999999999999999 // 0.5
+            0.5,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp.interpolate(&[x[0], 0.15, z[0]], &strategy).unwrap(),
-            1.4999999999999996 // 1.5
+            1.5,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp.interpolate(&[x[0], 0.15, 0.3], &strategy).unwrap(),
-            1.9999999999999996 // 2.0
+            2.,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp.interpolate(&[0.075, y[0], z[0]], &strategy).unwrap(),
-            4.499999999999999 // 4.5
+            4.5,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp.interpolate(&[0.075, y[0], 0.3], &strategy).unwrap(),
-            4.999999999999999 // 5.0
+            5.,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp.interpolate(&[0.075, 0.15, z[0]], &strategy).unwrap(),
-            5.999999999999998 // 6.0
+            6.,
+            1e-6,
         );
     }
 
     #[test]
-    fn test_linear_offset() {
+    fn test_3D_linear_offset() {
         let interp = Interpolator::Interp3D(Interp3D {
             x: vec![0., 1.],
             y: vec![0., 1.],
@@ -678,17 +704,11 @@ mod tests_3D {
         let interp_res = interp
             .interpolate(&[0.25, 0.65, 0.9], &Strategy::Linear)
             .unwrap();
-        assert_eq!(interp_res, 3.1999999999999997) // 3.2
+        assert_approx_eq(interp_res, 3.2, 1e-6);
     }
-}
-
-#[allow(non_snake_case)]
-#[cfg(test)]
-mod tests_ND {
-    use super::*;
 
     #[test]
-    fn test_linear() {
+    fn test_ND_linear() {
         let strategy: Strategy = Strategy::Linear;
         let grid = vec![
             vec![0.05, 0.10, 0.15],
@@ -710,55 +730,62 @@ mod tests_ND {
         for i in 0..grid[0].len() {
             for j in 0..grid[1].len() {
                 for k in 0..grid[2].len() {
-                    assert_eq!(
-                        &interp
+                    assert_approx_eq(
+                        interp
                             .interpolate(&[grid[0][i], grid[1][j], grid[2][k]], &strategy)
                             .unwrap(),
-                        f_xyz.slice(s![i, j, k]).first().unwrap()
+                        *f_xyz.slice(s![i, j, k]).first().unwrap(),
+                        1e-6,
                     );
                 }
             }
         }
-        assert_eq!(
+        assert_approx_eq(
             interp
                 .interpolate(&[grid[0][0], grid[1][0], 0.3], &strategy)
                 .unwrap(),
-            0.4999999999999999 // 0.5
+            0.5,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp
                 .interpolate(&[grid[0][0], 0.15, grid[2][0]], &strategy)
                 .unwrap(),
-            1.4999999999999996 // 1.5
+            1.5,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp
                 .interpolate(&[grid[0][0], 0.15, 0.3], &strategy)
                 .unwrap(),
-            1.9999999999999996 // 2.0
+            2.,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp
                 .interpolate(&[0.075, grid[1][0], grid[2][0]], &strategy)
                 .unwrap(),
-            4.499999999999999 // 4.5
+            4.5,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp
                 .interpolate(&[0.075, grid[1][0], 0.3], &strategy)
                 .unwrap(),
-            4.999999999999999 // 5.0
+            5.,
+            1e-6,
         );
-        assert_eq!(
+        assert_approx_eq(
             interp
                 .interpolate(&[0.075, 0.15, grid[2][0]], &strategy)
                 .unwrap(),
-            5.999999999999998 // 6.0
+            6.,
+            1e-6,
         );
     }
 
     #[test]
-    fn test_linear_offset() {
+    fn test_ND_linear_offset() {
         let interp = Interpolator::InterpND(InterpND {
             grid: vec![vec![0., 1.], vec![0., 1.], vec![0., 1.]],
             values: array![[[0., 1.], [2., 3.]], [[4., 5.], [6., 7.]],].into_dyn(),
@@ -767,6 +794,6 @@ mod tests_ND {
         let interp_res = interp
             .interpolate(&[0.25, 0.65, 0.9], &Strategy::Linear)
             .unwrap();
-        assert_eq!(interp_res, 3.1999999999999997) // 3.2
+        assert_approx_eq(interp_res, 3.2, 1e-6);
     }
 }

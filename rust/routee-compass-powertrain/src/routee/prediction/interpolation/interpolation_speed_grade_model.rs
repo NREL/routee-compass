@@ -36,13 +36,21 @@ impl PredictionModel for InterpolationSpeedGradeModel {
         let (min_speed, max_speed, min_grade, max_grade) = match &self.interpolator {
             interp::Interpolator::Interp2D(interp) => (
                 interp.x[0],
-                *interp.x.last().unwrap(),
+                *interp.x.last().ok_or_else(|| {
+                    TraversalModelError::PredictionModel(
+                        "Could not get last x-value; are x-values empty?".to_string(),
+                    )
+                })?,
                 interp.y[0],
-                *interp.y.last().unwrap(),
+                *interp.y.last().ok_or_else(|| {
+                    TraversalModelError::PredictionModel(
+                        "Could not get last x-value; are x-values empty?".to_string(),
+                    )
+                })?,
             ),
             _ => {
                 return Err(TraversalModelError::PredictionModel(
-                    "Only 2-D interpolators are currently supported".into(),
+                    "Only 2-D interpolators are currently supported".to_string(),
                 ))
             }
         };
