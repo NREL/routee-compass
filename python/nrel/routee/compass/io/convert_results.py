@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 def tree_result_to_geopandas(
     result: Result,
-) -> Optional[GeoDataFrame]:
+) -> Optional["GeoDataFrame"]:
     """ """
     try:
         import geopandas as gpd
@@ -34,7 +34,7 @@ def tree_result_to_geopandas(
 
 def route_result_to_geopandas(
     result: Result,
-) -> Optional[GeoDataFrame]:
+) -> Optional["GeoDataFrame"]:
     """ """
     try:
         import geopandas as gpd
@@ -71,7 +71,7 @@ def route_result_to_geopandas(
 
 def results_to_geopandas(
     results: Union[Result, Results],
-) -> Union[GeoDataFrame, Tuple[GeoDataFrame, GeoDataFrame]]:
+) -> Union["GeoDataFrame", Tuple["GeoDataFrame", "GeoDataFrame"]]:
     """ """
     try:
         import pandas as pd

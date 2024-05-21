@@ -99,7 +99,7 @@ class CompassApp:
     def from_place(
         cls,
         query: Union[str | dict | list],
-        cache_dir: Union[str, Path] = None,
+        cache_dir: Optional[Union[str, Path]] = None,
         network_type: str = "drive",
         hwy_speeds: Optional[Dict] = None,
         fallback: Optional[float] = None,
@@ -171,8 +171,8 @@ class CompassApp:
     @classmethod
     def from_polygon(
         cls,
-        polygon: Union[Polygon | MultiPolygon],
-        cache_dir: Union[str, Path] = None,
+        polygon: Union["Polygon" | "MultiPolygon"],
+        cache_dir: Optional[Union[str, Path]] = None,
         network_type: str = "drive",
         hwy_speeds: Optional[Dict] = None,
         fallback: Optional[float] = None,
@@ -250,8 +250,8 @@ class CompassApp:
 
     @staticmethod
     def _get_cache_dir(
-        cache_dir: Union[str, Path],
-    ) -> tuple[Union[str, Path], Union[str, Path]]:
+        cache_dir: Optional[Union[str, Path]],
+    ) -> tuple[Union[str, Path], Optional[Union[str, TemporaryDirectory]]]:
         """
         Helper function to ensure the cache directory is created
 
