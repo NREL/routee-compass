@@ -307,11 +307,7 @@ impl Interp1D {
         if let Some(i) = self.x.iter().position(|&x_val| x_val == point) {
             return Ok(self.f_x[i]);
         }
-        let lower_index = self
-            .x
-            .windows(2)
-            .position(|w| w[0] <= point && point < w[1])
-            .unwrap_or(self.x.len() - 2);
+        let lower_index = find_nearest_index(&self.x, point)?;
         Ok(self.f_x[lower_index + 1])
     }
 
@@ -426,7 +422,7 @@ impl InterpND {
         }
         if values_view.len() == 1 {
             // Supplied point is coincident with a grid point, so just return the value
-            return values_view.first().map(|v| *v).ok_or_else(|| {
+            return values_view.first().copied().ok_or_else(|| {
                 "Could not extract value (on grid) during multilinear interpolation".to_string()
             });
         }
@@ -486,7 +482,7 @@ impl InterpND {
         // return the only value contained within the 0-dimensional array
         interp_vals
             .first()
-            .map(|v| *v)
+            .copied()
             .ok_or_else(|| "Could not extract value during multilinear interpolation".to_string())
     }
 
