@@ -44,7 +44,7 @@ impl PredictionModel for InterpolationSpeedGradeModel {
                 interp.y[0],
                 *interp.y.last().ok_or_else(|| {
                     TraversalModelError::PredictionModel(
-                        "Could not get last x-value; are x-values empty?".to_string(),
+                        "Could not get last y-value; are y-values empty?".to_string(),
                     )
                 })?,
             ),
