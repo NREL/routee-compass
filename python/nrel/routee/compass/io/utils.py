@@ -3,8 +3,6 @@ from __future__ import annotations
 from enum import Enum
 from pathlib import Path
 
-import math
-import itertools
 import logging
 from typing import Union, Optional
 
@@ -38,29 +36,25 @@ class TileResolution(Enum):
             )
 
 
-def _cover_floats_with_integers(float_min: float, float_max: float) -> list[int]:
-    if float_max < float_min:
-        raise ValueError("float max must be greater than float min")
+def get_usgs_tiles(lat_lon_pairs: list[tuple[float, float]]) -> list[str]:
+    def tile_index(lat, lon):
+        if lat < 0 or lon > 0:
+            raise ValueError(
+                f"USGS Tiles are not available for point ({lat}, {lon}). "
+                "Consider re-running with `grade=False`."
+            )
 
-    start = math.floor(float_min)
-    end = math.ceil(float_max)
+        lat_deg = int(lat) + 1
+        lon_deg = abs(int(lon)) + 1
 
-    integers = list(range(start, end + 1))
-    return integers
+        return f"n{lat_deg:02}w{lon_deg:03}"
 
+    tiles = set()
+    for lat, lon in lat_lon_pairs:
+        tile = tile_index(lat, lon)
+        tiles.add(tile)
 
-def _lat_lon_to_tile(coord: tuple[int, int]) -> str:
-    lat, lon = coord
-    if lat < 0:
-        lat_prefix = "s"
-    else:
-        lat_prefix = "n"
-    if lon < 0:
-        lon_prefix = "w"
-    else:
-        lon_prefix = "e"
-
-    return f"{lat_prefix}{abs(lat):02}{lon_prefix}{abs(lon):03}"
+    return list(tiles)
 
 
 def _build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) -> str:
@@ -92,7 +86,13 @@ def _download_tile(
 
     with requests.get(url, stream=True) as r:
         log.info(f"downloading {tile}")
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise ValueError(
+                f"Failed to download USGS tile {tile} from {url}. "
+                "If this road network is outside of the US, consider re-running with `grade=False`."
+            ) from e
 
         destination.parent.mkdir(exist_ok=True)
 
@@ -146,15 +146,9 @@ def add_grade_to_graph(
     if api_key is None:
         node_gdf = ox.graph_to_gdfs(g, nodes=True, edges=False)
 
-        min_lat = node_gdf.y.min()
-        max_lat = node_gdf.y.max()
-        min_lon = node_gdf.x.min()
-        max_lon = node_gdf.x.max()
+        all_points = [(t.y, t.x) for t in node_gdf.itertuples()]
 
-        lats = _cover_floats_with_integers(min_lat, max_lat)
-        lons = _cover_floats_with_integers(min_lon, max_lon)
-
-        tiles = map(_lat_lon_to_tile, itertools.product(lats, lons))
+        tiles = get_usgs_tiles(all_points)
 
         if isinstance(resolution_arc_seconds, int):
             resolution = TileResolution.from_int(resolution_arc_seconds)
