@@ -86,7 +86,13 @@ def _download_tile(
 
     with requests.get(url, stream=True) as r:
         log.info(f"downloading {tile}")
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise ValueError(
+                f"Failed to download USGS tile {tile} from {url}. "
+                "If this road network is outside of the US, consider re-running with `grade=False`."
+            ) from e
 
         destination.parent.mkdir(exist_ok=True)
 
