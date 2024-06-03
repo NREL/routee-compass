@@ -131,17 +131,14 @@ impl InterpolationSpeedGradeModel {
             values.push(row);
         }
 
-        let interpolator = interp::Interpolator::Interp2D(interp::Interp2D {
-            x: speed_values,
-            y: grade_values,
-            f_xy: values,
-        });
-        interpolator.validate().map_err(|e| {
-            TraversalModelError::PredictionModel(format!(
-                "Failed to validate interpolation model: {}",
-                e
-            ))
-        })?;
+        let interpolator = interp::Interpolator::Interp2D(
+            interp::Interp2D::new(speed_values, grade_values, values).map_err(|e| {
+                TraversalModelError::PredictionModel(format!(
+                    "Failed to validate interpolation model: {}",
+                    e
+                ))
+            })?,
+        );
 
         Ok(InterpolationSpeedGradeModel {
             interpolator,
