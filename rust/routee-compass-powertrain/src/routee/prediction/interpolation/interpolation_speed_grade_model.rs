@@ -35,13 +35,21 @@ impl PredictionModel for InterpolationSpeedGradeModel {
         // snap incoming speed and grade to the grid
         let (min_speed, max_speed, min_grade, max_grade) = match &self.interpolator {
             interp::Interpolator::Interp2D(interp) => (
-                interp.x[0],
+                *interp.x.first().ok_or_else(|| {
+                    TraversalModelError::PredictionModel(
+                        "Could not get first x-value; are x-values empty?".to_string(),
+                    )
+                })?,
                 *interp.x.last().ok_or_else(|| {
                     TraversalModelError::PredictionModel(
                         "Could not get last x-value; are x-values empty?".to_string(),
                     )
                 })?,
-                interp.y[0],
+                *interp.y.first().ok_or_else(|| {
+                    TraversalModelError::PredictionModel(
+                        "Could not get first y-value; are y-values empty?".to_string(),
+                    )
+                })?,
                 *interp.y.last().ok_or_else(|| {
                     TraversalModelError::PredictionModel(
                         "Could not get last y-value; are y-values empty?".to_string(),
