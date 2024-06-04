@@ -337,16 +337,12 @@ impl Interp1D {
         if let Some(i) = self.x.iter().position(|&x_val| x_val == point) {
             return Ok(self.f_x[i]);
         }
-        let x_l = find_nearest_index(&self.x, point)?;
-        let x_diff = if x_l < self.x.len() - 1 {
-            (point - self.x[x_l]) / (self.x[x_l + 1] - self.x[x_l])
+        let lower_index = find_nearest_index(&self.x, point)?;
+        let diff = (point - self.x[lower_index]) / (self.x[lower_index + 1] - self.x[lower_index]);
+        Ok(if diff < 0.5 {
+            self.f_x[lower_index]
         } else {
-            0.
-        };
-        Ok(if x_diff < 0.5 {
-            self.f_x[x_l]
-        } else {
-            self.f_x[x_l + 1]
+            self.f_x[lower_index + 1]
         })
     }
 }
@@ -414,6 +410,7 @@ impl Interp3D {
         interp.validate()?;
         Ok(interp)
     }
+
     pub fn linear(&self, point: &[f64]) -> Result<f64, String> {
         let x_l = find_nearest_index(&self.x, point[0])?;
         let x_u = x_l + 1;
