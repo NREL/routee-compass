@@ -25,6 +25,7 @@ ordered-float = { workspace = true }
 ndarray = "0.15"
 ort = { version = "2.0.0-alpha.4", optional = true }
 rayon = { workspace = true }
+itertools = { workspace = true }
 
 [features]
 default = []
