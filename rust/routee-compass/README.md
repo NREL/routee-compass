@@ -11,7 +11,7 @@ To install as a library in Rust, add routee-compass to your Cargo.toml file:
 
 ```toml
 [dependencies]
-routee-compass = { version = "0.3.0" }
+routee-compass = { version = "0.8.0" }
 ```
 
 Please see the [documentation](https://docs.rs/routee-compass/latest/routee_compass/) for usage.
