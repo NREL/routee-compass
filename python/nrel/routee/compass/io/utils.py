@@ -5,6 +5,7 @@ from pathlib import Path
 
 import logging
 from typing import Union, Optional
+import math
 
 log = logging.getLogger(__name__)
 
@@ -173,3 +174,37 @@ def add_grade_to_graph(
     g = ox.add_edge_grades(g)
 
     return g
+
+def compass_heading(point1, point2):
+    lon1, lat1 = point1
+    lon2, lat2 = point2
+
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+
+    dlon = lon2 - lon1
+
+    x = math.sin(dlon) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - (
+        math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
+    )
+
+    initial_bearing = math.atan2(x, y)
+
+    initial_bearing = math.degrees(initial_bearing)
+    compass_bearing = (initial_bearing + 360) % 360
+
+    return compass_bearing
+
+def calculate_bearings(geom):
+    if len(geom.coords) < 2:
+        raise ValueError("Geometry must have at least two points")
+    if len(geom.coords) == 2:
+        # start and end heading is equal
+        heading = int(compass_heading(geom.coords[0], geom.coords[1]))
+        return (heading, heading)
+    else:
+        start_heading = int(compass_heading(geom.coords[0], geom.coords[1]))
+        end_heading = int(compass_heading(geom.coords[-2], geom.coords[-1]))
+        #returns headings as a list of tuples 
+        return (start_heading, end_heading)
+    
