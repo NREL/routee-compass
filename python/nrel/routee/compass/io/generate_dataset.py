@@ -6,8 +6,8 @@ import importlib.resources
 import logging
 import shutil
 import pandas as pd
-import utils
 
+from nrel.routee.compass.io import utils
 from nrel.routee.compass.io.utils import add_grade_to_graph
 
 log = logging.getLogger(__name__)
