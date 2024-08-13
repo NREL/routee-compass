@@ -5,8 +5,8 @@ from pkg_resources import resource_filename
 import importlib.resources
 import logging
 import shutil
-import math
 import pandas as pd
+import utils
 
 from nrel.routee.compass.io.utils import add_grade_to_graph
 
@@ -156,7 +156,7 @@ def generate_compass_dataset(
         header=False,
     )
 
-    headings = [calculate_bearings(i) for i in e.geometry.values]
+    headings = [utils.calculate_bearings(i) for i in e.geometry.values]
     headings_df = pd.DataFrame(headings, columns = ["arrival_heading", "departure_heading"])
     headings_df.to_csv(
         output_directory / "edges-headings-enumerated.csv.gz",
@@ -206,38 +206,3 @@ def generate_compass_dataset(
             with importlib.resources.as_file(model_file) as model_path:
                 model_dst = model_output_directory / model_path.name
                 shutil.copy(model_path, model_dst)
-
-#Function written by Nick Reinicke
-def compass_heading(point1, point2):
-    lon1, lat1 = point1
-    lon2, lat2 = point2
-
-    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
-
-    dlon = lon2 - lon1
-
-    x = math.sin(dlon) * math.cos(lat2)
-    y = math.cos(lat1) * math.sin(lat2) - (
-        math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
-    )
-
-    initial_bearing = math.atan2(x, y)
-
-    initial_bearing = math.degrees(initial_bearing)
-    compass_bearing = (initial_bearing + 360) % 360
-
-    return compass_bearing
-
-#Function written by Nick Reinicke
-def calculate_bearings(geom):
-    if len(geom.coords) < 2:
-        raise ValueError("Geometry must have at least two points")
-    if len(geom.coords) == 2:
-        # start and end heading is equal
-        heading = int(compass_heading(geom.coords[0], geom.coords[1]))
-        return (heading, heading)
-    else:
-        start_heading = int(compass_heading(geom.coords[0], geom.coords[1]))
-        end_heading = int(compass_heading(geom.coords[-2], geom.coords[-1]))
-        #returns headings as a list of tuples 
-        return (start_heading, end_heading)
