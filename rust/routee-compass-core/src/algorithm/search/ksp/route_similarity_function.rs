@@ -8,11 +8,17 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum RouteSimilarityFunction {
-    EdgeIdCosineSimilarity { threshold: f64 },
-    DistanceWeightedCosineSimilarity { threshold: f64 },
+    #[default]
+    AcceptAll,
+    EdgeIdCosineSimilarity {
+        threshold: f64,
+    },
+    DistanceWeightedCosineSimilarity {
+        threshold: f64,
+    },
 }
 
 impl RouteSimilarityFunction {
@@ -26,6 +32,7 @@ impl RouteSimilarityFunction {
     /// true if the rank is sufficiently dissimilar
     pub fn sufficiently_dissimilar(&self, similarity: f64) -> bool {
         match self {
+            RouteSimilarityFunction::AcceptAll => true,
             RouteSimilarityFunction::EdgeIdCosineSimilarity { threshold } => {
                 similarity <= *threshold
             }
@@ -33,18 +40,6 @@ impl RouteSimilarityFunction {
                 similarity <= *threshold
             }
         }
-    }
-
-    /// tests if a similarity rank value is similar enough.
-    ///
-    /// # Arguments
-    /// * `similarity` - output of this rank_similarity function
-    ///
-    /// # Result
-    ///
-    /// true if the rank is sufficiently similar
-    pub fn sufficiently_similar(&self, similarity: f64) -> bool {
-        !self.sufficiently_dissimilar(similarity)
     }
 
     /// ranks the similarity of two routes using this similarity function.
@@ -63,6 +58,7 @@ impl RouteSimilarityFunction {
         si: &SearchInstance,
     ) -> Result<f64, SearchError> {
         match self {
+            RouteSimilarityFunction::AcceptAll => Ok(0.0),
             RouteSimilarityFunction::EdgeIdCosineSimilarity { threshold: _ } => {
                 let unit_dist_fn = Box::new(|_| Ok(1.0));
                 cos_similarity(a, b, unit_dist_fn)

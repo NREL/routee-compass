@@ -1,4 +1,9 @@
-use super::route_similarity_function::RouteSimilarityFunction;
+use itertools::Itertools;
+
+use super::{
+    ksp_termination_criteria::KspTerminationCriteria,
+    route_similarity_function::RouteSimilarityFunction,
+};
 use crate::{
     algorithm::search::{
         a_star::bidirectional_a_star_algorithm, backtrack, direction::Direction,
@@ -16,6 +21,7 @@ pub fn run(
     source: VertexId,
     target: VertexId,
     k: usize,
+    termination: &KspTerminationCriteria,
     similarity: &RouteSimilarityFunction,
     si: &SearchInstance,
     underlying: &SearchAlgorithm,
@@ -74,8 +80,13 @@ pub fn run(
     let mut solution: Vec<Vec<EdgeTraversal>> = vec![tsp];
     let mut ksp_it: u64 = 0;
     loop {
-        if solution.len() == k {
-            log::debug!("ksp:{} solution contains {} entries, quitting", ksp_it, k);
+        if termination.terminate_search(k, solution.len()) {
+            log::debug!(
+                "ksp:{} solution contains {} entries, quitting due to termination function {}",
+                ksp_it,
+                k,
+                termination
+            );
             break;
         }
         match intersection_queue.pop() {
@@ -103,11 +114,13 @@ pub fn run(
                     accept_route = false;
                 }
 
-                // test similarity
+                // for test user-provided similarity threshold and absolute similarity
                 for solution_route in solution.iter() {
+                    let absolute_similarity = test_id_similarity(&this_route, solution_route);
                     let similarity_value =
                         similarity.rank_similarity(&this_route, solution_route, si)?;
-                    if !similarity.sufficiently_dissimilar(similarity_value) {
+                    let too_similar = !similarity.sufficiently_dissimilar(similarity_value);
+                    if absolute_similarity || too_similar {
                         log::debug!("ksp:{} too similar", ksp_it);
                         accept_route = false;
                     }
@@ -124,11 +137,26 @@ pub fn run(
 
     log::debug!("ksp ran in {} iterations", ksp_it);
 
+    let routes = solution.into_iter().take(k).collect_vec();
+
     // combine all data into this result
     let result = SearchAlgorithmResult {
         trees: vec![fwd_tree.clone(), rev_tree.clone()], // todo: figure out how to avoid this clone
-        routes: solution,
+        routes,
         iterations: fwd_iterations + rev_iterations + ksp_it, // todo: figure out how to report individually
     };
     Ok(result)
+}
+
+/// checks if these two routes have the same length and id sequence
+fn test_id_similarity(a: &[EdgeTraversal], b: &[EdgeTraversal]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    for (edge_a, edge_b) in a.iter().zip(b) {
+        if edge_a.edge_id != edge_b.edge_id {
+            return false;
+        }
+    }
+    true
 }
