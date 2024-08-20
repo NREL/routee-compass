@@ -1,8 +1,8 @@
 use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
-use super::ksp::ksp_single_via_paths;
 use super::ksp::ksp_termination_criteria::KspTerminationCriteria;
-use super::ksp::route_similarity_function::RouteSimilarityFunction;
+use super::ksp::single_via_paths_algorithm;
+use super::util::route_similarity_function::RouteSimilarityFunction;
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
@@ -74,7 +74,9 @@ impl SearchAlgorithm {
                 Some(dst_id) => {
                     let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
                     let term_fn = termination.as_ref().cloned().unwrap_or_default();
-                    ksp_single_via_paths::run(src_id, dst_id, *k, &term_fn, &sim_fn, si, underlying)
+                    single_via_paths_algorithm::run(
+                        src_id, dst_id, *k, &term_fn, &sim_fn, si, underlying,
+                    )
                 }
                 None => Err(SearchError::BuildError(String::from(
                     "request has source but no destination which is invalid for k-shortest paths",

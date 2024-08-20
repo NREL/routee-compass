@@ -1,15 +1,12 @@
 use itertools::Itertools;
 
-use super::{
-    ksp_termination_criteria::KspTerminationCriteria,
-    route_similarity_function::RouteSimilarityFunction,
-};
+use super::ksp_termination_criteria::KspTerminationCriteria;
 use crate::{
     algorithm::search::{
         a_star::bidirectional_a_star_algorithm, backtrack, direction::Direction,
         edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm,
         search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
-        search_instance::SearchInstance,
+        search_instance::SearchInstance, util::route_similarity_function::RouteSimilarityFunction,
     },
     model::{road_network::vertex_id::VertexId, unit::cost::ReverseCost},
     util::priority_queue::InternalPriorityQueue,
