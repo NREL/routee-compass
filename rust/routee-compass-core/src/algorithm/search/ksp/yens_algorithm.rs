@@ -16,6 +16,14 @@ use crate::{
     },
 };
 
+/// an implementation of Yen's k-Shortest Paths Algorithm as described in the paper
+///
+/// Yen, Jin Y. "Finding the k shortest loopless paths in a network."
+/// management Science 17.11 (1971): 712-716.
+///
+/// # Returns
+///
+/// The search tree of the true shortest path, along with all paths found
 pub fn run(
     source: VertexId,
     target: VertexId,
@@ -142,6 +150,7 @@ pub fn run(
     Ok(result)
 }
 
+/// helper function to grab the first route from a search algorithm result
 fn get_first_route(res: &SearchAlgorithmResult) -> Result<&Vec<EdgeTraversal>, SearchError> {
     res.routes
         .first()
@@ -150,12 +159,13 @@ fn get_first_route(res: &SearchAlgorithmResult) -> Result<&Vec<EdgeTraversal>, S
         )))
 }
 
+/// compares two routes by their sequence of EdgeIds, returning true if they are the same
 fn same_path(a: &[&EdgeTraversal], b: &[&EdgeTraversal]) -> bool {
     if a.len() != b.len() {
         return false;
     }
     for (a_edge, b_edge) in a.iter().zip(b) {
-        if a_edge.edge_id == b_edge.edge_id {
+        if a_edge.edge_id != b_edge.edge_id {
             return false;
         }
     }
