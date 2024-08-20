@@ -22,22 +22,41 @@ pub enum RouteSimilarityFunction {
 }
 
 impl RouteSimilarityFunction {
-    /// tests if a similarity rank value is dissimilar enough.
+    /// tests for similarity between two paths.
+    ///
+    /// # Arguments
+    /// * `a`  - one route
+    /// * `b`  - another route
+    /// * `si` - search instance for these routes
+    ///
+    /// # Returns
+    /// true if the routes are "similar"
+    pub fn test_similarity(
+        self,
+        a: &[&EdgeTraversal],
+        b: &[&EdgeTraversal],
+        si: &SearchInstance,
+    ) -> Result<bool, SearchError> {
+        let similarity = self.rank_similarity(a, b, si)?;
+        Ok(self.is_similar(similarity))
+    }
+
+    /// compares a similarity rank against similarity criteria.
     ///
     /// # Arguments
     /// * `similarity` - output of this rank_similarity function
     ///
     /// # Result
     ///
-    /// true if the rank is sufficiently dissimilar
-    pub fn sufficiently_dissimilar(&self, similarity: f64) -> bool {
+    /// true if the ranking meets the similarity criteria
+    pub fn is_similar(&self, similarity: f64) -> bool {
         match self {
             RouteSimilarityFunction::AcceptAll => true,
             RouteSimilarityFunction::EdgeIdCosineSimilarity { threshold } => {
-                similarity <= *threshold
+                similarity >= *threshold
             }
             RouteSimilarityFunction::DistanceWeightedCosineSimilarity { threshold } => {
-                similarity <= *threshold
+                similarity >= *threshold
             }
         }
     }
@@ -53,8 +72,8 @@ impl RouteSimilarityFunction {
     /// the similarity ranking of these routes
     pub fn rank_similarity(
         &self,
-        a: &[EdgeTraversal],
-        b: &[EdgeTraversal],
+        a: &[&EdgeTraversal],
+        b: &[&EdgeTraversal],
         si: &SearchInstance,
     ) -> Result<f64, SearchError> {
         match self {
@@ -88,8 +107,8 @@ impl RouteSimilarityFunction {
 ///
 /// the cosine similarity of the routes, a value from -1 to 1
 fn cos_similarity<'a>(
-    a: &[EdgeTraversal],
-    b: &[EdgeTraversal],
+    a: &[&EdgeTraversal],
+    b: &[&EdgeTraversal],
     dist_fn: Box<dyn Fn(EdgeId) -> Result<f64, SearchError> + 'a>,
 ) -> Result<f64, SearchError> {
     let a_map = a

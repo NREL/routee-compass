@@ -114,9 +114,11 @@ pub fn run(
                 // for test user-provided similarity threshold and absolute similarity
                 for solution_route in solution.iter() {
                     let absolute_similarity = test_id_similarity(&this_route, solution_route);
-                    let similarity_value =
-                        similarity.rank_similarity(&this_route, solution_route, si)?;
-                    let too_similar = !similarity.sufficiently_dissimilar(similarity_value);
+                    let too_similar = similarity.clone().test_similarity(
+                        &this_route.iter().collect_vec(),
+                        &solution_route.iter().collect_vec(),
+                        si,
+                    )?;
                     if absolute_similarity || too_similar {
                         log::debug!("ksp:{} too similar", ksp_it);
                         accept_route = false;

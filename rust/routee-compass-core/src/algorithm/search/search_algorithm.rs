@@ -1,12 +1,12 @@
 use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
 use super::ksp::ksp_termination_criteria::KspTerminationCriteria;
-use super::ksp::single_via_paths_algorithm;
-use super::util::route_similarity_function::RouteSimilarityFunction;
+use super::ksp::{single_via_paths_algorithm, yens_algorithm};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
+use super::util::route_similarity_function::RouteSimilarityFunction;
 use super::{a_star::a_star_algorithm, direction::Direction};
 use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 
@@ -23,6 +23,12 @@ pub enum SearchAlgorithm {
         weight_factor: Option<Cost>,
     },
     KspSingleVia {
+        k: usize,
+        underlying: Box<SearchAlgorithm>,
+        similarity: Option<RouteSimilarityFunction>,
+        termination: Option<KspTerminationCriteria>,
+    },
+    Yens {
         k: usize,
         underlying: Box<SearchAlgorithm>,
         similarity: Option<RouteSimilarityFunction>,
@@ -65,6 +71,21 @@ impl SearchAlgorithm {
                     iterations: search_result.iterations,
                 })
             }
+            SearchAlgorithm::Yens {
+                k,
+                underlying,
+                similarity,
+                termination,
+            } => match dst_id_opt {
+                Some(dst_id) => {
+                    let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
+                    let term_fn = termination.as_ref().cloned().unwrap_or_default();
+                    yens_algorithm::run(src_id, dst_id, *k, &term_fn, &sim_fn, si, underlying)
+                }
+                None => Err(SearchError::BuildError(String::from(
+                    "request has source but no destination which is invalid for k-shortest paths",
+                ))),
+            },
             SearchAlgorithm::KspSingleVia {
                 k,
                 underlying,
@@ -123,6 +144,12 @@ impl SearchAlgorithm {
                 })
             }
             SearchAlgorithm::KspSingleVia {
+                k: _,
+                underlying: _,
+                similarity: _,
+                termination: _,
+            } => run_edge_oriented(src_id, dst_id_opt, direction, self, search_instance),
+            SearchAlgorithm::Yens {
                 k: _,
                 underlying: _,
                 similarity: _,

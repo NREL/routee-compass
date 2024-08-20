@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, sync::Arc};
 
 use itertools::Itertools;
 
@@ -7,9 +7,13 @@ use crate::{
     algorithm::search::{
         edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm,
         search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
-        search_instance::SearchInstance, util::route_similarity_function::RouteSimilarityFunction,
+        search_instance::SearchInstance, util::edge_cut_frontier_model::EdgeCutFrontierModel,
+        util::route_similarity_function::RouteSimilarityFunction,
     },
-    model::road_network::{edge_id::EdgeId, vertex_id::VertexId},
+    model::{
+        road_network::{edge_id::EdgeId, vertex_id::VertexId},
+        unit::Cost,
+    },
 };
 
 pub fn run(
@@ -31,38 +35,111 @@ pub fn run(
     if shortest.routes.is_empty() {
         return Ok(SearchAlgorithmResult::default());
     }
-    let mut accepted: Vec<SearchAlgorithmResult> = vec![shortest];
+    let shortest_path = get_first_route(&shortest)?;
+    let mut accepted: Vec<Vec<EdgeTraversal>> = vec![shortest_path.to_owned()];
+    let mut iterations: u64 = 1; // number of times we call underlying search
 
     while accepted.len() < k {
-        let last_result = accepted
-            .last()
-            .ok_or(SearchError::InternalSearchError(String::from(
-                "at least one route should be in routes",
-            )))?;
-        let prev_accepted_path = get_first_route(last_result)?;
+        if termination.terminate_search(k, accepted.len()) {
+            break;
+        }
+
+        let mut best_candidate: Option<(Vec<EdgeTraversal>, Cost)> = None;
+
+        // build alternates off of most recently-picked accepted result
+        let prev_accepted_path =
+            accepted
+                .last()
+                .cloned()
+                .ok_or(SearchError::InternalSearchError(String::from(
+                    "at least one route should be in routes",
+                )))?;
 
         // step through each index along the most recently-accepted path
         for spur_idx in 0..prev_accepted_path.len() - 2 {
             let spur_len: usize = spur_idx + 1;
             let mut cut_edges: HashSet<EdgeId> = HashSet::new();
             let root_path = prev_accepted_path.iter().take(spur_len).collect_vec();
+            let spur_edge_traversal =
+                root_path
+                    .last()
+                    .ok_or(SearchError::InternalSearchError(String::from(
+                        "root path is empty",
+                    )))?;
+            let spur_vertex_id = si
+                .directed_graph
+                .get_edge(spur_edge_traversal.edge_id)?
+                .dst_vertex_id;
 
             // cut frontier edges based on previous paths with matching root path
-            for accepted_result in accepted.iter() {
-                let accepted_route = get_first_route(accepted_result)?;
-                let accepted_path_root = accepted_route.iter().take(spur_len).collect_vec();
+            for accepted_path in accepted.iter() {
+                let accepted_path_root = accepted_path.iter().take(spur_len).collect_vec();
                 if same_path(&root_path, &accepted_path_root) {
-                    if let Some(cut_edge) = accepted_route.get(spur_idx + 1) {
+                    if let Some(cut_edge) = accepted_path.get(spur_idx + 1) {
                         cut_edges.insert(cut_edge.edge_id);
                     }
                 }
             }
 
-            todo!("we need a generic cost model to inject infinte-cost links!")
+            // execute a new path search using a wrapped frontier model to exclude edges
+            let yens_frontier = EdgeCutFrontierModel::new(si.frontier_model.clone(), cut_edges);
+            let yens_si = SearchInstance {
+                directed_graph: si.directed_graph.clone(),
+                state_model: si.state_model.clone(),
+                traversal_model: si.traversal_model.clone(),
+                access_model: si.access_model.clone(),
+                cost_model: si.cost_model.clone(),
+                frontier_model: Arc::new(yens_frontier),
+                termination_model: si.termination_model.clone(),
+            };
+            let spur_result = underlying.run_vertex_oriented(
+                spur_vertex_id,
+                Some(target),
+                &crate::algorithm::search::direction::Direction::Forward,
+                &yens_si,
+            )?;
+            iterations += 1;
+
+            let spur_path = get_first_route(&spur_result)?;
+            let candidate_path = root_path
+                .into_iter()
+                .chain(spur_path)
+                .cloned()
+                .collect_vec();
+            let candidate_test_path: &Vec<&EdgeTraversal> = &candidate_path.iter().collect_vec();
+            // replace best candidate if current candidate is sufficiently dissimilar and improves on cost
+            for test_path in accepted.iter() {
+                let similar = similarity.clone().test_similarity(
+                    &test_path.iter().collect_vec(),
+                    candidate_test_path,
+                    &yens_si,
+                )?;
+                if !similar {
+                    let candidate_cost: Cost =
+                        candidate_test_path.iter().map(|e| e.total_cost()).sum();
+                    match best_candidate {
+                        Some((_, best_cost)) if candidate_cost < best_cost => {
+                            best_candidate = Some((candidate_path.clone(), candidate_cost));
+                        }
+                        None => {
+                            best_candidate = Some((candidate_path.clone(), candidate_cost));
+                        }
+                        Some(_) => {}
+                    }
+                }
+            }
+            if let Some((ref best_path, _)) = best_candidate {
+                accepted.push(best_path.clone());
+            }
         }
     }
 
-    todo!()
+    let result = SearchAlgorithmResult {
+        trees: shortest.trees,
+        routes: accepted,
+        iterations,
+    };
+    Ok(result)
 }
 
 fn get_first_route(res: &SearchAlgorithmResult) -> Result<&Vec<EdgeTraversal>, SearchError> {
