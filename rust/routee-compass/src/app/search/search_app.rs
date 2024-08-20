@@ -177,7 +177,7 @@ impl SearchApp {
             state_model,
             traversal_model,
             access_model,
-            cost_model,
+            cost_model: Arc::new(cost_model),
             frontier_model,
             termination_model: self.termination_model.clone(),
         };
