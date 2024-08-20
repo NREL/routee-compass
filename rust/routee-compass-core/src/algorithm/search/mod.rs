@@ -13,5 +13,6 @@ pub mod search_error;
 pub mod search_instance;
 pub mod search_result;
 pub mod search_tree_branch;
+pub mod util;
 
 pub type MinSearchTree = HashMap<VertexId, SearchTreeBranch>;
