@@ -17,6 +17,7 @@ use std::collections::HashMap;
 pub fn run(
     source: VertexId,
     target: VertexId,
+    query: &serde_json::Value,
     k: usize,
     termination: &KspTerminationCriteria,
     similarity: &RouteSimilarityFunction,
@@ -28,12 +29,12 @@ pub fn run(
         trees: fwd_trees,
         routes: _,
         iterations: fwd_iterations,
-    } = underlying.run_vertex_oriented(source, Some(target), &Direction::Forward, si)?;
+    } = underlying.run_vertex_oriented(source, Some(target), query, &Direction::Forward, si)?;
     let SearchAlgorithmResult {
         trees: rev_trees,
         routes: _,
         iterations: rev_iterations,
-    } = underlying.run_vertex_oriented(target, Some(source), &Direction::Reverse, si)?;
+    } = underlying.run_vertex_oriented(target, Some(source), query, &Direction::Reverse, si)?;
     if fwd_trees.len() != 1 {
         Err(SearchError::InternalSearchError(format!(
             "ksp solver fwd trees count should be exactly 1, found {}",

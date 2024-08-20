@@ -41,6 +41,7 @@ impl SearchAlgorithm {
         &self,
         src_id: VertexId,
         dst_id_opt: Option<VertexId>,
+        query: &serde_json::Value,
         direction: &Direction,
         si: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
@@ -48,15 +49,20 @@ impl SearchAlgorithm {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
                 weight_factor: Some(Cost::ZERO),
             }
-            .run_vertex_oriented(src_id, dst_id_opt, direction, si),
+            .run_vertex_oriented(src_id, dst_id_opt, query, direction, si),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
-                let search_result = a_star_algorithm::run_a_star(
-                    src_id,
-                    dst_id_opt,
-                    direction,
-                    *weight_factor,
-                    si,
-                )?;
+                let w_val = match query.get("weight_factor") {
+                    Some(w_json) => w_json
+                        .as_f64()
+                        .ok_or(SearchError::BuildError(format!(
+                            "weight_factor must be a float, found {}",
+                            w_json
+                        )))
+                        .map(|f| Some(Cost::new(f))),
+                    None => Ok(*weight_factor),
+                }?;
+                let search_result =
+                    a_star_algorithm::run_a_star(src_id, dst_id_opt, direction, w_val, si)?;
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
@@ -80,7 +86,21 @@ impl SearchAlgorithm {
                 Some(dst_id) => {
                     let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
                     let term_fn = termination.as_ref().cloned().unwrap_or_default();
-                    yens_algorithm::run(src_id, dst_id, *k, &term_fn, &sim_fn, si, underlying)
+                    let k_arg = match query.get("k") {
+                        Some(k_json) => k_json
+                            .as_u64()
+                            .ok_or_else(|| {
+                                SearchError::BuildError(format!(
+                                    "user supplied k value {} is not an integer",
+                                    k_json
+                                ))
+                            })
+                            .map(|k_u64| k_u64 as usize),
+                        None => Ok(*k),
+                    }?;
+                    yens_algorithm::run(
+                        src_id, dst_id, query, k_arg, &term_fn, &sim_fn, si, underlying,
+                    )
                 }
                 None => Err(SearchError::BuildError(String::from(
                     "request has source but no destination which is invalid for k-shortest paths",
@@ -95,8 +115,20 @@ impl SearchAlgorithm {
                 Some(dst_id) => {
                     let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
                     let term_fn = termination.as_ref().cloned().unwrap_or_default();
+                    let k_arg = match query.get("k") {
+                        Some(k_json) => k_json
+                            .as_u64()
+                            .ok_or_else(|| {
+                                SearchError::BuildError(format!(
+                                    "user supplied k value {} is not an integer",
+                                    k_json
+                                ))
+                            })
+                            .map(|k_u64| k_u64 as usize),
+                        None => Ok(*k),
+                    }?;
                     single_via_paths_algorithm::run(
-                        src_id, dst_id, *k, &term_fn, &sim_fn, si, underlying,
+                        src_id, dst_id, query, k_arg, &term_fn, &sim_fn, si, underlying,
                     )
                 }
                 None => Err(SearchError::BuildError(String::from(
@@ -109,6 +141,7 @@ impl SearchAlgorithm {
         &self,
         src_id: EdgeId,
         dst_id_opt: Option<EdgeId>,
+        query: &serde_json::Value,
         direction: &Direction,
         search_instance: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
@@ -116,7 +149,7 @@ impl SearchAlgorithm {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
                 weight_factor: Some(Cost::ZERO),
             }
-            .run_edge_oriented(src_id, dst_id_opt, direction, search_instance),
+            .run_edge_oriented(src_id, dst_id_opt, query, direction, search_instance),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
                 let search_result = a_star_algorithm::run_a_star_edge_oriented(
                     src_id,
@@ -148,13 +181,13 @@ impl SearchAlgorithm {
                 underlying: _,
                 similarity: _,
                 termination: _,
-            } => run_edge_oriented(src_id, dst_id_opt, direction, self, search_instance),
+            } => run_edge_oriented(src_id, dst_id_opt, query, direction, self, search_instance),
             SearchAlgorithm::Yens {
                 k: _,
                 underlying: _,
                 similarity: _,
                 termination: _,
-            } => run_edge_oriented(src_id, dst_id_opt, direction, self, search_instance),
+            } => run_edge_oriented(src_id, dst_id_opt, query, direction, self, search_instance),
         }
     }
 }
@@ -168,6 +201,7 @@ impl SearchAlgorithm {
 pub fn run_edge_oriented(
     source: EdgeId,
     target: Option<EdgeId>,
+    query: &serde_json::Value,
     direction: &Direction,
     alg: &SearchAlgorithm,
     si: &SearchInstance,
@@ -192,7 +226,7 @@ pub fn run_edge_oriented(
                 mut trees,
                 mut routes,
                 iterations,
-            } = alg.run_vertex_oriented(e1_dst, None, direction, si)?;
+            } = alg.run_vertex_oriented(e1_dst, None, query, direction, si)?;
             for tree in trees.iter_mut() {
                 if !tree.contains_key(&e1_dst) {
                     tree.extend([(e1_dst, src_branch.clone())]);
@@ -246,7 +280,7 @@ pub fn run_edge_oriented(
                     trees,
                     mut routes,
                     iterations,
-                } = alg.run_vertex_oriented(e1_dst, Some(e2_src), direction, si)?;
+                } = alg.run_vertex_oriented(e1_dst, Some(e2_src), query, direction, si)?;
 
                 if trees.is_empty() {
                     return Err(SearchError::NoPathExists(e1_dst, e2_src));

@@ -121,7 +121,7 @@ impl SearchApp {
 
         let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
-            .run_vertex_oriented(o, d, &Direction::Forward, &search_instance)
+            .run_vertex_oriented(o, d, query, &Direction::Forward, &search_instance)
             .map(|search_result| (search_result, search_instance))
             .map_err(CompassAppError::SearchError)
     }
@@ -138,7 +138,7 @@ impl SearchApp {
             .map_err(CompassAppError::PluginError)?;
         let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
-            .run_edge_oriented(o, d_opt, &Direction::Forward, &search_instance)
+            .run_edge_oriented(o, d_opt, query, &Direction::Forward, &search_instance)
             .map(|search_result| (search_result, search_instance))
             .map_err(CompassAppError::SearchError)
     }

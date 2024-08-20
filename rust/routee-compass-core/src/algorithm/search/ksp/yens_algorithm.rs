@@ -27,6 +27,7 @@ use crate::{
 pub fn run(
     source: VertexId,
     target: VertexId,
+    query: &serde_json::Value,
     k: usize,
     termination: &KspTerminationCriteria,
     similarity: &RouteSimilarityFunction,
@@ -37,6 +38,7 @@ pub fn run(
     let shortest = underlying.run_vertex_oriented(
         source,
         Some(target),
+        query,
         &crate::algorithm::search::direction::Direction::Forward,
         si,
     )?;
@@ -103,6 +105,7 @@ pub fn run(
             let spur_result = underlying.run_vertex_oriented(
                 spur_vertex_id,
                 Some(target),
+                query,
                 &crate::algorithm::search::direction::Direction::Forward,
                 &yens_si,
             )?;
