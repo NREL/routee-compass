@@ -57,6 +57,8 @@ pub fn run(
                     }
                 }
             }
+
+            todo!("we need a generic cost model to inject infinte-cost links!")
         }
     }
 
