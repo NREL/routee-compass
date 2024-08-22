@@ -8,43 +8,57 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum RouteSimilarityFunction {
-    EdgeIdCosineSimilarity { threshold: f64 },
-    DistanceWeightedCosineSimilarity { threshold: f64 },
+    #[default]
+    AcceptAll,
+    EdgeIdCosineSimilarity {
+        threshold: f64,
+    },
+    DistanceWeightedCosineSimilarity {
+        threshold: f64,
+    },
 }
 
 impl RouteSimilarityFunction {
-    /// tests if a similarity rank value is dissimilar enough.
+    /// tests for similarity between two paths.
     ///
     /// # Arguments
-    /// * `similarity` - output of this rank_similarity function
+    /// * `a`  - one route
+    /// * `b`  - another route
+    /// * `si` - search instance for these routes
     ///
-    /// # Result
-    ///
-    /// true if the rank is sufficiently dissimilar
-    pub fn sufficiently_dissimilar(&self, similarity: f64) -> bool {
-        match self {
-            RouteSimilarityFunction::EdgeIdCosineSimilarity { threshold } => {
-                similarity <= *threshold
-            }
-            RouteSimilarityFunction::DistanceWeightedCosineSimilarity { threshold } => {
-                similarity <= *threshold
-            }
-        }
+    /// # Returns
+    /// true if the routes are "similar"
+    pub fn test_similarity(
+        self,
+        a: &[&EdgeTraversal],
+        b: &[&EdgeTraversal],
+        si: &SearchInstance,
+    ) -> Result<bool, SearchError> {
+        let similarity = self.rank_similarity(a, b, si)?;
+        Ok(self.is_similar(similarity))
     }
 
-    /// tests if a similarity rank value is similar enough.
+    /// compares a similarity rank against similarity criteria.
     ///
     /// # Arguments
     /// * `similarity` - output of this rank_similarity function
     ///
     /// # Result
     ///
-    /// true if the rank is sufficiently similar
-    pub fn sufficiently_similar(&self, similarity: f64) -> bool {
-        !self.sufficiently_dissimilar(similarity)
+    /// true if the ranking meets the similarity criteria
+    pub fn is_similar(&self, similarity: f64) -> bool {
+        match self {
+            RouteSimilarityFunction::AcceptAll => true,
+            RouteSimilarityFunction::EdgeIdCosineSimilarity { threshold } => {
+                similarity >= *threshold
+            }
+            RouteSimilarityFunction::DistanceWeightedCosineSimilarity { threshold } => {
+                similarity >= *threshold
+            }
+        }
     }
 
     /// ranks the similarity of two routes using this similarity function.
@@ -58,11 +72,12 @@ impl RouteSimilarityFunction {
     /// the similarity ranking of these routes
     pub fn rank_similarity(
         &self,
-        a: &[EdgeTraversal],
-        b: &[EdgeTraversal],
+        a: &[&EdgeTraversal],
+        b: &[&EdgeTraversal],
         si: &SearchInstance,
     ) -> Result<f64, SearchError> {
         match self {
+            RouteSimilarityFunction::AcceptAll => Ok(0.0),
             RouteSimilarityFunction::EdgeIdCosineSimilarity { threshold: _ } => {
                 let unit_dist_fn = Box::new(|_| Ok(1.0));
                 cos_similarity(a, b, unit_dist_fn)
@@ -92,8 +107,8 @@ impl RouteSimilarityFunction {
 ///
 /// the cosine similarity of the routes, a value from -1 to 1
 fn cos_similarity<'a>(
-    a: &[EdgeTraversal],
-    b: &[EdgeTraversal],
+    a: &[&EdgeTraversal],
+    b: &[&EdgeTraversal],
     dist_fn: Box<dyn Fn(EdgeId) -> Result<f64, SearchError> + 'a>,
 ) -> Result<f64, SearchError> {
     let a_map = a

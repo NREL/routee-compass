@@ -18,7 +18,7 @@ pub struct SearchInstance {
     pub state_model: Arc<StateModel>,
     pub traversal_model: Arc<dyn TraversalModel>,
     pub access_model: Arc<dyn AccessModel>,
-    pub cost_model: CostModel,
+    pub cost_model: Arc<CostModel>,
     pub frontier_model: Arc<dyn FrontierModel>,
     pub termination_model: Arc<TerminationModel>,
 }

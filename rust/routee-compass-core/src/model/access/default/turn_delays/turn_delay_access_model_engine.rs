@@ -31,7 +31,7 @@ impl TurnDelayAccessModelEngine {
                     let error = format!("table missing entry for turn {}", turn.to_string());
                     AccessModelError::RuntimeError { name, error }
                 })?;
-                Ok((*delay, &time_unit))
+                Ok((*delay, time_unit))
             } // TurnDelayModel::TabularDiscreteWithRoadClasses { table, time_unit } => {}
         }
     }
