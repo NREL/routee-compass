@@ -12,7 +12,7 @@ pub fn find_nearest_index(arr: &[f64], target: f64) -> Result<usize, String> {
     if &target
         == arr
             .last()
-            .ok_or_else(|| "Could not get last grid value of arr, is arr empty?")?
+            .ok_or("Could not get last grid value of arr, is arr empty?")?
     {
         return Ok(arr.len() - 2);
     }

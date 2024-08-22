@@ -74,12 +74,10 @@ impl Interpolator {
             if !point.is_empty() {
                 return Err("No point should be provided for 0-D interpolation".to_string());
             }
-        } else {
-            if point.len() != n {
-                return Err(format!(
-                    "Supplied point slice should have length {n} for {n}-D interpolation"
-                ));
-            }
+        } else if point.len() != n {
+            return Err(format!(
+                "Supplied point slice should have length {n} for {n}-D interpolation"
+            ));
         }
         // Check that point is within grid in each dimension
         match self {
@@ -252,7 +250,7 @@ impl InterpValidate for InterpND {
         // Check that each grid dimension has elements
         for i in 0..n {
             // Indexing `grid` directly is okay because `grid == vec![]` is caught at compilation
-            if self.grid[i].len() == 0 {
+            if self.grid[i].is_empty() {
                 return Err(format!(
                     "Supplied `grid` coordinates cannot be empty: dimension {i}, {:?}",
                     self.grid[i]
@@ -530,11 +528,9 @@ impl InterpND {
                 // `next_idxs` is always half the length of `index_permutations`
                 let l = index_permutations[i].as_slice();
                 let u = index_permutations[next_idxs.len() + i].as_slice();
-                if dim == 0 {
-                    if interp_vals[l].is_nan() || interp_vals[u].is_nan() {
-                        return Err(format!("Surrounding value(s) cannot be NaN:\npoint = {point:?},\ngrid = {grid:?},\nvalues = {:?}",
-                        self.values));
-                    }
+                if dim == 0 && (interp_vals[l].is_nan() || interp_vals[u].is_nan()) {
+                    return Err(format!("Surrounding value(s) cannot be NaN:\npoint = {point:?},\ngrid = {grid:?},\nvalues = {:?}",
+                    self.values));
                 }
                 // This calculation happens 2^(n-1) times in the first iteration of the outer loop,
                 // 2^(n-2) times in the second iteration, etc.
@@ -593,10 +589,10 @@ mod tests {
 
     fn setup_1D() -> Interpolator {
         // f(x) = 0.2x + 0.2
-        let interp = Interpolator::Interp1D(
+        
+        Interpolator::Interp1D(
             Interp1D::new(vec![0., 1., 2., 3., 4.], vec![0.2, 0.4, 0.6, 0.8, 1.0]).unwrap(),
-        );
-        interp
+        )
     }
 
     #[test]
