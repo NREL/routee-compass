@@ -138,6 +138,7 @@ pub fn run(
                     if absolute_similarity || too_similar {
                         log::debug!("ksp:{} too similar", ksp_it);
                         accept_route = false;
+                        break;
                     }
                 }
 
