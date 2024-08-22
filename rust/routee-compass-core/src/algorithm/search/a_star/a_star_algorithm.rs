@@ -493,7 +493,7 @@ mod tests {
             state_model: state_model.clone(),
             traversal_model: Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters)),
             access_model: Arc::new(NoAccessModel {}),
-            cost_model,
+            cost_model: Arc::new(cost_model),
             frontier_model: Arc::new(NoRestriction {}),
             termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
         };
