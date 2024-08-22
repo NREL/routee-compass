@@ -589,7 +589,7 @@ mod tests {
 
     fn setup_1D() -> Interpolator {
         // f(x) = 0.2x + 0.2
-        
+
         Interpolator::Interp1D(
             Interp1D::new(vec![0., 1., 2., 3., 4.], vec![0.2, 0.4, 0.6, 0.8, 1.0]).unwrap(),
         )
