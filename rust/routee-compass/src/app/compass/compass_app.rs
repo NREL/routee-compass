@@ -147,7 +147,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let search_algorithm: SearchAlgorithm =
             config_json.get_config_serde(&CompassConfigurationField::Algorithm, &"TOML")?;
 
-        let state_model = match config_json.get(&CompassConfigurationField::State.to_string()) {
+        let state_model = match config_json.get(CompassConfigurationField::State.to_string()) {
             Some(state_config) => Arc::new(StateModel::try_from(state_config)?),
             None => Arc::new(StateModel::empty()),
         };
