@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use super::ksp_termination_criteria::KspTerminationCriteria;
+use super::{ksp_query::KspQuery, ksp_termination_criteria::KspTerminationCriteria};
 use crate::{
     algorithm::search::{
         a_star::bidirectional_a_star_algorithm, backtrack, direction::Direction,
@@ -15,10 +15,7 @@ use std::collections::HashMap;
 
 /// generates a set of k-shortest paths using the single-via path algorithm.
 pub fn run(
-    source: VertexId,
-    target: VertexId,
-    query: &serde_json::Value,
-    k: usize,
+    query: &KspQuery,
     termination: &KspTerminationCriteria,
     similarity: &RouteSimilarityFunction,
     si: &SearchInstance,
@@ -29,12 +26,24 @@ pub fn run(
         trees: fwd_trees,
         routes: _,
         iterations: fwd_iterations,
-    } = underlying.run_vertex_oriented(source, Some(target), query, &Direction::Forward, si)?;
+    } = underlying.run_vertex_oriented(
+        query.source,
+        Some(query.target),
+        query.user_query,
+        &Direction::Forward,
+        si,
+    )?;
     let SearchAlgorithmResult {
         trees: rev_trees,
         routes: _,
         iterations: rev_iterations,
-    } = underlying.run_vertex_oriented(target, Some(source), query, &Direction::Reverse, si)?;
+    } = underlying.run_vertex_oriented(
+        query.target,
+        Some(query.source),
+        query.user_query,
+        &Direction::Reverse,
+        si,
+    )?;
     if fwd_trees.len() != 1 {
         Err(SearchError::InternalSearchError(format!(
             "ksp solver fwd trees count should be exactly 1, found {}",
@@ -74,15 +83,15 @@ pub fn run(
 
     log::debug!("ksp intersection has {} vertices", intersection_queue.len());
 
-    let tsp = backtrack::vertex_oriented_route(source, target, fwd_tree)?;
+    let tsp = backtrack::vertex_oriented_route(query.source, query.target, fwd_tree)?;
     let mut solution: Vec<Vec<EdgeTraversal>> = vec![tsp];
     let mut ksp_it: u64 = 0;
     loop {
-        if termination.terminate_search(k, solution.len()) {
+        if termination.terminate_search(query.k, solution.len()) {
             log::debug!(
                 "ksp:{} solution contains {} entries, quitting due to termination function {}",
                 ksp_it,
-                k,
+                query.k,
                 termination
             );
             break;
@@ -95,10 +104,16 @@ pub fn run(
             Some((intersection_vertex_id, _)) => {
                 let mut accept_route = true;
                 // create the i'th route by backtracking both trees and concatenating the result
-                let fwd_route =
-                    backtrack::vertex_oriented_route(source, intersection_vertex_id, fwd_tree)?;
-                let rev_route_backward =
-                    backtrack::vertex_oriented_route(target, intersection_vertex_id, rev_tree)?;
+                let fwd_route = backtrack::vertex_oriented_route(
+                    query.source,
+                    intersection_vertex_id,
+                    fwd_tree,
+                )?;
+                let rev_route_backward = backtrack::vertex_oriented_route(
+                    query.target,
+                    intersection_vertex_id,
+                    rev_tree,
+                )?;
                 let rev_route = bidirectional_a_star_algorithm::reorient_reverse_route(
                     &fwd_route,
                     &rev_route_backward,
@@ -137,7 +152,7 @@ pub fn run(
 
     log::debug!("ksp ran in {} iterations", ksp_it);
 
-    let routes = solution.into_iter().take(k).collect_vec();
+    let routes = solution.into_iter().take(query.k).collect_vec();
 
     // combine all data into this result
     let result = SearchAlgorithmResult {

@@ -1,5 +1,6 @@
 use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
+use super::ksp::ksp_query::KspQuery;
 use super::ksp::ksp_termination_criteria::KspTerminationCriteria;
 use super::ksp::{single_via_paths_algorithm, yens_algorithm};
 use super::search_algorithm_result::SearchAlgorithmResult;
@@ -82,59 +83,33 @@ impl SearchAlgorithm {
                 underlying,
                 similarity,
                 termination,
-            } => match dst_id_opt {
-                Some(dst_id) => {
-                    let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
-                    let term_fn = termination.as_ref().cloned().unwrap_or_default();
-                    let k_arg = match query.get("k") {
-                        Some(k_json) => k_json
-                            .as_u64()
-                            .ok_or_else(|| {
-                                SearchError::BuildError(format!(
-                                    "user supplied k value {} is not an integer",
-                                    k_json
-                                ))
-                            })
-                            .map(|k_u64| k_u64 as usize),
-                        None => Ok(*k),
-                    }?;
-                    yens_algorithm::run(
-                        src_id, dst_id, query, k_arg, &term_fn, &sim_fn, si, underlying,
-                    )
-                }
-                None => Err(SearchError::BuildError(String::from(
-                    "request has source but no destination which is invalid for k-shortest paths",
-                ))),
-            },
+            } => {
+                let dst_id = dst_id_opt.ok_or_else(|| {
+                    SearchError::BuildError(String::from(
+                        "attempting to run KSP algorithm without destination",
+                    ))
+                })?;
+                let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
+                let term_fn = termination.as_ref().cloned().unwrap_or_default();
+                let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
+                yens_algorithm::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
+            }
             SearchAlgorithm::KspSingleVia {
                 k,
                 underlying,
                 similarity,
                 termination,
-            } => match dst_id_opt {
-                Some(dst_id) => {
-                    let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
-                    let term_fn = termination.as_ref().cloned().unwrap_or_default();
-                    let k_arg = match query.get("k") {
-                        Some(k_json) => k_json
-                            .as_u64()
-                            .ok_or_else(|| {
-                                SearchError::BuildError(format!(
-                                    "user supplied k value {} is not an integer",
-                                    k_json
-                                ))
-                            })
-                            .map(|k_u64| k_u64 as usize),
-                        None => Ok(*k),
-                    }?;
-                    single_via_paths_algorithm::run(
-                        src_id, dst_id, query, k_arg, &term_fn, &sim_fn, si, underlying,
-                    )
-                }
-                None => Err(SearchError::BuildError(String::from(
-                    "request has source but no destination which is invalid for k-shortest paths",
-                ))),
-            },
+            } => {
+                let dst_id = dst_id_opt.ok_or_else(|| {
+                    SearchError::BuildError(String::from(
+                        "attempting to run KSP algorithm without destination",
+                    ))
+                })?;
+                let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
+                let term_fn = termination.as_ref().cloned().unwrap_or_default();
+                let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
+                single_via_paths_algorithm::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
+            }
         }
     }
     pub fn run_edge_oriented(

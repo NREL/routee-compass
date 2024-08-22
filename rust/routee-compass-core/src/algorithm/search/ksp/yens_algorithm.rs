@@ -1,8 +1,4 @@
-use std::{collections::HashSet, sync::Arc};
-
-use itertools::Itertools;
-
-use super::ksp_termination_criteria::KspTerminationCriteria;
+use super::{ksp_query::KspQuery, ksp_termination_criteria::KspTerminationCriteria};
 use crate::{
     algorithm::search::{
         edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm,
@@ -10,11 +6,10 @@ use crate::{
         search_instance::SearchInstance, util::edge_cut_frontier_model::EdgeCutFrontierModel,
         util::route_similarity_function::RouteSimilarityFunction,
     },
-    model::{
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
-        unit::Cost,
-    },
+    model::{road_network::edge_id::EdgeId, unit::Cost},
 };
+use itertools::Itertools;
+use std::{collections::HashSet, sync::Arc};
 
 /// an implementation of Yen's k-Shortest Paths Algorithm as described in the paper
 ///
@@ -25,10 +20,7 @@ use crate::{
 ///
 /// The search tree of the true shortest path, along with all paths found
 pub fn run(
-    source: VertexId,
-    target: VertexId,
-    query: &serde_json::Value,
-    k: usize,
+    query: &KspQuery,
     termination: &KspTerminationCriteria,
     similarity: &RouteSimilarityFunction,
     si: &SearchInstance,
@@ -36,9 +28,9 @@ pub fn run(
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // base case: we always have the true-shortest path
     let shortest = underlying.run_vertex_oriented(
-        source,
-        Some(target),
-        query,
+        query.source,
+        Some(query.target),
+        query.user_query,
         &crate::algorithm::search::direction::Direction::Forward,
         si,
     )?;
@@ -49,8 +41,8 @@ pub fn run(
     let mut accepted: Vec<Vec<EdgeTraversal>> = vec![shortest_path.to_owned()];
     let mut iterations: u64 = 1; // number of times we call underlying search
 
-    while accepted.len() < k {
-        if termination.terminate_search(k, accepted.len()) {
+    while accepted.len() < query.k {
+        if termination.terminate_search(query.k, accepted.len()) {
             break;
         }
 
@@ -104,8 +96,8 @@ pub fn run(
             };
             let spur_result = underlying.run_vertex_oriented(
                 spur_vertex_id,
-                Some(target),
-                query,
+                Some(query.target),
+                query.user_query,
                 &crate::algorithm::search::direction::Direction::Forward,
                 &yens_si,
             )?;
