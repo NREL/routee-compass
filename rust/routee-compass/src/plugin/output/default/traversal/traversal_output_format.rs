@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::traversal_ops as ops;
 use crate::plugin::plugin_error::PluginError;
-use geo::{CoordFloat, CoordNum, Geometry, LineString};
+use geo::{CoordFloat, Geometry, LineString};
 use routee_compass_core::{
     algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
     model::road_network::vertex_id::VertexId,
