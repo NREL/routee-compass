@@ -1,8 +1,10 @@
 use crate::util::fs::{fs_utils, read_utils};
-use geo::{LineString, Point};
+use geo::{Coord, LineString, Point};
+use itertools::Itertools;
 use kdam::{Bar, BarExt};
 use std::path::Path;
-use wkt::TryFromWkt;
+use wkb;
+use wkt::{ToWkt, TryFromWkt};
 
 /// reads a collection of LINESTRINGS
 pub fn read_linestring_text_file<F: AsRef<Path>>(
@@ -23,7 +25,7 @@ pub fn read_linestring_text_file<F: AsRef<Path>>(
         let _ = pb.update(1);
     });
     let geoms: Box<[LineString<f32>]> =
-        read_utils::read_raw_file(filepath, parse_linestring, Some(cb))?;
+        read_utils::read_raw_file(filepath, parse_wkt_linestring, Some(cb))?;
     Ok(geoms)
 }
 
@@ -72,7 +74,7 @@ pub fn concat_linestrings(linestrings: Vec<&LineString<f32>>) -> LineString<f32>
 /// # Returns
 ///
 /// * a linestring
-pub fn parse_linestring(_idx: usize, row: String) -> Result<LineString<f32>, std::io::Error> {
+pub fn parse_wkt_linestring(_idx: usize, row: String) -> Result<LineString<f32>, std::io::Error> {
     let geom: LineString<f32> = LineString::try_from_wkt_str(row.as_str()).map_err(|e| {
         let msg = format!(
             "failure decoding LineString from lookup table. source: {}; error: {}",
@@ -81,6 +83,35 @@ pub fn parse_linestring(_idx: usize, row: String) -> Result<LineString<f32>, std
         std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
     })?;
     Ok(geom)
+}
+
+pub fn parse_wkb_linestring(_idx: usize, row: String) -> Result<LineString<f32>, std::io::Error> {
+    let mut c = row.as_bytes();
+    let geom = wkb::wkb_to_geom(&mut c).map_err(|e| {
+        let msg = format!("failure decoding WKB string: {:?}", e);
+        std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
+    })?;
+    match geom {
+        geo::Geometry::LineString(l) => {
+            // somewhat hackish solution since we cannot choose f32 when parsing wkbs
+            let coords32 =
+                l.0.into_iter()
+                    .map(|c| Coord {
+                        x: c.x as f32,
+                        y: c.y as f32,
+                    })
+                    .collect_vec();
+            let l32 = LineString::new(coords32);
+            Ok(l32)
+        }
+        _ => {
+            let msg = format!(
+                "decoded WKB expected to be linestring, found: {}",
+                geom.to_wkt()
+            );
+            Err(std::io::Error::new(std::io::ErrorKind::InvalidData, msg))
+        }
+    }
 }
 
 #[cfg(test)]

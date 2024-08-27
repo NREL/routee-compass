@@ -3,7 +3,7 @@ use geo::LineString;
 use kdam::Bar;
 use kdam::BarExt;
 use routee_compass_core::util::fs::{fs_utils, read_utils};
-use routee_compass_core::util::geo::geo_io_utils::parse_linestring;
+use routee_compass_core::util::geo::geo_io_utils::parse_wkt_linestring;
 use std::io::ErrorKind;
 
 pub struct GeomAppConfig {
@@ -38,7 +38,7 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
         });
 
         let op = |idx: usize, row: String| {
-            let result = parse_linestring(idx, row)?;
+            let result = parse_wkt_linestring(idx, row)?;
             Ok(result)
         };
 
