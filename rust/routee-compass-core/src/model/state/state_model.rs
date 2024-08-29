@@ -423,21 +423,18 @@ impl StateModel {
 
     /// uses the built-in serialization codec to output the state model representation as a JSON object
     pub fn serialize_state_model(&self) -> serde_json::Value {
-        let x = self
-            .indexed_iter()
-            .sorted_by(|(a_i, _), (b_i, _)| Ord::cmp(a_i, b_i))
-            .map(|(i, (name, feature))| {
-                let mut f_json = json![feature];
+        let x = self.indexed_iter().map(|(i, (name, feature))| {
+            let mut f_json = json![feature];
 
-                match f_json.as_object_mut() {
-                    None => json![{}],
-                    Some(map) => {
-                        map.insert(String::from("index"), json![i]);
-                        map.insert(String::from("name"), json![name]);
-                        json![map]
-                    }
+            match f_json.as_object_mut() {
+                None => json![{}],
+                Some(map) => {
+                    map.insert(String::from("index"), json![i]);
+                    map.insert(String::from("name"), json![name]);
+                    json![map]
                 }
-            });
+            }
+        });
         json![x.collect::<Vec<_>>()]
     }
 
