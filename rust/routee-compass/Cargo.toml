@@ -30,6 +30,7 @@ geo-types = { workspace = true }
 geojson = { workspace = true }
 rstar = { workspace = true }
 wkt = { workspace = true }
+wkb = { workspace = true }
 env_logger = { workspace = true }
 kdam = { workspace = true }
 log = { workspace = true }

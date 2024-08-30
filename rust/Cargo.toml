@@ -26,6 +26,7 @@ itertools = { version = "0.12.0" }
 chrono = "0.4.26"
 regex = "1.9.5"
 wkt = { version = "0.10.3", features = ["serde"] }
+wkb = "0.7.1"
 config = "0.14"
 ordered-float = { version = "4.1.1", features = ["serde"] }
 allocative = "0.3.1"
