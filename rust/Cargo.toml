@@ -9,25 +9,26 @@ members = [
 ]
 
 [workspace.dependencies]
-serde = { version = "1.0.160", features = ["derive"] }
-serde_json = { version = "1.0", features = ["preserve_order"] }
+serde = { version = "1.0.209", features = ["derive"] }
+serde_json = { version = "1.0.127", features = ["preserve_order"] }
 rayon = "1.7.0"
 geo = { version = "0.28.0", features = ["use-serde"] }
 geo-types = "0.7.12"
 geojson = { version = "0.24.1" }
 rstar = "0.12.0"
-thiserror = "1.0.0"
-flate2 = "1.0"
-kdam = "0.5.0"
-log = "0.4.19"
-env_logger = "0.11"
+thiserror = "1.0.63"
+flate2 = "1.0.33"
+kdam = "0.5.2"
+log = "0.4.22"
+env_logger = "0.11.5"
 csv = { version = "1.2.2" }
-itertools = { version = "0.12.0" }
-chrono = "0.4.26"
-regex = "1.9.5"
-wkt = { version = "0.10.3", features = ["serde"] }
+itertools = { version = "0.13.0" }
+chrono = "0.4.38"
+regex = "1.10.6"
+wkt = { version = "0.11.0", features = ["serde"] }
 wkb = "0.7.1"
 config = "0.14"
-ordered-float = { version = "4.1.1", features = ["serde"] }
+ordered-float = { version = "4.2.2", features = ["serde"] }
 allocative = "0.3.1"
 indoc = "2"
+derive_more = { version = "1.0.0", features = ["full"] }
