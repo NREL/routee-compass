@@ -41,6 +41,7 @@ pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     ))
                 })
             }
+            #[pyo3(signature = (edge_id, distance_unit=None))]
             fn graph_edge_distance(&self, edge_id: usize, distance_unit: Option<String>) -> PyResult<f64> {
                 CompassAppBindings::graph_edge_distance(self, edge_id, distance_unit).map_err(|e| {
                     PyException::new_err(format!(
@@ -80,6 +81,7 @@ pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 )
             }
 
+            #[pyo3(signature = (queries, config=None))]
             pub fn _run_queries(
                 &self,
                 queries: Vec<String>,
