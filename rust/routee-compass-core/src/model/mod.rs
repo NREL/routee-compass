@@ -1,6 +1,7 @@
 pub mod access;
 pub mod cost;
 pub mod frontier;
+pub mod map;
 pub mod property;
 pub mod road_network;
 pub mod state;
