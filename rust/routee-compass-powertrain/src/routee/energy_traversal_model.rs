@@ -131,21 +131,18 @@ impl EnergyTraversalModel {
             })?
             .to_string();
 
-        let vehicle = match energy_model_service
+        let vehicle_lookup = energy_model_service
             .vehicle_library
-            .get(&prediction_model_name)
-        {
-            None => {
-                let model_names: Vec<&String> =
-                    energy_model_service.vehicle_library.keys().collect();
-                Err(TraversalModelError::BuildError(format!(
-                    "No vehicle found with model_name = '{}', try one of: {:?}",
-                    prediction_model_name, model_names
-                )))
-            }
-            Some(mr) => Ok(mr.clone()),
-        }?
-        .update_from_query(conf)?;
+            .get(&prediction_model_name);
+        let vehicle_initial = vehicle_lookup.cloned().ok_or_else(|| {
+            let model_names: Vec<&String> = energy_model_service.vehicle_library.keys().collect();
+            TraversalModelError::BuildError(format!(
+                "No vehicle found with model_name = '{}', try one of: {:?}",
+                prediction_model_name, model_names
+            ))
+        })?;
+        // allow user to customize this vehicle instance if applicable
+        let vehicle = vehicle_initial.update_from_query(conf)?;
 
         Ok(EnergyTraversalModel {
             energy_model_service,

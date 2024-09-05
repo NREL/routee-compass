@@ -45,7 +45,7 @@ pub fn update_soc_percent(
 /// the remaining battery as a percentage [0, 100] %
 pub fn as_soc_percent(remaining_battery: &Energy, max_battery: &Energy) -> f64 {
     let percent_remaining = (remaining_battery.as_f64() / max_battery.as_f64()) * 100.0;
-    percent_remaining.max(0.0).min(100.0)
+    percent_remaining.clamp(0.0, 100.0)
 }
 
 /// a capacitated vehicle's state of charge (SOC) is the inverse of the
@@ -70,5 +70,5 @@ pub fn soc_from_battery_and_delta(
 ) -> f64 {
     let current_energy = *start_battery - *energy_used;
     let percent_remaining = (current_energy.as_f64() / max_battery.as_f64()) * 100.0;
-    percent_remaining.max(0.0).min(100.0)
+    percent_remaining.clamp(0.0, 100.0)
 }

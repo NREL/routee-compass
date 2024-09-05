@@ -17,7 +17,7 @@ pub enum VehicleCostRate {
     Factor {
         factor: f64,
     },
-    ///
+    /// shift a value by some amount
     Offset {
         offset: f64,
     },

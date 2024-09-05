@@ -28,7 +28,7 @@ impl TurnDelayAccessModelEngine {
                 let turn = Turn::from_angle(angle)?;
                 let delay = table.get(&turn).ok_or_else(|| {
                     let name = String::from("tabular discrete turn delay model");
-                    let error = format!("table missing entry for turn {}", turn.to_string());
+                    let error = format!("table missing entry for turn {}", turn);
                     AccessModelError::RuntimeError { name, error }
                 })?;
                 Ok((*delay, time_unit))

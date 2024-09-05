@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::model::access::access_model_error::AccessModelError;
 use serde::{Deserialize, Serialize};
 
@@ -14,9 +16,9 @@ pub enum Turn {
     UTurn,
 }
 
-impl ToString for Turn {
-    fn to_string(&self) -> String {
-        serde_json::to_string(self).unwrap_or_else(|_| String::from("<internal error>"))
+impl Display for Turn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", serde_json::to_string(self).unwrap_or_default())
     }
 }
 
