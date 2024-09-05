@@ -14,6 +14,7 @@ use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 ///   1. from the traversal model
 ///   2. from the access model
 ///   3. optionally from the query itself
+///
 /// using the order above, each new source optionally overwrites any existing feature
 /// by name (tuple index 0) as long as they match in StateFeature::get_feature_name and
 /// StateFeature::get_feature_unit_name.
