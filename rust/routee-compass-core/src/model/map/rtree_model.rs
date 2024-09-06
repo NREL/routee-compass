@@ -1,21 +1,30 @@
 use super::{
-    map_error::MapError, map_matching_result::MapMatchingResult,
+    map_error::MapError, nearest_search_result::NearestSearchResult,
     vertex_rtree_record::VertexRTreeRecord,
 };
-use crate::model::{property::vertex::Vertex, unit::Distance};
+use crate::model::{
+    property::vertex::Vertex,
+    unit::{Distance, DistanceUnit},
+};
 use geo::Coord;
 use rstar::RTree;
 
 pub enum RTreeModel<'a> {
     VertexOriented {
         rtree: RTree<VertexRTreeRecord<'a>>,
-        tolerance: Distance,
+        tolerance: Option<(Distance, DistanceUnit)>,
     },
     EdgeOriented,
 }
 
 impl<'a> RTreeModel<'a> {
-    pub fn new_vertex_oriented(vertices: &'a [Vertex], tolerance: Distance) -> Self {
+    /// creates a new instance of the rtree model that is vertex-oriented; that is, the
+    /// rtree is built over the vertices in the graph, and nearest neighbor searches return
+    /// a VertexId.
+    pub fn new_vertex_oriented(
+        vertices: &'a [Vertex],
+        tolerance: Option<(Distance, DistanceUnit)>,
+    ) -> Self {
         let rtree_vertices: Vec<VertexRTreeRecord<'a>> =
             vertices.iter().map(VertexRTreeRecord::new).collect();
         let rtree = RTree::bulk_load(rtree_vertices.to_vec());
@@ -24,19 +33,18 @@ impl<'a> RTreeModel<'a> {
         Self::VertexOriented { rtree, tolerance }
     }
 
-    pub fn map_match(&self, query: &mut serde_json::Value) -> Result<MapMatchingResult, MapError> {
+    /// gets the nearest graph id, which is a VertexId or EdgeId depending on the orientation
+    /// of the RTree.
+    pub fn nearest_graph_id(&self, coord: &Coord<f32>) -> Result<NearestSearchResult, MapError> {
         match self {
             RTreeModel::VertexOriented { rtree, tolerance } => {
-                // let src_coord = query.get_origin_coordinate()?;
-                // let dst_coord_option = query.get_destination_coordinate()?;
-                // rtree
-                //     .nearest_neighbor(&point)
-                //     .map(|v| v.vertex)
-                //     .ok_or_else(|| MapError::MapMatchError(format!("")))
-                todo!()
+                let nearest = rtree.nearest_neighbor(coord).ok_or_else(|| {
+                    MapError::MapMatchError(String::from("no map vertices exist for matching"))
+                })?;
+                nearest.within_distance_threshold(coord, tolerance)?;
+                Ok(NearestSearchResult::NearestVertex(nearest.vertex.vertex_id))
             }
             RTreeModel::EdgeOriented => todo!(),
         }
-        todo!()
     }
 }
