@@ -65,11 +65,11 @@ impl<'a> RTreeModel<'a> {
                 Ok(NearestSearchResult::NearestVertex(nearest.vertex.vertex_id))
             }
             RTreeModel::EdgeOriented { rtree, tolerance } => {
-                let nearest = rtree.nearest_neighbor(coord).ok_or_else(|| {
+                let nearest = rtree.nearest_neighbor(&geo::Point(*coord)).ok_or_else(|| {
                     MapError::MapMatchError(String::from("no map vertices exist for matching"))
                 })?;
                 nearest.within_distance_threshold(coord, tolerance)?;
-                Ok(NearestSearchResult::NearestVertex(nearest.vertex.vertex_id))
+                Ok(NearestSearchResult::NearestEdge(nearest.edge.edge_id))
             }
         }
     }
