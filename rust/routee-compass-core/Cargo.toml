@@ -17,6 +17,7 @@ rayon = { workspace = true }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
 geo = { workspace = true }
+proj = { workspace = true }
 ordered-float = { workspace = true }
 derive_more = { workspace = true }
 priority-queue = "2.0.2"

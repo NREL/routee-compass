@@ -1,3 +1,5 @@
+use crate::model::unit::{Distance, DistanceUnit};
+
 use super::map_json_key::MapJsonKey;
 
 #[derive(thiserror::Error, Debug)]
@@ -12,4 +14,10 @@ pub enum MapError {
     InputDeserializingError(String, String),
     #[error("input has '{0}' field without required paired field '{1}'")]
     InputMissingPairedField(MapJsonKey, MapJsonKey),
+    #[error("failure re-projecting geometry: {error} original: {geometry}")]
+    ProjectionError { geometry: String, error: String },
+    #[error("result not found within distance threshold of {1}/{2}: {0}")]
+    DistanceThresholdError(String, Distance, DistanceUnit),
+    #[error("{0}")]
+    InternalError(String),
 }
