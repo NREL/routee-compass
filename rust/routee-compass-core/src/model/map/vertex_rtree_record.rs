@@ -14,11 +14,11 @@ use super::map_error::MapError;
 /// this record is a wrapper around the graph Vertex but does not hold a copy,
 /// instead holds a reference (and lifetime) to reduce copying.
 #[derive(Clone, Copy)]
-pub struct VertexRTreeRecord<'a> {
+pub struct VertexRtreeRecord<'a> {
     pub vertex: &'a Vertex,
 }
 
-impl<'a> VertexRTreeRecord<'a> {
+impl<'a> VertexRtreeRecord<'a> {
     pub fn new(vertex: &'a Vertex) -> Self {
         Self { vertex }
     }
@@ -77,7 +77,7 @@ impl<'a> VertexRTreeRecord<'a> {
     }
 }
 
-impl<'a> RTreeObject for VertexRTreeRecord<'a> {
+impl<'a> RTreeObject for VertexRtreeRecord<'a> {
     type Envelope = AABB<Coord<f32>>;
 
     fn envelope(&self) -> Self::Envelope {
@@ -88,7 +88,7 @@ impl<'a> RTreeObject for VertexRTreeRecord<'a> {
     }
 }
 
-impl<'a> PointDistance for VertexRTreeRecord<'a> {
+impl<'a> PointDistance for VertexRtreeRecord<'a> {
     fn distance_2(&self, point: &Coord<f32>) -> f32 {
         let dx = self.x() - point.x;
         let dy = self.y() - point.y;
