@@ -10,6 +10,9 @@ use rstar::{PointDistance, RTreeObject, AABB};
 
 use super::map_error::MapError;
 
+/// representation of a graph vertex within the Rtree.
+/// this record is a wrapper around the graph Vertex but does not hold a copy,
+/// instead holds a reference (and lifetime) to reduce copying.
 #[derive(Clone, Copy)]
 pub struct VertexRTreeRecord<'a> {
     pub vertex: &'a Vertex,
