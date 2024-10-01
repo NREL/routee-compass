@@ -1,9 +1,6 @@
 use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
-use super::{
-    compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder,
-    search_orientation::SearchOrientation,
-};
+use super::{compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
 use crate::{
     app::{
@@ -31,6 +28,7 @@ use itertools::{Either, Itertools};
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::algorithm::search::search_instance::SearchInstance;
+use routee_compass_core::algorithm::search::search_orientation::SearchOrientation;
 use routee_compass_core::model::state::state_model::StateModel;
 use routee_compass_core::{
     algorithm::search::search_algorithm::SearchAlgorithm,
@@ -424,7 +422,7 @@ impl CompassApp {
         let run_query_result = match response_persistence_policy {
             ResponsePersistencePolicy::PersistResponseInMemory => run_batch_with_responses(
                 &load_balanced_inputs,
-                &self.search_orientation,
+                self.search_orientation,
                 &self.output_plugins,
                 &self.search_app,
                 &response_writer,
@@ -432,7 +430,7 @@ impl CompassApp {
             )?,
             ResponsePersistencePolicy::DiscardResponseFromMemory => run_batch_without_responses(
                 &load_balanced_inputs,
-                &self.search_orientation,
+                self.search_orientation,
                 &self.output_plugins,
                 &self.search_app,
                 &response_writer,
@@ -476,7 +474,7 @@ where
 /// * The result of the search and post-processing as a JSON object, or, an error
 pub fn run_single_query(
     query: &serde_json::Value,
-    search_orientation: &SearchOrientation,
+    search_orientation: SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
 ) -> Result<serde_json::Value, CompassAppError> {
@@ -499,7 +497,7 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
 /// and retains the responses from each search in memory.
 pub fn run_batch_with_responses(
     load_balanced_inputs: &Vec<Vec<&Value>>,
-    search_orientation: &SearchOrientation,
+    search_orientation: SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
     response_writer: &ResponseSink,
@@ -534,7 +532,7 @@ pub fn run_batch_with_responses(
 /// the search result is not persisted in memory.
 pub fn run_batch_without_responses(
     load_balanced_inputs: &Vec<Vec<&Value>>,
-    search_orientation: &SearchOrientation,
+    search_orientation: SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
     response_writer: &ResponseSink,
