@@ -1,3 +1,4 @@
+use super::compass_app_configuration::CompassAppConfiguration;
 use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
 use super::{compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder};
@@ -53,10 +54,7 @@ pub struct CompassApp {
     pub search_app: SearchApp,
     pub input_plugins: Vec<Arc<dyn InputPlugin>>,
     pub output_plugins: Vec<Arc<dyn OutputPlugin>>,
-    pub parallelism: usize,
-    pub search_orientation: SearchOrientation,
-    pub response_persistence_policy: ResponsePersistencePolicy,
-    pub response_output_policy: ResponseOutputPolicy,
+    pub configuration: CompassAppConfiguration,
 }
 
 impl CompassApp {
@@ -280,6 +278,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let response_output_policy = config.get::<ResponseOutputPolicy>(
             CompassConfigurationField::ResponseOutputPolicy.to_str(),
         )?;
+        let configuration = CompassAppConfiguration::new(
+            parallelism,
+            search_orientation,
+            response_persistence_policy,
+            response_output_policy,
+        );
 
         log::info!(
             "additional parameters - parallelism={}, search orientation={:?}",
@@ -291,10 +295,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             search_app,
             input_plugins,
             output_plugins,
-            parallelism,
-            search_orientation,
-            response_persistence_policy,
-            response_output_policy,
+            configuration,
         })
     }
 }
@@ -329,19 +330,19 @@ impl CompassApp {
             &"run configuration",
             config,
         )?
-        .unwrap_or(self.parallelism);
+        .unwrap_or(self.configuration.parallelism);
         let response_persistence_policy: ResponsePersistencePolicy = get_optional_run_config(
             &CompassConfigurationField::ResponsePersistencePolicy.to_str(),
             &"run configuration",
             config,
         )?
-        .unwrap_or(self.response_persistence_policy);
+        .unwrap_or(self.configuration.response_persistence_policy);
         let response_output_policy: ResponseOutputPolicy = get_optional_run_config(
             &CompassConfigurationField::ResponseOutputPolicy.to_str(),
             &"run configuration",
             config,
         )?
-        .unwrap_or_else(|| self.response_output_policy.clone());
+        .unwrap_or_else(|| self.configuration.response_output_policy.clone());
         let response_writer = response_output_policy.build()?;
 
         let input_pb = Bar::builder()
@@ -354,7 +355,8 @@ impl CompassApp {
 
         // input plugins need to be flattened, and queries that fail input processing need to be
         // returned at the end.
-        let plugin_chunk_size = (queries.len() as f64 / self.parallelism as f64).ceil() as usize;
+        let plugin_chunk_size =
+            (queries.len() as f64 / self.configuration.parallelism as f64).ceil() as usize;
         let input_plugin_result: (Vec<_>, Vec<_>) = queries
             .par_chunks(plugin_chunk_size)
             .map(|queries| {
@@ -394,7 +396,7 @@ impl CompassApp {
 
         log::info!(
             "creating {} parallel batches across {} threads to run queries",
-            self.parallelism,
+            self.configuration.parallelism,
             current_num_threads(),
         );
         let proc_batch_sizes = load_balanced_inputs
@@ -422,7 +424,7 @@ impl CompassApp {
         let run_query_result = match response_persistence_policy {
             ResponsePersistencePolicy::PersistResponseInMemory => run_batch_with_responses(
                 &load_balanced_inputs,
-                self.search_orientation,
+                self.configuration.search_orientation,
                 &self.output_plugins,
                 &self.search_app,
                 &response_writer,
@@ -430,7 +432,7 @@ impl CompassApp {
             )?,
             ResponsePersistencePolicy::DiscardResponseFromMemory => run_batch_without_responses(
                 &load_balanced_inputs,
-                self.search_orientation,
+                self.configuration.search_orientation,
                 &self.output_plugins,
                 &self.search_app,
                 &response_writer,
