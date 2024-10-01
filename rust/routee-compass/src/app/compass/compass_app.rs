@@ -268,27 +268,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             plugins_duration.hhmmss()
         );
 
-        // other parameters
-        let parallelism = config.get::<usize>(CompassConfigurationField::Parallelism.to_str())?;
-        let search_orientation = config
-            .get::<SearchOrientation>(CompassConfigurationField::SearchOrientation.to_str())?;
-        let response_persistence_policy = config.get::<ResponsePersistencePolicy>(
-            CompassConfigurationField::ResponsePersistencePolicy.to_str(),
-        )?;
-        let response_output_policy = config.get::<ResponseOutputPolicy>(
-            CompassConfigurationField::ResponseOutputPolicy.to_str(),
-        )?;
-        let configuration = CompassAppConfiguration::new(
-            parallelism,
-            search_orientation,
-            response_persistence_policy,
-            response_output_policy,
-        );
+        let configuration = CompassAppConfiguration::try_from(config)?;
 
         log::info!(
             "additional parameters - parallelism={}, search orientation={:?}",
-            parallelism,
-            search_orientation
+            configuration.parallelism,
+            configuration.search_orientation
         );
 
         Ok(CompassApp {
