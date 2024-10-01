@@ -37,7 +37,8 @@ impl<'a> RTreeModel<'a> {
 
     /// creates a new instance of the rtree model that is edge-oriented; that is, the
     /// rtree is built over the edges in the graph, and nearest neighbor searches return
-    /// the edge's destination vertex. (future work: make SearchOrientation set this).
+    /// the edge's destination vertex.
+    /// - future work: make SearchOrientation set which incident vertex is returned.
     pub fn new_edge_oriented(
         edges: &'a [Edge],
         edge_geometries: &'a [LineString<f32>],
@@ -46,7 +47,7 @@ impl<'a> RTreeModel<'a> {
         let rtree_edges: Vec<EdgeRtreeRecord<'a>> = edges
             .iter()
             .zip(edge_geometries.iter())
-            .map(|(e, g)| EdgeRtreeRecord::new(*e, g))
+            .map(|(e, g)| EdgeRtreeRecord::new(e, g))
             .collect();
         let rtree = RTree::bulk_load(rtree_edges.to_vec());
 

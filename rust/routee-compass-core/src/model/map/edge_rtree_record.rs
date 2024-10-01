@@ -10,12 +10,12 @@ use wkt::ToWkt;
 
 #[derive(Clone, Copy, Debug)]
 pub struct EdgeRtreeRecord<'a> {
-    pub edge: Edge,
+    pub edge: &'a Edge,
     pub geometry: &'a LineString<f32>,
 }
 
 impl<'a> EdgeRtreeRecord<'a> {
-    pub fn new(edge: Edge, geometry: &'a LineString<f32>) -> EdgeRtreeRecord<'a> {
+    pub fn new(edge: &'a Edge, geometry: &'a LineString<f32>) -> EdgeRtreeRecord<'a> {
         EdgeRtreeRecord { edge, geometry }
     }
 
