@@ -1,17 +1,11 @@
-use super::{
-    geometry_model::GeometryModel, map_error::MapError, nearest_search_result::NearestSearchResult,
-    spatial_index_ops::within_threshold,
+use super::{map_error::MapError, spatial_index_ops::within_threshold};
+use crate::model::{
+    property::edge::Edge,
+    road_network::edge_id::EdgeId,
+    unit::{Distance, DistanceUnit},
 };
-use crate::{
-    model::{
-        property::{edge::Edge, vertex::Vertex},
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
-        unit::{Distance, DistanceUnit},
-    },
-    util::geo::haversine,
-};
-use geo::{coord, LineString, Point};
-use rstar::{PointDistance, RTree, RTreeObject, AABB};
+use geo::{LineString, Point};
+use rstar::{PointDistance, RTreeObject, AABB};
 
 impl MapEdgeRTreeObject {
     pub fn new(edge: &Edge, linestring: &LineString<f32>) -> MapEdgeRTreeObject {

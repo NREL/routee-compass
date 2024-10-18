@@ -1,16 +1,10 @@
-use super::{
-    geometry_model::GeometryModel, map_error::MapError, nearest_search_result::NearestSearchResult,
-};
+use super::map_error::MapError;
 use crate::{
-    model::{
-        property::{edge::Edge, vertex::Vertex},
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
-        unit::{Distance, DistanceUnit},
-    },
+    model::unit::{Distance, DistanceUnit},
     util::geo::haversine,
 };
-use geo::{coord, LineString, Point};
-use rstar::{PointDistance, RTree, RTreeObject, AABB};
+use geo::Point;
+use rstar::AABB;
 
 pub fn within_threshold(
     envelope: &AABB<Point<f32>>,

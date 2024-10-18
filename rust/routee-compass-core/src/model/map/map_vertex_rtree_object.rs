@@ -1,17 +1,11 @@
-use super::{
-    geometry_model::GeometryModel, map_error::MapError, nearest_search_result::NearestSearchResult,
-    spatial_index_ops::within_threshold,
+use super::{map_error::MapError, spatial_index_ops::within_threshold};
+use crate::model::{
+    property::vertex::Vertex,
+    road_network::vertex_id::VertexId,
+    unit::{Distance, DistanceUnit},
 };
-use crate::{
-    model::{
-        property::{edge::Edge, vertex::Vertex},
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
-        unit::{Distance, DistanceUnit},
-    },
-    util::geo::haversine,
-};
-use geo::{coord, LineString, Point};
-use rstar::{PointDistance, RTree, RTreeObject, AABB};
+use geo::{coord, Point};
+use rstar::{PointDistance, RTreeObject, AABB};
 
 #[derive(Clone)]
 pub struct MapVertexRTreeObject {

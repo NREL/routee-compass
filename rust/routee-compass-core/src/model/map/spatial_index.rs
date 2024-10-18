@@ -2,16 +2,12 @@ use super::{
     geometry_model::GeometryModel, map_edge_rtree_object::MapEdgeRTreeObject, map_error::MapError,
     map_vertex_rtree_object::MapVertexRTreeObject, nearest_search_result::NearestSearchResult,
 };
-use crate::{
-    model::{
-        property::{edge::Edge, vertex::Vertex},
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
-        unit::{Distance, DistanceUnit},
-    },
-    util::geo::haversine,
+use crate::model::{
+    property::{edge::Edge, vertex::Vertex},
+    unit::{Distance, DistanceUnit},
 };
-use geo::{coord, LineString, Point};
-use rstar::{PointDistance, RTree, RTreeObject, AABB};
+use geo::Point;
+use rstar::RTree;
 
 pub enum SpatialIndex {
     VertexOrientedIndex {
