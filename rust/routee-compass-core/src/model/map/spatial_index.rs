@@ -1,9 +1,12 @@
+use std::sync::Arc;
+
 use super::{
     geometry_model::GeometryModel, map_edge_rtree_object::MapEdgeRTreeObject, map_error::MapError,
     map_vertex_rtree_object::MapVertexRTreeObject, nearest_search_result::NearestSearchResult,
 };
 use crate::model::{
-    property::{edge::Edge, vertex::Vertex},
+    property::vertex::Vertex,
+    road_network::graph::Graph,
     unit::{Distance, DistanceUnit},
 };
 use geo::Point;
@@ -39,11 +42,12 @@ impl SpatialIndex {
     /// the edge's destination vertex.
     /// - future work: make SearchOrientation set which incident vertex is returned.
     pub fn new_edge_oriented(
-        edges: &[Edge],
+        graph: Arc<Graph>,
         geometry_model: &GeometryModel,
         tolerance: Option<(Distance, DistanceUnit)>,
     ) -> Self {
-        let entries: Vec<MapEdgeRTreeObject> = edges
+        let entries: Vec<MapEdgeRTreeObject> = graph
+            .edges
             .iter()
             .zip(geometry_model.geometries())
             .map(|(e, g)| MapEdgeRTreeObject::new(e, g))

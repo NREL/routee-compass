@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::map_error::MapError;
 use crate::{
     model::road_network::{edge_id::EdgeId, graph::Graph},
@@ -10,7 +12,7 @@ pub struct GeometryModel(Vec<LineString<f32>>);
 
 impl GeometryModel {
     /// with no provided geometries, create minimal LineStrings from pairs of vertex Points
-    pub fn new_from_vertices(graph: &Graph) -> Result<GeometryModel, MapError> {
+    pub fn new_from_vertices(graph: Arc<Graph>) -> Result<GeometryModel, MapError> {
         let edges = create_linestrings_from_vertices(graph)?;
         Ok(GeometryModel(edges))
     }
@@ -18,7 +20,7 @@ impl GeometryModel {
     /// use a user-provided enumerated textfile input to load LineString geometries
     pub fn new_from_edges(
         geometry_input_file: &String,
-        graph: &Graph,
+        graph: Arc<Graph>,
     ) -> Result<GeometryModel, MapError> {
         let edges = read_linestrings(geometry_input_file, graph.edges.len())?;
         Ok(GeometryModel(edges))
@@ -64,7 +66,7 @@ fn read_linestrings(
     Ok(geoms)
 }
 
-fn create_linestrings_from_vertices(graph: &Graph) -> Result<Vec<LineString<f32>>, MapError> {
+fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<f32>>, MapError> {
     let n_edges = graph.edges.len();
     let mut pb = kdam::Bar::builder()
         .total(n_edges)

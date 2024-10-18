@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use geo::LineString;
 
 use super::geometry_model::GeometryModel;
@@ -15,16 +17,17 @@ pub struct MapModel {
 }
 
 impl MapModel {
-    pub fn new(graph: &Graph, config: MapModelConfig) -> Result<MapModel, MapError> {
+    pub fn new(graph: Arc<Graph>, config: MapModelConfig) -> Result<MapModel, MapError> {
         match config {
             MapModelConfig::VertexMapModelConfig {
                 tolerance,
                 geometry_input_file,
             } => {
-                let spatial_index = SpatialIndex::new_vertex_oriented(&graph.vertices, tolerance);
+                let spatial_index =
+                    SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance);
                 let geometry_model = match geometry_input_file {
                     None => GeometryModel::new_from_vertices(graph),
-                    Some(file) => GeometryModel::new_from_edges(&file, graph),
+                    Some(file) => GeometryModel::new_from_edges(&file, graph.clone()),
                 }?;
                 let map_model = MapModel {
                     spatial_index,
@@ -36,9 +39,10 @@ impl MapModel {
                 tolerance,
                 geometry_input_file,
             } => {
-                let geometry_model = GeometryModel::new_from_edges(&geometry_input_file, graph)?;
+                let geometry_model =
+                    GeometryModel::new_from_edges(&geometry_input_file, graph.clone())?;
                 let spatial_index =
-                    SpatialIndex::new_edge_oriented(&graph.edges, &geometry_model, tolerance);
+                    SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance);
                 let map_model = MapModel {
                     spatial_index,
                     geometry_model,
