@@ -3,7 +3,6 @@ use crate::{
     app::compass::{
         compass_app_error::CompassAppError,
         config::cost_model::cost_model_service::CostModelService,
-        search_orientation::SearchOrientation,
     },
     plugin::input::input_json_extensions::InputJsonExtensions,
 };
@@ -12,7 +11,7 @@ use routee_compass_core::{
     algorithm::search::{
         direction::Direction, search_algorithm::SearchAlgorithm,
         search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
-        search_instance::SearchInstance,
+        search_instance::SearchInstance, search_orientation::SearchOrientation,
     },
     model::{
         access::access_model_service::AccessModelService,
@@ -79,7 +78,7 @@ impl SearchApp {
     pub fn run(
         &self,
         query: &serde_json::Value,
-        search_orientation: &SearchOrientation,
+        search_orientation: SearchOrientation,
     ) -> Result<(SearchAppResult, SearchInstance), CompassAppError> {
         let search_start_time = Local::now();
         let (results, si) = match search_orientation {
