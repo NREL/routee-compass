@@ -74,11 +74,11 @@ distance_unit = "miles"
 time_unit = "minutes"
 
 [[traversal.vehicles]]
-name = "2012_Ford_Focus"
+name = "2010_Mazda_3_i-Stop"
 type = "ice"
-model_input_file = "models/2012_Ford_Focus.bin"
+model_input_file = "models/2010_Mazda_3_i-Stop.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -87,8 +87,26 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2012_Ford_Focus"
+type = "ice"
+model_input_file = "models/2012_Ford_Focus.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02857143
+real_world_energy_adjustment = 1.166
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -96,7 +114,7 @@ name = "2012_Ford_Fusion"
 type = "ice"
 model_input_file = "models/2012_Ford_Fusion.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -105,8 +123,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -114,7 +132,7 @@ name = "2016_AUDI_A3_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_AUDI_A3_4cyl_2WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -123,8 +141,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -132,7 +150,7 @@ name = "2016_BMW_328d_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_BMW_328d_4cyl_2WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -141,8 +159,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -150,7 +168,7 @@ name = "2016_CHEVROLET_Malibu_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_CHEVROLET_Malibu_4cyl_2WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -159,8 +177,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -168,7 +186,7 @@ name = "2016_CHEVROLET_Spark_EV"
 type = "bev"
 model_input_file = "models/2016_CHEVROLET_Spark_EV.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 20
 battery_capacity_unit = "kilowatt_hours"
@@ -179,8 +197,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -188,7 +206,7 @@ name = "2016_FORD_C-MAX_HEV"
 type = "ice"
 model_input_file = "models/2016_FORD_C-MAX_HEV.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -197,8 +215,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -206,7 +224,7 @@ name = "2016_FORD_Escape_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_FORD_Escape_4cyl_2WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -215,8 +233,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -224,7 +242,7 @@ name = "2016_FORD_Explorer_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_FORD_Explorer_4cyl_2WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -233,8 +251,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -242,7 +260,7 @@ name = "2016_HYUNDAI_Elantra_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_HYUNDAI_Elantra_4cyl_2WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -251,8 +269,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -260,7 +278,7 @@ name = "2016_KIA_Optima_Hybrid"
 type = "ice"
 model_input_file = "models/2016_KIA_Optima_Hybrid.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -269,8 +287,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -278,7 +296,7 @@ name = "2016_Leaf_24_kWh"
 type = "bev"
 model_input_file = "models/2016_Leaf_24_kWh.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 24
 battery_capacity_unit = "kilowatt_hours"
@@ -289,8 +307,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -298,7 +316,7 @@ name = "2016_MITSUBISHI_i-MiEV"
 type = "bev"
 model_input_file = "models/2016_MITSUBISHI_i-MiEV.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 16
 battery_capacity_unit = "kilowatt_hours"
@@ -309,8 +327,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -318,7 +336,7 @@ name = "2016_Nissan_Leaf_30_kWh"
 type = "bev"
 model_input_file = "models/2016_Nissan_Leaf_30_kWh.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 30
 battery_capacity_unit = "kilowatt_hours"
@@ -329,8 +347,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -338,7 +356,7 @@ name = "2016_TESLA_Model_S60_2WD"
 type = "bev"
 model_input_file = "models/2016_TESLA_Model_S60_2WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
@@ -349,8 +367,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -358,7 +376,7 @@ name = "2016_TOYOTA_Camry_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_TOYOTA_Camry_4cyl_2WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -367,8 +385,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -376,7 +394,7 @@ name = "2016_TOYOTA_Corolla_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_TOYOTA_Corolla_4cyl_2WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -385,8 +403,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -394,7 +412,7 @@ name = "2016_TOYOTA_Highlander_Hybrid"
 type = "ice"
 model_input_file = "models/2016_TOYOTA_Highlander_Hybrid.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -403,8 +421,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -412,7 +430,7 @@ name = "2016_Toyota_Prius_Two_FWD"
 type = "ice"
 model_input_file = "models/2016_Toyota_Prius_Two_FWD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -421,8 +439,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -430,7 +448,7 @@ name = "2017_CHEVROLET_Bolt"
 type = "bev"
 model_input_file = "models/2017_CHEVROLET_Bolt.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
@@ -441,8 +459,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -450,7 +468,7 @@ name = "2017_Maruti_Dzire_VDI"
 type = "ice"
 model_input_file = "models/2017_Maruti_Dzire_VDI.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -459,8 +477,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -468,7 +486,7 @@ name = "2017_Toyota_Highlander_3.5_L"
 type = "ice"
 model_input_file = "models/2017_Toyota_Highlander_3.5_L.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -477,8 +495,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -486,7 +504,7 @@ name = "2020_Chevrolet_Colorado_2WD_Diesel"
 type = "ice"
 model_input_file = "models/2020_Chevrolet_Colorado_2WD_Diesel.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_diesel_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -495,8 +513,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -504,7 +522,7 @@ name = "2020_VW_Golf_1.5TSI"
 type = "ice"
 model_input_file = "models/2020_VW_Golf_1.5TSI.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -513,8 +531,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -522,7 +540,7 @@ name = "2020_VW_Golf_2.0TDI"
 type = "ice"
 model_input_file = "models/2020_VW_Golf_2.0TDI.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_diesel_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -531,8 +549,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -540,7 +558,25 @@ name = "2021_Fiat_Panda_Mild_Hybrid"
 type = "ice"
 model_input_file = "models/2021_Fiat_Panda_Mild_Hybrid.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02857143
+real_world_energy_adjustment = 1.1252
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2021_Honda_N-Box_G"
+type = "ice"
+model_input_file = "models/2021_Honda_N-Box_G.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -549,8 +585,48 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2021_BMW_iX_xDrive40"
+type = "bev"
+model_input_file = "models/2021_BMW_iX_xDrive40.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 71
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2021_Cupra_Born"
+type = "bev"
+model_input_file = "models/2021_Cupra_Born.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 58
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -558,7 +634,7 @@ name = "2021_Peugot_3008"
 type = "ice"
 model_input_file = "models/2021_Peugot_3008.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
@@ -567,8 +643,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -576,7 +652,7 @@ name = "2022_Ford_F-150_Lightning_4WD"
 type = "bev"
 model_input_file = "models/2022_Ford_F-150_Lightning_4WD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 98
 battery_capacity_unit = "kilowatt_hours"
@@ -587,18 +663,18 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
-name = "2022_Renault_Zoe_ZE50_R135"
+name = "2022_MINI_Cooper_SE_Hardtop_2_door"
 type = "bev"
-model_input_file = "models/2022_Renault_Zoe_ZE50_R135.bin"
+model_input_file = "models/2022_MINI_Cooper_SE_Hardtop_2_door.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
-battery_capacity = 52
+battery_capacity = 50
 battery_capacity_unit = "kilowatt_hours"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
@@ -607,16 +683,16 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
-name = "2022_Tesla_Model_3_RWD"
+name = "2022_Renault_Megane_E-Tech"
 type = "bev"
-model_input_file = "models/2022_Tesla_Model_3_RWD.bin"
+model_input_file = "models/2022_Renault_Megane_E-Tech.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
@@ -627,8 +703,86 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2022_Renault_Zoe_ZE50_R135"
+type = "bev"
+model_input_file = "models/2022_Renault_Zoe_ZE50_R135.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 52
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2022_Toyota_Avanza_E_J_MT"
+type = "bev"
+model_input_file = "models/2022_Toyota_Avanza_E_J_MT.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 52
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2022_Toyota_RAV4_Hybrid_LE"
+type = "ice"
+model_input_file = "models/2022_Toyota_RAV4_Hybrid_LE.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02857143
+real_world_energy_adjustment = 1.1252
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2022_Tesla_Model_3_RWD"
+type = "bev"
+model_input_file = "models/2022_Tesla_Model_3_RWD.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 60
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -636,7 +790,7 @@ name = "2022_Tesla_Model_Y_RWD"
 type = "bev"
 model_input_file = "models/2022_Tesla_Model_Y_RWD.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 62
 battery_capacity_unit = "kilowatt_hours"
@@ -647,8 +801,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -656,7 +810,7 @@ name = "2022_Toyota_Yaris_Hybrid_Mid"
 type = "ice"
 model_input_file = "models/2022_Toyota_Yaris_Hybrid_Mid.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -665,16 +819,55 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
+
 
 [[traversal.vehicles]]
 name = "2022_Volvo_XC40_Recharge_twin"
 type = "bev"
 model_input_file = "models/2022_Volvo_XC40_Recharge_twin.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 82
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2023_Mitsubishi_Pajero_Sport"
+type = "ice"
+model_input_file = "models/2023_Mitsubishi_Pajero_Sport.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02857143
+real_world_energy_adjustment = 1.166
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2023_Polestar_2_Long_range_Dual_motor"
+type = "bev"
+model_input_file = "models/2023_Polestar_2_Long_range_Dual_motor.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 battery_capacity = 78
 battery_capacity_unit = "kilowatt_hours"
@@ -685,26 +878,250 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
-name = "2023_Mitsubishi_Pajero_Sport"
-type = "ice"
-model_input_file = "models/2023_Mitsubishi_Pajero_Sport.bin"
+name = "2023_Volvo_C40_Recharge"
+type = "bev"
+model_input_file = "models/2023_Volvo_C40_Recharge.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 75
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2024_BYD_Dolphin_Active"
+type = "bev"
+model_input_file = "models/2023_Volvo_C40_Recharge.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 45
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.2
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2024_VinFast_VF_e34"
+type = "bev"
+model_input_file = "models/2024_VinFast_VF_e34.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 42
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.25
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2024_Volkswagen_Polo_1.0_MPI"
+type = "ice"
+model_input_file = "models/2024_Volkswagen_Polo_1.0_MPI.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
-ideal_energy_rate = 0.02857143
+ideal_energy_rate = 0.02222222                                                  # Estimated, assuming about 45 mpg
 real_world_energy_adjustment = 1.166
 [traversal.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "BYD_ATTO_3"
+type = "bev"
+model_input_file = "models/BYD_ATTO_3.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "kilowatt_hours_per_mile"
+battery_capacity = 60
+battery_capacity_unit = "kilowatt_hours"
+ideal_energy_rate = 0.23
+real_world_energy_adjustment = 1.3958
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Maruti_Swift_4cyl_2WD"
+type = "ice"
+model_input_file = "models/Maruti_Swift_4cyl_2WD.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02380952                                           # Estimated, assuming about 42 mpg
+real_world_energy_adjustment = 1.166
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Nissan_Navara"
+type = "ice"
+model_input_file = "models/Nissan_Navara.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.04166667                                   # Estimated, assuming about 24 mpg
+real_world_energy_adjustment = 1.166
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Renault_Clio_IV_diesel"
+type = "ice"
+model_input_file = "models/Renault_Clio_IV_diesel.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.01851852                                            # Estimated, assuming about 54 mpg
+real_world_energy_adjustment = 1.166
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Renault_Megane_1.5_dCi_Authentique"
+type = "ice"
+model_input_file = "models/Renault_Megane_1.5_dCi_Authentique.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02                                                              # Estimated, assuming about 50 mpg
+real_world_energy_adjustment = 1.166
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Toyota_Corolla_Cross_Hybrid"
+type = "ice"                                                                   # Hybrid, but primarily ICE-driven
+model_input_file = "models/Toyota_Corolla_Cross_Hybrid.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02222222                                                 # Estimated, assuming about 45 mpg
+real_world_energy_adjustment = 1.1252
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Toyota_Etios_Liva_diesel"
+type = "ice"
+model_input_file = "models/Toyota_Etios_Liva_diesel.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02222222                                              # Estimated, assuming about 45 mpg
+real_world_energy_adjustment = 1.166
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Toyota_Hilux_Double_Cab_4WD"
+type = "ice"
+model_input_file = "models/Toyota_Hilux_Double_Cab_4WD.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.03571429                                                 # Estimated, assuming about 28 mpg
+real_world_energy_adjustment = 1.2
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "2024_Toyota_Vios_1.5_G"
+type = "ice"
+model_input_file = "models/2024_Toyota_Vios_1.5_G.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_gasoline_per_mile"
+ideal_energy_rate = 0.02380952                                            # Estimated, assuming about 42 mpg
+real_world_energy_adjustment = 1.166
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -716,7 +1133,7 @@ battery_capacity_unit = "kilowatt_hours"
 name = "2016_BMW_i3_REx_PHEV_Charge_Depleting"
 model_input_file = "models/2016_BMW_i3_REx_PHEV_Charge_Depleting.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
@@ -725,14 +1142,14 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 [traversal.vehicles.charge_sustaining]
 name = "2016_BMW_i3_REx_PHEV_Charge_Sustaining"
 model_input_file = "models/2016_BMW_i3_REx_PHEV_Charge_Sustaining.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -741,8 +1158,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -754,7 +1171,7 @@ battery_capacity_unit = "kilowatt_hours"
 name = "2016_CHEVROLET_Volt_Charge_Depleting"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Depleting.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
@@ -763,14 +1180,14 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 [traversal.vehicles.charge_sustaining]
 name = "2016_CHEVROLET_Volt_Charge_Sustaining"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Sustaining.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -779,8 +1196,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -792,7 +1209,7 @@ battery_capacity_unit = "kilowatt_hours"
 name = "2016_FORD_C-MAX_(PHEV)_Charge_Depleting"
 model_input_file = "models/2016_FORD_C-MAX_(PHEV)_Charge_Depleting.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
@@ -801,14 +1218,14 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 [traversal.vehicles.charge_sustaining]
 name = "2016_FORD_C-MAX_(PHEV)_Charge_Sustaining"
 model_input_file = "models/2016_FORD_C-MAX_(PHEV)_Charge_Sustaining.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -817,8 +1234,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -830,7 +1247,7 @@ battery_capacity_unit = "kilowatt_hours"
 name = "2016_HYUNDAI_Sonata_PHEV_Charge_Depleting"
 model_input_file = "models/2016_HYUNDAI_Sonata_PHEV_Charge_Depleting.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
@@ -839,14 +1256,14 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 [traversal.vehicles.charge_sustaining]
 name = "2016_HYUNDAI_Sonata_PHEV_Charge_Sustaining"
 model_input_file = "models/2016_HYUNDAI_Sonata_PHEV_Charge_Sustaining.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -855,8 +1272,8 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 
 [[traversal.vehicles]]
@@ -868,7 +1285,7 @@ battery_capacity_unit = "kilowatt_hours"
 name = "2017_Prius_Prime_Charge_Depleting"
 model_input_file = "models/2017_Prius_Prime_Charge_Depleting.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "kilowatt_hours_per_mile"
 ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
@@ -877,14 +1294,14 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41
 [traversal.vehicles.charge_sustaining]
 name = "2017_Prius_Prime_Charge_Sustaining"
 model_input_file = "models/2017_Prius_Prime_Charge_Sustaining.bin"
 speed_unit = "miles_per_hour"
-grade_unit = "decimal"
+grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
 ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
@@ -893,6 +1310,151 @@ underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
 speed_bins = 101
-grade_lower_bound = -0.2
-grade_upper_bound = 0.2
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+
+[[traversal.vehicles]]
+name = "Daycab_new_300kW"
+type = "ice"
+model_input_file = "models/Daycab_new_300kW.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.0
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Daycab_new_400kW"
+type = "ice"
+model_input_file = "models/Daycab_new_400kW.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.0
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Daycab_old_300kW"
+type = "ice"
+model_input_file = "models/Daycab_old_300kW.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.0
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Daycab_old_400kW"
+type = "ice"
+model_input_file = "models/Daycab_old_400kW.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.0
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Sleeper_new_300kW"
+type = "ice"
+model_input_file = "models/Sleeper_new_300kW.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.0
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Sleeper_new_400kW"
+type = "ice"
+model_input_file = "models/Sleeper_new_400kW.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.0
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Sleeper_old_300kW"
+type = "ice"
+model_input_file = "models/Sleeper_old_300kW.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.0
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
+grade_bins = 41
+
+[[traversal.vehicles]]
+name = "Sleeper_old_400kW"
+type = "ice"
+model_input_file = "models/Sleeper_old_400kW.bin"
+speed_unit = "miles_per_hour"
+grade_unit = "percent"
+energy_rate_unit = "gallons_diesel_per_mile"
+ideal_energy_rate = 0.02
+real_world_energy_adjustment = 1.0
+[traversal.vehicles.model_type.interpolate]
+underlying_model_type = "smartcore"
+speed_lower_bound = 0
+speed_upper_bound = 100
+speed_bins = 101
+grade_lower_bound = -20
+grade_upper_bound = 20
 grade_bins = 41

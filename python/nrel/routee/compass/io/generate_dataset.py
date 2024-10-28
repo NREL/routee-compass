@@ -1,6 +1,5 @@
 from typing import Callable, Dict, Optional, Union
 from pathlib import Path
-from pkg_resources import resource_filename
 
 import importlib.resources
 import logging
@@ -157,7 +156,9 @@ def generate_compass_dataset(
     )
 
     headings = [utils.calculate_bearings(i) for i in e.geometry.values]
-    headings_df = pd.DataFrame(headings, columns = ["arrival_heading", "departure_heading"])
+    headings_df = pd.DataFrame(
+        headings, columns=["arrival_heading", "departure_heading"]
+    )
     headings_df.to_csv(
         output_directory / "edges-headings-enumerated.csv.gz",
         index=False,
@@ -179,9 +180,9 @@ def generate_compass_dataset(
             "osm_default_speed.toml",
             "osm_default_energy.toml",
         ]:
-            init_toml_file = resource_filename(
-                "nrel.routee.compass.resources", filename
-            )
+            init_toml_file = importlib.resources.files(
+                "nrel.routee.compass.resources"
+            ).joinpath(filename)
             with open(init_toml_file, "r") as f:
                 init_toml = toml.loads(f.read())
                 if filename == "osm_default_energy.toml":
