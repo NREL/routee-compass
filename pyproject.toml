@@ -23,12 +23,18 @@ keywords = ["eco routing"]
 dependencies = ["toml"]
 
 [project.optional-dependencies]
-dev = ["pytest", "maturin", "jupyter-book", "ruff", "sphinx-book-theme"]
-osm = ["osmnx", "geopandas", "shapely", "networkx", "folium", "pandas", "numpy"]
-all = [
-    "nrel.routee.compass[osm]",
-    "nrel.routee.compass[dev]",
+dev = [
+    "pytest",
+    "maturin",
+    "jupyter-book",
+    "ruff",
+    "sphinx-book-theme",
+    "mypy",
+    "jupyterlab",
+    "matplotlib",
 ]
+osm = ["osmnx", "geopandas", "shapely", "networkx", "folium", "pandas", "numpy", "rasterio"]
+all = ["nrel.routee.compass[osm]", "nrel.routee.compass[dev]"]
 
 [project.urls]
 Homepage = "https://github.com/NREL/routee-compass"
@@ -49,3 +55,20 @@ ignore_missing_imports = true
 namespace_packages = true
 explicit_package_bases = true
 exclude = ["docs/", "build/", "dist/"]
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tool.pixi.pypi-dependencies]
+nrel-routee-compass = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { features = ["osm", "dev"], solve-group = "default" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+osmnx = ">=1.9.4,<2"
+jupyterlab = ">=4.2.5,<5"
+python = "3.12.*"
