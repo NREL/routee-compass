@@ -11,11 +11,10 @@ use routee_compass_core::{
     },
 };
 
-use super::interp;
 use super::utils::linspace;
 
 pub struct InterpolationSpeedGradeModel {
-    interpolator: interp::Interpolator,
+    interpolator: ninterp::Interpolator,
     speed_unit: SpeedUnit,
     grade_unit: GradeUnit,
     energy_rate_unit: EnergyRateUnit,
@@ -34,27 +33,12 @@ impl PredictionModel for InterpolationSpeedGradeModel {
 
         // snap incoming speed and grade to the grid
         let (min_speed, max_speed, min_grade, max_grade) = match &self.interpolator {
-            interp::Interpolator::Interp2D(interp) => (
-                *interp.x.first().ok_or_else(|| {
-                    TraversalModelError::PredictionModel(
-                        "Could not get first x-value; are x-values empty?".to_string(),
-                    )
-                })?,
-                *interp.x.last().ok_or_else(|| {
-                    TraversalModelError::PredictionModel(
-                        "Could not get last x-value; are x-values empty?".to_string(),
-                    )
-                })?,
-                *interp.y.first().ok_or_else(|| {
-                    TraversalModelError::PredictionModel(
-                        "Could not get first y-value; are y-values empty?".to_string(),
-                    )
-                })?,
-                *interp.y.last().ok_or_else(|| {
-                    TraversalModelError::PredictionModel(
-                        "Could not get last y-value; are y-values empty?".to_string(),
-                    )
-                })?,
+            ninterp::Interpolator::Interp2D(interp) => (
+                // unwraps are okay here, as Vec lengths are checked on instantiation
+                *interp.x().first().unwrap(),
+                *interp.x().last().unwrap(),
+                *interp.y().first().unwrap(),
+                *interp.y().last().unwrap(),
             ),
             _ => {
                 return Err(TraversalModelError::PredictionModel(
@@ -68,7 +52,7 @@ impl PredictionModel for InterpolationSpeedGradeModel {
 
         let y = self
             .interpolator
-            .interpolate(&[speed_value, grade_value], &interp::Strategy::Linear)
+            .interpolate(&[speed_value, grade_value])
             .map_err(|e| {
                 TraversalModelError::PredictionModel(format!("Failed to interpolate: {}", e))
             })?;
@@ -131,8 +115,8 @@ impl InterpolationSpeedGradeModel {
             values.push(row);
         }
 
-        let interpolator = interp::Interpolator::Interp2D(
-            interp::Interp2D::new(speed_values, grade_values, values).map_err(|e| {
+        let interpolator = ninterp::Interpolator::Interp2D(
+            ninterp::Interp2D::new(speed_values, grade_values, values, ninterp::Strategy::Linear, ninterp::Extrapolate::Error).map_err(|e| {
                 TraversalModelError::PredictionModel(format!(
                     "Failed to validate interpolation model: {}",
                     e
