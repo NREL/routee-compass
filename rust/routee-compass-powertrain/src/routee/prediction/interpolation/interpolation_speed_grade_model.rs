@@ -116,7 +116,14 @@ impl InterpolationSpeedGradeModel {
         }
 
         let interpolator = ninterp::Interpolator::Interp2D(
-            ninterp::Interp2D::new(speed_values, grade_values, values, ninterp::Strategy::Linear, ninterp::Extrapolate::Error).map_err(|e| {
+            ninterp::Interp2D::new(
+                speed_values,
+                grade_values,
+                values,
+                ninterp::Strategy::Linear,
+                ninterp::Extrapolate::Error,
+            )
+            .map_err(|e| {
                 TraversalModelError::PredictionModel(format!(
                     "Failed to validate interpolation model: {}",
                     e
