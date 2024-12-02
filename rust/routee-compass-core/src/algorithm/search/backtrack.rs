@@ -46,10 +46,10 @@ pub fn edge_oriented_route(
     graph: Arc<Graph>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let o_v = graph
-        .src_vertex_id(source_id)
+        .src_vertex_id(&source_id)
         .map_err(SearchError::GraphError)?;
     let d_v = graph
-        .dst_vertex_id(target_id)
+        .dst_vertex_id(&target_id)
         .map_err(SearchError::GraphError)?;
     vertex_oriented_route(o_v, d_v, solution)
 }

@@ -70,7 +70,7 @@ pub fn run(
                     )))?;
             let spur_vertex_id = si
                 .directed_graph
-                .get_edge(spur_edge_traversal.edge_id)?
+                .get_edge(&spur_edge_traversal.edge_id)?
                 .dst_vertex_id;
 
             // cut frontier edges based on previous paths with matching root path

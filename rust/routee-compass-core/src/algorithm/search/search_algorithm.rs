@@ -182,8 +182,8 @@ pub fn run_edge_oriented(
     si: &SearchInstance,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let e1_src = si.directed_graph.src_vertex_id(source)?;
-    let e1_dst = si.directed_graph.dst_vertex_id(source)?;
+    let e1_src = si.directed_graph.src_vertex_id(&source)?;
+    let e1_dst = si.directed_graph.dst_vertex_id(&source)?;
     let src_et = EdgeTraversal {
         edge_id: source,
         access_cost: Cost::ZERO,
@@ -218,8 +218,8 @@ pub fn run_edge_oriented(
             Ok(updated)
         }
         Some(target_edge) => {
-            let e2_src = si.directed_graph.src_vertex_id(target_edge)?;
-            let e2_dst = si.directed_graph.dst_vertex_id(target_edge)?;
+            let e2_src = si.directed_graph.src_vertex_id(&target_edge)?;
+            let e2_dst = si.directed_graph.dst_vertex_id(&target_edge)?;
 
             if source == target_edge {
                 Ok(SearchAlgorithmResult::default())

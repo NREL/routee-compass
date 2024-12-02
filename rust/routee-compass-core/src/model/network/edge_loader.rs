@@ -56,7 +56,7 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
 
         let edges = read_utils::from_csv(&c.edge_list_csv, true, Some(cb))?;
 
-        println!();
+        eprintln!();
         let result = EdgeLoader {
             edges,
             adj: adj.into_boxed_slice(),

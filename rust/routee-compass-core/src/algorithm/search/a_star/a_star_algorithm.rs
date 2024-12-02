@@ -61,7 +61,7 @@ pub fn run_a_star(
 
         let last_edge_id = get_last_traversed_edge_id(&current_vertex_id, &source, &solution)?;
         let last_edge = match last_edge_id {
-            Some(id) => Some(si.directed_graph.get_edge(id)?),
+            Some(id) => Some(si.directed_graph.get_edge(&id)?),
             None => None,
         };
 
@@ -83,9 +83,9 @@ pub fn run_a_star(
         };
 
         // visit all neighbors of this source vertex
-        let incident_edge_iterator = direction.get_incident_edges(&current_vertex_id, si)?;
+        let incident_edge_iterator = direction.get_incident_edges(&current_vertex_id, si);
         for edge_id in incident_edge_iterator {
-            let e = si.directed_graph.get_edge(*edge_id)?;
+            let e = si.directed_graph.get_edge(edge_id)?;
 
             let terminal_vertex_id = direction.terminal_vertex_id(e);
             let key_vertex_id = direction.tree_key_vertex_id(e);
@@ -188,8 +188,8 @@ pub fn run_a_star_edge_oriented(
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let e1_src = si.directed_graph.src_vertex_id(source)?;
-    let e1_dst = si.directed_graph.dst_vertex_id(source)?;
+    let e1_src = si.directed_graph.src_vertex_id(&source)?;
+    let e1_dst = si.directed_graph.dst_vertex_id(&source)?;
     let src_et = EdgeTraversal {
         edge_id: source,
         access_cost: Cost::ZERO,
@@ -217,8 +217,8 @@ pub fn run_a_star_edge_oriented(
             Ok(updated)
         }
         Some(target_edge) => {
-            let e2_src = si.directed_graph.src_vertex_id(target_edge)?;
-            let e2_dst = si.directed_graph.dst_vertex_id(target_edge)?;
+            let e2_src = si.directed_graph.src_vertex_id(&target_edge)?;
+            let e2_dst = si.directed_graph.dst_vertex_id(&target_edge)?;
 
             if source == target_edge {
                 Ok(SearchResult::default())

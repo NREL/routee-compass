@@ -21,23 +21,23 @@ use std::collections::HashSet;
 ///
 pub fn depth_first_search(
     graph: &Graph,
-    vertex: VertexId,
+    vertex: &VertexId,
     visited: &mut HashSet<VertexId>,
     stack: &mut Vec<VertexId>,
 ) -> Result<(), GraphError> {
-    if visited.contains(&vertex) {
+    if visited.contains(vertex) {
         return Ok(());
     }
 
-    visited.insert(vertex);
+    visited.insert(*vertex);
 
-    let edges = graph.out_edges(vertex)?;
+    let edges = graph.out_edges(vertex);
     for edge in edges {
-        let dst = graph.dst_vertex_id(edge)?;
-        depth_first_search(graph, dst, visited, stack)?;
+        let dst = graph.dst_vertex_id(&edge)?;
+        depth_first_search(graph, &dst, visited, stack)?;
     }
 
-    stack.push(vertex);
+    stack.push(*vertex);
 
     Ok(())
 }
@@ -61,23 +61,23 @@ pub fn depth_first_search(
 ///
 pub fn reverse_depth_first_search(
     graph: &Graph,
-    vertex: VertexId,
+    vertex: &VertexId,
     visited: &mut HashSet<VertexId>,
     stack: &mut Vec<VertexId>,
 ) -> Result<(), GraphError> {
-    if visited.contains(&vertex) {
+    if visited.contains(vertex) {
         return Ok(());
     }
 
-    visited.insert(vertex);
+    visited.insert(*vertex);
 
-    let edges = graph.in_edges(vertex)?;
+    let edges = graph.in_edges(vertex);
     for edge in edges {
-        let src = graph.src_vertex_id(edge)?;
-        reverse_depth_first_search(graph, src, visited, stack)?;
+        let src = graph.src_vertex_id(&edge)?;
+        reverse_depth_first_search(graph, &src, visited, stack)?;
     }
 
-    stack.push(vertex);
+    stack.push(*vertex);
 
     Ok(())
 }
@@ -97,11 +97,10 @@ pub fn reverse_depth_first_search(
 pub fn all_strongly_connected_componenets(graph: &Graph) -> Result<Vec<Vec<VertexId>>, GraphError> {
     let mut visited: HashSet<VertexId> = HashSet::new();
     let mut container: Vec<VertexId> = Vec::new();
-
     let mut result: Vec<Vec<VertexId>> = Vec::new();
 
     for vertex_id in graph.vertex_ids() {
-        depth_first_search(graph, vertex_id, &mut visited, &mut container)?;
+        depth_first_search(graph, &vertex_id, &mut visited, &mut container)?;
     }
 
     visited.clear();
@@ -112,7 +111,7 @@ pub fn all_strongly_connected_componenets(graph: &Graph) -> Result<Vec<Vec<Verte
         }
 
         let mut component: Vec<VertexId> = Vec::new();
-        reverse_depth_first_search(graph, vertex_id, &mut visited, &mut component)?;
+        reverse_depth_first_search(graph, &vertex_id, &mut visited, &mut component)?;
         result.push(component);
     }
 

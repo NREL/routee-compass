@@ -32,8 +32,8 @@ impl SearchInstance {
         dst: VertexId,
         state: &[StateVar],
     ) -> Result<Cost, SearchError> {
-        let src = self.directed_graph.get_vertex(src)?;
-        let dst = self.directed_graph.get_vertex(dst)?;
+        let src = self.directed_graph.get_vertex(&src)?;
+        let dst = self.directed_graph.get_vertex(&dst)?;
         let mut dst_state = state.to_vec();
 
         self.traversal_model

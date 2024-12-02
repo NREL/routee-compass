@@ -69,9 +69,11 @@ fn get_n_edges<P: AsRef<Path>>(edge_list_csv: &P) -> Result<usize, GraphError> {
         .unwrap_or(false);
     let n = line_count(edge_list_csv, is_gzip)?;
     if n < 1 {
-        return Err(GraphError::EmptyFileSource {
-            filename: edge_list_csv.as_ref().to_path_buf(),
-        });
+        let msg = match edge_list_csv.as_ref().to_str() {
+            Some(path_str) => format!("edge file {} is empty", path_str),
+            None => String::from("edge file is empty"),
+        };
+        return Err(GraphError::DatasetError(msg));
     }
     Ok(n - 1) // drop count of header line
 }
@@ -85,9 +87,11 @@ fn get_n_vertices<P: AsRef<Path>>(vertex_list_csv: &P) -> Result<usize, GraphErr
         .unwrap_or(false);
     let n = line_count(vertex_list_csv, is_gzip)?;
     if n < 1 {
-        return Err(GraphError::EmptyFileSource {
-            filename: vertex_list_csv.as_ref().to_path_buf(),
-        });
+        let msg = match vertex_list_csv.as_ref().to_str() {
+            Some(path_str) => format!("vertex file {} is empty", path_str),
+            None => String::from("vertex file is empty"),
+        };
+        return Err(GraphError::DatasetError(msg));
     }
     Ok(n - 1) // drop count of header line
 }

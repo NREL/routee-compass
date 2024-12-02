@@ -7,22 +7,18 @@ use routee_compass_core::{
 };
 
 pub trait SearchAppGraphOps {
-    fn get_edge_origin(&self, edge_id: EdgeId) -> Result<VertexId, CompassAppError>;
-    fn get_edge_destination(&self, edge_id: EdgeId) -> Result<VertexId, CompassAppError>;
+    fn get_edge_origin(&self, edge_id: &EdgeId) -> Result<VertexId, CompassAppError>;
+    fn get_edge_destination(&self, edge_id: &EdgeId) -> Result<VertexId, CompassAppError>;
     fn get_edge_distance(
         &self,
-        edge_id: EdgeId,
+        edge_id: &EdgeId,
         distance_unit: Option<DistanceUnit>,
     ) -> Result<Distance, CompassAppError>;
-    fn get_incident_edge_ids(
-        &self,
-        vertex_id: VertexId,
-        direction: Direction,
-    ) -> Result<Vec<EdgeId>, CompassAppError>;
+    fn get_incident_edge_ids(&self, vertex_id: &VertexId, direction: &Direction) -> Vec<EdgeId>;
 }
 
 impl SearchAppGraphOps for SearchApp {
-    fn get_edge_origin(&self, edge_id: EdgeId) -> Result<VertexId, CompassAppError> {
+    fn get_edge_origin(&self, edge_id: &EdgeId) -> Result<VertexId, CompassAppError> {
         let edge = self
             .directed_graph
             .get_edge(edge_id)
@@ -30,7 +26,7 @@ impl SearchAppGraphOps for SearchApp {
         Ok(edge.src_vertex_id)
     }
 
-    fn get_edge_destination(&self, edge_id: EdgeId) -> Result<VertexId, CompassAppError> {
+    fn get_edge_destination(&self, edge_id: &EdgeId) -> Result<VertexId, CompassAppError> {
         let edge = self
             .directed_graph
             .get_edge(edge_id)
@@ -40,7 +36,7 @@ impl SearchAppGraphOps for SearchApp {
 
     fn get_edge_distance(
         &self,
-        edge_id: EdgeId,
+        edge_id: &EdgeId,
         distance_unit: Option<DistanceUnit>,
     ) -> Result<Distance, CompassAppError> {
         let edge = self
@@ -55,15 +51,7 @@ impl SearchAppGraphOps for SearchApp {
         Ok(result)
     }
 
-    fn get_incident_edge_ids(
-        &self,
-        vertex_id: VertexId,
-        direction: Direction,
-    ) -> Result<Vec<EdgeId>, CompassAppError> {
-        let incident_edges = self
-            .directed_graph
-            .incident_edges(vertex_id, direction)
-            .map_err(CompassAppError::GraphError)?;
-        Ok(incident_edges)
+    fn get_incident_edge_ids(&self, vertex_id: &VertexId, direction: &Direction) -> Vec<EdgeId> {
+        self.directed_graph.incident_edges(vertex_id, direction)
     }
 }

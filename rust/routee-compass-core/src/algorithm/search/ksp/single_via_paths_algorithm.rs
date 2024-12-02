@@ -3,10 +3,10 @@ use itertools::Itertools;
 use super::{ksp_query::KspQuery, ksp_termination_criteria::KspTerminationCriteria};
 use crate::{
     algorithm::search::{
-        a_star::bidirectional_a_star_algorithm, backtrack, direction::Direction,
-        edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm,
-        search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
-        search_instance::SearchInstance, util::route_similarity_function::RouteSimilarityFunction,
+        a_star::bidirectional_ops, backtrack, direction::Direction, edge_traversal::EdgeTraversal,
+        search_algorithm::SearchAlgorithm, search_algorithm_result::SearchAlgorithmResult,
+        search_error::SearchError, search_instance::SearchInstance,
+        util::route_similarity_function::RouteSimilarityFunction,
     },
     model::{network::vertex_id::VertexId, unit::cost::ReverseCost},
     util::priority_queue::InternalPriorityQueue,
@@ -114,15 +114,12 @@ pub fn run(
                     intersection_vertex_id,
                     rev_tree,
                 )?;
-                let rev_route = bidirectional_a_star_algorithm::reorient_reverse_route(
-                    &fwd_route,
-                    &rev_route_backward,
-                    si,
-                )?;
+                let rev_route =
+                    bidirectional_ops::reorient_reverse_route(&fwd_route, &rev_route_backward, si)?;
                 let this_route = fwd_route.into_iter().chain(rev_route).collect::<Vec<_>>();
 
                 // test loop
-                if bidirectional_a_star_algorithm::route_contains_loop(&this_route, si)? {
+                if bidirectional_ops::route_contains_loop(&this_route, si)? {
                     log::debug!("ksp:{} contains loop", ksp_it);
                     accept_route = false;
                 }

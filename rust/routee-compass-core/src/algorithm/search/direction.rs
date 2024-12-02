@@ -1,7 +1,7 @@
 use super::{
     edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
 };
-use crate::model::network::{Edge, EdgeId, GraphError, VertexId};
+use crate::model::network::{Edge, EdgeId, VertexId};
 use crate::model::traversal::state::state_variable::StateVar;
 use serde::{Deserialize, Serialize};
 
@@ -18,10 +18,10 @@ impl Direction {
         &'a self,
         vertex_id: &VertexId,
         si: &'a SearchInstance,
-    ) -> Result<Box<dyn Iterator<Item = &EdgeId> + 'a>, GraphError> {
+    ) -> Box<dyn Iterator<Item = &EdgeId> + 'a> {
         match self {
-            Direction::Forward => si.directed_graph.out_edges_iter(*vertex_id),
-            Direction::Reverse => si.directed_graph.in_edges_iter(*vertex_id),
+            Direction::Forward => si.directed_graph.out_edges_iter(vertex_id),
+            Direction::Reverse => si.directed_graph.in_edges_iter(vertex_id),
         }
     }
 
