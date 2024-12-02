@@ -20,8 +20,6 @@ pub enum NetworkError {
         #[from]
         source: csv::Error,
     },
-    #[error("internal error: adjacency list missing vertex {0}")]
-    AdjacencyVertexMissing(VertexId),
-    #[error("error creating progress bar for {0}: {1}")]
-    ProgressBarBuildError(String, String),
+    #[error("{0}")]
+    InternalError(String),
 }

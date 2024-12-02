@@ -123,7 +123,7 @@ impl SearchApp {
         self.search_algorithm
             .run_vertex_oriented(o, d, query, &Direction::Forward, &search_instance)
             .map(|search_result| (search_result, search_instance))
-            .map_err(CompassAppError::SearchError)
+            .map_err(CompassAppError::SearchFailure)
     }
 
     pub fn run_edge_oriented(
@@ -140,7 +140,7 @@ impl SearchApp {
         self.search_algorithm
             .run_edge_oriented(o, d_opt, query, &Direction::Forward, &search_instance)
             .map(|search_result| (search_result, search_instance))
-            .map_err(CompassAppError::SearchError)
+            .map_err(CompassAppError::SearchFailure)
     }
 
     /// builds the assets that will run the search for this query instance.

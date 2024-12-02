@@ -30,7 +30,9 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
             .animation("fillup")
             .desc("edge list")
             .build()
-            .map_err(|e| NetworkError::ProgressBarBuildError(String::from("edge list"), e))?;
+            .map_err(|e| {
+                NetworkError::InternalError(format!("could not build progress bar: {}", e))
+            })?;
 
         let mut missing_vertices: HashSet<VertexId> = HashSet::new();
         let cb = Box::new(|edge: &Edge| {

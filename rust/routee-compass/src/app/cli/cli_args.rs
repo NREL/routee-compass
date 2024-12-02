@@ -52,7 +52,7 @@ impl CliArgs {
                 if c > 0 {
                     Ok(Some(c as usize))
                 } else {
-                    Err(CompassAppError::InvalidInput(format!(
+                    Err(CompassAppError::CompassFailure(format!(
                         "chunksize must be positive, found {}",
                         c
                     )))

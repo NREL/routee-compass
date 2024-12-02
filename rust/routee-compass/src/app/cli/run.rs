@@ -43,7 +43,7 @@ pub fn command_line_runner(
 
     // read user file containing JSON query/queries
     let query_file = File::open(args.query_file.clone()).map_err(|_e| {
-        CompassAppError::NoInputFile(format!("Could not find query file {}", args.query_file))
+        CompassAppError::BuildFailure(format!("Could not find query file {}", args.query_file))
     })?;
 
     // execute queries on app
@@ -71,7 +71,7 @@ fn run_json(
 ) -> Result<(), CompassAppError> {
     let reader = BufReader::new(query_file);
     let user_json: serde_json::Value =
-        serde_json::from_reader(reader).map_err(CompassAppError::CodecError)?;
+        serde_json::from_reader(reader).map_err(CompassAppError::from)?;
     let user_queries = user_json.get_queries()?;
     let results = compass_app.run(user_queries, run_config)?;
     for result in results.iter() {
@@ -106,7 +106,10 @@ fn run_newline_json(
                         CompassConfigurationError::SerdeDeserializationError(e),
                     )),
                 },
-                Err(e) => Either::Right(CompassAppError::IOError(e)),
+                Err(e) => Either::Right(CompassAppError::CompassFailure(format!(
+                    "failed to parse query row due to: {}",
+                    e
+                ))),
             });
 
         // run Compass on this chunk of queries

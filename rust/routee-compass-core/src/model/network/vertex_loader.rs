@@ -19,7 +19,9 @@ impl TryFrom<VertexLoaderConfig> for Box<[Vertex]> {
             .animation("fillup")
             .desc("vertex list")
             .build()
-            .map_err(|e| NetworkError::ProgressBarBuildError(String::from("vertex list"), e))?;
+            .map_err(|e| {
+                NetworkError::InternalError(format!("could not build progress bar: {}", e))
+            })?;
 
         let cb = Box::new(|_v: &Vertex| {
             let _ = pb.update(1);

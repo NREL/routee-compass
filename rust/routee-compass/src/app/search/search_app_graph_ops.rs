@@ -22,7 +22,7 @@ impl SearchAppGraphOps for SearchApp {
         let edge = self
             .directed_graph
             .get_edge(edge_id)
-            .map_err(CompassAppError::GraphError)?;
+            .map_err(CompassAppError::from)?;
         Ok(edge.src_vertex_id)
     }
 
@@ -30,7 +30,7 @@ impl SearchAppGraphOps for SearchApp {
         let edge = self
             .directed_graph
             .get_edge(edge_id)
-            .map_err(CompassAppError::GraphError)?;
+            .map_err(CompassAppError::from)?;
         Ok(edge.dst_vertex_id)
     }
 
@@ -42,7 +42,7 @@ impl SearchAppGraphOps for SearchApp {
         let edge = self
             .directed_graph
             .get_edge(edge_id)
-            .map_err(CompassAppError::GraphError)?;
+            .map_err(CompassAppError::from)?;
         let result_base = edge.distance;
         let result = match distance_unit {
             Some(du) => DistanceUnit::Meters.convert(&result_base, &du),
