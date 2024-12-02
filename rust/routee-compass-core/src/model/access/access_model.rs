@@ -1,6 +1,6 @@
 use super::access_model_error::AccessModelError;
 use crate::model::{
-    road_network::{Edge, Vertex},
+    graph::{Edge, Vertex},
     state::{state_feature::StateFeature, state_model::StateModel},
     traversal::state::state_variable::StateVar,
 };

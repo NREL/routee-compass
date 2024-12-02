@@ -8,7 +8,7 @@ use routee_compass_core::{
             frontier_model_builder::FrontierModelBuilder, frontier_model_error::FrontierModelError,
             frontier_model_service::FrontierModelService,
         },
-        road_network::edge_id::EdgeId,
+        graph::edge_id::EdgeId,
     },
     util::fs::read_utils,
 };

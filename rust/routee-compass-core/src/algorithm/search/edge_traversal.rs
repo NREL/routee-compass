@@ -1,6 +1,6 @@
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
-use crate::model::road_network::edge_id::EdgeId;
+use crate::model::graph::edge_id::EdgeId;
 use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::traversal::state::traversal_state::TraversalState;
 use crate::model::unit::Cost;

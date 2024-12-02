@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use routee_compass_core::model::road_network::vertex_id::VertexId;
+use routee_compass_core::model::graph::vertex_id::VertexId;
 
 use crate::plugin::plugin_error::PluginError;
 

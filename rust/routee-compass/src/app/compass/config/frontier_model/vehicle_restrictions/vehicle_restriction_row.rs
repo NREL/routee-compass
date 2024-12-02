@@ -1,5 +1,5 @@
 use routee_compass_core::model::{
-    frontier::frontier_model_error::FrontierModelError, road_network::edge_id::EdgeId,
+    frontier::frontier_model_error::FrontierModelError, graph::edge_id::EdgeId,
 };
 use serde::Deserialize;
 

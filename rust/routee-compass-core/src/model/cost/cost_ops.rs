@@ -2,7 +2,7 @@ use super::{
     cost_aggregation::CostAggregation, cost_error::CostError,
     network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
 };
-use crate::model::{road_network::Edge, traversal::state::state_variable::StateVar, unit::Cost};
+use crate::model::{graph::Edge, traversal::state::state_variable::StateVar, unit::Cost};
 
 /// steps through each state variable and assigns vehicle costs related to that variable
 /// due to an edge access + traversal event.

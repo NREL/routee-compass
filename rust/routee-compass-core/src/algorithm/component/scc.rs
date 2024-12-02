@@ -1,5 +1,5 @@
-use crate::model::road_network::graph::Graph;
-use crate::model::road_network::{graph_error::GraphError, vertex_id::VertexId};
+use crate::model::graph::graph::Graph;
+use crate::model::graph::{graph_error::GraphError, vertex_id::VertexId};
 use std::collections::HashSet;
 
 /// Conducts a depth-first search (DFS) on a directed graph.

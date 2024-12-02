@@ -1,6 +1,6 @@
 use crate::model::{
     frontier::frontier_model::FrontierModel,
-    road_network::{Edge, EdgeId},
+    graph::{Edge, EdgeId},
 };
 use std::{collections::HashSet, sync::Arc};
 

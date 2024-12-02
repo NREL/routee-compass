@@ -9,7 +9,7 @@ use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
 use super::util::route_similarity_function::RouteSimilarityFunction;
 use super::{a_star::a_star_algorithm, direction::Direction};
-use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
 
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};

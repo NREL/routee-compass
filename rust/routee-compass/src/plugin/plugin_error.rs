@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use routee_compass_core::{
-    algorithm::search::search_error::SearchError, model::road_network::edge_id::EdgeId,
+    algorithm::search::search_error::SearchError, model::graph::edge_id::EdgeId,
 };
 
 #[derive(thiserror::Error, Debug)]

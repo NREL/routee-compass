@@ -1,6 +1,6 @@
 use super::frontier_model_error::FrontierModelError;
 use crate::model::{
-    road_network::Edge, state::state_model::StateModel, traversal::state::state_variable::StateVar,
+    graph::Edge, state::state_model::StateModel, traversal::state::state_variable::StateVar,
 };
 
 /// Validates edge and traversal states. Provides an API for removing edges from

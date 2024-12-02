@@ -8,7 +8,7 @@ use crate::{
         search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
         search_instance::SearchInstance, util::route_similarity_function::RouteSimilarityFunction,
     },
-    model::{road_network::vertex_id::VertexId, unit::cost::ReverseCost},
+    model::{graph::vertex_id::VertexId, unit::cost::ReverseCost},
     util::priority_queue::InternalPriorityQueue,
 };
 use std::collections::HashMap;

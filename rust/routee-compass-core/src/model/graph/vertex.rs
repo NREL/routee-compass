@@ -1,4 +1,4 @@
-use crate::{model::road_network::vertex_id::VertexId, util::geo::coord::InternalCoord};
+use crate::{model::graph::vertex_id::VertexId, util::geo::coord::InternalCoord};
 use allocative::Allocative;
 use geo::coord;
 use serde::de;
@@ -132,7 +132,7 @@ mod tests {
     use geo::Coord;
 
     use crate::{
-        model::{road_network::Vertex, road_network::vertex_id::VertexId},
+        model::{graph::vertex_id::VertexId, graph::Vertex},
         util::geo::coord::InternalCoord,
     };
 

@@ -3,7 +3,7 @@ use std::str::FromStr;
 use routee_compass_core::{
     algorithm::search::direction::Direction,
     model::{
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
+        graph::{edge_id::EdgeId, vertex_id::VertexId},
         unit::{as_f64::AsF64, DistanceUnit},
     },
 };
