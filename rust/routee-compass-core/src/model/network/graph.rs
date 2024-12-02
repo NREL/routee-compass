@@ -158,7 +158,10 @@ impl Graph {
         self.in_edges_iter(dst).cloned().collect_vec()
     }
 
-    pub fn in_edges_iter<'a>(&'a self, dst: &VertexId) -> Box<dyn Iterator<Item = &EdgeId> + 'a> {
+    pub fn in_edges_iter<'a>(
+        &'a self,
+        dst: &VertexId,
+    ) -> Box<dyn Iterator<Item = &'a EdgeId> + 'a> {
         match self.rev.get(dst.0) {
             None => Box::new(std::iter::empty()),
             Some(out_map) => out_map.keys(),
