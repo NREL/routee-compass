@@ -132,8 +132,8 @@ mod tests {
     use super::*;
     use crate::model::unit::{Distance, DistanceUnit, SpeedUnit, TimeUnit};
     use crate::model::{
-        property::{edge::Edge, vertex::Vertex},
         network::{edge_id::EdgeId, vertex_id::VertexId},
+        property::{edge::Edge, vertex::Vertex},
     };
     use crate::util::geo::coord::InternalCoord;
     use geo::coord;
