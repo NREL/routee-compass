@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::{model::network::vertex_id::VertexId, util::geo::coord::InternalCoord};
 use allocative::Allocative;
 use geo::coord;
@@ -29,6 +31,12 @@ impl Vertex {
 
     pub fn y(&self) -> f32 {
         self.coordinate.y
+    }
+}
+
+impl Display for Vertex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Vertex {} ({},{})", self.vertex_id, self.x(), self.y())
     }
 }
 

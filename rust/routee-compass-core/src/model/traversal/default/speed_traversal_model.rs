@@ -66,7 +66,12 @@ impl TraversalModel for SpeedTraversalModel {
         let (src, dst) = od;
         let distance =
             haversine::coord_distance(&src.coordinate, &dst.coordinate, self.engine.distance_unit)
-                .map_err(TraversalModelError::NumericError)?;
+                .map_err(|e| {
+                    TraversalModelError::TraversalModelFailure(format!(
+                        "could not compute haversine distance between {} and {}: {}",
+                        src, dst, e
+                    ))
+                })?;
 
         if distance == Distance::ZERO {
             return Ok(());
@@ -118,11 +123,10 @@ impl TraversalModel for SpeedTraversalModel {
 /// look up a speed from the speed table
 pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, TraversalModelError> {
     let speed: &Speed = speed_table.get(edge_id.as_usize()).ok_or_else(|| {
-        TraversalModelError::MissingIdInTabularCostFunction(
-            format!("{}", edge_id),
-            String::from("EdgeId"),
-            String::from("speed table"),
-        )
+        TraversalModelError::TraversalModelFailure(format!(
+            "could not find expected index {} in speed table",
+            edge_id
+        ))
     })?;
     Ok(*speed)
 }

@@ -1,9 +1,9 @@
 use crate::model::{
     access::access_model_error::AccessModelError,
-    cost::cost_error::CostError,
+    cost::cost_model_error::CostModelError,
     frontier::frontier_model_error::FrontierModelError,
     network::{edge_id::EdgeId, network_error::NetworkError, vertex_id::VertexId},
-    state::state_error::StateError,
+    state::state_model_error::StateModelError,
     termination::termination_model_error::TerminationModelError,
     traversal::traversal_model_error::TraversalModelError,
 };
@@ -15,7 +15,7 @@ pub enum SearchError {
     #[error("The search failed due to state model error. The state model is responsible for updates to the state of the search at each increment of traversal. Please review the [state] section of your Compass configuration. Source: {source}")]
     StateFailure {
         #[from]
-        source: StateError,
+        source: StateModelError,
     },
     #[error("The search failed due to a road network error. Please review the [graph] section of your Compass configuration. Source: {source}")]
     NetworkFailure {
@@ -45,7 +45,7 @@ pub enum SearchError {
     #[error("The search failed due to cost model error. The cost model interprets a delta of search state dimensions as having a cost value, which is minimized by the search. Please see the [cost] section of your Compass Configuration and additionally any query-time overrides. Source: {source}")]
     CostFailure {
         #[from]
-        source: CostError,
+        source: CostModelError,
     },
     #[error("query terminated due to {0}")]
     QueryTerminated(String),

@@ -1,7 +1,7 @@
 use crate::model::network::Edge;
 use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::unit::Cost;
-use crate::model::{cost::cost_error::CostError, network::EdgeId};
+use crate::model::{cost::cost_model_error::CostModelError, network::EdgeId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -30,7 +30,7 @@ impl NetworkCostRate {
         _prev_state_var: StateVar,
         _next_state_var: StateVar,
         edge: &Edge,
-    ) -> Result<Cost, CostError> {
+    ) -> Result<Cost, CostModelError> {
         match self {
             NetworkCostRate::Zero => Ok(Cost::ZERO),
             NetworkCostRate::EdgeEdgeLookup { lookup: _ } => Ok(Cost::ZERO),
@@ -42,7 +42,7 @@ impl NetworkCostRate {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.traversal_cost(_prev_state_var, _next_state_var, edge))
-                    .collect::<Result<Vec<Cost>, CostError>>()?;
+                    .collect::<Result<Vec<Cost>, CostModelError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
                 Ok(cost)
@@ -69,7 +69,7 @@ impl NetworkCostRate {
         _next_state_var: StateVar,
         prev_edge: &Edge,
         next_edge: &Edge,
-    ) -> Result<Cost, CostError> {
+    ) -> Result<Cost, CostModelError> {
         match self {
             NetworkCostRate::Zero => Ok(Cost::ZERO),
             NetworkCostRate::EdgeLookup { lookup: _ } => Ok(Cost::ZERO),
@@ -83,7 +83,7 @@ impl NetworkCostRate {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.access_cost(_prev_state_var, _next_state_var, prev_edge, next_edge))
-                    .collect::<Result<Vec<Cost>, CostError>>()?;
+                    .collect::<Result<Vec<Cost>, CostModelError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
                 Ok(cost)

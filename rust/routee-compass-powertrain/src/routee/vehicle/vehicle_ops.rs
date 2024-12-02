@@ -1,5 +1,5 @@
 use routee_compass_core::model::{
-    state::{state_error::StateError, state_model::StateModel},
+    state::{state_model_error::StateModelError, state_model::StateModel},
     traversal::state::state_variable::StateVar,
     unit::{as_f64::AsF64, Energy},
 };
@@ -22,7 +22,7 @@ pub fn update_soc_percent(
     delta: &Energy,
     max: &Energy,
     state_model: &StateModel,
-) -> Result<(), StateError> {
+) -> Result<(), StateModelError> {
     let start_soc = state_model.get_custom_f64(state, &feature_name.into())?;
     let start_battery = max.as_f64() * (start_soc / 100.0);
     let current_soc = soc_from_battery_and_delta(&Energy::new(start_battery), delta, max);

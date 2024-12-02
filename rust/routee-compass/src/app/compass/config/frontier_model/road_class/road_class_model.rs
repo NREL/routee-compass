@@ -26,7 +26,12 @@ impl FrontierModel for RoadClassFrontierModel {
                 .service
                 .road_class_lookup
                 .get(edge.edge_id.0)
-                .ok_or_else(|| FrontierModelError::MissingIndex(format!("{}", edge.edge_id)))
+                .ok_or_else(|| {
+                    FrontierModelError::FrontierModelError(format!(
+                        "edge id {} missing from frontier model file",
+                        edge.edge_id
+                    ))
+                })
                 .map(|road_class| road_classes.contains(road_class)),
         }
     }

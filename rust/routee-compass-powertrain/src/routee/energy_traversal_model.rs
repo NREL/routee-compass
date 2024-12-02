@@ -91,7 +91,12 @@ impl TraversalModel for EnergyTraversalModel {
             &dst.coordinate,
             self.energy_model_service.distance_unit,
         )
-        .map_err(TraversalModelError::NumericError)?;
+        .map_err(|e| {
+            TraversalModelError::TraversalModelFailure(format!(
+                "could not compute haversine distance between {} and {}: {}",
+                src, dst, e
+            ))
+        })?;
 
         if distance == Distance::ZERO {
             return Ok(());

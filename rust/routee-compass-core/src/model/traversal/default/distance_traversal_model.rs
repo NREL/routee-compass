@@ -49,7 +49,12 @@ impl TraversalModel for DistanceTraversalModel {
         let (src, dst) = od;
         let distance =
             haversine::coord_distance(&src.coordinate, &dst.coordinate, self.distance_unit)
-                .map_err(TraversalModelError::NumericError)?;
+                .map_err(|e| {
+                    TraversalModelError::TraversalModelFailure(format!(
+                        "could not compute haversine distance between {} and {}: {}",
+                        src, dst, e
+                    ))
+                })?;
         state_model.add_distance(
             state,
             &Self::DISTANCE.into(),
