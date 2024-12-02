@@ -44,7 +44,7 @@ impl UUIDOutputPlugin {
                 e
             ))
         })?;
-        println!();
+        eprintln!();
 
         let o_key = UUIDJsonField::OriginVertexUUID.to_string();
         let d_key = UUIDJsonField::DestinationVertexUUID.to_string();

@@ -29,7 +29,7 @@ impl TryFrom<VertexLoaderConfig> for Box<[Vertex]> {
         });
         let result: Box<[Vertex]> = read_utils::from_csv(&conf.vertex_list_csv, true, Some(cb))?;
 
-        println!();
+        eprintln!();
         Ok(result)
     }
 }
