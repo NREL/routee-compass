@@ -23,10 +23,7 @@ pub fn reorient_reverse_route(
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     // get the final edge id and state for the forward traversal
     let (final_fwd_edge_id, mut acc_state) = match fwd_route.last() {
-        None => (
-            None,
-            si.state_model.initial_state().map_err(SearchError::from)?,
-        ),
+        None => (None, si.state_model.initial_state()?),
         Some(last_edge) => (Some(last_edge.edge_id), last_edge.result_state.clone()),
     };
 

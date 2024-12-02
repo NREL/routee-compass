@@ -57,22 +57,13 @@ impl EdgeTraversal {
         let mut access_cost = Cost::ZERO;
 
         // find this traversal in the graph
-        let traversal_trajectory = si
-            .directed_graph
-            .edge_triplet(&next_edge_id)
-            .map_err(SearchError::from)?;
+        let traversal_trajectory = si.directed_graph.edge_triplet(&next_edge_id)?;
 
         // perform access traversal for (v2)-[next]->(v3)
         // access cost for (v1)-[prev]->(v2)-[next]->(v3)
         if let Some(prev_edge_id) = prev_edge_id_opt {
-            let e1 = si
-                .directed_graph
-                .get_edge(&prev_edge_id)
-                .map_err(SearchError::from)?;
-            let v1 = si
-                .directed_graph
-                .get_vertex(&e1.src_vertex_id)
-                .map_err(SearchError::from)?;
+            let e1 = si.directed_graph.get_edge(&prev_edge_id)?;
+            let v1 = si.directed_graph.get_vertex(&e1.src_vertex_id)?;
 
             let (v2, e2, v3) = traversal_trajectory;
             let access_trajectory = (v1, e1, v2, e2, v3);
@@ -82,20 +73,20 @@ impl EdgeTraversal {
 
             let ac = si
                 .cost_model
-                .access_cost(e1, e2, prev_state, &result_state)
-                .map_err(SearchError::from)?;
+                .access_cost(e1, e2, prev_state, &result_state)?;
             access_cost = access_cost + ac;
         }
 
-        si.traversal_model
-            .traverse_edge(traversal_trajectory, &mut result_state, &si.state_model)
-            .map_err(SearchError::from)?;
+        si.traversal_model.traverse_edge(
+            traversal_trajectory,
+            &mut result_state,
+            &si.state_model,
+        )?;
 
         let (_, edge, _) = traversal_trajectory;
         let total_cost = si
             .cost_model
-            .traversal_cost(edge, prev_state, &result_state)
-            .map_err(SearchError::from)?;
+            .traversal_cost(edge, prev_state, &result_state)?;
         let traversal_cost = total_cost - access_cost;
 
         let result = EdgeTraversal {
@@ -136,22 +127,13 @@ impl EdgeTraversal {
         let mut access_cost = Cost::ZERO;
 
         // find this traversal in the graph
-        let traversal_trajectory = si
-            .directed_graph
-            .edge_triplet(&prev_edge_id)
-            .map_err(SearchError::from)?;
+        let traversal_trajectory = si.directed_graph.edge_triplet(&prev_edge_id)?;
 
         // perform access traversal for (v1)-[prev]->(v2)
         // access cost for              (v1)-[prev]->(v2)-[next]->(v3)
         if let Some(next_edge_id) = next_edge_id_opt {
-            let e2 = si
-                .directed_graph
-                .get_edge(&next_edge_id)
-                .map_err(SearchError::from)?;
-            let v3 = si
-                .directed_graph
-                .get_vertex(&e2.dst_vertex_id)
-                .map_err(SearchError::from)?;
+            let e2 = si.directed_graph.get_edge(&next_edge_id)?;
+            let v3 = si.directed_graph.get_vertex(&e2.dst_vertex_id)?;
 
             let (v1, e1, v2) = traversal_trajectory;
             let access_trajectory = (v1, e1, v2, e2, v3);
@@ -161,20 +143,20 @@ impl EdgeTraversal {
 
             let ac = si
                 .cost_model
-                .access_cost(e1, e2, prev_state, &result_state)
-                .map_err(SearchError::from)?;
+                .access_cost(e1, e2, prev_state, &result_state)?;
             access_cost = access_cost + ac;
         }
 
-        si.traversal_model
-            .traverse_edge(traversal_trajectory, &mut result_state, &si.state_model)
-            .map_err(SearchError::from)?;
+        si.traversal_model.traverse_edge(
+            traversal_trajectory,
+            &mut result_state,
+            &si.state_model,
+        )?;
 
         let (_, edge, _) = traversal_trajectory;
         let total_cost = si
             .cost_model
-            .traversal_cost(edge, prev_state, &result_state)
-            .map_err(SearchError::from)?;
+            .traversal_cost(edge, prev_state, &result_state)?;
         let traversal_cost = total_cost - access_cost;
 
         let result = EdgeTraversal {

@@ -70,8 +70,7 @@ fn run_json(
     run_config: Option<&Value>,
 ) -> Result<(), CompassAppError> {
     let reader = BufReader::new(query_file);
-    let user_json: serde_json::Value =
-        serde_json::from_reader(reader).map_err(CompassAppError::from)?;
+    let user_json: serde_json::Value = serde_json::from_reader(reader)?;
     let user_queries = user_json.get_queries()?;
     let results = compass_app.run(user_queries, run_config)?;
     for result in results.iter() {

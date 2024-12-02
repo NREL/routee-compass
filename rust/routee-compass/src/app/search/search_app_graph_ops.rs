@@ -19,18 +19,12 @@ pub trait SearchAppGraphOps {
 
 impl SearchAppGraphOps for SearchApp {
     fn get_edge_origin(&self, edge_id: &EdgeId) -> Result<VertexId, CompassAppError> {
-        let edge = self
-            .directed_graph
-            .get_edge(edge_id)
-            .map_err(CompassAppError::from)?;
+        let edge = self.directed_graph.get_edge(edge_id)?;
         Ok(edge.src_vertex_id)
     }
 
     fn get_edge_destination(&self, edge_id: &EdgeId) -> Result<VertexId, CompassAppError> {
-        let edge = self
-            .directed_graph
-            .get_edge(edge_id)
-            .map_err(CompassAppError::from)?;
+        let edge = self.directed_graph.get_edge(edge_id)?;
         Ok(edge.dst_vertex_id)
     }
 
@@ -39,10 +33,7 @@ impl SearchAppGraphOps for SearchApp {
         edge_id: &EdgeId,
         distance_unit: Option<DistanceUnit>,
     ) -> Result<Distance, CompassAppError> {
-        let edge = self
-            .directed_graph
-            .get_edge(edge_id)
-            .map_err(CompassAppError::from)?;
+        let edge = self.directed_graph.get_edge(edge_id)?;
         let result_base = edge.distance;
         let result = match distance_unit {
             Some(du) => DistanceUnit::Meters.convert(&result_base, &du),
