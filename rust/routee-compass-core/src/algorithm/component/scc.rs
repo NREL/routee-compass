@@ -148,7 +148,7 @@ pub fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexI
 mod tests {
     use super::*;
     use crate::{
-        model::property::{edge::Edge, vertex::Vertex},
+        model::network::{Edge, Vertex},
         util::compact_ordered_hash_map::CompactOrderedHashMap,
     };
 

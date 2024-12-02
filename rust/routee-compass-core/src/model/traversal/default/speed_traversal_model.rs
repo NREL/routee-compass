@@ -130,11 +130,8 @@ pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, Traver
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::network::{Edge, EdgeId, Vertex, VertexId};
     use crate::model::unit::{Distance, DistanceUnit, SpeedUnit, TimeUnit};
-    use crate::model::{
-        network::{edge_id::EdgeId, vertex_id::VertexId},
-        property::{edge::Edge, vertex::Vertex},
-    };
     use crate::util::geo::coord::InternalCoord;
     use geo::coord;
     use std::path::PathBuf;

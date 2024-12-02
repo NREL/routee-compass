@@ -132,7 +132,7 @@ mod tests {
     use geo::Coord;
 
     use crate::{
-        model::{network::vertex_id::VertexId, network::Vertex},
+        model::network::{Vertex, VertexId},
         util::geo::coord::InternalCoord,
     };
 
@@ -141,7 +141,7 @@ mod tests {
         let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
-            .join("property")
+            .join("network")
             .join("test")
             .join("vertices.csv");
 

@@ -18,7 +18,7 @@ impl Direction {
         &'a self,
         vertex_id: &VertexId,
         si: &'a SearchInstance,
-    ) -> Box<dyn Iterator<Item = &EdgeId> + 'a> {
+    ) -> Box<dyn Iterator<Item = &'a EdgeId> + 'a> {
         match self {
             Direction::Forward => si.directed_graph.out_edges_iter(vertex_id),
             Direction::Reverse => si.directed_graph.in_edges_iter(vertex_id),
