@@ -45,23 +45,23 @@ pub fn run(
         si,
     )?;
     if fwd_trees.len() != 1 {
-        Err(SearchError::InternalSearchError(format!(
+        Err(SearchError::InternalError(format!(
             "ksp solver fwd trees count should be exactly 1, found {}",
             fwd_trees.len()
         )))?;
     }
     if rev_trees.len() != 1 {
-        Err(SearchError::InternalSearchError(format!(
+        Err(SearchError::InternalError(format!(
             "ksp solver rev trees count should be exactly 1, found {}",
             rev_trees.len()
         )))?;
     }
-    let fwd_tree = fwd_trees.first().ok_or_else(|| {
-        SearchError::InternalSearchError(String::from("cannot retrieve fwd tree 0"))
-    })?;
-    let rev_tree = rev_trees.first().ok_or_else(|| {
-        SearchError::InternalSearchError(String::from("cannot retrieve rev tree 0"))
-    })?;
+    let fwd_tree = fwd_trees
+        .first()
+        .ok_or_else(|| SearchError::InternalError(String::from("cannot retrieve fwd tree 0")))?;
+    let rev_tree = rev_trees
+        .first()
+        .ok_or_else(|| SearchError::InternalError(String::from("cannot retrieve rev tree 0")))?;
 
     // find intersection vertices
     let rev_vertices = rev_trees.iter().flatten().collect::<HashMap<_, _>>();

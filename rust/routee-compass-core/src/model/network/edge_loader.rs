@@ -1,4 +1,4 @@
-use super::{Edge, EdgeId, GraphError, VertexId};
+use super::{Edge, EdgeId, NetworkError, VertexId};
 use crate::util::{compact_ordered_hash_map::CompactOrderedHashMap, fs::read_utils};
 use kdam::Bar;
 use kdam::BarExt;
@@ -17,7 +17,7 @@ pub struct EdgeLoaderConfig {
 }
 
 impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
-    type Error = GraphError;
+    type Error = NetworkError;
 
     fn try_from(c: EdgeLoaderConfig) -> Result<Self, Self::Error> {
         let mut adj: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
@@ -30,7 +30,7 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
             .animation("fillup")
             .desc("edge list")
             .build()
-            .map_err(|e| GraphError::ProgressBarBuildError(String::from("edge list"), e))?;
+            .map_err(|e| NetworkError::ProgressBarBuildError(String::from("edge list"), e))?;
 
         let mut missing_vertices: HashSet<VertexId> = HashSet::new();
         let cb = Box::new(|edge: &Edge| {

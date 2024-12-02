@@ -53,7 +53,7 @@ pub fn run(
             accepted
                 .last()
                 .cloned()
-                .ok_or(SearchError::InternalSearchError(String::from(
+                .ok_or(SearchError::InternalError(String::from(
                     "at least one route should be in routes",
                 )))?;
 
@@ -65,7 +65,7 @@ pub fn run(
             let spur_edge_traversal =
                 root_path
                     .last()
-                    .ok_or(SearchError::InternalSearchError(String::from(
+                    .ok_or(SearchError::InternalError(String::from(
                         "root path is empty",
                     )))?;
             let spur_vertex_id = si
@@ -149,7 +149,7 @@ pub fn run(
 fn get_first_route(res: &SearchAlgorithmResult) -> Result<&Vec<EdgeTraversal>, SearchError> {
     res.routes
         .first()
-        .ok_or(SearchError::InternalSearchError(String::from(
+        .ok_or(SearchError::InternalError(String::from(
             "no empty results should be stored in routes",
         )))
 }

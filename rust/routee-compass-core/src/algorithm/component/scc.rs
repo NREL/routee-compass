@@ -1,5 +1,5 @@
 use crate::model::network::graph::Graph;
-use crate::model::network::{graph_error::GraphError, vertex_id::VertexId};
+use crate::model::network::{network_error::NetworkError, vertex_id::VertexId};
 use std::collections::HashSet;
 
 /// Conducts a depth-first search (DFS) on a directed graph.
@@ -24,7 +24,7 @@ pub fn depth_first_search(
     vertex: &VertexId,
     visited: &mut HashSet<VertexId>,
     stack: &mut Vec<VertexId>,
-) -> Result<(), GraphError> {
+) -> Result<(), NetworkError> {
     if visited.contains(vertex) {
         return Ok(());
     }
@@ -64,7 +64,7 @@ pub fn reverse_depth_first_search(
     vertex: &VertexId,
     visited: &mut HashSet<VertexId>,
     stack: &mut Vec<VertexId>,
-) -> Result<(), GraphError> {
+) -> Result<(), NetworkError> {
     if visited.contains(vertex) {
         return Ok(());
     }
@@ -94,7 +94,9 @@ pub fn reverse_depth_first_search(
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-pub fn all_strongly_connected_componenets(graph: &Graph) -> Result<Vec<Vec<VertexId>>, GraphError> {
+pub fn all_strongly_connected_componenets(
+    graph: &Graph,
+) -> Result<Vec<Vec<VertexId>>, NetworkError> {
     let mut visited: HashSet<VertexId> = HashSet::new();
     let mut container: Vec<VertexId> = Vec::new();
     let mut result: Vec<Vec<VertexId>> = Vec::new();
@@ -130,7 +132,7 @@ pub fn all_strongly_connected_componenets(graph: &Graph) -> Result<Vec<Vec<Verte
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-pub fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexId>, GraphError> {
+pub fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexId>, NetworkError> {
     let components = all_strongly_connected_componenets(graph)?;
 
     let mut largest_component: Vec<VertexId> = Vec::new();

@@ -258,14 +258,14 @@ pub fn run_edge_oriented(
                 } = alg.run_vertex_oriented(e1_dst, Some(e2_src), query, direction, si)?;
 
                 if trees.is_empty() {
-                    return Err(SearchError::NoPathExists(e1_dst, e2_src));
+                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src));
                 }
 
                 // it is possible that the search already found these vertices. one major edge
                 // case is when the trip starts with a u-turn.
                 for route in routes.iter_mut() {
                     let final_state = route.last().ok_or_else(|| {
-                        SearchError::InternalSearchError(String::from("found empty result route"))
+                        SearchError::InternalError(String::from("found empty result route"))
                     })?;
 
                     let dst_et = EdgeTraversal {

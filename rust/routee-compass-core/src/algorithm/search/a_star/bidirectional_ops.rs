@@ -25,9 +25,7 @@ pub fn reorient_reverse_route(
     let (final_fwd_edge_id, mut acc_state) = match fwd_route.last() {
         None => (
             None,
-            si.state_model
-                .initial_state()
-                .map_err(SearchError::StateError)?,
+            si.state_model.initial_state().map_err(SearchError::from)?,
         ),
         Some(last_edge) => (Some(last_edge.edge_id), last_edge.result_state.clone()),
     };
@@ -46,7 +44,7 @@ pub fn reorient_reverse_route(
     let mut result: Vec<EdgeTraversal> = Vec::with_capacity(rev_route.len());
     for (prev_opt, next_opt) in edge_ids.iter().tuple_windows() {
         let next = next_opt.ok_or_else(|| {
-            SearchError::InternalSearchError(String::from("next_opt should never be None"))
+            SearchError::InternalError(String::from("next_opt should never be None"))
         })?;
         let et = EdgeTraversal::forward_traversal(next, *prev_opt, &acc_state, si)?;
         acc_state = et.result_state.clone();

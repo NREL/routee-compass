@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use super::{GraphError, Vertex};
+use super::{NetworkError, Vertex};
 use crate::util::fs::read_utils;
 use kdam::{Bar, BarExt};
 
@@ -10,7 +10,7 @@ pub struct VertexLoaderConfig {
 }
 
 impl TryFrom<VertexLoaderConfig> for Box<[Vertex]> {
-    type Error = GraphError;
+    type Error = NetworkError;
 
     fn try_from(conf: VertexLoaderConfig) -> Result<Self, Self::Error> {
         let mut processed: usize = 0;
@@ -19,7 +19,7 @@ impl TryFrom<VertexLoaderConfig> for Box<[Vertex]> {
             .animation("fillup")
             .desc("vertex list")
             .build()
-            .map_err(|e| GraphError::ProgressBarBuildError(String::from("vertex list"), e))?;
+            .map_err(|e| NetworkError::ProgressBarBuildError(String::from("vertex list"), e))?;
 
         let cb = Box::new(|_v: &Vertex| {
             let _ = pb.update(1);

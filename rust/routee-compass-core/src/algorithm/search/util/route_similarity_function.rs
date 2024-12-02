@@ -88,7 +88,7 @@ impl RouteSimilarityFunction {
                     si.directed_graph
                         .get_edge(edge_id)
                         .map(|edge| edge.distance.as_f64())
-                        .map_err(SearchError::GraphError)
+                        .map_err(SearchError::from)
                 });
                 cos_similarity(a, b, dist_fn)
             }

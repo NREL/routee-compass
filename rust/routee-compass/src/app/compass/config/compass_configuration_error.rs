@@ -3,7 +3,7 @@ use config::ConfigError;
 use routee_compass_core::{
     model::{
         access::access_model_error::AccessModelError,
-        frontier::frontier_model_error::FrontierModelError, network::graph_error::GraphError,
+        frontier::frontier_model_error::FrontierModelError, network::network_error::NetworkError,
         traversal::traversal_model_error::TraversalModelError,
     },
     util::{cache_policy::cache_error::CacheError, conversion::conversion_error::ConversionError},
@@ -53,7 +53,7 @@ pub enum CompassConfigurationError {
     #[error("{0}")]
     InsertError(String),
     #[error(transparent)]
-    GraphError(#[from] GraphError),
+    GraphError(#[from] NetworkError),
     #[error(transparent)]
     ConfigError(#[from] ConfigError),
     #[error(transparent)]

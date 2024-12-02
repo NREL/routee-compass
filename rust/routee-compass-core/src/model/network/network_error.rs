@@ -1,7 +1,7 @@
 use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
 
 #[derive(thiserror::Error, Debug)]
-pub enum GraphError {
+pub enum NetworkError {
     #[error("edge attribute not found for edge {0}")]
     EdgeNotFound(EdgeId),
     #[error("vertex attribute not found for vertex {0}")]

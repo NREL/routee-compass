@@ -72,7 +72,7 @@ pub fn run_a_star(
             solution
                 .get(&current_vertex_id)
                 .ok_or_else(|| {
-                    SearchError::InternalSearchError(format!(
+                    SearchError::InternalError(format!(
                         "expected vertex id {} missing from solution",
                         current_vertex_id
                     ))
@@ -254,12 +254,17 @@ pub fn run_a_star_edge_oriented(
                 } = run_a_star(e1_dst, Some(e2_src), direction, weight_factor, si)?;
 
                 if tree.is_empty() {
-                    return Err(SearchError::NoPathExists(e1_dst, e2_src));
+                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src));
                 }
 
                 let final_state = &tree
                     .get(&e2_src)
-                    .ok_or(SearchError::VertexMissingFromSearchTree(e2_src))?
+                    .ok_or_else(|| {
+                        SearchError::InternalError(format!(
+                            "resulting tree missing vertex {} expected via backtrack",
+                            e2_src
+                        ))
+                    })?
                     .edge_traversal
                     .result_state;
                 let dst_et = EdgeTraversal {
@@ -313,7 +318,10 @@ fn advance_search(
     target: Option<VertexId>,
 ) -> Result<Option<VertexId>, SearchError> {
     match (cost.pop(), target) {
-        (None, Some(target_vertex_id)) => Err(SearchError::NoPathExists(source, target_vertex_id)),
+        (None, Some(target_vertex_id)) => Err(SearchError::NoPathExistsBetweenVertices(
+            source,
+            target_vertex_id,
+        )),
         (None, None) => Ok(None),
         (Some((current_v, _)), Some(target_v)) if current_v == target_v => Ok(None),
         (Some((current_vertex_id, _)), _) => Ok(Some(current_vertex_id)),
@@ -347,7 +355,7 @@ fn get_last_traversed_edge_id(
         let edge_id = tree
             .get(this_vertex_id)
             .ok_or_else(|| {
-                SearchError::InternalSearchError(format!(
+                SearchError::InternalError(format!(
                     "expected vertex id {} missing from solution",
                     this_vertex_id
                 ))

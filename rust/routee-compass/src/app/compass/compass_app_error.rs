@@ -7,7 +7,7 @@ use config::ConfigError;
 use routee_compass_core::{
     algorithm::search::search_error::SearchError,
     model::{
-        frontier::frontier_model_error::FrontierModelError, network::graph_error::GraphError,
+        frontier::frontier_model_error::FrontierModelError, network::network_error::NetworkError,
         state::state_error::StateError, traversal::traversal_model_error::TraversalModelError,
     },
 };
@@ -29,7 +29,7 @@ pub enum CompassAppError {
     #[error(transparent)]
     ConfigError(#[from] ConfigError),
     #[error(transparent)]
-    GraphError(#[from] GraphError),
+    GraphError(#[from] NetworkError),
     #[error(transparent)]
     StateError(#[from] StateError),
     #[error("Input file {0} missing")]

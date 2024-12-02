@@ -1,7 +1,7 @@
 use super::{
     edge_loader::{EdgeLoader, EdgeLoaderConfig},
     vertex_loader::VertexLoaderConfig,
-    Graph, GraphError, Vertex,
+    Graph, NetworkError, Vertex,
 };
 use crate::util::fs::fs_utils::line_count;
 use log::warn;
@@ -13,7 +13,7 @@ pub fn graph_from_files<P: AsRef<Path>>(
     n_edges: Option<usize>,
     n_vertices: Option<usize>,
     verbose: Option<bool>,
-) -> Result<Graph, GraphError> {
+) -> Result<Graph, NetworkError> {
     let verbose = verbose.unwrap_or(false);
     let n_edges = match n_edges {
         Some(n) => n,
@@ -59,7 +59,7 @@ pub fn graph_from_files<P: AsRef<Path>>(
     Ok(graph)
 }
 
-fn get_n_edges<P: AsRef<Path>>(edge_list_csv: &P) -> Result<usize, GraphError> {
+fn get_n_edges<P: AsRef<Path>>(edge_list_csv: &P) -> Result<usize, NetworkError> {
     // check if the extension is .gz
     let is_gzip = edge_list_csv
         .as_ref()
@@ -73,12 +73,12 @@ fn get_n_edges<P: AsRef<Path>>(edge_list_csv: &P) -> Result<usize, GraphError> {
             Some(path_str) => format!("edge file {} is empty", path_str),
             None => String::from("edge file is empty"),
         };
-        return Err(GraphError::DatasetError(msg));
+        return Err(NetworkError::DatasetError(msg));
     }
     Ok(n - 1) // drop count of header line
 }
 
-fn get_n_vertices<P: AsRef<Path>>(vertex_list_csv: &P) -> Result<usize, GraphError> {
+fn get_n_vertices<P: AsRef<Path>>(vertex_list_csv: &P) -> Result<usize, NetworkError> {
     let is_gzip = vertex_list_csv
         .as_ref()
         .to_path_buf()
@@ -91,7 +91,7 @@ fn get_n_vertices<P: AsRef<Path>>(vertex_list_csv: &P) -> Result<usize, GraphErr
             Some(path_str) => format!("vertex file {} is empty", path_str),
             None => String::from("vertex file is empty"),
         };
-        return Err(GraphError::DatasetError(msg));
+        return Err(NetworkError::DatasetError(msg));
     }
     Ok(n - 1) // drop count of header line
 }
