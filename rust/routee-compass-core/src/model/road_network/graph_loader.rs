@@ -1,15 +1,11 @@
-use std::path::Path;
-
-use log::warn;
-
-use crate::{model::property::vertex::Vertex, util::fs::fs_utils::line_count};
-
 use super::{
     edge_loader::{EdgeLoader, EdgeLoaderConfig},
-    graph::Graph,
-    graph_error::GraphError,
     vertex_loader::VertexLoaderConfig,
+    Graph, GraphError, Vertex,
 };
+use crate::util::fs::fs_utils::line_count;
+use log::warn;
+use std::path::Path;
 
 pub fn graph_from_files<P: AsRef<Path>>(
     edge_list_csv: &P,

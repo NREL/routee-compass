@@ -368,10 +368,10 @@ mod tests {
     use crate::model::cost::cost_model::CostModel;
     use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
-    use crate::model::property::edge::Edge;
-    use crate::model::property::vertex::Vertex;
     use crate::model::road_network::edge_id::EdgeId;
     use crate::model::road_network::graph::Graph;
+    use crate::model::road_network::Edge;
+    use crate::model::road_network::Vertex;
     use crate::model::state::state_feature::StateFeature;
     use crate::model::state::state_model::StateModel;
     use crate::model::termination::termination_model::TerminationModel;

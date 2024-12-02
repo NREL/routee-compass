@@ -6,7 +6,7 @@ use crate::plugin::plugin_error::PluginError;
 use geo::{coord, Coord};
 use routee_compass_core::{
     model::unit::{Distance, DistanceUnit, BASE_DISTANCE_UNIT},
-    model::{property::vertex::Vertex, road_network::graph::Graph},
+    model::{road_network::graph::Graph, road_network::Vertex},
     util::{fs::read_utils, geo::haversine},
 };
 use rstar::{PointDistance, RTree, RTreeObject, AABB};

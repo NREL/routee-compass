@@ -1,8 +1,5 @@
+use super::{Edge, EdgeId, GraphError, Vertex, VertexId};
 use crate::algorithm::search::direction::Direction;
-use crate::model::property::edge::Edge;
-use crate::model::property::vertex::Vertex;
-use crate::model::road_network::graph_error::GraphError;
-use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use std::path::Path;
 

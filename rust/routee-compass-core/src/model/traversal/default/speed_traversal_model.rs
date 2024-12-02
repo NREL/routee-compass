@@ -1,11 +1,11 @@
 use super::speed_traversal_engine::SpeedTraversalEngine;
 use crate::model::road_network::edge_id::EdgeId;
+use crate::model::road_network::{Edge, Vertex};
 use crate::model::state::state_feature::StateFeature;
 use crate::model::state::state_model::StateModel;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::{Distance, Time, BASE_DISTANCE_UNIT};
 use crate::model::{
-    property::{edge::Edge, vertex::Vertex},
     traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
     unit::Speed,
 };

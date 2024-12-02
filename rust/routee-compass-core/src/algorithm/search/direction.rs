@@ -1,11 +1,8 @@
 use super::{
     edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
 };
-use crate::model::{
-    property::edge::Edge,
-    road_network::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
-    traversal::state::state_variable::StateVar,
-};
+use crate::model::road_network::{Edge, EdgeId, GraphError, VertexId};
+use crate::model::traversal::state::state_variable::StateVar;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Default)]

@@ -132,7 +132,7 @@ mod tests {
     use geo::Coord;
 
     use crate::{
-        model::{property::vertex::Vertex, road_network::vertex_id::VertexId},
+        model::{road_network::Vertex, road_network::vertex_id::VertexId},
         util::geo::coord::InternalCoord,
     };
 

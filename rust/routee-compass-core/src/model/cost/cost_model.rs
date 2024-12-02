@@ -3,7 +3,7 @@ use super::cost_ops;
 use super::network::network_cost_rate::NetworkCostRate;
 use super::vehicle::vehicle_cost_rate::VehicleCostRate;
 use crate::model::cost::cost_error::CostError;
-use crate::model::property::edge::Edge;
+use crate::model::road_network::Edge;
 use crate::model::state::state_model::StateModel;
 use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::unit::Cost;

@@ -1,7 +1,7 @@
 use super::road_class_service::RoadClassFrontierService;
 use routee_compass_core::model::{
     frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
-    property::edge::Edge,
+    road_network::Edge,
     state::state_model::StateModel,
     traversal::state::state_variable::StateVar,
 };

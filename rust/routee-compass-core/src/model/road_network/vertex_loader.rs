@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
-use crate::model::property::vertex::Vertex;
-use crate::model::road_network::graph_error::GraphError;
+use super::{GraphError, Vertex};
 use crate::util::fs::read_utils;
 use kdam::{Bar, BarExt};
 

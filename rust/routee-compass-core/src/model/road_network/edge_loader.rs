@@ -1,10 +1,5 @@
-use crate::{
-    model::{
-        property::edge::Edge,
-        road_network::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
-    },
-    util::{compact_ordered_hash_map::CompactOrderedHashMap, fs::read_utils},
-};
+use super::{Edge, EdgeId, GraphError, VertexId};
+use crate::util::{compact_ordered_hash_map::CompactOrderedHashMap, fs::read_utils};
 use kdam::Bar;
 use kdam::BarExt;
 use std::{collections::HashSet, path::PathBuf};
