@@ -1,5 +1,5 @@
 use crate::{
-    algorithm::search::edge_traversal::EdgeTraversal, model::graph::vertex_id::VertexId,
+    algorithm::search::edge_traversal::EdgeTraversal, model::network::vertex_id::VertexId,
 };
 use allocative::Allocative;
 use serde::Serialize;

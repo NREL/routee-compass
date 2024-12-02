@@ -1,6 +1,6 @@
 use super::speed_traversal_engine::SpeedTraversalEngine;
-use crate::model::graph::edge_id::EdgeId;
-use crate::model::graph::{Edge, Vertex};
+use crate::model::network::edge_id::EdgeId;
+use crate::model::network::{Edge, Vertex};
 use crate::model::state::state_feature::StateFeature;
 use crate::model::state::state_model::StateModel;
 use crate::model::traversal::traversal_model::TraversalModel;
@@ -133,7 +133,7 @@ mod tests {
     use crate::model::unit::{Distance, DistanceUnit, SpeedUnit, TimeUnit};
     use crate::model::{
         property::{edge::Edge, vertex::Vertex},
-        graph::{edge_id::EdgeId, vertex_id::VertexId},
+        network::{edge_id::EdgeId, vertex_id::VertexId},
     };
     use crate::util::geo::coord::InternalCoord;
     use geo::coord;

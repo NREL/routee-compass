@@ -3,7 +3,7 @@ use crate::model::{
         access_model::AccessModel, access_model_builder::AccessModelBuilder,
         access_model_service::AccessModelService,
     },
-    graph::{Edge, Vertex},
+    network::{Edge, Vertex},
 };
 use std::sync::Arc;
 

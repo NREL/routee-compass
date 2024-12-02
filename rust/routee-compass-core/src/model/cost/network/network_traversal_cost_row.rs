@@ -1,4 +1,4 @@
-use crate::model::{graph::edge_id::EdgeId, unit::Cost};
+use crate::model::{network::edge_id::EdgeId, unit::Cost};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

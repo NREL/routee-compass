@@ -1,6 +1,6 @@
 use crate::model::{
     frontier::frontier_model::FrontierModel,
-    graph::{Edge, EdgeId},
+    network::{Edge, EdgeId},
 };
 use std::{collections::HashSet, sync::Arc};
 

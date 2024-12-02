@@ -6,7 +6,7 @@ use crate::{
         search_instance::SearchInstance, util::edge_cut_frontier_model::EdgeCutFrontierModel,
         util::route_similarity_function::RouteSimilarityFunction,
     },
-    model::{graph::edge_id::EdgeId, unit::Cost},
+    model::{network::edge_id::EdgeId, unit::Cost},
 };
 use itertools::Itertools;
 use std::{collections::HashSet, sync::Arc};

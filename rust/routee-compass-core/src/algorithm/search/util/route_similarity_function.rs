@@ -4,7 +4,7 @@ use crate::{
     algorithm::search::{
         edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
     },
-    model::{graph::edge_id::EdgeId, unit::as_f64::AsF64},
+    model::{network::edge_id::EdgeId, unit::as_f64::AsF64},
 };
 use serde::{Deserialize, Serialize};
 

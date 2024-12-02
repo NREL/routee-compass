@@ -1,5 +1,5 @@
 use crate::{
-    algorithm::search::search_error::SearchError, model::graph::vertex_id::VertexId,
+    algorithm::search::search_error::SearchError, model::network::vertex_id::VertexId,
 };
 
 #[derive(Debug, Clone)]

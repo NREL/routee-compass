@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::model::graph::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
 
 #[derive(thiserror::Error, Debug)]
 pub enum GraphError {

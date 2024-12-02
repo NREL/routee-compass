@@ -1,7 +1,7 @@
 use super::{
     edge_traversal::EdgeTraversal, search_error::SearchError, search_tree_branch::SearchTreeBranch,
 };
-use crate::model::graph::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId};
+use crate::model::network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId};
 use std::{
     collections::{HashMap, HashSet},
     sync::Arc,

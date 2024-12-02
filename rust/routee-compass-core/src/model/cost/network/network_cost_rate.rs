@@ -1,7 +1,7 @@
-use crate::model::graph::Edge;
+use crate::model::network::Edge;
 use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::unit::Cost;
-use crate::model::{cost::cost_error::CostError, graph::EdgeId};
+use crate::model::{cost::cost_error::CostError, network::EdgeId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

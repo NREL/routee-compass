@@ -1,7 +1,7 @@
 use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::VehicleType;
-use routee_compass_core::model::graph::{Edge, Vertex};
+use routee_compass_core::model::network::{Edge, Vertex};
 use routee_compass_core::model::state::state_feature::StateFeature;
 use routee_compass_core::model::state::state_model::StateModel;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
@@ -162,7 +162,7 @@ mod tests {
     use routee_compass_core::{
         model::{
             property::{edge::Edge, vertex::Vertex},
-            graph::{edge_id::EdgeId, vertex_id::VertexId},
+            network::{edge_id::EdgeId, vertex_id::VertexId},
             traversal::default::{
                 speed_traversal_engine::SpeedTraversalEngine,
                 speed_traversal_service::SpeedLookupService,

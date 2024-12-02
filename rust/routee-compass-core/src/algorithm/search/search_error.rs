@@ -2,7 +2,7 @@ use crate::model::{
     access::access_model_error::AccessModelError,
     cost::cost_error::CostError,
     frontier::frontier_model_error::FrontierModelError,
-    graph::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
+    network::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
     state::state_error::StateError,
     termination::termination_model_error::TerminationModelError,
     traversal::traversal_model_error::TraversalModelError,

@@ -17,7 +17,7 @@ use crate::{
 };
 use geo_types::Coord;
 use routee_compass_core::{
-    model::graph::edge_id::EdgeId,
+    model::network::edge_id::EdgeId,
     model::unit::{as_f64::AsF64, Distance, DistanceUnit, BASE_DISTANCE_UNIT},
     util::{
         fs::{read_decoders, read_utils},
