@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::traversal_ops as ops;
-use crate::plugin::plugin_error::PluginError;
+use crate::plugin::output::OutputPluginError;
 use geo::{CoordFloat, Geometry, LineString};
 use routee_compass_core::{
     algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
@@ -30,7 +30,7 @@ impl TraversalOutputFormat {
         &self,
         route: &Vec<EdgeTraversal>,
         geoms: &[LineString<f32>],
-    ) -> Result<serde_json::Value, PluginError> {
+    ) -> Result<serde_json::Value, OutputPluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
                 let route_geometry = ops::create_route_linestring(route, geoms)?;
@@ -64,7 +64,7 @@ impl TraversalOutputFormat {
         &self,
         tree: &HashMap<VertexId, SearchTreeBranch>,
         geoms: &[LineString<f32>],
-    ) -> Result<serde_json::Value, PluginError> {
+    ) -> Result<serde_json::Value, OutputPluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
                 let route_geometry = ops::create_tree_multilinestring(tree, geoms)?;
@@ -99,9 +99,9 @@ impl TraversalOutputFormat {
 
 fn geometry_to_wkb_string<T: CoordFloat + Into<f64>>(
     geometry: &Geometry<T>,
-) -> Result<String, PluginError> {
+) -> Result<String, OutputPluginError> {
     let bytes = wkb::geom_to_wkb(geometry).map_err(|e| {
-        PluginError::PluginFailed(format!(
+        OutputPluginError::OutputPluginFailed(format!(
             "failed to generate wkb for geometry '{:?}' - {:?}",
             geometry, e
         ))

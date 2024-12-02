@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use routee_compass_core::model::network::vertex_id::VertexId;
 
-use crate::plugin::plugin_error::PluginError;
+use crate::plugin::{input::InputField, output::OutputPluginError};
 
 pub enum UUIDJsonField {
     Request,
@@ -10,6 +10,12 @@ pub enum UUIDJsonField {
     DestinationVertexId,
     OriginVertexUUID,
     DestinationVertexUUID,
+}
+
+impl From<UUIDJsonField> for InputField {
+    fn from(value: UUIDJsonField) -> Self {
+        InputField::Custom(value.to_string())
+    }
 }
 
 impl UUIDJsonField {
@@ -31,46 +37,52 @@ impl Display for UUIDJsonField {
 }
 
 pub trait UUIDJsonExtensions {
-    fn get_od_vertex_ids(&self) -> Result<(VertexId, VertexId), PluginError>;
+    fn get_od_vertex_ids(&self) -> Result<(VertexId, VertexId), OutputPluginError>;
     fn add_od_uuids(
         &mut self,
         origin_uuid: String,
         destination_uuid: String,
-    ) -> Result<(), PluginError>;
+    ) -> Result<(), OutputPluginError>;
 }
 
 impl UUIDJsonExtensions for serde_json::Value {
-    fn get_od_vertex_ids(&self) -> Result<(VertexId, VertexId), PluginError> {
+    fn get_od_vertex_ids(&self) -> Result<(VertexId, VertexId), OutputPluginError> {
         let request = self
             .get(UUIDJsonField::Request.as_str())
-            .ok_or_else(|| PluginError::MissingField(UUIDJsonField::Request.to_string()))?
+            .ok_or_else(|| {
+                OutputPluginError::MissingExpectedQueryField(UUIDJsonField::Request.into())
+            })?
             .as_object()
             .ok_or_else(|| {
-                PluginError::ParseError(
-                    UUIDJsonField::Request.to_string(),
+                OutputPluginError::QueryFieldHasInvalidType(
+                    UUIDJsonField::Request.into(),
                     String::from("json object"),
                 )
             })?;
 
         let origin_vertex_id = request
             .get(&UUIDJsonField::OriginVertexId.to_string())
-            .ok_or_else(|| PluginError::MissingField(UUIDJsonField::OriginVertexId.to_string()))?
+            .ok_or_else(|| {
+                OutputPluginError::MissingExpectedQueryField(UUIDJsonField::OriginVertexId.into())
+            })?
             .as_u64()
             .ok_or_else(|| {
-                PluginError::ParseError(
-                    UUIDJsonField::OriginVertexId.to_string(),
+                OutputPluginError::QueryFieldHasInvalidType(
+                    UUIDJsonField::OriginVertexId.into(),
                     String::from("u64"),
                 )
             })?;
         let destination_vertex_id = request
             .get(&UUIDJsonField::DestinationVertexId.to_string())
             .ok_or_else(|| {
-                PluginError::MissingField(UUIDJsonField::DestinationVertexId.to_string())
+                OutputPluginError::MissingExpectedQueryField(
+                    UUIDJsonField::DestinationVertexId.into(),
+                )
             })?
             .as_u64()
             .ok_or_else(|| {
-                PluginError::ParseError(
-                    UUIDJsonField::DestinationVertexId.to_string(),
+                OutputPluginError::QueryFieldHasInvalidType(
+                    UUIDJsonField::DestinationVertexId.into(),
                     String::from("u64"),
                 )
             })?;
@@ -83,14 +95,16 @@ impl UUIDJsonExtensions for serde_json::Value {
         &mut self,
         origin_uuid: String,
         destination_uuid: String,
-    ) -> Result<(), PluginError> {
+    ) -> Result<(), OutputPluginError> {
         let request = self
             .get_mut(UUIDJsonField::Request.as_str())
-            .ok_or_else(|| PluginError::MissingField(UUIDJsonField::Request.to_string()))?
+            .ok_or_else(|| {
+                OutputPluginError::MissingExpectedQueryField(UUIDJsonField::Request.into())
+            })?
             .as_object_mut()
             .ok_or_else(|| {
-                PluginError::ParseError(
-                    UUIDJsonField::Request.to_string(),
+                OutputPluginError::QueryFieldHasInvalidType(
+                    UUIDJsonField::Request.into(),
                     String::from("json object"),
                 )
             })?;

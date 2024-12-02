@@ -1,7 +1,7 @@
 use crate::plugin::input::input_field::InputField;
 use crate::plugin::input::input_json_extensions::InputJsonExtensions;
 use crate::plugin::input::input_plugin::InputPlugin;
-use crate::plugin::plugin_error::PluginError;
+use crate::plugin::input::InputPluginError;
 use routee_compass_core::util::multiset::MultiSet;
 
 /// Builds an input plugin that duplicates queries if array-valued fields are present
@@ -9,23 +9,23 @@ use routee_compass_core::util::multiset::MultiSet;
 pub struct GridSearchPlugin {}
 
 impl InputPlugin for GridSearchPlugin {
-    fn process(&self, input: &mut serde_json::Value) -> Result<(), PluginError> {
+    fn process(&self, input: &mut serde_json::Value) -> Result<(), InputPluginError> {
         match input.get_grid_search() {
             None => Ok(()),
             Some(grid_search_input) => {
                 // prevent recursion due to nested grid search keys
                 let recurses = serde_json::to_string(grid_search_input)
-                    .map_err(PluginError::JsonError)?
+                    .map_err(|e| InputPluginError::JsonError { source: e })?
                     .contains("grid_search");
                 if recurses {
-                    return Err(PluginError::PluginFailed(String::from(
+                    return Err(InputPluginError::InputPluginFailed(String::from(
                         "grid search section cannot contain the string 'grid_search'",
                     )));
                 }
 
-                let map = grid_search_input
-                    .as_object()
-                    .ok_or_else(|| PluginError::UnexpectedQueryStructure(format!("{:?}", input)))?;
+                let map = grid_search_input.as_object().ok_or_else(|| {
+                    InputPluginError::UnexpectedQueryStructure(format!("{:?}", input))
+                })?;
                 let mut keys: Vec<String> = vec![];
                 let mut multiset_input: Vec<Vec<serde_json::Value>> = vec![];
                 let mut multiset_indices: Vec<Vec<usize>> = vec![];
@@ -42,7 +42,9 @@ impl InputPlugin for GridSearchPlugin {
                 // let remove_key = InputField::GridSearch.to_str();
                 let mut initial_map = input
                     .as_object()
-                    .ok_or_else(|| PluginError::UnexpectedQueryStructure(format!("{:?}", input)))?
+                    .ok_or_else(|| {
+                        InputPluginError::UnexpectedQueryStructure(format!("{:?}", input))
+                    })?
                     .clone();
                 initial_map.remove(InputField::GridSearch.to_str());
                 let initial = serde_json::json!(initial_map);

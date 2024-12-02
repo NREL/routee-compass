@@ -3,7 +3,7 @@ use super::traversal_output_format::TraversalOutputFormat;
 use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
-use crate::plugin::plugin_error::PluginError;
+use crate::plugin::output::OutputPluginError;
 use geo::LineString;
 use kdam::Bar;
 use kdam::BarExt;
@@ -28,9 +28,13 @@ impl TraversalPlugin {
         filename: &P,
         route: Option<TraversalOutputFormat>,
         tree: Option<TraversalOutputFormat>,
-    ) -> Result<TraversalPlugin, PluginError> {
+    ) -> Result<TraversalPlugin, OutputPluginError> {
         let count = fs_utils::line_count(filename, fs_utils::is_gzip(filename)).map_err(|e| {
-            PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
+            OutputPluginError::BuildFailed(format!(
+                "failure reading line count for file {}: {}",
+                filename.as_ref().to_str().unwrap_or_default(),
+                e
+            ))
         })?;
 
         let mut pb = Bar::builder()
@@ -38,16 +42,20 @@ impl TraversalPlugin {
             .animation("fillup")
             .desc("geometry file")
             .build()
-            .map_err(PluginError::InternalError)?;
+            .map_err(OutputPluginError::InternalError)?;
 
         let cb = Box::new(|| {
             let _ = pb.update(1);
         });
         let geoms =
             read_raw_file(filename, geo_io_utils::parse_wkt_linestring, Some(cb)).map_err(|e| {
-                PluginError::FileReadError(filename.as_ref().to_path_buf(), e.to_string())
+                OutputPluginError::BuildFailed(format!(
+                    "failure reading geometry file {}: {}",
+                    filename.as_ref().to_str().unwrap_or_default(),
+                    e
+                ))
             })?;
-        println!();
+        eprintln!();
 
         let route_key = TraversalJsonField::RouteOutput.to_string();
         let tree_key = TraversalJsonField::TreeOutput.to_string();
@@ -66,7 +74,7 @@ impl OutputPlugin for TraversalPlugin {
         &self,
         output: &mut serde_json::Value,
         search_result: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
-    ) -> Result<(), PluginError> {
+    ) -> Result<(), OutputPluginError> {
         match search_result {
             Err(_) => Ok(()),
             Ok((result, si)) => {
@@ -80,7 +88,7 @@ impl OutputPlugin for TraversalPlugin {
                                 construct_route_output(route, si, &route_args, &self.geoms)
                             })
                             .collect::<Result<Vec<_>, _>>()
-                            .map_err(PluginError::PluginFailed)?;
+                            .map_err(OutputPluginError::OutputPluginFailed)?;
 
                         // vary the type of value stored at the route key. if there is
                         // no route, store 'null'. if one, store an output object. if

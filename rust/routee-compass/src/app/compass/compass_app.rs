@@ -572,7 +572,7 @@ pub fn apply_input_plugins(
     let mut plugin_state = serde_json::Value::Array(vec![query.clone()]);
     for plugin in plugins {
         let p = plugin.clone();
-        let op: in_ops::ArrayOp = Rc::new(|q| p.process(q));
+        let op: in_ops::InputArrayOp = Rc::new(|q| p.process(q));
         in_ops::json_array_op(&mut plugin_state, op)?
     }
     let result = in_ops::json_array_flatten(&mut plugin_state)?;

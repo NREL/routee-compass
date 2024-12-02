@@ -5,7 +5,7 @@ use crate::{
         config::cost_model::cost_model_service::CostModelService,
         search_orientation::SearchOrientation,
     },
-    plugin::input::input_json_extensions::InputJsonExtensions,
+    plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError},
 };
 use chrono::Local;
 use routee_compass_core::{
@@ -112,12 +112,12 @@ impl SearchApp {
         &self,
         query: &serde_json::Value,
     ) -> Result<(SearchAlgorithmResult, SearchInstance), CompassAppError> {
-        let o = query
-            .get_origin_vertex()
-            .map_err(CompassAppError::PluginError)?;
-        let d = query
-            .get_destination_vertex()
-            .map_err(CompassAppError::PluginError)?;
+        let o = query.get_origin_vertex().map_err(|e| {
+            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+        })?;
+        let d = query.get_destination_vertex().map_err(|e| {
+            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+        })?;
 
         let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
@@ -130,12 +130,12 @@ impl SearchApp {
         &self,
         query: &serde_json::Value,
     ) -> Result<(SearchAlgorithmResult, SearchInstance), CompassAppError> {
-        let o = query
-            .get_origin_edge()
-            .map_err(CompassAppError::PluginError)?;
-        let d_opt = query
-            .get_destination_edge()
-            .map_err(CompassAppError::PluginError)?;
+        let o = query.get_origin_edge().map_err(|e| {
+            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+        })?;
+        let d_opt = query.get_destination_edge().map_err(|e| {
+            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+        })?;
         let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
             .run_edge_oriented(o, d_opt, query, &Direction::Forward, &search_instance)

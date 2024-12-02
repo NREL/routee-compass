@@ -1,6 +1,5 @@
+use crate::plugin::{input::InputField, output::OutputPluginError};
 use std::fmt::Display;
-
-use crate::plugin::plugin_error::PluginError;
 
 pub enum TraversalJsonField {
     RouteOutput,
@@ -23,18 +22,22 @@ impl Display for TraversalJsonField {
 }
 
 pub trait TraversalJsonExtensions {
-    fn get_route_geometry_wkt(&self) -> Result<String, PluginError>;
+    fn get_route_geometry_wkt(&self) -> Result<String, OutputPluginError>;
 }
 
 impl TraversalJsonExtensions for serde_json::Value {
-    fn get_route_geometry_wkt(&self) -> Result<String, PluginError> {
+    fn get_route_geometry_wkt(&self) -> Result<String, OutputPluginError> {
         let geometry = self
             .get(TraversalJsonField::RouteOutput.as_str())
-            .ok_or_else(|| PluginError::MissingField(TraversalJsonField::RouteOutput.to_string()))?
+            .ok_or_else(|| {
+                OutputPluginError::MissingExpectedQueryField(InputField::Custom(
+                    TraversalJsonField::RouteOutput.to_string(),
+                ))
+            })?
             .as_str()
             .ok_or_else(|| {
-                PluginError::ParseError(
-                    TraversalJsonField::RouteOutput.to_string(),
+                OutputPluginError::QueryFieldHasInvalidType(
+                    InputField::Custom(TraversalJsonField::RouteOutput.to_string()),
                     String::from("string"),
                 )
             })?
