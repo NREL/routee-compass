@@ -266,7 +266,10 @@ impl Graph {
     ///
     /// The triplet of attributes surrounding one `Edge` or an error if
     /// any id is invalid.
-    pub fn edge_triplet(&self, edge_id: &EdgeId) -> Result<(&Vertex, &Edge, &Vertex), NetworkError> {
+    pub fn edge_triplet(
+        &self,
+        edge_id: &EdgeId,
+    ) -> Result<(&Vertex, &Edge, &Vertex), NetworkError> {
         let edge = self.get_edge(edge_id)?;
         let src = self.get_vertex(&edge.src_vertex_id)?;
         let dst = self.get_vertex(&edge.dst_vertex_id)?;
