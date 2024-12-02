@@ -259,7 +259,7 @@ pub fn run_a_star_edge_oriented(
 
                 let final_state = &tree
                     .get(&e2_src)
-                    .ok_or_else(|| SearchError::VertexMissingFromSearchTree(e2_src))?
+                    .ok_or(SearchError::VertexMissingFromSearchTree(e2_src))?
                     .edge_traversal
                     .result_state;
                 let dst_et = EdgeTraversal {

@@ -24,7 +24,7 @@ pub fn vertex_oriented_route(
         }
         let traversal = solution
             .get(&this_vertex)
-            .ok_or_else(|| SearchError::VertexMissingFromSearchTree(this_vertex))?;
+            .ok_or(SearchError::VertexMissingFromSearchTree(this_vertex))?;
         let first_visit = visited.insert(traversal.edge_traversal.edge_id);
         if !first_visit {
             return Err(SearchError::LoopInSearchResult(
