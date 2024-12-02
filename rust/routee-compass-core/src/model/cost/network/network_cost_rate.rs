@@ -58,7 +58,7 @@ impl NetworkCostRate {
     /// * `next_state_var` - the state variable after accessing the next edge origin
     /// * `prev_edge` - the edge traversed to reach the next_edge (or none if at origin)
     /// * `next_edge` - the edge we are attempting to access (not yet traversed)
-
+    ///
     /// # Result
     ///
     /// the Cost value for that state, a real number that is aggregated with

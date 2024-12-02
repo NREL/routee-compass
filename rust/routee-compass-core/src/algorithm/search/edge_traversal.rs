@@ -39,7 +39,6 @@ impl EdgeTraversal {
     ///
     /// # Arguments
     ///
-
     /// * `next_edge_id`     - the edge to traverse
     /// * `prev_edge_id_opt` - the previously traversed edge, if exists, for access costs
     /// * `prev_state`       - the state before traversal, positioned closer to the destination
