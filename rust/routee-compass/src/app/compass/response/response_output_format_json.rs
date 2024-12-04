@@ -21,9 +21,9 @@ pub fn format_response(
     newline_delimited: bool,
 ) -> Result<String, CompassAppError> {
     if newline_delimited {
-        serde_json::to_string(response).map_err(CompassAppError::CodecError)
+        serde_json::to_string(response).map_err(CompassAppError::from)
     } else {
-        let row = serde_json::to_string_pretty(response).map_err(CompassAppError::CodecError)?;
+        let row = serde_json::to_string_pretty(response).map_err(CompassAppError::from)?;
         Ok(row)
     }
 }

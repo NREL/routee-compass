@@ -1,30 +1,35 @@
-use crate::plugin::plugin_error::PluginError;
+use crate::plugin::output::OutputPluginError;
 use geo::{LineString, MultiLineString, Point};
 use geo_types::MultiPoint;
 use geojson::feature::Id;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::edge_traversal::EdgeTraversal;
 use routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch;
-use routee_compass_core::model::road_network::vertex_id::VertexId;
+use routee_compass_core::model::network::vertex_id::VertexId;
 use routee_compass_core::util::geo::geo_io_utils;
 use std::collections::HashMap;
 
 pub fn create_tree_geojson(
     tree: &HashMap<VertexId, SearchTreeBranch>,
     geoms: &[LineString<f32>],
-) -> Result<serde_json::Value, PluginError> {
+) -> Result<serde_json::Value, OutputPluginError> {
     let features = tree
         .values()
         .map(|t| {
             let row_result = geoms
                 .get(t.edge_traversal.edge_id.0)
                 .cloned()
-                .ok_or_else(|| PluginError::EdgeGeometryMissing(t.edge_traversal.edge_id))
+                .ok_or_else(|| {
+                    OutputPluginError::OutputPluginFailed(format!(
+                        "geometry table missing edge id {}",
+                        t.edge_traversal.edge_id
+                    ))
+                })
                 .and_then(|g| create_geojson_feature(&t.edge_traversal, g));
 
             row_result
         })
-        .collect::<Result<Vec<_>, PluginError>>()?;
+        .collect::<Result<Vec<_>, OutputPluginError>>()?;
     // let result_json = serde_json::to_value(features)?;/
     let feature_collection = FeatureCollection {
         bbox: None,
@@ -38,19 +43,24 @@ pub fn create_tree_geojson(
 pub fn create_route_geojson(
     route: &[EdgeTraversal],
     geoms: &[LineString<f32>],
-) -> Result<serde_json::Value, PluginError> {
+) -> Result<serde_json::Value, OutputPluginError> {
     let features = route
         .iter()
         .map(|t| {
             let row_result = geoms
                 .get(t.edge_id.0)
                 .cloned()
-                .ok_or_else(|| PluginError::EdgeGeometryMissing(t.edge_id))
+                .ok_or_else(|| {
+                    OutputPluginError::OutputPluginFailed(format!(
+                        "geometry table missing edge id {}",
+                        t.edge_id
+                    ))
+                })
                 .and_then(|g| create_geojson_feature(t, g));
 
             row_result
         })
-        .collect::<Result<Vec<_>, PluginError>>()?;
+        .collect::<Result<Vec<_>, OutputPluginError>>()?;
     // let result_json = serde_json::to_value(features)?;/
     let feature_collection = FeatureCollection {
         bbox: None,
@@ -64,14 +74,14 @@ pub fn create_route_geojson(
 pub fn create_geojson_feature(
     t: &EdgeTraversal,
     g: LineString<f32>,
-) -> Result<Feature, PluginError> {
+) -> Result<Feature, OutputPluginError> {
     let props = match serde_json::to_value(t).map(|v| v.as_object().cloned()) {
-        Ok(None) => Err(PluginError::InternalError(format!(
+        Ok(None) => Err(OutputPluginError::InternalError(format!(
             "serialized EdgeTraversal was not a JSON object for {}",
             t
         ))),
         Ok(Some(obj)) => Ok(obj),
-        Err(err) => Err(PluginError::JsonError(err)),
+        Err(err) => Err(OutputPluginError::JsonError { source: err }),
     }?;
 
     let id = Id::Number(serde_json::Number::from(t.edge_id.0));
@@ -89,24 +99,26 @@ pub fn create_geojson_feature(
 pub fn create_edge_geometry(
     edge: &EdgeTraversal,
     geoms: &[LineString<f32>],
-) -> Result<LineString<f32>, PluginError> {
-    geoms
-        .get(edge.edge_id.0)
-        .cloned()
-        .ok_or_else(|| PluginError::EdgeGeometryMissing(edge.edge_id))
+) -> Result<LineString<f32>, OutputPluginError> {
+    geoms.get(edge.edge_id.0).cloned().ok_or_else(|| {
+        OutputPluginError::OutputPluginFailed(format!(
+            "geometry table missing edge id {}",
+            edge.edge_id
+        ))
+    })
 }
 
 pub fn create_branch_geometry(
     branch: &SearchTreeBranch,
     geoms: &[LineString<f32>],
-) -> Result<LineString<f32>, PluginError> {
+) -> Result<LineString<f32>, OutputPluginError> {
     create_edge_geometry(&branch.edge_traversal, geoms)
 }
 
 pub fn create_route_linestring(
     route: &[EdgeTraversal],
     geoms: &[LineString<f32>],
-) -> Result<LineString<f32>, PluginError> {
+) -> Result<LineString<f32>, OutputPluginError> {
     let edge_ids = route
         .iter()
         .map(|traversal| traversal.edge_id)
@@ -115,12 +127,15 @@ pub fn create_route_linestring(
     let edge_linestrings = edge_ids
         .iter()
         .map(|eid| {
-            let geom = geoms
-                .get(eid.0)
-                .ok_or_else(|| PluginError::EdgeGeometryMissing(*eid));
+            let geom = geoms.get(eid.0).ok_or_else(|| {
+                OutputPluginError::OutputPluginFailed(format!(
+                    "geometry table missing edge id {}",
+                    *eid
+                ))
+            });
             geom
         })
-        .collect::<Result<Vec<&LineString<f32>>, PluginError>>()?;
+        .collect::<Result<Vec<&LineString<f32>>, OutputPluginError>>()?;
     let geometry = geo_io_utils::concat_linestrings(edge_linestrings);
     Ok(geometry)
 }
@@ -128,7 +143,7 @@ pub fn create_route_linestring(
 pub fn create_tree_multilinestring(
     tree: &HashMap<VertexId, SearchTreeBranch>,
     geoms: &[LineString<f32>],
-) -> Result<MultiLineString<f32>, PluginError> {
+) -> Result<MultiLineString<f32>, OutputPluginError> {
     let edge_ids = tree
         .values()
         .map(|traversal| traversal.edge_traversal.edge_id)
@@ -137,12 +152,15 @@ pub fn create_tree_multilinestring(
     let tree_linestrings = edge_ids
         .iter()
         .map(|eid| {
-            let geom = geoms
-                .get(eid.0)
-                .ok_or_else(|| PluginError::EdgeGeometryMissing(*eid));
+            let geom = geoms.get(eid.0).ok_or_else(|| {
+                OutputPluginError::OutputPluginFailed(format!(
+                    "geometry table missing edge id {}",
+                    *eid
+                ))
+            });
             geom.cloned()
         })
-        .collect::<Result<Vec<LineString<f32>>, PluginError>>()?;
+        .collect::<Result<Vec<LineString<f32>>, OutputPluginError>>()?;
     let geometry = MultiLineString::new(tree_linestrings);
     Ok(geometry)
 }
@@ -150,7 +168,7 @@ pub fn create_tree_multilinestring(
 pub fn create_tree_multipoint(
     tree: &HashMap<VertexId, SearchTreeBranch>,
     geoms: &[LineString<f64>],
-) -> Result<MultiPoint, PluginError> {
+) -> Result<MultiPoint, OutputPluginError> {
     let edge_ids = tree
         .values()
         .map(|traversal| traversal.edge_traversal.edge_id)
@@ -161,10 +179,15 @@ pub fn create_tree_multipoint(
         .map(|eid| {
             let geom = geoms
                 .get(eid.0)
-                .ok_or_else(|| PluginError::EdgeGeometryMissing(*eid))
+                .ok_or_else(|| {
+                    OutputPluginError::OutputPluginFailed(format!(
+                        "geometry table missing edge id {}",
+                        *eid
+                    ))
+                })
                 .map(|l| {
                     l.points().last().ok_or_else(|| {
-                        PluginError::InputError(format!(
+                        OutputPluginError::OutputPluginFailed(format!(
                             "linestring is invalid for edge_id {}",
                             eid
                         ))
@@ -177,7 +200,7 @@ pub fn create_tree_multipoint(
                 Err(e) => Err(e),
             }
         })
-        .collect::<Result<Vec<Point>, PluginError>>()?;
+        .collect::<Result<Vec<Point>, OutputPluginError>>()?;
     let geometry = MultiPoint::new(tree_destinations);
     Ok(geometry)
 }

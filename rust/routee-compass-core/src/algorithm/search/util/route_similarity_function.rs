@@ -1,12 +1,11 @@
-use std::collections::{HashMap, HashSet};
-
 use crate::{
     algorithm::search::{
         edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
     },
-    model::{road_network::edge_id::EdgeId, unit::as_f64::AsF64},
+    model::{network::edge_id::EdgeId, unit::as_f64::AsF64},
 };
 use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 
 #[derive(Serialize, Deserialize, Default, Clone)]
 #[serde(rename_all = "snake_case", tag = "type")]
@@ -20,6 +19,8 @@ pub enum RouteSimilarityFunction {
         threshold: f64,
     },
 }
+
+type DistanceFunction<'a> = Box<dyn Fn(&'_ EdgeId) -> Result<f64, SearchError> + 'a>;
 
 impl RouteSimilarityFunction {
     /// tests for similarity between two paths.
@@ -79,15 +80,15 @@ impl RouteSimilarityFunction {
         match self {
             RouteSimilarityFunction::AcceptAll => Ok(0.0),
             RouteSimilarityFunction::EdgeIdCosineSimilarity { threshold: _ } => {
-                let unit_dist_fn = Box::new(|_| Ok(1.0));
+                let unit_dist_fn = Box::new(|_: &EdgeId| Ok(1.0));
                 cos_similarity(a, b, unit_dist_fn)
             }
             RouteSimilarityFunction::DistanceWeightedCosineSimilarity { threshold: _ } => {
-                let dist_fn = Box::new(|edge_id| {
+                let dist_fn = Box::new(|edge_id: &EdgeId| {
                     si.directed_graph
                         .get_edge(edge_id)
                         .map(|edge| edge.distance.as_f64())
-                        .map_err(SearchError::GraphError)
+                        .map_err(SearchError::from)
                 });
                 cos_similarity(a, b, dist_fn)
             }
@@ -106,18 +107,18 @@ impl RouteSimilarityFunction {
 /// # Returns
 ///
 /// the cosine similarity of the routes, a value from -1 to 1
-fn cos_similarity<'a>(
+fn cos_similarity(
     a: &[&EdgeTraversal],
     b: &[&EdgeTraversal],
-    dist_fn: Box<dyn Fn(EdgeId) -> Result<f64, SearchError> + 'a>,
+    dist_fn: DistanceFunction<'_>,
 ) -> Result<f64, SearchError> {
     let a_map = a
         .iter()
-        .map(|e| dist_fn(e.edge_id).map(|dist| (e.edge_id, dist)))
+        .map(|e| dist_fn(&e.edge_id).map(|dist| (e.edge_id, dist)))
         .collect::<Result<HashMap<_, _>, _>>()?;
     let b_map = b
         .iter()
-        .map(|e| dist_fn(e.edge_id).map(|dist| (e.edge_id, dist)))
+        .map(|e| dist_fn(&e.edge_id).map(|dist| (e.edge_id, dist)))
         .collect::<Result<HashMap<_, _>, _>>()?;
 
     let numer: f64 = a_map

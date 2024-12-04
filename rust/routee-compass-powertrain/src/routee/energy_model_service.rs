@@ -38,7 +38,11 @@ impl EnergyModelService {
         let grade_table: Arc<Option<Box<[Grade]>>> = match grade_table_path_option {
             Some(gtp) => Arc::new(Some(
                 read_utils::read_raw_file(gtp, read_decoders::default, None).map_err(|e| {
-                    TraversalModelError::FileReadError(gtp.as_ref().to_path_buf(), e.to_string())
+                    TraversalModelError::BuildError(format!(
+                        "failure reading grade table {} due to {}",
+                        gtp.as_ref().to_str().unwrap_or_default(),
+                        e
+                    ))
                 })?,
             )),
             None => Arc::new(None),

@@ -1,4 +1,4 @@
-use crate::plugin::plugin_error::PluginError;
+use super::InputPluginError;
 
 /// Performs some kind of pre-processing on a user query input. The input JSON is available
 /// to the plugin as a reference. The plugin produces a vector of zero to many JSON objects that will
@@ -26,5 +26,5 @@ pub trait InputPlugin: Send + Sync {
     /// # Returns
     ///
     /// A `Vec` of JSON values to replace the input JSON, or an error
-    fn process(&self, input: &mut serde_json::Value) -> Result<(), PluginError>;
+    fn process(&self, input: &mut serde_json::Value) -> Result<(), InputPluginError>;
 }

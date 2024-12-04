@@ -1,7 +1,7 @@
 use super::road_class_service::RoadClassFrontierService;
 use routee_compass_core::model::{
     frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
-    property::edge::Edge,
+    network::Edge,
     state::state_model::StateModel,
     traversal::state::state_variable::StateVar,
 };
@@ -26,7 +26,12 @@ impl FrontierModel for RoadClassFrontierModel {
                 .service
                 .road_class_lookup
                 .get(edge.edge_id.0)
-                .ok_or_else(|| FrontierModelError::MissingIndex(format!("{}", edge.edge_id)))
+                .ok_or_else(|| {
+                    FrontierModelError::FrontierModelError(format!(
+                        "edge id {} missing from frontier model file",
+                        edge.edge_id
+                    ))
+                })
                 .map(|road_class| road_classes.contains(road_class)),
         }
     }

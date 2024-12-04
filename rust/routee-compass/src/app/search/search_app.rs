@@ -5,7 +5,7 @@ use crate::{
         config::cost_model::cost_model_service::CostModelService,
         search_orientation::SearchOrientation,
     },
-    plugin::input::input_json_extensions::InputJsonExtensions,
+    plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError},
 };
 use chrono::Local;
 use routee_compass_core::{
@@ -16,7 +16,7 @@ use routee_compass_core::{
     },
     model::{
         access::access_model_service::AccessModelService,
-        frontier::frontier_model_service::FrontierModelService, road_network::graph::Graph,
+        frontier::frontier_model_service::FrontierModelService, network::graph::Graph,
         state::state_model::StateModel, termination::termination_model::TerminationModel,
         traversal::traversal_model_service::TraversalModelService,
     },
@@ -112,35 +112,35 @@ impl SearchApp {
         &self,
         query: &serde_json::Value,
     ) -> Result<(SearchAlgorithmResult, SearchInstance), CompassAppError> {
-        let o = query
-            .get_origin_vertex()
-            .map_err(CompassAppError::PluginError)?;
-        let d = query
-            .get_destination_vertex()
-            .map_err(CompassAppError::PluginError)?;
+        let o = query.get_origin_vertex().map_err(|e| {
+            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+        })?;
+        let d = query.get_destination_vertex().map_err(|e| {
+            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+        })?;
 
         let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
             .run_vertex_oriented(o, d, query, &Direction::Forward, &search_instance)
             .map(|search_result| (search_result, search_instance))
-            .map_err(CompassAppError::SearchError)
+            .map_err(CompassAppError::SearchFailure)
     }
 
     pub fn run_edge_oriented(
         &self,
         query: &serde_json::Value,
     ) -> Result<(SearchAlgorithmResult, SearchInstance), CompassAppError> {
-        let o = query
-            .get_origin_edge()
-            .map_err(CompassAppError::PluginError)?;
-        let d_opt = query
-            .get_destination_edge()
-            .map_err(CompassAppError::PluginError)?;
+        let o = query.get_origin_edge().map_err(|e| {
+            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+        })?;
+        let d_opt = query.get_destination_edge().map_err(|e| {
+            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+        })?;
         let search_instance = self.build_search_instance(query)?;
         self.search_algorithm
             .run_edge_oriented(o, d_opt, query, &Direction::Forward, &search_instance)
             .map(|search_result| (search_result, search_instance))
-            .map_err(CompassAppError::SearchError)
+            .map_err(CompassAppError::SearchFailure)
     }
 
     /// builds the assets that will run the search for this query instance.

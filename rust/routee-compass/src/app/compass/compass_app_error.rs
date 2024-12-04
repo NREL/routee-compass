@@ -1,49 +1,88 @@
-use super::{
-    compass_input_field::CompassInputField,
-    config::compass_configuration_error::CompassConfigurationError,
+use super::config::compass_configuration_error::CompassConfigurationError;
+use crate::plugin::{
+    input::InputPluginError, output::OutputPluginError, plugin_error::PluginError,
 };
-use crate::plugin::plugin_error::PluginError;
 use config::ConfigError;
 use routee_compass_core::{
     algorithm::search::search_error::SearchError,
     model::{
-        frontier::frontier_model_error::FrontierModelError, road_network::graph_error::GraphError,
-        state::state_error::StateError, traversal::traversal_model_error::TraversalModelError,
+        access::access_model_error::AccessModelError, cost::cost_model_error::CostModelError,
+        frontier::frontier_model_error::FrontierModelError, network::network_error::NetworkError,
+        state::state_model_error::StateModelError,
+        termination::termination_model_error::TerminationModelError,
+        traversal::traversal_model_error::TraversalModelError,
     },
 };
 
 #[derive(thiserror::Error, Debug)]
 pub enum CompassAppError {
+    // TOP-LEVEL FAILURES
+    //   errors observed during build and run of compass that are not due to the search modules
+    #[error("failure building compass app: {0}")]
+    BuildFailure(String),
+    #[error("failure while running app: {0}")]
+    CompassFailure(String),
+    #[error("internal error: {0}")]
+    InternalError(String),
+    #[error("error accessing shared read-only dataset: {0}")]
+    ReadOnlyPoisonError(String),
+
+    // TRANSPARENT MODULE FAILURES
+    //   failures from these modules are detailed enough to get surfaced directly to the user
     #[error(transparent)]
-    SearchError(#[from] SearchError),
+    ConfigFailure(#[from] ConfigError),
     #[error(transparent)]
-    FrontierModelError(#[from] FrontierModelError),
+    CompassConfigurationError(#[from] CompassConfigurationError),
     #[error(transparent)]
-    TraversalModelError(#[from] TraversalModelError),
+    SearchFailure(#[from] SearchError),
     #[error(transparent)]
     PluginError(#[from] PluginError),
     #[error(transparent)]
-    IOError(#[from] std::io::Error),
+    InputPluginFailure(#[from] InputPluginError),
     #[error(transparent)]
-    CodecError(#[from] serde_json::Error),
-    #[error(transparent)]
-    ConfigError(#[from] ConfigError),
-    #[error(transparent)]
-    GraphError(#[from] GraphError),
-    #[error(transparent)]
-    StateError(#[from] StateError),
-    #[error("Input file {0} missing")]
-    NoInputFile(String),
-    #[error(transparent)]
-    CompassConfigurationError(#[from] CompassConfigurationError),
-    #[error("a ux component caused a failure: {0}")]
-    UXError(String),
-    #[error("internal error: {0}")]
-    InternalError(String),
-    #[error("app input JSON missing field: {0}")]
-    MissingInputField(CompassInputField),
-    #[error("error accessing shared read-only dataset: {0}")]
-    ReadOnlyPoisonError(String),
-    #[error("error decoding input:\n{0}")]
-    InvalidInput(String),
+    OutputPluginFailure(#[from] OutputPluginError),
+
+    // CONTEXTUALIZED MODULE FAILURES
+    //   failures from these modules are happening outside of the context of running the search,
+    //   which is clarified for the user and may help direct where to look to solve the problem.
+    #[error("While interacting with the state model outside of the context of search, an error occurred. Source: {source}")]
+    StateFailure {
+        #[from]
+        source: StateModelError,
+    },
+    #[error("While interacting with the network model outside of the context of search, an error occurred. Source: {source}")]
+    NetworkFailure {
+        #[from]
+        source: NetworkError,
+    },
+    #[error("While interacting with the termination model outside of the context of search, an error occurred. Source: {source}")]
+    TerminationModelFailure {
+        #[from]
+        source: TerminationModelError,
+    },
+    #[error("While interacting with the traversal model outside of the context of search, an error occurred. Source: {source}")]
+    TraversalModelFailure {
+        #[from]
+        source: TraversalModelError,
+    },
+    #[error("While interacting with the access model outside of the context of search, an error occurred. Source: {source}")]
+    AccessModelFailure {
+        #[from]
+        source: AccessModelError,
+    },
+    #[error("While interacting with the frontier model outside of the context of search, an error occurred. Source: {source}")]
+    FrontierModelFailure {
+        #[from]
+        source: FrontierModelError,
+    },
+    #[error("While interacting with the cost model outside of the context of search, an error occurred. Source: {source}")]
+    CostFailure {
+        #[from]
+        source: CostModelError,
+    },
+    #[error("failure due to JSON: {source}")]
+    JsonError {
+        #[from]
+        source: serde_json::Error,
+    },
 }

@@ -351,7 +351,9 @@ impl CompassApp {
             .animation("fillup")
             .desc("input plugins")
             .build()
-            .map_err(CompassAppError::UXError)?;
+            .map_err(|e| {
+                CompassAppError::InternalError(format!("could not build progress bar: {}", e))
+            })?;
         let input_pb_shared = Arc::new(Mutex::new(input_pb));
 
         // input plugins need to be flattened, and queries that fail input processing need to be
@@ -378,7 +380,7 @@ impl CompassApp {
             })
             .unzip();
 
-        println!();
+        eprintln!();
 
         // unpack input plugin results
         let (processed_inputs_nested, error_inputs_nested) = input_plugin_result;
@@ -416,7 +418,9 @@ impl CompassApp {
             .animation("fillup")
             .desc("search")
             .build()
-            .map_err(CompassAppError::UXError)?;
+            .map_err(|e| {
+                CompassAppError::InternalError(format!("could not build progress bar: {}", e))
+            })?;
         let search_pb_shared = Arc::new(Mutex::new(search_pb));
 
         // run parallel searches as organized by the (optional) load balancing policy
@@ -439,6 +443,7 @@ impl CompassApp {
                 search_pb_shared,
             )?,
         };
+        eprintln!();
 
         let run_result = run_query_result.chain(error_inputs).collect();
         Ok(run_result)
@@ -572,7 +577,7 @@ pub fn apply_input_plugins(
     let mut plugin_state = serde_json::Value::Array(vec![query.clone()]);
     for plugin in plugins {
         let p = plugin.clone();
-        let op: in_ops::ArrayOp = Rc::new(|q| p.process(q));
+        let op: in_ops::InputArrayOp = Rc::new(|q| p.process(q));
         in_ops::json_array_op(&mut plugin_state, op)?
     }
     let result = in_ops::json_array_flatten(&mut plugin_state)?;

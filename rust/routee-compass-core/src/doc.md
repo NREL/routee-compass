@@ -20,8 +20,8 @@ This can be broken up into the following modules:
 RouteE Compass takes a layered approach to modeling the road network.
 At the core is the [Graph] model. 
 The edges and vertices are stored in `vec`s and carry the minimal data required for most search applications:
-- [`crate::model::property::edge::Edge`] records store distance in meters
-- [`crate::model::property::vertex::Vertex`] records store coordinate locations, assumed in WGS84 projection
+- [`crate::model::road_network::Edge`] records store distance in meters
+- [`crate::model::road_network::Vertex`] records store coordinate locations, assumed in WGS84 projection
 
 A forward and reverse adjacency list describes connectivity in the graph using the indices of the edges and vertices in their respective `vec`s.
 

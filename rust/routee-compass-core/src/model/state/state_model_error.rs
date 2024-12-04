@@ -1,7 +1,7 @@
 use crate::model::traversal::state::state_variable::StateVar;
 
 #[derive(thiserror::Error, Debug)]
-pub enum StateError {
+pub enum StateModelError {
     #[error("attempting to encode {0} as state variable when value is a {1}")]
     EncodeError(String, String),
     #[error("attempting to decode {0} as a {1} when codec expects a {2}")]

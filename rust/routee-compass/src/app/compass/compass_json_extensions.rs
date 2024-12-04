@@ -19,11 +19,11 @@ impl CompassJsonExtensions for serde_json::Value {
                     serde_json::Value::Array(vec) => Ok(vec.to_owned()),
                     _ => {
                         let msg = String::from("user JSON argument must be an object or an array");
-                        Err(CompassAppError::InvalidInput(msg))
+                        Err(CompassAppError::CompassFailure(msg))
                     }
                 },
             },
-            _ => Err(CompassAppError::InvalidInput(String::from(
+            _ => Err(CompassAppError::CompassFailure(String::from(
                 "expected object, object with queries, or array input",
             ))),
         }

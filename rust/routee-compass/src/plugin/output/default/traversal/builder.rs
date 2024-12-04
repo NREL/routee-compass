@@ -6,7 +6,7 @@ use crate::{
         builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,
         config_json_extension::ConfigJsonExtensions,
     },
-    plugin::output::output_plugin::OutputPlugin,
+    plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError},
 };
 
 /// Builds a plugin that can generate traversal outputs.
@@ -49,7 +49,8 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
         let tree: Option<TraversalOutputFormat> =
             parameters.get_config_serde_optional(&"tree", &parent_key)?;
 
-        let geom_plugin = TraversalPlugin::from_file(&geometry_filename, route, tree)?;
+        let geom_plugin = TraversalPlugin::from_file(&geometry_filename, route, tree)
+            .map_err(|e| PluginError::OutputPluginFailed { source: e })?;
         Ok(Arc::new(geom_plugin))
     }
 }

@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::{custom_feature_format::CustomFeatureFormat, state_error::StateError};
+use super::{custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError};
 use crate::model::{traversal::state::state_variable::StateVar, unit};
 use serde::{Deserialize, Serialize};
 
@@ -195,7 +195,7 @@ impl StateFeature {
         }
     }
 
-    pub fn get_initial(&self) -> Result<StateVar, StateError> {
+    pub fn get_initial(&self) -> Result<StateVar, StateModelError> {
         match self {
             StateFeature::Distance {
                 distance_unit: _,
@@ -217,53 +217,53 @@ impl StateFeature {
         }
     }
 
-    pub fn get_distance_unit(&self) -> Result<unit::DistanceUnit, StateError> {
+    pub fn get_distance_unit(&self) -> Result<unit::DistanceUnit, StateModelError> {
         match self {
             StateFeature::Distance {
                 distance_unit: unit,
                 initial: _,
             } => Ok(*unit),
-            _ => Err(StateError::UnexpectedFeatureUnit(
+            _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("distance"),
                 self.get_feature_type(),
             )),
         }
     }
 
-    pub fn get_time_unit(&self) -> Result<unit::TimeUnit, StateError> {
+    pub fn get_time_unit(&self) -> Result<unit::TimeUnit, StateModelError> {
         match self {
             StateFeature::Time {
                 time_unit: unit,
                 initial: _,
             } => Ok(*unit),
-            _ => Err(StateError::UnexpectedFeatureUnit(
+            _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("time"),
                 self.get_feature_type(),
             )),
         }
     }
 
-    pub fn get_energy_unit(&self) -> Result<unit::EnergyUnit, StateError> {
+    pub fn get_energy_unit(&self) -> Result<unit::EnergyUnit, StateModelError> {
         match self {
             StateFeature::Energy {
                 energy_unit,
                 initial: _,
             } => Ok(*energy_unit),
-            _ => Err(StateError::UnexpectedFeatureUnit(
+            _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("energy"),
                 self.get_feature_type(),
             )),
         }
     }
 
-    pub fn get_custom_feature_format(&self) -> Result<&CustomFeatureFormat, StateError> {
+    pub fn get_custom_feature_format(&self) -> Result<&CustomFeatureFormat, StateModelError> {
         match self {
             StateFeature::Custom {
                 r#type: _,
                 unit: _,
                 format,
             } => Ok(format),
-            _ => Err(StateError::UnexpectedFeatureUnit(
+            _ => Err(StateModelError::UnexpectedFeatureUnit(
                 self.get_feature_unit_name(),
                 self.get_feature_type(),
             )),
