@@ -1,4 +1,6 @@
-use crate::{model::road_network::vertex_id::VertexId, util::geo::coord::InternalCoord};
+use std::fmt::Display;
+
+use crate::{model::network::vertex_id::VertexId, util::geo::coord::InternalCoord};
 use allocative::Allocative;
 use geo::coord;
 use serde::de;
@@ -29,6 +31,12 @@ impl Vertex {
 
     pub fn y(&self) -> f32 {
         self.coordinate.y
+    }
+}
+
+impl Display for Vertex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Vertex {} ({},{})", self.vertex_id, self.x(), self.y())
     }
 }
 
@@ -132,7 +140,7 @@ mod tests {
     use geo::Coord;
 
     use crate::{
-        model::{property::vertex::Vertex, road_network::vertex_id::VertexId},
+        model::network::{Vertex, VertexId},
         util::geo::coord::InternalCoord,
     };
 
@@ -141,7 +149,7 @@ mod tests {
         let filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
-            .join("property")
+            .join("network")
             .join("test")
             .join("vertices.csv");
 

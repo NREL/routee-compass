@@ -1,5 +1,5 @@
 use routee_compass_core::model::{
-    access::default::turn_delays::edge_heading::EdgeHeading, road_network::edge_id::EdgeId,
+    access::default::turn_delays::edge_heading::EdgeHeading, network::edge_id::EdgeId,
     traversal::traversal_model_error::TraversalModelError, unit::Grade,
 };
 
@@ -14,11 +14,10 @@ pub fn get_grade(
         None => Ok(Grade::ZERO),
         Some(gt) => {
             let grade: &Grade = gt.get(edge_id.as_usize()).ok_or_else(|| {
-                TraversalModelError::MissingIdInTabularCostFunction(
-                    format!("{}", edge_id),
-                    String::from("EdgeId"),
-                    String::from("grade table"),
-                )
+                TraversalModelError::TraversalModelFailure(format!(
+                    "missing index {} from grade table",
+                    edge_id
+                ))
             })?;
             Ok(*grade)
         }
@@ -31,11 +30,10 @@ pub fn get_headings(
     edge_id: EdgeId,
 ) -> Result<EdgeHeading, TraversalModelError> {
     let heading: &EdgeHeading = headings_table.get(edge_id.as_usize()).ok_or_else(|| {
-        TraversalModelError::MissingIdInTabularCostFunction(
-            format!("{}", edge_id),
-            String::from("EdgeId"),
-            String::from("headings table"),
-        )
+        TraversalModelError::TraversalModelFailure(format!(
+            "missing index {} from headings table",
+            edge_id
+        ))
     })?;
     Ok(*heading)
 }

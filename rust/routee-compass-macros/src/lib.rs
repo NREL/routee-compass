@@ -50,21 +50,11 @@ pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     ))
                 })
             }
-            fn graph_get_out_edge_ids(&self, vertex_id: usize) -> PyResult<Vec<usize>> {
-                CompassAppBindings::graph_get_out_edge_ids(self, vertex_id).map_err(|e| {
-                    PyException::new_err(format!(
-                        "error retrieving out edge ids for vertex_id {}: {}",
-                        vertex_id, e
-                    ))
-                })
+            fn graph_get_out_edge_ids(&self, vertex_id: usize) -> Vec<usize> {
+                CompassAppBindings::graph_get_out_edge_ids(self, vertex_id)
             }
-            fn graph_get_in_edge_ids(&self, vertex_id: usize) -> PyResult<Vec<usize>> {
-                CompassAppBindings::graph_get_in_edge_ids(self, vertex_id).map_err(|e| {
-                    PyException::new_err(format!(
-                        "error retrieving in edge ids for vertex_id {}: {}",
-                        vertex_id, e
-                    ))
-                })
+            fn graph_get_in_edge_ids(&self, vertex_id: usize) -> Vec<usize> {
+                CompassAppBindings::graph_get_in_edge_ids(self, vertex_id)
             }
             #[staticmethod]
             pub fn _from_config_toml_string(

@@ -1,10 +1,7 @@
 #[derive(thiserror::Error, Debug)]
-pub enum CostError {
-    #[error("failure reading CSV: {source}")]
-    CsvIoError {
-        #[from]
-        source: csv::Error,
-    },
+pub enum CostModelError {
+    #[error("{0}")]
+    BuildError(String),
     #[error("invalid cost model configuration: {0}")]
     InvalidConfiguration(String),
     #[error(

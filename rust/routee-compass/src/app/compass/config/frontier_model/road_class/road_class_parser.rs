@@ -25,7 +25,7 @@ impl RoadClassParser {
                         if self.mapping.is_empty() {
                             // if we don't have a road class mapping then we fail
                             let value_string = value.to_string();
-                            Err(CompassAppError::InvalidInput(
+                            Err(CompassAppError::CompassFailure(
                                 formatdoc! {r#"
                                     Could not parse incoming query valid road_classes of {value_string} as an array of integers 
                                     and this FrontierModel does not specify a mapping of string to integer. 
@@ -42,7 +42,7 @@ impl RoadClassParser {
                                     .map(|s| {
                                         self.mapping.get(s).cloned().ok_or_else(|| {
                                             let valid_mapping: Vec<String> = self.mapping.keys().cloned().collect();
-                                            CompassAppError::InvalidInput(
+                                            CompassAppError::CompassFailure(
                                                 format!("Could not find road class mapping for incoming value {}. Here are the road classes I have: {:?}", s, valid_mapping)
                                             )
                                         })

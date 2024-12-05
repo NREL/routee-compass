@@ -1,10 +1,5 @@
-use crate::{
-    model::{
-        property::edge::Edge,
-        road_network::{edge_id::EdgeId, graph_error::GraphError, vertex_id::VertexId},
-    },
-    util::{compact_ordered_hash_map::CompactOrderedHashMap, fs::read_utils},
-};
+use super::{Edge, EdgeId, NetworkError, VertexId};
+use crate::util::{compact_ordered_hash_map::CompactOrderedHashMap, fs::read_utils};
 use kdam::Bar;
 use kdam::BarExt;
 use std::{collections::HashSet, path::PathBuf};
@@ -22,7 +17,7 @@ pub struct EdgeLoaderConfig {
 }
 
 impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
-    type Error = GraphError;
+    type Error = NetworkError;
 
     fn try_from(c: EdgeLoaderConfig) -> Result<Self, Self::Error> {
         let mut adj: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
@@ -35,7 +30,9 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
             .animation("fillup")
             .desc("edge list")
             .build()
-            .map_err(|e| GraphError::ProgressBarBuildError(String::from("edge list"), e))?;
+            .map_err(|e| {
+                NetworkError::InternalError(format!("could not build progress bar: {}", e))
+            })?;
 
         let mut missing_vertices: HashSet<VertexId> = HashSet::new();
         let cb = Box::new(|edge: &Edge| {
@@ -61,7 +58,7 @@ impl TryFrom<EdgeLoaderConfig> for EdgeLoader {
 
         let edges = read_utils::from_csv(&c.edge_list_csv, true, Some(cb))?;
 
-        println!();
+        eprintln!();
         let result = EdgeLoader {
             edges,
             adj: adj.into_boxed_slice(),

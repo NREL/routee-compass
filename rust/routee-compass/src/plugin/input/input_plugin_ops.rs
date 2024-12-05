@@ -1,8 +1,8 @@
-use std::rc::Rc;
-
-use crate::plugin::plugin_error::PluginError;
 use indoc::indoc;
 use serde_json::{json, Value};
+use std::rc::Rc;
+
+use super::InputPluginError;
 
 /// helper to return errors as JSON response objects which include the
 /// original request along with the error message
@@ -62,13 +62,13 @@ pub fn package_invariant_error(
     }
 }
 
-pub type ArrayOp<'a> = Rc<dyn Fn(&mut Value) -> Result<(), PluginError> + 'a>;
+pub type InputArrayOp<'a> = Rc<dyn Fn(&mut Value) -> Result<(), InputPluginError> + 'a>;
 
 /// executes an operation on an input query. maintains the invariant that
 /// input queries should always remain wrapped in a top-level JSON Array
 /// so that we can perform operations like grid search, which transform a
 /// single query into multiple child queries.
-pub fn json_array_op<'a>(query: &'a mut Value, op: ArrayOp<'a>) -> Result<(), Value> {
+pub fn json_array_op<'a>(query: &'a mut Value, op: InputArrayOp<'a>) -> Result<(), Value> {
     match query {
         Value::Array(queries) => {
             for q in queries.iter_mut() {

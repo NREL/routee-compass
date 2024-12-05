@@ -189,7 +189,7 @@ impl VehicleType for PHEV {
             ));
         }
         let starting_battery_energy =
-            Energy::new(starting_soc_percent * self.battery_capacity.as_f64());
+            Energy::new(0.01 * starting_soc_percent * self.battery_capacity.as_f64());
 
         let new_phev = PHEV {
             name: self.name.clone(),

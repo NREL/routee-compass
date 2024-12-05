@@ -4,8 +4,8 @@ use crate::algorithm::search::search_error::SearchError;
 use crate::algorithm::search::search_instance::SearchInstance;
 use crate::algorithm::search::search_result::SearchResult;
 use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
-use crate::model::road_network::edge_id::EdgeId;
-use crate::model::road_network::vertex_id::VertexId;
+use crate::model::network::edge_id::EdgeId;
+use crate::model::network::vertex_id::VertexId;
 use crate::model::unit::as_f64::AsF64;
 use crate::model::unit::cost::ReverseCost;
 use crate::model::unit::Cost;
@@ -61,7 +61,7 @@ pub fn run_a_star(
 
         let last_edge_id = get_last_traversed_edge_id(&current_vertex_id, &source, &solution)?;
         let last_edge = match last_edge_id {
-            Some(id) => Some(si.directed_graph.get_edge(id)?),
+            Some(id) => Some(si.directed_graph.get_edge(&id)?),
             None => None,
         };
 
@@ -72,7 +72,7 @@ pub fn run_a_star(
             solution
                 .get(&current_vertex_id)
                 .ok_or_else(|| {
-                    SearchError::InternalSearchError(format!(
+                    SearchError::InternalError(format!(
                         "expected vertex id {} missing from solution",
                         current_vertex_id
                     ))
@@ -83,9 +83,9 @@ pub fn run_a_star(
         };
 
         // visit all neighbors of this source vertex
-        let incident_edge_iterator = direction.get_incident_edges(&current_vertex_id, si)?;
+        let incident_edge_iterator = direction.get_incident_edges(&current_vertex_id, si);
         for edge_id in incident_edge_iterator {
-            let e = si.directed_graph.get_edge(*edge_id)?;
+            let e = si.directed_graph.get_edge(edge_id)?;
 
             let terminal_vertex_id = direction.terminal_vertex_id(e);
             let key_vertex_id = direction.tree_key_vertex_id(e);
@@ -188,8 +188,8 @@ pub fn run_a_star_edge_oriented(
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let e1_src = si.directed_graph.src_vertex_id(source)?;
-    let e1_dst = si.directed_graph.dst_vertex_id(source)?;
+    let e1_src = si.directed_graph.src_vertex_id(&source)?;
+    let e1_dst = si.directed_graph.dst_vertex_id(&source)?;
     let src_et = EdgeTraversal {
         edge_id: source,
         access_cost: Cost::ZERO,
@@ -217,8 +217,8 @@ pub fn run_a_star_edge_oriented(
             Ok(updated)
         }
         Some(target_edge) => {
-            let e2_src = si.directed_graph.src_vertex_id(target_edge)?;
-            let e2_dst = si.directed_graph.dst_vertex_id(target_edge)?;
+            let e2_src = si.directed_graph.src_vertex_id(&target_edge)?;
+            let e2_dst = si.directed_graph.dst_vertex_id(&target_edge)?;
 
             if source == target_edge {
                 Ok(SearchResult::default())
@@ -254,12 +254,17 @@ pub fn run_a_star_edge_oriented(
                 } = run_a_star(e1_dst, Some(e2_src), direction, weight_factor, si)?;
 
                 if tree.is_empty() {
-                    return Err(SearchError::NoPathExists(e1_dst, e2_src));
+                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src));
                 }
 
                 let final_state = &tree
                     .get(&e2_src)
-                    .ok_or_else(|| SearchError::VertexMissingFromSearchTree(e2_src))?
+                    .ok_or_else(|| {
+                        SearchError::InternalError(format!(
+                            "resulting tree missing vertex {} expected via backtrack",
+                            e2_src
+                        ))
+                    })?
                     .edge_traversal
                     .result_state;
                 let dst_et = EdgeTraversal {
@@ -313,7 +318,10 @@ fn advance_search(
     target: Option<VertexId>,
 ) -> Result<Option<VertexId>, SearchError> {
     match (cost.pop(), target) {
-        (None, Some(target_vertex_id)) => Err(SearchError::NoPathExists(source, target_vertex_id)),
+        (None, Some(target_vertex_id)) => Err(SearchError::NoPathExistsBetweenVertices(
+            source,
+            target_vertex_id,
+        )),
         (None, None) => Ok(None),
         (Some((current_v, _)), Some(target_v)) if current_v == target_v => Ok(None),
         (Some((current_vertex_id, _)), _) => Ok(Some(current_vertex_id)),
@@ -347,7 +355,7 @@ fn get_last_traversed_edge_id(
         let edge_id = tree
             .get(this_vertex_id)
             .ok_or_else(|| {
-                SearchError::InternalSearchError(format!(
+                SearchError::InternalError(format!(
                     "expected vertex id {} missing from solution",
                     this_vertex_id
                 ))
@@ -368,10 +376,10 @@ mod tests {
     use crate::model::cost::cost_model::CostModel;
     use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
-    use crate::model::property::edge::Edge;
-    use crate::model::property::vertex::Vertex;
-    use crate::model::road_network::edge_id::EdgeId;
-    use crate::model::road_network::graph::Graph;
+    use crate::model::network::edge_id::EdgeId;
+    use crate::model::network::graph::Graph;
+    use crate::model::network::Edge;
+    use crate::model::network::Vertex;
     use crate::model::state::state_feature::StateFeature;
     use crate::model::state::state_model::StateModel;
     use crate::model::termination::termination_model::TerminationModel;

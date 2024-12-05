@@ -9,7 +9,7 @@ use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
 use super::util::route_similarity_function::RouteSimilarityFunction;
 use super::{a_star::a_star_algorithm, direction::Direction};
-use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
 
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
@@ -182,8 +182,8 @@ pub fn run_edge_oriented(
     si: &SearchInstance,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let e1_src = si.directed_graph.src_vertex_id(source)?;
-    let e1_dst = si.directed_graph.dst_vertex_id(source)?;
+    let e1_src = si.directed_graph.src_vertex_id(&source)?;
+    let e1_dst = si.directed_graph.dst_vertex_id(&source)?;
     let src_et = EdgeTraversal {
         edge_id: source,
         access_cost: Cost::ZERO,
@@ -218,8 +218,8 @@ pub fn run_edge_oriented(
             Ok(updated)
         }
         Some(target_edge) => {
-            let e2_src = si.directed_graph.src_vertex_id(target_edge)?;
-            let e2_dst = si.directed_graph.dst_vertex_id(target_edge)?;
+            let e2_src = si.directed_graph.src_vertex_id(&target_edge)?;
+            let e2_dst = si.directed_graph.dst_vertex_id(&target_edge)?;
 
             if source == target_edge {
                 Ok(SearchAlgorithmResult::default())
@@ -258,14 +258,14 @@ pub fn run_edge_oriented(
                 } = alg.run_vertex_oriented(e1_dst, Some(e2_src), query, direction, si)?;
 
                 if trees.is_empty() {
-                    return Err(SearchError::NoPathExists(e1_dst, e2_src));
+                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src));
                 }
 
                 // it is possible that the search already found these vertices. one major edge
                 // case is when the trip starts with a u-turn.
                 for route in routes.iter_mut() {
                     let final_state = route.last().ok_or_else(|| {
-                        SearchError::InternalSearchError(String::from("found empty result route"))
+                        SearchError::InternalError(String::from("found empty result route"))
                     })?;
 
                     let dst_et = EdgeTraversal {

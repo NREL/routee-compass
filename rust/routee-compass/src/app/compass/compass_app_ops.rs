@@ -36,8 +36,7 @@ pub fn read_config_from_file(config_path: &Path) -> Result<Config, CompassAppErr
             CompassInputField::ConfigInputFile.to_string(),
             conf_file_string,
         )?
-        .build()
-        .map_err(CompassAppError::ConfigError)?;
+        .build()?;
 
     Ok(config)
 }
@@ -74,8 +73,7 @@ pub fn read_config_from_string(
             CompassInputField::ConfigInputFile.to_string(),
             original_file_path,
         )?
-        .build()
-        .map_err(CompassAppError::ConfigError)?;
+        .build()?;
 
     Ok(config)
 }
