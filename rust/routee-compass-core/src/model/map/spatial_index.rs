@@ -5,8 +5,7 @@ use super::{
     map_vertex_rtree_object::MapVertexRTreeObject, nearest_search_result::NearestSearchResult,
 };
 use crate::model::{
-    property::vertex::Vertex,
-    road_network::graph::Graph,
+    network::{Graph, Vertex},
     unit::{Distance, DistanceUnit},
 };
 use geo::Point;

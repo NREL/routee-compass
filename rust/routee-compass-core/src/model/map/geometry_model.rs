@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use super::map_error::MapError;
 use crate::{
-    model::road_network::{edge_id::EdgeId, graph::Graph},
+    model::network::{EdgeId, Graph},
     util::{fs::read_utils, geo::geo_io_utils},
 };
 use geo::LineString;
@@ -27,7 +27,7 @@ impl GeometryModel {
     }
 
     /// iterate through the geometries of this model
-    pub fn geometries<'a>(&'a self) -> Box<dyn Iterator<Item = &LineString<f32>> + 'a> {
+    pub fn geometries<'a>(&'a self) -> Box<dyn Iterator<Item = &'a LineString<f32>> + 'a> {
         Box::new(self.0.iter())
     }
 
@@ -79,13 +79,13 @@ fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<
         .edges
         .iter()
         .map(|e| {
-            let src_v = graph.get_vertex(e.src_vertex_id).map_err(|_| {
+            let src_v = graph.get_vertex(&e.src_vertex_id).map_err(|_| {
                 MapError::InternalError(format!(
                     "edge {} src vertex {} missing",
                     e.edge_id, e.src_vertex_id
                 ))
             })?;
-            let dst_v = graph.get_vertex(e.dst_vertex_id).map_err(|_| {
+            let dst_v = graph.get_vertex(&e.dst_vertex_id).map_err(|_| {
                 MapError::InternalError(format!(
                     "edge {} dst vertex {} missing",
                     e.edge_id, e.dst_vertex_id

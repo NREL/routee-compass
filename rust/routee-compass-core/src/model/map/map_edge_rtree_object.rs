@@ -1,7 +1,6 @@
 use super::{map_error::MapError, spatial_index_ops::within_threshold};
 use crate::model::{
-    property::edge::Edge,
-    road_network::edge_id::EdgeId,
+    network::{Edge, EdgeId},
     unit::{Distance, DistanceUnit},
 };
 use geo::{LineString, Point};

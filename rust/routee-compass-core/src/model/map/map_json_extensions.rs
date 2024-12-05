@@ -1,5 +1,5 @@
 use super::{map_error::MapError, map_json_key::MapJsonKey};
-use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::network::{EdgeId, VertexId};
 use geo;
 
 pub trait MapJsonExtensions {

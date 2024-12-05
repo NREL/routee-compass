@@ -1,6 +1,6 @@
 use super::mapping_app_error::MappingAppError;
 use geo::LineString;
-use routee_compass_core::model::{map::map_model::MapModel, road_network::edge_id::EdgeId};
+use routee_compass_core::model::{map::map_model::MapModel, network::EdgeId};
 
 pub struct MappingApp {
     pub map_model: MapModel,

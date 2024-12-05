@@ -1,15 +1,12 @@
-use std::sync::Arc;
-
-use geo::LineString;
-
 use super::geometry_model::GeometryModel;
 use super::map_error::MapError;
 use super::map_model_config::MapModelConfig;
 use super::spatial_index::SpatialIndex;
 use crate::model::map::map_json_extensions::MapJsonExtensions;
 use crate::model::map::nearest_search_result::NearestSearchResult;
-use crate::model::road_network::edge_id::EdgeId;
-use crate::model::road_network::graph::Graph;
+use crate::model::network::{EdgeId, Graph};
+use geo::LineString;
+use std::sync::Arc;
 
 pub struct MapModel {
     pub spatial_index: SpatialIndex,

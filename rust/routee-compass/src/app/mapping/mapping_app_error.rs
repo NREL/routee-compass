@@ -1,4 +1,4 @@
-use routee_compass_core::model::{map::map_error::MapError, road_network::edge_id::EdgeId};
+use routee_compass_core::model::{map::map_error::MapError, network::EdgeId};
 
 #[derive(thiserror::Error, Debug)]
 pub enum MappingAppError {

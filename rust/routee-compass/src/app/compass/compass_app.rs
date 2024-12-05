@@ -263,14 +263,14 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             config_json.get_config_section(CompassConfigurationField::MapModel, &"TOML")?;
         let map_model_config: MapModelConfig =
             serde_json::from_value(map_model_json).map_err(|e| {
-                CompassAppError::InvalidInput(format!(
+                CompassAppError::BuildFailure(format!(
                     "unable to decode MapModel from config: {}",
                     e
                 ))
             })?;
         let map_model = MapModel::new(search_app.directed_graph.clone(), map_model_config)
             .map_err(|e| {
-                CompassAppError::InvalidInput(format!("unable to load MapModel from config: {}", e))
+                CompassAppError::BuildFailure(format!("unable to load MapModel from config: {}", e))
             })?;
         let mapping_app: MappingApp = MappingApp { map_model };
         let map_dur = to_std(Local::now() - map_start)?;

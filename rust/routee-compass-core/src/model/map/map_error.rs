@@ -1,5 +1,5 @@
 use crate::model::{
-    road_network::edge_id::EdgeId,
+    network::EdgeId,
     unit::{Distance, DistanceUnit},
 };
 
