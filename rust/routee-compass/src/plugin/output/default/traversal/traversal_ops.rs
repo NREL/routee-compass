@@ -5,24 +5,26 @@ use geojson::feature::Id;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::edge_traversal::EdgeTraversal;
 use routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch;
+use routee_compass_core::model::map::map_model::MapModel;
 use routee_compass_core::model::network::vertex_id::VertexId;
 use routee_compass_core::util::geo::geo_io_utils;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 pub fn create_tree_geojson(
     tree: &HashMap<VertexId, SearchTreeBranch>,
-    geoms: &[LineString<f32>],
+    map_model: Arc<MapModel>,
 ) -> Result<serde_json::Value, OutputPluginError> {
     let features = tree
         .values()
         .map(|t| {
-            let row_result = geoms
-                .get(t.edge_traversal.edge_id.0)
+            let row_result = map_model
+                .get(&t.edge_traversal.edge_id)
                 .cloned()
-                .ok_or_else(|| {
+                .map_err(|e| {
                     OutputPluginError::OutputPluginFailed(format!(
-                        "geometry table missing edge id {}",
-                        t.edge_traversal.edge_id
+                        "failure creating tree GeoJSON: {}",
+                        e
                     ))
                 })
                 .and_then(|g| create_geojson_feature(&t.edge_traversal, g));
@@ -42,18 +44,18 @@ pub fn create_tree_geojson(
 
 pub fn create_route_geojson(
     route: &[EdgeTraversal],
-    geoms: &[LineString<f32>],
+    map_model: Arc<MapModel>,
 ) -> Result<serde_json::Value, OutputPluginError> {
     let features = route
         .iter()
         .map(|t| {
-            let row_result = geoms
-                .get(t.edge_id.0)
+            let row_result = map_model
+                .get(&t.edge_id)
                 .cloned()
-                .ok_or_else(|| {
+                .map_err(|e| {
                     OutputPluginError::OutputPluginFailed(format!(
-                        "geometry table missing edge id {}",
-                        t.edge_id
+                        "failure building route geojson: {}",
+                        e
                     ))
                 })
                 .and_then(|g| create_geojson_feature(t, g));
@@ -117,7 +119,7 @@ pub fn create_branch_geometry(
 
 pub fn create_route_linestring(
     route: &[EdgeTraversal],
-    geoms: &[LineString<f32>],
+    map_model: Arc<MapModel>,
 ) -> Result<LineString<f32>, OutputPluginError> {
     let edge_ids = route
         .iter()
@@ -127,10 +129,10 @@ pub fn create_route_linestring(
     let edge_linestrings = edge_ids
         .iter()
         .map(|eid| {
-            let geom = geoms.get(eid.0).ok_or_else(|| {
+            let geom = map_model.get(eid).map_err(|e| {
                 OutputPluginError::OutputPluginFailed(format!(
-                    "geometry table missing edge id {}",
-                    *eid
+                    "failure building route linestring: {}",
+                    e
                 ))
             });
             geom
@@ -142,7 +144,8 @@ pub fn create_route_linestring(
 
 pub fn create_tree_multilinestring(
     tree: &HashMap<VertexId, SearchTreeBranch>,
-    geoms: &[LineString<f32>],
+    // geoms: &[LineString<f32>],
+    map_model: Arc<MapModel>,
 ) -> Result<MultiLineString<f32>, OutputPluginError> {
     let edge_ids = tree
         .values()
@@ -152,11 +155,8 @@ pub fn create_tree_multilinestring(
     let tree_linestrings = edge_ids
         .iter()
         .map(|eid| {
-            let geom = geoms.get(eid.0).ok_or_else(|| {
-                OutputPluginError::OutputPluginFailed(format!(
-                    "geometry table missing edge id {}",
-                    *eid
-                ))
+            let geom = map_model.get(eid).map_err(|e| {
+                OutputPluginError::OutputPluginFailed(format!("failure building tree WKT: {}", e))
             });
             geom.cloned()
         })

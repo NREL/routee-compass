@@ -10,9 +10,6 @@ We added some annotations to describe the different sections:
 # how many threads should a CompassApp use to process queries?
 parallelism = 2
 
-# should we begin the search at either: "vertex" or "edge"
-search_orientation = "vertex"
-
 # the parameters for the underlying road network graph
 [graph]
 # a file containing all the graph edges and their adjacencies

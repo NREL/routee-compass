@@ -1,6 +1,7 @@
 use super::{compass_app_error::CompassAppError, compass_input_field::CompassInputField};
 use crate::plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError};
 use config::Config;
+use kdam::tqdm;
 use ordered_float::OrderedFloat;
 use std::path::Path;
 
@@ -99,9 +100,16 @@ pub fn apply_load_balancing_policy(
     if queries.is_empty() {
         return Ok(vec![]);
     }
+
     let mut bin_totals = vec![0.0; parallelism];
     let mut assignments: Vec<Vec<&serde_json::Value>> = vec![vec![]; parallelism];
-    for q in queries.iter() {
+    let iter = tqdm!(
+        queries.iter(),
+        total = queries.len(),
+        desc = "load balancing",
+        animation = "fillup"
+    );
+    for q in iter {
         let w = q.get_query_weight_estimate()?.unwrap_or(default);
         let min_bin = min_bin(&bin_totals)?;
         bin_totals[min_bin] += w;

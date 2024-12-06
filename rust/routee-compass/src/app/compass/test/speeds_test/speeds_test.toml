@@ -3,6 +3,12 @@ edge_list_input_file = "src/app/compass/test/speeds_test/test_edges.csv"
 vertex_list_input_file = "src/app/compass/test/speeds_test/test_vertices.csv"
 verbose = true
 
+[mapping]
+type = "vertex"
+tolerance = [15.0, "meters"]
+queries_without_destinations = false
+# map_input_type = ["point", "vertex", "edge"]
+
 [traversal]
 type = "speed_table"
 speed_table_input_file = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
@@ -26,5 +32,5 @@ type = "raw"
 input_plugins = []
 output_plugins = [
     { type = "summary" },
-    { type = "traversal", route = "edge_id", geometry_input_file = "src/app/compass/test/speeds_test/edge_geometries.txt" },
+    { type = "traversal", route = "edge_id" },
 ]

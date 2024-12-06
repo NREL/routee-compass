@@ -3,6 +3,7 @@ use crate::model::{
     access::access_model::AccessModel,
     cost::cost_model::CostModel,
     frontier::frontier_model::FrontierModel,
+    map::map_model::MapModel,
     network::{graph::Graph, vertex_id::VertexId},
     state::state_model::StateModel,
     termination::termination_model::TerminationModel,
@@ -15,6 +16,7 @@ use std::sync::Arc;
 /// been prepared for a specific query.
 pub struct SearchInstance {
     pub directed_graph: Arc<Graph>,
+    pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
     pub traversal_model: Arc<dyn TraversalModel>,
     pub access_model: Arc<dyn AccessModel>,
