@@ -11,12 +11,13 @@ use routee_compass_core::{
     algorithm::search::{
         direction::Direction, search_algorithm::SearchAlgorithm,
         search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
-        search_instance::SearchInstance, search_orientation::SearchOrientation,
+        search_instance::SearchInstance,
     },
     model::{
         access::access_model_service::AccessModelService,
-        frontier::frontier_model_service::FrontierModelService, network::graph::Graph,
-        state::state_model::StateModel, termination::termination_model::TerminationModel,
+        frontier::frontier_model_service::FrontierModelService, map::map_model::MapModel,
+        network::graph::Graph, state::state_model::StateModel,
+        termination::termination_model::TerminationModel,
         traversal::traversal_model_service::TraversalModelService,
     },
 };
@@ -26,7 +27,8 @@ use std::time;
 /// a configured and loaded application to execute searches.
 pub struct SearchApp {
     pub search_algorithm: SearchAlgorithm,
-    pub directed_graph: Arc<Graph>,
+    pub graph: Arc<Graph>,
+    pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
     pub traversal_model_service: Arc<dyn TraversalModelService>,
     pub access_model_service: Arc<dyn AccessModelService>,
@@ -41,7 +43,8 @@ impl SearchApp {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         search_algorithm: SearchAlgorithm,
-        graph: Graph,
+        graph: Arc<Graph>,
+        map_model: Arc<MapModel>,
         state_model: Arc<StateModel>,
         traversal_model_service: Arc<dyn TraversalModelService>,
         access_model_service: Arc<dyn AccessModelService>,
@@ -51,7 +54,8 @@ impl SearchApp {
     ) -> Self {
         SearchApp {
             search_algorithm,
-            directed_graph: Arc::new(graph),
+            graph,
+            map_model,
             state_model,
             traversal_model_service,
             access_model_service,
@@ -61,16 +65,14 @@ impl SearchApp {
         }
     }
 
-    /// main interface for running search. takes a user query and some configured
-    /// search orientation. builds the instance of the search assets and then executes
-    /// a search. if a destination is set on the query, then the route is computed.
-    /// if the algorithm produces more than one route, then the result contains each route.
-    /// the SearchAlgorithm determines the order and number of routes and trees in the result.
+    /// main interface for running search. takes a user query and builds the instance of the
+    /// search assets and then executes a search. if a destination is set on the query, then the
+    /// route is computed. if the algorithm produces more than one route, then the result contains
+    /// each route. the SearchAlgorithm determines the order and number of routes and trees in the result.
     ///
     /// # Arguments
     ///
     /// * `query` - a JSON search query provided by the user
-    /// * `search_orientation` - whether to orient by vertex or edge
     ///
     /// # Results
     ///
@@ -78,13 +80,13 @@ impl SearchApp {
     pub fn run(
         &self,
         query: &serde_json::Value,
-        search_orientation: SearchOrientation,
     ) -> Result<(SearchAppResult, SearchInstance), CompassAppError> {
         let search_start_time = Local::now();
-        let (results, si) = match search_orientation {
-            SearchOrientation::Vertex => self.run_vertex_oriented(query),
-            SearchOrientation::Edge => self.run_edge_oriented(query),
-        }?;
+        let (results, si) = if query.get_origin_edge().is_ok() {
+            self.run_edge_oriented(query)?
+        } else {
+            self.run_vertex_oriented(query)?
+        };
 
         let search_end_time = Local::now();
         let search_runtime = (search_end_time - search_start_time)
@@ -172,7 +174,8 @@ impl SearchApp {
             .build(query, state_model.clone())?;
 
         let search_assets = SearchInstance {
-            directed_graph: self.directed_graph.clone(),
+            directed_graph: self.graph.clone(),
+            map_model: self.map_model.clone(),
             state_model,
             traversal_model,
             access_model,

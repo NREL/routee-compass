@@ -87,6 +87,7 @@ pub fn run(
             let yens_frontier = EdgeCutFrontierModel::new(si.frontier_model.clone(), cut_edges);
             let yens_si = SearchInstance {
                 directed_graph: si.directed_graph.clone(),
+                map_model: si.map_model.clone(),
                 state_model: si.state_model.clone(),
                 traversal_model: si.traversal_model.clone(),
                 access_model: si.access_model.clone(),

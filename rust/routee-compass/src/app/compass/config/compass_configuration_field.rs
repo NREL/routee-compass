@@ -19,7 +19,6 @@ pub enum CompassConfigurationField {
     IncludeTree,
     ChargeDepleting,
     ChargeSustaining,
-    SearchOrientation,
     ResponsePersistencePolicy,
     ResponseOutputPolicy,
 }
@@ -39,12 +38,11 @@ impl CompassConfigurationField {
             CompassConfigurationField::QueryTimeoutMs => "query_timeout_ms",
             CompassConfigurationField::IncludeTree => "include_tree",
             CompassConfigurationField::Plugins => "plugin",
-            CompassConfigurationField::MapModel => "map_model",
+            CompassConfigurationField::MapModel => "mapping",
             CompassConfigurationField::InputPlugins => "input_plugins",
             CompassConfigurationField::OutputPlugins => "output_plugins",
             CompassConfigurationField::ChargeDepleting => "charge_depleting",
             CompassConfigurationField::ChargeSustaining => "charge_sustaining",
-            CompassConfigurationField::SearchOrientation => "search_orientation",
             CompassConfigurationField::ResponsePersistencePolicy => "response_persistence_policy",
             CompassConfigurationField::ResponseOutputPolicy => "response_output_policy",
         }

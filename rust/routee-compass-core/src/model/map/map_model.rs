@@ -1,24 +1,27 @@
-use super::geometry_model::GeometryModel;
 use super::map_error::MapError;
+use super::map_input_type::MapInputType;
 use super::map_model_config::MapModelConfig;
 use super::spatial_index::SpatialIndex;
-use crate::model::map::map_json_extensions::MapJsonExtensions;
-use crate::model::map::nearest_search_result::NearestSearchResult;
+use super::{geometry_model::GeometryModel, map_input_type::MapInputResult};
 use crate::model::network::{EdgeId, Graph};
 use geo::LineString;
 use std::sync::Arc;
 
 pub struct MapModel {
+    pub map_input_type: MapInputType,
     pub spatial_index: SpatialIndex,
     pub geometry_model: GeometryModel,
+    pub queries_without_destinations: bool,
 }
 
 impl MapModel {
     pub fn new(graph: Arc<Graph>, config: MapModelConfig) -> Result<MapModel, MapError> {
         match config {
             MapModelConfig::VertexMapModelConfig {
+                map_input_type,
                 tolerance,
                 geometry_input_file,
+                queries_without_destinations,
             } => {
                 let spatial_index =
                     SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance);
@@ -27,22 +30,28 @@ impl MapModel {
                     Some(file) => GeometryModel::new_from_edges(&file, graph.clone()),
                 }?;
                 let map_model = MapModel {
+                    map_input_type,
                     spatial_index,
                     geometry_model,
+                    queries_without_destinations,
                 };
                 Ok(map_model)
             }
             MapModelConfig::EdgeMapModelConfig {
+                map_input_type,
                 tolerance,
                 geometry_input_file,
+                queries_without_destinations,
             } => {
                 let geometry_model =
                     GeometryModel::new_from_edges(&geometry_input_file, graph.clone())?;
                 let spatial_index =
                     SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance);
                 let map_model = MapModel {
+                    map_input_type,
                     spatial_index,
                     geometry_model,
+                    queries_without_destinations,
                 };
                 Ok(map_model)
             }
@@ -54,30 +63,12 @@ impl MapModel {
     }
 
     pub fn map_match(&self, query: &mut serde_json::Value) -> Result<(), MapError> {
-        let src_point = geo::Point(query.get_origin_coordinate()?);
-        match self.spatial_index.nearest_graph_id(&src_point)? {
-            NearestSearchResult::NearestVertex(vertex_id) => {
-                query.add_origin_vertex(vertex_id)?;
+        self.map_input_type.process_origin(self, query)?;
+        match self.map_input_type.process_destination(self, query)? {
+            MapInputResult::NotFound if !self.queries_without_destinations => {
+                Err(MapError::DestinationsRequired(self.map_input_type.clone()))
             }
-            NearestSearchResult::NearestEdge(edge_id) => query.add_origin_edge(edge_id)?,
+            _ => Ok(()),
         }
-
-        let dst_coord_option = query.get_destination_coordinate()?;
-        match dst_coord_option {
-            None => {}
-            Some(dst_coord) => {
-                let dst_point = geo::Point(dst_coord);
-                match self.spatial_index.nearest_graph_id(&dst_point)? {
-                    NearestSearchResult::NearestVertex(vertex_id) => {
-                        query.add_destination_vertex(vertex_id)?;
-                    }
-                    NearestSearchResult::NearestEdge(edge_id) => {
-                        query.add_destination_edge(edge_id)?
-                    }
-                }
-            }
-        }
-
-        Ok(())
     }
 }

@@ -1,10 +1,16 @@
 parallelism = 2
-search_orientation = "vertex"
 
 [graph]
 edge_list_input_file = "edges-compass.csv.gz"
 vertex_list_input_file = "vertices-compass.csv.gz"
 verbose = true
+
+[mapping]
+type = "edge"
+geometry_input_file = "edges-geometries-enumerated.txt.gz"
+tolerance = [15.0, "meters"]
+queries_without_destinations = false
+mapping.map_input_type = ["point", "vertex", "edge"]
 
 [plugin]
 [[plugin.input_plugins]]

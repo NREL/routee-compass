@@ -1,5 +1,4 @@
 parallelism = 2
-search_orientation = "vertex"
 response_persistence_policy = "persist_response_in_memory"
 [response_output_policy]
 type = "none"
@@ -13,6 +12,16 @@ type = "none"
 
 [graph]
 verbose = true
+
+[mapping]
+type = "vertex"
+# only if we want to read points from the edges for mapping.
+# if geometry_input_file is not provided, the graph vertices
+# are used for mapping.
+# geometry_input_file = "edges-geometries-enumerated.txt.gz"
+tolerance = [15.0, "meters"]
+queries_without_destinations = false
+mapping.map_input_type = ["point", "vertex", "edge"]
 
 [algorithm]
 type = "a*"

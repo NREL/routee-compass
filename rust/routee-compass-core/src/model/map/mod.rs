@@ -1,6 +1,7 @@
 pub mod geometry_model;
 pub mod map_edge_rtree_object;
 pub mod map_error;
+pub mod map_input_type;
 pub mod map_json_extensions;
 pub mod map_json_key;
 pub mod map_model;

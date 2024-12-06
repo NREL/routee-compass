@@ -3,7 +3,6 @@ use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
 use super::{compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
-use crate::app::mapping::mapping_app::MappingApp;
 use crate::{
     app::{
         compass::{
@@ -30,7 +29,6 @@ use itertools::{Either, Itertools};
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::algorithm::search::search_instance::SearchInstance;
-use routee_compass_core::algorithm::search::search_orientation::SearchOrientation;
 use routee_compass_core::model::map::map_model::MapModel;
 use routee_compass_core::model::map::map_model_config::MapModelConfig;
 use routee_compass_core::model::state::state_model::StateModel;
@@ -55,7 +53,6 @@ use std::{
 /// running RouteE Compass.
 pub struct CompassApp {
     pub search_app: SearchApp,
-    pub mapping_app: MappingApp,
     pub input_plugins: Vec<Arc<dyn InputPlugin>>,
     pub output_plugins: Vec<Arc<dyn OutputPlugin>>,
     pub configuration: CompassAppConfiguration,
@@ -207,7 +204,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let graph_start = Local::now();
         let graph_params =
             config_json.get_config_section(CompassConfigurationField::Graph, &"TOML")?;
-        let graph = DefaultGraphBuilder::build(&graph_params)?;
+        let graph = Arc::new(DefaultGraphBuilder::build(&graph_params)?);
         let graph_duration = (Local::now() - graph_start)
             .to_std()
             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
@@ -218,6 +215,26 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
 
         let graph_bytes = allocative::size_of_unique_allocated_data(&graph);
         log::info!("graph size: {} GB", graph_bytes as f64 / 1e9);
+
+        let map_start = Local::now();
+        let map_model_json =
+            config_json.get_config_section(CompassConfigurationField::MapModel, &"TOML")?;
+        let map_model_config: MapModelConfig =
+            serde_json::from_value(map_model_json).map_err(|e| {
+                CompassAppError::BuildFailure(format!(
+                    "unable to decode MapModel from config: {}",
+                    e
+                ))
+            })?;
+        let map_model = Arc::new(MapModel::new(graph.clone(), map_model_config).map_err(|e| {
+            CompassAppError::BuildFailure(format!("unable to load MapModel from config: {}", e))
+        })?);
+        // let mapping_app: MappingApp = MappingApp { map_model };
+        let map_dur = to_std(Local::now() - map_start)?;
+        log::info!(
+            "finished loading map model with duration {}",
+            map_dur.hhmmss()
+        );
 
         #[cfg(debug_assertions)]
         {
@@ -250,33 +267,13 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let search_app: SearchApp = SearchApp::new(
             search_algorithm,
             graph,
+            map_model,
             state_model,
             traversal_model_service,
             access_model_service,
             cost_model_service,
             frontier_model_service,
             termination_model,
-        );
-
-        let map_start = Local::now();
-        let map_model_json =
-            config_json.get_config_section(CompassConfigurationField::MapModel, &"TOML")?;
-        let map_model_config: MapModelConfig =
-            serde_json::from_value(map_model_json).map_err(|e| {
-                CompassAppError::BuildFailure(format!(
-                    "unable to decode MapModel from config: {}",
-                    e
-                ))
-            })?;
-        let map_model = MapModel::new(search_app.directed_graph.clone(), map_model_config)
-            .map_err(|e| {
-                CompassAppError::BuildFailure(format!("unable to load MapModel from config: {}", e))
-            })?;
-        let mapping_app: MappingApp = MappingApp { map_model };
-        let map_dur = to_std(Local::now() - map_start)?;
-        log::info!(
-            "finished loading map model with duration {}",
-            map_dur.hhmmss()
         );
 
         // build plugins
@@ -296,14 +293,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let configuration = CompassAppConfiguration::try_from(config)?;
 
         log::info!(
-            "additional parameters - parallelism={}, search orientation={:?}",
+            "additional parameters - parallelism={}",
             configuration.parallelism,
-            configuration.search_orientation
         );
 
         Ok(CompassApp {
             search_app,
-            mapping_app,
             input_plugins,
             output_plugins,
             configuration,
@@ -332,7 +327,7 @@ impl CompassApp {
     /// if
     pub fn run(
         &self,
-        queries: Vec<serde_json::Value>,
+        queries: &mut [serde_json::Value],
         config: Option<&serde_json::Value>,
     ) -> Result<Vec<serde_json::Value>, CompassAppError> {
         // allow the user to overwrite global configurations
@@ -356,22 +351,63 @@ impl CompassApp {
         .unwrap_or_else(|| self.configuration.response_output_policy.clone());
         let response_writer = response_output_policy.build()?;
 
-        let input_pb = Bar::builder()
+        let parallel_batch_size =
+            (queries.len() as f64 / self.configuration.parallelism as f64).ceil() as usize;
+
+        // MAP MATCHING
+        let mapping_pb = Bar::builder()
             .total(queries.len())
+            .animation("fillup")
+            .desc("map matching")
+            .build()
+            .map_err(|e| {
+                CompassAppError::InternalError(format!(
+                    "could not build map matching progress bar: {}",
+                    e
+                ))
+            })?;
+        let mapping_pb_shared = Arc::new(Mutex::new(mapping_pb));
+        let mapped_result: (Vec<_>, Vec<_>) = queries
+            .par_chunks_mut(parallel_batch_size)
+            .flat_map(|qs| {
+                let mut oks = vec![];
+                let mut errs = vec![];
+                let mm = self.search_app.map_model.clone();
+                for q in qs.iter_mut() {
+                    // update progress bar
+                    if let Ok(mut pb_local) = mapping_pb_shared.lock() {
+                        let _ = pb_local.update(1);
+                    }
+                    // perform map matching
+                    match mm.map_match(q) {
+                        Ok(_) => oks.push(q),
+                        Err(e) => errs.push(in_ops::package_error(q, e)),
+                    }
+                }
+                (oks, errs)
+            })
+            .unzip();
+        eprintln!(); // end mapping pb
+
+        let (mapped_queries, mapped_errors) = mapped_result;
+
+        let input_pb = Bar::builder()
+            .total(mapped_queries.len())
             .animation("fillup")
             .desc("input plugins")
             .build()
             .map_err(|e| {
-                CompassAppError::InternalError(format!("could not build progress bar: {}", e))
+                CompassAppError::InternalError(format!(
+                    "could not build input plugin progress bar: {}",
+                    e
+                ))
             })?;
         let input_pb_shared = Arc::new(Mutex::new(input_pb));
 
         // input plugins need to be flattened, and queries that fail input processing need to be
         // returned at the end.
-        let plugin_chunk_size =
-            (queries.len() as f64 / self.configuration.parallelism as f64).ceil() as usize;
-        let input_plugin_result: (Vec<_>, Vec<_>) = queries
-            .par_chunks(plugin_chunk_size)
+        let input_plugin_result: (Vec<_>, Vec<_>) = mapped_queries
+            .par_chunks(parallel_batch_size)
             .map(|queries| {
                 let result: (Vec<Vec<Value>>, Vec<Value>) = queries
                     .iter()
@@ -390,10 +426,10 @@ impl CompassApp {
                 result
             })
             .unzip();
-
-        eprintln!();
+        eprintln!(); // end input plugin pb
 
         // unpack input plugin results
+
         let (processed_inputs_nested, error_inputs_nested) = input_plugin_result;
         let processed_inputs: Vec<Value> = processed_inputs_nested
             .into_iter()
@@ -439,7 +475,6 @@ impl CompassApp {
         let run_query_result = match response_persistence_policy {
             ResponsePersistencePolicy::PersistResponseInMemory => run_batch_with_responses(
                 &load_balanced_inputs,
-                self.configuration.search_orientation,
                 &self.output_plugins,
                 &self.search_app,
                 &response_writer,
@@ -447,7 +482,6 @@ impl CompassApp {
             )?,
             ResponsePersistencePolicy::DiscardResponseFromMemory => run_batch_without_responses(
                 &load_balanced_inputs,
-                self.configuration.search_orientation,
                 &self.output_plugins,
                 &self.search_app,
                 &response_writer,
@@ -456,7 +490,11 @@ impl CompassApp {
         };
         eprintln!();
 
-        let run_result = run_query_result.chain(error_inputs).collect();
+        // combine successful runs along with any error rows for response
+        let run_result = run_query_result
+            .chain(mapped_errors)
+            .chain(error_inputs)
+            .collect();
         Ok(run_result)
     }
 }
@@ -492,11 +530,10 @@ where
 /// * The result of the search and post-processing as a JSON object, or, an error
 pub fn run_single_query(
     query: &serde_json::Value,
-    search_orientation: SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
 ) -> Result<serde_json::Value, CompassAppError> {
-    let search_result = search_app.run(query, search_orientation);
+    let search_result = search_app.run(query);
     let output = apply_output_processing(query, search_result, search_app, output_plugins);
     Ok(output)
 }
@@ -515,7 +552,6 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
 /// and retains the responses from each search in memory.
 pub fn run_batch_with_responses(
     load_balanced_inputs: &Vec<Vec<&Value>>,
-    search_orientation: SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
     response_writer: &ResponseSink,
@@ -527,8 +563,7 @@ pub fn run_batch_with_responses(
             queries
                 .iter()
                 .map(|q| {
-                    let mut response =
-                        run_single_query(q, search_orientation, output_plugins, search_app)?;
+                    let mut response = run_single_query(q, output_plugins, search_app)?;
                     if let Ok(mut pb_local) = pb.lock() {
                         let _ = pb_local.update(1);
                     }
@@ -540,8 +575,6 @@ pub fn run_batch_with_responses(
         .collect::<Result<Vec<Vec<serde_json::Value>>, CompassAppError>>()?;
 
     let run_result = run_query_result.into_iter().flatten();
-    // .chain(error_inputs)
-    // .collect();
 
     Ok(Box::new(run_result))
 }
@@ -550,7 +583,6 @@ pub fn run_batch_with_responses(
 /// the search result is not persisted in memory.
 pub fn run_batch_without_responses(
     load_balanced_inputs: &Vec<Vec<&Value>>,
-    search_orientation: SearchOrientation,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
     response_writer: &ResponseSink,
@@ -565,8 +597,7 @@ pub fn run_batch_without_responses(
             // within a for loop or for_each call, and map creates more allocations. open to other ideas!
             let initial: Result<(), CompassAppError> = Ok(());
             let _ = queries.iter().fold(initial, |_, q| {
-                let mut response =
-                    run_single_query(q, search_orientation, output_plugins, search_app)?;
+                let mut response = run_single_query(q, output_plugins, search_app)?;
                 if let Ok(mut pb_local) = pb.lock() {
                     let _ = pb_local.update(1);
                 }
@@ -675,7 +706,8 @@ mod tests {
             "origin_vertex": 0,
             "destination_vertex": 2
         });
-        let result = app.run(vec![query], None).unwrap();
+        let mut queries = vec![query];
+        let result = app.run(&mut queries, None).unwrap();
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
         let route_0 = result[0].get("route").unwrap();
         let path_0 = route_0.get("path").unwrap();
