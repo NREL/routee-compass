@@ -15,13 +15,23 @@ verbose = true
 
 [mapping]
 type = "vertex"
-# only if we want to read points from the edges for mapping.
-# if geometry_input_file is not provided, the graph vertices
-# are used for mapping.
+# # only if we want to read points from the edges for mapping.
+# # if geometry_input_file is not provided, the graph vertices
+# # are used for mapping.
 # geometry_input_file = "edges-geometries-enumerated.txt.gz"
-tolerance = [15.0, "meters"]
+
+# # optional query distance tolerance for map matching,
+# # an array of [Distance, DistanceUnit].
+# tolerance = [15.0, "meters"]
+
+# allow user to submit queries without destinations, such as when
+# shortest path trees are the desired result, not routes.
 queries_without_destinations = false
-mapping.map_input_type = ["point", "vertex", "edge"]
+
+# only accept queries with map coordinates
+# to allow debugging or avoid map matching, choose "edge" or "vertex" here
+# also, an array such as ["point", "edge", "vertex"] is allowed
+map_input_type = "point"
 
 [algorithm]
 type = "a*"
