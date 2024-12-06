@@ -117,7 +117,7 @@ fn geometry_to_wkb_string<T: CoordFloat + Into<f64>>(
 
 #[cfg(test)]
 mod test {
-    
+
     use crate::app::search::search_app_result::SearchAppResult;
     use chrono::Local;
     use geo::{coord, LineString};
