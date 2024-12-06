@@ -77,3 +77,53 @@ impl SpatialIndex {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::{fs, path::PathBuf};
+
+    use super::*;
+    use crate::{
+        model::network::{Vertex, VertexId},
+        util::fs::read_utils,
+    };
+    use geo;
+    use serde_json::json;
+
+    #[test]
+    fn test_vertex_oriented_e2e() {
+        let vertices_filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("model")
+            .join("map")
+            .join("test")
+            .join("rtree_vertices.csv");
+
+        let query_filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("model")
+            .join("map")
+            .join("test")
+            .join("rtree_query.json");
+
+        let vertices: Box<[Vertex]> =
+            read_utils::from_csv(&vertices_filepath.as_path(), true, None).unwrap();
+        let index = SpatialIndex::new_vertex_oriented(&vertices, None);
+
+        // test nearest neighbor queries perform as expected
+        let o_result = index
+            .nearest_graph_id(&geo::Point(geo::Coord::from((0.101, 0.101))))
+            .unwrap();
+        let d_result = index
+            .nearest_graph_id(&geo::Point(geo::Coord::from((1.901, 2.101))))
+            .unwrap();
+        match o_result {
+            NearestSearchResult::NearestEdge(_) => panic!("should find a vertex!"),
+            NearestSearchResult::NearestVertex(vertex_id) => assert_eq!(vertex_id, VertexId(0)),
+        }
+        match d_result {
+            NearestSearchResult::NearestEdge(_) => panic!("should find a vertex!"),
+            NearestSearchResult::NearestVertex(vertex_id) => assert_eq!(vertex_id, VertexId(2)),
+        }
+    }
+}
