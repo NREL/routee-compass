@@ -3,20 +3,21 @@ use super::{
     nearest_search_result::NearestSearchResult,
 };
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Deserializer, Serialize};
 use std::fmt::Display;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum MapInputType {
-    /// expect any combination of the map input types provided
-    Combined(Vec<Box<MapInputType>>),
     /// expect origin [, destination] VertexIds on the query.
     VertexId,
     /// expect origin [, destination] EdgeIds on the query.
     EdgeId,
     /// expect origin [, destination] Points on the query.
     Point,
+    /// expect any combination of the map input types provided
+    #[serde(deserialize_with = "de_combined")]
+    Combined(Vec<MapInputType>),
 }
 
 impl Default for MapInputType {
@@ -24,11 +25,7 @@ impl Default for MapInputType {
     /// then attempt to find VertexIds on the query,
     /// then finally attempt to find EdgeIds on the query.
     fn default() -> Self {
-        Self::Combined(vec![
-            Box::new(Self::Point),
-            Box::new(Self::VertexId),
-            Box::new(Self::EdgeId),
-        ])
+        Self::Combined(vec![Self::Point, Self::VertexId, Self::EdgeId])
     }
 }
 
@@ -163,4 +160,37 @@ impl MapInputType {
             }
         }
     }
+}
+
+fn de_combined<'de, D>(value: D) -> Result<Vec<MapInputType>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct CombinedVisitor;
+
+    impl<'de> de::Visitor<'de> for CombinedVisitor {
+        type Value = Vec<MapInputType>;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("a vector of MapInputType strings")
+        }
+
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: de::SeqAccess<'de>,
+        {
+            let mut out: Vec<MapInputType> = vec![];
+            while let Some(next) = seq.next_element()? {
+                if let MapInputType::Combined(_) = next {
+                    return Err(serde::de::Error::custom(String::from(
+                        "cannot deeply nest map_input_type entries",
+                    )));
+                }
+                out.push(next);
+            }
+            Ok(out)
+        }
+    }
+
+    value.deserialize_seq(CombinedVisitor {})
 }

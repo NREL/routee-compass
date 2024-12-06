@@ -18,7 +18,7 @@ impl MapModel {
     pub fn new(graph: Arc<Graph>, config: MapModelConfig) -> Result<MapModel, MapError> {
         match config {
             MapModelConfig::VertexMapModelConfig {
-                map_input_type,
+                // map_input_type,
                 tolerance,
                 geometry_input_file,
                 queries_without_destinations,
@@ -30,7 +30,7 @@ impl MapModel {
                     Some(file) => GeometryModel::new_from_edges(&file, graph.clone()),
                 }?;
                 let map_model = MapModel {
-                    map_input_type,
+                    map_input_type: MapInputType::default(),
                     spatial_index,
                     geometry_model,
                     queries_without_destinations,
@@ -38,7 +38,7 @@ impl MapModel {
                 Ok(map_model)
             }
             MapModelConfig::EdgeMapModelConfig {
-                map_input_type,
+                // map_input_type,
                 tolerance,
                 geometry_input_file,
                 queries_without_destinations,
@@ -48,7 +48,7 @@ impl MapModel {
                 let spatial_index =
                     SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance);
                 let map_model = MapModel {
-                    map_input_type,
+                    map_input_type: MapInputType::default(),
                     spatial_index,
                     geometry_model,
                     queries_without_destinations,

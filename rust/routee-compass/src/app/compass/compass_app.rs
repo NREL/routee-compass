@@ -219,11 +219,14 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let map_start = Local::now();
         let map_model_json =
             config_json.get_config_section(CompassConfigurationField::MapModel, &"TOML")?;
+        let map_model_str = serde_json::to_string_pretty(&map_model_json).unwrap_or_default();
         let map_model_config: MapModelConfig =
             serde_json::from_value(map_model_json).map_err(|e| {
                 CompassAppError::BuildFailure(format!(
-                    "unable to decode MapModel from config: {}",
-                    e
+                    "unable to deserialize [{}] configuration section due to '{}'. input data: \n{}",
+                    CompassConfigurationField::MapModel,
+                    e,
+                    map_model_str
                 ))
             })?;
         let map_model = Arc::new(MapModel::new(graph.clone(), map_model_config).map_err(|e| {
@@ -328,9 +331,9 @@ impl CompassApp {
     pub fn run(
         &self,
         queries: &mut [serde_json::Value],
-        config: Option<&serde_json::Value>,
-    ) -> Result<Vec<serde_json::Value>, CompassAppError> {
-        // allow the user to overwrite global configurations
+        config: Option<&Value>,
+    ) -> Result<Vec<Value>, CompassAppError> {
+        // allow the user to overwrite global configurations for this run
         let parallelism: usize = get_optional_run_config(
             &CompassConfigurationField::Parallelism.to_str(),
             &"run configuration",
@@ -351,97 +354,19 @@ impl CompassApp {
         .unwrap_or_else(|| self.configuration.response_output_policy.clone());
         let response_writer = response_output_policy.build()?;
 
+        // MAPPING / INPUT PROCESSING
         let parallel_batch_size =
             (queries.len() as f64 / self.configuration.parallelism as f64).ceil() as usize;
-
-        // MAP MATCHING
-        let mapping_pb = Bar::builder()
-            .total(queries.len())
-            .animation("fillup")
-            .desc("map matching")
-            .build()
-            .map_err(|e| {
-                CompassAppError::InternalError(format!(
-                    "could not build map matching progress bar: {}",
-                    e
-                ))
-            })?;
-        let mapping_pb_shared = Arc::new(Mutex::new(mapping_pb));
-        let mapped_result: (Vec<_>, Vec<_>) = queries
-            .par_chunks_mut(parallel_batch_size)
-            .flat_map(|qs| {
-                let mut oks = vec![];
-                let mut errs = vec![];
-                let mm = self.search_app.map_model.clone();
-                for q in qs.iter_mut() {
-                    // update progress bar
-                    if let Ok(mut pb_local) = mapping_pb_shared.lock() {
-                        let _ = pb_local.update(1);
-                    }
-                    // perform map matching
-                    match mm.map_match(q) {
-                        Ok(_) => oks.push(q),
-                        Err(e) => errs.push(in_ops::package_error(q, e)),
-                    }
-                }
-                (oks, errs)
-            })
-            .unzip();
-        eprintln!(); // end mapping pb
-
-        let (mapped_queries, mapped_errors) = mapped_result;
-
-        let input_pb = Bar::builder()
-            .total(mapped_queries.len())
-            .animation("fillup")
-            .desc("input plugins")
-            .build()
-            .map_err(|e| {
-                CompassAppError::InternalError(format!(
-                    "could not build input plugin progress bar: {}",
-                    e
-                ))
-            })?;
-        let input_pb_shared = Arc::new(Mutex::new(input_pb));
-
-        // input plugins need to be flattened, and queries that fail input processing need to be
-        // returned at the end.
-        let input_plugin_result: (Vec<_>, Vec<_>) = mapped_queries
-            .par_chunks(parallel_batch_size)
-            .map(|queries| {
-                let result: (Vec<Vec<Value>>, Vec<Value>) = queries
-                    .iter()
-                    .map(|q| {
-                        let inner_processed = apply_input_plugins(q, &self.input_plugins);
-                        if let Ok(mut pb_local) = input_pb_shared.lock() {
-                            let _ = pb_local.update(1);
-                        }
-                        inner_processed
-                    })
-                    .partition_map(|r| match r {
-                        Ok(values) => Either::Left(values),
-                        Err(error_response) => Either::Right(error_response),
-                    });
-
-                result
-            })
-            .unzip();
-        eprintln!(); // end input plugin pb
-
-        // unpack input plugin results
-
-        let (processed_inputs_nested, error_inputs_nested) = input_plugin_result;
-        let processed_inputs: Vec<Value> = processed_inputs_nested
-            .into_iter()
-            .flatten()
-            .flatten()
-            .collect();
+        let (mapped_queries, mapped_errors) = apply_map_matching(
+            queries,
+            self.search_app.map_model.clone(),
+            parallel_batch_size,
+        )?;
+        let input_plugin_result =
+            apply_input_plugins(mapped_queries, &self.input_plugins, parallel_batch_size)?;
+        let (processed_inputs, input_errors) = input_plugin_result;
         let load_balanced_inputs =
             ops::apply_load_balancing_policy(&processed_inputs, parallelism, 1.0)?;
-        let error_inputs: Vec<Value> = error_inputs_nested.into_iter().flatten().collect();
-        if load_balanced_inputs.is_empty() {
-            return Ok(error_inputs);
-        }
 
         log::info!(
             "creating {} parallel batches across {} threads to run queries",
@@ -493,10 +418,117 @@ impl CompassApp {
         // combine successful runs along with any error rows for response
         let run_result = run_query_result
             .chain(mapped_errors)
-            .chain(error_inputs)
+            .chain(input_errors)
             .collect();
         Ok(run_result)
     }
+}
+
+/// executes the map matching operation on all queries, returning all
+/// successful mappings (left) and mapping errors (right) as the pair
+/// (left, right). errors are already serialized into JSON.
+fn apply_map_matching(
+    queries: &mut [Value],
+    map_model: Arc<MapModel>,
+    batch_size: usize,
+) -> Result<(Vec<Value>, Vec<Value>), CompassAppError> {
+    let mapping_pb = Bar::builder()
+        .total(queries.len())
+        .animation("fillup")
+        .desc("map matching")
+        .build()
+        .map_err(|e| {
+            CompassAppError::InternalError(format!(
+                "could not build map matching progress bar: {}",
+                e
+            ))
+        })?;
+    let mapping_pb_shared = Arc::new(Mutex::new(mapping_pb));
+    let (good, bad): (Vec<_>, Vec<_>) = queries
+        .par_chunks_mut(batch_size)
+        .map(|qs| {
+            let mut oks = vec![];
+            let mut errs = vec![];
+            let mm = map_model.clone();
+            for q in qs.iter_mut() {
+                // update progress bar
+                if let Ok(mut pb_local) = mapping_pb_shared.lock() {
+                    let _ = pb_local.update(1);
+                }
+                // perform map matching
+                match mm.map_match(q) {
+                    Ok(_) => oks.push(q.to_owned()),
+                    Err(e) => errs.push(in_ops::package_error(q, e)),
+                }
+            }
+            (oks, errs)
+        })
+        .unzip();
+    eprintln!(); // end mapping pb
+
+    Ok((
+        good.into_iter().flatten().collect_vec(),
+        bad.into_iter().flatten().collect_vec(),
+    ))
+}
+
+/// executes the input plugins on each query, returning all
+/// successful mappings (left) and mapping errors (right) as the pair
+/// (left, right). errors are already serialized into JSON.
+fn apply_input_plugins(
+    mapped_queries: Vec<Value>,
+    input_plugins: &Vec<Arc<dyn InputPlugin>>,
+    parallel_batch_size: usize,
+) -> Result<(Vec<Value>, Vec<Value>), CompassAppError> {
+    let input_pb = Bar::builder()
+        .total(mapped_queries.len())
+        .animation("fillup")
+        .desc("input plugins")
+        .build()
+        .map_err(|e| {
+            CompassAppError::InternalError(format!(
+                "could not build input plugin progress bar: {}",
+                e
+            ))
+        })?;
+    let input_pb_shared = Arc::new(Mutex::new(input_pb));
+
+    // input plugins need to be flattened, and queries that fail input processing need to be
+    // returned at the end.
+    let (good, bad): (Vec<_>, Vec<_>) = mapped_queries
+        .par_chunks(parallel_batch_size)
+        .map(|qs| {
+            let (good, bad): (Vec<Vec<Value>>, Vec<Value>) = qs
+                .iter()
+                .map(|q| {
+                    let mut plugin_state = serde_json::Value::Array(vec![q.to_owned()]);
+                    for plugin in input_plugins {
+                        let p = plugin.clone();
+                        let op: in_ops::InputArrayOp = Rc::new(|q| p.process(q));
+                        in_ops::json_array_op(&mut plugin_state, op)?
+                    }
+                    let inner_processed = in_ops::json_array_flatten(&mut plugin_state)?;
+                    // let inner_processed = apply_input_plugins(q, input_plugins);
+                    if let Ok(mut pb_local) = input_pb_shared.lock() {
+                        let _ = pb_local.update(1);
+                    }
+                    Ok(inner_processed)
+                })
+                .partition_map(|r| match r {
+                    Ok(values) => Either::Left(values),
+                    Err(error_response) => Either::Right(error_response),
+                });
+
+            (good.into_iter().flatten().collect_vec(), bad)
+        })
+        .unzip();
+    eprintln!(); // end input plugin pb
+
+    let result = (
+        good.into_iter().flatten().collect_vec(),
+        bad.into_iter().flatten().collect_vec(),
+    );
+    Ok(result)
 }
 
 pub fn get_optional_run_config<'a, K, T>(
@@ -516,6 +548,7 @@ where
         None => Ok(None),
     }
 }
+
 /// Helper function that runs CompassApp on a single query.
 /// It is assumed that all pre-processing from InputPlugins have been applied.
 /// This function runs a vertex-oriented search and feeds the result into the
@@ -611,21 +644,6 @@ pub fn run_batch_without_responses(
     Ok(Box::new(std::iter::empty::<Value>()))
 }
 
-/// helper that applies the input plugins to a query, returning the result(s) or an error if failed
-pub fn apply_input_plugins(
-    query: &serde_json::Value,
-    plugins: &Vec<Arc<dyn InputPlugin>>,
-) -> Result<Vec<serde_json::Value>, serde_json::Value> {
-    let mut plugin_state = serde_json::Value::Array(vec![query.clone()]);
-    for plugin in plugins {
-        let p = plugin.clone();
-        let op: in_ops::InputArrayOp = Rc::new(|q| p.process(q));
-        in_ops::json_array_op(&mut plugin_state, op)?
-    }
-    let result = in_ops::json_array_flatten(&mut plugin_state)?;
-    Ok(result)
-}
-
 // helper that applies the output processing. this includes
 // 1. summarizing from the TraversalModel
 // 2. applying the output plugins
@@ -667,8 +685,8 @@ mod tests {
             Ok(cwd_path) => String::from(cwd_path.to_str().unwrap_or("<unknown>")),
             _ => String::from("<unknown>"),
         };
-        println!("cwd           : {}", cwd_str);
-        println!("Cargo.toml dir: {}", env!("CARGO_MANIFEST_DIR"));
+        // eprintln!("cwd           : {}", cwd_str);
+        // eprintln!("Cargo.toml dir: {}", env!("CARGO_MANIFEST_DIR"));
 
         // rust runs test and debug at different locations, which breaks the URLs
         // written in the referenced TOML files. here's a quick fix
@@ -708,12 +726,14 @@ mod tests {
         });
         let mut queries = vec![query];
         let result = app.run(&mut queries, None).unwrap();
-        println!("{}", serde_json::to_string_pretty(&result).unwrap());
+        assert_eq!(result.len(), 1, "expected one result");
+        // eprintln!("{}", serde_json::to_string_pretty(&result).unwrap());
         let route_0 = result[0].get("route").unwrap();
         let path_0 = route_0.get("path").unwrap();
+
         // path [1] is distance-optimal; path [0, 2] is time-optimal
-        let expected = serde_json::json!(vec![0, 2]);
-        assert_eq!(path_0, &expected);
+        let expected_path = serde_json::json!(vec![0, 2]);
+        assert_eq!(path_0, &expected_path);
     }
 
     // #[test]

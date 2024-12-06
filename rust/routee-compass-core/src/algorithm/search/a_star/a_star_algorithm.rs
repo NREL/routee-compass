@@ -376,6 +376,8 @@ mod tests {
     use crate::model::cost::cost_model::CostModel;
     use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
+    use crate::model::map::map_input_type::MapInputType;
+    use crate::model::map::map_model::MapModel;
     use crate::model::network::edge_id::EdgeId;
     use crate::model::network::graph::Graph;
     use crate::model::network::Edge;
@@ -471,6 +473,20 @@ mod tests {
             (VertexId(2), VertexId(3), vec![EdgeId(4)]), // 2 -[4]-> 3
         ];
 
+        let graph = Arc::new(build_mock_graph());
+        let map_model = Arc::new(
+            MapModel::new(
+                graph.clone(),
+                crate::model::map::map_model_config::MapModelConfig::VertexMapModelConfig {
+                    // map_input_type: MapInputType::Point,
+                    tolerance: None,
+                    geometry_input_file: None,
+                    queries_without_destinations: false,
+                },
+            )
+            .unwrap(),
+        );
+
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
         let state_model = Arc::new(
@@ -497,7 +513,8 @@ mod tests {
         )
         .unwrap();
         let si = SearchInstance {
-            directed_graph: Arc::new(build_mock_graph()),
+            directed_graph: graph,
+            map_model,
             state_model: state_model.clone(),
             traversal_model: Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters)),
             access_model: Arc::new(NoAccessModel {}),
