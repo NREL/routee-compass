@@ -80,7 +80,7 @@ impl SpatialIndex {
 
 #[cfg(test)]
 mod test {
-    use std::{fs, path::PathBuf};
+    use std::path::PathBuf;
 
     use super::*;
     use crate::{
@@ -88,7 +88,7 @@ mod test {
         util::fs::read_utils,
     };
     use geo;
-    use serde_json::json;
+    
 
     #[test]
     fn test_vertex_oriented_e2e() {
