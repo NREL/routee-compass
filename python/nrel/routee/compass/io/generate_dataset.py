@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Any, Callable, Optional, Union
 from pathlib import Path
-from pkg_resources import resource_filename
 
 import importlib.resources
 import logging
@@ -192,11 +191,11 @@ def generate_compass_dataset(
             "osm_default_speed.toml",
             "osm_default_energy.toml",
         ]:
-            init_toml_file = resource_filename(
+            with importlib.resources.path(
                 "nrel.routee.compass.resources", filename
-            )
-            with open(init_toml_file, "r") as f:
-                init_toml = toml.loads(f.read())
+            ) as init_toml_path:
+                with init_toml_path.open() as f:
+                    init_toml = toml.loads(f.read())
                 if filename == "osm_default_energy.toml":
                     if add_grade:
                         init_toml["traversal"]["grade_table_input_file"] = (
