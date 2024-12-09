@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 import os
 from tempfile import TemporaryDirectory
@@ -16,12 +15,14 @@ if TYPE_CHECKING:
     from shapely.geometry import Polygon, MultiPolygon
 
 import toml
+import json
 
 
 Query = Dict[str, Any]
 Result = Dict[str, Any]
 Results = List[Result]
 Route = Dict[str, Any]
+
 
 log = logging.getLogger(__name__)
 
