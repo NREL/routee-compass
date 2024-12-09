@@ -28,6 +28,7 @@ dev = [
     "maturin",
     "jupyter-book",
     "ruff",
+    "mypy",
     "sphinx-book-theme",
     "types-requests",
     "types-toml",
