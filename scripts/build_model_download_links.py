@@ -16,11 +16,8 @@ ACCESS_TOKEN = getpass.getpass("Access Token: ")
 # pull this from the box url
 FOLDER_ID = input("Box Folder Id: ")
 
-THIS_DIR = Path(__file__).parent
-# where to write the model links
-OUTDIR = THIS_DIR / Path(
-    "../../nrel/routee/powertrain/resources/default_models/external_model_links.json"
-)
+SRC_DIR = Path(__file__).parents[1]
+OUTDIR = SRC_DIR / Path("python/nrel/routee/compass/resources/models")
 
 oauth2 = OAuth2(CLIENT_ID, CLIENT_SECRET, access_token=ACCESS_TOKEN)
 client = Client(oauth2)
@@ -37,5 +34,6 @@ for f in files:
 
 
 log.info(f"writing links to {OUTDIR}")
-with open(OUTDIR, "w", encoding="utf-8") as f:
+outfile = OUTDIR / Path("download_links.json")
+with open(outfile, "w", encoding="utf-8") as f:
     json.dump(download_links, f, ensure_ascii=False, indent=4)

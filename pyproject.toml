@@ -32,9 +32,12 @@ dev = [
     "mypy",
     "jupyterlab",
     "boxsdk",
+    "types-requests",
+    "types-toml"
 ]
 osm = [
     "osmnx",
+    "requests",
     "geopandas",
     "shapely",
     "networkx",

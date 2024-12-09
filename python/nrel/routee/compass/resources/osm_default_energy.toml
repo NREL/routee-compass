@@ -484,7 +484,7 @@ grade_bins = 41
 [[traversal.vehicles]]
 name = "2017_Toyota_Highlander_3.5_L"
 type = "ice"
-model_input_file = "models/2017_Toyota_Highlander_3.5_L.bin"
+model_input_file = "models/2017_Toyota_Highlander_3.bin"
 speed_unit = "miles_per_hour"
 grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
@@ -520,7 +520,7 @@ grade_bins = 41
 [[traversal.vehicles]]
 name = "2020_VW_Golf_1.5TSI"
 type = "ice"
-model_input_file = "models/2020_VW_Golf_1.5TSI.bin"
+model_input_file = "models/2020_VW_Golf_1.bin"
 speed_unit = "miles_per_hour"
 grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
@@ -538,7 +538,7 @@ grade_bins = 41
 [[traversal.vehicles]]
 name = "2020_VW_Golf_2.0TDI"
 type = "ice"
-model_input_file = "models/2020_VW_Golf_2.0TDI.bin"
+model_input_file = "models/2020_VW_Golf_2.bin"
 speed_unit = "miles_per_hour"
 grade_unit = "percent"
 energy_rate_unit = "gallons_diesel_per_mile"
@@ -945,7 +945,7 @@ grade_bins = 41
 [[traversal.vehicles]]
 name = "2024_Volkswagen_Polo_1.0_MPI"
 type = "ice"
-model_input_file = "models/2024_Volkswagen_Polo_1.0_MPI.bin"
+model_input_file = "models/2024_Volkswagen_Polo_1.bin"
 speed_unit = "miles_per_hour"
 grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"
@@ -1037,7 +1037,7 @@ grade_bins = 41
 [[traversal.vehicles]]
 name = "Renault_Megane_1.5_dCi_Authentique"
 type = "ice"
-model_input_file = "models/Renault_Megane_1.5_dCi_Authentique.bin"
+model_input_file = "models/Renault_Megane_1.bin"
 speed_unit = "miles_per_hour"
 grade_unit = "percent"
 energy_rate_unit = "gallons_diesel_per_mile"
@@ -1109,7 +1109,7 @@ grade_bins = 41
 [[traversal.vehicles]]
 name = "2024_Toyota_Vios_1.5_G"
 type = "ice"
-model_input_file = "models/2024_Toyota_Vios_1.5_G.bin"
+model_input_file = "models/2024_Toyota_Vios_1.bin"
 speed_unit = "miles_per_hour"
 grade_unit = "percent"
 energy_rate_unit = "gallons_gasoline_per_mile"

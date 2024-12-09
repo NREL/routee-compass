@@ -9,6 +9,8 @@ import math
 
 log = logging.getLogger(__name__)
 
+CACHE_DIR = Path("cache")
+
 
 class TileResolution(Enum):
     ONE_ARC_SECOND = 1
@@ -69,7 +71,7 @@ def _build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) ->
 
 def _download_tile(
     tile: str,
-    output_dir: Path = Path("cache"),
+    output_dir: Path = CACHE_DIR,
     resolution=TileResolution.ONE_ARC_SECOND,
 ) -> Path:
     try:
