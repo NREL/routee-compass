@@ -27,6 +27,7 @@ type = "summary"
 [[plugin.output_plugins]]
 type = "traversal"
 route = "geo_json"
+tree = "geo_json"
 geometry_input_file = "edges-geometries-enumerated.txt.gz"
 
 [[plugin.output_plugins]]

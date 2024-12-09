@@ -1,12 +1,12 @@
 use std::path::Path;
 
-use crate::plugin::input::input_json_extensions::InputJsonExtensions;
 use crate::plugin::input::input_plugin::InputPlugin;
+use crate::plugin::input::{input_json_extensions::InputJsonExtensions, InputPluginError};
 use crate::plugin::plugin_error::PluginError;
 use geo::{coord, Coord};
 use routee_compass_core::{
     model::unit::{Distance, DistanceUnit, BASE_DISTANCE_UNIT},
-    model::{property::vertex::Vertex, road_network::graph::Graph},
+    model::{network::graph::Graph, network::Vertex},
     util::{fs::read_utils, geo::haversine},
 };
 use rstar::{PointDistance, RTree, RTreeObject, AABB};
@@ -110,7 +110,9 @@ impl RTreePlugin {
         distance_unit: Option<DistanceUnit>,
     ) -> Result<Self, PluginError> {
         let vertices: Box<[Vertex]> =
-            read_utils::from_csv(&vertex_file, true, None).map_err(PluginError::CsvReadError)?;
+            read_utils::from_csv(&vertex_file, true, None).map_err(|e| {
+                InputPluginError::BuildFailed(format!("failure reading vertex file: {}", e))
+            })?;
         let vertex_rtree = VertexRTree::new(vertices.to_vec());
         let tolerance = match (tolerance_distance, distance_unit) {
             (None, None) => None,
@@ -136,12 +138,12 @@ impl InputPlugin for RTreePlugin {
     ///
     /// * either vertex ids for the nearest coordinates to the the origin (and optionally destination),
     ///   or, an error if not found or not within tolerance
-    fn process(&self, query: &mut serde_json::Value) -> Result<(), PluginError> {
+    fn process(&self, query: &mut serde_json::Value) -> Result<(), InputPluginError> {
         let src_coord = query.get_origin_coordinate()?;
         let dst_coord_option = query.get_destination_coordinate()?;
 
         let src_vertex = self.vertex_rtree.nearest_vertex(src_coord).ok_or_else(|| {
-            PluginError::PluginFailed(format!(
+            InputPluginError::InputPluginFailed(format!(
                 "nearest vertex not found for origin coordinate {:?}",
                 src_coord
             ))
@@ -154,7 +156,7 @@ impl InputPlugin for RTreePlugin {
             None => {}
             Some(dst_coord) => {
                 let dst_vertex = self.vertex_rtree.nearest_vertex(dst_coord).ok_or_else(|| {
-                    PluginError::PluginFailed(format!(
+                    InputPluginError::InputPluginFailed(format!(
                         "nearest vertex not found for destination coordinate {:?}",
                         dst_coord
                     ))
@@ -187,14 +189,14 @@ fn validate_tolerance(
     src: &Coord<f32>,
     dst: &Coord<f32>,
     tolerance: &Option<(Distance, DistanceUnit)>,
-) -> Result<(), PluginError> {
+) -> Result<(), InputPluginError> {
     match tolerance {
         Some((tolerance_distance, tolerance_distance_unit)) => {
-            let distance_meters =
-                haversine::coord_distance_meters(src, dst).map_err(PluginError::PluginFailed)?;
+            let distance_meters = haversine::coord_distance_meters(src, dst)
+                .map_err(InputPluginError::InputPluginFailed)?;
             let distance = DistanceUnit::Meters.convert(&distance_meters, tolerance_distance_unit);
             if &distance >= tolerance_distance {
-                Err(PluginError::PluginFailed(
+                Err(InputPluginError::InputPluginFailed(
                     format!(
                         "coord {:?} nearest vertex coord is {:?} which is {} {} away, exceeding the distance tolerance of {} {}", 
                         src,

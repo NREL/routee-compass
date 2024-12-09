@@ -3,10 +3,9 @@ from __future__ import annotations
 from enum import Enum
 from pathlib import Path
 
-import math
-import itertools
 import logging
-from typing import Union
+from typing import Union, Optional
+import math
 
 import networkx
 
@@ -40,29 +39,25 @@ class TileResolution(Enum):
             )
 
 
-def _cover_floats_with_integers(float_min: float, float_max: float) -> list[int]:
-    if float_max < float_min:
-        raise ValueError("float max must be greater than float min")
+def get_usgs_tiles(lat_lon_pairs: list[tuple[float, float]]) -> list[str]:
+    def tile_index(lat, lon):
+        if lat < 0 or lon > 0:
+            raise ValueError(
+                f"USGS Tiles are not available for point ({lat}, {lon}). "
+                "Consider re-running with `grade=False`."
+            )
 
-    start = math.floor(float_min)
-    end = math.ceil(float_max)
+        lat_deg = int(lat) + 1
+        lon_deg = abs(int(lon)) + 1
 
-    integers = list(range(start, end + 1))
-    return integers
+        return f"n{lat_deg:02}w{lon_deg:03}"
 
+    tiles = set()
+    for lat, lon in lat_lon_pairs:
+        tile = tile_index(lat, lon)
+        tiles.add(tile)
 
-def _lat_lon_to_tile(coord: tuple[int, int]) -> str:
-    lat, lon = coord
-    if lat < 0:
-        lat_prefix = "s"
-    else:
-        lat_prefix = "n"
-    if lon < 0:
-        lon_prefix = "w"
-    else:
-        lon_prefix = "e"
-
-    return f"{lat_prefix}{abs(lat)}{lon_prefix}{abs(lon)}"
+    return list(tiles)
 
 
 def _build_download_link(
@@ -96,7 +91,13 @@ def _download_tile(
 
     with requests.get(url, stream=True) as r:
         log.info(f"downloading {tile}")
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise ValueError(
+                f"Failed to download USGS tile {tile} from {url}. "
+                "If this road network is outside of the US, consider re-running with `grade=False`."
+            ) from e
 
         destination.parent.mkdir(exist_ok=True)
 
@@ -112,10 +113,12 @@ def add_grade_to_graph(
     g: networkx.MultiDiGraph,
     output_dir: Path = Path("cache"),
     resolution_arc_seconds: Union[str, int] = 1,
+    api_key: Optional[str] = None,
 ) -> networkx.MultiDiGraph:
     """
     Adds grade information to the edges of a graph.
-    This will download the necessary elevation data from USGS as raster tiles and cache them in the output_dir.
+    If using an api_key will try and download the grades from Google API, otherwise
+    this will download the necessary elevation data from USGS as raster tiles and cache them in the output_dir.
     The resolution of the tiles can be specified with the resolution parameter.
     USGS has elevation data in increasing resolutions of: 1 arc-second and 1/3 arc-second
     Average tile file sizes for each resolution are about:
@@ -124,9 +127,11 @@ def add_grade_to_graph(
     * 1/3 arc-second: 350 MB
 
     Args:
-        g: The networkx graph to add grades to.
-        output_dir: The directory to cache the downloaded tiles in.
-        resolution_arc_seconds: The resolution (in arc-seconds) of the tiles to download (either 1 or 1/3).
+        g (nx.MultiDiGraph): The networkx graph to add grades to.
+        output_dir (Path, optional): The directory to cache the downloaded tiles in. Defaults to Path("cache").
+        resolution_arc_seconds (str, optional): The resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
+        api_key: The google API key to pull down grade information. If
+            None will use USGS raster elevation tiles
 
     Returns:
         g: The graph with grade information added to the edges.
@@ -135,42 +140,75 @@ def add_grade_to_graph(
         >>> import osmnx as ox
         >>> g = ox.graph_from_place("Denver, Colorado, USA")
         >>> g = add_grade_to_graph(g)
+        >>> g2 = ox.graph_from_place("Denver, Colorado, USA")
+        >>> g2 = add_grade_to_graph(g2, api_key=<api_key>)
     """
     try:
         import osmnx as ox
     except ImportError:
         raise ImportError("requires osmnx to be installed. Try 'pip install osmnx'")
 
-    node_gdf = ox.graph_to_gdfs(g, nodes=True, edges=False)
+    if api_key is None:
+        node_gdf = ox.graph_to_gdfs(g, nodes=True, edges=False)
 
-    min_lat = node_gdf.y.min()
-    max_lat = node_gdf.y.max()
-    min_lon = node_gdf.x.min()
-    max_lon = node_gdf.x.max()
+        all_points = [(t.y, t.x) for t in node_gdf.itertuples()]
 
-    lats = _cover_floats_with_integers(min_lat, max_lat)
-    lons = _cover_floats_with_integers(min_lon, max_lon)
+        tiles = get_usgs_tiles(all_points)
 
-    tiles = map(_lat_lon_to_tile, itertools.product(lats, lons))
+        if isinstance(resolution_arc_seconds, int):
+            resolution = TileResolution.from_int(resolution_arc_seconds)
+        elif isinstance(resolution_arc_seconds, str):
+            resolution = TileResolution.from_string(resolution_arc_seconds)
+        else:
+            raise ValueError(
+                f"invalid type for resolution {resolution_arc_seconds}."
+                "Must be one of: int, str"
+            )
 
-    if isinstance(resolution_arc_seconds, int):
-        resolution = TileResolution.from_int(resolution_arc_seconds)
-    elif isinstance(resolution_arc_seconds, str):
-        resolution = TileResolution.from_string(resolution_arc_seconds)
+        files = []
+        for tile in tiles:
+            downloaded_file = _download_tile(
+                tile, output_dir=output_dir, resolution=resolution
+            )
+            files.append(str(downloaded_file))
+
+        g = ox.add_node_elevations_raster(g, files)
     else:
-        raise ValueError(
-            f"invalid type for resolution {resolution_arc_seconds}."
-            "Must be one of: int, str"
-        )
-
-    files = []
-    for tile in tiles:
-        downloaded_file = _download_tile(
-            tile, output_dir=output_dir, resolution=resolution
-        )
-        files.append(str(downloaded_file))
-
-    g = ox.add_node_elevations_raster(g, files)
+        g = ox.add_node_elevations_google(g, api_key=api_key)
     g = ox.add_edge_grades(g)
 
     return g
+
+def compass_heading(point1, point2):
+    lon1, lat1 = point1
+    lon2, lat2 = point2
+
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+
+    dlon = lon2 - lon1
+
+    x = math.sin(dlon) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - (
+        math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
+    )
+
+    initial_bearing = math.atan2(x, y)
+
+    initial_bearing = math.degrees(initial_bearing)
+    compass_bearing = (initial_bearing + 360) % 360
+
+    return compass_bearing
+
+def calculate_bearings(geom):
+    if len(geom.coords) < 2:
+        raise ValueError("Geometry must have at least two points")
+    if len(geom.coords) == 2:
+        # start and end heading is equal
+        heading = int(compass_heading(geom.coords[0], geom.coords[1]))
+        return (heading, heading)
+    else:
+        start_heading = int(compass_heading(geom.coords[0], geom.coords[1]))
+        end_heading = int(compass_heading(geom.coords[-2], geom.coords[-1]))
+        #returns headings as a list of tuples 
+        return (start_heading, end_heading)
+    

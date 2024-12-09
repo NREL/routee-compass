@@ -25,7 +25,7 @@ impl ResponseSink {
         match self {
             ResponseSink::None => Ok(()),
             ResponseSink::File {
-                filename: _,
+                filename,
                 file,
                 format,
                 delimiter: _,
@@ -48,10 +48,20 @@ impl ResponseSink {
                 })?;
 
                 let output_row = format.format_response(response)?;
-                writeln!(file_attained, "{}", output_row).map_err(CompassAppError::IOError)?;
+                writeln!(file_attained, "{}", output_row).map_err(|e| {
+                    CompassAppError::InternalError(format!(
+                        "failure writing to {}: {}",
+                        filename, e
+                    ))
+                })?;
                 *it_attained += 1;
                 if *it_attained % iterations_per_flush == 0 {
-                    file_attained.flush().map_err(CompassAppError::IOError)?;
+                    file_attained.flush().map_err(|e| {
+                        CompassAppError::InternalError(format!(
+                            "failure flushing output to {}: {}",
+                            filename, e
+                        ))
+                    })?;
                 }
 
                 Ok(())
@@ -87,7 +97,12 @@ impl ResponseSink {
                 let final_contents = format
                     .final_file_contents()
                     .unwrap_or_else(|| String::from(""));
-                writeln!(file_attained, "{}", final_contents).map_err(CompassAppError::IOError)?;
+                writeln!(file_attained, "{}", final_contents).map_err(|e| {
+                    CompassAppError::InternalError(format!(
+                        "failure writing final contents to {}: {}",
+                        filename, e
+                    ))
+                })?;
 
                 Ok(filename.clone())
             }

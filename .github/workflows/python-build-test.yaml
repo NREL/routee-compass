@@ -35,14 +35,18 @@ jobs:
 
       - name: Install package
         run: |
-          pip install ".[dev]"
+          pip install ".[all]"
 
       - name: Run mypy
         run: mypy --strict ./python/nrel
 
-      - name: Validate formatting
+      - name: Run linter
         run: |
-          black python --check
+          ruff check python
+
+      - name: Run formatter
+        run: |
+          ruff format python
 
       - name: Run tests
         run: |

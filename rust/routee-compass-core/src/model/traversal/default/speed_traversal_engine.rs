@@ -25,10 +25,11 @@ impl SpeedTraversalEngine {
         let speed_table: Box<[Speed]> =
             read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
                 |e| {
-                    TraversalModelError::FileReadError(
-                        speed_table_path.as_ref().to_path_buf(),
-                        e.to_string(),
-                    )
+                    TraversalModelError::BuildError(format!(
+                        "cannot read {} due to {}",
+                        speed_table_path.as_ref().to_str().unwrap_or_default(),
+                        e,
+                    ))
                 },
             )?;
         let max_speed = get_max_speed(&speed_table)?;

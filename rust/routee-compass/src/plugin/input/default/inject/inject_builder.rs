@@ -20,7 +20,9 @@ impl InputPluginBuilder for InjectPluginBuilder {
         let value_string = parameters.get_config_string(&"value", &"inject")?;
         let format: InjectFormat = parameters.get_config_serde(&"format", &"inject")?;
         let value = format.to_json(&value_string)?;
-        let plugin = InjectInputPlugin::new(key, value);
+        let overwrite: Option<bool> =
+            parameters.get_config_serde_optional(&"overwrite", &"inject")?;
+        let plugin = InjectInputPlugin::new(key, value, overwrite);
         Ok(Arc::new(plugin))
     }
 }

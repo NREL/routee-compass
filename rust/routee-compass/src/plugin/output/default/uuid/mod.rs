@@ -1,3 +1,3 @@
 pub mod builder;
-pub mod json_extensions;
+pub mod output_json_extensions;
 pub mod plugin;

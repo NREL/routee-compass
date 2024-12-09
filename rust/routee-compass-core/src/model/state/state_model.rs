@@ -1,6 +1,6 @@
 use super::{
-    custom_feature_format::CustomFeatureFormat, state_error::StateError,
-    state_feature::StateFeature, update_operation::UpdateOperation,
+    custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
+    state_model_error::StateModelError, update_operation::UpdateOperation,
 };
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::{
@@ -44,7 +44,10 @@ impl StateModel {
     ///
     /// # Arguments
     /// * `query` - JSON search query contents containing state model information
-    pub fn extend(&self, entries: Vec<(String, StateFeature)>) -> Result<StateModel, StateError> {
+    pub fn extend(
+        &self,
+        entries: Vec<(String, StateFeature)>,
+    ) -> Result<StateModel, StateModelError> {
         let mut map = self
             .0
             .iter()
@@ -64,7 +67,7 @@ impl StateModel {
                 .iter()
                 .map(|(k, old, new)| format!("{} old: {} | new: {}", k, old, new))
                 .join(", ");
-            Err(StateError::BuildError(format!(
+            Err(StateModelError::BuildError(format!(
                 "new state features overwriting existing: {}",
                 msg
             )))
@@ -105,7 +108,7 @@ impl StateModel {
     /// # Returns
     ///
     /// an initialized, "zero"-valued traversal state, or an error
-    pub fn initial_state(&self) -> Result<Vec<StateVar>, StateError> {
+    pub fn initial_state(&self) -> Result<Vec<StateVar>, StateModelError> {
         self.0
             .iter()
             .map(|(_, feature)| {
@@ -130,7 +133,7 @@ impl StateModel {
         state: &[StateVar],
         name: &String,
         unit: &DistanceUnit,
-    ) -> Result<Distance, StateError> {
+    ) -> Result<Distance, StateModelError> {
         let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let result = feature.get_distance_unit()?.convert(&value.into(), unit);
@@ -151,7 +154,7 @@ impl StateModel {
         state: &[StateVar],
         name: &String,
         unit: &TimeUnit,
-    ) -> Result<Time, StateError> {
+    ) -> Result<Time, StateModelError> {
         let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let result = feature.get_time_unit()?.convert(&value.into(), unit);
@@ -172,7 +175,7 @@ impl StateModel {
         state: &[StateVar],
         name: &String,
         unit: &EnergyUnit,
-    ) -> Result<Energy, StateError> {
+    ) -> Result<Energy, StateModelError> {
         let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let result = feature.get_energy_unit()?.convert(&value.into(), unit);
@@ -187,7 +190,11 @@ impl StateModel {
     /// # Returns
     ///
     /// the expected value or an error
-    pub fn get_custom_f64(&self, state: &[StateVar], name: &String) -> Result<f64, StateError> {
+    pub fn get_custom_f64(
+        &self,
+        state: &[StateVar],
+        name: &String,
+    ) -> Result<f64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_f64(&value)?;
         Ok(result)
@@ -201,7 +208,11 @@ impl StateModel {
     /// # Returns
     ///
     /// the expected value or an error
-    pub fn get_custom_i64(&self, state: &[StateVar], name: &String) -> Result<i64, StateError> {
+    pub fn get_custom_i64(
+        &self,
+        state: &[StateVar],
+        name: &String,
+    ) -> Result<i64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_i64(&value)?;
         Ok(result)
@@ -215,7 +226,11 @@ impl StateModel {
     /// # Returns
     ///
     /// the expected value or an error
-    pub fn get_custom_u64(&self, state: &[StateVar], name: &String) -> Result<u64, StateError> {
+    pub fn get_custom_u64(
+        &self,
+        state: &[StateVar],
+        name: &String,
+    ) -> Result<u64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_u64(&value)?;
         Ok(result)
@@ -229,7 +244,11 @@ impl StateModel {
     /// # Returns
     ///
     /// the expected value or an error
-    pub fn get_custom_bool(&self, state: &[StateVar], name: &String) -> Result<bool, StateError> {
+    pub fn get_custom_bool(
+        &self,
+        state: &[StateVar],
+        name: &String,
+    ) -> Result<bool, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_bool(&value)?;
         Ok(result)
@@ -250,7 +269,7 @@ impl StateModel {
         &self,
         state: &[StateVar],
         name: &String,
-    ) -> Result<(StateVar, &CustomFeatureFormat), StateError> {
+    ) -> Result<(StateVar, &CustomFeatureFormat), StateModelError> {
         let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
@@ -273,7 +292,7 @@ impl StateModel {
         prev: &[StateVar],
         next: &[StateVar],
         name: &String,
-    ) -> Result<StateVar, StateError> {
+    ) -> Result<StateVar, StateModelError> {
         let prev_val = self.get_state_variable(prev, name)?;
         let next_val = self.get_state_variable(next, name)?;
         Ok(next_val - prev_val)
@@ -286,7 +305,7 @@ impl StateModel {
         name: &String,
         distance: &Distance,
         from_unit: &DistanceUnit,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let prev_distance = self.get_distance(state, name, from_unit)?;
         let next_distance = prev_distance + *distance;
         self.set_distance(state, name, &next_distance, from_unit)
@@ -299,7 +318,7 @@ impl StateModel {
         name: &String,
         time: &Time,
         from_unit: &TimeUnit,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let prev_time = self.get_time(state, name, from_unit)?;
         let next_time = prev_time + *time;
         self.set_time(state, name, &next_time, from_unit)
@@ -312,7 +331,7 @@ impl StateModel {
         name: &String,
         energy: &Energy,
         from_unit: &EnergyUnit,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let prev_energy = self.get_energy(state, name, from_unit)?;
         let next_energy = prev_energy + *energy;
         self.set_energy(state, name, &next_energy, from_unit)
@@ -324,7 +343,7 @@ impl StateModel {
         name: &String,
         distance: &Distance,
         from_unit: &DistanceUnit,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
         let to_unit = feature.get_distance_unit()?;
         let value = from_unit.convert(distance, &to_unit);
@@ -337,7 +356,7 @@ impl StateModel {
         name: &String,
         time: &Time,
         from_unit: &TimeUnit,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
         let to_unit = feature.get_time_unit()?;
         let value = from_unit.convert(time, &to_unit);
@@ -350,7 +369,7 @@ impl StateModel {
         name: &String,
         energy: &Energy,
         from_unit: &EnergyUnit,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
         let to_unit = feature.get_energy_unit()?;
         let value = from_unit.convert(energy, &to_unit);
@@ -362,7 +381,7 @@ impl StateModel {
         state: &mut [StateVar],
         name: &String,
         value: &f64,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
         let encoded_value = format.encode_f64(value)?;
@@ -374,7 +393,7 @@ impl StateModel {
         state: &mut [StateVar],
         name: &String,
         value: &i64,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
         let encoded_value = format.encode_i64(value)?;
@@ -386,7 +405,7 @@ impl StateModel {
         state: &mut [StateVar],
         name: &String,
         value: &u64,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
         let encoded_value = format.encode_u64(value)?;
@@ -398,7 +417,7 @@ impl StateModel {
         state: &mut [StateVar],
         name: &String,
         value: &bool,
-    ) -> Result<(), StateError> {
+    ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
         let encoded_value = format.encode_bool(value)?;
@@ -422,8 +441,20 @@ impl StateModel {
     }
 
     /// uses the built-in serialization codec to output the state model representation as a JSON object
+    /// stores the result as a JSON Object (Map).
     pub fn serialize_state_model(&self) -> serde_json::Value {
-        json![self.iter().collect::<HashMap<_, _>>()]
+        let mut out = serde_json::Map::new();
+        for (i, (name, feature)) in self.indexed_iter() {
+            let mut f_json = json![feature];
+
+            if let Some(map) = f_json.as_object_mut() {
+                map.insert(String::from("index"), json![i]);
+                map.insert(String::from("name"), json![name]);
+            }
+            out.insert(name.clone(), f_json);
+        }
+
+        json![out]
     }
 
     /// lists the names of the state variables in order
@@ -431,9 +462,9 @@ impl StateModel {
         self.0.iter().map(|(k, _)| k.clone()).join(",")
     }
 
-    fn get_feature(&self, feature_name: &String) -> Result<&StateFeature, StateError> {
+    fn get_feature(&self, feature_name: &String) -> Result<&StateFeature, StateModelError> {
         self.0.get(feature_name).ok_or_else(|| {
-            StateError::UnknownStateVariableName(feature_name.clone(), self.get_names())
+            StateModelError::UnknownStateVariableName(feature_name.clone(), self.get_names())
         })
     }
 
@@ -442,13 +473,12 @@ impl StateModel {
         &self,
         state: &[StateVar],
         name: &String,
-    ) -> Result<StateVar, StateError> {
-        let idx = self
-            .0
-            .get_index(name)
-            .ok_or_else(|| StateError::UnknownStateVariableName(name.clone(), self.get_names()))?;
+    ) -> Result<StateVar, StateModelError> {
+        let idx = self.0.get_index(name).ok_or_else(|| {
+            StateModelError::UnknownStateVariableName(name.clone(), self.get_names())
+        })?;
         let value = state.get(idx).ok_or_else(|| {
-            StateError::RuntimeError(format!(
+            StateModelError::RuntimeError(format!(
                 "state index {} for {} is out of range for state vector with {} entries",
                 idx,
                 name,
@@ -464,14 +494,16 @@ impl StateModel {
         name: &String,
         value: &StateVar,
         op: UpdateOperation,
-    ) -> Result<(), StateError> {
-        let index = self
-            .0
-            .get_index(name)
-            .ok_or_else(|| StateError::UnknownStateVariableName(name.clone(), self.get_names()))?;
+    ) -> Result<(), StateModelError> {
+        let index = self.0.get_index(name).ok_or_else(|| {
+            StateModelError::UnknownStateVariableName(name.clone(), self.get_names())
+        })?;
         let prev = state
             .get(index)
-            .ok_or(StateError::InvalidStateVariableIndex(index, state.len()))?;
+            .ok_or(StateModelError::InvalidStateVariableIndex(
+                index,
+                state.len(),
+            ))?;
         let updated = op.perform_operation(prev, value);
         state[index] = updated;
         Ok(())
@@ -479,7 +511,7 @@ impl StateModel {
 }
 
 impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
-    type Error = StateError;
+    type Error = StateModelError;
 
     /// builds a new state model from a JSON array of deserialized StateFeatures.
     /// the size of the JSON object matches the size of the feature vector. downstream
@@ -514,11 +546,11 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
     ///   }
     /// }
     /// ```
-    fn try_from(json: &'a serde_json::Value) -> Result<StateModel, StateError> {
+    fn try_from(json: &'a serde_json::Value) -> Result<StateModel, StateModelError> {
         let tuples = json
             .as_object()
             .ok_or_else(|| {
-                StateError::BuildError(String::from(
+                StateModelError::BuildError(String::from(
                     "expected state model configuration to be a JSON object {}",
                 ))
             })?
@@ -526,7 +558,7 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
             .map(|(feature_name, feature_json)| {
                 let feature = serde_json::from_value::<StateFeature>(feature_json.clone())
                     .map_err(|e| {
-                        StateError::BuildError(format!(
+                        StateModelError::BuildError(format!(
                         "unable to parse state feature row with name '{}' contents '{}' due to: {}",
                         feature_name.clone(),
                         feature_json.clone(),

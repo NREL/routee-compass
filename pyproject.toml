@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "nrel.routee.compass"
-version = "0.7.0"
+version = "0.8.1.post1"
 description = "An eco-routing tool build upon RouteE-Powertrain"
 readme = "README.md"
 documentation = "nrel.github.io/routee-compass"
@@ -20,24 +20,20 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 keywords = ["eco routing"]
-dependencies = [
-    "folium",
-    "pandas",
-    "networkx",
-    "toml",
-]
+dependencies = ["toml"]
+
 [project.optional-dependencies]
 dev = [
-    "black",
-    "jupyter-book",
-    "maturin",
-    "mypy",
     "pytest",
+    "maturin",
+    "jupyter-book",
+    "ruff",
     "sphinx-book-theme",
     "types-requests",
-    "types-setuptools",
     "types-toml",
 ]
+osm = ["osmnx", "geopandas", "shapely", "networkx", "folium", "pandas", "numpy"]
+all = ["nrel.routee.compass[osm]", "nrel.routee.compass[dev]"]
 
 [project.urls]
 Homepage = "https://github.com/NREL/routee-compass"

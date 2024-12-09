@@ -26,7 +26,7 @@ pub fn with_progress_bar<R, E>(
 
     let result = closure(cb);
 
-    println!(); // create a newline once the progress bar is complete
+    eprintln!(); // create a newline once the progress bar is complete
 
     result
 }

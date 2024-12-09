@@ -41,6 +41,7 @@ pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     ))
                 })
             }
+            #[pyo3(signature = (edge_id, distance_unit=None))]
             fn graph_edge_distance(&self, edge_id: usize, distance_unit: Option<String>) -> PyResult<f64> {
                 CompassAppBindings::graph_edge_distance(self, edge_id, distance_unit).map_err(|e| {
                     PyException::new_err(format!(
@@ -49,21 +50,11 @@ pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {
                     ))
                 })
             }
-            fn graph_get_out_edge_ids(&self, vertex_id: usize) -> PyResult<Vec<usize>> {
-                CompassAppBindings::graph_get_out_edge_ids(self, vertex_id).map_err(|e| {
-                    PyException::new_err(format!(
-                        "error retrieving out edge ids for vertex_id {}: {}",
-                        vertex_id, e
-                    ))
-                })
+            fn graph_get_out_edge_ids(&self, vertex_id: usize) -> Vec<usize> {
+                CompassAppBindings::graph_get_out_edge_ids(self, vertex_id)
             }
-            fn graph_get_in_edge_ids(&self, vertex_id: usize) -> PyResult<Vec<usize>> {
-                CompassAppBindings::graph_get_in_edge_ids(self, vertex_id).map_err(|e| {
-                    PyException::new_err(format!(
-                        "error retrieving in edge ids for vertex_id {}: {}",
-                        vertex_id, e
-                    ))
-                })
+            fn graph_get_in_edge_ids(&self, vertex_id: usize) -> Vec<usize> {
+                CompassAppBindings::graph_get_in_edge_ids(self, vertex_id)
             }
             #[staticmethod]
             pub fn _from_config_toml_string(
@@ -80,6 +71,7 @@ pub fn pybindings(_attr: TokenStream, item: TokenStream) -> TokenStream {
                 )
             }
 
+            #[pyo3(signature = (queries, config=None))]
             pub fn _run_queries(
                 &self,
                 queries: Vec<String>,

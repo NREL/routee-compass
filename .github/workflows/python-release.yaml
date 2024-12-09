@@ -42,7 +42,7 @@ jobs:
           profile: minimal
           toolchain: nightly
           override: true
-      - run: rustup target add aarch64-apple-darwin
+      - run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
         if: matrix.os == 'macos'
 
       - name: run cargo tests

@@ -1,6 +1,6 @@
 [package]
 name = "routee-compass-powertrain"
-version = "0.7.0"
+version = "0.8.0"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -11,7 +11,7 @@ documentation = "https://docs.rs/routee-compass"
 
 
 [dependencies]
-routee-compass-core = { path = "../routee-compass-core", version = "0.7.0" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.8.0" }
 smartcore = { version = "0.3.1", features = ["serde"] }                      # random forest
 thiserror = { workspace = true }
 log = { workspace = true }
@@ -22,9 +22,10 @@ serde = { workspace = true, features = ["derive"] }
 serde_repr = "0.1"
 serde_json = { workspace = true }
 ordered-float = { workspace = true }
-ndarray = "0.15"
+ndarray = "0.16.1"
 ort = { version = "2.0.0-alpha.4", optional = true }
 rayon = { workspace = true }
+itertools = { workspace = true }
 
 [features]
 default = []

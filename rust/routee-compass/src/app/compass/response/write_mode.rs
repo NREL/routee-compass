@@ -54,12 +54,21 @@ fn write_header(path: &Path, format: &ResponseOutputFormat) -> Result<(), Compas
     let header = format
         .initial_file_contents()
         .unwrap_or_else(|| String::from(""));
-    std::fs::write(path, header).map_err(CompassAppError::IOError)
+    std::fs::write(path, header).map_err(|e| {
+        CompassAppError::InternalError(format!(
+            "failure writing to {}: {}",
+            path.to_str().unwrap_or_default(),
+            e
+        ))
+    })
 }
 
 fn open_append(path: &Path) -> Result<File, CompassAppError> {
-    OpenOptions::new()
-        .append(true)
-        .open(path)
-        .map_err(CompassAppError::IOError)
+    OpenOptions::new().append(true).open(path).map_err(|e| {
+        CompassAppError::InternalError(format!(
+            "failure opening file {} in append mode: {}",
+            path.to_str().unwrap_or_default(),
+            e
+        ))
+    })
 }

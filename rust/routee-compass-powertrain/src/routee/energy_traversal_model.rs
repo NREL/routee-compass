@@ -1,8 +1,7 @@
 use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
 use super::vehicle::vehicle_type::VehicleType;
-use routee_compass_core::model::property::edge::Edge;
-use routee_compass_core::model::property::vertex::Vertex;
+use routee_compass_core::model::network::{Edge, Vertex};
 use routee_compass_core::model::state::state_feature::StateFeature;
 use routee_compass_core::model::state::state_model::StateModel;
 use routee_compass_core::model::traversal::state::state_variable::StateVar;
@@ -92,7 +91,12 @@ impl TraversalModel for EnergyTraversalModel {
             &dst.coordinate,
             self.energy_model_service.distance_unit,
         )
-        .map_err(TraversalModelError::NumericError)?;
+        .map_err(|e| {
+            TraversalModelError::TraversalModelFailure(format!(
+                "could not compute haversine distance between {} and {}: {}",
+                src, dst, e
+            ))
+        })?;
 
         if distance == Distance::ZERO {
             return Ok(());
@@ -131,21 +135,18 @@ impl EnergyTraversalModel {
             })?
             .to_string();
 
-        let vehicle = match energy_model_service
+        let vehicle_lookup = energy_model_service
             .vehicle_library
-            .get(&prediction_model_name)
-        {
-            None => {
-                let model_names: Vec<&String> =
-                    energy_model_service.vehicle_library.keys().collect();
-                Err(TraversalModelError::BuildError(format!(
-                    "No vehicle found with model_name = '{}', try one of: {:?}",
-                    prediction_model_name, model_names
-                )))
-            }
-            Some(mr) => Ok(mr.clone()),
-        }?
-        .update_from_query(conf)?;
+            .get(&prediction_model_name);
+        let vehicle_initial = vehicle_lookup.cloned().ok_or_else(|| {
+            let model_names: Vec<&String> = energy_model_service.vehicle_library.keys().collect();
+            TraversalModelError::BuildError(format!(
+                "No vehicle found with model_name = '{}', try one of: {:?}",
+                prediction_model_name, model_names
+            ))
+        })?;
+        // allow user to customize this vehicle instance if applicable
+        let vehicle = vehicle_initial.update_from_query(conf)?;
 
         Ok(EnergyTraversalModel {
             energy_model_service,
@@ -165,8 +166,7 @@ mod tests {
     use geo::coord;
     use routee_compass_core::{
         model::{
-            property::{edge::Edge, vertex::Vertex},
-            road_network::{edge_id::EdgeId, vertex_id::VertexId},
+            network::{Edge, EdgeId, Vertex, VertexId},
             traversal::default::{
                 speed_traversal_engine::SpeedTraversalEngine,
                 speed_traversal_service::SpeedLookupService,
