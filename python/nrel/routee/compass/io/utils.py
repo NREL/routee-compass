@@ -8,6 +8,7 @@ from typing import Union, Optional
 import math
 
 import networkx
+import shapely
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class TileResolution(Enum):
 
 
 def get_usgs_tiles(lat_lon_pairs: list[tuple[float, float]]) -> list[str]:
-    def tile_index(lat, lon):
+    def tile_index(lat: float, lon: float) -> str:
         if lat < 0 or lon > 0:
             raise ValueError(
                 f"USGS Tiles are not available for point ({lat}, {lon}). "
@@ -179,7 +180,8 @@ def add_grade_to_graph(
 
     return g
 
-def compass_heading(point1, point2):
+
+def compass_heading(point1: tuple[float, float], point2: tuple[float, float]) -> float:
     lon1, lat1 = point1
     lon2, lat2 = point2
 
@@ -199,7 +201,8 @@ def compass_heading(point1, point2):
 
     return compass_bearing
 
-def calculate_bearings(geom):
+
+def calculate_bearings(geom: shapely.geometry.LineString) -> tuple[int, int]:
     if len(geom.coords) < 2:
         raise ValueError("Geometry must have at least two points")
     if len(geom.coords) == 2:
@@ -209,6 +212,5 @@ def calculate_bearings(geom):
     else:
         start_heading = int(compass_heading(geom.coords[0], geom.coords[1]))
         end_heading = int(compass_heading(geom.coords[-2], geom.coords[-1]))
-        #returns headings as a list of tuples 
+        # returns headings as a list of tuples
         return (start_heading, end_heading)
-    

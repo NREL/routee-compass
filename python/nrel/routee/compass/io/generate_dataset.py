@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Optional, Union
+from typing import Any, Callable, Optional, Union
 from pathlib import Path
 from pkg_resources import resource_filename
 
@@ -9,7 +9,6 @@ import shutil
 import pandas as pd
 
 import networkx
-from numpy.typing import ArrayLike
 
 from nrel.routee.compass.io import utils
 from nrel.routee.compass.io.utils import add_grade_to_graph
@@ -23,7 +22,7 @@ HIGHWAY_SPEED_MAP = dict[HIGHWAY_TYPE, KM_PER_HR]
 
 # Parameters annotated with this pass through OSMnx, then GeoPandas, then to Pandas,
 # this is a best-effort annotation since the upstream doesn't really have one
-AggFunc = Callable[[ArrayLike], ArrayLike]
+AggFunc = Callable[[Any], Any]
 
 
 def generate_compass_dataset(
@@ -169,7 +168,9 @@ def generate_compass_dataset(
     )
 
     headings = [utils.calculate_bearings(i) for i in e.geometry.values]
-    headings_df = pd.DataFrame(headings, columns = ["arrival_heading", "departure_heading"])
+    headings_df = pd.DataFrame(
+        headings, columns=["arrival_heading", "departure_heading"]
+    )
     headings_df.to_csv(
         output_directory / "edges-headings-enumerated.csv.gz",
         index=False,

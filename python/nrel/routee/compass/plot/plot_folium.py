@@ -17,7 +17,7 @@ DEFAULT_LINE_KWARGS = {
 }
 
 
-def result_dict_to_coords(result_dict: dict) -> Sequence[Tuple[float, float]]:
+def result_dict_to_coords(result_dict: QueryResult) -> Sequence[Tuple[float, float]]:
     """
     Converts the CompassApp results to coords to be sent to the folium map.
 
@@ -64,7 +64,7 @@ def result_dict_to_coords(result_dict: dict) -> Sequence[Tuple[float, float]]:
     return coords
 
 
-def _calculate_folium_args(fit_coords: Sequence[Tuple[float, float]]) -> dict:
+def _calculate_folium_args(fit_coords: Sequence[Tuple[float, float]]) -> dict[str, Any]:
     """
     Calculates where the center of the map and the bounds that the map
     should fit.
@@ -96,7 +96,7 @@ def _calculate_folium_args(fit_coords: Sequence[Tuple[float, float]]) -> dict:
     }
 
 
-def _create_empty_folium_map(fit_coords: Sequence[Tuple[float, float]]):
+def _create_empty_folium_map(fit_coords: Sequence[Tuple[float, float]]) -> folium.Map:
     """
     Creates an empty folium.Map calculating the center and the fit_bounds
     using _calculate_folium_args.
@@ -161,9 +161,9 @@ def plot_route_folium(
 
 def plot_coords_folium(
     coords: Sequence[Tuple[float, float]],
-    line_kwargs: Optional[dict] = None,
-    folium_map=None,
-):
+    line_kwargs: Optional[dict[str, Any]] = None,
+    folium_map: Optional[folium.Map] = None,
+) -> folium.Map:
     """
     Plots a sequence of pairs of latitude and longitude on a folium map as a route.
 
@@ -223,7 +223,7 @@ def plot_routes_folium(
     results: Union[QueryResult, QueryResults],
     value_fn: Callable[[QueryResult], Any] = lambda r: r["request"].get("name"),
     color_map: str = "viridis",
-    folium_map=None,
+    folium_map: folium.Map = None,
 ) -> folium.Map:
     """
     Plot multiple routes from a CompassApp query on a folium map

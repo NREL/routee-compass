@@ -6,7 +6,7 @@ import os
 from tempfile import TemporaryDirectory
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING, cast
+from typing import Any, List, Optional, Union, Callable, TYPE_CHECKING, cast
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
@@ -18,11 +18,12 @@ if TYPE_CHECKING:
 import toml
 
 
-Config = Dict[str, Any]
-Query = Dict[str, Any]
-Result = Dict[str, Any]
-Results = List[Result]
-Route = Dict[str, Any]
+Config = dict[str, Any]
+OSMNXQuery = str | dict[str, str] | list[str | dict[str, str]]
+CompassQuery = dict[str, Any]
+Result = dict[str, Any]
+Results = list[Result]
+Route = dict[str, Any]
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class CompassApp:
 
     _app: CompassAppWrapper
 
-    def __init__(self, app: CompassAppWrapper, config: Dict):
+    def __init__(self, app: CompassAppWrapper, config: Config):
         self._app = app
         self._config = config
 
@@ -46,12 +47,12 @@ class CompassApp:
         and implement its own rust based app constructor, while still using
         the original python methods.
         """
-        return CompassAppWrapper  # type: ignore
+        return CompassAppWrapper
 
     @classmethod
     def from_config_file(
         cls,
-        config_file: Union[str, Path],  # , output_file: Optional[str] = None
+        config_file: Union[str, Path],
     ) -> CompassApp:
         """
         Build a CompassApp from a config file
@@ -101,12 +102,12 @@ class CompassApp:
     @classmethod
     def from_place(
         cls,
-        query: Union[str | dict | list],
+        query: OSMNXQuery,
         cache_dir: Optional[Union[str, Path]] = None,
         network_type: str = "drive",
-        hwy_speeds: Optional[Dict] = None,
+        hwy_speeds: Optional[dict[str, Any]] = None,
         fallback: Optional[float] = None,
-        agg: Optional[Callable] = None,
+        agg: Optional[Callable[[Any], Any]] = None,
         add_grade: bool = False,
         raster_resolution_arc_seconds: Union[str, int] = 1,
     ) -> CompassApp:
@@ -157,7 +158,12 @@ class CompassApp:
             raise ImportError(
                 "requires osmnx to be installed. " "Try 'pip install osmnx'"
             )
-        cache_dir, temp_dir = cls._get_cache_dir(cache_dir)
+        if cache_dir is None:
+            temp_dir = TemporaryDirectory()
+            cache_dir = temp_dir.name
+        else:
+            cache_dir = Path(cache_dir)
+
         graph = ox.graph_from_place(query, network_type=network_type)
         generate_compass_dataset(
             graph,
@@ -169,7 +175,9 @@ class CompassApp:
             raster_resolution_arc_seconds=raster_resolution_arc_seconds,
             default_config=True,
         )
-        return cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
+        app = cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
+
+        return app
 
     @classmethod
     def from_polygon(
@@ -177,9 +185,9 @@ class CompassApp:
         polygon: Union["Polygon" | "MultiPolygon"],
         cache_dir: Optional[Union[str, Path]] = None,
         network_type: str = "drive",
-        hwy_speeds: Optional[Dict] = None,
+        hwy_speeds: Optional[dict[str, Any]] = None,
         fallback: Optional[float] = None,
-        agg: Optional[Callable] = None,
+        agg: Optional[Callable[[Any], Any]] = None,
         add_grade: bool = False,
         raster_resolution_arc_seconds: Union[str, int] = 1,
     ) -> CompassApp:
@@ -237,7 +245,12 @@ class CompassApp:
             raise ImportError(
                 "requires osmnx to be installed. " "Try 'pip install osmnx'"
             )
-        cache_dir, temp_dir = cls._get_cache_dir(cache_dir)
+        if cache_dir is None:
+            temp_dir = TemporaryDirectory()
+            cache_dir = temp_dir.name
+        else:
+            cache_dir = Path(cache_dir)
+
         graph = ox.graph_from_polygon(polygon, network_type=network_type)
         generate_compass_dataset(
             graph,
@@ -249,40 +262,15 @@ class CompassApp:
             raster_resolution_arc_seconds=raster_resolution_arc_seconds,
             default_config=True,
         )
-        return cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
 
-    @staticmethod
-    def _get_cache_dir(
-        cache_dir: Optional[Union[str, Path]],
-    ) -> tuple[Union[str, Path], Optional[Union[str, TemporaryDirectory]]]:
-        """
-        Helper function to ensure the cache directory is created
+        app = cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
 
-        Args:
-            cache_dir: path to save necessary files to build the
-                CompassApp. If not set, TemporaryDirectory will be used
-                instead. Defaults to None.
-
-        Returns:
-            cache_dir: The path to save necessary files.
-            temp_dir: If the Args cache_dir was None it will have the
-                TemporaryDirectory object to keep the folder alive while
-                creating the CompassApp. If it was set then this value
-                will be None
-
-        """
-        if cache_dir is None:
-            # Needed to keep the TempDir alive until completion
-            temp_dir = TemporaryDirectory()
-            cache_dir = temp_dir.name
-            return cache_dir, temp_dir
-
-        if not os.path.exists(cache_dir):
-            os.mkdir(cache_dir)
-        return cache_dir, None
+        return app
 
     def run(
-        self, query: Union[Query, List[Query]], config: Optional[Dict] = None
+        self,
+        query: Union[CompassQuery, List[CompassQuery]],
+        config: Optional[Config] = None,
     ) -> Union[Result, Results]:
         """
         Run a query (or multiple queries) against the CompassApp
