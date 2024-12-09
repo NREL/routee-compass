@@ -9,6 +9,8 @@ import math
 
 log = logging.getLogger(__name__)
 
+CACHE_DIR = Path("cache")
+
 
 class TileResolution(Enum):
     ONE_ARC_SECOND = 1
@@ -69,7 +71,7 @@ def _build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) ->
 
 def _download_tile(
     tile: str,
-    output_dir: Path = Path("cache"),
+    output_dir: Path = CACHE_DIR,
     resolution=TileResolution.ONE_ARC_SECOND,
 ) -> Path:
     try:
@@ -175,6 +177,7 @@ def add_grade_to_graph(
 
     return g
 
+
 def compass_heading(point1, point2):
     lon1, lat1 = point1
     lon2, lat2 = point2
@@ -195,6 +198,7 @@ def compass_heading(point1, point2):
 
     return compass_bearing
 
+
 def calculate_bearings(geom):
     if len(geom.coords) < 2:
         raise ValueError("Geometry must have at least two points")
@@ -205,6 +209,5 @@ def calculate_bearings(geom):
     else:
         start_heading = int(compass_heading(geom.coords[0], geom.coords[1]))
         end_heading = int(compass_heading(geom.coords[-2], geom.coords[-1]))
-        #returns headings as a list of tuples 
+        # returns headings as a list of tuples
         return (start_heading, end_heading)
-    

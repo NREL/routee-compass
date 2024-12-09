@@ -37,8 +37,8 @@ jobs:
         run: |
           pip install ".[all]"
 
-      # - name: Run mypy
-      #   run: mypy . --ignore-missing-imports
+      - name: Run mypy
+        run: mypy python 
 
       - name: Run linter
         run: |
