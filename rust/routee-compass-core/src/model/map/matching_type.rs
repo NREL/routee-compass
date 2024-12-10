@@ -62,7 +62,7 @@ impl FromStr for MatchingType {
             "edge_id" => Ok(Self::EdgeId),
             "point" => Ok(Self::Point),
             _ => Err(MapError::BuildError(format!(
-                "unrecognized matching type {}, must be one of [{}]",
+                "unrecognized matching type '{}', must be one of [{}]",
                 s,
                 MatchingType::names()
             ))),
