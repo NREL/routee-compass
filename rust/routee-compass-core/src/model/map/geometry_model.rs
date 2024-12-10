@@ -187,7 +187,7 @@ mod tests {
         assert_eq!(result.len(), 3);
     }
 
-    #[ignore("no ideal candidate module for this unit test. TraversalOutputFormat concatenates linestrings but is too high-level for this test")]
+    #[ignore = "no ideal candidate module for this unit test. TraversalOutputFormat concatenates linestrings but is too high-level for this test"]
     fn test_add_geometry() {
         let geoms_filepath = mock_geometry_file();
         let geoms_file_string = geoms_filepath.to_str().unwrap().to_string();
