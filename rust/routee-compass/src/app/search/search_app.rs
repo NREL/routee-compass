@@ -161,7 +161,7 @@ impl SearchApp {
             .build(query, state_model.clone())?;
 
         let search_assets = SearchInstance {
-            directed_graph: self.graph.clone(),
+            graph: self.graph.clone(),
             map_model: self.map_model.clone(),
             state_model,
             traversal_model,

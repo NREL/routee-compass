@@ -69,7 +69,7 @@ pub fn run(
                         "root path is empty",
                     )))?;
             let spur_vertex_id = si
-                .directed_graph
+                .graph
                 .get_edge(&spur_edge_traversal.edge_id)?
                 .dst_vertex_id;
 
@@ -86,7 +86,7 @@ pub fn run(
             // execute a new path search using a wrapped frontier model to exclude edges
             let yens_frontier = EdgeCutFrontierModel::new(si.frontier_model.clone(), cut_edges);
             let yens_si = SearchInstance {
-                directed_graph: si.directed_graph.clone(),
+                graph: si.graph.clone(),
                 map_model: si.map_model.clone(),
                 state_model: si.state_model.clone(),
                 traversal_model: si.traversal_model.clone(),

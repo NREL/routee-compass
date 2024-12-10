@@ -68,18 +68,8 @@ impl MapModel {
         query: &mut serde_json::Value,
         si: &SearchInstance,
     ) -> Result<(), MapError> {
-        self.matching_type.process_origin(
-            self,
-            si.frontier_model.clone(),
-            si.directed_graph.clone(),
-            query,
-        )?;
-        match self.matching_type.process_destination(
-            self,
-            si.frontier_model.clone(),
-            si.directed_graph.clone(),
-            query,
-        )? {
+        self.matching_type.process_origin(query, si)?;
+        match self.matching_type.process_destination(query, si)? {
             MapInputResult::NotFound if !self.queries_without_destinations => {
                 Err(MapError::DestinationsRequired(self.matching_type.clone()))
             }
