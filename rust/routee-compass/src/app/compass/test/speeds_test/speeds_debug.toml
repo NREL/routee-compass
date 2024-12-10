@@ -5,8 +5,9 @@ verbose = true
 
 # [mapping]
 # type = "vertex"
-# # tolerance = [30.0, "meters"]
-# queries_without_destinations = false
+# # tolerance.distance = 30.0
+# # tolerance.unit = "meters"
+# # queries_without_destinations = false
 # # matching_type = ["vertex"]
 
 [traversal]
