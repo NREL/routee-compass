@@ -5,7 +5,7 @@ from nrel.routee.compass.compass_app import CompassApp
 
 
 class TestDowntownDenverExample(TestCase):
-    def test_downtown_denver_example(self):
+    def test_downtown_denver_example(self) -> None:
         app = CompassApp.from_config_file(
             package_root()
             / "resources"

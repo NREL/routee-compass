@@ -7,6 +7,9 @@ import logging
 from typing import Union, Optional
 import math
 
+import networkx
+import shapely
+
 log = logging.getLogger(__name__)
 
 
@@ -38,7 +41,7 @@ class TileResolution(Enum):
 
 
 def get_usgs_tiles(lat_lon_pairs: list[tuple[float, float]]) -> list[str]:
-    def tile_index(lat, lon):
+    def tile_index(lat: float, lon: float) -> str:
         if lat < 0 or lon > 0:
             raise ValueError(
                 f"USGS Tiles are not available for point ({lat}, {lon}). "
@@ -58,7 +61,9 @@ def get_usgs_tiles(lat_lon_pairs: list[tuple[float, float]]) -> list[str]:
     return list(tiles)
 
 
-def _build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) -> str:
+def _build_download_link(
+    tile: str, resolution: TileResolution = TileResolution.ONE_ARC_SECOND
+) -> str:
     base_link_fragment = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/"
     resolution_link_fragment = f"{resolution.value}/TIFF/current/{tile}/"
     filename = f"USGS_{resolution.value}_{tile}.tif"
@@ -70,7 +75,7 @@ def _build_download_link(tile: str, resolution=TileResolution.ONE_ARC_SECOND) ->
 def _download_tile(
     tile: str,
     output_dir: Path = Path("cache"),
-    resolution=TileResolution.ONE_ARC_SECOND,
+    resolution: TileResolution = TileResolution.ONE_ARC_SECOND,
 ) -> Path:
     try:
         import requests
@@ -106,11 +111,11 @@ def _download_tile(
 
 
 def add_grade_to_graph(
-    g,
+    g: networkx.MultiDiGraph,
     output_dir: Path = Path("cache"),
     resolution_arc_seconds: Union[str, int] = 1,
     api_key: Optional[str] = None,
-):
+) -> networkx.MultiDiGraph:
     """
     Adds grade information to the edges of a graph.
     If using an api_key will try and download the grades from Google API, otherwise
@@ -130,7 +135,7 @@ def add_grade_to_graph(
             None will use USGS raster elevation tiles
 
     Returns:
-        nx.MultiDiGraph: The graph with grade information added to the edges.
+        g: The graph with grade information added to the edges.
 
     Example:
         >>> import osmnx as ox
@@ -175,7 +180,8 @@ def add_grade_to_graph(
 
     return g
 
-def compass_heading(point1, point2):
+
+def compass_heading(point1: tuple[float, float], point2: tuple[float, float]) -> float:
     lon1, lat1 = point1
     lon2, lat2 = point2
 
@@ -195,7 +201,8 @@ def compass_heading(point1, point2):
 
     return compass_bearing
 
-def calculate_bearings(geom):
+
+def calculate_bearings(geom: shapely.geometry.LineString) -> tuple[int, int]:
     if len(geom.coords) < 2:
         raise ValueError("Geometry must have at least two points")
     if len(geom.coords) == 2:
@@ -205,6 +212,5 @@ def calculate_bearings(geom):
     else:
         start_heading = int(compass_heading(geom.coords[0], geom.coords[1]))
         end_heading = int(compass_heading(geom.coords[-2], geom.coords[-1]))
-        #returns headings as a list of tuples 
+        # returns headings as a list of tuples
         return (start_heading, end_heading)
-    
