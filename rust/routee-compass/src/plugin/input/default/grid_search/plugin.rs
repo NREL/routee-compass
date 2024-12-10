@@ -98,12 +98,12 @@ fn process_grid_search(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::plugin::input::input_plugin::InputPlugin;
+    
     use serde_json::json;
 
     #[test]
     fn test_grid_search_empty_parent_object() {
-        let mut input = serde_json::json!({
+        let input = serde_json::json!({
             "grid_search": {
                 "bar": ["a", "b", "c"],
                 "foo": [1.2, 3.4]
@@ -128,7 +128,7 @@ mod test {
 
     #[test]
     fn test_grid_search_persisted_parent_keys() {
-        let mut input = serde_json::json!({
+        let input = serde_json::json!({
             "ignored_key": "ignored_value",
             "grid_search": {
                 "bar": ["a", "b", "c"],
@@ -156,7 +156,7 @@ mod test {
 
     #[test]
     fn test_grid_search_using_objects() {
-        let mut input = serde_json::json!({
+        let input = serde_json::json!({
             "ignored_key": "ignored_value",
             "grid_search": {
                 "a": [1, 2],
@@ -185,7 +185,7 @@ mod test {
 
     #[test]
     fn test_nested() {
-        let mut input = serde_json::json!({
+        let input = serde_json::json!({
             "abc": 123,
             "grid_search":{
                 "model_name": ["2016_TOYOTA_Camry_4cyl_2WD","2017_CHEVROLET_Bolt"],
@@ -217,7 +217,7 @@ mod test {
 
     #[test]
     pub fn test_handle_recursion() {
-        let mut input = serde_json::json!({
+        let input = serde_json::json!({
             "abc": 123,
             "grid_search":{
                 "grid_search": {
