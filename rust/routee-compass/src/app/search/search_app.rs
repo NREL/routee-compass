@@ -9,8 +9,7 @@ use crate::{
 use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{
-        direction::Direction, search_algorithm::SearchAlgorithm,
-        search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
+        direction::Direction, search_algorithm::SearchAlgorithm, search_error::SearchError,
         search_instance::SearchInstance,
     },
     model::{
@@ -79,14 +78,37 @@ impl SearchApp {
     /// The complete set of trees, routes, and search assets for this run.
     pub fn run(
         &self,
-        query: &serde_json::Value,
+        query: &mut serde_json::Value,
     ) -> Result<(SearchAppResult, SearchInstance), CompassAppError> {
         let search_start_time = Local::now();
-        let (results, si) = if query.get_origin_edge().is_ok() {
-            self.run_edge_oriented(query)?
+        let si = self.build_search_instance(query)?;
+        self.map_model.map_match(query, &si)?;
+
+        // depending on the presence of a
+        let results = if query.get_origin_edge().is_ok() {
+            let o = query.get_origin_edge().map_err(|e| {
+                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+            })?;
+            let d_opt = query.get_destination_edge().map_err(|e| {
+                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+            })?;
+            self.search_algorithm
+                .run_edge_oriented(o, d_opt, query, &Direction::Forward, &si)
+                .map_err(CompassAppError::SearchFailure)
+        } else if query.get_origin_vertex().is_ok() {
+            let o = query.get_origin_vertex().map_err(|e| {
+                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+            })?;
+            let d = query.get_destination_vertex().map_err(|e| {
+                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+            })?;
+
+            self.search_algorithm
+                .run_vertex_oriented(o, d, query, &Direction::Forward, &si)
+                .map_err(CompassAppError::SearchFailure)
         } else {
-            self.run_vertex_oriented(query)?
-        };
+            Err(CompassAppError::CompassFailure(String::from("SearchApp.run called with query that lacks origin_edge and origin_vertex, at least one required")))
+        }?;
 
         let search_end_time = Local::now();
         let search_runtime = (search_end_time - search_start_time)
@@ -107,41 +129,6 @@ impl SearchApp {
         };
 
         Ok((result, si))
-    }
-
-    pub fn run_vertex_oriented(
-        &self,
-        query: &serde_json::Value,
-    ) -> Result<(SearchAlgorithmResult, SearchInstance), CompassAppError> {
-        let o = query.get_origin_vertex().map_err(|e| {
-            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
-        })?;
-        let d = query.get_destination_vertex().map_err(|e| {
-            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
-        })?;
-
-        let search_instance = self.build_search_instance(query)?;
-        self.search_algorithm
-            .run_vertex_oriented(o, d, query, &Direction::Forward, &search_instance)
-            .map(|search_result| (search_result, search_instance))
-            .map_err(CompassAppError::SearchFailure)
-    }
-
-    pub fn run_edge_oriented(
-        &self,
-        query: &serde_json::Value,
-    ) -> Result<(SearchAlgorithmResult, SearchInstance), CompassAppError> {
-        let o = query.get_origin_edge().map_err(|e| {
-            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
-        })?;
-        let d_opt = query.get_destination_edge().map_err(|e| {
-            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
-        })?;
-        let search_instance = self.build_search_instance(query)?;
-        self.search_algorithm
-            .run_edge_oriented(o, d_opt, query, &Direction::Forward, &search_instance)
-            .map(|search_result| (search_result, search_instance))
-            .map_err(CompassAppError::SearchFailure)
     }
 
     /// builds the assets that will run the search for this query instance.

@@ -3,6 +3,7 @@ use super::map_input_type::MapInputType;
 use super::map_model_config::MapModelConfig;
 use super::spatial_index::SpatialIndex;
 use super::{geometry_model::GeometryModel, map_input_type::MapInputResult};
+use crate::algorithm::search::search_instance::SearchInstance;
 use crate::model::network::{EdgeId, Graph};
 use geo::LineString;
 use std::sync::Arc;
@@ -18,10 +19,10 @@ impl MapModel {
     pub fn new(graph: Arc<Graph>, config: MapModelConfig) -> Result<MapModel, MapError> {
         match config {
             MapModelConfig::VertexMapModelConfig {
-                // map_input_type,
                 tolerance,
                 geometry_input_file,
                 queries_without_destinations,
+                map_input_type,
             } => {
                 let spatial_index =
                     SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance);
@@ -30,7 +31,7 @@ impl MapModel {
                     Some(file) => GeometryModel::new_from_edges(&file, graph.clone()),
                 }?;
                 let map_model = MapModel {
-                    map_input_type: MapInputType::default(),
+                    map_input_type: map_input_type.unwrap_or_default(),
                     spatial_index,
                     geometry_model,
                     queries_without_destinations,
@@ -38,17 +39,17 @@ impl MapModel {
                 Ok(map_model)
             }
             MapModelConfig::EdgeMapModelConfig {
-                // map_input_type,
                 tolerance,
                 geometry_input_file,
                 queries_without_destinations,
+                map_input_type,
             } => {
                 let geometry_model =
                     GeometryModel::new_from_edges(&geometry_input_file, graph.clone())?;
                 let spatial_index =
                     SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance);
                 let map_model = MapModel {
-                    map_input_type: MapInputType::default(),
+                    map_input_type: map_input_type.unwrap_or_default(),
                     spatial_index,
                     geometry_model,
                     queries_without_destinations,
@@ -62,9 +63,23 @@ impl MapModel {
         self.geometry_model.get(edge_id)
     }
 
-    pub fn map_match(&self, query: &mut serde_json::Value) -> Result<(), MapError> {
-        self.map_input_type.process_origin(self, query)?;
-        match self.map_input_type.process_destination(self, query)? {
+    pub fn map_match(
+        &self,
+        query: &mut serde_json::Value,
+        si: &SearchInstance,
+    ) -> Result<(), MapError> {
+        self.map_input_type.process_origin(
+            self,
+            si.frontier_model.clone(),
+            si.directed_graph.clone(),
+            query,
+        )?;
+        match self.map_input_type.process_destination(
+            self,
+            si.frontier_model.clone(),
+            si.directed_graph.clone(),
+            query,
+        )? {
             MapInputResult::NotFound if !self.queries_without_destinations => {
                 Err(MapError::DestinationsRequired(self.map_input_type.clone()))
             }

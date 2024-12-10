@@ -76,6 +76,30 @@ impl SpatialIndex {
             }
         }
     }
+
+    /// builds an iterator over map edges ordered by nearness to the given point.
+    /// applies the (map-matching) distance tolerance filter.
+    pub fn nearest_graph_id_iter<'a>(
+        &'a self,
+        point: &'a Point<f32>,
+    ) -> Box<dyn Iterator<Item = NearestSearchResult> + 'a> {
+        match self {
+            SpatialIndex::VertexOrientedIndex { rtree, tolerance } => {
+                let iter = rtree
+                    .nearest_neighbor_iter_with_distance_2(point)
+                    .filter(|(obj, _)| obj.test_threshold(point, tolerance).unwrap_or(false))
+                    .map(|(next, _)| NearestSearchResult::NearestVertex(next.vertex_id));
+                Box::new(iter)
+            }
+            SpatialIndex::EdgeOrientedIndex { rtree, tolerance } => {
+                let iter = rtree
+                    .nearest_neighbor_iter_with_distance_2(point)
+                    .filter(|(obj, _)| obj.test_threshold(point, tolerance).unwrap_or(false))
+                    .map(|(next, _)| NearestSearchResult::NearestEdge(next.edge_id));
+                Box::new(iter)
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -88,7 +112,6 @@ mod test {
         util::fs::read_utils,
     };
     use geo;
-    
 
     #[test]
     fn test_vertex_oriented_e2e() {

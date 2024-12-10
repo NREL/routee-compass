@@ -1,4 +1,4 @@
-use super::{map_error::MapError, spatial_index_ops::within_threshold};
+use super::{map_error::MapError, spatial_index_ops as ops};
 use crate::model::{
     network::{Edge, EdgeId},
     unit::{Distance, DistanceUnit},
@@ -14,13 +14,24 @@ impl MapEdgeRTreeObject {
         }
     }
 
+    pub fn test_threshold(
+        &self,
+        point: &Point<f32>,
+        tolerance: &Option<(Distance, DistanceUnit)>,
+    ) -> Result<bool, MapError> {
+        match tolerance {
+            Some((dist, unit)) => ops::test_threshold(&self.envelope, point, *dist, *unit),
+            None => Ok(true),
+        }
+    }
+
     pub fn within_distance_threshold(
         &self,
         point: &Point<f32>,
         tolerance: &Option<(Distance, DistanceUnit)>,
     ) -> Result<(), MapError> {
         match tolerance {
-            Some((dist, unit)) => within_threshold(&self.envelope, point, *dist, *unit),
+            Some((dist, unit)) => ops::within_threshold(&self.envelope, point, *dist, *unit),
             None => Ok(()),
         }
     }

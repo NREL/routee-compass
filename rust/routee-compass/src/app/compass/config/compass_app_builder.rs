@@ -21,9 +21,8 @@ use super::{
 use crate::plugin::{
     input::{
         default::{
-            debug::debug_builder::DebugInputPluginBuilder,
-            edge_rtree::edge_rtree_input_plugin_builder::EdgeRtreeInputPluginBuilder,
-            grid_search::builder::GridSearchBuilder, inject::inject_builder::InjectPluginBuilder,
+            debug::debug_builder::DebugInputPluginBuilder, grid_search::builder::GridSearchBuilder,
+            inject::inject_builder::InjectPluginBuilder,
             load_balancer::builder::LoadBalancerBuilder,
         },
         input_plugin::InputPlugin,
@@ -179,13 +178,11 @@ impl CompassAppBuilder {
 
         // Input plugin builders
         let grid_search: Rc<dyn InputPluginBuilder> = Rc::new(GridSearchBuilder {});
-        let edge_rtree: Rc<dyn InputPluginBuilder> = Rc::new(EdgeRtreeInputPluginBuilder {});
         let load_balancer: Rc<dyn InputPluginBuilder> = Rc::new(LoadBalancerBuilder {});
         let inject: Rc<dyn InputPluginBuilder> = Rc::new(InjectPluginBuilder {});
         let debug: Rc<dyn InputPluginBuilder> = Rc::new(DebugInputPluginBuilder {});
         let input_plugin_builders = HashMap::from([
             (String::from("grid_search"), grid_search),
-            (String::from("edge_rtree"), edge_rtree),
             (String::from("load_balancer"), load_balancer),
             (String::from("inject"), inject),
             (String::from("debug"), debug),

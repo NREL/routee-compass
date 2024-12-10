@@ -1,3 +1,7 @@
+use std::sync::Arc;
+
+use crate::app::search::search_app::SearchApp;
+
 use super::InputPluginError;
 
 /// Performs some kind of pre-processing on a user query input. The input JSON is available
@@ -10,11 +14,16 @@ use super::InputPluginError;
 ///
 /// The following default set of input plugin builders are found in the [`super::default`] module:
 ///
-/// * [rtree] - map matches x and y coordinates to vertex ids in the network
+/// * [debug] - logs the (current) status of each query to the logging system
 /// * [grid search] - duplicates a query based on a list of user-defined values
+/// * [inject] - mechanism to inject values into the queries
+/// * [load balancer] - uses weighting heuristics to balance query loads across threads
 ///
-/// [rtree]: super::default::rtree::builder::VertexRTreeBuilder
+/// [debug]: super::default::debug::debug_builder::DebugInputPluginBuilder
 /// [grid search]: super::default::grid_search::builder::GridSearchBuilder
+/// [inject]: super::default::inject::inject_builder::InjectPluginBuilder
+/// [load balancer]: super::default::load_balancer::builder::LoadBalancerBuilder
+///
 pub trait InputPlugin: Send + Sync {
     /// Applies this [`InputPlugin`] to a user query input, passing along a `Vec` of input
     /// queries as a result which will replace the input.
@@ -22,9 +31,14 @@ pub trait InputPlugin: Send + Sync {
     /// # Arguments
     ///
     /// * `input` - the user query input passed to this plugin
+    /// * `search_app` - a reference to the search app with all loaded assets
     ///
     /// # Returns
     ///
     /// A `Vec` of JSON values to replace the input JSON, or an error
-    fn process(&self, input: &mut serde_json::Value) -> Result<(), InputPluginError>;
+    fn process(
+        &self,
+        input: &mut serde_json::Value,
+        search_app: Arc<SearchApp>,
+    ) -> Result<(), InputPluginError>;
 }

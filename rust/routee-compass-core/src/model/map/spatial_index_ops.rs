@@ -6,6 +6,19 @@ use crate::{
 use geo::Point;
 use rstar::AABB;
 
+pub fn test_threshold(
+    envelope: &AABB<Point<f32>>,
+    other: &Point<f32>,
+    tolerance_distance: Distance,
+    tolerance_distance_unit: DistanceUnit,
+) -> Result<bool, MapError> {
+    let this_coord = envelope.lower().0;
+    let distance_meters =
+        haversine::coord_distance_meters(&this_coord, &other.0).map_err(MapError::MapMatchError)?;
+    let distance = DistanceUnit::Meters.convert(&distance_meters, &tolerance_distance_unit);
+    Ok(distance >= tolerance_distance)
+}
+
 pub fn within_threshold(
     envelope: &AABB<Point<f32>>,
     other: &Point<f32>,

@@ -52,7 +52,7 @@ use std::{
 /// A CompassApp instance provides the high-level API for building and
 /// running RouteE Compass.
 pub struct CompassApp {
-    pub search_app: SearchApp,
+    pub search_app: Arc<SearchApp>,
     pub input_plugins: Vec<Arc<dyn InputPlugin>>,
     pub output_plugins: Vec<Arc<dyn OutputPlugin>>,
     pub configuration: CompassAppConfiguration,
@@ -267,7 +267,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         }
 
         // build search app
-        let search_app: SearchApp = SearchApp::new(
+        let search_app = Arc::new(SearchApp::new(
             search_algorithm,
             graph,
             map_model,
@@ -277,7 +277,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             cost_model_service,
             frontier_model_service,
             termination_model,
-        );
+        ));
 
         // build plugins
         let plugins_start = Local::now();
@@ -354,19 +354,18 @@ impl CompassApp {
         .unwrap_or_else(|| self.configuration.response_output_policy.clone());
         let response_writer = response_output_policy.build()?;
 
-        // MAPPING / INPUT PROCESSING
+        // INPUT PROCESSING
         let parallel_batch_size =
             (queries.len() as f64 / self.configuration.parallelism as f64).ceil() as usize;
-        let (mapped_queries, mapped_errors) = apply_map_matching(
+        let input_plugin_result = apply_input_plugins(
             queries,
-            self.search_app.map_model.clone(),
+            &self.input_plugins,
+            self.search_app.clone(),
             parallel_batch_size,
         )?;
-        let input_plugin_result =
-            apply_input_plugins(mapped_queries, &self.input_plugins, parallel_batch_size)?;
         let (processed_inputs, input_errors) = input_plugin_result;
-        let load_balanced_inputs =
-            ops::apply_load_balancing_policy(&processed_inputs, parallelism, 1.0)?;
+        let mut load_balanced_inputs =
+            ops::apply_load_balancing_policy(processed_inputs, parallelism, 1.0)?;
 
         log::info!(
             "creating {} parallel batches across {} threads to run queries",
@@ -399,14 +398,14 @@ impl CompassApp {
         // across a thread pool managed by rayon
         let run_query_result = match response_persistence_policy {
             ResponsePersistencePolicy::PersistResponseInMemory => run_batch_with_responses(
-                &load_balanced_inputs,
+                &mut load_balanced_inputs,
                 &self.output_plugins,
                 &self.search_app,
                 &response_writer,
                 search_pb_shared,
             )?,
             ResponsePersistencePolicy::DiscardResponseFromMemory => run_batch_without_responses(
-                &load_balanced_inputs,
+                &mut load_balanced_inputs,
                 &self.output_plugins,
                 &self.search_app,
                 &response_writer,
@@ -417,67 +416,20 @@ impl CompassApp {
 
         // combine successful runs along with any error rows for response
         let run_result = run_query_result
-            .chain(mapped_errors)
+            // .chain(mapped_errors)
             .chain(input_errors)
             .collect();
         Ok(run_result)
     }
 }
 
-/// executes the map matching operation on all queries, returning all
-/// successful mappings (left) and mapping errors (right) as the pair
-/// (left, right). errors are already serialized into JSON.
-fn apply_map_matching(
-    queries: &mut [Value],
-    map_model: Arc<MapModel>,
-    batch_size: usize,
-) -> Result<(Vec<Value>, Vec<Value>), CompassAppError> {
-    let mapping_pb = Bar::builder()
-        .total(queries.len())
-        .animation("fillup")
-        .desc("map matching")
-        .build()
-        .map_err(|e| {
-            CompassAppError::InternalError(format!(
-                "could not build map matching progress bar: {}",
-                e
-            ))
-        })?;
-    let mapping_pb_shared = Arc::new(Mutex::new(mapping_pb));
-    let (good, bad): (Vec<_>, Vec<_>) = queries
-        .par_chunks_mut(batch_size)
-        .map(|qs| {
-            let mut oks = vec![];
-            let mut errs = vec![];
-            let mm = map_model.clone();
-            for q in qs.iter_mut() {
-                // update progress bar
-                if let Ok(mut pb_local) = mapping_pb_shared.lock() {
-                    let _ = pb_local.update(1);
-                }
-                // perform map matching
-                match mm.map_match(q) {
-                    Ok(_) => oks.push(q.to_owned()),
-                    Err(e) => errs.push(in_ops::package_error(q, e)),
-                }
-            }
-            (oks, errs)
-        })
-        .unzip();
-    eprintln!(); // end mapping pb
-
-    Ok((
-        good.into_iter().flatten().collect_vec(),
-        bad.into_iter().flatten().collect_vec(),
-    ))
-}
-
 /// executes the input plugins on each query, returning all
 /// successful mappings (left) and mapping errors (right) as the pair
 /// (left, right). errors are already serialized into JSON.
 fn apply_input_plugins(
-    mapped_queries: Vec<Value>,
+    mapped_queries: &mut [Value],
     input_plugins: &Vec<Arc<dyn InputPlugin>>,
+    search_app: Arc<SearchApp>,
     parallel_batch_size: usize,
 ) -> Result<(Vec<Value>, Vec<Value>), CompassAppError> {
     let input_pb = Bar::builder()
@@ -504,7 +456,8 @@ fn apply_input_plugins(
                     let mut plugin_state = serde_json::Value::Array(vec![q.to_owned()]);
                     for plugin in input_plugins {
                         let p = plugin.clone();
-                        let op: in_ops::InputArrayOp = Rc::new(|q| p.process(q));
+                        let op: in_ops::InputArrayOp =
+                            Rc::new(|q| p.process(q, search_app.clone()));
                         in_ops::json_array_op(&mut plugin_state, op)?
                     }
                     let inner_processed = in_ops::json_array_flatten(&mut plugin_state)?;
@@ -562,7 +515,7 @@ where
 ///
 /// * The result of the search and post-processing as a JSON object, or, an error
 pub fn run_single_query(
-    query: &serde_json::Value,
+    query: &mut serde_json::Value,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
 ) -> Result<serde_json::Value, CompassAppError> {
@@ -584,17 +537,17 @@ fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
 /// runs a query batch which has been sorted into parallel chunks
 /// and retains the responses from each search in memory.
 pub fn run_batch_with_responses(
-    load_balanced_inputs: &Vec<Vec<&Value>>,
+    load_balanced_inputs: &mut Vec<Vec<Value>>,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
     response_writer: &ResponseSink,
     pb: Arc<Mutex<Bar>>,
 ) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
     let run_query_result = load_balanced_inputs
-        .par_iter()
+        .par_iter_mut()
         .map(|queries| {
             queries
-                .iter()
+                .iter_mut()
                 .map(|q| {
                     let mut response = run_single_query(q, output_plugins, search_app)?;
                     if let Ok(mut pb_local) = pb.lock() {
@@ -615,7 +568,7 @@ pub fn run_batch_with_responses(
 /// runs a query batch which has been sorted into parallel chunks.
 /// the search result is not persisted in memory.
 pub fn run_batch_without_responses(
-    load_balanced_inputs: &Vec<Vec<&Value>>,
+    load_balanced_inputs: &mut Vec<Vec<Value>>,
     output_plugins: &[Arc<dyn OutputPlugin>],
     search_app: &SearchApp,
     response_writer: &ResponseSink,
@@ -623,13 +576,13 @@ pub fn run_batch_without_responses(
 ) -> Result<Box<dyn Iterator<Item = Value>>, CompassAppError> {
     // run the computations, discard values that do not trigger an error
     let _ = load_balanced_inputs
-        .par_iter()
+        .par_iter_mut()
         .map(|queries| {
             // fold over query iterator allows us to propagate failures up while still using constant
             // memory to hold the state of the result object. we can't similarly return error values from
             // within a for loop or for_each call, and map creates more allocations. open to other ideas!
             let initial: Result<(), CompassAppError> = Ok(());
-            let _ = queries.iter().fold(initial, |_, q| {
+            let _ = queries.iter_mut().fold(initial, |_, q| {
                 let mut response = run_single_query(q, output_plugins, search_app)?;
                 if let Ok(mut pb_local) = pb.lock() {
                     let _ = pb_local.update(1);

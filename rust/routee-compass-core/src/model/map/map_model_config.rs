@@ -2,25 +2,38 @@
 use crate::model::unit::{Distance, DistanceUnit};
 use serde::{de, Deserialize, Deserializer, Serialize};
 
+use super::map_input_type::MapInputType;
+
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
 pub enum MapModelConfig {
     #[serde(rename = "vertex")]
     VertexMapModelConfig {
-        // map_input_type: MapInputType,
         #[serde(deserialize_with = "de_tolerance")]
         tolerance: Option<(Distance, DistanceUnit)>,
         geometry_input_file: Option<String>,
         queries_without_destinations: bool,
+        map_input_type: Option<MapInputType>,
     },
     #[serde(rename = "edge")]
     EdgeMapModelConfig {
-        // map_input_type: MapInputType,
         #[serde(deserialize_with = "de_tolerance")]
         tolerance: Option<(Distance, DistanceUnit)>,
         geometry_input_file: String,
         queries_without_destinations: bool,
+        map_input_type: Option<MapInputType>,
     },
+}
+
+impl Default for MapModelConfig {
+    fn default() -> Self {
+        MapModelConfig::VertexMapModelConfig {
+            tolerance: None,
+            geometry_input_file: None,
+            queries_without_destinations: false,
+            map_input_type: None,
+        }
+    }
 }
 
 fn de_tolerance<'de, D>(value: D) -> Result<Option<(Distance, DistanceUnit)>, D::Error>

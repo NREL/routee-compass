@@ -60,10 +60,10 @@ pub fn run_a_star(
         };
 
         let last_edge_id = get_last_traversed_edge_id(&current_vertex_id, &source, &solution)?;
-        let last_edge = match last_edge_id {
-            Some(id) => Some(si.directed_graph.get_edge(&id)?),
-            None => None,
-        };
+        // let last_edge = match last_edge_id {
+        //     Some(id) => Some(si.directed_graph.get_edge(&id)?),
+        //     None => None,
+        // };
 
         // grab the current state from the solution
         let current_state = if current_vertex_id == source {
@@ -90,9 +90,13 @@ pub fn run_a_star(
             let terminal_vertex_id = direction.terminal_vertex_id(e);
             let key_vertex_id = direction.tree_key_vertex_id(e);
 
-            let valid_frontier =
-                si.frontier_model
-                    .valid_frontier(e, &current_state, last_edge, &si.state_model)?;
+            let valid_frontier = si.frontier_model.valid_frontier(
+                e,
+                &current_state,
+                &solution,
+                direction,
+                &si.state_model,
+            )?;
             if !valid_frontier {
                 continue;
             }
@@ -378,6 +382,7 @@ mod tests {
     use crate::model::frontier::default::no_restriction::NoRestriction;
 
     use crate::model::map::map_model::MapModel;
+    use crate::model::map::map_model_config::MapModelConfig;
     use crate::model::network::edge_id::EdgeId;
     use crate::model::network::graph::Graph;
     use crate::model::network::Edge;
@@ -474,18 +479,7 @@ mod tests {
         ];
 
         let graph = Arc::new(build_mock_graph());
-        let map_model = Arc::new(
-            MapModel::new(
-                graph.clone(),
-                crate::model::map::map_model_config::MapModelConfig::VertexMapModelConfig {
-                    // map_input_type: MapInputType::Point,
-                    tolerance: None,
-                    geometry_input_file: None,
-                    queries_without_destinations: false,
-                },
-            )
-            .unwrap(),
-        );
+        let map_model = Arc::new(MapModel::new(graph.clone(), MapModelConfig::default()).unwrap());
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process

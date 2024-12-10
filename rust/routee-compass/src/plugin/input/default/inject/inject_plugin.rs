@@ -1,4 +1,9 @@
-use crate::plugin::input::{input_plugin::InputPlugin, InputPluginError};
+use std::sync::Arc;
+
+use crate::{
+    app::search::search_app::SearchApp,
+    plugin::input::{input_plugin::InputPlugin, InputPluginError},
+};
 
 pub struct InjectInputPlugin {
     key: String,
@@ -21,7 +26,11 @@ impl InjectInputPlugin {
 }
 
 impl InputPlugin for InjectInputPlugin {
-    fn process(&self, input: &mut serde_json::Value) -> Result<(), InputPluginError> {
+    fn process(
+        &self,
+        input: &mut serde_json::Value,
+        _search_app: Arc<SearchApp>,
+    ) -> Result<(), InputPluginError> {
         if !self.overwrite {
             if let Some(obj) = input.as_object() {
                 if obj.contains_key(&self.key) {

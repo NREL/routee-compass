@@ -1,14 +1,17 @@
 use super::edge_rtree_record::EdgeRtreeRecord;
 use crate::{
-    app::compass::config::{
-        compass_configuration_error::CompassConfigurationError,
-        frontier_model::{
-            road_class::road_class_parser::RoadClassParser,
-            vehicle_restrictions::{
-                vehicle_parameters::VehicleParameters, vehicle_restriction::VehicleRestriction,
-                vehicle_restriction_builder::vehicle_restriction_lookup_from_file,
+    app::{
+        compass::config::{
+            compass_configuration_error::CompassConfigurationError,
+            frontier_model::{
+                road_class::road_class_parser::RoadClassParser,
+                vehicle_restrictions::{
+                    vehicle_parameters::VehicleParameters, vehicle_restriction::VehicleRestriction,
+                    vehicle_restriction_builder::vehicle_restriction_lookup_from_file,
+                },
             },
         },
+        search::search_app::SearchApp,
     },
     plugin::input::{
         input_json_extensions::InputJsonExtensions, input_plugin::InputPlugin, InputPluginError,
@@ -27,10 +30,11 @@ use rstar::RTree;
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
+    sync::Arc,
 };
 
 pub struct EdgeRtreeInputPlugin {
-    pub rtree: RTree<EdgeRtreeRecord>,
+    // pub rtree: RTree<EdgeRtreeRecord>,
     pub tolerance: Option<(Distance, DistanceUnit)>,
 
     // TODO: instead of having to load the road classes and the truck restrictions
@@ -48,10 +52,14 @@ pub struct EdgeRtreeInputPlugin {
 impl InputPlugin for EdgeRtreeInputPlugin {
     /// finds the nearest edge ids to the user-provided origin and destination coordinates.
     /// optionally restricts the search to a subset of road classes tagged by the user.
-    fn process(&self, query: &mut serde_json::Value) -> Result<(), InputPluginError> {
+    fn process(
+        &self,
+        query: &mut serde_json::Value,
+        search_app: Arc<SearchApp>,
+    ) -> Result<(), InputPluginError> {
         let road_classes = self.road_class_parser.read_query(query).map_err(|e| {
             InputPluginError::InputPluginFailed(format!(
-                "Unable to apply EdgeRtree Input Plugin due to:\n\n{}",
+                "Unable to apply EdgeRtree Input Plugin due to: {}",
                 e
             ))
         })?;
@@ -62,7 +70,7 @@ impl InputPlugin for EdgeRtreeInputPlugin {
 
         let source_edge_id = search(
             src_coord,
-            &self.rtree,
+            // &self.rtree,
             self.tolerance,
             &self.road_class_lookup,
             &road_classes,
@@ -74,7 +82,7 @@ impl InputPlugin for EdgeRtreeInputPlugin {
             None => Ok(None),
             Some(dst_coord) => search(
                 dst_coord,
-                &self.rtree,
+                // &self.rtree,
                 self.tolerance,
                 &self.road_class_lookup,
                 &road_classes,
@@ -101,7 +109,7 @@ impl EdgeRtreeInputPlugin {
     pub fn new(
         road_class_file: Option<String>,
         vehicle_restriction_file: Option<String>,
-        linestring_file: String,
+        // linestring_file: String,
         tolerance_distance: Option<Distance>,
         distance_unit: Option<DistanceUnit>,
         road_class_parser: RoadClassParser,
@@ -122,29 +130,29 @@ impl EdgeRtreeInputPlugin {
                 }
             };
 
-        let geometries = read_linestring_text_file(linestring_file)
-            .map_err(CompassConfigurationError::IoError)?
-            .into_vec();
+        // let geometries = read_linestring_text_file(linestring_file)
+        //     .map_err(CompassConfigurationError::IoError)?
+        //     .into_vec();
 
-        let rcl_len_opt = road_class_lookup.as_ref().map(|l| l.len());
-        let geo_len = geometries.len();
-        if let Some(rcl_len) = rcl_len_opt {
-            if rcl_len != geo_len {
-                let msg = format!(
-                    "edge_rtree: road class file and geometries file have different lengths ({} != {})",
-                    rcl_len, geo_len
-                );
-                return Err(CompassConfigurationError::UserConfigurationError(msg));
-            }
-        }
+        // let rcl_len_opt = road_class_lookup.as_ref().map(|l| l.len());
+        // let geo_len = geometries.len();
+        // if let Some(rcl_len) = rcl_len_opt {
+        //     if rcl_len != geo_len {
+        //         let msg = format!(
+        //             "edge_rtree: road class file and geometries file have different lengths ({} != {})",
+        //             rcl_len, geo_len
+        //         );
+        //         return Err(CompassConfigurationError::UserConfigurationError(msg));
+        //     }
+        // }
 
-        let records: Vec<EdgeRtreeRecord> = geometries
-            .into_iter()
-            .enumerate()
-            .map(|(idx, geom)| EdgeRtreeRecord::new(EdgeId(idx), geom))
-            .collect();
+        // let records: Vec<EdgeRtreeRecord> = geometries
+        //     .into_iter()
+        //     .enumerate()
+        //     .map(|(idx, geom)| EdgeRtreeRecord::new(EdgeId(idx), geom))
+        //     .collect();
 
-        let rtree = RTree::bulk_load(records);
+        // let rtree = RTree::bulk_load(records);
 
         let tolerance = match (tolerance_distance, distance_unit) {
             (None, None) => None,
@@ -154,7 +162,7 @@ impl EdgeRtreeInputPlugin {
         };
 
         Ok(EdgeRtreeInputPlugin {
-            rtree,
+            // rtree,
             road_class_lookup,
             tolerance,
             road_class_parser,

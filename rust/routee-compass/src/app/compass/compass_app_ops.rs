@@ -93,19 +93,20 @@ pub fn read_config_from_string(
 /// load balances the queries across processes based on the estimates. the resulting
 /// batches are not equal-sized
 pub fn apply_load_balancing_policy(
-    queries: &[serde_json::Value],
+    queries: Vec<serde_json::Value>,
     parallelism: usize,
     default: f64,
-) -> Result<Vec<Vec<&serde_json::Value>>, CompassAppError> {
+) -> Result<Vec<Vec<serde_json::Value>>, CompassAppError> {
     if queries.is_empty() {
         return Ok(vec![]);
     }
 
     let mut bin_totals = vec![0.0; parallelism];
-    let mut assignments: Vec<Vec<&serde_json::Value>> = vec![vec![]; parallelism];
+    let mut assignments: Vec<Vec<serde_json::Value>> = vec![vec![]; parallelism];
+    let n_queries = queries.len();
     let iter = tqdm!(
-        queries.iter(),
-        total = queries.len(),
+        queries.into_iter(),
+        total = n_queries,
         desc = "load balancing",
         animation = "fillup"
     );
@@ -135,7 +136,7 @@ mod test {
     use serde_json::json;
 
     fn test_run_policy(queries: Vec<serde_json::Value>, parallelism: usize) -> Vec<Vec<i64>> {
-        apply_load_balancing_policy(&queries, parallelism, 1.0)
+        apply_load_balancing_policy(queries, parallelism, 1.0)
             .unwrap()
             .iter()
             .map(|qs| {
