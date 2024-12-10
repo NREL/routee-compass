@@ -6,7 +6,7 @@ import os
 from tempfile import TemporaryDirectory
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING
+from typing import Any, List, Optional, Union, Callable, TYPE_CHECKING, cast
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
@@ -18,10 +18,12 @@ if TYPE_CHECKING:
 import toml
 
 
-Query = Dict[str, Any]
-Result = Dict[str, Any]
-Results = List[Result]
-Route = Dict[str, Any]
+Config = dict[str, Any]
+OSMNXQuery = Union[str, dict[str, str], list[Union[str, dict[str, str]]]]
+CompassQuery = dict[str, Any]
+Result = dict[str, Any]
+Results = list[Result]
+Route = dict[str, Any]
 
 log = logging.getLogger(__name__)
 
@@ -33,12 +35,12 @@ class CompassApp:
 
     _app: CompassAppWrapper
 
-    def __init__(self, app: CompassAppWrapper, config: Dict):
+    def __init__(self, app: CompassAppWrapper, config: Config):
         self._app = app
         self._config = config
 
     @classmethod
-    def get_constructor(cls):
+    def get_constructor(cls) -> CompassAppWrapper:
         """
         Return the underlying constructor for the application.
         This allows a child class to inherit the CompassApp python class
@@ -50,16 +52,16 @@ class CompassApp:
     @classmethod
     def from_config_file(
         cls,
-        config_file: Union[str, Path],  # , output_file: Optional[str] = None
+        config_file: Union[str, Path],
     ) -> CompassApp:
         """
         Build a CompassApp from a config file
 
         Args:
-            config_file (Union[str, Path]): Path to the config file
+            config_file: Path to the config file
 
         Returns:
-            CompassApp: A CompassApp object
+            app: A CompassApp object
 
         Example:
             >>> from nrel.routee.compass import CompassApp
@@ -74,20 +76,22 @@ class CompassApp:
         return cls.from_dict(toml_config, config_path)
 
     @classmethod
-    def from_dict(cls, config: Dict, working_dir: Optional[Path] = None) -> CompassApp:
+    def from_dict(
+        cls, config: Config, working_dir: Optional[Path] = None
+    ) -> CompassApp:
         """
         Build a CompassApp from a configuration object
 
         Args:
-            config (Dict): Configuration dictionary
-            working_dir (Path): optional path to working directory
+            config: Configuration dictionary
+            working_dir: optional path to working directory
 
         Returns:
-            CompassApp: a CompassApp object
+            app: a CompassApp object
 
         Example:
             >>> from nrel.routee.compass import CompassApp
-            >>> conf = { parallelism: 2 }
+            >>> conf = { "parallelism": 2 }
             >>> app = CompassApp.from_config(conf)
         """
         path_str = str(working_dir.absolute()) if working_dir is not None else ""
@@ -98,12 +102,12 @@ class CompassApp:
     @classmethod
     def from_place(
         cls,
-        query: Union[str | dict | list],
+        query: OSMNXQuery,
         cache_dir: Optional[Union[str, Path]] = None,
         network_type: str = "drive",
-        hwy_speeds: Optional[Dict] = None,
+        hwy_speeds: Optional[dict[str, Any]] = None,
         fallback: Optional[float] = None,
-        agg: Optional[Callable] = None,
+        agg: Optional[Callable[[Any], Any]] = None,
         add_grade: bool = False,
         raster_resolution_arc_seconds: Union[str, int] = 1,
     ) -> CompassApp:
@@ -154,7 +158,12 @@ class CompassApp:
             raise ImportError(
                 "requires osmnx to be installed. " "Try 'pip install osmnx'"
             )
-        cache_dir, temp_dir = cls._get_cache_dir(cache_dir)
+        if cache_dir is None:
+            temp_dir = TemporaryDirectory()
+            cache_dir = temp_dir.name
+        else:
+            cache_dir = Path(cache_dir)
+
         graph = ox.graph_from_place(query, network_type=network_type)
         generate_compass_dataset(
             graph,
@@ -166,7 +175,9 @@ class CompassApp:
             raster_resolution_arc_seconds=raster_resolution_arc_seconds,
             default_config=True,
         )
-        return cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
+        app = cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
+
+        return app
 
     @classmethod
     def from_polygon(
@@ -174,9 +185,9 @@ class CompassApp:
         polygon: Union["Polygon" | "MultiPolygon"],
         cache_dir: Optional[Union[str, Path]] = None,
         network_type: str = "drive",
-        hwy_speeds: Optional[Dict] = None,
+        hwy_speeds: Optional[dict[str, Any]] = None,
         fallback: Optional[float] = None,
-        agg: Optional[Callable] = None,
+        agg: Optional[Callable[[Any], Any]] = None,
         add_grade: bool = False,
         raster_resolution_arc_seconds: Union[str, int] = 1,
     ) -> CompassApp:
@@ -234,7 +245,12 @@ class CompassApp:
             raise ImportError(
                 "requires osmnx to be installed. " "Try 'pip install osmnx'"
             )
-        cache_dir, temp_dir = cls._get_cache_dir(cache_dir)
+        if cache_dir is None:
+            temp_dir = TemporaryDirectory()
+            cache_dir = temp_dir.name
+        else:
+            cache_dir = Path(cache_dir)
+
         graph = ox.graph_from_polygon(polygon, network_type=network_type)
         generate_compass_dataset(
             graph,
@@ -246,49 +262,25 @@ class CompassApp:
             raster_resolution_arc_seconds=raster_resolution_arc_seconds,
             default_config=True,
         )
-        return cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
 
-    @staticmethod
-    def _get_cache_dir(
-        cache_dir: Optional[Union[str, Path]],
-    ) -> tuple[Union[str, Path], Optional[Union[str, TemporaryDirectory]]]:
-        """
-        Helper function to ensure the cache directory is created
+        app = cls.from_config_file(os.path.join(cache_dir, "osm_default_energy.toml"))
 
-        Args:
-            cache_dir: path to save necessary files to build the
-                CompassApp. If not set, TemporaryDirectory will be used
-                instead. Defaults to None.
-
-        Returns:
-            cache_dir: The path to save necessary files.
-            temp_dir: If the Args cache_dir was None it will have the
-                TemporaryDirectory object to keep the folder alive while
-                creating the CompassApp. If it was set then this value
-                will be None
-
-        """
-        if cache_dir is None:
-            # Needed to keep the TempDir alive until completion
-            temp_dir = TemporaryDirectory()
-            cache_dir = temp_dir.name
-            return cache_dir, temp_dir
-
-        if not os.path.exists(cache_dir):
-            os.mkdir(cache_dir)
-        return cache_dir, None
+        return app
 
     def run(
-        self, query: Union[Query, List[Query]], config: Optional[Dict] = None
+        self,
+        query: Union[CompassQuery, List[CompassQuery]],
+        config: Optional[Config] = None,
     ) -> Union[Result, Results]:
         """
         Run a query (or multiple queries) against the CompassApp
 
         Args:
-            query (Union[Dict[str, Any], List[Dict[str, Any]]]): A query or list of queries to run
+            query: A query or list of queries to run
+            config: optional configuration
 
         Returns:
-            List[Dict[str, Any]]: A list of results (or a single result if a single query was passed)
+            results: A list of results (or a single result if a single query was passed)
 
         Example:
             >>> from nrel.routee.compass import CompassApp
@@ -321,7 +313,7 @@ class CompassApp:
 
         results_json: List[str] = self._app._run_queries(queries_str, config_str)
 
-        results = list(map(json.loads, results_json))
+        results: Results = list(map(json.loads, results_json))
         if single_query and len(results) == 1:
             return results[0]
         return results
@@ -331,24 +323,24 @@ class CompassApp:
         get the origin vertex id for some edge
 
         Args:
-            edge_id (int): the id of the edge
+            edge_id: the id of the edge
 
         Returns:
-            int: the vertex id at the source of the edge
+            vertex_id: the vertex id at the source of the edge
         """
-        return self._app.graph_edge_origin(edge_id)
+        return cast(int, self._app.graph_edge_origin(edge_id))
 
     def graph_edge_destination(self, edge_id: int) -> int:
         """
         get the destination vertex id for some edge
 
         Args:
-            edge_id (int): the id of the edge
+            edge_id: the id of the edge
 
         Returns:
-            int: the vertex id at the destination of the edge
+            vertex_id: the vertex id at the destination of the edge
         """
-        return self._app.graph_edge_destination(edge_id)
+        return cast(int, self._app.graph_edge_destination(edge_id))
 
     def graph_edge_distance(
         self, edge_id: int, distance_unit: Optional[str] = None
@@ -357,34 +349,34 @@ class CompassApp:
         get the distance for some edge
 
         Args:
-            edge_id (int): the id of the edge
-            distance_unit (Optional[str]): distance unit, by default meters
+            edge_id: the id of the edge
+            distance_unit: distance unit, by default meters
 
         Returns:
-            int: the distance covered by traversing the edge
+            dist: the distance covered by traversing the edge
         """
-        return self._app.graph_edge_distance(edge_id, distance_unit)
+        return cast(float, self._app.graph_edge_distance(edge_id, distance_unit))
 
     def graph_get_out_edge_ids(self, vertex_id: int) -> List[int]:
         """
         get the list of edge ids that depart from some vertex
 
         Args:
-            vertex_id (int): the id of the vertex
+            vertex_id: the id of the vertex
 
         Returns:
-            List[int]: the edge ids of edges departing from this vertex
+            edges: the edge ids of edges departing from this vertex
         """
-        return self._app.graph_get_out_edge_ids(vertex_id)
+        return cast(List[int], self._app.graph_get_out_edge_ids(vertex_id))
 
     def graph_get_in_edge_ids(self, vertex_id: int) -> List[int]:
         """
         get the list of edge ids that arrive from some vertex
 
         Args:
-            vertex_id (int): the id of the vertex
+            vertex_id: the id of the vertex
 
         Returns:
-            List[int]: the edge ids of edges arriving at this vertex
+            edges: the edge ids of edges arriving at this vertex
         """
-        return self._app.graph_get_in_edge_ids(vertex_id)
+        return cast(List[int], self._app.graph_get_in_edge_ids(vertex_id))
