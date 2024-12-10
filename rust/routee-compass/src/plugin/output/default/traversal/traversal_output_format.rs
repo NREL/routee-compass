@@ -63,7 +63,6 @@ impl TraversalOutputFormat {
     pub fn generate_tree_output(
         &self,
         tree: &HashMap<VertexId, SearchTreeBranch>,
-        // geoms: &[LineString<f32>],
         map_model: Arc<MapModel>,
     ) -> Result<serde_json::Value, OutputPluginError> {
         match self {
