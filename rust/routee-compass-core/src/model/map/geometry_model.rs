@@ -123,7 +123,7 @@ mod tests {
         },
     };
 
-    use std::{collections::HashMap, path::PathBuf, sync::Arc};
+    use std::{path::PathBuf, sync::Arc};
 
     fn mock_geometry_file() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
