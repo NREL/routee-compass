@@ -4,7 +4,7 @@ use routee_compass_core::model::{
         frontier_model::FrontierModel, frontier_model_error::FrontierModelError,
         frontier_model_service::FrontierModelService,
     },
-    road_network::edge_id::EdgeId,
+    network::edge_id::EdgeId,
     state::state_model::StateModel,
 };
 use serde::Deserialize;

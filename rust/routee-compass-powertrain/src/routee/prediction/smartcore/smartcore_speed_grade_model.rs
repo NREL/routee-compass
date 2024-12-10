@@ -27,10 +27,12 @@ impl PredictionModel for SmartcoreSpeedGradeModel {
         let speed_value = speed_unit.convert(&speed, &self.speed_unit).as_f64();
         let grade_value = grade_unit.convert(&grade, &self.grade_unit).as_f64();
         let x = DenseMatrix::from_2d_vec(&vec![vec![speed_value, grade_value]]);
-        let y = self
-            .rf
-            .predict(&x)
-            .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+        let y = self.rf.predict(&x).map_err(|e| {
+            TraversalModelError::TraversalModelFailure(format!(
+                "failure running underlying Smartcore random forest energy prediction: {}",
+                e
+            ))
+        })?;
 
         let energy_rate = EnergyRate::new(y[0]);
         Ok((energy_rate, self.energy_rate_unit))
@@ -46,17 +48,19 @@ impl SmartcoreSpeedGradeModel {
     ) -> Result<Self, TraversalModelError> {
         // Load random forest binary file
         let rf_binary = std::fs::read(routee_model_path).map_err(|e| {
-            TraversalModelError::FileReadError(
-                routee_model_path.as_ref().to_path_buf(),
-                e.to_string(),
-            )
+            TraversalModelError::BuildError(format!(
+                "failure reading smartcore binary text file {} due to {}",
+                routee_model_path.as_ref().to_str().unwrap_or_default(),
+                e
+            ))
         })?;
         let rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>> =
             bincode::deserialize(&rf_binary).map_err(|e| {
-                TraversalModelError::FileReadError(
-                    routee_model_path.as_ref().to_path_buf(),
-                    e.to_string(),
-                )
+                TraversalModelError::BuildError(format!(
+                    "failure deserializing smartcore model {} due to {}",
+                    routee_model_path.as_ref().to_str().unwrap_or_default(),
+                    e
+                ))
             })?;
         Ok(SmartcoreSpeedGradeModel {
             rf,

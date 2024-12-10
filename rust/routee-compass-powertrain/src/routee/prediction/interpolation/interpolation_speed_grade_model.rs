@@ -11,11 +11,11 @@ use routee_compass_core::{
     },
 };
 
-use super::bilinear_interp::BilinearInterp;
+use super::interp;
 use super::utils::linspace;
 
 pub struct InterpolationSpeedGradeModel {
-    interpolator: BilinearInterp,
+    interpolator: interp::Interpolator,
     speed_unit: SpeedUnit,
     grade_unit: GradeUnit,
     energy_rate_unit: EnergyRateUnit,
@@ -33,19 +33,47 @@ impl PredictionModel for InterpolationSpeedGradeModel {
         let grade_value = grade_unit.convert(&grade, &self.grade_unit).as_f64();
 
         // snap incoming speed and grade to the grid
-        let min_speed = self.interpolator.x[0].0;
-        let max_speed = self.interpolator.x[self.interpolator.x.len() - 1].0;
-        let min_grade = self.interpolator.y[0].0;
-        let max_grade = self.interpolator.y[self.interpolator.y.len() - 1].0;
+        let (min_speed, max_speed, min_grade, max_grade) = match &self.interpolator {
+            interp::Interpolator::Interp2D(interp) => (
+                *interp.x.first().ok_or_else(|| {
+                    TraversalModelError::TraversalModelFailure(
+                        "Could not get first x-value from powertrain interpolation result; are x-values empty?".to_string(),
+                    )
+                })?,
+                *interp.x.last().ok_or_else(|| {
+                    TraversalModelError::TraversalModelFailure(
+                        "Could not get last x-value from powertrain interpolation result; are x-values empty?".to_string(),
+                    )
+                })?,
+                *interp.y.first().ok_or_else(|| {
+                    TraversalModelError::TraversalModelFailure(
+                        "Could not get first y-value from powertrain interpolation result; are y-values empty?".to_string(),
+                    )
+                })?,
+                *interp.y.last().ok_or_else(|| {
+                    TraversalModelError::TraversalModelFailure(
+                        "Could not get last y-value from powertrain interpolation result; are y-values empty?".to_string(),
+                    )
+                })?,
+            ),
+            _ => {
+                return Err(TraversalModelError::TraversalModelFailure(
+                    "Only 2-D interpolators are currently supported".to_string(),
+                ))
+            }
+        };
 
         let speed_value = speed_value.max(min_speed).min(max_speed);
         let grade_value = grade_value.max(min_grade).min(max_grade);
 
         let y = self
             .interpolator
-            .interpolate(speed_value, grade_value)
+            .interpolate(&[speed_value, grade_value], &interp::Strategy::Linear)
             .map_err(|e| {
-                TraversalModelError::PredictionModel(format!("Failed to interpolate: {}", e))
+                TraversalModelError::TraversalModelFailure(format!(
+                    "Failed to interpolate speed/grade model output during prediction: {}",
+                    e
+                ))
             })?;
 
         let energy_rate = EnergyRate::new(y);
@@ -94,25 +122,24 @@ impl InterpolationSpeedGradeModel {
         for speed_value in speed_values.clone().into_iter() {
             let mut row: Vec<f64> = Vec::new();
             for grade_value in grade_values.clone().into_iter() {
-                let (energy, _energy_unit) = model
-                    .predict(
-                        (Speed::new(speed_value), speed_unit),
-                        (Grade::new(grade_value), grade_unit),
-                        (distance, distance_unit),
-                    )
-                    .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+                let (energy, _energy_unit) = model.predict(
+                    (Speed::new(speed_value), speed_unit),
+                    (Grade::new(grade_value), grade_unit),
+                    (distance, distance_unit),
+                )?;
                 row.push(energy.as_f64());
             }
             values.push(row);
         }
 
-        let interpolator =
-            BilinearInterp::new(speed_values, grade_values, values).map_err(|e| {
-                TraversalModelError::PredictionModel(format!(
-                    "Failed to create interpolation model: {}",
+        let interpolator = interp::Interpolator::Interp2D(
+            interp::Interp2D::new(speed_values, grade_values, values).map_err(|e| {
+                TraversalModelError::TraversalModelFailure(format!(
+                    "Failed to build interpolation speed/grade model: {}",
                     e
                 ))
-            })?;
+            })?,
+        );
 
         Ok(InterpolationSpeedGradeModel {
             interpolator,

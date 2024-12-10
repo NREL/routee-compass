@@ -5,7 +5,9 @@ from pkg_resources import resource_filename
 import importlib.resources
 import logging
 import shutil
+import pandas as pd
 
+from nrel.routee.compass.io import utils
 from nrel.routee.compass.io.utils import add_grade_to_graph
 
 log = logging.getLogger(__name__)
@@ -154,13 +156,8 @@ def generate_compass_dataset(
         header=False,
     )
 
-    headings = e.bearing.fillna(0).apply(lambda x: int(round(x)))
-    headings_df = headings.to_frame(name="arrival_heading")
-
-    # We could get more sophisticated and compute the end heading
-    # for links that might have some significant curvature, but
-    # for now we'll just use the start heading.
-    headings_df["departure_heading"] = None
+    headings = [utils.calculate_bearings(i) for i in e.geometry.values]
+    headings_df = pd.DataFrame(headings, columns = ["arrival_heading", "departure_heading"])
     headings_df.to_csv(
         output_directory / "edges-headings-enumerated.csv.gz",
         index=False,

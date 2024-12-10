@@ -3,7 +3,7 @@ use crate::model::{
         access_model::AccessModel, access_model_error::AccessModelError,
         access_model_service::AccessModelService,
     },
-    property::{edge::Edge, vertex::Vertex},
+    network::{Edge, Vertex},
     state::{state_feature::StateFeature, state_model::StateModel},
     traversal::state::state_variable::StateVar,
 };

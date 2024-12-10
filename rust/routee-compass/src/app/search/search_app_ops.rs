@@ -3,7 +3,7 @@ use std::{collections::HashMap, sync::Arc};
 use itertools::Itertools;
 use routee_compass_core::model::{
     access::access_model::AccessModel,
-    state::{state_error::StateError, state_feature::StateFeature},
+    state::{state_feature::StateFeature, state_model_error::StateModelError},
     traversal::traversal_model::TraversalModel,
 };
 
@@ -14,6 +14,7 @@ use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 ///   1. from the traversal model
 ///   2. from the access model
 ///   3. optionally from the query itself
+///
 /// using the order above, each new source optionally overwrites any existing feature
 /// by name (tuple index 0) as long as they match in StateFeature::get_feature_name and
 /// StateFeature::get_feature_unit_name.
@@ -21,7 +22,7 @@ pub fn collect_features(
     query: &serde_json::Value,
     traversal_model: Arc<dyn TraversalModel>,
     access_model: Arc<dyn AccessModel>,
-) -> Result<Vec<(String, StateFeature)>, StateError> {
+) -> Result<Vec<(String, StateFeature)>, StateModelError> {
     // prepare the set of features for this state model
     let model_features = traversal_model
         .state_features()
@@ -33,17 +34,17 @@ pub fn collect_features(
     // state features.
     let user_features_option: Option<HashMap<String, StateFeature>> = query
         .get_config_serde_optional(&"state_features", &"query")
-        .map_err(|e| StateError::BuildError(e.to_string()))?;
+        .map_err(|e| StateModelError::BuildError(e.to_string()))?;
     let user_features = user_features_option
         .unwrap_or_default()
         .into_iter()
         .map(|(name, feature)| match model_features.get(&name) {
             None => {
                 let fnames = model_features.keys().join(",");
-                Err(StateError::UnknownStateVariableName(name, fnames))
+                Err(StateModelError::UnknownStateVariableName(name, fnames))
             }
             Some(existing) if existing.get_feature_type() != feature.get_feature_type() => {
-                Err(StateError::UnexpectedFeatureType(
+                Err(StateModelError::UnexpectedFeatureType(
                     existing.get_feature_type(),
                     feature.get_feature_type(),
                 ))

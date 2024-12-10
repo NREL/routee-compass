@@ -1,12 +1,12 @@
+use crate::model::network::{Edge, Vertex};
 use crate::model::state::state_feature::StateFeature;
 use crate::model::state::state_model::StateModel;
 use crate::model::traversal::traversal_model::TraversalModel;
+use crate::model::traversal::{
+    state::state_variable::StateVar, traversal_model_error::TraversalModelError,
+};
 use crate::model::unit::DistanceUnit;
 use crate::model::unit::BASE_DISTANCE_UNIT;
-use crate::model::{
-    property::{edge::Edge, vertex::Vertex},
-    traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
-};
 use crate::util::geo::haversine;
 
 /// A simple traversal model that uses the edge distance as the cost of traversal.
@@ -49,7 +49,12 @@ impl TraversalModel for DistanceTraversalModel {
         let (src, dst) = od;
         let distance =
             haversine::coord_distance(&src.coordinate, &dst.coordinate, self.distance_unit)
-                .map_err(TraversalModelError::NumericError)?;
+                .map_err(|e| {
+                    TraversalModelError::TraversalModelFailure(format!(
+                        "could not compute haversine distance between {} and {}: {}",
+                        src, dst, e
+                    ))
+                })?;
         state_model.add_distance(
             state,
             &Self::DISTANCE.into(),

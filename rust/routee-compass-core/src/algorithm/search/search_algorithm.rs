@@ -1,13 +1,15 @@
 use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
-use super::ksp::ksp_single_via_paths;
-use super::ksp::route_similarity_function::RouteSimilarityFunction;
+use super::ksp::ksp_query::KspQuery;
+use super::ksp::ksp_termination_criteria::KspTerminationCriteria;
+use super::ksp::{single_via_paths_algorithm, yens_algorithm};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
+use super::util::route_similarity_function::RouteSimilarityFunction;
 use super::{a_star::a_star_algorithm, direction::Direction};
-use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
 
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
@@ -24,7 +26,14 @@ pub enum SearchAlgorithm {
     KspSingleVia {
         k: usize,
         underlying: Box<SearchAlgorithm>,
-        similarity: RouteSimilarityFunction,
+        similarity: Option<RouteSimilarityFunction>,
+        termination: Option<KspTerminationCriteria>,
+    },
+    Yens {
+        k: usize,
+        underlying: Box<SearchAlgorithm>,
+        similarity: Option<RouteSimilarityFunction>,
+        termination: Option<KspTerminationCriteria>,
     },
 }
 
@@ -33,6 +42,7 @@ impl SearchAlgorithm {
         &self,
         src_id: VertexId,
         dst_id_opt: Option<VertexId>,
+        query: &serde_json::Value,
         direction: &Direction,
         si: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
@@ -40,15 +50,20 @@ impl SearchAlgorithm {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
                 weight_factor: Some(Cost::ZERO),
             }
-            .run_vertex_oriented(src_id, dst_id_opt, direction, si),
+            .run_vertex_oriented(src_id, dst_id_opt, query, direction, si),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
-                let search_result = a_star_algorithm::run_a_star(
-                    src_id,
-                    dst_id_opt,
-                    direction,
-                    *weight_factor,
-                    si,
-                )?;
+                let w_val = match query.get("weight_factor") {
+                    Some(w_json) => w_json
+                        .as_f64()
+                        .ok_or(SearchError::BuildError(format!(
+                            "weight_factor must be a float, found {}",
+                            w_json
+                        )))
+                        .map(|f| Some(Cost::new(f))),
+                    None => Ok(*weight_factor),
+                }?;
+                let search_result =
+                    a_star_algorithm::run_a_star(src_id, dst_id_opt, direction, w_val, si)?;
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
@@ -63,24 +78,45 @@ impl SearchAlgorithm {
                     iterations: search_result.iterations,
                 })
             }
+            SearchAlgorithm::Yens {
+                k,
+                underlying,
+                similarity,
+                termination,
+            } => {
+                let dst_id = dst_id_opt.ok_or_else(|| {
+                    SearchError::BuildError(String::from(
+                        "attempting to run KSP algorithm without destination",
+                    ))
+                })?;
+                let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
+                let term_fn = termination.as_ref().cloned().unwrap_or_default();
+                let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
+                yens_algorithm::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
+            }
             SearchAlgorithm::KspSingleVia {
                 k,
                 underlying,
                 similarity,
-            } => match dst_id_opt {
-                Some(dst_id) => {
-                    ksp_single_via_paths::run(src_id, dst_id, *k, similarity, si, underlying)
-                }
-                None => Err(SearchError::BuildError(String::from(
-                    "request has source but no destination which is invalid for k-shortest paths",
-                ))),
-            },
+                termination,
+            } => {
+                let dst_id = dst_id_opt.ok_or_else(|| {
+                    SearchError::BuildError(String::from(
+                        "attempting to run KSP algorithm without destination",
+                    ))
+                })?;
+                let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
+                let term_fn = termination.as_ref().cloned().unwrap_or_default();
+                let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
+                single_via_paths_algorithm::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
+            }
         }
     }
     pub fn run_edge_oriented(
         &self,
         src_id: EdgeId,
         dst_id_opt: Option<EdgeId>,
+        query: &serde_json::Value,
         direction: &Direction,
         search_instance: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
@@ -88,7 +124,7 @@ impl SearchAlgorithm {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
                 weight_factor: Some(Cost::ZERO),
             }
-            .run_edge_oriented(src_id, dst_id_opt, direction, search_instance),
+            .run_edge_oriented(src_id, dst_id_opt, query, direction, search_instance),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
                 let search_result = a_star_algorithm::run_a_star_edge_oriented(
                     src_id,
@@ -119,7 +155,14 @@ impl SearchAlgorithm {
                 k: _,
                 underlying: _,
                 similarity: _,
-            } => run_edge_oriented(src_id, dst_id_opt, direction, self, search_instance),
+                termination: _,
+            } => run_edge_oriented(src_id, dst_id_opt, query, direction, self, search_instance),
+            SearchAlgorithm::Yens {
+                k: _,
+                underlying: _,
+                similarity: _,
+                termination: _,
+            } => run_edge_oriented(src_id, dst_id_opt, query, direction, self, search_instance),
         }
     }
 }
@@ -133,13 +176,14 @@ impl SearchAlgorithm {
 pub fn run_edge_oriented(
     source: EdgeId,
     target: Option<EdgeId>,
+    query: &serde_json::Value,
     direction: &Direction,
     alg: &SearchAlgorithm,
     si: &SearchInstance,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let e1_src = si.directed_graph.src_vertex_id(source)?;
-    let e1_dst = si.directed_graph.dst_vertex_id(source)?;
+    let e1_src = si.directed_graph.src_vertex_id(&source)?;
+    let e1_dst = si.directed_graph.dst_vertex_id(&source)?;
     let src_et = EdgeTraversal {
         edge_id: source,
         access_cost: Cost::ZERO,
@@ -157,7 +201,7 @@ pub fn run_edge_oriented(
                 mut trees,
                 mut routes,
                 iterations,
-            } = alg.run_vertex_oriented(e1_dst, None, direction, si)?;
+            } = alg.run_vertex_oriented(e1_dst, None, query, direction, si)?;
             for tree in trees.iter_mut() {
                 if !tree.contains_key(&e1_dst) {
                     tree.extend([(e1_dst, src_branch.clone())]);
@@ -174,8 +218,8 @@ pub fn run_edge_oriented(
             Ok(updated)
         }
         Some(target_edge) => {
-            let e2_src = si.directed_graph.src_vertex_id(target_edge)?;
-            let e2_dst = si.directed_graph.dst_vertex_id(target_edge)?;
+            let e2_src = si.directed_graph.src_vertex_id(&target_edge)?;
+            let e2_dst = si.directed_graph.dst_vertex_id(&target_edge)?;
 
             if source == target_edge {
                 Ok(SearchAlgorithmResult::default())
@@ -211,17 +255,17 @@ pub fn run_edge_oriented(
                     trees,
                     mut routes,
                     iterations,
-                } = alg.run_vertex_oriented(e1_dst, Some(e2_src), direction, si)?;
+                } = alg.run_vertex_oriented(e1_dst, Some(e2_src), query, direction, si)?;
 
                 if trees.is_empty() {
-                    return Err(SearchError::NoPathExists(e1_dst, e2_src));
+                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src));
                 }
 
                 // it is possible that the search already found these vertices. one major edge
                 // case is when the trip starts with a u-turn.
                 for route in routes.iter_mut() {
                     let final_state = route.last().ok_or_else(|| {
-                        SearchError::InternalSearchError(String::from("found empty result route"))
+                        SearchError::InternalError(String::from("found empty result route"))
                     })?;
 
                     let dst_et = EdgeTraversal {

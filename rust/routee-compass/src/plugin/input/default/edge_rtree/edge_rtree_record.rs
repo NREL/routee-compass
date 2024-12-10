@@ -1,5 +1,5 @@
 use geo::{Centroid, LineString, Point};
-use routee_compass_core::model::road_network::edge_id::EdgeId;
+use routee_compass_core::model::network::edge_id::EdgeId;
 use rstar::{PointDistance, RTreeObject, AABB};
 
 pub struct EdgeRtreeRecord {

@@ -3,7 +3,7 @@ use crate::model::{
     access::access_model::AccessModel,
     cost::cost_model::CostModel,
     frontier::frontier_model::FrontierModel,
-    road_network::{graph::Graph, vertex_id::VertexId},
+    network::{graph::Graph, vertex_id::VertexId},
     state::state_model::StateModel,
     termination::termination_model::TerminationModel,
     traversal::{state::state_variable::StateVar, traversal_model::TraversalModel},
@@ -18,7 +18,7 @@ pub struct SearchInstance {
     pub state_model: Arc<StateModel>,
     pub traversal_model: Arc<dyn TraversalModel>,
     pub access_model: Arc<dyn AccessModel>,
-    pub cost_model: CostModel,
+    pub cost_model: Arc<CostModel>,
     pub frontier_model: Arc<dyn FrontierModel>,
     pub termination_model: Arc<TerminationModel>,
 }
@@ -32,8 +32,8 @@ impl SearchInstance {
         dst: VertexId,
         state: &[StateVar],
     ) -> Result<Cost, SearchError> {
-        let src = self.directed_graph.get_vertex(src)?;
-        let dst = self.directed_graph.get_vertex(dst)?;
+        let src = self.directed_graph.get_vertex(&src)?;
+        let dst = self.directed_graph.get_vertex(&dst)?;
         let mut dst_state = state.to_vec();
 
         self.traversal_model

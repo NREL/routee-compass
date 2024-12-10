@@ -1,7 +1,7 @@
 use super::{
     edge_traversal::EdgeTraversal, search_error::SearchError, search_tree_branch::SearchTreeBranch,
 };
-use crate::model::road_network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId};
+use crate::model::network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId};
 use std::{
     collections::{HashMap, HashSet},
     sync::Arc,
@@ -24,12 +24,16 @@ pub fn vertex_oriented_route(
         }
         let traversal = solution
             .get(&this_vertex)
-            .ok_or_else(|| SearchError::VertexMissingFromSearchTree(this_vertex))?;
+            .ok_or(SearchError::InternalError(format!(
+                "resulting tree missing vertex {} expected via backtrack",
+                this_vertex
+            )))?;
         let first_visit = visited.insert(traversal.edge_traversal.edge_id);
         if !first_visit {
-            return Err(SearchError::LoopInSearchResult(
-                traversal.edge_traversal.edge_id,
-            ));
+            return Err(SearchError::InternalError(format!(
+                "loop in search result, edge {} visited more than once",
+                traversal.edge_traversal.edge_id
+            )));
         }
         result.push(traversal.edge_traversal.clone());
         this_vertex = traversal.terminal_vertex;
@@ -45,11 +49,7 @@ pub fn edge_oriented_route(
     solution: &HashMap<VertexId, SearchTreeBranch>,
     graph: Arc<Graph>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
-    let o_v = graph
-        .src_vertex_id(source_id)
-        .map_err(SearchError::GraphError)?;
-    let d_v = graph
-        .dst_vertex_id(target_id)
-        .map_err(SearchError::GraphError)?;
+    let o_v = graph.src_vertex_id(&source_id)?;
+    let d_v = graph.dst_vertex_id(&target_id)?;
     vertex_oriented_route(o_v, d_v, solution)
 }

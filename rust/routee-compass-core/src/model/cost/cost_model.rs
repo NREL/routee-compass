@@ -2,8 +2,8 @@ use super::cost_aggregation::CostAggregation;
 use super::cost_ops;
 use super::network::network_cost_rate::NetworkCostRate;
 use super::vehicle::vehicle_cost_rate::VehicleCostRate;
-use crate::model::cost::cost_error::CostError;
-use crate::model::property::edge::Edge;
+use crate::model::cost::cost_model_error::CostModelError;
+use crate::model::network::Edge;
 use crate::model::state::state_model::StateModel;
 use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::unit::Cost;
@@ -52,7 +52,7 @@ impl CostModel {
         network_rate_mapping: Arc<HashMap<String, NetworkCostRate>>,
         cost_aggregation: CostAggregation,
         state_model: Arc<StateModel>,
-    ) -> Result<CostModel, CostError> {
+    ) -> Result<CostModel, CostModelError> {
         let mut indices = vec![];
         let mut weights = vec![];
         let mut vehicle_rates = vec![];
@@ -75,7 +75,7 @@ impl CostModel {
         }
 
         if weights.iter().sum::<f64>() == 0.0 {
-            return Err(CostError::InvalidCostVariables);
+            return Err(CostModelError::InvalidCostVariables);
         }
         Ok(CostModel {
             feature_indices: indices,
@@ -102,7 +102,7 @@ impl CostModel {
         edge: &Edge,
         prev_state: &[StateVar],
         next_state: &[StateVar],
-    ) -> Result<Cost, CostError> {
+    ) -> Result<Cost, CostModelError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
             (prev_state, next_state),
             &self.feature_indices,
@@ -146,7 +146,7 @@ impl CostModel {
         next_edge: &Edge,
         prev_state: &[StateVar],
         next_state: &[StateVar],
-    ) -> Result<Cost, CostError> {
+    ) -> Result<Cost, CostModelError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
             (prev_state, next_state),
             &self.feature_indices,
@@ -184,7 +184,7 @@ impl CostModel {
         &self,
         src_state: &[StateVar],
         dst_state: &[StateVar],
-    ) -> Result<Cost, CostError> {
+    ) -> Result<Cost, CostModelError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
             (src_state, dst_state),
             &self.feature_indices,
@@ -207,14 +207,14 @@ impl CostModel {
     /// A JSON serialized version of the state. This does not need to include
     /// additional details such as the units (kph, hours, etc), which can be
     /// summarized in the serialize_state_info method.
-    pub fn serialize_cost(&self, state: &[StateVar]) -> Result<serde_json::Value, CostError> {
+    pub fn serialize_cost(&self, state: &[StateVar]) -> Result<serde_json::Value, CostModelError> {
         let mut state_variable_costs = self
             .feature_indices
             .iter()
             .map(move |(name, idx)| {
                 let state_var = state
                     .get(*idx)
-                    .ok_or_else(|| CostError::StateIndexOutOfBounds(*idx, name.clone()))?;
+                    .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*idx, name.clone()))?;
 
                 let rate = self.vehicle_rates.get(*idx).ok_or_else(|| {
                     let alternatives = self
@@ -224,7 +224,7 @@ impl CostModel {
                         .map(|(n, _)| n.to_string())
                         .collect::<Vec<_>>()
                         .join(",");
-                    CostError::StateVariableNotFound(
+                    CostModelError::StateVariableNotFound(
                         name.clone(),
                         String::from("vehicle cost rates while serializing cost"),
                         alternatives,
@@ -233,7 +233,7 @@ impl CostModel {
                 let cost = rate.map_value(*state_var);
                 Ok((name.clone(), cost))
             })
-            .collect::<Result<HashMap<String, Cost>, CostError>>()?;
+            .collect::<Result<HashMap<String, Cost>, CostModelError>>()?;
 
         let total_cost = state_variable_costs
             .values()
@@ -255,27 +255,27 @@ impl CostModel {
     ///
     /// JSON containing information such as the units (kph, hours, etc) or other
     /// traversal info (charge events, days traveled, etc)
-    pub fn serialize_cost_info(&self) -> Result<serde_json::Value, CostError> {
+    pub fn serialize_cost_info(&self) -> Result<serde_json::Value, CostModelError> {
         let mut result = serde_json::Map::with_capacity(self.feature_indices.len());
         for (name, index) in self.feature_indices.iter() {
             let weight = self
                 .weights
                 .get(*index)
-                .ok_or(CostError::CostVectorOutOfBounds(
+                .ok_or(CostModelError::CostVectorOutOfBounds(
                     *index,
                     String::from(Self::WEIGHTS),
                 ))?;
             let veh_rate =
                 self.vehicle_rates
                     .get(*index)
-                    .ok_or(CostError::CostVectorOutOfBounds(
+                    .ok_or(CostModelError::CostVectorOutOfBounds(
                         *index,
                         String::from(Self::VEHICLE_RATES),
                     ))?;
             let net_rate =
                 self.network_rates
                     .get(*index)
-                    .ok_or(CostError::CostVectorOutOfBounds(
+                    .ok_or(CostModelError::CostVectorOutOfBounds(
                         *index,
                         String::from(Self::NETWORK_RATES),
                     ))?;

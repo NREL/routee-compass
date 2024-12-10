@@ -10,14 +10,13 @@ use crate::{
             },
         },
     },
-    plugin::{
-        input::{input_json_extensions::InputJsonExtensions, input_plugin::InputPlugin},
-        plugin_error::PluginError,
+    plugin::input::{
+        input_json_extensions::InputJsonExtensions, input_plugin::InputPlugin, InputPluginError,
     },
 };
 use geo_types::Coord;
 use routee_compass_core::{
-    model::road_network::edge_id::EdgeId,
+    model::network::edge_id::EdgeId,
     model::unit::{as_f64::AsF64, Distance, DistanceUnit, BASE_DISTANCE_UNIT},
     util::{
         fs::{read_decoders, read_utils},
@@ -49,9 +48,9 @@ pub struct EdgeRtreeInputPlugin {
 impl InputPlugin for EdgeRtreeInputPlugin {
     /// finds the nearest edge ids to the user-provided origin and destination coordinates.
     /// optionally restricts the search to a subset of road classes tagged by the user.
-    fn process(&self, query: &mut serde_json::Value) -> Result<(), PluginError> {
+    fn process(&self, query: &mut serde_json::Value) -> Result<(), InputPluginError> {
         let road_classes = self.road_class_parser.read_query(query).map_err(|e| {
-            PluginError::InputError(format!(
+            InputPluginError::InputPluginFailed(format!(
                 "Unable to apply EdgeRtree Input Plugin due to:\n\n{}",
                 e
             ))
@@ -188,7 +187,7 @@ fn search(
     road_classes: &Option<HashSet<u8>>,
     vehicle_restrictions: &Option<HashMap<EdgeId, Vec<VehicleRestriction>>>,
     vehicle_parameters: &Option<VehicleParameters>,
-) -> Result<Option<EdgeId>, PluginError> {
+) -> Result<Option<EdgeId>, InputPluginError> {
     let point = geo::Point(coord);
     for (record, distance_meters) in rtree.nearest_neighbor_iter_with_distance_2(&point) {
         if !within_tolerance(tolerance, &distance_meters) {
@@ -197,7 +196,7 @@ fn search(
         let valid_class = match (road_classes, road_class_lookup) {
             (Some(valid_classes), Some(lookup)) => {
                 let this_class = lookup.get(record.edge_id.0).ok_or_else(|| {
-                    PluginError::PluginFailed(format!(
+                    InputPluginError::InputPluginFailed(format!(
                         "edge rtree road class file missing edge {}",
                         record.edge_id
                     ))
@@ -227,12 +226,15 @@ fn search(
 }
 
 /// helper to build a matching error response
-fn matching_error(coord: &Coord<f32>, tolerance: Option<(Distance, DistanceUnit)>) -> PluginError {
+fn matching_error(
+    coord: &Coord<f32>,
+    tolerance: Option<(Distance, DistanceUnit)>,
+) -> InputPluginError {
     let mut message = format!("unable to match coordinate {:?} to network edge", coord);
     if let Some((dist, unit)) = tolerance {
         message.push_str(&format!(" within tolerance of {} {}", dist, unit))
     };
-    PluginError::PluginFailed(message)
+    InputPluginError::InputPluginFailed(message)
 }
 
 /// helper to test if some distance in meters is within the optionally-provided tolerance

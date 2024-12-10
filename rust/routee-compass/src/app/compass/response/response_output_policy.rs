@@ -44,7 +44,7 @@ impl ResponseOutputPolicy {
                 let file_shareable = Arc::new(Mutex::new(file));
 
                 let iterations_per_flush = match file_flush_rate {
-                    Some(rate) if *rate <= 0 => Err(CompassAppError::InvalidInput(format!(
+                    Some(rate) if *rate <= 0 => Err(CompassAppError::CompassFailure(format!(
                         "file policy iterations_per_flush must be positive, found {}",
                         rate
                     ))),
