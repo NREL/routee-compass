@@ -112,8 +112,9 @@ fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<
 #[cfg(test)]
 mod tests {
 
-    use routee_compass_core::util::{
-        fs::read_utils::read_raw_file, geo::geo_io_utils::parse_wkt_linestring,
+    use crate::{
+        model::network::Graph,
+        util::{fs::read_utils::read_raw_file, geo::geo_io_utils::parse_wkt_linestring},
     };
 
     use std::path::PathBuf;
