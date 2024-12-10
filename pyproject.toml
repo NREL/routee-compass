@@ -28,12 +28,25 @@ dev = [
     "maturin",
     "jupyter-book",
     "ruff",
-    "mypy",
     "sphinx-book-theme",
+    "mypy",
+    "jupyterlab",
+    "boxsdk",
     "types-requests",
-    "types-toml",
+    "types-toml"
 ]
-osm = ["osmnx", "geopandas", "shapely", "networkx", "folium", "pandas", "numpy"]
+osm = [
+    "osmnx",
+    "requests",
+    "geopandas",
+    "shapely",
+    "networkx",
+    "folium",
+    "pandas",
+    "numpy",
+    "rasterio",
+    "matplotlib",
+]
 all = ["nrel.routee.compass[osm]", "nrel.routee.compass[dev]"]
 
 [project.urls]
