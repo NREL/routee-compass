@@ -8,7 +8,8 @@ verbose = true
 [mapping]
 type = "edge"
 geometry_input_file = "edges-geometries-enumerated.txt.gz"
-tolerance = [15.0, "meters"]
+tolerance.distance = 15.0
+tolerance.unit = "meters"
 queries_without_destinations = false
 matching_type = ["point", "vertex", "edge"]
 

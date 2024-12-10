@@ -24,8 +24,9 @@ impl MapModel {
                 queries_without_destinations,
                 matching_type,
             } => {
+                let tol_unpacked = tolerance.map(|t| t.unpack());
                 let spatial_index =
-                    SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance);
+                    SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tol_unpacked);
                 let geometry_model = match geometry_input_file {
                     None => GeometryModel::new_from_vertices(graph),
                     Some(file) => GeometryModel::new_from_edges(&file, graph.clone()),
@@ -44,10 +45,11 @@ impl MapModel {
                 queries_without_destinations,
                 matching_type,
             } => {
+                let tol_unpacked = tolerance.map(|t| t.unpack());
                 let geometry_model =
                     GeometryModel::new_from_edges(&geometry_input_file, graph.clone())?;
                 let spatial_index =
-                    SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance);
+                    SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tol_unpacked);
                 let map_model = MapModel {
                     matching_type: matching_type.unwrap_or_default(),
                     spatial_index,

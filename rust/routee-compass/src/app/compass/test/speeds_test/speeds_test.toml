@@ -5,7 +5,8 @@ verbose = true
 
 # [mapping]
 # type = "vertex"
-# # tolerance = [15.0, "meters"]
+# # tolerance.distance = 15.0
+tolerance.unit = "meters"
 # queries_without_destinations = false
 # # matching_type = ["point", "vertex", "edge"]
 

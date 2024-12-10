@@ -30,7 +30,8 @@ verbose = true
 
 # # optional query distance tolerance for map matching,
 # # an array of [Distance, DistanceUnit].
-# tolerance = [15.0, "meters"]
+# tolerance.distance = 15.0
+tolerance.unit = "meters"
 
 # # allow user to submit queries without destinations, such as when
 # # shortest path trees are the desired result, not routes. true by default.
