@@ -13,25 +13,34 @@ type = "none"
 [graph]
 verbose = true
 
-[mapping]
-type = "vertex"
-# # only if we want to read points from the edges for mapping.
-# # if geometry_input_file is not provided, the graph vertices
-# # are used for mapping.
+# [mapping]
+# # when type = "vertex", simpler mapping is used. (default)
+# type = "vertex"
+
+# # default map matching will pair an input origin|destination with
+# # edges in the system. these are also subject to whatever frontier
+# # model is insantiated for the query.
+# type = "edge"
+
+# # source for edge geometries used in mapping.
+# # when type = "vertex", this can be omitted, and the system will
+# # instead use the graph vertex coordinates to build map geometries
+# # which produces far simpler route sequences as a result.
 # geometry_input_file = "edges-geometries-enumerated.txt.gz"
 
 # # optional query distance tolerance for map matching,
 # # an array of [Distance, DistanceUnit].
 # tolerance = [15.0, "meters"]
 
-# allow user to submit queries without destinations, such as when
-# shortest path trees are the desired result, not routes.
-queries_without_destinations = false
+# # allow user to submit queries without destinations, such as when
+# # shortest path trees are the desired result, not routes. true by default.
+# queries_without_destinations = true
 
-# only accept queries with map coordinates
-# to allow debugging or avoid map matching, choose "edge" or "vertex" here
-# also, an array such as ["point", "edge", "vertex"] is allowed
-map_input_type = "point"
+# # the default map input type is a combined strategy that attempts to
+# # match by Point, otherwise expects the user to pass either a vertex ({origin|destination}_vertex)
+# # or an edge ({origin|destination}_edge). a more restrictive strategy can be 
+# # specified here with a subset of these values or a single value such as "point".
+# map_input_type = ["point", "edge", "vertex"]
 
 [algorithm]
 type = "a*"

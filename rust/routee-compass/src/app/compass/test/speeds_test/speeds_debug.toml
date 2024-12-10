@@ -3,11 +3,11 @@ edge_list_input_file = "routee-compass/src/app/compass/test/speeds_test/test_edg
 vertex_list_input_file = "routee-compass/src/app/compass/test/speeds_test/test_vertices.csv"
 verbose = true
 
-[mapping]
-type = "vertex"
-# tolerance = [30.0, "meters"]
-queries_without_destinations = false
-# map_input_type = ["vertex"]
+# [mapping]
+# type = "vertex"
+# # tolerance = [30.0, "meters"]
+# queries_without_destinations = false
+# # map_input_type = ["vertex"]
 
 [traversal]
 type = "speed_table"

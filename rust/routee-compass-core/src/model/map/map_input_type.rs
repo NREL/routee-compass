@@ -94,9 +94,11 @@ impl MapInputType {
                 let vertex_id = query.get_origin_vertex()?;
                 let edges = graph.out_edges(&vertex_id).iter().map(|edge_id| graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {} for map matching, the underlying Graph model caused an error: {}", vertex_id, e)))?;
                 for edge in edges.into_iter() {
-                    validate_edge(edge, frontier_model.clone())?;
+                    if let Ok(true) = test_edge(edge, frontier_model.clone()) {
+                        return Ok(());
+                    }
                 }
-                Ok(())
+                Err(MapError::MapMatchError(format!("attempted to map match origin vertex_id {} provided in query, but no out-edges are valid for traversal according to this FrontierModel instance", vertex_id)))
             }
             MIT::EdgeId => {
                 // validate this edge
@@ -189,8 +191,7 @@ impl MapInputType {
                     Some(vertex_id) => {
                         let edges = graph.in_edges(&vertex_id).iter().map(|edge_id| graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {} for map matching, the underlying Graph model caused an error: {}", vertex_id, e)))?;
                         for edge in edges.into_iter() {
-                            let is_valid = test_edge(edge, frontier_model.clone())?;
-                            if is_valid {
+                            if let Ok(true) = test_edge(edge, frontier_model.clone()) {
                                 return Ok(MapInputResult::Found);
                             }
                         }

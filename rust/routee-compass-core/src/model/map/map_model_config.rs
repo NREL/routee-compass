@@ -1,8 +1,7 @@
-// use super::map_input_type::MapInputType;
+use super::map_input_type::MapInputType;
 use crate::model::unit::{Distance, DistanceUnit};
 use serde::{de, Deserialize, Deserializer, Serialize};
-
-use super::map_input_type::MapInputType;
+use serde_json::Value;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
@@ -30,8 +29,30 @@ impl Default for MapModelConfig {
         MapModelConfig::VertexMapModelConfig {
             tolerance: None,
             geometry_input_file: None,
-            queries_without_destinations: false,
+            queries_without_destinations: true,
             map_input_type: None,
+        }
+    }
+}
+
+impl TryFrom<Option<&Value>> for MapModelConfig {
+    type Error = String;
+
+    fn try_from(value: Option<&Value>) -> Result<Self, Self::Error> {
+        match value {
+            None => Ok(MapModelConfig::default()),
+            Some(json) => {
+                let map_model_str = serde_json::to_string_pretty(&json).unwrap_or_default();
+                let map_model_config: MapModelConfig =
+                    serde_json::from_value(json.clone()).map_err(|e| {
+                        format!(
+                            "unable to deserialize map model configuration section due to '{}'. input data: \n{}",
+                            e,
+                            map_model_str
+                        )
+                    })?;
+                Ok(map_model_config)
+            }
         }
     }
 }

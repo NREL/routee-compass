@@ -217,22 +217,12 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         log::info!("graph size: {} GB", graph_bytes as f64 / 1e9);
 
         let map_start = Local::now();
-        let map_model_json =
-            config_json.get_config_section(CompassConfigurationField::MapModel, &"TOML")?;
-        let map_model_str = serde_json::to_string_pretty(&map_model_json).unwrap_or_default();
-        let map_model_config: MapModelConfig =
-            serde_json::from_value(map_model_json).map_err(|e| {
-                CompassAppError::BuildFailure(format!(
-                    "unable to deserialize [{}] configuration section due to '{}'. input data: \n{}",
-                    CompassConfigurationField::MapModel,
-                    e,
-                    map_model_str
-                ))
-            })?;
+        let map_model_json = config_json.get(CompassConfigurationField::MapModel.to_str());
+        let map_model_config =
+            MapModelConfig::try_from(map_model_json).map_err(CompassAppError::BuildFailure)?;
         let map_model = Arc::new(MapModel::new(graph.clone(), map_model_config).map_err(|e| {
             CompassAppError::BuildFailure(format!("unable to load MapModel from config: {}", e))
         })?);
-        // let mapping_app: MappingApp = MappingApp { map_model };
         let map_dur = to_std(Local::now() - map_start)?;
         log::info!(
             "finished loading map model with duration {}",
