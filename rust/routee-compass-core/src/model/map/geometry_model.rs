@@ -8,6 +8,10 @@ use crate::{
 use geo::LineString;
 use kdam::BarExt;
 
+/// model for link geometries by edge id. can be constructed either
+/// from edge geometry dataset ([`GeometryModel::new_from_edges`]) or
+/// from the vertices ([`GeometryModel::new_from_vertices`]) by simply
+/// drawing lines between coordinates.
 pub struct GeometryModel(Vec<LineString<f32>>);
 
 impl GeometryModel {

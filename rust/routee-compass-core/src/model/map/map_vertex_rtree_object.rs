@@ -6,6 +6,7 @@ use crate::model::{
 use geo::{coord, Point};
 use rstar::{PointDistance, RTreeObject, AABB};
 
+/// rtree element for vertex-oriented map matching.
 #[derive(Clone)]
 pub struct MapVertexRTreeObject {
     pub vertex_id: VertexId,

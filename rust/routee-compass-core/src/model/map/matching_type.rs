@@ -10,6 +10,8 @@ use itertools::Itertools;
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::{fmt::Display, str::FromStr, sync::Arc};
 
+/// a [`MatchingType`] is the type of data expected on a query
+/// that can be mapped to the graph.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum MatchingType {

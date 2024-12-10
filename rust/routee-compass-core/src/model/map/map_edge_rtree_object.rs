@@ -6,6 +6,13 @@ use crate::model::{
 use geo::{LineString, Point};
 use rstar::{PointDistance, RTreeObject, AABB};
 
+/// rtree element for edge-oriented map matching.
+#[derive(Clone)]
+pub struct MapEdgeRTreeObject {
+    pub edge_id: EdgeId,
+    pub envelope: AABB<Point<f32>>,
+}
+
 impl MapEdgeRTreeObject {
     pub fn new(edge: &Edge, linestring: &LineString<f32>) -> MapEdgeRTreeObject {
         MapEdgeRTreeObject {
@@ -35,12 +42,6 @@ impl MapEdgeRTreeObject {
             None => Ok(()),
         }
     }
-}
-
-#[derive(Clone)]
-pub struct MapEdgeRTreeObject {
-    pub edge_id: EdgeId,
-    pub envelope: AABB<Point<f32>>,
 }
 
 impl RTreeObject for MapEdgeRTreeObject {
