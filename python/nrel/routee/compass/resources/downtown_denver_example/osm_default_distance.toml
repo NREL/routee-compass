@@ -38,10 +38,6 @@ type = "traversal"
 route = "geo_json"
 geometry_input_file = "edges-geometries-enumerated.txt.gz"
 
-[[plugin.output_plugins]]
-type = "uuid"
-uuid_input_file = "vertices-uuid-enumerated.txt.gz"
-
 [access.turn_delay_model]
 type = "tabular_discrete"
 time_unit = "seconds"

@@ -31,10 +31,6 @@ route = "geo_json"
 tree = "geo_json"
 geometry_input_file = "edges-geometries-enumerated.txt.gz"
 
-[[plugin.output_plugins]]
-type = "uuid"
-uuid_input_file = "vertices-uuid-enumerated.txt.gz"
-
 [access]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
