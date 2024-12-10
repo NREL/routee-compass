@@ -1,12 +1,12 @@
 pub mod geometry_model;
 pub mod map_edge_rtree_object;
 pub mod map_error;
-pub mod matching_type;
 pub mod map_json_extensions;
 pub mod map_json_key;
 pub mod map_model;
 pub mod map_model_config;
 pub mod map_vertex_rtree_object;
+pub mod matching_type;
 pub mod nearest_search_result;
 pub mod spatial_index;
 pub mod spatial_index_ops;
