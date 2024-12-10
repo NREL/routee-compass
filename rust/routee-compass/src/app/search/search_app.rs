@@ -84,7 +84,7 @@ impl SearchApp {
         let si = self.build_search_instance(query)?;
         self.map_model.map_match(query, &si)?;
 
-        // depending on the presence of a
+        // depending on the presence of an origin edge or origin vertex, we run each type of query
         let results = if query.get_origin_edge().is_ok() {
             let o = query.get_origin_edge().map_err(|e| {
                 CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })

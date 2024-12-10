@@ -65,7 +65,7 @@ impl Default for MapModelConfig {
             tolerance: None,
             geometry_input_file: None,
             queries_without_destinations: true,
-            matching_type: None,
+            matching_type: Some(MatchingType::names()),
         }
     }
 }

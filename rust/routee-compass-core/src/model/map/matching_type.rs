@@ -7,7 +7,7 @@ use crate::{
     model::{frontier::frontier_model::FrontierModel, network::Edge},
 };
 use itertools::Itertools;
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr, sync::Arc};
 
 /// a [`MatchingType`] is the type of data expected on a query
@@ -22,15 +22,21 @@ pub enum MatchingType {
     /// expect origin [, destination] Points on the query.
     Point,
     /// expect any combination of the map input types provided
-    #[serde(deserialize_with = "de_combined")]
     Combined(Vec<MatchingType>),
 }
 
 impl MatchingType {
     pub const ALL: [MatchingType; 3] = [Self::Point, Self::VertexId, Self::EdgeId];
 
-    pub fn names() -> String {
-        MatchingType::ALL.iter().map(|t| t.to_string()).join(", ")
+    pub fn names() -> Vec<String> {
+        MatchingType::ALL
+            .iter()
+            .map(|t| t.to_string())
+            .collect_vec()
+    }
+
+    pub fn names_str() -> String {
+        Self::names().iter().join(", ")
     }
 }
 
@@ -66,7 +72,7 @@ impl FromStr for MatchingType {
             _ => Err(MapError::BuildError(format!(
                 "unrecognized matching type '{}', must be one of [{}]",
                 s,
-                MatchingType::names()
+                MatchingType::names_str()
             ))),
         }
     }
@@ -85,9 +91,9 @@ impl MatchingType {
         query: &mut serde_json::Value,
         si: &SearchInstance,
     ) -> Result<(), MapError> {
-        use MatchingType as MIT;
+        use MatchingType as MT;
         match self {
-            MIT::Combined(vec) => {
+            MT::Combined(vec) => {
                 let mut errors = vec![];
                 for matching_type in vec.iter() {
                     match matching_type.process_origin(query, si) {
@@ -109,7 +115,7 @@ impl MatchingType {
                     Ok(())
                 }
             }
-            MIT::VertexId => {
+            MT::VertexId => {
                 // validate all out-edges for this vertex
                 let vertex_id = query.get_origin_vertex()?;
                 let edges = si.graph.out_edges(&vertex_id).iter().map(|edge_id| si.graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {} for map matching, the underlying Graph model caused an error: {}", vertex_id, e)))?;
@@ -120,13 +126,13 @@ impl MatchingType {
                 }
                 Err(MapError::MapMatchError(format!("attempted to map match origin vertex_id {} provided in query, but no out-edges are valid for traversal according to this FrontierModel instance", vertex_id)))
             }
-            MIT::EdgeId => {
+            MT::EdgeId => {
                 // validate this edge
                 let edge_id = query.get_origin_edge()?;
                 let edge = si.graph.get_edge(&edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge id {} for map matching, the underlying Graph model caused an error: {}", edge_id, e)))?;
                 validate_edge(edge, si.frontier_model.clone())
             }
-            MIT::Point => {
+            MT::Point => {
                 // iterate through nearest values in the spatial index to this point that
                 // are within our matching tolerance and validate them with the frontier model
                 let src_point = geo::Point(query.get_origin_coordinate()?);
@@ -172,9 +178,9 @@ impl MatchingType {
         query: &mut serde_json::Value,
         si: &SearchInstance,
     ) -> Result<MapInputResult, MapError> {
-        use MatchingType as MIT;
+        use MatchingType as MT;
         match self {
-            MIT::Combined(vec) => {
+            MT::Combined(vec) => {
                 let mut errors = vec![];
                 for matching_type in vec.iter() {
                     match matching_type.process_destination(query, si) {
@@ -197,7 +203,7 @@ impl MatchingType {
                 }
             }
 
-            MIT::VertexId => {
+            MT::VertexId => {
                 // validate all out-edges for this vertex, if one is accepted, we are done.
                 let vertex_id_option = query.get_destination_vertex()?;
                 match vertex_id_option {
@@ -214,7 +220,7 @@ impl MatchingType {
                 }
             }
 
-            MIT::EdgeId => {
+            MT::EdgeId => {
                 // validate this edge
                 let dest_edge_option = query.get_destination_edge()?;
                 match dest_edge_option {
@@ -227,7 +233,7 @@ impl MatchingType {
                 }
             }
 
-            MIT::Point => {
+            MT::Point => {
                 // iterate through nearest values in the spatial index to this point that
                 // are within our matching tolerance and validate them with the frontier model
                 let dst_point = match query.get_destination_coordinate()? {
@@ -284,37 +290,4 @@ fn validate_edge(edge: &Edge, fm: Arc<dyn FrontierModel>) -> Result<(), MapError
     } else {
         Ok(())
     }
-}
-
-fn de_combined<'de, D>(value: D) -> Result<Vec<MatchingType>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    struct CombinedVisitor;
-
-    impl<'de> de::Visitor<'de> for CombinedVisitor {
-        type Value = Vec<MatchingType>;
-
-        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-            formatter.write_str("a vector of MatchingType strings")
-        }
-
-        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
-        where
-            A: de::SeqAccess<'de>,
-        {
-            let mut out: Vec<MatchingType> = vec![];
-            while let Some(next) = seq.next_element()? {
-                if let MatchingType::Combined(_) = next {
-                    return Err(serde::de::Error::custom(String::from(
-                        "cannot deeply nest matching_type entries",
-                    )));
-                }
-                out.push(next);
-            }
-            Ok(out)
-        }
-    }
-
-    value.deserialize_seq(CombinedVisitor {})
 }
