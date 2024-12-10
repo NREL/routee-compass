@@ -123,7 +123,7 @@ mod tests {
         },
     };
 
-    use std::{collections::HashMap, path::PathBuf};
+    use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
     fn mock_geometry_file() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -191,8 +191,9 @@ mod tests {
     fn test_add_geometry() {
         let geoms_filepath = mock_geometry_file();
         let geoms_file_string = geoms_filepath.to_str().unwrap().to_string();
-        let graph = mock_graph();
-        let geometry_model = GeometryModel::new_from_edges(&geoms_file_string, &graph).unwrap();
+        let graph = Arc::new(mock_graph());
+        let geometry_model =
+            GeometryModel::new_from_edges(&geoms_file_string, graph.clone()).unwrap();
 
         // OLD TEST STUB:
         // let expected_geometry = String::from("LINESTRING(0 0,1 1,2 2,3 3,4 4,5 5,6 6,7 7,8 8)");
