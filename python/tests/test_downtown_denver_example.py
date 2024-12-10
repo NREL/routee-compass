@@ -24,4 +24,4 @@ class TestDowntownDenverExample(TestCase):
 
         result = app.run(query)
 
-        self.assertTrue("error" not in result)
+        self.assertTrue("error" not in result, msg=f"error in downtown denver test: {result['error']}")
