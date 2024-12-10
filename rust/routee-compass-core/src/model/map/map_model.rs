@@ -17,12 +17,13 @@ pub struct MapModel {
 
 impl MapModel {
     pub fn new(graph: Arc<Graph>, config: MapModelConfig) -> Result<MapModel, MapError> {
+        let matching_type = config.get_matching_type()?;
         match config {
             MapModelConfig::VertexMapModelConfig {
                 tolerance,
                 geometry_input_file,
                 queries_without_destinations,
-                matching_type,
+                matching_type: _,
             } => {
                 let tol_unpacked = tolerance.map(|t| t.unpack());
                 let spatial_index =
@@ -31,8 +32,9 @@ impl MapModel {
                     None => GeometryModel::new_from_vertices(graph),
                     Some(file) => GeometryModel::new_from_edges(&file, graph.clone()),
                 }?;
+
                 let map_model = MapModel {
-                    matching_type: matching_type.unwrap_or_default(),
+                    matching_type,
                     spatial_index,
                     geometry_model,
                     queries_without_destinations,
@@ -43,7 +45,7 @@ impl MapModel {
                 tolerance,
                 geometry_input_file,
                 queries_without_destinations,
-                matching_type,
+                matching_type: _,
             } => {
                 let tol_unpacked = tolerance.map(|t| t.unpack());
                 let geometry_model =
@@ -51,7 +53,7 @@ impl MapModel {
                 let spatial_index =
                     SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tol_unpacked);
                 let map_model = MapModel {
-                    matching_type: matching_type.unwrap_or_default(),
+                    matching_type,
                     spatial_index,
                     geometry_model,
                     queries_without_destinations,

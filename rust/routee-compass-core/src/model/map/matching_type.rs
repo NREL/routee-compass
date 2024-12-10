@@ -8,7 +8,7 @@ use crate::{
 };
 use itertools::Itertools;
 use serde::{de, Deserialize, Deserializer, Serialize};
-use std::{fmt::Display, sync::Arc};
+use std::{fmt::Display, str::FromStr, sync::Arc};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
@@ -24,12 +24,20 @@ pub enum MatchingType {
     Combined(Vec<MatchingType>),
 }
 
+impl MatchingType {
+    pub const ALL: [MatchingType; 3] = [Self::Point, Self::VertexId, Self::EdgeId];
+
+    pub fn names() -> String {
+        MatchingType::ALL.iter().map(|t| t.to_string()).join(", ")
+    }
+}
+
 impl Default for MatchingType {
     /// the default MatchingType is to first attempt to process a Point into VertexIds,
     /// then attempt to find VertexIds on the query,
     /// then finally attempt to find EdgeIds on the query.
     fn default() -> Self {
-        Self::Combined(vec![Self::Point, Self::VertexId, Self::EdgeId])
+        Self::Combined(Self::ALL.to_vec())
     }
 }
 
@@ -42,6 +50,23 @@ impl Display for MatchingType {
             MatchingType::Point => String::from("point"),
         };
         write!(f, "{}", self_str)
+    }
+}
+
+impl FromStr for MatchingType {
+    type Err = MapError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.trim().to_lowercase().as_str() {
+            "vertex_id" => Ok(Self::VertexId),
+            "edge_id" => Ok(Self::EdgeId),
+            "point" => Ok(Self::Point),
+            _ => Err(MapError::BuildError(format!(
+                "unrecognized matching type {}, must be one of [{}]",
+                s,
+                MatchingType::names()
+            ))),
+        }
     }
 }
 
