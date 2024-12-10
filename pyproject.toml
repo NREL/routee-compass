@@ -23,12 +23,18 @@ keywords = ["eco routing"]
 dependencies = ["toml"]
 
 [project.optional-dependencies]
-dev = ["pytest", "maturin", "jupyter-book", "ruff", "sphinx-book-theme"]
-osm = ["osmnx", "geopandas", "shapely", "networkx", "folium", "pandas", "numpy"]
-all = [
-    "nrel.routee.compass[osm]",
-    "nrel.routee.compass[dev]",
+dev = [
+    "pytest",
+    "maturin",
+    "jupyter-book",
+    "ruff",
+    "mypy",
+    "sphinx-book-theme",
+    "types-requests",
+    "types-toml",
 ]
+osm = ["osmnx", "geopandas", "shapely", "networkx", "folium", "pandas", "numpy"]
+all = ["nrel.routee.compass[osm]", "nrel.routee.compass[dev]"]
 
 [project.urls]
 Homepage = "https://github.com/NREL/routee-compass"
@@ -45,7 +51,9 @@ include = [
 exclude = ["rust/routee-compass-powertrain/onnxruntime/**"]
 
 [tool.mypy]
+mypy_path = "python"
 ignore_missing_imports = true
 namespace_packages = true
 explicit_package_bases = true
+strict = true
 exclude = ["docs/", "build/", "dist/"]
