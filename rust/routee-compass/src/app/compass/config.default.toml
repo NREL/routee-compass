@@ -40,7 +40,7 @@ verbose = true
 # # match by Point, otherwise expects the user to pass either a vertex ({origin|destination}_vertex)
 # # or an edge ({origin|destination}_edge). a more restrictive strategy can be 
 # # specified here with a subset of these values or a single value such as "point".
-# map_input_type = ["point", "edge", "vertex"]
+# matching_type = ["point", "edge", "vertex"]
 
 [algorithm]
 type = "a*"

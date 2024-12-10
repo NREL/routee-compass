@@ -3,7 +3,7 @@ use crate::model::{
     unit::{Distance, DistanceUnit},
 };
 
-use super::{map_input_type::MapInputType, map_json_key::MapJsonKey};
+use super::{map_json_key::MapJsonKey, matching_type::MatchingType};
 
 #[derive(thiserror::Error, Debug)]
 pub enum MapError {
@@ -14,7 +14,7 @@ pub enum MapError {
     #[error("failure matching query to map: {0}")]
     MapMatchError(String),
     #[error("this Compass instance is configured to require destinations on inputs, but the appropriate 'destination_*' fields were not found on query (looked for: {0})")]
-    DestinationsRequired(MapInputType),
+    DestinationsRequired(MatchingType),
     #[error("cannot map match on key '{0}', must be one of [origin_x, origin_y, destination_x, destination_y]")]
     InvalidMapMatchingKey(MapJsonKey),
     #[error("input missing required field '{0}'")]

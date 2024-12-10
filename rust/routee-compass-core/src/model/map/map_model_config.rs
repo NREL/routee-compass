@@ -1,4 +1,4 @@
-use super::map_input_type::MapInputType;
+use super::matching_type::MatchingType;
 use crate::model::unit::{Distance, DistanceUnit};
 use serde::{de, Deserialize, Deserializer, Serialize};
 use serde_json::Value;
@@ -12,7 +12,7 @@ pub enum MapModelConfig {
         tolerance: Option<(Distance, DistanceUnit)>,
         geometry_input_file: Option<String>,
         queries_without_destinations: bool,
-        map_input_type: Option<MapInputType>,
+        matching_type: Option<MatchingType>,
     },
     #[serde(rename = "edge")]
     EdgeMapModelConfig {
@@ -20,7 +20,7 @@ pub enum MapModelConfig {
         tolerance: Option<(Distance, DistanceUnit)>,
         geometry_input_file: String,
         queries_without_destinations: bool,
-        map_input_type: Option<MapInputType>,
+        matching_type: Option<MatchingType>,
     },
 }
 
@@ -30,7 +30,7 @@ impl Default for MapModelConfig {
             tolerance: None,
             geometry_input_file: None,
             queries_without_destinations: true,
-            map_input_type: None,
+            matching_type: None,
         }
     }
 }

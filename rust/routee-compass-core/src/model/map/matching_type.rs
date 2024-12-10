@@ -12,7 +12,7 @@ use std::{fmt::Display, sync::Arc};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
-pub enum MapInputType {
+pub enum MatchingType {
     /// expect origin [, destination] VertexIds on the query.
     VertexId,
     /// expect origin [, destination] EdgeIds on the query.
@@ -21,11 +21,11 @@ pub enum MapInputType {
     Point,
     /// expect any combination of the map input types provided
     #[serde(deserialize_with = "de_combined")]
-    Combined(Vec<MapInputType>),
+    Combined(Vec<MatchingType>),
 }
 
-impl Default for MapInputType {
-    /// the default MapInputType is to first attempt to process a Point into VertexIds,
+impl Default for MatchingType {
+    /// the default MatchingType is to first attempt to process a Point into VertexIds,
     /// then attempt to find VertexIds on the query,
     /// then finally attempt to find EdgeIds on the query.
     fn default() -> Self {
@@ -33,13 +33,13 @@ impl Default for MapInputType {
     }
 }
 
-impl Display for MapInputType {
+impl Display for MatchingType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let self_str = match self {
-            MapInputType::Combined(vec) => vec.iter().map(|mit| mit.to_string()).join(","),
-            MapInputType::VertexId => String::from("vertex_id"),
-            MapInputType::EdgeId => String::from("edge_id"),
-            MapInputType::Point => String::from("point"),
+            MatchingType::Combined(vec) => vec.iter().map(|mit| mit.to_string()).join(","),
+            MatchingType::VertexId => String::from("vertex_id"),
+            MatchingType::EdgeId => String::from("edge_id"),
+            MatchingType::Point => String::from("point"),
         };
         write!(f, "{}", self_str)
     }
@@ -50,9 +50,9 @@ pub enum MapInputResult {
     NotFound,
 }
 
-impl MapInputType {
+impl MatchingType {
     /// attempts to find any valid input origin fields, or performs map matching, in order to
-    /// append those fields to the query, based on the type of [`MapInputType`] supported.
+    /// append those fields to the query, based on the type of [`MatchingType`] supported.
     pub fn process_origin(
         &self,
         map_model: &MapModel,
@@ -60,12 +60,12 @@ impl MapInputType {
         graph: Arc<Graph>,
         query: &mut serde_json::Value,
     ) -> Result<(), MapError> {
-        use MapInputType as MIT;
+        use MatchingType as MIT;
         match self {
             MIT::Combined(vec) => {
                 let mut errors = vec![];
-                for map_input_type in vec.iter() {
-                    match map_input_type.process_origin(
+                for matching_type in vec.iter() {
+                    match matching_type.process_origin(
                         map_model,
                         frontier_model.clone(),
                         graph.clone(),
@@ -73,7 +73,7 @@ impl MapInputType {
                     ) {
                         Ok(_) => return Ok(()),
                         Err(e) => {
-                            let mit = serde_json::to_string(map_input_type).unwrap_or_default();
+                            let mit = serde_json::to_string(matching_type).unwrap_or_default();
                             let msg = format!("no origin {} on input query: {}", mit, e);
                             errors.push(msg);
                         }
@@ -144,7 +144,7 @@ impl MapInputType {
     }
 
     /// attempts to find any valid input destination fields, or performs map matching, in order to
-    /// append those fields to the query, based on the type of [`MapInputType`] supported.
+    /// append those fields to the query, based on the type of [`MatchingType`] supported.
     /// since destinations are optional, the method returns a [`MapInputResult`] that indicates if
     /// a destination was found or not found.
     pub fn process_destination(
@@ -154,12 +154,12 @@ impl MapInputType {
         graph: Arc<Graph>,
         query: &mut serde_json::Value,
     ) -> Result<MapInputResult, MapError> {
-        use MapInputType as MIT;
+        use MatchingType as MIT;
         match self {
             MIT::Combined(vec) => {
                 let mut errors = vec![];
-                for map_input_type in vec.iter() {
-                    match map_input_type.process_destination(
+                for matching_type in vec.iter() {
+                    match matching_type.process_destination(
                         map_model,
                         frontier_model.clone(),
                         graph.clone(),
@@ -167,7 +167,7 @@ impl MapInputType {
                     ) {
                         Ok(_) => return Ok(MapInputResult::Found),
                         Err(e) => {
-                            let mit = serde_json::to_string(map_input_type).unwrap_or_default();
+                            let mit = serde_json::to_string(matching_type).unwrap_or_default();
                             let msg = format!("no destination {} on input query: {}", mit, e);
                             errors.push(msg);
                         }
@@ -273,28 +273,28 @@ fn validate_edge(edge: &Edge, fm: Arc<dyn FrontierModel>) -> Result<(), MapError
     }
 }
 
-fn de_combined<'de, D>(value: D) -> Result<Vec<MapInputType>, D::Error>
+fn de_combined<'de, D>(value: D) -> Result<Vec<MatchingType>, D::Error>
 where
     D: Deserializer<'de>,
 {
     struct CombinedVisitor;
 
     impl<'de> de::Visitor<'de> for CombinedVisitor {
-        type Value = Vec<MapInputType>;
+        type Value = Vec<MatchingType>;
 
         fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-            formatter.write_str("a vector of MapInputType strings")
+            formatter.write_str("a vector of MatchingType strings")
         }
 
         fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
         where
             A: de::SeqAccess<'de>,
         {
-            let mut out: Vec<MapInputType> = vec![];
+            let mut out: Vec<MatchingType> = vec![];
             while let Some(next) = seq.next_element()? {
-                if let MapInputType::Combined(_) = next {
+                if let MatchingType::Combined(_) = next {
                     return Err(serde::de::Error::custom(String::from(
-                        "cannot deeply nest map_input_type entries",
+                        "cannot deeply nest matching_type entries",
                     )));
                 }
                 out.push(next);

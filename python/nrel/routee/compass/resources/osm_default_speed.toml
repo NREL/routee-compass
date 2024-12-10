@@ -10,7 +10,7 @@ type = "edge"
 geometry_input_file = "edges-geometries-enumerated.txt.gz"
 tolerance = [15.0, "meters"]
 queries_without_destinations = false
-map_input_type = ["point", "vertex", "edge"]
+matching_type = ["point", "vertex", "edge"]
 
 [traversal]
 type = "speed_table"
