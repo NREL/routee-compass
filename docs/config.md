@@ -161,11 +161,7 @@ output_plugins = [
 
 ## Mapping Model
 
-The mapping model deals with geospatial mappings from the road network graph.
-
-This may be represented using the graph vertices and drawing lines between coordinates, or, by loading LineString geometries from a file.
-
-The vertex RTree plugin uses an RTree to match coordiantes to graph verticies.
+The mapping model deals with geospatial mappings from the road network graph. This may be represented using the graph vertices and drawing lines between coordinates, or, by loading LineString geometries from a file.
 
 For example, if you specify your query origin and destination as lat/lon coordinates (i.e. `origin_x`, `origin_y`) we need a way to match this to the graph and then insert an `origin_vertex` or a `destination_vertex` into the query. Those two fields are what the application expects when conducting a search.
 

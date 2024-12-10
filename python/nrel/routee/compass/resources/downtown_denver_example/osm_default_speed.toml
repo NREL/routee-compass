@@ -26,12 +26,6 @@ edge_heading_input_file = "edges-headings-enumerated.csv.gz"
 
 [plugin]
 [[plugin.input_plugins]]
-type = "vertex_rtree"
-distance_tolerance = 0.2
-distance_unit = "kilometers"
-vertices_input_file = "vertices-compass.csv.gz"
-
-[[plugin.input_plugins]]
 type = "grid_search"
 
 [[plugin.input_plugins]]

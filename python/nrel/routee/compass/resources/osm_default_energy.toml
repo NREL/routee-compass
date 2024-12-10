@@ -15,7 +15,6 @@ matching_type = ["point", "vertex_id", "edge_id"]
 
 [plugin]
 input_plugins = [
-    { type = "vertex_rtree", distance_tolerance = 0.2, distance_unit = "kilometers", vertices_input_file = "vertices-compass.csv.gz" },
     { type = "grid_search" },
     { type = "load_balancer", weight_heuristic = { type = "haversine" } },
 ]
