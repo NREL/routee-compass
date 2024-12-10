@@ -19,7 +19,20 @@ vertex_list_input_file = "vertices-compass.csv.gz"
 # if verbose is true, you'll see more information when loading the graph
 verbose = true
 
-# which traversal model to use and its parameters
+[mapping]
+# vertex or edge-oriented mapping
+type = "edge"
+# geometries used to build linestrings
+geometry_input_file = "edges-geometries-enumerated.txt.gz"
+# mapping threshold
+tolerance.distance = 15.0
+# mapping threshold distance unit
+tolerance.unit = "meters"
+# allow queries without destinations, for shortest path tree results
+queries_without_destinations = true
+# whether we match queries via "point", "vertex_id", or "edge_id" (or arrays of combinations)
+matching_type = "point"
+
 [traversal]
 type = "energy_model"
 # the units of the speed table
@@ -133,8 +146,6 @@ u_turn = 9.5
 # which plugins should be activated?
 [plugin]
 input_plugins = [
-    # The vertex RTree plugin uses an RTree to match coordiantes to graph verticies.
-    { type = "vertex_rtree", distance_tolerance = 0.2, distance_unit = "kilometers", vertices_input_file = "vertices-compass.csv.gz" },
     # The grid search allows you to specify a "grid_search" key in the query and it will generate multiple queries from those parameters.
     { type = "grid_search" },
     # The load balancer estimates the runtime for each query and is used by CompassApp to best leverage parallelism.
@@ -146,6 +157,68 @@ output_plugins = [
     # The uuid plugin adds a map specific id (like Open Street Maps Nodes) onto the compass verticies
     { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
 ]
+```
+
+## Mapping Model
+
+The mapping model deals with geospatial mappings from the road network graph.
+
+This may be represented using the graph vertices and drawing lines between coordinates, or, by loading LineString geometries from a file.
+
+The vertex RTree plugin uses an RTree to match coordiantes to graph verticies.
+
+For example, if you specify your query origin and destination as lat/lon coordinates (i.e. `origin_x`, `origin_y`) we need a way to match this to the graph and then insert an `origin_vertex` or a `destination_vertex` into the query. Those two fields are what the application expects when conducting a search.
+
+For vertex-oriented mapping, all fields are optional.
+
+```toml
+[mapping]
+type = "vertex"
+
+# # when type = "vertex", this can be omitted, and the system will
+# # instead use the graph vertex coordinates to build map geometries
+# # which produces far simpler route sequences as a result.
+# geometry_input_file = "edges-geometries-enumerated.txt.gz"
+ 
+# # optional query distance tolerance for map matching.
+# tolerance.distance = 15.0
+# tolerance.unit = "meters"
+
+# # allow user to submit queries without destinations, such as when
+# # shortest path trees are the desired result, not routes. true by default.
+# queries_without_destinations = true
+
+# # the default map input type is a combined strategy that attempts to
+# # match by Point, otherwise expects the user to pass either a vertex ({origin|destination}_vertex)
+# # or an edge ({origin|destination}_edge). a more restrictive strategy can be 
+# # specified here with a subset of these values or a single value such as "point".
+# matching_type = ["point", "edge_id", "vertex_id"]
+```
+
+Edge-oriented mapping uses some additional (non-optional) line geometry input and builds a spatial lookup over those lines.
+
+This model will map coordinates to `origin_edge` or a `destination_edge` into the query.
+
+As opposed to vertex-oriented mapping, the edge-oriented will additionally apply any frontier model rules to any mapped edges, preventing mapping assignments that are invalid frontiers.
+
+```toml
+[mapping]
+type = "edge"
+geometry_input_file = "edges-geometries-enumerated.txt.gz"
+ 
+# # optional query distance tolerance for map matching.
+# tolerance.distance = 15.0
+# tolerance.unit = "meters"
+
+# # allow user to submit queries without destinations, such as when
+# # shortest path trees are the desired result, not routes. true by default.
+# queries_without_destinations = true
+
+# # the default map input type is a combined strategy that attempts to
+# # match by Point, otherwise expects the user to pass either a vertex ({origin|destination}_vertex)
+# # or an edge ({origin|destination}_edge). a more restrictive strategy can be 
+# # specified here with a subset of these values or a single value such as "point".
+# matching_type = ["point", "edge_id", "vertex_id"]
 ```
 
 ## Traversal Models
@@ -334,44 +407,6 @@ The grid search plugin would take this single query and generate two queries tha
 type = "grid_search"
 ```
 
-### Vertex RTree
-
-The vertex RTree plugin uses an RTree to match coordiantes to graph verticies.
-
-For example, if you specify your query origin and destination as lat/lon coordinates (i.e. `origin_x`, `origin_y`) we need a way to match this to the graph and then insert an `origin_vertex` or a `destination_vertex` into the query. Those two fields are what the application expects when conducting a search.
-
-```toml
-[[plugin.input_plugins]]
-type = "vertex_rtree"
-# the vertices of the graph; enumerated to match the index of the graph vertex file
-vertices_input_file = "vertices-compass.csv.gz"
-```
-
-### Edge RTree
-
-The edge RTree plugin uses an RTree to match coordiantes to graph edges.
-
-For example, if you specify your query origin and destination as lat/lon coordinates (i.e. `origin_x`, `origin_y`) we need a way to match this to the graph and then insert an `origin_edge` or a `destination_edge` into the query.
-
-The Edge RTree has some additional paramters as comparted to the Vertex RTree.
-Specifically, the Edge RTree takes in geomteries for each edge as well as road classes for each edge.
-It uses the geometries for computing the distance between the incoming points and the edge.
-
-In addition, it uses the road classes to optionally filter out road classes that need to be excluded at query time by supplying a "road_classes" argument to the query with a list of strings to match against.
-
-```toml
-[[plugin.input_plugins]]
-type = "edge_rtree"
-# geometries for each edge; enumerated to match the index of the graph edge file
-geometry_input_file = "edge-geometries.csv.gz"
-# road classes for each edge; enumerated to match the index of the graph edge file
-road_class_input_file = "road-classes.csv.gz"
-# how far around the point to search (smaller could improve performance but too small might result in no matches)
-distance_tolerance = 100
-# unit of the distance tolerance
-distance_unit = "meters"
-```
-
 ### Load Balancer
 
 The load balancer plugin estimates the runtime for each query. That information is used by `CompassApp` in order to best leverage parallelism.
@@ -427,14 +462,13 @@ Here are the default output plugins that are provided:
 
 ### Traversal
 
-A plugin that appends various items to the result.
+A plugin that appends various items to the result. It leverages the mapping model for route and tree geometry generation.
 
 ```toml
 [[plugin.output_plugins]]
 type = "traversal"
 route = "geo_json"
 tree = "geo_json"
-geometry_input_file = "edges-geometries-enumerated.txt.gz"
 ```
 
 The `route` key will add route information to the result depending on the type.
