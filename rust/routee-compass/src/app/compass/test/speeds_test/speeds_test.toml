@@ -8,7 +8,7 @@ verbose = true
 # # tolerance.distance = 15.0
 tolerance.unit = "meters"
 # queries_without_destinations = false
-# # matching_type = ["point", "vertex", "edge"]
+# # matching_type = ["point", "vertex_id", "edge_id"]
 
 [traversal]
 type = "speed_table"
