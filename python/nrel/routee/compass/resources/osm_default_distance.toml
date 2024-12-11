@@ -48,5 +48,4 @@ input_plugins = [
 output_plugins = [
     { type = "summary" },
     { type = "traversal", route = "geo_json" },
-    { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
 ]

@@ -21,7 +21,6 @@ input_plugins = [
 output_plugins = [
     { type = "summary" },
     { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
-    { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
 ]
 # based on 65.5 cents per mile 2023 IRS mileage rate, $/mile to match traversal distance_unit = "miles"
 [cost.vehicle_rates.distance]
