@@ -34,22 +34,22 @@ impl PredictionModel for InterpolationSpeedGradeModel {
         // snap incoming speed and grade to the grid
         let (min_speed, max_speed, min_grade, max_grade) = match &self.interpolator {
             ninterp::Interpolator::Interp2D(interp) => (
-                *interp.x.first().ok_or_else(|| {
+                *interp.x().first().ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(
                         "Could not get first x-value from powertrain interpolation result; are x-values empty?".to_string(),
                     )
                 })?,
-                *interp.x.last().ok_or_else(|| {
+                *interp.x().last().ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(
                         "Could not get last x-value from powertrain interpolation result; are x-values empty?".to_string(),
                     )
                 })?,
-                *interp.y.first().ok_or_else(|| {
+                *interp.y().first().ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(
                         "Could not get first y-value from powertrain interpolation result; are y-values empty?".to_string(),
                     )
                 })?,
-                *interp.y.last().ok_or_else(|| {
+                *interp.y().last().ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(
                         "Could not get last y-value from powertrain interpolation result; are y-values empty?".to_string(),
                     )
@@ -143,7 +143,6 @@ impl InterpolationSpeedGradeModel {
             .map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
                     "Failed to validate interpolation model: {}",
-
                     e
                 ))
             })?,
