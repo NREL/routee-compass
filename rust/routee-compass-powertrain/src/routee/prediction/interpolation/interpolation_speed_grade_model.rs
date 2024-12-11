@@ -11,11 +11,10 @@ use routee_compass_core::{
     },
 };
 
-use super::interp;
 use super::utils::linspace;
 
 pub struct InterpolationSpeedGradeModel {
-    interpolator: interp::Interpolator,
+    interpolator: ninterp::Interpolator,
     speed_unit: SpeedUnit,
     grade_unit: GradeUnit,
     energy_rate_unit: EnergyRateUnit,
@@ -34,27 +33,28 @@ impl PredictionModel for InterpolationSpeedGradeModel {
 
         // snap incoming speed and grade to the grid
         let (min_speed, max_speed, min_grade, max_grade) = match &self.interpolator {
-            interp::Interpolator::Interp2D(interp) => (
-                *interp.x.first().ok_or_else(|| {
+            ninterp::Interpolator::Interp2D(interp) => (
+                *interp.x().first().ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(
                         "Could not get first x-value from powertrain interpolation result; are x-values empty?".to_string(),
                     )
                 })?,
-                *interp.x.last().ok_or_else(|| {
+                *interp.x().last().ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(
                         "Could not get last x-value from powertrain interpolation result; are x-values empty?".to_string(),
                     )
                 })?,
-                *interp.y.first().ok_or_else(|| {
+                *interp.y().first().ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(
                         "Could not get first y-value from powertrain interpolation result; are y-values empty?".to_string(),
                     )
                 })?,
-                *interp.y.last().ok_or_else(|| {
+                *interp.y().last().ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(
                         "Could not get last y-value from powertrain interpolation result; are y-values empty?".to_string(),
                     )
                 })?,
+
             ),
             _ => {
                 return Err(TraversalModelError::TraversalModelFailure(
@@ -68,7 +68,7 @@ impl PredictionModel for InterpolationSpeedGradeModel {
 
         let y = self
             .interpolator
-            .interpolate(&[speed_value, grade_value], &interp::Strategy::Linear)
+            .interpolate(&[speed_value, grade_value])
             .map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
                     "Failed to interpolate speed/grade model output during prediction: {}",
@@ -132,10 +132,17 @@ impl InterpolationSpeedGradeModel {
             values.push(row);
         }
 
-        let interpolator = interp::Interpolator::Interp2D(
-            interp::Interp2D::new(speed_values, grade_values, values).map_err(|e| {
+        let interpolator = ninterp::Interpolator::Interp2D(
+            ninterp::Interp2D::new(
+                speed_values,
+                grade_values,
+                values,
+                ninterp::Strategy::Linear,
+                ninterp::Extrapolate::Error,
+            )
+            .map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to build interpolation speed/grade model: {}",
+                    "Failed to validate interpolation model: {}",
                     e
                 ))
             })?,
