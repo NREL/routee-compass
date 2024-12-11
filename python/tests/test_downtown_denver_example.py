@@ -21,8 +21,11 @@ class TestDowntownDenverExample(TestCase):
             "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
             "weights": {"distance": 1, "time": 1, "energy_liquid": 1},
         }
-        
+
         result = app.run(query)
+
+        if not isinstance(result, dict):
+            raise ValueError(f"result is not a dict: {result}")
 
         self.assertTrue(
             "error" not in result,

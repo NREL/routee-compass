@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import logging
 import os
 from tempfile import TemporaryDirectory
@@ -16,6 +15,7 @@ if TYPE_CHECKING:
     from shapely.geometry import Polygon, MultiPolygon
 
 import toml
+import json
 
 
 Config = dict[str, Any]
@@ -24,6 +24,7 @@ CompassQuery = dict[str, Any]
 Result = dict[str, Any]
 Results = list[Result]
 Route = dict[str, Any]
+
 
 log = logging.getLogger(__name__)
 
