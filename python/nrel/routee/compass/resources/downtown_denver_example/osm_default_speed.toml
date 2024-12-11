@@ -1,10 +1,17 @@
 parallelism = 2
-search_orientation = "vertex"
 
 [graph]
 edge_list_input_file = "edges-compass.csv.gz"
 vertex_list_input_file = "vertices-compass.csv.gz"
 verbose = true
+
+[mapping]
+type = "edge"
+geometry_input_file = "edges-geometries-enumerated.txt.gz"
+tolerance.distance = 15.0
+tolerance.unit = "meters"
+queries_without_destinations = false
+matching_type = ["point", "vertex_id", "edge_id"]
 
 [traversal]
 type = "speed_table"
@@ -18,12 +25,6 @@ type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
 
 [plugin]
-[[plugin.input_plugins]]
-type = "vertex_rtree"
-distance_tolerance = 0.2
-distance_unit = "kilometers"
-vertices_input_file = "vertices-compass.csv.gz"
-
 [[plugin.input_plugins]]
 type = "grid_search"
 
@@ -39,10 +40,6 @@ type = "summary"
 type = "traversal"
 route = "geo_json"
 geometry_input_file = "edges-geometries-enumerated.txt.gz"
-
-[[plugin.output_plugins]]
-type = "uuid"
-uuid_input_file = "vertices-uuid-enumerated.txt.gz"
 
 [access.turn_delay_model]
 type = "tabular_discrete"

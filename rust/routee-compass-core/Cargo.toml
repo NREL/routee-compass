@@ -30,3 +30,4 @@ regex = { workspace = true }
 wkt = { workspace = true }
 wkb = { workspace = true }
 allocative = { workspace = true }
+rstar = { workspace = true }

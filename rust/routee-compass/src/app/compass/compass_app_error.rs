@@ -7,8 +7,8 @@ use routee_compass_core::{
     algorithm::search::search_error::SearchError,
     model::{
         access::access_model_error::AccessModelError, cost::cost_model_error::CostModelError,
-        frontier::frontier_model_error::FrontierModelError, network::network_error::NetworkError,
-        state::state_model_error::StateModelError,
+        frontier::frontier_model_error::FrontierModelError, map::map_error::MapError,
+        network::network_error::NetworkError, state::state_model_error::StateModelError,
         termination::termination_model_error::TerminationModelError,
         traversal::traversal_model_error::TraversalModelError,
     },
@@ -45,6 +45,11 @@ pub enum CompassAppError {
     // CONTEXTUALIZED MODULE FAILURES
     //   failures from these modules are happening outside of the context of running the search,
     //   which is clarified for the user and may help direct where to look to solve the problem.
+    #[error("While interacting with the map model outside of the context of search, an error occurred. Source: {source}")]
+    MappingFailure {
+        #[from]
+        source: MapError,
+    },
     #[error("While interacting with the state model outside of the context of search, an error occurred. Source: {source}")]
     StateFailure {
         #[from]

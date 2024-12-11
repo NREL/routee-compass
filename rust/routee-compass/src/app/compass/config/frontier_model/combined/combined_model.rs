@@ -15,13 +15,28 @@ impl FrontierModel for CombinedFrontierModel {
         &self,
         edge: &Edge,
         state: &[StateVar],
-        previous_edge: Option<&Edge>,
+        tree: &std::collections::HashMap<
+            routee_compass_core::model::network::VertexId,
+            routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch,
+        >,
+        direction: &routee_compass_core::algorithm::search::direction::Direction,
         state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         // If any of the inner models return an invalid frontier, it invalidates the whole set and we
         // return an early false. We only return true if all the frontiers are valid.
         for frontier_model in self.inner_models.iter() {
-            if !frontier_model.valid_frontier(edge, state, previous_edge, state_model)? {
+            if !frontier_model.valid_frontier(edge, state, tree, direction, state_model)? {
+                return Ok(false);
+            }
+        }
+        Ok(true)
+    }
+
+    fn valid_edge(&self, edge: &Edge) -> Result<bool, FrontierModelError> {
+        // If any of the inner models return an invalid frontier, it invalidates the whole set and we
+        // return an early false. We only return true if all the frontiers are valid.
+        for frontier_model in self.inner_models.iter() {
+            if !frontier_model.valid_edge(edge)? {
                 return Ok(false);
             }
         }

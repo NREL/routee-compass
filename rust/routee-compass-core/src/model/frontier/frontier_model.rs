@@ -1,6 +1,13 @@
+use std::collections::HashMap;
+
 use super::frontier_model_error::FrontierModelError;
-use crate::model::{
-    network::Edge, state::state_model::StateModel, traversal::state::state_variable::StateVar,
+use crate::{
+    algorithm::search::{direction::Direction, search_tree_branch::SearchTreeBranch},
+    model::{
+        network::{Edge, VertexId},
+        state::state_model::StateModel,
+        traversal::state::state_variable::StateVar,
+    },
 };
 
 /// Validates edge and traversal states. Provides an API for removing edges from
@@ -10,24 +17,39 @@ use crate::model::{
 ///
 /// [TraversalModel]: crate::model::traversal::traversal_model::TraversalModel
 pub trait FrontierModel: Send + Sync {
-    /// Validates an edge before allowing it to be added to the frontier.
+    /// Validates an edge before allowing it to be added to the search frontier.
     ///
     /// # Arguments
     ///
     /// * `edge` - the edge to traverse
     /// * `state` - the state of the traversal at the beginning of this edge
-    /// * `previous_edge` - the edge that was traversed to reach this edge
+    /// * `tree` - the search tree for this search
+    /// * `direction` - search direction
+    /// * `state_model` - provides operations on the state vector
     ///
     /// # Returns
     ///
-    /// True if the edge is valid, false otherwise; Or, an error from processing
+    /// True if the edge is a valid part of the frontier, false otherwise
     fn valid_frontier(
         &self,
-        _edge: &Edge,
-        _state: &[StateVar],
-        _previous_edge: Option<&Edge>,
-        _state_model: &StateModel,
-    ) -> Result<bool, FrontierModelError> {
-        Ok(true)
-    }
+        edge: &Edge,
+        state: &[StateVar],
+        tree: &HashMap<VertexId, SearchTreeBranch>,
+        direction: &Direction,
+        state_model: &StateModel,
+    ) -> Result<bool, FrontierModelError>;
+
+    /// Validates an edge independent of a search state, noting whether it
+    /// is simply impassable with this FrontierModel configuration. Can be
+    /// called by valid_frontier as a cheaper first-pass operation. Also
+    /// used by MapModel during query map matching.
+    ///
+    /// # Arguments
+    ///
+    /// * `edge` - the edge to test for validity
+    ///
+    /// # Returns
+    ///
+    /// True if the edge is valid
+    fn valid_edge(&self, edge: &Edge) -> Result<bool, FrontierModelError>;
 }

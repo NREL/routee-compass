@@ -85,7 +85,7 @@ impl RouteSimilarityFunction {
             }
             RouteSimilarityFunction::DistanceWeightedCosineSimilarity { threshold: _ } => {
                 let dist_fn = Box::new(|edge_id: &EdgeId| {
-                    si.directed_graph
+                    si.graph
                         .get_edge(edge_id)
                         .map(|edge| edge.distance.as_f64())
                         .map_err(SearchError::from)
