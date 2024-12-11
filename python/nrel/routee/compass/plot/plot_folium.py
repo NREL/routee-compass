@@ -1,3 +1,10 @@
+import folium
+
+from nrel.routee.compass.compass_app import (
+    Result as QueryResult,
+    Results as QueryResults,
+)
+
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
 
@@ -10,7 +17,7 @@ DEFAULT_LINE_KWARGS = {
 }
 
 
-def result_dict_to_coords(result_dict: dict) -> Sequence[Tuple[float, float]]:
+def result_dict_to_coords(result_dict: QueryResult) -> Sequence[Tuple[float, float]]:
     """
     Converts the CompassApp results to coords to be sent to the folium map.
 
@@ -57,7 +64,7 @@ def result_dict_to_coords(result_dict: dict) -> Sequence[Tuple[float, float]]:
     return coords
 
 
-def _calculate_folium_args(fit_coords: Sequence[Tuple[float, float]]) -> dict:
+def _calculate_folium_args(fit_coords: Sequence[Tuple[float, float]]) -> dict[str, Any]:
     """
     Calculates where the center of the map and the bounds that the map
     should fit.
@@ -89,7 +96,7 @@ def _calculate_folium_args(fit_coords: Sequence[Tuple[float, float]]) -> dict:
     }
 
 
-def _create_empty_folium_map(fit_coords: Sequence[Tuple[float, float]]):
+def _create_empty_folium_map(fit_coords: Sequence[Tuple[float, float]]) -> folium.Map:
     """
     Creates an empty folium.Map calculating the center and the fit_bounds
     using _calculate_folium_args.
@@ -123,22 +130,20 @@ def _create_empty_folium_map(fit_coords: Sequence[Tuple[float, float]]):
 
 
 def plot_route_folium(
-    result_dict: dict,
-    line_kwargs: Optional[dict] = None,
-    folium_map=None,
-):
+    result_dict: QueryResult,
+    line_kwargs: Optional[QueryResult] = None,
+    folium_map: Optional[folium.Map] = None,
+) -> folium.Map:
     """
     Plots a single route from a compass query on a folium map.
 
     Args:
-        result_dict (Dict[str, Any]): A result dictionary from a CompassApp query
-        line_kwargs (Optional[Dict[str, Any]], optional): A dictionary of keyword
-            arguments to pass to the folium Polyline
-        folium_map (folium.Map, optional): A existing folium map to plot the route on.
-            Defaults to None.
+        result_dict: A result dictionary from a CompassApp query
+        line_kwargs: A dictionary of keyword arguments to pass to the folium Polyline
+        folium_map: A existing folium map to plot the route on.
 
     Returns:
-        folium.Map: A folium map with the route plotted on it
+        folium_map: A folium map with the route plotted on it
 
     Example:
         >>> from nrel.routee.compass import CompassApp
@@ -156,9 +161,9 @@ def plot_route_folium(
 
 def plot_coords_folium(
     coords: Sequence[Tuple[float, float]],
-    line_kwargs: Optional[dict] = None,
-    folium_map=None,
-):
+    line_kwargs: Optional[dict[str, Any]] = None,
+    folium_map: Optional[folium.Map] = None,
+) -> folium.Map:
     """
     Plots a sequence of pairs of latitude and longitude on a folium map as a route.
 
@@ -192,7 +197,7 @@ def plot_coords_folium(
 
     kwargs = {**DEFAULT_LINE_KWARGS, **(line_kwargs or {})}
 
-    folium.PolyLine(
+    folium.PolyLine(  # type: ignore
         locations=coords,
         **kwargs,
     ).add_to(folium_map)
@@ -215,19 +220,17 @@ def plot_coords_folium(
 
 
 def plot_routes_folium(
-    results: Union[dict, list[dict]],
-    value_fn: Callable[[dict], Any] = lambda r: r["request"].get("name"),
+    results: Union[QueryResult, QueryResults],
+    value_fn: Callable[[QueryResult], Any] = lambda r: r["request"].get("name"),
     color_map: str = "viridis",
-    folium_map=None,
-):
+    folium_map: Optional[folium.Map] = None,
+) -> folium.Map:
     """
     Plot multiple routes from a CompassApp query on a folium map
 
     Args:
-        results (Union[dict, list[dict]]): A result dictionary or list of result
-            dictionaries from a CompassApp query
-        value_fn (Callable[[Dict[str, Any]], Any], optional): A function that takes a
-            result dictionary and returns a value to use for coloring the routes.
+        results: A result dictionary or list of result dictionaries from a CompassApp query
+        value_fn: A function that takes a result dictionary and returns a value to use for coloring the routes.
             Defaults to lambda r: r["request"].get("name").
         color_map (str, optional): The name of the matplotlib colormap to use
             for coloring the routes. Defaults to "viridis".
@@ -235,7 +238,7 @@ def plot_routes_folium(
             Defaults to None.
 
     Returns:
-        folium.Map: A folium map with the routes plotted on it
+        folium_map: A folium map with the routes plotted on it
 
     Example:
         >>> from nrel.routee.compass import CompassApp

@@ -1,14 +1,12 @@
+use super::{Edge, EdgeId, NetworkError, Vertex, VertexId};
 use crate::algorithm::search::direction::Direction;
-use crate::model::property::edge::Edge;
-use crate::model::property::vertex::Vertex;
-use crate::model::road_network::graph_error::GraphError;
-use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use std::path::Path;
 
 use super::graph_loader::graph_from_files;
 
 use allocative::Allocative;
+use itertools::Itertools;
 
 /// Road network topology represented as an adjacency list.
 /// The `EdgeId` and `VertexId` values correspond to edge and
@@ -61,7 +59,7 @@ impl Graph {
         n_edges: Option<usize>,
         n_vertices: Option<usize>,
         verbose: Option<bool>,
-    ) -> Result<Graph, GraphError> {
+    ) -> Result<Graph, NetworkError> {
         graph_from_files(edge_list_csv, vertex_list_csv, n_edges, n_vertices, verbose)
     }
     /// number of edges in the Graph
@@ -99,9 +97,9 @@ impl Graph {
     /// # Returns
     ///
     /// The associated `Edge` or an error if the id is missing
-    pub fn get_edge(&self, edge_id: EdgeId) -> Result<&Edge, GraphError> {
+    pub fn get_edge(&self, edge_id: &EdgeId) -> Result<&Edge, NetworkError> {
         match self.edges.get(edge_id.0) {
-            None => Err(GraphError::EdgeAttributeNotFound { edge_id }),
+            None => Err(NetworkError::EdgeNotFound(*edge_id)),
             Some(edge) => Ok(edge),
         }
     }
@@ -115,9 +113,9 @@ impl Graph {
     /// # Returns
     ///
     /// The associated `Vertex` or an error if the id is missing
-    pub fn get_vertex(&self, vertex_id: VertexId) -> Result<&Vertex, GraphError> {
+    pub fn get_vertex(&self, vertex_id: &VertexId) -> Result<&Vertex, NetworkError> {
         match self.vertices.get(vertex_id.0) {
-            None => Err(GraphError::VertexAttributeNotFound { vertex_id }),
+            None => Err(NetworkError::VertexNotFound(*vertex_id)),
             Some(vertex) => Ok(vertex),
         }
     }
@@ -132,26 +130,17 @@ impl Graph {
     ///
     /// A list of `EdgeIds` for outbound edges that leave this `VertexId`, or an error
     /// if the vertex is missing from the Graph adjacency matrix.
-    pub fn out_edges(&self, src: VertexId) -> Result<Vec<EdgeId>, GraphError> {
-        match self.adj.get(src.0) {
-            None => Err(GraphError::VertexWithoutOutEdges { vertex_id: src }),
-            Some(out_map) => {
-                let edge_ids = out_map.keys().cloned().collect();
-                Ok(edge_ids)
-            }
-        }
+    pub fn out_edges(&self, src: &VertexId) -> Vec<EdgeId> {
+        self.out_edges_iter(src).cloned().collect_vec()
     }
 
     pub fn out_edges_iter<'a>(
         &'a self,
-        src: VertexId,
-    ) -> Result<Box<dyn Iterator<Item = &EdgeId> + 'a>, GraphError> {
+        src: &VertexId,
+    ) -> Box<dyn Iterator<Item = &'a EdgeId> + 'a> {
         match self.adj.get(src.0) {
-            None => Err(GraphError::VertexWithoutOutEdges { vertex_id: src }),
-            Some(out_map) => {
-                let edge_ids = out_map.keys();
-                Ok(edge_ids)
-            }
+            None => Box::new(std::iter::empty()),
+            Some(out_map) => out_map.keys(),
         }
     }
 
@@ -165,26 +154,17 @@ impl Graph {
     ///
     /// A list of `EdgeIds` for inbound edges that arrive at this `VertexId`, or an error
     /// if the vertex is missing from the Graph adjacency matrix.
-    pub fn in_edges(&self, dst: VertexId) -> Result<Vec<EdgeId>, GraphError> {
-        match self.rev.get(dst.0) {
-            None => Err(GraphError::VertexWithoutInEdges { vertex_id: dst }),
-            Some(in_map) => {
-                let edge_ids = in_map.keys().cloned().collect();
-                Ok(edge_ids)
-            }
-        }
+    pub fn in_edges(&self, dst: &VertexId) -> Vec<EdgeId> {
+        self.in_edges_iter(dst).cloned().collect_vec()
     }
 
     pub fn in_edges_iter<'a>(
         &'a self,
-        dst: VertexId,
-    ) -> Result<Box<dyn Iterator<Item = &EdgeId> + 'a>, GraphError> {
+        dst: &VertexId,
+    ) -> Box<dyn Iterator<Item = &'a EdgeId> + 'a> {
         match self.rev.get(dst.0) {
-            None => Err(GraphError::VertexWithoutInEdges { vertex_id: dst }),
-            Some(in_map) => {
-                let edge_ids = in_map.keys();
-                Ok(edge_ids)
-            }
+            None => Box::new(std::iter::empty()),
+            Some(out_map) => out_map.keys(),
         }
     }
 
@@ -197,7 +177,7 @@ impl Graph {
     /// # Returns
     ///
     /// The source `VertexId` of an `Edge` or an error if the edge is missing
-    pub fn src_vertex_id(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
+    pub fn src_vertex_id(&self, edge_id: &EdgeId) -> Result<VertexId, NetworkError> {
         self.get_edge(edge_id).map(|e| e.src_vertex_id)
     }
 
@@ -210,7 +190,7 @@ impl Graph {
     /// # Returns
     ///
     /// The destination `VertexId` of an `Edge` or an error if the edge is missing
-    pub fn dst_vertex_id(&self, edge_id: EdgeId) -> Result<VertexId, GraphError> {
+    pub fn dst_vertex_id(&self, edge_id: &EdgeId) -> Result<VertexId, NetworkError> {
         self.get_edge(edge_id).map(|e| e.dst_vertex_id)
     }
 
@@ -225,14 +205,32 @@ impl Graph {
     /// # Returns
     ///
     /// The incident `EdgeId`s or an error if the vertex is not connected.
-    pub fn incident_edges(
-        &self,
-        vertex_id: VertexId,
-        direction: Direction,
-    ) -> Result<Vec<EdgeId>, GraphError> {
+    pub fn incident_edges(&self, vertex_id: &VertexId, direction: &Direction) -> Vec<EdgeId> {
         match direction {
             Direction::Forward => self.out_edges(vertex_id),
             Direction::Reverse => self.in_edges(vertex_id),
+        }
+    }
+
+    /// helper function to give incident edges to a vertex based on a
+    /// traversal direction.
+    ///
+    /// # Arguments
+    ///
+    /// * `vertex_id` - vertex to find edges which connect to it
+    /// * `direction` - whether to find out edges (Forward) or in edges (Reverse)
+    ///
+    /// # Returns
+    ///
+    /// The incident `EdgeId`s or an error if the vertex is not connected.
+    pub fn incident_edges_iter<'a>(
+        &'a self,
+        vertex_id: &VertexId,
+        direction: &Direction,
+    ) -> Box<dyn Iterator<Item = &'a EdgeId> + 'a> {
+        match direction {
+            Direction::Forward => self.out_edges_iter(vertex_id),
+            Direction::Reverse => self.in_edges_iter(vertex_id),
         }
     }
 
@@ -249,9 +247,9 @@ impl Graph {
     /// The incident `VertexId` of an edge or an error if the edge is missing
     pub fn incident_vertex(
         &self,
-        edge_id: EdgeId,
-        direction: Direction,
-    ) -> Result<VertexId, GraphError> {
+        edge_id: &EdgeId,
+        direction: &Direction,
+    ) -> Result<VertexId, NetworkError> {
         match direction {
             Direction::Forward => self.dst_vertex_id(edge_id),
             Direction::Reverse => self.src_vertex_id(edge_id),
@@ -268,13 +266,13 @@ impl Graph {
     ///
     /// The triplet of attributes surrounding one `Edge` or an error if
     /// any id is invalid.
-    pub fn edge_triplet_attrs(
+    pub fn edge_triplet(
         &self,
-        edge_id: EdgeId,
-    ) -> Result<(&Vertex, &Edge, &Vertex), GraphError> {
+        edge_id: &EdgeId,
+    ) -> Result<(&Vertex, &Edge, &Vertex), NetworkError> {
         let edge = self.get_edge(edge_id)?;
-        let src = self.get_vertex(edge.src_vertex_id)?;
-        let dst = self.get_vertex(edge.dst_vertex_id)?;
+        let src = self.get_vertex(&edge.src_vertex_id)?;
+        let dst = self.get_vertex(&edge.dst_vertex_id)?;
 
         Ok((src, edge, dst))
     }
@@ -294,16 +292,15 @@ impl Graph {
     ///
     /// For each edge connected to this `vertex_id` traversable via the provided `direction`,
     /// a triplet of the `EdgeId` and it's connecting `VertexId`s.
-    pub fn incident_triplets(
+    pub fn incident_triplet_ids(
         &self,
-        vertex_id: VertexId,
-        direction: Direction,
-    ) -> Result<Vec<(VertexId, EdgeId, VertexId)>, GraphError> {
-        self.incident_edges(vertex_id, direction)?
-            .into_iter()
+        vertex_id: &VertexId,
+        direction: &Direction,
+    ) -> Result<Vec<(VertexId, EdgeId, VertexId)>, NetworkError> {
+        self.incident_edges_iter(vertex_id, direction)
             .map(|edge_id| {
                 let terminal_vid = self.incident_vertex(edge_id, direction)?;
-                Ok((vertex_id, edge_id, terminal_vid))
+                Ok((*vertex_id, *edge_id, terminal_vid))
             })
             .collect()
     }
@@ -325,15 +322,15 @@ impl Graph {
     /// a triplet of the `Edge` and it's connecting `Vertex`s.
     pub fn incident_triplet_attributes(
         &self,
-        vertex_id: VertexId,
-        direction: Direction,
-    ) -> Result<Vec<(&Vertex, &Edge, &Vertex)>, GraphError> {
-        self.incident_triplets(vertex_id, direction)?
+        vertex_id: &VertexId,
+        direction: &Direction,
+    ) -> Result<Vec<(&Vertex, &Edge, &Vertex)>, NetworkError> {
+        self.incident_triplet_ids(vertex_id, direction)?
             .iter()
             .map(|(src_id, edge_id, dst_id)| {
-                let src = self.get_vertex(*src_id)?;
-                let edge = self.get_edge(*edge_id)?;
-                let dst = self.get_vertex(*dst_id)?;
+                let src = self.get_vertex(src_id)?;
+                let edge = self.get_edge(edge_id)?;
+                let dst = self.get_vertex(dst_id)?;
                 Ok((src, edge, dst))
             })
             .collect()

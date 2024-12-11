@@ -34,13 +34,12 @@ where
         .trim(csv::Trim::Fields)
         .from_reader(r)
         .into_deserialize::<T>()
-        .map(move |r| {
-            if let Ok(t) = &r {
+        .inspect(move |r| {
+            if let Ok(t) = r {
                 if let Some(cb) = &mut row_callback {
                     cb(t);
                 }
             }
-            r
         });
 
     Ok(Box::new(reader))

@@ -5,7 +5,7 @@ from nrel.routee.compass.compass_app import CompassApp
 
 
 class TestDowntownDenverExample(TestCase):
-    def test_downtown_denver_example(self):
+    def test_downtown_denver_example(self) -> None:
         app = CompassApp.from_config_file(
             package_root()
             / "resources"
@@ -21,7 +21,10 @@ class TestDowntownDenverExample(TestCase):
             "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
             "weights": {"distance": 1, "time": 1, "energy_liquid": 1},
         }
-
+        
         result = app.run(query)
 
-        self.assertTrue("error" not in result)
+        self.assertTrue(
+            "error" not in result,
+            msg=f"error in downtown denver test: {result.get('error')}",
+        )

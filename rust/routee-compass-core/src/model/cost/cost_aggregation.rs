@@ -1,7 +1,7 @@
 use crate::model::unit::{as_f64::AsF64, Cost};
 use serde::{Deserialize, Serialize};
 
-use super::cost_error::CostError;
+use super::cost_model_error::CostModelError;
 
 #[derive(Deserialize, Serialize, Clone, Copy, Debug, Default)]
 #[serde(rename_all = "snake_case")]
@@ -29,8 +29,8 @@ impl CostAggregation {
 
     pub fn agg_iter<'a>(
         &self,
-        costs: impl Iterator<Item = Result<(&'a String, Cost), CostError>>,
-    ) -> Result<Cost, CostError> {
+        costs: impl Iterator<Item = Result<(&'a String, Cost), CostModelError>>,
+    ) -> Result<Cost, CostModelError> {
         match self {
             CostAggregation::Sum => {
                 let mut sum = Cost::ZERO;

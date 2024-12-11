@@ -1,8 +1,8 @@
 use crate::model::traversal::state::state_variable::StateVar;
-
-/// describes an arbitrary state update operation.
 // pub(crate) type GenericStateUpdateOp = Box<dyn Fn(&StateVar, &StateVar) -> StateVar>;
 
+/// describes an arbitrary state update operation.
+///
 /// represents the type of arithmetic operation used to update a state variable.
 /// the specific index of a state variable is hidden via the StateModel, which
 /// makes life harder, but protects against all sorts of indexing errors.

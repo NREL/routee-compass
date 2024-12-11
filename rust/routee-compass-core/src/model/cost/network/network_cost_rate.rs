@@ -1,7 +1,7 @@
-use crate::model::cost::cost_error::CostError;
-use crate::model::property::edge::Edge;
+use crate::model::network::Edge;
+use crate::model::traversal::state::state_variable::StateVar;
 use crate::model::unit::Cost;
-use crate::model::{road_network::edge_id::EdgeId, traversal::state::state_variable::StateVar};
+use crate::model::{cost::cost_model_error::CostModelError, network::EdgeId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -30,7 +30,7 @@ impl NetworkCostRate {
         _prev_state_var: StateVar,
         _next_state_var: StateVar,
         edge: &Edge,
-    ) -> Result<Cost, CostError> {
+    ) -> Result<Cost, CostModelError> {
         match self {
             NetworkCostRate::Zero => Ok(Cost::ZERO),
             NetworkCostRate::EdgeEdgeLookup { lookup: _ } => Ok(Cost::ZERO),
@@ -42,7 +42,7 @@ impl NetworkCostRate {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.traversal_cost(_prev_state_var, _next_state_var, edge))
-                    .collect::<Result<Vec<Cost>, CostError>>()?;
+                    .collect::<Result<Vec<Cost>, CostModelError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
                 Ok(cost)
@@ -58,7 +58,7 @@ impl NetworkCostRate {
     /// * `next_state_var` - the state variable after accessing the next edge origin
     /// * `prev_edge` - the edge traversed to reach the next_edge (or none if at origin)
     /// * `next_edge` - the edge we are attempting to access (not yet traversed)
-
+    ///
     /// # Result
     ///
     /// the Cost value for that state, a real number that is aggregated with
@@ -69,7 +69,7 @@ impl NetworkCostRate {
         _next_state_var: StateVar,
         prev_edge: &Edge,
         next_edge: &Edge,
-    ) -> Result<Cost, CostError> {
+    ) -> Result<Cost, CostModelError> {
         match self {
             NetworkCostRate::Zero => Ok(Cost::ZERO),
             NetworkCostRate::EdgeLookup { lookup: _ } => Ok(Cost::ZERO),
@@ -83,7 +83,7 @@ impl NetworkCostRate {
                 let mapped = mappings
                     .iter()
                     .map(|f| f.access_cost(_prev_state_var, _next_state_var, prev_edge, next_edge))
-                    .collect::<Result<Vec<Cost>, CostError>>()?;
+                    .collect::<Result<Vec<Cost>, CostModelError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
                 Ok(cost)

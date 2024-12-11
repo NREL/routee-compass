@@ -1,4 +1,5 @@
-from typing import Callable, Dict, Optional, Union
+from __future__ import annotations
+from typing import Any, Callable, Optional, Union
 from pathlib import Path
 
 import importlib.resources
@@ -9,22 +10,33 @@ import shutil
 import pandas as pd
 import requests
 
+import networkx
+
 from nrel.routee.compass.io import utils
 from nrel.routee.compass.io.utils import CACHE_DIR, add_grade_to_graph
 
 log = logging.getLogger(__name__)
 
 
+HIGHWAY_TYPE = str
+KM_PER_HR = float
+HIGHWAY_SPEED_MAP = dict[HIGHWAY_TYPE, KM_PER_HR]
+
+# Parameters annotated with this pass through OSMnx, then GeoPandas, then to Pandas,
+# this is a best-effort annotation since the upstream doesn't really have one
+AggFunc = Callable[[Any], Any]
+
+
 def generate_compass_dataset(
-    g,
+    g: networkx.MultiDiGraph,
     output_directory: Union[str, Path],
-    hwy_speeds: Optional[Dict] = None,
+    hwy_speeds: Optional[HIGHWAY_SPEED_MAP] = None,
     fallback: Optional[float] = None,
-    agg: Optional[Callable] = None,
+    agg: Optional[AggFunc] = None,
     add_grade: bool = False,
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
-):
+) -> None:
     """
     Processes a graph downloaded via OSMNx, generating the set of input
     files required for running RouteE Compass.
@@ -32,17 +44,17 @@ def generate_compass_dataset(
     The input graph is assumed to be the direct output of an osmnx download.
 
     Args:
-        g (MultiDiGraph): A network graph.
-        output_directory (Union[str, Path]): Directory path to use for writing new Compass files.
-        hwy_speeds (Optional[Dict], optional): OSM highway types and values = typical speeds (km per
+        g: OSMNx graph used to generate input files
+        output_directory: Directory path to use for writing new Compass files.
+        hwy_speeds: OSM highway types and values = typical speeds (km per
             hour) to assign to edges of that highway type for any edges missing
             speed data. Any edges with highway type not in `hwy_speeds` will be
             assigned the mean preexisting speed value of all edges of that highway
-            type. Defaults to None.
-        fallback (Optional[float], optional): Default speed value (km per hour) to assign to edges whose highway
+            type.
+        fallback: Default speed value (km per hour) to assign to edges whose highway
             type did not appear in `hwy_speeds` and had no preexisting speed
-            values on any edge. Defaults to None.
-        agg (Callable, optional): Aggregation function to impute missing values from observed values.
+            values on any edge.
+        agg: Aggregation function to impute missing values from observed values.
             The default is numpy.mean, but you might also consider for example
             numpy.median, numpy.nanmedian, or your own custom function. Defaults to numpy.mean.
         add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.
@@ -98,7 +110,7 @@ def generate_compass_dataset(
     print("processing edges")
     lookup = v.set_index("vertex_uuid")
 
-    def replace_id(vertex_uuid):
+    def replace_id(vertex_uuid: pd.Index) -> pd.Series[int]:
         return lookup.loc[vertex_uuid].vertex_id
 
     e = e.reset_index(drop=False).rename(

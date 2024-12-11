@@ -38,7 +38,7 @@ jobs:
           pip install ".[all]"
 
       - name: Run mypy
-        run: mypy python 
+        run: mypy --strict ./python/nrel
 
       - name: Run linter
         run: |

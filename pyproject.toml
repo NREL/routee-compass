@@ -64,7 +64,9 @@ include = [
 exclude = ["rust/routee-compass-powertrain/onnxruntime/**"]
 
 [tool.mypy]
+mypy_path = "python"
 ignore_missing_imports = true
 namespace_packages = true
 explicit_package_bases = true
+strict = true
 exclude = ["docs/", "build/", "dist/"]

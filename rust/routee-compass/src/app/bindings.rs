@@ -1,9 +1,10 @@
 use std::str::FromStr;
 
+use itertools::Itertools;
 use routee_compass_core::{
     algorithm::search::direction::Direction,
     model::{
-        road_network::{edge_id::EdgeId, vertex_id::VertexId},
+        network::{edge_id::EdgeId, vertex_id::VertexId},
         unit::{as_f64::AsF64, DistanceUnit},
     },
 };
@@ -101,7 +102,7 @@ pub trait CompassAppBindings {
         let edge_id_internal = EdgeId(edge_id);
         self.app()
             .search_app
-            .get_edge_origin(edge_id_internal)
+            .get_edge_origin(&edge_id_internal)
             .map(|o| o.0)
     }
 
@@ -116,7 +117,7 @@ pub trait CompassAppBindings {
         let edge_id_internal = EdgeId(edge_id);
         self.app()
             .search_app
-            .get_edge_destination(edge_id_internal)
+            .get_edge_destination(&edge_id_internal)
             .map(|o| o.0)
     }
 
@@ -150,7 +151,7 @@ pub trait CompassAppBindings {
         let edge_id_internal = EdgeId(edge_id);
         self.app()
             .search_app
-            .get_edge_distance(edge_id_internal, du_internal)
+            .get_edge_distance(&edge_id_internal, du_internal)
             .map(|o| o.as_f64())
     }
 
@@ -161,12 +162,14 @@ pub trait CompassAppBindings {
     ///
     /// # Returns
     /// * the ids of the edges incident to the vertex in the forward direction
-    fn graph_get_out_edge_ids(&self, vertex_id: usize) -> Result<Vec<usize>, CompassAppError> {
+    fn graph_get_out_edge_ids(&self, vertex_id: usize) -> Vec<usize> {
         let vertex_id_internal = VertexId(vertex_id);
         self.app()
             .search_app
-            .get_incident_edge_ids(vertex_id_internal, Direction::Forward)
-            .map(|es| es.iter().map(|e| e.0).collect())
+            .get_incident_edge_ids(&vertex_id_internal, &Direction::Forward)
+            .into_iter()
+            .map(|e| e.0)
+            .collect_vec()
     }
 
     /// Get the ids of the edges incident to a vertex in the reverse direction
@@ -176,12 +179,15 @@ pub trait CompassAppBindings {
     ///
     /// # Returns
     /// * the ids of the edges incident to the vertex in the reverse direction
-    fn graph_get_in_edge_ids(&self, vertex_id: usize) -> Result<Vec<usize>, CompassAppError> {
+    fn graph_get_in_edge_ids(&self, vertex_id: usize) -> Vec<usize> {
         let vertex_id_internal = VertexId(vertex_id);
         self.app()
             .search_app
-            .get_incident_edge_ids(vertex_id_internal, Direction::Reverse)
-            .map(|es| es.iter().map(|e| e.0).collect())
+            .get_incident_edge_ids(&vertex_id_internal, &Direction::Reverse)
+            // .map(|es| es.iter().map(|e| e.0).collect())
+            .into_iter()
+            .map(|e| e.0)
+            .collect_vec()
     }
 
     /// Runs a set of queries and returns the results
@@ -204,12 +210,12 @@ pub trait CompassAppBindings {
             None => None,
         };
 
-        let json_queries = queries
+        let mut json_queries = queries
             .iter()
             .map(|q| serde_json::from_str(q))
             .collect::<Result<Vec<serde_json::Value>, serde_json::Error>>()?;
 
-        let results = self.app().run(json_queries, config_inner.as_ref())?;
+        let results = self.app().run(&mut json_queries, config_inner.as_ref())?;
 
         let string_results: Vec<String> = results.iter().map(|r| r.to_string()).collect();
         Ok(string_results)

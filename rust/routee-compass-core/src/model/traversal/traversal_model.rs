@@ -1,6 +1,6 @@
 use super::state::state_variable::StateVar;
 use super::traversal_model_error::TraversalModelError;
-use crate::model::property::{edge::Edge, vertex::Vertex};
+use crate::model::network::{Edge, Vertex};
 use crate::model::state::state_feature::StateFeature;
 use crate::model::state::state_model::StateModel;
 
