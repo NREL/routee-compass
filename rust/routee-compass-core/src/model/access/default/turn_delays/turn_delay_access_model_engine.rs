@@ -1,12 +1,9 @@
-use crate::model::access::access_model_error::AccessModelError;
-use crate::model::property::edge::Edge;
-use crate::model::property::vertex::Vertex;
-use crate::model::road_network::edge_id::EdgeId;
-use crate::model::unit::{Time, TimeUnit};
-
 use super::edge_heading::EdgeHeading;
 use super::turn::Turn;
 use super::turn_delay_model::TurnDelayModel;
+use crate::model::access::access_model_error::AccessModelError;
+use crate::model::network::{Edge, EdgeId, Vertex};
+use crate::model::unit::{Time, TimeUnit};
 
 pub struct TurnDelayAccessModelEngine {
     pub edge_headings: Box<[EdgeHeading]>,

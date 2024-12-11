@@ -23,12 +23,7 @@ pub fn reorient_reverse_route(
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     // get the final edge id and state for the forward traversal
     let (final_fwd_edge_id, mut acc_state) = match fwd_route.last() {
-        None => (
-            None,
-            si.state_model
-                .initial_state()
-                .map_err(SearchError::StateError)?,
-        ),
+        None => (None, si.state_model.initial_state()?),
         Some(last_edge) => (Some(last_edge.edge_id), last_edge.result_state.clone()),
     };
 
@@ -46,7 +41,7 @@ pub fn reorient_reverse_route(
     let mut result: Vec<EdgeTraversal> = Vec::with_capacity(rev_route.len());
     for (prev_opt, next_opt) in edge_ids.iter().tuple_windows() {
         let next = next_opt.ok_or_else(|| {
-            SearchError::InternalSearchError(String::from("next_opt should never be None"))
+            SearchError::InternalError(String::from("next_opt should never be None"))
         })?;
         let et = EdgeTraversal::forward_traversal(next, *prev_opt, &acc_state, si)?;
         acc_state = et.result_state.clone();
@@ -72,7 +67,7 @@ pub fn route_contains_loop(
 ) -> Result<bool, SearchError> {
     let src_vertices = route
         .iter()
-        .map(|e| si.directed_graph.src_vertex_id(e.edge_id))
+        .map(|e| si.graph.src_vertex_id(&e.edge_id))
         .collect::<Result<Vec<_>, _>>()?;
     Ok(src_vertices.iter().unique().collect_vec().len() < src_vertices.len())
 }

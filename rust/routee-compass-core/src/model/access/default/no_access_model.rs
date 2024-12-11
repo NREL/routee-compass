@@ -1,9 +1,11 @@
-use std::sync::Arc;
-
-use crate::model::access::{
-    access_model::AccessModel, access_model_builder::AccessModelBuilder,
-    access_model_service::AccessModelService,
+use crate::model::{
+    access::{
+        access_model::AccessModel, access_model_builder::AccessModelBuilder,
+        access_model_service::AccessModelService,
+    },
+    network::{Edge, Vertex},
 };
+use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct NoAccessModel {}
@@ -15,15 +17,9 @@ impl AccessModel for NoAccessModel {
 
     fn access_edge(
         &self,
-        _traversal: (
-            &crate::model::property::vertex::Vertex,
-            &crate::model::property::edge::Edge,
-            &crate::model::property::vertex::Vertex,
-            &crate::model::property::edge::Edge,
-            &crate::model::property::vertex::Vertex,
-        ),
-        _state: &mut Vec<crate::model::traversal::state::state_variable::StateVar>,
-        _state_model: &crate::model::state::state_model::StateModel,
+        _: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
+        _: &mut Vec<crate::model::traversal::state::state_variable::StateVar>,
+        _: &crate::model::state::state_model::StateModel,
     ) -> Result<(), crate::model::access::access_model_error::AccessModelError> {
         Ok(())
     }

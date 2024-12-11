@@ -14,9 +14,7 @@ bidirectional = false
 type = "distance"
 
 [plugin]
-input_plugins = [
-    { type = "vertex_rtree", vertices_input_file = "vertices-compass.csv.gz" },
-]
+input_plugins = []
 output_plugins = [
     { type = "summary" },
     { type = "geometry", edge_input_file = "edges-geometries-enumerated.txt.gz" },

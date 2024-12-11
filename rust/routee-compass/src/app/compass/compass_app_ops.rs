@@ -1,6 +1,7 @@
 use super::{compass_app_error::CompassAppError, compass_input_field::CompassInputField};
 use crate::plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError};
 use config::Config;
+use kdam::tqdm;
 use ordered_float::OrderedFloat;
 use std::path::Path;
 
@@ -36,8 +37,7 @@ pub fn read_config_from_file(config_path: &Path) -> Result<Config, CompassAppErr
             CompassInputField::ConfigInputFile.to_string(),
             conf_file_string,
         )?
-        .build()
-        .map_err(CompassAppError::ConfigError)?;
+        .build()?;
 
     Ok(config)
 }
@@ -74,8 +74,7 @@ pub fn read_config_from_string(
             CompassInputField::ConfigInputFile.to_string(),
             original_file_path,
         )?
-        .build()
-        .map_err(CompassAppError::ConfigError)?;
+        .build()?;
 
     Ok(config)
 }
@@ -94,16 +93,24 @@ pub fn read_config_from_string(
 /// load balances the queries across processes based on the estimates. the resulting
 /// batches are not equal-sized
 pub fn apply_load_balancing_policy(
-    queries: &[serde_json::Value],
+    queries: Vec<serde_json::Value>,
     parallelism: usize,
     default: f64,
-) -> Result<Vec<Vec<&serde_json::Value>>, CompassAppError> {
+) -> Result<Vec<Vec<serde_json::Value>>, CompassAppError> {
     if queries.is_empty() {
         return Ok(vec![]);
     }
+
     let mut bin_totals = vec![0.0; parallelism];
-    let mut assignments: Vec<Vec<&serde_json::Value>> = vec![vec![]; parallelism];
-    for q in queries.iter() {
+    let mut assignments: Vec<Vec<serde_json::Value>> = vec![vec![]; parallelism];
+    let n_queries = queries.len();
+    let iter = tqdm!(
+        queries.into_iter(),
+        total = n_queries,
+        desc = "load balancing",
+        animation = "fillup"
+    );
+    for q in iter {
         let w = q.get_query_weight_estimate()?.unwrap_or(default);
         let min_bin = min_bin(&bin_totals)?;
         bin_totals[min_bin] += w;
@@ -129,7 +136,7 @@ mod test {
     use serde_json::json;
 
     fn test_run_policy(queries: Vec<serde_json::Value>, parallelism: usize) -> Vec<Vec<i64>> {
-        apply_load_balancing_policy(&queries, parallelism, 1.0)
+        apply_load_balancing_policy(queries, parallelism, 1.0)
             .unwrap()
             .iter()
             .map(|qs| {

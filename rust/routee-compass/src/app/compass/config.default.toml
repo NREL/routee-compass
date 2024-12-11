@@ -1,5 +1,4 @@
 parallelism = 2
-search_orientation = "vertex"
 response_persistence_policy = "persist_response_in_memory"
 [response_output_policy]
 type = "none"
@@ -13,6 +12,36 @@ type = "none"
 
 [graph]
 verbose = true
+
+# [mapping]
+# # when type = "vertex", simpler mapping is used. (default)
+# type = "vertex"
+
+# # default map matching will pair an input origin|destination with
+# # edges in the system. these are also subject to whatever frontier
+# # model is insantiated for the query.
+# type = "edge"
+
+# # source for edge geometries used in mapping.
+# # when type = "vertex", this can be omitted, and the system will
+# # instead use the graph vertex coordinates to build map geometries
+# # which produces far simpler route sequences as a result.
+# geometry_input_file = "edges-geometries-enumerated.txt.gz"
+
+# # optional query distance tolerance for map matching,
+# # an array of [Distance, DistanceUnit].
+# tolerance.distance = 15.0
+# tolerance.unit = "meters"
+
+# # allow user to submit queries without destinations, such as when
+# # shortest path trees are the desired result, not routes. true by default.
+# queries_without_destinations = true
+
+# # the default map input type is a combined strategy that attempts to
+# # match by Point, otherwise expects the user to pass either a vertex ({origin|destination}_vertex)
+# # or an edge ({origin|destination}_edge). a more restrictive strategy can be 
+# # specified here with a subset of these values or a single value such as "point".
+# matching_type = ["point", "edge_id", "vertex_id"]
 
 [algorithm]
 type = "a*"

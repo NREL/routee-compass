@@ -21,10 +21,9 @@ use super::{
 use crate::plugin::{
     input::{
         default::{
-            debug::debug_builder::DebugInputPluginBuilder,
-            edge_rtree::edge_rtree_input_plugin_builder::EdgeRtreeInputPluginBuilder,
-            grid_search::builder::GridSearchBuilder, inject::inject_builder::InjectPluginBuilder,
-            load_balancer::builder::LoadBalancerBuilder, vertex_rtree::builder::VertexRTreeBuilder,
+            debug::debug_builder::DebugInputPluginBuilder, grid_search::builder::GridSearchBuilder,
+            inject::inject_builder::InjectPluginBuilder,
+            load_balancer::builder::LoadBalancerBuilder,
         },
         input_plugin::InputPlugin,
     },
@@ -121,95 +120,6 @@ impl CompassAppBuilder {
 
     pub fn add_output_plugin(&mut self, name: String, builder: Rc<dyn OutputPluginBuilder>) {
         let _ = self.output_plugin_builders.insert(name, builder);
-    }
-
-    /// Builds the default builder.
-    /// All components present in the routee-compass library are injected here
-    /// into a builder instance with their expected `type` keys.
-    ///
-    /// # Returns
-    ///
-    /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
-    fn default() -> CompassAppBuilder {
-        // Traversal model builders
-        let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceTraversalBuilder {});
-        let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
-        let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder::new(
-            HashMap::from([(String::from("speed_table"), speed.clone())]),
-        ));
-        let tm_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> = HashMap::from([
-            (String::from("distance"), dist),
-            (String::from("speed_table"), speed),
-            (String::from("energy_model"), energy),
-        ]);
-
-        // Access model builders
-        let no_access_model: Rc<dyn AccessModelBuilder> = Rc::new(NoAccessModel {});
-        let turn_delay: Rc<dyn AccessModelBuilder> = Rc::new(TurnDelayAccessModelBuilder {});
-        let combined_am: Rc<dyn AccessModelBuilder> = Rc::new(CombinedAccessModelBuilder {
-            builders: HashMap::from([
-                (String::from("no_access_model"), no_access_model.clone()),
-                (String::from("turn_delay"), turn_delay.clone()),
-            ]),
-        });
-        let am_builders: HashMap<String, Rc<dyn AccessModelBuilder>> = HashMap::from([
-            (String::from("no_access_model"), no_access_model),
-            (String::from("turn_delay"), turn_delay),
-            (String::from("combined"), combined_am),
-        ]);
-
-        // Frontier model builders
-        let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});
-        let road_class: Rc<dyn FrontierModelBuilder> = Rc::new(RoadClassBuilder {});
-        let turn_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
-        let vehicle_restriction: Rc<dyn FrontierModelBuilder> =
-            Rc::new(VehicleRestrictionBuilder {});
-        let base_frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
-            HashMap::from([
-                (String::from("no_restriction"), no_restriction),
-                (String::from("road_class"), road_class),
-                (String::from("turn_restriction"), turn_restriction),
-                (String::from("vehicle_restriction"), vehicle_restriction),
-            ]);
-        let combined = Rc::new(CombinedBuilder {
-            builders: base_frontier_builders.clone(),
-        });
-        let mut all_frontier_builders = base_frontier_builders.clone();
-        all_frontier_builders.insert(String::from("combined"), combined);
-
-        // Input plugin builders
-        let grid_search: Rc<dyn InputPluginBuilder> = Rc::new(GridSearchBuilder {});
-        let vertex_tree: Rc<dyn InputPluginBuilder> = Rc::new(VertexRTreeBuilder {});
-        let edge_rtree: Rc<dyn InputPluginBuilder> = Rc::new(EdgeRtreeInputPluginBuilder {});
-        let load_balancer: Rc<dyn InputPluginBuilder> = Rc::new(LoadBalancerBuilder {});
-        let inject: Rc<dyn InputPluginBuilder> = Rc::new(InjectPluginBuilder {});
-        let debug: Rc<dyn InputPluginBuilder> = Rc::new(DebugInputPluginBuilder {});
-        let input_plugin_builders = HashMap::from([
-            (String::from("grid_search"), grid_search),
-            (String::from("vertex_rtree"), vertex_tree),
-            (String::from("edge_rtree"), edge_rtree),
-            (String::from("load_balancer"), load_balancer),
-            (String::from("inject"), inject),
-            (String::from("debug"), debug),
-        ]);
-
-        // Output plugin builders
-        let traversal: Rc<dyn OutputPluginBuilder> = Rc::new(TraversalPluginBuilder {});
-        let summary: Rc<dyn OutputPluginBuilder> = Rc::new(SummaryOutputPluginBuilder {});
-        let uuid: Rc<dyn OutputPluginBuilder> = Rc::new(UUIDOutputPluginBuilder {});
-        let output_plugin_builders = HashMap::from([
-            (String::from("traversal"), traversal),
-            (String::from("summary"), summary),
-            (String::from("uuid"), uuid),
-        ]);
-
-        CompassAppBuilder {
-            traversal_model_builders: tm_builders,
-            access_model_builders: am_builders,
-            frontier_builders: all_frontier_builders,
-            input_plugin_builders,
-            output_plugin_builders,
-        }
     }
 
     /// builds a traversal model with the specified type name with the provided
@@ -338,7 +248,88 @@ impl CompassAppBuilder {
 }
 
 impl Default for CompassAppBuilder {
+    /// Builds the default builder.
+    /// All components present in the routee-compass library are injected here
+    /// into a builder instance with their expected `type` keys.
+    ///
+    /// # Returns
+    ///
+    /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
     fn default() -> Self {
-        CompassAppBuilder::default()
+        // Traversal model builders
+        let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceTraversalBuilder {});
+        let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
+        let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder::new(
+            HashMap::from([(String::from("speed_table"), speed.clone())]),
+        ));
+        let tm_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> = HashMap::from([
+            (String::from("distance"), dist),
+            (String::from("speed_table"), speed),
+            (String::from("energy_model"), energy),
+        ]);
+
+        // Access model builders
+        let no_access_model: Rc<dyn AccessModelBuilder> = Rc::new(NoAccessModel {});
+        let turn_delay: Rc<dyn AccessModelBuilder> = Rc::new(TurnDelayAccessModelBuilder {});
+        let combined_am: Rc<dyn AccessModelBuilder> = Rc::new(CombinedAccessModelBuilder {
+            builders: HashMap::from([
+                (String::from("no_access_model"), no_access_model.clone()),
+                (String::from("turn_delay"), turn_delay.clone()),
+            ]),
+        });
+        let am_builders: HashMap<String, Rc<dyn AccessModelBuilder>> = HashMap::from([
+            (String::from("no_access_model"), no_access_model),
+            (String::from("turn_delay"), turn_delay),
+            (String::from("combined"), combined_am),
+        ]);
+
+        // Frontier model builders
+        let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});
+        let road_class: Rc<dyn FrontierModelBuilder> = Rc::new(RoadClassBuilder {});
+        let turn_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
+        let vehicle_restriction: Rc<dyn FrontierModelBuilder> =
+            Rc::new(VehicleRestrictionBuilder {});
+        let base_frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
+            HashMap::from([
+                (String::from("no_restriction"), no_restriction),
+                (String::from("road_class"), road_class),
+                (String::from("turn_restriction"), turn_restriction),
+                (String::from("vehicle_restriction"), vehicle_restriction),
+            ]);
+        let combined = Rc::new(CombinedBuilder {
+            builders: base_frontier_builders.clone(),
+        });
+        let mut all_frontier_builders = base_frontier_builders.clone();
+        all_frontier_builders.insert(String::from("combined"), combined);
+
+        // Input plugin builders
+        let grid_search: Rc<dyn InputPluginBuilder> = Rc::new(GridSearchBuilder {});
+        let load_balancer: Rc<dyn InputPluginBuilder> = Rc::new(LoadBalancerBuilder {});
+        let inject: Rc<dyn InputPluginBuilder> = Rc::new(InjectPluginBuilder {});
+        let debug: Rc<dyn InputPluginBuilder> = Rc::new(DebugInputPluginBuilder {});
+        let input_plugin_builders = HashMap::from([
+            (String::from("grid_search"), grid_search),
+            (String::from("load_balancer"), load_balancer),
+            (String::from("inject"), inject),
+            (String::from("debug"), debug),
+        ]);
+
+        // Output plugin builders
+        let traversal: Rc<dyn OutputPluginBuilder> = Rc::new(TraversalPluginBuilder {});
+        let summary: Rc<dyn OutputPluginBuilder> = Rc::new(SummaryOutputPluginBuilder {});
+        let uuid: Rc<dyn OutputPluginBuilder> = Rc::new(UUIDOutputPluginBuilder {});
+        let output_plugin_builders = HashMap::from([
+            (String::from("traversal"), traversal),
+            (String::from("summary"), summary),
+            (String::from("uuid"), uuid),
+        ]);
+
+        CompassAppBuilder {
+            traversal_model_builders: tm_builders,
+            access_model_builders: am_builders,
+            frontier_builders: all_frontier_builders,
+            input_plugin_builders,
+            output_plugin_builders,
+        }
     }
 }

@@ -6,7 +6,7 @@ use crate::{
         search_instance::SearchInstance, util::edge_cut_frontier_model::EdgeCutFrontierModel,
         util::route_similarity_function::RouteSimilarityFunction,
     },
-    model::{road_network::edge_id::EdgeId, unit::Cost},
+    model::{network::edge_id::EdgeId, unit::Cost},
 };
 use itertools::Itertools;
 use std::{collections::HashSet, sync::Arc};
@@ -53,7 +53,7 @@ pub fn run(
             accepted
                 .last()
                 .cloned()
-                .ok_or(SearchError::InternalSearchError(String::from(
+                .ok_or(SearchError::InternalError(String::from(
                     "at least one route should be in routes",
                 )))?;
 
@@ -65,12 +65,12 @@ pub fn run(
             let spur_edge_traversal =
                 root_path
                     .last()
-                    .ok_or(SearchError::InternalSearchError(String::from(
+                    .ok_or(SearchError::InternalError(String::from(
                         "root path is empty",
                     )))?;
             let spur_vertex_id = si
-                .directed_graph
-                .get_edge(spur_edge_traversal.edge_id)?
+                .graph
+                .get_edge(&spur_edge_traversal.edge_id)?
                 .dst_vertex_id;
 
             // cut frontier edges based on previous paths with matching root path
@@ -86,7 +86,8 @@ pub fn run(
             // execute a new path search using a wrapped frontier model to exclude edges
             let yens_frontier = EdgeCutFrontierModel::new(si.frontier_model.clone(), cut_edges);
             let yens_si = SearchInstance {
-                directed_graph: si.directed_graph.clone(),
+                graph: si.graph.clone(),
+                map_model: si.map_model.clone(),
                 state_model: si.state_model.clone(),
                 traversal_model: si.traversal_model.clone(),
                 access_model: si.access_model.clone(),
@@ -149,7 +150,7 @@ pub fn run(
 fn get_first_route(res: &SearchAlgorithmResult) -> Result<&Vec<EdgeTraversal>, SearchError> {
     res.routes
         .first()
-        .ok_or(SearchError::InternalSearchError(String::from(
+        .ok_or(SearchError::InternalError(String::from(
             "no empty results should be stored in routes",
         )))
 }

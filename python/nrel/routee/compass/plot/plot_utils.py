@@ -1,13 +1,16 @@
+from matplotlib.colors import Colormap
+
+
 class ColormapCircularIterator:
-    def __init__(self, colormap, num_colors):
+    def __init__(self, colormap: Colormap, num_colors: int):
         self.colormap = colormap
         self.num_colors = num_colors
         self.index = 0
 
-    def __iter__(self):
+    def __iter__(self) -> "ColormapCircularIterator":
         return self
 
-    def __next__(self):
+    def __next__(self) -> str:
         if not self.colormap:
             raise StopIteration
         normalized_value = self.index / float(self.num_colors)
@@ -17,7 +20,10 @@ class ColormapCircularIterator:
         return hex_color
 
 
-def rgba_to_hex(rgba):
+RGBA_TUPLE = tuple[float, float, float, float]
+
+
+def rgba_to_hex(rgba: RGBA_TUPLE) -> str:
     return "#{:02x}{:02x}{:02x}".format(
         int(rgba[0] * 255), int(rgba[1] * 255), int(rgba[2] * 255)
     )

@@ -1,10 +1,13 @@
-use routee_compass_core::model::{
-    frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
-    property::edge::Edge,
-    state::state_model::StateModel,
-    traversal::state::state_variable::StateVar,
+use routee_compass_core::{
+    algorithm::search::{direction::Direction, search_tree_branch::SearchTreeBranch},
+    model::{
+        frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
+        network::{Edge, VertexId},
+        state::state_model::StateModel,
+        traversal::state::state_variable::StateVar,
+    },
 };
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use super::turn_restriction_service::{RestrictedEdgePair, TurnRestrictionFrontierService};
 
@@ -17,14 +20,19 @@ impl FrontierModel for TurnRestrictionFrontierModel {
         &self,
         edge: &Edge,
         _state: &[StateVar],
-        previous_edge: Option<&Edge>,
+        tree: &HashMap<VertexId, SearchTreeBranch>,
+        direction: &Direction,
         _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
+        let previous_edge = match direction {
+            Direction::Forward => tree.get(&edge.src_vertex_id),
+            Direction::Reverse => tree.get(&edge.dst_vertex_id),
+        };
         match previous_edge {
             None => Ok(true),
             Some(previous_edge) => {
                 let edge_pair = RestrictedEdgePair {
-                    prev_edge_id: previous_edge.edge_id,
+                    prev_edge_id: previous_edge.edge_traversal.edge_id,
                     next_edge_id: edge.edge_id,
                 };
                 if self.service.restricted_edge_pairs.contains(&edge_pair) {
@@ -33,5 +41,9 @@ impl FrontierModel for TurnRestrictionFrontierModel {
                 Ok(true)
             }
         }
+    }
+
+    fn valid_edge(&self, _edge: &Edge) -> Result<bool, FrontierModelError> {
+        Ok(true)
     }
 }

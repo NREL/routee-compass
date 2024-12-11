@@ -1,4 +1,4 @@
-use crate::model::road_network::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::unit::Distance;
 use allocative::Allocative;
 use serde::{Deserialize, Serialize};
@@ -21,17 +21,6 @@ impl Edge {
             src_vertex_id: VertexId(src_vertex_id),
             dst_vertex_id: VertexId(dst_vertex_id),
             distance: Distance::new(distance),
-        }
-    }
-}
-
-impl Default for Edge {
-    fn default() -> Self {
-        Edge {
-            edge_id: EdgeId(0),
-            src_vertex_id: VertexId(0),
-            dst_vertex_id: VertexId(1),
-            distance: Distance::ONE,
         }
     }
 }

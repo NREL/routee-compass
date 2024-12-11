@@ -19,7 +19,7 @@ where
     }
 }
 
-impl<'a, T> Iterator for MultiSet<'a, T>
+impl<T> Iterator for MultiSet<'_, T>
 where
     T: Clone + Copy,
 {

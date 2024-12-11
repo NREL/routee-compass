@@ -1,6 +1,4 @@
-use crate::{
-    algorithm::search::search_error::SearchError, model::road_network::vertex_id::VertexId,
-};
+use crate::{algorithm::search::search_error::SearchError, model::network::vertex_id::VertexId};
 
 #[derive(Debug, Clone)]
 pub struct KspQuery<'a> {

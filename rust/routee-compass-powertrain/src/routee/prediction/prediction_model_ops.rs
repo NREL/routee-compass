@@ -113,7 +113,7 @@ pub fn find_min_energy_rate(
                 (speed, SpeedUnit::MilesPerHour),
                 (grade, GradeUnit::Percent),
             )
-            .map_err(|e| TraversalModelError::PredictionModel(e.to_string()))?;
+            .map_err(|e| TraversalModelError::BuildError(format!("failure while executing grid search for minimum energy rate in prediction model: {}", e)))?;
         if energy_rate < minimum_energy_rate {
             minimum_energy_rate = energy_rate;
         }
