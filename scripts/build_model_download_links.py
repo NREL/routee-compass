@@ -3,7 +3,8 @@ import json
 import logging
 from pathlib import Path
 
-from boxsdk import Client, OAuth2
+from boxsdk.auth.oauth2 import OAuth2
+from boxsdk.client.client import Client
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
