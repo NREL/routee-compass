@@ -15,17 +15,19 @@
     document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
     document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
   </script>
+  <!-- 
+    this give us a css class that will be invisible only if js is disabled 
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../../../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-<link href="../../../../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-
-  
-  <link href="../../../../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
-  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
-<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+  <link href="../../../../../_static/styles/theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
+<link href="../../../../../_static/styles/pydata-sphinx-theme.css?digest=26a4bc78f4c0ddb94549" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/sphinx-book-theme.css?v=a3416100" />
@@ -33,12 +35,13 @@
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-thebe.css?v=4fa983c6" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.min.css?v=87e54e7c" />
+    <link rel="stylesheet" type="text/css" href="../../../../../_static/sphinx-design.min.css?v=95c83b7e" />
   
+  <!-- So that users can add custom icons -->
+  <script src="../../../../../_static/scripts/fontawesome.js?digest=26a4bc78f4c0ddb94549"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
-<link rel="preload" as="script" href="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
-  <script src="../../../../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <link rel="preload" as="script" href="../../../../../_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549" />
+<link rel="preload" as="script" href="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549" />
 
     <script src="../../../../../_static/documentation_options.js?v=30a733bc"></script>
     <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
@@ -61,6 +64,7 @@
     <link rel="search" title="Search" href="../../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="python"/>
+  <meta name="docsearch:version" content="" />
   </head>
   
   
@@ -76,19 +80,8 @@
     <i class="fa-solid fa-arrow-up"></i>Back to top</button>
 
   
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-primary-sidebar-checkbox"/>
-  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
-  
-  <input type="checkbox"
-          class="sidebar-toggle"
-          id="pst-secondary-sidebar-checkbox"/>
-  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
-  
-  <div class="search-button__wrapper">
-    <div class="search-button__overlay"></div>
-    <div class="search-button__search-container">
+  <dialog id="pst-search-dialog">
+    
 <form class="bd-search d-flex align-items-center"
       action="../../../../../search.html"
       method="get">
@@ -96,7 +89,6 @@
   <input type="search"
          class="form-control"
          name="q"
-         id="search-input"
          placeholder="Search this book..."
          aria-label="Search this book..."
          autocomplete="off"
@@ -104,8 +96,8 @@
          autocapitalize="off"
          spellcheck="false"/>
   <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form></div>
-  </div>
+</form>
+  </dialog>
 
   <div class="pst-async-banner-revealer d-none">
   <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
@@ -123,7 +115,8 @@
       
         
       
-      <div class="bd-sidebar-primary bd-sidebar">
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
         
 
   
@@ -153,21 +146,17 @@
     
     
     <img src="../../../../../_static/routeelogo.png" class="logo__image only-light" alt="RouteE Compass - Home"/>
-    <script>document.write(`<img src="../../../../../_static/routeelogo.png" class="logo__image only-dark" alt="RouteE Compass - Home"/>`);</script>
+    <img src="../../../../../_static/routeelogo.png" class="logo__image only-dark pst-js-only" alt="RouteE Compass - Home"/>
   
   
 </a></div>
         <div class="sidebar-primary-item">
 
- <script>
- document.write(`
-   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <span class="search-button__default-text">Search</span>
-    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-   </button>
- `);
- </script></div>
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
         <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
     <div class="bd-toc-item navbar-nav active">
         
@@ -301,24 +290,16 @@
 
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
-    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
-  </button>
-`);
-</script>
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
 
 
-<script>
-document.write(`
-  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
     <i class="fa-solid fa-magnifying-glass fa-lg"></i>
-  </button>
-`);
-</script>
+</button>
 
 </div></div>
       
@@ -345,31 +326,44 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for nrel.routee.compass.io.generate_dataset</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">resource_filename</span>
 
 <span class="kn">import</span> <span class="nn">importlib.resources</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
+<span class="kn">import</span> <span class="nn">networkx</span>
+
+<span class="kn">from</span> <span class="nn">nrel.routee.compass.io</span> <span class="kn">import</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">nrel.routee.compass.io.utils</span> <span class="kn">import</span> <span class="n">add_grade_to_graph</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
+<span class="n">HIGHWAY_TYPE</span> <span class="o">=</span> <span class="nb">str</span>
+<span class="n">KM_PER_HR</span> <span class="o">=</span> <span class="nb">float</span>
+<span class="n">HIGHWAY_SPEED_MAP</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">[</span><span class="n">HIGHWAY_TYPE</span><span class="p">,</span> <span class="n">KM_PER_HR</span><span class="p">]</span>
+
+<span class="c1"># Parameters annotated with this pass through OSMnx, then GeoPandas, then to Pandas,</span>
+<span class="c1"># this is a best-effort annotation since the upstream doesn&#39;t really have one</span>
+<span class="n">AggFunc</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span>
+
+
 <div class="viewcode-block" id="generate_compass_dataset">
 <a class="viewcode-back" href="../../../../../python_api_docs.html#nrel.routee.compass.io.generate_dataset.generate_compass_dataset">[docs]</a>
 <span class="k">def</span> <span class="nf">generate_compass_dataset</span><span class="p">(</span>
-    <span class="n">g</span><span class="p">,</span>
+    <span class="n">g</span><span class="p">:</span> <span class="n">networkx</span><span class="o">.</span><span class="n">MultiDiGraph</span><span class="p">,</span>
     <span class="n">output_directory</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span>
-    <span class="n">hwy_speeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">hwy_speeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">HIGHWAY_SPEED_MAP</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fallback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">agg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">agg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">AggFunc</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">add_grade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">raster_resolution_arc_seconds</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">default_config</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Processes a graph downloaded via OSMNx, generating the set of input</span>
 <span class="sd">    files required for running RouteE Compass.</span>
@@ -377,23 +371,22 @@ document.write(`
 <span class="sd">    The input graph is assumed to be the direct output of an osmnx download.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        g (MultiDiGraph): A network graph.</span>
-<span class="sd">        output_directory (Union[str, Path]): Directory path to use for writing new Compass files.</span>
-<span class="sd">        hwy_speeds (Optional[Dict], optional): OSM highway types and values = typical speeds (km per</span>
+<span class="sd">        g: OSMNx graph used to generate input files</span>
+<span class="sd">        output_directory: Directory path to use for writing new Compass files.</span>
+<span class="sd">        hwy_speeds: OSM highway types and values = typical speeds (km per</span>
 <span class="sd">            hour) to assign to edges of that highway type for any edges missing</span>
 <span class="sd">            speed data. Any edges with highway type not in `hwy_speeds` will be</span>
 <span class="sd">            assigned the mean preexisting speed value of all edges of that highway</span>
-<span class="sd">            type. Defaults to None.</span>
-<span class="sd">        fallback (Optional[float], optional): Default speed value (km per hour) to assign to edges whose highway</span>
+<span class="sd">            type.</span>
+<span class="sd">        fallback: Default speed value (km per hour) to assign to edges whose highway</span>
 <span class="sd">            type did not appear in `hwy_speeds` and had no preexisting speed</span>
-<span class="sd">            values on any edge. Defaults to None.</span>
-<span class="sd">        agg (Callable, optional): Aggregation function to impute missing values from observed values.</span>
+<span class="sd">            values on any edge.</span>
+<span class="sd">        agg: Aggregation function to impute missing values from observed values.</span>
 <span class="sd">            The default is numpy.mean, but you might also consider for example</span>
-<span class="sd">            numpy.median, numpy.nanmedian, or your own custom function. Defaults to numpy.mean.</span>
-<span class="sd">        add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.</span>
-<span class="sd">        raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.</span>
-<span class="sd">        default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.</span>
-<span class="sd">        energy_model (str, optional): Which trained RouteE Powertrain should we use? Defaults to &quot;2016_TOYOTA_Camry_4cyl_2WD&quot;.</span>
+<span class="sd">            numpy.median, numpy.nanmedian, or your own custom function.</span>
+<span class="sd">        add_grade: If true, add grade information. See add_grade_to_graph() for more info.</span>
+<span class="sd">        raster_resolution_arc_seconds: If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3).</span>
+<span class="sd">        default_config: If true, copy default configuration files into the output directory.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        &gt;&gt;&gt; import osmnx as ox</span>
@@ -444,7 +437,7 @@ document.write(`
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;processing edges&quot;</span><span class="p">)</span>
     <span class="n">lookup</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;vertex_uuid&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">replace_id</span><span class="p">(</span><span class="n">vertex_uuid</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">replace_id</span><span class="p">(</span><span class="n">vertex_uuid</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">lookup</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">vertex_uuid</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_id</span>
 
     <span class="n">e</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
@@ -503,13 +496,10 @@ document.write(`
         <span class="n">header</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">headings</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">bearing</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
-    <span class="n">headings_df</span> <span class="o">=</span> <span class="n">headings</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;arrival_heading&quot;</span><span class="p">)</span>
-
-    <span class="c1"># We could get more sophisticated and compute the end heading</span>
-    <span class="c1"># for links that might have some significant curvature, but</span>
-    <span class="c1"># for now we&#39;ll just use the start heading.</span>
-    <span class="n">headings_df</span><span class="p">[</span><span class="s2">&quot;departure_heading&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">headings</span> <span class="o">=</span> <span class="p">[</span><span class="n">utils</span><span class="o">.</span><span class="n">calculate_bearings</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+    <span class="n">headings_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">headings</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;arrival_heading&quot;</span><span class="p">,</span> <span class="s2">&quot;departure_heading&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
     <span class="n">headings_df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
         <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-headings-enumerated.csv.gz&quot;</span><span class="p">,</span>
         <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -531,11 +521,11 @@ document.write(`
             <span class="s2">&quot;osm_default_speed.toml&quot;</span><span class="p">,</span>
             <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">,</span>
         <span class="p">]:</span>
-            <span class="n">init_toml_file</span> <span class="o">=</span> <span class="n">resource_filename</span><span class="p">(</span>
+            <span class="k">with</span> <span class="n">importlib</span><span class="o">.</span><span class="n">resources</span><span class="o">.</span><span class="n">path</span><span class="p">(</span>
                 <span class="s2">&quot;nrel.routee.compass.resources&quot;</span><span class="p">,</span> <span class="n">filename</span>
-            <span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">init_toml_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">init_toml</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+            <span class="p">)</span> <span class="k">as</span> <span class="n">init_toml_path</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">init_toml_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">init_toml</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
                 <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">add_grade</span><span class="p">:</span>
                         <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_input_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
@@ -621,8 +611,8 @@ By National Renewable Energy Laboratory
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../../../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
-<script src="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+  <script defer src="../../../../../_static/scripts/bootstrap.js?digest=26a4bc78f4c0ddb94549"></script>
+<script defer src="../../../../../_static/scripts/pydata-sphinx-theme.js?digest=26a4bc78f4c0ddb94549"></script>
 
   <footer class="bd-footer">
   </footer>
