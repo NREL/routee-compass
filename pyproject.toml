@@ -46,6 +46,7 @@ osm = [
     "numpy",
     "rasterio",
     "matplotlib",
+    "seaborn",
 ]
 all = ["nrel.routee.compass[osm]", "nrel.routee.compass[dev]"]
 

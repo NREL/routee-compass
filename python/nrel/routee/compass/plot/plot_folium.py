@@ -132,7 +132,7 @@ def _create_empty_folium_map(fit_coords: Sequence[Tuple[float, float]]) -> foliu
 def plot_route_folium(
     result_dict: QueryResult,
     line_kwargs: Optional[QueryResult] = None,
-    folium_map: folium.Map = None,
+    folium_map: Optional[folium.Map] = None,
 ) -> folium.Map:
     """
     Plots a single route from a compass query on a folium map.
@@ -197,7 +197,7 @@ def plot_coords_folium(
 
     kwargs = {**DEFAULT_LINE_KWARGS, **(line_kwargs or {})}
 
-    folium.PolyLine(
+    folium.PolyLine(  # type: ignore
         locations=coords,
         **kwargs,
     ).add_to(folium_map)
@@ -223,7 +223,7 @@ def plot_routes_folium(
     results: Union[QueryResult, QueryResults],
     value_fn: Callable[[QueryResult], Any] = lambda r: r["request"].get("name"),
     color_map: str = "viridis",
-    folium_map: folium.Map = None,
+    folium_map: Optional[folium.Map] = None,
 ) -> folium.Map:
     """
     Plot multiple routes from a CompassApp query on a folium map
