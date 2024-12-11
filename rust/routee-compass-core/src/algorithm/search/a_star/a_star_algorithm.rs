@@ -60,10 +60,10 @@ pub fn run_a_star(
         };
 
         let last_edge_id = get_last_traversed_edge_id(&current_vertex_id, &source, &solution)?;
-        let last_edge = match last_edge_id {
-            Some(id) => Some(si.directed_graph.get_edge(&id)?),
-            None => None,
-        };
+        // let last_edge = match last_edge_id {
+        //     Some(id) => Some(si.directed_graph.get_edge(&id)?),
+        //     None => None,
+        // };
 
         // grab the current state from the solution
         let current_state = if current_vertex_id == source {
@@ -85,14 +85,18 @@ pub fn run_a_star(
         // visit all neighbors of this source vertex
         let incident_edge_iterator = direction.get_incident_edges(&current_vertex_id, si);
         for edge_id in incident_edge_iterator {
-            let e = si.directed_graph.get_edge(edge_id)?;
+            let e = si.graph.get_edge(edge_id)?;
 
             let terminal_vertex_id = direction.terminal_vertex_id(e);
             let key_vertex_id = direction.tree_key_vertex_id(e);
 
-            let valid_frontier =
-                si.frontier_model
-                    .valid_frontier(e, &current_state, last_edge, &si.state_model)?;
+            let valid_frontier = si.frontier_model.valid_frontier(
+                e,
+                &current_state,
+                &solution,
+                direction,
+                &si.state_model,
+            )?;
             if !valid_frontier {
                 continue;
             }
@@ -188,8 +192,8 @@ pub fn run_a_star_edge_oriented(
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let e1_src = si.directed_graph.src_vertex_id(&source)?;
-    let e1_dst = si.directed_graph.dst_vertex_id(&source)?;
+    let e1_src = si.graph.src_vertex_id(&source)?;
+    let e1_dst = si.graph.dst_vertex_id(&source)?;
     let src_et = EdgeTraversal {
         edge_id: source,
         access_cost: Cost::ZERO,
@@ -217,8 +221,8 @@ pub fn run_a_star_edge_oriented(
             Ok(updated)
         }
         Some(target_edge) => {
-            let e2_src = si.directed_graph.src_vertex_id(&target_edge)?;
-            let e2_dst = si.directed_graph.dst_vertex_id(&target_edge)?;
+            let e2_src = si.graph.src_vertex_id(&target_edge)?;
+            let e2_dst = si.graph.dst_vertex_id(&target_edge)?;
 
             if source == target_edge {
                 Ok(SearchResult::default())
@@ -376,6 +380,9 @@ mod tests {
     use crate::model::cost::cost_model::CostModel;
     use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
+
+    use crate::model::map::map_model::MapModel;
+    use crate::model::map::map_model_config::MapModelConfig;
     use crate::model::network::edge_id::EdgeId;
     use crate::model::network::graph::Graph;
     use crate::model::network::Edge;
@@ -471,6 +478,9 @@ mod tests {
             (VertexId(2), VertexId(3), vec![EdgeId(4)]), // 2 -[4]-> 3
         ];
 
+        let graph = Arc::new(build_mock_graph());
+        let map_model = Arc::new(MapModel::new(graph.clone(), MapModelConfig::default()).unwrap());
+
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
         let state_model = Arc::new(
@@ -497,7 +507,8 @@ mod tests {
         )
         .unwrap();
         let si = SearchInstance {
-            directed_graph: Arc::new(build_mock_graph()),
+            graph,
+            map_model,
             state_model: state_model.clone(),
             traversal_model: Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters)),
             access_model: Arc::new(NoAccessModel {}),

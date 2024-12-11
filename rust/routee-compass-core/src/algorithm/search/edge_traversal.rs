@@ -57,13 +57,13 @@ impl EdgeTraversal {
         let mut access_cost = Cost::ZERO;
 
         // find this traversal in the graph
-        let traversal_trajectory = si.directed_graph.edge_triplet(&next_edge_id)?;
+        let traversal_trajectory = si.graph.edge_triplet(&next_edge_id)?;
 
         // perform access traversal for (v2)-[next]->(v3)
         // access cost for (v1)-[prev]->(v2)-[next]->(v3)
         if let Some(prev_edge_id) = prev_edge_id_opt {
-            let e1 = si.directed_graph.get_edge(&prev_edge_id)?;
-            let v1 = si.directed_graph.get_vertex(&e1.src_vertex_id)?;
+            let e1 = si.graph.get_edge(&prev_edge_id)?;
+            let v1 = si.graph.get_vertex(&e1.src_vertex_id)?;
 
             let (v2, e2, v3) = traversal_trajectory;
             let access_trajectory = (v1, e1, v2, e2, v3);
@@ -127,13 +127,13 @@ impl EdgeTraversal {
         let mut access_cost = Cost::ZERO;
 
         // find this traversal in the graph
-        let traversal_trajectory = si.directed_graph.edge_triplet(&prev_edge_id)?;
+        let traversal_trajectory = si.graph.edge_triplet(&prev_edge_id)?;
 
         // perform access traversal for (v1)-[prev]->(v2)
         // access cost for              (v1)-[prev]->(v2)-[next]->(v3)
         if let Some(next_edge_id) = next_edge_id_opt {
-            let e2 = si.directed_graph.get_edge(&next_edge_id)?;
-            let v3 = si.directed_graph.get_vertex(&e2.dst_vertex_id)?;
+            let e2 = si.graph.get_edge(&next_edge_id)?;
+            let v3 = si.graph.get_vertex(&e2.dst_vertex_id)?;
 
             let (v1, e1, v2) = traversal_trajectory;
             let access_trajectory = (v1, e1, v2, e2, v3);

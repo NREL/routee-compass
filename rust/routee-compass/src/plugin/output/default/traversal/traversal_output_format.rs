@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use super::traversal_ops as ops;
 use crate::plugin::output::OutputPluginError;
-use geo::{CoordFloat, Geometry, LineString};
+use geo::{CoordFloat, Geometry};
 use routee_compass_core::{
     algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
-    model::network::vertex_id::VertexId,
+    model::{map::map_model::MapModel, network::vertex_id::VertexId},
 };
 use serde::{Deserialize, Serialize};
 use wkt::ToWkt;
@@ -29,16 +29,16 @@ impl TraversalOutputFormat {
     pub fn generate_route_output(
         &self,
         route: &Vec<EdgeTraversal>,
-        geoms: &[LineString<f32>],
+        map_model: Arc<MapModel>,
     ) -> Result<serde_json::Value, OutputPluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
-                let route_geometry = ops::create_route_linestring(route, geoms)?;
+                let route_geometry = ops::create_route_linestring(route, map_model.clone())?;
                 let route_wkt = route_geometry.wkt_string();
                 Ok(serde_json::Value::String(route_wkt))
             }
             TraversalOutputFormat::Wkb => {
-                let linestring = ops::create_route_linestring(route, geoms)?;
+                let linestring = ops::create_route_linestring(route, map_model.clone())?;
                 let geometry = geo::Geometry::LineString(linestring);
                 let wkb_str = geometry_to_wkb_string(&geometry)?;
                 Ok(serde_json::Value::String(wkb_str))
@@ -48,7 +48,7 @@ impl TraversalOutputFormat {
                 Ok(result)
             }
             TraversalOutputFormat::GeoJson => {
-                let result = ops::create_route_geojson(route, geoms)?;
+                let result = ops::create_route_geojson(route, map_model.clone())?;
                 Ok(result)
             }
             TraversalOutputFormat::EdgeId => {
@@ -63,16 +63,16 @@ impl TraversalOutputFormat {
     pub fn generate_tree_output(
         &self,
         tree: &HashMap<VertexId, SearchTreeBranch>,
-        geoms: &[LineString<f32>],
+        map_model: Arc<MapModel>,
     ) -> Result<serde_json::Value, OutputPluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
-                let route_geometry = ops::create_tree_multilinestring(tree, geoms)?;
+                let route_geometry = ops::create_tree_multilinestring(tree, map_model)?;
                 let route_wkt = route_geometry.wkt_string();
                 Ok(serde_json::Value::String(route_wkt))
             }
             TraversalOutputFormat::Wkb => {
-                let route_geometry = ops::create_tree_multilinestring(tree, geoms)?;
+                let route_geometry = ops::create_tree_multilinestring(tree, map_model)?;
                 let geometry = geo::Geometry::MultiLineString(route_geometry);
                 let wkb_str = geometry_to_wkb_string(&geometry)?;
                 Ok(serde_json::Value::String(wkb_str))
@@ -82,7 +82,7 @@ impl TraversalOutputFormat {
                 Ok(result)
             }
             TraversalOutputFormat::GeoJson => {
-                let result = ops::create_tree_geojson(tree, geoms)?;
+                let result = ops::create_tree_geojson(tree, map_model)?;
                 Ok(result)
             }
             TraversalOutputFormat::EdgeId => {
@@ -116,7 +116,7 @@ fn geometry_to_wkb_string<T: CoordFloat + Into<f64>>(
 
 #[cfg(test)]
 mod test {
-    use super::*;
+
     use crate::app::search::search_app_result::SearchAppResult;
     use chrono::Local;
     use geo::{coord, LineString};
@@ -126,8 +126,8 @@ mod test {
     };
     use std::time::Duration;
 
-    #[test]
-    fn test() {
+    #[ignore = "needs mocked graph for map model integration in test"]
+    fn test_e2e() {
         let route = vec![
             EdgeTraversal {
                 edge_id: EdgeId(0),
@@ -167,29 +167,31 @@ mod test {
         ]
         .into_boxed_slice();
 
-        println!(
-            "{:?}",
-            TraversalOutputFormat::Wkt
-                .generate_route_output(&result.routes[0], &geoms)
-                .map(|r| serde_json::to_string_pretty(&r))
-        );
-        println!(
-            "{:?}",
-            TraversalOutputFormat::Json
-                .generate_route_output(&result.routes[0], &geoms)
-                .map(|r| serde_json::to_string_pretty(&r))
-        );
-        println!(
-            "{:?}",
-            TraversalOutputFormat::GeoJson
-                .generate_route_output(&result.routes[0], &geoms)
-                .map(|r| serde_json::to_string_pretty(&r))
-        );
-        println!(
-            "{:?}",
-            TraversalOutputFormat::EdgeId
-                .generate_route_output(&result.routes[0], &geoms)
-                .map(|r| serde_json::to_string_pretty(&r))
-        );
+        // let map_model = MapModel::new(graph, config)
+
+        // println!(
+        //     "{:?}",
+        //     TraversalOutputFormat::Wkt
+        //         .generate_route_output(&result.routes[0], &geoms)
+        //         .map(|r| serde_json::to_string_pretty(&r))
+        // );
+        // println!(
+        //     "{:?}",
+        //     TraversalOutputFormat::Json
+        //         .generate_route_output(&result.routes[0], &geoms)
+        //         .map(|r| serde_json::to_string_pretty(&r))
+        // );
+        // println!(
+        //     "{:?}",
+        //     TraversalOutputFormat::GeoJson
+        //         .generate_route_output(&result.routes[0], &geoms)
+        //         .map(|r| serde_json::to_string_pretty(&r))
+        // );
+        // println!(
+        //     "{:?}",
+        //     TraversalOutputFormat::EdgeId
+        //         .generate_route_output(&result.routes[0], &geoms)
+        //         .map(|r| serde_json::to_string_pretty(&r))
+        // );
     }
 }

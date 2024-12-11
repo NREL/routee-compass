@@ -24,14 +24,3 @@ impl Edge {
         }
     }
 }
-
-impl Default for Edge {
-    fn default() -> Self {
-        Edge {
-            edge_id: EdgeId(0),
-            src_vertex_id: VertexId(0),
-            dst_vertex_id: VertexId(1),
-            distance: Distance::ONE,
-        }
-    }
-}

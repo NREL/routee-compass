@@ -67,7 +67,7 @@ pub fn route_contains_loop(
 ) -> Result<bool, SearchError> {
     let src_vertices = route
         .iter()
-        .map(|e| si.directed_graph.src_vertex_id(&e.edge_id))
+        .map(|e| si.graph.src_vertex_id(&e.edge_id))
         .collect::<Result<Vec<_>, _>>()?;
     Ok(src_vertices.iter().unique().collect_vec().len() < src_vertices.len())
 }

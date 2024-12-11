@@ -3,21 +3,20 @@ use crate::{
     app::compass::{
         compass_app_error::CompassAppError,
         config::cost_model::cost_model_service::CostModelService,
-        search_orientation::SearchOrientation,
     },
     plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError},
 };
 use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{
-        direction::Direction, search_algorithm::SearchAlgorithm,
-        search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
+        direction::Direction, search_algorithm::SearchAlgorithm, search_error::SearchError,
         search_instance::SearchInstance,
     },
     model::{
         access::access_model_service::AccessModelService,
-        frontier::frontier_model_service::FrontierModelService, network::graph::Graph,
-        state::state_model::StateModel, termination::termination_model::TerminationModel,
+        frontier::frontier_model_service::FrontierModelService, map::map_model::MapModel,
+        network::graph::Graph, state::state_model::StateModel,
+        termination::termination_model::TerminationModel,
         traversal::traversal_model_service::TraversalModelService,
     },
 };
@@ -27,7 +26,8 @@ use std::time;
 /// a configured and loaded application to execute searches.
 pub struct SearchApp {
     pub search_algorithm: SearchAlgorithm,
-    pub directed_graph: Arc<Graph>,
+    pub graph: Arc<Graph>,
+    pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
     pub traversal_model_service: Arc<dyn TraversalModelService>,
     pub access_model_service: Arc<dyn AccessModelService>,
@@ -42,7 +42,8 @@ impl SearchApp {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         search_algorithm: SearchAlgorithm,
-        graph: Graph,
+        graph: Arc<Graph>,
+        map_model: Arc<MapModel>,
         state_model: Arc<StateModel>,
         traversal_model_service: Arc<dyn TraversalModelService>,
         access_model_service: Arc<dyn AccessModelService>,
@@ -52,7 +53,8 @@ impl SearchApp {
     ) -> Self {
         SearchApp {
             search_algorithm,
-            directed_graph: Arc::new(graph),
+            graph,
+            map_model,
             state_model,
             traversal_model_service,
             access_model_service,
@@ -62,29 +64,50 @@ impl SearchApp {
         }
     }
 
-    /// main interface for running search. takes a user query and some configured
-    /// search orientation. builds the instance of the search assets and then executes
-    /// a search. if a destination is set on the query, then the route is computed.
-    /// if the algorithm produces more than one route, then the result contains each route.
-    /// the SearchAlgorithm determines the order and number of routes and trees in the result.
+    /// main interface for running search. takes a user query and builds the instance of the
+    /// search assets and then executes a search. if a destination is set on the query, then the
+    /// route is computed. if the algorithm produces more than one route, then the result contains
+    /// each route. the SearchAlgorithm determines the order and number of routes and trees in the result.
     ///
     /// # Arguments
     ///
     /// * `query` - a JSON search query provided by the user
-    /// * `search_orientation` - whether to orient by vertex or edge
     ///
     /// # Results
     ///
     /// The complete set of trees, routes, and search assets for this run.
     pub fn run(
         &self,
-        query: &serde_json::Value,
-        search_orientation: &SearchOrientation,
+        query: &mut serde_json::Value,
     ) -> Result<(SearchAppResult, SearchInstance), CompassAppError> {
         let search_start_time = Local::now();
-        let (results, si) = match search_orientation {
-            SearchOrientation::Vertex => self.run_vertex_oriented(query),
-            SearchOrientation::Edge => self.run_edge_oriented(query),
+        let si = self.build_search_instance(query)?;
+        self.map_model.map_match(query, &si)?;
+
+        // depending on the presence of an origin edge or origin vertex, we run each type of query
+        let results = if query.get_origin_edge().is_ok() {
+            let o = query.get_origin_edge().map_err(|e| {
+                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+            })?;
+            let d_opt = query.get_destination_edge().map_err(|e| {
+                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+            })?;
+            self.search_algorithm
+                .run_edge_oriented(o, d_opt, query, &Direction::Forward, &si)
+                .map_err(CompassAppError::SearchFailure)
+        } else if query.get_origin_vertex().is_ok() {
+            let o = query.get_origin_vertex().map_err(|e| {
+                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+            })?;
+            let d = query.get_destination_vertex().map_err(|e| {
+                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+            })?;
+
+            self.search_algorithm
+                .run_vertex_oriented(o, d, query, &Direction::Forward, &si)
+                .map_err(CompassAppError::SearchFailure)
+        } else {
+            Err(CompassAppError::CompassFailure(String::from("SearchApp.run called with query that lacks origin_edge and origin_vertex, at least one required")))
         }?;
 
         let search_end_time = Local::now();
@@ -106,41 +129,6 @@ impl SearchApp {
         };
 
         Ok((result, si))
-    }
-
-    pub fn run_vertex_oriented(
-        &self,
-        query: &serde_json::Value,
-    ) -> Result<(SearchAlgorithmResult, SearchInstance), CompassAppError> {
-        let o = query.get_origin_vertex().map_err(|e| {
-            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
-        })?;
-        let d = query.get_destination_vertex().map_err(|e| {
-            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
-        })?;
-
-        let search_instance = self.build_search_instance(query)?;
-        self.search_algorithm
-            .run_vertex_oriented(o, d, query, &Direction::Forward, &search_instance)
-            .map(|search_result| (search_result, search_instance))
-            .map_err(CompassAppError::SearchFailure)
-    }
-
-    pub fn run_edge_oriented(
-        &self,
-        query: &serde_json::Value,
-    ) -> Result<(SearchAlgorithmResult, SearchInstance), CompassAppError> {
-        let o = query.get_origin_edge().map_err(|e| {
-            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
-        })?;
-        let d_opt = query.get_destination_edge().map_err(|e| {
-            CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
-        })?;
-        let search_instance = self.build_search_instance(query)?;
-        self.search_algorithm
-            .run_edge_oriented(o, d_opt, query, &Direction::Forward, &search_instance)
-            .map(|search_result| (search_result, search_instance))
-            .map_err(CompassAppError::SearchFailure)
     }
 
     /// builds the assets that will run the search for this query instance.
@@ -173,7 +161,8 @@ impl SearchApp {
             .build(query, state_model.clone())?;
 
         let search_assets = SearchInstance {
-            directed_graph: self.directed_graph.clone(),
+            graph: self.graph.clone(),
+            map_model: self.map_model.clone(),
             state_model,
             traversal_model,
             access_model,
