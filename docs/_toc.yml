@@ -9,9 +9,14 @@ parts:
       - file: installation
       - file: running
 
+  - caption: Examples
+    chapters:
+      - file: examples/open_street_maps_example
+      - file: examples/different_powertrains_example
+      - file: examples/time_energy_tradeoff_example
+
   - caption: User Reference
     chapters:
-      - file: notebooks/open_street_maps_example
       - file: query
       - file: config
       - file: python_api_docs
@@ -20,9 +25,6 @@ parts:
   - caption: Developers
     chapters:
       - file: developers/build_the_docs
-      - file: developers/contributing
+      - file: developers/CONTRIBUTING
+      - file: developers/rust_code_style
 
-  - caption: Examples
-    chapters:
-      - file: examples/open_street_maps_example
-      - file: examples/different_powertrains_example

@@ -3,7 +3,7 @@
 
 In this example, we'll showcase how you can run different powertrain technologies.
 
-This builds off of the [Open Street Maps Example](examples/open_street_maps_example) and assumes that we've already downloaded a road network so be sure to check that one out first.
+This builds off of the [Open Street Maps Example](open_street_maps_example) and assumes that we've already downloaded a road network so be sure to check that one out first.
 """
 
 # %%

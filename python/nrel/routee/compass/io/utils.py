@@ -4,11 +4,12 @@ from enum import Enum
 from pathlib import Path
 
 import logging
-from typing import Union, Optional
+from typing import Union, Optional, TYPE_CHECKING
 import math
 
-import networkx
-import shapely
+if TYPE_CHECKING:
+    import networkx
+    import shapely
 
 log = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Union, TYPE_CHECKING
 from pathlib import Path
 
 import importlib.resources
@@ -7,13 +7,13 @@ import json
 import logging
 import shutil
 
-import pandas as pd
-import requests
-
-import networkx
 
 from nrel.routee.compass.io import utils
 from nrel.routee.compass.io.utils import CACHE_DIR, add_grade_to_graph
+
+if TYPE_CHECKING:
+    import networkx
+    import pandas as pd
 
 log = logging.getLogger(__name__)
 
@@ -69,6 +69,8 @@ def generate_compass_dataset(
     try:
         import osmnx as ox
         import numpy as np
+        import pandas as pd
+        import requests
     except ImportError:
         raise ImportError("requires osmnx to be installed. " "Try 'pip install osmnx'")
 

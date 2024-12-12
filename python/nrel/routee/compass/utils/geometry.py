@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
 
-from nrel.routee.compass.compass_app import Route
 import json
+
+from nrel.routee.compass.utils.type_alias import Route
 
 if TYPE_CHECKING:
     from shapely.geometry import LineString

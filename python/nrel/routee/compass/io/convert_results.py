@@ -1,8 +1,7 @@
 from typing import Optional, Tuple, Union, TYPE_CHECKING
 
 from nrel.routee.compass.utils.geometry import geometry_from_route
-
-from nrel.routee.compass.compass_app import Result, Results
+from nrel.routee.compass.utils.type_alias import Result, Results
 
 if TYPE_CHECKING:
     from geopandas import GeoDataFrame
