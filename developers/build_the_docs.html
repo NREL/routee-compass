@@ -63,7 +63,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'developers/build_the_docs';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="next" title="Rust Code Style" href="rust_code_style.html" />
     <link rel="prev" title="Rust API Docs" href="../rust_api_docs.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="python"/>
@@ -173,9 +173,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../running.html">Running</a></li>
 </ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../examples/open_street_maps_example.html">OpenStreetMap example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/different_powertrains_example.html">Different Powertrains Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/time_energy_tradeoff_example.html">Time Energy Tradeoff Example</a></li>
+</ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../notebooks/open_street_maps_example.html">OpenStreetMap example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../query.html">Query</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../config.html">App Config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python_api_docs.html">Python API Docs</a></li>
@@ -184,7 +189,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Developers</span></p>
 <ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a class="current reference internal" href="#">Build The Docs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rust_code_style.html">Rust Code Style</a></li>
 </ul>
 
     </div>
@@ -386,12 +391,13 @@
                   
   <section class="tex2jax_ignore mathjax_ignore" id="build-the-docs">
 <h1>Build The Docs<a class="headerlink" href="#build-the-docs" title="Link to this heading">#</a></h1>
-<p>The main documentation is built using jupyter-book which you can install with pip:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>jupyter-book
+<p>The main documentation is built using jupyter-book which you can install with dev dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
 </pre></div>
 </div>
-<p>Then, to build the docs, run the following command from the root of the repository:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter-book<span class="w"> </span>build<span class="w"> </span>docs/
+<p>Then, to build the docs, run the following commands from the root of the repository:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>docs/examples/_convert_examples_to_notebooks.py
+jupyter-book<span class="w"> </span>build<span class="w"> </span>docs/
 </pre></div>
 </div>
 <p>This, build build the docs as html and place them in <code class="docutils literal notranslate"><span class="pre">docs/_build/html/</span></code>. You can then view the docs by opening <code class="docutils literal notranslate"><span class="pre">docs/_build/html/index.html</span></code> in your browser.</p>
@@ -445,11 +451,11 @@ cargo<span class="w"> </span>doc<span class="w"> </span>--no-deps<span class="w"
       </div>
     </a>
     <a class="right-next"
-       href="contributing.html"
+       href="rust_code_style.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Contributing</p>
+        <p class="prev-next-title">Rust Code Style</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

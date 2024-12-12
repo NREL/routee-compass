@@ -24,7 +24,7 @@ query = {
 result = app.run(query)
 ```
 
-For a more detailed example, head [here](notebooks/open_street_maps_example.ipynb).
+For a more detailed example, head [here](examples/open_street_maps_example).
 
 ## Command line application
 

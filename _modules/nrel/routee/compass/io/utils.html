@@ -172,9 +172,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../running.html">Running</a></li>
 </ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/open_street_maps_example.html">OpenStreetMap example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/different_powertrains_example.html">Different Powertrains Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/time_energy_tradeoff_example.html">Time Energy Tradeoff Example</a></li>
+</ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../../../notebooks/open_street_maps_example.html">OpenStreetMap example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../query.html">Query</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../config.html">App Config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../python_api_docs.html">Python API Docs</a></li>
@@ -183,7 +188,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Developers</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../../../../../developers/build_the_docs.html">Build The Docs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../developers/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../developers/rust_code_style.html">Rust Code Style</a></li>
 </ul>
 
     </div>
@@ -332,13 +337,16 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
 <span class="kn">import</span> <span class="nn">math</span>
 
-<span class="kn">import</span> <span class="nn">networkx</span>
-<span class="kn">import</span> <span class="nn">shapely</span>
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">networkx</span>
+    <span class="kn">import</span> <span class="nn">shapely</span>
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">CACHE_DIR</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;cache&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="TileResolution">
@@ -405,7 +413,7 @@
 
 <span class="k">def</span> <span class="nf">_download_tile</span><span class="p">(</span>
     <span class="n">tile</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;cache&quot;</span><span class="p">),</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">CACHE_DIR</span><span class="p">,</span>
     <span class="n">resolution</span><span class="p">:</span> <span class="n">TileResolution</span> <span class="o">=</span> <span class="n">TileResolution</span><span class="o">.</span><span class="n">ONE_ARC_SECOND</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
     <span class="k">try</span><span class="p">:</span>

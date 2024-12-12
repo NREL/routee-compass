@@ -63,6 +63,7 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'developers/rust_code_style';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Build The Docs" href="build_the_docs.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="python"/>
   <meta name="docsearch:version" content="" />
@@ -113,8 +114,6 @@
     <div class="bd-container__inner bd-page-width">
       
       
-      
-        
       
       <dialog id="pst-primary-sidebar-modal"></dialog>
       <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
@@ -173,18 +172,23 @@
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../running.html">Running</a></li>
 </ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../examples/open_street_maps_example.html">OpenStreetMap example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/different_powertrains_example.html">Different Powertrains Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/time_energy_tradeoff_example.html">Time Energy Tradeoff Example</a></li>
+</ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../notebooks/open_street_maps_example.html">OpenStreetMap example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../query.html">Query</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../config.html">App Config</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python_api_docs.html">Python API Docs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../rust_api_docs.html">Rust API Docs</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Developers</span></p>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="build_the_docs.html">Build The Docs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Rust Code Style</a></li>
 </ul>
 
     </div>
@@ -385,14 +389,14 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="rust-code-style">
+  <section class="tex2jax_ignore mathjax_ignore" id="rust-code-style">
 <h1>Rust Code Style<a class="headerlink" href="#rust-code-style" title="Link to this heading">#</a></h1>
 <section id="prefer-box-t-boxed-slices-over-vec-t-for-large-collections">
 <h2>Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections<a class="headerlink" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections" title="Link to this heading">#</a></h2>
 <p>while a <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> is more common, it lacks the ability to match capacity exactly with length unless it is set beforehand. in many cases this is not possible. when dealing with large persistent datasets such as <code class="docutils literal notranslate"><span class="pre">Graph</span></code> and <code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code> data, we want to store that data in a <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code>. when constructing the dataset, the <code class="docutils literal notranslate"><span class="pre">Vec</span></code> can be used, and then converted to a <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> afterward via <code class="docutils literal notranslate"><span class="pre">into_boxed_slice</span></code>:</p>
-<div class="highlight-ignore notranslate"><div class="highlight"><pre><span></span>let path: Path = todo!();
-let data: Vec&lt;T&gt; = read_utils::from_csv(&amp;file_path, True, None)?;
-let output: Box&lt;[T]&gt; = data.into_boxed_slice();
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="kd">let</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nc">Path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="fm">todo!</span><span class="p">();</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_utils</span><span class="p">::</span><span class="n">from_csv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="n">True</span><span class="p">,</span><span class="w"> </span><span class="nb">None</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">output</span><span class="p">:</span><span class="w"> </span><span class="nb">Box</span><span class="o">&lt;</span><span class="p">[</span><span class="n">T</span><span class="p">]</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">into_boxed_slice</span><span class="p">();</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">Vec</span></code> is preferred for smaller or non-persistent datasets, or when the additional features of <code class="docutils literal notranslate"><span class="pre">Vec</span></code> are used, such as iteration or dynamic allocation.</p>
@@ -475,6 +479,15 @@ these phases are represented by the following types:</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="build_the_docs.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Build The Docs</p>
+      </div>
+    </a>
 </div>
                 </footer>
               
