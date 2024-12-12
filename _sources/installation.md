@@ -26,7 +26,7 @@ You can also just directly install the package directly with [pip](https://pypi.
 pip install nrel.routee.compass
 ```
 
-This is useful if you already have a road network dataset (see [here](examples/open_street_maps_example)) on your system and you just want to compute routes.
+This is useful if you already have a road network dataset (see [here](examples/01_open_street_maps_example)) on your system and you just want to compute routes.
 
 (python-from-source)=
 
