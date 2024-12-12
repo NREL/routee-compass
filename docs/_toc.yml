@@ -25,6 +25,5 @@ parts:
   - caption: Developers
     chapters:
       - file: developers/build_the_docs
-      - file: developers/CONTRIBUTING
+      - file: developers/contributing
       - file: developers/rust_code_style
-
