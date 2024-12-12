@@ -71,4 +71,4 @@ namespace_packages = true
 explicit_package_bases = true
 strict = true
 disallow_untyped_calls = false
-exclude = ["docs/", "build/", "dist/"]
+exclude = ["docs", "build/", "dist/"]

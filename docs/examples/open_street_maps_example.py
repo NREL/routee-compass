@@ -15,13 +15,12 @@ conda create -n routee-compass -c conda-forge python=3.11 nrel.routee.compass
 # %%
 
 import osmnx as ox
-import pandas as pd
-import matplotlib.pyplot as plt
 
 import json
 
-from nrel.routee.compass.io import generate_compass_dataset
 from nrel.routee.compass import CompassApp
+from nrel.routee.compass.io import generate_compass_dataset, results_to_geopandas
+from nrel.routee.compass.plot import plot_route_folium, plot_routes_folium
 # %%
 
 """
@@ -303,19 +302,26 @@ def print_keys(d, indent=0):
 
 
 print_keys(least_energy_result)
+
+# %%
+"""
+We can also convert the results into a geodataframe:
+"""
+
+gdf = results_to_geopandas(least_energy_result)
+gdf.head()
 # %%
 
 
 """
 ### Plotting
 
-We can also plot the results to see the difference between the two routes.
+We can plot the results to see the difference between the two routes.
 """
 
 # %%
 
 
-from nrel.routee.compass.plot import plot_route_folium, plot_routes_folium
 # %%
 
 
@@ -383,86 +389,5 @@ folium_map = plot_routes_folium(
     folium_map=folium_map,
 )
 folium_map
-
-# %%
-
-"""
-### Tradeoffs
-
-Lastly, let's look at the tradeoffs for taking one route versus another.
-
-First we'll gather some of the summary values into a dataframe:
-"""
-
-# %%
-
-
-c = []
-for r in results:
-    c.append(
-        {
-            "scenario": r["request"]["name"],
-            "time_minutes": r["route"]["traversal_summary"]["time"],
-            "distance_miles": r["route"]["traversal_summary"]["distance"],
-            "energy_gge": r["route"]["traversal_summary"]["energy_liquid"],
-            "cost_dollars": r["route"]["cost"]["total_cost"],
-        }
-    )
-
-
-# %%
-
-
-df = pd.DataFrame(c)
-df
-# %%
-
-
-"""
-Now, let's look at the tradeoff between time and cost.
-"""
-
-# %%
-
-
-fig, ax = plt.subplots()
-colors = {"least_time": "red", "least_cost": "blue", "least_energy": "green"}
-
-for scenario, group in df.groupby("scenario"):
-    ax.scatter(
-        group["time_minutes"],
-        group["cost_dollars"],
-        color=colors[scenario],
-        label=scenario,
-    )
-
-ax.set_xlabel("Time (minutes)")
-ax.set_ylabel("Cost (dollars)")
-ax.legend(title="Scenario")
-plt.title("Cost vs Time by Scenario")
-
-# %%
-
-"""
-Next, let's look at the time versus energy tradeoff
-"""
-
-# %%
-
-
-fig, ax = plt.subplots()
-
-for scenario, group in df.groupby("scenario"):
-    ax.scatter(
-        group["time_minutes"],
-        group["energy_gge"],
-        color=colors[scenario],
-        label=scenario,
-    )
-
-ax.set_xlabel("Time (minutes)")
-ax.set_ylabel("Energy (gge)")
-ax.legend(title="Scenario")
-plt.title("Cost vs Energy by Scenario")
 
 # %%

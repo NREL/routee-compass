@@ -2,6 +2,8 @@
 
 Cargo.lock
 
+docs/examples/*.ipynb
+
 # onnx runtimes get downloaded here:
 onnxruntime/
 

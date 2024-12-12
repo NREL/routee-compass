@@ -25,3 +25,4 @@ parts:
   - caption: Examples
     chapters:
       - file: examples/open_street_maps_example
+      - file: examples/different_powertrains_example

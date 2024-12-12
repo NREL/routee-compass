@@ -193,6 +193,7 @@ def generate_compass_dataset(
             "osm_default_distance.toml",
             "osm_default_speed.toml",
             "osm_default_energy.toml",
+            "osm_default_energy_all_vehicles.toml",
         ]:
             with importlib.resources.path(
                 "nrel.routee.compass.resources", filename
@@ -227,7 +228,7 @@ def generate_compass_dataset(
             if not cached_model_destination.exists():
                 download_response = requests.get(model_link)
                 download_response.raise_for_status()
-                with cached_model_destination.open("wb") as f:
-                    f.write(download_response.content)
+                with cached_model_destination.open("wb") as f:  # type: ignore
+                    f.write(download_response.content)  # type: ignore
 
             shutil.copy(cached_model_destination, model_destination)
