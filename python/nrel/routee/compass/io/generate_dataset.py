@@ -227,7 +227,7 @@ def generate_compass_dataset(
             if not cached_model_destination.exists():
                 download_response = requests.get(model_link)
                 download_response.raise_for_status()
-                with cached_model_destination.open() as f:
-                    f.write(str(download_response.content))
+                with cached_model_destination.open("wb") as f:
+                    f.write(download_response.content)
 
             shutil.copy(cached_model_destination, model_destination)
