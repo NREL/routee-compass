@@ -15,6 +15,10 @@ pub fn vertex_oriented_route(
     target_id: VertexId,
     solution: &HashMap<VertexId, SearchTreeBranch>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
+    if solution.is_empty() {
+        return Ok(vec![]);
+    }
+
     let mut result: Vec<EdgeTraversal> = vec![];
     let mut visited: HashSet<EdgeId> = HashSet::new();
     let mut this_vertex = target_id;
@@ -22,12 +26,13 @@ pub fn vertex_oriented_route(
         if this_vertex == source_id {
             break;
         }
-        let traversal = solution
-            .get(&this_vertex)
-            .ok_or(SearchError::InternalError(format!(
-                "resulting tree missing vertex {} expected via backtrack",
+        let traversal = solution.get(&this_vertex).ok_or_else(|| {
+            SearchError::InternalError(format!(
+                "resulting tree with {} branches missing vertex {} expected via backtrack",
+                solution.len(),
                 this_vertex
-            )))?;
+            ))
+        })?;
         let first_visit = visited.insert(traversal.edge_traversal.edge_id);
         if !first_visit {
             return Err(SearchError::InternalError(format!(

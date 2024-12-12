@@ -265,9 +265,10 @@ pub fn run_a_star_edge_oriented(
                     .get(&e2_src)
                     .ok_or_else(|| {
                         SearchError::InternalError(format!(
-                            "resulting tree missing vertex {} expected via backtrack",
-                            e2_src
-                        ))
+                        "resulting tree with {} branches missing vertex {} expected via backtrack",
+                        tree.len(),
+                        e2_src
+                    ))
                     })?
                     .edge_traversal
                     .result_state;
