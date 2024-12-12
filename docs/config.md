@@ -3,7 +3,7 @@
 Each `CompassApp` instance is defined by a configuration toml file.
 The configuration file specifies things like "Which traversal model should I use, and what are its parameters?" and "Which data sources should I use?".
 
-If you follow the [open street maps example](examples/open_street_maps_example), the code will produce a few configuration files in the `golden_co/` folder. Let's take a look at the `osm_default_energy.toml` file.
+If you follow the [open street maps example](examples/01_open_street_maps_example), the code will produce a few configuration files in the `golden_co/` folder. Let's take a look at the `osm_default_energy.toml` file.
 We added some annotations to describe the different sections:
 
 ```toml
@@ -175,7 +175,7 @@ type = "vertex"
 # # instead use the graph vertex coordinates to build map geometries
 # # which produces far simpler route sequences as a result.
 # geometry_input_file = "edges-geometries-enumerated.txt.gz"
- 
+
 # # optional query distance tolerance for map matching.
 # tolerance.distance = 15.0
 # tolerance.unit = "meters"
@@ -186,7 +186,7 @@ type = "vertex"
 
 # # the default map input type is a combined strategy that attempts to
 # # match by Point, otherwise expects the user to pass either a vertex ({origin|destination}_vertex)
-# # or an edge ({origin|destination}_edge). a more restrictive strategy can be 
+# # or an edge ({origin|destination}_edge). a more restrictive strategy can be
 # # specified here with a subset of these values or a single value such as "point".
 # matching_type = ["point", "edge_id", "vertex_id"]
 ```
@@ -201,7 +201,7 @@ As opposed to vertex-oriented mapping, the edge-oriented will additionally apply
 [mapping]
 type = "edge"
 geometry_input_file = "edges-geometries-enumerated.txt.gz"
- 
+
 # # optional query distance tolerance for map matching.
 # tolerance.distance = 15.0
 # tolerance.unit = "meters"
@@ -212,7 +212,7 @@ geometry_input_file = "edges-geometries-enumerated.txt.gz"
 
 # # the default map input type is a combined strategy that attempts to
 # # match by Point, otherwise expects the user to pass either a vertex ({origin|destination}_vertex)
-# # or an edge ({origin|destination}_edge). a more restrictive strategy can be 
+# # or an edge ({origin|destination}_edge). a more restrictive strategy can be
 # # specified here with a subset of these values or a single value such as "point".
 # matching_type = ["point", "edge_id", "vertex_id"]
 ```

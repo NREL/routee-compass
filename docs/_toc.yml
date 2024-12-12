@@ -11,9 +11,9 @@ parts:
 
   - caption: Examples
     chapters:
-      - file: examples/open_street_maps_example
-      - file: examples/different_powertrains_example
-      - file: examples/time_energy_tradeoff_example
+      - file: examples/01_open_street_maps_example
+      - file: examples/02_different_powertrains_example
+      - file: examples/03_time_energy_tradeoff_example
 
   - caption: User Reference
     chapters:

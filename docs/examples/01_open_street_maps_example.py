@@ -1,5 +1,5 @@
 """
-# OpenStreetMap example
+# OpenStreetMap Example
 
 In this example, we download a road network from OSM using the OSMNx package, and then process the result, resulting in a RouteE Compass network dataset.
 

@@ -24,7 +24,7 @@ query = {
 result = app.run(query)
 ```
 
-For a more detailed example, head [here](examples/open_street_maps_example).
+For a more detailed example, head [here](examples/01_open_street_maps_example).
 
 ## Command line application
 
