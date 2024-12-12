@@ -2,6 +2,8 @@
 
 Cargo.lock
 
+docs/examples/*.ipynb
+
 # onnx runtimes get downloaded here:
 onnxruntime/
 
@@ -119,3 +121,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# pixi environments
+.pixi
+*.egg-info

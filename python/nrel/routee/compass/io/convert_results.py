@@ -1,8 +1,7 @@
 from typing import Optional, Tuple, Union, TYPE_CHECKING
 
 from nrel.routee.compass.utils.geometry import geometry_from_route
-
-from nrel.routee.compass.compass_app import Result, Results
+from nrel.routee.compass.utils.type_alias import Result, Results
 
 if TYPE_CHECKING:
     from geopandas import GeoDataFrame
@@ -59,6 +58,7 @@ def route_result_to_geopandas(
     df["geometry"] = geometry
 
     route_gdf = gpd.GeoDataFrame(df, geometry="geometry")
+    route_gdf.crs = "EPSG:4326"
 
     # if the route was a geojson format, we can drop those columns
     if "route.path.type" in route_gdf.columns:

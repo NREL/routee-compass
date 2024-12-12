@@ -1,6 +1,6 @@
 import folium
 
-from nrel.routee.compass.compass_app import (
+from nrel.routee.compass.utils.type_alias import (
     Result as QueryResult,
     Results as QueryResults,
 )
@@ -197,7 +197,7 @@ def plot_coords_folium(
 
     kwargs = {**DEFAULT_LINE_KWARGS, **(line_kwargs or {})}
 
-    folium.PolyLine(  # type: ignore
+    folium.PolyLine(
         locations=coords,
         **kwargs,
     ).add_to(folium_map)

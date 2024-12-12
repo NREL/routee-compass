@@ -3,7 +3,7 @@
 Each `CompassApp` instance is defined by a configuration toml file.
 The configuration file specifies things like "Which traversal model should I use, and what are its parameters?" and "Which data sources should I use?".
 
-If you follow the [open street maps example](notebooks/open_street_maps_example.ipynb), the code will produce a few configuration files in the `golden_co/` folder. Let's take a look at the `osm_default_energy.toml` file.
+If you follow the [open street maps example](examples/open_street_maps_example), the code will produce a few configuration files in the `golden_co/` folder. Let's take a look at the `osm_default_energy.toml` file.
 We added some annotations to describe the different sections:
 
 ```toml

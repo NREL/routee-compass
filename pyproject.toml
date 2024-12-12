@@ -28,12 +28,26 @@ dev = [
     "maturin",
     "jupyter-book",
     "ruff",
-    "mypy",
     "sphinx-book-theme",
+    "mypy",
+    "jupyterlab",
+    "boxsdk",
     "types-requests",
     "types-toml",
 ]
-osm = ["osmnx", "geopandas", "shapely", "networkx", "folium", "pandas", "numpy"]
+osm = [
+    "osmnx",
+    "requests",
+    "geopandas",
+    "shapely",
+    "networkx",
+    "folium",
+    "pandas",
+    "numpy",
+    "rasterio",
+    "matplotlib",
+    "seaborn",
+]
 all = ["nrel.routee.compass[osm]", "nrel.routee.compass[dev]"]
 
 [project.urls]
@@ -56,4 +70,5 @@ ignore_missing_imports = true
 namespace_packages = true
 explicit_package_bases = true
 strict = true
-exclude = ["docs/", "build/", "dist/"]
+disallow_untyped_calls = false
+exclude = ["docs", "build/", "dist/"]

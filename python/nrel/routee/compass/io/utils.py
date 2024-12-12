@@ -4,13 +4,16 @@ from enum import Enum
 from pathlib import Path
 
 import logging
-from typing import Union, Optional
+from typing import Union, Optional, TYPE_CHECKING
 import math
 
-import networkx
-import shapely
+if TYPE_CHECKING:
+    import networkx
+    import shapely
 
 log = logging.getLogger(__name__)
+
+CACHE_DIR = Path("cache")
 
 
 class TileResolution(Enum):
@@ -74,7 +77,7 @@ def _build_download_link(
 
 def _download_tile(
     tile: str,
-    output_dir: Path = Path("cache"),
+    output_dir: Path = CACHE_DIR,
     resolution: TileResolution = TileResolution.ONE_ARC_SECOND,
 ) -> Path:
     try:

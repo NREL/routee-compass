@@ -1,16 +1,19 @@
 from __future__ import annotations
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Union, TYPE_CHECKING
 from pathlib import Path
 
 import importlib.resources
+import json
 import logging
 import shutil
-import pandas as pd
 
-import networkx
 
 from nrel.routee.compass.io import utils
-from nrel.routee.compass.io.utils import add_grade_to_graph
+from nrel.routee.compass.io.utils import CACHE_DIR, add_grade_to_graph
+
+if TYPE_CHECKING:
+    import networkx
+    import pandas as pd
 
 log = logging.getLogger(__name__)
 
@@ -53,10 +56,10 @@ def generate_compass_dataset(
             values on any edge.
         agg: Aggregation function to impute missing values from observed values.
             The default is numpy.mean, but you might also consider for example
-            numpy.median, numpy.nanmedian, or your own custom function.
-        add_grade: If true, add grade information. See add_grade_to_graph() for more info.
-        raster_resolution_arc_seconds: If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3).
-        default_config: If true, copy default configuration files into the output directory.
+            numpy.median, numpy.nanmedian, or your own custom function. Defaults to numpy.mean.
+        add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.
+        raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
+        default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
 
     Example:
         >>> import osmnx as ox
@@ -66,6 +69,8 @@ def generate_compass_dataset(
     try:
         import osmnx as ox
         import numpy as np
+        import pandas as pd
+        import requests
     except ImportError:
         raise ImportError("requires osmnx to be installed. " "Try 'pip install osmnx'")
 
@@ -190,6 +195,7 @@ def generate_compass_dataset(
             "osm_default_distance.toml",
             "osm_default_speed.toml",
             "osm_default_energy.toml",
+            "osm_default_energy_all_vehicles.toml",
         ]:
             with importlib.resources.path(
                 "nrel.routee.compass.resources", filename
@@ -205,16 +211,26 @@ def generate_compass_dataset(
             with open(output_directory / filename, "w") as f:
                 f.write(toml.dumps(init_toml))
 
-    # COPY ROUTEE ENERGY MODEL CATALOG
-    print("copying RouteE Powertrain models")
-    model_directory = importlib.resources.files("nrel.routee.compass.resources.models")
+    # DOWLOAD ROUTEE ENERGY MODEL CATALOG
+    print("downloading the default RouteE Powertrain models")
     model_output_directory = output_directory / "models"
     if not model_output_directory.exists():
         model_output_directory.mkdir(exist_ok=True)
-    for model_file in model_directory.iterdir():
-        if not model_file.name.endswith(".bin"):
-            continue
-        if model_file.is_file():
-            with importlib.resources.as_file(model_file) as model_path:
-                model_dst = model_output_directory / model_path.name
-                shutil.copy(model_path, model_dst)
+
+    with importlib.resources.path(
+        "nrel.routee.compass.resources.models", "download_links.json"
+    ) as model_link_path:
+        with model_link_path.open() as f:
+            model_links = json.load(f)
+
+        for model_name, model_link in model_links.items():
+            model_destination = model_output_directory / f"{model_name}.bin"
+
+            cached_model_destination = CACHE_DIR / f"{model_name}.bin"
+            if not cached_model_destination.exists():
+                download_response = requests.get(model_link)
+                download_response.raise_for_status()
+                with cached_model_destination.open("wb") as f:  # type: ignore
+                    f.write(download_response.content)  # type: ignore
+
+            shutil.copy(cached_model_destination, model_destination)

@@ -38,15 +38,15 @@ jobs:
           pip install ".[all]"
 
       - name: Run mypy
-        run: mypy --strict ./python/nrel
+        run: mypy .
 
       - name: Run linter
         run: |
-          ruff check python
+          ruff check 
 
       - name: Run formatter
         run: |
-          ruff format python
+          ruff format
 
       - name: Run tests
         run: |

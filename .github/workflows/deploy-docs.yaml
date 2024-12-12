@@ -30,6 +30,7 @@ jobs:
       - name: Build book
         working-directory: ${{runner.workspace}}/routee-compass/docs/
         run: |
+          python examples/_convert_examples_to_notebooks.py
           jupyter-book build .
 
       # Push the book's HTML to github-pages
