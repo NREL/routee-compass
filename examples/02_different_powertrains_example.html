@@ -191,6 +191,7 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Developers</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="../developers/build_the_docs.html">Build The Docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers/contributing.html">Contributing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../developers/rust_code_style.html">Rust Code Style</a></li>
 </ul>
 
@@ -421,13 +422,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>edge list: 100%|██████████| 48418/48418 [00:00&lt;00:00, 1537685.88it/s]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>edge list: 100%|██████████| 48418/48418 [00:00&lt;00:00, 1555067.38it/s]
 
 
-vertex list: 100%|██████████| 17003/17003 [00:00&lt;00:00, 1852169.62it/s]
+vertex list: 100%|██████████| 17003/17003 [00:00&lt;00:00, 1872709.75it/s]
 
 
-edge LineString geometry file: 100%|██████████| 48418/48418 [00:00&lt;00:00, 641087.25it/s]
+edge LineString geometry file: 100%|██████████| 48418/48418 [00:00&lt;00:00, 640841.31it/s]
 </pre></div>
 </div>
 </div>
@@ -500,13 +501,13 @@ By default, the PHEV will run using battery energy exclusively (starting at <cod
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>input plugins: 100%|██████████| 1/1 [00:00&lt;00:00, 1256.28it/s]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>input plugins: 100%|██████████| 1/1 [00:00&lt;00:00, 1315.07it/s]
 
 
-load balancing: 100%|██████████| 6/6 [00:00&lt;00:00, 4018754.25it/s]
-load balancing: 100%|██████████| 6/6 [00:00&lt;00:00, 702905.38it/s]
+load balancing: 100%|██████████| 6/6 [00:00&lt;00:00, 3220612.00it/s]
+load balancing: 100%|██████████| 6/6 [00:00&lt;00:00, 639863.44it/s]
 
-search: 100%|██████████| 6/6 [00:00&lt;00:00, 81.95it/s]
+search: 100%|██████████| 6/6 [00:00&lt;00:00, 98.38it/s]
 </pre></div>
 </div>
 </div>
@@ -523,16 +524,16 @@ search: 100%|██████████| 6/6 [00:00&lt;00:00, 81.95it/s]
   &#39;initial&#39;: 0.0,
   &#39;index&#39;: 0,
   &#39;name&#39;: &#39;energy_electric&#39;},
+ &#39;distance&#39;: {&#39;distance_unit&#39;: &#39;miles&#39;,
+  &#39;initial&#39;: 0.0,
+  &#39;index&#39;: 1,
+  &#39;name&#39;: &#39;distance&#39;},
+ &#39;time&#39;: {&#39;time_unit&#39;: &#39;minutes&#39;, &#39;initial&#39;: 0.0, &#39;index&#39;: 2, &#39;name&#39;: &#39;time&#39;},
  &#39;battery_state&#39;: {&#39;type&#39;: &#39;soc&#39;,
   &#39;unit&#39;: &#39;percent&#39;,
   &#39;format&#39;: {&#39;floating_point&#39;: {&#39;initial&#39;: 100.0}},
-  &#39;index&#39;: 1,
-  &#39;name&#39;: &#39;battery_state&#39;},
- &#39;time&#39;: {&#39;time_unit&#39;: &#39;minutes&#39;, &#39;initial&#39;: 0.0, &#39;index&#39;: 2, &#39;name&#39;: &#39;time&#39;},
- &#39;distance&#39;: {&#39;distance_unit&#39;: &#39;miles&#39;,
-  &#39;initial&#39;: 0.0,
   &#39;index&#39;: 3,
-  &#39;name&#39;: &#39;distance&#39;}}
+  &#39;name&#39;: &#39;battery_state&#39;}}
 </pre></div>
 </div>
 </div>
@@ -574,7 +575,7 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.time&#39;, ylabel=&#39;gge&#39;&gt;
 </pre></div>
 </div>
-<img alt="../_images/6781dfff14e1ff1f25becea87a1e734a63814dc021436f1a7bf066ba7b3f3811.png" src="../_images/6781dfff14e1ff1f25becea87a1e734a63814dc021436f1a7bf066ba7b3f3811.png" />
+<img alt="../_images/0659d9500dedc5f6150a3fb5fd098d7c7cc0325e33bfeb0ee1f46d4bcdd034bf.png" src="../_images/0659d9500dedc5f6150a3fb5fd098d7c7cc0325e33bfeb0ee1f46d4bcdd034bf.png" />
 </div>
 </div>
 <p>Here, we see that the BEV and the PHEV use much less energy than the ICE alternative but all powertrains have a route that uses less energy and more time.</p>
@@ -601,7 +602,7 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.time&#39;, ylabel=&#39;route.cost.total_cost&#39;&gt;
 </pre></div>
 </div>
-<img alt="../_images/8c501e37cab507cbd6976470a0ad6f1f68227546ad2a85be7c79498d66379cd8.png" src="../_images/8c501e37cab507cbd6976470a0ad6f1f68227546ad2a85be7c79498d66379cd8.png" />
+<img alt="../_images/b355f1b3263c2f325633250267c57b191905b8ebf91997689159476830c4d1be.png" src="../_images/b355f1b3263c2f325633250267c57b191905b8ebf91997689159476830c4d1be.png" />
 </div>
 </div>
 <p>Here, we notice that the ICE vehicle has the lowest costs and all powertrains save money on the optimal energy route.
