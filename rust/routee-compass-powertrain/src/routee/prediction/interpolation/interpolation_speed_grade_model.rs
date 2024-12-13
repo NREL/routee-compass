@@ -173,7 +173,7 @@ mod test {
             .join("test")
             .join("Toyota_Camry.bin");
 
-        let model = InterpolationSpeedGradeModel::new(
+        let interp_model = InterpolationSpeedGradeModel::new(
             &model_path,
             ModelType::Smartcore,
             "Toyota Camry".to_string(),
@@ -187,7 +187,46 @@ mod test {
         )
         .unwrap();
 
-        let (energy_rate, energy_rate_unit) = model
+        let underlying_model = load_prediction_model(
+            "Toyota Camry".to_string(),
+            &model_path,
+            ModelType::Smartcore,
+            SpeedUnit::MilesPerHour,
+            GradeUnit::Decimal,
+            EnergyRateUnit::GallonsGasolinePerMile,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+
+        // let's check to make sure the interpolation model is
+        // producing similar results to the underlying model
+
+        for speed in 0..100 {
+            for grade in -20..20 {
+                let (interp_energy_rate, _energy_rate_unit) = interp_model
+                    .predict(
+                        (Speed::new(speed as f64), SpeedUnit::MilesPerHour),
+                        (Grade::new(grade as f64), GradeUnit::Percent),
+                    )
+                    .unwrap();
+                let (underlying_energy_rate, _energy_rate_unit) = underlying_model
+                    .prediction_model
+                    .predict(
+                        (Speed::new(speed as f64), SpeedUnit::MilesPerHour),
+                        (Grade::new(grade as f64), GradeUnit::Percent),
+                    )
+                    .unwrap();
+
+                // check if they're within 1% of each other
+                let diff = (interp_energy_rate.as_f64() - underlying_energy_rate.as_f64())
+                    / underlying_energy_rate.as_f64();
+                assert!(diff.abs() < 0.01);
+            }
+        }
+
+        let (energy_rate, energy_rate_unit) = interp_model
             .predict(
                 (Speed::new(50.0), SpeedUnit::MilesPerHour),
                 (Grade::new(0.0), GradeUnit::Percent),
