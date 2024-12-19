@@ -33,18 +33,23 @@ impl FrontierModelBuilder for TurnRestrictionBuilder {
                 ))
             })?;
 
-        let restricted_edges: HashSet<RestrictedEdgePair> =
-            read_utils::from_csv(&turn_restriction_file, true, None)
-                .map_err(|e| {
-                    FrontierModelError::BuildError(format!(
-                        "configuration error due to {}: {}",
-                        turn_restriction_file_key.clone(),
-                        e
-                    ))
-                })?
-                .iter()
-                .cloned()
-                .collect();
+        let restricted_edges: HashSet<RestrictedEdgePair> = read_utils::from_csv(
+            &turn_restriction_file,
+            true,
+            Some("turn restrictions"),
+            None,
+            None,
+        )
+        .map_err(|e| {
+            FrontierModelError::BuildError(format!(
+                "configuration error due to {}: {}",
+                turn_restriction_file_key.clone(),
+                e
+            ))
+        })?
+        .iter()
+        .cloned()
+        .collect();
 
         log::debug!(
             "Loaded {} turn restrictions from {:?}.",

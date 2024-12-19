@@ -9,7 +9,8 @@ use std::{
     path::Path,
 };
 
-type RowCallback<'a, T> = Option<Box<dyn FnMut(&T) + 'a>>;
+type CsvCallback<'a, T> = Option<Box<dyn FnMut(&T) + 'a>>;
+type RawCallback<'a> = Option<Box<dyn FnMut() + 'a>>;
 
 /// reads from a CSV into an iterator of T records.
 /// building the iterator may fail with an io::Error.
@@ -18,7 +19,7 @@ type RowCallback<'a, T> = Option<Box<dyn FnMut(&T) + 'a>>;
 pub fn iterator_from_csv<'a, F, T>(
     filepath: F,
     has_headers: bool,
-    mut row_callback: RowCallback<'a, T>,
+    mut row_callback: CsvCallback<'a, T>,
 ) -> Result<Box<dyn Iterator<Item = Result<T, csv::Error>> + 'a>, io::Error>
 where
     F: AsRef<Path>,
@@ -53,7 +54,7 @@ pub fn from_csv<'a, T>(
     has_headers: bool,
     progress_message: Option<&str>,
     progress_size: Option<usize>,
-    callback: Option<Box<dyn FnMut(&T) + 'a>>,
+    callback: CsvCallback<'a, T>,
 ) -> Result<Box<[T]>, csv::Error>
 where
     T: serde::de::DeserializeOwned + 'a,
@@ -65,7 +66,7 @@ where
         _ => None,
     };
 
-    let row_callback: Option<Box<dyn FnMut(&T)>> = match (callback, bar_opt) {
+    let row_callback: CsvCallback<'a, T> = match (callback, bar_opt) {
         (None, None) => None,
         (None, Some(mut bar)) => Some(Box::new(move |_| {
             let _ = bar.update(1);
@@ -91,7 +92,7 @@ where
 /// inspects the file to determine if it should read as a raw or gzip stream.
 /// the row index (starting from zero) is passed to the deserialization op
 /// as in most cases, the row number is an id.
-pub fn read_raw_file<'a, F, T>(
+pub fn read_raw_file<F, T>(
     filepath: F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
     progress_message: Option<&str>,
@@ -108,7 +109,7 @@ where
         _ => None,
     };
 
-    let row_callback: Option<Box<dyn FnMut()>> = match (callback, bar_opt) {
+    let row_callback: RawCallback = match (callback, bar_opt) {
         (None, None) => None,
         (None, Some(mut bar)) => Some(Box::new(move || {
             let _ = bar.update(1);

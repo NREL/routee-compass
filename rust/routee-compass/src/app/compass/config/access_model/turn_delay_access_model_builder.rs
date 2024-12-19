@@ -29,8 +29,14 @@ impl AccessModelBuilder for TurnDelayAccessModelBuilder {
                     e
                 ))
             })?;
-        let edge_headings = read_utils::from_csv::<EdgeHeading>(&file_path.as_path(), true, None)
-            .map_err(|e| {
+        let edge_headings = read_utils::from_csv::<EdgeHeading>(
+            &file_path.as_path(),
+            true,
+            Some("edge headings"),
+            None,
+            None,
+        )
+        .map_err(|e| {
             AccessModelError::BuildError(format!(
                 "error reading headings from file {:?}: {}",
                 file_path, e

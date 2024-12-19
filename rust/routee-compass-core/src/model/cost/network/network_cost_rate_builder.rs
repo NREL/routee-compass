@@ -27,31 +27,41 @@ impl NetworkCostRateBuilder {
         use NetworkCostRateBuilder as Builder;
         match self {
             Builder::EdgeLookupBuilder { cost_input_file } => {
-                let lookup =
-                    read_utils::from_csv::<NetworkTraversalUtilityRow>(cost_input_file, true, None)
-                        .map_err(|source| {
-                            CostModelError::BuildError(format!(
-                                "failure reading file {}: {}",
-                                cost_input_file, source
-                            ))
-                        })?
-                        .iter()
-                        .map(|row| (row.edge_id, row.cost))
-                        .collect::<HashMap<_, _>>();
+                let lookup = read_utils::from_csv::<NetworkTraversalUtilityRow>(
+                    cost_input_file,
+                    true,
+                    Some("network edge cost lookup"),
+                    None,
+                    None,
+                )
+                .map_err(|source| {
+                    CostModelError::BuildError(format!(
+                        "failure reading file {}: {}",
+                        cost_input_file, source
+                    ))
+                })?
+                .iter()
+                .map(|row| (row.edge_id, row.cost))
+                .collect::<HashMap<_, _>>();
                 Ok(NCM::EdgeLookup { lookup })
             }
             Builder::EdgeEdgeLookupBuilder { cost_input_file } => {
-                let lookup =
-                    read_utils::from_csv::<NetworkAccessUtilityRow>(cost_input_file, true, None)
-                        .map_err(|source| {
-                            CostModelError::BuildError(format!(
-                                "failure reading file {}: {}",
-                                cost_input_file, source
-                            ))
-                        })?
-                        .iter()
-                        .map(|row| ((row.source, row.destination), row.cost))
-                        .collect::<HashMap<_, _>>();
+                let lookup = read_utils::from_csv::<NetworkAccessUtilityRow>(
+                    cost_input_file,
+                    true,
+                    Some("network edge->edge cost lookup"),
+                    None,
+                    None,
+                )
+                .map_err(|source| {
+                    CostModelError::BuildError(format!(
+                        "failure reading file {}: {}",
+                        cost_input_file, source
+                    ))
+                })?
+                .iter()
+                .map(|row| ((row.source, row.destination), row.cost))
+                .collect::<HashMap<_, _>>();
 
                 Ok(NCM::EdgeEdgeLookup { lookup })
             }

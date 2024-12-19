@@ -22,16 +22,20 @@ impl SpeedTraversalEngine {
         distance_unit_opt: Option<DistanceUnit>,
         time_unit_opt: Option<TimeUnit>,
     ) -> Result<SpeedTraversalEngine, TraversalModelError> {
-        let speed_table: Box<[Speed]> =
-            read_utils::read_raw_file(speed_table_path, read_decoders::default, None).map_err(
-                |e| {
-                    TraversalModelError::BuildError(format!(
-                        "cannot read {} due to {}",
-                        speed_table_path.as_ref().to_str().unwrap_or_default(),
-                        e,
-                    ))
-                },
-            )?;
+        let speed_table: Box<[Speed]> = read_utils::read_raw_file(
+            speed_table_path,
+            read_decoders::default,
+            Some("link speeds"),
+            None,
+            None,
+        )
+        .map_err(|e| {
+            TraversalModelError::BuildError(format!(
+                "cannot read {} due to {}",
+                speed_table_path.as_ref().to_str().unwrap_or_default(),
+                e,
+            ))
+        })?;
         let max_speed = get_max_speed(&speed_table)?;
         let time_unit = time_unit_opt.unwrap_or(BASE_TIME_UNIT);
         let distance_unit = distance_unit_opt.unwrap_or(BASE_DISTANCE_UNIT);

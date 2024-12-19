@@ -32,14 +32,20 @@ impl FrontierModelBuilder for RoadClassBuilder {
                 ))
             })?;
 
-        let road_class_lookup: Box<[u8]> =
-            read_utils::read_raw_file(&road_class_file, read_decoders::u8, None).map_err(|e| {
-                FrontierModelError::BuildError(format!(
-                    "failed to load file at {:?}: {}",
-                    road_class_file.clone().to_str(),
-                    e
-                ))
-            })?;
+        let road_class_lookup: Box<[u8]> = read_utils::read_raw_file(
+            &road_class_file,
+            read_decoders::u8,
+            Some("road class"),
+            None,
+            None,
+        )
+        .map_err(|e| {
+            FrontierModelError::BuildError(format!(
+                "failed to load file at {:?}: {}",
+                road_class_file.clone().to_str(),
+                e
+            ))
+        })?;
 
         let road_class_parser = parameters
             .get_config_serde_optional::<RoadClassParser>(
