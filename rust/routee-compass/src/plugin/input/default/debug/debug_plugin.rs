@@ -2,6 +2,7 @@ use crate::{
     app::search::search_app::SearchApp,
     plugin::input::{input_plugin::InputPlugin, InputPluginError},
 };
+use indoc::formatdoc;
 use log;
 use std::sync::Arc;
 
@@ -13,8 +14,18 @@ impl InputPlugin for DebugInputPlugin {
         input: &mut serde_json::Value,
         _search_app: Arc<SearchApp>,
     ) -> Result<(), InputPluginError> {
-        let string = serde_json::to_string_pretty(input)
-            .map_err(|e| InputPluginError::JsonError { source: e })?;
+        let json_result = serde_json::to_string_pretty(input);
+        let string = match json_result {
+            Ok(json_string) => json_string,
+            Err(error) => {
+                formatdoc! {r#"
+                    {{
+                        "message": "during debug plugin execution, failed to process incoming query as JSON",
+                        "error": "{}"
+                    }}
+                "#, error}
+            }
+        };
         log::debug!("{}", string);
         Ok(())
     }
