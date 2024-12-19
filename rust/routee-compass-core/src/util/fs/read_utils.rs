@@ -1,6 +1,7 @@
 use super::fs_utils;
 use csv::ReaderBuilder;
 use flate2::read::GzDecoder;
+use kdam::{Bar, BarExt};
 
 use std::{
     fs::File,
@@ -50,11 +51,32 @@ where
 pub fn from_csv<'a, T>(
     filepath: &dyn AsRef<Path>,
     has_headers: bool,
-    row_callback: RowCallback<'a, T>,
+    progress_message: Option<&str>,
+    progress_size: Option<usize>,
+    callback: Option<Box<dyn FnMut(&T) + 'a>>,
 ) -> Result<Box<[T]>, csv::Error>
 where
     T: serde::de::DeserializeOwned + 'a,
 {
+    let bar_opt = match (progress_message, progress_size) {
+        (Some(desc), Some(total)) => Bar::builder().desc(desc).total(total).build().ok(),
+        (Some(desc), None) => Bar::builder().desc(desc).build().ok(),
+        (None, Some(total)) => Bar::builder().total(total).build().ok(),
+        _ => None,
+    };
+
+    let row_callback: Option<Box<dyn FnMut(&T)>> = match (callback, bar_opt) {
+        (None, None) => None,
+        (None, Some(mut bar)) => Some(Box::new(move |_| {
+            let _ = bar.update(1);
+        })),
+        (Some(cb), None) => Some(cb),
+        (Some(mut cb), Some(mut bar)) => Some(Box::new(move |t| {
+            cb(t);
+            let _ = bar.update(1);
+        })),
+    };
+
     let iter: Box<dyn Iterator<Item = Result<T, csv::Error>>> =
         iterator_from_csv(filepath, has_headers, row_callback)?;
     let result = iter
@@ -72,11 +94,32 @@ where
 pub fn read_raw_file<'a, F, T>(
     filepath: F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
-    row_callback: Option<Box<dyn FnMut() + 'a>>,
+    progress_message: Option<&str>,
+    progress_size: Option<usize>,
+    callback: Option<Box<dyn FnMut()>>,
 ) -> Result<Box<[T]>, io::Error>
 where
     F: AsRef<Path>,
 {
+    let bar_opt = match (progress_message, progress_size) {
+        (Some(desc), Some(total)) => Bar::builder().desc(desc).total(total).build().ok(),
+        (Some(desc), None) => Bar::builder().desc(desc).build().ok(),
+        (None, Some(total)) => Bar::builder().total(total).build().ok(),
+        _ => None,
+    };
+
+    let row_callback: Option<Box<dyn FnMut()>> = match (callback, bar_opt) {
+        (None, None) => None,
+        (None, Some(mut bar)) => Some(Box::new(move || {
+            let _ = bar.update(1);
+        })),
+        (Some(cb), None) => Some(cb),
+        (Some(mut cb), Some(mut bar)) => Some(Box::new(move || {
+            cb();
+            let _ = bar.update(1);
+        })),
+    };
+
     if fs_utils::is_gzip(filepath.as_ref()) {
         Ok(read_gzip(filepath, op, row_callback)?)
     } else {
@@ -146,9 +189,8 @@ mod tests {
             .join("test")
             .join("test.txt");
         println!("loading file {:?}", filepath);
-        let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
-        let result = read_raw_file(&filepath, op, None).unwrap();
+        let result = read_raw_file(&filepath, op, None, None, Some(op)).unwrap();
         let expected = vec![
             String::from("RouteE yay"),
             String::from("FASTSim yay"),
@@ -158,7 +200,7 @@ mod tests {
         .into_boxed_slice();
         assert_eq!(
             result, expected,
-            "result should include each row from the source file along with the bonus word"
+            "result should include each row from the source file"
         );
     }
 
@@ -171,9 +213,9 @@ mod tests {
             .join("test")
             .join("test.txt.gz");
         println!("loading file {:?}", filepath);
-        let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
-        let result = read_raw_file(&filepath, op, None).unwrap();
+        let bonus_word = " yay";
+        let result = read_raw_file(&filepath, op, None, None, Some(op)).unwrap();
         let expected = vec![
             String::from("RouteE yay"),
             String::from("FASTSim yay"),
@@ -183,7 +225,7 @@ mod tests {
         .into_boxed_slice();
         assert_eq!(
             result, expected,
-            "result should include each row from the source file along with the bonus word"
+            "result should include each row from the source file"
         );
     }
 }
