@@ -191,7 +191,7 @@ mod tests {
             .join("test.txt");
         println!("loading file {:?}", filepath);
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
-        let result = read_raw_file(&filepath, op, None, None, Some(op)).unwrap();
+        let result = read_raw_file(&filepath, op, None, None, None).unwrap();
         let expected = vec![
             String::from("RouteE yay"),
             String::from("FASTSim yay"),
@@ -216,7 +216,7 @@ mod tests {
         println!("loading file {:?}", filepath);
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
         let bonus_word = " yay";
-        let result = read_raw_file(&filepath, op, None, None, Some(op)).unwrap();
+        let result = read_raw_file(&filepath, op, None, None, None).unwrap();
         let expected = vec![
             String::from("RouteE yay"),
             String::from("FASTSim yay"),
