@@ -130,7 +130,7 @@ mod test {
             .join("rtree_query.json");
 
         let vertices: Box<[Vertex]> =
-            read_utils::from_csv(&vertices_filepath.as_path(), true, None, None, None).unwrap();
+            read_utils::from_csv(&vertices_filepath.as_path(), true, None, None).unwrap();
         let index = SpatialIndex::new_vertex_oriented(&vertices, None);
 
         // test nearest neighbor queries perform as expected
