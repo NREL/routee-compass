@@ -58,7 +58,12 @@ pub fn from_csv<'a, T>(
 where
     T: serde::de::DeserializeOwned + 'a,
 {
-    let bar_opt = progress.and_then(|b| b.build().ok());
+    // build the progress bar if the user provided it and the logging system is at least INFO
+    let bar_opt = if log::log_enabled!(log::Level::Info) {
+        progress.and_then(|b| b.build().ok())
+    } else {
+        None
+    };
 
     let row_callback: CsvCallback<'a, T> = match (callback, bar_opt) {
         (None, None) => None,
@@ -95,7 +100,12 @@ pub fn read_raw_file<F, T>(
 where
     F: AsRef<Path>,
 {
-    let bar_opt = progress.and_then(|b| b.build().ok());
+    // build the progress bar if the user provided it and the logging system is at least INFO
+    let bar_opt = if log::log_enabled!(log::Level::Info) {
+        progress.and_then(|b| b.build().ok())
+    } else {
+        None
+    };
 
     let row_callback: RawCallback = match (callback, bar_opt) {
         (None, None) => None,
