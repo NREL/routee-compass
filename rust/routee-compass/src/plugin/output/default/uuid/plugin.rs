@@ -3,6 +3,7 @@ use crate::app::compass::compass_app_error::CompassAppError;
 use crate::app::search::search_app_result::SearchAppResult;
 use crate::plugin::output::default::uuid::output_json_extensions::UUIDJsonField;
 use crate::plugin::output::{OutputPlugin, OutputPluginError};
+use kdam::Bar;
 use routee_compass_core::algorithm::search::search_instance::SearchInstance;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 use std::path::Path;
@@ -15,14 +16,19 @@ pub struct UUIDOutputPlugin {
 
 impl UUIDOutputPlugin {
     pub fn from_file<P: AsRef<Path>>(filename: &P) -> Result<UUIDOutputPlugin, OutputPluginError> {
-        let uuids = read_raw_file(filename, |_idx, row| Ok(row), Some("uuids"), None, None)
-            .map_err(|e| {
-                OutputPluginError::BuildFailed(format!(
-                    "failure reading UUID file {}: {}",
-                    filename.as_ref().to_str().unwrap_or_default(),
-                    e
-                ))
-            })?;
+        let uuids = read_raw_file(
+            filename,
+            |_idx, row| Ok(row),
+            Some(Bar::builder().desc("uuids")),
+            None,
+        )
+        .map_err(|e| {
+            OutputPluginError::BuildFailed(format!(
+                "failure reading UUID file {}: {}",
+                filename.as_ref().to_str().unwrap_or_default(),
+                e
+            ))
+        })?;
         eprintln!();
 
         let o_key = UUIDJsonField::OriginVertexUUID.to_string();

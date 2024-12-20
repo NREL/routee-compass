@@ -3,6 +3,7 @@ use crate::app::compass::config::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
 };
+use kdam::Bar;
 use routee_compass_core::{
     model::frontier::{
         frontier_model_builder::FrontierModelBuilder, frontier_model_error::FrontierModelError,
@@ -35,8 +36,7 @@ impl FrontierModelBuilder for RoadClassBuilder {
         let road_class_lookup: Box<[u8]> = read_utils::read_raw_file(
             &road_class_file,
             read_decoders::u8,
-            Some("road class"),
-            None,
+            Some(Bar::builder().desc("road class")),
             None,
         )
         .map_err(|e| {

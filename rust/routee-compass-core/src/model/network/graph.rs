@@ -4,6 +4,7 @@ use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::util::fs::read_utils;
 use allocative::Allocative;
 use itertools::Itertools;
+use kdam::Bar;
 use std::collections::HashSet;
 use std::path::Path;
 
@@ -50,9 +51,13 @@ impl Graph {
         edge_list_csv: &P,
         vertex_list_csv: &P,
     ) -> Result<Graph, NetworkError> {
-        let vertices: Box<[Vertex]> =
-            read_utils::from_csv(&vertex_list_csv, true, Some("graph vertices"), None, None)
-                .map_err(|e| NetworkError::CsvError { source: e })?;
+        let vertices: Box<[Vertex]> = read_utils::from_csv(
+            &vertex_list_csv,
+            true,
+            Some(Bar::builder().desc("graph vertices")),
+            None,
+        )
+        .map_err(|e| NetworkError::CsvError { source: e })?;
 
         let mut adj: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
             vec![CompactOrderedHashMap::empty(); vertices.len()];
@@ -79,8 +84,13 @@ impl Graph {
             }
         });
 
-        let edges = read_utils::from_csv(&edge_list_csv, true, Some("graph edges"), None, Some(cb))
-            .map_err(|e| NetworkError::CsvError { source: e })?;
+        let edges = read_utils::from_csv(
+            &edge_list_csv,
+            true,
+            Some(Bar::builder().desc("graph edges")),
+            Some(cb),
+        )
+        .map_err(|e| NetworkError::CsvError { source: e })?;
 
         let graph = Graph {
             adj: adj.into_boxed_slice(),

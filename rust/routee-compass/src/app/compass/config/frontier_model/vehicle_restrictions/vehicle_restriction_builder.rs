@@ -2,6 +2,7 @@ use crate::app::compass::config::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
 };
+use kdam::Bar;
 use routee_compass_core::{
     model::{
         frontier::{
@@ -56,8 +57,7 @@ pub fn vehicle_restriction_lookup_from_file(
     let rows: Vec<RestrictionRow> = read_utils::from_csv(
         &vehicle_restriction_input_file,
         true,
-        Some("vehicle restrictions"),
-        None,
+        Some(Bar::builder().desc("vehicle restrictions")),
         None,
     )
     .map_err(|e| {

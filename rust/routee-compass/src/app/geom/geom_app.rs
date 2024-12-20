@@ -1,5 +1,6 @@
 use crate::app::compass::compass_app_error::CompassAppError;
 use geo::LineString;
+use kdam::Bar;
 use routee_compass_core::util::fs::read_utils;
 use routee_compass_core::util::geo::geo_io_utils::parse_wkt_linestring;
 use std::io::ErrorKind;
@@ -25,14 +26,18 @@ impl TryFrom<&GeomAppConfig> for GeomApp {
             Ok(result)
         };
 
-        let geoms =
-            read_utils::read_raw_file(&conf.edge_file, op, Some("link geometries"), None, None)
-                .map_err(|e| {
-                    CompassAppError::BuildFailure(format!(
-                        "failure reading edge file {}: {}",
-                        conf.edge_file, e
-                    ))
-                })?;
+        let geoms = read_utils::read_raw_file(
+            &conf.edge_file,
+            op,
+            Some(Bar::builder().desc("link geometries")),
+            None,
+        )
+        .map_err(|e| {
+            CompassAppError::BuildFailure(format!(
+                "failure reading edge file {}: {}",
+                conf.edge_file, e
+            ))
+        })?;
         eprintln!();
         let app = GeomApp { geoms };
         Ok(app)
@@ -56,15 +61,18 @@ impl GeomApp {
             result
         };
 
-        let result: Box<[LineString<f32>]> =
-            read_utils::read_raw_file(&file, op, Some("link geometries"), None, None).map_err(
-                |e| {
-                    CompassAppError::BuildFailure(format!(
-                        "failure reading linestring file {}: {}",
-                        file, e
-                    ))
-                },
-            )?;
+        let result: Box<[LineString<f32>]> = read_utils::read_raw_file(
+            &file,
+            op,
+            Some(Bar::builder().desc("link geometries")),
+            None,
+        )
+        .map_err(|e| {
+            CompassAppError::BuildFailure(format!(
+                "failure reading linestring file {}: {}",
+                file, e
+            ))
+        })?;
         eprintln!();
         Ok(result)
     }

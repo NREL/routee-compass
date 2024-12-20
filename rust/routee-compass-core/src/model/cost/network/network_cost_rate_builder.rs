@@ -7,6 +7,7 @@ use crate::{
     },
     util::fs::read_utils,
 };
+use kdam::Bar;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -30,8 +31,7 @@ impl NetworkCostRateBuilder {
                 let lookup = read_utils::from_csv::<NetworkTraversalUtilityRow>(
                     cost_input_file,
                     true,
-                    Some("network edge cost lookup"),
-                    None,
+                    Some(Bar::builder().desc("network edge cost lookup")),
                     None,
                 )
                 .map_err(|source| {
@@ -49,8 +49,7 @@ impl NetworkCostRateBuilder {
                 let lookup = read_utils::from_csv::<NetworkAccessUtilityRow>(
                     cost_input_file,
                     true,
-                    Some("network edge->edge cost lookup"),
-                    None,
+                    Some(Bar::builder().desc("network edge->edge cost lookup")),
                     None,
                 )
                 .map_err(|source| {

@@ -1,3 +1,5 @@
+use kdam::Bar;
+
 use crate::model::unit::DistanceUnit;
 use crate::model::unit::{SpeedUnit, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::util::fs::read_decoders;
@@ -25,8 +27,7 @@ impl SpeedTraversalEngine {
         let speed_table: Box<[Speed]> = read_utils::read_raw_file(
             speed_table_path,
             read_decoders::default,
-            Some("link speeds"),
-            None,
+            Some(Bar::builder().desc("link speeds")),
             None,
         )
         .map_err(|e| {

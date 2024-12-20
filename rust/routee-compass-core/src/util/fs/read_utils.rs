@@ -1,7 +1,7 @@
 use super::fs_utils;
 use csv::ReaderBuilder;
 use flate2::read::GzDecoder;
-use kdam::{Bar, BarExt};
+use kdam::{BarBuilder, BarExt};
 
 use std::{
     fs::File,
@@ -52,19 +52,13 @@ where
 pub fn from_csv<'a, T>(
     filepath: &dyn AsRef<Path>,
     has_headers: bool,
-    progress_message: Option<&str>,
-    progress_size: Option<usize>,
+    progress: Option<BarBuilder>,
     callback: CsvCallback<'a, T>,
 ) -> Result<Box<[T]>, csv::Error>
 where
     T: serde::de::DeserializeOwned + 'a,
 {
-    let bar_opt = match (progress_message, progress_size) {
-        (Some(desc), Some(total)) => Bar::builder().desc(desc).total(total).build().ok(),
-        (Some(desc), None) => Bar::builder().desc(desc).build().ok(),
-        (None, Some(total)) => Bar::builder().total(total).build().ok(),
-        _ => None,
-    };
+    let bar_opt = progress.and_then(|b| b.build().ok());
 
     let row_callback: CsvCallback<'a, T> = match (callback, bar_opt) {
         (None, None) => None,
@@ -95,19 +89,13 @@ where
 pub fn read_raw_file<F, T>(
     filepath: F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
-    progress_message: Option<&str>,
-    progress_size: Option<usize>,
+    progress: Option<BarBuilder>,
     callback: Option<Box<dyn FnMut()>>,
 ) -> Result<Box<[T]>, io::Error>
 where
     F: AsRef<Path>,
 {
-    let bar_opt = match (progress_message, progress_size) {
-        (Some(desc), Some(total)) => Bar::builder().desc(desc).total(total).build().ok(),
-        (Some(desc), None) => Bar::builder().desc(desc).build().ok(),
-        (None, Some(total)) => Bar::builder().total(total).build().ok(),
-        _ => None,
-    };
+    let bar_opt = progress.and_then(|b| b.build().ok());
 
     let row_callback: RawCallback = match (callback, bar_opt) {
         (None, None) => None,
@@ -192,7 +180,7 @@ mod tests {
         println!("loading file {:?}", filepath);
         let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
-        let result = read_raw_file(&filepath, op, None, None, None).unwrap();
+        let result = read_raw_file(&filepath, op, None, None).unwrap();
         let expected = vec![
             String::from("RouteE yay"),
             String::from("FASTSim yay"),
@@ -217,7 +205,7 @@ mod tests {
         println!("loading file {:?}", filepath);
         let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
-        let result = read_raw_file(&filepath, op, None, None, None).unwrap();
+        let result = read_raw_file(&filepath, op, None, None).unwrap();
         let expected = vec![
             String::from("RouteE yay"),
             String::from("FASTSim yay"),

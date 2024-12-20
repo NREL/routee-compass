@@ -1,5 +1,6 @@
 use super::energy_traversal_model::EnergyTraversalModel;
 use super::vehicle::VehicleType;
+use kdam::Bar;
 use routee_compass_core::model::traversal::traversal_model::TraversalModel;
 use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
 use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
@@ -40,8 +41,7 @@ impl EnergyModelService {
                 read_utils::read_raw_file(
                     gtp,
                     read_decoders::default,
-                    Some("link grades"),
-                    None,
+                    Some(Bar::builder().desc("link grades")),
                     None,
                 )
                 .map_err(|e| {
