@@ -1,12 +1,12 @@
 use super::{Edge, EdgeId, NetworkError, Vertex, VertexId};
 use crate::algorithm::search::direction::Direction;
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
-use std::path::Path;
-
-use super::graph_loader::graph_from_files;
-
+use crate::util::fs::read_utils;
 use allocative::Allocative;
 use itertools::Itertools;
+use kdam::Bar;
+use std::collections::HashSet;
+use std::path::Path;
 
 /// Road network topology represented as an adjacency list.
 /// The `EdgeId` and `VertexId` values correspond to edge and
@@ -37,17 +37,11 @@ pub struct Graph {
 
 impl Graph {
     /// Build a `Graph` from a pair of CSV files.
-    /// You can also pass in the number of edges and vertices to avoid
-    /// scanning the input files and potentially building vectors that
-    /// have more memory than needed.
     ///
     /// # Arguments
     ///
     /// * `edge_list_csv` - path to the CSV file containing edge attributes
     /// * `vertex_list_csv` - path to the CSV file containing vertex attributes
-    /// * `n_edges` - number of edges in the graph
-    /// * `n_vertices` - number of vertices in the graph
-    /// * `verbose` - whether to print progress information to the console
     ///
     /// # Returns
     ///
@@ -56,11 +50,56 @@ impl Graph {
     pub fn from_files<P: AsRef<Path>>(
         edge_list_csv: &P,
         vertex_list_csv: &P,
-        n_edges: Option<usize>,
-        n_vertices: Option<usize>,
-        verbose: Option<bool>,
     ) -> Result<Graph, NetworkError> {
-        graph_from_files(edge_list_csv, vertex_list_csv, n_edges, n_vertices, verbose)
+        let vertices: Box<[Vertex]> = read_utils::from_csv(
+            &vertex_list_csv,
+            true,
+            Some(Bar::builder().desc("graph vertices")),
+            None,
+        )
+        .map_err(|e| NetworkError::CsvError { source: e })?;
+
+        let mut adj: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
+            vec![CompactOrderedHashMap::empty(); vertices.len()];
+        let mut rev: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
+            vec![CompactOrderedHashMap::empty(); vertices.len()];
+        let mut missing_vertices: HashSet<VertexId> = HashSet::new();
+        let cb = Box::new(|edge: &Edge| {
+            // the Edge provides us with all id information to build our adjacency lists as well
+            match adj.get_mut(edge.src_vertex_id.0) {
+                None => {
+                    missing_vertices.insert(edge.src_vertex_id);
+                }
+                Some(out_links) => {
+                    out_links.insert(edge.edge_id, edge.dst_vertex_id);
+                }
+            }
+            match rev.get_mut(edge.dst_vertex_id.0) {
+                None => {
+                    missing_vertices.insert(edge.dst_vertex_id);
+                }
+                Some(in_links) => {
+                    in_links.insert(edge.edge_id, edge.src_vertex_id);
+                }
+            }
+        });
+
+        let edges = read_utils::from_csv(
+            &edge_list_csv,
+            true,
+            Some(Bar::builder().desc("graph edges")),
+            Some(cb),
+        )
+        .map_err(|e| NetworkError::CsvError { source: e })?;
+
+        let graph = Graph {
+            adj: adj.into_boxed_slice(),
+            rev: rev.into_boxed_slice(),
+            edges,
+            vertices,
+        };
+
+        Ok(graph)
     }
     /// number of edges in the Graph
     pub fn n_edges(&self) -> usize {

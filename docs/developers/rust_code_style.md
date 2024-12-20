@@ -6,7 +6,7 @@ while a `Vec<T>` is more common, it lacks the ability to match capacity exactly 
 
 ```rust
 let path: Path = todo!();
-let data: Vec<T> = read_utils::from_csv(&file_path, True, None)?;
+let data: Vec<T> = read_utils::from_csv(&file_path, true, None, None, None)?;
 let output: Box<[T]> = data.into_boxed_slice();
 ```
 

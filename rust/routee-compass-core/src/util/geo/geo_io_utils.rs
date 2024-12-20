@@ -1,33 +1,7 @@
-use crate::util::fs::{fs_utils, read_utils};
 use geo::{Coord, LineString, Point};
 use itertools::Itertools;
-use kdam::{Bar, BarExt};
-use std::path::Path;
 use wkb;
 use wkt::{ToWkt, TryFromWkt};
-
-/// reads a collection of LINESTRINGS
-pub fn read_linestring_text_file<F: AsRef<Path>>(
-    file: F,
-) -> Result<Box<[LineString<f32>]>, std::io::Error> {
-    let filepath: &Path = file.as_ref();
-    let is_gzip = fs_utils::is_gzip(filepath);
-    let count = fs_utils::line_count(filepath, is_gzip)?;
-
-    let mut pb = Bar::builder()
-        .total(count)
-        .animation("fillup")
-        .desc("geometry file")
-        .build()
-        .map_err(|s| std::io::Error::new(std::io::ErrorKind::Interrupted, s.as_str()))?;
-
-    let cb = Box::new(|| {
-        let _ = pb.update(1);
-    });
-    let geoms: Box<[LineString<f32>]> =
-        read_utils::read_raw_file(filepath, parse_wkt_linestring, Some(cb))?;
-    Ok(geoms)
-}
 
 /// Concatenate a vector of linestrings into a single linestring
 ///

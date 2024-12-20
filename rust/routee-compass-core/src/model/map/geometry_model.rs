@@ -6,7 +6,7 @@ use crate::{
     util::{fs::read_utils, geo::geo_io_utils},
 };
 use geo::LineString;
-use kdam::BarExt;
+use kdam::{Bar, BarExt};
 
 /// model for link geometries by edge id. can be constructed either
 /// from edge geometry dataset ([`GeometryModel::new_from_edges`]) or
@@ -47,20 +47,11 @@ fn read_linestrings(
     geometry_input_file: &String,
     n_edges: usize,
 ) -> Result<Vec<geo::LineString<f32>>, MapError> {
-    let mut pb = kdam::Bar::builder()
-        .total(n_edges)
-        .animation("fillup")
-        .desc("edge LineString geometry file")
-        .build()
-        .map_err(MapError::InternalError)?;
-
-    let cb = Box::new(|| {
-        let _ = pb.update(1);
-    });
     let geoms = read_utils::read_raw_file(
         geometry_input_file,
         geo_io_utils::parse_wkt_linestring,
-        Some(cb),
+        Some(Bar::builder().desc("link geometries").total(n_edges)),
+        None,
     )
     .map_err(|e: std::io::Error| {
         MapError::BuildError(format!("error loading {}: {}", geometry_input_file, e))
@@ -187,7 +178,7 @@ mod tests {
 
     #[test]
     fn test_geometry_deserialization() {
-        let result = read_raw_file(mock_geometry_file(), parse_wkt_linestring, None).unwrap();
+        let result = read_raw_file(mock_geometry_file(), parse_wkt_linestring, None, None).unwrap();
         assert_eq!(result.len(), 3);
     }
 
