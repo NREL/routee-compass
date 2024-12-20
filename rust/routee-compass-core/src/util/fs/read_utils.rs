@@ -1,7 +1,7 @@
 use super::fs_utils;
 use csv::ReaderBuilder;
 use flate2::read::GzDecoder;
-use kdam::{BarBuilder, BarExt};
+use kdam::{Bar, BarBuilder, BarExt};
 
 use std::{
     fs::File,
@@ -11,6 +11,10 @@ use std::{
 
 type CsvCallback<'a, T> = Option<Box<dyn FnMut(&T) + 'a>>;
 type RawCallback<'a> = Option<Box<dyn FnMut() + 'a>>;
+
+/// environment variable used to denote if the progress bar should be used.
+/// if COMPASS_PROGRESS=false, the bar is deactivated, otherwise it runs.
+const COMPASS_PROGRESS: &str = "COMPASS_PROGRESS";
 
 /// reads from a CSV into an iterator of T records.
 /// building the iterator may fail with an io::Error.
@@ -58,12 +62,7 @@ pub fn from_csv<'a, T>(
 where
     T: serde::de::DeserializeOwned + 'a,
 {
-    // build the progress bar if the user provided it and the logging system is at least INFO
-    let bar_opt = if log::log_enabled!(log::Level::Info) {
-        progress.and_then(|b| b.build().ok())
-    } else {
-        None
-    };
+    let bar_opt = build_bar(progress);
 
     let row_callback: CsvCallback<'a, T> = match (callback, bar_opt) {
         (None, None) => None,
@@ -100,12 +99,7 @@ pub fn read_raw_file<F, T>(
 where
     F: AsRef<Path>,
 {
-    // build the progress bar if the user provided it and the logging system is at least INFO
-    let bar_opt = if log::log_enabled!(log::Level::Info) {
-        progress.and_then(|b| b.build().ok())
-    } else {
-        None
-    };
+    let bar_opt = build_bar(progress);
 
     let row_callback: RawCallback = match (callback, bar_opt) {
         (None, None) => None,
@@ -171,6 +165,32 @@ where
         result.push(deserialized);
     }
     Ok(result.into_boxed_slice())
+}
+
+/// helper function for building a progress bar.
+/// a progress bar is created only if:
+///   - the `progress` argument is not None
+///   - the logging system is set to DEBUG or INFO
+///   - the COMPASS_PROGRESS environment variable is not set to "false"
+///
+/// # Arguments
+///
+/// * `progress` - progress bar configuration
+///
+/// # Returns
+///
+/// Some progress bar if it should be built, else None
+fn build_bar(progress: Option<BarBuilder>) -> Option<Bar> {
+    let progress_disabled = std::env::var(COMPASS_PROGRESS)
+        .ok()
+        .map(|v| v.to_lowercase() == "false")
+        .unwrap_or_default();
+    let log_info_enabled = log::log_enabled!(log::Level::Info);
+    if !progress_disabled && log_info_enabled {
+        progress.and_then(|b| b.build().ok())
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]
