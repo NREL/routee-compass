@@ -1,8 +1,8 @@
 use super::fs_utils;
+use crate::util::progress;
 use csv::ReaderBuilder;
 use flate2::read::GzDecoder;
-use kdam::{Bar, BarBuilder, BarExt};
-
+use kdam::{BarBuilder, BarExt};
 use std::{
     fs::File,
     io::{self, BufRead, BufReader},
@@ -11,10 +11,6 @@ use std::{
 
 type CsvCallback<'a, T> = Option<Box<dyn FnMut(&T) + 'a>>;
 type RawCallback<'a> = Option<Box<dyn FnMut() + 'a>>;
-
-/// environment variable used to denote if the progress bar should be used.
-/// if COMPASS_PROGRESS=false, the bar is deactivated, otherwise it runs.
-const COMPASS_PROGRESS: &str = "COMPASS_PROGRESS";
 
 /// reads a csv file into a vector. not space-optimized since size is not
 /// known.
@@ -27,7 +23,7 @@ pub fn from_csv<'a, T>(
 where
     T: serde::de::DeserializeOwned + 'a,
 {
-    let bar_opt = build_bar(progress);
+    let bar_opt = progress::build_progress_bar(progress);
     let finalize_bar = bar_opt.is_some();
 
     let row_callback: CsvCallback<'a, T> = match (callback, bar_opt) {
@@ -70,7 +66,7 @@ pub fn read_raw_file<F, T>(
 where
     F: AsRef<Path>,
 {
-    let bar_opt = build_bar(progress);
+    let bar_opt = progress::build_progress_bar(progress);
     let finalize_bar = bar_opt.is_some();
 
     let row_callback: RawCallback = match (callback, bar_opt) {
@@ -175,32 +171,6 @@ where
         result.push(deserialized);
     }
     Ok(result.into_boxed_slice())
-}
-
-/// helper function for building a progress bar.
-/// a progress bar is created only if:
-///   - the `progress` argument is not None
-///   - the logging system is set to DEBUG or INFO
-///   - the COMPASS_PROGRESS environment variable is not set to "false"
-///
-/// # Arguments
-///
-/// * `progress` - progress bar configuration
-///
-/// # Returns
-///
-/// Some progress bar if it should be built, else None
-fn build_bar(progress: Option<BarBuilder>) -> Option<Bar> {
-    let progress_disabled = std::env::var(COMPASS_PROGRESS)
-        .ok()
-        .map(|v| v.to_lowercase() == "false")
-        .unwrap_or_default();
-    let log_info_enabled = log::log_enabled!(log::Level::Info);
-    if !progress_disabled && log_info_enabled {
-        progress.and_then(|b| b.build().ok())
-    } else {
-        None
-    }
 }
 
 #[cfg(test)]
