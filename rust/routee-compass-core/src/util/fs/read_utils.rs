@@ -17,13 +17,13 @@ type RawCallback<'a> = Option<Box<dyn FnMut() + 'a>>;
 pub fn from_csv<'a, T>(
     filepath: &dyn AsRef<Path>,
     has_headers: bool,
-    progress: Option<BarBuilder>,
+    bar_builder: Option<BarBuilder>,
     callback: CsvCallback<'a, T>,
 ) -> Result<Box<[T]>, csv::Error>
 where
     T: serde::de::DeserializeOwned + 'a,
 {
-    let bar_opt = progress::build_progress_bar(progress);
+    let bar_opt = bar_builder.and_then(progress::build_progress_bar);
     let finalize_bar = bar_opt.is_some();
 
     let row_callback: CsvCallback<'a, T> = match (callback, bar_opt) {
@@ -60,13 +60,13 @@ where
 pub fn read_raw_file<F, T>(
     filepath: F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
-    progress: Option<BarBuilder>,
+    bar_builder: Option<BarBuilder>,
     callback: Option<Box<dyn FnMut()>>,
 ) -> Result<Box<[T]>, io::Error>
 where
     F: AsRef<Path>,
 {
-    let bar_opt = progress::build_progress_bar(progress);
+    let bar_opt = bar_builder.and_then(progress::build_progress_bar);
     let finalize_bar = bar_opt.is_some();
 
     let row_callback: RawCallback = match (callback, bar_opt) {

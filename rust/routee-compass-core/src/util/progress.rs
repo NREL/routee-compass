@@ -17,14 +17,14 @@ const COMPASS_PROGRESS: &str = "COMPASS_PROGRESS";
 /// # Returns
 ///
 /// Some progress bar if it should be built, else None
-pub fn build_progress_bar(progress: Option<BarBuilder>) -> Option<Bar> {
+pub fn build_progress_bar(progress: BarBuilder) -> Option<Bar> {
     let progress_disabled = std::env::var(COMPASS_PROGRESS)
         .ok()
         .map(|v| v.to_lowercase() == "false")
         .unwrap_or_default();
     let log_info_enabled = log::log_enabled!(log::Level::Info);
     if !progress_disabled && log_info_enabled {
-        progress.and_then(|b| b.build().ok())
+        progress.build().ok()
     } else {
         None
     }
