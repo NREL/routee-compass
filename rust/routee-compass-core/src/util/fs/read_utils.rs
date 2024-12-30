@@ -126,6 +126,17 @@ where
     Ok(Box::new(reader))
 }
 
+/// reads a regular file using a simple deserialization operation.
+///
+/// # Arguments
+/// * `filepath` - path to the regular file
+/// * `op` - callback taking the line number (from zero) and the line, returning a T or read failure
+/// * `row_callback` - optional callback invoked after each row deserialization
+///
+/// # Returns
+///
+/// A Collection of T after a successful deserialization, or an error if any row read fails.
+///
 fn read_regular<'a, F, T>(
     filepath: F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
@@ -151,6 +162,17 @@ where
     result
 }
 
+/// reads a GZIP'd regular file using a simple deserialization operation.
+///
+/// # Arguments
+/// * `filepath` - path to the regular file
+/// * `op` - callback taking the line number (from zero) and the line, returning a T or read failure
+/// * `row_callback` - optional callback invoked after each row deserialization
+///
+/// # Returns
+///
+/// A Collection of T after a successful deserialization, or an error if any row read fails.
+///
 fn read_gzip<'a, F, T>(
     filepath: F,
     op: impl Fn(usize, String) -> Result<T, io::Error>,
