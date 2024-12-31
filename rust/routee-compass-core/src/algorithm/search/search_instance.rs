@@ -1,7 +1,7 @@
 use super::search_error::SearchError;
 use crate::model::{
     access::AccessModel,
-    cost::cost_model::CostModel,
+    cost::CostModel,
     frontier::frontier_model::FrontierModel,
     map::map_model::MapModel,
     network::{graph::Graph, vertex_id::VertexId},

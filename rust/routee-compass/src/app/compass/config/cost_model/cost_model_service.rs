@@ -1,10 +1,7 @@
 use crate::app::compass::config::compass_configuration_error::CompassConfigurationError;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::model::{
-    cost::{
-        cost_aggregation::CostAggregation, cost_model::CostModel,
-        network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
-    },
+    cost::{network::NetworkCostRate, CostAggregation, CostModel, VehicleCostRate},
     state::StateModel,
 };
 use std::{

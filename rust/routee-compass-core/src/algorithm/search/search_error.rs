@@ -1,6 +1,6 @@
 use crate::model::{
     access::AccessModelError,
-    cost::cost_model_error::CostModelError,
+    cost::CostModelError,
     frontier::frontier_model_error::FrontierModelError,
     network::{edge_id::EdgeId, network_error::NetworkError, vertex_id::VertexId},
     state::StateModelError,

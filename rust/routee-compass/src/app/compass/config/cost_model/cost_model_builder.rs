@@ -5,8 +5,7 @@ use crate::app::compass::config::{
     config_json_extension::ConfigJsonExtensions,
 };
 use routee_compass_core::model::cost::{
-    cost_aggregation::CostAggregation, network::network_cost_rate::NetworkCostRate,
-    vehicle::vehicle_cost_rate::VehicleCostRate,
+    network::NetworkCostRate, CostAggregation, VehicleCostRate,
 };
 use std::{collections::HashMap, sync::Arc};
 

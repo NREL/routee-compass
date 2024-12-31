@@ -1,7 +1,4 @@
-use super::{
-    cost_aggregation::CostAggregation, cost_model_error::CostModelError,
-    network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
-};
+use super::{network::NetworkCostRate, CostAggregation, CostModelError, VehicleCostRate};
 use crate::model::{network::Edge, state::StateVariable, unit::Cost};
 
 /// steps through each state variable and assigns vehicle costs related to that variable

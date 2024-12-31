@@ -1,7 +1,7 @@
 use crate::model::network::Edge;
 use crate::model::state::StateVariable;
 use crate::model::unit::Cost;
-use crate::model::{cost::cost_model_error::CostModelError, network::EdgeId};
+use crate::model::{cost::CostModelError, network::EdgeId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

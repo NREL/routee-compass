@@ -1,8 +1,5 @@
-use super::cost_aggregation::CostAggregation;
-use super::cost_ops;
-use super::network::network_cost_rate::NetworkCostRate;
-use super::vehicle::vehicle_cost_rate::VehicleCostRate;
-use crate::model::cost::cost_model_error::CostModelError;
+use super::{cost_ops, network::NetworkCostRate, CostAggregation, VehicleCostRate};
+use crate::model::cost::CostModelError;
 use crate::model::network::Edge;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;

@@ -1,5 +1,5 @@
 use super::network_cost_rate::NetworkCostRate;
-use crate::model::cost::cost_model_error::CostModelError;
+use crate::model::cost::CostModelError;
 use crate::{
     model::cost::network::{
         network_access_cost_row::NetworkAccessUtilityRow,
