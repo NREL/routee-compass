@@ -4,7 +4,7 @@ use crate::routee::prediction::prediction_model::PredictionModel;
 
 use ort::{GraphOptimizationLevel, Session, Value};
 use routee_compass_core::{
-    model::traversal::traversal_model_error::TraversalModelError,
+    model::traversal::TraversalModelError,
     model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 
@@ -91,7 +91,7 @@ mod test {
     };
     use rayon::prelude::*;
     use routee_compass_core::{
-        model::traversal::traversal_model_error::TraversalModelError,
+        model::traversal::TraversalModelError,
         model::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
     };
 

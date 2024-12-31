@@ -1,4 +1,4 @@
-use crate::model::traversal::state::traversal_state::TraversalState;
+use crate::model::traversal::TraversalState;
 use crate::model::unit::Cost;
 
 /// The state of a search after completing an edge traversal, along

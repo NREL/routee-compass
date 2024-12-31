@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use routee_compass_core::{
-    model::traversal::traversal_model_error::TraversalModelError,
+    model::traversal::TraversalModelError,
     model::unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit,
         Grade, GradeUnit, Speed, SpeedUnit,

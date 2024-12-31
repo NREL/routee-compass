@@ -1,7 +1,7 @@
-use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
+use crate::model::traversal::default::DistanceTraversalModel;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::traversal::traversal_model_error::TraversalModelError;
-use crate::model::traversal::traversal_model_service::TraversalModelService;
+use crate::model::traversal::TraversalModelService;
+use crate::model::traversal::TraversalModelError;
 use crate::model::unit::DistanceUnit;
 use std::sync::Arc;
 

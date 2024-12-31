@@ -1,8 +1,7 @@
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
 use crate::model::network::edge_id::EdgeId;
-use crate::model::traversal::state::state_variable::StateVar;
-use crate::model::traversal::state::traversal_state::TraversalState;
+use crate::model::traversal::{StateVar, TraversalState};
 use crate::model::unit::Cost;
 use allocative::Allocative;
 use serde::{Deserialize, Serialize};

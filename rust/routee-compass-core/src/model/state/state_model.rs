@@ -5,7 +5,7 @@ use super::{
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::{
     model::{
-        traversal::state::state_variable::StateVar,
+        traversal::StateVar,
         unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
     },
     util::compact_ordered_hash_map::IndexedEntry,

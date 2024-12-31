@@ -14,7 +14,7 @@ impl FrontierModel for NoRestriction {
     fn valid_frontier(
         &self,
         _edge: &crate::model::network::Edge,
-        _state: &[crate::model::traversal::state::state_variable::StateVar],
+        _state: &[crate::model::traversal::StateVar],
         _tree: &std::collections::HashMap<
             crate::model::network::VertexId,
             crate::algorithm::search::search_tree_branch::SearchTreeBranch,

@@ -44,10 +44,7 @@ use routee_compass_core::model::{
     frontier::{
         frontier_model_builder::FrontierModelBuilder, frontier_model_service::FrontierModelService,
     },
-    traversal::{
-        traversal_model_builder::TraversalModelBuilder,
-        traversal_model_service::TraversalModelService,
-    },
+    traversal::{TraversalModelBuilder, TraversalModelService},
 };
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 

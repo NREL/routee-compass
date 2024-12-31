@@ -1,6 +1,6 @@
 use routee_compass_core::model::{
     access::default::turn_delays::edge_heading::EdgeHeading, network::edge_id::EdgeId,
-    traversal::traversal_model_error::TraversalModelError, unit::Grade,
+    traversal::TraversalModelError, unit::Grade,
 };
 
 pub const ZERO_ENERGY: f64 = 1e-9;

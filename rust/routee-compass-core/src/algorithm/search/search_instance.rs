@@ -7,7 +7,7 @@ use crate::model::{
     network::{graph::Graph, vertex_id::VertexId},
     state::state_model::StateModel,
     termination::termination_model::TerminationModel,
-    traversal::{state::state_variable::StateVar, traversal_model::TraversalModel},
+    traversal::{StateVar, TraversalModel},
     unit::Cost,
 };
 use std::sync::Arc;

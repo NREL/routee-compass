@@ -5,7 +5,7 @@ use crate::routee::prediction::{
 };
 
 use routee_compass_core::{
-    model::traversal::traversal_model_error::TraversalModelError,
+    model::traversal::TraversalModelError,
     model::unit::{
         as_f64::AsF64, Distance, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit,
     },

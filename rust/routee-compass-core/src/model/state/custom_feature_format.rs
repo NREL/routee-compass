@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use super::{state_model_error::StateModelError, unit_codec_name::UnitCodecType};
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::traversal::StateVar;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 

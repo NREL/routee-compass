@@ -3,7 +3,7 @@ use crate::model::{
     access::{access_model::AccessModel, access_model_error::AccessModelError},
     network::{Edge, Vertex},
     state::{state_feature::StateFeature, state_model::StateModel},
-    traversal::state::state_variable::StateVar,
+    traversal::StateVar,
 };
 use std::sync::Arc;
 

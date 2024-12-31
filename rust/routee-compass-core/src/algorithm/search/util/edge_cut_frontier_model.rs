@@ -28,7 +28,7 @@ impl FrontierModel for EdgeCutFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
-        state: &[crate::model::traversal::state::state_variable::StateVar],
+        state: &[crate::model::traversal::StateVar],
         tree: &std::collections::HashMap<
             crate::model::network::VertexId,
             crate::algorithm::search::search_tree_branch::SearchTreeBranch,

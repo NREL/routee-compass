@@ -5,7 +5,7 @@ use super::vehicle::vehicle_cost_rate::VehicleCostRate;
 use crate::model::cost::cost_model_error::CostModelError;
 use crate::model::network::Edge;
 use crate::model::state::state_model::StateModel;
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::traversal::StateVar;
 use crate::model::unit::Cost;
 use serde_json::json;
 use std::collections::HashMap;

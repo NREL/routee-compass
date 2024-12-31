@@ -5,7 +5,7 @@ use crate::model::{
     },
     network::{Edge, Vertex},
     state::{state_feature::StateFeature, state_model::StateModel},
-    traversal::state::state_variable::StateVar,
+    traversal::StateVar,
 };
 use itertools::Itertools;
 use std::sync::Arc;

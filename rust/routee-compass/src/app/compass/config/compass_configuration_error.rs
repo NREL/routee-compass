@@ -4,7 +4,7 @@ use routee_compass_core::{
     model::{
         access::access_model_error::AccessModelError,
         frontier::frontier_model_error::FrontierModelError, network::network_error::NetworkError,
-        traversal::traversal_model_error::TraversalModelError,
+        traversal::TraversalModelError,
     },
     util::{cache_policy::cache_error::CacheError, conversion::conversion_error::ConversionError},
 };

@@ -4,7 +4,7 @@ use itertools::Itertools;
 use routee_compass_core::model::{
     access::access_model::AccessModel,
     state::{state_feature::StateFeature, state_model_error::StateModelError},
-    traversal::traversal_model::TraversalModel,
+    traversal::TraversalModel,
 };
 
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;

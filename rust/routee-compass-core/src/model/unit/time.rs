@@ -3,7 +3,7 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::traversal::StateVar;
 
 use super::{
     as_f64::AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, Speed,

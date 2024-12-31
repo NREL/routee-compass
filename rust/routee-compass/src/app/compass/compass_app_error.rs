@@ -10,7 +10,7 @@ use routee_compass_core::{
         frontier::frontier_model_error::FrontierModelError, map::map_error::MapError,
         network::network_error::NetworkError, state::state_model_error::StateModelError,
         termination::termination_model_error::TerminationModelError,
-        traversal::traversal_model_error::TraversalModelError,
+        traversal::TraversalModelError,
     },
 };
 

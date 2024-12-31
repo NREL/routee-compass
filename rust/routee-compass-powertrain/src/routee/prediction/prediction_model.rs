@@ -1,5 +1,5 @@
 use routee_compass_core::{
-    model::traversal::traversal_model_error::TraversalModelError,
+    model::traversal::TraversalModelError,
     model::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 

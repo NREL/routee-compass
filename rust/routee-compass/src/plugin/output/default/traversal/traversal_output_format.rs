@@ -122,7 +122,7 @@ mod test {
     use geo::{coord, LineString};
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::{network::edge_id::EdgeId, traversal::state::state_variable::StateVar, unit::Cost},
+        model::{network::edge_id::EdgeId, traversal::StateVar, unit::Cost},
     };
     use std::time::Duration;
 

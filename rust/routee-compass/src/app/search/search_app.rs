@@ -17,7 +17,7 @@ use routee_compass_core::{
         frontier::frontier_model_service::FrontierModelService, map::map_model::MapModel,
         network::graph::Graph, state::state_model::StateModel,
         termination::termination_model::TerminationModel,
-        traversal::traversal_model_service::TraversalModelService,
+        traversal::TraversalModelService,
     },
 };
 use std::sync::Arc;

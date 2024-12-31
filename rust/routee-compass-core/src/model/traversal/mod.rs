@@ -1,7 +1,15 @@
 pub mod default;
-pub mod state;
-pub mod traversal_model;
-pub mod traversal_model_builder;
-pub mod traversal_model_error;
-pub mod traversal_model_service;
-pub mod traversal_result;
+mod state;
+mod traversal_model;
+mod traversal_model_builder;
+mod traversal_model_error;
+mod traversal_model_service;
+mod traversal_result;
+
+pub use state::state_variable::StateVar;
+pub use state::traversal_state::TraversalState;
+pub use traversal_model::TraversalModel;
+pub use traversal_model_builder::TraversalModelBuilder;
+pub use traversal_model_error::TraversalModelError;
+pub use traversal_model_service::TraversalModelService;
+pub use traversal_result::TraversalResult;

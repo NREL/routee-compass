@@ -7,7 +7,7 @@ use routee_compass_core::model::{
         custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
         state_model::StateModel,
     },
-    traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
+    traversal::{StateVar, TraversalModelError},
     unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,

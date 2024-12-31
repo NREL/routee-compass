@@ -1,8 +1,8 @@
 use super::energy_traversal_model::EnergyTraversalModel;
 use super::vehicle::VehicleType;
-use routee_compass_core::model::traversal::traversal_model::TraversalModel;
-use routee_compass_core::model::traversal::traversal_model_error::TraversalModelError;
-use routee_compass_core::model::traversal::traversal_model_service::TraversalModelService;
+use routee_compass_core::model::traversal::TraversalModel;
+use routee_compass_core::model::traversal::TraversalModelError;
+use routee_compass_core::model::traversal::TraversalModelService;
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;

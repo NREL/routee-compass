@@ -1,4 +1,4 @@
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::traversal::StateVar;
 
 #[derive(thiserror::Error, Debug)]
 pub enum StateModelError {

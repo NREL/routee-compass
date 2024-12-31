@@ -1,4 +1,4 @@
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::traversal::StateVar;
 // pub(crate) type GenericStateUpdateOp = Box<dyn Fn(&StateVar, &StateVar) -> StateVar>;
 
 /// describes an arbitrary state update operation.

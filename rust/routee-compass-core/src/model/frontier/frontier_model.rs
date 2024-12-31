@@ -6,7 +6,7 @@ use crate::{
     model::{
         network::{Edge, VertexId},
         state::state_model::StateModel,
-        traversal::state::state_variable::StateVar,
+        traversal::StateVar,
     },
 };
 
