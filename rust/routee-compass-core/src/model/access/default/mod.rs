@@ -1,3 +1,6 @@
-pub mod combined_model;
-pub mod no_access_model;
+mod combined_model;
+mod no_access_model;
 pub mod turn_delays;
+
+pub use combined_model::{CombinedAccessModel, CombinedAccessModelService};
+pub use no_access_model::NoAccessModel;

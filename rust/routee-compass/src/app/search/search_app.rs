@@ -13,10 +13,9 @@ use routee_compass_core::{
         search_instance::SearchInstance,
     },
     model::{
-        access::access_model_service::AccessModelService,
-        frontier::frontier_model_service::FrontierModelService, map::map_model::MapModel,
-        network::graph::Graph, state::StateModel, termination::termination_model::TerminationModel,
-        traversal::TraversalModelService,
+        access::AccessModelService, frontier::frontier_model_service::FrontierModelService,
+        map::map_model::MapModel, network::graph::Graph, state::StateModel,
+        termination::termination_model::TerminationModel, traversal::TraversalModelService,
     },
 };
 use std::sync::Arc;

@@ -1,14 +1,10 @@
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::{
     model::access::{
-        access_model_builder::AccessModelBuilder,
-        access_model_error::AccessModelError,
-        access_model_service::AccessModelService,
         default::turn_delays::{
-            edge_heading::EdgeHeading, turn_delay_access_model_engine::TurnDelayAccessModelEngine,
-            turn_delay_access_model_service::TurnDelayAccessModelService,
-            turn_delay_model::TurnDelayModel,
+            EdgeHeading, TurnDelayAccessModelEngine, TurnDelayAccessModelService, TurnDelayModel,
         },
+        AccessModelBuilder, AccessModelError, AccessModelService,
     },
     util::fs::read_utils,
 };

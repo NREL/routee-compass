@@ -376,7 +376,7 @@ mod tests {
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::algorithm::search::MinSearchTree;
-    use crate::model::access::default::no_access_model::NoAccessModel;
+    use crate::model::access::no_access_model::NoAccessModel;
     use crate::model::cost::cost_aggregation::CostAggregation;
     use crate::model::cost::cost_model::CostModel;
     use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;

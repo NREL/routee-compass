@@ -1,5 +1,5 @@
 use crate::model::{
-    access::access_model_error::AccessModelError,
+    access::AccessModelError,
     cost::cost_model_error::CostModelError,
     frontier::frontier_model_error::FrontierModelError,
     network::{edge_id::EdgeId, network_error::NetworkError, vertex_id::VertexId},

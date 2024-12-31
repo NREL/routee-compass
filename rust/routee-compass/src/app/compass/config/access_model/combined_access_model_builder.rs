@@ -1,8 +1,7 @@
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use itertools::Itertools;
 use routee_compass_core::model::access::{
-    access_model_builder::AccessModelBuilder, access_model_error::AccessModelError,
-    access_model_service::AccessModelService, default::combined_model::CombinedAccessModelService,
+    default::CombinedAccessModelService, AccessModelBuilder, AccessModelError, AccessModelService,
 };
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 

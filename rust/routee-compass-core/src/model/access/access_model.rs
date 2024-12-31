@@ -1,4 +1,4 @@
-use super::access_model_error::AccessModelError;
+use super::AccessModelError;
 use crate::model::{
     network::{Edge, Vertex},
     state::{StateFeature, StateModel, StateVariable},

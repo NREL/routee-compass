@@ -1,6 +1,6 @@
 use super::search_error::SearchError;
 use crate::model::{
-    access::access_model::AccessModel,
+    access::AccessModel,
     cost::cost_model::CostModel,
     frontier::frontier_model::FrontierModel,
     map::map_model::MapModel,

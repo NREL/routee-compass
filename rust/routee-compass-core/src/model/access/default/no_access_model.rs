@@ -1,7 +1,7 @@
 use crate::model::{
     access::{
-        access_model::AccessModel, access_model_builder::AccessModelBuilder,
-        access_model_service::AccessModelService,
+        AccessModel, AccessModelBuilder,
+        AccessModelService,
     },
     network::{Edge, Vertex},
 };
@@ -20,7 +20,7 @@ impl AccessModel for NoAccessModel {
         _: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
         _: &mut Vec<crate::model::state::StateVariable>,
         _: &crate::model::state::StateModel,
-    ) -> Result<(), crate::model::access::access_model_error::AccessModelError> {
+    ) -> Result<(), crate::model::access::AccessModelError> {
         Ok(())
     }
 }
@@ -31,7 +31,7 @@ impl AccessModelService for NoAccessModel {
         _query: &serde_json::Value,
     ) -> Result<
         std::sync::Arc<dyn AccessModel>,
-        crate::model::access::access_model_error::AccessModelError,
+        crate::model::access::AccessModelError,
     > {
         let model: Arc<dyn AccessModel> = Arc::new(self.clone());
         Ok(model)
@@ -44,7 +44,7 @@ impl AccessModelBuilder for NoAccessModel {
         _parameters: &serde_json::Value,
     ) -> Result<
         Arc<dyn AccessModelService>,
-        crate::model::access::access_model_error::AccessModelError,
+        crate::model::access::AccessModelError,
     > {
         let service: Arc<dyn AccessModelService> = Arc::new(self.clone());
         Ok(service)

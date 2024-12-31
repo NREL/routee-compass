@@ -37,10 +37,7 @@ use crate::plugin::{
 };
 use itertools::Itertools;
 use routee_compass_core::model::{
-    access::{
-        access_model_builder::AccessModelBuilder, access_model_service::AccessModelService,
-        default::no_access_model::NoAccessModel,
-    },
+    access::{default::NoAccessModel, AccessModelBuilder, AccessModelService},
     frontier::{
         frontier_model_builder::FrontierModelBuilder, frontier_model_service::FrontierModelService,
     },

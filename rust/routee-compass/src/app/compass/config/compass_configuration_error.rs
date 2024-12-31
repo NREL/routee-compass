@@ -2,7 +2,7 @@ use crate::plugin::plugin_error::PluginError;
 use config::ConfigError;
 use routee_compass_core::{
     model::{
-        access::access_model_error::AccessModelError,
+        access::AccessModelError,
         frontier::frontier_model_error::FrontierModelError, network::network_error::NetworkError,
         traversal::TraversalModelError,
     },

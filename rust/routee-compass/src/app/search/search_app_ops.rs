@@ -1,7 +1,7 @@
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use itertools::Itertools;
 use routee_compass_core::model::{
-    access::access_model::AccessModel,
+    access::AccessModel,
     state::{StateFeature, StateModelError},
     traversal::TraversalModel,
 };
