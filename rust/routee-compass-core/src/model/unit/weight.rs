@@ -4,7 +4,7 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
-use crate::model::traversal::StateVar;
+use crate::model::state::StateVar;
 
 use super::{as_f64::AsF64, internal_float::InternalFloat};
 

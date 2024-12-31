@@ -5,9 +5,9 @@ use crate::routee::{
 use routee_compass_core::model::{
     state::{
         custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
-        state_model::StateModel,
+        state_model::StateModel, StateVar,
     },
-    traversal::{StateVar, TraversalModelError},
+    traversal::TraversalModelError,
     unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,

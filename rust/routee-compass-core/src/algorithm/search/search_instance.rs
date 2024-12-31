@@ -5,9 +5,9 @@ use crate::model::{
     frontier::frontier_model::FrontierModel,
     map::map_model::MapModel,
     network::{graph::Graph, vertex_id::VertexId},
-    state::state_model::StateModel,
+    state::{state_model::StateModel, StateVar},
     termination::termination_model::TerminationModel,
-    traversal::{StateVar, TraversalModel},
+    traversal::TraversalModel,
     unit::Cost,
 };
 use std::sync::Arc;

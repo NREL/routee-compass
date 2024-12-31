@@ -3,12 +3,10 @@ use crate::model::network::edge_id::EdgeId;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::state_feature::StateFeature;
 use crate::model::state::state_model::StateModel;
+use crate::model::state::StateVar;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::{Distance, Time, BASE_DISTANCE_UNIT};
-use crate::model::{
-    traversal::{state::state_variable::StateVar, traversal_model_error::TraversalModelError},
-    unit::Speed,
-};
+use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
 use crate::util::geo::haversine;
 use std::sync::Arc;
 

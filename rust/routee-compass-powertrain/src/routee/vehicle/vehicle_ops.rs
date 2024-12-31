@@ -1,6 +1,5 @@
 use routee_compass_core::model::{
-    state::{state_model::StateModel, state_model_error::StateModelError},
-    traversal::StateVar,
+    state::{state_model::StateModel, state_model_error::StateModelError, StateVar},
     unit::{as_f64::AsF64, Energy},
 };
 

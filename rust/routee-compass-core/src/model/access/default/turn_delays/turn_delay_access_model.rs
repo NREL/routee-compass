@@ -2,8 +2,7 @@ use super::turn_delay_access_model_engine::TurnDelayAccessModelEngine;
 use crate::model::{
     access::{access_model::AccessModel, access_model_error::AccessModelError},
     network::{Edge, Vertex},
-    state::{state_feature::StateFeature, state_model::StateModel},
-    traversal::StateVar,
+    state::{state_feature::StateFeature, state_model::StateModel, StateVar},
 };
 use std::sync::Arc;
 

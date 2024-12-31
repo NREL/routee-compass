@@ -1,9 +1,9 @@
-use crate::model::traversal::TraversalState;
+use crate::model::traversal::Vec<StateVar>;
 use crate::model::unit::Cost;
 
 pub struct AccessResult {
     pub cost: Cost,
-    pub updated_state: Option<TraversalState>,
+    pub updated_state: Option<Vec<StateVar>>,
 }
 
 impl AccessResult {

@@ -1,7 +1,7 @@
 use crate::routee::{prediction::PredictionModelRecord, vehicle::VehicleType};
 use routee_compass_core::model::{
-    state::{state_feature::StateFeature, state_model::StateModel},
-    traversal::{StateVar, TraversalModelError},
+    state::{state_feature::StateFeature, state_model::StateModel, StateVar},
+    traversal::TraversalModelError,
     unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use std::sync::Arc;

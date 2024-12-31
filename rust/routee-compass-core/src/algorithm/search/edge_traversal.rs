@@ -1,7 +1,7 @@
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
 use crate::model::network::edge_id::EdgeId;
-use crate::model::traversal::{StateVar, TraversalState};
+use crate::model::state::StateVar;
 use crate::model::unit::Cost;
 use allocative::Allocative;
 use serde::{Deserialize, Serialize};
@@ -12,7 +12,7 @@ pub struct EdgeTraversal {
     pub edge_id: EdgeId,
     pub access_cost: Cost,
     pub traversal_cost: Cost,
-    pub result_state: TraversalState,
+    pub result_state: Vec<StateVar>,
 }
 
 impl EdgeTraversal {

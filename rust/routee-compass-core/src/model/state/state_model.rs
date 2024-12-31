@@ -1,13 +1,11 @@
+use super::StateVar;
 use super::{
     custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
     state_model_error::StateModelError, update_operation::UpdateOperation,
 };
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::{
-    model::{
-        traversal::StateVar,
-        unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
-    },
+    model::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
     util::compact_ordered_hash_map::IndexedEntry,
 };
 use itertools::Itertools;

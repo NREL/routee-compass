@@ -1,4 +1,7 @@
-use crate::model::{traversal::StateVar, unit::as_f64::AsF64, unit::Cost};
+use crate::model::{
+    state::StateVar,
+    unit::{as_f64::AsF64, Cost},
+};
 use serde::{Deserialize, Serialize};
 /// a mapping for how to transform vehicle state values into a Cost.
 /// mappings can be a single instance of Raw, Factor, or Offset mapping.

@@ -2,7 +2,7 @@ use super::{
     edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
 };
 use crate::model::network::{Edge, EdgeId, VertexId};
-use crate::model::traversal::StateVar;
+use crate::model::state::StateVar;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Default)]

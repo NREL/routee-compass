@@ -1,7 +1,9 @@
 use std::fmt::Display;
 
-use super::{custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError};
-use crate::model::{traversal::StateVar, unit};
+use super::{
+    custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError, StateVar,
+};
+use crate::model::unit;
 use serde::{Deserialize, Serialize};
 
 /// a state variable unit tracks the domain of a StateVar in a

@@ -1,5 +1,5 @@
 use crate::model::network::Edge;
-use crate::model::traversal::StateVar;
+use crate::model::state::StateVar;
 use crate::model::unit::Cost;
 use crate::model::{cost::cost_model_error::CostModelError, network::EdgeId};
 use serde::{Deserialize, Serialize};

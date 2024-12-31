@@ -3,8 +3,7 @@ use routee_compass_core::{
     model::{
         frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
         network::{Edge, VertexId},
-        state::state_model::StateModel,
-        traversal::StateVar,
+        state::{state_model::StateModel, StateVar},
     },
 };
 use std::{collections::HashMap, sync::Arc};

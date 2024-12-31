@@ -4,8 +4,7 @@ use crate::model::{
         access_model_service::AccessModelService,
     },
     network::{Edge, Vertex},
-    state::{state_feature::StateFeature, state_model::StateModel},
-    traversal::StateVar,
+    state::{state_feature::StateFeature, state_model::StateModel, StateVar},
 };
 use itertools::Itertools;
 use std::sync::Arc;
