@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::{state_model_error::StateModelError, unit_codec_name::UnitCodecType};
+use super::{state_model_error::StateModelError, unit_codec_type::UnitCodecType};
 use crate::model::state::StateVariable;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};

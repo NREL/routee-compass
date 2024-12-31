@@ -1,5 +1,5 @@
 use crate::model::network::network_error::NetworkError;
-use crate::model::state::state_model_error::StateModelError;
+use crate::model::state::StateModelError;
 use crate::model::unit::UnitError;
 use crate::util::cache_policy::cache_error::CacheError;
 

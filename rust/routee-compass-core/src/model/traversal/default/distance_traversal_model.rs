@@ -1,6 +1,6 @@
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::state_feature::StateFeature;
-use crate::model::state::state_model::StateModel;
+use crate::model::state::StateFeature;
+use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;

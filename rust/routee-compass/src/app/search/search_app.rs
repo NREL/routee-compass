@@ -15,8 +15,7 @@ use routee_compass_core::{
     model::{
         access::access_model_service::AccessModelService,
         frontier::frontier_model_service::FrontierModelService, map::map_model::MapModel,
-        network::graph::Graph, state::state_model::StateModel,
-        termination::termination_model::TerminationModel,
+        network::graph::Graph, state::StateModel, termination::termination_model::TerminationModel,
         traversal::TraversalModelService,
     },
 };

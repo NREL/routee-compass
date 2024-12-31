@@ -8,7 +8,7 @@ use routee_compass_core::model::{
         frontier_model_service::FrontierModelService,
     },
     network::edge_id::EdgeId,
-    state::state_model::StateModel,
+    state::StateModel,
 };
 use std::{collections::HashMap, sync::Arc};
 

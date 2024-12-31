@@ -1,5 +1,5 @@
 use crate::model::state::StateVariable;
-// pub(crate) type GenericStateUpdateOp = Box<dyn Fn(&StateVar, &StateVar) -> StateVar>;
+// pub type GenericStateUpdateOp = Box<dyn Fn(&StateVar, &StateVar) -> StateVar>;
 
 /// describes an arbitrary state update operation.
 ///
@@ -8,7 +8,7 @@ use crate::model::state::StateVariable;
 /// makes life harder, but protects against all sorts of indexing errors.
 ///
 /// the StateModel exposes these operations through it's interface.
-pub(crate) enum UpdateOperation {
+pub enum UpdateOperation {
     Replace,
     // Add,
     // Multiply,

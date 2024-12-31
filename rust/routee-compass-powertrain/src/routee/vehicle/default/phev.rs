@@ -3,10 +3,7 @@ use crate::routee::{
     vehicle::{vehicle_ops, vehicle_type::VehicleType},
 };
 use routee_compass_core::model::{
-    state::{
-        custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
-        state_model::StateModel, StateVariable,
-    },
+    state::{CustomFeatureFormat, StateFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
     unit::{
         as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,

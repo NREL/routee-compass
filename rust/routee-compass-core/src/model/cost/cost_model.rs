@@ -4,7 +4,7 @@ use super::network::network_cost_rate::NetworkCostRate;
 use super::vehicle::vehicle_cost_rate::VehicleCostRate;
 use crate::model::cost::cost_model_error::CostModelError;
 use crate::model::network::Edge;
-use crate::model::state::state_model::StateModel;
+use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::unit::Cost;
 use serde_json::json;

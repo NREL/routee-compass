@@ -3,7 +3,7 @@ use crate::model::{
     cost::cost_model_error::CostModelError,
     frontier::frontier_model_error::FrontierModelError,
     network::{edge_id::EdgeId, network_error::NetworkError, vertex_id::VertexId},
-    state::state_model_error::StateModelError,
+    state::StateModelError,
     termination::termination_model_error::TerminationModelError,
     traversal::TraversalModelError,
 };

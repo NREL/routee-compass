@@ -5,7 +5,7 @@ use crate::{
     algorithm::search::{direction::Direction, search_tree_branch::SearchTreeBranch},
     model::{
         network::{Edge, VertexId},
-        state::{state_model::StateModel, StateVariable},
+        state::{StateModel, StateVariable},
     },
 };
 

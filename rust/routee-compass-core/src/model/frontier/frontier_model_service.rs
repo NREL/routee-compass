@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::model::state::state_model::StateModel;
+use crate::model::state::StateModel;
 
 use super::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError};
 

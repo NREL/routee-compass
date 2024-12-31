@@ -4,7 +4,7 @@ use routee_compass_core::model::{
         frontier_model::FrontierModel, frontier_model_error::FrontierModelError,
         frontier_model_service::FrontierModelService,
     },
-    state::state_model::StateModel,
+    state::StateModel,
 };
 use std::sync::Arc;
 

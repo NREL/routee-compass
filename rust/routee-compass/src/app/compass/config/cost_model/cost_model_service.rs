@@ -5,7 +5,7 @@ use routee_compass_core::model::{
         cost_aggregation::CostAggregation, cost_model::CostModel,
         network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
     },
-    state::state_model::StateModel,
+    state::StateModel,
 };
 use std::{
     collections::{HashMap, HashSet},

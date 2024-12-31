@@ -11,7 +11,7 @@ use std::sync::Arc;
 pub struct NoAccessModel {}
 
 impl AccessModel for NoAccessModel {
-    fn state_features(&self) -> Vec<(String, crate::model::state::state_feature::StateFeature)> {
+    fn state_features(&self) -> Vec<(String, crate::model::state::StateFeature)> {
         vec![]
     }
 
@@ -19,7 +19,7 @@ impl AccessModel for NoAccessModel {
         &self,
         _: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
         _: &mut Vec<crate::model::state::StateVariable>,
-        _: &crate::model::state::state_model::StateModel,
+        _: &crate::model::state::StateModel,
     ) -> Result<(), crate::model::access::access_model_error::AccessModelError> {
         Ok(())
     }

@@ -31,7 +31,7 @@ use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::algorithm::search::search_instance::SearchInstance;
 use routee_compass_core::model::map::map_model::MapModel;
 use routee_compass_core::model::map::map_model_config::MapModelConfig;
-use routee_compass_core::model::state::state_model::StateModel;
+use routee_compass_core::model::state::StateModel;
 use routee_compass_core::{
     algorithm::search::search_algorithm::SearchAlgorithm,
     util::duration_extension::DurationExtension,
