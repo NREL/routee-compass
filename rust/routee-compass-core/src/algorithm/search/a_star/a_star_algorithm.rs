@@ -382,15 +382,15 @@ mod tests {
     use crate::model::cost::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
 
-    use crate::model::map::map_model_config::MapModelConfig;
     use crate::model::map::MapModel;
+    use crate::model::map::MapModelConfig;
     use crate::model::network::edge_id::EdgeId;
     use crate::model::network::graph::Graph;
     use crate::model::network::Edge;
     use crate::model::network::Vertex;
     use crate::model::state::StateFeature;
     use crate::model::state::StateModel;
-    use crate::model::termination::termination_model::TerminationModel;
+    use crate::model::termination::TerminationModel;
     use crate::model::traversal::DistanceTraversalModel;
     use crate::model::unit::{Distance, DistanceUnit};
     use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
