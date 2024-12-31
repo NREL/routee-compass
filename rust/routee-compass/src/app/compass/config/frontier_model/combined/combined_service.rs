@@ -1,9 +1,6 @@
 use super::combined_model::CombinedFrontierModel;
 use routee_compass_core::model::{
-    frontier::{
-        frontier_model::FrontierModel, frontier_model_error::FrontierModelError,
-        frontier_model_service::FrontierModelService,
-    },
+    frontier::{FrontierModel, FrontierModelError, FrontierModelService},
     state::StateModel,
 };
 use std::sync::Arc;

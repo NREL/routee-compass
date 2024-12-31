@@ -3,10 +3,7 @@ use crate::app::compass::config::{
     config_json_extension::ConfigJsonExtensions,
 };
 use routee_compass_core::{
-    model::frontier::{
-        frontier_model_builder::FrontierModelBuilder, frontier_model_error::FrontierModelError,
-        frontier_model_service::FrontierModelService,
-    },
+    model::frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
     util::fs::read_utils,
 };
 use std::{collections::HashSet, sync::Arc};

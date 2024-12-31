@@ -38,9 +38,7 @@ use crate::plugin::{
 use itertools::Itertools;
 use routee_compass_core::model::{
     access::{default::NoAccessModel, AccessModelBuilder, AccessModelService},
-    frontier::{
-        frontier_model_builder::FrontierModelBuilder, frontier_model_service::FrontierModelService,
-    },
+    frontier::{FrontierModelBuilder, FrontierModelService},
     traversal::{TraversalModelBuilder, TraversalModelService},
 };
 use std::{collections::HashMap, rc::Rc, sync::Arc};

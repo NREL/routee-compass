@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     algorithm::search::search_instance::SearchInstance,
-    model::{frontier::frontier_model::FrontierModel, network::Edge},
+    model::{frontier::FrontierModel, network::Edge},
 };
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};

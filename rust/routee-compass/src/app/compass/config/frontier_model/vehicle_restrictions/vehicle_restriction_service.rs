@@ -3,10 +3,7 @@ use super::{
     vehicle_restriction_model::VehicleRestrictionFrontierModel,
 };
 use routee_compass_core::model::{
-    frontier::{
-        frontier_model::FrontierModel, frontier_model_error::FrontierModelError,
-        frontier_model_service::FrontierModelService,
-    },
+    frontier::{FrontierModel, FrontierModelError, FrontierModelService},
     network::edge_id::EdgeId,
     state::StateModel,
 };

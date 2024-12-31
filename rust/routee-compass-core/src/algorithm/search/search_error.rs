@@ -1,7 +1,7 @@
 use crate::model::{
     access::AccessModelError,
     cost::CostModelError,
-    frontier::frontier_model_error::FrontierModelError,
+    frontier::FrontierModelError,
     network::{edge_id::EdgeId, network_error::NetworkError, vertex_id::VertexId},
     state::StateModelError,
     termination::termination_model_error::TerminationModelError,

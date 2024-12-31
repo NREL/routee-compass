@@ -3,7 +3,7 @@ use config::ConfigError;
 use routee_compass_core::{
     model::{
         access::AccessModelError,
-        frontier::frontier_model_error::FrontierModelError, network::network_error::NetworkError,
+        frontier::FrontierModelError, network::network_error::NetworkError,
         traversal::TraversalModelError,
     },
     util::{cache_policy::cache_error::CacheError, conversion::conversion_error::ConversionError},

@@ -1,8 +1,6 @@
 use std::sync::Arc;
 
-use super::{
-    frontier_model_error::FrontierModelError, frontier_model_service::FrontierModelService,
-};
+use super::{frontier_model_error::FrontierModelError, FrontierModelService};
 
 /// A [`FrontierModelBuilder`] takes a JSON object describing the configuration of a
 /// frontier model and builds a [FrontierModel].
@@ -10,7 +8,7 @@ use super::{
 /// A [`FrontierModelBuilder`] instance should be an empty struct that implements
 /// this trait.
 ///
-/// [FrontierModel]: routee_compass_core::model::frontier::frontier_model::FrontierModel
+/// [FrontierModel]: routee_compass_core::model::frontier::FrontierModel
 pub trait FrontierModelBuilder {
     /// Builds a [FrontierModel] from JSON configuration.
     ///
@@ -22,7 +20,7 @@ pub trait FrontierModelBuilder {
     ///
     /// A [FrontierModel] designed to persist the duration of the CompassApp.
     ///
-    /// [FrontierModel]: routee_compass_core::model::frontier::frontier_model::FrontierModel
+    /// [FrontierModel]: routee_compass_core::model::frontier::FrontierModel
     fn build(
         &self,
         parameters: &serde_json::Value,

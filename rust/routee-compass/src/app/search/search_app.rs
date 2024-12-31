@@ -13,7 +13,7 @@ use routee_compass_core::{
         search_instance::SearchInstance,
     },
     model::{
-        access::AccessModelService, frontier::frontier_model_service::FrontierModelService,
+        access::AccessModelService, frontier::FrontierModelService,
         map::map_model::MapModel, network::graph::Graph, state::StateModel,
         termination::termination_model::TerminationModel, traversal::TraversalModelService,
     },

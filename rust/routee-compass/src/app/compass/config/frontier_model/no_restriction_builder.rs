@@ -1,6 +1,6 @@
 use routee_compass_core::model::frontier::{
-    default::no_restriction::NoRestriction, frontier_model_builder::FrontierModelBuilder,
-    frontier_model_error::FrontierModelError, frontier_model_service::FrontierModelService,
+    default::no_restriction::NoRestriction, FrontierModelBuilder, FrontierModelError,
+    FrontierModelService,
 };
 use std::sync::Arc;
 

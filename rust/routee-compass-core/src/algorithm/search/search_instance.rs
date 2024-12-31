@@ -2,7 +2,7 @@ use super::search_error::SearchError;
 use crate::model::{
     access::AccessModel,
     cost::CostModel,
-    frontier::frontier_model::FrontierModel,
+    frontier::FrontierModel,
     map::map_model::MapModel,
     network::{graph::Graph, vertex_id::VertexId},
     state::{StateModel, StateVariable},

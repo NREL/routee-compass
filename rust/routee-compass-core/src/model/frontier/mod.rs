@@ -1,5 +1,10 @@
 pub mod default;
-pub mod frontier_model;
-pub mod frontier_model_builder;
-pub mod frontier_model_error;
-pub mod frontier_model_service;
+mod frontier_model;
+mod frontier_model_builder;
+mod frontier_model_error;
+mod frontier_model_service;
+
+pub use frontier_model::FrontierModel;
+pub use frontier_model_builder::FrontierModelBuilder;
+pub use frontier_model_error::FrontierModelError;
+pub use frontier_model_service::FrontierModelService;

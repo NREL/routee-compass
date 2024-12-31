@@ -1,7 +1,7 @@
 use crate::model::{
     frontier::{
-        frontier_model::FrontierModel, frontier_model_error::FrontierModelError,
-        frontier_model_service::FrontierModelService,
+        FrontierModel, frontier_model_error::FrontierModelError,
+        FrontierModelService,
     },
     state::StateModel,
 };

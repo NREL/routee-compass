@@ -4,10 +4,7 @@ use crate::app::compass::config::{
 };
 use routee_compass_core::{
     model::{
-        frontier::{
-            frontier_model_builder::FrontierModelBuilder, frontier_model_error::FrontierModelError,
-            frontier_model_service::FrontierModelService,
-        },
+        frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
         network::edge_id::EdgeId,
     },
     util::fs::read_utils,

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::model::state::StateModel;
 
-use super::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError};
+use super::{frontier_model_error::FrontierModelError, FrontierModel};
 
 /// A [`FrontierModelService`] is a persistent builder of [FrontierModel] instances.
 /// Building a [`FrontierModelService`] may require parametrizing the frontier model

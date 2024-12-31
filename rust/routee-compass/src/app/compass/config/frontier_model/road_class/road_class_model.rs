@@ -2,7 +2,7 @@ use super::road_class_service::RoadClassFrontierService;
 use routee_compass_core::{
     algorithm::search::search_tree_branch::SearchTreeBranch,
     model::{
-        frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
+        frontier::{FrontierModel, FrontierModelError},
         network::{Edge, VertexId},
         state::{StateModel, StateVariable},
     },
