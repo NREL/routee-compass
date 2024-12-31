@@ -376,7 +376,7 @@ mod tests {
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::algorithm::search::MinSearchTree;
-    use crate::model::access::no_access_model::NoAccessModel;
+    use crate::model::access::default::NoAccessModel;
     use crate::model::cost::CostAggregation;
     use crate::model::cost::CostModel;
     use crate::model::cost::VehicleCostRate;
@@ -391,7 +391,7 @@ mod tests {
     use crate::model::state::StateFeature;
     use crate::model::state::StateModel;
     use crate::model::termination::TerminationModel;
-    use crate::model::traversal::DistanceTraversalModel;
+    use crate::model::traversal::default::DistanceTraversalModel;
     use crate::model::unit::{Distance, DistanceUnit};
     use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
     use rayon::prelude::*;

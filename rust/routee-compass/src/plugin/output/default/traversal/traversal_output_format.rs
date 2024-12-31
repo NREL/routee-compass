@@ -122,7 +122,7 @@ mod test {
     use geo::{coord, LineString};
     use routee_compass_core::{
         algorithm::search::edge_traversal::EdgeTraversal,
-        model::{network::edge_id::EdgeId, traversal::StateVar, unit::Cost},
+        model::{network::edge_id::EdgeId, state::StateVariable, unit::Cost},
     };
     use std::time::Duration;
 
@@ -133,19 +133,19 @@ mod test {
                 edge_id: EdgeId(0),
                 access_cost: Cost::from(0.0),
                 traversal_cost: Cost::from(10.0),
-                result_state: vec![StateVar(10.0)],
+                result_state: vec![StateVariable(10.0)],
             },
             EdgeTraversal {
                 edge_id: EdgeId(1),
                 access_cost: Cost::from(5.0),
                 traversal_cost: Cost::from(9.0),
-                result_state: vec![StateVar(24.0)],
+                result_state: vec![StateVariable(24.0)],
             },
             EdgeTraversal {
                 edge_id: EdgeId(2),
                 access_cost: Cost::from(0.0),
                 traversal_cost: Cost::from(11.0),
-                result_state: vec![StateVar(35.0)],
+                result_state: vec![StateVariable(35.0)],
             },
         ];
         let result = SearchAppResult {
