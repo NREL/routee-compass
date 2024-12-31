@@ -5,7 +5,7 @@ use geojson::feature::Id;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::edge_traversal::EdgeTraversal;
 use routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch;
-use routee_compass_core::model::map::map_model::MapModel;
+use routee_compass_core::model::map::MapModel;
 use routee_compass_core::model::network::vertex_id::VertexId;
 use routee_compass_core::util::geo::geo_io_utils;
 use std::collections::HashMap;

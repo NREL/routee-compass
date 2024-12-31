@@ -3,7 +3,7 @@ use crate::model::{
     access::AccessModel,
     cost::CostModel,
     frontier::FrontierModel,
-    map::map_model::MapModel,
+    map::MapModel,
     network::{graph::Graph, vertex_id::VertexId},
     state::{StateModel, StateVariable},
     termination::termination_model::TerminationModel,

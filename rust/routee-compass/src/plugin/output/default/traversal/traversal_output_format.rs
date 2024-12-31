@@ -5,7 +5,7 @@ use crate::plugin::output::OutputPluginError;
 use geo::{CoordFloat, Geometry};
 use routee_compass_core::{
     algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
-    model::{map::map_model::MapModel, network::vertex_id::VertexId},
+    model::{map::MapModel, network::vertex_id::VertexId},
 };
 use serde::{Deserialize, Serialize};
 use wkt::ToWkt;
