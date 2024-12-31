@@ -2,7 +2,7 @@ use super::traversal_model_error::TraversalModelError;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::state_feature::StateFeature;
 use crate::model::state::state_model::StateModel;
-use crate::model::state::StateVar;
+use crate::model::state::StateVariable;
 
 /// Dictates how state transitions occur while traversing a graph in a search algorithm.
 ///
@@ -34,7 +34,7 @@ pub trait TraversalModel: Send + Sync {
     fn traverse_edge(
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError>;
 
@@ -53,7 +53,7 @@ pub trait TraversalModel: Send + Sync {
     fn estimate_traversal(
         &self,
         od: (&Vertex, &Vertex),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError>;
 }

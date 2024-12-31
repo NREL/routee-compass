@@ -20,38 +20,38 @@ use std::fmt::Display;
     Serialize,
     Allocative,
 )]
-pub struct StateVar(pub f64);
+pub struct StateVariable(pub f64);
 
-impl StateVar {
-    pub const ZERO: StateVar = StateVar(0.0);
-    pub const ONE: StateVar = StateVar(1.0);
-    pub const ONE_HUNDRED: StateVar = StateVar(100.0);
-    pub const MAX: StateVar = StateVar(f64::MAX);
+impl StateVariable {
+    pub const ZERO: StateVariable = StateVariable(0.0);
+    pub const ONE: StateVariable = StateVariable(1.0);
+    pub const ONE_HUNDRED: StateVariable = StateVariable(100.0);
+    pub const MAX: StateVariable = StateVariable(f64::MAX);
 }
 
-impl Display for StateVar {
+impl Display for StateVariable {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl From<StateVar> for f64 {
-    fn from(val: StateVar) -> Self {
+impl From<StateVariable> for f64 {
+    fn from(val: StateVariable) -> Self {
         val.0
     }
 }
-impl From<Distance> for StateVar {
+impl From<Distance> for StateVariable {
     fn from(value: Distance) -> Self {
-        StateVar(value.as_f64())
+        StateVariable(value.as_f64())
     }
 }
-impl From<Time> for StateVar {
+impl From<Time> for StateVariable {
     fn from(value: Time) -> Self {
-        StateVar(value.as_f64())
+        StateVariable(value.as_f64())
     }
 }
-impl From<Energy> for StateVar {
+impl From<Energy> for StateVariable {
     fn from(value: Energy) -> Self {
-        StateVar(value.as_f64())
+        StateVariable(value.as_f64())
     }
 }

@@ -4,7 +4,7 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
-use crate::model::state::StateVar;
+use crate::model::state::StateVariable;
 
 use super::{as_f64::AsF64, internal_float::InternalFloat};
 
@@ -48,8 +48,8 @@ impl Display for Weight {
         write!(f, "{:?}", self.0)
     }
 }
-impl From<StateVar> for Weight {
-    fn from(value: StateVar) -> Self {
+impl From<StateVariable> for Weight {
+    fn from(value: StateVariable) -> Self {
         Weight::new(value.0)
     }
 }

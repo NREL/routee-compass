@@ -1,4 +1,4 @@
-use crate::model::state::StateVar;
+use crate::model::state::StateVariable;
 // pub(crate) type GenericStateUpdateOp = Box<dyn Fn(&StateVar, &StateVar) -> StateVar>;
 
 /// describes an arbitrary state update operation.
@@ -19,7 +19,7 @@ pub(crate) enum UpdateOperation {
 }
 
 impl UpdateOperation {
-    pub fn perform_operation(&self, _prev: &StateVar, next: &StateVar) -> StateVar {
+    pub fn perform_operation(&self, _prev: &StateVariable, next: &StateVariable) -> StateVariable {
         match self {
             UpdateOperation::Replace => *next,
             // UpdateOperation::Add => *prev + *next,

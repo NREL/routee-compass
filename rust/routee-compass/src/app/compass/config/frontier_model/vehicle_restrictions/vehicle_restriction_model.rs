@@ -5,7 +5,7 @@ use super::{
 use routee_compass_core::model::{
     frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
     network::Edge,
-    state::{state_model::StateModel, StateVar},
+    state::{state_model::StateModel, StateVariable},
 };
 use std::sync::Arc;
 
@@ -18,7 +18,7 @@ impl FrontierModel for VehicleRestrictionFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
-        _state: &[StateVar],
+        _state: &[StateVariable],
         _tree: &std::collections::HashMap<
             routee_compass_core::model::network::VertexId,
             routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch,

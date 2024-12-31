@@ -1,5 +1,5 @@
 use crate::model::{
-    state::StateVar,
+    state::StateVariable,
     unit::{as_f64::AsF64, Cost},
 };
 use serde::{Deserialize, Serialize};
@@ -41,7 +41,7 @@ impl VehicleCostRate {
     ///
     /// the Cost value for that state, a real number that is aggregated with
     /// other Cost values in a common unit space.
-    pub fn map_value(&self, state: StateVar) -> Cost {
+    pub fn map_value(&self, state: StateVariable) -> Cost {
         match self {
             VehicleCostRate::Zero => Cost::ZERO,
             VehicleCostRate::Raw => Cost::new(state.0),
@@ -49,7 +49,7 @@ impl VehicleCostRate {
             VehicleCostRate::Offset { offset } => Cost::new(state.0 + offset),
             VehicleCostRate::Combined(mappings) => {
                 mappings.iter().fold(Cost::new(state.0), |acc, f| {
-                    f.map_value(StateVar(acc.as_f64()))
+                    f.map_value(StateVariable(acc.as_f64()))
                 })
             }
         }

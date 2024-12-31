@@ -5,7 +5,7 @@ use crate::routee::{
 use routee_compass_core::model::{
     state::{
         custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
-        state_model::StateModel, StateVar,
+        state_model::StateModel, StateVariable,
     },
     traversal::TraversalModelError,
     unit::{
@@ -110,7 +110,7 @@ impl VehicleType for PHEV {
     fn best_case_energy_state(
         &self,
         distance: (Distance, DistanceUnit),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (electrical_energy, _) = self.best_case_energy(distance)?;
@@ -135,7 +135,7 @@ impl VehicleType for PHEV {
         speed: (Speed, SpeedUnit),
         grade: (Grade, GradeUnit),
         distance: (Distance, DistanceUnit),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let start_soc = state_model.get_custom_f64(state, &PHEV::SOC_FEATURE_NAME.into())?;

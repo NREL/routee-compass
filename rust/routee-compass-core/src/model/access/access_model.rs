@@ -1,7 +1,7 @@
 use super::access_model_error::AccessModelError;
 use crate::model::{
     network::{Edge, Vertex},
-    state::{state_feature::StateFeature, state_model::StateModel, StateVar},
+    state::{state_feature::StateFeature, state_model::StateModel, StateVariable},
 };
 
 pub trait AccessModel: Send + Sync {
@@ -32,7 +32,7 @@ pub trait AccessModel: Send + Sync {
     fn access_edge(
         &self,
         traversal: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), AccessModelError>;
 }

@@ -1,11 +1,11 @@
 use routee_compass_core::model::{
-    state::{state_feature::StateFeature, state_model::StateModel, StateVar},
+    state::{state_feature::StateFeature, state_model::StateModel, StateVariable},
     traversal::TraversalModelError,
     unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use std::sync::Arc;
 
-pub type VehicleState = Vec<StateVar>;
+pub type VehicleState = Vec<StateVariable>;
 
 /// A Vehicle Type represents a class of vehicles with a specific operating model.
 pub trait VehicleType: Send + Sync {
@@ -31,7 +31,7 @@ pub trait VehicleType: Send + Sync {
         speed: (Speed, SpeedUnit),
         grade: (Grade, GradeUnit),
         distance: (Distance, DistanceUnit),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError>;
 
@@ -59,7 +59,7 @@ pub trait VehicleType: Send + Sync {
     fn best_case_energy_state(
         &self,
         distance: (Distance, DistanceUnit),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError>;
 

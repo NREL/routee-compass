@@ -5,7 +5,7 @@ use crate::model::{
     frontier::frontier_model::FrontierModel,
     map::map_model::MapModel,
     network::{graph::Graph, vertex_id::VertexId},
-    state::{state_model::StateModel, StateVar},
+    state::{state_model::StateModel, StateVariable},
     termination::termination_model::TerminationModel,
     traversal::TraversalModel,
     unit::Cost,
@@ -32,7 +32,7 @@ impl SearchInstance {
         &self,
         src: VertexId,
         dst: VertexId,
-        state: &[StateVar],
+        state: &[StateVariable],
     ) -> Result<Cost, SearchError> {
         let src = self.graph.get_vertex(&src)?;
         let dst = self.graph.get_vertex(&dst)?;

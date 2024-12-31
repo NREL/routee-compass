@@ -5,7 +5,7 @@ use crate::{
     algorithm::search::{direction::Direction, search_tree_branch::SearchTreeBranch},
     model::{
         network::{Edge, VertexId},
-        state::{state_model::StateModel, StateVar},
+        state::{state_model::StateModel, StateVariable},
     },
 };
 
@@ -32,7 +32,7 @@ pub trait FrontierModel: Send + Sync {
     fn valid_frontier(
         &self,
         edge: &Edge,
-        state: &[StateVar],
+        state: &[StateVariable],
         tree: &HashMap<VertexId, SearchTreeBranch>,
         direction: &Direction,
         state_model: &StateModel,

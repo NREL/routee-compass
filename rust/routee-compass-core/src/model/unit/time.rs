@@ -3,7 +3,7 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
-use crate::model::state::StateVar;
+use crate::model::state::StateVariable;
 
 use super::{
     as_f64::AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, Speed,
@@ -43,8 +43,8 @@ impl From<(Distance, Speed)> for Time {
         Time::new(time)
     }
 }
-impl From<StateVar> for Time {
-    fn from(value: StateVar) -> Self {
+impl From<StateVariable> for Time {
+    fn from(value: StateVariable) -> Self {
         Time::new(value.0)
     }
 }

@@ -5,7 +5,7 @@ use super::vehicle::vehicle_cost_rate::VehicleCostRate;
 use crate::model::cost::cost_model_error::CostModelError;
 use crate::model::network::Edge;
 use crate::model::state::state_model::StateModel;
-use crate::model::state::StateVar;
+use crate::model::state::StateVariable;
 use crate::model::unit::Cost;
 use serde_json::json;
 use std::collections::HashMap;
@@ -100,8 +100,8 @@ impl CostModel {
     pub fn traversal_cost(
         &self,
         edge: &Edge,
-        prev_state: &[StateVar],
-        next_state: &[StateVar],
+        prev_state: &[StateVariable],
+        next_state: &[StateVariable],
     ) -> Result<Cost, CostModelError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
             (prev_state, next_state),
@@ -144,8 +144,8 @@ impl CostModel {
         &self,
         prev_edge: &Edge,
         next_edge: &Edge,
-        prev_state: &[StateVar],
-        next_state: &[StateVar],
+        prev_state: &[StateVariable],
+        next_state: &[StateVariable],
     ) -> Result<Cost, CostModelError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
             (prev_state, next_state),
@@ -182,8 +182,8 @@ impl CostModel {
     /// Either a cost estimate or an error. cost estimates may be
     pub fn cost_estimate(
         &self,
-        src_state: &[StateVar],
-        dst_state: &[StateVar],
+        src_state: &[StateVariable],
+        dst_state: &[StateVariable],
     ) -> Result<Cost, CostModelError> {
         let vehicle_cost = cost_ops::calculate_vehicle_costs(
             (src_state, dst_state),
@@ -207,7 +207,10 @@ impl CostModel {
     /// A JSON serialized version of the state. This does not need to include
     /// additional details such as the units (kph, hours, etc), which can be
     /// summarized in the serialize_state_info method.
-    pub fn serialize_cost(&self, state: &[StateVar]) -> Result<serde_json::Value, CostModelError> {
+    pub fn serialize_cost(
+        &self,
+        state: &[StateVariable],
+    ) -> Result<serde_json::Value, CostModelError> {
         let mut state_variable_costs = self
             .feature_indices
             .iter()

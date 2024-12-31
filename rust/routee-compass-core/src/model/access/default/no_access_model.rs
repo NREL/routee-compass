@@ -18,7 +18,7 @@ impl AccessModel for NoAccessModel {
     fn access_edge(
         &self,
         _: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
-        _: &mut Vec<crate::model::state::StateVar>,
+        _: &mut Vec<crate::model::state::StateVariable>,
         _: &crate::model::state::state_model::StateModel,
     ) -> Result<(), crate::model::access::access_model_error::AccessModelError> {
         Ok(())

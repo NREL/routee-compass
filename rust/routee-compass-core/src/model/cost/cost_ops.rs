@@ -2,7 +2,7 @@ use super::{
     cost_aggregation::CostAggregation, cost_model_error::CostModelError,
     network::network_cost_rate::NetworkCostRate, vehicle::vehicle_cost_rate::VehicleCostRate,
 };
-use crate::model::{network::Edge, state::StateVar, unit::Cost};
+use crate::model::{network::Edge, state::StateVariable, unit::Cost};
 
 /// steps through each state variable and assigns vehicle costs related to that variable
 /// due to an edge access + traversal event.
@@ -12,7 +12,7 @@ use crate::model::{network::Edge, state::StateVar, unit::Cost};
 /// * `next_state` - the state after traversal
 /// * `indices`    - feature names and corresponding state indices
 pub fn calculate_vehicle_costs(
-    state_sequence: (&[StateVar], &[StateVar]),
+    state_sequence: (&[StateVariable], &[StateVariable]),
     indices: &[(String, usize)],
     weights: &[f64],
     rates: &[VehicleCostRate],
@@ -27,7 +27,7 @@ pub fn calculate_vehicle_costs(
         let next_state_var = next_state
             .get(*state_idx)
             .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*state_idx, name.clone()))?;
-        let delta: StateVar = *next_state_var - *prev_state_var;
+        let delta: StateVariable = *next_state_var - *prev_state_var;
 
         // collect weight and vehicle cost rate
         let mapping = rates.get(*state_idx).ok_or_else(|| {
@@ -47,7 +47,7 @@ pub fn calculate_vehicle_costs(
 }
 
 pub fn calculate_network_traversal_costs(
-    state_sequence: (&[StateVar], &[StateVar]),
+    state_sequence: (&[StateVariable], &[StateVariable]),
     edge: &Edge,
     indices: &[(String, usize)],
     weights: &[f64],
@@ -79,7 +79,7 @@ pub fn calculate_network_traversal_costs(
 }
 
 pub fn calculate_network_access_costs(
-    state_sequence: (&[StateVar], &[StateVar]),
+    state_sequence: (&[StateVariable], &[StateVariable]),
     edge_sequence: (&Edge, &Edge),
     indices: &[(String, usize)],
     weights: &[f64],

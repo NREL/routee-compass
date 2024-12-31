@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
 use super::{
-    custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError, StateVar,
+    custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError, StateVariable,
 };
 use crate::model::unit;
 use serde::{Deserialize, Serialize};
@@ -197,7 +197,7 @@ impl StateFeature {
         }
     }
 
-    pub fn get_initial(&self) -> Result<StateVar, StateModelError> {
+    pub fn get_initial(&self) -> Result<StateVariable, StateModelError> {
         match self {
             StateFeature::Distance {
                 distance_unit: _,

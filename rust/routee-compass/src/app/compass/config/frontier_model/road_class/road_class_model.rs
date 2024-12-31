@@ -4,7 +4,7 @@ use routee_compass_core::{
     model::{
         frontier::{frontier_model::FrontierModel, frontier_model_error::FrontierModelError},
         network::{Edge, VertexId},
-        state::{state_model::StateModel, StateVar},
+        state::{state_model::StateModel, StateVariable},
     },
 };
 use std::{
@@ -21,7 +21,7 @@ impl FrontierModel for RoadClassFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
-        _state: &[StateVar],
+        _state: &[StateVariable],
         _tree: &HashMap<VertexId, SearchTreeBranch>,
         _direction: &routee_compass_core::algorithm::search::direction::Direction,
         _state_model: &StateModel,

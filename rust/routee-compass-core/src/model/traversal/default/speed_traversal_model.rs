@@ -3,7 +3,7 @@ use crate::model::network::edge_id::EdgeId;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::state_feature::StateFeature;
 use crate::model::state::state_model::StateModel;
-use crate::model::state::StateVar;
+use crate::model::state::StateVariable;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::{Distance, Time, BASE_DISTANCE_UNIT};
 use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
@@ -26,7 +26,7 @@ impl TraversalModel for SpeedTraversalModel {
     fn traverse_edge(
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
@@ -58,7 +58,7 @@ impl TraversalModel for SpeedTraversalModel {
     fn estimate_traversal(
         &self,
         od: (&Vertex, &Vertex),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (src, dst) = od;

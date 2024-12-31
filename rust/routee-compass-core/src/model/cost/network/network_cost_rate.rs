@@ -1,5 +1,5 @@
 use crate::model::network::Edge;
-use crate::model::state::StateVar;
+use crate::model::state::StateVariable;
 use crate::model::unit::Cost;
 use crate::model::{cost::cost_model_error::CostModelError, network::EdgeId};
 use serde::{Deserialize, Serialize};
@@ -27,8 +27,8 @@ pub enum NetworkCostRate {
 impl NetworkCostRate {
     pub fn traversal_cost(
         &self,
-        _prev_state_var: StateVar,
-        _next_state_var: StateVar,
+        _prev_state_var: StateVariable,
+        _next_state_var: StateVariable,
         edge: &Edge,
     ) -> Result<Cost, CostModelError> {
         match self {
@@ -65,8 +65,8 @@ impl NetworkCostRate {
     /// other Cost values in a common unit space.
     pub fn access_cost(
         &self,
-        _prev_state_var: StateVar,
-        _next_state_var: StateVar,
+        _prev_state_var: StateVariable,
+        _next_state_var: StateVariable,
         prev_edge: &Edge,
         next_edge: &Edge,
     ) -> Result<Cost, CostModelError> {

@@ -4,7 +4,7 @@ use super::vehicle::vehicle_type::VehicleType;
 use routee_compass_core::model::network::{Edge, Vertex};
 use routee_compass_core::model::state::state_feature::StateFeature;
 use routee_compass_core::model::state::state_model::StateModel;
-use routee_compass_core::model::state::StateVar;
+use routee_compass_core::model::state::StateVariable;
 use routee_compass_core::model::traversal::TraversalModel;
 use routee_compass_core::model::traversal::TraversalModelError;
 use routee_compass_core::model::unit::*;
@@ -28,7 +28,7 @@ impl TraversalModel for EnergyTraversalModel {
     fn traverse_edge(
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
@@ -82,7 +82,7 @@ impl TraversalModel for EnergyTraversalModel {
     fn estimate_traversal(
         &self,
         od: (&Vertex, &Vertex),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (src, dst) = od;
