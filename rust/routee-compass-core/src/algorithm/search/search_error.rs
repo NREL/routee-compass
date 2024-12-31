@@ -4,7 +4,7 @@ use crate::model::{
     frontier::FrontierModelError,
     network::{edge_id::EdgeId, network_error::NetworkError, vertex_id::VertexId},
     state::StateModelError,
-    termination::termination_model_error::TerminationModelError,
+    termination::TerminationModelError,
     traversal::TraversalModelError,
 };
 

@@ -2,7 +2,7 @@ use super::compass_configuration_error::CompassConfigurationError;
 use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
 use log;
-use routee_compass_core::model::termination::termination_model::TerminationModel;
+use routee_compass_core::model::termination::TerminationModel;
 use routee_compass_core::util::conversion::duration_extension::DurationExtension;
 
 pub struct TerminationModelBuilder {}
@@ -15,7 +15,7 @@ impl TerminationModelBuilder {
         config: &serde_json::Value,
         scope: Option<String>,
     ) -> Result<TerminationModel, CompassConfigurationError> {
-        use routee_compass_core::model::termination::termination_model::TerminationModel as T;
+        use TerminationModel as T;
         let local_scope = scope.unwrap_or(CompassConfigurationField::Termination.to_string());
         let term_type = config.get_config_string(&"type", &local_scope)?;
 

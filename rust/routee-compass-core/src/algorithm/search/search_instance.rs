@@ -6,7 +6,7 @@ use crate::model::{
     map::MapModel,
     network::{graph::Graph, vertex_id::VertexId},
     state::{StateModel, StateVariable},
-    termination::termination_model::TerminationModel,
+    termination::TerminationModel,
     traversal::TraversalModel,
     unit::Cost,
 };

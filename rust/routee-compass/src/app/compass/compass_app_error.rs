@@ -8,8 +8,7 @@ use routee_compass_core::{
     model::{
         access::AccessModelError, cost::CostModelError, frontier::FrontierModelError,
         map::MapError, network::network_error::NetworkError, state::StateModelError,
-        termination::termination_model_error::TerminationModelError,
-        traversal::TraversalModelError,
+        termination::TerminationModelError, traversal::TraversalModelError,
     },
 };
 
