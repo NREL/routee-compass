@@ -1,8 +1,9 @@
 use super::energy_traversal_model::EnergyTraversalModel;
 use super::vehicle::VehicleType;
-use routee_compass_core::model::traversal::TraversalModel;
-use routee_compass_core::model::traversal::TraversalModelError;
-use routee_compass_core::model::traversal::TraversalModelService;
+use kdam::Bar;
+use routee_compass_core::model::traversal::{
+    TraversalModel, TraversalModelError, TraversalModelService,
+};
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::fs::read_decoders;
 use routee_compass_core::util::fs::read_utils;
@@ -37,7 +38,13 @@ impl EnergyModelService {
 
         let grade_table: Arc<Option<Box<[Grade]>>> = match grade_table_path_option {
             Some(gtp) => Arc::new(Some(
-                read_utils::read_raw_file(gtp, read_decoders::default, None).map_err(|e| {
+                read_utils::read_raw_file(
+                    gtp,
+                    read_decoders::default,
+                    Some(Bar::builder().desc("link grades")),
+                    None,
+                )
+                .map_err(|e| {
                     TraversalModelError::BuildError(format!(
                         "failure reading grade table {} due to {}",
                         gtp.as_ref().to_str().unwrap_or_default(),

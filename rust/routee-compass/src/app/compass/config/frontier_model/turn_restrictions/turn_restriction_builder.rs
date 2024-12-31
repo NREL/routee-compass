@@ -2,6 +2,7 @@ use crate::app::compass::config::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
 };
+use kdam::Bar;
 use routee_compass_core::{
     model::frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
     util::fs::read_utils,
@@ -30,18 +31,22 @@ impl FrontierModelBuilder for TurnRestrictionBuilder {
                 ))
             })?;
 
-        let restricted_edges: HashSet<RestrictedEdgePair> =
-            read_utils::from_csv(&turn_restriction_file, true, None)
-                .map_err(|e| {
-                    FrontierModelError::BuildError(format!(
-                        "configuration error due to {}: {}",
-                        turn_restriction_file_key.clone(),
-                        e
-                    ))
-                })?
-                .iter()
-                .cloned()
-                .collect();
+        let restricted_edges: HashSet<RestrictedEdgePair> = read_utils::from_csv(
+            &turn_restriction_file,
+            true,
+            Some(Bar::builder().desc("turn restrictions")),
+            None,
+        )
+        .map_err(|e| {
+            FrontierModelError::BuildError(format!(
+                "configuration error due to {}: {}",
+                turn_restriction_file_key.clone(),
+                e
+            ))
+        })?
+        .iter()
+        .cloned()
+        .collect();
 
         log::debug!(
             "Loaded {} turn restrictions from {:?}.",

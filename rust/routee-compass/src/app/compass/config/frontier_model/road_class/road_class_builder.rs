@@ -3,6 +3,7 @@ use crate::app::compass::config::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
 };
+use kdam::Bar;
 use routee_compass_core::{
     model::frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
     util::fs::{read_decoders, read_utils},
@@ -29,14 +30,19 @@ impl FrontierModelBuilder for RoadClassBuilder {
                 ))
             })?;
 
-        let road_class_lookup: Box<[u8]> =
-            read_utils::read_raw_file(&road_class_file, read_decoders::u8, None).map_err(|e| {
-                FrontierModelError::BuildError(format!(
-                    "failed to load file at {:?}: {}",
-                    road_class_file.clone().to_str(),
-                    e
-                ))
-            })?;
+        let road_class_lookup: Box<[u8]> = read_utils::read_raw_file(
+            &road_class_file,
+            read_decoders::u8,
+            Some(Bar::builder().desc("road class")),
+            None,
+        )
+        .map_err(|e| {
+            FrontierModelError::BuildError(format!(
+                "failed to load file at {:?}: {}",
+                road_class_file.clone().to_str(),
+                e
+            ))
+        })?;
 
         let road_class_parser = parameters
             .get_config_serde_optional::<RoadClassParser>(
