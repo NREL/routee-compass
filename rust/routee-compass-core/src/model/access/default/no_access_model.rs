@@ -1,8 +1,5 @@
 use crate::model::{
-    access::{
-        AccessModel, AccessModelBuilder,
-        AccessModelService,
-    },
+    access::{AccessModel, AccessModelBuilder, AccessModelService},
     network::{Edge, Vertex},
 };
 use std::sync::Arc;
@@ -29,10 +26,7 @@ impl AccessModelService for NoAccessModel {
     fn build(
         &self,
         _query: &serde_json::Value,
-    ) -> Result<
-        std::sync::Arc<dyn AccessModel>,
-        crate::model::access::AccessModelError,
-    > {
+    ) -> Result<std::sync::Arc<dyn AccessModel>, crate::model::access::AccessModelError> {
         let model: Arc<dyn AccessModel> = Arc::new(self.clone());
         Ok(model)
     }
@@ -42,10 +36,7 @@ impl AccessModelBuilder for NoAccessModel {
     fn build(
         &self,
         _parameters: &serde_json::Value,
-    ) -> Result<
-        Arc<dyn AccessModelService>,
-        crate::model::access::AccessModelError,
-    > {
+    ) -> Result<Arc<dyn AccessModelService>, crate::model::access::AccessModelError> {
         let service: Arc<dyn AccessModelService> = Arc::new(self.clone());
         Ok(service)
     }

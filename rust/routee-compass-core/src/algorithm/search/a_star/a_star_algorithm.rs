@@ -382,8 +382,8 @@ mod tests {
     use crate::model::cost::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
 
-    use crate::model::map::MapModel;
     use crate::model::map::map_model_config::MapModelConfig;
+    use crate::model::map::MapModel;
     use crate::model::network::edge_id::EdgeId;
     use crate::model::network::graph::Graph;
     use crate::model::network::Edge;

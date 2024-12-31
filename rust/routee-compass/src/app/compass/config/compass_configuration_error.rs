@@ -2,9 +2,8 @@ use crate::plugin::plugin_error::PluginError;
 use config::ConfigError;
 use routee_compass_core::{
     model::{
-        access::AccessModelError,
-        frontier::FrontierModelError, network::network_error::NetworkError,
-        traversal::TraversalModelError,
+        access::AccessModelError, frontier::FrontierModelError,
+        network::network_error::NetworkError, traversal::TraversalModelError,
     },
     util::{cache_policy::cache_error::CacheError, conversion::conversion_error::ConversionError},
 };

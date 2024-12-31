@@ -1,4 +1,4 @@
-use super::{AccessModelError, AccessModel};
+use super::{AccessModel, AccessModelError};
 use std::sync::Arc;
 
 pub trait AccessModelService: Send + Sync {

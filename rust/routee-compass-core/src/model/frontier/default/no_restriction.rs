@@ -1,8 +1,5 @@
 use crate::model::{
-    frontier::{
-        FrontierModel, frontier_model_error::FrontierModelError,
-        FrontierModelService,
-    },
+    frontier::{frontier_model_error::FrontierModelError, FrontierModel, FrontierModelService},
     state::StateModel,
 };
 use std::sync::Arc;

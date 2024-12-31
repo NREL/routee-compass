@@ -1,6 +1,4 @@
-use routee_compass_core::model::{
-    frontier::FrontierModelError, network::edge_id::EdgeId,
-};
+use routee_compass_core::model::{frontier::FrontierModelError, network::edge_id::EdgeId};
 use serde::Deserialize;
 
 use super::vehicle_restriction::VehicleRestriction;

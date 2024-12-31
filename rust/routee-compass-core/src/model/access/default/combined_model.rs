@@ -1,8 +1,5 @@
 use crate::model::{
-    access::{
-        AccessModel, AccessModelError,
-        AccessModelService,
-    },
+    access::{AccessModel, AccessModelError, AccessModelService},
     network::{Edge, Vertex},
     state::{StateFeature, StateModel, StateVariable},
 };
