@@ -49,7 +49,7 @@ Any custom builders will need to be added to a [CompassAppBuilder] instance that
 [CompassApp]: crate::app::compass::routee_compass::CompassApp
 [CompassAppBuilder]: crate::app::compass::config::routee_compass_builder::CompassAppBuilder
 [TraversalModelBuilder]: routee_compass_core::app::compass::config::builders::TraversalModelBuilder
-[FrontierModelBuilder]: crate::app::compass::config::builders::FrontierModelBuilder
+[FrontierModelBuilder]: routee_compass_core::app::compass::config::builders::FrontierModelBuilder
 [InputPluginBuilder]: crate::app::compass::config::builders::InputPluginBuilder
 [OutputPluginBuilder]: crate::app::compass::config::builders::OutputPluginBuilder
 
