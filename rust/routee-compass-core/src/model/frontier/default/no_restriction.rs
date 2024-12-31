@@ -14,9 +14,9 @@ impl FrontierModel for NoRestriction {
         _state: &[crate::model::state::StateVariable],
         _tree: &std::collections::HashMap<
             crate::model::network::VertexId,
-            crate::algorithm::search::search_tree_branch::SearchTreeBranch,
+            crate::algorithm::search::SearchTreeBranch,
         >,
-        _direction: &crate::algorithm::search::direction::Direction,
+        _direction: &crate::algorithm::search::Direction,
         _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         Ok(true)

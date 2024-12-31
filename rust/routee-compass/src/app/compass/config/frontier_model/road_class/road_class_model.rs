@@ -1,6 +1,6 @@
 use super::road_class_service::RoadClassFrontierService;
 use routee_compass_core::{
-    algorithm::search::search_tree_branch::SearchTreeBranch,
+    algorithm::search::SearchTreeBranch,
     model::{
         frontier::{FrontierModel, FrontierModelError},
         network::{Edge, VertexId},
@@ -23,7 +23,7 @@ impl FrontierModel for RoadClassFrontierModel {
         edge: &Edge,
         _state: &[StateVariable],
         _tree: &HashMap<VertexId, SearchTreeBranch>,
-        _direction: &routee_compass_core::algorithm::search::direction::Direction,
+        _direction: &routee_compass_core::algorithm::search::Direction,
         _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         self.valid_edge(edge)

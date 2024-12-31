@@ -21,9 +21,9 @@ impl FrontierModel for VehicleRestrictionFrontierModel {
         _state: &[StateVariable],
         _tree: &std::collections::HashMap<
             routee_compass_core::model::network::VertexId,
-            routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch,
+            routee_compass_core::algorithm::search::SearchTreeBranch,
         >,
-        _direction: &routee_compass_core::algorithm::search::direction::Direction,
+        _direction: &routee_compass_core::algorithm::search::Direction,
         _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         self.valid_edge(edge)

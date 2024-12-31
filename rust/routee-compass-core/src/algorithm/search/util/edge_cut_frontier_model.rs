@@ -31,9 +31,9 @@ impl FrontierModel for EdgeCutFrontierModel {
         state: &[crate::model::state::StateVariable],
         tree: &std::collections::HashMap<
             crate::model::network::VertexId,
-            crate::algorithm::search::search_tree_branch::SearchTreeBranch,
+            crate::algorithm::search::SearchTreeBranch,
         >,
-        direction: &crate::algorithm::search::direction::Direction,
+        direction: &crate::algorithm::search::Direction,
         state_model: &crate::model::state::StateModel,
     ) -> Result<bool, crate::model::frontier::FrontierModelError> {
         if self.cut_edges.contains(&edge.edge_id) {

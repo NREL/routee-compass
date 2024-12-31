@@ -8,10 +8,7 @@ use crate::{
 };
 use chrono::Local;
 use routee_compass_core::{
-    algorithm::search::{
-        direction::Direction, search_algorithm::SearchAlgorithm, search_error::SearchError,
-        search_instance::SearchInstance,
-    },
+    algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance},
     model::{
         access::AccessModelService, frontier::FrontierModelService, map::MapModel,
         network::graph::Graph, state::StateModel, termination::TerminationModel,

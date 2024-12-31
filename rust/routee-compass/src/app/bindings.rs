@@ -1,17 +1,14 @@
-use std::str::FromStr;
-
+use super::compass::{compass_app::CompassApp, compass_app_error::CompassAppError};
+use crate::app::search::SearchAppGraphOps;
 use itertools::Itertools;
 use routee_compass_core::{
-    algorithm::search::direction::Direction,
+    algorithm::search::Direction,
     model::{
         network::{edge_id::EdgeId, vertex_id::VertexId},
         unit::{as_f64::AsF64, DistanceUnit},
     },
 };
-
-use super::compass::{compass_app::CompassApp, compass_app_error::CompassAppError};
-
-use crate::app::search::search_app_graph_ops::SearchAppGraphOps;
+use std::str::FromStr;
 
 /// Defines the interface for exposing the application via a set of language bindings using
 /// standard types for easy conversion between languages.

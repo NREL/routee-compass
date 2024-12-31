@@ -1,16 +1,15 @@
 use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
 use super::ksp::ksp_query::KspQuery;
-use super::ksp::ksp_termination_criteria::KspTerminationCriteria;
+use super::ksp::KspTerminationCriteria;
 use super::ksp::{single_via_paths_algorithm, yens_algorithm};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
-use super::util::route_similarity_function::RouteSimilarityFunction;
+use super::util::RouteSimilarityFunction;
 use super::{a_star::a_star_algorithm, direction::Direction};
 use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
-
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

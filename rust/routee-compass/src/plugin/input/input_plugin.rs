@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::app::search::search_app::SearchApp;
+use crate::app::search::SearchApp;
 
 use super::InputPluginError;
 
@@ -20,7 +20,7 @@ use super::InputPluginError;
 /// * [load balancer] - uses weighting heuristics to balance query loads across threads
 ///
 /// [debug]: super::default::debug::debug_builder::DebugInputPluginBuilder
-/// [grid search]: super::default::grid_search::builder::GridSearchBuilder
+/// [grid search]: super::default::grid_search::GridSearchBuilder
 /// [inject]: super::default::inject::inject_builder::InjectPluginBuilder
 /// [load balancer]: super::default::load_balancer::builder::LoadBalancerBuilder
 ///

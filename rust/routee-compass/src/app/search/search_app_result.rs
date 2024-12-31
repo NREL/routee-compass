@@ -1,7 +1,7 @@
 use allocative::Allocative;
 
 use routee_compass_core::{
-    algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
+    algorithm::search::{EdgeTraversal, SearchTreeBranch},
     model::network::vertex_id::VertexId,
 };
 

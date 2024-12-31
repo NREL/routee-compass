@@ -1,5 +1,5 @@
 use super::{Edge, EdgeId, NetworkError, Vertex, VertexId};
-use crate::algorithm::search::direction::Direction;
+use crate::algorithm::search::Direction;
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::util::fs::read_utils;
 use allocative::Allocative;

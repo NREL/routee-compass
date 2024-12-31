@@ -1,8 +1,8 @@
 use crate::app::{
     compass::compass_app_error::CompassAppError,
-    search::{search_app::SearchApp, search_app_result::SearchAppResult},
+    search::{SearchApp, SearchAppResult},
 };
-use routee_compass_core::algorithm::search::search_instance::SearchInstance;
+use routee_compass_core::algorithm::search::SearchInstance;
 use serde_json::{json, Value};
 
 /// creates the initial output with summary information from the search app,

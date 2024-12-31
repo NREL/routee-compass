@@ -3,7 +3,7 @@ use super::map_model_config::MapModelConfig;
 use super::matching_type::MatchingType;
 use super::spatial_index::SpatialIndex;
 use super::{geometry_model::GeometryModel, matching_type::MapInputResult};
-use crate::algorithm::search::search_instance::SearchInstance;
+use crate::algorithm::search::SearchInstance;
 use crate::model::network::{EdgeId, Graph};
 use geo::LineString;
 use std::sync::Arc;

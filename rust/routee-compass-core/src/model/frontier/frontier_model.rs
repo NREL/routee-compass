@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use super::frontier_model_error::FrontierModelError;
 use crate::{
-    algorithm::search::{direction::Direction, search_tree_branch::SearchTreeBranch},
+    algorithm::search::{Direction, SearchTreeBranch},
     model::{
         network::{Edge, VertexId},
         state::{StateModel, StateVariable},

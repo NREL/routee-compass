@@ -1,5 +1,5 @@
 use routee_compass_core::{
-    algorithm::search::{direction::Direction, search_tree_branch::SearchTreeBranch},
+    algorithm::search::{Direction, SearchTreeBranch},
     model::{
         frontier::{FrontierModel, FrontierModelError},
         network::{Edge, VertexId},

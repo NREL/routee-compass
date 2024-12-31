@@ -16,7 +16,7 @@ use crate::{
                 termination_model_builder::TerminationModelBuilder,
             },
         },
-        search::{search_app::SearchApp, search_app_result::SearchAppResult},
+        search::{SearchApp, SearchAppResult},
     },
     plugin::{
         input::{input_plugin::InputPlugin, input_plugin_ops as in_ops},
@@ -28,13 +28,10 @@ use config::Config;
 use itertools::{Either, Itertools};
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
-use routee_compass_core::algorithm::search::search_instance::SearchInstance;
+use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
 use routee_compass_core::model::map::{MapModel, MapModelConfig};
 use routee_compass_core::model::state::StateModel;
-use routee_compass_core::{
-    algorithm::search::search_algorithm::SearchAlgorithm,
-    util::duration_extension::DurationExtension,
-};
+use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
 use std::rc::Rc;
 use std::{

@@ -21,7 +21,7 @@ use super::{
 use crate::plugin::{
     input::{
         default::{
-            debug::debug_builder::DebugInputPluginBuilder, grid_search::builder::GridSearchBuilder,
+            debug::debug_builder::DebugInputPluginBuilder, grid_search::GridSearchBuilder,
             inject::inject_builder::InjectPluginBuilder,
             load_balancer::builder::LoadBalancerBuilder,
         },

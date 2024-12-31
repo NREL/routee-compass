@@ -4,7 +4,7 @@ use crate::plugin::{
 };
 use config::ConfigError;
 use routee_compass_core::{
-    algorithm::search::search_error::SearchError,
+    algorithm::search::SearchError,
     model::{
         access::AccessModelError, cost::CostModelError, frontier::FrontierModelError,
         map::MapError, network::network_error::NetworkError, state::StateModelError,

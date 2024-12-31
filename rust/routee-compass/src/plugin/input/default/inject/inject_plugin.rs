@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
-    app::search::search_app::SearchApp,
+    app::search::SearchApp,
     plugin::input::{input_plugin::InputPlugin, InputPluginError},
 };
 

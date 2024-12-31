@@ -3,7 +3,7 @@ use super::{
     nearest_search_result::NearestSearchResult,
 };
 use crate::{
-    algorithm::search::search_instance::SearchInstance,
+    algorithm::search::SearchInstance,
     model::{frontier::FrontierModel, network::Edge},
 };
 use itertools::Itertools;

@@ -16,9 +16,9 @@ impl FrontierModel for CombinedFrontierModel {
         state: &[StateVariable],
         tree: &std::collections::HashMap<
             routee_compass_core::model::network::VertexId,
-            routee_compass_core::algorithm::search::search_tree_branch::SearchTreeBranch,
+            routee_compass_core::algorithm::search::SearchTreeBranch,
         >,
-        direction: &routee_compass_core::algorithm::search::direction::Direction,
+        direction: &routee_compass_core::algorithm::search::Direction,
         state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         // If any of the inner models return an invalid frontier, it invalidates the whole set and we

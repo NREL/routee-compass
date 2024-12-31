@@ -1,9 +1,9 @@
-use crate::algorithm::search::direction::Direction;
-use crate::algorithm::search::edge_traversal::EdgeTraversal;
-use crate::algorithm::search::search_error::SearchError;
-use crate::algorithm::search::search_instance::SearchInstance;
-use crate::algorithm::search::search_result::SearchResult;
-use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
+use crate::algorithm::search::Direction;
+use crate::algorithm::search::EdgeTraversal;
+use crate::algorithm::search::SearchError;
+use crate::algorithm::search::SearchInstance;
+use crate::algorithm::search::SearchResult;
+use crate::algorithm::search::SearchTreeBranch;
 use crate::model::network::edge_id::EdgeId;
 use crate::model::network::vertex_id::VertexId;
 use crate::model::unit::as_f64::AsF64;
@@ -374,7 +374,7 @@ fn get_last_traversed_edge_id(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::algorithm::search::backtrack::vertex_oriented_route;
+    use crate::algorithm::search::vertex_oriented_route;
     use crate::algorithm::search::MinSearchTree;
     use crate::model::access::default::NoAccessModel;
     use crate::model::cost::CostAggregation;

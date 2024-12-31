@@ -1,7 +1,7 @@
 use super::output_plugin_error::OutputPluginError;
 use crate::app::compass::compass_app_error::CompassAppError;
-use crate::app::search::search_app_result::SearchAppResult;
-use routee_compass_core::algorithm::search::search_instance::SearchInstance;
+use crate::app::search::SearchAppResult;
+use routee_compass_core::algorithm::search::SearchInstance;
 
 /// Performs some kind of post-processing on a search result. The result JSON is available
 /// to the plugin as a reference which was potentially modified upstream by another output
@@ -34,7 +34,7 @@ pub trait OutputPlugin: Send + Sync {
     ///
     /// The modified JSON or an error
     ///
-    /// [internal representation]: crate::app::search::search_app_result::SearchAppResult
+    /// [internal representation]: crate::app::search::SearchAppResult
     fn process(
         &self,
         output: &mut serde_json::Value,

@@ -3,8 +3,7 @@ use crate::{
     algorithm::search::{
         edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm,
         search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
-        search_instance::SearchInstance, util::edge_cut_frontier_model::EdgeCutFrontierModel,
-        util::route_similarity_function::RouteSimilarityFunction,
+        search_instance::SearchInstance, util::EdgeCutFrontierModel, util::RouteSimilarityFunction,
     },
     model::{network::edge_id::EdgeId, unit::Cost},
 };
@@ -31,7 +30,7 @@ pub fn run(
         query.source,
         Some(query.target),
         query.user_query,
-        &crate::algorithm::search::direction::Direction::Forward,
+        &crate::algorithm::search::Direction::Forward,
         si,
     )?;
     if shortest.routes.is_empty() {
@@ -99,7 +98,7 @@ pub fn run(
                 spur_vertex_id,
                 Some(query.target),
                 query.user_query,
-                &crate::algorithm::search::direction::Direction::Forward,
+                &crate::algorithm::search::Direction::Forward,
                 &yens_si,
             )?;
             iterations += 1;

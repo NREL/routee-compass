@@ -10,7 +10,7 @@ This can be broken up into the following modules:
   - [`crate::model::termination::termination_model`] - system-level rules on timeouts + limits for search
 - [`crate::algorithm`] - [algorithm](#algorithm) implementations
   - [`crate::algorithm::search`] - search algorithm module
-    - [`crate::algorithm::search::search_algorithm_type::SearchAlgorithmType`] - enumeration listing search algorithm types, so far only traditional a star supported
+    - [`crate::algorithm::search::SearchAlgorithmType`] - enumeration listing search algorithm types, so far only traditional a star supported
     - [`crate::algorithm::search::a_star::a_star`] - a star search implementation
   - [`crate::algorithm::component:scc`] - strongly-connected components algorithm
 - [`crate::util`] - utility modules

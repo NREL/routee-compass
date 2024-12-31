@@ -1,10 +1,10 @@
 use super::output_json_extensions::UUIDJsonExtensions;
 use crate::app::compass::compass_app_error::CompassAppError;
-use crate::app::search::search_app_result::SearchAppResult;
+use crate::app::search::SearchAppResult;
 use crate::plugin::output::default::uuid::output_json_extensions::UUIDJsonField;
 use crate::plugin::output::{OutputPlugin, OutputPluginError};
 use kdam::Bar;
-use routee_compass_core::algorithm::search::search_instance::SearchInstance;
+use routee_compass_core::algorithm::search::SearchInstance;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 use std::path::Path;
 

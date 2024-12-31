@@ -4,7 +4,7 @@ use super::traversal_ops as ops;
 use crate::plugin::output::OutputPluginError;
 use geo::{CoordFloat, Geometry};
 use routee_compass_core::{
-    algorithm::search::{edge_traversal::EdgeTraversal, search_tree_branch::SearchTreeBranch},
+    algorithm::search::{EdgeTraversal, SearchTreeBranch},
     model::{map::MapModel, network::vertex_id::VertexId},
 };
 use serde::{Deserialize, Serialize};
@@ -117,12 +117,12 @@ fn geometry_to_wkb_string<T: CoordFloat + Into<f64>>(
 #[cfg(test)]
 mod test {
 
-    use crate::app::search::search_app_result::SearchAppResult;
+    use crate::app::search::SearchAppResult;
     use chrono::Local;
     use geo::{coord, LineString};
     use routee_compass_core::{
-        algorithm::search::edge_traversal::EdgeTraversal,
-        model::{network::edge_id::EdgeId, state::StateVariable, unit::Cost},
+        algorithm::search::EdgeTraversal,
+        model::{network::EdgeId, state::StateVariable, unit::Cost},
     };
     use std::time::Duration;
 
