@@ -1,5 +1,5 @@
 use super::{road_class_parser::RoadClassParser, road_class_service::RoadClassFrontierService};
-use crate::app::compass::config::{
+use crate::app::compass::model::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
 };

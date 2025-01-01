@@ -1,8 +1,7 @@
 use super::{search_app_ops, search_app_result::SearchAppResult};
 use crate::{
     app::compass::{
-        compass_app_error::CompassAppError,
-        config::cost_model::cost_model_service::CostModelService,
+        compass_app_error::CompassAppError, model::cost_model::cost_model_service::CostModelService,
     },
     plugin::{input::InputJsonExtensions, PluginError},
 };

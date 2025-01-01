@@ -1,4 +1,4 @@
-use crate::app::compass::config::{
+use crate::app::compass::model::{
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,
 };

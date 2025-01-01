@@ -1,4 +1,4 @@
-use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
+use crate::app::compass::model::config_json_extension::ConfigJsonExtensions;
 use itertools::Itertools;
 use routee_compass_core::model::access::{
     default::CombinedAccessModelService, AccessModelBuilder, AccessModelError, AccessModelService,

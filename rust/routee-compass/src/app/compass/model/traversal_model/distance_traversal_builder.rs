@@ -1,5 +1,5 @@
-use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
-use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
+use crate::app::compass::model::compass_configuration_field::CompassConfigurationField;
+use crate::app::compass::model::config_json_extension::ConfigJsonExtensions;
 use routee_compass_core::model::traversal::default::DistanceTraversalService;
 use routee_compass_core::model::traversal::TraversalModelBuilder;
 use routee_compass_core::model::traversal::TraversalModelError;

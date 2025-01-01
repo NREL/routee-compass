@@ -1,9 +1,9 @@
 use super::cli_args::CliArgs;
 use crate::app::compass::compass_app_ops as ops;
-use crate::app::compass::config::compass_configuration_error::CompassConfigurationError;
+use crate::app::compass::model::CompassConfigurationError;
 use crate::app::compass::{
     compass_app::CompassApp, compass_app_error::CompassAppError,
-    compass_json_extensions::CompassJsonExtensions, config::compass_app_builder::CompassAppBuilder,
+    compass_json_extensions::CompassJsonExtensions, model::CompassAppBuilder,
 };
 use itertools::{Either, Itertools};
 use log::{debug, error};

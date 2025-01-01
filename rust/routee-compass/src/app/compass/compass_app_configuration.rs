@@ -5,7 +5,7 @@ use super::{
         response_persistence_policy::ResponsePersistencePolicy,
     },
 };
-use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
+use crate::app::compass::model::CompassConfigurationField;
 use config::Config;
 use serde::{Deserialize, Serialize};
 

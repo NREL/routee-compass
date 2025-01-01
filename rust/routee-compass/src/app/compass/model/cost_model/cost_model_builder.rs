@@ -1,5 +1,5 @@
 use super::cost_model_service::CostModelService;
-use crate::app::compass::config::{
+use crate::app::compass::model::{
     compass_configuration_error::CompassConfigurationError,
     compass_configuration_field::CompassConfigurationField,
     config_json_extension::ConfigJsonExtensions,

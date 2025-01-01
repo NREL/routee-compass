@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    app::compass::config::config_json_extension::ConfigJsonExtensions,
+    app::compass::model::ConfigJsonExtensions,
     plugin::input::{input_field::InputField, InputPluginError},
 };
 
