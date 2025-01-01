@@ -1,5 +1,4 @@
-use crate::app::compass::model::config_json_extension::ConfigJsonExtensions;
-
+use crate::app::compass::ConfigJsonExtensions;
 use routee_compass_core::model::{
     frontier::FrontierModelError,
     unit::{Distance, DistanceUnit, Weight, WeightUnit},

@@ -1,8 +1,5 @@
 use super::{road_class_parser::RoadClassParser, road_class_service::RoadClassFrontierService};
-use crate::app::compass::model::{
-    compass_configuration_field::CompassConfigurationField,
-    config_json_extension::ConfigJsonExtensions,
-};
+use crate::app::compass::{CompassConfigurationField, ConfigJsonExtensions};
 use kdam::Bar;
 use routee_compass_core::{
     model::frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},

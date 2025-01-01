@@ -1,5 +1,5 @@
 use super::search_app::SearchApp;
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 use routee_compass_core::{
     algorithm::search::Direction,
     model::network::{edge_id::EdgeId, vertex_id::VertexId},

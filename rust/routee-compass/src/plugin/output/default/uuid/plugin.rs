@@ -1,5 +1,5 @@
 use super::output_json_extensions::UUIDJsonExtensions;
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 use crate::app::search::SearchAppResult;
 use crate::plugin::output::default::uuid::output_json_extensions::UUIDJsonField;
 use crate::plugin::output::{OutputPlugin, OutputPluginError};

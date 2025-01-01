@@ -1,13 +1,10 @@
-use std::sync::Arc;
-
+use super::plugin::UUIDOutputPlugin;
 use crate::{
-    app::compass::model::{
-        builders::OutputPluginBuilder, CompassConfigurationError, ConfigJsonExtensions,
-    },
+    app::compass::model::builders::OutputPluginBuilder,
+    app::compass::{CompassConfigurationError, ConfigJsonExtensions},
     plugin::{output::output_plugin::OutputPlugin, PluginError},
 };
-
-use super::plugin::UUIDOutputPlugin;
+use std::sync::Arc;
 
 pub struct UUIDOutputPluginBuilder {}
 

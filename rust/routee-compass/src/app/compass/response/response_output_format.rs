@@ -1,5 +1,5 @@
 use super::{csv::csv_mapping::CsvMapping, response_output_format_json as json_ops};
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 use itertools::Itertools;
 use ordered_hash_map::OrderedHashMap;
 use serde::{Deserialize, Serialize};

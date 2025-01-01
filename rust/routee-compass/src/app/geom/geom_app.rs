@@ -1,4 +1,4 @@
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 use geo::LineString;
 use kdam::Bar;
 use routee_compass_core::util::fs::read_utils;

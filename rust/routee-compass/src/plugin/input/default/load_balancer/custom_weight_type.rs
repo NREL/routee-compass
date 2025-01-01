@@ -1,11 +1,9 @@
-use std::collections::HashMap;
-
-use serde::{Deserialize, Serialize};
-
 use crate::{
-    app::compass::model::ConfigJsonExtensions,
+    app::compass::ConfigJsonExtensions,
     plugin::input::{input_field::InputField, InputPluginError},
 };
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case", tag = "type")]

@@ -1,18 +1,18 @@
 use super::compass_app_configuration::CompassAppConfiguration;
 use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
-use super::{compass_app_ops as ops, model::CompassAppBuilder};
+use super::{compass_app_ops as ops, CompassAppBuilder};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
+use crate::app::compass::{CompassConfigurationField, ConfigJsonExtensions};
 use crate::{
     app::{
         compass::{
-            compass_app_error::CompassAppError,
             compass_input_field::CompassInputField,
             model::{
                 cost_model::cost_model_builder::CostModelBuilder,
-                termination_model_builder::TerminationModelBuilder, CompassConfigurationField,
-                ConfigJsonExtensions,
+                termination_model_builder::TerminationModelBuilder,
             },
+            CompassAppError,
         },
         search::{SearchApp, SearchAppResult},
     },
@@ -611,8 +611,7 @@ mod tests {
     use std::path::PathBuf;
 
     use crate::app::compass::{
-        compass_app_error::CompassAppError,
-        model::compass_configuration_error::CompassConfigurationError,
+        model::compass_configuration_error::CompassConfigurationError, CompassAppError,
     };
 
     use super::CompassApp;

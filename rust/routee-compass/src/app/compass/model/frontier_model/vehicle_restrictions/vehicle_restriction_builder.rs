@@ -1,7 +1,8 @@
-use crate::app::compass::model::{
-    compass_configuration_field::CompassConfigurationField,
-    config_json_extension::ConfigJsonExtensions,
+use super::{
+    vehicle_restriction::VehicleRestriction, vehicle_restriction_row::RestrictionRow,
+    vehicle_restriction_service::VehicleRestrictionFrontierService,
 };
+use crate::app::compass::{CompassConfigurationField, ConfigJsonExtensions};
 use kdam::Bar;
 use routee_compass_core::{
     model::{
@@ -11,11 +12,6 @@ use routee_compass_core::{
     util::fs::read_utils,
 };
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
-
-use super::{
-    vehicle_restriction::VehicleRestriction, vehicle_restriction_row::RestrictionRow,
-    vehicle_restriction_service::VehicleRestrictionFrontierService,
-};
 
 pub struct VehicleRestrictionBuilder {}
 

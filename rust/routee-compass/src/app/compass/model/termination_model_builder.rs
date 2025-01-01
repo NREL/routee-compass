@@ -1,6 +1,6 @@
-use super::compass_configuration_error::CompassConfigurationError;
-use crate::app::compass::model::compass_configuration_field::CompassConfigurationField;
-use crate::app::compass::model::config_json_extension::ConfigJsonExtensions;
+use crate::app::compass::{
+    CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions,
+};
 use log;
 use routee_compass_core::model::termination::TerminationModel;
 use routee_compass_core::util::conversion::duration_extension::DurationExtension;

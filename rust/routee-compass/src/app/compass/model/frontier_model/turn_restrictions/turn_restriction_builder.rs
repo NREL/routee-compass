@@ -1,15 +1,11 @@
-use crate::app::compass::model::{
-    compass_configuration_field::CompassConfigurationField,
-    config_json_extension::ConfigJsonExtensions,
-};
+use super::turn_restriction_service::{RestrictedEdgePair, TurnRestrictionFrontierService};
+use crate::app::compass::{CompassConfigurationField, ConfigJsonExtensions};
 use kdam::Bar;
 use routee_compass_core::{
     model::frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
     util::fs::read_utils,
 };
 use std::{collections::HashSet, sync::Arc};
-
-use super::turn_restriction_service::{RestrictedEdgePair, TurnRestrictionFrontierService};
 
 pub struct TurnRestrictionBuilder {}
 

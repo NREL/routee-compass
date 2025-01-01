@@ -1,6 +1,6 @@
 use super::json_extensions::TraversalJsonField;
 use super::traversal_output_format::TraversalOutputFormat;
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 use crate::app::search::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::output::OutputPluginError;

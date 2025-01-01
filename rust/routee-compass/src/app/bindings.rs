@@ -1,4 +1,4 @@
-use super::compass::{compass_app::CompassApp, compass_app_error::CompassAppError};
+use super::compass::{compass_app::CompassApp, CompassAppError};
 use crate::app::search::SearchAppGraphOps;
 use itertools::Itertools;
 use routee_compass_core::{
@@ -28,7 +28,7 @@ use std::str::FromStr;
 /// ```
 /// use routee_compass::app::bindings::CompassAppBindings;
 /// use routee_compass::app::compass::compass_app::CompassApp;
-/// use routee_compass::app::compass::compass_app_error::CompassAppError;
+/// use routee_compass::app::compass::CompassAppError;
 /// use routee_compass::app::compass::config::compass_app_builder::CompassAppBuilder;
 ///
 /// //use routee_compass_macros::pybindings;

@@ -1,5 +1,5 @@
 use crate::app::{
-    compass::compass_app_error::CompassAppError,
+    compass::CompassAppError,
     search::{SearchApp, SearchAppResult},
 };
 use routee_compass_core::algorithm::search::SearchInstance;

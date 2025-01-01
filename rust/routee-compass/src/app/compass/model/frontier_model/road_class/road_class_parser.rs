@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use indoc::formatdoc;
 use serde::Deserialize;
 
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 
 #[derive(Default, Clone, Deserialize)]
 #[serde(rename_all = "snake_case")]

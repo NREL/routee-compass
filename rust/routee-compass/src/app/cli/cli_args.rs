@@ -1,4 +1,4 @@
-use crate::app::compass::{compass_app_error::CompassAppError, model::CompassConfigurationError};
+use crate::app::compass::{CompassAppError, CompassConfigurationError};
 use clap::Parser;
 
 #[derive(Parser, Debug)]

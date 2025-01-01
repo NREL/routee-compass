@@ -1,5 +1,5 @@
 use super::output_plugin_error::OutputPluginError;
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 use crate::app::search::SearchAppResult;
 use routee_compass_core::algorithm::search::SearchInstance;
 

@@ -1,11 +1,9 @@
-use std::sync::Arc;
-
+use super::plugin::SummaryOutputPlugin;
 use crate::{
-    app::compass::model::{builders::OutputPluginBuilder, CompassConfigurationError},
+    app::compass::model::builders::OutputPluginBuilder, app::compass::CompassConfigurationError,
     plugin::output::output_plugin::OutputPlugin,
 };
-
-use super::plugin::SummaryOutputPlugin;
+use std::sync::Arc;
 
 pub struct SummaryOutputPluginBuilder {}
 

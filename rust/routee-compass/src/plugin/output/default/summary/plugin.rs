@@ -1,5 +1,5 @@
 use crate::app::{
-    compass::compass_app_error::CompassAppError, search::SearchAppResult,
+    compass::CompassAppError, search::SearchAppResult,
 };
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::output::OutputPluginError;

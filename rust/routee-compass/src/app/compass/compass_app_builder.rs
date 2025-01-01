@@ -1,12 +1,10 @@
-use super::{
+use super::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions};
+use crate::app::compass::model::{
     access_model::{
         combined_access_model_builder::CombinedAccessModelBuilder,
         turn_delay_access_model_builder::TurnDelayAccessModelBuilder,
     },
     builders::{InputPluginBuilder, OutputPluginBuilder},
-    compass_configuration_error::CompassConfigurationError,
-    compass_configuration_field::CompassConfigurationField,
-    config_json_extension::ConfigJsonExtensions,
     frontier_model::{
         combined::combined_builder::CombinedBuilder, no_restriction_builder::NoRestrictionBuilder,
         road_class::road_class_builder::RoadClassBuilder,
