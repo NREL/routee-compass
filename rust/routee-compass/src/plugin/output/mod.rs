@@ -1,6 +1,6 @@
 pub mod default;
-pub mod output_plugin;
-pub mod output_plugin_error;
+mod output_plugin;
+mod output_plugin_error;
 pub mod output_plugin_ops;
 
 pub use output_plugin::OutputPlugin;

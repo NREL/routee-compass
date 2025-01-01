@@ -1,5 +1,5 @@
 use super::{compass_app_error::CompassAppError, compass_input_field::CompassInputField};
-use crate::plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError};
+use crate::plugin::{input::InputJsonExtensions, PluginError};
 use config::Config;
 use kdam::{Bar, BarExt};
 use ordered_float::OrderedFloat;

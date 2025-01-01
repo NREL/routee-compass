@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use super::compass_configuration_error::CompassConfigurationError;
-use crate::plugin::{input::input_plugin::InputPlugin, output::output_plugin::OutputPlugin};
+use crate::plugin::{input::InputPlugin, output::OutputPlugin};
 
 /// A [`InputPluginBuilder`] takes a JSON object describing the configuration of an
 /// input plugin and builds a [InputPlugin].

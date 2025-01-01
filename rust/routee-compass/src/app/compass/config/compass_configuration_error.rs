@@ -1,4 +1,4 @@
-use crate::plugin::plugin_error::PluginError;
+use crate::plugin::PluginError;
 use config::ConfigError;
 use routee_compass_core::{
     model::{

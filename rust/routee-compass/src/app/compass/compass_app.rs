@@ -19,8 +19,8 @@ use crate::{
         search::{SearchApp, SearchAppResult},
     },
     plugin::{
-        input::{input_plugin::InputPlugin, input_plugin_ops as in_ops},
-        output::{output_plugin::OutputPlugin, output_plugin_ops as out_ops},
+        input::{input_plugin_ops as in_ops, InputPlugin},
+        output::{output_plugin_ops as out_ops, OutputPlugin},
     },
 };
 use chrono::{Duration, Local};

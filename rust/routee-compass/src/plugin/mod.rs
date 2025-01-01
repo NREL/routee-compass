@@ -1,3 +1,5 @@
 pub mod input;
 pub mod output;
-pub mod plugin_error;
+mod plugin_error;
+
+pub use plugin_error::PluginError;

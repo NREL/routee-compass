@@ -21,18 +21,17 @@ use super::{
 use crate::plugin::{
     input::{
         default::{
-            debug::debug_builder::DebugInputPluginBuilder, grid_search::GridSearchBuilder,
-            inject::inject_builder::InjectPluginBuilder,
-            load_balancer::builder::LoadBalancerBuilder,
+            debug::DebugInputPluginBuilder, grid_search::GridSearchBuilder,
+            inject::InjectPluginBuilder, load_balancer::LoadBalancerBuilder,
         },
-        input_plugin::InputPlugin,
+        InputPlugin,
     },
     output::{
         default::{
-            summary::builder::SummaryOutputPluginBuilder,
-            traversal::builder::TraversalPluginBuilder, uuid::builder::UUIDOutputPluginBuilder,
+            summary::SummaryOutputPluginBuilder, traversal::TraversalPluginBuilder,
+            uuid::UUIDOutputPluginBuilder,
         },
-        output_plugin::OutputPlugin,
+        OutputPlugin,
     },
 };
 use itertools::Itertools;

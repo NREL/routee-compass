@@ -1,7 +1,7 @@
 use crate::app::search::SearchApp;
 use crate::plugin::input::input_field::InputField;
-use crate::plugin::input::input_json_extensions::InputJsonExtensions;
 use crate::plugin::input::input_plugin::InputPlugin;
+use crate::plugin::input::InputJsonExtensions;
 use crate::plugin::input::InputPluginError;
 use routee_compass_core::util::multiset::MultiSet;
 use std::sync::Arc;

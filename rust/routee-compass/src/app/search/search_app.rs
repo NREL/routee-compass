@@ -4,7 +4,7 @@ use crate::{
         compass_app_error::CompassAppError,
         config::cost_model::cost_model_service::CostModelService,
     },
-    plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError},
+    plugin::{input::InputJsonExtensions, PluginError},
 };
 use chrono::Local;
 use routee_compass_core::{

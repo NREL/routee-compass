@@ -6,7 +6,7 @@ use crate::{
         builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,
         config_json_extension::ConfigJsonExtensions,
     },
-    plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError},
+    plugin::{output::output_plugin::OutputPlugin, PluginError},
 };
 
 /// Builds a plugin that can generate traversal outputs.
