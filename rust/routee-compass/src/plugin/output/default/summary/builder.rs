@@ -1,7 +1,7 @@
 use super::plugin::SummaryOutputPlugin;
 use crate::{
-    app::compass::model::builders::OutputPluginBuilder, app::compass::CompassConfigurationError,
-    plugin::output::output_plugin::OutputPlugin,
+    app::compass::CompassConfigurationError,
+    plugin::output::{OutputPlugin, OutputPluginBuilder},
 };
 use std::sync::Arc;
 

@@ -1,11 +1,9 @@
-use std::sync::Arc;
-
-use crate::{
-    app::compass::model::builders::InputPluginBuilder, app::compass::CompassConfigurationError,
-    plugin::input::input_plugin::InputPlugin,
-};
-
 use super::plugin::GridSearchPlugin;
+use crate::{
+    app::compass::CompassConfigurationError,
+    plugin::input::{InputPlugin, InputPluginBuilder},
+};
+use std::sync::Arc;
 
 pub struct GridSearchBuilder {}
 

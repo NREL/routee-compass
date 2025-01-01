@@ -1,8 +1,7 @@
 use super::{plugin::LoadBalancerPlugin, weight_heuristic::WeightHeuristic};
 use crate::{
-    app::compass::model::builders::InputPluginBuilder,
     app::compass::{CompassConfigurationError, ConfigJsonExtensions},
-    plugin::input::input_plugin::InputPlugin,
+    plugin::input::{InputPlugin, InputPluginBuilder},
 };
 use std::sync::Arc;
 

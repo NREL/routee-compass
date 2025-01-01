@@ -1,7 +1,7 @@
 use super::debug_plugin::DebugInputPlugin;
 use crate::{
-    app::compass::model::builders::InputPluginBuilder, app::compass::CompassConfigurationError,
-    plugin::input::input_plugin::InputPlugin,
+    app::compass::CompassConfigurationError,
+    plugin::input::{input_plugin::InputPlugin, InputPluginBuilder},
 };
 use std::sync::Arc;
 

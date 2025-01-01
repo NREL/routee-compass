@@ -1,21 +1,4 @@
 use super::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions};
-use crate::app::compass::model::{
-    access_model::{
-        combined_access_model_builder::CombinedAccessModelBuilder,
-        turn_delay_access_model_builder::TurnDelayAccessModelBuilder,
-    },
-    builders::{InputPluginBuilder, OutputPluginBuilder},
-    frontier_model::{
-        combined::combined_builder::CombinedBuilder, no_restriction_builder::NoRestrictionBuilder,
-        road_class::road_class_builder::RoadClassBuilder,
-        turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
-        vehicle_restrictions::vehicle_restriction_builder::VehicleRestrictionBuilder,
-    },
-    traversal_model::{
-        distance_traversal_builder::DistanceTraversalBuilder,
-        energy_model_builder::EnergyModelBuilder, speed_lookup_builder::SpeedLookupBuilder,
-    },
-};
 use crate::plugin::{
     input::{
         default::{
@@ -31,6 +14,26 @@ use crate::plugin::{
         },
         OutputPlugin,
     },
+};
+use crate::{
+    app::compass::model::{
+        access_model::{
+            combined_access_model_builder::CombinedAccessModelBuilder,
+            turn_delay_access_model_builder::TurnDelayAccessModelBuilder,
+        },
+        frontier_model::{
+            combined::combined_builder::CombinedBuilder,
+            no_restriction_builder::NoRestrictionBuilder,
+            road_class::road_class_builder::RoadClassBuilder,
+            turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
+            vehicle_restrictions::vehicle_restriction_builder::VehicleRestrictionBuilder,
+        },
+        traversal_model::{
+            distance_traversal_builder::DistanceTraversalBuilder,
+            energy_model_builder::EnergyModelBuilder, speed_lookup_builder::SpeedLookupBuilder,
+        },
+    },
+    plugin::{input::InputPluginBuilder, output::OutputPluginBuilder},
 };
 use itertools::Itertools;
 use routee_compass_core::model::{
