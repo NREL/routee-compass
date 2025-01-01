@@ -1,8 +1,6 @@
 use super::{search_app_ops, search_app_result::SearchAppResult};
 use crate::{
-    app::compass::{
-        CompassAppError, model::cost_model::cost_model_service::CostModelService,
-    },
+    app::compass::{model::cost_model::cost_model_service::CostModelService, CompassAppError},
     plugin::{input::InputJsonExtensions, PluginError},
 };
 use chrono::Local;

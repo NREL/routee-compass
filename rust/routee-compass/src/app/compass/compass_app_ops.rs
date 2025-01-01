@@ -1,4 +1,4 @@
-use super::{CompassAppError, compass_input_field::CompassInputField};
+use super::{compass_input_field::CompassInputField, CompassAppError};
 use crate::plugin::{input::InputJsonExtensions, PluginError};
 use config::Config;
 use kdam::{Bar, BarExt};

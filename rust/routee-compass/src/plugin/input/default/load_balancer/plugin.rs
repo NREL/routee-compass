@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use super::weight_heuristic::WeightHeuristic;
 use crate::app::search::SearchApp;
-use crate::plugin::input::InputJsonExtensions;
 use crate::plugin::input::input_plugin::InputPlugin;
+use crate::plugin::input::InputJsonExtensions;
 use crate::plugin::input::InputPluginError;
 
 pub struct LoadBalancerPlugin {

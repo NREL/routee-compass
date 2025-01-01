@@ -1,6 +1,4 @@
-use crate::app::{
-    compass::CompassAppError, search::SearchAppResult,
-};
+use crate::app::{compass::CompassAppError, search::SearchAppResult};
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::output::OutputPluginError;
 use routee_compass_core::algorithm::search::SearchInstance;
