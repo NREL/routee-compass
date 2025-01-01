@@ -12,7 +12,6 @@ use crate::{
                 compass_configuration_field::CompassConfigurationField,
                 config_json_extension::ConfigJsonExtensions,
                 cost_model::cost_model_builder::CostModelBuilder,
-                graph_builder::DefaultGraphBuilder,
                 termination_model_builder::TerminationModelBuilder,
             },
         },
@@ -30,6 +29,7 @@ use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
 use routee_compass_core::model::map::{MapModel, MapModelConfig};
+use routee_compass_core::model::network::Graph;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
@@ -200,7 +200,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let graph_start = Local::now();
         let graph_params =
             config_json.get_config_section(CompassConfigurationField::Graph, &"TOML")?;
-        let graph = Arc::new(DefaultGraphBuilder::build(&graph_params)?);
+        let graph = Arc::new(Graph::try_from(&graph_params)?);
         let graph_duration = (Local::now() - graph_start)
             .to_std()
             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
