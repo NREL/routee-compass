@@ -226,9 +226,9 @@ mod test {
         });
 
         match process_grid_search(&input) {
-            Ok(Some(rows)) => panic!("process_grid_search should return an error"),
+            Ok(Some(_)) => panic!("process_grid_search should return an error"),
             Ok(None) => panic!("process_grid_search returned no error"),
-            Err(e) => {}
+            Err(_) => {}
         };
     }
 }

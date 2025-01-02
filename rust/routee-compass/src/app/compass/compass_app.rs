@@ -614,10 +614,10 @@ mod tests {
 
     #[test]
     fn test_speeds() {
-        let cwd_str = match std::env::current_dir() {
-            Ok(cwd_path) => String::from(cwd_path.to_str().unwrap_or("<unknown>")),
-            _ => String::from("<unknown>"),
-        };
+        // let cwd_str = match std::env::current_dir() {
+        //     Ok(cwd_path) => String::from(cwd_path.to_str().unwrap_or("<unknown>")),
+        //     _ => String::from("<unknown>"),
+        // };
         // eprintln!("cwd           : {}", cwd_str);
         // eprintln!("Cargo.toml dir: {}", env!("CARGO_MANIFEST_DIR"));
 

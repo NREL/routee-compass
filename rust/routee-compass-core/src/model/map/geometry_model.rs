@@ -107,13 +107,10 @@ fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<
 #[cfg(test)]
 mod tests {
 
-    use crate::{
-        model::network::{Edge, EdgeId, Graph, Vertex, VertexId},
-        util::{
-            compact_ordered_hash_map::CompactOrderedHashMap, fs::read_utils::read_raw_file,
+    use crate::util::{
+            fs::read_utils::read_raw_file,
             geo::geo_io_utils::parse_wkt_linestring,
-        },
-    };
+        };
 
     use std::path::PathBuf;
 

@@ -114,84 +114,84 @@ fn geometry_to_wkb_string<T: CoordFloat + Into<f64>>(
     Ok(wkb_str)
 }
 
-#[cfg(test)]
-mod test {
+// #[cfg(test)]
+// mod test {
 
-    use crate::app::search::SearchAppResult;
-    use chrono::Local;
-    use geo::{coord, LineString};
-    use routee_compass_core::{
-        algorithm::search::EdgeTraversal,
-        model::{network::EdgeId, state::StateVariable, unit::Cost},
-    };
-    use std::time::Duration;
+//     use crate::app::search::SearchAppResult;
+//     use chrono::Local;
+//     use geo::{coord, LineString};
+//     use routee_compass_core::{
+//         algorithm::search::EdgeTraversal,
+//         model::{network::EdgeId, state::StateVariable, unit::Cost},
+//     };
+//     use std::time::Duration;
 
-    #[ignore = "needs mocked graph for map model integration in test"]
-    fn test_e2e() {
-        let route = vec![
-            EdgeTraversal {
-                edge_id: EdgeId(0),
-                access_cost: Cost::from(0.0),
-                traversal_cost: Cost::from(10.0),
-                result_state: vec![StateVariable(10.0)],
-            },
-            EdgeTraversal {
-                edge_id: EdgeId(1),
-                access_cost: Cost::from(5.0),
-                traversal_cost: Cost::from(9.0),
-                result_state: vec![StateVariable(24.0)],
-            },
-            EdgeTraversal {
-                edge_id: EdgeId(2),
-                access_cost: Cost::from(0.0),
-                traversal_cost: Cost::from(11.0),
-                result_state: vec![StateVariable(35.0)],
-            },
-        ];
-        let result = SearchAppResult {
-            routes: vec![route],
-            trees: vec![],
-            search_executed_time: Local::now().to_rfc3339(),
-            search_runtime: Duration::ZERO,
-            iterations: 0,
-        };
+//     // #[ignore = "needs mocked graph for map model integration in test"]
+//     // fn test_e2e() {
+//     //     let route = vec![
+//     //         EdgeTraversal {
+//     //             edge_id: EdgeId(0),
+//     //             access_cost: Cost::from(0.0),
+//     //             traversal_cost: Cost::from(10.0),
+//     //             result_state: vec![StateVariable(10.0)],
+//     //         },
+//     //         EdgeTraversal {
+//     //             edge_id: EdgeId(1),
+//     //             access_cost: Cost::from(5.0),
+//     //             traversal_cost: Cost::from(9.0),
+//     //             result_state: vec![StateVariable(24.0)],
+//     //         },
+//     //         EdgeTraversal {
+//     //             edge_id: EdgeId(2),
+//     //             access_cost: Cost::from(0.0),
+//     //             traversal_cost: Cost::from(11.0),
+//     //             result_state: vec![StateVariable(35.0)],
+//     //         },
+//     //     ];
+//     //     let _ = SearchAppResult {
+//     //         routes: vec![route],
+//     //         trees: vec![],
+//     //         search_executed_time: Local::now().to_rfc3339(),
+//     //         search_runtime: Duration::ZERO,
+//     //         iterations: 0,
+//     //     };
 
-        let geoms = vec![
-            LineString(vec![
-                coord! { x: 1.0, y: 0.0 },
-                coord! { x: 1.0, y: 0.0 },
-                coord! { x: 1.0, y: 1.0 },
-            ]),
-            LineString(vec![coord! { x: 2.0, y: 2.0 }, coord! { x: 2.0, y: 3.0 }]),
-            LineString(vec![coord! { x: 3.0, y: 3.0 }, coord! { x: 3.0, y: 4.0 }]),
-        ]
-        .into_boxed_slice();
+//     //     let geoms = vec![
+//     //         LineString(vec![
+//     //             coord! { x: 1.0, y: 0.0 },
+//     //             coord! { x: 1.0, y: 0.0 },
+//     //             coord! { x: 1.0, y: 1.0 },
+//     //         ]),
+//     //         LineString(vec![coord! { x: 2.0, y: 2.0 }, coord! { x: 2.0, y: 3.0 }]),
+//     //         LineString(vec![coord! { x: 3.0, y: 3.0 }, coord! { x: 3.0, y: 4.0 }]),
+//     //     ]
+//     //     .into_boxed_slice();
 
-        // let map_model = MapModel::new(graph, config)
+//     //     // let map_model = MapModel::new(graph, config)
 
-        // println!(
-        //     "{:?}",
-        //     TraversalOutputFormat::Wkt
-        //         .generate_route_output(&result.routes[0], &geoms)
-        //         .map(|r| serde_json::to_string_pretty(&r))
-        // );
-        // println!(
-        //     "{:?}",
-        //     TraversalOutputFormat::Json
-        //         .generate_route_output(&result.routes[0], &geoms)
-        //         .map(|r| serde_json::to_string_pretty(&r))
-        // );
-        // println!(
-        //     "{:?}",
-        //     TraversalOutputFormat::GeoJson
-        //         .generate_route_output(&result.routes[0], &geoms)
-        //         .map(|r| serde_json::to_string_pretty(&r))
-        // );
-        // println!(
-        //     "{:?}",
-        //     TraversalOutputFormat::EdgeId
-        //         .generate_route_output(&result.routes[0], &geoms)
-        //         .map(|r| serde_json::to_string_pretty(&r))
-        // );
-    }
-}
+//     //     // println!(
+//     //     //     "{:?}",
+//     //     //     TraversalOutputFormat::Wkt
+//     //     //         .generate_route_output(&result.routes[0], &geoms)
+//     //     //         .map(|r| serde_json::to_string_pretty(&r))
+//     //     // );
+//     //     // println!(
+//     //     //     "{:?}",
+//     //     //     TraversalOutputFormat::Json
+//     //     //         .generate_route_output(&result.routes[0], &geoms)
+//     //     //         .map(|r| serde_json::to_string_pretty(&r))
+//     //     // );
+//     //     // println!(
+//     //     //     "{:?}",
+//     //     //     TraversalOutputFormat::GeoJson
+//     //     //         .generate_route_output(&result.routes[0], &geoms)
+//     //     //         .map(|r| serde_json::to_string_pretty(&r))
+//     //     // );
+//     //     // println!(
+//     //     //     "{:?}",
+//     //     //     TraversalOutputFormat::EdgeId
+//     //     //         .generate_route_output(&result.routes[0], &geoms)
+//     //     //         .map(|r| serde_json::to_string_pretty(&r))
+//     //     // );
+//     // }
+// }
