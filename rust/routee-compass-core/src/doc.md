@@ -24,6 +24,14 @@ model | category | implementation | key | description
 [StateModel] | metrics | static | `[state]` | mapping between domain-level state representation and the vectorized search state
 [CostModel] | metrics | static | `[cost]` | maps search state to a cost scalar that is minimized by the search algorithm
 
+### Builder, Service, Model
+
+In Compass, the requirement for phased initialization of (thread-) shared assets is to represent them as new values in the system. 
+At initialization, empty **Builder** objects that implement a `build` method can construct a **Service**. 
+A **Service** has a lifecycle of the entire program but is not read directly by a search algorithm as it has not yet had the chance to be customized for a given search query.
+For that, the **Service** must build a **Model** from the query arguments.
+A **Model** is instantiated in the thread when running the search and is destroyed when the search is completed.
+
 For details on the builder, service, and model traits for each dynamic model type, see:
   - [`crate::model::traversal`]
   - [`crate::model::access`]
