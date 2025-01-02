@@ -24,7 +24,10 @@ model | category | implementation | key | description
 [StateModel] | metrics | static | `[state]` | mapping between domain-level state representation and the vectorized search state
 [CostModel] | metrics | static | `[cost]` | maps search state to a cost scalar that is minimized by the search algorithm
 
-
+For details on the builder, service, and model traits for each dynamic model type, see:
+  - [`crate::model::traversal`]
+  - [`crate::model::access`]
+  - [`crate::model::frontier`]
 
 ## Algorithm
 
