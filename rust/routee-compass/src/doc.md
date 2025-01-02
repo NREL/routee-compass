@@ -40,12 +40,12 @@ See [routee-compass-core] documentation for more information on the relationship
 ##### InputPlugin
 
 Input plugins pre-process the incoming user queries as JSON before submitting them to the [SearchApp]. 
-For more information, see[`crate::plugin::input::InputPlugin`].
+For more information, see[`crate::plugin::input`].
 
 ##### OutputPlugin
 
 Output plugins post-process the outgoing search results as JSON after submitting them to the [SearchApp]. 
-For more information, see[`crate::plugin::output::OutputPlugin`].
+For more information, see[`crate::plugin::output`].
 
 ## Usage
 
@@ -106,7 +106,6 @@ The way this is typically done is as follows:
 
 The [traversal], [access], and [frontier] modules all contain Builder, Service, and Model traits that can be implemented. 
 For each new type of model, you must implement the builder and service as well, such that
-  - your builder is an empty struct (e.g. `pub struct MyBuilder {}`)
   - your builder's `build` method creates or reads all data related to your model that can be shared across all queries (see lifetime image, above)
   - your service's `build` method can gather values from the incoming query that may further paramerize or override your service while producing a model for the incoming query
   - while your service is available for _all_ queries, your model is available for _exactly one_
