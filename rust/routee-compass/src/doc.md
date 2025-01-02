@@ -120,7 +120,7 @@ To understand how these each interact with the state model, review the documenta
 
 #### Custom Plugins
 
-Plugins have a simpler initialization process where the [InputPluginBuilder] and [OutputPluginBuilder] expose a `build` method to create the plugin.
+Plugins have a simpler initialization process where the [InputPluginBuilder] and [OutputPluginBuilder] expose a `build` method to create the plugin.g
 For examples, review the implementation of the built-in plugins:
   - [`crate::plugin::input::default`]
   - [`crate::plugin::output::default`]
