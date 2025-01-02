@@ -3,8 +3,8 @@ use std::sync::Arc;
 use routee_compass_core::{
     model::traversal::TraversalModelError,
     model::unit::{
-        AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit,
-        Grade, GradeUnit, Speed, SpeedUnit,
+        AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit, Grade,
+        GradeUnit, Speed, SpeedUnit,
     },
     util::cache_policy::float_cache_policy::FloatCachePolicy,
 };

@@ -1,6 +1,6 @@
 use super::{
-    AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, SpeedUnit,
-    Time, TimeUnit, UnitError,
+    builders, internal_float::InternalFloat, AsF64, Distance, DistanceUnit, SpeedUnit, Time,
+    TimeUnit, UnitError,
 };
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};

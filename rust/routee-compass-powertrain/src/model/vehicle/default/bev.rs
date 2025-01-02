@@ -5,10 +5,7 @@ use crate::model::{
 use routee_compass_core::model::{
     state::{CustomFeatureFormat, StateFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
-    unit::{
-        AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
-        SpeedUnit,
-    },
+    unit::{AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use std::sync::Arc;
 

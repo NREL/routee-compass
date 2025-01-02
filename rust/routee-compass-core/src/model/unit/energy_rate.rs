@@ -3,7 +3,7 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
-use super::{AsF64, internal_float::InternalFloat};
+use super::{internal_float::InternalFloat, AsF64};
 
 #[derive(
     Copy,
