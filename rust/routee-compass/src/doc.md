@@ -17,7 +17,7 @@ This document provides an introduction to working with RouteE Compass by introdu
       - [Running queries on CompassApp](#running-queries-on-compassapp)
   3. [Resource Utilization](#resource-utilization)
   4. [Extending Compass](#extending-compass)
-    - [Custom Models](#custom-models)
+      - [Custom Models](#custom-models)
 
 ## Modules
 
