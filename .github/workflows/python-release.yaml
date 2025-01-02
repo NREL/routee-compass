@@ -65,6 +65,10 @@ jobs:
       - name: build ${{ matrix.platform || matrix.os }} binaries
         run: cibuildwheel --output-dir dist
         env:
+          # 2025-01-02: cpython 3.11 requires Mac OS 10.12 at minimum
+          MACOSX_DEPLOYMENT_TARGET: 10.12
+          
+          # CI Build Wheel Arguments
           CIBW_BUILD: "cp3${{ matrix.python-version }}-*"
           CIBW_SKIP: "*-win32 *-musllinux* *i686 *ppc64le *s390x *aarch64"
           CIBW_PLATFORM: ${{ matrix.platform || matrix.os }}
