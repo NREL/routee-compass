@@ -1,19 +1,16 @@
-use std::{path::Path, sync::Arc};
-
+use super::{
+    interpolation::InterpolationSpeedGradeModel, model_type::ModelType,
+    smartcore::SmartcoreSpeedGradeModel, PredictionModel, PredictionModelRecord,
+};
 use routee_compass_core::{
     model::traversal::TraversalModelError,
     model::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
     util::cache_policy::float_cache_policy::FloatCachePolicy,
 };
-
-use super::{
-    interpolation::interpolation_speed_grade_model::InterpolationSpeedGradeModel,
-    model_type::ModelType, smartcore::smartcore_speed_grade_model::SmartcoreSpeedGradeModel,
-    PredictionModel, PredictionModelRecord,
-};
+use std::{path::Path, sync::Arc};
 
 #[cfg(feature = "onnx")]
-use crate::routee::prediction::onnx::onnx_speed_grade_model::OnnxSpeedGradeModel;
+use crate::model::prediction::onnx::OnnxSpeedGradeModel;
 
 #[allow(clippy::too_many_arguments)]
 pub fn load_prediction_model<P: AsRef<Path>>(

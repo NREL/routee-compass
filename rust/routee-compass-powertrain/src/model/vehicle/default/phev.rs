@@ -1,4 +1,4 @@
-use crate::routee::{
+use crate::model::{
     prediction::PredictionModelRecord,
     vehicle::{vehicle_ops, vehicle_type::VehicleType},
 };
@@ -256,23 +256,20 @@ fn get_phev_energy(
 
 #[cfg(test)]
 mod tests {
-    use routee_compass_core::model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit};
-
-    use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
-
     use super::*;
-
+    use crate::model::prediction::{load_prediction_model, ModelType};
+    use routee_compass_core::model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit};
     use std::path::PathBuf;
 
     fn mock_vehicle() -> PHEV {
         let charge_sustain_model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
-            .join("routee")
+            .join("model")
             .join("test")
             .join("2016_CHEVROLET_Volt_Charge_Sustaining.bin");
         let charge_depleting_model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
-            .join("routee")
+            .join("model")
             .join("test")
             .join("2016_CHEVROLET_Volt_Charge_Depleting.bin");
         let model_type = ModelType::Interpolate {

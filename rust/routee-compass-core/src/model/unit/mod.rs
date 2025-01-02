@@ -18,6 +18,7 @@ pub mod unit_error;
 pub mod untyped;
 pub mod weight;
 pub mod weight_unit;
+pub use as_f64::AsF64;
 pub use builders::{BASE_DISTANCE_UNIT, BASE_SPEED_UNIT, BASE_TIME_UNIT};
 pub use cost::Cost;
 pub use distance::Distance;

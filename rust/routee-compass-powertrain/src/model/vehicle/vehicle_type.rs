@@ -5,8 +5,6 @@ use routee_compass_core::model::{
 };
 use std::sync::Arc;
 
-pub type VehicleState = Vec<StateVariable>;
-
 /// A Vehicle Type represents a class of vehicles with a specific operating model.
 pub trait VehicleType: Send + Sync {
     /// Return the name of the vehicle type

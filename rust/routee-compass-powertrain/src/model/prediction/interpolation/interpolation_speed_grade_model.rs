@@ -1,17 +1,14 @@
-use std::path::Path;
-
-use crate::routee::prediction::{
+use super::utils::linspace;
+use crate::model::prediction::{
     load_prediction_model, model_type::ModelType, prediction_model::PredictionModel,
 };
-
 use routee_compass_core::{
     model::traversal::TraversalModelError,
     model::unit::{
         as_f64::AsF64, Distance, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit,
     },
 };
-
-use super::utils::linspace;
+use std::path::Path;
 
 pub struct InterpolationSpeedGradeModel {
     interpolator: ninterp::Interpolator,
@@ -162,14 +159,14 @@ mod test {
     use std::path::PathBuf;
 
     use super::*;
-    use crate::routee::prediction::prediction_model::PredictionModel;
+    use crate::model::prediction::prediction_model::PredictionModel;
     use routee_compass_core::model::unit::EnergyRateUnit;
 
     #[test]
     fn test_interpolation_speed_grade_model() {
         let model_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
-            .join("routee")
+            .join("model")
             .join("test")
             .join("Toyota_Camry.bin");
 

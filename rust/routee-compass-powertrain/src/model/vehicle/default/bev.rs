@@ -1,4 +1,4 @@
-use crate::routee::{
+use crate::model::{
     prediction::PredictionModelRecord,
     vehicle::{vehicle_ops, vehicle_type::VehicleType},
 };
@@ -174,14 +174,14 @@ impl VehicleType for BEV {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::routee::{prediction::load_prediction_model, prediction::model_type::ModelType};
+    use crate::model::prediction::{load_prediction_model, ModelType};
     use routee_compass_core::model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit};
     use std::path::PathBuf;
 
     fn mock_vehicle(starting_soc_percent: f64) -> BEV {
         let model_file_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
-            .join("routee")
+            .join("model")
             .join("test")
             .join("2017_CHEVROLET_Bolt.bin");
 

@@ -4,7 +4,7 @@ use routee_compass_core::model::traversal::TraversalModelBuilder;
 use routee_compass_core::model::traversal::TraversalModelError;
 use routee_compass_core::model::traversal::TraversalModelService;
 use routee_compass_core::model::unit::{DistanceUnit, GradeUnit, SpeedUnit, TimeUnit};
-use routee_compass_powertrain::routee::energy_model_service::EnergyModelService;
+use routee_compass_powertrain::model::energy_model_service::EnergyModelService;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;

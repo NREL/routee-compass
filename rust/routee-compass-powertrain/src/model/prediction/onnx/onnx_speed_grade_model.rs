@@ -101,7 +101,7 @@ mod test {
     fn test_thread_saftey() {
         let model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
-            .join("routee")
+            .join("model")
             .join("test")
             .join("Toyota_Camry.onnx");
         let model: Box<dyn PredictionModel> = Box::new(

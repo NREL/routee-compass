@@ -1,6 +1,6 @@
 use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
-use super::vehicle::vehicle_type::VehicleType;
+use super::vehicle::VehicleType;
 use routee_compass_core::model::network::{Edge, Vertex};
 use routee_compass_core::model::state::StateFeature;
 use routee_compass_core::model::state::StateModel;
@@ -159,9 +159,8 @@ impl EnergyTraversalModel {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::routee::{
-        prediction::load_prediction_model, prediction::model_type::ModelType,
-        vehicle::default::ice::ICE,
+    use crate::model::{
+        prediction::load_prediction_model, prediction::ModelType, vehicle::default::ICE,
     };
     use geo::coord;
     use routee_compass_core::{
@@ -177,17 +176,17 @@ mod tests {
     fn test_edge_cost_lookup_from_file() {
         let speed_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
-            .join("routee")
+            .join("model")
             .join("test")
             .join("velocities.txt");
         let grade_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
-            .join("routee")
+            .join("model")
             .join("test")
             .join("grades.txt");
         let model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
-            .join("routee")
+            .join("model")
             .join("test")
             .join("Toyota_Camry.bin");
         let v = Vertex {

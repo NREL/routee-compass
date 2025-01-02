@@ -1,4 +1,4 @@
-use crate::routee::{prediction::PredictionModelRecord, vehicle::VehicleType};
+use crate::model::{prediction::PredictionModelRecord, vehicle::VehicleType};
 use routee_compass_core::model::{
     state::{StateFeature, StateModel, StateVariable},
     traversal::TraversalModelError,

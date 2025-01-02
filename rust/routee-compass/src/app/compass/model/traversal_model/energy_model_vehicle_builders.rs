@@ -7,10 +7,10 @@ use routee_compass_core::model::unit::{
 use routee_compass_core::util::cache_policy::float_cache_policy::{
     FloatCachePolicy, FloatCachePolicyConfig,
 };
-use routee_compass_powertrain::routee::{
-    prediction::{load_prediction_model, model_type::ModelType, PredictionModelRecord},
+use routee_compass_powertrain::model::{
+    prediction::{load_prediction_model, ModelType, PredictionModelRecord},
     vehicle::{
-        default::{bev::BEV, ice::ICE, phev::PHEV},
+        default::{BEV, ICE, PHEV},
         VehicleType,
     },
 };

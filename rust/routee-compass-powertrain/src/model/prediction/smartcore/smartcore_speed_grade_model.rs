@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::routee::prediction::prediction_model::PredictionModel;
+use crate::model::prediction::prediction_model::PredictionModel;
 use routee_compass_core::{
     model::traversal::TraversalModelError,
     model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
