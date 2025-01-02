@@ -2,8 +2,8 @@ This crate provides the application runtime for the RouteE-Compass energy-aware 
 
 This crate is part of a [workspace](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html) and depends on two other crates from that workspace:
 
-* [routee-compass-core](https://docs.rs/routee-compass-core/) - core data structures and algorithms used by Compass
-* [routee-compass-powertrain](https://docs.rs/routee-compass-powertrain/) - traversal model supporting energy-optimal route planning via [RouteE Powertrain](https://github.com/nrel/routee-powertrain)
+* [routee-compass-core] - core data structures and algorithms used by Compass
+* [routee-compass-powertrain] - traversal model supporting energy-optimal route planning via [RouteE Powertrain](https://github.com/nrel/routee-powertrain)
 
 This document provides an introduction to working with RouteE Compass by introducing the following concepts:
 
@@ -35,7 +35,7 @@ The following graphic shows generally the lifecycle for the primary objects of a
 The [SearchApp] is a value containing the various long-running assets that can create [SearchInstance] objects for each query. 
 In some cases these are final models such as the [Graph] and [MapModel] instances. 
 In other cases these are services such as the [TraversalModelService] which will build a [TraversalModel] instance based on the contents of the user search query.
-See [routee-compass-core](https://docs.rs/routee-compass-core/) documentation for more information on the relationships between model and service types.
+See [routee-compass-core] documentation for more information on the relationships between model and service types.
 
 ##### InputPlugin
 
