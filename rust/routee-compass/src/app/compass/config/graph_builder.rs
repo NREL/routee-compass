@@ -29,17 +29,8 @@ impl DefaultGraphBuilder {
         let graph_key = CompassConfigurationField::Graph.to_string();
         let edge_list_csv = params.get_config_path(&"edge_list_input_file", &graph_key)?;
         let vertex_list_csv = params.get_config_path(&"vertex_list_input_file", &graph_key)?;
-        let n_edges = params.get_config_serde_optional(&"n_edges", &graph_key)?;
-        let n_vertices = params.get_config_serde_optional(&"n_vertices", &graph_key)?;
-        let verbose: Option<bool> = params.get_config_serde_optional(&"verbose", &graph_key)?;
 
-        let graph = Graph::from_files(
-            &edge_list_csv,
-            &vertex_list_csv,
-            n_edges,
-            n_vertices,
-            verbose,
-        )?;
+        let graph = Graph::from_files(&edge_list_csv, &vertex_list_csv)?;
 
         Ok(graph)
     }

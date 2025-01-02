@@ -1,8 +1,9 @@
 use super::{compass_app_error::CompassAppError, compass_input_field::CompassInputField};
 use crate::plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError};
 use config::Config;
-use kdam::tqdm;
+use kdam::{Bar, BarExt};
 use ordered_float::OrderedFloat;
+use routee_compass_core::util::progress;
 use std::path::Path;
 
 /// reads the compass configuration TOML file from a path
@@ -104,17 +105,20 @@ pub fn apply_load_balancing_policy(
     let mut bin_totals = vec![0.0; parallelism];
     let mut assignments: Vec<Vec<serde_json::Value>> = vec![vec![]; parallelism];
     let n_queries = queries.len();
-    let iter = tqdm!(
-        queries.into_iter(),
-        total = n_queries,
-        desc = "load balancing",
-        animation = "fillup"
-    );
-    for q in iter {
+
+    let bar_builder = Bar::builder()
+        .total(n_queries)
+        .desc("load balancing")
+        .animation("fillup");
+    let mut bar_opt = progress::build_progress_bar(bar_builder);
+    for q in queries.into_iter() {
         let w = q.get_query_weight_estimate()?.unwrap_or(default);
         let min_bin = min_bin(&bin_totals)?;
         bin_totals[min_bin] += w;
         assignments[min_bin].push(q);
+        if let Some(ref mut bar) = bar_opt {
+            let _ = bar.update(1);
+        }
     }
     Ok(assignments)
 }

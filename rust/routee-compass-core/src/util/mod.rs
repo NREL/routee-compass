@@ -7,5 +7,6 @@ pub mod geo;
 pub mod io_utils;
 pub mod multiset;
 pub mod priority_queue;
+pub mod progress;
 pub mod read_only_lock;
 pub mod serde;

@@ -1,4 +1,5 @@
 use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
+use kdam::Bar;
 use routee_compass_core::{
     model::access::{
         access_model_builder::AccessModelBuilder,
@@ -29,8 +30,13 @@ impl AccessModelBuilder for TurnDelayAccessModelBuilder {
                     e
                 ))
             })?;
-        let edge_headings = read_utils::from_csv::<EdgeHeading>(&file_path.as_path(), true, None)
-            .map_err(|e| {
+        let edge_headings = read_utils::from_csv::<EdgeHeading>(
+            &file_path.as_path(),
+            true,
+            Some(Bar::builder().desc("edge headings")),
+            None,
+        )
+        .map_err(|e| {
             AccessModelError::BuildError(format!(
                 "error reading headings from file {:?}: {}",
                 file_path, e
