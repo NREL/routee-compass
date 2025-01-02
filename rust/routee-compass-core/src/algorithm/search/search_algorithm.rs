@@ -1,6 +1,6 @@
 use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
-use super::ksp::ksp_query::KspQuery;
+use super::ksp::KspQuery;
 use super::ksp::KspTerminationCriteria;
 use super::ksp::{single_via_paths_algorithm, yens_algorithm};
 use super::search_algorithm_result::SearchAlgorithmResult;
