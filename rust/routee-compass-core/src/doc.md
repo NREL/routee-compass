@@ -1,43 +1,63 @@
-# Compass Core Crate
+# RouteE Compass Core
 
-Crate containing core routing modules of RouteE Compass used by all downstream crates.
-This can be broken up into the following modules:
-- [`crate::model`] - [data-model](#data-model) of the search algorithm
-  - [`crate::model::graph`] - road network topology collection type
-  - [`crate::model::property`] - road network record types
-  - [`crate::model::traversal`] - search cost model
-  - [`crate::model::frontier`] - search frontier validation predicates
-  - [`crate::model::termination::termination_model`] - system-level rules on timeouts + limits for search
-- [`crate::algorithm`] - [algorithm](#algorithm) implementations
-  - [`crate::algorithm::search`] - search algorithm module
-    - [`crate::algorithm::search::search_algorithm_type::SearchAlgorithmType`] - enumeration listing search algorithm types, so far only traditional a star supported
-    - [`crate::algorithm::search::a_star::a_star`] - a star search implementation
-  - [`crate::algorithm::component:scc`] - strongly-connected components algorithm
-- [`crate::util`] - utility modules
+The core routing algorithms and abstractions used by [RouteE Compass](https://docs.rs/routee-compass/).
 
-### Data Model
+This crate has the following three top-level modules: 
+ 1. the traits for [data models](#data-model) ([`crate::model`])
+ 2. implementations for the [search algorithms](#algorithm) which use those models ([`crate::algorithm`])
+ 3. utility modules ([`crate::util`])
 
-RouteE Compass takes a layered approach to modeling the road network.
-At the core is the [Graph] model. 
-The edges and vertices are stored in `vec`s and carry the minimal data required for most search applications:
-- [`crate::model::road_network::Edge`] records store distance in meters
-- [`crate::model::road_network::Vertex`] records store coordinate locations, assumed in WGS84 projection
+## Data Model
 
-A forward and reverse adjacency list describes connectivity in the graph using the indices of the edges and vertices in their respective `vec`s.
+### Top-Level Data Models
 
-From this alone we can implement a distance-minimizing search.
-This is done via a [TraversalModel], which provides an API for computing the costs of traversal based on the search state, graph, and any exogenous datasets.
-The convention in RouteE Compass is to load additional `vec`s in the [TraversalModel] which can serve as lookup functions by `EdgeId` for traversal costs and `(EdgeId, EdgeId)` for access costs.
-This is also where the compass-powertrain crate loads an energy estimator.
-See [TraversalModel] for more details.
+A search algorithm for a search query uses a unique [SearchInstance] built of the following types to execute a search. These are grouped into three **categories** for readability: the _topology_ of the network, the _physics_ of how the search updates, and the _metrics_ that are captured by the search. These are either **implemented** with some _static_ type closed for extension (e.g. a Rust `struct`) or, a _dynamic_ type (a Rust `trait object`) which can be implemented in downstream crates. Each of these models is configured in the Compass configuration file with the given configuration **key**.
 
-### Algorithm
+model | category | implementation | key | description
+--- | --- | --- | --- | ---
+[Graph] | topology | static | `[graph]` | the road network topology as a vectorized adjacency list 
+[MapModel] | topology | static | `[mapping]` | geospatial map matching and LineString reconstruction of routing results
+[TraversalModel] | physics | dynamic | `[traversal]` | applies link traversal updates to search state (e.g., link travel time)
+[AccessModel] | physics | dynamic | `[access]` | applies updates between link pairs to search state (e.g., turn delays)
+[FrontierModel] | physics | dynamic | `[frontier]` | predicates for determining if a given link is traversable
+[TerminationModel] | physics | static | `[termination]` | applies rules on compute resource utilization for each search instance
+[StateModel] | metrics | static | `[state]` | mapping between domain-level state representation and the vectorized search state
+[CostModel] | metrics | static | `[cost]` | maps search state to a cost scalar that is minimized by the search algorithm
 
-RouteE Compass is set up to provide a suite of search algorithms which may be useful for different search problems.
-In all cases, these are assumed to be deterministic searches.
-At present, only an a star algorithm is implemented.
+### Builder, Service, Model
 
-Other graph algorithms may be added here in future, such as the connected components module.
+In Compass, the requirement for phased initialization of (thread-) shared assets is to represent them as new values in the system. 
+At initialization, empty **Builder** objects that implement a `build` method can construct a **Service**. 
+A **Service** has a lifecycle of the entire program but is not read directly by a search algorithm as it has not yet had the chance to be customized for a given search query.
+For that, the **Service** must build a **Model** from the query arguments.
+A **Model** is instantiated in the thread when running the search and is destroyed when the search is completed.
 
-[Graph]: crate::model::graph::Graph
-[TraversalModel]: crate::model::traversal::traversal_model::TraversalModel
+For details on the builder, service, and model traits for each dynamic model type, see:
+  - [`crate::model::traversal`]
+  - [`crate::model::access`]
+  - [`crate::model::frontier`]
+
+## Algorithm
+
+RouteE Compass provides implementations for the following search algorithms in the core module. These _algorithms_ are selectable via the [SearchAlgorithm] enum which is configured using the `[algorithm]` configuration key. The algorithm _type_ is either single-sourced shortest path (SSSP) or k-shortest path (KSP).
+
+algorithm | implementation | type | link | description
+--- | --- | --- | --- | ---
+Dijkstra's Algorithm | [a_star] | SSSP | [wikipedia](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) | implemented as A<sup>*</sup> with h(n) = 0 for all vertices
+A<sup>*</sup> | [a_star] | SSSP | [wikipedia](https://en.wikipedia.org/wiki/A*_search_algorithm) | graph search with goal-oriented heuristic tuned by the [StateModel], [TraversalModel], [AccessModel] and [CostModel] parameters
+Yen's Algorithm | [yens] | KSP | [wikipedia](https://en.wikipedia.org/wiki/Yen%27s_algorithm) | metaheuristic to approximate the k least-cost paths subject to an optional similarity constraint, does not scale well to national routing
+Single-Via Paths | [svp] | KSP | [dl.acm.org](https://dl.acm.org/doi/pdf/10.1145/2444016.2444019) | metaheuristic to approximate the k least-cost paths to an optional similarity constraint, suitable for national routing
+
+[Graph]: crate::model::network::Graph
+[MapModel]: crate::model::map::MapModel
+[TraversalModel]: crate::model::traversal::TraversalModel
+[AccessModel]: crate::model::access::AccessModel
+[FrontierModel]: crate::model::frontier::FrontierModel
+[TerminationModel]: crate::model::termination::TerminationModel
+[StateModel]: crate::model::state::StateModel
+[CostModel]: crate::model::cost::CostModel
+[SearchInstance]: crate::algorithm::search::SearchInstance
+[SearchAlgorithm]: crate::algorithm::search::SearchAlgorithm
+[a_star]: crate::algorithm::search::a_star
+[yens]: crate::algorithm::search::ksp::yens
+[svp]: crate::algorithm::search::ksp::svp

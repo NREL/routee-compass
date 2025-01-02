@@ -1,4 +1,4 @@
-use crate::app::compass::config::compass_configuration_error::CompassConfigurationError;
+use crate::app::compass::CompassConfigurationError;
 use routee_compass_core::util::serde::serde_ops;
 use serde::{Deserialize, Serialize};
 

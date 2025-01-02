@@ -2,7 +2,7 @@ use clap::Parser;
 use log::error;
 use routee_compass::app::cli::cli_args::CliArgs;
 use routee_compass::app::cli::run;
-use routee_compass::app::compass::config::compass_app_builder::CompassAppBuilder;
+use routee_compass::app::compass::CompassAppBuilder;
 
 fn main() {
     env_logger::init();

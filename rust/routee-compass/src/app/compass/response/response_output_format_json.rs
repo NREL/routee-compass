@@ -1,4 +1,4 @@
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 
 pub fn initial_file_contents(newline_delimited: bool) -> Option<String> {
     if newline_delimited {

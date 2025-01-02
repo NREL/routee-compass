@@ -4,9 +4,9 @@ use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::state::StateVariable;
 
-use super::{as_f64::AsF64, internal_float::InternalFloat};
+use super::{internal_float::InternalFloat, AsF64};
 
 #[derive(
     Copy,
@@ -48,8 +48,8 @@ impl Display for Distance {
         write!(f, "{:?}", self.0)
     }
 }
-impl From<StateVar> for Distance {
-    fn from(value: StateVar) -> Self {
+impl From<StateVariable> for Distance {
+    fn from(value: StateVariable) -> Self {
         Distance::new(value.0)
     }
 }

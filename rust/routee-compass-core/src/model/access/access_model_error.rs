@@ -1,4 +1,4 @@
-use crate::model::state::state_model_error::StateModelError;
+use crate::model::state::StateModelError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AccessModelError {

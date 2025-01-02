@@ -1,11 +1,11 @@
 use super::json_extensions::TraversalJsonField;
 use super::traversal_output_format::TraversalOutputFormat;
-use crate::app::compass::compass_app_error::CompassAppError;
-use crate::app::search::search_app_result::SearchAppResult;
+use crate::app::compass::CompassAppError;
+use crate::app::search::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::output::OutputPluginError;
-use routee_compass_core::algorithm::search::edge_traversal::EdgeTraversal;
-use routee_compass_core::algorithm::search::search_instance::SearchInstance;
+use routee_compass_core::algorithm::search::EdgeTraversal;
+use routee_compass_core::algorithm::search::SearchInstance;
 use serde_json::json;
 
 pub struct TraversalPlugin {

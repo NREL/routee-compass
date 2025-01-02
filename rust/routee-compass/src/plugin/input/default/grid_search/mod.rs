@@ -1,2 +1,5 @@
-pub mod builder;
-pub mod plugin;
+mod builder;
+mod plugin;
+
+pub use builder::GridSearchBuilder;
+pub use plugin::GridSearchPlugin;

@@ -1,8 +1,8 @@
 use super::turn_delay_access_model::TurnDelayAccessModel;
 use super::turn_delay_access_model_engine::TurnDelayAccessModelEngine;
-use crate::model::access::access_model::AccessModel;
-use crate::model::access::access_model_error::AccessModelError;
-use crate::model::access::access_model_service::AccessModelService;
+use crate::model::access::AccessModel;
+use crate::model::access::AccessModelError;
+use crate::model::access::AccessModelService;
 use std::sync::Arc;
 
 pub struct TurnDelayAccessModelService {

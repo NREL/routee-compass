@@ -1,6 +1,4 @@
-use crate::{
-    algorithm::search::edge_traversal::EdgeTraversal, model::network::vertex_id::VertexId,
-};
+use crate::{algorithm::search::EdgeTraversal, model::network::vertex_id::VertexId};
 use allocative::Allocative;
 use serde::Serialize;
 use std::fmt::Display;

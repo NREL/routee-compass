@@ -1,17 +1,14 @@
-use std::str::FromStr;
-
+use super::compass::{compass_app::CompassApp, CompassAppError};
+use crate::app::search::SearchAppGraphOps;
 use itertools::Itertools;
 use routee_compass_core::{
-    algorithm::search::direction::Direction,
+    algorithm::search::Direction,
     model::{
         network::{edge_id::EdgeId, vertex_id::VertexId},
-        unit::{as_f64::AsF64, DistanceUnit},
+        unit::{AsF64, DistanceUnit},
     },
 };
-
-use super::compass::{compass_app::CompassApp, compass_app_error::CompassAppError};
-
-use crate::app::search::search_app_graph_ops::SearchAppGraphOps;
+use std::str::FromStr;
 
 /// Defines the interface for exposing the application via a set of language bindings using
 /// standard types for easy conversion between languages.
@@ -31,8 +28,8 @@ use crate::app::search::search_app_graph_ops::SearchAppGraphOps;
 /// ```
 /// use routee_compass::app::bindings::CompassAppBindings;
 /// use routee_compass::app::compass::compass_app::CompassApp;
-/// use routee_compass::app::compass::compass_app_error::CompassAppError;
-/// use routee_compass::app::compass::config::compass_app_builder::CompassAppBuilder;
+/// use routee_compass::app::compass::CompassAppError;
+/// use routee_compass::app::compass::CompassAppBuilder;
 ///
 /// //use routee_compass_macros::pybindings;
 ///

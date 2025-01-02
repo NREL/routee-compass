@@ -1,13 +1,12 @@
-use std::sync::Arc;
-
 use super::{plugin::TraversalPlugin, traversal_output_format::TraversalOutputFormat};
 use crate::{
-    app::compass::config::{
-        builders::OutputPluginBuilder, compass_configuration_error::CompassConfigurationError,
-        config_json_extension::ConfigJsonExtensions,
+    app::compass::{CompassConfigurationError, ConfigJsonExtensions},
+    plugin::{
+        output::{OutputPlugin, OutputPluginBuilder},
+        PluginError,
     },
-    plugin::{output::output_plugin::OutputPlugin, plugin_error::PluginError},
 };
+use std::sync::Arc;
 
 /// Builds a plugin that can generate traversal outputs.
 ///

@@ -1,16 +1,15 @@
 use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
-use super::ksp::ksp_query::KspQuery;
-use super::ksp::ksp_termination_criteria::KspTerminationCriteria;
-use super::ksp::{single_via_paths_algorithm, yens_algorithm};
+use super::ksp::KspQuery;
+use super::ksp::KspTerminationCriteria;
+use super::ksp::{svp, yens};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
-use super::util::route_similarity_function::RouteSimilarityFunction;
-use super::{a_star::a_star_algorithm, direction::Direction};
+use super::util::RouteSimilarityFunction;
+use super::{a_star, direction::Direction};
 use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
-
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -63,7 +62,7 @@ impl SearchAlgorithm {
                     None => Ok(*weight_factor),
                 }?;
                 let search_result =
-                    a_star_algorithm::run_a_star(src_id, dst_id_opt, direction, w_val, si)?;
+                    a_star::run_vertex_oriented(src_id, dst_id_opt, direction, w_val, si)?;
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
@@ -92,7 +91,7 @@ impl SearchAlgorithm {
                 let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
                 let term_fn = termination.as_ref().cloned().unwrap_or_default();
                 let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
-                yens_algorithm::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
+                yens::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
             }
             SearchAlgorithm::KspSingleVia {
                 k,
@@ -108,7 +107,7 @@ impl SearchAlgorithm {
                 let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
                 let term_fn = termination.as_ref().cloned().unwrap_or_default();
                 let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
-                single_via_paths_algorithm::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
+                svp::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
             }
         }
     }
@@ -126,7 +125,7 @@ impl SearchAlgorithm {
             }
             .run_edge_oriented(src_id, dst_id_opt, query, direction, search_instance),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
-                let search_result = a_star_algorithm::run_a_star_edge_oriented(
+                let search_result = a_star::run_edge_oriented(
                     src_id,
                     dst_id_opt,
                     direction,

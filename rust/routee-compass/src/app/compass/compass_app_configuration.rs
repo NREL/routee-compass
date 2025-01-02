@@ -1,11 +1,10 @@
 use super::{
-    compass_app_error::CompassAppError,
     response::{
         response_output_policy::ResponseOutputPolicy,
         response_persistence_policy::ResponsePersistencePolicy,
     },
+    CompassAppError, CompassConfigurationField,
 };
-use crate::app::compass::config::compass_configuration_field::CompassConfigurationField;
 use config::Config;
 use serde::{Deserialize, Serialize};
 

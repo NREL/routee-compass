@@ -1,14 +1,14 @@
-use crate::algorithm::search::direction::Direction;
-use crate::algorithm::search::edge_traversal::EdgeTraversal;
-use crate::algorithm::search::search_error::SearchError;
-use crate::algorithm::search::search_instance::SearchInstance;
-use crate::algorithm::search::search_result::SearchResult;
-use crate::algorithm::search::search_tree_branch::SearchTreeBranch;
+use crate::algorithm::search::Direction;
+use crate::algorithm::search::EdgeTraversal;
+use crate::algorithm::search::SearchError;
+use crate::algorithm::search::SearchInstance;
+use crate::algorithm::search::SearchResult;
+use crate::algorithm::search::SearchTreeBranch;
 use crate::model::network::edge_id::EdgeId;
 use crate::model::network::vertex_id::VertexId;
-use crate::model::unit::as_f64::AsF64;
-use crate::model::unit::cost::ReverseCost;
+use crate::model::unit::AsF64;
 use crate::model::unit::Cost;
+use crate::model::unit::ReverseCost;
 use crate::util::priority_queue::InternalPriorityQueue;
 
 use std::collections::HashMap;
@@ -19,7 +19,7 @@ use std::time::Instant;
 /// provided traversal model for state updates and link costs. estimates
 /// the distance to the destination (the a* heuristic) using the provided
 /// cost estimate function.
-pub fn run_a_star(
+pub fn run_vertex_oriented(
     source: VertexId,
     target: Option<VertexId>,
     direction: &Direction,
@@ -184,7 +184,7 @@ pub fn run_a_star(
 /// target edge. composes the result with the source and target.
 ///
 /// not tested.
-pub fn run_a_star_edge_oriented(
+pub fn run_edge_oriented(
     source: EdgeId,
     target: Option<EdgeId>,
     direction: &Direction,
@@ -210,7 +210,7 @@ pub fn run_a_star_edge_oriented(
             let SearchResult {
                 mut tree,
                 iterations,
-            } = run_a_star(e1_dst, None, direction, weight_factor, si)?;
+            } = run_vertex_oriented(e1_dst, None, direction, weight_factor, si)?;
             if !tree.contains_key(&e1_dst) {
                 tree.extend([(e1_dst, src_branch)]);
             }
@@ -255,7 +255,7 @@ pub fn run_a_star_edge_oriented(
                 let SearchResult {
                     mut tree,
                     iterations,
-                } = run_a_star(e1_dst, Some(e2_src), direction, weight_factor, si)?;
+                } = run_vertex_oriented(e1_dst, Some(e2_src), direction, weight_factor, si)?;
 
                 if tree.is_empty() {
                     return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src));
@@ -376,22 +376,22 @@ mod tests {
     use super::*;
     use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::algorithm::search::MinSearchTree;
-    use crate::model::access::default::no_access_model::NoAccessModel;
-    use crate::model::cost::cost_aggregation::CostAggregation;
-    use crate::model::cost::cost_model::CostModel;
-    use crate::model::cost::vehicle::vehicle_cost_rate::VehicleCostRate;
+    use crate::model::access::default::NoAccessModel;
+    use crate::model::cost::CostAggregation;
+    use crate::model::cost::CostModel;
+    use crate::model::cost::VehicleCostRate;
     use crate::model::frontier::default::no_restriction::NoRestriction;
 
-    use crate::model::map::map_model::MapModel;
-    use crate::model::map::map_model_config::MapModelConfig;
+    use crate::model::map::MapModel;
+    use crate::model::map::MapModelConfig;
     use crate::model::network::edge_id::EdgeId;
     use crate::model::network::graph::Graph;
     use crate::model::network::Edge;
     use crate::model::network::Vertex;
-    use crate::model::state::state_feature::StateFeature;
-    use crate::model::state::state_model::StateModel;
-    use crate::model::termination::termination_model::TerminationModel;
-    use crate::model::traversal::default::distance_traversal_model::DistanceTraversalModel;
+    use crate::model::state::StateFeature;
+    use crate::model::state::StateModel;
+    use crate::model::termination::TerminationModel;
+    use crate::model::traversal::default::DistanceTraversalModel;
     use crate::model::unit::{Distance, DistanceUnit};
     use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
     use rayon::prelude::*;
@@ -523,7 +523,7 @@ mod tests {
             .clone()
             .into_par_iter()
             .map(|(o, d, _expected)| {
-                run_a_star(o, Some(d), &Direction::Forward, None, &si)
+                run_vertex_oriented(o, Some(d), &Direction::Forward, None, &si)
                     .map(|search_result| search_result.tree)
             })
             .collect();

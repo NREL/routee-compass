@@ -1,13 +1,11 @@
-use std::{collections::HashMap, sync::Arc};
-
+use crate::app::compass::ConfigJsonExtensions;
 use itertools::Itertools;
 use routee_compass_core::model::{
-    access::access_model::AccessModel,
-    state::{state_feature::StateFeature, state_model_error::StateModelError},
-    traversal::traversal_model::TraversalModel,
+    access::AccessModel,
+    state::{StateFeature, StateModelError},
+    traversal::TraversalModel,
 };
-
-use crate::app::compass::config::config_json_extension::ConfigJsonExtensions;
+use std::{collections::HashMap, sync::Arc};
 
 /// collects the state features to use in this search. the features are collected in
 /// the following order:

@@ -1,5 +1,5 @@
 use super::response_output_format::ResponseOutputFormat;
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 use std::io::prelude::*;
 use std::{
     fs::File,

@@ -1,5 +1,5 @@
-use crate::model::traversal::state::state_variable::StateVar;
-// pub(crate) type GenericStateUpdateOp = Box<dyn Fn(&StateVar, &StateVar) -> StateVar>;
+use crate::model::state::StateVariable;
+// pub type GenericStateUpdateOp = Box<dyn Fn(&StateVar, &StateVar) -> StateVar>;
 
 /// describes an arbitrary state update operation.
 ///
@@ -8,7 +8,7 @@ use crate::model::traversal::state::state_variable::StateVar;
 /// makes life harder, but protects against all sorts of indexing errors.
 ///
 /// the StateModel exposes these operations through it's interface.
-pub(crate) enum UpdateOperation {
+pub enum UpdateOperation {
     Replace,
     // Add,
     // Multiply,
@@ -19,7 +19,7 @@ pub(crate) enum UpdateOperation {
 }
 
 impl UpdateOperation {
-    pub fn perform_operation(&self, _prev: &StateVar, next: &StateVar) -> StateVar {
+    pub fn perform_operation(&self, _prev: &StateVariable, next: &StateVariable) -> StateVariable {
         match self {
             UpdateOperation::Replace => *next,
             // UpdateOperation::Add => *prev + *next,

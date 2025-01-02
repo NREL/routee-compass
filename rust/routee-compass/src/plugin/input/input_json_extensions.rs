@@ -1,4 +1,4 @@
-use crate::{app::compass::compass_app_error::CompassAppError, plugin::plugin_error::PluginError};
+use crate::{app::compass::CompassAppError, plugin::PluginError};
 
 use super::{InputField, InputPluginError};
 use geo;

@@ -2,7 +2,7 @@ use super::{
     response_output_format::ResponseOutputFormat, response_sink::ResponseSink,
     write_mode::WriteMode,
 };
-use crate::app::compass::compass_app_error::CompassAppError;
+use crate::app::compass::CompassAppError;
 use serde::{Deserialize, Serialize};
 use std::{
     path::PathBuf,

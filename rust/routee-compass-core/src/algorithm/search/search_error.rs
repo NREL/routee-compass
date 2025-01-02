@@ -1,11 +1,11 @@
 use crate::model::{
-    access::access_model_error::AccessModelError,
-    cost::cost_model_error::CostModelError,
-    frontier::frontier_model_error::FrontierModelError,
+    access::AccessModelError,
+    cost::CostModelError,
+    frontier::FrontierModelError,
     network::{edge_id::EdgeId, network_error::NetworkError, vertex_id::VertexId},
-    state::state_model_error::StateModelError,
-    termination::termination_model_error::TerminationModelError,
-    traversal::traversal_model_error::TraversalModelError,
+    state::StateModelError,
+    termination::TerminationModelError,
+    traversal::TraversalModelError,
 };
 
 #[derive(thiserror::Error, Debug)]

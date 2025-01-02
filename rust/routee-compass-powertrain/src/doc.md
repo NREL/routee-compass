@@ -1,6 +1,6 @@
 # Compass Powertrain Crate
 
-This crate provides energy-aware route planning models that integrate [RouteE Powertrain](https://github.com/nrel/routee-powertrain) into RouteE Compass.
+This crate provides energy-aware route planning models that integrate [RouteE Powertrain](https://github.com/nrel/routee-powertrain) into [RouteE Compass](https://docs.rs/routee-compass/).
 
 ### Energy Estimation in RouteE Compass
 

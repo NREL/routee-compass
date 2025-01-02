@@ -1,4 +1,4 @@
-use super::{access_model_error::AccessModelError, access_model_service::AccessModelService};
+use super::{AccessModelError, AccessModelService};
 use std::sync::Arc;
 
 /// A [`AccessModelBuilder`] takes a JSON object describing the configuration of a

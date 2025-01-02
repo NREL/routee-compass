@@ -1,9 +1,6 @@
 use crate::model::{
-    frontier::{
-        frontier_model::FrontierModel, frontier_model_error::FrontierModelError,
-        frontier_model_service::FrontierModelService,
-    },
-    state::state_model::StateModel,
+    frontier::{frontier_model_error::FrontierModelError, FrontierModel, FrontierModelService},
+    state::StateModel,
 };
 use std::sync::Arc;
 
@@ -14,12 +11,12 @@ impl FrontierModel for NoRestriction {
     fn valid_frontier(
         &self,
         _edge: &crate::model::network::Edge,
-        _state: &[crate::model::traversal::state::state_variable::StateVar],
+        _state: &[crate::model::state::StateVariable],
         _tree: &std::collections::HashMap<
             crate::model::network::VertexId,
-            crate::algorithm::search::search_tree_branch::SearchTreeBranch,
+            crate::algorithm::search::SearchTreeBranch,
         >,
-        _direction: &crate::algorithm::search::direction::Direction,
+        _direction: &crate::algorithm::search::Direction,
         _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         Ok(true)

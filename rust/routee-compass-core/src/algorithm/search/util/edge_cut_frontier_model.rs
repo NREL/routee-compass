@@ -1,5 +1,5 @@
 use crate::model::{
-    frontier::frontier_model::FrontierModel,
+    frontier::FrontierModel,
     network::{Edge, EdgeId},
 };
 use std::{collections::HashSet, sync::Arc};
@@ -28,14 +28,14 @@ impl FrontierModel for EdgeCutFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
-        state: &[crate::model::traversal::state::state_variable::StateVar],
+        state: &[crate::model::state::StateVariable],
         tree: &std::collections::HashMap<
             crate::model::network::VertexId,
-            crate::algorithm::search::search_tree_branch::SearchTreeBranch,
+            crate::algorithm::search::SearchTreeBranch,
         >,
-        direction: &crate::algorithm::search::direction::Direction,
-        state_model: &crate::model::state::state_model::StateModel,
-    ) -> Result<bool, crate::model::frontier::frontier_model_error::FrontierModelError> {
+        direction: &crate::algorithm::search::Direction,
+        state_model: &crate::model::state::StateModel,
+    ) -> Result<bool, crate::model::frontier::FrontierModelError> {
         if self.cut_edges.contains(&edge.edge_id) {
             Ok(false)
         } else {
@@ -44,10 +44,7 @@ impl FrontierModel for EdgeCutFrontierModel {
         }
     }
 
-    fn valid_edge(
-        &self,
-        edge: &Edge,
-    ) -> Result<bool, crate::model::frontier::frontier_model_error::FrontierModelError> {
+    fn valid_edge(&self, edge: &Edge) -> Result<bool, crate::model::frontier::FrontierModelError> {
         if self.cut_edges.contains(&edge.edge_id) {
             self.underlying.valid_edge(edge)
         } else {

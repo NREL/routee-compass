@@ -1,13 +1,11 @@
+use super::StateVariable;
 use super::{
     custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
     state_model_error::StateModelError, update_operation::UpdateOperation,
 };
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::{
-    model::{
-        traversal::state::state_variable::StateVar,
-        unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
-    },
+    model::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
     util::compact_ordered_hash_map::IndexedEntry,
 };
 use itertools::Itertools;
@@ -108,7 +106,7 @@ impl StateModel {
     /// # Returns
     ///
     /// an initialized, "zero"-valued traversal state, or an error
-    pub fn initial_state(&self) -> Result<Vec<StateVar>, StateModelError> {
+    pub fn initial_state(&self) -> Result<Vec<StateVariable>, StateModelError> {
         self.0
             .iter()
             .map(|(_, feature)| {
@@ -130,7 +128,7 @@ impl StateModel {
     /// feature value in the expected unit type, or an error
     pub fn get_distance(
         &self,
-        state: &[StateVar],
+        state: &[StateVariable],
         name: &String,
         unit: &DistanceUnit,
     ) -> Result<Distance, StateModelError> {
@@ -151,7 +149,7 @@ impl StateModel {
     /// feature value in the expected unit type, or an error
     pub fn get_time(
         &self,
-        state: &[StateVar],
+        state: &[StateVariable],
         name: &String,
         unit: &TimeUnit,
     ) -> Result<Time, StateModelError> {
@@ -172,7 +170,7 @@ impl StateModel {
     /// feature value in the expected unit type, or an error
     pub fn get_energy(
         &self,
-        state: &[StateVar],
+        state: &[StateVariable],
         name: &String,
         unit: &EnergyUnit,
     ) -> Result<Energy, StateModelError> {
@@ -192,7 +190,7 @@ impl StateModel {
     /// the expected value or an error
     pub fn get_custom_f64(
         &self,
-        state: &[StateVar],
+        state: &[StateVariable],
         name: &String,
     ) -> Result<f64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
@@ -210,7 +208,7 @@ impl StateModel {
     /// the expected value or an error
     pub fn get_custom_i64(
         &self,
-        state: &[StateVar],
+        state: &[StateVariable],
         name: &String,
     ) -> Result<i64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
@@ -228,7 +226,7 @@ impl StateModel {
     /// the expected value or an error
     pub fn get_custom_u64(
         &self,
-        state: &[StateVar],
+        state: &[StateVariable],
         name: &String,
     ) -> Result<u64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
@@ -246,7 +244,7 @@ impl StateModel {
     /// the expected value or an error
     pub fn get_custom_bool(
         &self,
-        state: &[StateVar],
+        state: &[StateVariable],
         name: &String,
     ) -> Result<bool, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
@@ -267,9 +265,9 @@ impl StateModel {
     /// the expected value as a state variable (not decoded) or an error
     fn get_custom_state_variable(
         &self,
-        state: &[StateVar],
+        state: &[StateVariable],
         name: &String,
-    ) -> Result<(StateVar, &CustomFeatureFormat), StateModelError> {
+    ) -> Result<(StateVariable, &CustomFeatureFormat), StateModelError> {
         let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
@@ -289,10 +287,10 @@ impl StateModel {
     /// the delta between states for this variable, or an error
     pub fn get_delta(
         &self,
-        prev: &[StateVar],
-        next: &[StateVar],
+        prev: &[StateVariable],
+        next: &[StateVariable],
         name: &String,
-    ) -> Result<StateVar, StateModelError> {
+    ) -> Result<StateVariable, StateModelError> {
         let prev_val = self.get_state_variable(prev, name)?;
         let next_val = self.get_state_variable(next, name)?;
         Ok(next_val - prev_val)
@@ -301,7 +299,7 @@ impl StateModel {
     /// adds a distance value with distance unit to this feature vector
     pub fn add_distance(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         distance: &Distance,
         from_unit: &DistanceUnit,
@@ -314,7 +312,7 @@ impl StateModel {
     /// adds a time value with time unit to this feature vector
     pub fn add_time(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         time: &Time,
         from_unit: &TimeUnit,
@@ -327,7 +325,7 @@ impl StateModel {
     /// adds a energy value with energy unit to this feature vector
     pub fn add_energy(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         energy: &Energy,
         from_unit: &EnergyUnit,
@@ -339,7 +337,7 @@ impl StateModel {
 
     pub fn set_distance(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         distance: &Distance,
         from_unit: &DistanceUnit,
@@ -352,7 +350,7 @@ impl StateModel {
 
     pub fn set_time(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         time: &Time,
         from_unit: &TimeUnit,
@@ -365,7 +363,7 @@ impl StateModel {
 
     pub fn set_energy(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         energy: &Energy,
         from_unit: &EnergyUnit,
@@ -378,7 +376,7 @@ impl StateModel {
 
     pub fn set_custom_f64(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         value: &f64,
     ) -> Result<(), StateModelError> {
@@ -390,7 +388,7 @@ impl StateModel {
 
     pub fn set_custom_i64(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         value: &i64,
     ) -> Result<(), StateModelError> {
@@ -402,7 +400,7 @@ impl StateModel {
 
     pub fn set_custom_u64(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         value: &u64,
     ) -> Result<(), StateModelError> {
@@ -414,7 +412,7 @@ impl StateModel {
 
     pub fn set_custom_bool(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
         value: &bool,
     ) -> Result<(), StateModelError> {
@@ -431,7 +429,7 @@ impl StateModel {
     ///
     /// # Result
     /// A JSON object representation of that vector
-    pub fn serialize_state(&self, state: &[StateVar]) -> serde_json::Value {
+    pub fn serialize_state(&self, state: &[StateVariable]) -> serde_json::Value {
         let output = self
             .iter()
             .zip(state.iter())
@@ -471,9 +469,9 @@ impl StateModel {
     /// gets a state variable from a state vector by name
     fn get_state_variable(
         &self,
-        state: &[StateVar],
+        state: &[StateVariable],
         name: &String,
-    ) -> Result<StateVar, StateModelError> {
+    ) -> Result<StateVariable, StateModelError> {
         let idx = self.0.get_index(name).ok_or_else(|| {
             StateModelError::UnknownStateVariableName(name.clone(), self.get_names())
         })?;
@@ -490,9 +488,9 @@ impl StateModel {
 
     fn update_state(
         &self,
-        state: &mut [StateVar],
+        state: &mut [StateVariable],
         name: &String,
-        value: &StateVar,
+        value: &StateVariable,
         op: UpdateOperation,
     ) -> Result<(), StateModelError> {
         let index = self.0.get_index(name).ok_or_else(|| {

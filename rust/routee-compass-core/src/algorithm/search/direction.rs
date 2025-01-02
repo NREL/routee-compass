@@ -2,7 +2,7 @@ use super::{
     edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
 };
 use crate::model::network::{Edge, EdgeId, VertexId};
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::state::StateVariable;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Default)]
@@ -43,7 +43,7 @@ impl Direction {
         &self,
         edge_id: EdgeId,
         last_edge_id: Option<EdgeId>,
-        start_state: &[StateVar],
+        start_state: &[StateVariable],
         si: &SearchInstance,
     ) -> Result<EdgeTraversal, SearchError> {
         match self {

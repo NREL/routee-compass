@@ -1,6 +1,6 @@
 use super::custom_weight_type::CustomWeightType;
-use crate::plugin::{input::input_json_extensions::InputJsonExtensions, input::InputPluginError};
-use routee_compass_core::model::unit::{as_f64::AsF64, DistanceUnit};
+use crate::plugin::{input::InputJsonExtensions, input::InputPluginError};
+use routee_compass_core::model::unit::{AsF64, DistanceUnit};
 use routee_compass_core::util::geo::haversine;
 use serde::{Deserialize, Serialize};
 

@@ -1,7 +1,9 @@
 use std::fmt::Display;
 
-use super::{custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError};
-use crate::model::{traversal::state::state_variable::StateVar, unit};
+use super::{
+    custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError, StateVariable,
+};
+use crate::model::unit;
 use serde::{Deserialize, Serialize};
 
 /// a state variable unit tracks the domain of a StateVar in a
@@ -195,7 +197,7 @@ impl StateFeature {
         }
     }
 
-    pub fn get_initial(&self) -> Result<StateVar, StateModelError> {
+    pub fn get_initial(&self) -> Result<StateVariable, StateModelError> {
         match self {
             StateFeature::Distance {
                 distance_unit: _,

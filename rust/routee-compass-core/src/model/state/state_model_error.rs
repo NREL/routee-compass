@@ -1,13 +1,13 @@
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::state::StateVariable;
 
 #[derive(thiserror::Error, Debug)]
 pub enum StateModelError {
     #[error("attempting to encode {0} as state variable when value is a {1}")]
     EncodeError(String, String),
     #[error("attempting to decode {0} as a {1} when codec expects a {2}")]
-    DecodeError(StateVar, String, String),
+    DecodeError(StateVariable, String, String),
     #[error("value {0} is not a valid {1}")]
-    ValueError(StateVar, String),
+    ValueError(StateVariable, String),
     #[error("unknown state variable name {0}, should be one of {1}")]
     UnknownStateVariableName(String, String),
     #[error("invalid state variable index {0}, should be in range [0, {1})")]

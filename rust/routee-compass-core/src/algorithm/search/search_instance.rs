@@ -1,13 +1,13 @@
 use super::search_error::SearchError;
 use crate::model::{
-    access::access_model::AccessModel,
-    cost::cost_model::CostModel,
-    frontier::frontier_model::FrontierModel,
-    map::map_model::MapModel,
+    access::AccessModel,
+    cost::CostModel,
+    frontier::FrontierModel,
+    map::MapModel,
     network::{graph::Graph, vertex_id::VertexId},
-    state::state_model::StateModel,
-    termination::termination_model::TerminationModel,
-    traversal::{state::state_variable::StateVar, traversal_model::TraversalModel},
+    state::{StateModel, StateVariable},
+    termination::TerminationModel,
+    traversal::TraversalModel,
     unit::Cost,
 };
 use std::sync::Arc;
@@ -32,7 +32,7 @@ impl SearchInstance {
         &self,
         src: VertexId,
         dst: VertexId,
-        state: &[StateVar],
+        state: &[StateVariable],
     ) -> Result<Cost, SearchError> {
         let src = self.graph.get_vertex(&src)?;
         let dst = self.graph.get_vertex(&dst)?;

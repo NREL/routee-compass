@@ -1,5 +1,5 @@
-use super::{compass_app_error::CompassAppError, compass_input_field::CompassInputField};
-use crate::plugin::{input::input_json_extensions::InputJsonExtensions, plugin_error::PluginError};
+use super::{compass_input_field::CompassInputField, CompassAppError};
+use crate::plugin::{input::InputJsonExtensions, PluginError};
 use config::Config;
 use kdam::{Bar, BarExt};
 use ordered_float::OrderedFloat;
@@ -136,7 +136,7 @@ fn min_bin(bins: &[f64]) -> Result<usize, PluginError> {
 #[cfg(test)]
 mod test {
     use super::apply_load_balancing_policy;
-    use crate::plugin::input::input_field::InputField;
+    use crate::plugin::input::InputField;
     use serde_json::json;
 
     fn test_run_policy(queries: Vec<serde_json::Value>, parallelism: usize) -> Vec<Vec<i64>> {

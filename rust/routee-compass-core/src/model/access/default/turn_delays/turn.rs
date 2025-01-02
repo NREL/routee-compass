@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::model::access::access_model_error::AccessModelError;
+use crate::model::access::AccessModelError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Hash)]

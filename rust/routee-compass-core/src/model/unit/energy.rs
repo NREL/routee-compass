@@ -3,10 +3,10 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
-use crate::model::traversal::state::state_variable::StateVar;
+use crate::model::state::StateVariable;
 
 use super::{
-    as_f64::AsF64, builders::create_energy, internal_float::InternalFloat, Distance, DistanceUnit,
+    builders::create_energy, internal_float::InternalFloat, AsF64, Distance, DistanceUnit,
     EnergyRate, EnergyRateUnit, EnergyUnit, UnitError,
 };
 
@@ -43,8 +43,8 @@ impl From<(EnergyRate, Distance)> for Energy {
         Energy::new(energy_value)
     }
 }
-impl From<StateVar> for Energy {
-    fn from(value: StateVar) -> Self {
+impl From<StateVariable> for Energy {
+    fn from(value: StateVariable) -> Self {
         Energy::new(value.0)
     }
 }

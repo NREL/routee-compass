@@ -1,12 +1,9 @@
+use super::debug_plugin::DebugInputPlugin;
 use crate::{
-    app::compass::config::{
-        builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
-    },
-    plugin::input::input_plugin::InputPlugin,
+    app::compass::CompassConfigurationError,
+    plugin::input::{input_plugin::InputPlugin, InputPluginBuilder},
 };
 use std::sync::Arc;
-
-use super::debug_plugin::DebugInputPlugin;
 
 pub struct DebugInputPluginBuilder {}
 

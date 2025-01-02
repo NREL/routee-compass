@@ -1,11 +1,7 @@
 use crate::model::{
-    access::{
-        access_model::AccessModel, access_model_error::AccessModelError,
-        access_model_service::AccessModelService,
-    },
+    access::{AccessModel, AccessModelError, AccessModelService},
     network::{Edge, Vertex},
-    state::{state_feature::StateFeature, state_model::StateModel},
-    traversal::state::state_variable::StateVar,
+    state::{StateFeature, StateModel, StateVariable},
 };
 use itertools::Itertools;
 use std::sync::Arc;
@@ -40,7 +36,7 @@ impl AccessModel for CombinedAccessModel {
     fn access_edge(
         &self,
         traversal: (&Vertex, &Edge, &Vertex, &Edge, &Vertex),
-        state: &mut Vec<StateVar>,
+        state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), AccessModelError> {
         for model in self.models.iter() {

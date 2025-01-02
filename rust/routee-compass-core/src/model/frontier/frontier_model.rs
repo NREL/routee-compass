@@ -2,11 +2,10 @@ use std::collections::HashMap;
 
 use super::frontier_model_error::FrontierModelError;
 use crate::{
-    algorithm::search::{direction::Direction, search_tree_branch::SearchTreeBranch},
+    algorithm::search::{Direction, SearchTreeBranch},
     model::{
         network::{Edge, VertexId},
-        state::state_model::StateModel,
-        traversal::state::state_variable::StateVar,
+        state::{StateModel, StateVariable},
     },
 };
 
@@ -33,7 +32,7 @@ pub trait FrontierModel: Send + Sync {
     fn valid_frontier(
         &self,
         edge: &Edge,
-        state: &[StateVar],
+        state: &[StateVariable],
         tree: &HashMap<VertexId, SearchTreeBranch>,
         direction: &Direction,
         state_model: &StateModel,

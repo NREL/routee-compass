@@ -1,14 +1,9 @@
-use std::sync::Arc;
-
-use crate::{
-    app::compass::config::{
-        builders::InputPluginBuilder, compass_configuration_error::CompassConfigurationError,
-        config_json_extension::ConfigJsonExtensions,
-    },
-    plugin::input::input_plugin::InputPlugin,
-};
-
 use super::{plugin::LoadBalancerPlugin, weight_heuristic::WeightHeuristic};
+use crate::{
+    app::compass::{CompassConfigurationError, ConfigJsonExtensions},
+    plugin::input::{InputPlugin, InputPluginBuilder},
+};
+use std::sync::Arc;
 
 pub struct LoadBalancerBuilder {}
 

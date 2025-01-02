@@ -1,7 +1,7 @@
 use super::edge_heading::EdgeHeading;
 use super::turn::Turn;
 use super::turn_delay_model::TurnDelayModel;
-use crate::model::access::access_model_error::AccessModelError;
+use crate::model::access::AccessModelError;
 use crate::model::network::{Edge, EdgeId, Vertex};
 use crate::model::unit::{Time, TimeUnit};
 

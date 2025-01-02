@@ -1,4 +1,4 @@
-use super::{access_model::AccessModel, access_model_error::AccessModelError};
+use super::{AccessModel, AccessModelError};
 use std::sync::Arc;
 
 pub trait AccessModelService: Send + Sync {
@@ -16,6 +16,6 @@ pub trait AccessModelService: Send + Sync {
     ///
     /// The [AccessModel] instance for this query, or an error
     ///
-    /// [AccessModel]: compass_core::model::access::access_model::AccessModel
+    /// [AccessModel]: compass_core::model::access::AccessModel
     fn build(&self, query: &serde_json::Value) -> Result<Arc<dyn AccessModel>, AccessModelError>;
 }

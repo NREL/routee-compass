@@ -1,5 +1,5 @@
 use super::{Edge, EdgeId, NetworkError, Vertex, VertexId};
-use crate::algorithm::search::direction::Direction;
+use crate::algorithm::search::Direction;
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::util::fs::read_utils;
 use allocative::Allocative;
@@ -33,6 +33,42 @@ pub struct Graph {
     pub rev: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
     pub edges: Box<[Edge]>,
     pub vertices: Box<[Vertex]>,
+}
+
+impl TryFrom<&serde_json::Value> for Graph {
+    type Error = NetworkError;
+
+    /// create a graph from a JSON argument. it should be an object that contains
+    /// two keys, one for each file path.
+    fn try_from(value: &serde_json::Value) -> Result<Self, Self::Error> {
+        let edge_list_value = value.get("edge_list_input_file").ok_or_else(|| {
+            NetworkError::DatasetError(String::from(
+                "configuration key edge_list_input_file missing",
+            ))
+        })?;
+        let edge_list_str = edge_list_value
+            .as_str()
+            .ok_or_else(|| {
+                NetworkError::DatasetError(String::from(
+                    "configuration value at key edge_list_input_file is not a string",
+                ))
+            })?
+            .to_string();
+        let vertex_list_value = value.get("vertex_list_input_file").ok_or_else(|| {
+            NetworkError::DatasetError(String::from(
+                "configuration key edge_list_input_file missing",
+            ))
+        })?;
+        let vertex_list_str = vertex_list_value
+            .as_str()
+            .ok_or_else(|| {
+                NetworkError::DatasetError(String::from(
+                    "configuration value at key vertex_list_input_file is not a string",
+                ))
+            })?
+            .to_string();
+        Self::from_files(&edge_list_str, &vertex_list_str)
+    }
 }
 
 impl Graph {

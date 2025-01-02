@@ -1,9 +1,7 @@
-use crate::app::{
-    compass::compass_app_error::CompassAppError, search::search_app_result::SearchAppResult,
-};
+use crate::app::{compass::CompassAppError, search::SearchAppResult};
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::output::OutputPluginError;
-use routee_compass_core::algorithm::search::search_instance::SearchInstance;
+use routee_compass_core::algorithm::search::SearchInstance;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::{self, json};
 

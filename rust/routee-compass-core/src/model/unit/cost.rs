@@ -1,4 +1,4 @@
-use crate::model::unit::{as_f64::AsF64, *};
+use crate::model::unit::{AsF64, *};
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};

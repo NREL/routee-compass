@@ -4,7 +4,7 @@ use crate::model::unit::DistanceUnit;
 use crate::model::unit::{SpeedUnit, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
 use crate::util::fs::read_decoders;
 use crate::{
-    model::{traversal::traversal_model_error::TraversalModelError, unit::Speed},
+    model::{traversal::TraversalModelError, unit::Speed},
     util::fs::read_utils,
 };
 use std::path::Path;

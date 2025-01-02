@@ -1,4 +1,4 @@
-use crate::model::unit::{as_f64::AsF64, Cost};
+use crate::model::unit::{AsF64, Cost};
 use serde::{Deserialize, Serialize};
 
 use super::cost_model_error::CostModelError;

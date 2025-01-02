@@ -1,26 +1,24 @@
 use super::compass_app_configuration::CompassAppConfiguration;
 use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
-use super::{compass_app_ops as ops, config::compass_app_builder::CompassAppBuilder};
+use super::{compass_app_ops as ops, CompassAppBuilder};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
+use crate::app::compass::{CompassConfigurationField, ConfigJsonExtensions};
 use crate::{
     app::{
         compass::{
-            compass_app_error::CompassAppError,
             compass_input_field::CompassInputField,
-            config::{
-                compass_configuration_field::CompassConfigurationField,
-                config_json_extension::ConfigJsonExtensions,
+            model::{
                 cost_model::cost_model_builder::CostModelBuilder,
-                graph_builder::DefaultGraphBuilder,
                 termination_model_builder::TerminationModelBuilder,
             },
+            CompassAppError,
         },
-        search::{search_app::SearchApp, search_app_result::SearchAppResult},
+        search::{SearchApp, SearchAppResult},
     },
     plugin::{
-        input::{input_plugin::InputPlugin, input_plugin_ops as in_ops},
-        output::{output_plugin::OutputPlugin, output_plugin_ops as out_ops},
+        input::{input_plugin_ops as in_ops, InputPlugin},
+        output::{output_plugin_ops as out_ops, OutputPlugin},
     },
 };
 use chrono::{Duration, Local};
@@ -28,14 +26,11 @@ use config::Config;
 use itertools::{Either, Itertools};
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
-use routee_compass_core::algorithm::search::search_instance::SearchInstance;
-use routee_compass_core::model::map::map_model::MapModel;
-use routee_compass_core::model::map::map_model_config::MapModelConfig;
-use routee_compass_core::model::state::state_model::StateModel;
-use routee_compass_core::{
-    algorithm::search::search_algorithm::SearchAlgorithm,
-    util::duration_extension::DurationExtension,
-};
+use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
+use routee_compass_core::model::map::{MapModel, MapModelConfig};
+use routee_compass_core::model::network::Graph;
+use routee_compass_core::model::state::StateModel;
+use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
 use std::rc::Rc;
 use std::{
@@ -204,7 +199,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let graph_start = Local::now();
         let graph_params =
             config_json.get_config_section(CompassConfigurationField::Graph, &"TOML")?;
-        let graph = Arc::new(DefaultGraphBuilder::build(&graph_params)?);
+        let graph = Arc::new(Graph::try_from(&graph_params)?);
         let graph_duration = (Local::now() - graph_start)
             .to_std()
             .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
@@ -613,21 +608,16 @@ pub fn apply_output_processing(
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
-    use crate::app::compass::{
-        compass_app_error::CompassAppError,
-        config::compass_configuration_error::CompassConfigurationError,
-    };
-
     use super::CompassApp;
+    use crate::app::compass::{CompassAppError, CompassConfigurationError};
+    use std::path::PathBuf;
 
     #[test]
     fn test_speeds() {
-        let cwd_str = match std::env::current_dir() {
-            Ok(cwd_path) => String::from(cwd_path.to_str().unwrap_or("<unknown>")),
-            _ => String::from("<unknown>"),
-        };
+        // let cwd_str = match std::env::current_dir() {
+        //     Ok(cwd_path) => String::from(cwd_path.to_str().unwrap_or("<unknown>")),
+        //     _ => String::from("<unknown>"),
+        // };
         // eprintln!("cwd           : {}", cwd_str);
         // eprintln!("Cargo.toml dir: {}", env!("CARGO_MANIFEST_DIR"));
 
