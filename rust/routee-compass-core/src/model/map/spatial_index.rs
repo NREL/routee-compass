@@ -122,12 +122,12 @@ mod test {
             .join("test")
             .join("rtree_vertices.csv");
 
-        let query_filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("src")
-            .join("model")
-            .join("map")
-            .join("test")
-            .join("rtree_query.json");
+        // let query_filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        //     .join("src")
+        //     .join("model")
+        //     .join("map")
+        //     .join("test")
+        //     .join("rtree_query.json");
 
         let vertices: Box<[Vertex]> =
             read_utils::from_csv(&vertices_filepath.as_path(), true, None, None).unwrap();
