@@ -19,7 +19,7 @@ use std::time::Instant;
 /// provided traversal model for state updates and link costs. estimates
 /// the distance to the destination (the a* heuristic) using the provided
 /// cost estimate function.
-pub fn run_a_star(
+pub fn run_vertex_oriented(
     source: VertexId,
     target: Option<VertexId>,
     direction: &Direction,
@@ -184,7 +184,7 @@ pub fn run_a_star(
 /// target edge. composes the result with the source and target.
 ///
 /// not tested.
-pub fn run_a_star_edge_oriented(
+pub fn run_edge_oriented(
     source: EdgeId,
     target: Option<EdgeId>,
     direction: &Direction,
@@ -210,7 +210,7 @@ pub fn run_a_star_edge_oriented(
             let SearchResult {
                 mut tree,
                 iterations,
-            } = run_a_star(e1_dst, None, direction, weight_factor, si)?;
+            } = run_vertex_oriented(e1_dst, None, direction, weight_factor, si)?;
             if !tree.contains_key(&e1_dst) {
                 tree.extend([(e1_dst, src_branch)]);
             }
@@ -255,7 +255,7 @@ pub fn run_a_star_edge_oriented(
                 let SearchResult {
                     mut tree,
                     iterations,
-                } = run_a_star(e1_dst, Some(e2_src), direction, weight_factor, si)?;
+                } = run_vertex_oriented(e1_dst, Some(e2_src), direction, weight_factor, si)?;
 
                 if tree.is_empty() {
                     return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src));
@@ -523,7 +523,7 @@ mod tests {
             .clone()
             .into_par_iter()
             .map(|(o, d, _expected)| {
-                run_a_star(o, Some(d), &Direction::Forward, None, &si)
+                run_vertex_oriented(o, Some(d), &Direction::Forward, None, &si)
                     .map(|search_result| search_result.tree)
             })
             .collect();

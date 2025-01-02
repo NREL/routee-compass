@@ -8,7 +8,7 @@ use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
 use super::util::RouteSimilarityFunction;
-use super::{a_star::a_star_algorithm, direction::Direction};
+use super::{a_star, direction::Direction};
 use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
@@ -62,7 +62,7 @@ impl SearchAlgorithm {
                     None => Ok(*weight_factor),
                 }?;
                 let search_result =
-                    a_star_algorithm::run_a_star(src_id, dst_id_opt, direction, w_val, si)?;
+                    a_star::run_vertex_oriented(src_id, dst_id_opt, direction, w_val, si)?;
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
@@ -125,7 +125,7 @@ impl SearchAlgorithm {
             }
             .run_edge_oriented(src_id, dst_id_opt, query, direction, search_instance),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
-                let search_result = a_star_algorithm::run_a_star_edge_oriented(
+                let search_result = a_star::run_edge_oriented(
                     src_id,
                     dst_id_opt,
                     direction,
