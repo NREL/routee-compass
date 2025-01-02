@@ -120,8 +120,7 @@ To understand how these each interact with the state model, review the documenta
 
 #### Custom Plugins
 
-Plugins do not have multi-phase builders as the dynamic models above, but instead, are constructed once during CompassApp initialization.
-For both [InputPluginBuilder] and [OutputPluginBuilder], they should similarly be empty structs (e.g., `pub struct MyPlugin {}`).
+Plugins have a simpler initialization process where the [InputPluginBuilder] and [OutputPluginBuilder] expose a `build` method to create the plugin.
 For examples, review the implementation of the built-in plugins:
   - [`crate::plugin::input::default`]
   - [`crate::plugin::output::default`]
