@@ -136,7 +136,7 @@ fn min_bin(bins: &[f64]) -> Result<usize, PluginError> {
 #[cfg(test)]
 mod test {
     use super::apply_load_balancing_policy;
-    use crate::plugin::input::input_field::InputField;
+    use crate::plugin::input::InputField;
     use serde_json::json;
 
     fn test_run_policy(queries: Vec<serde_json::Value>, parallelism: usize) -> Vec<Vec<i64>> {

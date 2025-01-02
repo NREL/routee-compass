@@ -608,13 +608,9 @@ pub fn apply_output_processing(
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
-    use crate::app::compass::{
-        model::compass_configuration_error::CompassConfigurationError, CompassAppError,
-    };
-
     use super::CompassApp;
+    use crate::app::compass::{CompassAppError, CompassConfigurationError};
+    use std::path::PathBuf;
 
     #[test]
     fn test_speeds() {
