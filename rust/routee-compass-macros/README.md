@@ -1,6 +1,6 @@
 # routee-compass-macros
 
-This crate provides some macros for the routee-compass project.
+This crate provides some macros for the [RouteE Compass](https://docs.rs/routee-compass/) project.
 
 [![crates.io](https://img.shields.io/crates/v/routee-compass-macros.svg)](https://crates.io/crates/routee-compass-macros)
 
