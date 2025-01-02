@@ -2,7 +2,7 @@ use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
 use super::ksp::KspQuery;
 use super::ksp::KspTerminationCriteria;
-use super::ksp::{single_via_paths_algorithm, yens_algorithm};
+use super::ksp::{svp, yens};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
@@ -91,7 +91,7 @@ impl SearchAlgorithm {
                 let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
                 let term_fn = termination.as_ref().cloned().unwrap_or_default();
                 let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
-                yens_algorithm::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
+                yens::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
             }
             SearchAlgorithm::KspSingleVia {
                 k,
@@ -107,7 +107,7 @@ impl SearchAlgorithm {
                 let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
                 let term_fn = termination.as_ref().cloned().unwrap_or_default();
                 let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
-                single_via_paths_algorithm::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
+                svp::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
             }
         }
     }
