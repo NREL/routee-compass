@@ -374,7 +374,7 @@ fn get_last_traversed_edge_id(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::algorithm::search::vertex_oriented_route;
+    use crate::algorithm::search::backtrack::vertex_oriented_route;
     use crate::algorithm::search::MinSearchTree;
     use crate::model::access::default::NoAccessModel;
     use crate::model::cost::CostAggregation;
