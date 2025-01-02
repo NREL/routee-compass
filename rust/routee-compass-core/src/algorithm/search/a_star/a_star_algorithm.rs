@@ -6,9 +6,9 @@ use crate::algorithm::search::SearchResult;
 use crate::algorithm::search::SearchTreeBranch;
 use crate::model::network::edge_id::EdgeId;
 use crate::model::network::vertex_id::VertexId;
-use crate::model::unit::as_f64::AsF64;
-use crate::model::unit::cost::ReverseCost;
+use crate::model::unit::AsF64;
 use crate::model::unit::Cost;
+use crate::model::unit::ReverseCost;
 use crate::util::priority_queue::InternalPriorityQueue;
 
 use std::collections::HashMap;

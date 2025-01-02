@@ -1,4 +1,4 @@
-use crate::model::unit::{as_f64::AsF64, Distance, Energy, Time};
+use crate::model::unit::{AsF64, Distance, Energy, Time};
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};

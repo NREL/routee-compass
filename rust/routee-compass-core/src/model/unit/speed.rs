@@ -1,5 +1,5 @@
 use super::{
-    as_f64::AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, SpeedUnit,
+    AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, SpeedUnit,
     Time, TimeUnit, UnitError,
 };
 use allocative::Allocative;

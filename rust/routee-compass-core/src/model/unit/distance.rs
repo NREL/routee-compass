@@ -6,7 +6,7 @@ use std::{cmp::Ordering, fmt::Display};
 
 use crate::model::state::StateVariable;
 
-use super::{as_f64::AsF64, internal_float::InternalFloat};
+use super::{AsF64, internal_float::InternalFloat};
 
 #[derive(
     Copy,

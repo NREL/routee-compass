@@ -6,7 +6,7 @@ use std::{cmp::Ordering, fmt::Display};
 use crate::model::state::StateVariable;
 
 use super::{
-    as_f64::AsF64, builders::create_energy, internal_float::InternalFloat, Distance, DistanceUnit,
+    builders::create_energy, internal_float::InternalFloat, AsF64, Distance, DistanceUnit,
     EnergyRate, EnergyRateUnit, EnergyUnit, UnitError,
 };
 

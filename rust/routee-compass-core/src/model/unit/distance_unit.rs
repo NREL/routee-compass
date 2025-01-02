@@ -66,7 +66,7 @@ impl FromStr for DistanceUnit {
 #[cfg(test)]
 mod test {
 
-    use crate::model::unit::as_f64::AsF64;
+    use crate::model::unit::AsF64;
 
     use super::Distance;
     use super::DistanceUnit as D;

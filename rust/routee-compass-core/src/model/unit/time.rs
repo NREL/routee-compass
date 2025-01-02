@@ -6,7 +6,7 @@ use std::{cmp::Ordering, fmt::Display};
 use crate::model::state::StateVariable;
 
 use super::{
-    as_f64::AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, Speed,
+    AsF64, builders, internal_float::InternalFloat, Distance, DistanceUnit, Speed,
     SpeedUnit, TimeUnit, UnitError,
 };
 

@@ -5,7 +5,7 @@ use crate::routee::prediction::prediction_model::PredictionModel;
 use ort::{GraphOptimizationLevel, Session, Value};
 use routee_compass_core::{
     model::traversal::TraversalModelError,
-    model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    model::unit::{AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 
 pub struct OnnxSpeedGradeModel {
@@ -109,7 +109,7 @@ mod test {
                 &model_file_path,
                 SpeedUnit::MilesPerHour,
                 GradeUnit::Decimal,
-                routee_compass_core::model::unit::EnergyRateUnit::GallonsGasolinePerMile,
+                routee_compass_core::model::unit::GallonsGasolinePerMile,
             )
             .unwrap(),
         );

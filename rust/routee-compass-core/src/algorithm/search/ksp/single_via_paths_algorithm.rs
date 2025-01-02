@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 use super::{ksp_query::KspQuery, ksp_termination_criteria::KspTerminationCriteria};
 use crate::{
     algorithm::search::{
@@ -7,9 +5,10 @@ use crate::{
         search_algorithm::SearchAlgorithm, search_algorithm_result::SearchAlgorithmResult,
         search_error::SearchError, search_instance::SearchInstance, util::RouteSimilarityFunction,
     },
-    model::{network::vertex_id::VertexId, unit::cost::ReverseCost},
+    model::{network::vertex_id::VertexId, unit::ReverseCost},
     util::priority_queue::InternalPriorityQueue,
 };
+use itertools::Itertools;
 use std::collections::HashMap;
 
 /// generates a set of k-shortest paths using the single-via path algorithm.

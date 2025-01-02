@@ -6,7 +6,7 @@ use routee_compass_core::model::{
     state::{CustomFeatureFormat, StateFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
     unit::{
-        as_f64::AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
+        AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
         SpeedUnit,
     },
 };
@@ -258,7 +258,7 @@ fn get_phev_energy(
 mod tests {
     use super::*;
     use crate::model::prediction::{load_prediction_model, ModelType};
-    use routee_compass_core::model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit};
+    use routee_compass_core::model::unit::{AsF64, EnergyRate, EnergyRateUnit};
     use std::path::PathBuf;
 
     fn mock_vehicle() -> PHEV {

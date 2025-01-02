@@ -48,7 +48,7 @@ impl FromStr for WeightUnit {
 #[cfg(test)]
 mod test {
 
-    use crate::model::unit::as_f64::AsF64;
+    use crate::model::unit::AsF64;
 
     use super::Weight;
     use super::WeightUnit as D;

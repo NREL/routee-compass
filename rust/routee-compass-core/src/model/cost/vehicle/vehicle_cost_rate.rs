@@ -1,6 +1,6 @@
 use crate::model::{
     state::StateVariable,
-    unit::{as_f64::AsF64, Cost},
+    unit::{AsF64, Cost},
 };
 use serde::{Deserialize, Serialize};
 /// a mapping for how to transform vehicle state values into a Cost.

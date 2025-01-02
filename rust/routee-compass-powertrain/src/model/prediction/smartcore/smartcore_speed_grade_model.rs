@@ -3,7 +3,7 @@ use std::path::Path;
 use crate::model::prediction::prediction_model::PredictionModel;
 use routee_compass_core::{
     model::traversal::TraversalModelError,
-    model::unit::{as_f64::AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    model::unit::{AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,

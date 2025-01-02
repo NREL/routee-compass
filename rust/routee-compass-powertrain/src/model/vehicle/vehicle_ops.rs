@@ -1,6 +1,6 @@
 use routee_compass_core::model::{
     state::{StateModel, StateModelError, StateVariable},
-    unit::{as_f64::AsF64, Energy},
+    unit::{AsF64, Energy},
 };
 
 /// updates the SOC feature for a vehicle type with a battery based on the
