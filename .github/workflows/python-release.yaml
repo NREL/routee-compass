@@ -102,24 +102,24 @@ jobs:
       url: https://pypi.org/project/nrel.routee.compass 
     permissions:
       id-token: write
-    # strategy:
-    #   fail-fast: true
-    #   matrix:
-    #     os:
-    #       - ubuntu
-    #       - macos
-    #       - windows
-    #     python-version:
-    #       - "9"
-    #       - "10"
-    #       - "11"
-    #       - "12"
+    strategy:
+      fail-fast: true
+      matrix:
+        os:
+          - ubuntu
+          - macos
+          - windows
+        python-version:
+          - "9"
+          - "10"
+          - "11"
+          - "12"
 
     steps:
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@v4
         with:
-          name: "wheel-*"
+          name: "wheel-${{ matrix.os }}-py${{ matrix.python-version }}"
           path: dist
 
       - name: publish package
