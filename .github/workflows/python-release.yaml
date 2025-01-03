@@ -33,7 +33,7 @@ jobs:
       - name: set up python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.11"
 
       - name: set up rust
         if: matrix.os != 'ubuntu'
@@ -65,16 +65,16 @@ jobs:
       - name: build ${{ matrix.platform || matrix.os }} binaries
         run: cibuildwheel --output-dir dist
         env:
+          # 2025-01-02: cpython 3.11 requires Mac OS 10.12 at minimum
+          MACOSX_DEPLOYMENT_TARGET: 10.12
+
+          # CI Build Wheel Arguments
           CIBW_BUILD: "cp3${{ matrix.python-version }}-*"
           CIBW_SKIP: "*-win32 *-musllinux* *i686 *ppc64le *s390x *aarch64"
           CIBW_PLATFORM: ${{ matrix.platform || matrix.os }}
-          # CIBW_TEST_REQUIRES: "pytest"
-          # CIBW_TEST_COMMAND: "pytest {project}/tests -s"
           CIBW_ENVIRONMENT: 'PATH="$HOME/.cargo/bin:$PATH"'
           CIBW_ENVIRONMENT_WINDOWS: 'PATH="$UserProfile\.cargo\bin;$PATH"'
           CIBW_ARCHS_MACOS: "universal2"
-          # see https://cibuildwheel.readthedocs.io/en/stable/faq/#universal2
-          # CIBW_TEST_SKIP: '*_universal2:arm64'
           CIBW_BEFORE_BUILD: >
             pip install -U maturin &&
             rustup default nightly &&
@@ -85,9 +85,9 @@ jobs:
             rustup show
 
       - name: upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: "wheel-${{ matrix.os }}-py${{ matrix.python-version }}"
           path: dist
   upload:
     needs: build
@@ -95,15 +95,27 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/nrel.routee.compass 
+      url: https://pypi.org/project/nrel.routee.compass
     permissions:
       id-token: write
     steps:
       - name: Download all workflow run artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          name: wheels
-          path: dist
+          merge-multiple: true
+          path: dist/
+          pattern: wheel*
 
-      - name: publish package
+      - run: ls -1 dist/
+
+      - name: Publish package to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/
+
+      - name: publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          verbose: true
