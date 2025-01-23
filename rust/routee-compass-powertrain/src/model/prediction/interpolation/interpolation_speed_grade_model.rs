@@ -2,6 +2,7 @@ use super::utils::linspace;
 use crate::model::prediction::{
     load_prediction_model, model_type::ModelType, prediction_model::PredictionModel,
 };
+use ninterp::*;
 use routee_compass_core::{
     model::traversal::TraversalModelError,
     model::unit::{
@@ -11,7 +12,7 @@ use routee_compass_core::{
 use std::path::Path;
 
 pub struct InterpolationSpeedGradeModel {
-    interpolator: ninterp::Interpolator,
+    interpolator: Interpolator,
     speed_unit: SpeedUnit,
     grade_unit: GradeUnit,
     energy_rate_unit: EnergyRateUnit,
@@ -28,37 +29,34 @@ impl PredictionModel for InterpolationSpeedGradeModel {
         let speed_value = speed_unit.convert(&speed, &self.speed_unit).as_f64();
         let grade_value = grade_unit.convert(&grade, &self.grade_unit).as_f64();
 
+        // Only `Interpolator::Interp2D` is currently supported
+        if !matches!(self.interpolator, Interpolator::Interp2D(..)) {
+            return Err(TraversalModelError::TraversalModelFailure(
+                "Only 2-D interpolators are currently supported".to_string(),
+            ));
+        }
         // snap incoming speed and grade to the grid
-        let (min_speed, max_speed, min_grade, max_grade) = match &self.interpolator {
-            ninterp::Interpolator::Interp2D(interp) => (
-                *interp.x().first().ok_or_else(|| {
-                    TraversalModelError::TraversalModelFailure(
-                        "Could not get first x-value from powertrain interpolation result; are x-values empty?".to_string(),
-                    )
-                })?,
-                *interp.x().last().ok_or_else(|| {
-                    TraversalModelError::TraversalModelFailure(
-                        "Could not get last x-value from powertrain interpolation result; are x-values empty?".to_string(),
-                    )
-                })?,
-                *interp.y().first().ok_or_else(|| {
-                    TraversalModelError::TraversalModelFailure(
-                        "Could not get first y-value from powertrain interpolation result; are y-values empty?".to_string(),
-                    )
-                })?,
-                *interp.y().last().ok_or_else(|| {
-                    TraversalModelError::TraversalModelFailure(
-                        "Could not get last y-value from powertrain interpolation result; are y-values empty?".to_string(),
-                    )
-                })?,
-
-            ),
-            _ => {
-                return Err(TraversalModelError::TraversalModelFailure(
-                    "Only 2-D interpolators are currently supported".to_string(),
-                ))
-            }
-        };
+        // NOTE: `x().unwrap()` and `y().unwrap()` are okay, because they never fail for `Interpolator::Interp2D`
+        let min_speed = *self.interpolator.x().unwrap().first().ok_or_else(|| {
+            TraversalModelError::TraversalModelFailure(
+                "Could not get first x-value from powertrain interpolation result; are x-values empty?".to_string(),
+            )
+        })?;
+        let max_speed = *self.interpolator.x().unwrap().last().ok_or_else(|| {
+            TraversalModelError::TraversalModelFailure(
+                "Could not get last x-value from powertrain interpolation result; are x-values empty?".to_string(),
+            )
+        })?;
+        let min_grade = *self.interpolator.y().unwrap().first().ok_or_else(|| {
+            TraversalModelError::TraversalModelFailure(
+                "Could not get first y-value from powertrain interpolation result; are y-values empty?".to_string(),
+            )
+        })?;
+        let max_grade = *self.interpolator.y().unwrap().last().ok_or_else(|| {
+            TraversalModelError::TraversalModelFailure(
+                "Could not get last y-value from powertrain interpolation result; are y-values empty?".to_string(),
+            )
+        })?;
 
         let speed_value = speed_value.max(min_speed).min(max_speed);
         let grade_value = grade_value.max(min_grade).min(max_grade);
@@ -129,21 +127,19 @@ impl InterpolationSpeedGradeModel {
             values.push(row);
         }
 
-        let interpolator = ninterp::Interpolator::Interp2D(
-            ninterp::Interp2D::new(
-                speed_values,
-                grade_values,
-                values,
-                ninterp::Strategy::Linear,
-                ninterp::Extrapolate::Error,
-            )
-            .map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to validate interpolation model: {}",
-                    e
-                ))
-            })?,
-        );
+        let interpolator = Interpolator::new_2d(
+            speed_values,
+            grade_values,
+            values,
+            Strategy::Linear,
+            Extrapolate::Error,
+        )
+        .map_err(|e| {
+            TraversalModelError::TraversalModelFailure(format!(
+                "Failed to validate interpolation model: {}",
+                e
+            ))
+        })?;
 
         Ok(InterpolationSpeedGradeModel {
             interpolator,
