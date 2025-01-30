@@ -15,12 +15,12 @@ pub enum EnergyUnit {
 
 impl EnergyUnit {
     // see https://epact.energy.gov/fuel-conversion-factors
+    // see https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
     pub fn convert(&self, value: &Energy, target: &EnergyUnit) -> Energy {
         use EnergyUnit as S;
         match (self, target) {
             (S::GallonsGasoline, S::GallonsGasoline) => *value,
             (S::GallonsGasoline, S::KilowattHours) => *value * 32.26,
-            // see https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
             (S::GallonsGasoline, S::LitersGasoline) => *value * 3.785,
             // GG->LD: GG -> GD -> LD
             (S::GallonsGasoline, S::LitersDiesel) => *value * 0.866 * 3.785,
@@ -34,7 +34,6 @@ impl EnergyUnit {
             (S::GallonsDiesel, S::KilowattHours) => *value * 40.7,
             // GD->LG: GD -> GG -> LG
             (S::GallonsDiesel, S::LitersGasoline) => *value * 1.155 * 3.785,
-            // see https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
             (S::GallonsDiesel, S::LitersDiesel) => *value * 3.785,
             (S::KilowattHours, S::GallonsDiesel) => *value * 0.02457,
             (S::GallonsDiesel, S::GallonsGasoline) => *value * 1.155,
@@ -42,7 +41,6 @@ impl EnergyUnit {
             (S::LitersGasoline, S::LitersGasoline) => *value,
             // LG->LD: LG -> GG -> GD -> LD
             (S::LitersGasoline, S::LitersDiesel) => *value * 0.866,
-            // see https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
             (S::LitersGasoline, S::GallonsGasoline) => *value * 0.264,
             // LG->GD: LG -> LD -> GD
             (S::LitersGasoline, S::GallonsDiesel) => *value * 0.264 * 0.866,
@@ -53,7 +51,6 @@ impl EnergyUnit {
             (S::LitersDiesel, S::LitersGasoline) => *value * 1.155,
             // LD->GG: LD -> LG -> GG
             (S::LitersDiesel, S::GallonsGasoline) => *value * 0.264 * 1.155,
-            // see https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
             (S::LitersDiesel, S::GallonsDiesel) => *value * 0.264,
             // LD->KWH: LD -> GD -> KWH
             (S::LitersDiesel, S::KilowattHours) => *value * 0.264 * 40.7,
