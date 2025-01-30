@@ -13,7 +13,6 @@ pub enum EnergyUnit {
     LitersDiesel,
 }
 
-// TODO: Need to update for LitersGasoline, GallonsGasoline
 impl EnergyUnit {
     // see https://epact.energy.gov/fuel-conversion-factors
     pub fn convert(&self, value: &Energy, target: &EnergyUnit) -> Energy {
