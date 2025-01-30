@@ -11,6 +11,10 @@ pub enum EnergyRateUnit {
     KilowattHoursPerMile,
     KilowattHoursPerKilometer,
     KilowattHoursPerMeter,
+    LitersGasolinePerKilometer,
+    LitersDieselPerKilometer,
+    LitersGasolinePerMeter,
+    LitersDieselPerMeter,
 }
 
 impl EnergyRateUnit {
