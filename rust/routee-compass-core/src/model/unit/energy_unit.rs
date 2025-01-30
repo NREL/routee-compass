@@ -47,7 +47,7 @@ impl EnergyUnit {
             // LG->GD: LG -> LD -> GD
             (S::LitersGasoline, S::GallonsDiesel) => *value * (0.264 * 0.866 * 3.785) * 0.264,
             // LG->KWH: LG -> GG -> KWH
-            (S::LitersGasoline, S:: KilowattHours) => *value * 0.264 * 32.26,
+            (S::LitersGasoline, S::KilowattHours) => *value * 0.264 * 32.26,
             (S::LitersDiesel, S::LitersDiesel) => *value,
             // LD->LG: LD -> GD -> GG -> LG
             (S::LitersDiesel, S::LitersGasoline) => *value * 0.264 * 1.155 * 3.785,
