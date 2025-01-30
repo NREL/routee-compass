@@ -41,18 +41,18 @@ impl EnergyUnit {
             (S::GallonsGasoline, S::GallonsDiesel) => *value * 0.866,
             (S::LitersGasoline, S::LitersGasoline) => *value,
             // LG->LD: LG -> GG -> GD -> LD
-            (S::LitersGasoline, S::LitersDiesel) => *value * 0.264 * 0.866 * 3.785,
+            (S::LitersGasoline, S::LitersDiesel) => *value * 0.866,
             // see https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
             (S::LitersGasoline, S::GallonsGasoline) => *value * 0.264,
             // LG->GD: LG -> LD -> GD
-            (S::LitersGasoline, S::GallonsDiesel) => *value * (0.264 * 0.866 * 3.785) * 0.264,
+            (S::LitersGasoline, S::GallonsDiesel) => *value * 0.264 * 0.866,
             // LG->KWH: LG -> GG -> KWH
             (S::LitersGasoline, S::KilowattHours) => *value * 0.264 * 32.26,
             (S::LitersDiesel, S::LitersDiesel) => *value,
             // LD->LG: LD -> GD -> GG -> LG
-            (S::LitersDiesel, S::LitersGasoline) => *value * 0.264 * 1.155 * 3.785,
+            (S::LitersDiesel, S::LitersGasoline) => *value * 1.155,
             // LD->GG: LD -> LG -> GG
-            (S::LitersDiesel, S::GallonsGasoline) => *value * (0.264 * 1.155 * 3.785) * 0.264,
+            (S::LitersDiesel, S::GallonsGasoline) => *value * 0.264 * 1.155,
             // see https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
             (S::LitersDiesel, S::GallonsDiesel) => *value * 0.264,
             // LD->KWH: LD -> GD -> KWH
