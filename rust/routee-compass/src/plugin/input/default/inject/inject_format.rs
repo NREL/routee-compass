@@ -31,7 +31,15 @@ impl InjectFormat {
                     ))
                 })
             }
-            InjectFormat::Toml => todo!(),
+            InjectFormat::Toml => {
+                let result_toml = toml::from_str(value);
+                result_toml.map_err(|e| {
+                    CompassConfigurationError::UserConfigurationError(format!(
+                        "could not deserialize inject value as TOML: {}",
+                        e
+                    ))
+                })
+            }
         }
     }
 }
