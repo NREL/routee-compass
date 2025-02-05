@@ -25,9 +25,15 @@ use super::{internal_float::InternalFloat, AsF64};
     Sum,
     Neg,
     Allocative,
+    derive_more::derive::From,
 )]
 pub struct Distance(InternalFloat);
 
+impl AsF64 for &Distance {
+    fn as_f64(&self) -> f64 {
+        **self.0
+    }
+}
 impl AsF64 for Distance {
     fn as_f64(&self) -> f64 {
         **self.0
@@ -50,14 +56,22 @@ impl Display for Distance {
 }
 impl From<StateVariable> for Distance {
     fn from(value: StateVariable) -> Self {
-        Distance::new(value.0)
+        Distance::from(value.0)
+    }
+}
+impl From<&StateVariable> for Distance {
+    fn from(value: &StateVariable) -> Self {
+        Distance::from(value.0)
+    }
+}
+
+impl From<f64> for Distance {
+    fn from(value: f64) -> Self {
+        Distance(InternalFloat::new(value))
     }
 }
 
 impl Distance {
-    pub fn new(value: f64) -> Distance {
-        Distance(InternalFloat::new(value))
-    }
     pub fn to_ordered_float(&self) -> OrderedFloat<f64> {
         *self.0
     }

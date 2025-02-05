@@ -1,5 +1,4 @@
-use super::Speed;
-use super::{DistanceUnit, TimeUnit};
+use super::{baseunit, AsF64, Convert, DistanceUnit, Speed, TimeUnit};
 use crate::util::serde::serde_ops::string_deserialize;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -29,32 +28,59 @@ impl FromStr for SpeedUnit {
     }
 }
 
-impl From<(DistanceUnit, TimeUnit)> for SpeedUnit {
-    fn from(value: (DistanceUnit, TimeUnit)) -> Self {
+impl Convert<Speed> for SpeedUnit {
+    fn convert(&self, value: &mut std::borrow::Cow<Speed>, to: &Self) {
+        /// converts a value from the current speed unit to some target speed unit.
+        use SpeedUnit as S;
+        let conversion_factor = match (self, to) {
+            (S::KilometersPerHour, S::KilometersPerHour) => None,
+            (S::KilometersPerHour, S::MilesPerHour) => Some(0.621371),
+            (S::KilometersPerHour, S::MetersPerSecond) => Some(0.2777777778),
+            (S::MilesPerHour, S::KilometersPerHour) => Some(1.60934),
+            (S::MilesPerHour, S::MilesPerHour) => None,
+            (S::MilesPerHour, S::MetersPerSecond) => Some(0.44704),
+            (S::MetersPerSecond, S::KilometersPerHour) => Some(3.6),
+            (S::MetersPerSecond, S::MilesPerHour) => Some(2.237),
+            (S::MetersPerSecond, S::MetersPerSecond) => None,
+        };
+        if let Some(factor) = conversion_factor {
+            let mut updated = Speed::from(value.as_ref().as_f64() * factor);
+            let value_mut = value.to_mut();
+            std::mem::swap(value_mut, &mut updated);
+        }
+    }
+
+    fn convert_to_base(&self, value: &mut std::borrow::Cow<Speed>) {
+        self.convert(value, &baseunit::SPEED_UNIT)
+    }
+}
+
+impl From<(&DistanceUnit, &TimeUnit)> for SpeedUnit {
+    fn from(value: (&DistanceUnit, &TimeUnit)) -> Self {
         use DistanceUnit as D;
         use SpeedUnit as S;
         use TimeUnit as T;
         match value {
-            (D::Meters, T::Hours) => todo!(),
-            (D::Meters, T::Minutes) => todo!(),
-            (D::Meters, T::Seconds) => S::MetersPerSecond,
-            (D::Meters, T::Milliseconds) => todo!(),
-            (D::Kilometers, T::Hours) => S::KilometersPerHour,
-            (D::Kilometers, T::Minutes) => todo!(),
-            (D::Kilometers, T::Seconds) => todo!(),
-            (D::Kilometers, T::Milliseconds) => todo!(),
-            (D::Miles, T::Hours) => S::MilesPerHour,
-            (D::Miles, T::Minutes) => todo!(),
-            (D::Miles, T::Seconds) => todo!(),
-            (D::Miles, T::Milliseconds) => todo!(),
-            (D::Inches, T::Hours) => todo!(),
-            (D::Inches, T::Minutes) => todo!(),
-            (D::Inches, T::Seconds) => todo!(),
-            (D::Inches, T::Milliseconds) => todo!(),
-            (D::Feet, T::Hours) => todo!(),
-            (D::Feet, T::Minutes) => todo!(),
-            (D::Feet, T::Seconds) => todo!(),
-            (D::Feet, T::Milliseconds) => todo!(),
+            (&D::Meters, &T::Hours) => todo!(),
+            (&D::Meters, &T::Minutes) => todo!(),
+            (&D::Meters, &T::Seconds) => S::MetersPerSecond,
+            (&D::Meters, &T::Milliseconds) => todo!(),
+            (&D::Kilometers, &T::Hours) => S::KilometersPerHour,
+            (&D::Kilometers, &T::Minutes) => todo!(),
+            (&D::Kilometers, &T::Seconds) => todo!(),
+            (&D::Kilometers, &T::Milliseconds) => todo!(),
+            (&D::Miles, &T::Hours) => S::MilesPerHour,
+            (&D::Miles, &T::Minutes) => todo!(),
+            (&D::Miles, &T::Seconds) => todo!(),
+            (&D::Miles, &T::Milliseconds) => todo!(),
+            (&D::Inches, &T::Hours) => todo!(),
+            (&D::Inches, &T::Minutes) => todo!(),
+            (&D::Inches, &T::Seconds) => todo!(),
+            (&D::Inches, &T::Milliseconds) => todo!(),
+            (&D::Feet, &T::Hours) => todo!(),
+            (&D::Feet, &T::Minutes) => todo!(),
+            (&D::Feet, &T::Seconds) => todo!(),
+            (&D::Feet, &T::Milliseconds) => todo!(),
         }
     }
 }
@@ -80,29 +106,13 @@ impl SpeedUnit {
         }
     }
 
-    /// converts a value from the current speed unit to some target speed unit.
-    pub fn convert(&self, value: &Speed, target: &SpeedUnit) -> Speed {
-        use SpeedUnit as S;
-        match (self, target) {
-            (S::KilometersPerHour, S::KilometersPerHour) => *value,
-            (S::KilometersPerHour, S::MilesPerHour) => *value * 0.621371,
-            (S::KilometersPerHour, S::MetersPerSecond) => *value * 0.2777777778,
-            (S::MilesPerHour, S::KilometersPerHour) => *value * 1.60934,
-            (S::MilesPerHour, S::MilesPerHour) => *value,
-            (S::MilesPerHour, S::MetersPerSecond) => *value * 0.44704,
-            (S::MetersPerSecond, S::KilometersPerHour) => *value * 3.6,
-            (S::MetersPerSecond, S::MilesPerHour) => *value * 2.237,
-            (S::MetersPerSecond, S::MetersPerSecond) => *value,
-        }
-    }
-
     /// use as a soft "max" value for certain calculations
     pub fn max_american_highway_speed(&self) -> Speed {
         use SpeedUnit as S;
         match self {
-            S::KilometersPerHour => Speed::new(120.675),
-            S::MilesPerHour => Speed::new(75.0),
-            S::MetersPerSecond => Speed::new(33.528),
+            S::KilometersPerHour => Speed::from(120.675),
+            S::MilesPerHour => Speed::from(75.0),
+            S::MetersPerSecond => Speed::from(33.528),
         }
     }
 }
