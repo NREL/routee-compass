@@ -55,3 +55,9 @@ impl From<Energy> for StateVariable {
         StateVariable(value.as_f64())
     }
 }
+
+impl From<&StateVariable> for f64 {
+    fn from(val: &StateVariable) -> Self {
+        val.0
+    }
+}
