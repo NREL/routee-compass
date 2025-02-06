@@ -1,5 +1,5 @@
-use super::Weight;
-use crate::util::serde::serde_ops::string_deserialize;
+use super::{baseunit, Convert, Weight};
+use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -11,20 +11,29 @@ pub enum WeightUnit {
     Kg,
 }
 
-impl WeightUnit {
-    pub fn convert(&self, value: &Weight, target: &WeightUnit) -> Weight {
+impl Convert<Weight> for WeightUnit {
+    fn convert(&self, value: &mut std::borrow::Cow<Weight>, to: &Self) {
         use WeightUnit as S;
-        match (self, target) {
-            (S::Pounds, S::Pounds) => *value,
-            (S::Pounds, S::Tons) => *value / 2000.0,
-            (S::Pounds, S::Kg) => *value / 2.20462,
-            (S::Tons, S::Pounds) => *value * 2000.0,
-            (S::Tons, S::Tons) => *value,
-            (S::Tons, S::Kg) => *value * 907.185,
-            (S::Kg, S::Pounds) => *value * 2.20462,
-            (S::Kg, S::Tons) => *value / 907.185,
-            (S::Kg, S::Kg) => *value,
+        let conversion_factor = match (self, to) {
+            (S::Pounds, S::Pounds) => None,
+            (S::Pounds, S::Tons) => Some(0.0005),
+            (S::Pounds, S::Kg) => Some(0.45359291),
+            (S::Tons, S::Pounds) => Some(2000.0),
+            (S::Tons, S::Tons) => None,
+            (S::Tons, S::Kg) => Some(907.185),
+            (S::Kg, S::Pounds) => Some(2.20462),
+            (S::Kg, S::Tons) => Some(0.00110231),
+            (S::Kg, S::Kg) => None,
+        };
+        if let Some(factor) = conversion_factor {
+            let mut updated = Weight::from(value.as_ref().as_f64() * factor);
+            let value_mut = value.to_mut();
+            std::mem::swap(value_mut, &mut updated);
         }
+    }
+
+    fn convert_to_base(&self, value: &mut std::borrow::Cow<Weight>) {
+        self.convert(value, &baseunit::WEIGHT_UNIT)
     }
 }
 

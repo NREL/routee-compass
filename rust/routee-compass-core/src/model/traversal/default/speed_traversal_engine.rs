@@ -1,7 +1,7 @@
 use kdam::Bar;
 
 use crate::model::unit::DistanceUnit;
-use crate::model::unit::{SpeedUnit, TimeUnit, BASE_DISTANCE_UNIT, BASE_TIME_UNIT};
+use crate::model::unit::{baseunit, SpeedUnit, TimeUnit};
 use crate::util::fs::read_decoders;
 use crate::{
     model::{traversal::TraversalModelError, unit::Speed},
@@ -38,8 +38,8 @@ impl SpeedTraversalEngine {
             ))
         })?;
         let max_speed = get_max_speed(&speed_table)?;
-        let time_unit = time_unit_opt.unwrap_or(BASE_TIME_UNIT);
-        let distance_unit = distance_unit_opt.unwrap_or(BASE_DISTANCE_UNIT);
+        let time_unit = time_unit_opt.unwrap_or(baseunit::TIME_UNIT);
+        let distance_unit = distance_unit_opt.unwrap_or(baseunit::DISTANCE_UNIT);
         let model = SpeedTraversalEngine {
             speed_table,
             distance_unit,

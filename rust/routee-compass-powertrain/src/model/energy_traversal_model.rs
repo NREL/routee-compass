@@ -9,6 +9,7 @@ use routee_compass_core::model::traversal::TraversalModel;
 use routee_compass_core::model::traversal::TraversalModelError;
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::geo::haversine;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 pub struct EnergyTraversalModel {
@@ -32,13 +33,13 @@ impl TraversalModel for EnergyTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
-        let distance =
-            BASE_DISTANCE_UNIT.convert(&edge.distance, &self.energy_model_service.distance_unit);
-        let prev = state.to_vec();
 
         // perform time traversal
+        let prev = state.to_vec();
         self.time_model
             .traverse_edge(trajectory, state, state_model)?;
+
+        // calculate time delta
         let prev_time = state_model.get_time(
             &prev,
             &Self::TIME.into(),
@@ -60,18 +61,31 @@ impl TraversalModel for EnergyTraversalModel {
         // perform vehicle energy traversal
         let grade = get_grade(&self.energy_model_service.grade_table, edge.edge_id)?;
 
-        let distance_in_time_model_unit = BASE_DISTANCE_UNIT.convert(
-            &edge.distance,
+        let mut distance_in_energy_model_unit = Cow::Borrowed(&edge.distance);
+        baseunit::DISTANCE_UNIT.convert(
+            &mut distance_in_energy_model_unit,
             &self
                 .energy_model_service
                 .time_model_speed_unit
                 .associated_distance_unit(),
         );
-        let speed = Speed::from((distance_in_time_model_unit, time_delta));
+        let speed_tuple = Speed::from_distance_and_time(
+            (
+                &distance_in_energy_model_unit,
+                &self.energy_model_service.distance_unit,
+            ),
+            (
+                &time_delta,
+                &self
+                    .energy_model_service
+                    .time_model_speed_unit
+                    .associated_time_unit(),
+            ),
+        )?;
         self.vehicle.consume_energy(
-            (speed, self.energy_model_service.time_model_speed_unit),
+            speed_tuple,
             (grade, self.energy_model_service.grade_table_grade_unit),
-            (distance, self.energy_model_service.distance_unit),
+            (edge.distance.clone(), baseunit::DISTANCE_UNIT),
             state,
             state_model,
         )?;

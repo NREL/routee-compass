@@ -5,9 +5,12 @@ use crate::model::{
 use routee_compass_core::model::{
     state::{CustomFeatureFormat, StateFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
-    unit::{AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    unit::{
+        AsF64, Convert, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
+        SpeedUnit,
+    },
 };
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 pub struct PHEV {
     pub name: String,
@@ -93,10 +96,11 @@ impl VehicleType for PHEV {
 
         // assume lowest energy cost scenario for a PHEV is to just use the battery
         let energy = Energy::create(
-            &self.charge_depleting_model.ideal_energy_rate,
-            &self.charge_depleting_model.energy_rate_unit,
-            &distance,
-            &distance_unit,
+            (&distance, &distance_unit),
+            (
+                &self.charge_depleting_model.ideal_energy_rate,
+                &self.charge_depleting_model.energy_rate_unit,
+            ),
         )?;
         Ok(energy)
     }
@@ -148,7 +152,8 @@ impl VehicleType for PHEV {
             &liq_energy,
             &liq_unit,
         )?;
-        let delta = elec_unit.convert(&elec_energy, &self.battery_energy_unit);
+        let mut delta = Cow::Owned(elec_energy);
+        elec_unit.convert(&mut delta, &self.battery_energy_unit);
         vehicle_ops::update_soc_percent(
             state,
             PHEV::SOC_FEATURE_NAME,
@@ -183,7 +188,7 @@ impl VehicleType for PHEV {
             ));
         }
         let starting_battery_energy =
-            Energy::new(0.01 * starting_soc_percent * self.battery_capacity.as_f64());
+            Energy::from(0.01 * starting_soc_percent * self.battery_capacity.as_f64());
 
         let new_phev = PHEV {
             name: self.name.clone(),
@@ -234,7 +239,7 @@ fn get_phev_energy(
         Ok((
             electrical_energy,
             electrical_energy_unit,
-            Energy::new(0.0),
+            Energy::ZERO,
             liquid_fuel_energy_unit,
         ))
     } else {
@@ -243,7 +248,7 @@ fn get_phev_energy(
             .charge_sustain_model
             .predict(speed, grade, distance)?;
         Ok((
-            Energy::new(0.0),
+            Energy::ZERO,
             electrical_energy_unit,
             liquid_fuel_energy,
             liquid_fuel_energy_unit,

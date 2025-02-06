@@ -1,9 +1,9 @@
-use std::path::Path;
+use std::{borrow::Cow, path::Path};
 
 use crate::model::prediction::prediction_model::PredictionModel;
-use routee_compass_core::{
-    model::traversal::TraversalModelError,
-    model::unit::{AsF64, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+use routee_compass_core::model::{
+    traversal::TraversalModelError,
+    unit::{AsF64, Convert, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
 use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
@@ -24,9 +24,14 @@ impl PredictionModel for SmartcoreSpeedGradeModel {
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
-        let speed_value = speed_unit.convert(&speed, &self.speed_unit).as_f64();
-        let grade_value = grade_unit.convert(&grade, &self.grade_unit).as_f64();
-        let x = DenseMatrix::from_2d_vec(&vec![vec![speed_value, grade_value]]);
+        let mut speed_value: Cow<Speed> = Cow::Owned(speed);
+        let mut grade_value = Cow::Owned(grade);
+        speed_unit.convert(&mut speed_value, &self.speed_unit);
+        grade_unit.convert(&mut grade_value, &self.grade_unit);
+        let x = DenseMatrix::from_2d_vec(&vec![vec![
+            (&speed_value.into_owned()).as_f64(),
+            (&grade_value.into_owned()).as_f64(),
+        ]]);
         let y = self.rf.predict(&x).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
                 "failure running underlying Smartcore random forest energy prediction: {}",

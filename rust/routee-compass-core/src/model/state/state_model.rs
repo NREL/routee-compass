@@ -205,7 +205,7 @@ impl StateModel {
         name: &String,
     ) -> Result<f64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
-        let result = format.decode_f64(&value)?;
+        let result = format.decode_f64(value)?;
         Ok(result)
     }
     /// retrieves a state variable that is expected to have a type of i64.
@@ -223,7 +223,7 @@ impl StateModel {
         name: &String,
     ) -> Result<i64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
-        let result = format.decode_i64(&value)?;
+        let result = format.decode_i64(value)?;
         Ok(result)
     }
     /// retrieves a state variable that is expected to have a type of u64.
@@ -241,7 +241,7 @@ impl StateModel {
         name: &String,
     ) -> Result<u64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
-        let result = format.decode_u64(&value)?;
+        let result = format.decode_u64(value)?;
         Ok(result)
     }
     /// retrieves a state variable that is expected to have a type of bool.
@@ -259,7 +259,7 @@ impl StateModel {
         name: &String,
     ) -> Result<bool, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
-        let result = format.decode_bool(&value)?;
+        let result = format.decode_bool(value)?;
         Ok(result)
     }
 
@@ -295,16 +295,17 @@ impl StateModel {
     ///
     /// # Result
     ///
-    /// the delta between states for this variable, or an error
-    pub fn get_delta(
+    /// the delta between states for this variable in the state model unit, or an error
+    pub fn get_delta<T: From<StateVariable>>(
         &self,
         prev: &[StateVariable],
         next: &[StateVariable],
         name: &String,
-    ) -> Result<StateVariable, StateModelError> {
+    ) -> Result<T, StateModelError> {
         let prev_val = self.get_state_variable(prev, name)?;
         let next_val = self.get_state_variable(next, name)?;
-        Ok(*next_val - *prev_val)
+        let delta = *next_val - *prev_val;
+        Ok(delta.into())
     }
 
     /// adds a distance value with distance unit to this feature vector
@@ -355,7 +356,7 @@ impl StateModel {
     ) -> Result<(), StateModelError> {
         let mut dist_cow = Cow::Borrowed(distance);
         let to_unit = self.get_feature(name)?.get_distance_unit()?;
-        from_unit.convert(&mut dist_cow, &to_unit);
+        from_unit.convert(&mut dist_cow, to_unit);
         self.update_state(
             state,
             name,
@@ -371,13 +372,13 @@ impl StateModel {
         time: &Time,
         from_unit: &TimeUnit,
     ) -> Result<(), StateModelError> {
-        let mut time_cow = Cow::Borrowed(time);
+        let mut time_mut = Cow::Borrowed(time);
         let to_unit = self.get_feature(name)?.get_time_unit()?;
-        from_unit.convert(&mut time_cow, &to_unit);
+        from_unit.convert(&mut time_mut, to_unit);
         self.update_state(
             state,
             name,
-            &time_cow.into_owned().into(),
+            &time_mut.into_owned().into(),
             UpdateOperation::Replace,
         )
     }
@@ -389,10 +390,15 @@ impl StateModel {
         energy: &Energy,
         from_unit: &EnergyUnit,
     ) -> Result<(), StateModelError> {
-        let feature = self.get_feature(name)?;
-        let to_unit = feature.get_energy_unit()?;
-        let value = from_unit.convert(energy, &to_unit);
-        self.update_state(state, name, &value.into(), UpdateOperation::Replace)
+        let mut energy_mut = Cow::Borrowed(energy);
+        let to_unit = self.get_feature(name)?.get_energy_unit()?;
+        from_unit.convert(&mut energy_mut, to_unit);
+        self.update_state(
+            state,
+            name,
+            &energy_mut.into_owned().into(),
+            UpdateOperation::Replace,
+        )
     }
 
     pub fn set_custom_f64(

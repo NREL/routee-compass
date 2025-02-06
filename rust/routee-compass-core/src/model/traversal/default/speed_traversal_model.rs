@@ -5,9 +5,10 @@ use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::{Distance, Time, BASE_DISTANCE_UNIT};
+use crate::model::unit::{baseunit, Convert, Distance, Time};
 use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
 use crate::util::geo::haversine;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 pub struct SpeedTraversalModel {
@@ -30,15 +31,16 @@ impl TraversalModel for SpeedTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
-        let distance = BASE_DISTANCE_UNIT.convert(&edge.distance, &self.engine.distance_unit);
+        let mut distance = Cow::Borrowed(&edge.distance);
+        baseunit::DISTANCE_UNIT.convert(&mut distance, &self.engine.distance_unit);
+        let dist_converted = distance.into_owned();
         let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
-        let edge_time = Time::create(
-            &speed,
-            &self.engine.speed_unit,
-            &distance,
-            &self.engine.distance_unit,
-            &self.engine.time_unit,
+        let (t, tu) = Time::create(
+            (&dist_converted, &self.engine.distance_unit),
+            (&speed, &self.engine.speed_unit),
         )?;
+        let mut edge_time = Cow::Owned(t);
+        tu.convert(&mut edge_time, &self.engine.time_unit);
 
         state_model.add_time(
             state,
@@ -49,7 +51,7 @@ impl TraversalModel for SpeedTraversalModel {
         state_model.add_distance(
             state,
             &Self::DISTANCE.into(),
-            &distance,
+            &dist_converted,
             &self.engine.distance_unit,
         )?;
         Ok(())
@@ -74,18 +76,24 @@ impl TraversalModel for SpeedTraversalModel {
         if distance == Distance::ZERO {
             return Ok(());
         }
-
-        let estimated_time = Time::create(
-            &self.engine.max_speed,
-            &self.engine.speed_unit,
-            &distance,
-            &self.engine.distance_unit,
-            &self.engine.time_unit,
+        let (t, tu) = Time::create(
+            (&distance, &self.engine.distance_unit),
+            (&self.engine.max_speed, &self.engine.speed_unit),
         )?;
+        let mut edge_time = Cow::Owned(t);
+        tu.convert(&mut edge_time, &self.engine.time_unit);
+
+        // let estimated_time = Time::create(
+        //     &self.engine.max_speed,
+        //     &self.engine.speed_unit,
+        //     &distance,
+        //     &self.engine.distance_unit,
+        //     &self.engine.time_unit,
+        // )?;
         state_model.add_time(
             state,
             &Self::TIME.into(),
-            &estimated_time,
+            &edge_time,
             &self.engine.time_unit,
         )?;
         state_model.add_distance(

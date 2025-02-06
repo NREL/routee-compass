@@ -74,8 +74,8 @@ impl Energy {
     /// calculates an energy value based on some energy rate and distance.
     /// the resulting energy unit is based on the energy rate unit provided.
     pub fn create(
-        energy_rate: (&EnergyRate, &EnergyRateUnit),
         distance: (&Distance, &DistanceUnit),
+        energy_rate: (&EnergyRate, &EnergyRateUnit),
     ) -> Result<(Energy, EnergyUnit), UnitError> {
         let (er, eru) = energy_rate;
         let (d, du) = distance;

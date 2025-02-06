@@ -1,10 +1,9 @@
-use std::fmt::Display;
-
 use super::{
     custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError, StateVariable,
 };
 use crate::model::unit;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 /// a state variable unit tracks the domain of a StateVar in a
 /// state vector. if the value represents quantity in distance,

@@ -1,5 +1,5 @@
-use super::Grade;
-use crate::util::serde::serde_ops::string_deserialize;
+use super::{baseunit, Convert, Grade};
+use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -11,20 +11,29 @@ pub enum GradeUnit {
     Millis,
 }
 
-impl GradeUnit {
-    pub fn convert(&self, value: &Grade, target: &GradeUnit) -> Grade {
+impl Convert<Grade> for GradeUnit {
+    fn convert(&self, value: &mut std::borrow::Cow<Grade>, to: &Self) {
         use GradeUnit as G;
-        match (self, target) {
-            (G::Percent, G::Percent) => *value,
-            (G::Decimal, G::Decimal) => *value,
-            (G::Millis, G::Millis) => *value,
-            (G::Percent, G::Decimal) => *value / 100.0,
-            (G::Percent, G::Millis) => *value * 10.0,
-            (G::Decimal, G::Percent) => *value * 100.0,
-            (G::Decimal, G::Millis) => *value * 1000.0,
-            (G::Millis, G::Percent) => *value / 10.0,
-            (G::Millis, G::Decimal) => *value / 1000.0,
+        let conversion_factor = match (self, to) {
+            (G::Percent, G::Percent) => None,
+            (G::Decimal, G::Decimal) => None,
+            (G::Millis, G::Millis) => None,
+            (G::Percent, G::Decimal) => Some(0.01),
+            (G::Percent, G::Millis) => Some(10.0),
+            (G::Decimal, G::Percent) => Some(100.0),
+            (G::Decimal, G::Millis) => Some(1000.0),
+            (G::Millis, G::Percent) => Some(0.1),
+            (G::Millis, G::Decimal) => Some(0.001),
+        };
+        if let Some(factor) = conversion_factor {
+            let mut updated = Grade::from(value.as_ref().as_f64() * factor);
+            let value_mut = value.to_mut();
+            std::mem::swap(value_mut, &mut updated);
         }
+    }
+
+    fn convert_to_base(&self, value: &mut std::borrow::Cow<Grade>) {
+        self.convert(value, &baseunit::GRADE_UNIT)
     }
 }
 

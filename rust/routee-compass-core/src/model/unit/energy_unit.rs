@@ -1,5 +1,5 @@
-use super::Energy;
-use crate::util::serde::serde_ops::string_deserialize;
+use super::{baseunit, Convert, Energy};
+use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -13,48 +13,55 @@ pub enum EnergyUnit {
     LitersDiesel,
 }
 
-impl EnergyUnit {
-    // see https://epact.energy.gov/fuel-conversion-factors
-    // see https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
-    pub fn convert(&self, value: &Energy, target: &EnergyUnit) -> Energy {
+impl Convert<Energy> for EnergyUnit {
+    fn convert(&self, value: &mut std::borrow::Cow<Energy>, to: &Self) {
         use EnergyUnit as S;
-        match (self, target) {
-            (S::GallonsGasoline, S::GallonsGasoline) => *value,
-            (S::GallonsGasoline, S::KilowattHours) => *value * 32.26,
-            (S::GallonsGasoline, S::LitersGasoline) => *value * 3.785,
+        let conversion_factor = match (self, to) {
+            (S::GallonsGasoline, S::GallonsGasoline) => None,
+            (S::GallonsGasoline, S::KilowattHours) => Some(32.26),
+            (S::GallonsGasoline, S::LitersGasoline) => Some(3.785),
             // GG->LD: GG -> GD -> LD
-            (S::GallonsGasoline, S::LitersDiesel) => *value * 0.866 * 3.785,
-            (S::KilowattHours, S::GallonsGasoline) => *value * 0.031,
-            (S::KilowattHours, S::KilowattHours) => *value,
+            (S::GallonsGasoline, S::LitersDiesel) => Some(0.866 * 3.785),
+            (S::KilowattHours, S::GallonsGasoline) => Some(0.031),
+            (S::KilowattHours, S::KilowattHours) => None,
             // KWH->LG: KWH -> GG -> LG
-            (S::KilowattHours, S::LitersGasoline) => *value * 0.031 * 3.785,
+            (S::KilowattHours, S::LitersGasoline) => Some(0.031 * 3.785),
             // KWH->LD: KWH -> GD -> LD
-            (S::KilowattHours, S::LitersDiesel) => *value * 0.02457 * 3.785,
-            (S::GallonsDiesel, S::GallonsDiesel) => *value,
-            (S::GallonsDiesel, S::KilowattHours) => *value * 40.7,
+            (S::KilowattHours, S::LitersDiesel) => Some(0.02457 * 3.785),
+            (S::GallonsDiesel, S::GallonsDiesel) => None,
+            (S::GallonsDiesel, S::KilowattHours) => Some(40.7),
             // GD->LG: GD -> GG -> LG
-            (S::GallonsDiesel, S::LitersGasoline) => *value * 1.155 * 3.785,
-            (S::GallonsDiesel, S::LitersDiesel) => *value * 3.785,
-            (S::KilowattHours, S::GallonsDiesel) => *value * 0.02457,
-            (S::GallonsDiesel, S::GallonsGasoline) => *value * 1.155,
-            (S::GallonsGasoline, S::GallonsDiesel) => *value * 0.866,
-            (S::LitersGasoline, S::LitersGasoline) => *value,
+            (S::GallonsDiesel, S::LitersGasoline) => Some(1.155 * 3.785),
+            (S::GallonsDiesel, S::LitersDiesel) => Some(3.785),
+            (S::KilowattHours, S::GallonsDiesel) => Some(0.02457),
+            (S::GallonsDiesel, S::GallonsGasoline) => Some(1.155),
+            (S::GallonsGasoline, S::GallonsDiesel) => Some(0.866),
+            (S::LitersGasoline, S::LitersGasoline) => None,
             // LG->LD: LG -> GG -> GD -> LD
-            (S::LitersGasoline, S::LitersDiesel) => *value * 0.866,
-            (S::LitersGasoline, S::GallonsGasoline) => *value * 0.264,
+            (S::LitersGasoline, S::LitersDiesel) => Some(0.866),
+            (S::LitersGasoline, S::GallonsGasoline) => Some(0.264),
             // LG->GD: LG -> LD -> GD
-            (S::LitersGasoline, S::GallonsDiesel) => *value * 0.264 * 0.866,
+            (S::LitersGasoline, S::GallonsDiesel) => Some(0.264 * 0.866),
             // LG->KWH: LG -> GG -> KWH
-            (S::LitersGasoline, S::KilowattHours) => *value * 0.264 * 32.26,
-            (S::LitersDiesel, S::LitersDiesel) => *value,
+            (S::LitersGasoline, S::KilowattHours) => Some(0.264 * 32.26),
+            (S::LitersDiesel, S::LitersDiesel) => None,
             // LD->LG: LD -> GD -> GG -> LG
-            (S::LitersDiesel, S::LitersGasoline) => *value * 1.155,
+            (S::LitersDiesel, S::LitersGasoline) => Some(1.155),
             // LD->GG: LD -> LG -> GG
-            (S::LitersDiesel, S::GallonsGasoline) => *value * 0.264 * 1.155,
-            (S::LitersDiesel, S::GallonsDiesel) => *value * 0.264,
+            (S::LitersDiesel, S::GallonsGasoline) => Some(0.264 * 1.155),
+            (S::LitersDiesel, S::GallonsDiesel) => Some(0.264),
             // LD->KWH: LD -> GD -> KWH
-            (S::LitersDiesel, S::KilowattHours) => *value * 0.264 * 40.7,
+            (S::LitersDiesel, S::KilowattHours) => Some(0.264 * 40.7),
+        };
+        if let Some(factor) = conversion_factor {
+            let mut updated = Energy::from(value.as_ref().as_f64() * factor);
+            let value_mut = value.to_mut();
+            std::mem::swap(value_mut, &mut updated);
         }
+    }
+
+    fn convert_to_base(&self, value: &mut std::borrow::Cow<Energy>) {
+        self.convert(value, &baseunit::ENERGY_UNIT)
     }
 }
 

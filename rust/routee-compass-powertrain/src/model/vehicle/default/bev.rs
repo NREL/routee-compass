@@ -5,9 +5,12 @@ use crate::model::{
 use routee_compass_core::model::{
     state::{CustomFeatureFormat, StateFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
-    unit::{AsF64, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    unit::{
+        AsF64, Convert, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
+        SpeedUnit,
+    },
 };
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 pub struct BEV {
     pub name: String,
@@ -74,10 +77,11 @@ impl VehicleType for BEV {
         let (distance, distance_unit) = distance;
 
         let energy = Energy::create(
-            &self.prediction_model_record.ideal_energy_rate,
-            &self.prediction_model_record.energy_rate_unit,
-            &distance,
-            &distance_unit,
+            (&distance, &distance_unit),
+            (
+                &self.prediction_model_record.ideal_energy_rate,
+                &self.prediction_model_record.energy_rate_unit,
+            ),
         )?;
 
         Ok(energy)
@@ -117,7 +121,8 @@ impl VehicleType for BEV {
         let (predicted_energy, energy_unit) = self
             .prediction_model_record
             .predict(speed, grade, distance)?;
-        let battery_delta = energy_unit.convert(&predicted_energy, &self.battery_energy_unit);
+        let mut battery_delta = Cow::Owned(predicted_energy);
+        energy_unit.convert(&mut battery_delta, &self.battery_energy_unit);
         state_model.add_energy(
             state,
             &BEV::ENERGY_FEATURE_NAME.into(),
@@ -154,7 +159,7 @@ impl VehicleType for BEV {
         }
 
         let starting_battery_energy =
-            Energy::new(0.01 * starting_soc_percent * self.battery_capacity.as_f64());
+            Energy::from(0.01 * starting_soc_percent * self.battery_capacity.as_f64());
 
         let new_bev = BEV {
             name: self.name.clone(),
