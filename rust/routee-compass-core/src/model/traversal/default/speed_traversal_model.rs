@@ -157,7 +157,7 @@ mod tests {
             edge_id: EdgeId(edge_id),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
-            distance: Distance::new(100.0),
+            distance: Distance::from(100.0),
         }
     }
     fn filepath() -> PathBuf {
@@ -200,14 +200,14 @@ mod tests {
                         String::from("distance"),
                         StateFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::new(0.0),
+                            initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
                         StateFeature::Time {
                             time_unit: TimeUnit::Seconds,
-                            initial: Time::new(0.0),
+                            initial: Time::from(0.0),
                         },
                     ),
                 ])
@@ -245,14 +245,14 @@ mod tests {
                         String::from("distance"),
                         StateFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::new(0.0),
+                            initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
                         StateFeature::Time {
                             time_unit: TimeUnit::Milliseconds,
-                            initial: Time::new(0.0),
+                            initial: Time::from(0.0),
                         },
                     ),
                 ])

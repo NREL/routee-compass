@@ -192,23 +192,23 @@ mod tests {
             &model_file_path,
             ModelType::Interpolate {
                 underlying_model_type: Box::new(ModelType::Smartcore),
-                speed_lower_bound: Speed::new(0.0),
-                speed_upper_bound: Speed::new(100.0),
+                speed_lower_bound: Speed::from(0.0),
+                speed_upper_bound: Speed::from(100.0),
                 speed_bins: 101,
-                grade_lower_bound: Grade::new(-0.20),
-                grade_upper_bound: Grade::new(0.20),
+                grade_lower_bound: Grade::from(-0.20),
+                grade_upper_bound: Grade::from(0.20),
                 grade_bins: 41,
             },
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             EnergyRateUnit::KilowattHoursPerMile,
-            Some(EnergyRate::new(0.2)),
+            Some(EnergyRate::from(0.2)),
             Some(1.3958),
             None,
         )
         .unwrap();
 
-        let battery_capacity = Energy::new(60.0);
+        let battery_capacity = Energy::from(60.0);
         let staring_battery_energy: Energy = battery_capacity * (starting_soc_percent / 100.0);
 
         BEV::new(
@@ -230,9 +230,9 @@ mod tests {
 
         // starting at 100% SOC, we should be able to traverse a flat 110 miles at 60 mph
         // and it should use about half of the battery since the EPA range is 238 miles
-        let distance = (Distance::new(110.0), DistanceUnit::Miles);
-        let speed = (Speed::new(60.0), SpeedUnit::MilesPerHour);
-        let grade = (Grade::new(0.0), GradeUnit::Decimal);
+        let distance = (Distance::from(110.0), DistanceUnit::Miles);
+        let speed = (Speed::from(60.0), SpeedUnit::MilesPerHour);
+        let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
         vehicle
             .consume_energy(speed, grade, distance, &mut state, &state_model)
@@ -265,9 +265,9 @@ mod tests {
 
         // starting at 20% SOC, going downhill at -5% grade for 10 miles at 55mph, we should be see
         // some regen braking events and should end up with more energy than we started with
-        let distance = (Distance::new(10.0), DistanceUnit::Miles);
-        let speed = (Speed::new(55.0), SpeedUnit::MilesPerHour);
-        let grade = (Grade::new(-5.0), GradeUnit::Percent);
+        let distance = (Distance::from(10.0), DistanceUnit::Miles);
+        let speed = (Speed::from(55.0), SpeedUnit::MilesPerHour);
+        let grade = (Grade::from(-5.0), GradeUnit::Percent);
 
         vehicle
             .consume_energy(speed, grade, distance, &mut state, &state_model)
@@ -302,9 +302,9 @@ mod tests {
             .unwrap();
         let mut state = state_model.initial_state().unwrap();
 
-        let distance = (Distance::new(10.0), DistanceUnit::Miles);
-        let speed = (Speed::new(55.0), SpeedUnit::MilesPerHour);
-        let grade = (Grade::new(-5.0), GradeUnit::Percent);
+        let distance = (Distance::from(10.0), DistanceUnit::Miles);
+        let speed = (Speed::from(55.0), SpeedUnit::MilesPerHour);
+        let grade = (Grade::from(-5.0), GradeUnit::Percent);
 
         vehicle
             .consume_energy(speed, grade, distance, &mut state, &state_model)
@@ -325,9 +325,9 @@ mod tests {
             .unwrap();
         let mut state = state_model.initial_state().unwrap();
 
-        let distance = (Distance::new(100.0), DistanceUnit::Miles);
-        let speed = (Speed::new(55.0), SpeedUnit::MilesPerHour);
-        let grade = (Grade::new(5.0), GradeUnit::Percent);
+        let distance = (Distance::from(100.0), DistanceUnit::Miles);
+        let speed = (Speed::from(55.0), SpeedUnit::MilesPerHour);
+        let grade = (Grade::from(5.0), GradeUnit::Percent);
 
         vehicle
             .consume_energy(speed, grade, distance, &mut state, &state_model)

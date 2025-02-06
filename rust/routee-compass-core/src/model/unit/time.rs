@@ -40,7 +40,7 @@ impl AsF64 for Time {
 //     fn from(value: (Distance, Speed)) -> Self {
 //         let (distance, speed) = value;
 //         let time = distance.as_f64() / speed.as_f64();
-//         Time::new(time)
+//         Time::from(time)
 //     }
 // }
 impl From<StateVariable> for Time {
@@ -107,13 +107,13 @@ impl Time {
 #[cfg(test)]
 mod test {
 
-    use crate::model::unit::{Convert, DistanceUnit, SpeedUnit, Time, TimeUnit as T};
+    use crate::model::unit::{TimeUnit as T, *};
     use std::borrow::Cow;
 
     fn assert_approx_eq(a: Time, b: Time, error: f64) {
         let result = match (a, b) {
-            (c, d) if c < d => (d - c).to_f64() < error,
-            (c, d) if c > d => (c - d).to_f64() < error,
+            (c, d) if c < d => (d - c).as_f64() < error,
+            (c, d) if c > d => (c - d).as_f64() < error,
             (_, _) => true,
         };
         assert!(
@@ -126,8 +126,8 @@ mod test {
     #[test]
     fn fails_with_invalid_speed() {
         let failure = Time::create(
-            (&Speed::ZERO, &SpeedUnit::KilometersPerHour),
             (&Distance::ONE, &DistanceUnit::Meters),
+            (&Speed::ZERO, &SpeedUnit::KilometersPerHour),
         );
         assert!(failure.is_err());
     }
@@ -135,8 +135,8 @@ mod test {
     #[test]
     fn one_times_one() {
         let (one_sec, tu) = Time::create(
-            (&Speed::ONE, &SpeedUnit::MetersPerSecond),
             (&Distance::ONE, &DistanceUnit::Meters),
+            (&Speed::ONE, &SpeedUnit::MetersPerSecond),
         )
         .unwrap();
         assert_eq!(Time::ONE, one_sec);
@@ -146,11 +146,11 @@ mod test {
     #[test]
     fn sixty_miles_at_60mph() {
         let (t, tu) = Time::create(
-            (&Speed::from(60.0), &SpeedUnit::MilesPerHour),
             (&Distance::from(60), &DistanceUnit::Miles),
+            (&Speed::from(60.0), &SpeedUnit::MilesPerHour),
         )
         .unwrap();
-        approx_eq_time(t, Time::ONE, 0.0001);
+        assert_approx_eq(t, Time::ONE, 0.0001);
         assert_eq!(tu, TimeUnit::Hours);
     }
 
@@ -158,12 +158,12 @@ mod test {
     fn walking_100_meters() {
         let (walk_speed, walk_unit) = (Speed::from(5), SpeedUnit::KilometersPerHour);
         let (t, tu) = Time::create(
-            (&walk_speed_kph, &walk_unit),
             (&Distance::from(100), &DistanceUnit::Meters),
+            (&walk_speed_kph, &walk_unit),
         )
         .unwrap();
         let expected = Time::from(0.1 / 5.0); // should convert to km internally
-        approx_eq_time(t, expected, 0.0001);
+        assert_approx_eq(t, expected, 0.0001);
         assert_eq!(tu, TimeUnit::Hours);
     }
 }

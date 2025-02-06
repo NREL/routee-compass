@@ -276,11 +276,11 @@ mod tests {
             .join("2016_CHEVROLET_Volt_Charge_Depleting.bin");
         let model_type = ModelType::Interpolate {
             underlying_model_type: Box::new(ModelType::Smartcore),
-            speed_lower_bound: Speed::new(0.0),
-            speed_upper_bound: Speed::new(100.0),
+            speed_lower_bound: Speed::from(0.0),
+            speed_upper_bound: Speed::from(100.0),
             speed_bins: 101,
-            grade_lower_bound: Grade::new(-0.20),
-            grade_upper_bound: Grade::new(0.20),
+            grade_lower_bound: Grade::from(-0.20),
+            grade_upper_bound: Grade::from(0.20),
             grade_bins: 41,
         };
 
@@ -291,7 +291,7 @@ mod tests {
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             EnergyRateUnit::GallonsGasolinePerMile,
-            Some(EnergyRate::new(0.02)),
+            Some(EnergyRate::from(0.02)),
             Some(1.1252),
             None,
         )
@@ -303,7 +303,7 @@ mod tests {
             SpeedUnit::MilesPerHour,
             GradeUnit::Decimal,
             EnergyRateUnit::KilowattHoursPerMile,
-            Some(EnergyRate::new(0.2)),
+            Some(EnergyRate::from(0.2)),
             Some(1.3958),
             None,
         )
@@ -313,8 +313,8 @@ mod tests {
             "Chevy_Volt".to_string(),
             charge_sustain_model_record,
             charge_depleting_model_record,
-            Energy::new(12.0),
-            Energy::new(12.0),
+            Energy::from(12.0),
+            Energy::from(12.0),
             EnergyUnit::KilowattHours,
             None,
         )
@@ -331,9 +331,9 @@ mod tests {
 
         // starting at 100% SOC, we should be able to traverse 1000 meters
         // without using any liquid_fuel
-        let distance = (Distance::new(1000.0), DistanceUnit::Meters);
-        let speed = (Speed::new(60.0), SpeedUnit::MilesPerHour);
-        let grade = (Grade::new(0.0), GradeUnit::Decimal);
+        let distance = (Distance::from(1000.0), DistanceUnit::Meters);
+        let speed = (Speed::from(60.0), SpeedUnit::MilesPerHour);
+        let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
         vehicle
             .consume_energy(speed, grade, distance, &mut state, &state_model)
@@ -377,9 +377,9 @@ mod tests {
         let mut state = state_model.initial_state().unwrap();
 
         // now let's traverse a really long link to deplete the battery
-        let distance = (Distance::new(100.0), DistanceUnit::Miles);
-        let speed = (Speed::new(60.0), SpeedUnit::MilesPerHour);
-        let grade = (Grade::new(0.0), GradeUnit::Decimal);
+        let distance = (Distance::from(100.0), DistanceUnit::Miles);
+        let speed = (Speed::from(60.0), SpeedUnit::MilesPerHour);
+        let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
         vehicle
             .consume_energy(speed, grade, distance, &mut state, &state_model)

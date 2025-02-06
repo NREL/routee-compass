@@ -57,10 +57,9 @@ impl FromStr for WeightUnit {
 #[cfg(test)]
 mod test {
 
-    use crate::model::unit::AsF64;
-
-    use super::Weight;
     use super::WeightUnit as D;
+    use crate::model::unit::*;
+    use std::borrow::Cow;
 
     fn assert_approx_eq(a: Weight, b: Weight, error: f64) {
         let result = match (a, b) {
@@ -76,51 +75,57 @@ mod test {
     }
 
     #[test]
-    fn test_conversions() {
-        assert_approx_eq(
-            D::Pounds.convert(&Weight::new(1.0), &D::Pounds),
-            Weight::new(1.0),
-            0.0001,
-        );
-        assert_approx_eq(
-            D::Pounds.convert(&Weight::new(1.0), &D::Tons),
-            Weight::new(0.0005),
-            0.0001,
-        );
-        assert_approx_eq(
-            D::Pounds.convert(&Weight::new(1.0), &D::Kg),
-            Weight::new(0.453592),
-            0.0001,
-        );
-        assert_approx_eq(
-            D::Tons.convert(&Weight::new(1.0), &D::Pounds),
-            Weight::new(2000.0),
-            0.0001,
-        );
-        assert_approx_eq(
-            D::Tons.convert(&Weight::new(1.0), &D::Tons),
-            Weight::new(1.0),
-            0.0001,
-        );
-        assert_approx_eq(
-            D::Tons.convert(&Weight::new(1.0), &D::Kg),
-            Weight::new(907.185),
-            0.0001,
-        );
-        assert_approx_eq(
-            D::Kg.convert(&Weight::new(1.0), &D::Pounds),
-            Weight::new(2.20462),
-            0.0001,
-        );
-        assert_approx_eq(
-            D::Kg.convert(&Weight::new(1.0), &D::Tons),
-            Weight::new(0.00110231),
-            0.0001,
-        );
-        assert_approx_eq(
-            D::Kg.convert(&Weight::new(1.0), &D::Kg),
-            Weight::new(1.0),
-            0.0001,
-        );
+    fn test_pounds_pounds() {
+        let mut value = Cow::Owned(Weight::from(1.0));
+        D::Pounds.convert(&mut value, &D::Pounds);
+        assert_approx_eq(*value, Weight::from(1.0), 0.0001);
+    }
+    #[test]
+    fn test_pounds_tons() {
+        let mut value = Cow::Owned(Weight::from(1.0));
+        D::Pounds.convert(&mut value, &D::Tons);
+        assert_approx_eq(*value, Weight::from(0.0005), 0.0001);
+    }
+    #[test]
+    fn test_pounds_kg() {
+        let mut value = Cow::Owned(Weight::from(1.0));
+        D::Pounds.convert(&mut value, &D::Kg);
+        assert_approx_eq(*value, Weight::from(0.453592), 0.0001);
+    }
+    #[test]
+    fn test_tons_pounds() {
+        let mut value = Cow::Owned(Weight::from(1.0));
+        D::Tons.convert(&mut value, &D::Pounds);
+        assert_approx_eq(*value, Weight::from(2000.0), 0.0001);
+    }
+    #[test]
+    fn test_tons_tons() {
+        let mut value = Cow::Owned(Weight::from(1.0));
+        D::Tons.convert(&mut value, &D::Tons);
+        assert_approx_eq(*value, Weight::from(1.0), 0.0001);
+    }
+    #[test]
+    fn test_tons_kg() {
+        let mut value = Cow::Owned(Weight::from(1.0));
+        D::Tons.convert(&mut value, &D::Kg);
+        assert_approx_eq(*value, Weight::from(907.185), 0.0001);
+    }
+    #[test]
+    fn test_kg_pounds() {
+        let mut value = Cow::Owned(Weight::from(1.0));
+        D::Kg.convert(&mut value, &D::Pounds);
+        assert_approx_eq(*value, Weight::from(2.20462), 0.0001);
+    }
+    #[test]
+    fn test_kg_tons() {
+        let mut value = Cow::Owned(Weight::from(1.0));
+        D::Kg.convert(&mut value, &D::Tons);
+        assert_approx_eq(*value, Weight::from(0.00110231), 0.0001);
+    }
+    #[test]
+    fn test_kg_kg() {
+        let mut value = Cow::Owned(Weight::from(1.0));
+        D::Kg.convert(&mut value, &D::Kg);
+        assert_approx_eq(*value, Weight::from(1.0), 0.0001);
     }
 }

@@ -144,17 +144,17 @@ mod test {
         );
         assert_approx_eq(
             S::KilometersPerHour.convert(&Speed::ONE, &S::MilesPerHour),
-            Speed::new(0.6215040398),
+            Speed::from(0.6215040398),
             0.001,
         );
         assert_approx_eq(
             S::KilometersPerHour.convert(&Speed::ONE, &S::MetersPerSecond),
-            Speed::new(0.277778),
+            Speed::from(0.277778),
             0.001,
         );
         assert_approx_eq(
             S::MilesPerHour.convert(&Speed::ONE, &S::KilometersPerHour),
-            Speed::new(1.60934),
+            Speed::from(1.60934),
             0.001,
         );
         assert_approx_eq(
@@ -164,17 +164,17 @@ mod test {
         );
         assert_approx_eq(
             S::MilesPerHour.convert(&Speed::ONE, &S::MetersPerSecond),
-            Speed::new(0.44704),
+            Speed::from(0.44704),
             0.001,
         );
         assert_approx_eq(
             S::MetersPerSecond.convert(&Speed::ONE, &S::KilometersPerHour),
-            Speed::new(3.6),
+            Speed::from(3.6),
             0.001,
         );
         assert_approx_eq(
             S::MetersPerSecond.convert(&Speed::ONE, &S::MilesPerHour),
-            Speed::new(2.23694),
+            Speed::from(2.23694),
             0.001,
         );
         assert_approx_eq(

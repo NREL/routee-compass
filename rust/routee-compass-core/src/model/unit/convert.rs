@@ -9,7 +9,7 @@ pub trait Convert<V: Clone> {
     /// ```rust
     /// use std::borrow::Cow;
     /// use super::{Distance, DistanceUnit};
-    /// let mut distance = Cow::Owned(Distance::new(1000.0));
+    /// let mut distance = Cow::Owned(Distance::from(1000.0));
     /// let kilometers = DistanceUnit::Kilometers;
     /// DistanceUnit::Meters.convert(&mut distance, &kilometers);
     /// assert_eq!(distance.into_owned(), Distance::ONE);
@@ -32,9 +32,9 @@ pub trait Convert<V: Clone> {
     /// ```rust
     /// use std::borrow::Cow;
     /// use super::{Distance, DistanceUnit};
-    /// let mut distance = Cow::Owned(Distance::new(1000.0));
+    /// let mut distance = Cow::Owned(Distance::from(1000.0));
     /// DistanceUnit::Kilometers.convert_to_base(&mut distance);
-    /// assert_eq!(distance.into_owned(), Distance::new(1000.0));
+    /// assert_eq!(distance.into_owned(), Distance::from(1000.0));
     ///
     /// # Arguments
     /// * `value` - the value to possibly convert, wrapped in a

@@ -39,6 +39,13 @@ impl AsF64 for Weight {
         **self.0
     }
 }
+
+impl AsF64 for &Weight {
+    fn as_f64(&self) -> f64 {
+        **self.0
+    }
+}
+
 impl PartialOrd for Weight {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.0.cmp(&other.0))

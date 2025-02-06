@@ -102,17 +102,17 @@ mod test {
         );
         assert_approx_eq(
             D::Meters.convert(&Distance::ONE, &D::Kilometers),
-            Distance::new(0.001),
+            Distance::from(0.001),
             0.001,
         );
         assert_approx_eq(
             D::Meters.convert(&Distance::ONE, &D::Miles),
-            Distance::new(0.000621371),
+            Distance::from(0.000621371),
             0.001,
         );
         assert_approx_eq(
             D::Kilometers.convert(&Distance::ONE, &D::Meters),
-            Distance::new(1000.0),
+            Distance::from(1000.0),
             0.001,
         );
         assert_approx_eq(
@@ -122,17 +122,17 @@ mod test {
         );
         assert_approx_eq(
             D::Kilometers.convert(&Distance::ONE, &D::Miles),
-            Distance::new(0.621371),
+            Distance::from(0.621371),
             0.001,
         );
         assert_approx_eq(
             D::Miles.convert(&Distance::ONE, &D::Meters),
-            Distance::new(1609.34),
+            Distance::from(1609.34),
             0.001,
         );
         assert_approx_eq(
             D::Miles.convert(&Distance::ONE, &D::Kilometers),
-            Distance::new(1.60934),
+            Distance::from(1.60934),
             0.001,
         );
         assert_approx_eq(

@@ -38,5 +38,3 @@ pub use unit_error::UnitError;
 pub use untyped::Untyped;
 pub use weight::Weight;
 pub use weight_unit::WeightUnit;
-
-mod scratch;

@@ -80,7 +80,7 @@ impl PredictionModel for InterpolationSpeedGradeModel {
                 ))
             })?;
 
-        let energy_rate = EnergyRate::new(y);
+        let energy_rate = EnergyRate::from(y);
         Ok((energy_rate, self.energy_rate_unit))
     }
 }
@@ -186,10 +186,10 @@ mod test {
             ModelType::Smartcore,
             "Toyota Camry".to_string(),
             SpeedUnit::MilesPerHour,
-            (Speed::new(0.0), Speed::new(100.0)),
+            (Speed::from(0.0), Speed::from(100.0)),
             101,
             GradeUnit::Decimal,
-            (Grade::new(-0.20), Grade::new(0.20)),
+            (Grade::from(-0.20), Grade::from(0.20)),
             41,
             EnergyRateUnit::GallonsGasolinePerMile,
         )
@@ -215,15 +215,15 @@ mod test {
             for grade in -20..20 {
                 let (interp_energy_rate, _energy_rate_unit) = interp_model
                     .predict(
-                        (Speed::new(speed as f64), SpeedUnit::MilesPerHour),
-                        (Grade::new(grade as f64), GradeUnit::Percent),
+                        (Speed::from(speed as f64), SpeedUnit::MilesPerHour),
+                        (Grade::from(grade as f64), GradeUnit::Percent),
                     )
                     .unwrap();
                 let (underlying_energy_rate, _energy_rate_unit) = underlying_model
                     .prediction_model
                     .predict(
-                        (Speed::new(speed as f64), SpeedUnit::MilesPerHour),
-                        (Grade::new(grade as f64), GradeUnit::Percent),
+                        (Speed::from(speed as f64), SpeedUnit::MilesPerHour),
+                        (Grade::from(grade as f64), GradeUnit::Percent),
                     )
                     .unwrap();
 
@@ -236,16 +236,16 @@ mod test {
 
         let (energy_rate, energy_rate_unit) = interp_model
             .predict(
-                (Speed::new(50.0), SpeedUnit::MilesPerHour),
-                (Grade::new(0.0), GradeUnit::Percent),
+                (Speed::from(50.0), SpeedUnit::MilesPerHour),
+                (Grade::from(0.0), GradeUnit::Percent),
             )
             .unwrap();
 
         assert_eq!(energy_rate_unit, EnergyRateUnit::GallonsGasolinePerMile);
 
         // energy rate should be between 28-32 mpg
-        let expected_lower = EnergyRate::new(1.0 / 32.0);
-        let expected_upper = EnergyRate::new(1.0 / 28.0);
+        let expected_lower = EnergyRate::from(1.0 / 32.0);
+        let expected_upper = EnergyRate::from(1.0 / 28.0);
         assert!(energy_rate >= expected_lower);
         assert!(energy_rate <= expected_upper);
     }

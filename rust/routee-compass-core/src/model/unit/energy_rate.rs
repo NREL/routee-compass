@@ -25,7 +25,19 @@ use super::{internal_float::InternalFloat, AsF64};
 )]
 pub struct EnergyRate(pub InternalFloat);
 
+impl From<f64> for EnergyRate {
+    fn from(value: f64) -> Self {
+        EnergyRate(InternalFloat::new(value))
+    }
+}
+
 impl AsF64 for EnergyRate {
+    fn as_f64(&self) -> f64 {
+        (self.0).0
+    }
+}
+
+impl AsF64 for &EnergyRate {
     fn as_f64(&self) -> f64 {
         (self.0).0
     }
@@ -50,9 +62,6 @@ impl Display for EnergyRate {
 }
 
 impl EnergyRate {
-    pub fn new(value: f64) -> EnergyRate {
-        EnergyRate(InternalFloat::new(value))
-    }
     pub const ZERO: EnergyRate = EnergyRate(InternalFloat::ZERO);
     pub const ONE: EnergyRate = EnergyRate(InternalFloat::ONE);
 }

@@ -490,7 +490,7 @@ mod tests {
                     String::from("distance"),
                     StateFeature::Distance {
                         distance_unit: DistanceUnit::Kilometers,
-                        initial: Distance::new(0.0),
+                        initial: Distance::from(0.0),
                     },
                 )])
                 .unwrap(),

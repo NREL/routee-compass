@@ -37,6 +37,12 @@ impl AsF64 for Grade {
     }
 }
 
+impl AsF64 for &Grade {
+    fn as_f64(&self) -> f64 {
+        (self.0).0
+    }
+}
+
 impl PartialOrd for Grade {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.0.cmp(&other.0))

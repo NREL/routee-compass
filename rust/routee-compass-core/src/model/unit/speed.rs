@@ -27,6 +27,12 @@ use std::{borrow::Cow, cmp::Ordering, fmt::Display, str::FromStr};
 )]
 pub struct Speed(pub InternalFloat);
 
+impl AsF64 for Speed {
+    fn as_f64(&self) -> f64 {
+        (self.0).0
+    }
+}
+
 impl AsF64 for &Speed {
     fn as_f64(&self) -> f64 {
         (self.0).0
@@ -148,7 +154,7 @@ mod test {
             (&Distance::ONE, &DistanceUnit::Miles),
         )
         .unwrap();
-        approx_eq_speed(Speed::new(1.60934), speed_kph, 0.001);
+        approx_eq_speed(Speed::from(1.60934), speed_kph, 0.001);
     }
 
     #[test]

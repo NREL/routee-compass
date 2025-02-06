@@ -78,33 +78,33 @@ mod test {
     #[test]
     fn test_conversions() {
         assert_approx_eq(
-            G::Percent.convert(&Grade::new(10.0), &G::Decimal),
-            Grade::new(0.1),
+            G::Percent.convert(&Grade::from(10.0), &G::Decimal),
+            Grade::from(0.1),
             0.001,
         );
         assert_approx_eq(
-            G::Percent.convert(&Grade::new(10.0), &G::Millis),
-            Grade::new(100.0),
+            G::Percent.convert(&Grade::from(10.0), &G::Millis),
+            Grade::from(100.0),
             0.001,
         );
         assert_approx_eq(
-            G::Decimal.convert(&Grade::new(0.1), &G::Percent),
-            Grade::new(10.0),
+            G::Decimal.convert(&Grade::from(0.1), &G::Percent),
+            Grade::from(10.0),
             0.001,
         );
         assert_approx_eq(
-            G::Decimal.convert(&Grade::new(0.1), &G::Millis),
-            Grade::new(100.0),
+            G::Decimal.convert(&Grade::from(0.1), &G::Millis),
+            Grade::from(100.0),
             0.001,
         );
         assert_approx_eq(
-            G::Millis.convert(&Grade::new(100.0), &G::Percent),
-            Grade::new(10.0),
+            G::Millis.convert(&Grade::from(100.0), &G::Percent),
+            Grade::from(10.0),
             0.001,
         );
         assert_approx_eq(
-            G::Millis.convert(&Grade::new(100.0), &G::Decimal),
-            Grade::new(0.1),
+            G::Millis.convert(&Grade::from(100.0), &G::Decimal),
+            Grade::from(0.1),
             0.001,
         );
     }

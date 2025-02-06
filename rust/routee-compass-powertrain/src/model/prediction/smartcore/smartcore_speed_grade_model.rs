@@ -24,14 +24,11 @@ impl PredictionModel for SmartcoreSpeedGradeModel {
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
-        let mut speed_value: Cow<Speed> = Cow::Owned(speed);
+        let mut speed_value = Cow::Owned(speed);
         let mut grade_value = Cow::Owned(grade);
         speed_unit.convert(&mut speed_value, &self.speed_unit);
         grade_unit.convert(&mut grade_value, &self.grade_unit);
-        let x = DenseMatrix::from_2d_vec(&vec![vec![
-            (&speed_value.into_owned()).as_f64(),
-            (&grade_value.into_owned()).as_f64(),
-        ]]);
+        let x = DenseMatrix::from_2d_vec(&vec![vec![speed_value.as_f64(), grade_value.as_f64()]]);
         let y = self.rf.predict(&x).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
                 "failure running underlying Smartcore random forest energy prediction: {}",
@@ -39,7 +36,7 @@ impl PredictionModel for SmartcoreSpeedGradeModel {
             ))
         })?;
 
-        let energy_rate = EnergyRate::new(y[0]);
+        let energy_rate = EnergyRate::from(y[0]);
         Ok((energy_rate, self.energy_rate_unit))
     }
 }

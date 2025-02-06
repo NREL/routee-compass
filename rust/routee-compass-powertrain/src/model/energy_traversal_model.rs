@@ -212,7 +212,7 @@ mod tests {
                 edge_id: EdgeId(edge_id),
                 src_vertex_id: VertexId(0),
                 dst_vertex_id: VertexId(1),
-                distance: Distance::new(100.0),
+                distance: Distance::from(100.0),
             }
         }
         let model_record = load_prediction_model(

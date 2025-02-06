@@ -52,6 +52,12 @@ impl AsF64 for Energy {
     }
 }
 
+impl AsF64 for &Energy {
+    fn as_f64(&self) -> f64 {
+        (self.0).0
+    }
+}
+
 impl PartialOrd for Energy {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.0.cmp(&other.0))

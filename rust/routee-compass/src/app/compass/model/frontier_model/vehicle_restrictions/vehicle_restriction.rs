@@ -76,7 +76,7 @@ mod test {
         let restriction: VehicleRestriction = serde_json::from_str(json).unwrap();
         assert_eq!(
             restriction,
-            VehicleRestriction::MaximumTotalWeight((Weight::new(1000.0), WeightUnit::Kg))
+            VehicleRestriction::MaximumTotalWeight((Weight::from(1000.0), WeightUnit::Kg))
         );
     }
 }
