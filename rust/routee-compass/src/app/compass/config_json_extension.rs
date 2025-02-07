@@ -33,6 +33,11 @@ pub trait ConfigJsonExtensions {
         &self,
         key: &dyn AsRef<str>,
     ) -> Result<Option<String>, CompassConfigurationError>;
+    fn get_config_value(
+        &self,
+        key: &dyn AsRef<str>,
+        parent_key: &dyn AsRef<str>,
+    ) -> Result<serde_json::Value, CompassConfigurationError>;
     fn get_config_array(
         &self,
         key: &dyn AsRef<str>,
@@ -162,6 +167,23 @@ impl ConfigJsonExtensions for serde_json::Value {
                     )
                 }),
         }
+    }
+
+    fn get_config_value(
+        &self,
+        key: &dyn AsRef<str>,
+        parent_key: &dyn AsRef<str>,
+    ) -> Result<serde_json::Value, CompassConfigurationError> {
+        let value = self
+            .get(key.as_ref())
+            .ok_or_else(|| {
+                CompassConfigurationError::ExpectedFieldForComponent(
+                    String::from(key.as_ref()),
+                    String::from(parent_key.as_ref()),
+                )
+            })?
+            .to_owned();
+        Ok(value)
     }
 
     fn get_config_array(
