@@ -31,7 +31,7 @@ impl InjectFormat {
                     ))
                 })
             }
-            InjectFormat::Toml => todo!()
+            InjectFormat::Toml => todo!(),
         }
     }
 }
