@@ -99,9 +99,10 @@ impl Speed {
             Ok((s, su))
         }
     }
-    pub fn to_base_speed_unit(&self, current_speed_unit: &SpeedUnit) {
+
+    pub fn to_base_unit(&self, current_speed_unit: &SpeedUnit) -> Result<(), UnitError> {
         let mut s = Cow::Borrowed(self);
-        current_speed_unit.convert_to_base(&mut s);
+        current_speed_unit.convert_to_base(&mut s)
     }
     pub fn to_f64(&self) -> f64 {
         (self.0).0
@@ -113,7 +114,7 @@ impl Speed {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::model::unit::AsF64;
+    use crate::model::unit::{baseunit, AsF64};
 
     fn approx_eq_speed(a: Speed, b: Speed, error: f64) {
         let result = match (a, b) {
@@ -131,74 +132,53 @@ mod test {
     #[test]
     fn test_speed_calculate_fails() {
         let failure = Speed::from_distance_and_time(
-            (&Time::ZERO, &TimeUnit::Seconds),
             (&Distance::ONE, &DistanceUnit::Meters),
+            (&Time::ZERO, &TimeUnit::Seconds),
         );
         assert!(failure.is_err());
     }
 
     #[test]
-    fn test_speed_calculate_idempotent() {
-        let one_mps = Speed::from_distance_and_time(
-            (&Time::ONE, &TimeUnit::Seconds),
+    fn test_speed_calculate_mps() {
+        let (speed, speed_unit) = Speed::from_distance_and_time(
             (&Distance::ONE, &DistanceUnit::Meters),
+            (&Time::ONE, &TimeUnit::Seconds),
         )
         .unwrap();
-        assert_eq!(Speed::ONE, one_mps);
+        assert_eq!(speed, Speed::ONE);
+        assert_eq!(speed_unit, SpeedUnit::MetersPerSecond);
     }
 
     #[test]
-    fn test_speed_calculate_imperial_to_si() {
-        let speed_kph = Speed::from_distance_and_time(
-            (&Time::ONE, &TimeUnit::Hours),
+    fn test_speed_calculate_mph() {
+        let (speed, speed_unit) = Speed::from_distance_and_time(
             (&Distance::ONE, &DistanceUnit::Miles),
+            (&Time::ONE, &TimeUnit::Hours),
         )
         .unwrap();
-        approx_eq_speed(Speed::from(1.60934), speed_kph, 0.001);
+        approx_eq_speed(Speed::ONE, speed, 0.001);
+        assert_eq!(speed_unit, SpeedUnit::MilesPerHour);
     }
 
     #[test]
-    fn test_speed_calculate_kph_to_base() {
-        let speed_kph = Speed::from_distance_and_time(
-            (&Time::ONE, &TimeUnit::Hours),
+    fn test_speed_calculate_kph() {
+        let (speed, speed_unit) = Speed::from_distance_and_time(
             (&Distance::ONE, &DistanceUnit::Kilometers),
-        )
-        .unwrap();
-        let expected = SpeedUnit::KilometersPerHour.convert(&Speed::ONE, &baseunit::SPEED_UNIT);
-        approx_eq_speed(speed_kph, expected, 0.001);
-    }
-
-    #[test]
-    fn test_speed_calculate_base_to_kph() {
-        let speed_kph = Speed::from_distance_and_time(
-            (&Time::ONE, &baseunit::TIME_UNIT),
-            (&Distance::ONE, &baseunit::DISTANCE_UNIT),
-        )
-        .unwrap();
-        let expected =
-            SpeedUnit::MetersPerSecond.convert(&Speed::ONE, &SpeedUnit::KilometersPerHour);
-        approx_eq_speed(speed_kph, expected, 0.001);
-    }
-
-    #[test]
-    fn test_speed_calculate_mph_to_base() {
-        let speed_kph = Speed::from_distance_and_time(
             (&Time::ONE, &TimeUnit::Hours),
-            (&Distance::ONE, &DistanceUnit::Miles),
         )
         .unwrap();
-        let expected = SpeedUnit::MilesPerHour.convert(&Speed::ONE, &baseunit::SPEED_UNIT);
-        approx_eq_speed(speed_kph, expected, 0.001);
+        approx_eq_speed(speed, Speed::ONE, 0.001);
+        assert_eq!(speed_unit, SpeedUnit::KilometersPerHour);
     }
 
     #[test]
-    fn test_speed_calculate_base_to_mph() {
-        let speed_kph = Speed::from_distance_and_time(
-            (&Time::ONE, &baseunit::TIME_UNIT),
+    fn test_speed_calculate_base() {
+        let (speed, speed_unit) = Speed::from_distance_and_time(
             (&Distance::ONE, &baseunit::DISTANCE_UNIT),
+            (&Time::ONE, &baseunit::TIME_UNIT),
         )
         .unwrap();
-        let expected = SpeedUnit::MetersPerSecond.convert(&Speed::ONE, &SpeedUnit::MilesPerHour);
-        approx_eq_speed(speed_kph, expected, 0.001);
+        approx_eq_speed(speed, Speed::ONE, 0.001);
+        assert_eq!(speed_unit, baseunit::SPEED_UNIT);
     }
 }

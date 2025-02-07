@@ -1,4 +1,4 @@
-use super::{baseunit, Convert, Time};
+use super::{baseunit, Convert, Time, UnitError};
 use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -14,7 +14,7 @@ pub enum TimeUnit {
 }
 
 impl Convert<Time> for TimeUnit {
-    fn convert(&self, value: &mut std::borrow::Cow<Time>, to: &Self) {
+    fn convert(&self, value: &mut std::borrow::Cow<Time>, to: &Self) -> Result<(), UnitError> {
         /// converts a value from the current speed unit to some target speed unit.
         use TimeUnit as T;
         let conversion_factor = match (self, to) {
@@ -40,9 +40,10 @@ impl Convert<Time> for TimeUnit {
             let value_mut = value.to_mut();
             std::mem::swap(value_mut, &mut updated);
         }
+        Ok(())
     }
 
-    fn convert_to_base(&self, value: &mut std::borrow::Cow<Time>) {
+    fn convert_to_base(&self, value: &mut std::borrow::Cow<Time>) -> Result<(), UnitError> {
         self.convert(value, &baseunit::TIME_UNIT)
     }
 }
@@ -87,112 +88,114 @@ mod test {
     fn convert_hr_to_hr() {
         let value = Time::ONE;
         let mut v_cow = Cow::Owned(value);
-        T::Hours.convert(&mut v_cow, &T::Hours);
+        T::Hours.convert(&mut v_cow, &T::Hours).unwrap();
         assert_approx_eq(*v_cow, Time::ONE, 0.001);
     }
     #[test]
     fn convert_hr_to_min() {
         let value = Time::ONE;
         let mut v_cow = Cow::Owned(value);
-        T::Hours.convert(&mut v_cow, &T::Minutes);
+        T::Hours.convert(&mut v_cow, &T::Minutes).unwrap();
         assert_approx_eq(*v_cow, Time::from(60.0), 0.001);
     }
     #[test]
     fn convert_hr_to_sec() {
         let value = Time::ONE;
         let mut v_cow = Cow::Owned(value);
-        T::Hours.convert(&mut v_cow, &T::Seconds);
+        T::Hours.convert(&mut v_cow, &T::Seconds).unwrap();
         assert_approx_eq(*v_cow, Time::from(3600.0), 0.001);
     }
     #[test]
     fn convert_hr_to_ms() {
         let value = Time::ONE;
         let mut v_cow = Cow::Owned(value);
-        T::Hours.convert(&mut v_cow, &T::Milliseconds);
+        T::Hours.convert(&mut v_cow, &T::Milliseconds).unwrap();
         assert_approx_eq(*v_cow, Time::from(3600000.0), 0.001);
     }
     #[test]
     fn convert_min_to_hr() {
         let value = Time::from(60.0);
         let mut v_cow = Cow::Owned(value);
-        T::Minutes.convert(&mut v_cow, &T::Hours);
+        T::Minutes.convert(&mut v_cow, &T::Hours).unwrap();
         assert_approx_eq(*v_cow, Time::ONE, 0.001);
     }
     #[test]
     fn convert_min_to_min() {
         let value = Time::from(60.0);
         let mut v_cow = Cow::Owned(value);
-        T::Minutes.convert(&mut v_cow, &T::Minutes);
+        T::Minutes.convert(&mut v_cow, &T::Minutes).unwrap();
         assert_approx_eq(*v_cow, Time::from(60.0), 0.001);
     }
     #[test]
     fn convert_min_to_sec() {
         let value = Time::from(60.0);
         let mut v_cow = Cow::Owned(value);
-        T::Minutes.convert(&mut v_cow, &T::Seconds);
+        T::Minutes.convert(&mut v_cow, &T::Seconds).unwrap();
         assert_approx_eq(*v_cow, Time::from(3600.0), 0.001);
     }
     #[test]
     fn convert_min_to_ms() {
         let value = Time::from(60.0);
         let mut v_cow = Cow::Owned(value);
-        T::Minutes.convert(&mut v_cow, &T::Milliseconds);
+        T::Minutes.convert(&mut v_cow, &T::Milliseconds).unwrap();
         assert_approx_eq(*v_cow, Time::from(3600000.0), 0.001);
     }
     #[test]
     fn convert_sec_to_hr() {
         let value = Time::from(3600.0);
         let mut v_cow = Cow::Owned(value);
-        T::Seconds.convert(&mut v_cow, &T::Hours);
+        T::Seconds.convert(&mut v_cow, &T::Hours).unwrap();
         assert_approx_eq(*v_cow, Time::ONE, 0.001);
     }
     #[test]
     fn convert_sec_to_min() {
         let value = Time::from(3600.0);
         let mut v_cow = Cow::Owned(value);
-        T::Seconds.convert(&mut v_cow, &T::Minutes);
+        T::Seconds.convert(&mut v_cow, &T::Minutes).unwrap();
         assert_approx_eq(*v_cow, Time::from(60.0), 0.001);
     }
     #[test]
     fn convert_sec_to_sec() {
         let value = Time::from(3600.0);
         let mut v_cow = Cow::Owned(value);
-        T::Seconds.convert(&mut v_cow, &T::Seconds);
+        T::Seconds.convert(&mut v_cow, &T::Seconds).unwrap();
         assert_approx_eq(*v_cow, Time::from(3600.0), 0.001);
     }
     #[test]
     fn convert_sec_to_ms() {
         let value = Time::from(3600.0);
         let mut v_cow = Cow::Owned(value);
-        T::Seconds.convert(&mut v_cow, &T::Milliseconds);
+        T::Seconds.convert(&mut v_cow, &T::Milliseconds).unwrap();
         assert_approx_eq(*v_cow, Time::from(3600000.0), 0.001);
     }
     #[test]
     fn convert_ms_to_hr() {
         let value = Time::from(3600000.0);
         let mut v_cow = Cow::Owned(value);
-        T::Milliseconds.convert(&mut v_cow, &T::Hours);
+        T::Milliseconds.convert(&mut v_cow, &T::Hours).unwrap();
         assert_approx_eq(*v_cow, Time::ONE, 0.001);
     }
     #[test]
     fn convert_ms_to_min() {
         let value = Time::from(3600000.0);
         let mut v_cow = Cow::Owned(value);
-        T::Milliseconds.convert(&mut v_cow, &T::Minutes);
+        T::Milliseconds.convert(&mut v_cow, &T::Minutes).unwrap();
         assert_approx_eq(*v_cow, Time::from(60.0), 0.001);
     }
     #[test]
     fn convert_ms_to_sec() {
         let value = Time::from(3600000.0);
         let mut v_cow = Cow::Owned(value);
-        T::Milliseconds.convert(&mut v_cow, &T::Seconds);
+        T::Milliseconds.convert(&mut v_cow, &T::Seconds).unwrap();
         assert_approx_eq(*v_cow, Time::from(3600.0), 0.001);
     }
     #[test]
     fn convert_ms_to_ms() {
         let value = Time::from(3600000.0);
         let mut v_cow = Cow::Owned(value);
-        T::Milliseconds.convert(&mut v_cow, &T::Milliseconds);
+        T::Milliseconds
+            .convert(&mut v_cow, &T::Milliseconds)
+            .unwrap();
         assert_approx_eq(*v_cow, Time::from(3600000.0), 0.001);
     }
 }

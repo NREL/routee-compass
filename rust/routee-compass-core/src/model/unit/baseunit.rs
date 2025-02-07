@@ -4,7 +4,7 @@ use crate::model::unit::{
 
 pub const DISTANCE_UNIT: DistanceUnit = DistanceUnit::Meters;
 pub const TIME_UNIT: TimeUnit = TimeUnit::Seconds;
-pub const SPEED_UNIT: SpeedUnit = SpeedUnit::MetersPerSecond;
+pub const SPEED_UNIT: SpeedUnit = SpeedUnit(DistanceUnit::Meters, TimeUnit::Seconds);
 pub const ENERGY_UNIT: EnergyUnit = EnergyUnit::KilowattHours;
 pub const ENERGY_RATE_UNIT: EnergyRateUnit = EnergyRateUnit::KilowattHoursPerMeter;
 pub const GRADE_UNIT: GradeUnit = GradeUnit::Decimal;

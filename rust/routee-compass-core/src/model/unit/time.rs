@@ -107,8 +107,7 @@ impl Time {
 #[cfg(test)]
 mod test {
 
-    use crate::model::unit::{TimeUnit as T, *};
-    use std::borrow::Cow;
+    use crate::model::unit::*;
 
     fn assert_approx_eq(a: Time, b: Time, error: f64) {
         let result = match (a, b) {
@@ -146,7 +145,7 @@ mod test {
     #[test]
     fn sixty_miles_at_60mph() {
         let (t, tu) = Time::create(
-            (&Distance::from(60), &DistanceUnit::Miles),
+            (&Distance::from(60.0), &DistanceUnit::Miles),
             (&Speed::from(60.0), &SpeedUnit::MilesPerHour),
         )
         .unwrap();
@@ -156,10 +155,10 @@ mod test {
 
     #[test]
     fn walking_100_meters() {
-        let (walk_speed, walk_unit) = (Speed::from(5), SpeedUnit::KilometersPerHour);
+        let (walk_speed, walk_unit) = (Speed::from(5.0), SpeedUnit::KilometersPerHour);
         let (t, tu) = Time::create(
-            (&Distance::from(100), &DistanceUnit::Meters),
-            (&walk_speed_kph, &walk_unit),
+            (&Distance::from(100.0), &DistanceUnit::Meters),
+            (&walk_speed, &walk_unit),
         )
         .unwrap();
         let expected = Time::from(0.1 / 5.0); // should convert to km internally

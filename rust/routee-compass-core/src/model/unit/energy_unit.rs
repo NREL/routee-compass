@@ -1,4 +1,4 @@
-use super::{baseunit, Convert, Energy};
+use super::{baseunit, Convert, Energy, UnitError};
 use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -14,7 +14,7 @@ pub enum EnergyUnit {
 }
 
 impl Convert<Energy> for EnergyUnit {
-    fn convert(&self, value: &mut std::borrow::Cow<Energy>, to: &Self) {
+    fn convert(&self, value: &mut std::borrow::Cow<Energy>, to: &Self) -> Result<(), UnitError> {
         use EnergyUnit as S;
         let conversion_factor = match (self, to) {
             (S::GallonsGasoline, S::GallonsGasoline) => None,
@@ -58,9 +58,10 @@ impl Convert<Energy> for EnergyUnit {
             let value_mut = value.to_mut();
             std::mem::swap(value_mut, &mut updated);
         }
+        Ok(())
     }
 
-    fn convert_to_base(&self, value: &mut std::borrow::Cow<Energy>) {
+    fn convert_to_base(&self, value: &mut std::borrow::Cow<Energy>) -> Result<(), UnitError> {
         self.convert(value, &baseunit::ENERGY_UNIT)
     }
 }

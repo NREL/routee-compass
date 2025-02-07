@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use super::UnitError;
+
 pub trait Convert<V: Clone> {
     /// converts a value based on the type of this object and
     /// the "to" object.
@@ -19,7 +21,7 @@ pub trait Convert<V: Clone> {
     ///             copy-on-write (Cow) smart pointer
     /// * `to`    - the unit type to convert to.
     /// ```
-    fn convert(&self, value: &mut Cow<V>, to: &Self);
+    fn convert(&self, value: &mut Cow<V>, to: &Self) -> Result<(), UnitError>;
 
     /// converts a value based on the type of this object into
     /// the base unit type used within the Compass models.
@@ -40,5 +42,5 @@ pub trait Convert<V: Clone> {
     /// * `value` - the value to possibly convert, wrapped in a
     ///             copy-on-write (Cow) smart pointer
     /// ```
-    fn convert_to_base(&self, value: &mut Cow<V>);
+    fn convert_to_base(&self, value: &mut Cow<V>) -> Result<(), UnitError>;
 }

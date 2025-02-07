@@ -89,7 +89,7 @@ impl Energy {
         let associated_energy_unit = eru.associated_energy_unit();
 
         let mut d_cow = Cow::Borrowed(d);
-        du.convert(&mut d_cow, &associated_distance_unit);
+        du.convert(&mut d_cow, &associated_distance_unit)?;
 
         let energy = Energy::from(er.as_f64() * d_cow.as_ref().as_f64());
         Ok((energy, associated_energy_unit))
@@ -98,18 +98,32 @@ impl Energy {
     pub const ONE: Energy = Energy(InternalFloat::ONE);
 }
 
+#[cfg(test)]
 mod tests {
     use crate::model::unit::*;
+
+    fn approx_eq_energy(a: Energy, b: Energy, error: f64) {
+        let result = match (a, b) {
+            (c, d) if c < d => (d - c).as_f64() < error,
+            (c, d) if c > d => (c - d).as_f64() < error,
+            (_, _) => true,
+        };
+        assert!(
+            result,
+            "{} ~= {} is not true within an error of {}",
+            a, b, error
+        )
+    }
 
     #[test]
     fn test_energy_ggpm_meters() {
         let ten_mpg_rate = 1.0 / 10.0;
         let (energy, energy_unit) = Energy::create(
+            (&Distance::from(1609.0), &DistanceUnit::Meters),
             (
                 &EnergyRate::from(ten_mpg_rate),
                 &EnergyRateUnit::GallonsGasolinePerMile,
             ),
-            (&Distance::from(1609.0), &DistanceUnit::Meters),
         )
         .unwrap();
         approx_eq_energy(energy, Energy::from(ten_mpg_rate), 0.00001);
@@ -120,11 +134,11 @@ mod tests {
     fn test_energy_ggpm_miles() {
         let ten_mpg_rate = 1.0 / 10.0;
         let (energy, energy_unit) = Energy::create(
+            (&Distance::from(1.0), &DistanceUnit::Miles),
             (
                 &EnergyRate::from(ten_mpg_rate),
                 &EnergyRateUnit::GallonsGasolinePerMile,
             ),
-            (&Distance::from(1.0), &DistanceUnit::Miles),
         )
         .unwrap();
         approx_eq_energy(energy, Energy::from(ten_mpg_rate), 0.00001);

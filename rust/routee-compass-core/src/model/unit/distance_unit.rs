@@ -1,4 +1,4 @@
-use super::{baseunit, Convert, Distance};
+use super::{baseunit, Convert, Distance, UnitError};
 use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, str::FromStr};
@@ -14,7 +14,7 @@ pub enum DistanceUnit {
 }
 
 impl Convert<Distance> for DistanceUnit {
-    fn convert(&self, value: &mut Cow<Distance>, to: &Self) {
+    fn convert(&self, value: &mut Cow<Distance>, to: &Self) -> Result<(), UnitError> {
         use DistanceUnit as S;
         let conversion_factor: Option<f64> = match (self, to) {
             (S::Meters, S::Meters) => None,
@@ -48,9 +48,10 @@ impl Convert<Distance> for DistanceUnit {
             let value_mut = value.to_mut();
             std::mem::swap(value_mut, &mut updated);
         }
+        Ok(())
     }
 
-    fn convert_to_base(&self, value: &mut Cow<Distance>) {
+    fn convert_to_base(&self, value: &mut Cow<Distance>) -> Result<(), UnitError> {
         self.convert(value, &baseunit::DISTANCE_UNIT)
     }
 }
@@ -75,10 +76,8 @@ impl FromStr for DistanceUnit {
 #[cfg(test)]
 mod test {
 
-    use crate::model::unit::AsF64;
-
-    use super::Distance;
-    use super::DistanceUnit as D;
+    use crate::model::unit::{DistanceUnit as D, *};
+    use std::borrow::Cow;
 
     fn assert_approx_eq(a: Distance, b: Distance, error: f64) {
         let result = match (a, b) {
@@ -94,51 +93,57 @@ mod test {
     }
 
     #[test]
-    fn test_conversions() {
-        assert_approx_eq(
-            D::Meters.convert(&Distance::ONE, &D::Meters),
-            Distance::ONE,
-            0.001,
-        );
-        assert_approx_eq(
-            D::Meters.convert(&Distance::ONE, &D::Kilometers),
-            Distance::from(0.001),
-            0.001,
-        );
-        assert_approx_eq(
-            D::Meters.convert(&Distance::ONE, &D::Miles),
-            Distance::from(0.000621371),
-            0.001,
-        );
-        assert_approx_eq(
-            D::Kilometers.convert(&Distance::ONE, &D::Meters),
-            Distance::from(1000.0),
-            0.001,
-        );
-        assert_approx_eq(
-            D::Kilometers.convert(&Distance::ONE, &D::Kilometers),
-            Distance::ONE,
-            0.001,
-        );
-        assert_approx_eq(
-            D::Kilometers.convert(&Distance::ONE, &D::Miles),
-            Distance::from(0.621371),
-            0.001,
-        );
-        assert_approx_eq(
-            D::Miles.convert(&Distance::ONE, &D::Meters),
-            Distance::from(1609.34),
-            0.001,
-        );
-        assert_approx_eq(
-            D::Miles.convert(&Distance::ONE, &D::Kilometers),
-            Distance::from(1.60934),
-            0.001,
-        );
-        assert_approx_eq(
-            D::Miles.convert(&Distance::ONE, &D::Miles),
-            Distance::ONE,
-            0.001,
-        );
+    fn test_m_m() {
+        let mut value = Cow::Owned(Distance::ONE);
+        D::Meters.convert(&mut value, &D::Meters).unwrap();
+        assert_approx_eq(value.into_owned(), Distance::ONE, 0.001);
+    }
+    #[test]
+    fn test_m_km() {
+        let mut value = Cow::Owned(Distance::ONE);
+        D::Meters.convert(&mut value, &D::Kilometers).unwrap();
+        assert_approx_eq(value.into_owned(), Distance::from(0.001), 0.001);
+    }
+    #[test]
+    fn test_m_mi() {
+        let mut value = Cow::Owned(Distance::ONE);
+        D::Meters.convert(&mut value, &D::Miles).unwrap();
+        assert_approx_eq(value.into_owned(), Distance::from(0.000621371), 0.001);
+    }
+    #[test]
+    fn test_km_m() {
+        let mut value = Cow::Owned(Distance::ONE);
+        D::Kilometers.convert(&mut value, &D::Meters).unwrap();
+        assert_approx_eq(value.into_owned(), Distance::from(1000.0), 0.001);
+    }
+    #[test]
+    fn test_km_km() {
+        let mut value = Cow::Owned(Distance::ONE);
+        D::Kilometers.convert(&mut value, &D::Kilometers).unwrap();
+        assert_approx_eq(value.into_owned(), Distance::ONE, 0.001);
+    }
+    #[test]
+    fn test_km_mi() {
+        let mut value = Cow::Owned(Distance::ONE);
+        D::Kilometers.convert(&mut value, &D::Miles).unwrap();
+        assert_approx_eq(value.into_owned(), Distance::from(0.621371), 0.001);
+    }
+    #[test]
+    fn test_mi_m() {
+        let mut value = Cow::Owned(Distance::ONE);
+        D::Miles.convert(&mut value, &D::Meters).unwrap();
+        assert_approx_eq(value.into_owned(), Distance::from(1609.34), 0.001);
+    }
+    #[test]
+    fn test_mi_km() {
+        let mut value = Cow::Owned(Distance::ONE);
+        D::Miles.convert(&mut value, &D::Kilometers).unwrap();
+        assert_approx_eq(value.into_owned(), Distance::from(1.60934), 0.001);
+    }
+    #[test]
+    fn test_mi_mi() {
+        let mut value = Cow::Owned(Distance::ONE);
+        D::Miles.convert(&mut value, &D::Miles).unwrap();
+        assert_approx_eq(value.into_owned(), Distance::ONE, 0.001);
     }
 }
