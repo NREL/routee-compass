@@ -21,7 +21,7 @@ impl InputPluginBuilder for InjectPluginBuilder {
                 let value_string = parameters.get_config_string(&"value", &"inject")?;
                 format.to_json(&value_string)?
             }
-            InjectFormat::Toml => parameters.get_config_value(&"value", &"inject")?,
+            InjectFormat::Toml => parameters.get_config_serde(&"value", &"inject")?,
         };
 
         let overwrite: Option<bool> =
