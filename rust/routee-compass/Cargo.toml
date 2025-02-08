@@ -45,4 +45,3 @@ ordered-float = { workspace = true }
 allocative = { workspace = true }
 indoc = { workspace = true }
 ordered_hash_map = { version = "0.4.0", features = ["serde"] }
-toml = "0.8.19"
