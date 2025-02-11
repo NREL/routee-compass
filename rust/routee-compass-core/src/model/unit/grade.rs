@@ -25,7 +25,19 @@ use super::{internal_float::InternalFloat, AsF64};
 )]
 pub struct Grade(pub InternalFloat);
 
+impl From<f64> for Grade {
+    fn from(value: f64) -> Self {
+        Grade(InternalFloat::new(value))
+    }
+}
+
 impl AsF64 for Grade {
+    fn as_f64(&self) -> f64 {
+        (self.0).0
+    }
+}
+
+impl AsF64 for &Grade {
     fn as_f64(&self) -> f64 {
         (self.0).0
     }
@@ -55,13 +67,10 @@ impl FromStr for Grade {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let f = str::parse::<f64>(s)
             .map_err(|e| format!("failure reading grade value {}: {}", s, e))?;
-        Ok(Grade::new(f))
+        Ok(Grade::from(f))
     }
 }
 
 impl Grade {
-    pub fn new(value: f64) -> Grade {
-        Grade(InternalFloat::new(value))
-    }
     pub const ZERO: Grade = Grade(InternalFloat::ZERO);
 }

@@ -1,4 +1,6 @@
-use crate::model::unit::{Distance, DistanceUnit};
+use std::borrow::Cow;
+
+use crate::model::unit::{Convert, Distance, DistanceUnit};
 use geo::Coord;
 // pub const APPROX_EARTH_RADIUS_KM: f64 = 6372.8;
 pub const APPROX_EARTH_RADIUS_M: f32 = 6_371_000.0;
@@ -20,7 +22,9 @@ pub fn coord_distance(
     distance_unit: DistanceUnit,
 ) -> Result<Distance, String> {
     let distance_meters = haversine_distance_meters(src.x, src.y, dst.x, dst.y)?;
-    Ok(DistanceUnit::Meters.convert(&distance_meters, &distance_unit))
+    let mut d_cow = Cow::Owned(distance_meters);
+    DistanceUnit::Meters.convert(&mut d_cow, &distance_unit);
+    Ok(d_cow.into_owned())
 }
 
 /// haversine distance formula, based on the one published to rosetta code.
@@ -53,6 +57,6 @@ pub fn haversine_distance_meters(
 
     let a = (d_lat / 2.0).sin().powi(2) + (d_lon / 2.0).sin().powi(2) * lat1.cos() * lat2.cos();
     let c = 2.0 * a.sqrt().asin();
-    let distance_meters = APPROX_EARTH_RADIUS_M * c;
-    Ok(Distance::new(distance_meters.into()))
+    let distance_meters: f64 = (APPROX_EARTH_RADIUS_M * c).into();
+    Ok(Distance::from(distance_meters))
 }

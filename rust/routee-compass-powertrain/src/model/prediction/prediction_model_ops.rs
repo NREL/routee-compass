@@ -99,12 +99,12 @@ pub fn find_min_energy_rate(
     energy_model_energy_rate_unit: &EnergyRateUnit,
 ) -> Result<EnergyRate, TraversalModelError> {
     // sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
-    let mut minimum_energy_rate = EnergyRate::new(f64::MAX);
+    let mut minimum_energy_rate = EnergyRate::from(f64::MAX);
     let start_time = std::time::Instant::now();
 
     let grade = Grade::ZERO;
     for speed_i32 in 20..80 {
-        let speed = Speed::new(speed_i32 as f64);
+        let speed = Speed::from(speed_i32 as f64);
         let (energy_rate, _) = model
             .predict(
                 (speed, SpeedUnit::MilesPerHour),

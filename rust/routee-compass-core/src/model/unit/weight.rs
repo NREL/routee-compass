@@ -28,11 +28,24 @@ use super::{internal_float::InternalFloat, AsF64};
 )]
 pub struct Weight(InternalFloat);
 
+impl From<f64> for Weight {
+    fn from(value: f64) -> Self {
+        Weight(InternalFloat::new(value))
+    }
+}
+
 impl AsF64 for Weight {
     fn as_f64(&self) -> f64 {
         **self.0
     }
 }
+
+impl AsF64 for &Weight {
+    fn as_f64(&self) -> f64 {
+        **self.0
+    }
+}
+
 impl PartialOrd for Weight {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.0.cmp(&other.0))
@@ -50,14 +63,11 @@ impl Display for Weight {
 }
 impl From<StateVariable> for Weight {
     fn from(value: StateVariable) -> Self {
-        Weight::new(value.0)
+        Weight::from(value.0)
     }
 }
 
 impl Weight {
-    pub fn new(value: f64) -> Weight {
-        Weight(InternalFloat::new(value))
-    }
     pub fn to_ordered_float(&self) -> OrderedFloat<f64> {
         *self.0
     }

@@ -10,4 +10,6 @@ pub enum UnitError {
     SpeedFromTimeAndDistanceError(Time, Distance),
     #[error("cannot create time from speed {0} {1} and distance {2} {3}")]
     TimeFromSpeedAndDistanceError(Speed, SpeedUnit, Distance, DistanceUnit),
+    #[error("failure due to numeric precision: {0}")]
+    PrecisionError(String),
 }

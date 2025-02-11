@@ -22,6 +22,7 @@ use std::ops::{Deref, DerefMut};
     PartialEq,
     Ord,
     PartialOrd,
+    derive_more::derive::From,
 )]
 pub struct InternalFloat(OrderedFloat<f64>);
 
@@ -35,11 +36,11 @@ impl InternalFloat {
     pub const MIN: InternalFloat = InternalFloat(OrderedFloat(0.0000000001));
 }
 
-impl From<f64> for InternalFloat {
-    fn from(value: f64) -> Self {
-        InternalFloat(OrderedFloat(value))
-    }
-}
+// impl From<f64> for InternalFloat {
+//     fn from(value: f64) -> Self {
+//         InternalFloat(OrderedFloat(value))
+//     }
+// }
 
 impl Allocative for InternalFloat {
     fn visit<'a, 'b: 'a>(&self, visitor: &'a mut allocative::Visitor<'b>) {
