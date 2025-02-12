@@ -1,5 +1,7 @@
-use crate::app::compass::CompassConfigurationError;
-use crate::app::compass::ConfigJsonExtensions;
+use routee_compass_core::config::{
+    CompassConfigurationError,
+    ConfigJsonExtensions,
+};
 use routee_compass_core::model::{
     cost::{network::NetworkCostRate, CostAggregation, CostModel, VehicleCostRate},
     state::StateModel,

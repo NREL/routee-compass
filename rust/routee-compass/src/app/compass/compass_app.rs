@@ -3,7 +3,7 @@ use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
 use super::{compass_app_ops as ops, CompassAppBuilder};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
-use crate::app::compass::{CompassConfigurationField, ConfigJsonExtensions};
+use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use crate::{
     app::{
         compass::{
@@ -609,7 +609,8 @@ pub fn apply_output_processing(
 #[cfg(test)]
 mod tests {
     use super::CompassApp;
-    use crate::app::compass::{CompassAppError, CompassConfigurationError};
+    use crate::app::compass::CompassAppError;
+    use routee_compass_core::config::CompassConfigurationError;
     use std::path::PathBuf;
 
     #[test]

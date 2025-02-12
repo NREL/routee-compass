@@ -1,7 +1,7 @@
 use super::debug_plugin::DebugInputPlugin;
-use crate::{
-    app::compass::CompassConfigurationError,
-    plugin::input::{input_plugin::InputPlugin, InputPluginBuilder},
+use routee_compass_core::config::CompassConfigurationError;
+use crate::plugin::input::{
+    input_plugin::InputPlugin, InputPluginBuilder,
 };
 use std::sync::Arc;
 

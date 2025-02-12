@@ -1,4 +1,4 @@
-use crate::app::compass::CompassConfigurationError;
+use routee_compass_core::config::CompassConfigurationError;
 use crate::plugin::input::InputPlugin;
 use std::sync::Arc;
 

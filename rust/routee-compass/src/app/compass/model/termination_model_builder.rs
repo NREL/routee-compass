@@ -1,4 +1,4 @@
-use crate::app::compass::{
+use routee_compass_core::config::{
     CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions,
 };
 use log;

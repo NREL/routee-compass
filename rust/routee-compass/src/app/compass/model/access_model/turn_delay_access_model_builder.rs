@@ -1,4 +1,4 @@
-use crate::app::compass::ConfigJsonExtensions;
+use routee_compass_core::config::ConfigJsonExtensions;
 use kdam::Bar;
 use routee_compass_core::{
     model::access::{

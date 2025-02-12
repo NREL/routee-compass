@@ -1,7 +1,7 @@
-use crate::{
-    app::compass::ConfigJsonExtensions,
-    plugin::input::{input_field::InputField, InputPluginError},
+use crate::plugin::input::{
+    input_field::InputField, InputPluginError,
 };
+use routee_compass_core::config::ConfigJsonExtensions;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 

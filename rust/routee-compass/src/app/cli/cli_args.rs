@@ -1,4 +1,5 @@
-use crate::app::compass::{CompassAppError, CompassConfigurationError};
+use crate::app::compass::CompassAppError;
+use routee_compass_core::config::CompassConfigurationError;
 use clap::Parser;
 
 #[derive(Parser, Debug)]

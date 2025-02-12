@@ -1,6 +1,6 @@
 use super::cli_args::CliArgs;
 use crate::app::compass::compass_app_ops as ops;
-use crate::app::compass::CompassConfigurationError;
+use routee_compass_core::config::CompassConfigurationError;
 use crate::app::compass::{
     compass_app::CompassApp, compass_json_extensions::CompassJsonExtensions, CompassAppBuilder,
     CompassAppError,

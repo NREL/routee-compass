@@ -1,4 +1,4 @@
-use crate::app::compass::ConfigJsonExtensions;
+use routee_compass_core::config::ConfigJsonExtensions;
 use itertools::Itertools;
 use routee_compass_core::model::traversal::TraversalModelBuilder;
 use routee_compass_core::model::traversal::TraversalModelError;
