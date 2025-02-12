@@ -1,6 +1,7 @@
 use super::plugin::UUIDOutputPlugin;
+use routee_compass_core::config::ConfigJsonExtensions;
 use crate::{
-    app::compass::{CompassConfigurationError, ConfigJsonExtensions},
+    app::compass::CompassComponentError,
     plugin::{
         output::{OutputPlugin, OutputPluginBuilder},
         PluginError,
@@ -14,12 +15,12 @@ impl OutputPluginBuilder for UUIDOutputPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn OutputPlugin>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn OutputPlugin>, CompassComponentError> {
         let uuid_filename = parameters.get_config_path(&"uuid_input_file", &"uuid")?;
 
         let uuid_plugin = UUIDOutputPlugin::from_file(&uuid_filename).map_err(|e| {
             let pe = PluginError::OutputPluginFailed { source: e };
-            CompassConfigurationError::PluginError(pe)
+            CompassComponentError::PluginError(pe)
         })?;
         Ok(Arc::new(uuid_plugin))
     }
