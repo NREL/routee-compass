@@ -9,6 +9,7 @@ use routee_compass_core::{
         termination::TerminationModelError, traversal::TraversalModelError,
     },
 };
+use super::CompassComponentError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CompassAppError {
@@ -29,6 +30,8 @@ pub enum CompassAppError {
     ConfigFailure(#[from] ConfigError),
     #[error(transparent)]
     CompassConfigurationError(#[from] CompassConfigurationError),
+    #[error(transparent)]
+    CompassComponentError(#[from] CompassComponentError),
     #[error(transparent)]
     SearchFailure(#[from] SearchError),
     #[error(transparent)]
