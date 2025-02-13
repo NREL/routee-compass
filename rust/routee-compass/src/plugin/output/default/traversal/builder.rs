@@ -1,11 +1,12 @@
 use super::{plugin::TraversalPlugin, traversal_output_format::TraversalOutputFormat};
 use crate::{
-    app::compass::{CompassConfigurationError, ConfigJsonExtensions},
+    app::compass::CompassComponentError,
     plugin::{
         output::{OutputPlugin, OutputPluginBuilder},
         PluginError,
     },
 };
+use routee_compass_core::config::ConfigJsonExtensions;
 use std::sync::Arc;
 
 /// Builds a plugin that can generate traversal outputs.
@@ -39,7 +40,7 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn OutputPlugin>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn OutputPlugin>, CompassComponentError> {
         let parent_key = String::from("traversal");
 
         // let geometry_filename = parameters.get_config_path(&"geometry_input_file", &parent_key)?;

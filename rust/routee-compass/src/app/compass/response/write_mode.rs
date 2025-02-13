@@ -1,5 +1,6 @@
 use super::response_output_format::ResponseOutputFormat;
-use crate::app::compass::{CompassAppError, CompassConfigurationError};
+use crate::app::compass::CompassAppError;
+use routee_compass_core::config::CompassConfigurationError;
 use serde::{Deserialize, Serialize};
 use std::{
     fs::{File, OpenOptions},

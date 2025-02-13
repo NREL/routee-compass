@@ -1,5 +1,5 @@
 use super::cost_model_service::CostModelService;
-use crate::app::compass::{
+use routee_compass_core::config::{
     CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions,
 };
 use routee_compass_core::model::cost::{

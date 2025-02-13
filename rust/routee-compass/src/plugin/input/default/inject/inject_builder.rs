@@ -1,11 +1,8 @@
 use std::sync::Arc;
 
 use super::inject_format::InjectFormat;
-use crate::{
-    app::compass::{CompassConfigurationError, ConfigJsonExtensions},
-    plugin::input::{default::inject::InjectInputPlugin, InputPlugin, InputPluginBuilder},
-};
-
+use crate::plugin::input::{default::inject::InjectInputPlugin, InputPlugin, InputPluginBuilder};
+use routee_compass_core::config::{CompassConfigurationError, ConfigJsonExtensions};
 pub struct InjectPluginBuilder {}
 
 impl InputPluginBuilder for InjectPluginBuilder {
