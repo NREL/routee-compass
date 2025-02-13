@@ -1,4 +1,3 @@
-use routee_compass_core::config::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions};
 use crate::plugin::{
     input::{
         default::{
@@ -36,6 +35,9 @@ use crate::{
     plugin::{input::InputPluginBuilder, output::OutputPluginBuilder},
 };
 use itertools::Itertools;
+use routee_compass_core::config::{
+    CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions,
+};
 use routee_compass_core::model::{
     access::{default::NoAccessModel, AccessModelBuilder, AccessModelService},
     frontier::{FrontierModelBuilder, FrontierModelService},

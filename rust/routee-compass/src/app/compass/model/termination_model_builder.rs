@@ -1,7 +1,7 @@
+use log;
 use routee_compass_core::config::{
     CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions,
 };
-use log;
 use routee_compass_core::model::termination::TerminationModel;
 use routee_compass_core::util::conversion::duration_extension::DurationExtension;
 

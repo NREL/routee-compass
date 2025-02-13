@@ -1,5 +1,5 @@
-use routee_compass_core::config::ConfigJsonExtensions;
 use itertools::Itertools;
+use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::model::{
     access::AccessModel,
     state::{StateFeature, StateModelError},

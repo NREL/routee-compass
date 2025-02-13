@@ -1,8 +1,6 @@
 use super::plugin::GridSearchPlugin;
+use crate::plugin::input::{InputPlugin, InputPluginBuilder};
 use routee_compass_core::config::CompassConfigurationError;
-use crate::plugin::input::{
-    InputPlugin, InputPluginBuilder,
-};
 use std::sync::Arc;
 
 pub struct GridSearchBuilder {}

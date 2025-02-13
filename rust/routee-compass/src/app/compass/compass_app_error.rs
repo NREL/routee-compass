@@ -1,6 +1,7 @@
-use routee_compass_core::config::CompassConfigurationError;
+use super::CompassComponentError;
 use crate::plugin::{input::InputPluginError, output::OutputPluginError, PluginError};
 use config::ConfigError;
+use routee_compass_core::config::CompassConfigurationError;
 use routee_compass_core::{
     algorithm::search::SearchError,
     model::{
@@ -9,7 +10,6 @@ use routee_compass_core::{
         termination::TerminationModelError, traversal::TraversalModelError,
     },
 };
-use super::CompassComponentError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum CompassAppError {

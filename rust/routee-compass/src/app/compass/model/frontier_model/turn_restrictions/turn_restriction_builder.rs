@@ -1,6 +1,6 @@
 use super::turn_restriction_service::{RestrictedEdgePair, TurnRestrictionFrontierService};
-use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use kdam::Bar;
+use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use routee_compass_core::{
     model::frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
     util::fs::read_utils,

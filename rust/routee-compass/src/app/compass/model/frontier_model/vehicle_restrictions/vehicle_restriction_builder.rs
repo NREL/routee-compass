@@ -2,8 +2,8 @@ use super::{
     vehicle_restriction::VehicleRestriction, vehicle_restriction_row::RestrictionRow,
     vehicle_restriction_service::VehicleRestrictionFrontierService,
 };
-use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use kdam::Bar;
+use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use routee_compass_core::{
     model::{
         frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},

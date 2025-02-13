@@ -1,5 +1,5 @@
-use routee_compass_core::config::ConfigJsonExtensions;
 use kdam::Bar;
+use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::{
     model::access::{
         default::turn_delays::{

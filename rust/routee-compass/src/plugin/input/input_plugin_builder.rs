@@ -1,5 +1,5 @@
-use routee_compass_core::config::CompassConfigurationError;
 use crate::plugin::input::InputPlugin;
+use routee_compass_core::config::CompassConfigurationError;
 use std::sync::Arc;
 
 /// A [`InputPluginBuilder`] takes a JSON object describing the configuration of an

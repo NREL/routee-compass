@@ -3,7 +3,6 @@ use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
 use super::{compass_app_ops as ops, CompassAppBuilder};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
-use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use crate::{
     app::{
         compass::{
@@ -27,6 +26,7 @@ use itertools::{Either, Itertools};
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
+use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use routee_compass_core::model::map::{MapModel, MapModelConfig};
 use routee_compass_core::model::network::Graph;
 use routee_compass_core::model::state::StateModel;

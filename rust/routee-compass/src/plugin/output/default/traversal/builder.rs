@@ -1,5 +1,4 @@
 use super::{plugin::TraversalPlugin, traversal_output_format::TraversalOutputFormat};
-use routee_compass_core::config::ConfigJsonExtensions;
 use crate::{
     app::compass::CompassComponentError,
     plugin::{
@@ -7,6 +6,7 @@ use crate::{
         PluginError,
     },
 };
+use routee_compass_core::config::ConfigJsonExtensions;
 use std::sync::Arc;
 
 /// Builds a plugin that can generate traversal outputs.

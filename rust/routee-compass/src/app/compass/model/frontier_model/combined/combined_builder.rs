@@ -1,7 +1,7 @@
-use routee_compass_core::config::{
-    CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions, 
-};
 use itertools::Itertools;
+use routee_compass_core::config::{
+    CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions,
+};
 use routee_compass_core::model::frontier::{
     FrontierModelBuilder, FrontierModelError, FrontierModelService,
 };

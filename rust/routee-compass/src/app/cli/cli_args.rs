@@ -1,7 +1,6 @@
 use crate::app::compass::CompassAppError;
-use routee_compass_core::config::CompassConfigurationError;
 use clap::Parser;
-
+use routee_compass_core::config::CompassConfigurationError;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct CliArgs {

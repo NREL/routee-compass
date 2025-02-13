@@ -5,8 +5,8 @@ use super::{
     },
     CompassAppError,
 };
-use routee_compass_core::config::CompassConfigurationField;
 use config::Config;
+use routee_compass_core::config::CompassConfigurationField;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
