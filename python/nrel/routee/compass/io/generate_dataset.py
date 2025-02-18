@@ -44,7 +44,7 @@ def generate_compass_dataset(
     phases: List[str] = DEFAULT_PHASES,
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
-    requests_kwds: Optional[Dict] = None
+    requests_kwds: Optional[Dict[Any, Any]] = None
 ) -> None:
     """
     Processes a graph downloaded via OSMNx, generating the set of input
@@ -240,7 +240,8 @@ def generate_compass_dataset(
 
                 cached_model_destination = CACHE_DIR / f"{model_name}.bin"
                 if not cached_model_destination.exists():
-                    download_response = requests.get(model_link, **requests_kwds)
+                    kwds: Dict[Any, Any] = requests_kwds if requests_kwds is not None else {}
+                    download_response = requests.get(model_link, **kwds)
                     download_response.raise_for_status()
                     with cached_model_destination.open("wb") as f:  # type: ignore
                         f.write(download_response.content)  # type: ignore
