@@ -28,10 +28,10 @@ AggFunc = Callable[[Any], Any]
 
 
 DEFAULT_PHASES: List[str] = [
-    "graph",     # output basic compass graph files
-    "grade",     # generate + output edge grade file
-    "config",    # copy default configuration TOML files
-    "powertrain" # download powertrain models
+    "graph",  # output basic compass graph files
+    "grade",  # generate + output edge grade file
+    "config",  # copy default configuration TOML files
+    "powertrain",  # download powertrain models
 ]
 
 
@@ -44,7 +44,7 @@ def generate_compass_dataset(
     phases: List[str] = DEFAULT_PHASES,
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
-    requests_kwds: Optional[Dict[Any, Any]] = None
+    requests_kwds: Optional[Dict[Any, Any]] = None,
 ) -> None:
     """
     Processes a graph downloaded via OSMNx, generating the set of input
@@ -137,7 +137,7 @@ def generate_compass_dataset(
     e["src_vertex_id"] = e.src_vertex_uuid.apply(replace_id)
     e["dst_vertex_id"] = e.dst_vertex_uuid.apply(replace_id)
 
-    if not "graph" in phases:
+    if "graph" not in phases:
         print("skipping graph output generation")
         # WRITE NETWORK FILES
         output_directory.mkdir(parents=True, exist_ok=True)
@@ -148,7 +148,9 @@ def generate_compass_dataset(
             output_directory / "vertices-mapping.csv.gz", index=False
         )
         v[["vertex_uuid"]].to_csv(
-            output_directory / "vertices-uuid-enumerated.txt.gz", index=False, header=False
+            output_directory / "vertices-uuid-enumerated.txt.gz",
+            index=False,
+            header=False,
         )
         v[["vertex_id", "x", "y"]].to_csv(
             output_directory / "vertices-compass.csv.gz", index=False
@@ -169,7 +171,9 @@ def generate_compass_dataset(
             output_directory / "edges-uuid-enumerated.txt.gz", index=False, header=False
         )
         np.savetxt(
-            output_directory / "edges-geometries-enumerated.txt.gz", e.geometry, fmt="%s"
+            output_directory / "edges-geometries-enumerated.txt.gz",
+            e.geometry,
+            fmt="%s",
         )  # doesn't quote LINESTRINGS
         e.speed_kph.to_csv(
             output_directory / "edges-posted-speed-enumerated.txt.gz",
@@ -240,7 +244,9 @@ def generate_compass_dataset(
 
                 cached_model_destination = CACHE_DIR / f"{model_name}.bin"
                 if not cached_model_destination.exists():
-                    kwds: Dict[Any, Any] = requests_kwds if requests_kwds is not None else {}
+                    kwds: Dict[Any, Any] = (
+                        requests_kwds if requests_kwds is not None else {}
+                    )
                     download_response = requests.get(model_link, **kwds)
                     download_response.raise_for_status()
                     with cached_model_destination.open("wb") as f:  # type: ignore
