@@ -1,4 +1,5 @@
 from __future__ import annotations
+import enum
 from typing import Any, Callable, Dict, List, Optional, Union, TYPE_CHECKING
 from pathlib import Path
 
@@ -27,12 +28,15 @@ HIGHWAY_SPEED_MAP = dict[HIGHWAY_TYPE, KM_PER_HR]
 AggFunc = Callable[[Any], Any]
 
 
-DEFAULT_PHASES: List[str] = [
-    "graph",  # output basic compass graph files
-    "grade",  # generate + output edge grade file
-    "config",  # copy default configuration TOML files
-    "powertrain",  # download powertrain models
-]
+class GeneratePipelinePhase(enum.Enum):
+    GRAPH = 1
+    GRADE = 2
+    CONFIG = 3
+    POWERTRAIN = 4
+
+    @classmethod
+    def default(cls):
+        return list(cls)
 
 
 def generate_compass_dataset(
@@ -41,7 +45,7 @@ def generate_compass_dataset(
     hwy_speeds: Optional[HIGHWAY_SPEED_MAP] = None,
     fallback: Optional[float] = None,
     agg: Optional[AggFunc] = None,
-    phases: List[str] = DEFAULT_PHASES,
+    phases: List[GeneratePipelinePhase] = GeneratePipelinePhase.default(),
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
     requests_kwds: Optional[Dict[Any, Any]] = None,
@@ -66,7 +70,7 @@ def generate_compass_dataset(
         agg: Aggregation function to impute missing values from observed values.
             The default is numpy.mean, but you might also consider for example
             numpy.median, numpy.nanmedian, or your own custom function. Defaults to numpy.mean.
-        phases (List[str]): of the overall generate pipeline, which phases of the pipeline to run. Defaults to all (["graph", "grade", "config", "powertrain"])
+        phases (List[GeneratePipelinePhase]): of the overall generate pipeline, which phases of the pipeline to run. Defaults to all (["graph", "grade", "config", "powertrain"])
         raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
         default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
         requests_kwds (Optional[Dict], optional): Keyword arguments to pass to the `requests` Python library for HTTP configuration. Defaults to None.
@@ -93,6 +97,7 @@ def generate_compass_dataset(
                 "requires Python 3.11 tomllib or pip install toml for earier Python versions"
             )
 
+    print(f"running pipeline import with phases: [{[p.name for p in phases]}]")
     output_directory = Path(output_directory)
 
     # default aggregation is via numpy mean operation
@@ -104,7 +109,7 @@ def generate_compass_dataset(
     g1 = ox.add_edge_speeds(g1, hwy_speeds=hwy_speeds, fallback=fallback, agg=agg)
     g1 = ox.add_edge_bearings(g1)
 
-    if "grade" in phases:
+    if GeneratePipelinePhase.GRADE in phases:
         print("adding grade information")
         g1 = add_grade_to_graph(
             g1, resolution_arc_seconds=raster_resolution_arc_seconds
@@ -137,7 +142,7 @@ def generate_compass_dataset(
     e["src_vertex_id"] = e.src_vertex_uuid.apply(replace_id)
     e["dst_vertex_id"] = e.dst_vertex_uuid.apply(replace_id)
 
-    if "graph" not in phases:
+    if GeneratePipelinePhase.GRAPH not in phases:
         print("skipping graph output generation")
         # WRITE NETWORK FILES
         output_directory.mkdir(parents=True, exist_ok=True)
@@ -196,7 +201,7 @@ def generate_compass_dataset(
             compression="gzip",
         )
 
-    if "grade" in phases:
+    if GeneratePipelinePhase.GRADE in phases:
         e.grade.to_csv(
             output_directory / "edges-grade-enumerated.txt.gz",
             index=False,
@@ -204,7 +209,7 @@ def generate_compass_dataset(
         )
 
     # COPY DEFAULT CONFIGURATION FILES
-    if "config" in phases and default_config:
+    if GeneratePipelinePhase.CONFIG in phases and default_config:
         print("copying default configuration TOML files")
         for filename in [
             "osm_default_distance.toml",
@@ -227,7 +232,7 @@ def generate_compass_dataset(
                 f.write(toml.dumps(init_toml))
 
     # DOWLOAD ROUTEE ENERGY MODEL CATALOG
-    if "powertrain" in phases:
+    if GeneratePipelinePhase.POWERTRAIN in phases:
         print("downloading the default RouteE Powertrain models")
         model_output_directory = output_directory / "models"
         if not model_output_directory.exists():

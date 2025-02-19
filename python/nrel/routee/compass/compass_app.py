@@ -10,7 +10,7 @@ from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
 from nrel.routee.compass.io.generate_dataset import (
-    DEFAULT_PHASES,
+    GeneratePipelinePhase,
     generate_compass_dataset,
 )
 
@@ -111,7 +111,7 @@ class CompassApp:
         hwy_speeds: Optional[dict[str, Any]] = None,
         fallback: Optional[float] = None,
         agg: Optional[Callable[[Any], Any]] = None,
-        phases: List[str] = DEFAULT_PHASES,
+        phases: List[GeneratePipelinePhase] = GeneratePipelinePhase.default(),
         raster_resolution_arc_seconds: Union[str, int] = 1,
     ) -> CompassApp:
         """
@@ -139,7 +139,7 @@ class CompassApp:
                 observed values. The default is numpy.mean, but you might
                 also consider for example numpy.median, numpy.nanmedian,
                 or your own custom function. Defaults to numpy.mean.
-            phases (List[str]): of the overall generate pipeline, which phases of the pipeline to run.
+            phases (List[GeneratePipelinePhase]): of the overall generate pipeline, which phases of the pipeline to run.
                 Defaults to all (["graph", "grade", "config", "powertrain"])
             raster_resolution_arc_seconds: If grade is added, the
                 resolution (in arc-seconds) of the tiles to download
@@ -190,7 +190,7 @@ class CompassApp:
         hwy_speeds: Optional[dict[str, Any]] = None,
         fallback: Optional[float] = None,
         agg: Optional[Callable[[Any], Any]] = None,
-        phases: List[str] = DEFAULT_PHASES,
+        phases: List[GeneratePipelinePhase] = GeneratePipelinePhase.default(),
         raster_resolution_arc_seconds: Union[str, int] = 1,
     ) -> CompassApp:
         """
@@ -218,7 +218,7 @@ class CompassApp:
                 observed values. The default is numpy.mean, but you might
                 also consider for example numpy.median, numpy.nanmedian,
                 or your own custom function. Defaults to numpy.mean.
-            phases (List[str]): of the overall generate pipeline, which phases of the pipeline to run.
+            phases (List[GeneratePipelinePhase]): of the overall generate pipeline, which phases of the pipeline to run.
                 Defaults to all (["graph", "grade", "config", "powertrain"])
             raster_resolution_arc_seconds: If grade is added, the
                 resolution (in arc-seconds) of the tiles to download
