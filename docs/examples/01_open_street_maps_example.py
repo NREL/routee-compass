@@ -44,14 +44,16 @@ g = ox.graph_from_place("Denver, Colorado, USA", network_type="drive")
 Now, we call the `generate_compass_dataset` function which will convert the osmnx graph into files that are compatible with RouteE Compass.
 
 ```{note}
-In order to get the most accurate energy results from the routee-powertrain vehicle models, it's important to include road grade information since it plays a large factor in vehicle energy consumption (`add_grade=True`)
+In order to get the most accurate energy results from the routee-powertrain vehicle models, it's important to include road grade information since it plays a large factor in vehicle energy consumption.
 That being said, adding grade can be a big lift computationally. In our case, we pull digital elevation model (DEM) raster files from USGS and then use osmnx to append elevation and grade to the graph. If the graph is large, this can take a while to download and could take up a lot of disk space.
 So, we recommend that you include grade information in your graph but want to be clear about the requirements for doing so.
+
+If you do not wish to impute grade from node elevations, remove "grade" from the "phases" argument.
 ```
 """
 
 # %%
-generate_compass_dataset(g, output_directory="denver_co", add_grade=True)
+generate_compass_dataset(g, output_directory="denver_co")
 # %%
 
 
