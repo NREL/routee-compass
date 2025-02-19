@@ -40,18 +40,18 @@ fn read_road_classes_from_query(value: &Value) -> Result<HashSet<String>, Fronti
             value
         ))
     })?;
+    // if the value is a string (or number or bool), store it as a valid road class
     let arr_str = arr
         .iter()
         .enumerate()
-        .map(|(idx, c)| {
-            c.as_str()
-                .ok_or_else(|| {
-                    FrontierModelError::BuildError(format!(
-                        "query 'road_classes[{}]' value must be a string, found '{}'",
-                        idx, c
-                    ))
-                })
-                .map(String::from)
+        .map(|(idx, c)| match c {
+            Value::Bool(b) => Ok(b.to_string()),
+            Value::Number(number) => Ok(number.to_string()),
+            Value::String(string) => Ok(string.clone()),
+            _ => Err(FrontierModelError::BuildError(format!(
+                "query 'road_classes[{}]' value must be a string, found '{}'",
+                idx, c
+            ))),
         })
         .collect::<Result<HashSet<_>, _>>()?;
 
