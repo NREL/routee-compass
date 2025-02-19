@@ -1,6 +1,4 @@
-use crate::plugin::PluginError;
-use config::ConfigError;
-use routee_compass_core::{
+use crate::{
     model::{
         access::AccessModelError, frontier::FrontierModelError,
         network::network_error::NetworkError, traversal::TraversalModelError,
@@ -54,8 +52,6 @@ pub enum CompassConfigurationError {
     #[error(transparent)]
     GraphError(#[from] NetworkError),
     #[error(transparent)]
-    ConfigError(#[from] ConfigError),
-    #[error(transparent)]
     IoError(#[from] std::io::Error),
     #[error(transparent)]
     SerdeDeserializationError(#[from] serde_json::Error),
@@ -69,6 +65,4 @@ pub enum CompassConfigurationError {
     AccessModelError(#[from] AccessModelError),
     #[error(transparent)]
     FrontierModelError(#[from] FrontierModelError),
-    #[error(transparent)]
-    PluginError(#[from] PluginError),
 }

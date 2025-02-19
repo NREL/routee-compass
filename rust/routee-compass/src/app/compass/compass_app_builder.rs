@@ -1,4 +1,3 @@
-use super::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions};
 use crate::plugin::{
     input::{
         default::{
@@ -36,12 +35,17 @@ use crate::{
     plugin::{input::InputPluginBuilder, output::OutputPluginBuilder},
 };
 use itertools::Itertools;
+use routee_compass_core::config::{
+    CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions,
+};
 use routee_compass_core::model::{
     access::{default::NoAccessModel, AccessModelBuilder, AccessModelService},
     frontier::{FrontierModelBuilder, FrontierModelService},
     traversal::{TraversalModelBuilder, TraversalModelService},
 };
 use std::{collections::HashMap, rc::Rc, sync::Arc};
+
+use super::CompassComponentError;
 
 /// Upstream component factory of [`crate::app::compass::compass_app::CompassApp`]
 /// that builds components when constructing a CompassApp instance.
@@ -213,7 +217,7 @@ impl CompassAppBuilder {
     pub fn build_output_plugins(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Vec<Arc<dyn OutputPlugin>>, CompassConfigurationError> {
+    ) -> Result<Vec<Arc<dyn OutputPlugin>>, CompassComponentError> {
         let output_plugins = config.get_config_array(
             &CompassConfigurationField::OutputPlugins,
             &CompassConfigurationField::Plugins,
