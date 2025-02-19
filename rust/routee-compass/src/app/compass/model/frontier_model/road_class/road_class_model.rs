@@ -67,8 +67,7 @@ mod test {
             road_class_by_edge: Arc::new(road_class_vector),
         });
         let state_model = Arc::new(StateModel::empty());
-        let model = service.build(&query, state_model.clone()).unwrap();
-        model
+        service.build(&query, state_model.clone()).unwrap()
     }
 
     #[test]
