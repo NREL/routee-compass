@@ -95,10 +95,9 @@ impl Convert<Speed> for SpeedUnit {
                 time_convert.as_f64()
             )));
         }
-        let (mut speed, _) =
+        let (speed, _) =
             Speed::from_distance_and_time((&dist_convert, &to_du), (&time_convert, &to_tu))?;
-        let mut v = value.to_mut();
-        std::mem::swap(&mut v, &mut &mut speed);
+        *value.to_mut() = speed;
 
         // let conversion_factor = match (self, to) {
         //     (S(D::Kilometers, T::Hours), S(D::Kilometers, T::Hours)) => None,

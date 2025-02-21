@@ -44,9 +44,8 @@ impl Convert<Distance> for DistanceUnit {
             (S::Feet, S::Feet) => None,
         };
         if let Some(factor) = conversion_factor {
-            let mut updated = Distance::from(value.as_ref().as_f64() * factor);
-            let value_mut = value.to_mut();
-            std::mem::swap(value_mut, &mut updated);
+            let updated = Distance::from(value.as_ref().as_f64() * factor);
+            *value.to_mut() = updated;
         }
         Ok(())
     }

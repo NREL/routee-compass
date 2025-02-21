@@ -26,9 +26,8 @@ impl Convert<Grade> for GradeUnit {
             (G::Millis, G::Decimal) => Some(0.001),
         };
         if let Some(factor) = conversion_factor {
-            let mut updated = Grade::from(value.as_ref().as_f64() * factor);
-            let value_mut = value.to_mut();
-            std::mem::swap(value_mut, &mut updated);
+            let updated = Grade::from(value.as_ref().as_f64() * factor);
+            *value.to_mut() = updated;
         }
         Ok(())
     }

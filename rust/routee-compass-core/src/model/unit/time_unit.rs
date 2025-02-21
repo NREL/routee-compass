@@ -36,9 +36,8 @@ impl Convert<Time> for TimeUnit {
             (T::Milliseconds, T::Seconds) => Some(0.001),
         };
         if let Some(factor) = conversion_factor {
-            let mut updated = Time::from(value.as_ref().as_f64() * factor);
-            let value_mut = value.to_mut();
-            std::mem::swap(value_mut, &mut updated);
+            let updated = Time::from(value.as_ref().as_f64() * factor);
+            *value.to_mut() = updated;
         }
         Ok(())
     }

@@ -26,9 +26,8 @@ impl Convert<Weight> for WeightUnit {
             (S::Kg, S::Kg) => None,
         };
         if let Some(factor) = conversion_factor {
-            let mut updated = Weight::from(value.as_ref().as_f64() * factor);
-            let value_mut = value.to_mut();
-            std::mem::swap(value_mut, &mut updated);
+            let updated = Weight::from(value.as_ref().as_f64() * factor);
+            *value.to_mut() = updated;
         }
         Ok(())
     }

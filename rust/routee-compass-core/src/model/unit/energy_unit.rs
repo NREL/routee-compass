@@ -54,9 +54,8 @@ impl Convert<Energy> for EnergyUnit {
             (S::LitersDiesel, S::KilowattHours) => Some(0.264 * 40.7),
         };
         if let Some(factor) = conversion_factor {
-            let mut updated = Energy::from(value.as_ref().as_f64() * factor);
-            let value_mut = value.to_mut();
-            std::mem::swap(value_mut, &mut updated);
+            let updated = Energy::from(value.as_ref().as_f64() * factor);
+            *value.to_mut() = updated;
         }
         Ok(())
     }
