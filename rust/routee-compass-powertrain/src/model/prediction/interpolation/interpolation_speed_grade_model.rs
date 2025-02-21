@@ -164,7 +164,7 @@ mod test {
 
     use super::*;
     use crate::model::prediction::prediction_model::PredictionModel;
-    use routee_compass_core::model::unit::EnergyRateUnit;
+    use routee_compass_core::model::unit::{DistanceUnit, EnergyRateUnit, TimeUnit};
 
     #[test]
     fn test_interpolation_speed_grade_model() {
@@ -178,13 +178,13 @@ mod test {
             &model_path,
             ModelType::Smartcore,
             "Toyota Camry".to_string(),
-            SpeedUnit::MilesPerHour,
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             (Speed::from(0.0), Speed::from(100.0)),
             101,
             GradeUnit::Decimal,
             (Grade::from(-0.20), Grade::from(0.20)),
             41,
-            EnergyRateUnit::GallonsGasolinePerMile,
+            EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
         )
         .unwrap();
 
@@ -192,9 +192,9 @@ mod test {
             "Toyota Camry".to_string(),
             &model_path,
             ModelType::Smartcore,
-            SpeedUnit::MilesPerHour,
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             GradeUnit::Decimal,
-            EnergyRateUnit::GallonsGasolinePerMile,
+            EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
             None,
             None,
             None,
@@ -208,14 +208,20 @@ mod test {
             for grade in -20..20 {
                 let (interp_energy_rate, _energy_rate_unit) = interp_model
                     .predict(
-                        (Speed::from(speed as f64), SpeedUnit::MilesPerHour),
+                        (
+                            Speed::from(speed as f64),
+                            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+                        ),
                         (Grade::from(grade as f64), GradeUnit::Percent),
                     )
                     .unwrap();
                 let (underlying_energy_rate, _energy_rate_unit) = underlying_model
                     .prediction_model
                     .predict(
-                        (Speed::from(speed as f64), SpeedUnit::MilesPerHour),
+                        (
+                            Speed::from(speed as f64),
+                            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+                        ),
                         (Grade::from(grade as f64), GradeUnit::Percent),
                     )
                     .unwrap();
@@ -229,12 +235,18 @@ mod test {
 
         let (energy_rate, energy_rate_unit) = interp_model
             .predict(
-                (Speed::from(50.0), SpeedUnit::MilesPerHour),
+                (
+                    Speed::from(50.0),
+                    SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+                ),
                 (Grade::from(0.0), GradeUnit::Percent),
             )
             .unwrap();
 
-        assert_eq!(energy_rate_unit, EnergyRateUnit::GallonsGasolinePerMile);
+        assert_eq!(
+            energy_rate_unit,
+            EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles)
+        );
 
         // energy rate should be between 28-32 mpg
         let expected_lower = EnergyRate::from(1.0 / 32.0);

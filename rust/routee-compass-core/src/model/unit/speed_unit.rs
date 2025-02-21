@@ -119,7 +119,7 @@ mod test {
 
     use std::borrow::Cow;
 
-    use super::{SpeedUnit as S, *};
+    use super::{DistanceUnit as D, SpeedUnit as S, TimeUnit as T, *};
 
     fn assert_approx_eq(a: Speed, b: Speed, error: f64) {
         let result = match (a, b) {

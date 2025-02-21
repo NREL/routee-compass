@@ -219,9 +219,9 @@ mod tests {
             "Toyota_Camry".to_string(),
             &model_file_path,
             ModelType::Smartcore,
-            SpeedUnit::MilesPerHour,
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             GradeUnit::Decimal,
-            EnergyRateUnit::GallonsGasolinePerMile,
+            EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
             None,
             None,
             None,
@@ -235,17 +235,22 @@ mod tests {
         model_library.insert("Toyota_Camry".to_string(), Arc::new(camry));
 
         let time_engine = Arc::new(
-            SpeedTraversalEngine::new(&speed_file_path, SpeedUnit::KilometersPerHour, None, None)
-                .unwrap(),
+            SpeedTraversalEngine::new(
+                &speed_file_path,
+                SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours),
+                None,
+                None,
+            )
+            .unwrap(),
         );
         let time_service = SpeedLookupService { e: time_engine };
 
         let service = EnergyModelService::new(
             Arc::new(time_service),
-            SpeedUnit::MilesPerHour,
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             // &speed_file_path,
             &Some(grade_file_path),
-            // SpeedUnit::KilometersPerHour,
+            // SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours),
             GradeUnit::Millis,
             None,
             None,

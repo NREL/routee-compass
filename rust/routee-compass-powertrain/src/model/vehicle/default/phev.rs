@@ -260,7 +260,7 @@ fn get_phev_energy(
 mod tests {
     use super::*;
     use crate::model::prediction::{load_prediction_model, ModelType};
-    use routee_compass_core::model::unit::{AsF64, EnergyRate, EnergyRateUnit};
+    use routee_compass_core::model::unit::{AsF64, EnergyRate, EnergyRateUnit, TimeUnit};
     use std::path::PathBuf;
 
     fn mock_vehicle() -> PHEV {
@@ -288,9 +288,9 @@ mod tests {
             "Chevy_Volt_Charge_Sustaining".to_string(),
             &charge_sustain_model_file_path,
             model_type.clone(),
-            SpeedUnit::MilesPerHour,
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             GradeUnit::Decimal,
-            EnergyRateUnit::GallonsGasolinePerMile,
+            EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
             Some(EnergyRate::from(0.02)),
             Some(1.1252),
             None,
@@ -300,7 +300,7 @@ mod tests {
             "Chevy_Volt_Charge_Depleting".to_string(),
             &charge_depleting_model_file_path,
             model_type.clone(),
-            SpeedUnit::MilesPerHour,
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             GradeUnit::Decimal,
             EnergyRateUnit::KilowattHoursPerMile,
             Some(EnergyRate::from(0.2)),
@@ -332,7 +332,10 @@ mod tests {
         // starting at 100% SOC, we should be able to traverse 1000 meters
         // without using any liquid_fuel
         let distance = (Distance::from(1000.0), DistanceUnit::Meters);
-        let speed = (Speed::from(60.0), SpeedUnit::MilesPerHour);
+        let speed = (
+            Speed::from(60.0),
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+        );
         let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
         vehicle
@@ -378,7 +381,10 @@ mod tests {
 
         // now let's traverse a really long link to deplete the battery
         let distance = (Distance::from(100.0), DistanceUnit::Miles);
-        let speed = (Speed::from(60.0), SpeedUnit::MilesPerHour);
+        let speed = (
+            Speed::from(60.0),
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+        );
         let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
         vehicle

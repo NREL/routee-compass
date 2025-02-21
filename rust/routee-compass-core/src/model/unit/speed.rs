@@ -146,7 +146,10 @@ mod test {
         )
         .unwrap();
         assert_eq!(speed, Speed::ONE);
-        assert_eq!(speed_unit, SpeedUnit::MetersPerSecond);
+        assert_eq!(
+            speed_unit,
+            SpeedUnit(DistanceUnit::Meters, TimeUnit::Seconds)
+        );
     }
 
     #[test]
@@ -157,7 +160,7 @@ mod test {
         )
         .unwrap();
         approx_eq_speed(Speed::ONE, speed, 0.001);
-        assert_eq!(speed_unit, SpeedUnit::MilesPerHour);
+        assert_eq!(speed_unit, SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours));
     }
 
     #[test]
@@ -168,7 +171,10 @@ mod test {
         )
         .unwrap();
         approx_eq_speed(speed, Speed::ONE, 0.001);
-        assert_eq!(speed_unit, SpeedUnit::KilometersPerHour);
+        assert_eq!(
+            speed_unit,
+            SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours)
+        );
     }
 
     #[test]

@@ -177,7 +177,7 @@ impl VehicleType for BEV {
 mod tests {
     use super::*;
     use crate::model::prediction::{load_prediction_model, ModelType};
-    use routee_compass_core::model::unit::{AsF64, EnergyRate, EnergyRateUnit};
+    use routee_compass_core::model::unit::{AsF64, EnergyRate, EnergyRateUnit, TimeUnit};
     use std::path::PathBuf;
 
     fn mock_vehicle(starting_soc_percent: f64) -> BEV {
@@ -199,9 +199,9 @@ mod tests {
                 grade_upper_bound: Grade::from(0.20),
                 grade_bins: 41,
             },
-            SpeedUnit::MilesPerHour,
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             GradeUnit::Decimal,
-            EnergyRateUnit::KilowattHoursPerMile,
+            EnergyRateUnit(EnergyUnit::KilowattHours, DistanceUnit::Miles),
             Some(EnergyRate::from(0.2)),
             Some(1.3958),
             None,
@@ -231,7 +231,10 @@ mod tests {
         // starting at 100% SOC, we should be able to traverse a flat 110 miles at 60 mph
         // and it should use about half of the battery since the EPA range is 238 miles
         let distance = (Distance::from(110.0), DistanceUnit::Miles);
-        let speed = (Speed::from(60.0), SpeedUnit::MilesPerHour);
+        let speed = (
+            Speed::from(60.0),
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+        );
         let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
         vehicle
@@ -266,7 +269,10 @@ mod tests {
         // starting at 20% SOC, going downhill at -5% grade for 10 miles at 55mph, we should be see
         // some regen braking events and should end up with more energy than we started with
         let distance = (Distance::from(10.0), DistanceUnit::Miles);
-        let speed = (Speed::from(55.0), SpeedUnit::MilesPerHour);
+        let speed = (
+            Speed::from(55.0),
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+        );
         let grade = (Grade::from(-5.0), GradeUnit::Percent);
 
         vehicle
@@ -303,7 +309,10 @@ mod tests {
         let mut state = state_model.initial_state().unwrap();
 
         let distance = (Distance::from(10.0), DistanceUnit::Miles);
-        let speed = (Speed::from(55.0), SpeedUnit::MilesPerHour);
+        let speed = (
+            Speed::from(55.0),
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+        );
         let grade = (Grade::from(-5.0), GradeUnit::Percent);
 
         vehicle
@@ -326,7 +335,10 @@ mod tests {
         let mut state = state_model.initial_state().unwrap();
 
         let distance = (Distance::from(100.0), DistanceUnit::Miles);
-        let speed = (Speed::from(55.0), SpeedUnit::MilesPerHour);
+        let speed = (
+            Speed::from(55.0),
+            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+        );
         let grade = (Grade::from(5.0), GradeUnit::Percent);
 
         vehicle

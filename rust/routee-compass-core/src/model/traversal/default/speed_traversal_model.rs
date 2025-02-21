@@ -188,7 +188,7 @@ mod tests {
         let file = filepath();
         let engine = SpeedTraversalEngine::new(
             &file,
-            SpeedUnit::KilometersPerHour,
+            SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours),
             None,
             Some(TimeUnit::Seconds),
         )
@@ -233,7 +233,7 @@ mod tests {
         let file = filepath();
         let engine = SpeedTraversalEngine::new(
             &file,
-            SpeedUnit::KilometersPerHour,
+            SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours),
             None,
             Some(TimeUnit::Milliseconds),
         )
