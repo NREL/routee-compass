@@ -65,7 +65,7 @@ impl Serialize for SpeedUnit {
 impl Convert<Speed> for SpeedUnit {
     fn convert(&self, value: &mut std::borrow::Cow<Speed>, to: &Self) -> Result<(), UnitError> {
         if value.to_f64() <= 0.0 {
-            return Err(UnitError::InvalidSpeed(0.0));
+            return Ok(());
         }
         let (from_du, from_tu) = (self.0, self.1);
         let (to_du, to_tu) = (to.0, to.1);
