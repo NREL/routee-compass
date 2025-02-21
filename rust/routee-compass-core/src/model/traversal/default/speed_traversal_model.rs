@@ -32,7 +32,7 @@ impl TraversalModel for SpeedTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
         let mut distance = Cow::Borrowed(&edge.distance);
-        baseunit::DISTANCE_UNIT.convert(&mut distance, &self.engine.distance_unit);
+        baseunit::DISTANCE_UNIT.convert(&mut distance, &self.engine.distance_unit)?;
         let dist_converted = distance.into_owned();
         let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let (t, tu) = Time::create(
@@ -40,7 +40,7 @@ impl TraversalModel for SpeedTraversalModel {
             (&speed, &self.engine.speed_unit),
         )?;
         let mut edge_time = Cow::Owned(t);
-        tu.convert(&mut edge_time, &self.engine.time_unit);
+        tu.convert(&mut edge_time, &self.engine.time_unit)?;
 
         state_model.add_time(
             state,
@@ -81,7 +81,7 @@ impl TraversalModel for SpeedTraversalModel {
             (&self.engine.max_speed, &self.engine.speed_unit),
         )?;
         let mut edge_time = Cow::Owned(t);
-        tu.convert(&mut edge_time, &self.engine.time_unit);
+        tu.convert(&mut edge_time, &self.engine.time_unit)?;
 
         // let estimated_time = Time::create(
         //     &self.engine.max_speed,

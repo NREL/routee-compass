@@ -68,7 +68,7 @@ impl TraversalModel for EnergyTraversalModel {
                 .energy_model_service
                 .time_model_speed_unit
                 .associated_distance_unit(),
-        );
+        )?;
         let speed_tuple = Speed::from_distance_and_time(
             (
                 &distance_in_energy_model_unit,
@@ -85,7 +85,7 @@ impl TraversalModel for EnergyTraversalModel {
         self.vehicle.consume_energy(
             speed_tuple,
             (grade, self.energy_model_service.grade_table_grade_unit),
-            (edge.distance.clone(), baseunit::DISTANCE_UNIT),
+            (edge.distance, baseunit::DISTANCE_UNIT),
             state,
             state_model,
         )?;

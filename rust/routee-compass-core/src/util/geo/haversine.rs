@@ -23,7 +23,9 @@ pub fn coord_distance(
 ) -> Result<Distance, String> {
     let distance_meters = haversine_distance_meters(src.x, src.y, dst.x, dst.y)?;
     let mut d_cow = Cow::Owned(distance_meters);
-    DistanceUnit::Meters.convert(&mut d_cow, &distance_unit);
+    DistanceUnit::Meters
+        .convert(&mut d_cow, &distance_unit)
+        .map_err(|e| e.to_string())?;
     Ok(d_cow.into_owned())
 }
 

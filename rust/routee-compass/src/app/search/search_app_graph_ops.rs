@@ -42,7 +42,7 @@ impl SearchAppGraphOps for SearchApp {
         let result = match distance_unit {
             Some(du) => {
                 let mut dist_convert = Cow::Owned(result_base);
-                DistanceUnit::Meters.convert(&mut dist_convert, &du);
+                DistanceUnit::Meters.convert(&mut dist_convert, &du).map_err(|e| CompassAppError::InternalError(format!("while getting an edge distance, the internal units conversion library failed with: {}", e)))?;
                 dist_convert.into_owned()
             }
             None => result_base,

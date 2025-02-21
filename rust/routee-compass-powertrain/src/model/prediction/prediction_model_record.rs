@@ -36,7 +36,7 @@ impl PredictionModelRecord {
 
         let energy_rate = match &self.cache {
             Some(cache) => {
-                let key = vec![(&speed).as_f64(), (&grade).as_f64()];
+                let key = vec![speed.as_f64(), grade.as_f64()];
                 match cache.get(&key)? {
                     Some(er) => EnergyRate::from(er),
                     None => {

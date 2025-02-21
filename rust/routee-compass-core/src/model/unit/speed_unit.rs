@@ -89,7 +89,7 @@ impl Convert<Speed> for SpeedUnit {
 
 impl From<(&DistanceUnit, &TimeUnit)> for SpeedUnit {
     fn from(value: (&DistanceUnit, &TimeUnit)) -> Self {
-        Self(value.0.clone(), value.1.clone())
+        Self(*value.0, *value.1)
     }
 }
 

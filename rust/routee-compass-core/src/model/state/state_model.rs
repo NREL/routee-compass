@@ -139,7 +139,7 @@ impl StateModel {
         let feature = self.get_feature(name)?;
         let from_unit = feature.get_distance_unit()?;
 
-        from_unit.convert(&mut v_cow, unit);
+        from_unit.convert(&mut v_cow, unit)?;
         Ok(v_cow.into_owned())
     }
     /// retrieves a state variable that is expected to have a type of Time
@@ -163,7 +163,7 @@ impl StateModel {
         let feature = self.get_feature(name)?;
         let from_unit = feature.get_time_unit()?;
 
-        from_unit.convert(&mut v_cow, unit);
+        from_unit.convert(&mut v_cow, unit)?;
         Ok(v_cow.into_owned())
     }
     /// retrieves a state variable that is expected to have a type of Energy
@@ -187,7 +187,7 @@ impl StateModel {
         let feature = self.get_feature(name)?;
         let from_unit = feature.get_energy_unit()?;
 
-        from_unit.convert(&mut v_cow, unit);
+        from_unit.convert(&mut v_cow, unit)?;
         Ok(v_cow.into_owned())
     }
     /// retrieves a state variable that is expected to have a type of f64.
@@ -356,7 +356,7 @@ impl StateModel {
     ) -> Result<(), StateModelError> {
         let mut dist_cow = Cow::Borrowed(distance);
         let to_unit = self.get_feature(name)?.get_distance_unit()?;
-        from_unit.convert(&mut dist_cow, to_unit);
+        from_unit.convert(&mut dist_cow, to_unit)?;
         self.update_state(
             state,
             name,
@@ -374,7 +374,7 @@ impl StateModel {
     ) -> Result<(), StateModelError> {
         let mut time_mut = Cow::Borrowed(time);
         let to_unit = self.get_feature(name)?.get_time_unit()?;
-        from_unit.convert(&mut time_mut, to_unit);
+        from_unit.convert(&mut time_mut, to_unit)?;
         self.update_state(
             state,
             name,
@@ -392,7 +392,7 @@ impl StateModel {
     ) -> Result<(), StateModelError> {
         let mut energy_mut = Cow::Borrowed(energy);
         let to_unit = self.get_feature(name)?.get_energy_unit()?;
-        from_unit.convert(&mut energy_mut, to_unit);
+        from_unit.convert(&mut energy_mut, to_unit)?;
         self.update_state(
             state,
             name,
@@ -592,7 +592,7 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
                     })?;
                 Ok((feature_name.clone(), feature))
             })
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<Vec<_>, StateModelError>>()?;
         let state_model = StateModel::from(tuples);
         Ok(state_model)
     }

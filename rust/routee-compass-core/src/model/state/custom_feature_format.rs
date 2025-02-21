@@ -31,7 +31,7 @@ pub enum CustomFeatureFormat {
 
 impl Default for CustomFeatureFormat {
     fn default() -> Self {
-        Self::DEFAULT.clone()
+        Self::DEFAULT
     }
 }
 

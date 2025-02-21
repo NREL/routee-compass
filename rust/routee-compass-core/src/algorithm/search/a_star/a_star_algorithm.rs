@@ -26,7 +26,7 @@ pub fn run_vertex_oriented(
     weight_factor: Option<Cost>,
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
-    if target.map_or(false, |t| t == source) {
+    if target == Some(source) {
         return Ok(SearchResult::default());
     }
 

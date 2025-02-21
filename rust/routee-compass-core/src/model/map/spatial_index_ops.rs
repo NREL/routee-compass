@@ -18,7 +18,7 @@ pub fn test_threshold(
     let mut distance_meters = Cow::Owned(
         haversine::coord_distance_meters(&this_coord, &other.0).map_err(MapError::MapMatchError)?,
     );
-    DistanceUnit::Meters.convert(&mut distance_meters, &tolerance_distance_unit);
+    DistanceUnit::Meters.convert(&mut distance_meters, &tolerance_distance_unit)?;
     Ok(distance_meters.into_owned() >= tolerance_distance)
 }
 
@@ -32,7 +32,7 @@ pub fn within_threshold(
     let mut this_distance = Cow::Owned(
         haversine::coord_distance_meters(&this_coord, &other.0).map_err(MapError::MapMatchError)?,
     );
-    DistanceUnit::Meters.convert(&mut this_distance, &tolerance_distance_unit);
+    DistanceUnit::Meters.convert(&mut this_distance, &tolerance_distance_unit)?;
     let this_distance_converted = this_distance.into_owned();
     if this_distance_converted >= tolerance_distance {
         Err(MapError::MapMatchError(

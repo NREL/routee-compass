@@ -74,7 +74,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
         }
     };
     let ideal_energy_rate = match ideal_energy_rate_option {
-        None => find_min_energy_rate(&prediction_model, &energy_rate_unit)?,
+        None => find_min_energy_rate(&prediction_model, speed_unit, grade_unit, &energy_rate_unit)?,
         Some(ier) => ier,
     };
 
@@ -96,6 +96,8 @@ pub fn load_prediction_model<P: AsRef<Path>>(
 /// sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
 pub fn find_min_energy_rate(
     model: &Arc<dyn PredictionModel>,
+    speed_unit: SpeedUnit,
+    grade_unit: GradeUnit,
     energy_model_energy_rate_unit: &EnergyRateUnit,
 ) -> Result<EnergyRate, TraversalModelError> {
     // sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
@@ -107,8 +109,8 @@ pub fn find_min_energy_rate(
         let speed = Speed::from(speed_i32 as f64);
         let (energy_rate, _) = model
             .predict(
-                (speed, SpeedUnit::MilesPerHour),
-                (grade, GradeUnit::Percent),
+                (speed, speed_unit),
+                (grade, grade_unit),
             )
             .map_err(|e| TraversalModelError::BuildError(format!("failure while executing grid search for minimum energy rate in prediction model: {}", e)))?;
         if energy_rate < minimum_energy_rate {

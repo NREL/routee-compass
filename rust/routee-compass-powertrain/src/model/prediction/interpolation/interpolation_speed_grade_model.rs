@@ -28,8 +28,8 @@ impl PredictionModel for InterpolationSpeedGradeModel {
         let mut speed_converted = Cow::Owned(speed);
         let mut grade_converted = Cow::Owned(grade);
 
-        speed_unit.convert(&mut speed_converted, &self.speed_unit);
-        grade_unit.convert(&mut grade_converted, &self.grade_unit);
+        speed_unit.convert(&mut speed_converted, &self.speed_unit)?;
+        grade_unit.convert(&mut grade_converted, &self.grade_unit)?;
 
         // snap incoming speed and grade to the grid
         let (min_speed, max_speed, min_grade, max_grade) = match &self.interpolator {
@@ -63,10 +63,7 @@ impl PredictionModel for InterpolationSpeedGradeModel {
             }
         };
 
-        let speed_value = (&speed_converted.into_owned())
-            .as_f64()
-            .max(min_speed)
-            .min(max_speed);
+        let speed_value = speed_converted.as_f64().max(min_speed).min(max_speed);
         let grade_f64 = grade_converted.into_owned().as_f64();
         let grade_value = grade_f64.max(min_grade).min(max_grade);
 
@@ -113,11 +110,7 @@ impl InterpolationSpeedGradeModel {
         )?;
 
         // Create a linear grid of speed and grade values
-        let speed_values = linspace(
-            (&speed_bounds.0).as_f64(),
-            (&speed_bounds.1).as_f64(),
-            speed_bins,
-        );
+        let speed_values = linspace(speed_bounds.0.as_f64(), speed_bounds.1.as_f64(), speed_bins);
         let grade_values = linspace(grade_bounds.0.as_f64(), grade_bounds.1.as_f64(), grade_bins);
 
         // Predict energy rate values across the whole grid

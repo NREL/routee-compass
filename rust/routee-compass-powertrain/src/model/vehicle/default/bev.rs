@@ -122,7 +122,7 @@ impl VehicleType for BEV {
             .prediction_model_record
             .predict(speed, grade, distance)?;
         let mut battery_delta = Cow::Owned(predicted_energy);
-        energy_unit.convert(&mut battery_delta, &self.battery_energy_unit);
+        energy_unit.convert(&mut battery_delta, &self.battery_energy_unit)?;
         state_model.add_energy(
             state,
             &BEV::ENERGY_FEATURE_NAME.into(),

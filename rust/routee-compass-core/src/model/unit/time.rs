@@ -88,7 +88,7 @@ impl Time {
         let (d, du) = distance;
         let (s, su) = speed;
         let mut d_su = Cow::Borrowed(d);
-        du.convert(&mut d_su, &su.associated_distance_unit());
+        du.convert(&mut d_su, &su.associated_distance_unit())?;
 
         if s <= &Speed::ZERO || d <= &Distance::ZERO {
             Err(UnitError::TimeFromSpeedAndDistanceError(*s, *su, *d, *du))

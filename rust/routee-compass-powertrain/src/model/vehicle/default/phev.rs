@@ -153,7 +153,7 @@ impl VehicleType for PHEV {
             &liq_unit,
         )?;
         let mut delta = Cow::Owned(elec_energy);
-        elec_unit.convert(&mut delta, &self.battery_energy_unit);
+        elec_unit.convert(&mut delta, &self.battery_energy_unit)?;
         vehicle_ops::update_soc_percent(
             state,
             PHEV::SOC_FEATURE_NAME,
