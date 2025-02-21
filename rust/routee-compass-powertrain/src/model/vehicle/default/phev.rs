@@ -302,7 +302,7 @@ mod tests {
             model_type.clone(),
             SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             GradeUnit::Decimal,
-            EnergyRateUnit::KilowattHoursPerMile,
+            EnergyRateUnit(EnergyUnit::KilowattHours, DistanceUnit::Miles),
             Some(EnergyRate::from(0.2)),
             Some(1.3958),
             None,
