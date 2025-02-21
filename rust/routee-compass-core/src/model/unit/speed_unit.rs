@@ -1,5 +1,5 @@
 use super::{baseunit, AsF64, Convert, Distance, DistanceUnit, Speed, Time, TimeUnit, UnitError};
-use crate::util::serde::serde_ops::string_deserialize;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, str::FromStr};
 
@@ -15,10 +15,32 @@ impl std::fmt::Display for SpeedUnit {
 }
 
 impl FromStr for SpeedUnit {
-    type Err = serde_json::Error;
+    type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        string_deserialize(s)
+        match s.split("/").collect_vec()[..] {
+            [du_str, tu_str] => {
+                let du = DistanceUnit::from_str(du_str).map_err(|e| {
+                    format!(
+                        "speed unit has invalid distance unit value '{}', error: {}",
+                        du_str, e
+                    )
+                })?;
+                let tu = TimeUnit::from_str(du_str).map_err(|e| {
+                    format!(
+                        "speed unit has invalid time unit value '{}', error: {}",
+                        tu_str, e
+                    )
+                })?;
+                Ok(SpeedUnit(du, tu))
+            }
+            ["mph"] => Ok(SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours)),
+            ["kph"] => Ok(SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours)),
+            _ => Err(format!(
+                "expected speed unit as 'kph', 'mph', or in the format '<distance unit>/<time unit>', found: {}",
+                s
+            )),
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 use super::{baseunit, Convert, Energy, UnitError};
-use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
+use crate::model::unit::AsF64;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -76,9 +76,17 @@ impl std::fmt::Display for EnergyUnit {
 }
 
 impl FromStr for EnergyUnit {
-    type Err = serde_json::Error;
+    type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        string_deserialize(s)
+        use EnergyUnit as E;
+        match s.trim().to_lowercase().replace("_", " ").as_str() {
+            "gallons gasoline" | "gas" => Ok(E::GallonsGasoline),
+            "gallons diesel" | "diesel" => Ok(E::GallonsDiesel),
+            "kilowathours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
+            "liters gasoline" => Ok(E::LitersGasoline),
+            "liters diesel" => Ok(E::LitersDiesel),
+            _ => Err(format!("unknown energy unit '{}'", s)),
+        }
     }
 }

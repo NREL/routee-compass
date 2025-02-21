@@ -1,5 +1,5 @@
 use super::{baseunit, Convert, Distance, UnitError};
-use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
+use crate::model::unit::AsF64;
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, str::FromStr};
 
@@ -66,10 +66,18 @@ impl std::fmt::Display for DistanceUnit {
 }
 
 impl FromStr for DistanceUnit {
-    type Err = serde_json::Error;
+    type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        string_deserialize(s)
+        use DistanceUnit as D;
+        match s.trim().to_lowercase().as_str() {
+            "meters" | "meter" => Ok(D::Meters),
+            "km" | "kilometers" | "kilometer" => Ok(D::Kilometers),
+            "miles" | "mile" => Ok(D::Miles),
+            "inches" | "inch" | "in" => Ok(D::Inches),
+            "feet" | "ft" => Ok(D::Feet),
+            _ => Err(format!("unknown distance unit '{}'", s)),
+        }
     }
 }
 
