@@ -221,7 +221,7 @@ mod tests {
             ModelType::Smartcore,
             SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             GradeUnit::Decimal,
-            EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
+            EnergyRateUnit(DistanceUnit::Miles, EnergyUnit::GallonsGasoline),
             None,
             None,
             None,

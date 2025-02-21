@@ -201,7 +201,7 @@ mod tests {
             },
             SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             GradeUnit::Decimal,
-            EnergyRateUnit(EnergyUnit::KilowattHours, DistanceUnit::Miles),
+            EnergyRateUnit(DistanceUnit::Miles, EnergyUnit::KilowattHours),
             Some(EnergyRate::from(0.2)),
             Some(1.3958),
             None,

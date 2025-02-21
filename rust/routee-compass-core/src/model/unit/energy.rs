@@ -122,7 +122,7 @@ mod tests {
             (&Distance::from(1609.0), &DistanceUnit::Meters),
             (
                 &EnergyRate::from(ten_mpg_rate),
-                &EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
+                &EnergyRateUnit(DistanceUnit::Miles, EnergyUnit::GallonsGasoline),
             ),
         )
         .unwrap();
@@ -137,7 +137,7 @@ mod tests {
             (&Distance::from(1.0), &DistanceUnit::Miles),
             (
                 &EnergyRate::from(ten_mpg_rate),
-                &EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
+                &EnergyRateUnit(DistanceUnit::Miles, EnergyUnit::GallonsGasoline),
             ),
         )
         .unwrap();
