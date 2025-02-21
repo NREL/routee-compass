@@ -1,9 +1,9 @@
 use super::{DistanceUnit, EnergyUnit};
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Copy)]
+#[derive(Debug, Clone, Eq, PartialEq, Copy)]
 pub struct EnergyRateUnit(pub EnergyUnit, pub DistanceUnit);
 
 impl EnergyRateUnit {
@@ -49,5 +49,24 @@ impl FromStr for EnergyRateUnit {
                 s
             )),
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for EnergyRateUnit {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        FromStr::from_str(&s).map_err(serde::de::Error::custom)
+    }
+}
+
+impl Serialize for EnergyRateUnit {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.collect_str(&self.to_string())
     }
 }

@@ -1,10 +1,9 @@
 use super::{baseunit, AsF64, Convert, Distance, DistanceUnit, Speed, Time, TimeUnit, UnitError};
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::{borrow::Cow, str::FromStr};
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct SpeedUnit(pub DistanceUnit, pub TimeUnit);
 
 impl std::fmt::Display for SpeedUnit {
@@ -41,6 +40,25 @@ impl FromStr for SpeedUnit {
                 s
             )),
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for SpeedUnit {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        FromStr::from_str(&s).map_err(serde::de::Error::custom)
+    }
+}
+
+impl Serialize for SpeedUnit {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.collect_str(&self.to_string())
     }
 }
 
