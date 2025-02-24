@@ -184,7 +184,7 @@ mod test {
             GradeUnit::Decimal,
             (Grade::from(-0.20), Grade::from(0.20)),
             41,
-            EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
+            EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
         )
         .unwrap();
 
@@ -194,7 +194,7 @@ mod test {
             ModelType::Smartcore,
             SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
             GradeUnit::Decimal,
-            EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
+            EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
             None,
             None,
             None,
@@ -245,7 +245,7 @@ mod test {
 
         assert_eq!(
             energy_rate_unit,
-            EnergyRateUnit(EnergyUnit::GallonsGasoline, DistanceUnit::Miles)
+            EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles)
         );
 
         // energy rate should be between 28-32 mpg
