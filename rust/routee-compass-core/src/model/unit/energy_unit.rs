@@ -6,10 +6,15 @@ use std::str::FromStr;
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum EnergyUnit {
+    /// US Gallons of gasoline fuel
     GallonsGasoline,
+    /// US Gallons of diesel fuel
     GallonsDiesel,
+    /// electric fuel
     KilowattHours,
+    /// SI liters of gasoline fuel
     LitersGasoline,
+    /// SI liters of diesel fuel
     LitersDiesel,
 }
 
