@@ -3,6 +3,7 @@ use super::{
     custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
     state_model_error::StateModelError, update_operation::UpdateOperation,
 };
+use crate::model::unit::Convert;
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::{
     model::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
@@ -10,6 +11,7 @@ use crate::{
 };
 use itertools::Itertools;
 use serde_json::json;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::iter::Enumerate;
 
@@ -132,10 +134,13 @@ impl StateModel {
         name: &String,
         unit: &DistanceUnit,
     ) -> Result<Distance, StateModelError> {
-        let value = self.get_state_variable(state, name)?;
+        let value: Distance = self.get_state_variable(state, name)?.into();
+        let mut v_cow = Cow::Owned(value);
         let feature = self.get_feature(name)?;
-        let result = feature.get_distance_unit()?.convert(&value.into(), unit);
-        Ok(result)
+        let from_unit = feature.get_distance_unit()?;
+
+        from_unit.convert(&mut v_cow, unit)?;
+        Ok(v_cow.into_owned())
     }
     /// retrieves a state variable that is expected to have a type of Time
     ///
@@ -153,10 +158,13 @@ impl StateModel {
         name: &String,
         unit: &TimeUnit,
     ) -> Result<Time, StateModelError> {
-        let value = self.get_state_variable(state, name)?;
+        let value: Time = self.get_state_variable(state, name)?.into();
+        let mut v_cow = Cow::Owned(value);
         let feature = self.get_feature(name)?;
-        let result = feature.get_time_unit()?.convert(&value.into(), unit);
-        Ok(result)
+        let from_unit = feature.get_time_unit()?;
+
+        from_unit.convert(&mut v_cow, unit)?;
+        Ok(v_cow.into_owned())
     }
     /// retrieves a state variable that is expected to have a type of Energy
     ///
@@ -174,10 +182,13 @@ impl StateModel {
         name: &String,
         unit: &EnergyUnit,
     ) -> Result<Energy, StateModelError> {
-        let value = self.get_state_variable(state, name)?;
+        let value: Energy = self.get_state_variable(state, name)?.into();
+        let mut v_cow = Cow::Owned(value);
         let feature = self.get_feature(name)?;
-        let result = feature.get_energy_unit()?.convert(&value.into(), unit);
-        Ok(result)
+        let from_unit = feature.get_energy_unit()?;
+
+        from_unit.convert(&mut v_cow, unit)?;
+        Ok(v_cow.into_owned())
     }
     /// retrieves a state variable that is expected to have a type of f64.
     ///
@@ -194,7 +205,7 @@ impl StateModel {
         name: &String,
     ) -> Result<f64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
-        let result = format.decode_f64(&value)?;
+        let result = format.decode_f64(value)?;
         Ok(result)
     }
     /// retrieves a state variable that is expected to have a type of i64.
@@ -212,7 +223,7 @@ impl StateModel {
         name: &String,
     ) -> Result<i64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
-        let result = format.decode_i64(&value)?;
+        let result = format.decode_i64(value)?;
         Ok(result)
     }
     /// retrieves a state variable that is expected to have a type of u64.
@@ -230,7 +241,7 @@ impl StateModel {
         name: &String,
     ) -> Result<u64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
-        let result = format.decode_u64(&value)?;
+        let result = format.decode_u64(value)?;
         Ok(result)
     }
     /// retrieves a state variable that is expected to have a type of bool.
@@ -248,7 +259,7 @@ impl StateModel {
         name: &String,
     ) -> Result<bool, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
-        let result = format.decode_bool(&value)?;
+        let result = format.decode_bool(value)?;
         Ok(result)
     }
 
@@ -263,11 +274,11 @@ impl StateModel {
     /// # Returns
     ///
     /// the expected value as a state variable (not decoded) or an error
-    fn get_custom_state_variable(
+    fn get_custom_state_variable<'a>(
         &self,
-        state: &[StateVariable],
+        state: &'a [StateVariable],
         name: &String,
-    ) -> Result<(StateVariable, &CustomFeatureFormat), StateModelError> {
+    ) -> Result<(&'a StateVariable, &CustomFeatureFormat), StateModelError> {
         let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
@@ -284,16 +295,17 @@ impl StateModel {
     ///
     /// # Result
     ///
-    /// the delta between states for this variable, or an error
-    pub fn get_delta(
+    /// the delta between states for this variable in the state model unit, or an error
+    pub fn get_delta<T: From<StateVariable>>(
         &self,
         prev: &[StateVariable],
         next: &[StateVariable],
         name: &String,
-    ) -> Result<StateVariable, StateModelError> {
+    ) -> Result<T, StateModelError> {
         let prev_val = self.get_state_variable(prev, name)?;
         let next_val = self.get_state_variable(next, name)?;
-        Ok(next_val - prev_val)
+        let delta = *next_val - *prev_val;
+        Ok(delta.into())
     }
 
     /// adds a distance value with distance unit to this feature vector
@@ -342,10 +354,15 @@ impl StateModel {
         distance: &Distance,
         from_unit: &DistanceUnit,
     ) -> Result<(), StateModelError> {
-        let feature = self.get_feature(name)?;
-        let to_unit = feature.get_distance_unit()?;
-        let value = from_unit.convert(distance, &to_unit);
-        self.update_state(state, name, &value.into(), UpdateOperation::Replace)
+        let mut dist_cow = Cow::Borrowed(distance);
+        let to_unit = self.get_feature(name)?.get_distance_unit()?;
+        from_unit.convert(&mut dist_cow, to_unit)?;
+        self.update_state(
+            state,
+            name,
+            &dist_cow.into_owned().into(),
+            UpdateOperation::Replace,
+        )
     }
 
     pub fn set_time(
@@ -355,10 +372,15 @@ impl StateModel {
         time: &Time,
         from_unit: &TimeUnit,
     ) -> Result<(), StateModelError> {
-        let feature = self.get_feature(name)?;
-        let to_unit = feature.get_time_unit()?;
-        let value = from_unit.convert(time, &to_unit);
-        self.update_state(state, name, &value.into(), UpdateOperation::Replace)
+        let mut time_mut = Cow::Borrowed(time);
+        let to_unit = self.get_feature(name)?.get_time_unit()?;
+        from_unit.convert(&mut time_mut, to_unit)?;
+        self.update_state(
+            state,
+            name,
+            &time_mut.into_owned().into(),
+            UpdateOperation::Replace,
+        )
     }
 
     pub fn set_energy(
@@ -368,10 +390,15 @@ impl StateModel {
         energy: &Energy,
         from_unit: &EnergyUnit,
     ) -> Result<(), StateModelError> {
-        let feature = self.get_feature(name)?;
-        let to_unit = feature.get_energy_unit()?;
-        let value = from_unit.convert(energy, &to_unit);
-        self.update_state(state, name, &value.into(), UpdateOperation::Replace)
+        let mut energy_mut = Cow::Borrowed(energy);
+        let to_unit = self.get_feature(name)?.get_energy_unit()?;
+        from_unit.convert(&mut energy_mut, to_unit)?;
+        self.update_state(
+            state,
+            name,
+            &energy_mut.into_owned().into(),
+            UpdateOperation::Replace,
+        )
     }
 
     pub fn set_custom_f64(
@@ -467,11 +494,11 @@ impl StateModel {
     }
 
     /// gets a state variable from a state vector by name
-    fn get_state_variable(
+    fn get_state_variable<'a>(
         &self,
-        state: &[StateVariable],
+        state: &'a [StateVariable],
         name: &String,
-    ) -> Result<StateVariable, StateModelError> {
+    ) -> Result<&'a StateVariable, StateModelError> {
         let idx = self.0.get_index(name).ok_or_else(|| {
             StateModelError::UnknownStateVariableName(name.clone(), self.get_names())
         })?;
@@ -483,7 +510,7 @@ impl StateModel {
                 state.len()
             ))
         })?;
-        Ok(*value)
+        Ok(value)
     }
 
     fn update_state(
@@ -565,7 +592,7 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
                     })?;
                 Ok((feature_name.clone(), feature))
             })
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<Vec<_>, StateModelError>>()?;
         let state_model = StateModel::from(tuples);
         Ok(state_model)
     }

@@ -16,7 +16,7 @@ matching_type = ["point", "vertex_id", "edge_id"]
 [traversal]
 type = "speed_table"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-speed_unit = "kilometers_per_hour"
+speed_unit = "kph"
 distance_unit = "miles"
 time_unit = "minutes"
 

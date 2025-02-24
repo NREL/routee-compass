@@ -27,7 +27,7 @@ An example traversal model configuration that uses this crate may look like this
 [traversal]
 type = "energy_model"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-speed_table_speed_unit = "kilometers_per_hour"
+speed_table_speed_unit = "kph"
 output_time_unit = "minutes"
 output_distance_unit = "miles"
 
@@ -36,9 +36,9 @@ name = "2012_Ford_Focus"
 type = "single_fuel"
 model_input_file = "models/2012_Ford_Focus.bin"
 model_type = "smartcore"
-speed_unit = "miles_per_hour"
+speed_unit = "mph"
 grade_unit = "decimal"
-energy_rate_unit = "gallons_gasoline_per_mile"
+energy_rate_unit = "gallons gasoline/mile"
 ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
 ```

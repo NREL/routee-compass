@@ -36,7 +36,7 @@ matching_type = "point"
 [traversal]
 type = "energy_model"
 # the units of the speed table
-time_model_speed_unit = "kilometers_per_hour"
+time_model_speed_unit = "kph"
 # the file that has grades for each edge in the graph
 grade_table_input_file = "edges-grade-enumerated.txt.gz"
 # the units of the grade table
@@ -52,7 +52,7 @@ type = "speed_table"
 # the file that has speeds for each edge in the graph
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 # the units of the speed table
-speed_unit = "kilometers_per_hour"
+speed_unit = "kph"
 
 # the internal units of the speed table
 distance_unit = "miles"
@@ -71,11 +71,11 @@ type = "ice"
 # the file for the routee-powertrain model
 model_input_file = "models/2012_Ford_Focus.bin"
 # the units of what the routee-powertrain model expects speed to be in
-speed_unit = "miles_per_hour"
+speed_unit = "mph"
 # the units of what the routee-powertrain model expects grade to be in
 grade_unit = "decimal"
 # the units of what the routee-powertrain model outputs for energy
-energy_rate_unit = "gallons_gasoline_per_mile"
+energy_rate_unit = "gallons gasoline/mile"
 # the "best case" energy rate for this particular vehicle (something like highway mpg) that's used in the a-star algorithm
 ideal_energy_rate = 0.02857143
 # A real world adjustment factor for things like temperature and auxillary loads
@@ -241,7 +241,7 @@ The speed table traversal model uses a speed lookup table to compute the fastest
 [traversal]
 type = "speed_table"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-speed_unit = "kilometers_per_hour"
+speed_unit = "kph"
 distance_unit = "miles"
 time_unit = "minutes"
 ```
@@ -254,7 +254,7 @@ The energy model computes energy (with a routee-powertrain vehicle model) and sp
 [traversal]
 type = "energy_model"
 # the units of the speed table
-time_model_speed_unit = "kilometers_per_hour"
+time_model_speed_unit = "kph"
 # the file that has grades for each edge in the graph
 grade_table_input_file = "edges-grade-enumerated.txt.gz"
 # the units of the grade table
@@ -270,7 +270,7 @@ type = "speed_table"
 # the file that has speeds for each edge in the graph
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 # the units of the speed table
-speed_unit = "kilometers_per_hour"
+speed_unit = "kph"
 
 # the internal units of the speed table
 distance_unit = "miles"
@@ -289,11 +289,11 @@ type = "ice"
 # the file for the routee-powertrain model
 model_input_file = "models/2012_Ford_Focus.bin"
 # the units of what the routee-powertrain model expects speed to be in
-speed_unit = "miles_per_hour"
+speed_unit = "mph"
 # the units of what the routee-powertrain model expects grade to be in
 grade_unit = "decimal"
 # the units of what the routee-powertrain model outputs for energy
-energy_rate_unit = "gallons_gasoline_per_mile"
+energy_rate_unit = "gallons gasoline/mile"
 # the "best case" energy rate for this particular vehicle (something like highway mpg) that's used in the a-star algorithm
 ideal_energy_rate = 0.02857143
 # A real world adjustment factor for things like temperature and auxillary loads

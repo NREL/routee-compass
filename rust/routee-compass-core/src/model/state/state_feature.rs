@@ -1,10 +1,9 @@
-use std::fmt::Display;
-
 use super::{
     custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError, StateVariable,
 };
 use crate::model::unit;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 /// a state variable unit tracks the domain of a StateVar in a
 /// state vector. if the value represents quantity in distance,
@@ -186,14 +185,14 @@ impl StateFeature {
     /// for domains outside of the real number plane.
     /// this is a helper function to support generic use of the codec,
     /// regardless of unit type.
-    pub fn get_feature_format(&self) -> CustomFeatureFormat {
+    pub fn get_feature_format(&self) -> &CustomFeatureFormat {
         match self {
             StateFeature::Custom {
                 r#type: _,
                 unit: _,
                 format,
-            } => *format,
-            _ => CustomFeatureFormat::default(),
+            } => format,
+            _ => &CustomFeatureFormat::DEFAULT,
         }
     }
 
@@ -219,12 +218,12 @@ impl StateFeature {
         }
     }
 
-    pub fn get_distance_unit(&self) -> Result<unit::DistanceUnit, StateModelError> {
+    pub fn get_distance_unit(&self) -> Result<&unit::DistanceUnit, StateModelError> {
         match self {
             StateFeature::Distance {
-                distance_unit: unit,
+                distance_unit,
                 initial: _,
-            } => Ok(*unit),
+            } => Ok(distance_unit),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("distance"),
                 self.get_feature_type(),
@@ -232,12 +231,12 @@ impl StateFeature {
         }
     }
 
-    pub fn get_time_unit(&self) -> Result<unit::TimeUnit, StateModelError> {
+    pub fn get_time_unit(&self) -> Result<&unit::TimeUnit, StateModelError> {
         match self {
             StateFeature::Time {
-                time_unit: unit,
+                time_unit,
                 initial: _,
-            } => Ok(*unit),
+            } => Ok(time_unit),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("time"),
                 self.get_feature_type(),
@@ -245,12 +244,12 @@ impl StateFeature {
         }
     }
 
-    pub fn get_energy_unit(&self) -> Result<unit::EnergyUnit, StateModelError> {
+    pub fn get_energy_unit(&self) -> Result<&unit::EnergyUnit, StateModelError> {
         match self {
             StateFeature::Energy {
                 energy_unit,
                 initial: _,
-            } => Ok(*energy_unit),
+            } => Ok(energy_unit),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("energy"),
                 self.get_feature_type(),

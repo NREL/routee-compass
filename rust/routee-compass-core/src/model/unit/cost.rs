@@ -70,8 +70,8 @@ impl Cost {
     }
 }
 
-impl From<Distance> for Cost {
-    fn from(value: Distance) -> Self {
+impl From<&Distance> for Cost {
+    fn from(value: &Distance) -> Self {
         Cost::new(value.as_f64())
     }
 }
@@ -85,8 +85,8 @@ impl From<Energy> for Cost {
         Cost::new(value.as_f64())
     }
 }
-impl From<Speed> for Cost {
-    fn from(value: Speed) -> Self {
+impl From<&Speed> for Cost {
+    fn from(value: &Speed) -> Self {
         Cost::new(value.as_f64())
     }
 }

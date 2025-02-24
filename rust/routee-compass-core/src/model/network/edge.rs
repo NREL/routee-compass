@@ -20,7 +20,7 @@ impl Edge {
             edge_id: EdgeId(edge_id),
             src_vertex_id: VertexId(src_vertex_id),
             dst_vertex_id: VertexId(dst_vertex_id),
-            distance: Distance::new(distance),
+            distance: Distance::from(distance),
         }
     }
 }

@@ -1,9 +1,8 @@
+use super::{map_json_key::MapJsonKey, matching_type::MatchingType};
 use crate::model::{
     network::EdgeId,
-    unit::{Distance, DistanceUnit},
+    unit::{Distance, DistanceUnit, UnitError},
 };
-
-use super::{map_json_key::MapJsonKey, matching_type::MatchingType};
 
 #[derive(thiserror::Error, Debug)]
 pub enum MapError {
@@ -25,6 +24,11 @@ pub enum MapError {
     InputMissingPairedField(MapJsonKey, MapJsonKey),
     #[error("failure re-projecting geometry: {error} original: {geometry}")]
     ProjectionError { geometry: String, error: String },
+    #[error("failure running map model due to numeric units: {source}")]
+    UnitsFailure {
+        #[from]
+        source: UnitError,
+    },
     #[error("result not found within distance threshold of {1}/{2}: {0}")]
     DistanceThresholdError(String, Distance, DistanceUnit),
     #[error("{0}")]
