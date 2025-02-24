@@ -64,7 +64,7 @@ impl Serialize for SpeedUnit {
 
 impl Convert<Speed> for SpeedUnit {
     fn convert(&self, value: &mut std::borrow::Cow<Speed>, to: &Self) -> Result<(), UnitError> {
-        if value.to_f64() <= 0.0 {
+        if value.as_f64() <= 0.0 {
             return Ok(());
         }
         let (from_du, from_tu) = (self.0, self.1);
@@ -73,7 +73,7 @@ impl Convert<Speed> for SpeedUnit {
             return Ok(());
         }
 
-        let mut dist_convert = Cow::Owned(Distance::from(value.to_f64()));
+        let mut dist_convert = Cow::Owned(Distance::from(value.as_f64()));
         let mut time_convert = Cow::Owned(Time::ONE);
         from_du.convert(&mut dist_convert, &to_du)?;
         from_tu.convert(&mut time_convert, &to_tu)?;
@@ -162,8 +162,8 @@ mod test {
 
     fn assert_approx_eq(a: Speed, b: Speed, error: f64) {
         let result = match (a, b) {
-            (c, d) if c < d => (d - c).to_f64() < error,
-            (c, d) if c > d => (c - d).to_f64() < error,
+            (c, d) if c < d => (d - c).as_f64() < error,
+            (c, d) if c > d => (c - d).as_f64() < error,
             (_, _) => true,
         };
         assert!(

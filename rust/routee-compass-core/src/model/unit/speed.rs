@@ -104,9 +104,6 @@ impl Speed {
         let mut s = Cow::Borrowed(self);
         current_speed_unit.convert_to_base(&mut s)
     }
-    pub fn to_f64(&self) -> f64 {
-        (self.0).0
-    }
     pub const ZERO: Speed = Speed(InternalFloat::ZERO);
     pub const ONE: Speed = Speed(InternalFloat::ONE);
 }
