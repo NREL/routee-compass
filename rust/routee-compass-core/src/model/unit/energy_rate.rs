@@ -3,7 +3,10 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display};
 
-use super::{internal_float::InternalFloat, AsF64};
+use super::{
+    internal_float::InternalFloat, AsF64, Distance, DistanceUnit, Energy, EnergyRateUnit,
+    EnergyUnit,
+};
 
 #[derive(
     Copy,
@@ -24,6 +27,26 @@ use super::{internal_float::InternalFloat, AsF64};
     Allocative,
 )]
 pub struct EnergyRate(pub InternalFloat);
+
+impl EnergyRate {
+    pub fn from_energy_and_distance(
+        e: (&Energy, &EnergyUnit),
+        d: (&Distance, &DistanceUnit),
+        energy_per_distance_format: bool,
+    ) -> (EnergyRate, EnergyRateUnit) {
+        let (energy, eu) = e;
+        let (distance, du) = d;
+        if energy_per_distance_format {
+            let er = EnergyRate::from(energy.as_f64() / distance.as_f64());
+            let eru = EnergyRateUnit::EnergyPerDistance(*eu, *du);
+            (er, eru)
+        } else {
+            let er = EnergyRate::from(distance.as_f64() / energy.as_f64());
+            let eru = EnergyRateUnit::DistancePerEnergy(*du, *eu);
+            (er, eru)
+        }
+    }
+}
 
 impl From<f64> for EnergyRate {
     fn from(value: f64) -> Self {

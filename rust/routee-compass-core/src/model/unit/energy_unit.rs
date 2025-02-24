@@ -24,39 +24,39 @@ impl Convert<Energy> for EnergyUnit {
         let conversion_factor = match (self, to) {
             (S::GallonsGasoline, S::GallonsGasoline) => None,
             (S::GallonsGasoline, S::KilowattHours) => Some(32.26),
-            (S::GallonsGasoline, S::LitersGasoline) => Some(3.785),
+            (S::GallonsGasoline, S::LitersGasoline) => Some(3.78541),
             // GG->LD: GG -> GD -> LD
-            (S::GallonsGasoline, S::LitersDiesel) => Some(0.866 * 3.785),
+            (S::GallonsGasoline, S::LitersDiesel) => Some(0.866 * 3.78541),
             (S::KilowattHours, S::GallonsGasoline) => Some(0.031),
             (S::KilowattHours, S::KilowattHours) => None,
             // KWH->LG: KWH -> GG -> LG
-            (S::KilowattHours, S::LitersGasoline) => Some(0.031 * 3.785),
+            (S::KilowattHours, S::LitersGasoline) => Some(0.031 * 3.78541),
             // KWH->LD: KWH -> GD -> LD
-            (S::KilowattHours, S::LitersDiesel) => Some(0.02457 * 3.785),
+            (S::KilowattHours, S::LitersDiesel) => Some(0.02457 * 3.78541),
             (S::GallonsDiesel, S::GallonsDiesel) => None,
             (S::GallonsDiesel, S::KilowattHours) => Some(40.7),
             // GD->LG: GD -> GG -> LG
-            (S::GallonsDiesel, S::LitersGasoline) => Some(1.155 * 3.785),
-            (S::GallonsDiesel, S::LitersDiesel) => Some(3.785),
+            (S::GallonsDiesel, S::LitersGasoline) => Some(1.155 * 3.78541),
+            (S::GallonsDiesel, S::LitersDiesel) => Some(3.78541),
             (S::KilowattHours, S::GallonsDiesel) => Some(0.02457),
             (S::GallonsDiesel, S::GallonsGasoline) => Some(1.155),
             (S::GallonsGasoline, S::GallonsDiesel) => Some(0.866),
             (S::LitersGasoline, S::LitersGasoline) => None,
             // LG->LD: LG -> GG -> GD -> LD
             (S::LitersGasoline, S::LitersDiesel) => Some(0.866),
-            (S::LitersGasoline, S::GallonsGasoline) => Some(0.264),
+            (S::LitersGasoline, S::GallonsGasoline) => Some(0.264172),
             // LG->GD: LG -> LD -> GD
-            (S::LitersGasoline, S::GallonsDiesel) => Some(0.264 * 0.866),
+            (S::LitersGasoline, S::GallonsDiesel) => Some(0.264172 * 0.866),
             // LG->KWH: LG -> GG -> KWH
-            (S::LitersGasoline, S::KilowattHours) => Some(0.264 * 32.26),
+            (S::LitersGasoline, S::KilowattHours) => Some(0.264172 * 32.26),
             (S::LitersDiesel, S::LitersDiesel) => None,
             // LD->LG: LD -> GD -> GG -> LG
             (S::LitersDiesel, S::LitersGasoline) => Some(1.155),
             // LD->GG: LD -> LG -> GG
-            (S::LitersDiesel, S::GallonsGasoline) => Some(0.264 * 1.155),
-            (S::LitersDiesel, S::GallonsDiesel) => Some(0.264),
+            (S::LitersDiesel, S::GallonsGasoline) => Some(0.264172 * 1.155),
+            (S::LitersDiesel, S::GallonsDiesel) => Some(0.264172),
             // LD->KWH: LD -> GD -> KWH
-            (S::LitersDiesel, S::KilowattHours) => Some(0.264 * 40.7),
+            (S::LitersDiesel, S::KilowattHours) => Some(0.264172 * 40.7),
         };
         if let Some(factor) = conversion_factor {
             let updated = Energy::from(value.as_ref().as_f64() * factor);
