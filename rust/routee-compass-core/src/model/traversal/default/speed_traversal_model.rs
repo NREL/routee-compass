@@ -5,18 +5,34 @@ use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::{Distance, Time, BASE_DISTANCE_UNIT};
+use crate::model::unit::{Distance, SpeedUnit, Time, BASE_DISTANCE_UNIT};
 use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
 use crate::util::geo::haversine;
 use std::sync::Arc;
 
 pub struct SpeedTraversalModel {
     engine: Arc<SpeedTraversalEngine>,
+
+    max_speed: Option<Speed>, // max speed is converted to the speed unit of the engine
 }
 
 impl SpeedTraversalModel {
-    pub fn new(engine: Arc<SpeedTraversalEngine>) -> SpeedTraversalModel {
-        SpeedTraversalModel { engine }
+    pub fn new(
+        engine: Arc<SpeedTraversalEngine>,
+        max_speed: Option<(Speed, SpeedUnit)>,
+    ) -> SpeedTraversalModel {
+        if let Some((max_speed, max_speed_unit)) = max_speed {
+            let converted_speed = max_speed_unit.convert(&max_speed, &engine.speed_unit);
+            return SpeedTraversalModel {
+                engine,
+                max_speed: Some(converted_speed),
+            };
+        }
+
+        SpeedTraversalModel {
+            engine,
+            max_speed: None,
+        }
     }
     const DISTANCE: &'static str = "distance";
     const TIME: &'static str = "time";
@@ -32,6 +48,18 @@ impl TraversalModel for SpeedTraversalModel {
         let (_, edge, _) = trajectory;
         let distance = BASE_DISTANCE_UNIT.convert(&edge.distance, &self.engine.distance_unit);
         let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
+
+        let speed = match self.max_speed {
+            Some(max_speed) => {
+                if speed > max_speed {
+                    max_speed
+                } else {
+                    speed
+                }
+            }
+            None => speed,
+        };
+
         let edge_time = Time::create(
             &speed,
             &self.engine.speed_unit,
@@ -205,7 +233,7 @@ mod tests {
                 ])
                 .unwrap(),
         );
-        let model: SpeedTraversalModel = SpeedTraversalModel::new(Arc::new(engine));
+        let model: SpeedTraversalModel = SpeedTraversalModel::new(Arc::new(engine), None);
         let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
@@ -250,7 +278,7 @@ mod tests {
                 ])
                 .unwrap(),
         );
-        let model = SpeedTraversalModel::new(Arc::new(engine));
+        let model = SpeedTraversalModel::new(Arc::new(engine), None);
         let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
