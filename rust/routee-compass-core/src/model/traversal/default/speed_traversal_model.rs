@@ -372,4 +372,74 @@ mod tests {
         // Verify that time with limit is about double the time without limit
         approx_eq(time_with_limit / time_without_limit, 2.0, 0.001);
     }
+    #[test]
+    fn test_speed_limit_unit_conversion() {
+        let file = filepath();
+
+        // Create engine with kilometers per hour as its speed unit
+        let engine = Arc::new(
+            SpeedTraversalEngine::new(
+                &file,
+                SpeedUnit::KilometersPerHour,
+                None,
+                Some(TimeUnit::Seconds),
+            )
+            .unwrap(),
+        );
+
+        // Set speed limit in miles per hour (5 mph ≈ 8 kph)
+        let speed_limit_mph = Some((Speed::new(5.0), SpeedUnit::MilesPerHour));
+
+        // Create a model with the speed limit in mph
+        let model_mph_limit = SpeedTraversalModel::new(engine.clone(), speed_limit_mph);
+
+        // For comparison, create a model with equivalent speed limit directly in kph
+        let speed_limit_kph = Some((Speed::new(8.04672), SpeedUnit::KilometersPerHour));
+        let model_kph_limit = SpeedTraversalModel::new(engine, speed_limit_kph);
+
+        let state_model = Arc::new(
+            StateModel::empty()
+                .extend(vec![
+                    (
+                        String::from("distance"),
+                        StateFeature::Distance {
+                            distance_unit: DistanceUnit::Kilometers,
+                            initial: Distance::new(0.0),
+                        },
+                    ),
+                    (
+                        String::from("time"),
+                        StateFeature::Time {
+                            time_unit: TimeUnit::Seconds,
+                            initial: Time::new(0.0),
+                        },
+                    ),
+                ])
+                .unwrap(),
+        );
+
+        let mut state_mph = state_model.initial_state().unwrap();
+        let mut state_kph = state_model.initial_state().unwrap();
+
+        let v = mock_vertex();
+        let e = mock_edge(0); // this edge has a speed of 10 kph in test data
+
+        // Traverse with mph-based limit
+        model_mph_limit
+            .traverse_edge((&v, &e, &v), &mut state_mph, &state_model)
+            .unwrap();
+
+        // Traverse with kph-based limit
+        model_kph_limit
+            .traverse_edge((&v, &e, &v), &mut state_kph, &state_model)
+            .unwrap();
+
+        // Both should produce virtually identical traversal times since the speed limits
+        // should be equivalent after unit conversion
+        let time_mph: f64 = state_mph[1].into();
+        let time_kph: f64 = state_kph[1].into();
+
+        // Verify times are nearly identical
+        approx_eq(time_mph, time_kph, 0.1);
+    }
 }
