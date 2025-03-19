@@ -35,7 +35,7 @@ class GeneratePipelinePhase(enum.Enum):
     POWERTRAIN = 4
 
     @classmethod
-    def default(cls):
+    def default(cls) -> List[GeneratePipelinePhase]:
         return list(cls)
 
 
@@ -223,7 +223,7 @@ def generate_compass_dataset(
                 with init_toml_path.open() as f:
                     init_toml = toml.loads(f.read())
                 if filename == "osm_default_energy.toml":
-                    if "grade" in phases:
+                    if GeneratePipelinePhase.GRADE in phases:
                         init_toml["traversal"]["grade_table_input_file"] = (
                             "edges-grade-enumerated.txt.gz"
                         )
