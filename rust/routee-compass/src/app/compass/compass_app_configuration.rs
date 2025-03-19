@@ -3,9 +3,10 @@ use super::{
         response_output_policy::ResponseOutputPolicy,
         response_persistence_policy::ResponsePersistencePolicy,
     },
-    CompassAppError, CompassConfigurationField,
+    CompassAppError,
 };
 use config::Config;
+use routee_compass_core::config::CompassConfigurationField;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

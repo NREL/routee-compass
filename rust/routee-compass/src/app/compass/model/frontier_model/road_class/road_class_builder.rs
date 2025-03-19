@@ -1,6 +1,6 @@
-use super::{road_class_parser::RoadClassParser, road_class_service::RoadClassFrontierService};
-use crate::app::compass::{CompassConfigurationField, ConfigJsonExtensions};
+use super::road_class_service::RoadClassFrontierService;
 use kdam::Bar;
+use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use routee_compass_core::{
     model::frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
     util::fs::{read_decoders, read_utils},
@@ -27,9 +27,9 @@ impl FrontierModelBuilder for RoadClassBuilder {
                 ))
             })?;
 
-        let road_class_lookup: Box<[u8]> = read_utils::read_raw_file(
+        let road_class_lookup: Box<[String]> = read_utils::read_raw_file(
             &road_class_file,
-            read_decoders::u8,
+            read_decoders::string,
             Some(Bar::builder().desc("road class")),
             None,
         )
@@ -41,22 +41,9 @@ impl FrontierModelBuilder for RoadClassBuilder {
             ))
         })?;
 
-        let road_class_parser = parameters
-            .get_config_serde_optional::<RoadClassParser>(
-                &"road_class_parser",
-                &"RoadClassFrontierModel",
-            )
-            .map_err(|e| {
-                FrontierModelError::BuildError(format!(
-                    "unable to deserialize road_class_parser: {}",
-                    e
-                ))
-            })?
-            .unwrap_or_default();
-
         let m: Arc<dyn FrontierModelService> = Arc::new(RoadClassFrontierService {
-            road_class_lookup: Arc::new(road_class_lookup),
-            road_class_parser,
+            road_class_by_edge: Arc::new(road_class_lookup),
+            // road_class_parser,
         });
         Ok(m)
     }
