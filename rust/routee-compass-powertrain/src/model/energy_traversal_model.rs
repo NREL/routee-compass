@@ -72,7 +72,10 @@ impl TraversalModel for EnergyTraversalModel {
         let speed_tuple = Speed::from_distance_and_time(
             (
                 &distance_in_energy_model_unit,
-                &self.energy_model_service.distance_unit,
+                &self
+                    .energy_model_service
+                    .time_model_speed_unit
+                    .associated_distance_unit(),
             ),
             (
                 &time_delta,
