@@ -51,6 +51,7 @@ impl TraversalModel for SpeedTraversalModel {
         let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
 
         let speed = match self.speed_limit {
+            // speed unit here is unused since we've already converted into the same unit as the speed model
             Some((speed_limit, _speed_unit)) => {
                 if speed > speed_limit {
                     speed_limit
