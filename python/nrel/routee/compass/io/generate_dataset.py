@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import Any, Callable, Optional, Union, TYPE_CHECKING
+import enum
+from typing import Any, Callable, Dict, List, Optional, Union, TYPE_CHECKING
 from pathlib import Path
 
 import importlib.resources
@@ -27,15 +28,27 @@ HIGHWAY_SPEED_MAP = dict[HIGHWAY_TYPE, KM_PER_HR]
 AggFunc = Callable[[Any], Any]
 
 
+class GeneratePipelinePhase(enum.Enum):
+    GRAPH = 1
+    GRADE = 2
+    CONFIG = 3
+    POWERTRAIN = 4
+
+    @classmethod
+    def default(cls) -> List[GeneratePipelinePhase]:
+        return list(cls)
+
+
 def generate_compass_dataset(
     g: networkx.MultiDiGraph,
     output_directory: Union[str, Path],
     hwy_speeds: Optional[HIGHWAY_SPEED_MAP] = None,
     fallback: Optional[float] = None,
     agg: Optional[AggFunc] = None,
-    add_grade: bool = False,
+    phases: List[GeneratePipelinePhase] = GeneratePipelinePhase.default(),
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
+    requests_kwds: Optional[Dict[Any, Any]] = None,
 ) -> None:
     """
     Processes a graph downloaded via OSMNx, generating the set of input
@@ -57,10 +70,10 @@ def generate_compass_dataset(
         agg: Aggregation function to impute missing values from observed values.
             The default is numpy.mean, but you might also consider for example
             numpy.median, numpy.nanmedian, or your own custom function. Defaults to numpy.mean.
-        add_grade (bool, optional): If true, add grade information. Defaults to False. See add_grade_to_graph() for more info.
+        phases (List[GeneratePipelinePhase]): of the overall generate pipeline, which phases of the pipeline to run. Defaults to all (["graph", "grade", "config", "powertrain"])
         raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
         default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
-
+        requests_kwds (Optional[Dict], optional): Keyword arguments to pass to the `requests` Python library for HTTP configuration. Defaults to None.
     Example:
         >>> import osmnx as ox
         >>> g = ox.graph_from_place("Denver, Colorado, USA")
@@ -84,6 +97,7 @@ def generate_compass_dataset(
                 "requires Python 3.11 tomllib or pip install toml for earier Python versions"
             )
 
+    print(f"running pipeline import with phases: [{[p.name for p in phases]}]")
     output_directory = Path(output_directory)
 
     # default aggregation is via numpy mean operation
@@ -95,7 +109,7 @@ def generate_compass_dataset(
     g1 = ox.add_edge_speeds(g1, hwy_speeds=hwy_speeds, fallback=fallback, agg=agg)
     g1 = ox.add_edge_bearings(g1)
 
-    if add_grade:
+    if GeneratePipelinePhase.GRADE in phases:
         print("adding grade information")
         g1 = add_grade_to_graph(
             g1, resolution_arc_seconds=raster_resolution_arc_seconds
@@ -128,60 +142,66 @@ def generate_compass_dataset(
     e["src_vertex_id"] = e.src_vertex_uuid.apply(replace_id)
     e["dst_vertex_id"] = e.dst_vertex_uuid.apply(replace_id)
 
-    # WRITE NETWORK FILES
-    output_directory.mkdir(parents=True, exist_ok=True)
-    #   vertex tables
-    print("writing vertex files")
-    v.to_csv(output_directory / "vertices-complete.csv.gz", index=False)
-    v[["vertex_id", "vertex_uuid"]].to_csv(
-        output_directory / "vertices-mapping.csv.gz", index=False
-    )
-    v[["vertex_uuid"]].to_csv(
-        output_directory / "vertices-uuid-enumerated.txt.gz", index=False, header=False
-    )
-    v[["vertex_id", "x", "y"]].to_csv(
-        output_directory / "vertices-compass.csv.gz", index=False
-    )
+    if GeneratePipelinePhase.GRAPH not in phases:
+        print("skipping graph output generation")
+        # WRITE NETWORK FILES
+        output_directory.mkdir(parents=True, exist_ok=True)
+        #   vertex tables
+        print("writing vertex files")
+        v.to_csv(output_directory / "vertices-complete.csv.gz", index=False)
+        v[["vertex_id", "vertex_uuid"]].to_csv(
+            output_directory / "vertices-mapping.csv.gz", index=False
+        )
+        v[["vertex_uuid"]].to_csv(
+            output_directory / "vertices-uuid-enumerated.txt.gz",
+            index=False,
+            header=False,
+        )
+        v[["vertex_id", "x", "y"]].to_csv(
+            output_directory / "vertices-compass.csv.gz", index=False
+        )
 
-    #   edge tables (CSV)
-    print("writing edge files")
-    compass_cols = ["edge_id", "src_vertex_id", "dst_vertex_id", "distance"]
-    e.to_csv(output_directory / "edges-complete.csv.gz", index=False)
-    e[compass_cols].to_csv(output_directory / "edges-compass.csv.gz", index=False)
-    e[["edge_id", "edge_uuid"]].to_csv(
-        output_directory / "edges-mapping.csv.gz", index=False
-    )
+        #   edge tables (CSV)
+        print("writing edge files")
+        compass_cols = ["edge_id", "src_vertex_id", "dst_vertex_id", "distance"]
+        e.to_csv(output_directory / "edges-complete.csv.gz", index=False)
+        e[compass_cols].to_csv(output_directory / "edges-compass.csv.gz", index=False)
+        e[["edge_id", "edge_uuid"]].to_csv(
+            output_directory / "edges-mapping.csv.gz", index=False
+        )
 
-    #   edge tables (TXT)
-    print("writing edge attribute files")
-    e.edge_uuid.to_csv(
-        output_directory / "edges-uuid-enumerated.txt.gz", index=False, header=False
-    )
-    np.savetxt(
-        output_directory / "edges-geometries-enumerated.txt.gz", e.geometry, fmt="%s"
-    )  # doesn't quote LINESTRINGS
-    e.speed_kph.to_csv(
-        output_directory / "edges-posted-speed-enumerated.txt.gz",
-        index=False,
-        header=False,
-    )
-    e.highway.to_csv(
-        output_directory / "edges-road-class-enumerated.txt.gz",
-        index=False,
-        header=False,
-    )
+        #   edge tables (TXT)
+        print("writing edge attribute files")
+        e.edge_uuid.to_csv(
+            output_directory / "edges-uuid-enumerated.txt.gz", index=False, header=False
+        )
+        np.savetxt(
+            output_directory / "edges-geometries-enumerated.txt.gz",
+            e.geometry,
+            fmt="%s",
+        )  # doesn't quote LINESTRINGS
+        e.speed_kph.to_csv(
+            output_directory / "edges-posted-speed-enumerated.txt.gz",
+            index=False,
+            header=False,
+        )
+        e.highway.to_csv(
+            output_directory / "edges-road-class-enumerated.txt.gz",
+            index=False,
+            header=False,
+        )
 
-    headings = [utils.calculate_bearings(i) for i in e.geometry.values]
-    headings_df = pd.DataFrame(
-        headings, columns=["arrival_heading", "departure_heading"]
-    )
-    headings_df.to_csv(
-        output_directory / "edges-headings-enumerated.csv.gz",
-        index=False,
-        compression="gzip",
-    )
+        headings = [utils.calculate_bearings(i) for i in e.geometry.values]
+        headings_df = pd.DataFrame(
+            headings, columns=["arrival_heading", "departure_heading"]
+        )
+        headings_df.to_csv(
+            output_directory / "edges-headings-enumerated.csv.gz",
+            index=False,
+            compression="gzip",
+        )
 
-    if add_grade:
+    if GeneratePipelinePhase.GRADE in phases:
         e.grade.to_csv(
             output_directory / "edges-grade-enumerated.txt.gz",
             index=False,
@@ -189,7 +209,7 @@ def generate_compass_dataset(
         )
 
     # COPY DEFAULT CONFIGURATION FILES
-    if default_config:
+    if GeneratePipelinePhase.CONFIG in phases and default_config:
         print("copying default configuration TOML files")
         for filename in [
             "osm_default_distance.toml",
@@ -203,7 +223,7 @@ def generate_compass_dataset(
                 with init_toml_path.open() as f:
                     init_toml = toml.loads(f.read())
                 if filename == "osm_default_energy.toml":
-                    if add_grade:
+                    if GeneratePipelinePhase.GRADE in phases:
                         init_toml["traversal"]["grade_table_input_file"] = (
                             "edges-grade-enumerated.txt.gz"
                         )
@@ -212,25 +232,29 @@ def generate_compass_dataset(
                 f.write(toml.dumps(init_toml))
 
     # DOWLOAD ROUTEE ENERGY MODEL CATALOG
-    print("downloading the default RouteE Powertrain models")
-    model_output_directory = output_directory / "models"
-    if not model_output_directory.exists():
-        model_output_directory.mkdir(exist_ok=True)
+    if GeneratePipelinePhase.POWERTRAIN in phases:
+        print("downloading the default RouteE Powertrain models")
+        model_output_directory = output_directory / "models"
+        if not model_output_directory.exists():
+            model_output_directory.mkdir(exist_ok=True)
 
-    with importlib.resources.path(
-        "nrel.routee.compass.resources.models", "download_links.json"
-    ) as model_link_path:
-        with model_link_path.open() as f:
-            model_links = json.load(f)
+        with importlib.resources.path(
+            "nrel.routee.compass.resources.models", "download_links.json"
+        ) as model_link_path:
+            with model_link_path.open() as f:
+                model_links = json.load(f)
 
-        for model_name, model_link in model_links.items():
-            model_destination = model_output_directory / f"{model_name}.bin"
+            for model_name, model_link in model_links.items():
+                model_destination = model_output_directory / f"{model_name}.bin"
 
-            cached_model_destination = CACHE_DIR / f"{model_name}.bin"
-            if not cached_model_destination.exists():
-                download_response = requests.get(model_link)
-                download_response.raise_for_status()
-                with cached_model_destination.open("wb") as f:  # type: ignore
-                    f.write(download_response.content)  # type: ignore
+                cached_model_destination = CACHE_DIR / f"{model_name}.bin"
+                if not cached_model_destination.exists():
+                    kwds: Dict[Any, Any] = (
+                        requests_kwds if requests_kwds is not None else {}
+                    )
+                    download_response = requests.get(model_link, **kwds)
+                    download_response.raise_for_status()
+                    with cached_model_destination.open("wb") as f:  # type: ignore
+                        f.write(download_response.content)  # type: ignore
 
-            shutil.copy(cached_model_destination, model_destination)
+                shutil.copy(cached_model_destination, model_destination)
