@@ -48,7 +48,7 @@ jobs:
         if: matrix.os == 'macos'
 
       - name: add mac cargo config options
-      - run: |
+        run: |
           mkdir -p ~/.cargo
           cat > ~/.cargo/config.toml <<EOF
           [target.x86_64-apple-darwin]
