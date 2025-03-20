@@ -51,23 +51,18 @@ impl TraversalModel for SpeedTraversalModel {
         let mut distance = Cow::Borrowed(&edge.distance);
         baseunit::DISTANCE_UNIT.convert(&mut distance, &self.engine.distance_unit)?;
         let dist_converted = distance.into_owned();
-        let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
-        // <<<<<<< HEAD
-        //         let (t, tu) = Time::create(
-        // (&dist_converted, &self.engine.distance_unit),
-        // (&speed, &self.engine.speed_unit),
-        // =======
 
+        let lookup_speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let speed = match self.speed_limit {
             // speed unit here is unused since we've already converted into the same unit as the speed model
             Some((speed_limit, _speed_unit)) => {
-                if speed > speed_limit {
+                if lookup_speed > speed_limit {
                     speed_limit
                 } else {
-                    speed
+                    lookup_speed
                 }
             }
-            None => speed,
+            None => lookup_speed,
         };
 
         let (t, tu) = Time::create(
@@ -111,11 +106,6 @@ impl TraversalModel for SpeedTraversalModel {
         if distance == Distance::ZERO {
             return Ok(());
         }
-        // <<<<<<< HEAD
-        //         let (t, tu) = Time::create(
-        //             (&distance, &self.engine.distance_unit),
-        //             (&self.engine.max_speed, &self.engine.speed_unit),
-        // =======
 
         let max_speed = match self.speed_limit {
             Some((speed_limit, _speed_unit)) => speed_limit,
@@ -129,13 +119,6 @@ impl TraversalModel for SpeedTraversalModel {
         let mut edge_time = Cow::Owned(t);
         tu.convert(&mut edge_time, &self.engine.time_unit)?;
 
-        // let estimated_time = Time::create(
-        //     &self.engine.max_speed,
-        //     &self.engine.speed_unit,
-        //     &distance,
-        //     &self.engine.distance_unit,
-        //     &self.engine.time_unit,
-        // )?;
         state_model.add_time(
             state,
             &Self::TIME.into(),
@@ -265,8 +248,6 @@ mod tests {
             .unwrap();
 
         let expected = 36.0;
-        // approx_eq(result.total_cost.into(), expected, 0.001);
-        // approx_eq(result.updated_state[1].into(), expected, 0.001);
         approx_eq(state[1].into(), expected, 0.001);
     }
 
@@ -306,8 +287,6 @@ mod tests {
             .traverse_edge((&v, &e1, &v), &mut state, &state_model)
             .unwrap();
         let expected = 36000.0;
-        // approx_eq(result.total_cost.into(), expected, 0.001);
-        // approx_eq(result.updated_state[1].into(), expected, 0.001);
         approx_eq(state[1].into(), expected, 0.001);
     }
 
