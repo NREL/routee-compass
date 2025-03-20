@@ -40,7 +40,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable 
           override: true
 
       - name: add mac rust target
@@ -63,7 +63,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable 
           override: true
       - run: cd rust/ && cargo test
 
@@ -91,11 +91,11 @@ jobs:
           CIBW_ARCHS_MACOS: "universal2"
           CIBW_BEFORE_BUILD: >
             pip install -U maturin &&
-            rustup default nightly &&
+            rustup default stable &&
             rustup show
           CIBW_BEFORE_BUILD_LINUX: >
             pip install -U setuptools-rust &&
-            curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=nightly --profile=minimal -y &&
+            curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=stable --profile=minimal -y &&
             rustup show
 
       - name: upload artifacts
