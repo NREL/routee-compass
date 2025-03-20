@@ -232,13 +232,9 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_seconds_time_unit() {
         let file = filepath();
-        let engine = SpeedTraversalEngine::new(
-            &file,
-            SpeedUnit::KPH,
-            None,
-            Some(TimeUnit::Seconds),
-        )
-        .unwrap();
+        let engine =
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Seconds))
+                .unwrap();
         let state_model = Arc::new(
             StateModel::empty()
                 .extend(vec![
@@ -277,13 +273,9 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_milliseconds_time_unit() {
         let file = filepath();
-        let engine = SpeedTraversalEngine::new(
-            &file,
-            SpeedUnit::KPH,
-            None,
-            Some(TimeUnit::Milliseconds),
-        )
-        .unwrap();
+        let engine =
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Milliseconds))
+                .unwrap();
         let state_model = Arc::new(
             StateModel::empty()
                 .extend(vec![

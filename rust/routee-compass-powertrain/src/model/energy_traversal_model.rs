@@ -238,13 +238,7 @@ mod tests {
         model_library.insert("Toyota_Camry".to_string(), Arc::new(camry));
 
         let time_engine = Arc::new(
-            SpeedTraversalEngine::new(
-                &speed_file_path,
-                SpeedUnit::KPH,
-                None,
-                None,
-            )
-            .unwrap(),
+            SpeedTraversalEngine::new(&speed_file_path, SpeedUnit::KPH, None, None).unwrap(),
         );
         let time_service = SpeedLookupService { e: time_engine };
 

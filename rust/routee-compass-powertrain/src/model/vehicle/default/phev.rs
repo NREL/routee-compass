@@ -332,10 +332,7 @@ mod tests {
         // starting at 100% SOC, we should be able to traverse 1000 meters
         // without using any liquid_fuel
         let distance = (Distance::from(1000.0), DistanceUnit::Meters);
-        let speed = (
-            Speed::from(60.0),
-            SpeedUnit::MPH,
-        );
+        let speed = (Speed::from(60.0), SpeedUnit::MPH);
         let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
         vehicle
@@ -381,10 +378,7 @@ mod tests {
 
         // now let's traverse a really long link to deplete the battery
         let distance = (Distance::from(100.0), DistanceUnit::Miles);
-        let speed = (
-            Speed::from(60.0),
-            SpeedUnit::MPH,
-        );
+        let speed = (Speed::from(60.0), SpeedUnit::MPH);
         let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
         vehicle

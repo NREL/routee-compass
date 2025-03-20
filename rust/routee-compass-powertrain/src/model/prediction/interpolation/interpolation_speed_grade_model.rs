@@ -208,20 +208,14 @@ mod test {
             for grade in -20..20 {
                 let (interp_energy_rate, _energy_rate_unit) = interp_model
                     .predict(
-                        (
-                            Speed::from(speed as f64),
-                            SpeedUnit::MPH,
-                        ),
+                        (Speed::from(speed as f64), SpeedUnit::MPH),
                         (Grade::from(grade as f64), GradeUnit::Percent),
                     )
                     .unwrap();
                 let (underlying_energy_rate, _energy_rate_unit) = underlying_model
                     .prediction_model
                     .predict(
-                        (
-                            Speed::from(speed as f64),
-                            SpeedUnit::MPH,
-                        ),
+                        (Speed::from(speed as f64), SpeedUnit::MPH),
                         (Grade::from(grade as f64), GradeUnit::Percent),
                     )
                     .unwrap();
@@ -235,10 +229,7 @@ mod test {
 
         let (energy_rate, energy_rate_unit) = interp_model
             .predict(
-                (
-                    Speed::from(50.0),
-                    SpeedUnit::MPH,
-                ),
+                (Speed::from(50.0), SpeedUnit::MPH),
                 (Grade::from(0.0), GradeUnit::Percent),
             )
             .unwrap();
