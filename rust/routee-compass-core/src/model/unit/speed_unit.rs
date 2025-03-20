@@ -13,6 +13,11 @@ impl std::fmt::Display for SpeedUnit {
     }
 }
 
+impl SpeedUnit {
+    pub const KPH: SpeedUnit = SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours);
+    pub const MPH: SpeedUnit = SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours);
+}
+
 impl FromStr for SpeedUnit {
     type Err = String;
 
@@ -98,26 +103,6 @@ impl Convert<Speed> for SpeedUnit {
         let (speed, _) =
             Speed::from_distance_and_time((&dist_convert, &to_du), (&time_convert, &to_tu))?;
         *value.to_mut() = speed;
-
-        // let conversion_factor = match (self, to) {
-        //     (S(D::Kilometers, T::Hours), S(D::Kilometers, T::Hours)) => None,
-        //     (S(D::Kilometers, T::Hours), S(D::Miles, T::Hours)) => Some(0.621371),
-        //     (S(D::Kilometers, T::Hours), S(D::Meters, T::Seconds)) => Some(0.2777777778),
-        //     (S(D::Kilometers, T::Hours), S(D::Meters, T::Milliseconds)) => Some(0.2777777778),
-        //     (S(D::Miles, T::Hours), S(D::Kilometers, T::Hours)) => Some(1.60934),
-        //     (S(D::Miles, T::Hours), S(D::Miles, T::Hours)) => None,
-        //     (S(D::Miles, T::Hours), S(D::Meters, T::Seconds)) => Some(0.44704),
-        //     (S(D::Miles, T::Hours), S(D::Meters, T::Milliseconds)) => Some(0.44704),
-        //     (S(D::Meters, T::Seconds), S(D::Kilometers, T::Hours)) => Some(3.6),
-        //     (S(D::Meters, T::Seconds), S(D::Miles, T::Hours)) => Some(2.237),
-        //     (S(D::Meters, T::Seconds), S(D::Meters, T::Seconds)) => None,
-        //     (S(D::Meters, T::Seconds), S(D::Meters, T::Milliseconds)) => None,
-        // };
-        // if let Some(factor) = conversion_factor {
-        //     let mut updated = Speed::from(value.as_ref().as_f64() * factor);
-        //     let value_mut = value.to_mut();
-        //     std::mem::swap(value_mut, &mut updated);
-        // }
         Ok(())
     }
 
