@@ -441,7 +441,19 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ValueError</span><span class="g g-Whitespace">                                </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">app</span> <span class="o">=</span> <span class="n">CompassApp</span><span class="o">.</span><span class="n">from_config_file</span><span class="p">(</span><span class="s2">&quot;denver_co/osm_default_energy.toml&quot;</span><span class="p">)</span>
+
+<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/compass_app.py:75,</span> in <span class="ni">CompassApp.from_config_file</span><span class="nt">(cls, config_file)</span>
+<span class="g g-Whitespace">     </span><span class="mi">73</span> <span class="n">config_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">74</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">config_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+<span class="ne">---&gt; </span><span class="mi">75</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="si">}</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">76</span> <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="g g-Whitespace">     </span><span class="mi">77</span>     <span class="n">toml_config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="ne">ValueError</span>: Config file denver_co/osm_default_energy.toml does not exist
 </pre></div>
 </div>
 </div>
@@ -513,37 +525,11 @@ By default, the PHEV will run using battery energy exclusively (starting at <cod
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>input plugins: 100%|██████████| 1/1 [00:00&lt;00:00, 1655.69it/s]
-
-
-search: 100%|██████████| 6/6 [00:00&lt;00:00, 130.99it/s]
-</pre></div>
-</div>
-</div>
 </div>
 <p>First, let's review the state model to see what energy units we're using.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">]</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;time&#39;: {&#39;time_unit&#39;: &#39;minutes&#39;, &#39;initial&#39;: 0.0, &#39;index&#39;: 0, &#39;name&#39;: &#39;time&#39;},
- &#39;energy_electric&#39;: {&#39;energy_unit&#39;: &#39;kilowatt_hours&#39;,
-  &#39;initial&#39;: 0.0,
-  &#39;index&#39;: 1,
-  &#39;name&#39;: &#39;energy_electric&#39;},
- &#39;battery_state&#39;: {&#39;type&#39;: &#39;soc&#39;,
-  &#39;unit&#39;: &#39;percent&#39;,
-  &#39;format&#39;: {&#39;floating_point&#39;: {&#39;initial&#39;: 100.0}},
-  &#39;index&#39;: 2,
-  &#39;name&#39;: &#39;battery_state&#39;},
- &#39;distance&#39;: {&#39;distance_unit&#39;: &#39;miles&#39;,
-  &#39;initial&#39;: 0.0,
-  &#39;index&#39;: 3,
-  &#39;name&#39;: &#39;distance&#39;}}
 </pre></div>
 </div>
 </div>
@@ -581,12 +567,6 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.time&#39;, ylabel=&#39;gge&#39;&gt;
-</pre></div>
-</div>
-<img alt="../_images/343bfd9c17fe7dfcfce5596398f62880cdb2dcb73b0bf9b15595973c9c908f80.png" src="../_images/343bfd9c17fe7dfcfce5596398f62880cdb2dcb73b0bf9b15595973c9c908f80.png" />
-</div>
 </div>
 <p>Here, we see that the BEV and the PHEV use much less energy than the ICE alternative but all powertrains have a route that uses less energy and more time.</p>
 <p>We could also look at the estimated cost based on our assumptions of:</p>
@@ -608,12 +588,6 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.time&#39;, ylabel=&#39;route.cost.total_cost&#39;&gt;
-</pre></div>
-</div>
-<img alt="../_images/0d72494efa00e6e140012054e1192b82e5bf35b9206748b894913bfda94e690c.png" src="../_images/0d72494efa00e6e140012054e1192b82e5bf35b9206748b894913bfda94e690c.png" />
-</div>
 </div>
 <p>Here, we notice that the ICE vehicle has the lowest costs and all powertrains save money on the optimal energy route.
 This would likely change based on our cost assumptions (for example if we assume that charging is done at home for a much lower cost of electricity)</p>
@@ -623,12 +597,6 @@ This would likely change based on our cost assumptions (for example if we assume
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="s2">&quot;gge&quot;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: &gt;
-</pre></div>
-</div>
-<img alt="../_images/d4ddd84fad62933765bc4eb7772e35d71b01e4300068c2ed413fee62632ce876.png" src="../_images/d4ddd84fad62933765bc4eb7772e35d71b01e4300068c2ed413fee62632ce876.png" />
 </div>
 </div>
 </section>

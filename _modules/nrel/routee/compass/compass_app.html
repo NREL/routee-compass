@@ -362,7 +362,10 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">nrel.routee.compass.routee_compass_py</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CompassAppWrapper</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">nrel.routee.compass.io.generate_dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_compass_dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nrel.routee.compass.io.generate_dataset</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GeneratePipelinePhase</span><span class="p">,</span>
+    <span class="n">generate_compass_dataset</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">shapely.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">Polygon</span><span class="p">,</span> <span class="n">MultiPolygon</span>
@@ -474,7 +477,7 @@ document.write(`
         <span class="n">hwy_speeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">fallback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">agg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">add_grade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">phases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">GeneratePipelinePhase</span><span class="p">]</span> <span class="o">=</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">default</span><span class="p">(),</span>
         <span class="n">raster_resolution_arc_seconds</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompassApp</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -502,8 +505,8 @@ document.write(`
 <span class="sd">                observed values. The default is numpy.mean, but you might</span>
 <span class="sd">                also consider for example numpy.median, numpy.nanmedian,</span>
 <span class="sd">                or your own custom function. Defaults to numpy.mean.</span>
-<span class="sd">            add_grade: If true, add grade information. Defaults to False.</span>
-<span class="sd">                See add_grade_to_graph() for more info.</span>
+<span class="sd">            phases (List[GeneratePipelinePhase]): of the overall generate pipeline, which phases of the pipeline to run.</span>
+<span class="sd">                Defaults to all ([&quot;graph&quot;, &quot;grade&quot;, &quot;config&quot;, &quot;powertrain&quot;])</span>
 <span class="sd">            raster_resolution_arc_seconds: If grade is added, the</span>
 <span class="sd">                resolution (in arc-seconds) of the tiles to download</span>
 <span class="sd">                (either 1 or 1/3). Defaults to 1.</span>
@@ -536,7 +539,7 @@ document.write(`
             <span class="n">hwy_speeds</span><span class="o">=</span><span class="n">hwy_speeds</span><span class="p">,</span>
             <span class="n">fallback</span><span class="o">=</span><span class="n">fallback</span><span class="p">,</span>
             <span class="n">agg</span><span class="o">=</span><span class="n">agg</span><span class="p">,</span>
-            <span class="n">add_grade</span><span class="o">=</span><span class="n">add_grade</span><span class="p">,</span>
+            <span class="n">phases</span><span class="o">=</span><span class="n">phases</span><span class="p">,</span>
             <span class="n">raster_resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span><span class="p">,</span>
             <span class="n">default_config</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
@@ -556,7 +559,7 @@ document.write(`
         <span class="n">hwy_speeds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">fallback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">agg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">add_grade</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">phases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">GeneratePipelinePhase</span><span class="p">]</span> <span class="o">=</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">default</span><span class="p">(),</span>
         <span class="n">raster_resolution_arc_seconds</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompassApp</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -584,8 +587,8 @@ document.write(`
 <span class="sd">                observed values. The default is numpy.mean, but you might</span>
 <span class="sd">                also consider for example numpy.median, numpy.nanmedian,</span>
 <span class="sd">                or your own custom function. Defaults to numpy.mean.</span>
-<span class="sd">            add_grade: If true, add grade information. Defaults to False.</span>
-<span class="sd">                See add_grade_to_graph() for more info.</span>
+<span class="sd">            phases (List[GeneratePipelinePhase]): of the overall generate pipeline, which phases of the pipeline to run.</span>
+<span class="sd">                Defaults to all ([&quot;graph&quot;, &quot;grade&quot;, &quot;config&quot;, &quot;powertrain&quot;])</span>
 <span class="sd">            raster_resolution_arc_seconds: If grade is added, the</span>
 <span class="sd">                resolution (in arc-seconds) of the tiles to download</span>
 <span class="sd">                (either 1 or 1/3). Defaults to 1.</span>
@@ -625,7 +628,7 @@ document.write(`
             <span class="n">hwy_speeds</span><span class="o">=</span><span class="n">hwy_speeds</span><span class="p">,</span>
             <span class="n">fallback</span><span class="o">=</span><span class="n">fallback</span><span class="p">,</span>
             <span class="n">agg</span><span class="o">=</span><span class="n">agg</span><span class="p">,</span>
-            <span class="n">add_grade</span><span class="o">=</span><span class="n">add_grade</span><span class="p">,</span>
+            <span class="n">phases</span><span class="o">=</span><span class="n">phases</span><span class="p">,</span>
             <span class="n">raster_resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span><span class="p">,</span>
             <span class="n">default_config</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">)</span>
