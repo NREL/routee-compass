@@ -259,7 +259,7 @@ mod tests {
                 ])
                 .unwrap(),
         );
-        let model: SpeedTraversalModel = SpeedTraversalModel::new(Arc::new(engine), None);
+        let model: SpeedTraversalModel = SpeedTraversalModel::new(Arc::new(engine), None).unwrap();
         let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
@@ -310,6 +310,7 @@ mod tests {
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36,000 milliseconds ((0.1/10) * 3600000)
         model
+            .unwrap()
             .traverse_edge((&v, &e1, &v), &mut state, &state_model)
             .unwrap();
         let expected = 36000.0;
@@ -322,17 +323,12 @@ mod tests {
     fn test_speed_limit_enforcement() {
         let file = filepath();
         let engine = Arc::new(
-            SpeedTraversalEngine::new(
-                &file,
-                SpeedUnit::KilometersPerHour,
-                None,
-                Some(TimeUnit::Seconds),
-            )
-            .unwrap(),
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Seconds))
+                .unwrap(),
         );
 
         // We know from the test data that edge 0 has a speed of 10 kph, so set a limit of 5 kph
-        let speed_limit = Some((Speed::new(5.0), SpeedUnit::KilometersPerHour));
+        let speed_limit = Some((Speed::from(5.0), SpeedUnit::KPH));
 
         let state_model = Arc::new(
             StateModel::empty()
@@ -341,14 +337,14 @@ mod tests {
                         String::from("distance"),
                         StateFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::new(0.0),
+                            initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
                         StateFeature::Time {
                             time_unit: TimeUnit::Seconds,
-                            initial: Time::new(0.0),
+                            initial: Time::from(0.0),
                         },
                     ),
                 ])
@@ -368,11 +364,13 @@ mod tests {
 
         // Traverse with speed limit
         model_with_limit
+            .unwrap()
             .traverse_edge((&v, &e, &v), &mut state_with_limit, &state_model)
             .unwrap();
 
         // Traverse without speed limit
         model_without_limit
+            .unwrap()
             .traverse_edge((&v, &e, &v), &mut state_without_limit, &state_model)
             .unwrap();
 
@@ -398,23 +396,18 @@ mod tests {
 
         // Create engine with kilometers per hour as its speed unit
         let engine = Arc::new(
-            SpeedTraversalEngine::new(
-                &file,
-                SpeedUnit::KilometersPerHour,
-                None,
-                Some(TimeUnit::Seconds),
-            )
-            .unwrap(),
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Seconds))
+                .unwrap(),
         );
 
         // Set speed limit in miles per hour (5 mph ≈ 8 kph)
-        let speed_limit_mph = Some((Speed::new(5.0), SpeedUnit::MilesPerHour));
+        let speed_limit_mph = Some((Speed::from(5.0), SpeedUnit::MPH));
 
         // Create a model with the speed limit in mph
         let model_mph_limit = SpeedTraversalModel::new(engine.clone(), speed_limit_mph);
 
         // For comparison, create a model with equivalent speed limit directly in kph
-        let speed_limit_kph = Some((Speed::new(8.04672), SpeedUnit::KilometersPerHour));
+        let speed_limit_kph = Some((Speed::from(8.04672), SpeedUnit::KPH));
         let model_kph_limit = SpeedTraversalModel::new(engine, speed_limit_kph);
 
         let state_model = Arc::new(
@@ -424,14 +417,14 @@ mod tests {
                         String::from("distance"),
                         StateFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::new(0.0),
+                            initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
                         StateFeature::Time {
                             time_unit: TimeUnit::Seconds,
-                            initial: Time::new(0.0),
+                            initial: Time::from(0.0),
                         },
                     ),
                 ])
@@ -446,11 +439,13 @@ mod tests {
 
         // Traverse with mph-based limit
         model_mph_limit
+            .unwrap()
             .traverse_edge((&v, &e, &v), &mut state_mph, &state_model)
             .unwrap();
 
         // Traverse with kph-based limit
         model_kph_limit
+            .unwrap()
             .traverse_edge((&v, &e, &v), &mut state_kph, &state_model)
             .unwrap();
 
