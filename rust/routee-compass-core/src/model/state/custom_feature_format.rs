@@ -31,9 +31,7 @@ pub enum CustomFeatureFormat {
 
 impl Default for CustomFeatureFormat {
     fn default() -> Self {
-        Self::FloatingPoint {
-            initial: OrderedFloat(0.0),
-        }
+        Self::DEFAULT
     }
 }
 
@@ -48,6 +46,10 @@ impl Display for CustomFeatureFormat {
 }
 
 impl CustomFeatureFormat {
+    pub const DEFAULT: Self = Self::FloatingPoint {
+        initial: OrderedFloat(0.0),
+    };
+
     pub fn name(&self) -> String {
         match self {
             CustomFeatureFormat::FloatingPoint { initial: _ } => {

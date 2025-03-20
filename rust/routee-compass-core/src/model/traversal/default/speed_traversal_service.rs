@@ -28,7 +28,7 @@ impl TraversalModelService for SpeedLookupService {
                             "key `speed_limit` must be a float".to_string(),
                         )
                     })
-                    .map(Speed::new)?;
+                    .map(Speed::from)?;
                 let max_speed_unit = match parameters.get("speed_limit_unit") {
                     Some(msu) => {
                         let max_speed_unit_str = msu.as_str().ok_or_else(|| {
@@ -55,9 +55,7 @@ impl TraversalModelService for SpeedLookupService {
             None => None,
         };
 
-        Ok(Arc::new(SpeedTraversalModel::new(
-            self.e.clone(),
-            speed_limit_tuple,
-        )))
+        let model = SpeedTraversalModel::new(self.e.clone(), speed_limit_tuple)?;
+        Ok(Arc::new(model))
     }
 }

@@ -33,8 +33,8 @@ impl EnergyModelService {
         output_distance_unit_option: Option<DistanceUnit>,
         vehicle_library: HashMap<String, Arc<dyn VehicleType>>,
     ) -> Result<Self, TraversalModelError> {
-        let output_time_unit = output_time_unit_option.unwrap_or(BASE_TIME_UNIT);
-        let output_distance_unit = output_distance_unit_option.unwrap_or(BASE_DISTANCE_UNIT);
+        let output_time_unit = output_time_unit_option.unwrap_or(baseunit::TIME_UNIT);
+        let output_distance_unit = output_distance_unit_option.unwrap_or(baseunit::DISTANCE_UNIT);
 
         let grade_table: Arc<Option<Box<[Grade]>>> = match grade_table_path_option {
             Some(gtp) => Arc::new(Some(

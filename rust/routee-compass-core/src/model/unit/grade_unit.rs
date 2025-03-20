@@ -1,5 +1,5 @@
-use super::Grade;
-use crate::util::serde::serde_ops::string_deserialize;
+use super::{baseunit, Convert, Grade, UnitError};
+use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -11,20 +11,29 @@ pub enum GradeUnit {
     Millis,
 }
 
-impl GradeUnit {
-    pub fn convert(&self, value: &Grade, target: &GradeUnit) -> Grade {
+impl Convert<Grade> for GradeUnit {
+    fn convert(&self, value: &mut std::borrow::Cow<Grade>, to: &Self) -> Result<(), UnitError> {
         use GradeUnit as G;
-        match (self, target) {
-            (G::Percent, G::Percent) => *value,
-            (G::Decimal, G::Decimal) => *value,
-            (G::Millis, G::Millis) => *value,
-            (G::Percent, G::Decimal) => *value / 100.0,
-            (G::Percent, G::Millis) => *value * 10.0,
-            (G::Decimal, G::Percent) => *value * 100.0,
-            (G::Decimal, G::Millis) => *value * 1000.0,
-            (G::Millis, G::Percent) => *value / 10.0,
-            (G::Millis, G::Decimal) => *value / 1000.0,
+        let conversion_factor = match (self, to) {
+            (G::Percent, G::Percent) => None,
+            (G::Decimal, G::Decimal) => None,
+            (G::Millis, G::Millis) => None,
+            (G::Percent, G::Decimal) => Some(0.01),
+            (G::Percent, G::Millis) => Some(10.0),
+            (G::Decimal, G::Percent) => Some(100.0),
+            (G::Decimal, G::Millis) => Some(1000.0),
+            (G::Millis, G::Percent) => Some(0.1),
+            (G::Millis, G::Decimal) => Some(0.001),
+        };
+        if let Some(factor) = conversion_factor {
+            let updated = Grade::from(value.as_ref().as_f64() * factor);
+            *value.to_mut() = updated;
         }
+        Ok(())
+    }
+
+    fn convert_to_base(&self, value: &mut std::borrow::Cow<Grade>) -> Result<(), UnitError> {
+        self.convert(value, &baseunit::GRADE_UNIT)
     }
 }
 
@@ -48,10 +57,8 @@ impl FromStr for GradeUnit {
 #[cfg(test)]
 mod test {
 
-    use crate::model::unit::AsF64;
-
-    use super::Grade;
-    use super::GradeUnit as G;
+    use crate::model::unit::{GradeUnit as G, *};
+    use std::borrow::Cow;
 
     fn assert_approx_eq(a: Grade, b: Grade, error: f64) {
         let result = match (a, b) {
@@ -67,36 +74,39 @@ mod test {
     }
 
     #[test]
-    fn test_conversions() {
-        assert_approx_eq(
-            G::Percent.convert(&Grade::new(10.0), &G::Decimal),
-            Grade::new(0.1),
-            0.001,
-        );
-        assert_approx_eq(
-            G::Percent.convert(&Grade::new(10.0), &G::Millis),
-            Grade::new(100.0),
-            0.001,
-        );
-        assert_approx_eq(
-            G::Decimal.convert(&Grade::new(0.1), &G::Percent),
-            Grade::new(10.0),
-            0.001,
-        );
-        assert_approx_eq(
-            G::Decimal.convert(&Grade::new(0.1), &G::Millis),
-            Grade::new(100.0),
-            0.001,
-        );
-        assert_approx_eq(
-            G::Millis.convert(&Grade::new(100.0), &G::Percent),
-            Grade::new(10.0),
-            0.001,
-        );
-        assert_approx_eq(
-            G::Millis.convert(&Grade::new(100.0), &G::Decimal),
-            Grade::new(0.1),
-            0.001,
-        );
+    fn test_pct_dec() {
+        let mut value = Cow::Owned(Grade::from(10.0));
+        G::Percent.convert(&mut value, &G::Decimal).unwrap();
+        assert_approx_eq(value.into_owned(), Grade::from(0.1), 0.001);
+    }
+    #[test]
+    fn test_pct_mil() {
+        let mut value = Cow::Owned(Grade::from(10.0));
+        G::Percent.convert(&mut value, &G::Millis).unwrap();
+        assert_approx_eq(value.into_owned(), Grade::from(100.0), 0.001);
+    }
+    #[test]
+    fn test_dec_pct() {
+        let mut value = Cow::Owned(Grade::from(0.1));
+        G::Decimal.convert(&mut value, &G::Percent).unwrap();
+        assert_approx_eq(value.into_owned(), Grade::from(10.0), 0.001);
+    }
+    #[test]
+    fn test_dec_mil() {
+        let mut value = Cow::Owned(Grade::from(0.1));
+        G::Decimal.convert(&mut value, &G::Millis).unwrap();
+        assert_approx_eq(value.into_owned(), Grade::from(100.0), 0.001);
+    }
+    #[test]
+    fn test_mil_pct() {
+        let mut value = Cow::Owned(Grade::from(100.0));
+        G::Millis.convert(&mut value, &G::Percent).unwrap();
+        assert_approx_eq(value.into_owned(), Grade::from(10.0), 0.001);
+    }
+    #[test]
+    fn test_mil_dec() {
+        let mut value = Cow::Owned(Grade::from(100.0));
+        G::Millis.convert(&mut value, &G::Decimal).unwrap();
+        assert_approx_eq(value.into_owned(), Grade::from(0.1), 0.001);
     }
 }

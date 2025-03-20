@@ -1,4 +1,4 @@
-use crate::model::state::StateVariable;
+use crate::model::{state::StateVariable, unit::UnitError};
 
 #[derive(thiserror::Error, Debug)]
 pub enum StateModelError {
@@ -16,6 +16,11 @@ pub enum StateModelError {
     UnexpectedFeatureType(String, String),
     #[error("expected feature unit to be {0} but found {1}")]
     UnexpectedFeatureUnit(String, String),
+    #[error("failure interacting with state model due to numeric units: {source}")]
+    UnitsFailure {
+        #[from]
+        source: UnitError,
+    },
     #[error("{0}")]
     BuildError(String),
     #[error("{0}")]

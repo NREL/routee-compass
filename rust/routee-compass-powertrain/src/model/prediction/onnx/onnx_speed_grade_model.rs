@@ -52,7 +52,7 @@ impl PredictionModel for OnnxSpeedGradeModel {
         let result = results[0].extract_tensor::<f32>().unwrap();
         let output_f64 = result.view().to_owned().into_raw_vec()[0] as f64;
 
-        let energy_rate = EnergyRate::new(output_f64);
+        let energy_rate = EnergyRate::from(output_f64);
         Ok((energy_rate, self.energy_rate_unit))
     }
 }
@@ -107,15 +107,15 @@ mod test {
         let model: Box<dyn PredictionModel> = Box::new(
             OnnxSpeedGradeModel::new(
                 &model_file_path,
-                SpeedUnit::MilesPerHour,
+                SpeedUnit::MPH,
                 GradeUnit::Decimal,
                 routee_compass_core::model::unit::GallonsGasolinePerMile,
             )
             .unwrap(),
         );
 
-        let input_speed = Speed::new(50.0);
-        let input_speed_unit = SpeedUnit::MilesPerHour;
+        let input_speed = Speed::from(50.0);
+        let input_speed_unit = SpeedUnit::MPH;
         let input_grade = Grade::ZERO;
         let input_grade_unit = GradeUnit::Decimal;
         let input_row = (input_speed, input_speed_unit, input_grade, input_grade_unit);

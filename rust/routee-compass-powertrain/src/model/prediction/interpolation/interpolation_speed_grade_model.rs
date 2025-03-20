@@ -2,13 +2,13 @@ use super::utils::linspace;
 use crate::model::prediction::{
     load_prediction_model, model_type::ModelType, prediction_model::PredictionModel,
 };
-use routee_compass_core::{
-    model::traversal::TraversalModelError,
-    model::unit::{
-        AsF64, Distance, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit,
+use routee_compass_core::model::{
+    traversal::TraversalModelError,
+    unit::{
+        AsF64, Convert, Distance, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit,
     },
 };
-use std::path::Path;
+use std::{borrow::Cow, path::Path};
 
 pub struct InterpolationSpeedGradeModel {
     interpolator: ninterp::Interpolator,
@@ -25,8 +25,11 @@ impl PredictionModel for InterpolationSpeedGradeModel {
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
-        let speed_value = speed_unit.convert(&speed, &self.speed_unit).as_f64();
-        let grade_value = grade_unit.convert(&grade, &self.grade_unit).as_f64();
+        let mut speed_converted = Cow::Owned(speed);
+        let mut grade_converted = Cow::Owned(grade);
+
+        speed_unit.convert(&mut speed_converted, &self.speed_unit)?;
+        grade_unit.convert(&mut grade_converted, &self.grade_unit)?;
 
         // snap incoming speed and grade to the grid
         let (min_speed, max_speed, min_grade, max_grade) = match &self.interpolator {
@@ -60,8 +63,9 @@ impl PredictionModel for InterpolationSpeedGradeModel {
             }
         };
 
-        let speed_value = speed_value.max(min_speed).min(max_speed);
-        let grade_value = grade_value.max(min_grade).min(max_grade);
+        let speed_value = speed_converted.as_f64().max(min_speed).min(max_speed);
+        let grade_f64 = grade_converted.into_owned().as_f64();
+        let grade_value = grade_f64.max(min_grade).min(max_grade);
 
         let y = self
             .interpolator
@@ -73,7 +77,7 @@ impl PredictionModel for InterpolationSpeedGradeModel {
                 ))
             })?;
 
-        let energy_rate = EnergyRate::new(y);
+        let energy_rate = EnergyRate::from(y);
         Ok((energy_rate, self.energy_rate_unit))
     }
 }
@@ -113,15 +117,15 @@ impl InterpolationSpeedGradeModel {
         let mut values = Vec::new();
 
         // Use a unit distance so we can get the energy per unit distance
-        let distance = Distance::new(1.0);
+        let distance = Distance::from(1.0);
         let distance_unit = energy_rate_unit.associated_distance_unit();
 
         for speed_value in speed_values.clone().into_iter() {
             let mut row: Vec<f64> = Vec::new();
             for grade_value in grade_values.clone().into_iter() {
                 let (energy, _energy_unit) = model.predict(
-                    (Speed::new(speed_value), speed_unit),
-                    (Grade::new(grade_value), grade_unit),
+                    (Speed::from(speed_value), speed_unit),
+                    (Grade::from(grade_value), grade_unit),
                     (distance, distance_unit),
                 )?;
                 row.push(energy.as_f64());
@@ -174,13 +178,13 @@ mod test {
             &model_path,
             ModelType::Smartcore,
             "Toyota Camry".to_string(),
-            SpeedUnit::MilesPerHour,
-            (Speed::new(0.0), Speed::new(100.0)),
+            SpeedUnit::MPH,
+            (Speed::from(0.0), Speed::from(100.0)),
             101,
             GradeUnit::Decimal,
-            (Grade::new(-0.20), Grade::new(0.20)),
+            (Grade::from(-0.20), Grade::from(0.20)),
             41,
-            EnergyRateUnit::GallonsGasolinePerMile,
+            EnergyRateUnit::GGPM,
         )
         .unwrap();
 
@@ -188,9 +192,9 @@ mod test {
             "Toyota Camry".to_string(),
             &model_path,
             ModelType::Smartcore,
-            SpeedUnit::MilesPerHour,
+            SpeedUnit::MPH,
             GradeUnit::Decimal,
-            EnergyRateUnit::GallonsGasolinePerMile,
+            EnergyRateUnit::GGPM,
             None,
             None,
             None,
@@ -204,15 +208,15 @@ mod test {
             for grade in -20..20 {
                 let (interp_energy_rate, _energy_rate_unit) = interp_model
                     .predict(
-                        (Speed::new(speed as f64), SpeedUnit::MilesPerHour),
-                        (Grade::new(grade as f64), GradeUnit::Percent),
+                        (Speed::from(speed as f64), SpeedUnit::MPH),
+                        (Grade::from(grade as f64), GradeUnit::Percent),
                     )
                     .unwrap();
                 let (underlying_energy_rate, _energy_rate_unit) = underlying_model
                     .prediction_model
                     .predict(
-                        (Speed::new(speed as f64), SpeedUnit::MilesPerHour),
-                        (Grade::new(grade as f64), GradeUnit::Percent),
+                        (Speed::from(speed as f64), SpeedUnit::MPH),
+                        (Grade::from(grade as f64), GradeUnit::Percent),
                     )
                     .unwrap();
 
@@ -225,16 +229,16 @@ mod test {
 
         let (energy_rate, energy_rate_unit) = interp_model
             .predict(
-                (Speed::new(50.0), SpeedUnit::MilesPerHour),
-                (Grade::new(0.0), GradeUnit::Percent),
+                (Speed::from(50.0), SpeedUnit::MPH),
+                (Grade::from(0.0), GradeUnit::Percent),
             )
             .unwrap();
 
-        assert_eq!(energy_rate_unit, EnergyRateUnit::GallonsGasolinePerMile);
+        assert_eq!(energy_rate_unit, EnergyRateUnit::GGPM);
 
         // energy rate should be between 28-32 mpg
-        let expected_lower = EnergyRate::new(1.0 / 32.0);
-        let expected_upper = EnergyRate::new(1.0 / 28.0);
+        let expected_lower = EnergyRate::from(1.0 / 32.0);
+        let expected_upper = EnergyRate::from(1.0 / 28.0);
         assert!(energy_rate >= expected_lower);
         assert!(energy_rate <= expected_upper);
     }

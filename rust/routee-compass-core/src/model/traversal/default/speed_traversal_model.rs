@@ -5,14 +5,14 @@ use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::{Distance, SpeedUnit, Time, BASE_DISTANCE_UNIT};
+use crate::model::unit::{baseunit, Convert, Distance, SpeedUnit, Time};
 use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
 use crate::util::geo::haversine;
+use std::borrow::Cow;
 use std::sync::Arc;
 
 pub struct SpeedTraversalModel {
     engine: Arc<SpeedTraversalEngine>,
-
     speed_limit: Option<(Speed, SpeedUnit)>,
 }
 
@@ -20,19 +20,20 @@ impl SpeedTraversalModel {
     pub fn new(
         engine: Arc<SpeedTraversalEngine>,
         speed_limit: Option<(Speed, SpeedUnit)>,
-    ) -> SpeedTraversalModel {
+    ) -> Result<SpeedTraversalModel, TraversalModelError> {
         if let Some((max_speed, max_speed_unit)) = speed_limit {
-            let converted_speed = max_speed_unit.convert(&max_speed, &engine.speed_unit);
+            let mut max_speed_convert = Cow::Owned(max_speed);
+            max_speed_unit.convert(&mut max_speed_convert, &engine.speed_unit)?;
             let converted_speed_unit = engine.speed_unit;
-            return SpeedTraversalModel {
+            Ok(SpeedTraversalModel {
                 engine,
-                speed_limit: Some((converted_speed, converted_speed_unit)),
-            };
-        }
-
-        SpeedTraversalModel {
-            engine,
-            speed_limit: None,
+                speed_limit: Some((max_speed_convert.into_owned(), converted_speed_unit)),
+            })
+        } else {
+            Ok(SpeedTraversalModel {
+                engine,
+                speed_limit: None,
+            })
         }
     }
     const DISTANCE: &'static str = "distance";
@@ -47,28 +48,29 @@ impl TraversalModel for SpeedTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
-        let distance = BASE_DISTANCE_UNIT.convert(&edge.distance, &self.engine.distance_unit);
-        let speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
+        let mut distance = Cow::Borrowed(&edge.distance);
+        baseunit::DISTANCE_UNIT.convert(&mut distance, &self.engine.distance_unit)?;
+        let dist_converted = distance.into_owned();
 
+        let lookup_speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let speed = match self.speed_limit {
             // speed unit here is unused since we've already converted into the same unit as the speed model
             Some((speed_limit, _speed_unit)) => {
-                if speed > speed_limit {
+                if lookup_speed > speed_limit {
                     speed_limit
                 } else {
-                    speed
+                    lookup_speed
                 }
             }
-            None => speed,
+            None => lookup_speed,
         };
 
-        let edge_time = Time::create(
-            &speed,
-            &self.engine.speed_unit,
-            &distance,
-            &self.engine.distance_unit,
-            &self.engine.time_unit,
+        let (t, tu) = Time::create(
+            (&dist_converted, &self.engine.distance_unit),
+            (&speed, &self.engine.speed_unit),
         )?;
+        let mut edge_time = Cow::Owned(t);
+        tu.convert(&mut edge_time, &self.engine.time_unit)?;
 
         state_model.add_time(
             state,
@@ -79,7 +81,7 @@ impl TraversalModel for SpeedTraversalModel {
         state_model.add_distance(
             state,
             &Self::DISTANCE.into(),
-            &distance,
+            &dist_converted,
             &self.engine.distance_unit,
         )?;
         Ok(())
@@ -110,17 +112,17 @@ impl TraversalModel for SpeedTraversalModel {
             None => self.engine.max_speed,
         };
 
-        let estimated_time = Time::create(
-            &max_speed,
-            &self.engine.speed_unit,
-            &distance,
-            &self.engine.distance_unit,
-            &self.engine.time_unit,
+        let (t, tu) = Time::create(
+            (&distance, &self.engine.distance_unit),
+            (&max_speed, &self.engine.speed_unit),
         )?;
+        let mut edge_time = Cow::Owned(t);
+        tu.convert(&mut edge_time, &self.engine.time_unit)?;
+
         state_model.add_time(
             state,
             &Self::TIME.into(),
-            &estimated_time,
+            &edge_time,
             &self.engine.time_unit,
         )?;
         state_model.add_distance(
@@ -184,7 +186,7 @@ mod tests {
             edge_id: EdgeId(edge_id),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
-            distance: Distance::new(100.0),
+            distance: Distance::from(100.0),
         }
     }
     fn filepath() -> PathBuf {
@@ -213,13 +215,9 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_seconds_time_unit() {
         let file = filepath();
-        let engine = SpeedTraversalEngine::new(
-            &file,
-            SpeedUnit::KilometersPerHour,
-            None,
-            Some(TimeUnit::Seconds),
-        )
-        .unwrap();
+        let engine =
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Seconds))
+                .unwrap();
         let state_model = Arc::new(
             StateModel::empty()
                 .extend(vec![
@@ -227,20 +225,20 @@ mod tests {
                         String::from("distance"),
                         StateFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::new(0.0),
+                            initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
                         StateFeature::Time {
                             time_unit: TimeUnit::Seconds,
-                            initial: Time::new(0.0),
+                            initial: Time::from(0.0),
                         },
                     ),
                 ])
                 .unwrap(),
         );
-        let model: SpeedTraversalModel = SpeedTraversalModel::new(Arc::new(engine), None);
+        let model: SpeedTraversalModel = SpeedTraversalModel::new(Arc::new(engine), None).unwrap();
         let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
@@ -250,21 +248,15 @@ mod tests {
             .unwrap();
 
         let expected = 36.0;
-        // approx_eq(result.total_cost.into(), expected, 0.001);
-        // approx_eq(result.updated_state[1].into(), expected, 0.001);
         approx_eq(state[1].into(), expected, 0.001);
     }
 
     #[test]
     fn test_edge_cost_lookup_with_milliseconds_time_unit() {
         let file = filepath();
-        let engine = SpeedTraversalEngine::new(
-            &file,
-            SpeedUnit::KilometersPerHour,
-            None,
-            Some(TimeUnit::Milliseconds),
-        )
-        .unwrap();
+        let engine =
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Milliseconds))
+                .unwrap();
         let state_model = Arc::new(
             StateModel::empty()
                 .extend(vec![
@@ -272,14 +264,14 @@ mod tests {
                         String::from("distance"),
                         StateFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::new(0.0),
+                            initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
                         StateFeature::Time {
                             time_unit: TimeUnit::Milliseconds,
-                            initial: Time::new(0.0),
+                            initial: Time::from(0.0),
                         },
                     ),
                 ])
@@ -291,11 +283,10 @@ mod tests {
         let e1 = mock_edge(0);
         // 100 meters @ 10kph should take 36,000 milliseconds ((0.1/10) * 3600000)
         model
+            .unwrap()
             .traverse_edge((&v, &e1, &v), &mut state, &state_model)
             .unwrap();
         let expected = 36000.0;
-        // approx_eq(result.total_cost.into(), expected, 0.001);
-        // approx_eq(result.updated_state[1].into(), expected, 0.001);
         approx_eq(state[1].into(), expected, 0.001);
     }
 
@@ -303,17 +294,12 @@ mod tests {
     fn test_speed_limit_enforcement() {
         let file = filepath();
         let engine = Arc::new(
-            SpeedTraversalEngine::new(
-                &file,
-                SpeedUnit::KilometersPerHour,
-                None,
-                Some(TimeUnit::Seconds),
-            )
-            .unwrap(),
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Seconds))
+                .unwrap(),
         );
 
         // We know from the test data that edge 0 has a speed of 10 kph, so set a limit of 5 kph
-        let speed_limit = Some((Speed::new(5.0), SpeedUnit::KilometersPerHour));
+        let speed_limit = Some((Speed::from(5.0), SpeedUnit::KPH));
 
         let state_model = Arc::new(
             StateModel::empty()
@@ -322,14 +308,14 @@ mod tests {
                         String::from("distance"),
                         StateFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::new(0.0),
+                            initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
                         StateFeature::Time {
                             time_unit: TimeUnit::Seconds,
-                            initial: Time::new(0.0),
+                            initial: Time::from(0.0),
                         },
                     ),
                 ])
@@ -349,11 +335,13 @@ mod tests {
 
         // Traverse with speed limit
         model_with_limit
+            .unwrap()
             .traverse_edge((&v, &e, &v), &mut state_with_limit, &state_model)
             .unwrap();
 
         // Traverse without speed limit
         model_without_limit
+            .unwrap()
             .traverse_edge((&v, &e, &v), &mut state_without_limit, &state_model)
             .unwrap();
 
@@ -379,23 +367,18 @@ mod tests {
 
         // Create engine with kilometers per hour as its speed unit
         let engine = Arc::new(
-            SpeedTraversalEngine::new(
-                &file,
-                SpeedUnit::KilometersPerHour,
-                None,
-                Some(TimeUnit::Seconds),
-            )
-            .unwrap(),
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Seconds))
+                .unwrap(),
         );
 
         // Set speed limit in miles per hour (5 mph ≈ 8 kph)
-        let speed_limit_mph = Some((Speed::new(5.0), SpeedUnit::MilesPerHour));
+        let speed_limit_mph = Some((Speed::from(5.0), SpeedUnit::MPH));
 
         // Create a model with the speed limit in mph
         let model_mph_limit = SpeedTraversalModel::new(engine.clone(), speed_limit_mph);
 
         // For comparison, create a model with equivalent speed limit directly in kph
-        let speed_limit_kph = Some((Speed::new(8.04672), SpeedUnit::KilometersPerHour));
+        let speed_limit_kph = Some((Speed::from(8.04672), SpeedUnit::KPH));
         let model_kph_limit = SpeedTraversalModel::new(engine, speed_limit_kph);
 
         let state_model = Arc::new(
@@ -405,14 +388,14 @@ mod tests {
                         String::from("distance"),
                         StateFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::new(0.0),
+                            initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
                         StateFeature::Time {
                             time_unit: TimeUnit::Seconds,
-                            initial: Time::new(0.0),
+                            initial: Time::from(0.0),
                         },
                     ),
                 ])
@@ -427,11 +410,13 @@ mod tests {
 
         // Traverse with mph-based limit
         model_mph_limit
+            .unwrap()
             .traverse_edge((&v, &e, &v), &mut state_mph, &state_model)
             .unwrap();
 
         // Traverse with kph-based limit
         model_kph_limit
+            .unwrap()
             .traverse_edge((&v, &e, &v), &mut state_kph, &state_model)
             .unwrap();
 

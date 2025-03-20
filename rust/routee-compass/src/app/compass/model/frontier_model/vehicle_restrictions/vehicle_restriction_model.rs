@@ -34,7 +34,13 @@ impl FrontierModel for VehicleRestrictionFrontierModel {
             None => Ok(true),
             Some(vehicle_restrictions) => {
                 for restriction in vehicle_restrictions.iter() {
-                    if !restriction.valid(&self.vehicle_parameters) {
+                    let valid_edge = restriction.valid(&self.vehicle_parameters).map_err(|e| {
+                        FrontierModelError::FrontierModelError(format!(
+                            "failed testing edge validity in frontier model due to: {}",
+                            e
+                        ))
+                    })?;
+                    if !valid_edge {
                         return Ok(false);
                     }
                 }
