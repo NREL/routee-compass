@@ -164,7 +164,7 @@ mod test {
 
     use super::*;
     use crate::model::prediction::prediction_model::PredictionModel;
-    use routee_compass_core::model::unit::{DistanceUnit, EnergyRateUnit, EnergyUnit, TimeUnit};
+    use routee_compass_core::model::unit::EnergyRateUnit;
 
     #[test]
     fn test_interpolation_speed_grade_model() {

@@ -177,7 +177,7 @@ impl VehicleType for BEV {
 mod tests {
     use super::*;
     use crate::model::prediction::{load_prediction_model, ModelType};
-    use routee_compass_core::model::unit::{AsF64, EnergyRate, EnergyRateUnit, TimeUnit};
+    use routee_compass_core::model::unit::{AsF64, EnergyRate, EnergyRateUnit};
     use std::path::PathBuf;
 
     fn mock_vehicle(starting_soc_percent: f64) -> BEV {
