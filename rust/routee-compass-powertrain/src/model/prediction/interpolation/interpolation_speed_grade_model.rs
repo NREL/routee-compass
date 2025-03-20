@@ -178,13 +178,13 @@ mod test {
             &model_path,
             ModelType::Smartcore,
             "Toyota Camry".to_string(),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
             (Speed::from(0.0), Speed::from(100.0)),
             101,
             GradeUnit::Decimal,
             (Grade::from(-0.20), Grade::from(0.20)),
             41,
-            EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
+            EnergyRateUnit::GGPM,
         )
         .unwrap();
 
@@ -192,9 +192,9 @@ mod test {
             "Toyota Camry".to_string(),
             &model_path,
             ModelType::Smartcore,
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
             GradeUnit::Decimal,
-            EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
+            EnergyRateUnit::GGPM,
             None,
             None,
             None,
@@ -210,7 +210,7 @@ mod test {
                     .predict(
                         (
                             Speed::from(speed as f64),
-                            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+                            SpeedUnit::MPH,
                         ),
                         (Grade::from(grade as f64), GradeUnit::Percent),
                     )
@@ -220,7 +220,7 @@ mod test {
                     .predict(
                         (
                             Speed::from(speed as f64),
-                            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+                            SpeedUnit::MPH,
                         ),
                         (Grade::from(grade as f64), GradeUnit::Percent),
                     )
@@ -237,16 +237,13 @@ mod test {
             .predict(
                 (
                     Speed::from(50.0),
-                    SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+                    SpeedUnit::MPH,
                 ),
                 (Grade::from(0.0), GradeUnit::Percent),
             )
             .unwrap();
 
-        assert_eq!(
-            energy_rate_unit,
-            EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles)
-        );
+        assert_eq!(energy_rate_unit, EnergyRateUnit::GGPM);
 
         // energy rate should be between 28-32 mpg
         let expected_lower = EnergyRate::from(1.0 / 32.0);

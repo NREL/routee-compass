@@ -222,9 +222,9 @@ mod tests {
             "Toyota_Camry".to_string(),
             &model_file_path,
             ModelType::Smartcore,
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
             GradeUnit::Decimal,
-            EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
+            EnergyRateUnit::GGPM,
             None,
             None,
             None,
@@ -240,7 +240,7 @@ mod tests {
         let time_engine = Arc::new(
             SpeedTraversalEngine::new(
                 &speed_file_path,
-                SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours),
+                SpeedUnit::KPH,
                 None,
                 None,
             )
@@ -250,10 +250,10 @@ mod tests {
 
         let service = EnergyModelService::new(
             Arc::new(time_service),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
             // &speed_file_path,
             &Some(grade_file_path),
-            // SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours),
+            // SpeedUnit::KPH,
             GradeUnit::Millis,
             None,
             None,

@@ -12,6 +12,15 @@ pub enum EnergyRateUnit {
 }
 
 impl EnergyRateUnit {
+    pub const GGPM: EnergyRateUnit =
+        EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles);
+    pub const GDPM: EnergyRateUnit =
+        EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsDiesel, DistanceUnit::Miles);
+    pub const KWHPM: EnergyRateUnit =
+        EnergyRateUnit::EnergyPerDistance(EnergyUnit::KilowattHours, DistanceUnit::Miles);
+    pub const KWHPKM: EnergyRateUnit =
+        EnergyRateUnit::EnergyPerDistance(EnergyUnit::KilowattHours, DistanceUnit::Kilometers);
+
     /// energy rates are defined with respect to a distance unit
     pub fn associated_distance_unit(&self) -> DistanceUnit {
         match self {

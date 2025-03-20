@@ -126,10 +126,7 @@ mod test {
     fn fails_with_invalid_speed() {
         let failure = Time::create(
             (&Distance::ONE, &DistanceUnit::Meters),
-            (
-                &Speed::ZERO,
-                &SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours),
-            ),
+            (&Speed::ZERO, &SpeedUnit::KPH),
         );
         assert!(failure.is_err());
     }
@@ -138,10 +135,7 @@ mod test {
     fn one_times_one() {
         let (one_sec, tu) = Time::create(
             (&Distance::ONE, &DistanceUnit::Meters),
-            (
-                &Speed::ONE,
-                &SpeedUnit(DistanceUnit::Meters, TimeUnit::Seconds),
-            ),
+            (&Speed::ONE, &SpeedUnit::MPS),
         )
         .unwrap();
         assert_eq!(Time::ONE, one_sec);
@@ -152,10 +146,7 @@ mod test {
     fn sixty_miles_at_60mph() {
         let (t, tu) = Time::create(
             (&Distance::from(60.0), &DistanceUnit::Miles),
-            (
-                &Speed::from(60.0),
-                &SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
-            ),
+            (&Speed::from(60.0), &SpeedUnit::MPH),
         )
         .unwrap();
         assert_approx_eq(t, Time::ONE, 0.0001);
@@ -164,10 +155,7 @@ mod test {
 
     #[test]
     fn walking_100_meters() {
-        let (walk_speed, walk_unit) = (
-            Speed::from(5.0),
-            SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours),
-        );
+        let (walk_speed, walk_unit) = (Speed::from(5.0), SpeedUnit::KPH);
         let (t, tu) = Time::create(
             (&Distance::from(100.0), &DistanceUnit::Meters),
             (&walk_speed, &walk_unit),

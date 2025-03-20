@@ -288,9 +288,9 @@ mod tests {
             "Chevy_Volt_Charge_Sustaining".to_string(),
             &charge_sustain_model_file_path,
             model_type.clone(),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
             GradeUnit::Decimal,
-            EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles),
+            EnergyRateUnit::GGPM,
             Some(EnergyRate::from(0.02)),
             Some(1.1252),
             None,
@@ -300,9 +300,9 @@ mod tests {
             "Chevy_Volt_Charge_Depleting".to_string(),
             &charge_depleting_model_file_path,
             model_type.clone(),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
             GradeUnit::Decimal,
-            EnergyRateUnit::EnergyPerDistance(EnergyUnit::KilowattHours, DistanceUnit::Miles),
+            EnergyRateUnit::KWHPM,
             Some(EnergyRate::from(0.2)),
             Some(1.3958),
             None,
@@ -334,7 +334,7 @@ mod tests {
         let distance = (Distance::from(1000.0), DistanceUnit::Meters);
         let speed = (
             Speed::from(60.0),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
         );
         let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
@@ -383,7 +383,7 @@ mod tests {
         let distance = (Distance::from(100.0), DistanceUnit::Miles);
         let speed = (
             Speed::from(60.0),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
         );
         let grade = (Grade::from(0.0), GradeUnit::Decimal);
 

@@ -199,9 +199,9 @@ mod tests {
                 grade_upper_bound: Grade::from(0.20),
                 grade_bins: 41,
             },
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
             GradeUnit::Decimal,
-            EnergyRateUnit::EnergyPerDistance(EnergyUnit::KilowattHours, DistanceUnit::Miles),
+            EnergyRateUnit::KWHPM,
             Some(EnergyRate::from(0.2)),
             Some(1.3958),
             None,
@@ -233,7 +233,7 @@ mod tests {
         let distance = (Distance::from(110.0), DistanceUnit::Miles);
         let speed = (
             Speed::from(60.0),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
         );
         let grade = (Grade::from(0.0), GradeUnit::Decimal);
 
@@ -271,7 +271,7 @@ mod tests {
         let distance = (Distance::from(10.0), DistanceUnit::Miles);
         let speed = (
             Speed::from(55.0),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
         );
         let grade = (Grade::from(-5.0), GradeUnit::Percent);
 
@@ -311,7 +311,7 @@ mod tests {
         let distance = (Distance::from(10.0), DistanceUnit::Miles);
         let speed = (
             Speed::from(55.0),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
         );
         let grade = (Grade::from(-5.0), GradeUnit::Percent);
 
@@ -337,7 +337,7 @@ mod tests {
         let distance = (Distance::from(100.0), DistanceUnit::Miles);
         let speed = (
             Speed::from(55.0),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+            SpeedUnit::MPH,
         );
         let grade = (Grade::from(5.0), GradeUnit::Percent);
 

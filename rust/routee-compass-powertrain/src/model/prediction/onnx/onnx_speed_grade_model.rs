@@ -107,7 +107,7 @@ mod test {
         let model: Box<dyn PredictionModel> = Box::new(
             OnnxSpeedGradeModel::new(
                 &model_file_path,
-                SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
+                SpeedUnit::MPH,
                 GradeUnit::Decimal,
                 routee_compass_core::model::unit::GallonsGasolinePerMile,
             )
@@ -115,7 +115,7 @@ mod test {
         );
 
         let input_speed = Speed::from(50.0);
-        let input_speed_unit = SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours);
+        let input_speed_unit = SpeedUnit::MPH;
         let input_grade = Grade::ZERO;
         let input_grade_unit = GradeUnit::Decimal;
         let input_row = (input_speed, input_speed_unit, input_grade, input_grade_unit);

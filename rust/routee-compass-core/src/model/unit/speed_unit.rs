@@ -16,6 +16,7 @@ impl std::fmt::Display for SpeedUnit {
 impl SpeedUnit {
     pub const KPH: SpeedUnit = SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours);
     pub const MPH: SpeedUnit = SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours);
+    pub const MPS: SpeedUnit = SpeedUnit(DistanceUnit::Meters, TimeUnit::Seconds);
 }
 
 impl FromStr for SpeedUnit {
@@ -38,8 +39,8 @@ impl FromStr for SpeedUnit {
                 })?;
                 Ok(SpeedUnit(du, tu))
             }
-            ["mph"] => Ok(SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours)),
-            ["kph"] => Ok(SpeedUnit(DistanceUnit::Kilometers, TimeUnit::Hours)),
+            ["mph"] => Ok(SpeedUnit::MPH),
+            ["kph"] => Ok(SpeedUnit::KPH),
             _ => Err(format!(
                 "expected speed unit as 'kph', 'mph', or in the format '<distance unit>/<time unit>', found: {}",
                 s
@@ -131,10 +132,7 @@ impl SpeedUnit {
     /// use as a soft "max" value for certain calculations
     /// todo: should come from configuration, not hard-coded here
     pub fn max_american_highway_speed(&self) -> (Speed, SpeedUnit) {
-        (
-            Speed::from(75.0),
-            SpeedUnit(DistanceUnit::Miles, TimeUnit::Hours),
-        )
+        (Speed::from(75.0), SpeedUnit::MPH)
     }
 }
 
