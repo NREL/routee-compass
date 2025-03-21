@@ -103,13 +103,13 @@ jobs:
         with:
           name: "wheel-${{ matrix.os }}-py${{ matrix.python-version }}"
           path: dist
-  upload:
+  upload-to-testpypi:
     needs: build
-    name: Upload release to PyPI
+    name: Upload release to Test PyPI
     runs-on: ubuntu-latest
     environment:
-      name: pypi
-      url: https://pypi.org/project/nrel.routee.compass
+      name: testpypi
+      url: https://test.pypi.org/project/nrel.routee.compass
     permissions:
       id-token: write
     steps:
@@ -126,6 +126,25 @@ jobs:
         uses: pypa/gh-action-pypi-publish@unstable/v1
         with:
           verbose: true
+
+  upload-to-pypi:
+    needs: [build, upload-to-testpypi]
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/nrel.routee.compass
+    permissions:
+      id-token: write
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist/
+          pattern: wheel*
+
+      - run: ls -1 dist/
 
       - name: publish package to PyPI
         uses: pypa/gh-action-pypi-publish@unstable/v1
