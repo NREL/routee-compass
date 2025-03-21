@@ -22,7 +22,7 @@ use crate::{
 };
 use chrono::{Duration, Local};
 use config::Config;
-use itertools::{Either, Itertools};
+use itertools::Itertools;
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
@@ -32,7 +32,6 @@ use routee_compass_core::model::network::Graph;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
-use std::rc::Rc;
 use std::{
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
@@ -315,7 +314,7 @@ impl CompassApp {
     /// if
     pub fn run(
         &self,
-        queries: &mut [serde_json::Value],
+        queries: &mut Vec<Value>,
         config: Option<&Value>,
     ) -> Result<Vec<Value>, CompassAppError> {
         // allow the user to overwrite global configurations for this run
@@ -340,13 +339,12 @@ impl CompassApp {
         let response_writer = response_output_policy.build()?;
 
         // INPUT PROCESSING
-        let parallel_batch_size =
-            (queries.len() as f64 / self.configuration.parallelism as f64).ceil() as usize;
+
         let input_plugin_result = apply_input_plugins(
             queries,
             &self.input_plugins,
             self.search_app.clone(),
-            parallel_batch_size,
+            parallelism,
         )?;
         let (processed_inputs, input_errors) = input_plugin_result;
         let mut load_balanced_inputs =
@@ -412,61 +410,103 @@ impl CompassApp {
 /// successful mappings (left) and mapping errors (right) as the pair
 /// (left, right). errors are already serialized into JSON.
 fn apply_input_plugins(
-    mapped_queries: &mut [Value],
+    queries: &mut Vec<Value>,
     input_plugins: &Vec<Arc<dyn InputPlugin>>,
     search_app: Arc<SearchApp>,
-    parallel_batch_size: usize,
+    parallelism: usize,
 ) -> Result<(Vec<Value>, Vec<Value>), CompassAppError> {
-    let input_pb = Bar::builder()
-        .total(mapped_queries.len())
-        .animation("fillup")
-        .desc("input plugins")
+    // TODO:
+    //   let's change this up so the outer loop is the input plugins, since the number of
+    //   queries can change after each plugin is applied. this way we can get better
+    //   parallel performance, especially if one plugin has a big multiplexing effect.
+    let mut queries_processed = queries.drain(..).collect_vec();
+    let mut query_errors: Vec<Value> = vec![];
+    let mut outer_bar = Bar::builder()
+        .total(input_plugins.len())
         .build()
-        .map_err(|e| {
-            CompassAppError::InternalError(format!(
-                "could not build input plugin progress bar: {}",
-                e
-            ))
-        })?;
-    let input_pb_shared = Arc::new(Mutex::new(input_pb));
+        .map_err(CompassAppError::InternalError)?;
+    outer_bar.set_description("input plugins"); // until we have named plugins
+
+    for (idx, plugin) in input_plugins.iter().enumerate() {
+        // outer_bar.set_description(format!("{}", plugin.name));  // placeholder for named plugins
+
+        let inner_bar = Arc::new(Mutex::new(
+            Bar::builder()
+                .total(queries.len())
+                .animation("fillup")
+                .desc(format!("apply plugin {}", idx + 1))
+                .build()
+                .map_err(|e| {
+                    CompassAppError::InternalError(format!(
+                        "could not build input plugin progress bar: {}",
+                        e
+                    ))
+                })?,
+        ));
+
+        let parallel_batch_size =
+            (queries_processed.len() as f64 / parallelism as f64).ceil() as usize;
+
+        let (good, bad): (Vec<Value>, Vec<Value>) = queries_processed
+            .par_chunks_mut(parallel_batch_size)
+            .flat_map(|qs| {
+                qs.iter_mut()
+                    .flat_map(|q| {
+                        if let Ok(mut pb_local) = inner_bar.lock() {
+                            let _ = pb_local.update(1);
+                        }
+                        // run the input plugin and flatten the result if it is a JSON array
+                        let p = plugin.clone();
+                        match p.process(q, search_app.clone()) {
+                            Err(e) => vec![in_ops::package_error(&mut q.clone(), e)],
+                            Ok(_) => in_ops::unpack_json_array_as_vec(q),
+                        }
+                    })
+                    .collect_vec()
+            })
+            .partition(|row| !matches!(row.as_object(), Some(obj) if obj.contains_key("error")));
+        queries_processed = good;
+        query_errors.extend(bad);
+    }
 
     // input plugins need to be flattened, and queries that fail input processing need to be
     // returned at the end.
-    let (good, bad): (Vec<_>, Vec<_>) = mapped_queries
-        .par_chunks(parallel_batch_size)
-        .map(|qs| {
-            let (good, bad): (Vec<Vec<Value>>, Vec<Value>) = qs
-                .iter()
-                .map(|q| {
-                    let mut plugin_state = serde_json::Value::Array(vec![q.to_owned()]);
-                    for plugin in input_plugins {
-                        let p = plugin.clone();
-                        let op: in_ops::InputArrayOp =
-                            Rc::new(|q| p.process(q, search_app.clone()));
-                        in_ops::json_array_op(&mut plugin_state, op)?
-                    }
-                    let inner_processed = in_ops::json_array_flatten(&mut plugin_state)?;
-                    // let inner_processed = apply_input_plugins(q, input_plugins);
-                    if let Ok(mut pb_local) = input_pb_shared.lock() {
-                        let _ = pb_local.update(1);
-                    }
-                    Ok(inner_processed)
-                })
-                .partition_map(|r| match r {
-                    Ok(values) => Either::Left(values),
-                    Err(error_response) => Either::Right(error_response),
-                });
+    // let (good, bad): (Vec<_>, Vec<_>) = queries
+    //     .par_chunks(parallel_batch_size)
+    //     .map(|qs| {
+    //         let (good, bad): (Vec<Vec<Value>>, Vec<Value>) = qs
+    //             .iter()
+    //             .map(|q| {
+    //                 let mut plugin_state = serde_json::Value::Array(vec![q.to_owned()]);
+    //                 for plugin in input_plugins {
+    //                     let p = plugin.clone();
+    //                     let op: in_ops::InputArrayOp =
+    //                         Rc::new(|q| p.process(q, search_app.clone()));
+    //                     in_ops::json_array_op(&mut plugin_state, op)?
+    //                 }
+    //                 let inner_processed = in_ops::json_array_flatten(&mut plugin_state)?;
+    //                 // let inner_processed = apply_input_plugins(q, input_plugins);
+    //                 if let Ok(mut pb_local) = input_pb_shared.lock() {
+    //                     let _ = pb_local.update(1);
+    //                 }
+    //                 Ok(inner_processed)
+    //             })
+    //             .partition_map(|r| match r {
+    //                 Ok(values) => Either::Left(values),
+    //                 Err(error_response) => Either::Right(error_response),
+    //             });
 
-            (good.into_iter().flatten().collect_vec(), bad)
-        })
-        .unzip();
+    //         (good.into_iter().flatten().collect_vec(), bad)
+    //     })
+    //     .unzip();
     eprintln!(); // end input plugin pb
 
-    let result = (
-        good.into_iter().flatten().collect_vec(),
-        bad.into_iter().flatten().collect_vec(),
-    );
-    Ok(result)
+    // let result = (
+    //     good.into_iter().flatten().collect_vec(),
+    //     bad.into_iter().flatten().collect_vec(),
+    // );
+    // Ok(result)
+    Ok((queries_processed, query_errors))
 }
 
 pub fn get_optional_run_config<'a, K, T>(
