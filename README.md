@@ -13,7 +13,7 @@
   </a>
 </div>
 
-[![Python build release for platforms](https://github.com/NREL/routee-compass/actions/workflows/python-release.yaml/badge.svg)](https://github.com/NREL/routee-compass/actions/workflows/python-release.yaml)
+[![Python Build](https://github.com/NREL/routee-compass/actions/workflows/python-release.yaml/badge.svg?event=release)](https://github.com/NREL/routee-compass/actions/workflows/python-release.yaml)
 
 RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
 
