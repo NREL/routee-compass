@@ -423,6 +423,7 @@ fn apply_input_plugins(
     let mut query_errors: Vec<Value> = vec![];
     let mut outer_bar = Bar::builder()
         .total(input_plugins.len())
+        .position(0)
         .build()
         .map_err(CompassAppError::InternalError)?;
     outer_bar.set_description("input plugins"); // until we have named plugins
@@ -433,8 +434,9 @@ fn apply_input_plugins(
         let inner_bar = Arc::new(Mutex::new(
             Bar::builder()
                 .total(queries.len())
+                .position(1)
                 .animation("fillup")
-                .desc(format!("apply plugin {}", idx + 1))
+                .desc(format!("applying input plugin {}", idx + 1))
                 .build()
                 .map_err(|e| {
                     CompassAppError::InternalError(format!(
@@ -468,6 +470,8 @@ fn apply_input_plugins(
         queries_processed = good;
         query_errors.extend(bad);
     }
+    eprintln!();
+    eprintln!();
 
     // input plugins need to be flattened, and queries that fail input processing need to be
     // returned at the end.
@@ -499,7 +503,7 @@ fn apply_input_plugins(
     //         (good.into_iter().flatten().collect_vec(), bad)
     //     })
     //     .unzip();
-    eprintln!(); // end input plugin pb
+    // eprintln!(); // end input plugin pb
 
     // let result = (
     //     good.into_iter().flatten().collect_vec(),
