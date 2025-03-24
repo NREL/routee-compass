@@ -17,6 +17,7 @@ use std::collections::HashMap;
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum SearchAlgorithm {
+    None,
     Dijkstra,
     #[serde(rename = "a*")]
     AStarAlgorithm {
@@ -46,6 +47,7 @@ impl SearchAlgorithm {
         si: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
+            SearchAlgorithm::None => Ok(SearchAlgorithmResult::default()),
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
                 weight_factor: Some(Cost::ZERO),
             }
@@ -120,6 +122,7 @@ impl SearchAlgorithm {
         search_instance: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
+            SearchAlgorithm::None => Ok(SearchAlgorithmResult::default()),
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
                 weight_factor: Some(Cost::ZERO),
             }
