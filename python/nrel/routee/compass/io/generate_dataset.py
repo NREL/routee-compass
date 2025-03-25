@@ -99,6 +99,7 @@ def generate_compass_dataset(
 
     print(f"running pipeline import with phases: [{[p.name for p in phases]}]")
     output_directory = Path(output_directory)
+    output_directory.mkdir(parents=True, exist_ok=True)
 
     # default aggregation is via numpy mean operation
     agg = agg if agg is not None else np.mean
@@ -142,10 +143,7 @@ def generate_compass_dataset(
     e["src_vertex_id"] = e.src_vertex_uuid.apply(replace_id)
     e["dst_vertex_id"] = e.dst_vertex_uuid.apply(replace_id)
 
-    if GeneratePipelinePhase.GRAPH not in phases:
-        print("skipping graph output generation")
-        # WRITE NETWORK FILES
-        output_directory.mkdir(parents=True, exist_ok=True)
+    if GeneratePipelinePhase.GRAPH in phases:
         #   vertex tables
         print("writing vertex files")
         v.to_csv(output_directory / "vertices-complete.csv.gz", index=False)
