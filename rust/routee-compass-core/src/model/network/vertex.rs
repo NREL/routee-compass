@@ -141,7 +141,7 @@ mod tests {
 
     use crate::{
         model::network::{Vertex, VertexId},
-        util::geo::coord::InternalCoord,
+        util::geo::InternalCoord,
     };
 
     #[test]
