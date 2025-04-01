@@ -185,7 +185,7 @@ mod tests {
             network::{Edge, EdgeId, Vertex, VertexId},
             traversal::default::{SpeedLookupService, SpeedTraversalEngine},
         },
-        util::geo::coord::InternalCoord,
+        util::geo::InternalCoord,
     };
     use std::{collections::HashMap, path::PathBuf};
 
