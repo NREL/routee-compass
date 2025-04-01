@@ -87,13 +87,10 @@ pub fn process_inject(
 #[cfg(test)]
 mod test {
     use super::{process_inject, InjectInputPlugin};
-    use crate::plugin::input::{
-        default::inject::{
-            inject_plugin_config::{BasicInjectPlugin, SpatialInjectPlugin},
+    use crate::plugin::input::default::inject::{
+            inject_plugin_config::SpatialInjectPlugin,
             CoordinateOrientation, InjectPluginConfig, WriteMode,
-        },
-        InputPlugin,
-    };
+        };
     use serde_json::{json, Value};
     use std::path::Path;
 
@@ -194,7 +191,7 @@ mod test {
             orientation: CoordinateOrientation::Origin,
             default: default.clone(),
         });
-        let plugin = conf.build().expect("test invariant failed");
-        plugin
+        
+        conf.build().expect("test invariant failed")
     }
 }
