@@ -1,17 +1,17 @@
-//! Configuration for building an instance of an [`super::InjectInputPlugin`]. 
+//! Configuration for building an instance of an [`super::InjectInputPlugin`].
 
+use super::{inject_plugin::InjectInputPlugin, CoordinateOrientation, WriteMode};
+use crate::plugin::input::InputPluginError;
 use geojson::{Feature, FeatureCollection, GeoJson};
 use routee_compass_core::util::geo::{geo_io_utils, PolygonalRTree};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use crate::plugin::input::InputPluginError;
-use super::{inject_plugin::InjectInputPlugin, CoordinateOrientation, WriteMode};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum InjectPluginConfig {
     Spatial(SpatialInjectPlugin),
-    Basic(BasicInjectPlugin)
+    Basic(BasicInjectPlugin),
 }
 
 /// injects a value in each query at some key
@@ -22,7 +22,7 @@ pub struct BasicInjectPlugin {
     pub write_mode: WriteMode,
 }
 /// injects a value in each query at some key by first intersecting
-/// the query map location with some geospatial dataset in order to 
+/// the query map location with some geospatial dataset in order to
 /// provide spatially-varied injection.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SpatialInjectPlugin {
@@ -37,19 +37,19 @@ pub struct SpatialInjectPlugin {
 impl InjectPluginConfig {
     pub fn build(&self) -> Result<InjectInputPlugin, InputPluginError> {
         match self {
-            InjectPluginConfig::Basic(basic) => 
-                Ok(InjectInputPlugin::Basic {
+            InjectPluginConfig::Basic(basic) => Ok(InjectInputPlugin::Basic {
                 key: basic.key.clone(),
                 value: basic.value.clone(),
                 write_mode: basic.write_mode.clone(),
             }),
             InjectPluginConfig::Spatial(spatial) => {
-                let contents = std::fs::read_to_string(&spatial.spatial_input_file).map_err(|e| {
-                    InputPluginError::BuildFailed(format!(
-                        "file read failed for file '{}': {}",
-                        spatial.spatial_input_file, e
-                    ))
-                })?;
+                let contents =
+                    std::fs::read_to_string(&spatial.spatial_input_file).map_err(|e| {
+                        InputPluginError::BuildFailed(format!(
+                            "file read failed for file '{}': {}",
+                            spatial.spatial_input_file, e
+                        ))
+                    })?;
                 let geojson = contents.parse::<GeoJson>().map_err(|e| {
                     InputPluginError::BuildFailed(format!(
                         "unable to parse file '{}' as GeoJSON: {}",
@@ -73,8 +73,10 @@ impl InjectPluginConfig {
                                 spatial.spatial_input_file
                             ))),
                             Some(g) => {
-                                let geometry_f64: geo::Geometry<f64> = g.try_into().map_err(|e| InputPluginError::BuildFailed(format!("row {} from GeoJSON in file '{}' has geometry that cannot be deserialized: {}", get_id(&row), spatial.spatial_input_file, e)))?;
-                                
+                                let geometry_f64: geo::Geometry<f64> = g.try_into().map_err(|e| {
+                                    let msg = format!("row {} from GeoJSON in file '{}' has geometry that cannot be deserialized: {}", get_id(&row), spatial.spatial_input_file, e);
+                                    InputPluginError::BuildFailed(msg)
+                                })?;
                                 // validate the geometry is polygonal
                                 match geometry_f64 {
                                     geo::Geometry::Polygon(_) | geo::Geometry::MultiPolygon(_) => Ok(()),
@@ -105,9 +107,14 @@ impl InjectPluginConfig {
                     })
                     .collect::<Result<Vec<_>, _>>()?;
 
-                let spatial_index= PolygonalRTree::new(geometries_with_properties)
-                    .map_err(|e| InputPluginError::BuildFailed(format!("failed to build spatial index over GeoJSON input from file '{}': {}", spatial.spatial_input_file, e)))?;
-                
+                let spatial_index =
+                    PolygonalRTree::new(geometries_with_properties).map_err(|e| {
+                        InputPluginError::BuildFailed(format!(
+                            "failed to build spatial index over GeoJSON input from file '{}': {}",
+                            spatial.spatial_input_file, e
+                        ))
+                    })?;
+
                 Ok(InjectInputPlugin::Spatial {
                     values: spatial_index,
                     key: spatial.key.clone(),
@@ -121,5 +128,8 @@ impl InjectPluginConfig {
 }
 
 fn get_id(row: &Feature) -> String {
-    row.id.as_ref().map(|i| format!("{:?}", i)).unwrap_or_default()
+    row.id
+        .as_ref()
+        .map(|i| format!("{:?}", i))
+        .unwrap_or_default()
 }
