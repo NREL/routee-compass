@@ -1,15 +1,15 @@
-use geo::{Area, BooleanOps, BoundingRect, Geometry, Intersects, Polygon};
+use geo::{Area, BooleanOps, BoundingRect, Geometry, Intersects, Polygon, Rect};
 use rstar::{primitives::Rectangle, RTree, RTreeObject, AABB};
-use wkt::ToWkt;
+use std::iter::Sum;
 
-pub struct Node<D> {
-    pub geometry: Geometry,
-    pub rectangle: Rectangle<(f64, f64)>,
+pub struct Node<C: rstar::RTreeNum + geo::CoordFloat, D> {
+    pub geometry: Geometry<C>,
+    pub rectangle: Rectangle<(C, C)>,
     pub data: D,
 }
 
-impl<D> Node<D> {
-    pub fn new(geometry: Geometry, data: D) -> Result<Node<D>, String> {
+impl<C: rstar::RTreeNum + geo::CoordFloat, D> Node<C, D> {
+    pub fn new(geometry: Geometry<C>, data: D) -> Result<Node<C, D>, String> {
         let rectangle = rect_from_geometry(&geometry)?;
         let result = Node {
             geometry,
@@ -20,18 +20,23 @@ impl<D> Node<D> {
     }
 }
 
-impl<D> RTreeObject for Node<D> {
-    type Envelope = AABB<(f64, f64)>;
+impl<C: rstar::RTreeNum + geo::CoordFloat, D> RTreeObject for Node<C, D> {
+    type Envelope = AABB<(C, C)>;
 
     fn envelope(&self) -> Self::Envelope {
         self.rectangle.envelope()
     }
 }
 
-pub struct PolygonalRTree<D>(RTree<Node<D>>);
+pub type IntersectionWithArea<'a, C, D> = Vec<(&'a Node<C, D>, C)>;
 
-impl<D> PolygonalRTree<D> {
-    pub fn new(data: Vec<(Geometry, D)>) -> Result<PolygonalRTree<D>, String> {
+pub struct PolygonalRTree<C: rstar::RTreeNum + geo::CoordFloat, D>(RTree<Node<C, D>>);
+
+impl<C, D> PolygonalRTree<C, D>
+where
+    C: rstar::RTreeNum + geo::GeoNum + geo::CoordFloat + geo::bool_ops::BoolOpsNum + Sum,
+{
+    pub fn new(data: Vec<(Geometry<C>, D)>) -> Result<PolygonalRTree<C, D>, String> {
         let nodes = data
             .into_iter()
             .map(|(g, d)| Node::new(g, d))
@@ -45,8 +50,8 @@ impl<D> PolygonalRTree<D> {
     ///   2. testing intersection for each discovered geometry bounded by it's rectangle
     pub fn intersection<'a>(
         &'a self,
-        g: &'a Geometry,
-    ) -> Result<Box<dyn Iterator<Item = &'a Node<D>> + 'a>, String> {
+        g: &'a Geometry<C>,
+    ) -> Result<Box<dyn Iterator<Item = &'a Node<C, D>> + 'a>, String> {
         let query = rect_from_geometry(g)?;
         let iter = self
             .0
@@ -57,10 +62,10 @@ impl<D> PolygonalRTree<D> {
 
     pub fn intersection_with_overlap_area<'a>(
         &'a self,
-        query: &'a Geometry,
-    ) -> Result<Vec<(&'a Node<D>, f64)>, String> {
+        query: &'a Geometry<C>,
+    ) -> Result<IntersectionWithArea<'a, C, D>, String> {
         // get all polygons in the query geometry
-        let query_polygons: Vec<Polygon> = match query {
+        let query_polygons: Vec<Polygon<C>> = match query {
             Geometry::Polygon(p) => Ok(vec![p.clone()]),
             Geometry::MultiPolygon(mp) => Ok(mp.0.clone()),
             // Geometry::GeometryCollection(geometry_collection) => todo!(),
@@ -80,24 +85,23 @@ impl<D> PolygonalRTree<D> {
                         let area = overlap_area(p, &node.geometry)?;
                         Ok(area)
                     })
-                    .collect::<Result<Vec<f64>, String>>()?;
-                let overlap_area: f64 = overlap_areas.into_iter().sum();
+                    .collect::<Result<Vec<C>, String>>()?;
+                let overlap_area: C = overlap_areas.into_iter().sum();
                 Ok((node, overlap_area))
             })
-            .collect::<Result<Vec<(&Node<D>, f64)>, String>>()?;
+            .collect::<Result<Vec<(&Node<C, D>, C)>, String>>()?;
 
         Ok(result)
     }
 }
 
 /// helper function to create a rectangular rtree envelope for a given geometry
-fn rect_from_geometry(g: &Geometry) -> Result<Rectangle<(f64, f64)>, String> {
-    let bbox_vec = g.bounding_rect().ok_or_else(|| {
-        format!(
-            "internal error: cannot get bounds of geometry: '{}'",
-            g.to_wkt()
-        )
-    })?;
+fn rect_from_geometry<C: rstar::RTreeNum + geo::CoordFloat>(
+    g: &Geometry<C>,
+) -> Result<Rectangle<(C, C)>, String> {
+    let bbox_vec: Rect<C> = g
+        .bounding_rect()
+        .ok_or_else(|| String::from("internal error: cannot get bounds of geometry"))?;
 
     let envelope = Rectangle::from_corners(bbox_vec.min().x_y(), bbox_vec.max().x_y());
     Ok(envelope)
@@ -105,11 +109,14 @@ fn rect_from_geometry(g: &Geometry) -> Result<Rectangle<(f64, f64)>, String> {
 
 /// helper for computing the overlap area, which is the area that two geometries have in common
 /// (the intersection).
-fn overlap_area(query: &Polygon, overlapping: &Geometry) -> Result<f64, String> {
+fn overlap_area<C>(query: &Polygon<C>, overlapping: &Geometry<C>) -> Result<C, String>
+where
+    C: rstar::RTreeNum + geo::CoordFloat + geo::bool_ops::BoolOpsNum + Sum,
+{
     match overlapping {
         Geometry::Polygon(overlap_p) => {
             let overlap = query.intersection(overlap_p);
-            let overlap_area: f64 = overlap.iter().map(|p| p.unsigned_area()).sum();
+            let overlap_area: C = overlap.iter().map(|p| p.unsigned_area()).sum();
             Ok(overlap_area)
         }
         Geometry::MultiPolygon(mp) => {
@@ -119,7 +126,7 @@ fn overlap_area(query: &Polygon, overlapping: &Geometry) -> Result<f64, String> 
                     overlap_area(query, &geo::Geometry::Polygon(overlapping_p.clone()))
                 })
                 .collect::<Result<Vec<_>, String>>()?;
-            let overlap_area: f64 = overlaps.into_iter().sum();
+            let overlap_area: C = overlaps.into_iter().sum();
             Ok(overlap_area)
         }
         _ => Err(String::from("polygonal rtree node must be polygonal!")),
