@@ -220,7 +220,7 @@ mod test {
         default: &Option<Value>,
     ) -> InjectInputPlugin {
         let spatial_input_file = test_filepath();
-        let conf = InjectPluginConfig::Spatial(SpatialInjectPlugin {
+        let conf = InjectPluginConfig::SpatialKeyValue(SpatialInjectPlugin {
             spatial_input_file,
             source_key: source_key.clone(),
             key: key.clone(),

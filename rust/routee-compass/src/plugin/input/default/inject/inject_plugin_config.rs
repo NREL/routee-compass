@@ -8,10 +8,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case", tag = "type")]
+#[serde(rename_all = "snake_case", tag = "format")]
 pub enum InjectPluginConfig {
-    Spatial(SpatialInjectPlugin),
-    Basic(BasicInjectPlugin),
+    SpatialKeyValue(SpatialInjectPlugin),
+    KeyValue(BasicInjectPlugin),
 }
 
 /// injects a value in each query at some key
@@ -37,12 +37,12 @@ pub struct SpatialInjectPlugin {
 impl InjectPluginConfig {
     pub fn build(&self) -> Result<InjectInputPlugin, InputPluginError> {
         match self {
-            InjectPluginConfig::Basic(basic) => Ok(InjectInputPlugin::Basic {
+            InjectPluginConfig::KeyValue(basic) => Ok(InjectInputPlugin::Basic {
                 key: basic.key.clone(),
                 value: basic.value.clone(),
                 write_mode: basic.write_mode.clone(),
             }),
-            InjectPluginConfig::Spatial(spatial) => {
+            InjectPluginConfig::SpatialKeyValue(spatial) => {
                 let contents =
                     std::fs::read_to_string(&spatial.spatial_input_file).map_err(|e| {
                         InputPluginError::BuildFailed(format!(
