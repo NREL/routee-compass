@@ -88,18 +88,15 @@ pub fn process_inject(
 mod test {
     use super::{process_inject, InjectInputPlugin};
     use crate::plugin::input::default::inject::{
-            inject_plugin_config::SpatialInjectPlugin,
-            CoordinateOrientation, InjectPluginConfig, WriteMode,
-        };
+        inject_plugin_config::SpatialInjectPlugin, CoordinateOrientation, InjectPluginConfig,
+        WriteMode,
+    };
     use serde_json::{json, Value};
-    use std::path::Path;
+    use std::{os::unix::process, path::Path};
 
     #[test]
     fn test_basic() {
-        let mut query = json!({
-            "origin_x": -105.11011135094863,
-            "origin_y": 39.83906153425838
-        });
+        let mut query = json!({});
         let key = String::from("key_on_query");
         let value = json![{"k": "v"}];
         let plugin = InjectInputPlugin::Basic {
@@ -169,11 +166,43 @@ mod test {
         )
     }
 
-    fn setup_spatial(
-        source_key: &Option<String>,
-        key: &String,
-        default: &Option<Value>,
-    ) -> InjectInputPlugin {
+    #[test]
+    fn test_spatial_from_json() {
+        let source_key = String::from("key_on_geojson");
+        let key = String::from("key_on_query");
+        let conf_str = format!(
+            r#"
+        {{
+            "type": "spatial",
+            "spatial_input_file": "{}",
+            "source_key": "{}",
+            "key": "{}",
+            "write_mode": "overwrite",
+            "orientation": "origin"
+        }}
+        "#,
+            test_filepath(),
+            &source_key,
+            &key
+        );
+        let conf: InjectPluginConfig =
+            serde_json::from_str(&conf_str).expect("failed to decode configuration");
+        let plugin = conf.build().expect("failed to build plugin");
+        let mut query = json!({
+            "origin_x": -105.11011135094863,
+            "origin_y": 39.83906153425838
+        });
+
+        process_inject(&plugin, &mut query).expect("failed to run plugin");
+        let value = query.get(&key).expect("test failed: key was not set");
+        let value_number = value.as_i64().expect("test failed: value was not a number");
+        assert_eq!(
+            value_number, 5000,
+            "test failed: value stored in GeoJSON with matching location was not injected"
+        )
+    }
+
+    fn test_filepath() -> String {
         let spatial_input_filepath = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("plugin")
@@ -182,7 +211,15 @@ mod test {
             .join("inject")
             .join("test")
             .join("test.geojson");
-        let spatial_input_file = spatial_input_filepath.to_string_lossy().to_string();
+        spatial_input_filepath.to_string_lossy().to_string()
+    }
+
+    fn setup_spatial(
+        source_key: &Option<String>,
+        key: &String,
+        default: &Option<Value>,
+    ) -> InjectInputPlugin {
+        let spatial_input_file = test_filepath();
         let conf = InjectPluginConfig::Spatial(SpatialInjectPlugin {
             spatial_input_file,
             source_key: source_key.clone(),
@@ -191,7 +228,7 @@ mod test {
             orientation: CoordinateOrientation::Origin,
             default: default.clone(),
         });
-        
+
         conf.build().expect("test invariant failed")
     }
 }
