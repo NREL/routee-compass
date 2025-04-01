@@ -92,7 +92,7 @@ mod test {
         WriteMode,
     };
     use serde_json::{json, Value};
-    use std::{os::unix::process, path::Path};
+    use std::path::Path;
 
     #[test]
     fn test_basic() {
