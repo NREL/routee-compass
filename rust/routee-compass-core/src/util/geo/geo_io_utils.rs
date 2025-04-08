@@ -1,7 +1,60 @@
-use geo::{Coord, LineString, Point};
+use geo::{Coord, CoordsIter, LineString, Point};
 use itertools::Itertools;
 use wkb;
 use wkt::{ToWkt, TryFromWkt};
+
+/// downsamples an f64 geometry to f32.
+/// we currently use f32 to reduce the memory footprint of some map geometry data.
+pub fn downsample_geometry(geometry_f64: geo::Geometry<f64>) -> Result<geo::Geometry<f32>, String> {
+    match geometry_f64 {
+        geo::Geometry::Polygon(p) => {
+            let ext = p
+                .exterior_coords_iter()
+                .map(|c| Coord::<f32> {
+                    x: c.x as f32,
+                    y: c.y as f32,
+                })
+                .collect_vec();
+            let exterior = geo::LineString::new(ext);
+            let interiors = p
+                .interiors()
+                .iter()
+                .map(|int| {
+                    let int = int
+                        .coords()
+                        .map(|c| Coord::<f32> {
+                            x: c.x as f32,
+                            y: c.y as f32,
+                        })
+                        .collect_vec();
+                    geo::LineString::from(int)
+                })
+                .collect_vec();
+            Ok(geo::Geometry::Polygon(geo::Polygon::new(
+                exterior, interiors,
+            )))
+        }
+        geo::Geometry::MultiPolygon(mp) => {
+            let geoms_f32 = mp
+                .into_iter()
+                .map(|p| downsample_geometry(geo::Geometry::Polygon(p)))
+                .collect::<Result<Vec<_>, _>>()?;
+            let polys = geoms_f32
+                .into_iter()
+                .enumerate()
+                .map(|(idx, g)| match g {
+                    geo::Geometry::Polygon(polygon) => Ok(polygon),
+                    _ => Err(format!(
+                        "invalid multipolygon contains non-POLYGON geometry at index {}",
+                        idx
+                    )),
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(geo::Geometry::MultiPolygon(geo::MultiPolygon::new(polys)))
+        }
+        _ => Err(String::from("not (yet) implemented for this geometry type")),
+    }
+}
 
 /// Concatenate a vector of linestrings into a single linestring
 ///
