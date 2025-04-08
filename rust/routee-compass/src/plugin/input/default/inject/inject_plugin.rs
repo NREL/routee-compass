@@ -87,15 +87,20 @@ pub fn process_inject(
 #[cfg(test)]
 mod test {
     use super::{process_inject, InjectInputPlugin};
-    use crate::plugin::input::default::inject::{
-        inject_plugin_config::SpatialInjectPlugin, CoordinateOrientation, InjectPluginConfig,
-        WriteMode,
+    use crate::{
+        app::compass::CompassAppBuilder,
+        plugin::input::default::inject::{
+            inject_plugin_config::SpatialInjectPlugin, CoordinateOrientation, InjectPluginConfig,
+            WriteMode,
+        },
     };
+    use config::Config;
+    use itertools::Itertools;
     use serde_json::{json, Value};
     use std::path::Path;
 
     #[test]
-    fn test_basic() {
+    fn test_kv() {
         let mut query = json!({});
         let key = String::from("key_on_query");
         let value = json![{"k": "v"}];
@@ -112,6 +117,19 @@ mod test {
         )
     }
 
+    #[test]
+    fn test_kv_from_file() {
+        let plugins = test_kv_conf();
+        let result = plugins.fold(json![{}], |mut input, plugin| {
+            process_inject(&plugin, &mut input).unwrap();
+            input
+        });
+        let result_string = serde_json::to_string(&result).unwrap();
+        let expected = String::from(
+            r#"{"test_a":{"foo":"bar","baz":"bees"},"test_b":["test",5,3.14159],"test_c":[0,0,0,0]}"#,
+        );
+        assert_eq!(result_string, expected);
+    }
     #[test]
     fn test_spatial_contains() {
         let mut query = json!({
@@ -182,7 +200,7 @@ mod test {
             "orientation": "origin"
         }}
         "#,
-            test_filepath(),
+            test_geojson_filepath(),
             &source_key,
             &key
         );
@@ -203,7 +221,7 @@ mod test {
         )
     }
 
-    fn test_filepath() -> String {
+    fn test_geojson_filepath() -> String {
         let spatial_input_filepath = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("plugin")
@@ -215,12 +233,55 @@ mod test {
         spatial_input_filepath.to_string_lossy().to_string()
     }
 
+    fn test_kv_conf() -> Vec<InjectInputPlugin> {
+        let kv_conf_filepath = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("plugin")
+            .join("input")
+            .join("default")
+            .join("inject")
+            .join("test")
+            .join("test_inject.toml");
+        let conf_source = config::File::from(kv_conf_filepath);
+
+        let config_toml = Config::builder()
+            .add_source(conf_source)
+            .build()
+            .expect("test invariant failed");
+        let config_json = config_toml
+            .clone()
+            .try_deserialize::<serde_json::Value>()
+            .expect("test invariant failed");
+        let input_plugin_array = config_json
+            .get("input_plugin")
+            .expect("TOML file should have an 'input_plugin' key")
+            .clone();
+        let array = input_plugin_array
+            .as_array()
+            .expect("key input_plugin should be an array");
+        let plugins = array
+            .into_iter()
+            .map(|conf| {
+                let ipc =
+                    serde_json::from_value::<InjectPluginConfig>(conf.clone()).expect(&format!(
+                        "'input_plugin' entry should be valid: {}",
+                        serde_json::to_string(&conf).unwrap_or_default()
+                    ));
+                ipc.build().expect(&format!(
+                    "InjectPluginConfig.build failed: {}",
+                    serde_json::to_string(&conf).unwrap_or_default()
+                ))
+            })
+            .collect_vec();
+        plugins
+    }
+
     fn setup_spatial(
         source_key: &Option<String>,
         key: &str,
         default: &Option<Value>,
     ) -> InjectInputPlugin {
-        let spatial_input_file = test_filepath();
+        let spatial_input_file = test_geojson_filepath();
         let conf = InjectPluginConfig::SpatialKeyValue(SpatialInjectPlugin {
             spatial_input_file,
             source_key: source_key.clone(),
