@@ -88,9 +88,9 @@ pub fn process_inject(
 mod test {
     use super::{process_inject, InjectInputPlugin};
     use crate::plugin::input::default::inject::{
-            inject_plugin_config::SpatialInjectPlugin, CoordinateOrientation, InjectPluginConfig,
-            WriteMode,
-        };
+        inject_plugin_config::SpatialInjectPlugin, CoordinateOrientation, InjectPluginConfig,
+        WriteMode,
+    };
     use config::Config;
     use itertools::Itertools;
     use serde_json::{json, Value};
@@ -259,11 +259,19 @@ mod test {
         let plugins = array
             .iter()
             .map(|conf| {
-                let ipc =
-                    serde_json::from_value::<InjectPluginConfig>(conf.clone()).unwrap_or_else(|_| panic!("'input_plugin' entry should be valid: {}",
-                        serde_json::to_string(&conf).unwrap_or_default()));
-                ipc.build().unwrap_or_else(|_| panic!("InjectPluginConfig.build failed: {}",
-                    serde_json::to_string(&conf).unwrap_or_default()))
+                let ipc = serde_json::from_value::<InjectPluginConfig>(conf.clone())
+                    .unwrap_or_else(|_| {
+                        panic!(
+                            "'input_plugin' entry should be valid: {}",
+                            serde_json::to_string(&conf).unwrap_or_default()
+                        )
+                    });
+                ipc.build().unwrap_or_else(|_| {
+                    panic!(
+                        "InjectPluginConfig.build failed: {}",
+                        serde_json::to_string(&conf).unwrap_or_default()
+                    )
+                })
             })
             .collect_vec();
         plugins
