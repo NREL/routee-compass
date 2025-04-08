@@ -120,7 +120,7 @@ mod test {
     #[test]
     fn test_kv_from_file() {
         let plugins = test_kv_conf();
-        let result = plugins.fold(json![{}], |mut input, plugin| {
+        let result = plugins.iter().fold(json![{}], |mut input, plugin| {
             process_inject(&plugin, &mut input).unwrap();
             input
         });
