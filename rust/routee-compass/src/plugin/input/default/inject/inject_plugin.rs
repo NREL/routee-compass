@@ -14,8 +14,8 @@ pub enum InjectInputPlugin {
         write_mode: WriteMode,
     },
     Spatial {
-        values: PolygonalRTree<f32, Value>,
         key: String,
+        values: PolygonalRTree<f32, Value>,
         write_mode: WriteMode,
         orientation: CoordinateOrientation,
         default: Option<Value>,
@@ -173,7 +173,8 @@ mod test {
         let conf_str = format!(
             r#"
         {{
-            "type": "spatial",
+            "type": "inject",
+            "format": "spatial_key_value",
             "spatial_input_file": "{}",
             "source_key": "{}",
             "key": "{}",

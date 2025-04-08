@@ -1,7 +1,6 @@
+use crate::plugin::input::InputPluginError;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-
-use crate::plugin::input::InputPluginError;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
