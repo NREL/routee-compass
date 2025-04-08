@@ -217,14 +217,14 @@ mod test {
 
     fn setup_spatial(
         source_key: &Option<String>,
-        key: &String,
+        key: &str,
         default: &Option<Value>,
     ) -> InjectInputPlugin {
         let spatial_input_file = test_filepath();
         let conf = InjectPluginConfig::SpatialKeyValue(SpatialInjectPlugin {
             spatial_input_file,
             source_key: source_key.clone(),
-            key: key.clone(),
+            key: key.to_owned(),
             write_mode: WriteMode::Overwrite,
             orientation: CoordinateOrientation::Origin,
             default: default.clone(),
