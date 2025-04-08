@@ -87,13 +87,10 @@ pub fn process_inject(
 #[cfg(test)]
 mod test {
     use super::{process_inject, InjectInputPlugin};
-    use crate::{
-        app::compass::CompassAppBuilder,
-        plugin::input::default::inject::{
+    use crate::plugin::input::default::inject::{
             inject_plugin_config::SpatialInjectPlugin, CoordinateOrientation, InjectPluginConfig,
             WriteMode,
-        },
-    };
+        };
     use config::Config;
     use itertools::Itertools;
     use serde_json::{json, Value};
@@ -121,7 +118,7 @@ mod test {
     fn test_kv_from_file() {
         let plugins = test_kv_conf();
         let result = plugins.iter().fold(json![{}], |mut input, plugin| {
-            process_inject(&plugin, &mut input).unwrap();
+            process_inject(plugin, &mut input).unwrap();
             input
         });
         let result_string = serde_json::to_string(&result).unwrap();
@@ -260,17 +257,13 @@ mod test {
             .as_array()
             .expect("key input_plugin should be an array");
         let plugins = array
-            .into_iter()
+            .iter()
             .map(|conf| {
                 let ipc =
-                    serde_json::from_value::<InjectPluginConfig>(conf.clone()).expect(&format!(
-                        "'input_plugin' entry should be valid: {}",
-                        serde_json::to_string(&conf).unwrap_or_default()
-                    ));
-                ipc.build().expect(&format!(
-                    "InjectPluginConfig.build failed: {}",
-                    serde_json::to_string(&conf).unwrap_or_default()
-                ))
+                    serde_json::from_value::<InjectPluginConfig>(conf.clone()).unwrap_or_else(|_| panic!("'input_plugin' entry should be valid: {}",
+                        serde_json::to_string(&conf).unwrap_or_default()));
+                ipc.build().unwrap_or_else(|_| panic!("InjectPluginConfig.build failed: {}",
+                    serde_json::to_string(&conf).unwrap_or_default()))
             })
             .collect_vec();
         plugins
