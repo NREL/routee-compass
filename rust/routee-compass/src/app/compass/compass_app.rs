@@ -432,7 +432,7 @@ fn apply_input_plugins(
         // outer_bar.set_description(format!("{}", plugin.name));  // placeholder for named plugins
         let inner_bar = Arc::new(Mutex::new(
             Bar::builder()
-                .total(queries.len())
+                .total(queries_processed.len())
                 .position(1)
                 .animation("fillup")
                 .desc(format!("applying input plugin {}", idx + 1))
