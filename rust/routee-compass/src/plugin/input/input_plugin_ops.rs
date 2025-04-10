@@ -13,10 +13,7 @@ pub fn package_error<E: ToString>(query: &mut Value, error: E) -> Value {
     })
 }
 
-pub fn package_invariant_error(
-    query: Option<&mut Value>,
-    sub_section: Option<&mut Value>,
-) -> Value {
+pub fn package_invariant_error(query: Option<&mut Value>, sub_section: Option<&Value>) -> Value {
     let intro = indoc! {r#"
     an input plugin has broken the invariant of the query state which requires
     that the query's JSON representation has a top-level JSON Array ([]) whose only
@@ -143,10 +140,40 @@ pub fn json_array_flatten(result: &mut Value) -> Result<Vec<Value>, Value> {
     }
 
     match error {
-        Some(_) => {
-            let error_response = package_invariant_error(None, error);
+        Some(err) => {
+            let error_response = package_invariant_error(None, Some(err));
             Err(error_response)?
         }
         None => Ok(flattened),
+    }
+}
+
+/// flattens the result of input processing in the case that the output of the
+/// input plugin is more than one JSON object. but if it is not a JSON array,
+/// then wrap it in a Vec.
+pub fn unpack_json_array_as_vec(result: &Value) -> Vec<Value> {
+    let mut error: Option<&Value> = None;
+    match result {
+        Value::Array(sub_array) => {
+            let mut flattened: Vec<Value> = vec![];
+            for sub_obj in sub_array.iter() {
+                match sub_obj {
+                    Value::Object(obj) => {
+                        flattened.push(json![obj]);
+                    }
+                    other => {
+                        error = Some(other);
+                    }
+                }
+            }
+            match error {
+                Some(_) => {
+                    let error_response = package_invariant_error(None, error);
+                    vec![error_response]
+                }
+                None => flattened,
+            }
+        }
+        _ => vec![result.clone()],
     }
 }
