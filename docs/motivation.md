@@ -1,4 +1,4 @@
-# Yet Another Route Planner?
+# Motivation
 
 RouteE Compass was developed at NREL to support energy prediction in mesoscopic route planning, a cornerstone of many areas of mobility research science.
 Many such projects attempting to explore routing hit scaling roadblocks that cannot be solved when attempting to use open source libraries in Python or R or route planning APIs.
