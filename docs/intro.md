@@ -6,7 +6,9 @@ RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of sof
 - Core engine written in Rust for improved runtimes, parallel query execution, and the ability to load nation-sized road networks into memory
 - Rust, HTTP, and Python APIs for integration into different research pipelines and other software
 
+For more information about Compass, read about our [motivation](motivation)
+
 ## Quickstart
 
-1. Follow the [install instructions](conda-install) for the python package.
+1. Follow the [install instructions](installation) for the python package.
 1. Follow this [example](examples/01_open_street_maps_example) to start routing over Open Street Maps data.
