@@ -445,13 +445,13 @@ fn apply_input_plugins(
                 })?,
         ));
 
-        let parallel_batch_size =
-            (queries_processed.len() as f64 / parallelism as f64).ceil() as usize;
+        let tasks_per_thread = queries_processed.len() as f64 / parallelism as f64;
+        let chunk_size: usize = std::cmp::max(1, tasks_per_thread.ceil() as usize);
 
         // apply this input plugin in parallel, assigning the result back to `queries_processed`
         // and tracking any errors along the way.
         let (good, bad): (Vec<Value>, Vec<Value>) = queries_processed
-            .par_chunks_mut(parallel_batch_size)
+            .par_chunks_mut(chunk_size)
             .flat_map(|qs| {
                 qs.iter_mut()
                     .flat_map(|q| {
