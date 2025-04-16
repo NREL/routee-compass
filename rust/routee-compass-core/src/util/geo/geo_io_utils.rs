@@ -1,4 +1,5 @@
-use geo::{Coord, LineString, Point};
+use geo::{Coord, Geometry, LineString, Point};
+use geo_traits::to_geo::ToGeoGeometry;
 use itertools::Itertools;
 use wkb;
 use wkt::{ToWkt, TryFromWkt};
@@ -60,14 +61,13 @@ pub fn parse_wkt_linestring(_idx: usize, row: String) -> Result<LineString<f32>,
 }
 
 pub fn parse_wkb_linestring(_idx: usize, row: String) -> Result<LineString<f32>, std::io::Error> {
-    let mut c = row.as_bytes();
-    let geom = wkb::wkb_to_geom(&mut c).map_err(|e| {
-        let msg = format!("failure decoding WKB string: {:?}", e);
-        std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
-    })?;
-    match geom {
+    let geom = wkb::reader::read_wkb(row.as_bytes())
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))?;
+
+    match geom.to_geometry() {
         geo::Geometry::LineString(l) => {
-            // somewhat hackish solution since we cannot choose f32 when parsing wkbs
+            // somewhat hackish solution since we cannot choose f32 when parsing wkbs and
+            // geo::Convert does not support f64 -> f32, for good reason of course
             let coords32 =
                 l.0.into_iter()
                     .map(|c| Coord {
@@ -78,10 +78,10 @@ pub fn parse_wkb_linestring(_idx: usize, row: String) -> Result<LineString<f32>,
             let l32 = LineString::new(coords32);
             Ok(l32)
         }
-        _ => {
+        g => {
             let msg = format!(
                 "decoded WKB expected to be linestring, found: {}",
-                geom.to_wkt()
+                g.to_wkt()
             );
             Err(std::io::Error::new(std::io::ErrorKind::InvalidData, msg))
         }
