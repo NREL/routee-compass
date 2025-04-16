@@ -12,7 +12,7 @@ fn main() {
     match run::command_line_runner(&args, Some(builder), None) {
         Ok(_) => {}
         Err(e) => {
-            error!("{}", e.to_string())
+            error!("{}", e)
         }
     }
 }
