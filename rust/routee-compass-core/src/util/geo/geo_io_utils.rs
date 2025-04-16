@@ -1,4 +1,4 @@
-use geo::{Coord, Geometry, LineString, Point};
+use geo::{Coord, LineString, Point};
 use geo_traits::to_geo::ToGeoGeometry;
 use itertools::Itertools;
 use wkb;
