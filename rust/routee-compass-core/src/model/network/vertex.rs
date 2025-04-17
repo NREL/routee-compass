@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::{model::network::vertex_id::VertexId, util::geo::coord::InternalCoord};
+use crate::{model::network::vertex_id::VertexId, util::geo::InternalCoord};
 use allocative::Allocative;
 use geo::coord;
 use serde::de;
@@ -141,7 +141,7 @@ mod tests {
 
     use crate::{
         model::network::{Vertex, VertexId},
-        util::geo::coord::InternalCoord,
+        util::geo::InternalCoord,
     };
 
     #[test]

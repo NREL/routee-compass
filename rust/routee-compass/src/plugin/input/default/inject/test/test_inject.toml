@@ -1,0 +1,50 @@
+# this test file flexes the inject plugin's behavior with objects and arrays in append
+# mode and additionally tests overwrite mode.
+
+# { "test_a": { "foo": "bar" }}
+[[input_plugin]]
+type = "inject"
+format = "key_value"
+key = "test_a"
+value = { foo = "bar" }
+write_mode = "append"
+
+# { "test_a": { "foo": "bar", "baz": "bees" }}
+[[input_plugin]]
+type = "inject"
+format = "key_value"
+key = "test_a"
+value = { baz = "bees" }
+write_mode = "append"
+
+# { "test_a": { "foo": "bar", "baz": "bees" }, "test_b": ["test", 5]}
+[[input_plugin]]
+type = "inject"
+format = "key_value"
+key = "test_b"
+value = ["test", 5]
+write_mode = "append"
+
+# { "test_a": { "foo": "bar", "baz": "bees" }, "test_b": ["test", 5, 3.14159]}
+[[input_plugin]]
+type = "inject"
+format = "key_value"
+key = "test_b"
+value = [3.14159]
+write_mode = "append"
+
+# { "test_a": { "foo": "bar", "baz": "bees" }, "test_b": ["test", 5, 3.14159], "test_c": [1, 2, 3, 4]}
+[[input_plugin]]
+type = "inject"
+format = "key_value"
+key = "test_c"
+value = [1, 2, 3, 4]
+write_mode = "overwrite"
+
+# { "test_a": { "foo": "bar", "baz": "bees" }, "test_b": ["test", 5, 3.14159], "test_c": [0, 0, 0, 0]}
+[[input_plugin]]
+type = "inject"
+format = "key_value"
+key = "test_c"
+value = [0, 0, 0, 0]
+write_mode = "overwrite"

@@ -171,7 +171,7 @@ mod tests {
     use super::*;
     use crate::model::network::{Edge, EdgeId, Vertex, VertexId};
     use crate::model::unit::{Distance, DistanceUnit, SpeedUnit, TimeUnit};
-    use crate::util::geo::coord::InternalCoord;
+    use crate::util::geo::InternalCoord;
     use geo::coord;
     use std::path::PathBuf;
 
