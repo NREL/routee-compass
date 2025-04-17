@@ -26,6 +26,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 csv = { workspace = true }
 geo = { workspace = true }
+geo-traits = { workspace = true }
 geo-types = { workspace = true }
 geojson = { workspace = true }
 rstar = { workspace = true }
@@ -36,7 +37,7 @@ kdam = { workspace = true }
 log = { workspace = true }
 rayon = { workspace = true }
 serde_repr = "0.1"
-rand = "0.8.5"
+rand = "0.9.0"
 chrono = { workspace = true }
 config = { workspace = true }
 clap = { version = "4.3.19", features = ["derive"] }
