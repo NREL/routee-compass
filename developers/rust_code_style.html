@@ -180,6 +180,7 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../motivation.html">Motivation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../running.html">Running</a></li>
 </ul>
@@ -396,8 +397,48 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections">Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-builder-service-model-convention-in-routee-compass">The Builder, Service, Model Convention in RouteE Compass</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resources-for-learning-rust">Resources for Learning Rust</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-code-style">General Code Style</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references-vs-values">References vs Values</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-comments">Testing &amp; Comments</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#error-handling">Error handling</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#avoid-unhandled-errors">Avoid Unhandled errors</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#error-libraries">Error libraries</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#return-type-conventions">Return Type Conventions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choosing-your-abstraction">Choosing Your Abstraction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-simple-code-tweak">A Simple Code Tweak</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-helper-function">A Helper Function</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-add-your-function">Where to Add Your Function</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#modules">Modules</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#mod-rs">mod.rs</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newtype-structs">Newtype Structs</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#internalfloat">InternalFloat</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#structs">Structs</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-refactoring-a-complex-function-return-type-into-a-struct">Example: Refactoring A Complex Function Return Type Into A Struct</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#enums">Enums</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-refactoring-a-struct-with-two-states-as-an-enum">Example: Refactoring A Struct With Two States as an enum</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#collections">Collections</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections">Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trait-objects-modeling-system-state-the-builder-service-model-convention-in-routee-compass">Trait Objects Modeling System State: The Builder, Service, Model Convention in RouteE Compass</a></li>
 </ul>
             </nav>
         </div>
@@ -411,21 +452,381 @@ document.write(`
                   
   <section class="tex2jax_ignore mathjax_ignore" id="rust-code-style">
 <h1>Rust Code Style<a class="headerlink" href="#rust-code-style" title="Link to this heading">#</a></h1>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#overview"><span class="xref myst">Overview</span></a></p></li>
+<li><p><a class="reference internal" href="#resources-for-learning-rust"><span class="xref myst">Resources for Learning Rust</span></a></p></li>
+<li><p><a class="reference internal" href="#general-code-style"><span class="xref myst">General Code Style</span></a></p></li>
+<li><p><a class="reference internal" href="#error-handling"><span class="xref myst">Error Handling</span></a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#avoid-unhandled-errors"><span class="xref myst">Avoid Unhandled Errors</span></a></p></li>
+<li><p><a class="reference internal" href="#error-libraries"><span class="xref myst">Error Libraries</span></a></p></li>
+<li><p><a class="reference internal" href="#return-type-conventions"><span class="xref myst">Return Type Conventions</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#choosing-your-abstraction"><span class="xref myst">Choosing Your Abstraction</span></a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#a-helper-function"><span class="xref myst">Helper Functions</span></a></p></li>
+<li><p><a class="reference internal" href="#modules"><span class="xref myst">Modules</span></a></p></li>
+<li><p><a class="reference internal" href="#newtype-structs"><span class="xref myst">Newtype Structs</span></a></p></li>
+<li><p><a class="reference internal" href="#structs"><span class="xref myst">Structs</span></a></p></li>
+<li><p><a class="reference internal" href="#enums"><span class="xref myst">Enums</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#collections"><span class="xref myst">Collections</span></a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#prefer-boxt-boxed-slices-over-vect-for-large-collections"><span class="xref myst">Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for Large Collections</span></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#trait-objects-modeling-system-state-the-builder-service-model-convention-in-routee-compass"><span class="xref myst">The Builder / Service / Model Convention in RouteE Compass</span></a></p></li>
+</ol>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>RouteE Compass predominantly written in the <a class="reference external" href="https://www.rust-lang.org/">Rust</a> programming language. Rust is a systems programming language that avoids common pitfalls of predecessors such as C and C++ related to memory safety and cybersecurity. It employs many modern features of programming languages which allow developers to write succinctly and expressively, leading to rapid feature implementations. It has recently been identified by <a class="reference external" href="https://www.darpa.mil/research/programs/translating-all-c-to-rust">government programs</a> as a best-in-class language for building new systems.</p>
+<p>It is recommended that Compass developers complete the Rustings course from the below resources list and then review the following patterns and conventions for writing in Rust.</p>
+</section>
+<section id="resources-for-learning-rust">
+<h2>Resources for Learning Rust<a class="headerlink" href="#resources-for-learning-rust" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The <a class="reference external" href="https://github.com/rust-lang/rustlings">Rustlings</a> course</p></li>
+<li><p>The <a class="reference external" href="https://doc.rust-lang.org/book/">Rust Book</a></p></li>
+<li><p><a class="reference external" href="https://www.youtube.com/watch?v=OX9HJsJUDxA&amp;amp;list=PLai5B987bZ9CoVR-QEIN9foz4QCJ0H2Y8">Let's Get Rusty</a> &#64; YouTube</p></li>
+</ul>
+</section>
+<section id="general-code-style">
+<h2>General Code Style<a class="headerlink" href="#general-code-style" title="Link to this heading">#</a></h2>
+<section id="references-vs-values">
+<h3>References vs Values<a class="headerlink" href="#references-vs-values" title="Link to this heading">#</a></h3>
+<p>When writing functions, 99% of the time, use a reference (&quot;&amp;&quot;) to an object instead of taking it directly.
+In other words:</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="c1">// requires ownership of value to execute the function</span>
+<span class="c1">// which should only be the case if the call site should expect it</span>
+<span class="c1">// no longer has control of it (&lt;1% of the time)</span>
+<span class="k">fn</span><span class="w"> </span><span class="nf">probably_bad</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="nc">MyType</span><span class="p">)</span>
+
+<span class="c1">// only requires borrowing the value, ensuring we are not modifying it</span>
+<span class="k">fn</span><span class="w"> </span><span class="nf">probably_good</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">MyType</span><span class="p">)</span>
+
+<span class="c1">// of course there are other conditions, like, if we want to modify the </span>
+<span class="c1">// value by reference, but this still means we are using &amp;.</span>
+<span class="k">fn</span><span class="w"> </span><span class="nf">could_be_fine</span><span class="p">(</span><span class="n">value</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="nc">mut</span><span class="w"> </span><span class="n">MyType</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-comments">
+<h3>Testing &amp; Comments<a class="headerlink" href="#testing-comments" title="Link to this heading">#</a></h3>
+<p>You've written something non-trivial? Great! Write some tests in the bottom of the file that test it.</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="cp">#[cfg(test)]</span>
+<span class="k">mod</span><span class="w"> </span><span class="nn">test</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="cp">#[test]</span>
+<span class="w">  </span><span class="k">fn</span><span class="w"> </span><span class="nf">test_the_universe</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="fm">assert_ne!</span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;phew, the universe still works&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Also please write some comments!
+Docstring comments at the top of the function are converted into <a class="reference external" href="https://docs.rs/routee-compass/latest/routee_compass/">our user documentation</a>.
+Rustdoc is, for the most part, simple markdown, described in <a class="reference external" href="https://doc.rust-lang.org/rustdoc/what-is-rustdoc.html">The Rust Doc Book</a>.
+<a class="reference external" href="https://docs.rs/routee-compass-core/latest/src/routee_compass_core/model/traversal/traversal_model_service.rs.html#12-32">Here</a> is an example in the Compass library.</p>
+<p>Inline comments can be helpful, but usually only need to be a sentence, to explain something that may be difficult to understand when skimming the code.</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">fn</span><span class="w"> </span><span class="nf">my_function</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// search for the meaning of life and only proceed if it exists</span>
+<span class="w">  </span><span class="kd">let</span><span class="w"> </span><span class="n">result</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="kt">i64</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="o">..</span><span class="mi">50</span><span class="p">).</span><span class="n">into_iter</span><span class="p">().</span><span class="n">find</span><span class="p">(</span><span class="o">|</span><span class="n">v</span><span class="o">|</span><span class="w"> </span><span class="o">*</span><span class="n">v</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">42</span><span class="p">);</span>
+<span class="w">  </span><span class="k">match</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nb">Some</span><span class="p">(</span><span class="n">meaning_of_life</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="fm">println!</span><span class="p">(</span><span class="s">&quot;found it! it&#39;s {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">meaning_of_life</span><span class="p">),</span>
+<span class="w">    </span><span class="nb">None</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="fm">println!</span><span class="p">(</span><span class="s">&quot;bummer, didn&#39;t find it&quot;</span><span class="p">),</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-handling">
+<h2>Error handling<a class="headerlink" href="#error-handling" title="Link to this heading">#</a></h2>
+<section id="avoid-unhandled-errors">
+<h3>Avoid Unhandled errors<a class="headerlink" href="#avoid-unhandled-errors" title="Link to this heading">#</a></h3>
+<p>Code will not be accepted that contains <code class="docutils literal notranslate"><span class="pre">.unwrap()</span></code>, <code class="docutils literal notranslate"><span class="pre">panic!()</span></code> or <code class="docutils literal notranslate"><span class="pre">.expect()</span></code> except for in approved edge cases which must be explained with comments.
+For reference, consider this <a class="reference external" href="https://stackoverflow.com/questions/39477684/should-i-avoid-unwrap-in-production-application">question</a>/<a class="reference external" href="https://stackoverflow.com/a/39478185">answer</a> pair from stack overflow.
+Instead of these, Compass makes heavy use of <code class="docutils literal notranslate"><span class="pre">Option</span></code> and <code class="docutils literal notranslate"><span class="pre">Result</span></code> types in function signatures.
+This way, a halting program can provide a more meaningful explanation of the cause of failure.</p>
+</section>
+<section id="error-libraries">
+<h3>Error libraries<a class="headerlink" href="#error-libraries" title="Link to this heading">#</a></h3>
+<p>Compass contains a variety of error types and relies heavily on the <a class="reference external" href="https://docs.rs/thiserror/latest/thiserror/">thiserror</a> crate.
+Do not use <a class="reference external" href="https://docs.rs/anyhow/latest/anyhow/">anyhow</a> in the Compass library except in the case of writing simple command-line scripting.</p>
+</section>
+<section id="return-type-conventions">
+<h3>Return Type Conventions<a class="headerlink" href="#return-type-conventions" title="Link to this heading">#</a></h3>
+<p>When writing Compass code, deciding whether to use <a class="reference external" href="https://doc.rust-lang.org/rust-by-example/std/option.html">Option</a> or <a class="reference external" href="https://doc.rust-lang.org/rust-by-example/std/result.html">Result</a> can greatly simplify the control flow and readability of your code.
+Consider this rule-of-thumb when deciding what your function returns. For some function <code class="docutils literal notranslate"><span class="pre">fn</span> <span class="pre">my_function(value:</span> <span class="pre">I)</span> <span class="pre">-&gt;</span> <span class="pre">O</span></code>,</p>
+<ul class="simple">
+<li><p>if every value of <code class="docutils literal notranslate"><span class="pre">I</span></code> has some corresponding <code class="docutils literal notranslate"><span class="pre">O</span></code>, then you don't need <code class="docutils literal notranslate"><span class="pre">Option</span></code> or <code class="docutils literal notranslate"><span class="pre">Result</span></code></p></li>
+<li><p>if the function from <code class="docutils literal notranslate"><span class="pre">I</span></code> to <code class="docutils literal notranslate"><span class="pre">O</span></code> is <a class="reference external" href="https://en.wikipedia.org/wiki/Piecewise_function">piecewise</a>, the return signature should be <code class="docutils literal notranslate"><span class="pre">Option&lt;O&gt;</span></code> which basically says &quot;some values of <code class="docutils literal notranslate"><span class="pre">I</span></code> have no corresponding value of <code class="docutils literal notranslate"><span class="pre">O</span></code> but that's not an error&quot;</p></li>
+<li><p>if some values of <code class="docutils literal notranslate"><span class="pre">I</span></code> can cause the program to fail, return a <code class="docutils literal notranslate"><span class="pre">Result&lt;O,</span> <span class="pre">SomeError&gt;</span></code></p></li>
+<li><p>if some values of <code class="docutils literal notranslate"><span class="pre">I</span></code> can cause the program to fail <em>and</em> the function is piecewise, return a <code class="docutils literal notranslate"><span class="pre">Result&lt;Option&lt;O&gt;,</span> <span class="pre">SomeError&gt;</span></code></p></li>
+</ul>
+<p>If your return type is a <code class="docutils literal notranslate"><span class="pre">Result</span></code>, you should spend a moment thinking about the corresponding type of <code class="docutils literal notranslate"><span class="pre">SomeError</span></code>.
+If the code can be called by many different components, then it should probably be moved to a <code class="docutils literal notranslate"><span class="pre">util</span></code> module, and the return type should be general.
+In most cases, this means <code class="docutils literal notranslate"><span class="pre">SomeError</span> <span class="pre">=</span> <span class="pre">String</span></code>.</p>
+<p>If the code is used <em>exclusively</em> by some existing component of the Compass system, the error type should match.
+For example, code used exclusively by a <code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code> should return a <code class="docutils literal notranslate"><span class="pre">TraversalModelError</span></code>.
+This allows the call site to leverage the <a class="reference external" href="https://doc.rust-lang.org/rust-by-example/std/result/question_mark.html">? operator</a>, making business logic more succinct.</p>
+</section>
+</section>
+<section id="choosing-your-abstraction">
+<h2>Choosing Your Abstraction<a class="headerlink" href="#choosing-your-abstraction" title="Link to this heading">#</a></h2>
+<p>It is time for you to write some code for Compass. Hooray! Depending on the scope of your work, here are some examples of how you may take a least-power approach to selecting an abstraction for your contribution.
+In typical cases, the power of your abstraction steps through the following hierarchy:</p>
+<ul class="simple">
+<li><p>a helper function</p></li>
+<li><p>a module</p></li>
+<li><p>a newtype struct</p></li>
+<li><p>a struct</p></li>
+<li><p>an enum</p></li>
+</ul>
+<section id="a-simple-code-tweak">
+<h3>A Simple Code Tweak<a class="headerlink" href="#a-simple-code-tweak" title="Link to this heading">#</a></h3>
+<p>If your code is a tweak to existing rows, you may not require an abstraction to complete it. This is the base case.</p>
+</section>
+<section id="a-helper-function">
+<h3>A Helper Function<a class="headerlink" href="#a-helper-function" title="Link to this heading">#</a></h3>
+<p>If your new functionality spans enough lines that the code becomes less readable, then you should move it into a new function body.
+This is abstraction level 0.
+There are a few concerns here, namely, where it goes, use of references in the signature, testing + comments.</p>
+<section id="where-to-add-your-function">
+<h4>Where to Add Your Function<a class="headerlink" href="#where-to-add-your-function" title="Link to this heading">#</a></h4>
+<p>While you may begin adding it to the same file you are modifying, it may become obvious quickly that it has different scope than the call site. Consider these possibilities:</p>
+<ul class="simple">
+<li><p><em>it is a small helper function</em>: it can go below all of the functions, structs, and enums in this file</p></li>
+<li><p><em>it bloats the file but belongs with the file's code</em>: perhaps make a sibling file with the <code class="docutils literal notranslate"><span class="pre">_ops.rs</span></code> suffix for this function</p></li>
+<li><p><em>it has broad utility</em>: find a home in the <code class="docutils literal notranslate"><span class="pre">crate::util</span></code> module of the crate, or, in the <code class="docutils literal notranslate"><span class="pre">routee_compass_core::util</span></code> crate if it has broad applicability</p></li>
+</ul>
+<p>If your helper function stops being small, consider stepping up the hierarchy to writing a <a class="reference internal" href="#modules"><span class="xref myst">Module</span></a></p>
+</section>
+</section>
+<section id="modules">
+<h3>Modules<a class="headerlink" href="#modules" title="Link to this heading">#</a></h3>
+<p>A module in Rust is a Rust file, that's it, it's a simple way to organize code.
+If you are doing something more complex than adding inline changes or a helper function, then you likely need to add a new module (file).
+Depending on whether your file contains functions only or includes other definitions, we apply different export policies, as described below.</p>
+<section id="mod-rs">
+<h4><a class="reference external" href="http://mod.rs">mod.rs</a><a class="headerlink" href="#mod-rs" title="Link to this heading">#</a></h4>
+<p>The following example shows how different module types should be linked via the <a class="reference external" href="http://mod.rs">mod.rs</a> files in the codebase.
+In this example, we have the following setup:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">outer</span><span class="o">/</span>
+  <span class="n">mod</span><span class="o">.</span><span class="n">rs</span>
+  <span class="n">inner</span><span class="o">/</span>
+    <span class="n">mod</span><span class="o">.</span><span class="n">rs</span>
+    <span class="n">my_ops</span><span class="o">.</span><span class="n">rs</span>
+    <span class="n">my_object</span><span class="o">.</span><span class="n">rs</span>
+</pre></div>
+</div>
+<p>When creating a new directory, insert a <a class="reference external" href="http://mod.rs">mod.rs</a> file and link it to the <a class="reference external" href="http://mod.rs">mod.rs</a> file with a public import:</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="c1">// outer/mod.rs</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">mod</span><span class="w"> </span><span class="nn">inner</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>If we are adding a file with only operations in it, export it's module publicly.
+If we have structs/enums/traits, export the module privately but export the structs/enums/traits publicly.</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="c1">// outer/inner/mod.rs</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">mod</span><span class="w"> </span><span class="nn">my_ops</span><span class="p">;</span>
+<span class="k">mod</span><span class="w"> </span><span class="nn">my_object</span><span class="p">;</span>
+
+<span class="k">pub</span><span class="w"> </span><span class="k">use</span><span class="w"> </span><span class="n">my_object</span><span class="p">::</span><span class="n">MyObject</span><span class="p">;</span>
+
+<span class="c1">// outer/inner/my_ops.rs</span>
+<span class="k">fn</span><span class="w"> </span><span class="nf">do_work</span><span class="p">()</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="fm">todo!</span><span class="p">()</span><span class="w"> </span><span class="p">}</span>
+
+<span class="c1">// outer/inner/my_object.rs</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">MyObject</span><span class="w"> </span><span class="p">{}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="newtype-structs">
+<h3>Newtype Structs<a class="headerlink" href="#newtype-structs" title="Link to this heading">#</a></h3>
+<p>A <a class="reference external" href="https://doc.rust-lang.org/rust-by-example/generics/new_types.html">newtype struct</a> is a <a class="reference external" href="https://doc.rust-lang.org/beta/embedded-book/static-guarantees/zero-cost-abstractions.html">zero-cost abstraction</a> that adds some compile time safety around use of some underlying built-in datatype, as well as providing object methods.
+Use a newtype struct if you are adding new data that is <em>low-level</em> and has some rules around how it behaves.
+This is not common unless you are creating a new component in the system, and is only truly meaningful if there are a large number of instances of the data type expected.</p>
+<section id="internalfloat">
+<h4>InternalFloat<a class="headerlink" href="#internalfloat" title="Link to this heading">#</a></h4>
+<p>Floating point numbers in Rust cannot be compared for equality or ordering.
+The <code class="docutils literal notranslate"><span class="pre">routee_compass_core::model::unit::InternalFloat</span></code> class wraps f64 types with comparison operators.</p>
+</section>
+</section>
+<section id="structs">
+<h3>Structs<a class="headerlink" href="#structs" title="Link to this heading">#</a></h3>
+<p>A <a class="reference external" href="https://doc.rust-lang.org/std/keyword.struct.html">struct</a> is a record type in Rust (a <a class="reference external" href="https://en.wikipedia.org/wiki/Product_type">product type</a>).
+If your function builds something complex, we likely want the result of the function to produce a struct.
+This adds a few improvements:</p>
+<ul class="simple">
+<li><p>named fields for readability</p></li>
+<li><p>constructor methods</p>
+<ul>
+<li><p>prefer <a class="reference external" href="https://doc.rust-lang.org/std/convert/trait.From.html"><code class="docutils literal notranslate"><span class="pre">From</span></code></a> and <a class="reference external" href="https://doc.rust-lang.org/std/convert/trait.TryFrom.html"><code class="docutils literal notranslate"><span class="pre">TryFrom</span></code></a> when the constructor only has one argument</p></li>
+<li><p>write a custom <code class="docutils literal notranslate"><span class="pre">new</span></code> method to build this type</p></li>
+<li><p>if this type builds <em>another type</em>, write a <code class="docutils literal notranslate"><span class="pre">build</span></code> method</p></li>
+</ul>
+</li>
+</ul>
+<section id="example-refactoring-a-complex-function-return-type-into-a-struct">
+<h4>Example: Refactoring A Complex Function Return Type Into A Struct<a class="headerlink" href="#example-refactoring-a-complex-function-return-type-into-a-struct" title="Link to this heading">#</a></h4>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">collections</span><span class="p">::</span><span class="n">HashMap</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">itertools</span><span class="p">::</span><span class="n">Itertools</span><span class="p">;</span>
+
+<span class="c1">// original function</span>
+<span class="k">fn</span><span class="w"> </span><span class="nf">new_thing</span><span class="p">(</span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="kt">f64</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">default</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="p">(</span><span class="nb">Option</span><span class="o">&lt;</span><span class="kt">f64</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span>
+<span class="w">  </span><span class="kd">let</span><span class="w"> </span><span class="n">default</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="kt">f64</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">default</span><span class="p">);</span>
+<span class="w">  </span><span class="kd">let</span><span class="w"> </span><span class="n">sum</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">  </span><span class="kd">let</span><span class="w"> </span><span class="n">names</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Vec</span><span class="p">::</span><span class="n">with_capacity</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">len</span><span class="p">());</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">into_iter</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">k</span><span class="p">;</span>
+<span class="w">    </span><span class="n">names</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="p">(</span><span class="n">default</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="n">names</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">data1</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="kt">f64</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HashMap</span><span class="p">::</span><span class="n">new</span><span class="p">();</span>
+<span class="kd">let</span><span class="w"> </span><span class="p">(</span><span class="n">default</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="n">names</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">new_thing</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;food&quot;</span><span class="p">);</span>
+
+<span class="c1">// as a struct</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Thing</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">default</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="kt">f64</span><span class="o">&gt;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">sum</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span>
+<span class="w">  </span><span class="n">names</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span>
+<span class="p">}</span>
+
+<span class="k">impl</span><span class="w"> </span><span class="n">Thing</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">new</span><span class="p">(</span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="kt">f64</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">default</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">Thing</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">default</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="kt">f64</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">default</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">sum</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">names</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Vec</span><span class="p">::</span><span class="n">with_capacity</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">len</span><span class="p">());</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">into_iter</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">k</span><span class="p">;</span>
+<span class="w">      </span><span class="n">names</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Thing</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">default</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="n">names</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">data2</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="kt">f64</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HashMap</span><span class="p">::</span><span class="n">new</span><span class="p">();</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">thing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Thing</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">data2</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;food&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="enums">
+<h3>Enums<a class="headerlink" href="#enums" title="Link to this heading">#</a></h3>
+<p>Enums give a common API to different records (a <a class="reference external" href="https://en.wikipedia.org/wiki/Tagged_union">sum type</a>).
+If you are finding that your code has distinct (read: discrete) behavior based on an argument, it may be cleaner to represent as an enum.</p>
+<section id="example-refactoring-a-struct-with-two-states-as-an-enum">
+<h4>Example: Refactoring A Struct With Two States as an enum<a class="headerlink" href="#example-refactoring-a-struct-with-two-states-as-an-enum" title="Link to this heading">#</a></h4>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">collections</span><span class="p">::</span><span class="n">HashMap</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">itertools</span><span class="p">::</span><span class="n">Itertools</span><span class="p">;</span>
+
+<span class="c1">// original struct</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Thing</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">pub</span><span class="w"> </span><span class="n">has_default</span><span class="p">:</span><span class="w"> </span><span class="kt">bool</span><span class="p">,</span>
+<span class="w">  </span><span class="k">pub</span><span class="w"> </span><span class="n">default</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span>
+<span class="w">  </span><span class="n">sum</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span>
+<span class="w">  </span><span class="n">names</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span>
+<span class="p">}</span>
+
+<span class="k">impl</span><span class="w"> </span><span class="n">Thing</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">new</span><span class="p">(</span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="kt">f64</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">default</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">Thing</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">default_opt</span><span class="p">:</span><span class="w"> </span><span class="nb">Option</span><span class="o">&lt;</span><span class="kt">f64</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">default</span><span class="p">);</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">has_default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">default_opt</span><span class="p">.</span><span class="n">is_some</span><span class="p">();</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">default_opt</span><span class="p">.</span><span class="n">unwrap_or_default</span><span class="p">();</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">sum</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">names</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Vec</span><span class="p">::</span><span class="n">with_capacity</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">len</span><span class="p">());</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">into_iter</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">k</span><span class="p">;</span>
+<span class="w">      </span><span class="n">names</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Thing</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">has_default</span><span class="p">,</span><span class="w"> </span><span class="n">default</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="n">names</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">data1</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="kt">f64</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HashMap</span><span class="p">::</span><span class="n">new</span><span class="p">();</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">thing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Thing</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;food&quot;</span><span class="p">);</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">match</span><span class="w"> </span><span class="n">thing</span><span class="p">.</span><span class="n">has_default</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kc">true</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">Some</span><span class="p">(</span><span class="n">thing</span><span class="p">.</span><span class="n">default</span><span class="p">),</span>
+<span class="w">  </span><span class="kc">false</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">None</span>
+<span class="p">};</span>
+
+<span class="c1">// revised as an enum</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">enum</span><span class="w"> </span><span class="nc">ThingEnum</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">NoDefault</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">sum</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span>
+<span class="w">    </span><span class="n">names</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="n">HasDefault</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">default</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span>
+<span class="w">    </span><span class="n">sum</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="p">,</span>
+<span class="w">    </span><span class="n">names</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">impl</span><span class="w"> </span><span class="n">ThingEnum</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">new</span><span class="p">(</span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="kt">f64</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">default</span><span class="p">:</span><span class="w"> </span><span class="kp">&amp;</span><span class="kt">str</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">Thing</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">sum</span><span class="p">:</span><span class="w"> </span><span class="kt">f64</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">names</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="nb">String</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Vec</span><span class="p">::</span><span class="n">with_capacity</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">len</span><span class="p">());</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">into_iter</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sum</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">k</span><span class="p">;</span>
+<span class="w">      </span><span class="n">names</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">match</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="n">default</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nb">Some</span><span class="p">(</span><span class="n">default</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ThingEnum</span><span class="p">::</span><span class="n">WithDefault</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">default</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="n">names</span><span class="w"> </span><span class="p">},</span>
+<span class="w">      </span><span class="nb">None</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">ThingEnum</span><span class="p">::</span><span class="n">NoDefault</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="n">names</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">data2</span><span class="p">:</span><span class="w"> </span><span class="nc">HashMap</span><span class="o">&lt;</span><span class="nb">String</span><span class="p">,</span><span class="w"> </span><span class="kt">f64</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">HashMap</span><span class="p">::</span><span class="n">new</span><span class="p">();</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">thing_enum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ThingEnum</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">data2</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;food&quot;</span><span class="p">);</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">match</span><span class="w"> </span><span class="n">thing_enum</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">ThingEnum</span><span class="p">::</span><span class="n">HasDefault</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">default</span><span class="p">,</span><span class="w"> </span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="n">names</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">Some</span><span class="p">(</span><span class="n">default</span><span class="p">),</span>
+<span class="w">  </span><span class="n">ThingEnum</span><span class="p">::</span><span class="n">NoDefault</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">sum</span><span class="p">,</span><span class="w"> </span><span class="n">names</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="nb">None</span><span class="p">,</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="collections">
+<h2>Collections<a class="headerlink" href="#collections" title="Link to this heading">#</a></h2>
 <section id="prefer-box-t-boxed-slices-over-vec-t-for-large-collections">
-<h2>Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections<a class="headerlink" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections" title="Link to this heading">#</a></h2>
-<p>while a <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> is more common, it lacks the ability to match capacity exactly with length unless it is set beforehand. in many cases this is not possible. when dealing with large persistent datasets such as <code class="docutils literal notranslate"><span class="pre">Graph</span></code> and <code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code> data, we want to store that data in a <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code>. when constructing the dataset, the <code class="docutils literal notranslate"><span class="pre">Vec</span></code> can be used, and then converted to a <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> afterward via <code class="docutils literal notranslate"><span class="pre">into_boxed_slice</span></code>:</p>
-<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="kd">let</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nc">Path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="fm">todo!</span><span class="p">();</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_utils</span><span class="p">::</span><span class="n">from_csv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nb">None</span><span class="p">,</span><span class="w"> </span><span class="nb">None</span><span class="p">,</span><span class="w"> </span><span class="nb">None</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
+<h3>Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections<a class="headerlink" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections" title="Link to this heading">#</a></h3>
+<p>In RouteE Compass, high performance comes from the vectorization of graph data due to <a class="reference external" href="https://en.wikipedia.org/wiki/Locality_of_reference">data locality</a>.</p>
+<blockquote>
+<div><p>While a <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> is a common way to represent contiguous data, it lacks the ability to match capacity exactly with length unless it is set beforehand.
+In many cases, it is not possible to know the full size of millions of rows of data before loading without adding additional computational burden.
+As a result, data loaded into <code class="docutils literal notranslate"><span class="pre">Vec</span></code>s will be subject to the built-in standard library memory partitioning algorithm.
+The memory allocation will duplicate (2x) each time it reaches capacity, and, in the worst case, this will lead to a memory allocation that is 2x the size of the resulting collection.
+This is a big problem when collection sizes are very large.</p>
+</div></blockquote>
+<p>Alternatively, Rust provides <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code>, which When dealing with large persistent datasets such as <code class="docutils literal notranslate"><span class="pre">Graph</span></code> and <code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code> data, we want to store that data in a <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code>.
+When constructing the dataset, the <code class="docutils literal notranslate"><span class="pre">Vec</span></code> can be used, and then converted to a <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> afterward via <code class="docutils literal notranslate"><span class="pre">into_boxed_slice</span></code>:</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">path</span><span class="p">::</span><span class="n">Path</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">routee_compass_core</span><span class="p">::</span><span class="n">util</span><span class="p">::</span><span class="n">fs</span><span class="p">::</span><span class="n">read_utils</span><span class="p">;</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">path</span><span class="p">:</span><span class="w"> </span><span class="nc">Path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Path</span><span class="p">::</span><span class="n">from</span><span class="p">(</span><span class="s">&quot;somewhere/in/the/filesystem/my.csv&quot;</span><span class="p">);</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">data</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">read_utils</span><span class="p">::</span><span class="n">from_csv</span><span class="p">(</span><span class="o">&amp;</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nb">None</span><span class="p">,</span><span class="w"> </span><span class="nb">None</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
 <span class="kd">let</span><span class="w"> </span><span class="n">output</span><span class="p">:</span><span class="w"> </span><span class="nb">Box</span><span class="o">&lt;</span><span class="p">[</span><span class="n">T</span><span class="p">]</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">data</span><span class="p">.</span><span class="n">into_boxed_slice</span><span class="p">();</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">Vec</span></code> is preferred for smaller or non-persistent datasets, or when the additional features of <code class="docutils literal notranslate"><span class="pre">Vec</span></code> are used, such as iteration or dynamic allocation.</p>
 </section>
-<section id="the-builder-service-model-convention-in-routee-compass">
-<h2>The Builder, Service, Model Convention in RouteE Compass<a class="headerlink" href="#the-builder-service-model-convention-in-routee-compass" title="Link to this heading">#</a></h2>
-<p>in RouteE Compass, large Traversal and Frontier objects are loaded once and shared across threads.
-they are built in two phases: once at application initialization, and once again for each query, so that query-specific parameters can be applied.
-these phases are represented by the following types:</p>
+</section>
+<section id="trait-objects-modeling-system-state-the-builder-service-model-convention-in-routee-compass">
+<h2>Trait Objects Modeling System State: The Builder, Service, Model Convention in RouteE Compass<a class="headerlink" href="#trait-objects-modeling-system-state-the-builder-service-model-convention-in-routee-compass" title="Link to this heading">#</a></h2>
+<p>In RouteE Compass, large Traversal and Frontier objects are loaded once and shared across threads.
+These are built in two phases: once at application initialization, and once again for each query, so that query-specific parameters can be applied.</p>
+<p><img alt="figure showing relationship between builder, service, and model trait objects" src="../_images/compass-app-lifetime.png" /></p>
+<p>These phases are represented concretely as <a class="reference external" href="https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition/trait-objects.html">trait objects</a>.
+The following table illustrates this relationship for the Frontier, Traversal, and Access models in Compass:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>phase</p></th>
@@ -433,6 +834,7 @@ these phases are represented by the following types:</p>
 <th class="head"><p>lifetime</p></th>
 <th class="head"><p>Frontier</p></th>
 <th class="head"><p>Traversal</p></th>
+<th class="head"><p>Access</p></th>
 </tr>
 </thead>
 <tbody>
@@ -441,31 +843,53 @@ these phases are represented by the following types:</p>
 <td><p>app initialization only</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FrontierModelBuilder</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TraversalModelBuilder</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AccessModelBuilder</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>service</strong></p></td>
 <td><p>struct with a <code class="docutils literal notranslate"><span class="pre">build</span></code> method that creates a <strong>model</strong></p></td>
 <td><p>entire program lifetime (same as CompassApp instance)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FrontierModelService</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TraversalModelService</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AccessModelService</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><strong>model</strong></p></td>
 <td><p>object used by the search algorithm</p></td>
 <td><p>duration of a single query</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">FrontierModel</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AccessModel</span></code></p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <p>when we apply the <code class="docutils literal notranslate"><span class="pre">build</span></code> methods, we get these results (using the travel time <code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code> as an example):</p>
-<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="kd">let</span><span class="w"> </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="nc">serde_json</span><span class="p">::</span><span class="n">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">!</span><span class="p">();</span><span class="w"> </span><span class="c1">// application configuration</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">query</span><span class="p">:</span><span class="w"> </span><span class="nc">serde_json</span><span class="p">::</span><span class="n">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">!</span><span class="p">();</span><span class="w">  </span><span class="c1">// a single user search query</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">builder</span><span class="p">:</span><span class="w"> </span><span class="nb">Box</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">TraversalModelBuilder</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Box</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">SpeedLookupBuilder</span><span class="w"> </span><span class="p">{});</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">service</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">TraversalModelService</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">config</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">model</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">TraversalModel</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">service</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">query</span><span class="p">);</span>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">use</span><span class="w"> </span><span class="n">serde_json</span><span class="p">::{</span><span class="n">Value</span><span class="p">,</span><span class="w"> </span><span class="n">json</span><span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">rc</span><span class="p">::</span><span class="n">Rc</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">sync</span><span class="p">::</span><span class="n">Arc</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">routee_compass_core</span><span class="p">::</span><span class="n">model</span><span class="p">::{</span>
+<span class="w">  </span><span class="n">frontier</span><span class="p">::{</span><span class="n">FrontierModelBuilder</span><span class="p">,</span><span class="w"> </span><span class="n">FrontierModelService</span><span class="p">,</span><span class="w"> </span><span class="n">FrontierModel</span><span class="p">},</span>
+<span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">routee_compass</span><span class="p">::</span><span class="n">model</span><span class="p">::</span><span class="n">frontier_model</span><span class="p">::</span><span class="n">default</span><span class="p">::</span><span class="n">road_class</span><span class="p">::</span><span class="n">RoadClassBuilder</span><span class="p">;</span>
+
+<span class="c1">// RouteE Compass passes in the &quot;[traversal]&quot; section of the application configuration </span>
+<span class="c1">// here so that it can be used by the selected builder to configure a service.</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">config</span><span class="p">:</span><span class="w"> </span><span class="nc">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">!</span><span class="p">();</span><span class="w"> </span>
+<span class="c1">// a single user search query, which may provide additional configuration. in this case, the query</span>
+<span class="c1">// restricts road classes to those that are walk-able OpenStreetMap highway tags.</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">query</span><span class="p">:</span><span class="w"> </span><span class="nc">Value</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">json</span><span class="o">!</span><span class="p">({</span>
+<span class="w">  </span><span class="s">&quot;road_class&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;sidewalk&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;living_street&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;service&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;steps&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;track&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;path&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;trailhead&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;pedestrian&quot;</span><span class="p">]</span>
+<span class="p">});</span><span class="w">  </span>
+<span class="w">    </span>
+<span class="kd">let</span><span class="w"> </span><span class="n">builder</span><span class="p">:</span><span class="w"> </span><span class="nc">Rc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">FrontierModelBuilder</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Box</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">RoadClassBuilder</span><span class="w"> </span><span class="p">{});</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">service</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">FrontierModelService</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">config</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">model</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">FrontierModel</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">service</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">query</span><span class="p">);</span>
 </pre></div>
 </div>
-<p>the <strong>builder</strong> object instances are wrapped in a <code class="docutils literal notranslate"><span class="pre">Box</span></code> referenced by the <code class="docutils literal notranslate"><span class="pre">CompassAppBuilder</span></code> and used when creating <code class="docutils literal notranslate"><span class="pre">CompassApp</span></code> instances. once we build a <strong>service</strong> from the <strong>builder</strong>, the app requires that they are wrapped in an <code class="docutils literal notranslate"><span class="pre">Arc</span></code>, which is a thread-safe pointer. this way, the <strong>service</strong> can be shared across threads so we can build a <strong>model</strong> for a specific user query from within a query thread.</p>
+<p>Trait objects are built on the heap.
+Working with an instance of a trait object requires dynamic dispatch and so these are referenced from a <a class="reference external" href="https://doc.rust-lang.org/book/ch15-00-smart-pointers.html">smart pointer</a>.
+The <strong>builder</strong> object instances are wrapped in an <code class="docutils literal notranslate"><span class="pre">Rc</span></code> and used when creating <code class="docutils literal notranslate"><span class="pre">CompassApp</span></code> instances.
+Once we build a <strong>service</strong> from the <strong>builder</strong>, the app requires that they are wrapped in an <code class="docutils literal notranslate"><span class="pre">Arc</span></code>, which is a thread-safe pointer.
+This way, the <strong>service</strong> can be shared across threads so we can build a <strong>model</strong> for a specific user query from within a query thread.</p>
 </section>
 </section>
 
@@ -524,8 +948,48 @@ these phases are represented by the following types:</p>
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections">Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-builder-service-model-convention-in-routee-compass">The Builder, Service, Model Convention in RouteE Compass</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#resources-for-learning-rust">Resources for Learning Rust</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#general-code-style">General Code Style</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#references-vs-values">References vs Values</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#testing-comments">Testing &amp; Comments</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#error-handling">Error handling</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#avoid-unhandled-errors">Avoid Unhandled errors</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#error-libraries">Error libraries</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#return-type-conventions">Return Type Conventions</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choosing-your-abstraction">Choosing Your Abstraction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-simple-code-tweak">A Simple Code Tweak</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-helper-function">A Helper Function</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-add-your-function">Where to Add Your Function</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#modules">Modules</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#mod-rs">mod.rs</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#newtype-structs">Newtype Structs</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#internalfloat">InternalFloat</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#structs">Structs</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-refactoring-a-complex-function-return-type-into-a-struct">Example: Refactoring A Complex Function Return Type Into A Struct</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#enums">Enums</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#example-refactoring-a-struct-with-two-states-as-an-enum">Example: Refactoring A Struct With Two States as an enum</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#collections">Collections</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#prefer-box-t-boxed-slices-over-vec-t-for-large-collections">Prefer <code class="docutils literal notranslate"><span class="pre">Box&lt;[T]&gt;</span></code> (boxed slices) over <code class="docutils literal notranslate"><span class="pre">Vec&lt;T&gt;</span></code> for large collections</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trait-objects-modeling-system-state-the-builder-service-model-convention-in-routee-compass">Trait Objects Modeling System State: The Builder, Service, Model Convention in RouteE Compass</a></li>
 </ul>
   </nav></div>
 

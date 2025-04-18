@@ -180,6 +180,7 @@
         </ul>
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../motivation.html">Motivation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../running.html">Running</a></li>
 </ul>
@@ -457,6 +458,7 @@ document.write(`
 
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;running pipeline import with phases: [</span><span class="si">{</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">phases</span><span class="p">]</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
     <span class="n">output_directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_directory</span><span class="p">)</span>
+    <span class="n">output_directory</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># default aggregation is via numpy mean operation</span>
     <span class="n">agg</span> <span class="o">=</span> <span class="n">agg</span> <span class="k">if</span> <span class="n">agg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span>
@@ -500,10 +502,7 @@ document.write(`
     <span class="n">e</span><span class="p">[</span><span class="s2">&quot;src_vertex_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">src_vertex_uuid</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">replace_id</span><span class="p">)</span>
     <span class="n">e</span><span class="p">[</span><span class="s2">&quot;dst_vertex_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">dst_vertex_uuid</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">replace_id</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">GRAPH</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;skipping graph output generation&quot;</span><span class="p">)</span>
-        <span class="c1"># WRITE NETWORK FILES</span>
-        <span class="n">output_directory</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">GRAPH</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
         <span class="c1">#   vertex tables</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;writing vertex files&quot;</span><span class="p">)</span>
         <span class="n">v</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;vertices-complete.csv.gz&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
