@@ -8,7 +8,7 @@ description = "Macros for the RouteE-Compass energy-aware routing engine"
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
-exclude = ["test/", ".DS_Store", "target/"]
+exclude = ["test/", "**/.DS_Store", "target/"]
 
 [dependencies]
 proc-macro2 = "1.0"
