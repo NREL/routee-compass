@@ -16,7 +16,7 @@ To install as a library in Rust, add routee-compass-py to your Cargo.toml file:
 
 ```toml
 [dependencies]
-routee-compass-py = { version = "0.9.1" }
+routee-compass-py = { version = "0.10.0" }
 ```
 
 ## License
