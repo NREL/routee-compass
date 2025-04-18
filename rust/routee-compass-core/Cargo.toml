@@ -2,7 +2,7 @@
 name = "routee-compass-core"
 version = "0.10.0"
 edition = "2021"
-exclude = ["test/"]
+exclude = ["test/", ".DS_Store", "target/"]
 readme = "README.md"
 license = "BSD-3-Clause"
 description = "The core routing algorithms and data structures of the RouteE-Compass energy-aware routing engine"

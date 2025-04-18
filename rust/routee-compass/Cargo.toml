@@ -4,6 +4,7 @@ version = "0.10.0"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
+exclude = ["test/", ".DS_Store", "target/"]
 description = "The RouteE-Compass energy-aware routing engine"
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
