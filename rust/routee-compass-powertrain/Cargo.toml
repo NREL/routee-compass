@@ -8,7 +8,7 @@ description = "Crate providing integration between RouteE Compass and RouteE Pow
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
-exclude = ["test/", "**/.DS_Store", "target/"]
+exclude = ["test/", ".DS_Store", "target/"]
 
 [dependencies]
 routee-compass-core = { path = "../routee-compass-core", version = "0.10.0" }
