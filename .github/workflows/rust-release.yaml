@@ -22,16 +22,16 @@ jobs:
         run: cargo test --all --manifest-path=rust/Cargo.toml
 
       - name: Publish routee-compass-core
-        run: cargo publish -p routee-compass-core --token "${{ secrets.CRATES_IO_TOKEN }} --manifest-path=rust/Cargo.toml"
+        run: cargo publish -p routee-compass-core --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}"
 
       - name: Publish routee-compass-powertrain
-        run: cargo publish -p routee-compass-powertrain --token "${{ secrets.CRATES_IO_TOKEN }} --manifest-path=rust/Cargo.toml""
+        run: cargo publish -p routee-compass-powertrain --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}""
 
       - name: Publish routee-compass
-        run: cargo publish -p routee-compass --token "${{ secrets.CRATES_IO_TOKEN }} --manifest-path=rust/Cargo.toml"
+        run: cargo publish -p routee-compass --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}"
 
       - name: Publish routee-compass-macros
-        run: cargo publish -p routee-compass-macros --token "${{ secrets.CRATES_IO_TOKEN }} --manifest-path=rust/Cargo.toml""
+        run: cargo publish -p routee-compass-macros --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}""
 
       - name: Publish routee-compass-py
-        run: cargo publish -p routee-compass-py --token "${{ secrets.CRATES_IO_TOKEN }} --manifest-path=rust/Cargo.toml"
+        run: cargo publish -p routee-compass-py --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}"
