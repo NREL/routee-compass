@@ -45,6 +45,14 @@ pub enum StateFeature {
         energy_unit: unit::EnergyUnit,
         initial: unit::Energy,
     },
+    Speed {
+        speed_unit: unit::SpeedUnit,
+        initial: unit::Speed,
+    },
+    Grade {
+        grade_unit: unit::GradeUnit,
+        initial: unit::Grade,
+    },
     Custom {
         r#type: String,
         unit: String,
@@ -95,6 +103,26 @@ impl PartialEq for StateFeature {
                 },
             ) => true,
             (
+                StateFeature::Speed {
+                    speed_unit: _,
+                    initial: _,
+                },
+                StateFeature::Speed {
+                    speed_unit: _,
+                    initial: _,
+                },
+            ) => true,
+            (
+                StateFeature::Grade {
+                    grade_unit: _,
+                    initial: _,
+                },
+                StateFeature::Grade {
+                    grade_unit: _,
+                    initial: _,
+                },
+            ) => true,
+            (
                 StateFeature::Custom {
                     r#type: a_name,
                     unit: a_unit,
@@ -125,6 +153,14 @@ impl Display for StateFeature {
                 energy_unit,
                 initial,
             } => write!(f, "unit: {}, initial: {}", energy_unit, initial),
+            StateFeature::Speed {
+                speed_unit,
+                initial,
+            } => write!(f, "unit: {}, initial: {}", speed_unit, initial),
+            StateFeature::Grade {
+                grade_unit,
+                initial,
+            } => write!(f, "unit: {}, initial: {}", grade_unit, initial),
             StateFeature::Custom {
                 r#type: name,
                 unit,
@@ -151,6 +187,14 @@ impl StateFeature {
                 energy_unit: _,
                 initial: _,
             } => String::from("energy"),
+            StateFeature::Speed {
+                speed_unit: _,
+                initial: _,
+            } => String::from("speed"),
+            StateFeature::Grade {
+                grade_unit: _,
+                initial: _,
+            } => String::from("grade"),
             StateFeature::Custom {
                 r#type,
                 unit: _,
@@ -173,6 +217,14 @@ impl StateFeature {
                 energy_unit,
                 initial: _,
             } => energy_unit.to_string(),
+            StateFeature::Speed {
+                speed_unit,
+                initial,
+            } => speed_unit.to_string(),
+            StateFeature::Grade {
+                grade_unit,
+                initial,
+            } => grade_unit.to_string(),
             StateFeature::Custom {
                 r#type: _,
                 unit,
@@ -208,6 +260,14 @@ impl StateFeature {
             } => Ok((*initial).into()),
             StateFeature::Energy {
                 energy_unit: _,
+                initial,
+            } => Ok((*initial).into()),
+            StateFeature::Speed {
+                speed_unit: _,
+                initial,
+            } => Ok((*initial).into()),
+            StateFeature::Grade {
+                grade_unit: _,
                 initial,
             } => Ok((*initial).into()),
             StateFeature::Custom {
@@ -252,6 +312,32 @@ impl StateFeature {
             } => Ok(energy_unit),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("energy"),
+                self.get_feature_type(),
+            )),
+        }
+    }
+
+    pub fn get_speed_unit(&self) -> Result<&unit::SpeedUnit, StateModelError> {
+        match self {
+            StateFeature::Speed {
+                speed_unit,
+                initial: _,
+            } => Ok(speed_unit),
+            _ => Err(StateModelError::UnexpectedFeatureUnit(
+                String::from("speed"),
+                self.get_feature_type(),
+            )),
+        }
+    }
+
+    pub fn get_grade_unit(&self) -> Result<&unit::GradeUnit, StateModelError> {
+        match self {
+            StateFeature::Grade {
+                grade_unit,
+                initial: _,
+            } => Ok(grade_unit),
+            _ => Err(StateModelError::UnexpectedFeatureUnit(
+                String::from("grade"),
                 self.get_feature_type(),
             )),
         }
