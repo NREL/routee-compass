@@ -3,6 +3,8 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display, str::FromStr};
 
+use crate::model::state::StateVariable;
+
 use super::{internal_float::InternalFloat, AsF64};
 
 #[derive(
@@ -28,6 +30,18 @@ pub struct Grade(pub InternalFloat);
 impl From<f64> for Grade {
     fn from(value: f64) -> Self {
         Grade(InternalFloat::new(value))
+    }
+}
+
+impl From<StateVariable> for Grade {
+    fn from(value: StateVariable) -> Self {
+        Grade::from(value.0)
+    }
+}
+
+impl From<&StateVariable> for Grade {
+    fn from(value: &StateVariable) -> Self {
+        Grade::from(value.0)
     }
 }
 
