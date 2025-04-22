@@ -36,8 +36,9 @@ impl SpeedTraversalModel {
             })
         }
     }
-    const DISTANCE: &'static str = "distance";
-    const TIME: &'static str = "time";
+    const LEG_DISTANCE: &'static str = "leg_distance";
+    const TRIP_TIME: &'static str = "trip_time";
+    const LEG_TIME: &'static str = "leg_time";
 }
 
 impl TraversalModel for SpeedTraversalModel {
@@ -48,9 +49,9 @@ impl TraversalModel for SpeedTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
-        let mut distance = Cow::Borrowed(&edge.distance);
-        baseunit::DISTANCE_UNIT.convert(&mut distance, &self.engine.distance_unit)?;
-        let dist_converted = distance.into_owned();
+
+        let leg_distance =
+            state_model.get_distance(state, Self::LEG_DISTANCE, &self.engine.distance_unit)?;
 
         let lookup_speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let speed = match self.speed_limit {
@@ -66,24 +67,15 @@ impl TraversalModel for SpeedTraversalModel {
         };
 
         let (t, tu) = Time::create(
-            (&dist_converted, &self.engine.distance_unit),
+            (&leg_distance, &self.engine.distance_unit),
             (&speed, &self.engine.speed_unit),
         )?;
         let mut edge_time = Cow::Owned(t);
         tu.convert(&mut edge_time, &self.engine.time_unit)?;
 
-        state_model.add_time(
-            state,
-            &Self::TIME.into(),
-            &edge_time,
-            &self.engine.time_unit,
-        )?;
-        state_model.add_distance(
-            state,
-            &Self::DISTANCE.into(),
-            &dist_converted,
-            &self.engine.distance_unit,
-        )?;
+        state_model.add_time(state, Self::TRIP_TIME, &edge_time, &self.engine.time_unit)?;
+        state_model.set_time(state, Self::LEG_TIME, &edge_time, &self.engine.time_unit)?;
+
         Ok(())
     }
 
@@ -119,36 +111,37 @@ impl TraversalModel for SpeedTraversalModel {
         let mut edge_time = Cow::Owned(t);
         tu.convert(&mut edge_time, &self.engine.time_unit)?;
 
-        state_model.add_time(
-            state,
-            &Self::TIME.into(),
-            &edge_time,
-            &self.engine.time_unit,
-        )?;
-        state_model.add_distance(
-            state,
-            &Self::DISTANCE.into(),
-            &distance,
-            &self.engine.distance_unit,
-        )?;
+        state_model.add_time(state, Self::TRIP_TIME, &edge_time, &self.engine.time_unit)?;
+        state_model.set_time(state, Self::LEG_TIME, &edge_time, &self.engine.time_unit)?;
 
         Ok(())
     }
-    /// track the time state feature
-    fn state_features(&self) -> Vec<(String, StateFeature)> {
+
+    fn input_features(&self) -> Vec<(String, StateFeature)> {
+        vec![(
+            String::from(Self::LEG_DISTANCE),
+            StateFeature::Distance {
+                distance_unit: self.engine.distance_unit,
+                initial: Distance::ZERO,
+            },
+        )]
+    }
+
+    /// speed modeling relies on time and distance features.
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
         vec![
             (
-                String::from(Self::TIME),
+                String::from(Self::TRIP_TIME),
                 StateFeature::Time {
                     time_unit: self.engine.time_unit,
                     initial: Time::ZERO,
                 },
             ),
             (
-                String::from(Self::DISTANCE),
-                StateFeature::Distance {
-                    distance_unit: self.engine.distance_unit,
-                    initial: Distance::ZERO,
+                String::from(Self::LEG_TIME),
+                StateFeature::Time {
+                    time_unit: self.engine.time_unit,
+                    initial: Time::ZERO,
                 },
             ),
         ]
