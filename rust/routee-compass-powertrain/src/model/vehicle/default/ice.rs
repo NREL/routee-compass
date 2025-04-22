@@ -65,7 +65,7 @@ impl VehicleType for ICE {
         let (energy, _energy_unit) = self.best_case_energy(distance)?;
         state_model.add_energy(
             state,
-            &ICE::ENERGY_FEATURE_NAME.into(),
+            ICE::ENERGY_FEATURE_NAME,
             &energy,
             &self
                 .prediction_model_record
@@ -88,7 +88,7 @@ impl VehicleType for ICE {
             .predict(speed, grade, distance)?;
         state_model.add_energy(
             state,
-            &ICE::ENERGY_FEATURE_NAME.into(),
+            ICE::ENERGY_FEATURE_NAME,
             &energy,
             &self
                 .prediction_model_record

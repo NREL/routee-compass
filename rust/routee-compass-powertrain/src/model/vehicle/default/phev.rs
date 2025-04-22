@@ -114,7 +114,7 @@ impl VehicleType for PHEV {
         let (electrical_energy, _) = self.best_case_energy(distance)?;
         state_model.add_energy(
             state,
-            &PHEV::ELECTRIC_FEATURE_NAME.into(),
+            PHEV::ELECTRIC_FEATURE_NAME,
             &electrical_energy,
             &self.battery_energy_unit,
         )?;
@@ -136,22 +136,12 @@ impl VehicleType for PHEV {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let start_soc = state_model.get_custom_f64(state, &PHEV::SOC_FEATURE_NAME.into())?;
+        let start_soc = state_model.get_custom_f64(state, PHEV::SOC_FEATURE_NAME)?;
         let (elec_energy, elec_unit, liq_energy, liq_unit) =
             get_phev_energy(self, start_soc, speed, grade, distance)?;
 
-        state_model.add_energy(
-            state,
-            &PHEV::ELECTRIC_FEATURE_NAME.into(),
-            &elec_energy,
-            &elec_unit,
-        )?;
-        state_model.add_energy(
-            state,
-            &PHEV::LIQUID_FEATURE_NAME.into(),
-            &liq_energy,
-            &liq_unit,
-        )?;
+        state_model.add_energy(state, PHEV::ELECTRIC_FEATURE_NAME, &elec_energy, &elec_unit)?;
+        state_model.add_energy(state, PHEV::LIQUID_FEATURE_NAME, &liq_energy, &liq_unit)?;
         let mut delta = Cow::Owned(elec_energy);
         elec_unit.convert(&mut delta, &self.battery_energy_unit)?;
         vehicle_ops::update_soc_percent(
@@ -342,7 +332,7 @@ mod tests {
         let elec = state_model
             .get_energy(
                 &state,
-                &PHEV::ELECTRIC_FEATURE_NAME.into(),
+                PHEV::ELECTRIC_FEATURE_NAME,
                 &EnergyUnit::KilowattHours,
             )
             .unwrap();
@@ -351,7 +341,7 @@ mod tests {
         let liquid = state_model
             .get_energy(
                 &state,
-                &PHEV::LIQUID_FEATURE_NAME.into(),
+                PHEV::LIQUID_FEATURE_NAME,
                 &EnergyUnit::GallonsGasoline,
             )
             .unwrap();
@@ -363,7 +353,7 @@ mod tests {
         );
 
         let soc = state_model
-            .get_custom_f64(&state, &PHEV::SOC_FEATURE_NAME.into())
+            .get_custom_f64(&state, PHEV::SOC_FEATURE_NAME)
             .unwrap();
         assert!(soc < 100.0, "soc {} should be < 100%", soc);
     }
@@ -388,17 +378,17 @@ mod tests {
         let elec = state_model
             .get_energy(
                 &state,
-                &PHEV::ELECTRIC_FEATURE_NAME.into(),
+                PHEV::ELECTRIC_FEATURE_NAME,
                 &EnergyUnit::KilowattHours,
             )
             .unwrap();
         let soc = state_model
-            .get_custom_f64(&state, &PHEV::SOC_FEATURE_NAME.into())
+            .get_custom_f64(&state, PHEV::SOC_FEATURE_NAME)
             .unwrap();
         let liquid = state_model
             .get_energy(
                 &state,
-                &PHEV::LIQUID_FEATURE_NAME.into(),
+                PHEV::LIQUID_FEATURE_NAME,
                 &EnergyUnit::GallonsGasoline,
             )
             .unwrap();
@@ -415,7 +405,7 @@ mod tests {
         let liquid_energy_2 = state_model
             .get_energy(
                 &state,
-                &PHEV::LIQUID_FEATURE_NAME.into(),
+                PHEV::LIQUID_FEATURE_NAME,
                 &EnergyUnit::KilowattHours,
             )
             .unwrap();

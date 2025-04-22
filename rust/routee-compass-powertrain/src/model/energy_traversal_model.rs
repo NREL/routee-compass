@@ -20,10 +20,17 @@ pub struct EnergyTraversalModel {
 
 impl TraversalModel for EnergyTraversalModel {
     /// inject the state features required by the VehicleType
-    fn state_features(&self) -> Vec<(String, StateFeature)> {
+    fn input_features(&self) -> Vec<(String, StateFeature)> {
         let mut features = self.vehicle.state_features();
-        features.extend(self.time_model.state_features());
+        features.extend(self.time_model.input_features());
         features
+    }
+
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
+        let mut features = self.vehicle.state_features();
+        features.extend(self.time_model.output_features());
+        features;
+        todo!("bad implementation, replace with new ice/bev/phev traversal models")
     }
 
     fn traverse_edge(
@@ -42,7 +49,7 @@ impl TraversalModel for EnergyTraversalModel {
         // calculate time delta
         let prev_time = state_model.get_time(
             &prev,
-            &Self::TIME.into(),
+            Self::TIME,
             &self
                 .energy_model_service
                 .time_model_speed_unit
@@ -50,7 +57,7 @@ impl TraversalModel for EnergyTraversalModel {
         )?;
         let current_time = state_model.get_time(
             state,
-            &Self::TIME.into(),
+            Self::TIME,
             &self
                 .energy_model_service
                 .time_model_speed_unit
