@@ -3,7 +3,9 @@ use routee_compass_core::model::{
     traversal::TraversalModelError, unit::Grade,
 };
 
-pub const ZERO_ENERGY: f64 = 1e-9;
+/// used as a replacement for zero in energy calculations
+/// where zero is not a valid value.
+pub const SAFE_MIN_ENERGY: f64 = 1e-9;
 
 /// look up the grade from the grade table
 pub fn get_grade(
