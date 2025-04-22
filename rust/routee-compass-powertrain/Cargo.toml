@@ -1,6 +1,6 @@
 [package]
 name = "routee-compass-powertrain"
-version = "0.9.1"
+version = "0.10.2"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -8,11 +8,11 @@ description = "Crate providing integration between RouteE Compass and RouteE Pow
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
-
+exclude = ["test/", "**/.DS_Store", "target/"]
 
 [dependencies]
-routee-compass-core = { path = "../routee-compass-core", version = "0.9.1" }
-smartcore = { version = "0.4.0", features = ["serde"] }                      # random forest
+routee-compass-core = { path = "../routee-compass-core", version = "0.10.2" }
+smartcore = { version = "0.4.0", features = ["serde"] }                       # random forest
 thiserror = { workspace = true }
 log = { workspace = true }
 geo = { workspace = true }

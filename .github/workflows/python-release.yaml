@@ -1,4 +1,9 @@
-name: Python build release for platforms
+name: Publish - PyPI
+# This workflow builds and publishes the Python package to PyPI and TestPyPI
+# when a new release is published.
+# It builds the package for multiple Python versions and platforms, including
+# Windows, macOS, and Linux. Conda-forge listens to new PyPI releases and begins
+# a workflow for constructing the conda release for this version.
 
 on:
   release:

@@ -1,0 +1,37 @@
+name: Publish - crates.io
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    name: Publish to Crates.io
+    environment: crates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Run tests
+        run: cargo test --all --manifest-path=rust/Cargo.toml
+
+      - name: Publish routee-compass-core
+        run: cargo publish -p routee-compass-core --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}"
+
+      - name: Publish routee-compass-powertrain
+        run: cargo publish -p routee-compass-powertrain --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}"
+
+      - name: Publish routee-compass
+        run: cargo publish -p routee-compass --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}"
+
+      - name: Publish routee-compass-macros
+        run: cargo publish -p routee-compass-macros --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}"
+
+      - name: Publish routee-compass-py
+        run: cargo publish -p routee-compass-py --manifest-path=rust/Cargo.toml --token "${{ secrets.CRATES_IO_TOKEN }}"

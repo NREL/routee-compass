@@ -1,9 +1,10 @@
 [package]
 name = "routee-compass"
-version = "0.9.1"
+version = "0.10.2"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
+exclude = ["test/", "**/.DS_Store", "target/"]
 description = "The RouteE-Compass energy-aware routing engine"
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
@@ -18,8 +19,8 @@ keywords = [
 categories = ["science", "science::geo"]
 
 [dependencies]
-routee-compass-core = { path = "../routee-compass-core", version = "0.9.1" }
-routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.9.1" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.10.2" }
+routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.10.2" }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
