@@ -3,7 +3,7 @@ use super::{
     custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
     state_model_error::StateModelError, update_operation::UpdateOperation,
 };
-use crate::model::unit::Convert;
+use crate::model::unit::{Convert, Grade, GradeUnit, Speed, SpeedUnit};
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::{
     model::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
@@ -131,7 +131,7 @@ impl StateModel {
     pub fn get_distance(
         &self,
         state: &[StateVariable],
-        name: &String,
+        name: &str,
         unit: &DistanceUnit,
     ) -> Result<Distance, StateModelError> {
         let value: Distance = self.get_state_variable(state, name)?.into();
@@ -155,7 +155,7 @@ impl StateModel {
     pub fn get_time(
         &self,
         state: &[StateVariable],
-        name: &String,
+        name: &str,
         unit: &TimeUnit,
     ) -> Result<Time, StateModelError> {
         let value: Time = self.get_state_variable(state, name)?.into();
@@ -179,13 +179,61 @@ impl StateModel {
     pub fn get_energy(
         &self,
         state: &[StateVariable],
-        name: &String,
+        name: &str,
         unit: &EnergyUnit,
     ) -> Result<Energy, StateModelError> {
         let value: Energy = self.get_state_variable(state, name)?.into();
         let mut v_cow = Cow::Owned(value);
         let feature = self.get_feature(name)?;
         let from_unit = feature.get_energy_unit()?;
+
+        from_unit.convert(&mut v_cow, unit)?;
+        Ok(v_cow.into_owned())
+    }
+    /// retrieves a state variable that is expected to have a type of Speed
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    /// * `unit`  - feature is converted to this unit before returning
+    ///
+    /// # Returns
+    ///
+    /// feature value in the expected unit type, or an error
+    pub fn get_speed(
+        &self,
+        state: &[StateVariable],
+        name: &str,
+        unit: &SpeedUnit,
+    ) -> Result<Speed, StateModelError> {
+        let value: Speed = self.get_state_variable(state, name)?.into();
+        let mut v_cow = Cow::Owned(value);
+        let feature = self.get_feature(name)?;
+        let from_unit = feature.get_speed_unit()?;
+
+        from_unit.convert(&mut v_cow, unit)?;
+        Ok(v_cow.into_owned())
+    }
+    /// retrieves a state variable that is expected to have a type of Energy
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    /// * `unit`  - feature is converted to this unit before returning
+    ///
+    /// # Returns
+    ///
+    /// feature value in the expected unit type, or an error
+    pub fn get_grade(
+        &self,
+        state: &[StateVariable],
+        name: &str,
+        unit: &GradeUnit,
+    ) -> Result<Grade, StateModelError> {
+        let value: Grade = self.get_state_variable(state, name)?.into();
+        let mut v_cow = Cow::Owned(value);
+        let feature = self.get_feature(name)?;
+        let from_unit = feature.get_grade_unit()?;
 
         from_unit.convert(&mut v_cow, unit)?;
         Ok(v_cow.into_owned())
@@ -202,7 +250,7 @@ impl StateModel {
     pub fn get_custom_f64(
         &self,
         state: &[StateVariable],
-        name: &String,
+        name: &str,
     ) -> Result<f64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_f64(value)?;
@@ -220,7 +268,7 @@ impl StateModel {
     pub fn get_custom_i64(
         &self,
         state: &[StateVariable],
-        name: &String,
+        name: &str,
     ) -> Result<i64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_i64(value)?;
@@ -238,7 +286,7 @@ impl StateModel {
     pub fn get_custom_u64(
         &self,
         state: &[StateVariable],
-        name: &String,
+        name: &str,
     ) -> Result<u64, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_u64(value)?;
@@ -256,7 +304,7 @@ impl StateModel {
     pub fn get_custom_bool(
         &self,
         state: &[StateVariable],
-        name: &String,
+        name: &str,
     ) -> Result<bool, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
         let result = format.decode_bool(value)?;
@@ -277,7 +325,7 @@ impl StateModel {
     fn get_custom_state_variable<'a>(
         &self,
         state: &'a [StateVariable],
-        name: &String,
+        name: &str,
     ) -> Result<(&'a StateVariable, &CustomFeatureFormat), StateModelError> {
         let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
@@ -300,7 +348,7 @@ impl StateModel {
         &self,
         prev: &[StateVariable],
         next: &[StateVariable],
-        name: &String,
+        name: &str,
     ) -> Result<T, StateModelError> {
         let prev_val = self.get_state_variable(prev, name)?;
         let next_val = self.get_state_variable(next, name)?;
@@ -312,7 +360,7 @@ impl StateModel {
     pub fn add_distance(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         distance: &Distance,
         from_unit: &DistanceUnit,
     ) -> Result<(), StateModelError> {
@@ -325,7 +373,7 @@ impl StateModel {
     pub fn add_time(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         time: &Time,
         from_unit: &TimeUnit,
     ) -> Result<(), StateModelError> {
@@ -338,7 +386,7 @@ impl StateModel {
     pub fn add_energy(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         energy: &Energy,
         from_unit: &EnergyUnit,
     ) -> Result<(), StateModelError> {
@@ -350,7 +398,7 @@ impl StateModel {
     pub fn set_distance(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         distance: &Distance,
         from_unit: &DistanceUnit,
     ) -> Result<(), StateModelError> {
@@ -368,7 +416,7 @@ impl StateModel {
     pub fn set_time(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         time: &Time,
         from_unit: &TimeUnit,
     ) -> Result<(), StateModelError> {
@@ -386,7 +434,7 @@ impl StateModel {
     pub fn set_energy(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         energy: &Energy,
         from_unit: &EnergyUnit,
     ) -> Result<(), StateModelError> {
@@ -404,7 +452,7 @@ impl StateModel {
     pub fn set_custom_f64(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         value: &f64,
     ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
@@ -416,7 +464,7 @@ impl StateModel {
     pub fn set_custom_i64(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         value: &i64,
     ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
@@ -428,7 +476,7 @@ impl StateModel {
     pub fn set_custom_u64(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         value: &u64,
     ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
@@ -440,7 +488,7 @@ impl StateModel {
     pub fn set_custom_bool(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         value: &bool,
     ) -> Result<(), StateModelError> {
         let feature = self.get_feature(name)?;
@@ -487,9 +535,9 @@ impl StateModel {
         self.0.iter().map(|(k, _)| k.clone()).join(",")
     }
 
-    fn get_feature(&self, feature_name: &String) -> Result<&StateFeature, StateModelError> {
+    fn get_feature(&self, feature_name: &str) -> Result<&StateFeature, StateModelError> {
         self.0.get(feature_name).ok_or_else(|| {
-            StateModelError::UnknownStateVariableName(feature_name.clone(), self.get_names())
+            StateModelError::UnknownStateVariableName(feature_name.to_string(), self.get_names())
         })
     }
 
@@ -497,10 +545,10 @@ impl StateModel {
     fn get_state_variable<'a>(
         &self,
         state: &'a [StateVariable],
-        name: &String,
+        name: &str,
     ) -> Result<&'a StateVariable, StateModelError> {
         let idx = self.0.get_index(name).ok_or_else(|| {
-            StateModelError::UnknownStateVariableName(name.clone(), self.get_names())
+            StateModelError::UnknownStateVariableName(name.to_string(), self.get_names())
         })?;
         let value = state.get(idx).ok_or_else(|| {
             StateModelError::RuntimeError(format!(
@@ -516,12 +564,12 @@ impl StateModel {
     fn update_state(
         &self,
         state: &mut [StateVariable],
-        name: &String,
+        name: &str,
         value: &StateVariable,
         op: UpdateOperation,
     ) -> Result<(), StateModelError> {
         let index = self.0.get_index(name).ok_or_else(|| {
-            StateModelError::UnknownStateVariableName(name.clone(), self.get_names())
+            StateModelError::UnknownStateVariableName(name.to_string(), self.get_names())
         })?;
         let prev = state
             .get(index)

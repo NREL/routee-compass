@@ -23,7 +23,7 @@ pub fn collect_features(
 ) -> Result<Vec<(String, StateFeature)>, StateModelError> {
     // prepare the set of features for this state model
     let model_features = traversal_model
-        .state_features()
+        .output_features()
         .into_iter()
         .chain(access_model.state_features())
         .collect::<HashMap<_, _>>();
