@@ -21,13 +21,13 @@ pub struct EnergyTraversalModel {
 impl TraversalModel for EnergyTraversalModel {
     /// inject the state features required by the VehicleType
     fn input_features(&self) -> Vec<(String, StateFeature)> {
-        let mut features = self.vehicle.output_features();
+        let mut features = self.vehicle.state_features();
         features.extend(self.time_model.input_features());
         features
     }
 
     fn output_features(&self) -> Vec<(String, StateFeature)> {
-        let mut features = self.vehicle.output_features();
+        let mut features = self.vehicle.state_features();
         features.extend(self.time_model.output_features());
         drop(features);
         todo!("bad implementation, replace with new ice/bev/phev traversal models")
