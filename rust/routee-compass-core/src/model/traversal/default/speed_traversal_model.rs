@@ -5,7 +5,7 @@ use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::{baseunit, Convert, Distance, SpeedUnit, Time};
+use crate::model::unit::{Convert, Distance, SpeedUnit, Time};
 use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
 use crate::util::geo::haversine;
 use std::borrow::Cow;
