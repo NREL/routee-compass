@@ -1,4 +1,4 @@
-use crate::model::traversal::default::DistanceTraversalModel;
+use super::DistanceTraversalModel;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::TraversalModelError;
 use crate::model::traversal::TraversalModelService;

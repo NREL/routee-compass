@@ -1,11 +1,11 @@
-use routee_compass_core::config::CompassConfigurationField;
-use routee_compass_core::config::ConfigJsonExtensions;
-use routee_compass_core::model::traversal::default::DistanceTraversalService;
-use routee_compass_core::model::traversal::TraversalModelBuilder;
-use routee_compass_core::model::traversal::TraversalModelError;
-use routee_compass_core::model::traversal::TraversalModelService;
-use routee_compass_core::model::unit::baseunit;
-use routee_compass_core::model::unit::DistanceUnit;
+use super::DistanceTraversalService;
+use crate::config::CompassConfigurationField;
+use crate::config::ConfigJsonExtensions;
+use crate::model::traversal::TraversalModelBuilder;
+use crate::model::traversal::TraversalModelError;
+use crate::model::traversal::TraversalModelService;
+use crate::model::unit::baseunit;
+use crate::model::unit::DistanceUnit;
 use std::sync::Arc;
 
 pub struct DistanceTraversalBuilder {}
