@@ -1,5 +1,6 @@
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display, str::FromStr};
 
@@ -87,4 +88,7 @@ impl FromStr for Grade {
 
 impl Grade {
     pub const ZERO: Grade = Grade(InternalFloat::ZERO);
+    pub fn to_ordered_float(&self) -> OrderedFloat<f64> {
+        *self.0
+    }
 }

@@ -5,7 +5,6 @@ pub mod energy_traversal_model;
 mod ice_energy_model;
 mod phev_energy_model;
 pub mod prediction;
-pub mod traversal;
 pub mod vehicle;
 
 pub use bev_energy_model::BevEnergyModel;

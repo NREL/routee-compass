@@ -28,20 +28,22 @@ use crate::{
             vehicle_restrictions::vehicle_restriction_builder::VehicleRestrictionBuilder,
         },
         traversal_model::{
-            distance_traversal_builder::DistanceTraversalBuilder,
-            energy_model_builder::EnergyModelBuilder, speed_lookup_builder::SpeedLookupBuilder,
+            // distance_traversal_builder::DistanceTraversalBuilder,
+            energy_model_builder::EnergyModelBuilder,
+            // speed_lookup_builder::SpeedLookupBuilder,
         },
     },
     plugin::{input::InputPluginBuilder, output::OutputPluginBuilder},
 };
 use itertools::Itertools;
-use routee_compass_core::config::{
-    CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions,
-};
 use routee_compass_core::model::{
     access::{default::NoAccessModel, AccessModelBuilder, AccessModelService},
     frontier::{FrontierModelBuilder, FrontierModelService},
     traversal::{TraversalModelBuilder, TraversalModelService},
+};
+use routee_compass_core::{
+    config::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions},
+    model::traversal::default::{distance::DistanceTraversalBuilder, speed::SpeedTraversalBuilder},
 };
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
@@ -254,7 +256,7 @@ impl Default for CompassAppBuilder {
     fn default() -> Self {
         // Traversal model builders
         let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceTraversalBuilder {});
-        let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedLookupBuilder {});
+        let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedTraversalBuilder {});
         let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder::new(
             HashMap::from([(String::from("speed_table"), speed.clone())]),
         ));

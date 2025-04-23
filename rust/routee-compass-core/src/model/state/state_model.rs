@@ -214,7 +214,7 @@ impl StateModel {
         from_unit.convert(&mut v_cow, unit)?;
         Ok(v_cow.into_owned())
     }
-    /// retrieves a state variable that is expected to have a type of Energy
+    /// retrieves a state variable that is expected to have a type of Grade
     ///
     /// # Arguments
     /// * `state` - state vector to inspect
@@ -445,6 +445,42 @@ impl StateModel {
             state,
             name,
             &energy_mut.into_owned().into(),
+            UpdateOperation::Replace,
+        )
+    }
+
+    pub fn set_grade(
+        &self,
+        state: &mut [StateVariable],
+        name: &str,
+        grade: &Grade,
+        from_unit: &GradeUnit,
+    ) -> Result<(), StateModelError> {
+        let mut grade_mut = Cow::Borrowed(grade);
+        let to_unit = self.get_feature(name)?.get_grade_unit()?;
+        from_unit.convert(&mut grade_mut, to_unit)?;
+        self.update_state(
+            state,
+            name,
+            &grade_mut.into_owned().into(),
+            UpdateOperation::Replace,
+        )
+    }
+
+    pub fn set_speed(
+        &self,
+        state: &mut [StateVariable],
+        name: &str,
+        speed: &Speed,
+        from_unit: &SpeedUnit,
+    ) -> Result<(), StateModelError> {
+        let mut speed_mut = Cow::Borrowed(speed);
+        let to_unit = self.get_feature(name)?.get_speed_unit()?;
+        from_unit.convert(&mut speed_mut, to_unit)?;
+        self.update_state(
+            state,
+            name,
+            &speed_mut.into_owned().into(),
             UpdateOperation::Replace,
         )
     }
