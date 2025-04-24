@@ -1,4 +1,3 @@
-use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
 use super::vehicle::VehicleType;
 use routee_compass_core::model::network::{Edge, Vertex};
@@ -9,7 +8,6 @@ use routee_compass_core::model::traversal::TraversalModel;
 use routee_compass_core::model::traversal::TraversalModelError;
 use routee_compass_core::model::unit::*;
 use routee_compass_core::util::geo::haversine;
-use std::borrow::Cow;
 use std::sync::Arc;
 
 pub struct EnergyTraversalModel {

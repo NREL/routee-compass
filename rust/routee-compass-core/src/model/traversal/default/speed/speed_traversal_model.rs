@@ -5,7 +5,7 @@ use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::state::{InputFeature, OutputFeature};
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::{Convert, Distance, SpeedUnit};
+use crate::model::unit::{Convert, SpeedUnit};
 use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
 use std::borrow::Cow;
 use std::sync::Arc;

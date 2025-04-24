@@ -5,7 +5,7 @@ use crate::{
         network::{Edge, Vertex},
         state::{InputFeature, OutputFeature, StateModel, StateVariable},
         traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-        unit::{Convert, Distance, DistanceUnit, SpeedUnit, Time, TimeUnit},
+        unit::{Convert, Distance, DistanceUnit, Time, TimeUnit},
     },
     util::geo::haversine,
 };

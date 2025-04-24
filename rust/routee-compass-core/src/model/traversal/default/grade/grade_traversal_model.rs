@@ -1,6 +1,6 @@
 use super::GradeTraversalEngine;
 use crate::model::{
-    network::{Edge, EdgeId, Vertex},
+    network::{Edge, Vertex},
     state::{InputFeature, OutputFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError},
     unit::Grade,
@@ -28,7 +28,7 @@ impl TraversalModel for GradeTraversalModel {
         vec![(
             String::from(super::EDGE_GRADE),
             OutputFeature::Grade {
-                grade_unit: self.engine.grade_unit.clone(),
+                grade_unit: self.engine.grade_unit,
                 initial: Grade::ZERO,
             },
         )]
