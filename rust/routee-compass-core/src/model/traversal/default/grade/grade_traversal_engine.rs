@@ -1,8 +1,9 @@
 use super::GradeConfiguration;
 use crate::{
     model::{
+        network::EdgeId,
         traversal::TraversalModelError,
-        unit::{DistanceUnit, Grade, GradeUnit},
+        unit::{Grade, GradeUnit},
     },
     util::fs::{read_decoders, read_utils},
 };
@@ -12,7 +13,6 @@ use std::sync::Arc;
 pub struct GradeTraversalEngine {
     pub grade_by_edge_id: Arc<Box<[Grade]>>,
     pub grade_unit: GradeUnit,
-    pub elevation_unit: DistanceUnit,
 }
 
 impl GradeTraversalEngine {
@@ -34,9 +34,21 @@ impl GradeTraversalEngine {
         let engine = GradeTraversalEngine {
             grade_by_edge_id: Arc::new(grade_table),
             grade_unit: config.grade_unit,
-            elevation_unit: config.elevation_unit.unwrap_or(DistanceUnit::Feet),
         };
 
         Ok(engine)
+    }
+
+    pub fn get_grade(&self, edge_id: EdgeId) -> Result<Grade, TraversalModelError> {
+        let grade: &Grade = self
+            .grade_by_edge_id
+            .get(edge_id.as_usize())
+            .ok_or_else(|| {
+                TraversalModelError::TraversalModelFailure(format!(
+                    "missing index {} from grade table",
+                    edge_id
+                ))
+            })?;
+        Ok(*grade)
     }
 }

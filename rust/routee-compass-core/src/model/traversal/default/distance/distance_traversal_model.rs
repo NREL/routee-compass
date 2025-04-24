@@ -1,9 +1,9 @@
 use std::borrow::Cow;
 
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
+use crate::model::state::{InputFeature, OutputFeature};
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
 use crate::model::unit::{baseunit, Convert, Distance, DistanceUnit};
@@ -20,7 +20,7 @@ impl DistanceTraversalModel {
         DistanceTraversalModel { distance_unit }
     }
     const TRIP_DISTANCE: &'static str = "trip_distance";
-    const LEG_DISTANCE: &'static str = "leg_distance";
+    const EDGE_DISTANCE: &'static str = "edge_distance";
 }
 
 impl TraversalModel for DistanceTraversalModel {
@@ -58,26 +58,26 @@ impl TraversalModel for DistanceTraversalModel {
                     ))
                 })?;
         state_model.add_distance(state, Self::TRIP_DISTANCE, &distance, &self.distance_unit)?;
-        state_model.set_distance(state, Self::LEG_DISTANCE, &distance, &self.distance_unit)?;
+        state_model.set_distance(state, Self::EDGE_DISTANCE, &distance, &self.distance_unit)?;
         Ok(())
     }
 
-    fn input_features(&self) -> Vec<(String, StateFeature)> {
+    fn input_features(&self) -> Vec<(String, InputFeature)> {
         vec![]
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, OutputFeature)> {
         vec![
             (
                 String::from(Self::TRIP_DISTANCE),
-                StateFeature::Distance {
+                OutputFeature::Distance {
                     distance_unit: self.distance_unit,
                     initial: Distance::ZERO,
                 },
             ),
             (
-                String::from(Self::LEG_DISTANCE),
-                StateFeature::Distance {
+                String::from(Self::EDGE_DISTANCE),
+                OutputFeature::Distance {
                     distance_unit: self.distance_unit,
                     initial: Distance::ZERO,
                 },

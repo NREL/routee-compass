@@ -1,6 +1,6 @@
 use super::StateVariable;
 use super::{
-    custom_feature_format::CustomFeatureFormat, state_feature::StateFeature,
+    custom_feature_format::CustomFeatureFormat, output_feature::OutputFeature,
     state_model_error::StateModelError, update_operation::UpdateOperation,
 };
 use crate::model::unit::{Convert, Grade, GradeUnit, Speed, SpeedUnit};
@@ -19,13 +19,13 @@ use std::iter::Enumerate;
 /// in concept, it is modeled as a mapping from a feature_name String to a StateFeature
 /// object (see NFeatures, below). there are 4 additional implementations that specialize
 /// for the case where fewer than 5 features are required in order to improve CPU performance.
-pub struct StateModel(CompactOrderedHashMap<String, StateFeature>);
-type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>;
+pub struct StateModel(CompactOrderedHashMap<String, OutputFeature>);
+type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a OutputFeature)> + 'a>;
 type IndexedFeatureIterator<'a> =
-    Enumerate<Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>>;
+    Enumerate<Box<dyn Iterator<Item = (&'a String, &'a OutputFeature)> + 'a>>;
 
 impl StateModel {
-    pub fn new(features: Vec<(String, StateFeature)>) -> StateModel {
+    pub fn new(features: Vec<(String, OutputFeature)>) -> StateModel {
         let map = CompactOrderedHashMap::new(features);
         StateModel(map)
     }
@@ -46,7 +46,7 @@ impl StateModel {
     /// * `query` - JSON search query contents containing state model information
     pub fn extend(
         &self,
-        entries: Vec<(String, StateFeature)>,
+        entries: Vec<(String, OutputFeature)>,
     ) -> Result<StateModel, StateModelError> {
         let mut map = self
             .0
@@ -88,7 +88,7 @@ impl StateModel {
 
     /// collects the state model tuples and clones them so they can
     /// be used to build other collections
-    pub fn to_vec(&self) -> Vec<(String, IndexedEntry<StateFeature>)> {
+    pub fn to_vec(&self) -> Vec<(String, IndexedEntry<OutputFeature>)> {
         self.0.to_vec()
     }
 
@@ -123,25 +123,30 @@ impl StateModel {
     /// # Arguments
     /// * `state` - state vector to inspect
     /// * `name`  - feature name to extract
-    /// * `unit`  - feature is converted to this unit before returning
+    /// * `unit`  - if provided, feature is converted to this unit before returning
     ///
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_distance(
-        &self,
+    pub fn get_distance<'a>(
+        &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: &DistanceUnit,
-    ) -> Result<Distance, StateModelError> {
+        unit: Option<&'a DistanceUnit>,
+    ) -> Result<(Distance, &'a DistanceUnit), StateModelError> {
         let value: Distance = self.get_state_variable(state, name)?.into();
-        let mut v_cow = Cow::Owned(value);
         let feature = self.get_feature(name)?;
         let from_unit = feature.get_distance_unit()?;
-
-        from_unit.convert(&mut v_cow, unit)?;
-        Ok(v_cow.into_owned())
+        match unit {
+            Some(to_unit) => {
+                let mut v_cow = Cow::Owned(value);
+                from_unit.convert(&mut v_cow, to_unit)?;
+                Ok((v_cow.into_owned(), to_unit))
+            }
+            None => Ok((value, from_unit)),
+        }
     }
+
     /// retrieves a state variable that is expected to have a type of Time
     ///
     /// # Arguments
@@ -152,19 +157,23 @@ impl StateModel {
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_time(
-        &self,
+    pub fn get_time<'a>(
+        &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: &TimeUnit,
-    ) -> Result<Time, StateModelError> {
+        unit: Option<&'a TimeUnit>,
+    ) -> Result<(Time, &'a TimeUnit), StateModelError> {
         let value: Time = self.get_state_variable(state, name)?.into();
-        let mut v_cow = Cow::Owned(value);
         let feature = self.get_feature(name)?;
         let from_unit = feature.get_time_unit()?;
-
-        from_unit.convert(&mut v_cow, unit)?;
-        Ok(v_cow.into_owned())
+        match unit {
+            Some(to_unit) => {
+                let mut v_cow = Cow::Owned(value);
+                from_unit.convert(&mut v_cow, to_unit)?;
+                Ok((v_cow.into_owned(), to_unit))
+            }
+            None => Ok((value, from_unit)),
+        }
     }
     /// retrieves a state variable that is expected to have a type of Energy
     ///
@@ -176,19 +185,23 @@ impl StateModel {
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_energy(
-        &self,
+    pub fn get_energy<'a>(
+        &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: &EnergyUnit,
-    ) -> Result<Energy, StateModelError> {
+        unit: Option<&'a EnergyUnit>,
+    ) -> Result<(Energy, &'a EnergyUnit), StateModelError> {
         let value: Energy = self.get_state_variable(state, name)?.into();
-        let mut v_cow = Cow::Owned(value);
         let feature = self.get_feature(name)?;
         let from_unit = feature.get_energy_unit()?;
-
-        from_unit.convert(&mut v_cow, unit)?;
-        Ok(v_cow.into_owned())
+        match unit {
+            Some(to_unit) => {
+                let mut v_cow = Cow::Owned(value);
+                from_unit.convert(&mut v_cow, to_unit)?;
+                Ok((v_cow.into_owned(), to_unit))
+            }
+            None => Ok((value, from_unit)),
+        }
     }
     /// retrieves a state variable that is expected to have a type of Speed
     ///
@@ -200,19 +213,23 @@ impl StateModel {
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_speed(
-        &self,
+    pub fn get_speed<'a>(
+        &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: &SpeedUnit,
-    ) -> Result<Speed, StateModelError> {
+        unit: Option<&'a SpeedUnit>,
+    ) -> Result<(Speed, &'a SpeedUnit), StateModelError> {
         let value: Speed = self.get_state_variable(state, name)?.into();
-        let mut v_cow = Cow::Owned(value);
         let feature = self.get_feature(name)?;
         let from_unit = feature.get_speed_unit()?;
-
-        from_unit.convert(&mut v_cow, unit)?;
-        Ok(v_cow.into_owned())
+        match unit {
+            Some(to_unit) => {
+                let mut v_cow = Cow::Owned(value);
+                from_unit.convert(&mut v_cow, to_unit)?;
+                Ok((v_cow.into_owned(), to_unit))
+            }
+            None => Ok((value, from_unit)),
+        }
     }
     /// retrieves a state variable that is expected to have a type of Grade
     ///
@@ -224,19 +241,23 @@ impl StateModel {
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_grade(
-        &self,
+    pub fn get_grade<'a>(
+        &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: &GradeUnit,
-    ) -> Result<Grade, StateModelError> {
+        unit: Option<&'a GradeUnit>,
+    ) -> Result<(Grade, &'a GradeUnit), StateModelError> {
         let value: Grade = self.get_state_variable(state, name)?.into();
-        let mut v_cow = Cow::Owned(value);
         let feature = self.get_feature(name)?;
         let from_unit = feature.get_grade_unit()?;
-
-        from_unit.convert(&mut v_cow, unit)?;
-        Ok(v_cow.into_owned())
+        match unit {
+            Some(to_unit) => {
+                let mut v_cow = Cow::Owned(value);
+                from_unit.convert(&mut v_cow, to_unit)?;
+                Ok((v_cow.into_owned(), to_unit))
+            }
+            None => Ok((value, from_unit)),
+        }
     }
     /// retrieves a state variable that is expected to have a type of f64.
     ///
@@ -364,7 +385,7 @@ impl StateModel {
         distance: &Distance,
         from_unit: &DistanceUnit,
     ) -> Result<(), StateModelError> {
-        let prev_distance = self.get_distance(state, name, from_unit)?;
+        let (prev_distance, _) = self.get_distance(state, name, Some(from_unit))?;
         let next_distance = prev_distance + *distance;
         self.set_distance(state, name, &next_distance, from_unit)
     }
@@ -377,7 +398,7 @@ impl StateModel {
         time: &Time,
         from_unit: &TimeUnit,
     ) -> Result<(), StateModelError> {
-        let prev_time = self.get_time(state, name, from_unit)?;
+        let (prev_time, _) = self.get_time(state, name, Some(from_unit))?;
         let next_time = prev_time + *time;
         self.set_time(state, name, &next_time, from_unit)
     }
@@ -390,9 +411,35 @@ impl StateModel {
         energy: &Energy,
         from_unit: &EnergyUnit,
     ) -> Result<(), StateModelError> {
-        let prev_energy = self.get_energy(state, name, from_unit)?;
+        let (prev_energy, _) = self.get_energy(state, name, Some(from_unit))?;
         let next_energy = prev_energy + *energy;
         self.set_energy(state, name, &next_energy, from_unit)
+    }
+
+    /// adds a speed value with energy unit to this feature vector
+    pub fn add_speed(
+        &self,
+        state: &mut [StateVariable],
+        name: &str,
+        speed: &Speed,
+        from_unit: &SpeedUnit,
+    ) -> Result<(), StateModelError> {
+        let (prev_speed, _) = self.get_speed(state, name, Some(from_unit))?;
+        let next_speed = prev_speed + *speed;
+        self.set_speed(state, name, &next_speed, from_unit)
+    }
+
+    /// adds a grade value with energy unit to this feature vector
+    pub fn add_grade(
+        &self,
+        state: &mut [StateVariable],
+        name: &str,
+        grade: &Grade,
+        from_unit: &GradeUnit,
+    ) -> Result<(), StateModelError> {
+        let (prev_grade, _) = self.get_grade(state, name, Some(from_unit))?;
+        let next_grade = prev_grade + *grade;
+        self.set_grade(state, name, &next_grade, from_unit)
     }
 
     pub fn set_distance(
@@ -571,7 +618,7 @@ impl StateModel {
         self.0.iter().map(|(k, _)| k.clone()).join(",")
     }
 
-    fn get_feature(&self, feature_name: &str) -> Result<&StateFeature, StateModelError> {
+    fn get_feature(&self, feature_name: &str) -> Result<&OutputFeature, StateModelError> {
         self.0.get(feature_name).ok_or_else(|| {
             StateModelError::UnknownStateVariableName(feature_name.to_string(), self.get_names())
         })
@@ -665,7 +712,7 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
             })?
             .into_iter()
             .map(|(feature_name, feature_json)| {
-                let feature = serde_json::from_value::<StateFeature>(feature_json.clone())
+                let feature = serde_json::from_value::<OutputFeature>(feature_json.clone())
                     .map_err(|e| {
                         StateModelError::BuildError(format!(
                         "unable to parse state feature row with name '{}' contents '{}' due to: {}",
@@ -682,8 +729,57 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
     }
 }
 
-impl From<Vec<(String, StateFeature)>> for StateModel {
-    fn from(value: Vec<(String, StateFeature)>) -> Self {
+impl From<Vec<(String, OutputFeature)>> for StateModel {
+    fn from(value: Vec<(String, OutputFeature)>) -> Self {
         StateModel::new(value)
     }
 }
+
+// macro_rules! generate_get_dimension_method {
+//     ($unit_name:ident, $value_type:ty, $unit_type:ty) => {
+//         impl StateModel {
+//             pub fn ::concat!("get_", stringify!($unit_name))(
+//                 &self,
+//                 state: &[StateVariable],
+//                 name: &str,
+//                 unit: Option<&$unit_type>,
+//             ) -> Result<$value_type, StateModelError> {
+//                 let value: $value_type = self.get_state_variable(state, name)?.into();
+
+//                 let to_unit = match unit {
+//                     Some(to_unit) => to_unit,
+//                     None => {
+//                         return Ok(value)
+//                     }
+//                 }
+
+//                 // types vary by unit name and therefore are broken out here
+//                 match $stringify($unit_name) {
+//                     "distance" => {
+//                         let feature = self.get_feature(name)?;
+//                         let from_unit: $ = feature.get_distance_unit()?;
+//                         let mut v_cow = Cow::Owned(value);
+//                         from_unit.convert(&mut v_cow, to_unit)?;
+//                         Ok(v_cow.into_owned())
+//                     }
+//                 }
+//                 let feature = self.get_feature(name)?;
+//                 let from_unit: $ = feature.get_distance_unit()?;
+//                 let mut v_cow = Cow::Owned(value);
+//                 from_unit.convert(&mut v_cow, to_unit)?;
+//                 Ok(v_cow.into_owned())
+//             }
+//         }
+//     };
+// }
+
+// macro_rules! generate_get_convert {
+//     ($unit_name:ident, $value_type:ty, $unit_type:ty) => {
+//         fn ::concat!("get_convert_", stringify!($unit_name))(
+//             value: $value_type,
+//             feature: &StateFeature
+//         ) -> Result<$value_type, StateModelError> {
+//             let from_unit: $ = feature.get_distance_unit()?;
+//         }
+//     }
+// }

@@ -1,9 +1,9 @@
-use super::{ElevationChange, GradeTraversalEngine};
+use super::GradeTraversalEngine;
 use crate::model::{
     network::{Edge, EdgeId, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{InputFeature, OutputFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError},
-    unit::{DistanceUnit, Grade},
+    unit::Grade,
 };
 use std::sync::Arc;
 
@@ -18,12 +18,20 @@ impl GradeTraversalModel {
 }
 
 impl TraversalModel for GradeTraversalModel {
-    fn input_features(&self) -> Vec<(String, StateFeature)> {
+    /// no upstream state dependencies
+    fn input_features(&self) -> Vec<(String, InputFeature)> {
         vec![]
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
-        todo!()
+    //
+    fn output_features(&self) -> Vec<(String, OutputFeature)> {
+        vec![(
+            String::from(super::EDGE_GRADE),
+            OutputFeature::Grade {
+                grade_unit: self.engine.grade_unit.clone(),
+                initial: Grade::ZERO,
+            },
+        )]
     }
 
     fn traverse_edge(
@@ -33,44 +41,18 @@ impl TraversalModel for GradeTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
-        let grade = get_grade(self.engine.grade_by_edge_id.clone(), edge.edge_id)?;
-        state_model.set_grade(state, super::LEG_GRADE, &grade, &self.engine.grade_unit)?;
-        let distance = state_model.get_distance(state, super::LEG_DISTANCE, &DistanceUnit::Feet)?;
-        let elevation_change = ElevationChange::new(
-            (&distance, &DistanceUnit::Feet),
-            (&grade, &self.engine.grade_unit),
-            &self.engine.elevation_unit,
-        )?;
-        elevation_change.add_elevation_to_state(state, state_model)?;
+        let grade = self.engine.get_grade(edge.edge_id)?;
+        state_model.set_grade(state, super::EDGE_GRADE, &grade, &self.engine.grade_unit)?;
         Ok(())
     }
 
     fn estimate_traversal(
         &self,
         _od: (&Vertex, &Vertex),
-        state: &mut Vec<StateVariable>,
-        state_model: &StateModel,
+        _state: &mut Vec<StateVariable>,
+        _state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         // would be nice if we could use vertex elevation to estimate overall grade change..
-        state_model.set_grade(
-            state,
-            super::LEG_GRADE,
-            &Grade::ZERO,
-            &self.engine.grade_unit,
-        )?;
         Ok(())
     }
-}
-
-pub fn get_grade(
-    grade_table: Arc<Box<[Grade]>>,
-    edge_id: EdgeId,
-) -> Result<Grade, TraversalModelError> {
-    let grade: &Grade = grade_table.get(edge_id.as_usize()).ok_or_else(|| {
-        TraversalModelError::TraversalModelFailure(format!(
-            "missing index {} from grade table",
-            edge_id
-        ))
-    })?;
-    Ok(*grade)
 }

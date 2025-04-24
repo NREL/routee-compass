@@ -1,6 +1,6 @@
 use crate::model::{prediction::PredictionModelRecord, vehicle::VehicleType};
 use routee_compass_core::model::{
-    state::{StateFeature, StateModel, StateVariable},
+    state::{OutputFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
     unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
@@ -28,14 +28,14 @@ impl VehicleType for ICE {
     fn name(&self) -> String {
         self.name.clone()
     }
-    fn state_features(&self) -> Vec<(String, StateFeature)> {
+    fn state_features(&self) -> Vec<(String, OutputFeature)> {
         let energy_unit = self
             .prediction_model_record
             .energy_rate_unit
             .associated_energy_unit();
         vec![(
             String::from(ICE::ENERGY_FEATURE_NAME),
-            StateFeature::Energy {
+            OutputFeature::Energy {
                 energy_unit,
                 initial: Energy::ZERO,
             },

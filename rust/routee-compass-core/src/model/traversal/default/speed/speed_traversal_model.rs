@@ -1,13 +1,12 @@
 use super::speed_traversal_engine::SpeedTraversalEngine;
 use crate::model::network::edge_id::EdgeId;
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
+use crate::model::state::{InputFeature, OutputFeature};
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::{Convert, Distance, SpeedUnit, Time};
+use crate::model::unit::{Convert, Distance, SpeedUnit};
 use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
-use crate::util::geo::haversine;
 use std::borrow::Cow;
 use std::sync::Arc;
 
@@ -36,12 +35,24 @@ impl SpeedTraversalModel {
             })
         }
     }
-    const LEG_DISTANCE: &'static str = "leg_distance";
-    const TRIP_TIME: &'static str = "trip_time";
-    const LEG_TIME: &'static str = "leg_time";
 }
 
 impl TraversalModel for SpeedTraversalModel {
+    fn input_features(&self) -> Vec<(String, InputFeature)> {
+        vec![]
+    }
+
+    fn output_features(&self) -> Vec<(String, OutputFeature)> {
+        vec![(
+            String::from(super::EDGE_SPEED),
+            OutputFeature::Speed {
+                speed_unit: self.engine.speed_unit,
+                initial: Speed::ZERO,
+            },
+        )]
+    }
+
+    /// records the speed that will be driven over this edge into the state vector.
     fn traverse_edge(
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
@@ -49,102 +60,26 @@ impl TraversalModel for SpeedTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
-
-        let leg_distance =
-            state_model.get_distance(state, Self::LEG_DISTANCE, &self.engine.distance_unit)?;
-
         let lookup_speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
-        let speed = match self.speed_limit {
-            // speed unit here is unused since we've already converted into the same unit as the speed model
-            Some((speed_limit, _speed_unit)) => {
-                if lookup_speed > speed_limit {
-                    speed_limit
-                } else {
-                    lookup_speed
-                }
-            }
-            None => lookup_speed,
-        };
-
-        let (t, tu) = Time::create(
-            (&leg_distance, &self.engine.distance_unit),
-            (&speed, &self.engine.speed_unit),
-        )?;
-        let mut edge_time = Cow::Owned(t);
-        tu.convert(&mut edge_time, &self.engine.time_unit)?;
-
-        state_model.add_time(state, Self::TRIP_TIME, &edge_time, &self.engine.time_unit)?;
-        state_model.set_time(state, Self::LEG_TIME, &edge_time, &self.engine.time_unit)?;
-
+        let speed = apply_speed_limit(lookup_speed, self.speed_limit.as_ref());
+        state_model.add_speed(state, super::EDGE_SPEED, &speed, &self.engine.speed_unit)?;
         Ok(())
     }
 
+    /// (over-)estimates speed over remainder of the trip as the maximum-possible speed value.
     fn estimate_traversal(
         &self,
-        od: (&Vertex, &Vertex),
+        _od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let (src, dst) = od;
-        let distance =
-            haversine::coord_distance(&src.coordinate, &dst.coordinate, self.engine.distance_unit)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "could not compute haversine distance between {} and {}: {}",
-                        src, dst, e
-                    ))
-                })?;
-
-        if distance == Distance::ZERO {
-            return Ok(());
-        }
-
-        let max_speed = match self.speed_limit {
+        let speed = match self.speed_limit {
             Some((speed_limit, _speed_unit)) => speed_limit,
             None => self.engine.max_speed,
         };
-
-        let (t, tu) = Time::create(
-            (&distance, &self.engine.distance_unit),
-            (&max_speed, &self.engine.speed_unit),
-        )?;
-        let mut edge_time = Cow::Owned(t);
-        tu.convert(&mut edge_time, &self.engine.time_unit)?;
-
-        state_model.add_time(state, Self::TRIP_TIME, &edge_time, &self.engine.time_unit)?;
-        state_model.set_time(state, Self::LEG_TIME, &edge_time, &self.engine.time_unit)?;
+        state_model.add_speed(state, super::EDGE_SPEED, &speed, &self.engine.speed_unit)?;
 
         Ok(())
-    }
-
-    fn input_features(&self) -> Vec<(String, StateFeature)> {
-        vec![(
-            String::from(Self::LEG_DISTANCE),
-            StateFeature::Distance {
-                distance_unit: self.engine.distance_unit,
-                initial: Distance::ZERO,
-            },
-        )]
-    }
-
-    /// speed modeling relies on time and distance features.
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
-        vec![
-            (
-                String::from(Self::TRIP_TIME),
-                StateFeature::Time {
-                    time_unit: self.engine.time_unit,
-                    initial: Time::ZERO,
-                },
-            ),
-            (
-                String::from(Self::LEG_TIME),
-                StateFeature::Time {
-                    time_unit: self.engine.time_unit,
-                    initial: Time::ZERO,
-                },
-            ),
-        ]
     }
 }
 
@@ -157,6 +92,20 @@ pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, Traver
         ))
     })?;
     Ok(*speed)
+}
+
+fn apply_speed_limit(lookup_speed: Speed, speed_limit: Option<&(Speed, SpeedUnit)>) -> Speed {
+    match speed_limit {
+        // speed unit here is unused since we've already converted into the same unit as the speed model
+        Some((speed_limit, _speed_unit)) => {
+            if &lookup_speed > speed_limit {
+                *speed_limit
+            } else {
+                lookup_speed
+            }
+        }
+        None => lookup_speed,
+    }
 }
 
 #[cfg(test)]
@@ -216,14 +165,14 @@ mod tests {
                 .extend(vec![
                     (
                         String::from("distance"),
-                        StateFeature::Distance {
+                        OutputFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
                             initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
-                        StateFeature::Time {
+                        OutputFeature::Time {
                             time_unit: TimeUnit::Seconds,
                             initial: Time::from(0.0),
                         },
@@ -255,14 +204,14 @@ mod tests {
                 .extend(vec![
                     (
                         String::from("distance"),
-                        StateFeature::Distance {
+                        OutputFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
                             initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
-                        StateFeature::Time {
+                        OutputFeature::Time {
                             time_unit: TimeUnit::Milliseconds,
                             initial: Time::from(0.0),
                         },
@@ -299,14 +248,14 @@ mod tests {
                 .extend(vec![
                     (
                         String::from("distance"),
-                        StateFeature::Distance {
+                        OutputFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
                             initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
-                        StateFeature::Time {
+                        OutputFeature::Time {
                             time_unit: TimeUnit::Seconds,
                             initial: Time::from(0.0),
                         },
@@ -379,14 +328,14 @@ mod tests {
                 .extend(vec![
                     (
                         String::from("distance"),
-                        StateFeature::Distance {
+                        OutputFeature::Distance {
                             distance_unit: DistanceUnit::Kilometers,
                             initial: Distance::from(0.0),
                         },
                     ),
                     (
                         String::from("time"),
-                        StateFeature::Time {
+                        OutputFeature::Time {
                             time_unit: TimeUnit::Seconds,
                             initial: Time::from(0.0),
                         },

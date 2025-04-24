@@ -3,7 +3,7 @@ use crate::model::{
     vehicle::{vehicle_ops, vehicle_type::VehicleType},
 };
 use routee_compass_core::model::{
-    state::{CustomFeatureFormat, StateFeature, StateModel, StateVariable},
+    state::{CustomFeatureFormat, OutputFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
     unit::{
         AsF64, Convert, Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed,
@@ -53,7 +53,7 @@ impl VehicleType for PHEV {
         self.name.clone()
     }
 
-    fn state_features(&self) -> Vec<(String, StateFeature)> {
+    fn state_features(&self) -> Vec<(String, OutputFeature)> {
         let initial_soc =
             vehicle_ops::as_soc_percent(&self.starting_battery_energy, &self.battery_capacity);
         let liquid_energy_unit = self
@@ -63,14 +63,14 @@ impl VehicleType for PHEV {
         vec![
             (
                 String::from(PHEV::ELECTRIC_FEATURE_NAME),
-                StateFeature::Energy {
+                OutputFeature::Energy {
                     energy_unit: self.battery_energy_unit,
                     initial: Energy::ZERO,
                 },
             ),
             (
                 String::from(PHEV::SOC_FEATURE_NAME),
-                StateFeature::Custom {
+                OutputFeature::Custom {
                     r#type: String::from("soc"),
                     unit: String::from("percent"),
                     format: CustomFeatureFormat::FloatingPoint {
@@ -80,7 +80,7 @@ impl VehicleType for PHEV {
             ),
             (
                 String::from(PHEV::LIQUID_FEATURE_NAME),
-                StateFeature::Energy {
+                OutputFeature::Energy {
                     energy_unit: liquid_energy_unit,
                     initial: Energy::ZERO,
                 },

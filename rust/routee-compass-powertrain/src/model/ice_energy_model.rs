@@ -1,9 +1,9 @@
 use crate::model::prediction::PredictionModelRecord;
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{InputFeature, OutputFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError},
-    unit::{Distance, Energy, Grade, Speed},
+    unit::Energy,
 };
 use std::sync::Arc;
 
@@ -12,11 +12,11 @@ pub struct IceEnergyModel {
 }
 
 impl IceEnergyModel {
-    const LEG_ENERGY_LIQUID: &'static str = "leg_energy_liquid";
+    const EDGE_ENERGY_LIQUID: &'static str = "edge_energy_liquid";
     const TRIP_ENERGY_LIQUID: &'static str = "trip_energy_liquid";
-    const LEG_DISTANCE: &'static str = "leg_distance";
-    const LEG_SPEED: &'static str = "leg_speed";
-    const LEG_GRADE: &'static str = "leg_grade";
+    const EDGE_DISTANCE: &'static str = "edge_distance";
+    const EDGE_SPEED: &'static str = "edge_speed";
+    const EDGE_GRADE: &'static str = "edge_grade";
 
     pub fn new(
         prediction_model_record: PredictionModelRecord,
@@ -28,36 +28,28 @@ impl IceEnergyModel {
 }
 
 impl TraversalModel for IceEnergyModel {
-    fn input_features(&self) -> Vec<(String, StateFeature)> {
+    fn input_features(&self) -> Vec<(String, InputFeature)> {
         vec![
             (
-                String::from(IceEnergyModel::LEG_DISTANCE),
-                StateFeature::Distance {
-                    distance_unit: self
-                        .prediction_model_record
+                String::from(IceEnergyModel::EDGE_DISTANCE),
+                InputFeature::Distance(Some(
+                    self.prediction_model_record
                         .speed_unit
                         .associated_distance_unit(),
-                    initial: Distance::ZERO,
-                },
+                )),
             ),
             (
-                String::from(IceEnergyModel::LEG_SPEED),
-                StateFeature::Speed {
-                    speed_unit: self.prediction_model_record.speed_unit,
-                    initial: Speed::ZERO,
-                },
+                String::from(IceEnergyModel::EDGE_SPEED),
+                InputFeature::Speed(Some(self.prediction_model_record.speed_unit)),
             ),
             (
-                String::from(IceEnergyModel::LEG_GRADE),
-                StateFeature::Grade {
-                    grade_unit: self.prediction_model_record.grade_unit,
-                    initial: Grade::ZERO,
-                },
+                String::from(IceEnergyModel::EDGE_GRADE),
+                InputFeature::Grade(Some(self.prediction_model_record.grade_unit)),
             ),
         ]
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, OutputFeature)> {
         let energy_unit = self
             .prediction_model_record
             .energy_rate_unit
@@ -65,14 +57,14 @@ impl TraversalModel for IceEnergyModel {
         vec![
             (
                 String::from(IceEnergyModel::TRIP_ENERGY_LIQUID),
-                StateFeature::Energy {
+                OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
                 },
             ),
             (
-                String::from(IceEnergyModel::LEG_ENERGY_LIQUID),
-                StateFeature::Energy {
+                String::from(IceEnergyModel::EDGE_ENERGY_LIQUID),
+                OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
                 },
@@ -109,9 +101,10 @@ fn ice_traversal(
         .associated_distance_unit();
     let speed_unit = prediction_model_record.speed_unit;
     let grade_unit = prediction_model_record.grade_unit;
-    let distance = state_model.get_distance(state, IceEnergyModel::LEG_DISTANCE, &distance_unit)?;
-    let speed = state_model.get_speed(state, IceEnergyModel::LEG_SPEED, &speed_unit)?;
-    let grade = state_model.get_grade(state, IceEnergyModel::LEG_GRADE, &grade_unit)?;
+    let (distance, _) =
+        state_model.get_distance(state, IceEnergyModel::EDGE_DISTANCE, Some(&distance_unit))?;
+    let (speed, _) = state_model.get_speed(state, IceEnergyModel::EDGE_SPEED, Some(&speed_unit))?;
+    let (grade, _) = state_model.get_grade(state, IceEnergyModel::EDGE_GRADE, Some(&grade_unit))?;
     let (energy, _energy_unit) = prediction_model_record.predict(
         (speed, speed_unit),
         (grade, grade_unit),
@@ -127,7 +120,7 @@ fn ice_traversal(
     )?;
     state_model.set_energy(
         state,
-        IceEnergyModel::LEG_ENERGY_LIQUID,
+        IceEnergyModel::EDGE_ENERGY_LIQUID,
         &energy,
         &prediction_model_record
             .energy_rate_unit

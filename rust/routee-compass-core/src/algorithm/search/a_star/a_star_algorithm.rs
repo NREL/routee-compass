@@ -388,7 +388,7 @@ mod tests {
     use crate::model::network::graph::Graph;
     use crate::model::network::Edge;
     use crate::model::network::Vertex;
-    use crate::model::state::StateFeature;
+    use crate::model::state::OutputFeature;
     use crate::model::state::StateModel;
     use crate::model::termination::TerminationModel;
     use crate::model::traversal::default::DistanceTraversalModel;
@@ -488,7 +488,7 @@ mod tests {
             StateModel::empty()
                 .extend(vec![(
                     String::from("distance"),
-                    StateFeature::Distance {
+                    OutputFeature::Distance {
                         distance_unit: DistanceUnit::Kilometers,
                         initial: Distance::from(0.0),
                     },

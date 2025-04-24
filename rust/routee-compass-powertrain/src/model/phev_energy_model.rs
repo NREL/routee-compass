@@ -1,17 +1,17 @@
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{InputFeature, OutputFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError},
 };
 
 pub struct PhevEnergyModel {}
 
 impl TraversalModel for PhevEnergyModel {
-    fn input_features(&self) -> Vec<(String, StateFeature)> {
+    fn input_features(&self) -> Vec<(String, InputFeature)> {
         todo!()
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, OutputFeature)> {
         todo!()
     }
 

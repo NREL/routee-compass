@@ -8,7 +8,7 @@ use std::sync::Arc;
 pub struct NoAccessModel {}
 
 impl AccessModel for NoAccessModel {
-    fn state_features(&self) -> Vec<(String, crate::model::state::StateFeature)> {
+    fn state_features(&self) -> Vec<(String, crate::model::state::OutputFeature)> {
         vec![]
     }
 

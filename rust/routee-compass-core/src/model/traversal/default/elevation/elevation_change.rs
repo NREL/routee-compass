@@ -15,20 +15,19 @@ impl ElevationChange {
     pub fn new(
         distance: (&Distance, &DistanceUnit),
         grade: (&Grade, &GradeUnit),
-        elevation_unit: &DistanceUnit,
     ) -> Result<ElevationChange, UnitError> {
         let (d, du) = distance;
         let (g, gu) = grade;
         let mut g_dec = Cow::Borrowed(g);
         gu.convert(&mut g_dec, &GradeUnit::Decimal)?;
 
-        let elevation_f64 = g_dec.as_f64() * d.as_f64();
-        let mut elevation = Cow::Owned(Distance::from(elevation_f64));
-        du.convert(&mut elevation, elevation_unit)?;
+        let elevation = Distance::from(g_dec.as_f64() * d.as_f64());
+        // let mut elevation = Cow::Owned(Distance::from(elevation_f64));
+        // du.convert(&mut elevation, elevation_unit)?;
 
         Ok(ElevationChange {
-            elevation: elevation.into_owned(),
-            distance_unit: *elevation_unit,
+            elevation,
+            distance_unit: *du,
         })
     }
 

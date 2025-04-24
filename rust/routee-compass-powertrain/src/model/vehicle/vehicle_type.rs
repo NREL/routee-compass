@@ -1,5 +1,5 @@
 use routee_compass_core::model::{
-    state::{StateFeature, StateModel, StateVariable},
+    state::{OutputFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
     unit::{Distance, DistanceUnit, Energy, EnergyUnit, Grade, GradeUnit, Speed, SpeedUnit},
 };
@@ -12,7 +12,7 @@ pub trait VehicleType: Send + Sync {
 
     /// lists the state variables expected by this vehicle type. these are
     /// appended to the base state model set at configuration time.
-    fn state_features(&self) -> Vec<(String, StateFeature)>;
+    fn state_features(&self) -> Vec<(String, OutputFeature)>;
 
     /// Return the energy required to travel a certain distance at a certain speed and grade.
     ///

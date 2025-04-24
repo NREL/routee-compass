@@ -5,9 +5,9 @@ use crate::model::unit;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
-/// a state variable unit tracks the domain of a StateVar in a
-/// state vector. if the value represents quantity in distance,
-/// time, or energy, then we have a system of internal unit
+/// a state output feature tracks the domain of a StateVar in a
+/// state vector. if the value represents quantity in one of the
+/// unit types defined in crate::model::unit, then we have a system of internal unit
 /// objects which provide conversion arithmetic. if the user
 /// specifies a StateVar has a custom state variable unit, then
 /// they provide a mapping codec and name for the variable, and
@@ -17,7 +17,7 @@ use std::fmt::Display;
 ///
 /// ### Deserialization
 ///
-/// an example TOML representation of state features:
+/// an example TOML representation of state output features:
 ///
 /// ```toml
 /// state = [
@@ -32,7 +32,7 @@ use std::fmt::Display;
 /// ```
 #[derive(Serialize, Deserialize, Clone, Debug, Eq)]
 #[serde(untagged)]
-pub enum StateFeature {
+pub enum OutputFeature {
     Distance {
         distance_unit: unit::DistanceUnit,
         initial: unit::Distance,
@@ -60,7 +60,7 @@ pub enum StateFeature {
     },
 }
 
-impl PartialEq for StateFeature {
+impl PartialEq for OutputFeature {
     /// tests equality based on the feature type.
     ///
     /// for distance|time|energy, it's fine to modify either the unit
@@ -73,62 +73,62 @@ impl PartialEq for StateFeature {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (
-                StateFeature::Distance {
+                OutputFeature::Distance {
                     distance_unit: _,
                     initial: _,
                 },
-                StateFeature::Distance {
+                OutputFeature::Distance {
                     distance_unit: _,
                     initial: _,
                 },
             ) => true,
             (
-                StateFeature::Time {
+                OutputFeature::Time {
                     time_unit: _,
                     initial: _,
                 },
-                StateFeature::Time {
+                OutputFeature::Time {
                     time_unit: _,
                     initial: _,
                 },
             ) => true,
             (
-                StateFeature::Energy {
+                OutputFeature::Energy {
                     energy_unit: _,
                     initial: _,
                 },
-                StateFeature::Energy {
+                OutputFeature::Energy {
                     energy_unit: _,
                     initial: _,
                 },
             ) => true,
             (
-                StateFeature::Speed {
+                OutputFeature::Speed {
                     speed_unit: _,
                     initial: _,
                 },
-                StateFeature::Speed {
+                OutputFeature::Speed {
                     speed_unit: _,
                     initial: _,
                 },
             ) => true,
             (
-                StateFeature::Grade {
+                OutputFeature::Grade {
                     grade_unit: _,
                     initial: _,
                 },
-                StateFeature::Grade {
+                OutputFeature::Grade {
                     grade_unit: _,
                     initial: _,
                 },
             ) => true,
             (
-                StateFeature::Custom {
+                OutputFeature::Custom {
                     r#type: a_name,
                     unit: a_unit,
                     format: _,
                 },
-                StateFeature::Custom {
+                OutputFeature::Custom {
                     r#type: b_name,
                     unit: b_unit,
                     format: _,
@@ -139,29 +139,29 @@ impl PartialEq for StateFeature {
     }
 }
 
-impl Display for StateFeature {
+impl Display for OutputFeature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            StateFeature::Distance {
+            OutputFeature::Distance {
                 distance_unit,
                 initial,
             } => write!(f, "unit: {}, initial: {}", distance_unit, initial),
-            StateFeature::Time { time_unit, initial } => {
+            OutputFeature::Time { time_unit, initial } => {
                 write!(f, "unit: {}, initial: {}", time_unit, initial)
             }
-            StateFeature::Energy {
+            OutputFeature::Energy {
                 energy_unit,
                 initial,
             } => write!(f, "unit: {}, initial: {}", energy_unit, initial),
-            StateFeature::Speed {
+            OutputFeature::Speed {
                 speed_unit,
                 initial,
             } => write!(f, "unit: {}, initial: {}", speed_unit, initial),
-            StateFeature::Grade {
+            OutputFeature::Grade {
                 grade_unit,
                 initial,
             } => write!(f, "unit: {}, initial: {}", grade_unit, initial),
-            StateFeature::Custom {
+            OutputFeature::Custom {
                 r#type: name,
                 unit,
                 format,
@@ -172,30 +172,30 @@ impl Display for StateFeature {
     }
 }
 
-impl StateFeature {
+impl OutputFeature {
     pub fn get_feature_type(&self) -> String {
         match self {
-            StateFeature::Distance {
+            OutputFeature::Distance {
                 distance_unit: _,
                 initial: _,
             } => String::from("distance"),
-            StateFeature::Time {
+            OutputFeature::Time {
                 time_unit: _,
                 initial: _,
             } => String::from("time"),
-            StateFeature::Energy {
+            OutputFeature::Energy {
                 energy_unit: _,
                 initial: _,
             } => String::from("energy"),
-            StateFeature::Speed {
+            OutputFeature::Speed {
                 speed_unit: _,
                 initial: _,
             } => String::from("speed"),
-            StateFeature::Grade {
+            OutputFeature::Grade {
                 grade_unit: _,
                 initial: _,
             } => String::from("grade"),
-            StateFeature::Custom {
+            OutputFeature::Custom {
                 r#type,
                 unit: _,
                 format: _,
@@ -205,27 +205,27 @@ impl StateFeature {
 
     pub fn get_feature_unit_name(&self) -> String {
         match self {
-            StateFeature::Distance {
+            OutputFeature::Distance {
                 distance_unit,
                 initial: _,
             } => distance_unit.to_string(),
-            StateFeature::Time {
+            OutputFeature::Time {
                 time_unit,
                 initial: _,
             } => time_unit.to_string(),
-            StateFeature::Energy {
+            OutputFeature::Energy {
                 energy_unit,
                 initial: _,
             } => energy_unit.to_string(),
-            StateFeature::Speed {
+            OutputFeature::Speed {
                 speed_unit,
-                initial,
+                initial: _,
             } => speed_unit.to_string(),
-            StateFeature::Grade {
+            OutputFeature::Grade {
                 grade_unit,
-                initial,
+                initial: _,
             } => grade_unit.to_string(),
-            StateFeature::Custom {
+            OutputFeature::Custom {
                 r#type: _,
                 unit,
                 format: _,
@@ -239,7 +239,7 @@ impl StateFeature {
     /// regardless of unit type.
     pub fn get_feature_format(&self) -> &CustomFeatureFormat {
         match self {
-            StateFeature::Custom {
+            OutputFeature::Custom {
                 r#type: _,
                 unit: _,
                 format,
@@ -250,27 +250,27 @@ impl StateFeature {
 
     pub fn get_initial(&self) -> Result<StateVariable, StateModelError> {
         match self {
-            StateFeature::Distance {
+            OutputFeature::Distance {
                 distance_unit: _,
                 initial,
             } => Ok((*initial).into()),
-            StateFeature::Time {
+            OutputFeature::Time {
                 time_unit: _,
                 initial,
             } => Ok((*initial).into()),
-            StateFeature::Energy {
+            OutputFeature::Energy {
                 energy_unit: _,
                 initial,
             } => Ok((*initial).into()),
-            StateFeature::Speed {
+            OutputFeature::Speed {
                 speed_unit: _,
                 initial,
             } => Ok((*initial).into()),
-            StateFeature::Grade {
+            OutputFeature::Grade {
                 grade_unit: _,
                 initial,
             } => Ok((*initial).into()),
-            StateFeature::Custom {
+            OutputFeature::Custom {
                 r#type: _,
                 unit: _,
                 format,
@@ -280,7 +280,7 @@ impl StateFeature {
 
     pub fn get_distance_unit(&self) -> Result<&unit::DistanceUnit, StateModelError> {
         match self {
-            StateFeature::Distance {
+            OutputFeature::Distance {
                 distance_unit,
                 initial: _,
             } => Ok(distance_unit),
@@ -293,7 +293,7 @@ impl StateFeature {
 
     pub fn get_time_unit(&self) -> Result<&unit::TimeUnit, StateModelError> {
         match self {
-            StateFeature::Time {
+            OutputFeature::Time {
                 time_unit,
                 initial: _,
             } => Ok(time_unit),
@@ -306,7 +306,7 @@ impl StateFeature {
 
     pub fn get_energy_unit(&self) -> Result<&unit::EnergyUnit, StateModelError> {
         match self {
-            StateFeature::Energy {
+            OutputFeature::Energy {
                 energy_unit,
                 initial: _,
             } => Ok(energy_unit),
@@ -319,7 +319,7 @@ impl StateFeature {
 
     pub fn get_speed_unit(&self) -> Result<&unit::SpeedUnit, StateModelError> {
         match self {
-            StateFeature::Speed {
+            OutputFeature::Speed {
                 speed_unit,
                 initial: _,
             } => Ok(speed_unit),
@@ -332,7 +332,7 @@ impl StateFeature {
 
     pub fn get_grade_unit(&self) -> Result<&unit::GradeUnit, StateModelError> {
         match self {
-            StateFeature::Grade {
+            OutputFeature::Grade {
                 grade_unit,
                 initial: _,
             } => Ok(grade_unit),
@@ -345,7 +345,7 @@ impl StateFeature {
 
     pub fn get_custom_feature_format(&self) -> Result<&CustomFeatureFormat, StateModelError> {
         match self {
-            StateFeature::Custom {
+            OutputFeature::Custom {
                 r#type: _,
                 unit: _,
                 format,

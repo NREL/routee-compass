@@ -2,9 +2,9 @@ use super::energy_model_ops::get_grade;
 use super::energy_model_service::EnergyModelService;
 use super::vehicle::VehicleType;
 use routee_compass_core::model::network::{Edge, Vertex};
-use routee_compass_core::model::state::StateFeature;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::model::state::StateVariable;
+use routee_compass_core::model::state::{InputFeature, OutputFeature};
 use routee_compass_core::model::traversal::TraversalModel;
 use routee_compass_core::model::traversal::TraversalModelError;
 use routee_compass_core::model::unit::*;
@@ -20,13 +20,13 @@ pub struct EnergyTraversalModel {
 
 impl TraversalModel for EnergyTraversalModel {
     /// inject the state features required by the VehicleType
-    fn input_features(&self) -> Vec<(String, StateFeature)> {
-        let mut features = self.vehicle.state_features();
-        features.extend(self.time_model.input_features());
-        features
+    fn input_features(&self) -> Vec<(String, InputFeature)> {
+        // let mut features = self.vehicle.state_features();
+        // features.extend(self.time_model.input_features());
+        vec![]
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, OutputFeature)> {
         let mut features = self.vehicle.state_features();
         features.extend(self.time_model.output_features());
         drop(features);
@@ -41,64 +41,64 @@ impl TraversalModel for EnergyTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
 
-        // perform time traversal
-        let prev = state.to_vec();
-        self.time_model
-            .traverse_edge(trajectory, state, state_model)?;
+        // // perform time traversal
+        // let prev = state.to_vec();
+        // self.time_model
+        //     .traverse_edge(trajectory, state, state_model)?;
 
-        // calculate time delta
-        let prev_time = state_model.get_time(
-            &prev,
-            Self::TIME,
-            &self
-                .energy_model_service
-                .time_model_speed_unit
-                .associated_time_unit(),
-        )?;
-        let current_time = state_model.get_time(
-            state,
-            Self::TIME,
-            &self
-                .energy_model_service
-                .time_model_speed_unit
-                .associated_time_unit(),
-        )?;
-        let time_delta = current_time - prev_time;
+        // // calculate time delta
+        // let prev_time = state_model.get_time(
+        //     &prev,
+        //     Self::TIME,
+        //     &self
+        //         .energy_model_service
+        //         .time_model_speed_unit
+        //         .associated_time_unit(),
+        // )?;
+        // let current_time = state_model.get_time(
+        //     state,
+        //     Self::TIME,
+        //     &self
+        //         .energy_model_service
+        //         .time_model_speed_unit
+        //         .associated_time_unit(),
+        // )?;
+        // let time_delta = current_time - prev_time;
 
-        // perform vehicle energy traversal
-        let grade = get_grade(&self.energy_model_service.grade_table, edge.edge_id)?;
+        // // perform vehicle energy traversal
+        // let grade = get_grade(&self.energy_model_service.grade_table, edge.edge_id)?;
 
-        let mut distance_in_energy_model_unit = Cow::Borrowed(&edge.distance);
-        baseunit::DISTANCE_UNIT.convert(
-            &mut distance_in_energy_model_unit,
-            &self
-                .energy_model_service
-                .time_model_speed_unit
-                .associated_distance_unit(),
-        )?;
-        let speed_tuple = Speed::from_distance_and_time(
-            (
-                &distance_in_energy_model_unit,
-                &self
-                    .energy_model_service
-                    .time_model_speed_unit
-                    .associated_distance_unit(),
-            ),
-            (
-                &time_delta,
-                &self
-                    .energy_model_service
-                    .time_model_speed_unit
-                    .associated_time_unit(),
-            ),
-        )?;
-        self.vehicle.consume_energy(
-            speed_tuple,
-            (grade, self.energy_model_service.grade_table_grade_unit),
-            (edge.distance, baseunit::DISTANCE_UNIT),
-            state,
-            state_model,
-        )?;
+        // let mut distance_in_energy_model_unit = Cow::Borrowed(&edge.distance);
+        // baseunit::DISTANCE_UNIT.convert(
+        //     &mut distance_in_energy_model_unit,
+        //     &self
+        //         .energy_model_service
+        //         .time_model_speed_unit
+        //         .associated_distance_unit(),
+        // )?;
+        // let speed_tuple = Speed::from_distance_and_time(
+        //     (
+        //         &distance_in_energy_model_unit,
+        //         &self
+        //             .energy_model_service
+        //             .time_model_speed_unit
+        //             .associated_distance_unit(),
+        //     ),
+        //     (
+        //         &time_delta,
+        //         &self
+        //             .energy_model_service
+        //             .time_model_speed_unit
+        //             .associated_time_unit(),
+        //     ),
+        // )?;
+        // self.vehicle.consume_energy(
+        //     speed_tuple,
+        //     (grade, self.energy_model_service.grade_table_grade_unit),
+        //     (edge.distance, baseunit::DISTANCE_UNIT),
+        //     state,
+        //     state_model,
+        // )?;
 
         Ok(())
     }
