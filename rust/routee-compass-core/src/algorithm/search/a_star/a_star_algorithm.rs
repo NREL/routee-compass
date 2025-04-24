@@ -391,7 +391,7 @@ mod tests {
     use crate::model::state::OutputFeature;
     use crate::model::state::StateModel;
     use crate::model::termination::TerminationModel;
-    use crate::model::traversal::default::DistanceTraversalModel;
+    use crate::model::traversal::default::distance::DistanceTraversalModel;
     use crate::model::unit::{Distance, DistanceUnit};
     use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
     use rayon::prelude::*;

@@ -112,7 +112,7 @@ fn apply_speed_limit(lookup_speed: Speed, speed_limit: Option<&(Speed, SpeedUnit
 mod tests {
     use super::*;
     use crate::model::network::{Edge, EdgeId, Vertex, VertexId};
-    use crate::model::unit::{Distance, DistanceUnit, SpeedUnit, TimeUnit};
+    use crate::model::unit::{Distance, DistanceUnit, SpeedUnit, Time, TimeUnit};
     use crate::util::geo::InternalCoord;
     use geo::coord;
     use std::path::PathBuf;

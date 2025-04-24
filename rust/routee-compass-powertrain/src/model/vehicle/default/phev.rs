@@ -329,20 +329,20 @@ mod tests {
             .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
-        let elec = state_model
+        let (elec, _) = state_model
             .get_energy(
                 &state,
                 PHEV::ELECTRIC_FEATURE_NAME,
-                &EnergyUnit::KilowattHours,
+                Some(&EnergyUnit::KilowattHours),
             )
             .unwrap();
         assert!(elec.as_f64() > 0.0, "elec energy {} should be > 0", elec);
 
-        let liquid = state_model
+        let (liquid, _) = state_model
             .get_energy(
                 &state,
                 PHEV::LIQUID_FEATURE_NAME,
-                &EnergyUnit::GallonsGasoline,
+                Some(&EnergyUnit::GallonsGasoline),
             )
             .unwrap();
         assert!(
@@ -375,21 +375,21 @@ mod tests {
             .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
-        let elec = state_model
+        let (elec, _) = state_model
             .get_energy(
                 &state,
                 PHEV::ELECTRIC_FEATURE_NAME,
-                &EnergyUnit::KilowattHours,
+                Some(&EnergyUnit::KilowattHours),
             )
             .unwrap();
         let soc = state_model
             .get_custom_f64(&state, PHEV::SOC_FEATURE_NAME)
             .unwrap();
-        let liquid = state_model
+        let (liquid, _) = state_model
             .get_energy(
                 &state,
                 PHEV::LIQUID_FEATURE_NAME,
-                &EnergyUnit::GallonsGasoline,
+                Some(&EnergyUnit::GallonsGasoline),
             )
             .unwrap();
 
@@ -402,11 +402,11 @@ mod tests {
             .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
-        let liquid_energy_2 = state_model
+        let (liquid_energy_2, _) = state_model
             .get_energy(
                 &state,
                 PHEV::LIQUID_FEATURE_NAME,
-                &EnergyUnit::KilowattHours,
+                Some(&EnergyUnit::KilowattHours),
             )
             .unwrap();
 

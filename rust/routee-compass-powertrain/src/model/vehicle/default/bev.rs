@@ -238,8 +238,12 @@ mod tests {
             .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
-        let elec = state_model
-            .get_energy(&state, BEV::ENERGY_FEATURE_NAME, &EnergyUnit::KilowattHours)
+        let (elec, _) = state_model
+            .get_energy(
+                &state,
+                BEV::ENERGY_FEATURE_NAME,
+                Some(&EnergyUnit::KilowattHours),
+            )
             .unwrap();
         assert!(elec.as_f64() > 0.0, "elec energy {} should be > 0.0", elec);
 
@@ -269,8 +273,12 @@ mod tests {
             .consume_energy(speed, grade, distance, &mut state, &state_model)
             .unwrap();
 
-        let elec = state_model
-            .get_energy(&state, BEV::ENERGY_FEATURE_NAME, &EnergyUnit::KilowattHours)
+        let (elec, _) = state_model
+            .get_energy(
+                &state,
+                BEV::ENERGY_FEATURE_NAME,
+                Some(&EnergyUnit::KilowattHours),
+            )
             .unwrap();
         assert!(
             elec.as_f64() < 0.0,

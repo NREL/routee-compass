@@ -188,7 +188,7 @@ mod tests {
     use routee_compass_core::{
         model::{
             network::{Edge, EdgeId, Vertex, VertexId},
-            traversal::default::{SpeedLookupService, SpeedTraversalEngine},
+            traversal::default::speed::{SpeedLookupService, SpeedTraversalEngine},
         },
         util::geo::InternalCoord,
     };
