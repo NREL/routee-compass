@@ -315,7 +315,7 @@ mod tests {
     fn test_phev_energy_model_just_electric() {
         let vehicle = mock_vehicle();
         let state_model = StateModel::empty()
-            .extend(vehicle.state_features())
+            .register(vec![], vehicle.state_features())
             .unwrap();
         let mut state = state_model.initial_state().unwrap();
 
@@ -362,7 +362,7 @@ mod tests {
     fn test_phev_energy_model_gas_and_electric() {
         let vehicle = mock_vehicle();
         let state_model = StateModel::empty()
-            .extend(vehicle.state_features())
+            .register(vec![], vehicle.state_features())
             .unwrap();
         let mut state = state_model.initial_state().unwrap();
 

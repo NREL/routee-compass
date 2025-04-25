@@ -264,7 +264,9 @@ mod tests {
             "model_name": "Toyota_Camry",
         });
         let model = EnergyTraversalModel::new(arc_service, &conf).unwrap();
-        let updated_state_model = state_model.extend(model.output_features()).unwrap();
+        let updated_state_model = state_model
+            .register(vec![], model.output_features())
+            .unwrap();
         println!("{:?}", updated_state_model.to_vec());
         let mut state = updated_state_model.initial_state().unwrap();
         let e1 = mock_edge(0);

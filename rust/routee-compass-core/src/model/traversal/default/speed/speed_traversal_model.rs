@@ -162,22 +162,25 @@ mod tests {
                 .unwrap();
         let state_model = Arc::new(
             StateModel::empty()
-                .extend(vec![
-                    (
-                        String::from("distance"),
-                        OutputFeature::Distance {
-                            distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::from(0.0),
-                        },
-                    ),
-                    (
-                        String::from("time"),
-                        OutputFeature::Time {
-                            time_unit: TimeUnit::Seconds,
-                            initial: Time::from(0.0),
-                        },
-                    ),
-                ])
+                .register(
+                    vec![],
+                    vec![
+                        (
+                            String::from("distance"),
+                            OutputFeature::Distance {
+                                distance_unit: DistanceUnit::Kilometers,
+                                initial: Distance::from(0.0),
+                            },
+                        ),
+                        (
+                            String::from("time"),
+                            OutputFeature::Time {
+                                time_unit: TimeUnit::Seconds,
+                                initial: Time::from(0.0),
+                            },
+                        ),
+                    ],
+                )
                 .unwrap(),
         );
         let model: SpeedTraversalModel = SpeedTraversalModel::new(Arc::new(engine), None).unwrap();
@@ -201,22 +204,25 @@ mod tests {
                 .unwrap();
         let state_model = Arc::new(
             StateModel::empty()
-                .extend(vec![
-                    (
-                        String::from("distance"),
-                        OutputFeature::Distance {
-                            distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::from(0.0),
-                        },
-                    ),
-                    (
-                        String::from("time"),
-                        OutputFeature::Time {
-                            time_unit: TimeUnit::Milliseconds,
-                            initial: Time::from(0.0),
-                        },
-                    ),
-                ])
+                .register(
+                    vec![],
+                    vec![
+                        (
+                            String::from("distance"),
+                            OutputFeature::Distance {
+                                distance_unit: DistanceUnit::Kilometers,
+                                initial: Distance::from(0.0),
+                            },
+                        ),
+                        (
+                            String::from("time"),
+                            OutputFeature::Time {
+                                time_unit: TimeUnit::Milliseconds,
+                                initial: Time::from(0.0),
+                            },
+                        ),
+                    ],
+                )
                 .unwrap(),
         );
         let model = SpeedTraversalModel::new(Arc::new(engine), None);
@@ -245,22 +251,25 @@ mod tests {
 
         let state_model = Arc::new(
             StateModel::empty()
-                .extend(vec![
-                    (
-                        String::from("distance"),
-                        OutputFeature::Distance {
-                            distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::from(0.0),
-                        },
-                    ),
-                    (
-                        String::from("time"),
-                        OutputFeature::Time {
-                            time_unit: TimeUnit::Seconds,
-                            initial: Time::from(0.0),
-                        },
-                    ),
-                ])
+                .register(
+                    vec![],
+                    vec![
+                        (
+                            String::from("distance"),
+                            OutputFeature::Distance {
+                                distance_unit: DistanceUnit::Kilometers,
+                                initial: Distance::from(0.0),
+                            },
+                        ),
+                        (
+                            String::from("time"),
+                            OutputFeature::Time {
+                                time_unit: TimeUnit::Seconds,
+                                initial: Time::from(0.0),
+                            },
+                        ),
+                    ],
+                )
                 .unwrap(),
         );
 
@@ -325,22 +334,25 @@ mod tests {
 
         let state_model = Arc::new(
             StateModel::empty()
-                .extend(vec![
-                    (
-                        String::from("distance"),
-                        OutputFeature::Distance {
-                            distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::from(0.0),
-                        },
-                    ),
-                    (
-                        String::from("time"),
-                        OutputFeature::Time {
-                            time_unit: TimeUnit::Seconds,
-                            initial: Time::from(0.0),
-                        },
-                    ),
-                ])
+                .register(
+                    vec![],
+                    vec![
+                        (
+                            String::from("distance"),
+                            OutputFeature::Distance {
+                                distance_unit: DistanceUnit::Kilometers,
+                                initial: Distance::from(0.0),
+                            },
+                        ),
+                        (
+                            String::from("time"),
+                            OutputFeature::Time {
+                                time_unit: TimeUnit::Seconds,
+                                initial: Time::from(0.0),
+                            },
+                        ),
+                    ],
+                )
                 .unwrap(),
         );
 

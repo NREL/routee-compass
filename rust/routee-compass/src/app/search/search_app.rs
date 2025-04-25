@@ -141,7 +141,7 @@ impl SearchApp {
 
         let state_features =
             search_app_ops::collect_features(query, traversal_model.clone(), access_model.clone())?;
-        let state_model_instance = self.state_model.extend(state_features)?;
+        let state_model_instance = self.state_model.register(vec![], state_features)?;
         let state_model = Arc::new(state_model_instance);
 
         let cost_model = self

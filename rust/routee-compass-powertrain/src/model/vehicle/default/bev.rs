@@ -224,7 +224,7 @@ mod tests {
     fn test_bev_energy_model() {
         let vehicle = mock_vehicle(100.0);
         let state_model = StateModel::empty()
-            .extend(vehicle.state_features())
+            .register(vec![], vehicle.state_features())
             .unwrap();
         let mut state = state_model.initial_state().unwrap();
 
@@ -259,7 +259,7 @@ mod tests {
     fn test_bev_energy_model_regen() {
         let vehicle = mock_vehicle(20.0);
         let state_model = StateModel::empty()
-            .extend(vehicle.state_features())
+            .register(vec![], vehicle.state_features())
             .unwrap();
         let mut state = state_model.initial_state().unwrap();
 
@@ -298,7 +298,7 @@ mod tests {
         // starting at 100% SOC, even going downhill with regen, we shouldn't be able to exceed 100%
         let vehicle = mock_vehicle(100.0);
         let state_model = StateModel::empty()
-            .extend(vehicle.state_features())
+            .register(vec![], vehicle.state_features())
             .unwrap();
         let mut state = state_model.initial_state().unwrap();
 
@@ -321,7 +321,7 @@ mod tests {
         // starting at 1% SOC, even going uphill, we shouldn't be able to go below 0%
         let vehicle = mock_vehicle(1.0);
         let state_model = StateModel::empty()
-            .extend(vehicle.state_features())
+            .register(vec![], vehicle.state_features())
             .unwrap();
         let mut state = state_model.initial_state().unwrap();
 

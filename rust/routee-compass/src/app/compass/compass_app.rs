@@ -669,7 +669,7 @@ mod tests {
         let mut queries = vec![query];
         let result = app.run(&mut queries, None).unwrap();
         assert_eq!(result.len(), 1, "expected one result");
-        // eprintln!("{}", serde_json::to_string_pretty(&result).unwrap());
+        eprintln!("{}", serde_json::to_string_pretty(&result).unwrap());
         let route_0 = result[0].get("route").unwrap();
         let path_0 = route_0.get("path").unwrap();
 

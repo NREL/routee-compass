@@ -1,8 +1,8 @@
-use super::StateVariable;
 use super::{
     custom_feature_format::CustomFeatureFormat, output_feature::OutputFeature,
     state_model_error::StateModelError, update_operation::UpdateOperation,
 };
+use super::{InputFeature, StateVariable};
 use crate::model::unit::{Convert, Grade, GradeUnit, Speed, SpeedUnit};
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::{
@@ -44,16 +44,17 @@ impl StateModel {
     ///
     /// # Arguments
     /// * `query` - JSON search query contents containing state model information
-    pub fn extend(
+    pub fn register(
         &self,
-        entries: Vec<(String, OutputFeature)>,
+        input_features: Vec<(String, InputFeature)>,
+        output_features: Vec<(String, OutputFeature)>,
     ) -> Result<StateModel, StateModelError> {
         let mut map = self
             .0
             .iter()
             .map(|(k, v)| (k.clone(), v.clone()))
             .collect::<CompactOrderedHashMap<_, _>>();
-        let overwrites = entries
+        let overwrites = output_features
             .into_iter()
             .flat_map(|(name, new)| match map.insert(name.clone(), new.clone()) {
                 Some(old) if old != new => Some((name.clone(), old, new)),
@@ -703,7 +704,7 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
     /// }
     /// ```
     fn try_from(json: &'a serde_json::Value) -> Result<StateModel, StateModelError> {
-        let tuples = json
+        let value = json
             .as_object()
             .ok_or_else(|| {
                 StateModelError::BuildError(String::from(
@@ -724,14 +725,8 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
                 Ok((feature_name.clone(), feature))
             })
             .collect::<Result<Vec<_>, StateModelError>>()?;
-        let state_model = StateModel::from(tuples);
+        let state_model = StateModel::new(value);
         Ok(state_model)
-    }
-}
-
-impl From<Vec<(String, OutputFeature)>> for StateModel {
-    fn from(value: Vec<(String, OutputFeature)>) -> Self {
-        StateModel::new(value)
     }
 }
 

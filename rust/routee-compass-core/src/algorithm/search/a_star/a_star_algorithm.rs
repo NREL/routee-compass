@@ -486,13 +486,16 @@ mod tests {
         // these live in the "driver" process and are passed as read-only memory to each executor process
         let state_model = Arc::new(
             StateModel::empty()
-                .extend(vec![(
-                    String::from("distance"),
-                    OutputFeature::Distance {
-                        distance_unit: DistanceUnit::Kilometers,
-                        initial: Distance::from(0.0),
-                    },
-                )])
+                .register(
+                    vec![],
+                    vec![(
+                        String::from("distance"),
+                        OutputFeature::Distance {
+                            distance_unit: DistanceUnit::Kilometers,
+                            initial: Distance::from(0.0),
+                        },
+                    )],
+                )
                 .unwrap(),
         );
         let cost_model = CostModel::new(
