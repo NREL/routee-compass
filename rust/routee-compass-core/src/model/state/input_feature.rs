@@ -13,5 +13,12 @@ pub enum InputFeature {
     Time(Option<TimeUnit>),
     Energy(Option<EnergyUnit>),
     Grade(Option<GradeUnit>),
-    Custom,
+    Custom { r#type: String, unit: String },
+}
+
+impl std::fmt::Display for InputFeature {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = serde_json::to_string_pretty(self).unwrap_or_default();
+        write!(f, "{}", s)
+    }
 }

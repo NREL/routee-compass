@@ -1,5 +1,6 @@
 use super::{
-    custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError, StateVariable,
+    custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError, InputFeature,
+    StateVariable,
 };
 use crate::model::unit;
 use serde::{Deserialize, Serialize};
@@ -132,6 +133,69 @@ impl PartialEq for OutputFeature {
                     r#type: b_name,
                     unit: b_unit,
                     format: _,
+                },
+            ) => a_name == b_name && a_unit == b_unit,
+            _ => false,
+        }
+    }
+}
+
+impl PartialEq<InputFeature> for OutputFeature {
+    /// tests equality based on the feature type.
+    ///
+    /// for distance|time|energy, it's fine to modify either the unit
+    /// or the initial value as this should not interfere with properly-
+    /// implemented TraversalModel, AccessModel, and FrontierModel instances.
+    ///
+    /// for custom features, we are stricter about this equality test.
+    /// for instance, we cannot allow a user to change the "meaning" of a
+    /// state of charge value, that it is a floating point value in the range [0.0, 1.0].
+    fn eq(&self, other: &InputFeature) -> bool {
+        match (self, other) {
+            (
+                OutputFeature::Distance {
+                    distance_unit: _,
+                    initial: _,
+                },
+                InputFeature::Distance(_),
+            ) => true,
+            (
+                OutputFeature::Time {
+                    time_unit: _,
+                    initial: _,
+                },
+                InputFeature::Time(_),
+            ) => true,
+            (
+                OutputFeature::Energy {
+                    energy_unit: _,
+                    initial: _,
+                },
+                InputFeature::Energy(_),
+            ) => true,
+            (
+                OutputFeature::Speed {
+                    speed_unit: _,
+                    initial: _,
+                },
+                InputFeature::Speed(_),
+            ) => true,
+            (
+                OutputFeature::Grade {
+                    grade_unit: _,
+                    initial: _,
+                },
+                InputFeature::Grade(_),
+            ) => true,
+            (
+                OutputFeature::Custom {
+                    r#type: a_name,
+                    unit: a_unit,
+                    format: _,
+                },
+                InputFeature::Custom {
+                    r#type: b_name,
+                    unit: b_unit,
                 },
             ) => a_name == b_name && a_unit == b_unit,
             _ => false,
