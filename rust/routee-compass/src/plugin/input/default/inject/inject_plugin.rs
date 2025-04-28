@@ -185,6 +185,13 @@ mod test {
     fn test_spatial_from_json() {
         let source_key = String::from("key_on_geojson");
         let key = String::from("key_on_query");
+        let filepath = if cfg!(target_os = "windows") {
+            // Escape backslashes for Windows before adding to JSON
+            test_geojson_filepath().replace("\\", "\\\\")
+        } else {
+            // Use the path as-is for non-Windows systems
+            test_geojson_filepath()
+        };
         let conf_str = format!(
             r#"
         {{
@@ -197,9 +204,7 @@ mod test {
             "orientation": "origin"
         }}
         "#,
-            test_geojson_filepath(),
-            &source_key,
-            &key
+            filepath, &source_key, &key
         );
         let conf: InjectPluginConfig =
             serde_json::from_str(&conf_str).expect("failed to decode configuration");
@@ -227,7 +232,10 @@ mod test {
             .join("inject")
             .join("test")
             .join("test.geojson");
-        spatial_input_filepath.to_string_lossy().to_string()
+        let path_str = spatial_input_filepath
+            .to_str()
+            .expect("test invariant failed: unable to convert filepath to string");
+        path_str.to_string()
     }
 
     fn test_kv_conf() -> Vec<InjectInputPlugin> {
