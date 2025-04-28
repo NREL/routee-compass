@@ -6,6 +6,7 @@ root: intro
 parts:
   - caption: Getting Started
     chapters:
+      - file: motivation
       - file: installation
       - file: running
 

@@ -1,9 +1,10 @@
 [package]
 name = "routee-compass"
-version = "0.9.0"
+version = "0.10.2"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
+exclude = ["test/", "**/.DS_Store", "target/"]
 description = "The RouteE-Compass energy-aware routing engine"
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
@@ -18,14 +19,15 @@ keywords = [
 categories = ["science", "science::geo"]
 
 [dependencies]
-routee-compass-core = { path = "../routee-compass-core", version = "0.9.0" }
-routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.9.0" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.10.2" }
+routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.10.2" }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 csv = { workspace = true }
 geo = { workspace = true }
+geo-traits = { workspace = true }
 geo-types = { workspace = true }
 geojson = { workspace = true }
 rstar = { workspace = true }
@@ -36,7 +38,7 @@ kdam = { workspace = true }
 log = { workspace = true }
 rayon = { workspace = true }
 serde_repr = "0.1"
-rand = "0.8.5"
+rand = "0.9.0"
 chrono = { workspace = true }
 config = { workspace = true }
 clap = { version = "4.3.19", features = ["derive"] }

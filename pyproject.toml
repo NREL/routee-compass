@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "nrel.routee.compass"
-version = "0.9.0"
+version = "0.10.2"
 description = "An eco-routing tool build upon RouteE-Powertrain"
 readme = "README.md"
 documentation = "nrel.github.io/routee-compass"
@@ -61,6 +61,8 @@ manifest-path = "rust/routee-compass-py/Cargo.toml"
 include = [
     "python/nrel/routee/compass/resources/models/*.bin",
     "python/nrel/routee/compass/resources/*.toml",
+    "LICENSE.md",
+    "README.md",
 ]
 exclude = ["rust/routee-compass-powertrain/onnxruntime/**"]
 

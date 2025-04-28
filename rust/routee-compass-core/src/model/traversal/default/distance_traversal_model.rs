@@ -1,11 +1,12 @@
+use std::borrow::Cow;
+
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
-use crate::model::unit::DistanceUnit;
-use crate::model::unit::BASE_DISTANCE_UNIT;
+use crate::model::unit::{baseunit, Convert, DistanceUnit};
 use crate::util::geo::haversine;
 
 /// A simple traversal model that uses the edge distance as the cost of traversal.
@@ -29,7 +30,8 @@ impl TraversalModel for DistanceTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
-        let distance = BASE_DISTANCE_UNIT.convert(&edge.distance, &self.distance_unit);
+        let mut distance = Cow::Borrowed(&edge.distance);
+        baseunit::DISTANCE_UNIT.convert(&mut distance, &self.distance_unit)?;
         state_model.add_distance(
             state,
             &Self::DISTANCE.into(),

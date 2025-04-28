@@ -1,9 +1,13 @@
+use std::borrow::Cow;
+
 use super::search_app::SearchApp;
 use crate::app::compass::CompassAppError;
 use routee_compass_core::{
     algorithm::search::Direction,
-    model::network::{edge_id::EdgeId, vertex_id::VertexId},
-    model::unit::{Distance, DistanceUnit},
+    model::{
+        network::{edge_id::EdgeId, vertex_id::VertexId},
+        unit::{Convert, Distance, DistanceUnit},
+    },
 };
 
 pub trait SearchAppGraphOps {
@@ -36,7 +40,11 @@ impl SearchAppGraphOps for SearchApp {
         let edge = self.graph.get_edge(edge_id)?;
         let result_base = edge.distance;
         let result = match distance_unit {
-            Some(du) => DistanceUnit::Meters.convert(&result_base, &du),
+            Some(du) => {
+                let mut dist_convert = Cow::Owned(result_base);
+                DistanceUnit::Meters.convert(&mut dist_convert, &du).map_err(|e| CompassAppError::InternalError(format!("while getting an edge distance, the internal units conversion library failed with: {}", e)))?;
+                dist_convert.into_owned()
+            }
             None => result_base,
         };
         Ok(result)

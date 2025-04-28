@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use super::traversal_ops as ops;
 use crate::plugin::output::OutputPluginError;
-use geo::{CoordFloat, Geometry};
+use geo::{CoordFloat, Geometry, TryConvert};
 use routee_compass_core::{
     algorithm::search::{EdgeTraversal, SearchTreeBranch},
     model::{map::MapModel, network::vertex_id::VertexId},
@@ -100,18 +100,19 @@ impl TraversalOutputFormat {
 fn geometry_to_wkb_string<T: CoordFloat + Into<f64>>(
     geometry: &Geometry<T>,
 ) -> Result<String, OutputPluginError> {
-    let bytes = wkb::geom_to_wkb(geometry).map_err(|e| {
-        OutputPluginError::OutputPluginFailed(format!(
-            "failed to generate wkb for geometry '{:?}' - {:?}",
-            geometry, e
-        ))
+    let mut out_bytes = vec![];
+    let geom: Geometry<f64> = geometry.try_convert().map_err(|e| {
+        OutputPluginError::OutputPluginFailed(format!("unable to convert geometry to f64: {}", e))
     })?;
-    let wkb_str = bytes
-        .iter()
-        .map(|b| format!("{:02X?}", b))
-        .collect::<Vec<String>>()
-        .join("");
-    Ok(wkb_str)
+    wkb::writer::write_geometry(&mut out_bytes, &geom, wkb::Endianness::BigEndian).map_err(
+        |e| {
+            OutputPluginError::OutputPluginFailed(format!("failed to write geometry as WKB: {}", e))
+        },
+    )?;
+    let out_string = String::from_utf8(out_bytes).map_err(|e| {
+        OutputPluginError::OutputPluginFailed(format!("failed to read WKB as utf8: {}", e))
+    })?;
+    Ok(out_string)
 }
 
 // #[cfg(test)]

@@ -3,7 +3,6 @@ use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
 use super::{compass_app_ops as ops, CompassAppBuilder};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
-use crate::app::compass::{CompassConfigurationField, ConfigJsonExtensions};
 use crate::{
     app::{
         compass::{
@@ -23,16 +22,16 @@ use crate::{
 };
 use chrono::{Duration, Local};
 use config::Config;
-use itertools::{Either, Itertools};
+use itertools::Itertools;
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
+use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use routee_compass_core::model::map::{MapModel, MapModelConfig};
 use routee_compass_core::model::network::Graph;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
-use std::rc::Rc;
 use std::{
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
@@ -315,7 +314,7 @@ impl CompassApp {
     /// if
     pub fn run(
         &self,
-        queries: &mut [serde_json::Value],
+        queries: &mut Vec<Value>,
         config: Option<&Value>,
     ) -> Result<Vec<Value>, CompassAppError> {
         // allow the user to overwrite global configurations for this run
@@ -340,13 +339,12 @@ impl CompassApp {
         let response_writer = response_output_policy.build()?;
 
         // INPUT PROCESSING
-        let parallel_batch_size =
-            (queries.len() as f64 / self.configuration.parallelism as f64).ceil() as usize;
+
         let input_plugin_result = apply_input_plugins(
             queries,
             &self.input_plugins,
             self.search_app.clone(),
-            parallel_batch_size,
+            parallelism,
         )?;
         let (processed_inputs, input_errors) = input_plugin_result;
         let mut load_balanced_inputs =
@@ -412,61 +410,71 @@ impl CompassApp {
 /// successful mappings (left) and mapping errors (right) as the pair
 /// (left, right). errors are already serialized into JSON.
 fn apply_input_plugins(
-    mapped_queries: &mut [Value],
+    queries: &mut Vec<Value>,
     input_plugins: &Vec<Arc<dyn InputPlugin>>,
     search_app: Arc<SearchApp>,
-    parallel_batch_size: usize,
+    parallelism: usize,
 ) -> Result<(Vec<Value>, Vec<Value>), CompassAppError> {
-    let input_pb = Bar::builder()
-        .total(mapped_queries.len())
-        .animation("fillup")
-        .desc("input plugins")
+    // result of each iteration of plugin updates is stored here
+    let mut queries_processed = queries.drain(..).collect_vec();
+    let mut query_errors: Vec<Value> = vec![];
+
+    // progress bar running for each input plugin
+    let mut outer_bar = Bar::builder()
+        .total(input_plugins.len())
+        .position(0)
         .build()
-        .map_err(|e| {
-            CompassAppError::InternalError(format!(
-                "could not build input plugin progress bar: {}",
-                e
-            ))
-        })?;
-    let input_pb_shared = Arc::new(Mutex::new(input_pb));
+        .map_err(CompassAppError::InternalError)?;
+    outer_bar.set_description("input plugins"); // until we have named plugins
 
-    // input plugins need to be flattened, and queries that fail input processing need to be
-    // returned at the end.
-    let (good, bad): (Vec<_>, Vec<_>) = mapped_queries
-        .par_chunks(parallel_batch_size)
-        .map(|qs| {
-            let (good, bad): (Vec<Vec<Value>>, Vec<Value>) = qs
-                .iter()
-                .map(|q| {
-                    let mut plugin_state = serde_json::Value::Array(vec![q.to_owned()]);
-                    for plugin in input_plugins {
+    for (idx, plugin) in input_plugins.iter().enumerate() {
+        // nested progress bar running for each query
+        // outer_bar.set_description(format!("{}", plugin.name));  // placeholder for named plugins
+        let inner_bar = Arc::new(Mutex::new(
+            Bar::builder()
+                .total(queries_processed.len())
+                .position(1)
+                .animation("fillup")
+                .desc(format!("applying input plugin {}", idx + 1))
+                .build()
+                .map_err(|e| {
+                    CompassAppError::InternalError(format!(
+                        "could not build input plugin progress bar: {}",
+                        e
+                    ))
+                })?,
+        ));
+
+        let tasks_per_thread = queries_processed.len() as f64 / parallelism as f64;
+        let chunk_size: usize = std::cmp::max(1, tasks_per_thread.ceil() as usize);
+
+        // apply this input plugin in parallel, assigning the result back to `queries_processed`
+        // and tracking any errors along the way.
+        let (good, bad): (Vec<Value>, Vec<Value>) = queries_processed
+            .par_chunks_mut(chunk_size)
+            .flat_map(|qs| {
+                qs.iter_mut()
+                    .flat_map(|q| {
+                        if let Ok(mut pb_local) = inner_bar.lock() {
+                            let _ = pb_local.update(1);
+                        }
+                        // run the input plugin and flatten the result if it is a JSON array
                         let p = plugin.clone();
-                        let op: in_ops::InputArrayOp =
-                            Rc::new(|q| p.process(q, search_app.clone()));
-                        in_ops::json_array_op(&mut plugin_state, op)?
-                    }
-                    let inner_processed = in_ops::json_array_flatten(&mut plugin_state)?;
-                    // let inner_processed = apply_input_plugins(q, input_plugins);
-                    if let Ok(mut pb_local) = input_pb_shared.lock() {
-                        let _ = pb_local.update(1);
-                    }
-                    Ok(inner_processed)
-                })
-                .partition_map(|r| match r {
-                    Ok(values) => Either::Left(values),
-                    Err(error_response) => Either::Right(error_response),
-                });
+                        match p.process(q, search_app.clone()) {
+                            Err(e) => vec![in_ops::package_error(&mut q.clone(), e)],
+                            Ok(_) => in_ops::unpack_json_array_as_vec(q),
+                        }
+                    })
+                    .collect_vec()
+            })
+            .partition(|row| !matches!(row.as_object(), Some(obj) if obj.contains_key("error")));
+        queries_processed = good;
+        query_errors.extend(bad);
+    }
+    eprintln!();
+    eprintln!();
 
-            (good.into_iter().flatten().collect_vec(), bad)
-        })
-        .unzip();
-    eprintln!(); // end input plugin pb
-
-    let result = (
-        good.into_iter().flatten().collect_vec(),
-        bad.into_iter().flatten().collect_vec(),
-    );
-    Ok(result)
+    Ok((queries_processed, query_errors))
 }
 
 pub fn get_optional_run_config<'a, K, T>(
@@ -609,7 +617,8 @@ pub fn apply_output_processing(
 #[cfg(test)]
 mod tests {
     use super::CompassApp;
-    use crate::app::compass::{CompassAppError, CompassConfigurationError};
+    use crate::app::compass::CompassAppError;
+    use routee_compass_core::config::CompassConfigurationError;
     use std::path::PathBuf;
 
     #[test]

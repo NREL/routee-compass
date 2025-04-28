@@ -9,7 +9,10 @@ from typing import Any, List, Optional, Union, Callable, TYPE_CHECKING, cast
 from nrel.routee.compass.routee_compass_py import (
     CompassAppWrapper,
 )
-from nrel.routee.compass.io.generate_dataset import generate_compass_dataset
+from nrel.routee.compass.io.generate_dataset import (
+    GeneratePipelinePhase,
+    generate_compass_dataset,
+)
 
 if TYPE_CHECKING:
     from shapely.geometry import Polygon, MultiPolygon
@@ -108,7 +111,7 @@ class CompassApp:
         hwy_speeds: Optional[dict[str, Any]] = None,
         fallback: Optional[float] = None,
         agg: Optional[Callable[[Any], Any]] = None,
-        add_grade: bool = False,
+        phases: List[GeneratePipelinePhase] = GeneratePipelinePhase.default(),
         raster_resolution_arc_seconds: Union[str, int] = 1,
     ) -> CompassApp:
         """
@@ -136,8 +139,8 @@ class CompassApp:
                 observed values. The default is numpy.mean, but you might
                 also consider for example numpy.median, numpy.nanmedian,
                 or your own custom function. Defaults to numpy.mean.
-            add_grade: If true, add grade information. Defaults to False.
-                See add_grade_to_graph() for more info.
+            phases (List[GeneratePipelinePhase]): of the overall generate pipeline, which phases of the pipeline to run.
+                Defaults to all (["graph", "grade", "config", "powertrain"])
             raster_resolution_arc_seconds: If grade is added, the
                 resolution (in arc-seconds) of the tiles to download
                 (either 1 or 1/3). Defaults to 1.
@@ -170,7 +173,7 @@ class CompassApp:
             hwy_speeds=hwy_speeds,
             fallback=fallback,
             agg=agg,
-            add_grade=add_grade,
+            phases=phases,
             raster_resolution_arc_seconds=raster_resolution_arc_seconds,
             default_config=True,
         )
@@ -187,7 +190,7 @@ class CompassApp:
         hwy_speeds: Optional[dict[str, Any]] = None,
         fallback: Optional[float] = None,
         agg: Optional[Callable[[Any], Any]] = None,
-        add_grade: bool = False,
+        phases: List[GeneratePipelinePhase] = GeneratePipelinePhase.default(),
         raster_resolution_arc_seconds: Union[str, int] = 1,
     ) -> CompassApp:
         """
@@ -215,8 +218,8 @@ class CompassApp:
                 observed values. The default is numpy.mean, but you might
                 also consider for example numpy.median, numpy.nanmedian,
                 or your own custom function. Defaults to numpy.mean.
-            add_grade: If true, add grade information. Defaults to False.
-                See add_grade_to_graph() for more info.
+            phases (List[GeneratePipelinePhase]): of the overall generate pipeline, which phases of the pipeline to run.
+                Defaults to all (["graph", "grade", "config", "powertrain"])
             raster_resolution_arc_seconds: If grade is added, the
                 resolution (in arc-seconds) of the tiles to download
                 (either 1 or 1/3). Defaults to 1.
@@ -256,7 +259,7 @@ class CompassApp:
             hwy_speeds=hwy_speeds,
             fallback=fallback,
             agg=agg,
-            add_grade=add_grade,
+            phases=phases,
             raster_resolution_arc_seconds=raster_resolution_arc_seconds,
             default_config=True,
         )

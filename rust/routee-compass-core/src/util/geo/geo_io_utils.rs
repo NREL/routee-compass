@@ -1,7 +1,61 @@
-use geo::{Coord, LineString, Point};
+use geo::{Coord, CoordsIter, LineString, Point};
+use geo_traits::to_geo::ToGeoGeometry;
 use itertools::Itertools;
 use wkb;
 use wkt::{ToWkt, TryFromWkt};
+
+/// downsamples an f64 geometry to f32.
+/// we currently use f32 to reduce the memory footprint of some map geometry data.
+pub fn downsample_geometry(geometry_f64: geo::Geometry<f64>) -> Result<geo::Geometry<f32>, String> {
+    match geometry_f64 {
+        geo::Geometry::Polygon(p) => {
+            let ext = p
+                .exterior_coords_iter()
+                .map(|c| Coord::<f32> {
+                    x: c.x as f32,
+                    y: c.y as f32,
+                })
+                .collect_vec();
+            let exterior = geo::LineString::new(ext);
+            let interiors = p
+                .interiors()
+                .iter()
+                .map(|int| {
+                    let int = int
+                        .coords()
+                        .map(|c| Coord::<f32> {
+                            x: c.x as f32,
+                            y: c.y as f32,
+                        })
+                        .collect_vec();
+                    geo::LineString::from(int)
+                })
+                .collect_vec();
+            Ok(geo::Geometry::Polygon(geo::Polygon::new(
+                exterior, interiors,
+            )))
+        }
+        geo::Geometry::MultiPolygon(mp) => {
+            let geoms_f32 = mp
+                .into_iter()
+                .map(|p| downsample_geometry(geo::Geometry::Polygon(p)))
+                .collect::<Result<Vec<_>, _>>()?;
+            let polys = geoms_f32
+                .into_iter()
+                .enumerate()
+                .map(|(idx, g)| match g {
+                    geo::Geometry::Polygon(polygon) => Ok(polygon),
+                    _ => Err(format!(
+                        "invalid multipolygon contains non-POLYGON geometry at index {}",
+                        idx
+                    )),
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(geo::Geometry::MultiPolygon(geo::MultiPolygon::new(polys)))
+        }
+        _ => Err(String::from("not (yet) implemented for this geometry type")),
+    }
+}
 
 /// Concatenate a vector of linestrings into a single linestring
 ///
@@ -60,14 +114,13 @@ pub fn parse_wkt_linestring(_idx: usize, row: String) -> Result<LineString<f32>,
 }
 
 pub fn parse_wkb_linestring(_idx: usize, row: String) -> Result<LineString<f32>, std::io::Error> {
-    let mut c = row.as_bytes();
-    let geom = wkb::wkb_to_geom(&mut c).map_err(|e| {
-        let msg = format!("failure decoding WKB string: {:?}", e);
-        std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
-    })?;
-    match geom {
+    let geom = wkb::reader::read_wkb(row.as_bytes())
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))?;
+
+    match geom.to_geometry() {
         geo::Geometry::LineString(l) => {
-            // somewhat hackish solution since we cannot choose f32 when parsing wkbs
+            // somewhat hackish solution since we cannot choose f32 when parsing wkbs and
+            // geo::Convert does not support f64 -> f32, for good reason of course
             let coords32 =
                 l.0.into_iter()
                     .map(|c| Coord {
@@ -78,10 +131,10 @@ pub fn parse_wkb_linestring(_idx: usize, row: String) -> Result<LineString<f32>,
             let l32 = LineString::new(coords32);
             Ok(l32)
         }
-        _ => {
+        g => {
             let msg = format!(
                 "decoded WKB expected to be linestring, found: {}",
-                geom.to_wkt()
+                g.to_wkt()
             );
             Err(std::io::Error::new(std::io::ErrorKind::InvalidData, msg))
         }

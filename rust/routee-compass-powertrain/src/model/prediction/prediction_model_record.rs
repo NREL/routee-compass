@@ -30,24 +30,28 @@ impl PredictionModelRecord {
         grade: (Grade, GradeUnit),
         distance: (Distance, DistanceUnit),
     ) -> Result<(Energy, EnergyUnit), TraversalModelError> {
+        let (speed, speed_unit) = speed;
         let (distance, distance_unit) = distance;
+        let (grade, grade_unit) = grade;
 
         let energy_rate = match &self.cache {
             Some(cache) => {
-                let key = vec![speed.0.as_f64(), grade.0.as_f64()];
+                let key = vec![speed.as_f64(), grade.as_f64()];
                 match cache.get(&key)? {
-                    Some(er) => EnergyRate::new(er),
+                    Some(er) => EnergyRate::from(er),
                     None => {
-                        let (energy_rate, _energy_rate_unit) =
-                            self.prediction_model.predict(speed, grade)?;
+                        let (energy_rate, _energy_rate_unit) = self
+                            .prediction_model
+                            .predict((speed, speed_unit), (grade, grade_unit))?;
                         cache.update(&key, energy_rate.as_f64())?;
                         energy_rate
                     }
                 }
             }
             None => {
-                let (energy_rate, _energy_rate_unit) =
-                    self.prediction_model.predict(speed, grade)?;
+                let (energy_rate, _energy_rate_unit) = self
+                    .prediction_model
+                    .predict((speed, speed_unit), (grade, grade_unit))?;
                 energy_rate
             }
         };
@@ -55,10 +59,8 @@ impl PredictionModelRecord {
         let energy_rate_real_world = energy_rate * self.real_world_energy_adjustment;
 
         let (energy, energy_unit) = Energy::create(
-            &energy_rate_real_world,
-            &self.energy_rate_unit,
-            &distance,
-            &distance_unit,
+            (&distance, &distance_unit),
+            (&energy_rate_real_world, &self.energy_rate_unit),
         )?;
 
         Ok((energy, energy_unit))

@@ -1,4 +1,9 @@
-name: Python build release for platforms
+name: Publish - PyPI
+# This workflow builds and publishes the Python package to PyPI and TestPyPI
+# when a new release is published.
+# It builds the package for multiple Python versions and platforms, including
+# Windows, macOS, and Linux. Conda-forge listens to new PyPI releases and begins
+# a workflow for constructing the conda release for this version.
 
 on:
   release:
@@ -40,16 +45,30 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable
           override: true
-      - run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: add mac rust target
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
         if: matrix.os == 'macos'
+
+      - name: add mac cargo config options
+        run: |
+          mkdir -p ~/.cargo
+          cat > ~/.cargo/config.toml <<EOF
+          [target.x86_64-apple-darwin]
+          rustflags = ["-C", "link-args=-Wl,-undefined,dynamic_lookup"]
+
+          [target.aarch64-apple-darwin]
+          rustflags = ["-C", "link-args=-Wl,-undefined,dynamic_lookup"]
+          EOF
+        if: runner.os == 'macos'
 
       - name: run cargo tests
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: nightly
+          toolchain: stable
           override: true
       - run: cd rust/ && cargo test
 
@@ -77,11 +96,11 @@ jobs:
           CIBW_ARCHS_MACOS: "universal2"
           CIBW_BEFORE_BUILD: >
             pip install -U maturin &&
-            rustup default nightly &&
+            rustup default stable &&
             rustup show
           CIBW_BEFORE_BUILD_LINUX: >
             pip install -U setuptools-rust &&
-            curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=nightly --profile=minimal -y &&
+            curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain=stable --profile=minimal -y &&
             rustup show
 
       - name: upload artifacts
@@ -89,8 +108,32 @@ jobs:
         with:
           name: "wheel-${{ matrix.os }}-py${{ matrix.python-version }}"
           path: dist
-  upload:
+  upload-to-testpypi:
     needs: build
+    name: Upload release to Test PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/nrel.routee.compass
+    permissions:
+      id-token: write
+    steps:
+      - name: Download all workflow run artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: dist/
+          pattern: wheel*
+
+      - run: ls -1 dist/
+
+      - name: Publish package to TestPyPI
+        uses: pypa/gh-action-pypi-publish@unstable/v1
+        with:
+          verbose: true
+
+  upload-to-pypi:
+    needs: [build, upload-to-testpypi]
     name: Upload release to PyPI
     runs-on: ubuntu-latest
     environment:
@@ -108,14 +151,7 @@ jobs:
 
       - run: ls -1 dist/
 
-      - name: Publish package to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          repository-url: https://test.pypi.org/legacy/
-
       - name: publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@unstable/v1
         with:
-          skip-existing: true
           verbose: true
