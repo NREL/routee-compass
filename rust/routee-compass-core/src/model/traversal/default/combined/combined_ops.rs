@@ -90,7 +90,7 @@ mod test {
         unit::{Distance, DistanceUnit},
     };
     use itertools::Itertools;
-    use std::{collections::HashSet, sync::Arc};
+    use std::sync::Arc;
 
     #[test]
     fn test_sort() {
