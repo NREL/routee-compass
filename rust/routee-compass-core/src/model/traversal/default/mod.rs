@@ -1,3 +1,4 @@
+pub mod combined;
 pub mod distance;
 pub mod elevation;
 pub mod grade;
