@@ -683,6 +683,7 @@ impl StateModel {
         let prev = state
             .get(index)
             .ok_or(StateModelError::InvalidStateVariableIndex(
+                name.to_string(),
                 index,
                 state.len(),
             ))?;
