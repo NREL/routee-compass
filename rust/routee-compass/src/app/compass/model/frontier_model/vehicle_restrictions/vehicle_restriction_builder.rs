@@ -1,4 +1,4 @@
-use super::vehicle_parameters::VehicleParameters;
+use super::vehicle_parameters::VehicleParameter;
 use super::{
     vehicle_restriction_row::RestrictionRow,
     vehicle_restriction_service::VehicleRestrictionFrontierService,
@@ -48,7 +48,7 @@ impl FrontierModelBuilder for VehicleRestrictionBuilder {
 
 pub fn vehicle_restriction_lookup_from_file(
     vehicle_restriction_input_file: &PathBuf,
-) -> Result<HashMap<EdgeId, CompactOrderedHashMap<String, VehicleParameters>>, FrontierModelError> {
+) -> Result<HashMap<EdgeId, CompactOrderedHashMap<String, VehicleParameter>>, FrontierModelError> {
     let rows: Vec<RestrictionRow> = read_utils::from_csv(
         &vehicle_restriction_input_file,
         true,
@@ -65,10 +65,10 @@ pub fn vehicle_restriction_lookup_from_file(
 
     let mut vehicle_restriction_lookup: HashMap<
         EdgeId,
-        CompactOrderedHashMap<String, VehicleParameters>,
+        CompactOrderedHashMap<String, VehicleParameter>,
     > = HashMap::new();
     for row in rows {
-        let restriction: VehicleParameters = row.to_parameter()?;
+        let restriction: VehicleParameter = row.to_parameter()?;
         match vehicle_restriction_lookup.get_mut(&row.edge_id) {
             None => {
                 let mut restrictions = CompactOrderedHashMap::empty();

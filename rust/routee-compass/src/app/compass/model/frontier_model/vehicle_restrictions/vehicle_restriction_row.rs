@@ -1,4 +1,4 @@
-use super::vehicle_parameters::VehicleParameters;
+use super::vehicle_parameters::VehicleParameter;
 use routee_compass_core::model::{
     frontier::FrontierModelError,
     network::edge_id::EdgeId,
@@ -16,9 +16,9 @@ pub struct RestrictionRow {
 }
 
 impl RestrictionRow {
-    pub fn to_parameter(&self) -> Result<VehicleParameters, FrontierModelError> {
+    pub fn to_parameter(&self) -> Result<VehicleParameter, FrontierModelError> {
         match self.restriction_name.as_str() {
-            "height" => Ok(VehicleParameters::Height {
+            "height" => Ok(VehicleParameter::Height {
                 value: Distance::from(self.restriction_value),
                 unit: DistanceUnit::from_str(&self.restriction_unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -27,7 +27,7 @@ impl RestrictionRow {
                     ))
                 })?,
             }),
-            "width" => Ok(VehicleParameters::Width {
+            "width" => Ok(VehicleParameter::Width {
                 value: Distance::from(self.restriction_value),
                 unit: DistanceUnit::from_str(&self.restriction_unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -36,7 +36,7 @@ impl RestrictionRow {
                     ))
                 })?,
             }),
-            "total_length" => Ok(VehicleParameters::TotalLength {
+            "total_length" => Ok(VehicleParameter::TotalLength {
                 value: Distance::from(self.restriction_value),
                 unit: DistanceUnit::from_str(&self.restriction_unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -45,7 +45,7 @@ impl RestrictionRow {
                     ))
                 })?,
             }),
-            "trailer_length" => Ok(VehicleParameters::TrailerLength {
+            "trailer_length" => Ok(VehicleParameter::TrailerLength {
                 value: Distance::from(self.restriction_value),
                 unit: DistanceUnit::from_str(&self.restriction_unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -54,7 +54,7 @@ impl RestrictionRow {
                     ))
                 })?,
             }),
-            "total_weight" => Ok(VehicleParameters::TotalWeight {
+            "total_weight" => Ok(VehicleParameter::TotalWeight {
                 value: Weight::from(self.restriction_value),
                 unit: WeightUnit::from_str(&self.restriction_unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -63,7 +63,7 @@ impl RestrictionRow {
                     ))
                 })?,
             }),
-            "number_of_axles" => Ok(VehicleParameters::NumberOfAxles(
+            "number_of_axles" => Ok(VehicleParameter::NumberOfAxles(
                 self.restriction_value as u8,
             )),
             _ => Err(FrontierModelError::BuildError(format!(

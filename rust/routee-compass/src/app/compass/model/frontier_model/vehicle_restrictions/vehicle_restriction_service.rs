@@ -1,5 +1,5 @@
 use super::{
-    vehicle_parameters::VehicleParameters,
+    vehicle_parameters::VehicleParameter,
     vehicle_restriction_model::VehicleRestrictionFrontierModel,
 };
 use routee_compass_core::{
@@ -15,7 +15,7 @@ use std::{collections::HashMap, sync::Arc};
 #[derive(Clone)]
 pub struct VehicleRestrictionFrontierService {
     pub vehicle_restriction_lookup:
-        Arc<HashMap<EdgeId, CompactOrderedHashMap<String, VehicleParameters>>>,
+        Arc<HashMap<EdgeId, CompactOrderedHashMap<String, VehicleParameter>>>,
 }
 
 impl FrontierModelService for VehicleRestrictionFrontierService {
@@ -30,7 +30,7 @@ impl FrontierModelService for VehicleRestrictionFrontierService {
                 "Missing field `vehicle_parameters` in query".to_string(),
             )
         })?;
-        let vehicle_parameters: Vec<VehicleParameters> = serde_json::from_value(vp_json.clone())
+        let vehicle_parameters: Vec<VehicleParameter> = serde_json::from_value(vp_json.clone())
             .map_err(|e| {
                 FrontierModelError::BuildError(format!(
                     "Unable to deserialize `vehicle_parameters` key: {}",

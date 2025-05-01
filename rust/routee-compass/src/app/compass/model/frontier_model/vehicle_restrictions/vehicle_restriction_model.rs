@@ -1,5 +1,5 @@
 use super::{
-    vehicle_parameters::VehicleParameters,
+    vehicle_parameters::VehicleParameter,
     vehicle_restriction_service::VehicleRestrictionFrontierService,
 };
 use routee_compass_core::model::{
@@ -11,7 +11,7 @@ use std::sync::Arc;
 
 pub struct VehicleRestrictionFrontierModel {
     pub service: Arc<VehicleRestrictionFrontierService>,
-    pub vehicle_parameters: Vec<VehicleParameters>,
+    pub vehicle_parameters: Vec<VehicleParameter>,
 }
 
 impl FrontierModel for VehicleRestrictionFrontierModel {
