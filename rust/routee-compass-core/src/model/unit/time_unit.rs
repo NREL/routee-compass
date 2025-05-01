@@ -57,10 +57,22 @@ impl std::fmt::Display for TimeUnit {
 }
 
 impl FromStr for TimeUnit {
-    type Err = serde_json::Error;
-
+    type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        string_deserialize(s)
+        match s {
+            "hour" | "hours" | "hr" | "hrs" | "h" => Ok(TimeUnit::Hours),
+            "minute" | "minutes" | "min" | "mins" | "m" => Ok(TimeUnit::Minutes),
+            "second" | "seconds" | "sec" | "secs" | "s" => Ok(TimeUnit::Seconds),
+            "millisecond" | "milliseconds" | "ms" => Ok(TimeUnit::Milliseconds),
+            _ => Err(format!("unknown time unit '{}'", s)),
+        }
+    }
+}
+
+impl TryFrom<String> for TimeUnit {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::from_str(&value)
     }
 }
 

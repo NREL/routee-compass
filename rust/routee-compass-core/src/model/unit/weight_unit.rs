@@ -47,10 +47,21 @@ impl std::fmt::Display for WeightUnit {
 }
 
 impl FromStr for WeightUnit {
-    type Err = serde_json::Error;
-
+    type Err = String;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        string_deserialize(s)
+        match s {
+            "pound" | "pounds" | "lb" | "lbs" => Ok(Self::Pounds),
+            "ton" | "tons" => Ok(Self::Tons),
+            "kilogram" | "kilograms" | "kg" | "kgs" => Ok(Self::Kg),
+            _ => Err(format!("unknown weight unit '{}'", s)),
+        }
+    }
+}
+
+impl TryFrom<String> for WeightUnit {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::from_str(&value)
     }
 }
 

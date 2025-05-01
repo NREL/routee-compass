@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", try_from = "String")]
 pub enum EnergyUnit {
     /// US Gallons of gasoline fuel
     GallonsGasoline,
@@ -84,13 +84,26 @@ impl FromStr for EnergyUnit {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use EnergyUnit as E;
-        match s.trim().to_lowercase().replace("_", " ").as_str() {
-            "gallons gasoline" | "gas" => Ok(E::GallonsGasoline),
-            "gallons diesel" | "diesel" => Ok(E::GallonsDiesel),
-            "kilowathours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
-            "liters gasoline" => Ok(E::LitersGasoline),
-            "liters diesel" => Ok(E::LitersDiesel),
+        match s
+            .trim()
+            .to_lowercase()
+            .replace("_", " ")
+            .replace(" ", "")
+            .as_str()
+        {
+            "gallonsgasoline" | "gas" => Ok(E::GallonsGasoline),
+            "gallonsdiesel" | "diesel" => Ok(E::GallonsDiesel),
+            "kilowatthours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
+            "litersgasoline" => Ok(E::LitersGasoline),
+            "litersdiesel" => Ok(E::LitersDiesel),
             _ => Err(format!("unknown energy unit '{}'", s)),
         }
+    }
+}
+
+impl TryFrom<String> for EnergyUnit {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::from_str(&value)
     }
 }
