@@ -11,7 +11,7 @@ use std::sync::Arc;
 
 pub struct VehicleRestrictionFrontierModel {
     pub service: Arc<VehicleRestrictionFrontierService>,
-    pub vehicle_parameters: VehicleParameters,
+    pub vehicle_parameters: Vec<VehicleParameters>,
 }
 
 impl FrontierModel for VehicleRestrictionFrontierModel {
@@ -33,18 +33,13 @@ impl FrontierModel for VehicleRestrictionFrontierModel {
         match self.service.vehicle_restriction_lookup.get(&edge.edge_id) {
             None => Ok(true),
             Some(vehicle_restrictions) => {
-                for restriction in vehicle_restrictions.iter() {
-                    let valid_edge = restriction.valid(&self.vehicle_parameters).map_err(|e| {
-                        FrontierModelError::FrontierModelError(format!(
-                            "failed testing edge validity in frontier model due to: {}",
-                            e
-                        ))
-                    })?;
-                    if !valid_edge {
-                        return Ok(false);
+                let valid = self.vehicle_parameters.iter().all(|vehicle_parameter| {
+                    match vehicle_restrictions.get(&vehicle_parameter.name()) {
+                        Some(restriction) => vehicle_parameter <= restriction,
+                        None => true,
                     }
-                }
-                Ok(true)
+                });
+                Ok(valid)
             }
         }
     }
