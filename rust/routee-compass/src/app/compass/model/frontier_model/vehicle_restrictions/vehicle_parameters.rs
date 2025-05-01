@@ -1,12 +1,7 @@
 use std::borrow::Cow;
-use std::hash::Hash;
 
-use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::model::unit::Convert;
-use routee_compass_core::model::{
-    frontier::FrontierModelError,
-    unit::{Distance, DistanceUnit, Weight, WeightUnit},
-};
+use routee_compass_core::model::unit::{Distance, DistanceUnit, Weight, WeightUnit};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
