@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::model::unit::{DistanceUnit, EnergyUnit, GradeUnit, SpeedUnit, TimeUnit};
 
+use super::OutputFeature;
+
 /// defines the required input feature and its requested unit type for a given state variable
 ///
 /// if a unit type is provided, then the state variable is provided in the requested unit to the model.
@@ -20,5 +22,40 @@ impl std::fmt::Display for InputFeature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = serde_json::to_string_pretty(self).unwrap_or_default();
         write!(f, "{}", s)
+    }
+}
+
+impl From<&OutputFeature> for InputFeature {
+    fn from(value: &OutputFeature) -> Self {
+        match value {
+            OutputFeature::Distance {
+                distance_unit,
+                initial: _,
+            } => InputFeature::Distance(Some(*distance_unit)),
+            OutputFeature::Time {
+                time_unit,
+                initial: _,
+            } => InputFeature::Time(Some(*time_unit)),
+            OutputFeature::Energy {
+                energy_unit,
+                initial: _,
+            } => InputFeature::Energy(Some(*energy_unit)),
+            OutputFeature::Speed {
+                speed_unit,
+                initial: _,
+            } => InputFeature::Speed(Some(*speed_unit)),
+            OutputFeature::Grade {
+                grade_unit,
+                initial: _,
+            } => InputFeature::Grade(Some(*grade_unit)),
+            OutputFeature::Custom {
+                r#type,
+                unit,
+                format: _,
+            } => InputFeature::Custom {
+                r#type: r#type.clone(),
+                unit: unit.clone(),
+            },
+        }
     }
 }
