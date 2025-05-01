@@ -39,7 +39,9 @@ pub fn topological_dependency_sort(
                         missing_parents.push(n.clone());
                     }
                     Some(ref_idxs) => {
-                        for ref_idx in ref_idxs.iter() {
+                        // look at all dependencies but ignore self-looping dependencies
+                        let refs_iter = ref_idxs.iter().filter(|i| &idx != *i);
+                        for ref_idx in refs_iter {
                             sort.add_dependency(idx, *ref_idx);
                         }
                     }
@@ -92,8 +94,10 @@ mod test {
     use itertools::Itertools;
     use std::sync::Arc;
 
+    /// tests dependency sort on the typical setup for modeling distance, speed,
+    /// time, grade, elevation, and energy.
     #[test]
-    fn test_sort() {
+    fn test_default_model_setup() {
         init_test_logger();
 
         // mock up models for 6 dimensions, 3 of which have upstream dependencies
@@ -139,6 +143,66 @@ mod test {
                 "*->speed" => speed_seen = true,
                 "*->distance" => distance_seen = true,
                 "distance+speed+grade->energy" => {
+                    assert!(distance_seen && speed_seen && grade_seen)
+                }
+                "distance+speed->time" => assert!(distance_seen && speed_seen),
+                "grade->elevation" => assert!(grade_seen),
+                other => panic!("unexpected key: '{}'", other),
+            }
+        }
+    }
+
+    /// tests dependency sort where the energy model depends on and generates SOC values
+    #[test]
+    fn test_self_dependency() {
+        init_test_logger();
+
+        // mock up models for 6 dimensions, 3 of which have upstream dependencies
+        let distance = MockModel::new(vec![], vec!["distance"]);
+        let speed = MockModel::new(vec![], vec!["speed"]);
+        let time = MockModel::new(vec!["distance", "speed"], vec!["time"]);
+        let grade = MockModel::new(vec![], vec!["grade"]);
+        let elevation = MockModel::new(vec!["grade"], vec!["elevation"]);
+        let energy = MockModel::new(
+            vec!["distance", "speed", "grade", "soc"],
+            vec!["energy", "soc"],
+        );
+        let models: Vec<Arc<dyn TraversalModel>> =
+            vec![energy, elevation, time, grade, speed, distance]
+                .into_iter()
+                .map(|m| {
+                    let am: Arc<dyn TraversalModel> = Arc::new(m);
+                    am
+                })
+                .collect_vec();
+
+        // apply sort and then reconstruct descriptions for each model on the sorted values
+        let sorted = topological_dependency_sort(&models).expect("failure during sort function");
+        let sorted_descriptions = sorted
+            .iter()
+            .map(|m| {
+                let input_features = m.input_features();
+                let in_names = if input_features.is_empty() {
+                    String::from("*")
+                } else {
+                    m.input_features().iter().map(|(n, _)| n).join("+")
+                };
+                let out_name = m.output_features().iter().map(|(n, _)| n).join("+");
+                format!("{}->{}", in_names, out_name)
+            })
+            .collect_vec();
+
+        // validate that the dependencies are honored. the algorithm makes no guarantees about
+        // tiebreaking usize values so we cannot expect a deterministic output here.
+        let mut distance_seen = false;
+        let mut speed_seen = false;
+        let mut grade_seen = false;
+        for (idx, description) in sorted_descriptions.iter().enumerate() {
+            match description.as_str() {
+                "*->grade" => grade_seen = true,
+                "*->speed" => speed_seen = true,
+                "*->distance" => distance_seen = true,
+                "distance+speed+grade+soc->energy+soc" => {
                     assert!(distance_seen && speed_seen && grade_seen)
                 }
                 "distance+speed->time" => assert!(distance_seen && speed_seen),

@@ -101,15 +101,18 @@ fn ice_traversal(
         .associated_distance_unit();
     let speed_unit = prediction_model_record.speed_unit;
     let grade_unit = prediction_model_record.grade_unit;
+
     let (distance, _) =
         state_model.get_distance(state, IceEnergyModel::EDGE_DISTANCE, Some(&distance_unit))?;
     let (speed, _) = state_model.get_speed(state, IceEnergyModel::EDGE_SPEED, Some(&speed_unit))?;
     let (grade, _) = state_model.get_grade(state, IceEnergyModel::EDGE_GRADE, Some(&grade_unit))?;
+
     let (energy, _energy_unit) = prediction_model_record.predict(
         (speed, speed_unit),
         (grade, grade_unit),
         (distance, distance_unit),
     )?;
+
     state_model.add_energy(
         state,
         IceEnergyModel::TRIP_ENERGY_LIQUID,
