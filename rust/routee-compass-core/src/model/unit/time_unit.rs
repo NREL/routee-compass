@@ -1,5 +1,5 @@
 use super::{baseunit, Convert, Time, UnitError};
-use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
+use crate::model::unit::AsF64;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
