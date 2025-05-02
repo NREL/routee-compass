@@ -10,66 +10,66 @@ use std::str::FromStr;
 #[derive(Debug, Clone, Deserialize)]
 pub struct RestrictionRow {
     pub edge_id: EdgeId,
-    pub restriction_name: String,
-    pub restriction_value: f64,
-    pub restriction_unit: String,
+    pub r#type: String,
+    pub value: f64,
+    pub unit: String,
 }
 
 impl RestrictionRow {
     pub fn to_parameter(&self) -> Result<VehicleParameter, FrontierModelError> {
-        match self.restriction_name.as_str() {
+        match self.r#type.as_str() {
             "height" => Ok(VehicleParameter::Height {
-                value: Distance::from(self.restriction_value),
-                unit: DistanceUnit::from_str(&self.restriction_unit).map_err(|e| {
+                value: Distance::from(self.value),
+                unit: DistanceUnit::from_str(&self.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
                         "Unable to parse height unit {}: {}",
-                        self.restriction_unit, e
+                        self.unit, e
                     ))
                 })?,
             }),
             "width" => Ok(VehicleParameter::Width {
-                value: Distance::from(self.restriction_value),
-                unit: DistanceUnit::from_str(&self.restriction_unit).map_err(|e| {
+                value: Distance::from(self.value),
+                unit: DistanceUnit::from_str(&self.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
                         "Unable to parse height unit {}: {}",
-                        self.restriction_unit, e
+                        self.unit, e
                     ))
                 })?,
             }),
             "total_length" => Ok(VehicleParameter::TotalLength {
-                value: Distance::from(self.restriction_value),
-                unit: DistanceUnit::from_str(&self.restriction_unit).map_err(|e| {
+                value: Distance::from(self.value),
+                unit: DistanceUnit::from_str(&self.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
                         "Unable to parse height unit {}: {}",
-                        self.restriction_unit, e
+                        self.unit, e
                     ))
                 })?,
             }),
             "trailer_length" => Ok(VehicleParameter::TrailerLength {
-                value: Distance::from(self.restriction_value),
-                unit: DistanceUnit::from_str(&self.restriction_unit).map_err(|e| {
+                value: Distance::from(self.value),
+                unit: DistanceUnit::from_str(&self.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
                         "Unable to parse height unit {}: {}",
-                        self.restriction_unit, e
+                        self.unit, e
                     ))
                 })?,
             }),
             "total_weight" => Ok(VehicleParameter::TotalWeight {
-                value: Weight::from(self.restriction_value),
-                unit: WeightUnit::from_str(&self.restriction_unit).map_err(|e| {
+                value: Weight::from(self.value),
+                unit: WeightUnit::from_str(&self.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
                         "Unable to parse weight unit {}: {}",
-                        self.restriction_unit, e
+                        self.unit, e
                     ))
                 })?,
             }),
             "number_of_axles" => {
-                let value = f64_to_u8_safe(self.restriction_value)?;
+                let value = f64_to_u8_safe(self.value)?;
                 Ok(VehicleParameter::NumberOfAxles { value })
             }
             _ => Err(FrontierModelError::BuildError(format!(
                 "Unknown restriction name {}",
-                self.restriction_name
+                self.r#type
             ))),
         }
     }
