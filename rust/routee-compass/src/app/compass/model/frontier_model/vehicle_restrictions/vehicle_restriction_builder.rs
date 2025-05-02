@@ -1,4 +1,4 @@
-use super::vehicle_parameters::VehicleParameter;
+use super::vehicle_parameter::VehicleParameter;
 use super::{
     vehicle_restriction_row::RestrictionRow,
     vehicle_restriction_service::VehicleRestrictionFrontierService,

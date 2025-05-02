@@ -1,4 +1,4 @@
-use super::vehicle_parameters::VehicleParameter;
+use super::vehicle_parameter::VehicleParameter;
 use routee_compass_core::model::{
     frontier::FrontierModelError,
     network::edge_id::EdgeId,

@@ -1,5 +1,5 @@
 use super::{
-    vehicle_parameters::VehicleParameter,
+    vehicle_parameter::VehicleParameter,
     vehicle_restriction_service::VehicleRestrictionFrontierService,
 };
 use routee_compass_core::{
@@ -121,26 +121,29 @@ mod test {
             .build(&conf)
             .unwrap_or_else(|_| panic!("failed to read test CSV {}", restriction_filename));
         let state_model = Arc::new(StateModel::new(vec![]));
-        
-        (service.build(&query, state_model).unwrap_or_else(|_| panic!("failed to build model from service with query: {}",
-            &serde_json::to_string(&query).unwrap_or_default()))) as _
+
+        (service.build(&query, state_model).unwrap_or_else(|_| {
+            panic!(
+                "failed to build model from service with query: {}",
+                &serde_json::to_string(&query).unwrap_or_default()
+            )
+        })) as _
     }
 
     fn read_json_file(filename: &str) -> Value {
         let filepath = test_filepath(filename);
-        let file_contents = std::fs::read_to_string(&filepath).unwrap_or_else(|_| panic!("test invariant failed, unable to load {}",
-            &filepath));
-        
-        serde_json::from_str(&file_contents).unwrap_or_else(|_| panic!("test invariant failed, unable to parse {}",
-            &filepath))
+        let file_contents = std::fs::read_to_string(&filepath)
+            .unwrap_or_else(|_| panic!("test invariant failed, unable to load {}", &filepath));
+
+        serde_json::from_str(&file_contents)
+            .unwrap_or_else(|_| panic!("test invariant failed, unable to parse {}", &filepath))
     }
 
     fn test_filepath(filename: &str) -> String {
         let mut path = test_dir();
         path.push(filename);
         path.to_str()
-            .unwrap_or_else(|| panic!("test invariant failed, unable to load {}",
-                filename))
+            .unwrap_or_else(|| panic!("test invariant failed, unable to load {}", filename))
             .to_string()
     }
 
