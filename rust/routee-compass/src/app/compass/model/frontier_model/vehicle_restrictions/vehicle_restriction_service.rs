@@ -1,6 +1,5 @@
 use super::{
-    vehicle_parameter::VehicleParameter,
-    vehicle_restriction_model::VehicleRestrictionFrontierModel,
+    vehicle_parameter::VehicleParameter, vehicle_restriction_model::VehicleRestrictionFrontierModel,
 };
 use routee_compass_core::{
     model::{

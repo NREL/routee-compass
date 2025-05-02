@@ -113,7 +113,6 @@ impl PartialOrd for VehicleParameter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
 
     #[test]
     fn test_eq_ordering_matching_parameter() {
