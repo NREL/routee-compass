@@ -1,3 +1,3 @@
-edge_id,type,unit,value
-0,total_weight,pounds,65000.0
-0,height,feet,13.0
+edge_id,type,unit,operation,value
+0,total_weight,pounds,<,65000.0
+0,height,feet,<,13.0

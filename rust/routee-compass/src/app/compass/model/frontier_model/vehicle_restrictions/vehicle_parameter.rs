@@ -27,6 +27,25 @@ impl VehicleParameter {
     }
 }
 
+impl std::fmt::Display for VehicleParameter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VehicleParameter::Height { value, unit } => write!(f, "height: {} {}", value, unit),
+            VehicleParameter::Width { value, unit } => write!(f, "width: {} {}", value, unit),
+            VehicleParameter::TotalLength { value, unit } => {
+                write!(f, "total length: {} {}", value, unit)
+            }
+            VehicleParameter::TrailerLength { value, unit } => {
+                write!(f, "trailer length: {} {}", value, unit)
+            }
+            VehicleParameter::TotalWeight { value, unit } => {
+                write!(f, "total weight: {} {}", value, unit)
+            }
+            VehicleParameter::NumberOfAxles { value } => write!(f, "number of axles: {}", value),
+        }
+    }
+}
+
 impl PartialOrd for VehicleParameter {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         match (self, other) {

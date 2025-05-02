@@ -47,7 +47,7 @@ fn validate_edge(
                     .iter()
                     .all(|vehicle_parameter| {
                         match vehicle_restrictions.get(&vehicle_parameter.name()) {
-                            Some(restriction) => vehicle_parameter <= restriction,
+                            Some(restriction) => restriction.validate_parameters(vehicle_parameter),
                             None => true,
                         }
                     });

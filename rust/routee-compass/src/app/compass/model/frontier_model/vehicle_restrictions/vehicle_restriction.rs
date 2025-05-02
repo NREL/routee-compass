@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct VehicleRestriction {
-    pub vehicle_parameter: VehicleParameter,
+    pub restriction_parameter: VehicleParameter,
     pub comparison_operation: ComparisonOperation,
 }
 
@@ -19,14 +19,18 @@ impl VehicleRestriction {
         comparison_operation: ComparisonOperation,
     ) -> Self {
         VehicleRestriction {
-            vehicle_parameter,
+            restriction_parameter: vehicle_parameter,
             comparison_operation,
         }
     }
 
-    pub fn validate_parameters(&self, other: &VehicleParameter) -> bool {
+    pub fn name(&self) -> String {
+        self.restriction_parameter.name()
+    }
+
+    pub fn validate_parameters(&self, query_parameter: &VehicleParameter) -> bool {
         self.comparison_operation
-            .compare_parameters(&self.vehicle_parameter, other)
+            .compare_parameters(query_parameter, &self.restriction_parameter)
     }
 }
 
@@ -91,7 +95,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
         }?;
         let comparison_operation = row.operation.clone();
         Ok(VehicleRestriction {
-            vehicle_parameter,
+            restriction_parameter: vehicle_parameter,
             comparison_operation,
         })
     }
