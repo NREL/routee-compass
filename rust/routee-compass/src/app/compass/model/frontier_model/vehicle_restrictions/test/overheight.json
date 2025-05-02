@@ -1,0 +1,14 @@
+{
+    "vehicle_parameters": [
+        {
+            "type": "height",
+            "value": 15.0,
+            "unit": "feet"
+        },
+        {
+            "type": "total_weight",
+            "value": 50000,
+            "unit": "pounds"
+        }
+    ]
+}

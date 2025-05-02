@@ -1,9 +1,11 @@
+use super::vehicle_parameter::VehicleParameter;
 use super::{
-    vehicle_restriction::VehicleRestriction, vehicle_restriction_row::RestrictionRow,
+    vehicle_restriction_row::RestrictionRow,
     vehicle_restriction_service::VehicleRestrictionFrontierService,
 };
 use kdam::Bar;
 use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
+use routee_compass_core::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use routee_compass_core::{
     model::{
         frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
@@ -46,7 +48,7 @@ impl FrontierModelBuilder for VehicleRestrictionBuilder {
 
 pub fn vehicle_restriction_lookup_from_file(
     vehicle_restriction_input_file: &PathBuf,
-) -> Result<HashMap<EdgeId, Vec<VehicleRestriction>>, FrontierModelError> {
+) -> Result<HashMap<EdgeId, CompactOrderedHashMap<String, VehicleParameter>>, FrontierModelError> {
     let rows: Vec<RestrictionRow> = read_utils::from_csv(
         &vehicle_restriction_input_file,
         true,
@@ -61,11 +63,22 @@ pub fn vehicle_restriction_lookup_from_file(
     })?
     .to_vec();
 
-    let mut vehicle_restriction_lookup: HashMap<EdgeId, Vec<VehicleRestriction>> = HashMap::new();
+    let mut vehicle_restriction_lookup: HashMap<
+        EdgeId,
+        CompactOrderedHashMap<String, VehicleParameter>,
+    > = HashMap::new();
     for row in rows {
-        let restriction: VehicleRestriction = row.clone().to_restriction()?;
-        let restrictions = vehicle_restriction_lookup.entry(row.edge_id).or_default();
-        restrictions.push(restriction);
+        let restriction: VehicleParameter = row.to_parameter()?;
+        match vehicle_restriction_lookup.get_mut(&row.edge_id) {
+            None => {
+                let mut restrictions = CompactOrderedHashMap::empty();
+                restrictions.insert(restriction.name(), restriction);
+                vehicle_restriction_lookup.insert(row.edge_id, restrictions);
+            }
+            Some(restrictions) => {
+                restrictions.insert(restriction.name(), restriction);
+            }
+        }
     }
     Ok(vehicle_restriction_lookup)
 }

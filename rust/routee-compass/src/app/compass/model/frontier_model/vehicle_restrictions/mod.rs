@@ -1,6 +1,11 @@
-pub mod vehicle_parameters;
-pub mod vehicle_restriction;
-pub mod vehicle_restriction_builder;
-pub mod vehicle_restriction_model;
-pub mod vehicle_restriction_row;
-pub mod vehicle_restriction_service;
+mod vehicle_parameter;
+mod vehicle_restriction_builder;
+mod vehicle_restriction_model;
+mod vehicle_restriction_row;
+mod vehicle_restriction_service;
+
+pub use vehicle_parameter::VehicleParameter;
+pub use vehicle_restriction_builder::VehicleRestrictionBuilder;
+pub use vehicle_restriction_model::VehicleRestrictionFrontierModel;
+pub use vehicle_restriction_row::RestrictionRow;
+pub use vehicle_restriction_service::VehicleRestrictionFrontierService;
