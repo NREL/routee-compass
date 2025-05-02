@@ -1,8 +1,9 @@
 {
     "vehicle_parameters": [
         {
-            "type": "number_of_axles",
-            "value": 2
+            "type": "weight_per_axle",
+            "value": 10000.0,
+            "unit": "pounds"
         },
         {
             "type": "total_weight",
