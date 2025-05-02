@@ -91,8 +91,8 @@ impl FromStr for EnergyUnit {
             .replace(" ", "")
             .as_str()
         {
-            "gallonsgasoline" | "gas" => Ok(E::GallonsGasoline),
-            "gallonsdiesel" | "diesel" => Ok(E::GallonsDiesel),
+            "gallonsgasoline" => Ok(E::GallonsGasoline),
+            "gallonsdiesel" => Ok(E::GallonsDiesel),
             "kilowatthours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
             "litersgasoline" => Ok(E::LitersGasoline),
             "litersdiesel" => Ok(E::LitersDiesel),
