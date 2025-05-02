@@ -48,11 +48,17 @@ impl std::fmt::Display for GradeUnit {
 
 impl FromStr for GradeUnit {
     type Err = serde_json::Error;
-
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         string_deserialize(s)
     }
 }
+
+// impl TryFrom<String> for GradeUnit {
+//     type Error = String;
+//     fn try_from(value: String) -> Result<Self, Self::Error> {
+//         Self::from_str(&value)
+//     }
+// }
 
 #[cfg(test)]
 mod test {
