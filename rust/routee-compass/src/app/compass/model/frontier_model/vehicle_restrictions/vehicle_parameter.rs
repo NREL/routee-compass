@@ -169,7 +169,7 @@ mod tests {
             unit: DistanceUnit::Meters,
         };
         // if there is an ordering here, then one of the below must be true
-        let has_ordering = a < b || a == b || a > b;
+        let has_ordering = a <= b || a > b;
         assert!(!has_ordering);
     }
 }
