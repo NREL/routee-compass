@@ -25,7 +25,7 @@ use crate::{
             no_restriction_builder::NoRestrictionBuilder,
             road_class::road_class_builder::RoadClassBuilder,
             turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
-            vehicle_restrictions::vehicle_restriction_builder::VehicleRestrictionBuilder,
+            vehicle_restrictions::VehicleRestrictionBuilder,
         },
         traversal_model::{
             distance_traversal_builder::DistanceTraversalBuilder,
