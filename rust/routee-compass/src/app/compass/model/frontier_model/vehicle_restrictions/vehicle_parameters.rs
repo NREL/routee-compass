@@ -1,8 +1,7 @@
-use std::borrow::Cow;
-
 use routee_compass_core::model::unit::Convert;
 use routee_compass_core::model::unit::{Distance, DistanceUnit, Weight, WeightUnit};
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -102,7 +101,56 @@ impl PartialOrd for VehicleParameter {
                 b_unit.convert(&mut b_convert, a_unit).ok()?;
                 a.partial_cmp(b_convert.as_ref())
             }
+            (VehicleParameter::NumberOfAxles(a), VehicleParameter::NumberOfAxles(b)) => {
+                a.partial_cmp(b)
+            }
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use routee_compass_core::model::unit::*;
+
+    #[test]
+    fn test_eq_ordering_matching_parameter() {
+        let a = VehicleParameter::Height {
+            value: Distance::from(2.0),
+            unit: DistanceUnit::Meters,
+        };
+        let b = VehicleParameter::Height {
+            value: Distance::from(2.0),
+            unit: DistanceUnit::Meters,
+        };
+        assert!(a == b);
+    }
+
+    #[test]
+    fn test_lt_ordering_matching_parameter() {
+        let a = VehicleParameter::Height {
+            value: Distance::from(2.0),
+            unit: DistanceUnit::Meters,
+        };
+        let b = VehicleParameter::Height {
+            value: Distance::from(3.0),
+            unit: DistanceUnit::Meters,
+        };
+        assert!(a < b);
+    }
+
+    #[test]
+    fn test_lt_ordering_different_parameter() {
+        let a = VehicleParameter::TrailerLength {
+            value: Distance::from(2.0),
+            unit: DistanceUnit::Meters,
+        };
+        let b = VehicleParameter::Height {
+            value: Distance::from(3.0),
+            unit: DistanceUnit::Meters,
+        };
+        let comparable = a < b || a > b || a == b;
+        assert!(!comparable);
     }
 }
