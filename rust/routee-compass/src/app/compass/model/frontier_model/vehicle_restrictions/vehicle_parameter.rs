@@ -5,7 +5,6 @@ use std::borrow::Cow;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "snake_case")]
-
 pub enum VehicleParameter {
     Height { value: Distance, unit: DistanceUnit },
     Width { value: Distance, unit: DistanceUnit },
