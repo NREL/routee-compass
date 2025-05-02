@@ -12,7 +12,7 @@ pub enum VehicleParameter {
     TotalLength { value: Distance, unit: DistanceUnit },
     TrailerLength { value: Distance, unit: DistanceUnit },
     TotalWeight { value: Weight, unit: WeightUnit },
-    NumberOfAxles(u8),
+    NumberOfAxles { value: u8 },
 }
 
 impl VehicleParameter {
@@ -23,7 +23,7 @@ impl VehicleParameter {
             VehicleParameter::TotalLength { .. } => "total_length".to_string(),
             VehicleParameter::TrailerLength { .. } => "trailer_length".to_string(),
             VehicleParameter::TotalWeight { .. } => "total_weight".to_string(),
-            VehicleParameter::NumberOfAxles(_) => "number_of_axles".to_string(),
+            VehicleParameter::NumberOfAxles { .. } => "number_of_axles".to_string(),
         }
     }
 }
@@ -101,9 +101,10 @@ impl PartialOrd for VehicleParameter {
                 b_unit.convert(&mut b_convert, a_unit).ok()?;
                 a.partial_cmp(b_convert.as_ref())
             }
-            (VehicleParameter::NumberOfAxles(a), VehicleParameter::NumberOfAxles(b)) => {
-                a.partial_cmp(b)
-            }
+            (
+                VehicleParameter::NumberOfAxles { value: a },
+                VehicleParameter::NumberOfAxles { value: b },
+            ) => a.partial_cmp(b),
             _ => None,
         }
     }

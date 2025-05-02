@@ -63,13 +63,25 @@ impl RestrictionRow {
                     ))
                 })?,
             }),
-            "number_of_axles" => Ok(VehicleParameter::NumberOfAxles(
-                self.restriction_value as u8,
-            )),
+            "number_of_axles" => {
+                let value = f64_to_u8_safe(self.restriction_value)?;
+                Ok(VehicleParameter::NumberOfAxles { value })
+            }
             _ => Err(FrontierModelError::BuildError(format!(
                 "Unknown restriction name {}",
                 self.restriction_name
             ))),
         }
+    }
+}
+
+fn f64_to_u8_safe(value: f64) -> Result<u8, FrontierModelError> {
+    if value >= 0.0 && value <= u8::MAX as f64 {
+        Ok(value as u8)
+    } else {
+        Err(FrontierModelError::BuildError(format!(
+            "Value {} is out of range for u8",
+            value
+        )))
     }
 }
