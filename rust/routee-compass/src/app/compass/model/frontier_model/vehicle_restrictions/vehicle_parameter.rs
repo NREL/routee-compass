@@ -168,7 +168,8 @@ mod tests {
             value: Distance::from(3.0),
             unit: DistanceUnit::Meters,
         };
-        let comparable = a != b || a == b;
-        assert!(!comparable);
+        // if there is an ordering here, then one of the below must be true
+        let has_ordering = a < b || a == b || a > b;
+        assert!(!has_ordering);
     }
 }
