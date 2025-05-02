@@ -79,8 +79,6 @@ pub fn vehicle_restriction_lookup_from_file(
                 restrictions.insert(restriction.name(), restriction);
             }
         }
-        // let restrictions = vehicle_restriction_lookup.entry(row.edge_id).or_default();
-        // restrictions.push(restriction);
     }
     Ok(vehicle_restriction_lookup)
 }
