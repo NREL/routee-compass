@@ -113,7 +113,7 @@ impl PartialOrd for VehicleParameter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use routee_compass_core::model::unit::*;
+    
 
     #[test]
     fn test_eq_ordering_matching_parameter() {
@@ -151,7 +151,7 @@ mod tests {
             value: Distance::from(3.0),
             unit: DistanceUnit::Meters,
         };
-        let comparable = a < b || a > b || a == b;
+        let comparable = a != b || a == b;
         assert!(!comparable);
     }
 }

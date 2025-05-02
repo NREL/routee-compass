@@ -119,36 +119,28 @@ mod test {
         let query = read_json_file(query_filename);
         let service = VehicleRestrictionBuilder {}
             .build(&conf)
-            .expect(&format!("failed to read test CSV {}", restriction_filename));
+            .unwrap_or_else(|_| panic!("failed to read test CSV {}", restriction_filename));
         let state_model = Arc::new(StateModel::new(vec![]));
-        let model = service.build(&query, state_model).expect(&format!(
-            "failed to build model from service with query: {}",
-            &serde_json::to_string(&query).unwrap_or_default(),
-        ));
-        model
+        
+        (service.build(&query, state_model).unwrap_or_else(|_| panic!("failed to build model from service with query: {}",
+            &serde_json::to_string(&query).unwrap_or_default()))) as _
     }
 
     fn read_json_file(filename: &str) -> Value {
         let filepath = test_filepath(filename);
-        let file_contents = std::fs::read_to_string(&filepath).expect(&format!(
-            "test invariant failed, unable to load {}",
-            &filepath
-        ));
-        let result = serde_json::from_str(&file_contents).expect(&format!(
-            "test invariant failed, unable to parse {}",
-            &filepath
-        ));
-        result
+        let file_contents = std::fs::read_to_string(&filepath).unwrap_or_else(|_| panic!("test invariant failed, unable to load {}",
+            &filepath));
+        
+        serde_json::from_str(&file_contents).unwrap_or_else(|_| panic!("test invariant failed, unable to parse {}",
+            &filepath))
     }
 
     fn test_filepath(filename: &str) -> String {
         let mut path = test_dir();
         path.push(filename);
         path.to_str()
-            .expect(&format!(
-                "test invariant failed, unable to load {}",
-                filename
-            ))
+            .unwrap_or_else(|| panic!("test invariant failed, unable to load {}",
+                filename))
             .to_string()
     }
 
