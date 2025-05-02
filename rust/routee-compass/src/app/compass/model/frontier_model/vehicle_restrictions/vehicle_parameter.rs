@@ -11,7 +11,7 @@ pub enum VehicleParameter {
     TotalLength { value: Distance, unit: DistanceUnit },
     TrailerLength { value: Distance, unit: DistanceUnit },
     TotalWeight { value: Weight, unit: WeightUnit },
-    NumberOfAxles { value: u8 },
+    WeightPerAxle { value: Weight, unit: WeightUnit },
 }
 
 impl VehicleParameter {
@@ -22,7 +22,7 @@ impl VehicleParameter {
             VehicleParameter::TotalLength { .. } => "total_length".to_string(),
             VehicleParameter::TrailerLength { .. } => "trailer_length".to_string(),
             VehicleParameter::TotalWeight { .. } => "total_weight".to_string(),
-            VehicleParameter::NumberOfAxles { .. } => "number_of_axles".to_string(),
+            VehicleParameter::WeightPerAxle { .. } => "weight_per_axle".to_string(),
         }
     }
 }
@@ -41,7 +41,9 @@ impl std::fmt::Display for VehicleParameter {
             VehicleParameter::TotalWeight { value, unit } => {
                 write!(f, "total weight: {} {}", value, unit)
             }
-            VehicleParameter::NumberOfAxles { value } => write!(f, "number of axles: {}", value),
+            VehicleParameter::WeightPerAxle { value, unit } => {
+                write!(f, "weight per axle: {} {}", value, unit)
+            }
         }
     }
 }
@@ -120,9 +122,19 @@ impl PartialOrd for VehicleParameter {
                 a.partial_cmp(b_convert.as_ref())
             }
             (
-                VehicleParameter::NumberOfAxles { value: a },
-                VehicleParameter::NumberOfAxles { value: b },
-            ) => a.partial_cmp(b),
+                VehicleParameter::WeightPerAxle {
+                    value: a,
+                    unit: a_unit,
+                },
+                VehicleParameter::WeightPerAxle {
+                    value: b,
+                    unit: b_unit,
+                },
+            ) => {
+                let mut b_convert = Cow::Borrowed(b);
+                b_unit.convert(&mut b_convert, a_unit).ok()?;
+                a.partial_cmp(b_convert.as_ref())
+            }
             _ => None,
         }
     }

@@ -84,12 +84,17 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     ))
                 })?,
             }),
-            "number_of_axles" => {
-                let value = f64_to_u8_safe(row.value)?;
-                Ok(VehicleParameter::NumberOfAxles { value })
-            }
+            "weight_per_axle" => Ok(VehicleParameter::WeightPerAxle {
+                value: Weight::from(row.value),
+                unit: WeightUnit::from_str(&row.unit).map_err(|e| {
+                    FrontierModelError::BuildError(format!(
+                        "Unable to parse weight unit {}: {}",
+                        row.unit, e
+                    ))
+                })?,
+            }),
             _ => Err(FrontierModelError::BuildError(format!(
-                "Unknown restriction name {}",
+                "Unknown vehicle parameter type: {}",
                 row.r#type
             ))),
         }?;
@@ -98,16 +103,5 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
             restriction_parameter: vehicle_parameter,
             comparison_operation,
         })
-    }
-}
-
-fn f64_to_u8_safe(value: f64) -> Result<u8, FrontierModelError> {
-    if value >= 0.0 && value <= u8::MAX as f64 {
-        Ok(value as u8)
-    } else {
-        Err(FrontierModelError::BuildError(format!(
-            "Value {} is out of range for u8",
-            value
-        )))
     }
 }
