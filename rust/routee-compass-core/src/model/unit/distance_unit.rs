@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, str::FromStr};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", try_from = "String")]
 pub enum DistanceUnit {
     Meters,
     Kilometers,
@@ -77,6 +77,13 @@ impl FromStr for DistanceUnit {
             "feet" | "ft" => Ok(D::Feet),
             _ => Err(format!("unknown distance unit '{}'", s)),
         }
+    }
+}
+
+impl TryFrom<String> for DistanceUnit {
+    type Error = String;
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Self::from_str(&value)
     }
 }
 
