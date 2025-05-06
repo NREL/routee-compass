@@ -170,13 +170,10 @@ mod tests {
     use crate::model::prediction::{load_prediction_model, ModelType};
     use itertools::Itertools;
     use routee_compass_core::{
-        model::{
-            access::default::CombinedAccessModel,
-            traversal::default::combined::CombinedTraversalBuilder, unit::*,
-        },
+        model::unit::*,
         test::mock::traversal_model::TestTraversalModel,
     };
-    use std::{collections::HashMap, path::PathBuf, rc::Rc};
+    use std::path::PathBuf;
 
     #[test]
     fn test_bev_energy_model() {
@@ -358,8 +355,8 @@ mod tests {
         .expect("test invariant failed");
 
         // mock the upstream models via TestTraversalModel
-        let mocked_model = TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed");
-        mocked_model
+        
+        (TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed")) as _
     }
 
     fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
