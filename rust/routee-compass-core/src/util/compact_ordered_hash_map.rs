@@ -396,7 +396,11 @@ impl<K, V> CompactOrderedHashMap<K, V> {
                 }
             }
             CompactOrderedHashMap::NEntries(map) => {
-                let index = map.get(&k).map(|e| e.index).unwrap_or(map.len() + 1);
+                // find or create the index for this entry,
+                let index = match map.get(&k) {
+                    Some(existing_entry) => existing_entry.index,
+                    None => map.len(),
+                };
                 let result = map.insert(k, IndexedEntry::new(v, index));
                 result.map(|r| r.v)
             }
