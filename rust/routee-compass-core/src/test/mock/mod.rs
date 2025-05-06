@@ -7,8 +7,27 @@ pub mod traversal_model {
         unit::*,
     };
     use itertools::Itertools;
-    use serde_json::Value;
     use std::sync::Arc;
+
+    /// a traversal model that can be used in tests which will "plug in" a mock model that
+    /// registers all of the input feature requirements for the provided model.
+    pub struct TestTraversalModel {}
+
+    impl TestTraversalModel {
+        /// build (wrap) the model for testing.
+        #[allow(clippy::new_ret_no_self)]
+        pub fn new(
+            model: Arc<dyn TraversalModel>,
+        ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+            let upstream: Box<dyn TraversalModel> =
+                Box::new(MockUpstreamModel::new_upstream_from(model.clone()));
+            let wrapped: Arc<dyn TraversalModel> = Arc::new(CombinedTraversalModel::new(vec![
+                Arc::from(upstream),
+                model.clone(),
+            ]));
+            Ok(wrapped)
+        }
+    }
 
     struct MockUpstreamModel {
         input_features: Vec<(String, InputFeature)>,
@@ -16,9 +35,12 @@ pub mod traversal_model {
     }
 
     impl MockUpstreamModel {
-        pub fn new_upstream_from(m: Arc<dyn TraversalModel>) -> MockUpstreamModel {
-            let input_features = m.input_features();
-            let output_features = m
+        /// builds a new mock upstream TraversalModel that registers all of the input feature
+        /// requirements for the provided model.
+        pub fn new_upstream_from(model: Arc<dyn TraversalModel>) -> MockUpstreamModel {
+            // let input_features = model.input_features();
+            let input_features = vec![];
+            let output_features = model
                 .input_features()
                 .iter()
                 .map(|(n, f)| match f {
@@ -126,22 +148,6 @@ pub mod traversal_model {
             _state_model: &crate::model::state::StateModel,
         ) -> Result<(), TraversalModelError> {
             Ok(())
-        }
-    }
-
-    pub struct TestTraversalModel {}
-
-    impl TestTraversalModel {
-        pub fn wrap_model(
-            model: Arc<dyn TraversalModel>,
-        ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-            let upstream: Box<dyn TraversalModel> =
-                Box::new(MockUpstreamModel::new_upstream_from(model.clone()));
-            let wrapped: Arc<dyn TraversalModel> = Arc::new(CombinedTraversalModel::new(vec![
-                Arc::from(upstream),
-                model.clone(),
-            ]));
-            Ok(wrapped)
         }
     }
 }
