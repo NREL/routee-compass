@@ -39,9 +39,6 @@ impl StateModel {
     /// if the state feature has the same unit (tested by StateFeature::Eq), then it can
     /// overwrite the existing.
     ///
-    /// this method is used when state models are updated by the user query as Services
-    /// become Models in the SearchApp.
-    ///
     /// # Arguments
     /// * `query` - JSON search query contents containing state model information
     pub fn register(
@@ -58,9 +55,9 @@ impl StateModel {
 
         // add each new state feature, tracking any cases where a name collision has a configuration mismatch
         let overwrites = output_features
-            .into_iter()
+            .iter()
             .flat_map(|(name, new)| match map.insert(name.clone(), new.clone()) {
-                Some(old) if old != new => Some((name.clone(), old, new)),
+                Some(old) if old != *new => Some((name.clone(), old, new.clone())),
                 _ => None,
             })
             .collect_vec();
@@ -95,6 +92,11 @@ impl StateModel {
                 "new input features required but no other model produces these features: {}",
                 msg
             )));
+        }
+
+        // all feature updates are valid; add the new output features to the map.
+        for (name, feature) in output_features.iter() {
+            map.insert(name.to_string(), feature.clone());
         }
 
         Ok(Self(map))
