@@ -89,3 +89,39 @@ pub fn get_headings(
     })?;
     Ok(*heading)
 }
+
+#[cfg(test)]
+mod test {
+    use super::update_soc_percent;
+    use routee_compass_core::model::unit::{Energy, EnergyUnit};
+
+    #[test]
+    fn test_update_soc_percent() {
+        let start_soc = 100.0;
+        let maximum_energy = (&Energy::from(100.0), &EnergyUnit::KilowattHours);
+        let energy_consumption = (&Energy::from(20.0), &EnergyUnit::KilowattHours);
+        let result = update_soc_percent(&start_soc, energy_consumption, maximum_energy)
+            .expect("failed to update");
+        assert_eq!(result, 80.0, "should have used 20/100 = 20% of the soc")
+    }
+
+    #[test]
+    fn test_update_soc_no_underflow() {
+        let start_soc = 50.0;
+        let maximum_energy = (&Energy::from(100.0), &EnergyUnit::KilowattHours);
+        let energy_consumption = (&Energy::from(70.0), &EnergyUnit::KilowattHours);
+        let result = update_soc_percent(&start_soc, energy_consumption, maximum_energy)
+            .expect("failed to update");
+        assert_eq!(result, 0.0, "should prevent soc underflow")
+    }
+
+    #[test]
+    fn test_update_soc_no_overflow() {
+        let start_soc = 50.0;
+        let maximum_energy = (&Energy::from(100.0), &EnergyUnit::KilowattHours);
+        let energy_consumption = (&Energy::from(-70.0), &EnergyUnit::KilowattHours);
+        let result = update_soc_percent(&start_soc, energy_consumption, maximum_energy)
+            .expect("failed to update");
+        assert_eq!(result, 100.0, "should prevent soc overflow")
+    }
+}
