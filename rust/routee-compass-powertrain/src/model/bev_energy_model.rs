@@ -57,13 +57,6 @@ impl TraversalModel for BevEnergyModel {
                 String::from(Self::EDGE_GRADE),
                 InputFeature::Grade(Some(self.prediction_model_record.grade_unit)),
             ),
-            (
-                String::from(Self::TRIP_SOC),
-                InputFeature::Custom {
-                    r#type: String::from("soc"),
-                    unit: String::from("Percent"),
-                },
-            ),
         ]
     }
 
@@ -185,103 +178,6 @@ mod tests {
     };
     use std::{collections::HashMap, path::PathBuf, rc::Rc};
 
-    fn mock_prediction_model(
-        battery_capacity: (&Energy, &EnergyUnit),
-    ) -> Arc<PredictionModelRecord> {
-        let bat_cap = *battery_capacity.0;
-        let bat_unit = *battery_capacity.1;
-        let model_file_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("src")
-            .join("model")
-            .join("test")
-            .join("2017_CHEVROLET_Bolt.bin");
-
-        let model_record = load_prediction_model(
-            "Chevy Bolt".to_string(),
-            &model_file_path,
-            ModelType::Interpolate {
-                underlying_model_type: Box::new(ModelType::Smartcore),
-                speed_lower_bound: Speed::from(0.0),
-                speed_upper_bound: Speed::from(100.0),
-                speed_bins: 101,
-                grade_lower_bound: Grade::from(-0.20),
-                grade_upper_bound: Grade::from(0.20),
-                grade_bins: 41,
-            },
-            SpeedUnit::MPH,
-            GradeUnit::Decimal,
-            EnergyRateUnit::KWHPM,
-            Some(EnergyRate::from(0.2)),
-            Some(1.3958),
-            None,
-        )
-        .unwrap();
-        Arc::new(model_record)
-    }
-
-    fn mock_traversal_model(
-        prediction_model_record: Arc<PredictionModelRecord>,
-        starting_soc_percent: f64,
-        battery_capacity: (&Energy, &EnergyUnit),
-    ) -> Arc<dyn TraversalModel> {
-        let bat_cap = *battery_capacity.0;
-        let bat_unit = *battery_capacity.1;
-        let model_file_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("src")
-            .join("model")
-            .join("test")
-            .join("2017_CHEVROLET_Bolt.bin");
-
-        let staring_battery_energy: Energy =
-            Energy::from(bat_cap.as_f64() * (starting_soc_percent / 100.0));
-
-        let bev = BevEnergyModel::new(
-            prediction_model_record,
-            (bat_cap, bat_unit),
-            (staring_battery_energy, EnergyUnit::KilowattHours),
-        )
-        .expect("test invariant failed");
-
-        TestTraversalModel::wrap_model(Arc::new(bev)).expect("test invariant failed")
-    }
-
-    fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
-        // let in_f = m.input_features().into_iter().map(|(n, _)| n).join(", ");
-        // let in_f = vec![];
-        let out_f = m.output_features().into_iter().map(|(n, _)| n).join(", ");
-        // println!("input features: [{}]", in_f);
-        println!("output features: [{}]", out_f);
-        StateModel::empty()
-            .register(m.input_features(), m.output_features())
-            .expect("test invariant failed")
-    }
-
-    fn state_vector(
-        state_model: &StateModel,
-        distance: (Distance, DistanceUnit),
-        speed: (Speed, SpeedUnit),
-        grade: (Grade, GradeUnit),
-    ) -> Vec<StateVariable> {
-        let mut state = state_model.initial_state().unwrap();
-        state_model
-            .add_distance(
-                &mut state,
-                BevEnergyModel::EDGE_DISTANCE,
-                &distance.0,
-                &distance.1,
-            )
-            .expect("test invariant failed");
-        state_model
-            .add_speed(&mut state, BevEnergyModel::EDGE_SPEED, &speed.0, &speed.1)
-            .expect("test invariant failed");
-        state_model
-            .add_grade(&mut state, BevEnergyModel::EDGE_GRADE, &grade.0, &grade.1)
-            .expect("test invariant failed");
-        let initial = state.iter().map(|v| v.0).join(", ");
-        println!("initial state: [{}]", initial);
-        state
-    }
-
     #[test]
     fn test_bev_energy_model() {
         let (bat_cap, bat_unit) = (Energy::from(60.0), EnergyUnit::KilowattHours);
@@ -304,9 +200,10 @@ mod tests {
         )
         .unwrap();
 
-        let (elec, _) = state_model
+        let (elec, elec_unit) = state_model
             .get_energy(&state, BevEnergyModel::EDGE_ENERGY_ELECTRIC, None)
             .expect("test invariant failed");
+
         assert!(elec.as_f64() > 0.0, "elec energy {} should be > 0.0", elec);
 
         let soc = state_model
@@ -407,5 +304,100 @@ mod tests {
             .get_custom_f64(&state, BevEnergyModel::TRIP_SOC)
             .unwrap();
         assert!(battery_percent_soc >= 0.0);
+    }
+
+    fn mock_prediction_model(
+        battery_capacity: (&Energy, &EnergyUnit),
+    ) -> Arc<PredictionModelRecord> {
+        let bat_cap = *battery_capacity.0;
+        let bat_unit = *battery_capacity.1;
+        let model_file_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("model")
+            .join("test")
+            .join("2017_CHEVROLET_Bolt.bin");
+
+        let model_record = load_prediction_model(
+            "Chevy Bolt".to_string(),
+            &model_file_path,
+            ModelType::Interpolate {
+                underlying_model_type: Box::new(ModelType::Smartcore),
+                speed_lower_bound: Speed::from(0.0),
+                speed_upper_bound: Speed::from(100.0),
+                speed_bins: 101,
+                grade_lower_bound: Grade::from(-0.20),
+                grade_upper_bound: Grade::from(0.20),
+                grade_bins: 41,
+            },
+            SpeedUnit::MPH,
+            GradeUnit::Decimal,
+            EnergyRateUnit::KWHPM,
+            Some(EnergyRate::from(0.2)),
+            Some(1.3958),
+            None,
+        )
+        .unwrap();
+        Arc::new(model_record)
+    }
+
+    fn mock_traversal_model(
+        prediction_model_record: Arc<PredictionModelRecord>,
+        starting_soc_percent: f64,
+        battery_capacity: (&Energy, &EnergyUnit),
+    ) -> Arc<dyn TraversalModel> {
+        let bat_cap = *battery_capacity.0;
+        let bat_unit = *battery_capacity.1;
+        let staring_battery_energy: Energy =
+            Energy::from(bat_cap.as_f64() * (starting_soc_percent * 0.01));
+
+        let bev = BevEnergyModel::new(
+            prediction_model_record,
+            (bat_cap, bat_unit),
+            (staring_battery_energy, bat_unit),
+        )
+        .expect("test invariant failed");
+
+        // mock the upstream models via TestTraversalModel
+        let mocked_model = TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed");
+        mocked_model
+    }
+
+    fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
+        let out_f = m.output_features().into_iter().map(|(n, _)| n).join(", ");
+        println!("output features: [{}]", out_f);
+        let state_model = StateModel::empty()
+            .register(m.input_features(), m.output_features())
+            .expect("test invariant failed");
+        println!(
+            "registered state model features: {:?}",
+            state_model.to_vec()
+        );
+        state_model
+    }
+
+    fn state_vector(
+        state_model: &StateModel,
+        distance: (Distance, DistanceUnit),
+        speed: (Speed, SpeedUnit),
+        grade: (Grade, GradeUnit),
+    ) -> Vec<StateVariable> {
+        let mut state = state_model.initial_state().unwrap();
+        state_model
+            .set_distance(
+                &mut state,
+                BevEnergyModel::EDGE_DISTANCE,
+                &distance.0,
+                &distance.1,
+            )
+            .expect("test invariant failed");
+        state_model
+            .set_speed(&mut state, BevEnergyModel::EDGE_SPEED, &speed.0, &speed.1)
+            .expect("test invariant failed");
+        state_model
+            .set_grade(&mut state, BevEnergyModel::EDGE_GRADE, &grade.0, &grade.1)
+            .expect("test invariant failed");
+        let initial = state.iter().map(|v| v.0).join(", ");
+        println!("initial state: [{}]", initial);
+        state
     }
 }
