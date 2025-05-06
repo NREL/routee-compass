@@ -53,7 +53,7 @@ pub fn soc_from_energy(
             energy, me
         ));
     }
-    let soc = energy.as_f64() / me.as_f64();
+    let soc = (energy.as_f64() / me.as_f64()) * 100.0;
     Ok(soc)
 }
 
