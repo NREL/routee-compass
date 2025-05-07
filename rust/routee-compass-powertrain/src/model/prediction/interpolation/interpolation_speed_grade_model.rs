@@ -33,22 +33,22 @@ impl PredictionModel for InterpolationSpeedGradeModel {
         grade_unit.convert(&mut grade_converted, &self.grade_unit)?;
 
         // snap incoming speed and grade to the grid
-        let min_speed = *self.interpolator.data.grid.get(0).map(|s| s.first()).flatten().ok_or_else(|| {
+        let min_speed = *self.interpolator.data.grid.first().and_then(|s| s.first()).ok_or_else(|| {
             TraversalModelError::TraversalModelFailure(
                 "Could not get first speed value from powertrain interpolation result; are x-values empty?".to_string(),
             )
         })?;
-        let max_speed = *self.interpolator.data.grid.get(0).map(|s| s.last()).flatten().ok_or_else(|| {
+        let max_speed = *self.interpolator.data.grid.first().and_then(|s| s.last()).ok_or_else(|| {
             TraversalModelError::TraversalModelFailure(
                 "Could not get last speed value from powertrain interpolation result; are x-values empty?".to_string(),
             )
         })?;
-        let min_grade = *self.interpolator.data.grid.get(1).map(|g| g.first()).flatten().ok_or_else(|| {
+        let min_grade = *self.interpolator.data.grid.get(1).and_then(|g| g.first()).ok_or_else(|| {
             TraversalModelError::TraversalModelFailure(
                 "Could not get first grade value from powertrain interpolation result; are y-values empty?".to_string(),
             )
         })?;
-        let max_grade = *self.interpolator.data.grid.get(1).map(|g| g.last()).flatten().ok_or_else(|| {
+        let max_grade = *self.interpolator.data.grid.get(1).and_then(|g| g.last()).ok_or_else(|| {
             TraversalModelError::TraversalModelFailure(
                 "Could not get last grade value from powertrain interpolation result; are y-values empty?".to_string(),
             )
