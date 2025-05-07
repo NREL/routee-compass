@@ -415,7 +415,6 @@ mod test {
 
         // mock the upstream models via TestTraversalModel
 
-        
         (TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed")) as _
     }
 
