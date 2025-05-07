@@ -1,12 +1,15 @@
+use super::prediction::PredictionModelConfig;
 use crate::model::prediction::PredictionModelRecord;
 use routee_compass_core::model::{
     network::{Edge, Vertex},
     state::{InputFeature, OutputFeature, StateModel, StateVariable},
-    traversal::{TraversalModel, TraversalModelError},
+    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::Energy,
 };
+use serde_json::Value;
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct IceEnergyModel {
     pub prediction_model_record: Arc<PredictionModelRecord>,
 }
@@ -24,6 +27,31 @@ impl IceEnergyModel {
         Ok(Self {
             prediction_model_record: Arc::new(prediction_model_record),
         })
+    }
+}
+
+impl TraversalModelService for IceEnergyModel {
+    fn build(
+        &self,
+        _query: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        Ok(Arc::new(self.clone()))
+    }
+}
+
+impl TryFrom<&Value> for IceEnergyModel {
+    type Error = TraversalModelError;
+
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        let config: PredictionModelConfig = serde_json::from_value(value.clone()).map_err(|e| {
+            TraversalModelError::BuildError(format!(
+                "failure reading prediction model configuration: {}",
+                e
+            ))
+        })?;
+        let prediction_model = PredictionModelRecord::try_from(&config)?;
+        let ice_model = IceEnergyModel::new(prediction_model)?;
+        Ok(ice_model)
     }
 }
 
@@ -108,9 +136,9 @@ fn ice_traversal(
     let (grade, _) = state_model.get_grade(state, IceEnergyModel::EDGE_GRADE, Some(&grade_unit))?;
 
     let (energy, _energy_unit) = prediction_model_record.predict(
-        (speed, speed_unit),
-        (grade, grade_unit),
-        (distance, distance_unit),
+        (speed, &speed_unit),
+        (grade, &grade_unit),
+        (distance, &distance_unit),
     )?;
 
     state_model.add_energy(

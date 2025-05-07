@@ -57,6 +57,29 @@ pub fn soc_from_energy(
     Ok(soc)
 }
 
+/// inspect the user query for a starting_soc_percent value. if provided, compute the
+/// energy value to use as the starting energy for the vehicle. if not provided, return None.
+pub fn get_query_start_energy(
+    query: &serde_json::Value,
+    capacity: &Energy,
+) -> Result<Option<Energy>, TraversalModelError> {
+    let starting_soc_percent = match query.get("starting_soc_percent".to_string()) {
+        Some(soc_string) => soc_string.as_f64().ok_or_else(|| {
+            TraversalModelError::BuildError(
+                "Expected 'starting_soc_percent' value to be numeric".to_string(),
+            )
+        })?,
+        None => return Ok(None),
+    };
+    if !(0.0..=100.0).contains(&starting_soc_percent) {
+        return Err(TraversalModelError::BuildError(
+            "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),
+        ));
+    }
+    let starting_battery_energy = Energy::from(0.01 * starting_soc_percent * capacity.as_f64());
+    Ok(Some(starting_battery_energy))
+}
+
 /// look up the grade from the grade table
 pub fn get_grade(
     grade_table: &Option<Box<[Grade]>>,

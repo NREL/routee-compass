@@ -18,8 +18,8 @@ pub struct SmartcoreSpeedGradeModel {
 impl PredictionModel for SmartcoreSpeedGradeModel {
     fn predict(
         &self,
-        speed: (Speed, SpeedUnit),
-        grade: (Grade, GradeUnit),
+        speed: (Speed, &SpeedUnit),
+        grade: (Grade, &GradeUnit),
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;

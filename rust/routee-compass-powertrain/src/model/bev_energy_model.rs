@@ -1,12 +1,17 @@
-use super::{energy_model_ops, prediction::PredictionModelRecord};
+use super::{
+    energy_model_ops,
+    prediction::{PredictionModelConfig, PredictionModelRecord},
+};
 use routee_compass_core::model::{
     network::{Edge, Vertex},
     state::{CustomFeatureFormat, InputFeature, OutputFeature, StateModel, StateVariable},
-    traversal::{TraversalModel, TraversalModelError},
+    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{Energy, EnergyUnit},
 };
+use serde_json::Value;
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct BevEnergyModel {
     prediction_model_record: Arc<PredictionModelRecord>,
     battery_capacity: (Energy, EnergyUnit),
@@ -35,6 +40,62 @@ impl BevEnergyModel {
             battery_capacity,
             starting_soc,
         })
+    }
+}
+
+impl TraversalModelService for BevEnergyModel {
+    fn build(
+        &self,
+        query: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        let (capacity, capacity_unit) = (self.battery_capacity.0, self.battery_capacity.1);
+        match energy_model_ops::get_query_start_energy(query, &capacity)? {
+            None => Ok(Arc::new(self.clone())),
+            Some(starting_energy) => {
+                let updated = Self::new(
+                    self.prediction_model_record.clone(),
+                    (capacity, capacity_unit),
+                    (starting_energy, capacity_unit),
+                )?;
+                Ok(Arc::new(updated))
+            }
+        }
+    }
+}
+
+impl TryFrom<&Value> for BevEnergyModel {
+    type Error = TraversalModelError;
+
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        let config: PredictionModelConfig = serde_json::from_value(value.clone()).map_err(|e| {
+            TraversalModelError::BuildError(format!(
+                "failure reading prediction model configuration: {}",
+                e
+            ))
+        })?;
+        let prediction_model = PredictionModelRecord::try_from(&config)?;
+        let battery_capacity_conf = value.get(&"battery_capacity").ok_or_else(|| {
+            TraversalModelError::BuildError(String::from("missing key 'battery_capacity'"))
+        })?;
+        let battery_energy_unit_conf = value.get(&"battery_capacity_unit").ok_or_else(|| {
+            TraversalModelError::BuildError(String::from("missing key 'battery_energy_unit'"))
+        })?;
+        let battery_capacity = serde_json::from_value::<Energy>(battery_capacity_conf.clone())
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!("failed to parse battery capacity: {}", e))
+            })?;
+        let battery_energy_unit = serde_json::from_value::<EnergyUnit>(
+            battery_energy_unit_conf.clone(),
+        )
+        .map_err(|e| {
+            TraversalModelError::BuildError(format!("failed to parse battery capacity unit: {}", e))
+        })?;
+        let bev = BevEnergyModel::new(
+            Arc::new(prediction_model),
+            (battery_capacity, battery_energy_unit),
+            (battery_capacity, battery_energy_unit),
+        )?;
+        Ok(bev)
     }
 }
 
@@ -141,9 +202,9 @@ fn bev_traversal(
     let soc = state_model.get_custom_f64(state, BevEnergyModel::TRIP_SOC)?;
 
     let (energy, energy_unit) = prediction_model_record.predict(
-        (speed, speed_unit),
-        (grade, grade_unit),
-        (distance, distance_unit),
+        (speed, &speed_unit),
+        (grade, &grade_unit),
+        (distance, &distance_unit),
     )?;
     let end_soc =
         energy_model_ops::update_soc_percent(&soc, (&energy, &energy_unit), battery_capacity)?;
@@ -167,18 +228,15 @@ fn bev_traversal(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::prediction::{load_prediction_model, ModelType};
+    use crate::model::prediction::{ModelType, PredictionModelConfig};
     use itertools::Itertools;
-    use routee_compass_core::{
-        model::unit::*,
-        test::mock::traversal_model::TestTraversalModel,
-    };
+    use routee_compass_core::{model::unit::*, test::mock::traversal_model::TestTraversalModel};
     use std::path::PathBuf;
 
     #[test]
     fn test_bev_energy_model() {
         let (bat_cap, bat_unit) = (Energy::from(60.0), EnergyUnit::KilowattHours);
-        let record = mock_prediction_model((&bat_cap, &bat_unit));
+        let record = mock_prediction_model();
         let model = mock_traversal_model(record.clone(), 100.0, (&bat_cap, &bat_unit));
         let state_model = state_model(model);
 
@@ -197,7 +255,7 @@ mod tests {
         )
         .unwrap();
 
-        let (elec, elec_unit) = state_model
+        let (elec, _) = state_model
             .get_energy(&state, BevEnergyModel::EDGE_ENERGY_ELECTRIC, None)
             .expect("test invariant failed");
 
@@ -214,7 +272,7 @@ mod tests {
     #[test]
     fn test_bev_energy_model_regen() {
         let (bat_cap, bat_unit) = (Energy::from(60.0), EnergyUnit::KilowattHours);
-        let record = mock_prediction_model((&bat_cap, &bat_unit));
+        let record = mock_prediction_model();
         let model = mock_traversal_model(record.clone(), 20.0, (&bat_cap, &bat_unit));
         let state_model = state_model(model);
 
@@ -253,7 +311,7 @@ mod tests {
     fn test_bev_battery_in_bounds_upper() {
         // starting at 100% SOC, even going downhill with regen, we shouldn't be able to exceed 100%
         let (bat_cap, bat_unit) = (Energy::from(60.0), EnergyUnit::KilowattHours);
-        let record = mock_prediction_model((&bat_cap, &bat_unit));
+        let record = mock_prediction_model();
         let model = mock_traversal_model(record.clone(), 100.0, (&bat_cap, &bat_unit));
         let state_model = state_model(model);
 
@@ -280,7 +338,7 @@ mod tests {
     fn test_bev_battery_in_bounds_lower() {
         // starting at 1% SOC, even going uphill, we shouldn't be able to go below 0%
         let (bat_cap, bat_unit) = (Energy::from(60.0), EnergyUnit::KilowattHours);
-        let record = mock_prediction_model((&bat_cap, &bat_unit));
+        let record = mock_prediction_model();
         let model = mock_traversal_model(record.clone(), 1.0, (&bat_cap, &bat_unit));
         let state_model = state_model(model);
 
@@ -303,20 +361,19 @@ mod tests {
         assert!(battery_percent_soc >= 0.0);
     }
 
-    fn mock_prediction_model(
-        battery_capacity: (&Energy, &EnergyUnit),
-    ) -> Arc<PredictionModelRecord> {
-        let bat_cap = *battery_capacity.0;
-        let bat_unit = *battery_capacity.1;
-        let model_file_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    fn mock_prediction_model() -> Arc<PredictionModelRecord> {
+        // let bat_cap = *battery_capacity.0;
+        // let bat_unit = *battery_capacity.1;
+        let model_file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
             .join("test")
             .join("2017_CHEVROLET_Bolt.bin");
+        let model_filename = model_file_path.to_str().expect("test invariant failed");
 
-        let model_record = load_prediction_model(
+        let model_config = PredictionModelConfig::new(
             "Chevy Bolt".to_string(),
-            &model_file_path,
+            model_filename.to_string(),
             ModelType::Interpolate {
                 underlying_model_type: Box::new(ModelType::Smartcore),
                 speed_lower_bound: Speed::from(0.0),
@@ -332,8 +389,9 @@ mod tests {
             Some(EnergyRate::from(0.2)),
             Some(1.3958),
             None,
-        )
-        .unwrap();
+        );
+        let model_record =
+            PredictionModelRecord::try_from(&model_config).expect("test invariant failed");
         Arc::new(model_record)
     }
 
@@ -355,8 +413,9 @@ mod tests {
         .expect("test invariant failed");
 
         // mock the upstream models via TestTraversalModel
-        
-        (TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed")) as _
+
+        let result = TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed");
+        result
     }
 
     fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
@@ -393,8 +452,6 @@ mod tests {
         state_model
             .set_grade(&mut state, BevEnergyModel::EDGE_GRADE, &grade.0, &grade.1)
             .expect("test invariant failed");
-        let initial = state.iter().map(|v| v.0).join(", ");
-        println!("initial state: [{}]", initial);
         state
     }
 }

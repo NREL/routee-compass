@@ -20,8 +20,8 @@ pub struct InterpolationSpeedGradeModel {
 impl PredictionModel for InterpolationSpeedGradeModel {
     fn predict(
         &self,
-        speed: (Speed, SpeedUnit),
-        grade: (Grade, GradeUnit),
+        speed: (Speed, &SpeedUnit),
+        grade: (Grade, &GradeUnit),
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
@@ -124,9 +124,9 @@ impl InterpolationSpeedGradeModel {
             let mut row: Vec<f64> = Vec::new();
             for grade_value in grade_values.clone().into_iter() {
                 let (energy, _energy_unit) = model.predict(
-                    (Speed::from(speed_value), speed_unit),
-                    (Grade::from(grade_value), grade_unit),
-                    (distance, distance_unit),
+                    (Speed::from(speed_value), &speed_unit),
+                    (Grade::from(grade_value), &grade_unit),
+                    (distance, &distance_unit),
                 )?;
                 row.push(energy.as_f64());
             }
@@ -208,15 +208,15 @@ mod test {
             for grade in -20..20 {
                 let (interp_energy_rate, _energy_rate_unit) = interp_model
                     .predict(
-                        (Speed::from(speed as f64), SpeedUnit::MPH),
-                        (Grade::from(grade as f64), GradeUnit::Percent),
+                        (Speed::from(speed as f64), &SpeedUnit::MPH),
+                        (Grade::from(grade as f64), &GradeUnit::Percent),
                     )
                     .unwrap();
                 let (underlying_energy_rate, _energy_rate_unit) = underlying_model
                     .prediction_model
                     .predict(
-                        (Speed::from(speed as f64), SpeedUnit::MPH),
-                        (Grade::from(grade as f64), GradeUnit::Percent),
+                        (Speed::from(speed as f64), &SpeedUnit::MPH),
+                        (Grade::from(grade as f64), &GradeUnit::Percent),
                     )
                     .unwrap();
 
@@ -229,8 +229,8 @@ mod test {
 
         let (energy_rate, energy_rate_unit) = interp_model
             .predict(
-                (Speed::from(50.0), SpeedUnit::MPH),
-                (Grade::from(0.0), GradeUnit::Percent),
+                (Speed::from(50.0), &SpeedUnit::MPH),
+                (Grade::from(0.0), &GradeUnit::Percent),
             )
             .unwrap();
 

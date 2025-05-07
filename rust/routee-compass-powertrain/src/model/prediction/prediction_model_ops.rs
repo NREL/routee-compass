@@ -109,8 +109,8 @@ pub fn find_min_energy_rate(
         let speed = Speed::from(speed_i32 as f64);
         let (energy_rate, _) = model
             .predict(
-                (speed, speed_unit),
-                (grade, grade_unit),
+                (speed,& speed_unit),
+                (grade, &grade_unit),
             )
             .map_err(|e| TraversalModelError::BuildError(format!("failure while executing grid search for minimum energy rate in prediction model: {}", e)))?;
         if energy_rate < minimum_energy_rate {
