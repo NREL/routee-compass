@@ -36,15 +36,10 @@ fn build_selected_models(
     conf: &serde_json::Value,
     builders: &HashMap<String, Rc<dyn TraversalModelBuilder>>,
 ) -> Result<Arc<dyn TraversalModelService>, TraversalModelError> {
-    let models_val = conf.get("models").ok_or_else(|| {
-        TraversalModelError::BuildError(String::from(
-            "expected key 'models' not found for combined traversal model",
-        ))
-    })?;
-    let models_vec = models_val.as_array().ok_or_else(|| {
+    let models_vec = conf.as_array().ok_or_else(|| {
         TraversalModelError::BuildError(format!(
             "combined traversal model found key 'models' but was not an array, found '{}'",
-            serde_json::to_string(models_val).unwrap_or_default()
+            serde_json::to_string(conf).unwrap_or_default()
         ))
     })?;
     let services: Vec<Arc<dyn TraversalModelService>> = models_vec
