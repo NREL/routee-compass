@@ -72,7 +72,7 @@ impl CostModel {
         }
 
         if weights.iter().sum::<f64>() == 0.0 {
-            return Err(CostModelError::InvalidCostVariables);
+            return Err(CostModelError::InvalidCostVariables(weights));
         }
         Ok(CostModel {
             feature_indices: indices,

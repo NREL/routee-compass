@@ -12,6 +12,6 @@ pub enum CostModelError {
     StateIndexOutOfBounds(usize, String),
     #[error("index {0} for {1} state vector is out of bounds")]
     CostVectorOutOfBounds(usize, String),
-    #[error("invalid cost variables, sum of state variable coefficients must be non-zero")]
-    InvalidCostVariables,
+    #[error("invalid cost variables, sum of state variable coefficients must be non-zero: {0:?}")]
+    InvalidCostVariables(Vec<f64>),
 }
