@@ -16,6 +16,9 @@ pub struct SpeedTraversalModel {
 }
 
 impl SpeedTraversalModel {
+    const EDGE_DISTANCE: &'static str = "edge_distance";
+    const EDGE_SPEED: &'static str = "edge_speed";
+
     pub fn new(
         engine: Arc<SpeedTraversalEngine>,
         speed_limit: Option<(Speed, SpeedUnit)>,
@@ -39,12 +42,15 @@ impl SpeedTraversalModel {
 
 impl TraversalModel for SpeedTraversalModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
-        vec![]
+        vec![(
+            String::from(Self::EDGE_DISTANCE),
+            InputFeature::Distance(None),
+        )]
     }
 
     fn output_features(&self) -> Vec<(String, OutputFeature)> {
         vec![(
-            String::from(super::EDGE_SPEED),
+            String::from(Self::EDGE_SPEED),
             OutputFeature::Speed {
                 speed_unit: self.engine.speed_unit,
                 initial: Speed::ZERO,
@@ -157,9 +163,7 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_seconds_time_unit() {
         let file = filepath();
-        let engine =
-            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Seconds))
-                .unwrap();
+        let engine = SpeedTraversalEngine::new(&file, SpeedUnit::KPH).unwrap();
         let state_model = Arc::new(
             StateModel::empty()
                 .register(
@@ -199,9 +203,7 @@ mod tests {
     #[test]
     fn test_edge_cost_lookup_with_milliseconds_time_unit() {
         let file = filepath();
-        let engine =
-            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Milliseconds))
-                .unwrap();
+        let engine = SpeedTraversalEngine::new(&file, SpeedUnit::KPH).unwrap();
         let state_model = Arc::new(
             StateModel::empty()
                 .register(
@@ -241,10 +243,7 @@ mod tests {
     #[test]
     fn test_speed_limit_enforcement() {
         let file = filepath();
-        let engine = Arc::new(
-            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Seconds))
-                .unwrap(),
-        );
+        let engine = Arc::new(SpeedTraversalEngine::new(&file, SpeedUnit::KPH).unwrap());
 
         // We know from the test data that edge 0 has a speed of 10 kph, so set a limit of 5 kph
         let speed_limit = Some((Speed::from(5.0), SpeedUnit::KPH));
@@ -317,10 +316,7 @@ mod tests {
         let file = filepath();
 
         // Create engine with kilometers per hour as its speed unit
-        let engine = Arc::new(
-            SpeedTraversalEngine::new(&file, SpeedUnit::KPH, None, Some(TimeUnit::Seconds))
-                .unwrap(),
-        );
+        let engine = Arc::new(SpeedTraversalEngine::new(&file, SpeedUnit::KPH).unwrap());
 
         // Set speed limit in miles per hour (5 mph ≈ 8 kph)
         let speed_limit_mph = Some((Speed::from(5.0), SpeedUnit::MPH));
