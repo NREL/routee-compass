@@ -74,10 +74,10 @@ impl TryFrom<&Value> for BevEnergyModel {
             ))
         })?;
         let prediction_model = PredictionModelRecord::try_from(&config)?;
-        let battery_capacity_conf = value.get(&"battery_capacity").ok_or_else(|| {
+        let battery_capacity_conf = value.get("battery_capacity").ok_or_else(|| {
             TraversalModelError::BuildError(String::from("missing key 'battery_capacity'"))
         })?;
-        let battery_energy_unit_conf = value.get(&"battery_capacity_unit").ok_or_else(|| {
+        let battery_energy_unit_conf = value.get("battery_capacity_unit").ok_or_else(|| {
             TraversalModelError::BuildError(String::from("missing key 'battery_energy_unit'"))
         })?;
         let battery_capacity = serde_json::from_value::<Energy>(battery_capacity_conf.clone())
@@ -414,8 +414,8 @@ mod tests {
 
         // mock the upstream models via TestTraversalModel
 
-        let result = TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed");
-        result
+        
+        (TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed")) as _
     }
 
     fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {

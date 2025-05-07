@@ -223,7 +223,7 @@ fn phev_traversal(
         let end_soc = energy_model_ops::update_soc_percent(
             &start_soc,
             (&energy, &energy_unit),
-            (&battery_capacity.0, &battery_capacity.1),
+            (battery_capacity.0, battery_capacity.1),
         )?;
         state_model.set_custom_f64(state, PhevEnergyModel::TRIP_SOC, &end_soc)?;
     } else {
@@ -415,8 +415,8 @@ mod test {
 
         // mock the upstream models via TestTraversalModel
 
-        let result = TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed");
-        result
+        
+        (TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed")) as _
     }
 
     fn mock_prediction_model(model_name: &str) -> Arc<PredictionModelRecord> {

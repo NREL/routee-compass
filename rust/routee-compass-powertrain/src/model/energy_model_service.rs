@@ -2,7 +2,6 @@ use routee_compass_core::model::traversal::{
     TraversalModel, TraversalModelError, TraversalModelService,
 };
 use std::collections::HashMap;
-use std::path::Path;
 use std::sync::Arc;
 
 /// holds a library of vehicle models as TraversalModelServices and selects one

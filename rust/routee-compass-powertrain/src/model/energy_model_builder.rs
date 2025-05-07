@@ -30,7 +30,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 .map_err(|e| {
                     TraversalModelError::BuildError(format!(
                         "vehicle model missing 'name' field: {}",
-                        e.to_string()
+                        e
                     ))
                 })?;
             let vehicle_type = vehicle_config
@@ -38,7 +38,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 .map_err(|e| {
                     TraversalModelError::BuildError(format!(
                         "vehicle model missing 'type' field: {}",
-                        e.to_string()
+                        e
                     ))
                 })?;
             let service: Arc<dyn TraversalModelService> = match vehicle_type.as_str() {
