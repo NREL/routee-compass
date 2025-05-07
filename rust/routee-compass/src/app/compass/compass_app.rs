@@ -653,7 +653,7 @@ mod tests {
         let app = match CompassApp::try_from(conf_file_test.as_path()) {
             Ok(a) => Ok(a),
             Err(CompassAppError::CompassConfigurationError(
-                CompassConfigurationError::FileNormalizationNotFound(_key, _f1, _f2),
+                CompassConfigurationError::FileNormalizationNotFound(..),
             )) => {
                 // could just be the run location, depending on the environment/runner/IDE
                 // try the alternative configuration that runs from the root directory
@@ -667,11 +667,11 @@ mod tests {
             "destination_vertex": 2
         });
         let mut queries = vec![query];
-        let result = app.run(&mut queries, None).unwrap();
+        let result = app.run(&mut queries, None).expect("run failed");
         assert_eq!(result.len(), 1, "expected one result");
         eprintln!("{}", serde_json::to_string_pretty(&result).unwrap());
-        let route_0 = result[0].get("route").unwrap();
-        let path_0 = route_0.get("path").unwrap();
+        let route_0 = result[0].get("route").expect("result has no route");
+        let path_0 = route_0.get("path").expect("result route has no path");
 
         // path [1] is distance-optimal; path [0, 2] is time-optimal
         let expected_path = serde_json::json!(vec![0, 2]);

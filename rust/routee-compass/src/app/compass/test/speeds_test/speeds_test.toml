@@ -6,15 +6,18 @@ verbose = true
 # [mapping]
 # type = "vertex"
 # # tolerance.distance = 15.0
-tolerance.unit = "meters"
+# tolerance.unit = "meters"
 # queries_without_destinations = false
 # # matching_type = ["point", "vertex_id", "edge_id"]
 
 [traversal]
-type = "speed_table"
+type = "combined"
+[[traversal.models]]
+type = "distance"
+[[traversal.models]]
+type = "speed"
 speed_table_input_file = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
 speed_unit = "kph"
-output_time_unit = "hours"
 
 [access]
 type = "no_access_model"

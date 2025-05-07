@@ -21,16 +21,11 @@ use crate::{
             turn_delay_access_model_builder::TurnDelayAccessModelBuilder,
         },
         frontier_model::{
-            combined::combined_builder::CombinedBuilder,
+            combined::combined_builder::CombinedFrontierModelBuilder,
             no_restriction_builder::NoRestrictionBuilder,
             road_class::road_class_builder::RoadClassBuilder,
             turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
             vehicle_restrictions::VehicleRestrictionBuilder,
-        },
-        traversal_model::{
-            // distance_traversal_builder::DistanceTraversalBuilder,
-            energy_model_builder::EnergyModelBuilder,
-            // speed_lookup_builder::SpeedLookupBuilder,
         },
     },
     plugin::{input::InputPluginBuilder, output::OutputPluginBuilder},
@@ -39,12 +34,19 @@ use itertools::Itertools;
 use routee_compass_core::model::{
     access::{default::NoAccessModel, AccessModelBuilder, AccessModelService},
     frontier::{FrontierModelBuilder, FrontierModelService},
-    traversal::{TraversalModelBuilder, TraversalModelService},
+    traversal::{
+        default::{
+            combined::CombinedTraversalBuilder, elevation::ElevationTraversalBuilder,
+            grade::GradeTraversalBuilder, time::TimeTraversalBuilder,
+        },
+        TraversalModelBuilder, TraversalModelService,
+    },
 };
 use routee_compass_core::{
     config::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions},
     model::traversal::default::{distance::DistanceTraversalBuilder, speed::SpeedTraversalBuilder},
 };
+use routee_compass_powertrain::model::EnergyModelBuilder;
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 use super::CompassComponentError;
@@ -74,7 +76,7 @@ use super::CompassComponentError;
 pub struct CompassAppBuilder {
     pub traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
     pub access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>>,
-    pub frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
+    pub frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
     pub input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
     pub output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
 }
@@ -94,7 +96,7 @@ impl CompassAppBuilder {
         CompassAppBuilder {
             traversal_model_builders: HashMap::new(),
             access_model_builders: HashMap::new(),
-            frontier_builders: HashMap::new(),
+            frontier_model_builders: HashMap::new(),
             input_plugin_builders: HashMap::new(),
             output_plugin_builders: HashMap::new(),
         }
@@ -109,7 +111,7 @@ impl CompassAppBuilder {
     }
 
     pub fn add_frontier_model(&mut self, name: String, builder: Rc<dyn FrontierModelBuilder>) {
-        let _ = self.frontier_builders.insert(name, builder);
+        let _ = self.frontier_model_builders.insert(name, builder);
     }
 
     pub fn add_input_plugin(&mut self, name: String, builder: Rc<dyn InputPluginBuilder>) {
@@ -126,9 +128,14 @@ impl CompassAppBuilder {
         &self,
         config: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModelService>, CompassConfigurationError> {
+        // append the combined traversal model builder.
+        let mut builders = self.traversal_model_builders.clone();
+        builders.insert(
+            String::from("combined"),
+            Rc::new(CombinedTraversalBuilder::new(builders.clone())),
+        );
         let tm_type = config.get_config_string(&"type", &"traversal")?;
-        let result = self
-            .traversal_model_builders
+        let result = builders
             .get(&tm_type)
             .ok_or_else(|| {
                 CompassConfigurationError::UnknownModelNameForComponent(
@@ -148,9 +155,14 @@ impl CompassAppBuilder {
         &self,
         config: &serde_json::Value,
     ) -> Result<Arc<dyn AccessModelService>, CompassConfigurationError> {
+        // append the combined access model builder.
+        let mut builders = self.access_model_builders.clone();
+        builders.insert(
+            String::from("combined"),
+            Rc::new(CombinedAccessModelBuilder::new(builders.clone())),
+        );
         let tm_type = config.get_config_string(&"type", &"access")?;
-        let result = self
-            .access_model_builders
+        let result = builders
             .get(&tm_type)
             .ok_or_else(|| {
                 CompassConfigurationError::UnknownModelNameForComponent(
@@ -172,14 +184,20 @@ impl CompassAppBuilder {
         &self,
         config: &serde_json::Value,
     ) -> Result<Arc<dyn FrontierModelService>, CompassConfigurationError> {
+        // append the combined frontier model builder.
+        let mut builders = self.frontier_model_builders.clone();
+        builders.insert(
+            String::from("combined"),
+            Rc::new(CombinedFrontierModelBuilder::new(builders.clone())),
+        );
         let fm_type = config.get_config_string(&"type", &"frontier")?;
-        self.frontier_builders
+        builders
             .get(&fm_type)
             .ok_or_else(|| {
                 CompassConfigurationError::UnknownModelNameForComponent(
                     fm_type.clone(),
                     String::from("frontier"),
-                    self.frontier_builders.keys().join(", "),
+                    self.frontier_model_builders.keys().join(", "),
                 )
             })
             .and_then(|b| {
@@ -250,35 +268,36 @@ impl Default for CompassAppBuilder {
     /// All components present in the routee-compass library are injected here
     /// into a builder instance with their expected `type` keys.
     ///
+    /// The Combined variants which allow stringing together multiple models of
+    /// the same type are automatically made available when constructing an instance of CompassApp.
+    ///
     /// # Returns
     ///
     /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
     fn default() -> Self {
         // Traversal model builders
-        let dist: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceTraversalBuilder {});
+        let distance: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceTraversalBuilder {});
         let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedTraversalBuilder {});
-        let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder::new(
-            HashMap::from([(String::from("speed_table"), speed.clone())]),
-        ));
-        let tm_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> = HashMap::from([
-            (String::from("distance"), dist),
-            (String::from("speed_table"), speed),
-            (String::from("energy_model"), energy),
-        ]);
+        let time: Rc<dyn TraversalModelBuilder> = Rc::new(TimeTraversalBuilder {});
+        let grade: Rc<dyn TraversalModelBuilder> = Rc::new(GradeTraversalBuilder {});
+        let elevation: Rc<dyn TraversalModelBuilder> = Rc::new(ElevationTraversalBuilder {});
+        let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder {});
+        let traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> =
+            HashMap::from([
+                (String::from("distance"), distance),
+                (String::from("speed"), speed),
+                (String::from("time"), time),
+                (String::from("grade"), grade),
+                (String::from("elevation"), elevation),
+                (String::from("energy"), energy),
+            ]);
 
         // Access model builders
         let no_access_model: Rc<dyn AccessModelBuilder> = Rc::new(NoAccessModel {});
         let turn_delay: Rc<dyn AccessModelBuilder> = Rc::new(TurnDelayAccessModelBuilder {});
-        let combined_am: Rc<dyn AccessModelBuilder> = Rc::new(CombinedAccessModelBuilder {
-            builders: HashMap::from([
-                (String::from("no_access_model"), no_access_model.clone()),
-                (String::from("turn_delay"), turn_delay.clone()),
-            ]),
-        });
-        let am_builders: HashMap<String, Rc<dyn AccessModelBuilder>> = HashMap::from([
+        let access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>> = HashMap::from([
             (String::from("no_access_model"), no_access_model),
             (String::from("turn_delay"), turn_delay),
-            (String::from("combined"), combined_am),
         ]);
 
         // Frontier model builders
@@ -287,18 +306,13 @@ impl Default for CompassAppBuilder {
         let turn_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
         let vehicle_restriction: Rc<dyn FrontierModelBuilder> =
             Rc::new(VehicleRestrictionBuilder {});
-        let base_frontier_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
+        let frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
             HashMap::from([
                 (String::from("no_restriction"), no_restriction),
                 (String::from("road_class"), road_class),
                 (String::from("turn_restriction"), turn_restriction),
                 (String::from("vehicle_restriction"), vehicle_restriction),
             ]);
-        let combined = Rc::new(CombinedBuilder {
-            builders: base_frontier_builders.clone(),
-        });
-        let mut all_frontier_builders = base_frontier_builders.clone();
-        all_frontier_builders.insert(String::from("combined"), combined);
 
         // Input plugin builders
         let grid_search: Rc<dyn InputPluginBuilder> = Rc::new(GridSearchBuilder {});
@@ -323,9 +337,9 @@ impl Default for CompassAppBuilder {
         ]);
 
         CompassAppBuilder {
-            traversal_model_builders: tm_builders,
-            access_model_builders: am_builders,
-            frontier_builders: all_frontier_builders,
+            traversal_model_builders,
+            access_model_builders,
+            frontier_model_builders,
             input_plugin_builders,
             output_plugin_builders,
         }
