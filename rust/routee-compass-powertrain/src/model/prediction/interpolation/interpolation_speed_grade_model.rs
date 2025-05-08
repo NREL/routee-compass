@@ -121,7 +121,7 @@ impl InterpolationSpeedGradeModel {
             for j in 0..grade_bins {
                 let (energy, _energy_unit) = model.predict(
                     (Speed::from(speed_values[i]), &speed_unit),
-                    (Grade::from(grade_values[i]), &grade_unit),
+                    (Grade::from(grade_values[j]), &grade_unit),
                     (distance, &distance_unit),
                 )?;
                 values[(i, j)] = energy.as_f64();
