@@ -7,7 +7,6 @@ use crate::model::unit::Cost;
 use itertools::Itertools;
 use serde_json::json;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use std::sync::Arc;
 
 /// implementation of a model for calculating Cost from a state transition.
