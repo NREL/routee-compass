@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use crate::model::{
     state::{StateModel, StateModelError, StateVariable},
+    traversal::default::fieldname,
     unit::{AsF64, Convert, Distance, DistanceUnit, Grade, GradeUnit, UnitError},
 };
 
@@ -41,9 +42,9 @@ impl ElevationChange {
             return Ok(());
         }
         let feature_name = if self.elevation < Distance::ZERO {
-            super::TRIP_ELEVATION_LOSS
+            fieldname::TRIP_ELEVATION_LOSS
         } else {
-            super::TRIP_ELEVATION_GAIN
+            fieldname::TRIP_ELEVATION_GAIN
         };
         state_model.add_distance(state, feature_name, &self.elevation, &self.distance_unit)
     }

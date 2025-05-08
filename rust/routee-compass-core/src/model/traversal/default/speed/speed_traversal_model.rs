@@ -4,6 +4,7 @@ use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::state::{InputFeature, OutputFeature};
+use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::unit::{Convert, SpeedUnit};
 use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
@@ -43,14 +44,14 @@ impl SpeedTraversalModel {
 impl TraversalModel for SpeedTraversalModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
         vec![(
-            String::from(Self::EDGE_DISTANCE),
+            String::from(fieldname::EDGE_DISTANCE),
             InputFeature::Distance(None),
         )]
     }
 
     fn output_features(&self) -> Vec<(String, OutputFeature)> {
         vec![(
-            String::from(Self::EDGE_SPEED),
+            String::from(fieldname::EDGE_SPEED),
             OutputFeature::Speed {
                 speed_unit: self.engine.speed_unit,
                 initial: Speed::ZERO,
@@ -68,7 +69,12 @@ impl TraversalModel for SpeedTraversalModel {
         let (_, edge, _) = trajectory;
         let lookup_speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let speed = apply_speed_limit(lookup_speed, self.speed_limit.as_ref());
-        state_model.add_speed(state, super::EDGE_SPEED, &speed, &self.engine.speed_unit)?;
+        state_model.add_speed(
+            state,
+            fieldname::EDGE_SPEED,
+            &speed,
+            &self.engine.speed_unit,
+        )?;
         Ok(())
     }
 
@@ -83,7 +89,12 @@ impl TraversalModel for SpeedTraversalModel {
             Some((speed_limit, _speed_unit)) => speed_limit,
             None => self.engine.max_speed,
         };
-        state_model.add_speed(state, super::EDGE_SPEED, &speed, &self.engine.speed_unit)?;
+        state_model.add_speed(
+            state,
+            fieldname::EDGE_SPEED,
+            &speed,
+            &self.engine.speed_unit,
+        )?;
 
         Ok(())
     }

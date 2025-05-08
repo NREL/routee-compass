@@ -13,6 +13,3 @@ pub use grade_traversal_builder::GradeTraversalBuilder;
 pub use grade_traversal_engine::GradeTraversalEngine;
 pub use grade_traversal_model::GradeTraversalModel;
 pub use grade_traversal_service::GradeTraversalService;
-
-/// output state feature name for grade state values for a single graph edge
-pub const EDGE_GRADE: &str = "edge_grade";

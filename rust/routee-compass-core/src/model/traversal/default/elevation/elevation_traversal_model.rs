@@ -3,7 +3,7 @@ use std::sync::Arc;
 use crate::model::{
     network::{Edge, Vertex},
     state::{InputFeature, OutputFeature, StateModel, StateVariable},
-    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
+    traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
     unit::{Distance, DistanceUnit, Grade, GradeUnit},
 };
 
@@ -35,11 +35,11 @@ impl TraversalModel for ElevationTraversalModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
         vec![
             (
-                String::from(super::EDGE_DISTANCE),
+                String::from(fieldname::EDGE_DISTANCE),
                 InputFeature::Distance(None),
             ),
             (
-                String::from(super::EDGE_GRADE),
+                String::from(fieldname::EDGE_GRADE),
                 InputFeature::Grade(Some(GradeUnit::Decimal)),
             ),
         ]
@@ -48,14 +48,14 @@ impl TraversalModel for ElevationTraversalModel {
     fn output_features(&self) -> Vec<(String, OutputFeature)> {
         vec![
             (
-                String::from(super::TRIP_ELEVATION_GAIN),
+                String::from(fieldname::TRIP_ELEVATION_GAIN),
                 OutputFeature::Distance {
                     distance_unit: self.distance_unit,
                     initial: Distance::ZERO,
                 },
             ),
             (
-                String::from(super::TRIP_ELEVATION_LOSS),
+                String::from(fieldname::TRIP_ELEVATION_LOSS),
                 OutputFeature::Grade {
                     grade_unit: GradeUnit::Decimal,
                     initial: Grade::ZERO,
@@ -72,9 +72,12 @@ impl TraversalModel for ElevationTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (distance, distance_unit) =
-            state_model.get_distance(state, super::EDGE_DISTANCE, Some(&self.distance_unit))?;
-        let (grade, grade_unit) =
-            state_model.get_grade(state, super::EDGE_GRADE, Some(&super::ELEVATION_GRADE_UNIT))?;
+            state_model.get_distance(state, fieldname::EDGE_DISTANCE, Some(&self.distance_unit))?;
+        let (grade, grade_unit) = state_model.get_grade(
+            state,
+            fieldname::EDGE_GRADE,
+            Some(&super::ELEVATION_GRADE_UNIT),
+        )?;
         let elevation_change =
             ElevationChange::new((&distance, distance_unit), (&grade, grade_unit))?;
         elevation_change.add_elevation_to_state(state, state_model)?;

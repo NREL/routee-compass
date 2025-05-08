@@ -2,7 +2,7 @@ use super::GradeTraversalEngine;
 use crate::model::{
     network::{Edge, Vertex},
     state::{InputFeature, OutputFeature, StateModel, StateVariable},
-    traversal::{TraversalModel, TraversalModelError},
+    traversal::{default::fieldname, TraversalModel, TraversalModelError},
     unit::Grade,
 };
 use std::sync::Arc;
@@ -26,7 +26,7 @@ impl TraversalModel for GradeTraversalModel {
     //
     fn output_features(&self) -> Vec<(String, OutputFeature)> {
         vec![(
-            String::from(super::EDGE_GRADE),
+            String::from(fieldname::EDGE_GRADE),
             OutputFeature::Grade {
                 grade_unit: self.engine.grade_unit,
                 initial: Grade::ZERO,
@@ -42,7 +42,12 @@ impl TraversalModel for GradeTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
         let grade = self.engine.get_grade(edge.edge_id)?;
-        state_model.set_grade(state, super::EDGE_GRADE, &grade, &self.engine.grade_unit)?;
+        state_model.set_grade(
+            state,
+            fieldname::EDGE_GRADE,
+            &grade,
+            &self.engine.grade_unit,
+        )?;
         Ok(())
     }
 

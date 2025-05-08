@@ -4,6 +4,7 @@ use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::state::{InputFeature, OutputFeature};
+use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
 use crate::model::unit::{baseunit, Convert, Distance, DistanceUnit};
@@ -19,8 +20,6 @@ impl DistanceTraversalModel {
     pub fn new(distance_unit: DistanceUnit) -> DistanceTraversalModel {
         DistanceTraversalModel { distance_unit }
     }
-    const TRIP_DISTANCE: &'static str = "trip_distance";
-    const EDGE_DISTANCE: &'static str = "edge_distance";
 }
 
 impl TraversalModel for DistanceTraversalModel {
@@ -38,8 +37,18 @@ impl TraversalModel for DistanceTraversalModel {
         let mut distance = Cow::Borrowed(&edge.distance);
         baseunit::DISTANCE_UNIT.convert(&mut distance, &self.distance_unit)?;
 
-        state_model.set_distance(state, Self::EDGE_DISTANCE, &distance, &self.distance_unit)?;
-        state_model.add_distance(state, Self::TRIP_DISTANCE, &distance, &self.distance_unit)?;
+        state_model.set_distance(
+            state,
+            fieldname::EDGE_DISTANCE,
+            &distance,
+            &self.distance_unit,
+        )?;
+        state_model.add_distance(
+            state,
+            fieldname::TRIP_DISTANCE,
+            &distance,
+            &self.distance_unit,
+        )?;
         Ok(())
     }
 
@@ -59,8 +68,18 @@ impl TraversalModel for DistanceTraversalModel {
                         src, dst, e
                     ))
                 })?;
-        state_model.add_distance(state, Self::TRIP_DISTANCE, &distance, &self.distance_unit)?;
-        state_model.set_distance(state, Self::EDGE_DISTANCE, &distance, &self.distance_unit)?;
+        state_model.add_distance(
+            state,
+            fieldname::TRIP_DISTANCE,
+            &distance,
+            &self.distance_unit,
+        )?;
+        state_model.set_distance(
+            state,
+            fieldname::EDGE_DISTANCE,
+            &distance,
+            &self.distance_unit,
+        )?;
         Ok(())
     }
 
@@ -71,14 +90,14 @@ impl TraversalModel for DistanceTraversalModel {
     fn output_features(&self) -> Vec<(String, OutputFeature)> {
         vec![
             (
-                String::from(Self::TRIP_DISTANCE),
+                String::from(fieldname::TRIP_DISTANCE),
                 OutputFeature::Distance {
                     distance_unit: self.distance_unit,
                     initial: Distance::ZERO,
                 },
             ),
             (
-                String::from(Self::EDGE_DISTANCE),
+                String::from(fieldname::EDGE_DISTANCE),
                 OutputFeature::Distance {
                     distance_unit: self.distance_unit,
                     initial: Distance::ZERO,
