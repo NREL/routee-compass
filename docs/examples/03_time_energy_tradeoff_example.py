@@ -109,7 +109,7 @@ Between 23 and 24 minutes of travel time, the energy consmption decreses signifi
 Let's take a look at what those actual routes look like:
 """
 # %%
-bev_gdf.explore(column="route.traversal_summary.trip_trip_energy_electric")
+bev_gdf.explore(column="route.traversal_summary.trip_energy_electric")
 
 """
 Something that stands out is that the routes that have higher energy consumption use the highway to gain a lower travel time at the expense of increased energy consumption.
