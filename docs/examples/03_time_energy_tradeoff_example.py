@@ -39,10 +39,10 @@ test_cases = [
     {
         "name": f"energy_{i}",
         "weights": {
-            "distance": 0,
-            "time": time_weights[i],
-            "energy_liquid": energy_weights[i],
-            "energy_electric": energy_weights[i],
+            "trip_distance": 0,
+            "trip_time": time_weights[i],
+            "trip_energy_liquid": energy_weights[i],
+            "trip_energy_electric": energy_weights[i],
         },
     }
     for i in range(len(energy_weights))
@@ -72,10 +72,10 @@ bev_query = {
     "destination_y": 39.7867693,
     "model_name": "2017_CHEVROLET_Bolt",
     "vehicle_rates": {
-        "distance": {"type": "factor", "factor": 0.655},
-        "time": {"type": "factor", "factor": 0.5},
-        "energy_liquid": {"type": "factor", "factor": 3.0},
-        "energy_electric": {"type": "factor", "factor": 0.12},
+        "trip_distance": {"type": "factor", "factor": 0.655},
+        "trip_time": {"type": "factor", "factor": 0.5},
+        "trip_energy_liquid": {"type": "factor", "factor": 3.0},
+        "trip_energy_electric": {"type": "factor", "factor": 0.12},
     },
     "grid_search": {
         "test_cases": test_cases,
@@ -90,9 +90,9 @@ With the results, we can convert them into a geodataframe and plot the time vs e
 bev_gdf = results_to_geopandas(bev_results)
 bev_ax = sns.scatterplot(
     data=bev_gdf,
-    x="route.traversal_summary.time",
-    y="route.traversal_summary.energy_electric",
-    hue="request.weights.energy_electric",
+    x="route.traversal_summary.trip_time",
+    y="route.traversal_summary.trip_energy_electric",
+    hue="request.weights.trip_energy_electric",
 )
 bev_ax.set(
     title="2017 Chevy Bolt Time vs Energy",
@@ -109,7 +109,7 @@ Between 23 and 24 minutes of travel time, the energy consmption decreses signifi
 Let's take a look at what those actual routes look like:
 """
 # %%
-bev_gdf.explore(column="route.traversal_summary.energy_electric")
+bev_gdf.explore(column="route.traversal_summary.trip_trip_energy_electric")
 
 """
 Something that stands out is that the routes that have higher energy consumption use the highway to gain a lower travel time at the expense of increased energy consumption.
@@ -125,10 +125,10 @@ ice_query = {
     "destination_y": 39.7867693,
     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
     "vehicle_rates": {
-        "distance": {"type": "factor", "factor": 0.655},
-        "time": {"type": "factor", "factor": 0.5},
-        "energy_liquid": {"type": "factor", "factor": 3.0},
-        "energy_electric": {"type": "factor", "factor": 0.12},
+        "trip_distance": {"type": "factor", "factor": 0.655},
+        "trip_time": {"type": "factor", "factor": 0.5},
+        "trip_energy_liquid": {"type": "factor", "factor": 3.0},
+        "trip_energy_electric": {"type": "factor", "factor": 0.12},
     },
     "grid_search": {
         "test_cases": test_cases,
@@ -142,9 +142,9 @@ ice_gdf = results_to_geopandas(ice_results)
 # ⛏️
 ice_ax = sns.scatterplot(
     data=ice_gdf,
-    x="route.traversal_summary.time",
-    y="route.traversal_summary.energy_liquid",
-    hue="request.weights.energy_liquid",
+    x="route.traversal_summary.trip_time",
+    y="route.traversal_summary.trip_energy_liquid",
+    hue="request.weights.trip_energy_liquid",
 )
 ice_ax.set(
     title="2016 Toyota Corrola Time vs Energy",
@@ -162,7 +162,7 @@ Lastly, let's take a look at the routes for the Toyota Corolla:
 """
 
 # %%
-ice_gdf.explore(column="route.traversal_summary.energy_liquid")
+ice_gdf.explore(column="route.traversal_summary.trip_energy_liquid")
 
 """
 Here we notice, similarly to the Chevy Bolt, that the routes that minimize time and have larger energy consumption use the highway, while the routes that minimize energy consumption use the local roads.
