@@ -49,7 +49,7 @@ impl GradeTraversalEngine {
 
     pub fn get_grade(&self, edge_id: EdgeId) -> Result<Grade, TraversalModelError> {
         match &self.grade_by_edge_id {
-            None => return Ok(Grade::ZERO),
+            None => Ok(Grade::ZERO),
             Some(table) => {
                 let grade: &Grade = table.get(edge_id.as_usize()).ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(format!(
