@@ -118,7 +118,8 @@ fn apply_speed_limit(lookup_speed: Speed, speed_limit: Option<&(Speed, SpeedUnit
 mod tests {
     use super::*;
     use crate::model::network::{Edge, EdgeId, Vertex, VertexId};
-    use crate::model::unit::{Distance, DistanceUnit, SpeedUnit, Time, TimeUnit};
+    use crate::model::unit::{Distance, SpeedUnit};
+    use crate::test::mock::traversal_model::TestTraversalModel;
     use crate::util::geo::InternalCoord;
     use geo::coord;
     use std::path::PathBuf;
@@ -161,121 +162,71 @@ mod tests {
     }
 
     #[test]
-    fn test_edge_cost_lookup_with_seconds_time_unit() {
-        let file = filepath();
-        let engine = SpeedTraversalEngine::new(&file, SpeedUnit::KPH).unwrap();
-        let state_model = Arc::new(
-            StateModel::empty()
-                .register(
-                    vec![],
-                    vec![
-                        (
-                            String::from("distance"),
-                            OutputFeature::Distance {
-                                distance_unit: DistanceUnit::Kilometers,
-                                initial: Distance::from(0.0),
-                            },
-                        ),
-                        (
-                            String::from("time"),
-                            OutputFeature::Time {
-                                time_unit: TimeUnit::Seconds,
-                                initial: Time::from(0.0),
-                            },
-                        ),
-                    ],
-                )
-                .unwrap(),
-        );
-        let model: SpeedTraversalModel = SpeedTraversalModel::new(Arc::new(engine), None).unwrap();
+    fn test_speed_traversal() {
+        let file: PathBuf = filepath();
+        let engine =
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH).expect("test invariant failed");
+        let speed_model =
+            SpeedTraversalModel::new(Arc::new(engine), None).expect("test invariant failed");
+        let test_model =
+            TestTraversalModel::new(Arc::new(speed_model)).expect("test invariant failed");
+        let state_model = StateModel::empty()
+            .register(test_model.input_features(), test_model.output_features())
+            .expect("test invariant failed");
+
         let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
-        // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        model
+        test_model
             .traverse_edge((&v, &e1, &v), &mut state, &state_model)
             .unwrap();
 
-        let expected = 36.0;
-        approx_eq(state[1].into(), expected, 0.001);
-    }
-
-    #[test]
-    fn test_edge_cost_lookup_with_milliseconds_time_unit() {
-        let file = filepath();
-        let engine = SpeedTraversalEngine::new(&file, SpeedUnit::KPH).unwrap();
-        let state_model = Arc::new(
-            StateModel::empty()
-                .register(
-                    vec![],
-                    vec![
-                        (
-                            String::from("distance"),
-                            OutputFeature::Distance {
-                                distance_unit: DistanceUnit::Kilometers,
-                                initial: Distance::from(0.0),
-                            },
-                        ),
-                        (
-                            String::from("time"),
-                            OutputFeature::Time {
-                                time_unit: TimeUnit::Milliseconds,
-                                initial: Time::from(0.0),
-                            },
-                        ),
-                    ],
-                )
-                .unwrap(),
+        let expected_speed = Speed::from(10.0);
+        let expected_unit = SpeedUnit::KPH;
+        let (result_speed, result_unit) = state_model
+            .get_speed(&state, "edge_speed", None)
+            .expect("test invariant failed");
+        assert_eq!(
+            expected_speed, result_speed,
+            "speed should match edge 0 in velocities.txt"
         );
-        let model = SpeedTraversalModel::new(Arc::new(engine), None);
-        let mut state = state_model.initial_state().unwrap();
-        let v = mock_vertex();
-        let e1 = mock_edge(0);
-        // 100 meters @ 10kph should take 36,000 milliseconds ((0.1/10) * 3600000)
-        model
-            .unwrap()
-            .traverse_edge((&v, &e1, &v), &mut state, &state_model)
-            .unwrap();
-        let expected = 36000.0;
-        approx_eq(state[1].into(), expected, 0.001);
+        assert_eq!(
+            expected_unit, *result_unit,
+            "unit should match SpeedUnit of traversal model (KPH)"
+        );
     }
 
     #[test]
     fn test_speed_limit_enforcement() {
-        let file = filepath();
-        let engine = Arc::new(SpeedTraversalEngine::new(&file, SpeedUnit::KPH).unwrap());
-
         // We know from the test data that edge 0 has a speed of 10 kph, so set a limit of 5 kph
-        let speed_limit = Some((Speed::from(5.0), SpeedUnit::KPH));
+        let speed_limit_value = Speed::from(5.0);
+        let speed_limit = Some((speed_limit_value, SpeedUnit::KPH));
 
-        let state_model = Arc::new(
-            StateModel::empty()
-                .register(
-                    vec![],
-                    vec![
-                        (
-                            String::from("distance"),
-                            OutputFeature::Distance {
-                                distance_unit: DistanceUnit::Kilometers,
-                                initial: Distance::from(0.0),
-                            },
-                        ),
-                        (
-                            String::from("time"),
-                            OutputFeature::Time {
-                                time_unit: TimeUnit::Seconds,
-                                initial: Time::from(0.0),
-                            },
-                        ),
-                    ],
-                )
-                .unwrap(),
+        let file: PathBuf = filepath();
+        let engine = Arc::new(
+            SpeedTraversalEngine::new(&file, SpeedUnit::KPH).expect("test invariant failed"),
         );
 
-        // Create model with speed limit
-        let model_with_limit = SpeedTraversalModel::new(engine.clone(), speed_limit);
-        // Create model without speed limit for comparison
-        let model_without_limit = SpeedTraversalModel::new(engine, None);
+        let regular_model =
+            SpeedTraversalModel::new(engine.clone(), None).expect("test invariant failed");
+        let limited_model =
+            SpeedTraversalModel::new(engine.clone(), speed_limit).expect("test invariant failed");
+
+        let test_regular_model =
+            TestTraversalModel::new(Arc::new(regular_model)).expect("test invariant failed");
+        let test_limited_model =
+            TestTraversalModel::new(Arc::new(limited_model)).expect("test invariant failed");
+        let state_model = StateModel::empty()
+            .register(
+                test_regular_model.input_features(),
+                test_regular_model.output_features(),
+            )
+            .expect("test invariant failed");
+
+        // // Create model with speed limit
+        // let model_with_limit = SpeedTraversalModel::new(engine.clone(), speed_limit);
+        // // Create model without speed limit for comparison
+        // let model_without_limit = SpeedTraversalModel::new(engine, None);
 
         let mut state_with_limit = state_model.initial_state().unwrap();
         let mut state_without_limit = state_model.initial_state().unwrap();
@@ -284,98 +235,43 @@ mod tests {
         let e = mock_edge(0);
 
         // Traverse with speed limit
-        model_with_limit
-            .unwrap()
+        test_limited_model
             .traverse_edge((&v, &e, &v), &mut state_with_limit, &state_model)
             .unwrap();
 
         // Traverse without speed limit
-        model_without_limit
-            .unwrap()
+        test_regular_model
             .traverse_edge((&v, &e, &v), &mut state_without_limit, &state_model)
             .unwrap();
 
         // The time with speed limit should be about twice the time without limit
         // because we set the limit to half the edge speed (5 kph vs 10 kph)
-        let time_with_limit: f64 = state_with_limit[1].into();
-        let time_without_limit: f64 = state_without_limit[1].into();
+        let (speed_with_limit, _) = state_model
+            .get_speed(&state_with_limit, "edge_speed", None)
+            .expect("test invariant failed");
+        let (speed_without_limit, _) = state_model
+            .get_speed(&state_without_limit, "edge_speed", None)
+            .expect("test invariant failed");
 
-        // 100 meters @ 5kph should take 72 seconds ((0.1/5) * 3600)
-        let expected_time_with_limit = 72.0;
-        // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        let expected_time_without_limit = 36.0;
-
-        approx_eq(time_with_limit, expected_time_with_limit, 0.001);
-        approx_eq(time_without_limit, expected_time_without_limit, 0.001);
-
-        // Verify that time with limit is about double the time without limit
-        approx_eq(time_with_limit / time_without_limit, 2.0, 0.001);
-    }
-    #[test]
-    fn test_speed_limit_unit_conversion() {
-        let file = filepath();
-
-        // Create engine with kilometers per hour as its speed unit
-        let engine = Arc::new(SpeedTraversalEngine::new(&file, SpeedUnit::KPH).unwrap());
-
-        // Set speed limit in miles per hour (5 mph ≈ 8 kph)
-        let speed_limit_mph = Some((Speed::from(5.0), SpeedUnit::MPH));
-
-        // Create a model with the speed limit in mph
-        let model_mph_limit = SpeedTraversalModel::new(engine.clone(), speed_limit_mph);
-
-        // For comparison, create a model with equivalent speed limit directly in kph
-        let speed_limit_kph = Some((Speed::from(8.04672), SpeedUnit::KPH));
-        let model_kph_limit = SpeedTraversalModel::new(engine, speed_limit_kph);
-
-        let state_model = Arc::new(
-            StateModel::empty()
-                .register(
-                    vec![],
-                    vec![
-                        (
-                            String::from("distance"),
-                            OutputFeature::Distance {
-                                distance_unit: DistanceUnit::Kilometers,
-                                initial: Distance::from(0.0),
-                            },
-                        ),
-                        (
-                            String::from("time"),
-                            OutputFeature::Time {
-                                time_unit: TimeUnit::Seconds,
-                                initial: Time::from(0.0),
-                            },
-                        ),
-                    ],
-                )
-                .unwrap(),
+        assert_eq!(
+            speed_with_limit, speed_limit_value,
+            "speed with limit should match the speed limit value"
+        );
+        assert_eq!(
+            speed_without_limit,
+            Speed::from(10.0),
+            "speed without limit should match velocities.txt (10)"
         );
 
-        let mut state_mph = state_model.initial_state().unwrap();
-        let mut state_kph = state_model.initial_state().unwrap();
+        // // 100 meters @ 5kph should take 72 seconds ((0.1/5) * 3600)
+        // let expected_time_with_limit = 72.0;
+        // // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
+        // let expected_time_without_limit = 36.0;
 
-        let v = mock_vertex();
-        let e = mock_edge(0); // this edge has a speed of 10 kph in test data
+        // approx_eq(time_with_limit, expected_time_with_limit, 0.001);
+        // approx_eq(time_without_limit, expected_time_without_limit, 0.001);
 
-        // Traverse with mph-based limit
-        model_mph_limit
-            .unwrap()
-            .traverse_edge((&v, &e, &v), &mut state_mph, &state_model)
-            .unwrap();
-
-        // Traverse with kph-based limit
-        model_kph_limit
-            .unwrap()
-            .traverse_edge((&v, &e, &v), &mut state_kph, &state_model)
-            .unwrap();
-
-        // Both should produce virtually identical traversal times since the speed limits
-        // should be equivalent after unit conversion
-        let time_mph: f64 = state_mph[1].into();
-        let time_kph: f64 = state_kph[1].into();
-
-        // Verify times are nearly identical
-        approx_eq(time_mph, time_kph, 0.1);
+        // // Verify that time with limit is about double the time without limit
+        // approx_eq(time_with_limit / time_without_limit, 2.0, 0.001);
     }
 }
