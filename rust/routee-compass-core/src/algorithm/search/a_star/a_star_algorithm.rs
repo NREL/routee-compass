@@ -388,11 +388,11 @@ mod tests {
     use crate::model::network::graph::Graph;
     use crate::model::network::Edge;
     use crate::model::network::Vertex;
-    use crate::model::state::OutputFeature;
     use crate::model::state::StateModel;
     use crate::model::termination::TerminationModel;
     use crate::model::traversal::default::distance::DistanceTraversalModel;
-    use crate::model::unit::{Distance, DistanceUnit};
+    use crate::model::traversal::TraversalModel;
+    use crate::model::unit::DistanceUnit;
     use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
     use rayon::prelude::*;
     use std::sync::Arc;
@@ -481,28 +481,23 @@ mod tests {
 
         let graph = Arc::new(build_mock_graph());
         let map_model = Arc::new(MapModel::new(graph.clone(), MapModelConfig::default()).unwrap());
+        let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters));
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
         let state_model = Arc::new(
             StateModel::empty()
                 .register(
-                    vec![],
-                    vec![(
-                        String::from("distance"),
-                        OutputFeature::Distance {
-                            distance_unit: DistanceUnit::Kilometers,
-                            initial: Distance::from(0.0),
-                        },
-                    )],
+                    traversal_model.clone().input_features(),
+                    traversal_model.clone().output_features(),
                 )
                 .unwrap(),
         );
         let cost_model = CostModel::new(
             // vec![(String::from("distance"), 0usize)],
-            Arc::new(HashMap::from([(String::from("distance"), 1.0)])),
+            Arc::new(HashMap::from([(String::from("trip_distance"), 1.0)])),
             Arc::new(HashMap::from([(
-                String::from("distance"),
+                String::from("trip_distance"),
                 VehicleCostRate::Raw,
             )])),
             Arc::new(HashMap::new()),
@@ -514,7 +509,7 @@ mod tests {
             graph,
             map_model,
             state_model: state_model.clone(),
-            traversal_model: Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters)),
+            traversal_model: traversal_model.clone(),
             access_model: Arc::new(NoAccessModel {}),
             cost_model: Arc::new(cost_model),
             frontier_model: Arc::new(NoRestriction {}),
