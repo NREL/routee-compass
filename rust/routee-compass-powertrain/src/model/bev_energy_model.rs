@@ -1,3 +1,5 @@
+use crate::model::fieldname;
+
 use super::{
     energy_model_ops,
     prediction::{PredictionModelConfig, PredictionModelRecord},
@@ -19,13 +21,6 @@ pub struct BevEnergyModel {
 }
 
 impl BevEnergyModel {
-    const EDGE_ENERGY_ELECTRIC: &'static str = "edge_energy_electric";
-    const TRIP_ENERGY_ELECTRIC: &'static str = "trip_energy_electric";
-    const EDGE_DISTANCE: &'static str = "edge_distance";
-    const EDGE_SPEED: &'static str = "edge_speed";
-    const EDGE_GRADE: &'static str = "edge_grade";
-    const TRIP_SOC: &'static str = "trip_soc";
-
     pub fn new(
         prediction_model_record: Arc<PredictionModelRecord>,
         battery_capacity: (Energy, EnergyUnit),
@@ -103,7 +98,7 @@ impl TraversalModel for BevEnergyModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
         vec![
             (
-                String::from(Self::EDGE_DISTANCE),
+                String::from(fieldname::EDGE_DISTANCE),
                 InputFeature::Distance(Some(
                     self.prediction_model_record
                         .speed_unit
@@ -111,11 +106,11 @@ impl TraversalModel for BevEnergyModel {
                 )),
             ),
             (
-                String::from(Self::EDGE_SPEED),
+                String::from(fieldname::EDGE_SPEED),
                 InputFeature::Speed(Some(self.prediction_model_record.speed_unit)),
             ),
             (
-                String::from(Self::EDGE_GRADE),
+                String::from(fieldname::EDGE_GRADE),
                 InputFeature::Grade(Some(self.prediction_model_record.grade_unit)),
             ),
         ]
@@ -128,21 +123,21 @@ impl TraversalModel for BevEnergyModel {
             .associated_energy_unit();
         vec![
             (
-                String::from(Self::TRIP_ENERGY_ELECTRIC),
+                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
                 },
             ),
             (
-                String::from(Self::EDGE_ENERGY_ELECTRIC),
+                String::from(fieldname::EDGE_ENERGY_ELECTRIC),
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
                 },
             ),
             (
-                String::from(Self::TRIP_SOC),
+                String::from(fieldname::TRIP_SOC),
                 OutputFeature::Custom {
                     r#type: String::from("soc"),
                     unit: String::from("Percent"),
@@ -196,10 +191,10 @@ fn bev_traversal(
     let grade_unit = prediction_model_record.grade_unit;
 
     let (distance, _) =
-        state_model.get_distance(state, BevEnergyModel::EDGE_DISTANCE, Some(&distance_unit))?;
-    let (speed, _) = state_model.get_speed(state, BevEnergyModel::EDGE_SPEED, Some(&speed_unit))?;
-    let (grade, _) = state_model.get_grade(state, BevEnergyModel::EDGE_GRADE, Some(&grade_unit))?;
-    let soc = state_model.get_custom_f64(state, BevEnergyModel::TRIP_SOC)?;
+        state_model.get_distance(state, fieldname::EDGE_DISTANCE, Some(&distance_unit))?;
+    let (speed, _) = state_model.get_speed(state, fieldname::EDGE_SPEED, Some(&speed_unit))?;
+    let (grade, _) = state_model.get_grade(state, fieldname::EDGE_GRADE, Some(&grade_unit))?;
+    let soc = state_model.get_custom_f64(state, fieldname::TRIP_SOC)?;
 
     let (energy, energy_unit) = prediction_model_record.predict(
         (speed, &speed_unit),
@@ -211,17 +206,17 @@ fn bev_traversal(
 
     state_model.add_energy(
         state,
-        BevEnergyModel::TRIP_ENERGY_ELECTRIC,
+        fieldname::TRIP_ENERGY_ELECTRIC,
         &energy,
         &energy_unit,
     )?;
     state_model.set_energy(
         state,
-        BevEnergyModel::EDGE_ENERGY_ELECTRIC,
+        fieldname::EDGE_ENERGY_ELECTRIC,
         &energy,
         &energy_unit,
     )?;
-    state_model.set_custom_f64(state, BevEnergyModel::TRIP_SOC, &end_soc)?;
+    state_model.set_custom_f64(state, fieldname::TRIP_SOC, &end_soc)?;
     Ok(())
 }
 
@@ -256,13 +251,13 @@ mod tests {
         .unwrap();
 
         let (elec, _) = state_model
-            .get_energy(&state, BevEnergyModel::EDGE_ENERGY_ELECTRIC, None)
+            .get_energy(&state, fieldname::EDGE_ENERGY_ELECTRIC, None)
             .expect("test invariant failed");
 
         assert!(elec.as_f64() > 0.0, "elec energy {} should be > 0.0", elec);
 
         let soc = state_model
-            .get_custom_f64(&state, BevEnergyModel::TRIP_SOC)
+            .get_custom_f64(&state, fieldname::TRIP_SOC)
             .unwrap();
 
         assert!(soc < 60.0, "soc {} should be < 60.0%", soc);
@@ -292,7 +287,7 @@ mod tests {
         .unwrap();
 
         let (elec, _) = state_model
-            .get_energy(&state, BevEnergyModel::EDGE_ENERGY_ELECTRIC, None)
+            .get_energy(&state, fieldname::EDGE_ENERGY_ELECTRIC, None)
             .expect("test invariant failed");
         assert!(
             elec.as_f64() < 0.0,
@@ -301,7 +296,7 @@ mod tests {
         );
 
         let soc = state_model
-            .get_custom_f64(&state, BevEnergyModel::TRIP_SOC)
+            .get_custom_f64(&state, fieldname::TRIP_SOC)
             .unwrap();
         assert!(soc > 20.0, "soc {} should be > 20.0", soc);
         assert!(soc < 30.0, "soc {} should be < 30.0", soc);
@@ -329,7 +324,7 @@ mod tests {
         .unwrap();
 
         let battery_percent_soc = state_model
-            .get_custom_f64(&state, BevEnergyModel::TRIP_SOC)
+            .get_custom_f64(&state, fieldname::TRIP_SOC)
             .unwrap();
         assert!(battery_percent_soc <= 100.0);
     }
@@ -356,7 +351,7 @@ mod tests {
         .unwrap();
 
         let battery_percent_soc = state_model
-            .get_custom_f64(&state, BevEnergyModel::TRIP_SOC)
+            .get_custom_f64(&state, fieldname::TRIP_SOC)
             .unwrap();
         assert!(battery_percent_soc >= 0.0);
     }
@@ -440,16 +435,16 @@ mod tests {
         state_model
             .set_distance(
                 &mut state,
-                BevEnergyModel::EDGE_DISTANCE,
+                fieldname::EDGE_DISTANCE,
                 &distance.0,
                 &distance.1,
             )
             .expect("test invariant failed");
         state_model
-            .set_speed(&mut state, BevEnergyModel::EDGE_SPEED, &speed.0, &speed.1)
+            .set_speed(&mut state, fieldname::EDGE_SPEED, &speed.0, &speed.1)
             .expect("test invariant failed");
         state_model
-            .set_grade(&mut state, BevEnergyModel::EDGE_GRADE, &grade.0, &grade.1)
+            .set_grade(&mut state, fieldname::EDGE_GRADE, &grade.0, &grade.1)
             .expect("test invariant failed");
         state
     }

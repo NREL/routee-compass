@@ -1,3 +1,5 @@
+use crate::model::fieldname;
+
 use super::{
     energy_model_ops,
     prediction::{PredictionModelConfig, PredictionModelRecord},
@@ -23,15 +25,6 @@ pub struct PhevEnergyModel {
 }
 
 impl PhevEnergyModel {
-    const EDGE_ENERGY_LIQUID: &'static str = "edge_energy_liquid";
-    const TRIP_ENERGY_LIQUID: &'static str = "trip_energy_liquid";
-    const EDGE_ENERGY_ELECTRIC: &'static str = "edge_energy_electric";
-    const TRIP_ENERGY_ELECTRIC: &'static str = "trip_energy_electric";
-    const EDGE_DISTANCE: &'static str = "edge_distance";
-    const EDGE_SPEED: &'static str = "edge_speed";
-    const EDGE_GRADE: &'static str = "edge_grade";
-    const TRIP_SOC: &'static str = "trip_soc";
-
     pub fn new(
         charge_sustain_model: Arc<PredictionModelRecord>,
         charge_depleting_model: Arc<PredictionModelRecord>,
@@ -106,11 +99,17 @@ impl TraversalModel for PhevEnergyModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
         vec![
             (
-                String::from(Self::EDGE_DISTANCE),
+                String::from(fieldname::EDGE_DISTANCE),
                 InputFeature::Distance(None),
             ),
-            (String::from(Self::EDGE_SPEED), InputFeature::Speed(None)),
-            (String::from(Self::EDGE_GRADE), InputFeature::Grade(None)),
+            (
+                String::from(fieldname::EDGE_SPEED),
+                InputFeature::Speed(None),
+            ),
+            (
+                String::from(fieldname::EDGE_GRADE),
+                InputFeature::Grade(None),
+            ),
         ]
     }
 
@@ -131,23 +130,23 @@ impl TraversalModel for PhevEnergyModel {
         };
         vec![
             (
-                String::from(Self::TRIP_ENERGY_LIQUID),
+                String::from(fieldname::TRIP_ENERGY_LIQUID),
                 liquid_energy_feature.clone(),
             ),
             (
-                String::from(Self::EDGE_ENERGY_LIQUID),
+                String::from(fieldname::EDGE_ENERGY_LIQUID),
                 liquid_energy_feature.clone(),
             ),
             (
-                String::from(Self::TRIP_ENERGY_ELECTRIC),
+                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
                 electric_energy_feature.clone(),
             ),
             (
-                String::from(Self::EDGE_ENERGY_ELECTRIC),
+                String::from(fieldname::EDGE_ENERGY_ELECTRIC),
                 electric_energy_feature.clone(),
             ),
             (
-                String::from(Self::TRIP_SOC),
+                String::from(fieldname::TRIP_SOC),
                 OutputFeature::Custom {
                     r#type: String::from("soc"),
                     unit: String::from("Percent"),
@@ -181,12 +180,12 @@ impl TraversalModel for PhevEnergyModel {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let distance = state_model.get_distance(state, Self::EDGE_DISTANCE, None)?;
-        let speed = state_model.get_speed(state, Self::EDGE_SPEED, None)?;
-        let grade = state_model.get_grade(state, Self::EDGE_GRADE, None)?;
+        let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
+        let speed = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
+        let grade = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
         let (energy, energy_unit) = self.charge_sustain_model.predict(speed, grade, distance)?;
-        state_model.set_energy(state, Self::EDGE_ENERGY_LIQUID, &energy, &energy_unit)?;
-        state_model.add_energy(state, Self::TRIP_ENERGY_LIQUID, &energy, &energy_unit)?;
+        state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy, &energy_unit)?;
+        state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy, &energy_unit)?;
         Ok(())
     }
 }
@@ -201,22 +200,22 @@ fn phev_traversal(
     charge_sustaining_model: Arc<PredictionModelRecord>,
     battery_capacity: (&Energy, &EnergyUnit),
 ) -> Result<(), TraversalModelError> {
-    let distance = state_model.get_distance(state, PhevEnergyModel::EDGE_DISTANCE, None)?;
-    let speed = state_model.get_speed(state, PhevEnergyModel::EDGE_SPEED, None)?;
-    let grade = state_model.get_grade(state, PhevEnergyModel::EDGE_GRADE, None)?;
-    let start_soc = state_model.get_custom_f64(state, PhevEnergyModel::TRIP_SOC)?;
+    let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
+    let speed = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
+    let grade = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
+    let start_soc = state_model.get_custom_f64(state, fieldname::TRIP_SOC)?;
     if start_soc > 0.0 {
         // use electric model
         let (energy, energy_unit) = charge_depleting_model.predict(speed, grade, distance)?;
         state_model.set_energy(
             state,
-            PhevEnergyModel::EDGE_ENERGY_ELECTRIC,
+            fieldname::EDGE_ENERGY_ELECTRIC,
             &energy,
             &energy_unit,
         )?;
         state_model.add_energy(
             state,
-            PhevEnergyModel::TRIP_ENERGY_ELECTRIC,
+            fieldname::TRIP_ENERGY_ELECTRIC,
             &energy,
             &energy_unit,
         )?;
@@ -225,21 +224,11 @@ fn phev_traversal(
             (&energy, &energy_unit),
             (battery_capacity.0, battery_capacity.1),
         )?;
-        state_model.set_custom_f64(state, PhevEnergyModel::TRIP_SOC, &end_soc)?;
+        state_model.set_custom_f64(state, fieldname::TRIP_SOC, &end_soc)?;
     } else {
         let (energy, energy_unit) = charge_sustaining_model.predict(speed, grade, distance)?;
-        state_model.set_energy(
-            state,
-            PhevEnergyModel::EDGE_ENERGY_LIQUID,
-            &energy,
-            &energy_unit,
-        )?;
-        state_model.add_energy(
-            state,
-            PhevEnergyModel::TRIP_ENERGY_LIQUID,
-            &energy,
-            &energy_unit,
-        )?;
+        state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy, &energy_unit)?;
+        state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy, &energy_unit)?;
     };
     Ok(())
 }
@@ -248,6 +237,7 @@ fn phev_traversal(
 mod test {
     use super::PhevEnergyModel;
     use crate::model::{
+        fieldname,
         phev_energy_model::phev_traversal,
         prediction::{ModelType, PredictionModelConfig, PredictionModelRecord},
     };
@@ -296,20 +286,20 @@ mod test {
         let (elec, _) = state_model
             .get_energy(
                 &state,
-                PhevEnergyModel::EDGE_ENERGY_ELECTRIC,
+                fieldname::EDGE_ENERGY_ELECTRIC,
                 Some(&EnergyUnit::KilowattHours),
             )
             .expect("test invariant failed");
         let (liquid, _) = state_model
             .get_energy(
                 &state,
-                PhevEnergyModel::EDGE_ENERGY_LIQUID,
+                fieldname::EDGE_ENERGY_LIQUID,
                 Some(&EnergyUnit::GallonsGasoline),
             )
             .expect("test invariant failed");
 
         let soc = state_model
-            .get_custom_f64(&state, PhevEnergyModel::TRIP_SOC)
+            .get_custom_f64(&state, fieldname::TRIP_SOC)
             .expect("test invariant failed");
         assert!(elec.as_f64() > 0.0, "elec energy {} should be > 0", elec);
         assert!(
@@ -353,20 +343,20 @@ mod test {
         let (elec, _) = state_model
             .get_energy(
                 &state,
-                PhevEnergyModel::EDGE_ENERGY_ELECTRIC,
+                fieldname::EDGE_ENERGY_ELECTRIC,
                 Some(&EnergyUnit::KilowattHours),
             )
             .expect("test invariant failed");
         let (liquid, _) = state_model
             .get_energy(
                 &state,
-                PhevEnergyModel::EDGE_ENERGY_LIQUID,
+                fieldname::EDGE_ENERGY_LIQUID,
                 Some(&EnergyUnit::GallonsGasoline),
             )
             .expect("test invariant failed");
 
         let soc = state_model
-            .get_custom_f64(&state, PhevEnergyModel::TRIP_SOC)
+            .get_custom_f64(&state, fieldname::TRIP_SOC)
             .expect("test invariant failed");
 
         assert!(elec > Energy::ZERO, "elec energy {} should be > 0", elec);
@@ -386,7 +376,7 @@ mod test {
         let (liquid_energy_2, _) = state_model
             .get_energy(
                 &state,
-                PhevEnergyModel::EDGE_ENERGY_LIQUID,
+                fieldname::EDGE_ENERGY_LIQUID,
                 Some(&EnergyUnit::GallonsGasoline),
             )
             .expect("test invariant failed");
@@ -473,16 +463,16 @@ mod test {
         state_model
             .set_distance(
                 &mut state,
-                PhevEnergyModel::EDGE_DISTANCE,
+                fieldname::EDGE_DISTANCE,
                 &distance.0,
                 &distance.1,
             )
             .expect("test invariant failed");
         state_model
-            .set_speed(&mut state, PhevEnergyModel::EDGE_SPEED, &speed.0, &speed.1)
+            .set_speed(&mut state, fieldname::EDGE_SPEED, &speed.0, &speed.1)
             .expect("test invariant failed");
         state_model
-            .set_grade(&mut state, PhevEnergyModel::EDGE_GRADE, &grade.0, &grade.1)
+            .set_grade(&mut state, fieldname::EDGE_GRADE, &grade.0, &grade.1)
             .expect("test invariant failed");
         state
     }
