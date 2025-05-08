@@ -37,6 +37,8 @@ impl TraversalModel for DistanceTraversalModel {
         let (_, edge, _) = trajectory;
         let mut distance = Cow::Borrowed(&edge.distance);
         baseunit::DISTANCE_UNIT.convert(&mut distance, &self.distance_unit)?;
+
+        state_model.set_distance(state, Self::EDGE_DISTANCE, &distance, &self.distance_unit)?;
         state_model.add_distance(state, Self::TRIP_DISTANCE, &distance, &self.distance_unit)?;
         Ok(())
     }

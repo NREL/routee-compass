@@ -4,8 +4,10 @@ use crate::model::network::Edge;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::unit::Cost;
+use itertools::Itertools;
 use serde_json::json;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::sync::Arc;
 
 /// implementation of a model for calculating Cost from a state transition.
@@ -50,6 +52,17 @@ impl CostModel {
         cost_aggregation: CostAggregation,
         state_model: Arc<StateModel>,
     ) -> Result<CostModel, CostModelError> {
+        let ignored_weights = weights_mapping
+            .keys()
+            .filter(|k| !state_model.contains_key(k))
+            .collect_vec();
+        if !ignored_weights.is_empty() {
+            return Err(CostModelError::InvalidWeightNames(
+                ignored_weights.iter().map(|k| k.to_string()).collect(),
+                state_model.keys().cloned().collect_vec(),
+            ));
+        }
+
         let mut indices = vec![];
         let mut weights = vec![];
         let mut vehicle_rates = vec![];

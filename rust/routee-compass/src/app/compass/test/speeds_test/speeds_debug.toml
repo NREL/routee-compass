@@ -14,10 +14,14 @@ verbose = true
 type = "combined"
 [[traversal.models]]
 type = "distance"
+distance_unit = "miles"
 [[traversal.models]]
 type = "speed"
-speed_table_input_file = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
+speed_table_input_file = "routee-compass/src/app/compass/test/speeds_test/test_edge_speeds.csv"
 speed_unit = "kph"
+[[traversal.models]]
+type = "time"
+time_unit = "minutes"
 
 [access]
 type = "no_access_model"
@@ -25,11 +29,11 @@ type = "no_access_model"
 [cost]
 cost_aggregation = "sum"
 [cost.weights]
-distance = 0
-time = 1
-[cost.vehicle_rates.time]
+trip_distance = 0
+trip_time = 1
+[cost.vehicle_rates.trip_time]
 type = "raw"
-[cost.vehicle_rates.distance]
+[cost.vehicle_rates.trip_distance]
 type = "raw"
 
 [plugin]

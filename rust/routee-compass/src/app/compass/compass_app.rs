@@ -622,7 +622,7 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
-    fn test_speeds() {
+    fn test_e2e_dist_speed_time_traversal() {
         // let cwd_str = match std::env::current_dir() {
         //     Ok(cwd_path) => String::from(cwd_path.to_str().unwrap_or("<unknown>")),
         //     _ => String::from("<unknown>"),

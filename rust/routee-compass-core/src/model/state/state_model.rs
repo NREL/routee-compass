@@ -114,6 +114,10 @@ impl StateModel {
         self.0.contains_key(k)
     }
 
+    pub fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a String> + 'a> {
+        self.0.keys()
+    }
+
     /// collects the state model tuples and clones them so they can
     /// be used to build other collections
     pub fn to_vec(&self) -> Vec<(String, IndexedEntry<OutputFeature>)> {
