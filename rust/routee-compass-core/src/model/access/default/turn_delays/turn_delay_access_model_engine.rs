@@ -8,7 +8,6 @@ use crate::model::unit::{Time, TimeUnit};
 pub struct TurnDelayAccessModelEngine {
     pub edge_headings: Box<[EdgeHeading]>,
     pub turn_delay_model: TurnDelayModel,
-    pub time_feature_name: String,
 }
 
 impl TurnDelayAccessModelEngine {
