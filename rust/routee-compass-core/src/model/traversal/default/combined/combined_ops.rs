@@ -197,7 +197,7 @@ mod test {
         let mut distance_seen = false;
         let mut speed_seen = false;
         let mut grade_seen = false;
-        for (_, description) in sorted_descriptions.iter().enumerate() {
+        for description in sorted_descriptions.iter() {
             match description.as_str() {
                 "*->grade" => grade_seen = true,
                 "*->speed" => speed_seen = true,
