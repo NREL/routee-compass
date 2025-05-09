@@ -157,6 +157,8 @@ mod tests {
             .join("velocities.txt")
     }
 
+    // save in case we develop test cases that may leverage this
+    #[allow(dead_code)]
     fn approx_eq(a: f64, b: f64, error: f64) {
         let result = match (a, b) {
             (c, d) if c < d => d - c < error,

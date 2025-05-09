@@ -137,7 +137,7 @@ mod test {
         let mut distance_seen = false;
         let mut speed_seen = false;
         let mut grade_seen = false;
-        for (idx, description) in sorted_descriptions.iter().enumerate() {
+        for description in sorted_descriptions.iter() {
             match description.as_str() {
                 "*->grade" => grade_seen = true,
                 "*->speed" => speed_seen = true,
@@ -197,7 +197,7 @@ mod test {
         let mut distance_seen = false;
         let mut speed_seen = false;
         let mut grade_seen = false;
-        for (idx, description) in sorted_descriptions.iter().enumerate() {
+        for (_, description) in sorted_descriptions.iter().enumerate() {
             match description.as_str() {
                 "*->grade" => grade_seen = true,
                 "*->speed" => speed_seen = true,
@@ -258,18 +258,18 @@ mod test {
 
         fn traverse_edge(
             &self,
-            trajectory: (&Vertex, &Edge, &Vertex),
-            state: &mut Vec<StateVariable>,
-            state_model: &StateModel,
+            _trajectory: (&Vertex, &Edge, &Vertex),
+            _state: &mut Vec<StateVariable>,
+            _state_model: &StateModel,
         ) -> Result<(), TraversalModelError> {
             todo!()
         }
 
         fn estimate_traversal(
             &self,
-            od: (&Vertex, &Vertex),
-            state: &mut Vec<StateVariable>,
-            state_model: &StateModel,
+            _od: (&Vertex, &Vertex),
+            _state: &mut Vec<StateVariable>,
+            _state_model: &StateModel,
         ) -> Result<(), TraversalModelError> {
             todo!()
         }
