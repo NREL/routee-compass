@@ -17,20 +17,18 @@ pub struct SpeedTraversalModel {
 }
 
 impl SpeedTraversalModel {
-    const EDGE_DISTANCE: &'static str = "edge_distance";
-    const EDGE_SPEED: &'static str = "edge_speed";
-
     pub fn new(
         engine: Arc<SpeedTraversalEngine>,
         speed_limit: Option<(Speed, SpeedUnit)>,
     ) -> Result<SpeedTraversalModel, TraversalModelError> {
-        if let Some((max_speed, max_speed_unit)) = speed_limit {
+        if let Some((max_speed, from_unit)) = speed_limit {
+            // match speed limit value to the speed unit of the speed table
             let mut max_speed_convert = Cow::Owned(max_speed);
-            max_speed_unit.convert(&mut max_speed_convert, &engine.speed_unit)?;
-            let converted_speed_unit = engine.speed_unit;
+            let to_unit = engine.speed_unit;
+            from_unit.convert(&mut max_speed_convert, &to_unit)?;
             Ok(SpeedTraversalModel {
                 engine,
-                speed_limit: Some((max_speed_convert.into_owned(), converted_speed_unit)),
+                speed_limit: Some((max_speed_convert.into_owned(), to_unit)),
             })
         } else {
             Ok(SpeedTraversalModel {

@@ -8,11 +8,14 @@ use crate::model::{
 
 #[derive(Clone, Debug)]
 pub struct ElevationChange {
+    /// the change in elevation, positive or negative
     elevation: Distance,
+    /// distance unit of the elevation change
     distance_unit: DistanceUnit,
 }
 
 impl ElevationChange {
+    /// convert some distance and grade to an elevation change
     pub fn new(
         distance: (&Distance, &DistanceUnit),
         grade: (&Grade, &GradeUnit),
@@ -33,6 +36,14 @@ impl ElevationChange {
     }
 
     /// adds this elevation change to the state vector. short circuits if elevation change is zero.
+    /// updates using the following rules:
+    ///
+    /// - if self.elevation is positive:
+    ///   - TRIP_ELEVATION_GAIN is incremented by self.elevation
+    ///   - TRIP_ELEVATION_LOSS is unchanged
+    /// - if self.elevation is negative:
+    ///  - TRIP_ELEVATION_GAIN is unchanged
+    ///  - TRIP_ELEVATION_LOSS is incremented by self.elevation
     pub fn add_elevation_to_state(
         &self,
         state: &mut [StateVariable],

@@ -57,15 +57,3 @@ impl TraversalModel for CombinedTraversalModel {
         Ok(())
     }
 }
-
-// impl TraversalModelService for CombinedTraversalModel {
-//     fn build(
-//         &self,
-//         _query: &serde_json::Value,
-//     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-//         // future extension point here, we could allow for filtering models
-//         // iff TraversalModels have a name method.
-//         let out: Arc<dyn TraversalModel> = Arc::new(self);
-//         Ok(out)
-//     }
-// }

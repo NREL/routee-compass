@@ -105,9 +105,10 @@ impl TraversalModel for TimeTraversalModel {
         if distance == Distance::ZERO {
             return Ok(());
         }
+        let distance_unit = DistanceUnit::Meters;
         let (speed, speed_unit) = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
 
-        let (t, tu) = Time::create((&distance, &DistanceUnit::Meters), (&speed, speed_unit))?;
+        let (t, tu) = Time::create((&distance, &distance_unit), (&speed, speed_unit))?;
         let mut edge_time = Cow::Owned(t);
         tu.convert(&mut edge_time, &self.time_unit)?;
 

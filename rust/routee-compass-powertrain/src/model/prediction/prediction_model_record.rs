@@ -123,8 +123,8 @@ impl PredictionModelRecord {
         grade: (Grade, &GradeUnit),
         distance: (Distance, &DistanceUnit),
     ) -> Result<(Energy, EnergyUnit), TraversalModelError> {
-        let (speed, speed_unit) = speed;
         let (distance, distance_unit) = distance;
+        let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
 
         let energy_rate = match &self.cache {
