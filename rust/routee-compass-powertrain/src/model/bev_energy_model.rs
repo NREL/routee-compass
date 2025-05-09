@@ -184,22 +184,16 @@ fn bev_traversal(
     prediction_model_record: Arc<PredictionModelRecord>,
     battery_capacity: (&Energy, &EnergyUnit),
 ) -> Result<(), TraversalModelError> {
-    let distance_unit = prediction_model_record
-        .speed_unit
-        .associated_distance_unit();
-    let speed_unit = prediction_model_record.speed_unit;
-    let grade_unit = prediction_model_record.grade_unit;
-
-    let (distance, _) =
-        state_model.get_distance(state, fieldname::EDGE_DISTANCE, Some(&distance_unit))?;
-    let (speed, _) = state_model.get_speed(state, fieldname::EDGE_SPEED, Some(&speed_unit))?;
-    let (grade, _) = state_model.get_grade(state, fieldname::EDGE_GRADE, Some(&grade_unit))?;
+    let (distance, distance_unit) =
+        state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
+    let (speed, speed_unit) = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
+    let (grade, grade_unit) = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
     let soc = state_model.get_custom_f64(state, fieldname::TRIP_SOC)?;
 
     let (energy, energy_unit) = prediction_model_record.predict(
-        (speed, &speed_unit),
-        (grade, &grade_unit),
-        (distance, &distance_unit),
+        (speed, speed_unit),
+        (grade, grade_unit),
+        (distance, distance_unit),
     )?;
     let end_soc =
         energy_model_ops::update_soc_percent(&soc, (&energy, &energy_unit), battery_capacity)?;

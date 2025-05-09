@@ -118,38 +118,18 @@ fn ice_traversal(
     state_model: &StateModel,
     prediction_model_record: Arc<PredictionModelRecord>,
 ) -> Result<(), TraversalModelError> {
-    let distance_unit = prediction_model_record
-        .speed_unit
-        .associated_distance_unit();
-    let speed_unit = prediction_model_record.speed_unit;
-    let grade_unit = prediction_model_record.grade_unit;
+    let (distance, distance_unit) =
+        state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
+    let (speed, speed_unit) = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
+    let (grade, grade_unit) = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
 
-    let (distance, _) =
-        state_model.get_distance(state, fieldname::EDGE_DISTANCE, Some(&distance_unit))?;
-    let (speed, _) = state_model.get_speed(state, fieldname::EDGE_SPEED, Some(&speed_unit))?;
-    let (grade, _) = state_model.get_grade(state, fieldname::EDGE_GRADE, Some(&grade_unit))?;
-
-    let (energy, _energy_unit) = prediction_model_record.predict(
-        (speed, &speed_unit),
-        (grade, &grade_unit),
-        (distance, &distance_unit),
+    let (energy, energy_unit) = prediction_model_record.predict(
+        (speed, speed_unit),
+        (grade, grade_unit),
+        (distance, distance_unit),
     )?;
 
-    state_model.add_energy(
-        state,
-        fieldname::TRIP_ENERGY_LIQUID,
-        &energy,
-        &prediction_model_record
-            .energy_rate_unit
-            .associated_energy_unit(),
-    )?;
-    state_model.set_energy(
-        state,
-        fieldname::EDGE_ENERGY_LIQUID,
-        &energy,
-        &prediction_model_record
-            .energy_rate_unit
-            .associated_energy_unit(),
-    )?;
+    state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy, &energy_unit)?;
+    state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy, &energy_unit)?;
     Ok(())
 }
