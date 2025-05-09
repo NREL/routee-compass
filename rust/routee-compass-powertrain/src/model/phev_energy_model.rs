@@ -226,6 +226,7 @@ fn phev_traversal(
         )?;
         state_model.set_custom_f64(state, fieldname::TRIP_SOC, &end_soc)?;
     } else {
+        // use liquid fuel model
         let (energy, energy_unit) = charge_sustaining_model.predict(speed, grade, distance)?;
         state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy, &energy_unit)?;
         state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy, &energy_unit)?;

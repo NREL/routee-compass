@@ -16,6 +16,8 @@ pub struct GradeTraversalEngine {
 }
 
 impl GradeTraversalEngine {
+    /// builds a grade lookup table from the input file, or, if not provided, stubs a
+    /// grade engine that always returns 0.
     pub fn new(config: &GradeConfiguration) -> Result<GradeTraversalEngine, TraversalModelError> {
         match &config.grade_input_file {
             None => Ok(Self {
