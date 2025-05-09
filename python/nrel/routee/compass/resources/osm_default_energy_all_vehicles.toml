@@ -23,30 +23,30 @@ output_plugins = [
     { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
 ]
 # based on 65.5 cents per mile 2023 IRS mileage rate, $/mile to match traversal distance_unit = "miles"
-[cost.vehicle_rates.distance]
+[cost.vehicle_rates.trip_distance]
 type = "factor"
 factor = 0.655
 
 # based on $20/hr approximation of 2023 median hourly wages, $/minute to match traversal time_unit = "minutes"
-[cost.vehicle_rates.time]
+[cost.vehicle_rates.trip_time]
 type = "factor"
 factor = 0.333336
 
 # based on AAA regular unleaded gas prices sampled 12/21/2023
-[cost.vehicle_rates.energy_liquid]
+[cost.vehicle_rates.trip_energy_liquid]
 type = "factor"
 factor = 3.120
 
 # based on $0.50/kWh approximation of DCFC charge rates, $/kWhtype = "factor"
-[cost.vehicle_rates.energy_electric]
+[cost.vehicle_rates.trip_energy_electric]
 type = "factor"
 factor = 0.50
 
 [cost.weights]
-distance = 1
-time = 1
-energy_liquid = 1
-energy_electric = 1
+trip_distance = 1
+trip_time = 1
+trip_energy_liquid = 1
+trip_energy_electric = 1
 
 [access]
 type = "turn_delay"

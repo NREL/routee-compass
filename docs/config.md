@@ -34,33 +34,39 @@ queries_without_destinations = true
 matching_type = "point"
 
 [traversal]
-type = "energy_model"
-# the units of the speed table
-time_model_speed_unit = "kph"
+# the traversal section can either be a single model configuration, or, if "combined"
+# is specified, it can be a collection of models listed at [[traversal.models]]
+type = "combined"
+[[traversal.models]]
+# model distances in miles
+type = "distance"
+distance_unit = "miles"
+
+[[traversal.models]]
+type = "speed"
+# the file that has speeds for each edge in the graph
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
+# the units of the values in the speed table
+speed_unit = "kph"
+
+[[traversal.models]]
+# model time in minutes using the above distances and speeds
+type = "time"
+time_unit = "minutes"
+
+[[traversal.models]]
+type = "grade"
 # the file that has grades for each edge in the graph
 grade_table_input_file = "edges-grade-enumerated.txt.gz"
 # the units of the grade table
-grade_table_grade_unit = "decimal"
+grade_unit = "decimal"
 
-# the internal units of the energy model
-time_unit = "minutes"
-distance_unit = "miles"
-
-# Here we specify the time model to use for the energy model
-[traversal.time_model]
-type = "speed_table"
-# the file that has speeds for each edge in the graph
-speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-# the units of the speed table
-speed_unit = "kph"
-
-# the internal units of the speed table
-distance_unit = "miles"
-time_unit = "minutes"
+[[traversal.models]]
+type = "energy"
 
 # here, we specify which vehicles to make available at query time
-# if you wanted to add more models, you would make a new [[traversal.vehicles]] section.
-[[traversal.vehicles]]
+# if you wanted to add more models, you would make a new [[traversal.models.vehicles]] section.
+[[traversal.models.vehicles]]
 # the name of the model that can be passed in from a query as "model_name"
 name = "2012_Ford_Focus"
 # the type of the vehicle, currently either:
@@ -83,7 +89,7 @@ real_world_energy_adjustment = 1.166
 
 # what underlying machine learn framework to use [smartcore | interpolate | onnx]
 # in this case we use a model that interpolates the underlying model type over a regular grid
-[traversal.vehicles.model_type.interpolate]
+[traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -97,32 +103,32 @@ grade_bins = 41
 # The vehicle rates get applied to each component of the cost
 
 # based on 65.5 cents per mile 2023 IRS mileage rate, $/mile
-[cost.vehicle_rates.distance]
+[cost.vehicle_rates.trip_distance]
 type = "factor"
 factor = 0.655
 
 # based on $20/hr approximation of 2023 median hourly wages, $/second
-[cost.vehicle_rates.time]
+[cost.vehicle_rates.trip_time]
 type = "factor"
 factor = 0.333336
 
 # based on AAA regular unleaded gas prices sampled 12/21/2023
-[cost.vehicle_rates.energy_liquid]
+[cost.vehicle_rates.trip_energy_liquid]
 type = "factor"
 factor = 3.120
 
 # based on $0.50/kWh approximation of DCFC charge rates, $/kWhtype = "factor"
-[cost.vehicle_rates.energy_electric]
+[cost.vehicle_rates.trip_energy_electric]
 type = "factor"
 factor = 0.50
 
 # Each cost component get multiplied by the corresponding vehicle weight.
 # So, you could make time more important than distance by increasing the time weight.
 [cost.weights]
-distance = 1
-time = 1
-energy_liquid = 1
-energy_electric = 1
+trip_distance = 1
+trip_time = 1
+trip_energy_liquid = 1
+trip_energy_electric = 1
 
 ## Access costs
 
@@ -153,7 +159,7 @@ input_plugins = [
 ]
 output_plugins = [
     # The traversal plugin appends various items to the result.
-    { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
+    { type = "traversal", route = "geo_json", },
     # The uuid plugin adds a map specific id (like Open Street Maps Nodes) onto the compass verticies
     { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
 ]
@@ -228,57 +234,64 @@ Here are the default traversal models that come with the `CompassApp`:
 The distance traversal model is a very simple model that just uses distance for computing a route, producing the route that has the shortest distance.
 
 ```toml
-[traversal]
+[[traversal.models]]
 type = "distance"
 distance_unit = "miles"
 ```
 
-### Speed Table
+### Speed
 
-The speed table traversal model uses a speed lookup table to compute the fastest (or shortest time) route.
+The speed table traversal model uses a speed lookup table to assign edge speeds.
 
 ```toml
-[traversal]
-type = "speed_table"
+[[traversal.models]]
+type = "speed"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kph"
-distance_unit = "miles"
+```
+
+### Time
+
+This simple model computes traversal time based on upstream distance and speed models.
+
+```toml
+[[traversal.models]]
+type = "time"
 time_unit = "minutes"
 ```
 
-### Energy Model
+### Grade
+
+Uses a lookup table to assign grade values.
+
+```toml
+[[traversal.models]]
+type = "grade"
+grade_input_file = "edges-grade-enumerated.txt.gz"
+grade_unit = "decimal"
+```
+
+### Elevation
+
+Assigns elevation gain and loss calculated from the grade value and distance.
+
+```toml
+[[traversal.models]]
+type = "elevation"
+distance_unit = "feet"
+```
+
+### Energy
 
 The energy model computes energy (with a routee-powertrain vehicle model) and speed over an edge.
 
 ```toml
-[traversal]
-type = "energy_model"
-# the units of the speed table
-time_model_speed_unit = "kph"
-# the file that has grades for each edge in the graph
-grade_table_input_file = "edges-grade-enumerated.txt.gz"
-# the units of the grade table
-grade_table_grade_unit = "decimal"
-
-# the internal units of the energy model
-time_unit = "minutes"
-distance_unit = "miles"
-
-# Here we specify the time model to use for the energy model
-[traversal.time_model]
-type = "speed_table"
-# the file that has speeds for each edge in the graph
-speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
-# the units of the speed table
-speed_unit = "kph"
-
-# the internal units of the speed table
-distance_unit = "miles"
-time_unit = "minutes"
+[[traversal.models]]
+type = "energy"
 
 # here, we specify which vehicles to make available at query time
-# if you wanted to add more models, you would make a new [[traversal.vehicles]] section.
-[[traversal.vehicles]]
+# if you wanted to add more models, you would make a new [[traversal.models.vehicles]] section.
+[[traversal.models.vehicles]]
 # the name of the model that can be passed in from a query as "model_name"
 name = "2012_Ford_Focus"
 # the type of the vehicle, currently either:
@@ -301,7 +314,7 @@ real_world_energy_adjustment = 1.166
 
 # what underlying machine learn framework to use [smartcore | interpolate | onnx]
 # in this case we use a model that interpolates the underlying model type over a regular grid
-[traversal.vehicles.model_type.interpolate]
+[traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -309,7 +322,6 @@ speed_bins = 101
 grade_lower_bound = -0.2
 grade_upper_bound = 0.2
 grade_bins = 41
-
 ```
 
 ## Plugins

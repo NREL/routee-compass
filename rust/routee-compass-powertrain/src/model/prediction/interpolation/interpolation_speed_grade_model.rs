@@ -21,8 +21,8 @@ pub struct InterpolationSpeedGradeModel {
 impl PredictionModel for InterpolationSpeedGradeModel {
     fn predict(
         &self,
-        speed: (Speed, SpeedUnit),
-        grade: (Grade, GradeUnit),
+        speed: (Speed, &SpeedUnit),
+        grade: (Grade, &GradeUnit),
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
@@ -33,22 +33,22 @@ impl PredictionModel for InterpolationSpeedGradeModel {
         grade_unit.convert(&mut grade_converted, &self.grade_unit)?;
 
         // snap incoming speed and grade to the grid
-        let min_speed = *self.interpolator.data.grid.get(0).map(|s| s.first()).flatten().ok_or_else(|| {
+        let min_speed = *self.interpolator.data.grid.first().and_then(|s| s.first()).ok_or_else(|| {
             TraversalModelError::TraversalModelFailure(
                 "Could not get first speed value from powertrain interpolation result; are x-values empty?".to_string(),
             )
         })?;
-        let max_speed = *self.interpolator.data.grid.get(0).map(|s| s.last()).flatten().ok_or_else(|| {
+        let max_speed = *self.interpolator.data.grid.first().and_then(|s| s.last()).ok_or_else(|| {
             TraversalModelError::TraversalModelFailure(
                 "Could not get last speed value from powertrain interpolation result; are x-values empty?".to_string(),
             )
         })?;
-        let min_grade = *self.interpolator.data.grid.get(1).map(|g| g.first()).flatten().ok_or_else(|| {
+        let min_grade = *self.interpolator.data.grid.get(1).and_then(|g| g.first()).ok_or_else(|| {
             TraversalModelError::TraversalModelFailure(
                 "Could not get first grade value from powertrain interpolation result; are y-values empty?".to_string(),
             )
         })?;
-        let max_grade = *self.interpolator.data.grid.get(1).map(|g| g.last()).flatten().ok_or_else(|| {
+        let max_grade = *self.interpolator.data.grid.get(1).and_then(|g| g.last()).ok_or_else(|| {
             TraversalModelError::TraversalModelFailure(
                 "Could not get last grade value from powertrain interpolation result; are y-values empty?".to_string(),
             )
@@ -120,9 +120,9 @@ impl InterpolationSpeedGradeModel {
         for i in 0..speed_bins {
             for j in 0..grade_bins {
                 let (energy, _energy_unit) = model.predict(
-                    (Speed::from(speed_values[i]), speed_unit),
-                    (Grade::from(grade_values[j]), grade_unit),
-                    (distance, distance_unit),
+                    (Speed::from(speed_values[i]), &speed_unit),
+                    (Grade::from(grade_values[j]), &grade_unit),
+                    (distance, &distance_unit),
                 )?;
                 values[(i, j)] = energy.as_f64();
             }
@@ -201,15 +201,15 @@ mod test {
             for grade in -20..20 {
                 let (interp_energy_rate, _energy_rate_unit) = interp_model
                     .predict(
-                        (Speed::from(speed as f64), SpeedUnit::MPH),
-                        (Grade::from(grade as f64), GradeUnit::Percent),
+                        (Speed::from(speed as f64), &SpeedUnit::MPH),
+                        (Grade::from(grade as f64), &GradeUnit::Percent),
                     )
                     .unwrap();
                 let (underlying_energy_rate, _energy_rate_unit) = underlying_model
                     .prediction_model
                     .predict(
-                        (Speed::from(speed as f64), SpeedUnit::MPH),
-                        (Grade::from(grade as f64), GradeUnit::Percent),
+                        (Speed::from(speed as f64), &SpeedUnit::MPH),
+                        (Grade::from(grade as f64), &GradeUnit::Percent),
                     )
                     .unwrap();
 
@@ -222,8 +222,8 @@ mod test {
 
         let (energy_rate, energy_rate_unit) = interp_model
             .predict(
-                (Speed::from(50.0), SpeedUnit::MPH),
-                (Grade::from(0.0), GradeUnit::Percent),
+                (Speed::from(50.0), &SpeedUnit::MPH),
+                (Grade::from(0.0), &GradeUnit::Percent),
             )
             .unwrap();
 

@@ -2,7 +2,7 @@ use itertools::Itertools;
 use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::model::{
     access::AccessModel,
-    state::{StateFeature, StateModelError},
+    state::{OutputFeature, StateModelError},
     traversal::TraversalModel,
 };
 use std::{collections::HashMap, sync::Arc};
@@ -20,17 +20,17 @@ pub fn collect_features(
     query: &serde_json::Value,
     traversal_model: Arc<dyn TraversalModel>,
     access_model: Arc<dyn AccessModel>,
-) -> Result<Vec<(String, StateFeature)>, StateModelError> {
+) -> Result<Vec<(String, OutputFeature)>, StateModelError> {
     // prepare the set of features for this state model
     let model_features = traversal_model
-        .state_features()
+        .output_features()
         .into_iter()
         .chain(access_model.state_features())
         .collect::<HashMap<_, _>>();
     // build the state model. inject state features from the traversal and access models
     // and then allow the user to optionally override any initial conditions for those
     // state features.
-    let user_features_option: Option<HashMap<String, StateFeature>> = query
+    let user_features_option: Option<HashMap<String, OutputFeature>> = query
         .get_config_serde_optional(&"state_features", &"query")
         .map_err(|e| StateModelError::BuildError(e.to_string()))?;
     let user_features = user_features_option
@@ -50,7 +50,7 @@ pub fn collect_features(
             Some(_) => Ok((name, feature)),
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let mut added_features: Vec<(String, StateFeature)> = model_features.into_iter().collect_vec();
+    let mut added_features: Vec<(String, OutputFeature)> = model_features.into_iter().collect_vec();
     added_features.extend(user_features);
     Ok(added_features)
 }

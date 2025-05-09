@@ -10,7 +10,7 @@ fn to_precision(value: f64, precision: i32) -> i64 {
     (value * multiplier).round() as i64
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct FloatCachePolicyConfig {
     pub cache_size: usize,
     pub key_precisions: Vec<i32>,

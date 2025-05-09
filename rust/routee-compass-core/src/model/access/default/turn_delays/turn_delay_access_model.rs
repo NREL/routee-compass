@@ -2,12 +2,21 @@ use super::turn_delay_access_model_engine::TurnDelayAccessModelEngine;
 use crate::model::{
     access::{AccessModel, AccessModelError},
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{OutputFeature, StateModel, StateVariable},
 };
 use std::sync::Arc;
 
 pub struct TurnDelayAccessModel {
     pub engine: Arc<TurnDelayAccessModelEngine>,
+}
+
+impl TurnDelayAccessModel {
+    pub const EDGE_TIME: &'static str = "edge_time";
+    pub const TRIP_TIME: &'static str = "trip_time";
+
+    pub fn new(engine: Arc<TurnDelayAccessModelEngine>) -> Self {
+        TurnDelayAccessModel { engine }
+    }
 }
 
 impl AccessModel for TurnDelayAccessModel {
@@ -18,11 +27,12 @@ impl AccessModel for TurnDelayAccessModel {
         state_model: &StateModel,
     ) -> Result<(), AccessModelError> {
         let (delay, delay_unit) = self.engine.get_delay(traversal)?;
-        state_model.add_time(state, &self.engine.time_feature_name, &delay, delay_unit)?;
+        state_model.set_time(state, Self::EDGE_TIME, &delay, delay_unit)?;
+        state_model.add_time(state, Self::TRIP_TIME, &delay, delay_unit)?;
         Ok(())
     }
 
-    fn state_features(&self) -> Vec<(String, StateFeature)> {
+    fn state_features(&self) -> Vec<(String, OutputFeature)> {
         vec![]
     }
 }

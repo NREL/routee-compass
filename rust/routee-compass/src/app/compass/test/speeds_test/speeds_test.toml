@@ -6,15 +6,22 @@ verbose = true
 # [mapping]
 # type = "vertex"
 # # tolerance.distance = 15.0
-tolerance.unit = "meters"
+# tolerance.unit = "meters"
 # queries_without_destinations = false
 # # matching_type = ["point", "vertex_id", "edge_id"]
 
 [traversal]
-type = "speed_table"
+type = "combined"
+[[traversal.models]]
+type = "distance"
+distance_unit = "miles"
+[[traversal.models]]
+type = "speed"
 speed_table_input_file = "src/app/compass/test/speeds_test/test_edge_speeds.csv"
 speed_unit = "kph"
-output_time_unit = "hours"
+[[traversal.models]]
+type = "time"
+time_unit = "minutes"
 
 [access]
 type = "no_access_model"
@@ -22,11 +29,11 @@ type = "no_access_model"
 [cost]
 cost_aggregation = "sum"
 [cost.weights]
-distance = 0
-time = 1
-[cost.vehicle_rates.time]
+trip_distance = 0
+trip_time = 1
+[cost.vehicle_rates.trip_time]
 type = "raw"
-[cost.vehicle_rates.distance]
+[cost.vehicle_rates.trip_distance]
 type = "raw"
 
 [plugin]

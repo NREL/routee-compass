@@ -9,20 +9,15 @@ use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 use super::combined_service::CombinedFrontierService;
 
-pub struct CombinedBuilder {
+pub struct CombinedFrontierModelBuilder {
     pub builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
 }
 
-impl CombinedBuilder {
-    pub fn register_builder(
-        &self,
-        builder_key: String,
-        builder: Rc<dyn FrontierModelBuilder>,
-    ) -> Self {
-        let mut builders = self.builders.clone();
-        builders.insert(builder_key, builder);
-        CombinedBuilder { builders }
+impl CombinedFrontierModelBuilder {
+    pub fn new(builders: HashMap<String, Rc<dyn FrontierModelBuilder>>) -> Self {
+        Self { builders }
     }
+
     fn build_service(
         &self,
         config: &serde_json::Value,
@@ -58,7 +53,7 @@ impl CombinedBuilder {
     }
 }
 
-impl FrontierModelBuilder for CombinedBuilder {
+impl FrontierModelBuilder for CombinedFrontierModelBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,

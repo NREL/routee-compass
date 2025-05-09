@@ -1,3 +1,5 @@
+use crate::model::state::StateVariable;
+
 use super::{
     internal_float::InternalFloat, AsF64, Convert, Distance, DistanceUnit, SpeedUnit, Time,
     TimeUnit, UnitError,
@@ -60,6 +62,18 @@ impl Display for Speed {
 impl From<f64> for Speed {
     fn from(value: f64) -> Self {
         Speed(InternalFloat::new(value))
+    }
+}
+
+impl From<StateVariable> for Speed {
+    fn from(value: StateVariable) -> Self {
+        Speed::from(value.0)
+    }
+}
+
+impl From<&StateVariable> for Speed {
+    fn from(value: &StateVariable) -> Self {
+        Speed::from(value.0)
     }
 }
 

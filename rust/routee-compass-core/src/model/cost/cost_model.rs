@@ -4,6 +4,7 @@ use crate::model::network::Edge;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::unit::Cost;
+use itertools::Itertools;
 use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -50,6 +51,17 @@ impl CostModel {
         cost_aggregation: CostAggregation,
         state_model: Arc<StateModel>,
     ) -> Result<CostModel, CostModelError> {
+        let ignored_weights = weights_mapping
+            .keys()
+            .filter(|k| !state_model.contains_key(k))
+            .collect_vec();
+        if !ignored_weights.is_empty() {
+            return Err(CostModelError::InvalidWeightNames(
+                ignored_weights.iter().map(|k| k.to_string()).collect(),
+                state_model.keys().cloned().collect_vec(),
+            ));
+        }
+
         let mut indices = vec![];
         let mut weights = vec![];
         let mut vehicle_rates = vec![];
@@ -72,7 +84,7 @@ impl CostModel {
         }
 
         if weights.iter().sum::<f64>() == 0.0 {
-            return Err(CostModelError::InvalidCostVariables);
+            return Err(CostModelError::InvalidCostVariables(weights));
         }
         Ok(CostModel {
             feature_indices: indices,
