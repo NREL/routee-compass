@@ -96,16 +96,32 @@ class TestDowntownDenverExample(TestCase):
         balanced_cost = balanced_result["route"]["cost"]["total_cost"]
 
         # Test 1: Time optimal has shortest time and greatest energy
-        self.assertLessEqual(time_optimal_time, energy_optimal_time)
-        self.assertGreaterEqual(time_optimal_energy, energy_optimal_energy)
+        self.assertLessEqual(
+            time_optimal_time, energy_optimal_time, "not time.time <= energy.time"
+        )
+        self.assertGreaterEqual(
+            time_optimal_energy,
+            energy_optimal_energy,
+            "not time.energy >= energy.energy",
+        )
 
         # Test 2: Energy optimal has least energy and longest time
-        self.assertLessEqual(energy_optimal_energy, time_optimal_energy)
-        self.assertGreaterEqual(energy_optimal_time, time_optimal_time)
+        self.assertLessEqual(
+            energy_optimal_energy,
+            time_optimal_energy,
+            "not energy.energy <= time.energy",
+        )
+        self.assertGreaterEqual(
+            energy_optimal_time, time_optimal_time, "not energy.time >= time.time"
+        )
 
         # Test 3: Cost optimal has the least total cost
-        self.assertLessEqual(balanced_cost, time_optimal_cost)
-        self.assertLessEqual(balanced_cost, energy_optimal_cost)
+        self.assertLessEqual(
+            balanced_cost, time_optimal_cost, "not balanced.cost <= time.cost"
+        )
+        self.assertLessEqual(
+            balanced_cost, energy_optimal_cost, "not balanced.cost <= energy.cost"
+        )
 
         # Test 4: Monotonicity across weight spectrum
         # Run range of cases from weight p=0 to p=1 for time, with energy=(1-p)
