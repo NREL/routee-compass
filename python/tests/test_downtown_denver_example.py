@@ -13,7 +13,7 @@ class TestDowntownDenverExample(TestCase):
             / "osm_default_energy.toml"
         )
 
-        energy_key = "edge_energy_electric"
+        energy_key = "trip_energy_electric"
 
         base_query = {
             "origin_name": "NREL",
