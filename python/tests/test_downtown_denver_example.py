@@ -52,11 +52,17 @@ class TestDowntownDenverExample(TestCase):
         balanced_result = app.run(balanced_query)
 
         if not isinstance(time_optimal_result, dict):
-            self.fail(f"Time optimal response is not a dict. response: {json.dumps(time_optimal_result, indent=2)}")
+            self.fail(
+                f"Time optimal response is not a dict. response: {json.dumps(time_optimal_result, indent=2)}"
+            )
         if not isinstance(energy_optimal_result, dict):
-            self.fail(f"Energy optimal response is not a dict. response: {json.dumps(energy_optimal_result, indent=2)}")
+            self.fail(
+                f"Energy optimal response is not a dict. response: {json.dumps(energy_optimal_result, indent=2)}"
+            )
         if not isinstance(balanced_result, dict):
-            self.fail(f"Balanced response is not a dict. response: {json.dumps(balanced_result, indent=2)}",)
+            self.fail(
+                f"Balanced response is not a dict. response: {json.dumps(balanced_result, indent=2)}",
+            )
 
         self.assertIsNotNone(
             time_optimal_result.get("route"),
@@ -112,7 +118,9 @@ class TestDowntownDenverExample(TestCase):
             query["weights"] = {"trip_distance": 0, "trip_time": p, energy_key: 1 - p}
             result = app.run(query)
             if not isinstance(result, dict):
-                self.fail(f"monotonicity response is not a dict. response: {json.dumps(result, indent=2)}",)
+                self.fail(
+                    f"monotonicity response is not a dict. response: {json.dumps(result, indent=2)}",
+                )
 
             error = result.get("error")
             if error is not None:

@@ -112,15 +112,27 @@ query = [
             "test_cases": [
                 {
                     "name": "least_time",
-                    "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy_liquid": 0},
+                    "weights": {
+                        "trip_distance": 0,
+                        "trip_time": 1,
+                        "trip_energy_liquid": 0,
+                    },
                 },
                 {
                     "name": "least_energy",
-                    "weights": {"trip_distance": 0, "trip_time": 0, "trip_energy_liquid": 1},
+                    "weights": {
+                        "trip_distance": 0,
+                        "trip_time": 0,
+                        "trip_energy_liquid": 1,
+                    },
                 },
                 {
                     "name": "least_cost",
-                    "weights": {"trip_distance": 1, "trip_time": 1, "trip_energy_liquid": 1},
+                    "weights": {
+                        "trip_distance": 1,
+                        "trip_time": 1,
+                        "trip_energy_liquid": 1,
+                    },
                 },
             ]
         },
@@ -278,9 +290,13 @@ cost_diff = (
     shortest_time_result["route"]["cost"]["total_cost"]
     - least_energy_result["route"]["cost"]["total_cost"]
 )
-dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"]["distance_unit"]
+dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"][
+    "distance_unit"
+]
 time_unit = shortest_time_result["route"]["state_model"]["trip_time"]["time_unit"]
-enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy_liquid"]["energy_unit"]
+enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy_liquid"][
+    "energy_unit"
+]
 print(f" - distance: {dist_diff:.2f} {dist_unit} further with time-optimal")
 print(f" - time: {-time_diff:.2f} {time_unit} longer with energy-optimal")
 print(f" - energy: {enrg_diff:.2f} {enrg_unit} more with time-optimal")
