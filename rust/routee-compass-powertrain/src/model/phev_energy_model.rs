@@ -501,10 +501,10 @@ mod test {
     }
 
     fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
-        let state_model = StateModel::empty()
+        
+        StateModel::empty()
             .register(m.input_features(), m.output_features())
-            .expect("test invariant failed");
-        state_model
+            .expect("test invariant failed")
     }
 
     fn state_vector(
