@@ -8,6 +8,16 @@
 //!  - `edge_*` - state values for a single graph edge
 //!  - `access_*` - state values for accessing a graph edge
 //!  - `trip_*` - state values for a trip
+//!
+//! ### model types
+//!
+//! - ICE, BEV
+//!   - uses "trip_energy" and "edge_energy" for energy consumption
+//! - BEV
+//!   - adds "trip_soc" for state of charge percentage
+//! - PHEV
+//!   - uses all of the above, and adds "_electric" and "_liquid" suffixes
+//!     for a further breakdown of the energy consumption by type
 
 /// state feature name for all fuel state values for a single graph edge
 pub const EDGE_ENERGY: &str = "edge_energy";
