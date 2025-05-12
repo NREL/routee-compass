@@ -9,6 +9,11 @@
 //!  - `access_*` - state values for accessing a graph edge
 //!  - `trip_*` - state values for a trip
 
+/// state feature name for all fuel state values for a single graph edge
+pub const EDGE_ENERGY: &str = "edge_energy";
+/// state feature name for all accumulated fuel state values at some graph edge
+pub const TRIP_ENERGY: &str = "trip_energy";
+
 /// state feature name for liquid fuel state values for a single graph edge
 pub const EDGE_ENERGY_LIQUID: &str = "edge_energy_liquid";
 /// state feature name for accumulated liquid fuel state values at some graph edge

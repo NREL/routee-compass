@@ -78,14 +78,14 @@ impl TraversalModel for IceEnergyModel {
             .associated_energy_unit();
         vec![
             (
-                String::from(fieldname::TRIP_ENERGY_LIQUID),
+                String::from(fieldname::TRIP_ENERGY),
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
                 },
             ),
             (
-                String::from(fieldname::EDGE_ENERGY_LIQUID),
+                String::from(fieldname::EDGE_ENERGY),
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
@@ -129,7 +129,7 @@ fn ice_traversal(
         (distance, distance_unit),
     )?;
 
-    state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy, &energy_unit)?;
-    state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy, &energy_unit)?;
+    state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy, &energy_unit)?;
+    state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy, &energy_unit)?;
     Ok(())
 }

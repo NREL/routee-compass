@@ -123,14 +123,14 @@ impl TraversalModel for BevEnergyModel {
             .associated_energy_unit();
         vec![
             (
-                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
+                String::from(fieldname::TRIP_ENERGY),
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
                 },
             ),
             (
-                String::from(fieldname::EDGE_ENERGY_ELECTRIC),
+                String::from(fieldname::EDGE_ENERGY),
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
@@ -198,18 +198,8 @@ fn bev_traversal(
     let end_soc =
         energy_model_ops::update_soc_percent(&soc, (&energy, &energy_unit), battery_capacity)?;
 
-    state_model.add_energy(
-        state,
-        fieldname::TRIP_ENERGY_ELECTRIC,
-        &energy,
-        &energy_unit,
-    )?;
-    state_model.set_energy(
-        state,
-        fieldname::EDGE_ENERGY_ELECTRIC,
-        &energy,
-        &energy_unit,
-    )?;
+    state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy, &energy_unit)?;
+    state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy, &energy_unit)?;
     state_model.set_custom_f64(state, fieldname::TRIP_SOC, &end_soc)?;
     Ok(())
 }
@@ -245,7 +235,7 @@ mod tests {
         .unwrap();
 
         let (elec, _) = state_model
-            .get_energy(&state, fieldname::EDGE_ENERGY_ELECTRIC, None)
+            .get_energy(&state, fieldname::TRIP_ENERGY, None)
             .expect("test invariant failed");
 
         assert!(elec.as_f64() > 0.0, "elec energy {} should be > 0.0", elec);
@@ -281,7 +271,7 @@ mod tests {
         .unwrap();
 
         let (elec, _) = state_model
-            .get_energy(&state, fieldname::EDGE_ENERGY_ELECTRIC, None)
+            .get_energy(&state, fieldname::TRIP_ENERGY, None)
             .expect("test invariant failed");
         assert!(
             elec.as_f64() < 0.0,
@@ -407,15 +397,9 @@ mod tests {
     }
 
     fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
-        let out_f = m.output_features().into_iter().map(|(n, _)| n).join(", ");
-        println!("output features: [{}]", out_f);
         let state_model = StateModel::empty()
             .register(m.input_features(), m.output_features())
             .expect("test invariant failed");
-        println!(
-            "registered state model features: {:?}",
-            state_model.to_vec()
-        );
         state_model
     }
 

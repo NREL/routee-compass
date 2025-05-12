@@ -8,11 +8,11 @@ use routee_compass_core::model::{
     network::{Edge, Vertex},
     state::{CustomFeatureFormat, InputFeature, OutputFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{Energy, EnergyUnit},
+    unit::{Convert, Energy, EnergyUnit, UnitError},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 #[derive(Clone)]
 pub struct PhevEnergyModel {
@@ -130,6 +130,20 @@ impl TraversalModel for PhevEnergyModel {
         };
         vec![
             (
+                String::from(fieldname::TRIP_ENERGY),
+                OutputFeature::Energy {
+                    energy_unit: EnergyUnit::GallonsGasolineEquivalent,
+                    initial: Energy::ZERO,
+                },
+            ),
+            (
+                String::from(fieldname::EDGE_ENERGY),
+                OutputFeature::Energy {
+                    energy_unit: EnergyUnit::GallonsGasolineEquivalent,
+                    initial: Energy::ZERO,
+                },
+            ),
+            (
                 String::from(fieldname::TRIP_ENERGY_LIQUID),
                 liquid_energy_feature.clone(),
             ),
@@ -205,7 +219,7 @@ fn phev_traversal(
     let grade = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
     let start_soc = state_model.get_custom_f64(state, fieldname::TRIP_SOC)?;
     if start_soc > 0.0 {
-        // use electric model
+        // use electric powertrain model to update kWh + SOC
         let (energy, energy_unit) = charge_depleting_model.predict(speed, grade, distance)?;
         state_model.set_energy(
             state,
@@ -225,13 +239,54 @@ fn phev_traversal(
             (battery_capacity.0, battery_capacity.1),
         )?;
         state_model.set_custom_f64(state, fieldname::TRIP_SOC, &end_soc)?;
+
+        // update combined trip energy in GGE
+        let gge = accumulate_gge(&[(&energy, &energy_unit)])?;
+        state_model.set_energy(
+            state,
+            fieldname::EDGE_ENERGY,
+            &gge,
+            &EnergyUnit::GallonsGasolineEquivalent,
+        )?;
+        state_model.add_energy(
+            state,
+            fieldname::TRIP_ENERGY,
+            &gge,
+            &EnergyUnit::GallonsGasolineEquivalent,
+        )?;
     } else {
         // use liquid fuel model
         let (energy, energy_unit) = charge_sustaining_model.predict(speed, grade, distance)?;
         state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy, &energy_unit)?;
         state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy, &energy_unit)?;
+
+        // update combined trip energy in GGE
+        let gge = accumulate_gge(&[(&energy, &energy_unit)])?;
+        state_model.set_energy(
+            state,
+            fieldname::EDGE_ENERGY,
+            &gge,
+            &EnergyUnit::GallonsGasolineEquivalent,
+        )?;
+        state_model.add_energy(
+            state,
+            fieldname::TRIP_ENERGY,
+            &gge,
+            &EnergyUnit::GallonsGasolineEquivalent,
+        )?;
     };
     Ok(())
+}
+
+/// helper function to accumulate a variety of energy observations into a single GGE energy value.
+fn accumulate_gge(values: &[(&Energy, &EnergyUnit)]) -> Result<Energy, UnitError> {
+    let mut acc = Energy::ZERO;
+    for (energy, energy_unit) in values.iter() {
+        let mut conv = Cow::Borrowed(*energy);
+        energy_unit.convert(&mut conv, &EnergyUnit::GallonsGasolineEquivalent)?;
+        acc = acc + conv.into_owned();
+    }
+    Ok(acc)
 }
 
 #[cfg(test)]
@@ -242,7 +297,6 @@ mod test {
         phev_energy_model::phev_traversal,
         prediction::{ModelType, PredictionModelConfig, PredictionModelRecord},
     };
-    use itertools::Itertools;
     use routee_compass_core::{
         model::{
             state::{StateModel, StateVariable},
@@ -383,6 +437,11 @@ mod test {
             .expect("test invariant failed");
 
         assert!(liquid_energy_2 > Energy::ZERO);
+
+        println!(
+            "{:?}",
+            serde_json::to_string_pretty(&state_model.serialize_state(&state)).unwrap()
+        );
     }
 
     fn mock_phev(
@@ -442,15 +501,9 @@ mod test {
     }
 
     fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
-        let out_f = m.output_features().into_iter().map(|(n, _)| n).join(", ");
-        println!("output features: [{}]", out_f);
         let state_model = StateModel::empty()
             .register(m.input_features(), m.output_features())
             .expect("test invariant failed");
-        println!(
-            "registered state model features: {:?}",
-            state_model.to_vec()
-        );
         state_model
     }
 
