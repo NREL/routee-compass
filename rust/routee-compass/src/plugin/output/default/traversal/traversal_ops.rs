@@ -186,7 +186,7 @@ pub fn create_tree_multipoint(
                     ))
                 })
                 .map(|l| {
-                    l.points().last().ok_or_else(|| {
+                    l.points().next_back().ok_or_else(|| {
                         OutputPluginError::OutputPluginFailed(format!(
                             "linestring is invalid for edge_id {}",
                             eid
