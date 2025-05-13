@@ -55,6 +55,7 @@ impl TraversalModel for TimeTraversalModel {
                 OutputFeature::Time {
                     time_unit: self.time_unit,
                     initial: Time::ZERO,
+                    accumulator: false,
                 },
             ),
             (
@@ -62,6 +63,7 @@ impl TraversalModel for TimeTraversalModel {
                 OutputFeature::Time {
                     time_unit: self.time_unit,
                     initial: Time::ZERO,
+                    accumulator: true,
                 },
             ),
         ]

@@ -52,6 +52,7 @@ impl TraversalModel for ElevationTraversalModel {
                 OutputFeature::Distance {
                     distance_unit: self.distance_unit,
                     initial: Distance::ZERO,
+                    accumulator: true,
                 },
             ),
             (
@@ -59,6 +60,7 @@ impl TraversalModel for ElevationTraversalModel {
                 OutputFeature::Grade {
                     grade_unit: GradeUnit::Decimal,
                     initial: Grade::ZERO,
+                    accumulator: true,
                 },
             ),
         ]

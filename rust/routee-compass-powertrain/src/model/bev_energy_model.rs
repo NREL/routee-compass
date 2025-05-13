@@ -127,6 +127,7 @@ impl TraversalModel for BevEnergyModel {
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
+                    accumulator: true,
                 },
             ),
             (
@@ -134,6 +135,7 @@ impl TraversalModel for BevEnergyModel {
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
+                    accumulator: false,
                 },
             ),
             (
@@ -144,6 +146,7 @@ impl TraversalModel for BevEnergyModel {
                     format: CustomFeatureFormat::FloatingPoint {
                         initial: self.starting_soc.into(),
                     },
+                    accumulator: true,
                 },
             ),
         ]
@@ -397,7 +400,6 @@ mod tests {
     }
 
     fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
-        
         StateModel::empty()
             .register(m.input_features(), m.output_features())
             .expect("test invariant failed")

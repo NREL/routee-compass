@@ -37,27 +37,33 @@ pub enum OutputFeature {
     Distance {
         distance_unit: unit::DistanceUnit,
         initial: unit::Distance,
+        accumulator: bool,
     },
     Time {
         time_unit: unit::TimeUnit,
         initial: unit::Time,
+        accumulator: bool,
     },
     Energy {
         energy_unit: unit::EnergyUnit,
         initial: unit::Energy,
+        accumulator: bool,
     },
     Speed {
         speed_unit: unit::SpeedUnit,
         initial: unit::Speed,
+        accumulator: bool,
     },
     Grade {
         grade_unit: unit::GradeUnit,
         initial: unit::Grade,
+        accumulator: bool,
     },
     Custom {
         r#type: String,
         unit: String,
         format: CustomFeatureFormat,
+        accumulator: bool,
     },
 }
 
@@ -77,50 +83,60 @@ impl PartialEq for OutputFeature {
                 OutputFeature::Distance {
                     distance_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 OutputFeature::Distance {
                     distance_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
             ) => true,
             (
                 OutputFeature::Time {
                     time_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 OutputFeature::Time {
                     time_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
             ) => true,
             (
                 OutputFeature::Energy {
                     energy_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 OutputFeature::Energy {
                     energy_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
             ) => true,
             (
                 OutputFeature::Speed {
                     speed_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 OutputFeature::Speed {
                     speed_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
             ) => true,
             (
                 OutputFeature::Grade {
                     grade_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 OutputFeature::Grade {
                     grade_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
             ) => true,
             (
@@ -128,11 +144,13 @@ impl PartialEq for OutputFeature {
                     r#type: a_name,
                     unit: a_unit,
                     format: _,
+                    accumulator: _,
                 },
                 OutputFeature::Custom {
                     r#type: b_name,
                     unit: b_unit,
                     format: _,
+                    accumulator: _,
                 },
             ) => a_name == b_name && a_unit == b_unit,
             _ => false,
@@ -156,6 +174,7 @@ impl PartialEq<InputFeature> for OutputFeature {
                 OutputFeature::Distance {
                     distance_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 InputFeature::Distance(_),
             ) => true,
@@ -163,6 +182,7 @@ impl PartialEq<InputFeature> for OutputFeature {
                 OutputFeature::Time {
                     time_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 InputFeature::Time(_),
             ) => true,
@@ -170,6 +190,7 @@ impl PartialEq<InputFeature> for OutputFeature {
                 OutputFeature::Energy {
                     energy_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 InputFeature::Energy(_),
             ) => true,
@@ -177,6 +198,7 @@ impl PartialEq<InputFeature> for OutputFeature {
                 OutputFeature::Speed {
                     speed_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 InputFeature::Speed(_),
             ) => true,
@@ -184,6 +206,7 @@ impl PartialEq<InputFeature> for OutputFeature {
                 OutputFeature::Grade {
                     grade_unit: _,
                     initial: _,
+                    accumulator: _,
                 },
                 InputFeature::Grade(_),
             ) => true,
@@ -192,6 +215,7 @@ impl PartialEq<InputFeature> for OutputFeature {
                     r#type: a_name,
                     unit: a_unit,
                     format: _,
+                    accumulator: _,
                 },
                 InputFeature::Custom {
                     r#type: b_name,
@@ -209,60 +233,137 @@ impl Display for OutputFeature {
             OutputFeature::Distance {
                 distance_unit,
                 initial,
-            } => write!(f, "unit: {}, initial: {}", distance_unit, initial),
-            OutputFeature::Time { time_unit, initial } => {
-                write!(f, "unit: {}, initial: {}", time_unit, initial)
+                accumulator,
+            } => write!(
+                f,
+                "unit: {}, initial: {}, acc: {}",
+                distance_unit, initial, accumulator
+            ),
+            OutputFeature::Time {
+                time_unit,
+                initial,
+                accumulator,
+            } => {
+                write!(
+                    f,
+                    "unit: {}, initial: {}, acc: {}",
+                    time_unit, initial, accumulator
+                )
             }
             OutputFeature::Energy {
                 energy_unit,
                 initial,
-            } => write!(f, "unit: {}, initial: {}", energy_unit, initial),
+                accumulator,
+            } => write!(
+                f,
+                "unit: {}, initial: {}, acc: {}",
+                energy_unit, initial, accumulator
+            ),
             OutputFeature::Speed {
                 speed_unit,
                 initial,
-            } => write!(f, "unit: {}, initial: {}", speed_unit, initial),
+                accumulator,
+            } => write!(
+                f,
+                "unit: {}, initial: {}, acc: {}",
+                speed_unit, initial, accumulator
+            ),
             OutputFeature::Grade {
                 grade_unit,
                 initial,
-            } => write!(f, "unit: {}, initial: {}", grade_unit, initial),
+                accumulator,
+            } => write!(
+                f,
+                "unit: {}, initial: {}, acc: {}",
+                grade_unit, initial, accumulator
+            ),
             OutputFeature::Custom {
                 r#type: name,
                 unit,
                 format,
+                accumulator,
             } => {
-                write!(f, "name: {} unit: {}, repr: {}", name, unit, format)
+                write!(
+                    f,
+                    "name: {} unit: {}, repr: {}, acc: {}",
+                    name, unit, format, accumulator
+                )
             }
         }
     }
 }
 
 impl OutputFeature {
+    /// returns true if the feature is an accumulator, aka, that it
+    /// can be summed over time and reported in the traversal summary.
+    pub fn is_accumlator(&self) -> bool {
+        match self {
+            OutputFeature::Distance {
+                distance_unit: _,
+                initial: _,
+                accumulator,
+            } => *accumulator,
+            OutputFeature::Time {
+                time_unit: _,
+                initial: _,
+                accumulator,
+            } => *accumulator,
+            OutputFeature::Energy {
+                energy_unit: _,
+                initial: _,
+                accumulator,
+            } => *accumulator,
+            OutputFeature::Speed {
+                speed_unit: _,
+                initial: _,
+                accumulator,
+            } => *accumulator,
+            OutputFeature::Grade {
+                grade_unit: _,
+                initial: _,
+                accumulator,
+            } => *accumulator,
+            OutputFeature::Custom {
+                r#type: _,
+                unit: _,
+                format: _,
+                accumulator,
+            } => *accumulator,
+        }
+    }
+
     pub fn get_feature_type(&self) -> String {
         match self {
             OutputFeature::Distance {
                 distance_unit: _,
                 initial: _,
+                accumulator: _,
             } => String::from("distance"),
             OutputFeature::Time {
                 time_unit: _,
                 initial: _,
+                accumulator: _,
             } => String::from("time"),
             OutputFeature::Energy {
                 energy_unit: _,
                 initial: _,
+                accumulator: _,
             } => String::from("energy"),
             OutputFeature::Speed {
                 speed_unit: _,
                 initial: _,
+                accumulator: _,
             } => String::from("speed"),
             OutputFeature::Grade {
                 grade_unit: _,
                 initial: _,
+                accumulator: _,
             } => String::from("grade"),
             OutputFeature::Custom {
                 r#type,
                 unit: _,
                 format: _,
+                accumulator: _,
             } => r#type.clone(),
         }
     }
@@ -272,27 +373,33 @@ impl OutputFeature {
             OutputFeature::Distance {
                 distance_unit,
                 initial: _,
+                accumulator: _,
             } => distance_unit.to_string(),
             OutputFeature::Time {
                 time_unit,
                 initial: _,
+                accumulator: _,
             } => time_unit.to_string(),
             OutputFeature::Energy {
                 energy_unit,
                 initial: _,
+                accumulator: _,
             } => energy_unit.to_string(),
             OutputFeature::Speed {
                 speed_unit,
                 initial: _,
+                accumulator: _,
             } => speed_unit.to_string(),
             OutputFeature::Grade {
                 grade_unit,
                 initial: _,
+                accumulator: _,
             } => grade_unit.to_string(),
             OutputFeature::Custom {
                 r#type: _,
                 unit,
                 format: _,
+                accumulator: _,
             } => unit.clone(),
         }
     }
@@ -307,6 +414,7 @@ impl OutputFeature {
                 r#type: _,
                 unit: _,
                 format,
+                accumulator: _,
             } => format,
             _ => &CustomFeatureFormat::DEFAULT,
         }
@@ -317,27 +425,33 @@ impl OutputFeature {
             OutputFeature::Distance {
                 distance_unit: _,
                 initial,
+                accumulator: _,
             } => Ok((*initial).into()),
             OutputFeature::Time {
                 time_unit: _,
                 initial,
+                accumulator: _,
             } => Ok((*initial).into()),
             OutputFeature::Energy {
                 energy_unit: _,
                 initial,
+                accumulator: _,
             } => Ok((*initial).into()),
             OutputFeature::Speed {
                 speed_unit: _,
                 initial,
+                accumulator: _,
             } => Ok((*initial).into()),
             OutputFeature::Grade {
                 grade_unit: _,
                 initial,
+                accumulator: _,
             } => Ok((*initial).into()),
             OutputFeature::Custom {
                 r#type: _,
                 unit: _,
                 format,
+                accumulator: _,
             } => format.initial(),
         }
     }
@@ -347,6 +461,7 @@ impl OutputFeature {
             OutputFeature::Distance {
                 distance_unit,
                 initial: _,
+                accumulator: _,
             } => Ok(distance_unit),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("distance"),
@@ -360,6 +475,7 @@ impl OutputFeature {
             OutputFeature::Time {
                 time_unit,
                 initial: _,
+                accumulator: _,
             } => Ok(time_unit),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("time"),
@@ -373,6 +489,7 @@ impl OutputFeature {
             OutputFeature::Energy {
                 energy_unit,
                 initial: _,
+                accumulator: _,
             } => Ok(energy_unit),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("energy"),
@@ -386,6 +503,7 @@ impl OutputFeature {
             OutputFeature::Speed {
                 speed_unit,
                 initial: _,
+                accumulator: _,
             } => Ok(speed_unit),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("speed"),
@@ -399,6 +517,7 @@ impl OutputFeature {
             OutputFeature::Grade {
                 grade_unit,
                 initial: _,
+                accumulator: _,
             } => Ok(grade_unit),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 String::from("grade"),
@@ -413,6 +532,7 @@ impl OutputFeature {
                 r#type: _,
                 unit: _,
                 format,
+                accumulator: _,
             } => Ok(format),
             _ => Err(StateModelError::UnexpectedFeatureUnit(
                 self.get_feature_unit_name(),

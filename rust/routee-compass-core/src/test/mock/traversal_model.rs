@@ -49,6 +49,7 @@ impl MockUpstreamModel {
                         OutputFeature::Distance {
                             distance_unit: du,
                             initial: Distance::ZERO,
+                            accumulator: true,
                         },
                     )
                 }
@@ -59,6 +60,7 @@ impl MockUpstreamModel {
                         OutputFeature::Speed {
                             speed_unit: unit,
                             initial: Speed::ZERO,
+                            accumulator: true,
                         },
                     )
                 }
@@ -69,6 +71,7 @@ impl MockUpstreamModel {
                         OutputFeature::Time {
                             time_unit: unit,
                             initial: Time::ZERO,
+                            accumulator: true,
                         },
                     )
                 }
@@ -79,6 +82,7 @@ impl MockUpstreamModel {
                         OutputFeature::Energy {
                             energy_unit: unit,
                             initial: Energy::ZERO,
+                            accumulator: true,
                         },
                     )
                 }
@@ -89,6 +93,7 @@ impl MockUpstreamModel {
                         OutputFeature::Grade {
                             grade_unit: unit,
                             initial: Grade::ZERO,
+                            accumulator: true,
                         },
                     )
                 }
@@ -102,6 +107,7 @@ impl MockUpstreamModel {
                             r#type: r#type.clone(),
                             unit: unit.clone(),
                             format,
+                            accumulator: true,
                         },
                     )
                 }

@@ -31,27 +31,33 @@ impl From<&OutputFeature> for InputFeature {
             OutputFeature::Distance {
                 distance_unit,
                 initial: _,
+                accumulator: _,
             } => InputFeature::Distance(Some(*distance_unit)),
             OutputFeature::Time {
                 time_unit,
                 initial: _,
+                accumulator: _,
             } => InputFeature::Time(Some(*time_unit)),
             OutputFeature::Energy {
                 energy_unit,
                 initial: _,
+                accumulator: _,
             } => InputFeature::Energy(Some(*energy_unit)),
             OutputFeature::Speed {
                 speed_unit,
                 initial: _,
+                accumulator: _,
             } => InputFeature::Speed(Some(*speed_unit)),
             OutputFeature::Grade {
                 grade_unit,
                 initial: _,
+                accumulator: _,
             } => InputFeature::Grade(Some(*grade_unit)),
             OutputFeature::Custom {
                 r#type,
                 unit,
                 format: _,
+                accumulator: _,
             } => InputFeature::Custom {
                 r#type: r#type.clone(),
                 unit: unit.clone(),

@@ -94,6 +94,7 @@ impl TraversalModel for DistanceTraversalModel {
                 OutputFeature::Distance {
                     distance_unit: self.distance_unit,
                     initial: Distance::ZERO,
+                    accumulator: true,
                 },
             ),
             (
@@ -101,6 +102,7 @@ impl TraversalModel for DistanceTraversalModel {
                 OutputFeature::Distance {
                     distance_unit: self.distance_unit,
                     initial: Distance::ZERO,
+                    accumulator: false,
                 },
             ),
         ]

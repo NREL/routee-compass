@@ -134,6 +134,11 @@ impl StateModel {
         self.0.indexed_iter()
     }
 
+    pub fn is_accumlator(&self, name: &str) -> Result<bool, StateModelError> {
+        let feature = self.get_feature(name)?;
+        Ok(feature.is_accumlator())
+    }
+
     /// Creates the initial state of a search. this should be a vector of
     /// accumulators, defined in the state model configuration.
     ///
@@ -623,7 +628,12 @@ impl StateModel {
         let output = self
             .iter()
             .zip(state.iter())
-            .map(|((name, _), state_var)| (name, state_var))
+            .filter_map(
+                |((name, feature), state_var)| match feature.is_accumlator() {
+                    false => None,
+                    true => Some((name, state_var)),
+                },
+            )
             .collect::<HashMap<_, _>>();
         json![output]
     }

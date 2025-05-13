@@ -30,6 +30,7 @@ impl TraversalModel for GradeTraversalModel {
             OutputFeature::Grade {
                 grade_unit: self.engine.grade_unit,
                 initial: Grade::ZERO,
+                accumulator: false,
             },
         )]
     }

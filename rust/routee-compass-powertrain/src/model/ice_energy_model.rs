@@ -82,6 +82,7 @@ impl TraversalModel for IceEnergyModel {
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
+                    accumulator: true,
                 },
             ),
             (
@@ -89,6 +90,7 @@ impl TraversalModel for IceEnergyModel {
                 OutputFeature::Energy {
                     energy_unit,
                     initial: Energy::ZERO,
+                    accumulator: false,
                 },
             ),
         ]

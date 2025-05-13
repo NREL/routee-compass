@@ -37,57 +37,53 @@ impl OutputPlugin for TraversalPlugin {
         output: &mut serde_json::Value,
         search_result: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
     ) -> Result<(), OutputPluginError> {
-        match search_result {
-            Err(_) => Ok(()),
-            Ok((result, si)) => {
-                match self.route {
-                    None => {}
-                    Some(route_args) => {
-                        let routes_serialized = result
-                            .routes
-                            .iter()
-                            .map(|route| {
-                                // construct_route_output(route, si, &route_args, &self.geoms)
-                                construct_route_output(route, si, &route_args)
-                            })
-                            .collect::<Result<Vec<_>, _>>()
-                            .map_err(OutputPluginError::OutputPluginFailed)?;
+        let (result, si) = match search_result {
+            Err(_) => return Ok(()),
+            Ok((result, si)) => (result, si),
+        };
 
-                        // vary the type of value stored at the route key. if there is
-                        // no route, store 'null'. if one, store an output object. if
-                        // more, store an array of objects.
-                        let routes_json = match routes_serialized.as_slice() {
-                            [] => serde_json::Value::Null,
-                            [route] => route.to_owned(),
-                            _ => json![routes_serialized],
-                        };
-                        output[&self.route_key] = routes_json;
-                    }
-                }
+        // output route if configured
+        if let Some(route_args) = self.route {
+            let routes_serialized = result
+                .routes
+                .iter()
+                .map(|route| {
+                    // construct_route_output(route, si, &route_args, &self.geoms)
+                    construct_route_output(route, si, &route_args)
+                })
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(OutputPluginError::OutputPluginFailed)?;
 
-                match self.tree {
-                    None => {}
-                    Some(tree_args) => {
-                        let trees_serialized = result
-                            .trees
-                            .iter()
-                            .map(|tree| {
-                                // tree_args.generate_tree_output(tree, &self.geoms)
-                                tree_args.generate_tree_output(tree, si.map_model.clone())
-                            })
-                            .collect::<Result<Vec<_>, _>>()?;
-                        let trees_json = match trees_serialized.as_slice() {
-                            [] => serde_json::Value::Null,
-                            [tree] => tree.to_owned(),
-                            _ => json![trees_serialized],
-                        };
-                        output[&self.tree_key] = json![trees_json];
-                    }
-                }
-
-                Ok(())
-            }
+            // vary the type of value stored at the route key. if there is
+            // no route, store 'null'. if one, store an output object. if
+            // more, store an array of objects.
+            let routes_json = match routes_serialized.as_slice() {
+                [] => serde_json::Value::Null,
+                [route] => route.to_owned(),
+                _ => json![routes_serialized],
+            };
+            output[&self.route_key] = routes_json;
         }
+
+        // output tree(s) if configured
+        if let Some(tree_args) = self.tree {
+            let trees_serialized = result
+                .trees
+                .iter()
+                .map(|tree| {
+                    // tree_args.generate_tree_output(tree, &self.geoms)
+                    tree_args.generate_tree_output(tree, si.map_model.clone())
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            let trees_json = match trees_serialized.as_slice() {
+                [] => serde_json::Value::Null,
+                [tree] => tree.to_owned(),
+                _ => json![trees_serialized],
+            };
+            output[&self.tree_key] = json![trees_json];
+        }
+
+        Ok(())
     }
 }
 
@@ -107,7 +103,7 @@ fn construct_route_output(
     let state_model = si.state_model.serialize_state_model();
     let cost = si
         .cost_model
-        .serialize_cost(&last_edge.result_state)
+        .serialize_cost(&last_edge.result_state, si.state_model.clone())
         .map_err(|e| e.to_string())?;
     let cost_model = si
         .cost_model

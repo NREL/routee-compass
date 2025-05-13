@@ -53,6 +53,7 @@ impl TraversalModel for SpeedTraversalModel {
             OutputFeature::Speed {
                 speed_unit: self.engine.speed_unit,
                 initial: Speed::ZERO,
+                accumulator: false,
             },
         )]
     }
@@ -67,7 +68,7 @@ impl TraversalModel for SpeedTraversalModel {
         let (_, edge, _) = trajectory;
         let lookup_speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let speed = apply_speed_limit(lookup_speed, self.speed_limit.as_ref());
-        state_model.add_speed(
+        state_model.set_speed(
             state,
             fieldname::EDGE_SPEED,
             &speed,
@@ -87,7 +88,7 @@ impl TraversalModel for SpeedTraversalModel {
             Some((speed_limit, _speed_unit)) => speed_limit,
             None => self.engine.max_speed,
         };
-        state_model.add_speed(
+        state_model.set_speed(
             state,
             fieldname::EDGE_SPEED,
             &speed,

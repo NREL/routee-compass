@@ -114,26 +114,22 @@ impl TraversalModel for PhevEnergyModel {
     }
 
     fn output_features(&self) -> Vec<(String, OutputFeature)> {
-        let liquid_energy_feature = OutputFeature::Energy {
-            energy_unit: self
-                .charge_sustain_model
-                .energy_rate_unit
-                .associated_energy_unit(),
-            initial: Energy::ZERO,
-        };
-        let electric_energy_feature = OutputFeature::Energy {
-            energy_unit: self
-                .charge_depleting_model
-                .energy_rate_unit
-                .associated_energy_unit(),
-            initial: Energy::ZERO,
-        };
+        let liq_unit = self
+            .charge_sustain_model
+            .energy_rate_unit
+            .associated_energy_unit();
+        let ele_unit = self
+            .charge_depleting_model
+            .energy_rate_unit
+            .associated_energy_unit();
+
         vec![
             (
                 String::from(fieldname::TRIP_ENERGY),
                 OutputFeature::Energy {
                     energy_unit: EnergyUnit::GallonsGasolineEquivalent,
                     initial: Energy::ZERO,
+                    accumulator: true,
                 },
             ),
             (
@@ -141,23 +137,40 @@ impl TraversalModel for PhevEnergyModel {
                 OutputFeature::Energy {
                     energy_unit: EnergyUnit::GallonsGasolineEquivalent,
                     initial: Energy::ZERO,
+                    accumulator: false,
                 },
             ),
             (
                 String::from(fieldname::TRIP_ENERGY_LIQUID),
-                liquid_energy_feature.clone(),
+                OutputFeature::Energy {
+                    energy_unit: liq_unit,
+                    initial: Energy::ZERO,
+                    accumulator: true,
+                },
             ),
             (
                 String::from(fieldname::EDGE_ENERGY_LIQUID),
-                liquid_energy_feature.clone(),
+                OutputFeature::Energy {
+                    energy_unit: liq_unit,
+                    initial: Energy::ZERO,
+                    accumulator: false,
+                },
             ),
             (
                 String::from(fieldname::TRIP_ENERGY_ELECTRIC),
-                electric_energy_feature.clone(),
+                OutputFeature::Energy {
+                    energy_unit: ele_unit,
+                    initial: Energy::ZERO,
+                    accumulator: true,
+                },
             ),
             (
                 String::from(fieldname::EDGE_ENERGY_ELECTRIC),
-                electric_energy_feature.clone(),
+                OutputFeature::Energy {
+                    energy_unit: ele_unit,
+                    initial: Energy::ZERO,
+                    accumulator: false,
+                },
             ),
             (
                 String::from(fieldname::TRIP_SOC),
@@ -167,6 +180,7 @@ impl TraversalModel for PhevEnergyModel {
                     format: CustomFeatureFormat::FloatingPoint {
                         initial: self.starting_soc.into(),
                     },
+                    accumulator: true,
                 },
             ),
         ]
@@ -501,7 +515,6 @@ mod test {
     }
 
     fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
-        
         StateModel::empty()
             .register(m.input_features(), m.output_features())
             .expect("test invariant failed")

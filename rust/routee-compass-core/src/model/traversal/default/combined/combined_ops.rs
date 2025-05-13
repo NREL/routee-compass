@@ -250,6 +250,7 @@ mod test {
                         OutputFeature::Distance {
                             distance_unit: DistanceUnit::Feet,
                             initial: Distance::ZERO,
+                            accumulator: true,
                         },
                     )
                 })
