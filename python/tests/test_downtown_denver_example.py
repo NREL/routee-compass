@@ -22,57 +22,51 @@ class TestDowntownDenverExample(TestCase):
             "origin_x": -104.86796368632217,
         }
 
-        time_optimal_query = dict(base_query)
-        time_optimal_query["weights"] = {
+        t_opt_query = dict(base_query)
+        t_opt_query["weights"] = {
             "trip_distance": 0,
             "trip_time": 1,
         }
 
-        balanced_query = dict(base_query)
-        balanced_query["weights"] = {
+        c_opt_query = dict(base_query)
+        c_opt_query["weights"] = {
             "trip_distance": 1,
             "trip_time": 1,
         }
 
-        time_optimal_result = app.run(time_optimal_query)
-        balanced_result = app.run(balanced_query)
+        t_opt_result = app.run(t_opt_query)
+        c_opt_result = app.run(c_opt_query)
 
-        if not isinstance(time_optimal_result, dict):
+        if not isinstance(t_opt_result, dict):
             self.fail(
-                f"Time optimal response is not a dict. response: {json.dumps(time_optimal_result, indent=2)}"
+                f"Time optimal response is not a dict. response: {json.dumps(t_opt_result, indent=2)}"
             )
 
-        if not isinstance(balanced_result, dict):
+        if not isinstance(c_opt_result, dict):
             self.fail(
-                f"Balanced response is not a dict. response: {json.dumps(balanced_result, indent=2)}",
+                f"Balanced response is not a dict. response: {json.dumps(c_opt_result, indent=2)}",
             )
 
         self.assertIsNotNone(
-            time_optimal_result.get("route"),
-            f"Time optimal result missing route key. \nerror: {time_optimal_result.get('error')}\nresponse: {json.dumps(time_optimal_result, indent=2)}",
+            t_opt_result.get("route"),
+            f"Time optimal result missing route key. \nerror: {t_opt_result.get('error')}\nresponse: {json.dumps(t_opt_result, indent=2)}",
         )
 
         self.assertIsNotNone(
-            balanced_result.get("route"),
-            f"Balanced result missing route key. \nerror: {balanced_result.get('error')}\nresponse: {json.dumps(balanced_result, indent=2)}",
+            c_opt_result.get("route"),
+            f"Balanced result missing route key. \nerror: {c_opt_result.get('error')}\nresponse: {json.dumps(c_opt_result, indent=2)}",
         )
 
-        time_optimal_time = time_optimal_result["route"]["traversal_summary"][
-            "trip_time"
-        ]
-        balanced_time = balanced_result["route"]["traversal_summary"]["trip_time"]
-        time_optimal_cost = time_optimal_result["route"]["cost"]["total_cost"]
-        balanced_cost = balanced_result["route"]["cost"]["total_cost"]
+        t_opt_time = t_opt_result["route"]["traversal_summary"]["trip_time"]
+        c_opt_time = c_opt_result["route"]["traversal_summary"]["trip_time"]
+        t_opt_cost = t_opt_result["route"]["cost"]["total_cost"]
+        c_opt_cost = c_opt_result["route"]["cost"]["total_cost"]
 
         # Test 1: Time optimal has shortest time and greatest energy
-        self.assertLessEqual(
-            time_optimal_time, balanced_time, "not time.time <= balanced.time"
-        )
+        self.assertLessEqual(t_opt_time, c_opt_time, "not time.time <= balanced.time")
 
         # Test 2: Cost optimal has the least total cost
-        self.assertLessEqual(
-            balanced_cost, time_optimal_cost, "not balanced.cost <= time.cost"
-        )
+        self.assertLessEqual(c_opt_cost, t_opt_cost, "not balanced.cost <= time.cost")
 
         # Test 4: Monotonicity across weight spectrum
         # Run range of cases from weight p=0 to p=1 for time, with distance=(1-p)
@@ -136,102 +130,86 @@ class TestDowntownDenverExample(TestCase):
             "model_name": "2017_CHEVROLET_Bolt",
         }
 
-        time_optimal_query = dict(base_query)
-        time_optimal_query["weights"] = {
+        t_opt_query = dict(base_query)
+        t_opt_query["weights"] = {
             "trip_distance": 0,
             "trip_time": 1,
             energy_key: 1,
         }
 
-        energy_optimal_query = dict(base_query)
-        energy_optimal_query["weights"] = {
+        e_opt_query = dict(base_query)
+        e_opt_query["weights"] = {
             "trip_distance": 0,
             "trip_time": 0,
             energy_key: 1,
         }
 
-        balanced_query = dict(base_query)
-        balanced_query["weights"] = {
+        c_opt_query = dict(base_query)
+        c_opt_query["weights"] = {
             "trip_distance": 1,
             "trip_time": 1,
             energy_key: 1,
         }
 
-        time_optimal_result = app.run(time_optimal_query)
-        energy_optimal_result = app.run(energy_optimal_query)
-        balanced_result = app.run(balanced_query)
+        t_opt_result = app.run(t_opt_query)
+        e_opt_result = app.run(e_opt_query)
+        c_opt_result = app.run(c_opt_query)
 
-        if not isinstance(time_optimal_result, dict):
+        if not isinstance(t_opt_result, dict):
             self.fail(
-                f"Time optimal response is not a dict. response: {json.dumps(time_optimal_result, indent=2)}"
+                f"Time optimal response is not a dict. response: {json.dumps(t_opt_result, indent=2)}"
             )
-        if not isinstance(energy_optimal_result, dict):
+        if not isinstance(e_opt_result, dict):
             self.fail(
-                f"Energy optimal response is not a dict. response: {json.dumps(energy_optimal_result, indent=2)}"
+                f"Energy optimal response is not a dict. response: {json.dumps(e_opt_result, indent=2)}"
             )
-        if not isinstance(balanced_result, dict):
+        if not isinstance(c_opt_result, dict):
             self.fail(
-                f"Balanced response is not a dict. response: {json.dumps(balanced_result, indent=2)}",
+                f"Balanced response is not a dict. response: {json.dumps(c_opt_result, indent=2)}",
             )
 
         self.assertIsNotNone(
-            time_optimal_result.get("route"),
-            f"Time optimal result missing route key. \nerror: {time_optimal_result.get('error')}\nresponse: {json.dumps(time_optimal_result, indent=2)}",
+            t_opt_result.get("route"),
+            f"Time optimal result missing route key. \nerror: {t_opt_result.get('error')}\nresponse: {json.dumps(t_opt_result, indent=2)}",
         )
         self.assertIsNotNone(
-            energy_optimal_result.get("route"),
-            f"Energy optimal result missing route key. \nerror: {energy_optimal_result.get('error')}\nresponse: {json.dumps(energy_optimal_result, indent=2)}",
+            e_opt_result.get("route"),
+            f"Energy optimal result missing route key. \nerror: {e_opt_result.get('error')}\nresponse: {json.dumps(e_opt_result, indent=2)}",
         )
         self.assertIsNotNone(
-            balanced_result.get("route"),
-            f"Balanced result missing route key. \nerror: {balanced_result.get('error')}\nresponse: {json.dumps(balanced_result, indent=2)}",
+            c_opt_result.get("route"),
+            f"Balanced result missing route key. \nerror: {c_opt_result.get('error')}\nresponse: {json.dumps(c_opt_result, indent=2)}",
         )
 
-        time_optimal_time = time_optimal_result["route"]["traversal_summary"][
-            "trip_time"
-        ]
-        time_optimal_energy = time_optimal_result["route"]["traversal_summary"][
-            energy_key
-        ]
-        time_optimal_cost = time_optimal_result["route"]["cost"]["total_cost"]
+        t_opt_time = t_opt_result["route"]["traversal_summary"]["trip_time"]
+        t_opt_energy = t_opt_result["route"]["traversal_summary"][energy_key]
+        t_opt_cost = t_opt_result["route"]["cost"]["total_cost"]
 
-        energy_optimal_time = energy_optimal_result["route"]["traversal_summary"][
-            "trip_time"
-        ]
-        energy_optimal_energy = energy_optimal_result["route"]["traversal_summary"][
-            energy_key
-        ]
-        energy_optimal_cost = energy_optimal_result["route"]["cost"]["total_cost"]
+        e_opt_time = e_opt_result["route"]["traversal_summary"]["trip_time"]
+        e_opt_energy = e_opt_result["route"]["traversal_summary"][energy_key]
+        e_opt_cost = e_opt_result["route"]["cost"]["total_cost"]
 
-        balanced_cost = balanced_result["route"]["cost"]["total_cost"]
+        c_opt_cost = c_opt_result["route"]["cost"]["total_cost"]
 
         # Test 1: Time optimal has shortest time and greatest energy
-        self.assertLessEqual(
-            time_optimal_time, energy_optimal_time, "not time.time <= energy.time"
-        )
+        self.assertLessEqual(t_opt_time, e_opt_time, "not time.time <= energy.time")
         self.assertGreaterEqual(
-            time_optimal_energy,
-            energy_optimal_energy,
+            t_opt_energy,
+            e_opt_energy,
             "not time.energy >= energy.energy",
         )
 
         # Test 2: Energy optimal has least energy and longest time
         self.assertLessEqual(
-            energy_optimal_energy,
-            time_optimal_energy,
+            e_opt_energy,
+            t_opt_energy,
             "not energy.energy <= time.energy",
         )
-        self.assertGreaterEqual(
-            energy_optimal_time, time_optimal_time, "not energy.time >= time.time"
-        )
+        self.assertGreaterEqual(e_opt_time, t_opt_time, "not energy.time >= time.time")
 
         # Test 3: Cost optimal has the least total cost
-        self.assertLessEqual(
-            balanced_cost, time_optimal_cost, "not balanced.cost <= time.cost"
-        )
-        self.assertLessEqual(
-            balanced_cost, energy_optimal_cost, "not balanced.cost <= energy.cost"
-        )
+        self.assertLessEqual(c_opt_cost, t_opt_cost, "not balanced.cost <= time.cost")
+        self.assertLessEqual(c_opt_cost, e_opt_cost, "not balanced.cost <= energy.cost")
 
         # Test 4: Monotonicity across weight spectrum
         # Run range of cases from weight p=0 to p=1 for time, with energy=(1-p)
