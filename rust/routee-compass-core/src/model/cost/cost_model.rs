@@ -219,33 +219,43 @@ impl CostModel {
     pub fn serialize_cost(
         &self,
         state: &[StateVariable],
+        state_model: Arc<StateModel>,
     ) -> Result<serde_json::Value, CostModelError> {
-        let mut state_variable_costs = self
+        // for each feature, if it is an accumulator, compute its cost
+        let mut state_variable_costs = HashMap::new();
+        let iter = self
             .feature_indices
             .iter()
-            .map(move |(name, idx)| {
-                let state_var = state
-                    .get(*idx)
-                    .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*idx, name.clone()))?;
+            .filter(|(name, _)| state_model.is_accumlator(name).unwrap_or_default());
+        for (name, idx) in iter {
+            let state_var = state
+                .get(*idx)
+                .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*idx, name.clone()))?;
 
-                let rate = self.vehicle_rates.get(*idx).ok_or_else(|| {
-                    let alternatives = self
-                        .feature_indices
-                        .iter()
-                        .filter(|(_, idx)| *idx < self.vehicle_rates.len())
-                        .map(|(n, _)| n.to_string())
-                        .collect::<Vec<_>>()
-                        .join(",");
-                    CostModelError::StateVariableNotFound(
-                        name.clone(),
-                        String::from("vehicle cost rates while serializing cost"),
-                        alternatives,
-                    )
-                })?;
-                let cost = rate.map_value(*state_var);
-                Ok((name.clone(), cost))
-            })
-            .collect::<Result<HashMap<String, Cost>, CostModelError>>()?;
+            let rate = self.vehicle_rates.get(*idx).ok_or_else(|| {
+                let alternatives = self
+                    .feature_indices
+                    .iter()
+                    .filter(|(_, idx)| *idx < self.vehicle_rates.len())
+                    .map(|(n, _)| n.to_string())
+                    .collect::<Vec<_>>()
+                    .join(",");
+                CostModelError::StateVariableNotFound(
+                    name.clone(),
+                    String::from("vehicle cost rates while serializing cost"),
+                    alternatives,
+                )
+            })?;
+            match rate.map_value(*state_var) {
+                Some(cost) => {
+                    state_variable_costs.insert(name.clone(), cost);
+                }
+                None => {
+                    // if the rate is zero, we don't need to include it in the cost serialization,
+                    // as this means that, while it is an accumulator, it has no vehicle cost factor.
+                }
+            }
+        }
 
         let total_cost = state_variable_costs
             .values()
