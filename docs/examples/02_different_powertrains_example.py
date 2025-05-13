@@ -58,23 +58,35 @@ query = [
         "vehicle_rates": {
             "trip_distance": {"type": "factor", "factor": 0.655},
             "trip_time": {"type": "factor", "factor": 0.33},
-            "trip_energy_electric": {"type": "factor", "factor": 0.5},
-            "trip_energy_liquid": {"type": "factor", "factor": 3.1},
         },
         "grid_search": {
-            "model_name": [
-                "2017_CHEVROLET_Bolt",
-                "2016_TOYOTA_Camry_4cyl_2WD",
-                "2016_CHEVROLET_Volt",
+            "_models": [
+                {
+                    "model_name": "2017_CHEVROLET_Bolt",
+                    "vehicle_rates": {
+                        "trip_energy_electric": {"type": "factor", "factor": 0.5}
+                    }
+                },
+                {
+                    "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
+                    "vehicle_rates": {
+                        "trip_energy_liquid": {"type": "factor", "factor": 3.1},
+                    }
+                },
+                {
+                    "model_name": "2016_CHEVROLET_Volt",
+                    "vehicle_rates": {
+                        "trip_energy_electric": {"type": "factor", "factor": 0.5}
+                    }
+                }
             ],
-            "test_cases": [
+            "_test_cases": [
                 {
                     "name": "least_time",
                     "weights": {
                         "trip_distance": 0,
                         "trip_time": 1,
-                        "trip_energy_electric": 0,
-                        "trip_energy_liquid": 0,
+                        "trip_energy": 0,
                     },
                 },
                 {
@@ -82,8 +94,7 @@ query = [
                     "weights": {
                         "trip_distance": 0,
                         "trip_time": 0,
-                        "trip_energy_electric": 1,
-                        "trip_energy_liquid": 1,
+                        "trip_energy": 1,
                     },
                 },
             ],
