@@ -42,21 +42,21 @@ factor = 0.655
 type = "factor"
 factor = 0.333336
 
-# based on AAA regular unleaded gas prices sampled 12/21/2023
-[cost.vehicle_rates.trip_energy_liquid]
-type = "factor"
-factor = 3.120
+# # based on AAA regular unleaded gas prices sampled 12/21/2023
+# [cost.vehicle_rates.trip_energy_liquid]
+# type = "factor"
+# factor = 3.120
 
 # based on $0.50/kWh approximation of DCFC charge rates, $/kWhtype = "factor"
-[cost.vehicle_rates.trip_energy_electric]
+[cost.vehicle_rates.trip_energy]
 type = "factor"
 factor = 0.50
 
 [cost.weights]
 trip_distance = 1
 trip_time = 1
-trip_energy_liquid = 1
-trip_energy_electric = 1
+# trip_energy_liquid = 1
+trip_energy = 1
 
 [access]
 type = "turn_delay"
