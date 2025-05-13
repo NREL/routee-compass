@@ -65,22 +65,22 @@ query = [
                     "model_name": "2017_CHEVROLET_Bolt",
                     "vehicle_rates": {
                         "trip_energy_electric": {"type": "factor", "factor": 0.5}
-                    }
+                    },
                 },
                 {
                     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
                     "vehicle_rates": {
                         "trip_energy_liquid": {"type": "factor", "factor": 3.1},
-                    }
+                    },
                 },
                 {
                     "model_name": "2016_CHEVROLET_Volt",
                     "vehicle_rates": {
                         "trip_energy_electric": {"type": "factor", "factor": 0.5}
-                    }
-                }
+                    },
+                },
             ],
-        "test_cases": [
+            "test_cases": [
                 {
                     "name": "least_time",
                     "weights": {
