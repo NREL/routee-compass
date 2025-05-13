@@ -106,7 +106,7 @@ query = [
         "vehicle_rates": {
             "trip_distance": {"type": "factor", "factor": 0.655},
             "trip_time": {"type": "factor", "factor": 0.33},
-            "trip_energy_liquid": {"type": "factor", "factor": 3.0},
+            "trip_energy": {"type": "factor", "factor": 3.0},
         },
         "grid_search": {
             "test_cases": [
@@ -115,7 +115,7 @@ query = [
                     "weights": {
                         "trip_distance": 0,
                         "trip_time": 1,
-                        "trip_energy_liquid": 0,
+                        "trip_energy": 0,
                     },
                 },
                 {
@@ -123,7 +123,7 @@ query = [
                     "weights": {
                         "trip_distance": 0,
                         "trip_time": 0,
-                        "trip_energy_liquid": 1,
+                        "trip_energy": 1,
                     },
                 },
                 {
@@ -131,7 +131,7 @@ query = [
                     "weights": {
                         "trip_distance": 1,
                         "trip_time": 1,
-                        "trip_energy_liquid": 1,
+                        "trip_energy": 1,
                     },
                 },
             ]
@@ -283,8 +283,8 @@ time_diff = (
     - least_energy_result["route"]["traversal_summary"]["trip_time"]
 )
 enrg_diff = (
-    shortest_time_result["route"]["traversal_summary"]["trip_energy_liquid"]
-    - least_energy_result["route"]["traversal_summary"]["trip_energy_liquid"]
+    shortest_time_result["route"]["traversal_summary"]["trip_energy"]
+    - least_energy_result["route"]["traversal_summary"]["trip_energy"]
 )
 cost_diff = (
     shortest_time_result["route"]["cost"]["total_cost"]
@@ -294,7 +294,7 @@ dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"][
     "distance_unit"
 ]
 time_unit = shortest_time_result["route"]["state_model"]["trip_time"]["time_unit"]
-enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy_liquid"][
+enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy"][
     "energy_unit"
 ]
 print(f" - distance: {dist_diff:.2f} {dist_unit} further with time-optimal")
@@ -376,7 +376,7 @@ We can also use the plot_routes_folium function and pass in multiple results. Th
 
 folium_map = plot_routes_folium(
     results,
-    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy_liquid"],
+    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy"],
     color_map="plasma",
 )
 folium_map
@@ -402,7 +402,7 @@ new_results = app.run(query)
 
 folium_map = plot_routes_folium(
     new_results,
-    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy_liquid"],
+    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy"],
     color_map="plasma",
     folium_map=folium_map,
 )

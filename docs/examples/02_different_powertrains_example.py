@@ -80,7 +80,7 @@ query = [
                     }
                 }
             ],
-            "_test_cases": [
+        "test_cases": [
                 {
                     "name": "least_time",
                     "weights": {
