@@ -1,5 +1,4 @@
 use crate::model::fieldname;
-
 use super::{
     energy_model_ops,
     prediction::{PredictionModelConfig, PredictionModelRecord},
@@ -211,7 +210,6 @@ fn bev_traversal(
 mod tests {
     use super::*;
     use crate::model::prediction::{ModelType, PredictionModelConfig};
-    use itertools::Itertools;
     use routee_compass_core::{model::unit::*, test::mock::traversal_model::TestTraversalModel};
     use std::path::PathBuf;
 
