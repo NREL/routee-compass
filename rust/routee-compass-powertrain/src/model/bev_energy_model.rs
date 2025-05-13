@@ -1,8 +1,8 @@
-use crate::model::fieldname;
 use super::{
     energy_model_ops,
     prediction::{PredictionModelConfig, PredictionModelRecord},
 };
+use crate::model::fieldname;
 use routee_compass_core::model::{
     network::{Edge, Vertex},
     state::{CustomFeatureFormat, InputFeature, OutputFeature, StateModel, StateVariable},
