@@ -19,7 +19,7 @@ class TestDowntownDenverExample(TestCase):
             "destination_y": 39.62627481432341,
             "destination_x": -104.99460207519721,
             "origin_y": 39.798311884359094,
-            "origin_x": -104.86796368632217
+            "origin_x": -104.86796368632217,
         }
 
         time_optimal_query = dict(base_query)
@@ -60,17 +60,19 @@ class TestDowntownDenverExample(TestCase):
         time_optimal_time = time_optimal_result["route"]["traversal_summary"][
             "trip_time"
         ]
-        balanced_time = balanced_result["route"]["traversal_summary"][
-            "trip_time"
-        ]
+        balanced_time = balanced_result["route"]["traversal_summary"]["trip_time"]
         time_optimal_cost = time_optimal_result["route"]["cost"]["total_cost"]
         balanced_cost = balanced_result["route"]["cost"]["total_cost"]
 
         # Test 1: Time optimal has shortest time and greatest energy
-        self.assertLessEqual(time_optimal_time, balanced_time, "not time.time <= balanced.time")
+        self.assertLessEqual(
+            time_optimal_time, balanced_time, "not time.time <= balanced.time"
+        )
 
         # Test 2: Cost optimal has the least total cost
-        self.assertLessEqual(balanced_cost, time_optimal_cost, "not balanced.cost <= time.cost")
+        self.assertLessEqual(
+            balanced_cost, time_optimal_cost, "not balanced.cost <= time.cost"
+        )
 
         # Test 4: Monotonicity across weight spectrum
         # Run range of cases from weight p=0 to p=1 for time, with distance=(1-p)
@@ -80,7 +82,7 @@ class TestDowntownDenverExample(TestCase):
         for i in range(steps):
             p = i / (steps - 1)  # From 0 to 1
             query = dict(base_query)
-            query["weights"] = {"trip_distance": 1 - p, "trip_time": p }
+            query["weights"] = {"trip_distance": 1 - p, "trip_time": p}
             result = app.run(query)
             if not isinstance(result, dict):
                 self.fail(
@@ -113,7 +115,6 @@ class TestDowntownDenverExample(TestCase):
                 f"Distance not increasing as weight p increases from {weight_results[i - 1]['p']} to {weight_results[i]['p']}",
             )
 
-    
     def test_energy(self) -> None:
         app = CompassApp.from_config_file(
             package_root()
@@ -205,16 +206,32 @@ class TestDowntownDenverExample(TestCase):
         balanced_cost = balanced_result["route"]["cost"]["total_cost"]
 
         # Test 1: Time optimal has shortest time and greatest energy
-        self.assertLessEqual(time_optimal_time, energy_optimal_time, "not time.time <= energy.time")
-        self.assertGreaterEqual(time_optimal_energy, energy_optimal_energy, "not time.energy >= energy.energy")
+        self.assertLessEqual(
+            time_optimal_time, energy_optimal_time, "not time.time <= energy.time"
+        )
+        self.assertGreaterEqual(
+            time_optimal_energy,
+            energy_optimal_energy,
+            "not time.energy >= energy.energy",
+        )
 
         # Test 2: Energy optimal has least energy and longest time
-        self.assertLessEqual(energy_optimal_energy, time_optimal_energy, "not energy.energy <= time.energy")
-        self.assertGreaterEqual(energy_optimal_time, time_optimal_time, "not energy.time >= time.time")
+        self.assertLessEqual(
+            energy_optimal_energy,
+            time_optimal_energy,
+            "not energy.energy <= time.energy",
+        )
+        self.assertGreaterEqual(
+            energy_optimal_time, time_optimal_time, "not energy.time >= time.time"
+        )
 
         # Test 3: Cost optimal has the least total cost
-        self.assertLessEqual(balanced_cost, time_optimal_cost, "not balanced.cost <= time.cost")
-        self.assertLessEqual(balanced_cost, energy_optimal_cost, "not balanced.cost <= energy.cost")
+        self.assertLessEqual(
+            balanced_cost, time_optimal_cost, "not balanced.cost <= time.cost"
+        )
+        self.assertLessEqual(
+            balanced_cost, energy_optimal_cost, "not balanced.cost <= energy.cost"
+        )
 
         # Test 4: Monotonicity across weight spectrum
         # Run range of cases from weight p=0 to p=1 for time, with energy=(1-p)
