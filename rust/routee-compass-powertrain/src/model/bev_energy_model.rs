@@ -197,7 +197,7 @@ fn bev_traversal(
 
     let (energy, energy_unit) = if estimate {
         Energy::create(
-            (&distance, &distance_unit),
+            (&distance, distance_unit),
             (&record.ideal_energy_rate, &record.energy_rate_unit),
         )?
     } else {
