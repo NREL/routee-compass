@@ -301,17 +301,17 @@ fn depleting_only_traversal(
     state_model.set_energy(
         state,
         fieldname::EDGE_ENERGY_ELECTRIC,
-        &est_edge_elec,
+        est_edge_elec,
         battery_unit,
     )?;
     state_model.add_energy(
         state,
         fieldname::TRIP_ENERGY_ELECTRIC,
-        &est_edge_elec,
+        est_edge_elec,
         battery_unit,
     )?;
     // update trip energy in GGE
-    let gge = accumulate_gge(&[(&est_edge_elec, battery_unit)])?;
+    let gge = accumulate_gge(&[(est_edge_elec, battery_unit)])?;
     state_model.set_energy(
         state,
         fieldname::EDGE_ENERGY,
@@ -326,7 +326,7 @@ fn depleting_only_traversal(
     )?;
     let end_soc = energy_model_ops::update_soc_percent(
         &start_soc,
-        (&est_edge_elec, battery_unit),
+        (est_edge_elec, battery_unit),
         (battery_capacity, battery_unit),
     )?;
     state_model.set_custom_f64(state, fieldname::TRIP_SOC, &end_soc)?;
@@ -351,13 +351,13 @@ fn mixed_traversal(
     state_model.set_energy(
         state,
         fieldname::EDGE_ENERGY_ELECTRIC,
-        &edge_start_elec,
+        edge_start_elec,
         battery_unit,
     )?;
     state_model.add_energy(
         state,
         fieldname::TRIP_ENERGY_ELECTRIC,
-        &edge_start_elec,
+        edge_start_elec,
         battery_unit,
     )?;
     state_model.set_custom_f64(state, fieldname::TRIP_SOC, &0.0)?;
@@ -395,7 +395,7 @@ fn mixed_traversal(
     )?;
     // update trip energy in GGE from both depleting and sustaining phases
     let gge = accumulate_gge(&[
-        (&edge_start_elec, battery_unit),
+        (edge_start_elec, battery_unit),
         (&remaining_energy, &remaining_unit),
     ])?;
     state_model.set_energy(
