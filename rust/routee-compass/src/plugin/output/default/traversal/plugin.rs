@@ -72,7 +72,12 @@ impl OutputPlugin for TraversalPlugin {
                 .iter()
                 .map(|tree| {
                     // tree_args.generate_tree_output(tree, &self.geoms)
-                    tree_args.generate_tree_output(tree, si.map_model.clone())
+                    tree_args.generate_tree_output(
+                        tree,
+                        si.map_model.clone(),
+                        si.state_model.clone(),
+                        si.cost_model.clone(),
+                    )
                 })
                 .collect::<Result<Vec<_>, _>>()?;
             let trees_json = match trees_serialized.as_slice() {
@@ -97,7 +102,12 @@ fn construct_route_output(
         .last()
         .ok_or_else(|| String::from("cannot find result route state when route is empty"))?;
     let path_json = output_format
-        .generate_route_output(route, si.map_model.clone())
+        .generate_route_output(
+            route,
+            si.map_model.clone(),
+            si.state_model.clone(),
+            si.cost_model.clone(),
+        )
         .map_err(|e| e.to_string())?;
     let traversal_summary = si.state_model.serialize_state(&last_edge.result_state);
     let state_model = si.state_model.serialize_state_model();

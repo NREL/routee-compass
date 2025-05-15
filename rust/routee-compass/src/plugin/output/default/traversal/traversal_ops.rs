@@ -5,15 +5,20 @@ use geojson::feature::Id;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::EdgeTraversal;
 use routee_compass_core::algorithm::search::SearchTreeBranch;
+use routee_compass_core::model::cost::CostModel;
 use routee_compass_core::model::map::MapModel;
 use routee_compass_core::model::network::vertex_id::VertexId;
+use routee_compass_core::model::state::StateModel;
 use routee_compass_core::util::geo::geo_io_utils;
+use serde_json::{json, Map};
 use std::collections::HashMap;
 use std::sync::Arc;
 
 pub fn create_tree_geojson(
     tree: &HashMap<VertexId, SearchTreeBranch>,
     map_model: Arc<MapModel>,
+    state_model: Arc<StateModel>,
+    cost_model: Arc<CostModel>,
 ) -> Result<serde_json::Value, OutputPluginError> {
     let features = tree
         .values()
@@ -27,7 +32,14 @@ pub fn create_tree_geojson(
                         e
                     ))
                 })
-                .and_then(|g| create_geojson_feature(&t.edge_traversal, g));
+                .and_then(|g| {
+                    create_geojson_feature(
+                        &t.edge_traversal,
+                        g,
+                        state_model.clone(),
+                        cost_model.clone(),
+                    )
+                });
 
             row_result
         })
@@ -45,22 +57,21 @@ pub fn create_tree_geojson(
 pub fn create_route_geojson(
     route: &[EdgeTraversal],
     map_model: Arc<MapModel>,
+    state_model: Arc<StateModel>,
+    cost_model: Arc<CostModel>,
 ) -> Result<serde_json::Value, OutputPluginError> {
     let features = route
         .iter()
         .map(|t| {
-            let row_result = map_model
-                .get(&t.edge_id)
-                .cloned()
-                .map_err(|e| {
-                    OutputPluginError::OutputPluginFailed(format!(
-                        "failure building route geojson: {}",
-                        e
-                    ))
-                })
-                .and_then(|g| create_geojson_feature(t, g));
-
-            row_result
+            let g = map_model.get(&t.edge_id).cloned().map_err(|e| {
+                OutputPluginError::OutputPluginFailed(format!(
+                    "failure building route geojson: {}",
+                    e
+                ))
+            })?;
+            let geojson_feature =
+                create_geojson_feature(t, g, state_model.clone(), cost_model.clone())?;
+            Ok(geojson_feature)
         })
         .collect::<Result<Vec<_>, OutputPluginError>>()?;
     // let result_json = serde_json::to_value(features)?;/
@@ -76,15 +87,31 @@ pub fn create_route_geojson(
 pub fn create_geojson_feature(
     t: &EdgeTraversal,
     g: LineString<f32>,
+    state_model: Arc<StateModel>,
+    cost_model: Arc<CostModel>,
 ) -> Result<Feature, OutputPluginError> {
-    let props = match serde_json::to_value(t).map(|v| v.as_object().cloned()) {
+    let serialized_state = state_model.serialize_state(&t.result_state);
+    let serialized_cost = cost_model
+        .serialize_cost(&t.result_state, state_model.clone())
+        .map_err(|e| {
+            OutputPluginError::OutputPluginFailed(format!(
+                "failure serializing cost for geojson feature: {}",
+                e
+            ))
+        })?;
+
+    let serialized_traversal = match serde_json::to_value(t).map(|v| v.as_object().cloned()) {
+        Ok(Some(obj)) => Ok(json![obj]),
         Ok(None) => Err(OutputPluginError::InternalError(format!(
             "serialized EdgeTraversal was not a JSON object for {}",
             t
         ))),
-        Ok(Some(obj)) => Ok(obj),
         Err(err) => Err(OutputPluginError::JsonError { source: err }),
     }?;
+    let mut properties = Map::new();
+    properties.insert(String::from("traversal"), serialized_traversal);
+    properties.insert(String::from("state"), serialized_state);
+    properties.insert(String::from("cost"), serialized_cost);
 
     let id = Id::Number(serde_json::Number::from(t.edge_id.0));
     let geometry = geojson::Geometry::from(&g);
@@ -92,7 +119,7 @@ pub fn create_geojson_feature(
         bbox: None,
         geometry: Some(geometry),
         id: Some(id),
-        properties: Some(props),
+        properties: Some(properties),
         foreign_members: None,
     };
     Ok(feature)
