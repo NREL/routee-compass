@@ -63,20 +63,15 @@ pub fn create_route_geojson(
     let features = route
         .iter()
         .map(|t| {
-            let row_result = map_model
-                .get(&t.edge_id)
-                .cloned()
-                .map_err(|e| {
-                    OutputPluginError::OutputPluginFailed(format!(
-                        "failure building route geojson: {}",
-                        e
-                    ))
-                })
-                .and_then(|g| {
-                    create_geojson_feature(t, g, state_model.clone(), cost_model.clone())
-                });
-
-            row_result
+            let g = map_model.get(&t.edge_id).cloned().map_err(|e| {
+                OutputPluginError::OutputPluginFailed(format!(
+                    "failure building route geojson: {}",
+                    e
+                ))
+            })?;
+            let geojson_feature =
+                create_geojson_feature(t, g, state_model.clone(), cost_model.clone())?;
+            Ok(geojson_feature)
         })
         .collect::<Result<Vec<_>, OutputPluginError>>()?;
     // let result_json = serde_json::to_value(features)?;/
