@@ -32,34 +32,9 @@ impl PredictionModel for InterpolationSpeedGradeModel {
         speed_unit.convert(&mut speed_converted, &self.speed_unit)?;
         grade_unit.convert(&mut grade_converted, &self.grade_unit)?;
 
-        // snap incoming speed and grade to the grid
-        let min_speed = *self.interpolator.data.grid.get(0).map(|s| s.first()).flatten().ok_or_else(|| {
-            TraversalModelError::TraversalModelFailure(
-                "Could not get first speed value from powertrain interpolation result; are x-values empty?".to_string(),
-            )
-        })?;
-        let max_speed = *self.interpolator.data.grid.get(0).map(|s| s.last()).flatten().ok_or_else(|| {
-            TraversalModelError::TraversalModelFailure(
-                "Could not get last speed value from powertrain interpolation result; are x-values empty?".to_string(),
-            )
-        })?;
-        let min_grade = *self.interpolator.data.grid.get(1).map(|g| g.first()).flatten().ok_or_else(|| {
-            TraversalModelError::TraversalModelFailure(
-                "Could not get first grade value from powertrain interpolation result; are y-values empty?".to_string(),
-            )
-        })?;
-        let max_grade = *self.interpolator.data.grid.get(1).map(|g| g.last()).flatten().ok_or_else(|| {
-            TraversalModelError::TraversalModelFailure(
-                "Could not get last grade value from powertrain interpolation result; are y-values empty?".to_string(),
-            )
-        })?;
-
-        let speed_value = speed_converted.as_f64().clamp(min_speed, max_speed);
-        let grade_value = grade_converted.as_f64().clamp(min_grade, max_grade);
-
         let y = self
             .interpolator
-            .interpolate(&[speed_value, grade_value])
+            .interpolate(&[speed_converted.as_f64(), grade_converted.as_f64()])
             .map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
                     "Failed to interpolate speed/grade model output during prediction: {}",
@@ -133,7 +108,7 @@ impl InterpolationSpeedGradeModel {
             grade_values,
             values,
             strategy::Linear,
-            Extrapolate::Error,
+            Extrapolate::Clamp,
         )
         .map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
