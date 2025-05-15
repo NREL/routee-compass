@@ -8,7 +8,7 @@ use routee_compass_core::model::{
     network::{Edge, Vertex},
     state::{CustomFeatureFormat, InputFeature, OutputFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{Convert, Energy, EnergyUnit, UnitError},
+    unit::{AsF64, Convert, Distance, Energy, EnergyUnit, UnitError},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -198,6 +198,7 @@ impl TraversalModel for PhevEnergyModel {
             self.charge_depleting_model.clone(),
             self.charge_sustain_model.clone(),
             (&self.battery_capacity.0, &self.battery_capacity.1),
+            false,
         )
     }
 
@@ -208,74 +209,156 @@ impl TraversalModel for PhevEnergyModel {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
-        let speed = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
-        let grade = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
-        let (energy, energy_unit) = self.charge_sustain_model.predict(speed, grade, distance)?;
-        state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy, &energy_unit)?;
-        state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy, &energy_unit)?;
-        Ok(())
+        phev_traversal(
+            state,
+            state_model,
+            self.charge_depleting_model.clone(),
+            self.charge_sustain_model.clone(),
+            (&self.battery_capacity.0, &self.battery_capacity.1),
+            true,
+        )
     }
 }
 
 /// a PHEV traversal that switches between a charge depleting and charge sustaining model in order
 /// to compute energy consumption. the mechanism checks for battery state of charge, and if it is
 /// greater than 0, then the charge depleting model is used. otherwise, the charge sustaining model is used.
+/// if battery state is empty mid-traversal, the remaining distance will be applied to the charge
+/// sustaining model.
 fn phev_traversal(
     state: &mut [StateVariable],
     state_model: &StateModel,
-    charge_depleting_model: Arc<PredictionModelRecord>,
-    charge_sustaining_model: Arc<PredictionModelRecord>,
+    depleting: Arc<PredictionModelRecord>,
+    sustaining: Arc<PredictionModelRecord>,
     battery_capacity: (&Energy, &EnergyUnit),
+    estimate: bool,
 ) -> Result<(), TraversalModelError> {
-    let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
-    let speed = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
-    let grade = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
+    // collect state variables
+    let (battery_cap, battery_unit) = battery_capacity;
+    let (distance, distance_unit) =
+        state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
     let start_soc = state_model.get_custom_f64(state, fieldname::TRIP_SOC)?;
-    if start_soc > 0.0 {
-        // use electric powertrain model to update kWh + SOC
-        let (energy, energy_unit) = charge_depleting_model.predict(speed, grade, distance)?;
+    let (trip_energy_elec, trip_elec_unit) =
+        state_model.get_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, None)?;
+
+    // figure out how much energy we had at the start of the edge
+    let mut elec_used = Cow::Owned(trip_energy_elec);
+    trip_elec_unit.convert(&mut elec_used, battery_unit)?;
+    let edge_start_elec = *battery_cap - elec_used.into_owned();
+
+    // estimate remaining energy if we travel this distance
+    let (est_edge_elec, est_elec_unit) = if estimate {
+        Energy::create(
+            (&distance, &distance_unit),
+            (&depleting.ideal_energy_rate, &depleting.energy_rate_unit),
+        )?
+    } else {
+        let speed = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
+        let grade = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
+        depleting.predict(speed, grade, (distance, distance_unit))?
+    };
+
+    // let (est_edge_elec, est_elec_unit) = Energy::create(
+    //     (&distance, &distance_unit),
+    //     (&depleting.ideal_energy_rate, &depleting.energy_rate_unit),
+    // )?;
+    let mut est_edge_elec = Cow::Owned(est_edge_elec);
+    est_elec_unit.convert(&mut est_edge_elec, battery_unit)?;
+    let est_edge_elec = est_edge_elec.into_owned();
+    let remaining_elec = edge_start_elec - est_edge_elec;
+
+    // did we complete the edge on battery or do we need to switch to our charge sustaining model?
+    let energy_overage = Energy::ZERO - remaining_elec;
+    let completed_on_battery = energy_overage <= Energy::ZERO;
+    if completed_on_battery {
         state_model.set_energy(
             state,
             fieldname::EDGE_ENERGY_ELECTRIC,
-            &energy,
-            &energy_unit,
+            &est_edge_elec,
+            &battery_unit,
         )?;
         state_model.add_energy(
             state,
             fieldname::TRIP_ENERGY_ELECTRIC,
-            &energy,
-            &energy_unit,
+            &est_edge_elec,
+            &battery_unit,
+        )?;
+        // update trip energy in GGE
+        let gge = accumulate_gge(&[(&est_edge_elec, &battery_unit)])?;
+        state_model.set_energy(
+            state,
+            fieldname::EDGE_ENERGY,
+            &gge,
+            &EnergyUnit::GallonsGasolineEquivalent,
+        )?;
+        state_model.add_energy(
+            state,
+            fieldname::TRIP_ENERGY,
+            &gge,
+            &EnergyUnit::GallonsGasolineEquivalent,
         )?;
         let end_soc = energy_model_ops::update_soc_percent(
             &start_soc,
-            (&energy, &energy_unit),
+            (&est_edge_elec, &battery_unit),
             (battery_capacity.0, battery_capacity.1),
         )?;
         state_model.set_custom_f64(state, fieldname::TRIP_SOC, &end_soc)?;
-
-        // update combined trip energy in GGE
-        let gge = accumulate_gge(&[(&energy, &energy_unit)])?;
-        state_model.set_energy(
-            state,
-            fieldname::EDGE_ENERGY,
-            &gge,
-            &EnergyUnit::GallonsGasolineEquivalent,
-        )?;
-        state_model.add_energy(
-            state,
-            fieldname::TRIP_ENERGY,
-            &gge,
-            &EnergyUnit::GallonsGasolineEquivalent,
-        )?;
     } else {
-        // use liquid fuel model
-        let (energy, energy_unit) = charge_sustaining_model.predict(speed, grade, distance)?;
-        state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy, &energy_unit)?;
-        state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy, &energy_unit)?;
+        // use up remaining battery first (edge start electricity, not edge consumption electricity)
+        state_model.set_energy(
+            state,
+            fieldname::EDGE_ENERGY_ELECTRIC,
+            &edge_start_elec,
+            &battery_unit,
+        )?;
+        state_model.add_energy(
+            state,
+            fieldname::TRIP_ENERGY_ELECTRIC,
+            &edge_start_elec,
+            &battery_unit,
+        )?;
+        state_model.set_custom_f64(state, fieldname::TRIP_SOC, &0.0)?;
 
-        // update combined trip energy in GGE
-        let gge = accumulate_gge(&[(&energy, &energy_unit)])?;
+        // find the amount of distance remaining on this edge as a ratio of remaining energy to total energy used
+        let numer = trip_energy_elec.as_f64();
+        let denom = (trip_energy_elec + energy_overage).as_f64();
+        let remaining_ratio = 1.0 - (numer / denom);
+        let remaining_dist = Distance::from(distance.as_f64() * remaining_ratio);
+
+        // estimate energy over this distance at the ideal energy rate for the charge sustaining model
+        // estimate remaining energy if we travel this distance
+        let (remaining_energy, remaining_unit) = if estimate {
+            Energy::create(
+                (&remaining_dist, &distance_unit),
+                (&sustaining.ideal_energy_rate, &sustaining.energy_rate_unit),
+            )?
+        } else {
+            let speed = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
+            let grade = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
+            sustaining.predict(speed, grade, (remaining_dist, distance_unit))?
+        };
+        // let (remaining_energy, remaining_unit) = Energy::create(
+        //     (&remaining_dist, &distance_unit),
+        //     (&sustaining.ideal_energy_rate, &sustaining.energy_rate_unit),
+        // )?;
+
+        state_model.set_energy(
+            state,
+            fieldname::EDGE_ENERGY_LIQUID,
+            &remaining_energy,
+            &remaining_unit,
+        )?;
+        state_model.add_energy(
+            state,
+            fieldname::TRIP_ENERGY_LIQUID,
+            &remaining_energy,
+            &remaining_unit,
+        )?;
+        // update trip energy in GGE from both depleting and sustaining phases
+        let gge = accumulate_gge(&[
+            (&edge_start_elec, &battery_unit),
+            (&remaining_energy, &remaining_unit),
+        ])?;
         state_model.set_energy(
             state,
             fieldname::EDGE_ENERGY,
@@ -288,7 +371,7 @@ fn phev_traversal(
             &gge,
             &EnergyUnit::GallonsGasolineEquivalent,
         )?;
-    };
+    }
     Ok(())
 }
 
@@ -349,6 +432,7 @@ mod test {
             charge_depleting.clone(),
             charge_sustaining.clone(),
             (&bat_cap, &bat_unit),
+            false,
         )
         .expect("test invariant failed");
 
@@ -406,6 +490,7 @@ mod test {
             charge_depleting.clone(),
             charge_sustaining.clone(),
             (&bat_cap, &bat_unit),
+            false,
         )
         .expect("test invariant failed");
 
@@ -428,9 +513,23 @@ mod test {
             .get_custom_f64(&state, fieldname::TRIP_SOC)
             .expect("test invariant failed");
 
-        assert!(elec > Energy::ZERO, "elec energy {} should be > 0", elec);
-        assert!(soc < 1e-9, "soc {} should be miniscule, < {}", soc, 1e-9);
-        assert!(liquid == Energy::ZERO, "should not have used liquid energy");
+        let (liquid_if_no_electricity_used, _) = Energy::create(
+            (&distance.0, &distance.1),
+            (
+                &charge_sustaining.ideal_energy_rate,
+                &charge_sustaining.energy_rate_unit,
+            ),
+        )
+        .expect("failed to create ideal liquid energy");
+
+        assert!(
+            elec == bat_cap,
+            "elec energy {} should be == battery capacity {}",
+            elec,
+            bat_cap
+        );
+        assert!(soc == 0.0, "soc {} should be 0", soc);
+        assert!(liquid < liquid_if_no_electricity_used, "liquid energy {} should have been less than the amount if we only used liquid energy {}", liquid, liquid_if_no_electricity_used);
 
         // and then traverse the same distance but this time we should only use liquid_fuel energy
         phev_traversal(
@@ -439,6 +538,7 @@ mod test {
             charge_depleting.clone(),
             charge_sustaining.clone(),
             (&bat_cap, &bat_unit),
+            false,
         )
         .expect("test invariant failed");
 

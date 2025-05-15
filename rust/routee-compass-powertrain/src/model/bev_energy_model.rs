@@ -162,6 +162,7 @@ impl TraversalModel for BevEnergyModel {
             state_model,
             self.prediction_model_record.clone(),
             (&self.battery_capacity.0, &self.battery_capacity.1),
+            false,
         )
     }
 
@@ -176,6 +177,7 @@ impl TraversalModel for BevEnergyModel {
             state_model,
             self.prediction_model_record.clone(),
             (&self.battery_capacity.0, &self.battery_capacity.1),
+            true,
         )
     }
 }
@@ -183,8 +185,9 @@ impl TraversalModel for BevEnergyModel {
 fn bev_traversal(
     state: &mut [StateVariable],
     state_model: &StateModel,
-    prediction_model_record: Arc<PredictionModelRecord>,
+    record: Arc<PredictionModelRecord>,
     battery_capacity: (&Energy, &EnergyUnit),
+    estimate: bool,
 ) -> Result<(), TraversalModelError> {
     let (distance, distance_unit) =
         state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
@@ -192,11 +195,18 @@ fn bev_traversal(
     let (grade, grade_unit) = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
     let soc = state_model.get_custom_f64(state, fieldname::TRIP_SOC)?;
 
-    let (energy, energy_unit) = prediction_model_record.predict(
-        (speed, speed_unit),
-        (grade, grade_unit),
-        (distance, distance_unit),
-    )?;
+    let (energy, energy_unit) = if estimate {
+        Energy::create(
+            (&distance, &distance_unit),
+            (&record.ideal_energy_rate, &record.energy_rate_unit),
+        )?
+    } else {
+        record.predict(
+            (speed, speed_unit),
+            (grade, grade_unit),
+            (distance, distance_unit),
+        )?
+    };
     let end_soc =
         energy_model_ops::update_soc_percent(&soc, (&energy, &energy_unit), battery_capacity)?;
 
@@ -232,6 +242,7 @@ mod tests {
             &state_model,
             record.clone(),
             (&bat_cap, &bat_unit),
+            false,
         )
         .unwrap();
 
@@ -268,6 +279,7 @@ mod tests {
             &state_model,
             record.clone(),
             (&bat_cap, &bat_unit),
+            false,
         )
         .unwrap();
 
@@ -305,6 +317,7 @@ mod tests {
             &state_model,
             record.clone(),
             (&bat_cap, &bat_unit),
+            false,
         )
         .unwrap();
 
@@ -332,6 +345,7 @@ mod tests {
             &state_model,
             record.clone(),
             (&bat_cap, &bat_unit),
+            false,
         )
         .unwrap();
 
