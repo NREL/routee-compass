@@ -189,12 +189,14 @@ fn bev_traversal(
     battery_capacity: (&Energy, &EnergyUnit),
     estimate: bool,
 ) -> Result<(), TraversalModelError> {
+    // gather state variables
     let (distance, distance_unit) =
         state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
     let (speed, speed_unit) = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
     let (grade, grade_unit) = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
-    let soc = state_model.get_custom_f64(state, fieldname::TRIP_SOC)?;
+    let start_soc = state_model.get_custom_f64(state, fieldname::TRIP_SOC)?;
 
+    // generate energy for link traversal
     let (energy, energy_unit) = if estimate {
         Energy::create(
             (&distance, distance_unit),
@@ -207,9 +209,13 @@ fn bev_traversal(
             (distance, distance_unit),
         )?
     };
-    let end_soc =
-        energy_model_ops::update_soc_percent(&soc, (&energy, &energy_unit), battery_capacity)?;
+    let end_soc = energy_model_ops::update_soc_percent(
+        &start_soc,
+        (&energy, &energy_unit),
+        battery_capacity,
+    )?;
 
+    // update state vector
     state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy, &energy_unit)?;
     state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy, &energy_unit)?;
     state_model.set_custom_f64(state, fieldname::TRIP_SOC, &end_soc)?;
