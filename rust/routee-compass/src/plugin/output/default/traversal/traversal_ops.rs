@@ -1,7 +1,6 @@
 use crate::plugin::output::OutputPluginError;
 use geo::{LineString, MultiLineString, Point};
 use geo_types::MultiPoint;
-use geojson::feature::Id;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::EdgeTraversal;
 use routee_compass_core::algorithm::search::SearchTreeBranch;

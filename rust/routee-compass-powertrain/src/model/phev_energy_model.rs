@@ -437,7 +437,7 @@ mod test {
             state::{StateModel, StateVariable},
             traversal::TraversalModel,
             unit::{
-                AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit,
+                AsF64, Distance, DistanceUnit, Energy, EnergyRateUnit, EnergyUnit,
                 Grade, GradeUnit, Speed, SpeedUnit,
             },
         },
