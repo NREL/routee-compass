@@ -2,12 +2,17 @@ use super::{
     interpolation::InterpolationSpeedGradeModel, model_type::ModelType,
     smartcore::SmartcoreSpeedGradeModel, PredictionModel, PredictionModelRecord,
 };
+use itertools::Itertools;
 use routee_compass_core::{
-    model::traversal::TraversalModelError,
-    model::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    model::{
+        traversal::TraversalModelError,
+        unit::{
+            Convert, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit, UnitError,
+        },
+    },
     util::cache_policy::float_cache_policy::FloatCachePolicy,
 };
-use std::{path::Path, sync::Arc};
+use std::{borrow::Cow, path::Path, sync::Arc};
 
 #[cfg(feature = "onnx")]
 use crate::model::prediction::onnx::OnnxSpeedGradeModel;
@@ -105,8 +110,9 @@ pub fn find_min_energy_rate(
     let start_time = std::time::Instant::now();
 
     let grade = Grade::ZERO;
-    for speed_i32 in 20..80 {
-        let speed = Speed::from(speed_i32 as f64);
+
+    let values = get_speed_sample_values(&speed_unit)?;
+    for speed in values.into_iter() {
         let (energy_rate, _) = model
             .predict(
                 (speed,& speed_unit),
@@ -129,4 +135,15 @@ pub fn find_min_energy_rate(
     );
 
     Ok(minimum_energy_rate)
+}
+
+/// produce a range of values that range from 1 to 100 mph in the incoming speed unit
+fn get_speed_sample_values(speed_unit: &SpeedUnit) -> Result<Vec<Speed>, UnitError> {
+    (1..100)
+        .map(|i| {
+            let mut converted = Cow::Owned(Speed::from(i as f64));
+            SpeedUnit::MPS.convert(&mut converted, speed_unit)?;
+            Ok(converted.into_owned())
+        })
+        .try_collect()
 }
