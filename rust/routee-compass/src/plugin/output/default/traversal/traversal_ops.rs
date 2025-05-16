@@ -109,16 +109,17 @@ pub fn create_geojson_feature(
         Err(err) => Err(OutputPluginError::JsonError { source: err }),
     }?;
     let mut properties = Map::new();
+    properties.insert(String::from("edge_id"), json![t.edge_id]);
     properties.insert(String::from("traversal"), serialized_traversal);
     properties.insert(String::from("state"), serialized_state);
     properties.insert(String::from("cost"), serialized_cost);
 
-    let id = Id::Number(serde_json::Number::from(t.edge_id.0));
+    // let id = Id::Number(serde_json::Number::from(t.edge_id.0));
     let geometry = geojson::Geometry::from(&g);
     let feature = Feature {
         bbox: None,
         geometry: Some(geometry),
-        id: Some(id),
+        id: None,
         properties: Some(properties),
         foreign_members: None,
     };
