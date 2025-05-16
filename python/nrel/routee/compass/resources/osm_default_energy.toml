@@ -94,7 +94,6 @@ model_input_file = "models/2016_TOYOTA_Camry_4cyl_2WD.bin"
 speed_unit = "mph"
 grade_unit = "percent"
 energy_rate_unit = "gallons gasoline/mile"
-ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
 [traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
@@ -114,7 +113,6 @@ grade_unit = "percent"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
-ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
 [traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
@@ -136,7 +134,6 @@ model_input_file = "models/2016_CHEVROLET_Volt_Charge_Depleting.bin"
 speed_unit = "mph"
 grade_unit = "percent"
 energy_rate_unit = "kWh/mile"
-ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
 [traversal.models.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
@@ -152,7 +149,6 @@ model_input_file = "models/2016_CHEVROLET_Volt_Charge_Sustaining.bin"
 speed_unit = "mph"
 grade_unit = "percent"
 energy_rate_unit = "gallons gasoline/mile"
-ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
 [traversal.models.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
