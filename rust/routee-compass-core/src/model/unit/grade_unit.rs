@@ -3,7 +3,7 @@ use crate::{model::unit::AsF64, util::serde::serde_ops::string_deserialize};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum GradeUnit {
     Percent,

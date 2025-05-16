@@ -1,11 +1,115 @@
+import json
 from unittest import TestCase
-
 from nrel.routee.compass import package_root
 from nrel.routee.compass.compass_app import CompassApp
 
 
 class TestDowntownDenverExample(TestCase):
-    def test_downtown_denver_example(self) -> None:
+    def test_time(self) -> None:
+        app = CompassApp.from_config_file(
+            package_root()
+            / "resources"
+            / "downtown_denver_example"
+            / "osm_default_speed.toml"
+        )
+
+        base_query = {
+            "origin_name": "NREL",
+            "destination_name": "Comrade Brewing Company",
+            "destination_y": 39.62627481432341,
+            "destination_x": -104.99460207519721,
+            "origin_y": 39.798311884359094,
+            "origin_x": -104.86796368632217,
+        }
+
+        t_opt_query = dict(base_query)
+        t_opt_query["weights"] = {
+            "trip_distance": 0,
+            "trip_time": 1,
+        }
+
+        c_opt_query = dict(base_query)
+        c_opt_query["weights"] = {
+            "trip_distance": 1,
+            "trip_time": 1,
+        }
+
+        t_opt_result = app.run(t_opt_query)
+        c_opt_result = app.run(c_opt_query)
+
+        if not isinstance(t_opt_result, dict):
+            self.fail(
+                f"Time optimal response is not a dict. response: {json.dumps(t_opt_result, indent=2)}"
+            )
+
+        if not isinstance(c_opt_result, dict):
+            self.fail(
+                f"Balanced response is not a dict. response: {json.dumps(c_opt_result, indent=2)}",
+            )
+
+        self.assertIsNotNone(
+            t_opt_result.get("route"),
+            f"Time optimal result missing route key. \nerror: {t_opt_result.get('error')}\nresponse: {json.dumps(t_opt_result, indent=2)}",
+        )
+
+        self.assertIsNotNone(
+            c_opt_result.get("route"),
+            f"Balanced result missing route key. \nerror: {c_opt_result.get('error')}\nresponse: {json.dumps(c_opt_result, indent=2)}",
+        )
+
+        t_opt_time = t_opt_result["route"]["traversal_summary"]["trip_time"]
+        c_opt_time = c_opt_result["route"]["traversal_summary"]["trip_time"]
+        t_opt_cost = t_opt_result["route"]["cost"]["total_cost"]
+        c_opt_cost = c_opt_result["route"]["cost"]["total_cost"]
+
+        # Test 1: Time optimal has shortest time and greatest energy
+        self.assertLessEqual(t_opt_time, c_opt_time, "not time.time <= balanced.time")
+
+        # Test 2: Cost optimal has the least total cost
+        self.assertLessEqual(c_opt_cost, t_opt_cost, "not balanced.cost <= time.cost")
+
+        # Test 4: Monotonicity across weight spectrum
+        # Run range of cases from weight p=0 to p=1 for time, with distance=(1-p)
+        weight_results = []
+        steps = 6  # Test 0, 0.2, 0.4, 0.6, 0.8, 1.0
+
+        for i in range(steps):
+            p = i / (steps - 1)  # From 0 to 1
+            query = dict(base_query)
+            query["weights"] = {"trip_distance": 1 - p, "trip_time": p}
+            result = app.run(query)
+            if not isinstance(result, dict):
+                self.fail(
+                    f"monotonicity response is not a dict. response: {json.dumps(result, indent=2)}",
+                )
+
+            error = result.get("error")
+            if error is not None:
+                raise Exception(
+                    f"Error running query with p={p}: {error}\nresponse: {json.dumps(result, indent=2)}"
+                )
+            weight_results.append(
+                {
+                    "p": p,
+                    "time": result["route"]["traversal_summary"]["trip_time"],
+                    "dist": result["route"]["traversal_summary"]["trip_distance"],
+                }
+            )
+
+        # As p increases (more weight on time), time should decrease, energy should increase
+        for i in range(1, len(weight_results)):
+            self.assertLessEqual(
+                weight_results[i]["time"],
+                weight_results[i - 1]["time"],
+                f"Time not decreasing as weight p increases from {weight_results[i - 1]['p']} to {weight_results[i]['p']}",
+            )
+            self.assertGreaterEqual(
+                weight_results[i]["dist"],
+                weight_results[i - 1]["dist"],
+                f"Distance not increasing as weight p increases from {weight_results[i - 1]['p']} to {weight_results[i]['p']}",
+            )
+
+    def test_energy(self) -> None:
         app = CompassApp.from_config_file(
             package_root()
             / "resources"
@@ -13,21 +117,137 @@ class TestDowntownDenverExample(TestCase):
             / "osm_default_energy.toml"
         )
 
-        query = {
-            "origin_y": 39.742909,
-            "origin_x": -104.991595,
-            "destination_y": 39.757360,
-            "destination_x": -104.988589,
-            "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
-            "weights": {"distance": 1, "time": 1, "energy_liquid": 1},
+        energy_key = "trip_energy"
+
+        base_query = {
+            "origin_name": "NREL",
+            "destination_name": "Comrade Brewing Company",
+            "destination_y": 39.62627481432341,
+            "destination_x": -104.99460207519721,
+            "origin_y": 39.798311884359094,
+            "origin_x": -104.86796368632217,
+            "starting_soc_percent": 100,
+            "model_name": "2017_CHEVROLET_Bolt",
         }
 
-        result = app.run(query)
+        t_opt_query = dict(base_query)
+        t_opt_query["weights"] = {
+            "trip_distance": 0,
+            "trip_time": 1,
+            energy_key: 1,
+        }
 
-        if not isinstance(result, dict):
-            raise ValueError(f"result is not a dict: {result}")
+        e_opt_query = dict(base_query)
+        e_opt_query["weights"] = {
+            "trip_distance": 0,
+            "trip_time": 0,
+            energy_key: 1,
+        }
 
-        self.assertTrue(
-            "error" not in result,
-            msg=f"error in downtown denver test: {result.get('error')}",
+        c_opt_query = dict(base_query)
+        c_opt_query["weights"] = {
+            "trip_distance": 1,
+            "trip_time": 1,
+            energy_key: 1,
+        }
+
+        t_opt_result = app.run(t_opt_query)
+        e_opt_result = app.run(e_opt_query)
+        c_opt_result = app.run(c_opt_query)
+
+        if not isinstance(t_opt_result, dict):
+            self.fail(
+                f"Time optimal response is not a dict. response: {json.dumps(t_opt_result, indent=2)}"
+            )
+        if not isinstance(e_opt_result, dict):
+            self.fail(
+                f"Energy optimal response is not a dict. response: {json.dumps(e_opt_result, indent=2)}"
+            )
+        if not isinstance(c_opt_result, dict):
+            self.fail(
+                f"Balanced response is not a dict. response: {json.dumps(c_opt_result, indent=2)}",
+            )
+
+        self.assertIsNotNone(
+            t_opt_result.get("route"),
+            f"Time optimal result missing route key. \nerror: {t_opt_result.get('error')}\nresponse: {json.dumps(t_opt_result, indent=2)}",
         )
+        self.assertIsNotNone(
+            e_opt_result.get("route"),
+            f"Energy optimal result missing route key. \nerror: {e_opt_result.get('error')}\nresponse: {json.dumps(e_opt_result, indent=2)}",
+        )
+        self.assertIsNotNone(
+            c_opt_result.get("route"),
+            f"Balanced result missing route key. \nerror: {c_opt_result.get('error')}\nresponse: {json.dumps(c_opt_result, indent=2)}",
+        )
+
+        t_opt_time = t_opt_result["route"]["traversal_summary"]["trip_time"]
+        t_opt_energy = t_opt_result["route"]["traversal_summary"][energy_key]
+        t_opt_cost = t_opt_result["route"]["cost"]["total_cost"]
+
+        e_opt_time = e_opt_result["route"]["traversal_summary"]["trip_time"]
+        e_opt_energy = e_opt_result["route"]["traversal_summary"][energy_key]
+        e_opt_cost = e_opt_result["route"]["cost"]["total_cost"]
+
+        c_opt_cost = c_opt_result["route"]["cost"]["total_cost"]
+
+        # Test 1: Time optimal has shortest time and greatest energy
+        self.assertLessEqual(t_opt_time, e_opt_time, "not time.time <= energy.time")
+        self.assertGreaterEqual(
+            t_opt_energy,
+            e_opt_energy,
+            "not time.energy >= energy.energy",
+        )
+
+        # Test 2: Energy optimal has least energy and longest time
+        self.assertLessEqual(
+            e_opt_energy,
+            t_opt_energy,
+            "not energy.energy <= time.energy",
+        )
+        self.assertGreaterEqual(e_opt_time, t_opt_time, "not energy.time >= time.time")
+
+        # Test 3: Cost optimal has the least total cost
+        self.assertLessEqual(c_opt_cost, t_opt_cost, "not balanced.cost <= time.cost")
+        self.assertLessEqual(c_opt_cost, e_opt_cost, "not balanced.cost <= energy.cost")
+
+        # Test 4: Monotonicity across weight spectrum
+        # Run range of cases from weight p=0 to p=1 for time, with energy=(1-p)
+        weight_results = []
+        steps = 6  # Test 0, 0.2, 0.4, 0.6, 0.8, 1.0
+
+        for i in range(steps):
+            p = i / (steps - 1)  # From 0 to 1
+            query = dict(base_query)
+            query["weights"] = {"trip_distance": 0, "trip_time": p, energy_key: 1 - p}
+            result = app.run(query)
+            if not isinstance(result, dict):
+                self.fail(
+                    f"monotonicity response is not a dict. response: {json.dumps(result, indent=2)}",
+                )
+
+            error = result.get("error")
+            if error is not None:
+                raise Exception(
+                    f"Error running query with p={p}: {error}\nresponse: {json.dumps(result, indent=2)}"
+                )
+            weight_results.append(
+                {
+                    "p": p,
+                    "time": result["route"]["traversal_summary"]["trip_time"],
+                    "energy": result["route"]["traversal_summary"][energy_key],
+                }
+            )
+
+        # As p increases (more weight on time), time should decrease, energy should increase
+        for i in range(1, len(weight_results)):
+            self.assertLessEqual(
+                weight_results[i]["time"],
+                weight_results[i - 1]["time"],
+                f"Time not decreasing as weight p increases from {weight_results[i - 1]['p']} to {weight_results[i]['p']}",
+            )
+            self.assertGreaterEqual(
+                weight_results[i]["energy"],
+                weight_results[i - 1]["energy"],
+                f"Energy not increasing as weight p increases from {weight_results[i - 1]['p']} to {weight_results[i]['p']}",
+            )

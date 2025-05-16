@@ -16,6 +16,8 @@ pub enum EnergyUnit {
     LitersGasoline,
     /// SI liters of diesel fuel
     LitersDiesel,
+    /// unit representing either electric or liquid fuel
+    GallonsGasolineEquivalent,
 }
 
 impl Convert<Energy> for EnergyUnit {
@@ -25,38 +27,39 @@ impl Convert<Energy> for EnergyUnit {
             (S::GallonsGasoline, S::GallonsGasoline) => None,
             (S::GallonsGasoline, S::KilowattHours) => Some(32.26),
             (S::GallonsGasoline, S::LitersGasoline) => Some(3.78541),
-            // GG->LD: GG -> GD -> LD
             (S::GallonsGasoline, S::LitersDiesel) => Some(0.866 * 3.78541),
             (S::KilowattHours, S::GallonsGasoline) => Some(0.031),
             (S::KilowattHours, S::KilowattHours) => None,
-            // KWH->LG: KWH -> GG -> LG
             (S::KilowattHours, S::LitersGasoline) => Some(0.031 * 3.78541),
-            // KWH->LD: KWH -> GD -> LD
             (S::KilowattHours, S::LitersDiesel) => Some(0.02457 * 3.78541),
             (S::GallonsDiesel, S::GallonsDiesel) => None,
             (S::GallonsDiesel, S::KilowattHours) => Some(40.7),
-            // GD->LG: GD -> GG -> LG
             (S::GallonsDiesel, S::LitersGasoline) => Some(1.155 * 3.78541),
             (S::GallonsDiesel, S::LitersDiesel) => Some(3.78541),
             (S::KilowattHours, S::GallonsDiesel) => Some(0.02457),
             (S::GallonsDiesel, S::GallonsGasoline) => Some(1.155),
             (S::GallonsGasoline, S::GallonsDiesel) => Some(0.866),
             (S::LitersGasoline, S::LitersGasoline) => None,
-            // LG->LD: LG -> GG -> GD -> LD
             (S::LitersGasoline, S::LitersDiesel) => Some(0.866),
             (S::LitersGasoline, S::GallonsGasoline) => Some(0.264172),
-            // LG->GD: LG -> LD -> GD
             (S::LitersGasoline, S::GallonsDiesel) => Some(0.264172 * 0.866),
-            // LG->KWH: LG -> GG -> KWH
             (S::LitersGasoline, S::KilowattHours) => Some(0.264172 * 32.26),
             (S::LitersDiesel, S::LitersDiesel) => None,
-            // LD->LG: LD -> GD -> GG -> LG
             (S::LitersDiesel, S::LitersGasoline) => Some(1.155),
-            // LD->GG: LD -> LG -> GG
             (S::LitersDiesel, S::GallonsGasoline) => Some(0.264172 * 1.155),
             (S::LitersDiesel, S::GallonsDiesel) => Some(0.264172),
-            // LD->KWH: LD -> GD -> KWH
             (S::LitersDiesel, S::KilowattHours) => Some(0.264172 * 40.7),
+            (S::GallonsGasoline, S::GallonsGasolineEquivalent) => None,
+            (S::GallonsDiesel, S::GallonsGasolineEquivalent) => Some(1.14),
+            (S::KilowattHours, S::GallonsGasolineEquivalent) => Some(0.03),
+            (S::LitersGasoline, S::GallonsGasolineEquivalent) => Some(0.264172),
+            (S::LitersDiesel, S::GallonsGasolineEquivalent) => Some(3.78541 * 1.14),
+            (S::GallonsGasolineEquivalent, S::GallonsGasoline) => None,
+            (S::GallonsGasolineEquivalent, S::GallonsDiesel) => Some(0.8771929825),
+            (S::GallonsGasolineEquivalent, S::KilowattHours) => Some(33.3333333333),
+            (S::GallonsGasolineEquivalent, S::LitersGasoline) => todo!(),
+            (S::GallonsGasolineEquivalent, S::LitersDiesel) => todo!(),
+            (S::GallonsGasolineEquivalent, S::GallonsGasolineEquivalent) => None,
         };
         if let Some(factor) = conversion_factor {
             let updated = Energy::from(value.as_ref().as_f64() * factor);
@@ -96,6 +99,7 @@ impl FromStr for EnergyUnit {
             "kilowatthours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
             "litersgasoline" => Ok(E::LitersGasoline),
             "litersdiesel" => Ok(E::LitersDiesel),
+            "gallonsgasolineequivalent" | "gge" => Ok(E::GallonsGasolineEquivalent),
             _ => Err(format!("unknown energy unit '{}'", s)),
         }
     }

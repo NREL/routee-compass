@@ -5,7 +5,7 @@ use crate::plugin::output::OutputPluginError;
 use geo::{CoordFloat, Geometry, TryConvert};
 use routee_compass_core::{
     algorithm::search::{EdgeTraversal, SearchTreeBranch},
-    model::{map::MapModel, network::vertex_id::VertexId},
+    model::{cost::CostModel, map::MapModel, network::vertex_id::VertexId, state::StateModel},
 };
 use serde::{Deserialize, Serialize};
 use wkt::ToWkt;
@@ -30,6 +30,8 @@ impl TraversalOutputFormat {
         &self,
         route: &Vec<EdgeTraversal>,
         map_model: Arc<MapModel>,
+        state_model: Arc<StateModel>,
+        cost_model: Arc<CostModel>,
     ) -> Result<serde_json::Value, OutputPluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
@@ -48,7 +50,7 @@ impl TraversalOutputFormat {
                 Ok(result)
             }
             TraversalOutputFormat::GeoJson => {
-                let result = ops::create_route_geojson(route, map_model.clone())?;
+                let result = ops::create_route_geojson(route, map_model, state_model, cost_model)?;
                 Ok(result)
             }
             TraversalOutputFormat::EdgeId => {
@@ -64,6 +66,8 @@ impl TraversalOutputFormat {
         &self,
         tree: &HashMap<VertexId, SearchTreeBranch>,
         map_model: Arc<MapModel>,
+        state_model: Arc<StateModel>,
+        cost_model: Arc<CostModel>,
     ) -> Result<serde_json::Value, OutputPluginError> {
         match self {
             TraversalOutputFormat::Wkt => {
@@ -82,7 +86,7 @@ impl TraversalOutputFormat {
                 Ok(result)
             }
             TraversalOutputFormat::GeoJson => {
-                let result = ops::create_tree_geojson(tree, map_model)?;
+                let result = ops::create_tree_geojson(tree, map_model, state_model, cost_model)?;
                 Ok(result)
             }
             TraversalOutputFormat::EdgeId => {

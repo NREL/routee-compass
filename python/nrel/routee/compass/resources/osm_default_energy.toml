@@ -23,30 +23,30 @@ output_plugins = [
     { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
 ]
 # based on 65.5 cents per mile 2023 IRS mileage rate, $/mile to match traversal distance_unit = "miles"
-[cost.vehicle_rates.distance]
+[cost.vehicle_rates.trip_distance]
 type = "factor"
 factor = 0.655
 
 # based on $20/hr approximation of 2023 median hourly wages, $/minute to match traversal time_unit = "minutes"
-[cost.vehicle_rates.time]
+[cost.vehicle_rates.trip_time]
 type = "factor"
 factor = 0.333336
 
 # based on AAA regular unleaded gas prices sampled 12/21/2023
-[cost.vehicle_rates.energy_liquid]
+[cost.vehicle_rates.trip_energy_liquid]
 type = "factor"
 factor = 3.120
 
 # based on $0.50/kWh approximation of DCFC charge rates, $/kWhtype = "factor"
-[cost.vehicle_rates.energy_electric]
+[cost.vehicle_rates.trip_energy_electric]
 type = "factor"
 factor = 0.50
 
 [cost.weights]
-distance = 1
-time = 1
-energy_liquid = 1
-energy_electric = 1
+trip_distance = 1
+trip_time = 1
+trip_energy_liquid = 1
+trip_energy_electric = 1
 
 [access]
 type = "turn_delay"
@@ -65,29 +65,37 @@ sharp_left = 3.5
 u_turn = 9.5
 
 [traversal]
-type = "energy_model"
-time_model_speed_unit = "kph"
-grade_table_grade_unit = "decimal"
-time_unit = "minutes"
+type = "combined"
+
+[[traversal.models]]
+type = "distance"
 distance_unit = "miles"
 
-[traversal.time_model]
-type = "speed_table"
+[[traversal.models]]
+type = "speed"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kph"
-distance_unit = "miles"
+
+[[traversal.models]]
+type = "time"
 time_unit = "minutes"
 
-[[traversal.vehicles]]
+[[traversal.models]]
+type = "grade"
+grade_unit = "decimal"
+grade_table_input_file = "edges-grade-enumerated.txt.gz"
+
+[[traversal.models]]
+type = "energy"
+[[traversal.models.vehicles]]
 name = "2016_TOYOTA_Camry_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_TOYOTA_Camry_4cyl_2WD.bin"
 speed_unit = "mph"
 grade_unit = "percent"
 energy_rate_unit = "gallons gasoline/mile"
-ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
-[traversal.vehicles.model_type.interpolate]
+[traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -96,7 +104,7 @@ grade_lower_bound = -20
 grade_upper_bound = 20
 grade_bins = 41
 
-[[traversal.vehicles]]
+[[traversal.models.vehicles]]
 name = "2017_CHEVROLET_Bolt"
 type = "bev"
 model_input_file = "models/2017_CHEVROLET_Bolt.bin"
@@ -105,9 +113,8 @@ grade_unit = "percent"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
-ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.model_type.interpolate]
+[traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -116,20 +123,19 @@ grade_lower_bound = -20
 grade_upper_bound = 20
 grade_bins = 41
 
-[[traversal.vehicles]]
+[[traversal.models.vehicles]]
 type = "phev"
 name = "2016_CHEVROLET_Volt"
 battery_capacity = 12
 battery_capacity_unit = "kilowatt_hours"
-[traversal.vehicles.charge_depleting]
+[traversal.models.vehicles.charge_depleting]
 name = "2016_CHEVROLET_Volt_Charge_Depleting"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Depleting.bin"
 speed_unit = "mph"
 grade_unit = "percent"
 energy_rate_unit = "kWh/mile"
-ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.vehicles.charge_depleting.model_type.interpolate]
+[traversal.models.vehicles.charge_depleting.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -137,15 +143,14 @@ speed_bins = 101
 grade_lower_bound = -20
 grade_upper_bound = 20
 grade_bins = 41
-[traversal.vehicles.charge_sustaining]
+[traversal.models.vehicles.charge_sustaining]
 name = "2016_CHEVROLET_Volt_Charge_Sustaining"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Sustaining.bin"
 speed_unit = "mph"
 grade_unit = "percent"
 energy_rate_unit = "gallons gasoline/mile"
-ideal_energy_rate = 0.02
 real_world_energy_adjustment = 1.1252
-[traversal.vehicles.charge_sustaining.model_type.interpolate]
+[traversal.models.vehicles.charge_sustaining.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100

@@ -1,8 +1,8 @@
 use super::traversal_model_error::TraversalModelError;
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
+use crate::model::state::{InputFeature, OutputFeature};
 
 /// Dictates how state transitions occur while traversing a graph in a search algorithm.
 ///
@@ -13,20 +13,22 @@ use crate::model::state::StateVariable;
 /// [DistanceModel]: super::default::distance::DistanceModel
 /// [SpeedLookupModel]: super::default::speed_lookup_model::SpeedLookupModel
 pub trait TraversalModel: Send + Sync {
-    /// lists the state variables expected by this traversal model that are not
-    /// defined on the base configuration. for example, if this traversal model
-    /// has state variables that differ based on the query, they can be injected
-    /// into the state model by listing them here.
-    fn state_features(&self) -> Vec<(String, StateFeature)>;
+    /// list the state variables required as inputs to this traversal model. for
+    /// example, if this traversal model uses a distance metric to compute time, then
+    /// it should list the expected distance state variable here.
+    fn input_features(&self) -> Vec<(String, InputFeature)>;
+
+    /// lists the state variables produced by this traversal model. for example,
+    /// if this traversal model produces leg distances, it should specify that here.
+    fn output_features(&self) -> Vec<(String, OutputFeature)>;
 
     /// Updates the traversal state by traversing an edge.
     ///
     /// # Arguments
     ///
-    /// * `src` - source vertex
-    /// * `edge` - edge to traverse
-    /// * `dst` - destination vertex
+    /// * `trajectory` - source vertex, edge, and destination vertex
     /// * `state` - state of the search at the beginning of this edge
+    /// * `state_model` - provides access to the state vector
     ///
     /// # Returns
     ///
@@ -43,9 +45,9 @@ pub trait TraversalModel: Send + Sync {
     ///
     /// # Arguments
     ///
-    /// * `src` - source vertex
-    /// * `dst` - destination vertex
+    /// * `od` - source vertex and destination vertex
     /// * `state` - state of the search at the source vertex
+    /// * `state_model` - provides access to the state vector
     ///
     /// # Returns
     ///

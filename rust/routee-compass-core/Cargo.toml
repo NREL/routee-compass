@@ -21,6 +21,7 @@ geo-traits = { workspace = true }
 ordered-float = { workspace = true }
 derive_more = { workspace = true }
 priority-queue = "2.0.2"
+env_logger = { workspace = true }
 lru = "0.14.0"
 csv = { workspace = true }
 kdam = { workspace = true }
@@ -32,3 +33,4 @@ wkt = { workspace = true }
 wkb = { workspace = true }
 allocative = { workspace = true }
 rstar = { workspace = true }
+topological-sort = "0.2.2"

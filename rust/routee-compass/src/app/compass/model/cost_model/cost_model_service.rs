@@ -86,7 +86,14 @@ impl CostModelService {
                 &"cost_model",
             )
             .map(|opt_rates| match opt_rates {
-                Some(rates) => Arc::new(rates),
+                Some(rates) => {
+                    // merge via append, overwriting by key
+                    let mut merged_rates = self.vehicle_rates.as_ref().clone();
+                    for (k, v) in rates.iter() {
+                        merged_rates.insert(k.clone(), v.clone());
+                    }
+                    Arc::new(merged_rates)
+                }
                 None => self.vehicle_rates.clone(),
             })?;
 

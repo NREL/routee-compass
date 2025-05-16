@@ -20,6 +20,26 @@ distance_unit = "miles"
 [access]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
+[access.turn_delay_model]
+type = "tabular_discrete"
+time_unit = "seconds"
+[access.turn_delay_model.table]
+no_turn = 0.0
+slight_right = 0.5
+right = 1.0
+sharp_right = 1.5
+slight_left = 1.0
+left = 2.5
+sharp_left = 3.5
+u_turn = 9.5
+
+# based on 65.5 cents per mile 2023 IRS mileage rate, $/mile
+[cost.vehicle_rates.trip_distance]
+type = "factor"
+factor = 0.655
+[cost.weights]
+trip_distance = 1
+
 
 [plugin]
 [[plugin.input_plugins]]
@@ -37,24 +57,3 @@ type = "summary"
 type = "traversal"
 route = "geo_json"
 geometry_input_file = "edges-geometries-enumerated.txt.gz"
-
-[access.turn_delay_model]
-type = "tabular_discrete"
-time_unit = "seconds"
-
-[cost.weights]
-distance = 1
-
-[access.turn_delay_model.table]
-no_turn = 0.0
-slight_right = 0.5
-right = 1.0
-sharp_right = 1.5
-slight_left = 1.0
-left = 2.5
-sharp_left = 3.5
-u_turn = 9.5
-
-[cost.vehicle_rates.distance]
-type = "factor"
-factor = 0.655

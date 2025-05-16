@@ -9,6 +9,12 @@ pub struct CombinedAccessModelBuilder {
     pub builders: HashMap<String, Rc<dyn AccessModelBuilder>>,
 }
 
+impl CombinedAccessModelBuilder {
+    pub fn new(builders: HashMap<String, Rc<dyn AccessModelBuilder>>) -> Self {
+        Self { builders }
+    }
+}
+
 impl AccessModelBuilder for CombinedAccessModelBuilder {
     fn build(
         &self,

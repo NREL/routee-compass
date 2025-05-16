@@ -1,7 +1,7 @@
 use crate::model::{
     access::{AccessModel, AccessModelError, AccessModelService},
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{OutputFeature, StateModel, StateVariable},
 };
 use itertools::Itertools;
 use std::sync::Arc;
@@ -26,7 +26,7 @@ impl AccessModelService for CombinedAccessModelService {
 }
 
 impl AccessModel for CombinedAccessModel {
-    fn state_features(&self) -> Vec<(String, StateFeature)> {
+    fn state_features(&self) -> Vec<(String, OutputFeature)> {
         self.models
             .iter()
             .flat_map(|m| m.state_features())
