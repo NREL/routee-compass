@@ -86,15 +86,12 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
                 Arc::new(model)
             }
         };
-        let ideal_energy_rate = match config.ideal_energy_rate {
-            None => prediction_model_ops::find_min_energy_rate(
-                &prediction_model,
-                config.speed_unit,
-                config.grade_unit,
-                &config.energy_rate_unit,
-            )?,
-            Some(ier) => ier,
-        };
+        let ideal_energy_rate = prediction_model_ops::find_min_energy_rate(
+            &prediction_model,
+            config.speed_unit,
+            config.grade_unit,
+            &config.energy_rate_unit,
+        )?;
 
         let real_world_energy_adjustment = config.real_world_energy_adjustment.unwrap_or(1.0);
         let cache_policy = match &config.float_cache_policy {

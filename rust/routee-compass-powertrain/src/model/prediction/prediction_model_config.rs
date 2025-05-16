@@ -1,6 +1,6 @@
 use super::ModelType;
 use routee_compass_core::{
-    model::unit::{EnergyRate, EnergyRateUnit, GradeUnit, SpeedUnit},
+    model::unit::{EnergyRateUnit, GradeUnit, SpeedUnit},
     util::cache_policy::float_cache_policy::FloatCachePolicyConfig,
 };
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,6 @@ pub struct PredictionModelConfig {
     pub speed_unit: SpeedUnit,
     pub grade_unit: GradeUnit,
     pub energy_rate_unit: EnergyRateUnit,
-    pub ideal_energy_rate: Option<EnergyRate>,
     pub real_world_energy_adjustment: Option<f64>,
     pub float_cache_policy: Option<FloatCachePolicyConfig>,
 }
@@ -27,7 +26,6 @@ impl PredictionModelConfig {
         speed_unit: SpeedUnit,
         grade_unit: GradeUnit,
         energy_rate_unit: EnergyRateUnit,
-        ideal_energy_rate: Option<EnergyRate>,
         real_world_energy_adjustment: Option<f64>,
         float_cache_policy: Option<FloatCachePolicyConfig>,
     ) -> Self {
@@ -38,7 +36,6 @@ impl PredictionModelConfig {
             speed_unit,
             grade_unit,
             energy_rate_unit,
-            ideal_energy_rate,
             real_world_energy_adjustment,
             float_cache_policy,
         }

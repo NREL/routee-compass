@@ -386,7 +386,6 @@ mod tests {
             SpeedUnit::MPH,
             GradeUnit::Decimal,
             EnergyRateUnit::KWHPM,
-            Some(EnergyRate::from(0.2)),
             Some(1.3958),
             None,
         );
