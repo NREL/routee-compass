@@ -139,9 +139,10 @@ pub fn find_min_energy_rate(
 
 /// produce a range of values that range from 1 to 100 mph in the incoming speed unit
 fn get_speed_sample_values(speed_unit: &SpeedUnit) -> Result<Vec<Speed>, UnitError> {
-    (1..100)
+    (1..1000)
         .map(|i| {
-            let mut converted = Cow::Owned(Speed::from(i as f64));
+            let mph_f64 = i as f64 * 0.1; // values in range [0.0, 100.0]
+            let mut converted = Cow::Owned(Speed::from(mph_f64));
             SpeedUnit::MPS.convert(&mut converted, speed_unit)?;
             Ok(converted.into_owned())
         })
