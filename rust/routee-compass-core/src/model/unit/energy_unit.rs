@@ -18,10 +18,8 @@ pub enum EnergyUnit {
     Gasoline(VolumeUnit),
     /// 1 [VolumeUnit] Diesel fuel
     Diesel(VolumeUnit),
-    Joules
-    // BTU
-    // eV
-    // calorie (small c)
+    KiloJoules,
+    BTU
 }
 
 impl Convert<Energy> for EnergyUnit {
@@ -38,7 +36,8 @@ impl Convert<Energy> for EnergyUnit {
             // GG->LD: GG -> GD -> LD
             (S::Gasoline(V::GallonsUs), S::Diesel(V::Liters)) => Some(0.866 * 3.78541), // (S::GallonsGasoline, S::LitersDiesel) => Some(0.866 * 3.78541),
             (S::Gasoline(V::GallonsUs), S::KilowattHours) => Some(32.26),               // (S::GallonsGasoline, S::KilowattHours) => Some(32.26),
-            (S::Gasoline(V::GallonsUs), S::Joules) => Some(32.26 * 3_600_000.),
+            (S::Gasoline(V::GallonsUs), S::KiloJoules) => Some(32.26 * 3_600.),
+            (S::Gasoline(V::GallonsUs), S::BTU) => Some(32.26 * 3_412.14),
             
             (S::Gasoline(V::Liters), S::Gasoline(V::GallonsUs)) => Some(0.264172),      // (S::LitersGasoline, S::GallonsGasoline) => Some(0.264172),
             (S::Gasoline(V::Liters), S::Gasoline(V::GallonsUk)) => Some(0.219969),
@@ -51,7 +50,8 @@ impl Convert<Energy> for EnergyUnit {
             (S::Gasoline(V::Liters), S::Diesel(V::Liters)) => Some(0.866),              // (S::LitersGasoline, S::LitersDiesel) => Some(0.866),
             // LG->KWH: LG -> GG -> KWH
             (S::Gasoline(V::Liters), S::KilowattHours) => Some(0.264172 * 32.26),       // (S::LitersGasoline, S::KilowattHours) => Some(0.264172 * 32.26),
-            (S::Gasoline(V::Liters), S::Joules) => Some(0.264172 * 32.26 * 3_600_000.),       
+            (S::Gasoline(V::Liters), S::KiloJoules) => Some(0.264172 * 32.26 * 3_600.),       
+            (S::Gasoline(V::Liters), S::BTU) => Some(0.264172 * 32.26 * 3_412.14),       
             
             (S::Diesel(V::GallonsUs), S::Gasoline(V::GallonsUs)) => Some(1.155),        // (S::GallonsDiesel, S::GallonsGasoline) => Some(1.155),
             (S::Diesel(V::GallonsUs), S::Gasoline(V::GallonsUk)) => Some(1.155 * 0.832674),
@@ -61,7 +61,8 @@ impl Convert<Energy> for EnergyUnit {
             (S::Diesel(V::GallonsUs), S::Diesel(V::GallonsUk)) => Some(0.832674),
             (S::Diesel(V::GallonsUs), S::Diesel(V::Liters)) => Some(3.78541),           // (S::GallonsDiesel, S::LitersDiesel) => Some(3.78541),
             (S::Diesel(V::GallonsUs), S::KilowattHours) => Some(40.7),                  // (S::GallonsDiesel, S::KilowattHours) => Some(40.7),
-            (S::Diesel(V::GallonsUs), S::Joules) => Some(40.7 * 3_600_000.),
+            (S::Diesel(V::GallonsUs), S::KiloJoules) => Some(40.7 * 3_600.),
+            (S::Diesel(V::GallonsUs), S::BTU) => Some(40.7 * 3_412.14),
             
             (S::Diesel(V::Liters), S::Gasoline(V::GallonsUs)) => Some(0.264172 * 1.155),// (S::LitersDiesel, S::GallonsGasoline) => Some(0.264172 * 1.155),
             (S::Diesel(V::Liters), S::Gasoline(V::GallonsUk)) => Some(0.264172 * 1.155 * 0.832674),
@@ -73,7 +74,8 @@ impl Convert<Energy> for EnergyUnit {
             (S::Diesel(V::Liters), S::Diesel(V::Liters)) => None,                       // (S::LitersDiesel, S::LitersDiesel) => None,
             // LD->KWH: LD -> GD -> KWH
             (S::Diesel(V::Liters), S::KilowattHours) => Some(0.264172 * 40.7),          // (S::LitersDiesel, S::KilowattHours) => Some(0.264172 * 40.7),
-            (S::Diesel(V::Liters), S::Joules) => Some(0.264172 * 40.7 * 3_600_000.),
+            (S::Diesel(V::Liters), S::KiloJoules) => Some(0.264172 * 40.7 * 3_600.),
+            (S::Diesel(V::Liters), S::BTU) => Some(0.264172 * 40.7 * 3_412.14),
             
             (S::KilowattHours, S::Gasoline(V::GallonsUs)) => Some(0.031),               // (S::KilowattHours, S::GallonsGasoline) => Some(0.031),
             (S::KilowattHours, S::Gasoline(V::GallonsUk)) => Some(0.031 * 0.832674),
@@ -84,7 +86,8 @@ impl Convert<Energy> for EnergyUnit {
             // KWH->LD: KWH -> GD -> LD
             (S::KilowattHours, S::Diesel(V::Liters)) => Some(0.02457 * 3.78541),        // (S::KilowattHours, S::LitersDiesel) => Some(0.02457 * 3.78541),
             (S::KilowattHours, S::KilowattHours) => None,
-            (S::KilowattHours, S::Joules) => Some(3_600_000.),
+            (S::KilowattHours, S::KiloJoules) => Some(3_600.),
+            (S::KilowattHours, S::BTU) => Some(3_412.14),
             
             (S::Gasoline(V::GallonsUk), S::Gasoline(V::GallonsUs)) => Some(1.20095),
             (S::Gasoline(V::GallonsUk), S::Gasoline(V::GallonsUk)) => None,
@@ -93,7 +96,8 @@ impl Convert<Energy> for EnergyUnit {
             (S::Gasoline(V::GallonsUk), S::Diesel(V::GallonsUk)) => Some(0.866),
             (S::Gasoline(V::GallonsUk), S::Diesel(V::Liters)) => Some(4.54609 * 0.866),
             (S::Gasoline(V::GallonsUk), S::KilowattHours) => Some(1.20095 * 32.26),
-            (S::Gasoline(V::GallonsUk), S::Joules) => Some(1.20095 * 32.26 * 3_600_000.),
+            (S::Gasoline(V::GallonsUk), S::KiloJoules) => Some(1.20095 * 32.26 * 3_600.),
+            (S::Gasoline(V::GallonsUk), S::BTU) => Some(1.20095 * 32.26 * 3_412.14),
             
             (S::Diesel(V::GallonsUk), S::Gasoline(V::GallonsUs)) => Some(1.20095 * 1.155),
             (S::Diesel(V::GallonsUk), S::Gasoline(V::GallonsUk)) => Some(1.155),
@@ -102,17 +106,30 @@ impl Convert<Energy> for EnergyUnit {
             (S::Diesel(V::GallonsUk), S::Diesel(V::GallonsUk)) => None,
             (S::Diesel(V::GallonsUk), S::Diesel(V::Liters)) => Some(4.54609),
             (S::Diesel(V::GallonsUk), S::KilowattHours) => Some(1.20095 * 40.7),
-            (S::Diesel(V::GallonsUk), S::Joules) => Some(1.20095 * 40.7 * 3_600_000.),
+            (S::Diesel(V::GallonsUk), S::KiloJoules) => Some(1.20095 * 40.7 * 3_600.),
+            (S::Diesel(V::GallonsUk), S::BTU) => Some(1.20095 * 40.7 * 3_412.14),
 
             // These are all transformed to kWh and then apply the kWh -> * conversion
-            (S::Joules, S::Gasoline(V::GallonsUs)) => Some(0.000000277778 * 0.031),
-            (S::Joules, S::Gasoline(V::GallonsUk)) => Some(0.000000277778 * 0.031 * 0.832674),
-            (S::Joules, S::Gasoline(V::Liters)) => Some(0.000000277778 * 0.031 * 3.78541),
-            (S::Joules, S::Diesel(V::GallonsUs)) => Some(0.000000277778 * 0.02457),
-            (S::Joules, S::Diesel(V::GallonsUk)) => Some(0.000000277778 * 0.02457 * 0.832674),
-            (S::Joules, S::Diesel(V::Liters)) => Some(0.000000277778 * 0.02457 * 3.78541),
-            (S::Joules, S::KilowattHours) => Some(0.000000277778),
-            (S::Joules, S::Joules) => None,
+            (S::KiloJoules, S::Gasoline(V::GallonsUs)) => Some(0.000277778 * 0.031),
+            (S::KiloJoules, S::Gasoline(V::GallonsUk)) => Some(0.000277778 * 0.031 * 0.832674),
+            (S::KiloJoules, S::Gasoline(V::Liters)) => Some(0.000277778 * 0.031 * 3.78541),
+            (S::KiloJoules, S::Diesel(V::GallonsUs)) => Some(0.000277778 * 0.02457),
+            (S::KiloJoules, S::Diesel(V::GallonsUk)) => Some(0.000277778 * 0.02457 * 0.832674),
+            (S::KiloJoules, S::Diesel(V::Liters)) => Some(0.000277778 * 0.02457 * 3.78541),
+            (S::KiloJoules, S::KilowattHours) => Some(0.000277778),
+            (S::KiloJoules, S::KiloJoules) => None,
+            (S::KiloJoules, S::BTU) => Some(0.000277778 * 3_412.14),
+
+            // These are all transformed to kWh and then apply the kWh -> * conversion
+            (S::BTU, S::Gasoline(V::GallonsUs)) => Some(0.000293071 * 0.031),
+            (S::BTU, S::Gasoline(V::GallonsUk)) => Some(0.000293071 * 0.031 * 0.832674),
+            (S::BTU, S::Gasoline(V::Liters)) => Some(0.000293071 * 0.031 * 3.78541),
+            (S::BTU, S::Diesel(V::GallonsUs)) => Some(0.000293071 * 0.02457),
+            (S::BTU, S::Diesel(V::GallonsUk)) => Some(0.000293071 * 0.02457 * 0.832674),
+            (S::BTU, S::Diesel(V::Liters)) => Some(0.000293071 * 0.02457 * 3.78541),
+            (S::BTU, S::KilowattHours) => Some(0.000293071),
+            (S::BTU, S::KiloJoules) => Some(1.05506),
+            (S::BTU, S::BTU) => None
         };
         if let Some(factor) = conversion_factor {
             let updated = Energy::from(value.as_ref().as_f64() * factor);
