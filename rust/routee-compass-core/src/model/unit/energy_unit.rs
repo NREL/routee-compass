@@ -1,4 +1,4 @@
-use super::{baseunit, Convert, Energy, UnitError};
+use super::{baseunit, Convert, Energy, UnitError, VolumeUnit};
 use crate::model::unit::AsF64;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -6,10 +6,6 @@ use std::str::FromStr;
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy)]
 #[serde(rename_all = "snake_case", try_from = "String")]
 pub enum EnergyUnit {
-    /// US Gallons of gasoline fuel
-    GallonsGasoline,
-    /// US Gallons of diesel fuel
-    GallonsDiesel,
     /// electric fuel
     KilowattHours,
     /// SI liters of gasoline fuel
@@ -18,11 +14,20 @@ pub enum EnergyUnit {
     LitersDiesel,
     /// unit representing either electric or liquid fuel
     GallonsGasolineEquivalent,
+    /// 1 [VolumeUnit] Gasoline fuel
+    Gasoline(VolumeUnit),
+    /// 1 [VolumeUnit] Diesel fuel
+    Diesel(VolumeUnit),
+    // Joules
+    // BTU
+    // eV
+    // calorie (small c)
 }
 
 impl Convert<Energy> for EnergyUnit {
     fn convert(&self, value: &mut std::borrow::Cow<Energy>, to: &Self) -> Result<(), UnitError> {
         use EnergyUnit as S;
+        use VolumeUnit as V;
         let conversion_factor = match (self, to) {
             (S::GallonsGasoline, S::GallonsGasoline) => None,
             (S::GallonsGasoline, S::KilowattHours) => Some(32.26),
@@ -94,8 +99,8 @@ impl FromStr for EnergyUnit {
             .replace(" ", "")
             .as_str()
         {
-            "gallonsgasoline" => Ok(E::GallonsGasoline),
-            "gallonsdiesel" => Ok(E::GallonsDiesel),
+            "gallonsgasoline" => Ok(E::Gasoline(VolumeUnit::GallonsUs)),
+            "gallonsdiesel" => Ok(E::Diesel(VolumeUnit::GallonsUs)),
             "kilowatthours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
             "litersgasoline" => Ok(E::LitersGasoline),
             "litersdiesel" => Ok(E::LitersDiesel),
