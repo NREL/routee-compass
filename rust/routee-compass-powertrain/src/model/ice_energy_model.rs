@@ -102,7 +102,12 @@ impl TraversalModel for IceEnergyModel {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        ice_traversal(state, state_model, self.prediction_model_record.clone())
+        ice_traversal(
+            state,
+            state_model,
+            self.prediction_model_record.clone(),
+            false,
+        )
     }
 
     fn estimate_traversal(
@@ -111,25 +116,39 @@ impl TraversalModel for IceEnergyModel {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        ice_traversal(state, state_model, self.prediction_model_record.clone())
+        ice_traversal(
+            state,
+            state_model,
+            self.prediction_model_record.clone(),
+            true,
+        )
     }
 }
 
 fn ice_traversal(
     state: &mut [StateVariable],
     state_model: &StateModel,
-    prediction_model_record: Arc<PredictionModelRecord>,
+    record: Arc<PredictionModelRecord>,
+    estimate: bool,
 ) -> Result<(), TraversalModelError> {
     let (distance, distance_unit) =
         state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
     let (speed, speed_unit) = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
     let (grade, grade_unit) = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
 
-    let (energy, energy_unit) = prediction_model_record.predict(
-        (speed, speed_unit),
-        (grade, grade_unit),
-        (distance, distance_unit),
-    )?;
+    // generate energy for link traversal
+    let (energy, energy_unit) = if estimate {
+        Energy::create(
+            (&distance, distance_unit),
+            (&record.ideal_energy_rate, &record.energy_rate_unit),
+        )?
+    } else {
+        record.predict(
+            (speed, speed_unit),
+            (grade, grade_unit),
+            (distance, distance_unit),
+        )?
+    };
 
     state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy, &energy_unit)?;
     state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy, &energy_unit)?;
