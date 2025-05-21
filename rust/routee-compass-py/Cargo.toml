@@ -8,7 +8,7 @@ description = "Python bindings to the RouteE-Compass energy-aware routing engine
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
-exclude = ["test/", "**/.DS_Store", "target/"]
+exclude = ["**/.DS_Store", "target/"]
 
 [dependencies]
 routee-compass = { path = "../routee-compass", version = "0.11.0" }
