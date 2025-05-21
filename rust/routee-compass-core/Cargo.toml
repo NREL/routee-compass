@@ -1,8 +1,8 @@
 [package]
 name = "routee-compass-core"
-version = "0.10.2"
+version = "0.11.1"
 edition = "2021"
-exclude = ["test/", "**/.DS_Store", "target/"]
+exclude = ["**/.DS_Store", "target/"]
 readme = "README.md"
 license = "BSD-3-Clause"
 description = "The core routing algorithms and data structures of the RouteE-Compass energy-aware routing engine"
