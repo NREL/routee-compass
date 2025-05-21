@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::state_feature::StateFeature;
+use super::output_feature::OutputFeature;
 use serde::{Deserialize, Serialize};
 
 /// simple record type which couples the state variable index with the feature
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct IndexedStateFeature {
     pub index: usize,
-    pub feature: StateFeature,
+    pub feature: OutputFeature,
 }
 
 impl Display for IndexedStateFeature {
@@ -20,7 +20,7 @@ impl Display for IndexedStateFeature {
 }
 
 impl IndexedStateFeature {
-    pub fn new(index: usize, feature: StateFeature) -> IndexedStateFeature {
+    pub fn new(index: usize, feature: OutputFeature) -> IndexedStateFeature {
         IndexedStateFeature { index, feature }
     }
 }

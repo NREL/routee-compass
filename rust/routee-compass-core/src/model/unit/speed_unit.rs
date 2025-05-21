@@ -3,7 +3,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::{borrow::Cow, str::FromStr};
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub struct SpeedUnit(pub DistanceUnit, pub TimeUnit);
 
 impl std::fmt::Display for SpeedUnit {
@@ -127,12 +127,6 @@ impl SpeedUnit {
     /// provides the denomenator unit for some speed unit
     pub fn associated_distance_unit(&self) -> DistanceUnit {
         self.0
-    }
-
-    /// use as a soft "max" value for certain calculations
-    /// todo: should come from configuration, not hard-coded here
-    pub fn max_american_highway_speed(&self) -> (Speed, SpeedUnit) {
-        (Speed::from(75.0), SpeedUnit::MPH)
     }
 }
 

@@ -46,19 +46,9 @@ impl AccessModelBuilder for TurnDelayAccessModelBuilder {
                     e
                 ))
             })?;
-        let time_feature_name = parameters
-            .get_config_serde_optional::<String>(&"time_feature_name", &"turn delay access model")
-            .map_err(|e| {
-                AccessModelError::BuildError(format!(
-                    "failure reading 'time_unit' from access model configuration: {}",
-                    e
-                ))
-            })?
-            .unwrap_or_else(|| String::from("time"));
         let engine = TurnDelayAccessModelEngine {
             edge_headings,
             turn_delay_model,
-            time_feature_name,
         };
         let service = TurnDelayAccessModelService {
             engine: Arc::new(engine),

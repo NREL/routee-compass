@@ -10,8 +10,8 @@ pub enum StateModelError {
     ValueError(StateVariable, String),
     #[error("unknown state variable name {0}, should be one of {1}")]
     UnknownStateVariableName(String, String),
-    #[error("invalid state variable index {0}, should be in range [0, {1})")]
-    InvalidStateVariableIndex(usize, usize),
+    #[error("state variable '{0}' has invalid index {1}, should be in range [0, {2})")]
+    InvalidStateVariableIndex(String, usize, usize),
     #[error("expected feature to have type '{0}' but found '{1}'")]
     UnexpectedFeatureType(String, String),
     #[error("expected feature unit to be {0} but found {1}")]

@@ -2,12 +2,17 @@ use super::{
     interpolation::InterpolationSpeedGradeModel, model_type::ModelType,
     smartcore::SmartcoreSpeedGradeModel, PredictionModel, PredictionModelRecord,
 };
+use itertools::Itertools;
 use routee_compass_core::{
-    model::traversal::TraversalModelError,
-    model::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    model::{
+        traversal::TraversalModelError,
+        unit::{
+            Convert, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit, UnitError,
+        },
+    },
     util::cache_policy::float_cache_policy::FloatCachePolicy,
 };
-use std::{path::Path, sync::Arc};
+use std::{borrow::Cow, path::Path, sync::Arc};
 
 #[cfg(feature = "onnx")]
 use crate::model::prediction::onnx::OnnxSpeedGradeModel;
@@ -93,7 +98,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
     })
 }
 
-/// sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
+/// sweep speed and grade values to find the minimum energy per mile rate from the incoming rf model
 pub fn find_min_energy_rate(
     model: &Arc<dyn PredictionModel>,
     speed_unit: SpeedUnit,
@@ -104,17 +109,20 @@ pub fn find_min_energy_rate(
     let mut minimum_energy_rate = EnergyRate::from(f64::MAX);
     let start_time = std::time::Instant::now();
 
-    let grade = Grade::ZERO;
-    for speed_i32 in 20..80 {
-        let speed = Speed::from(speed_i32 as f64);
-        let (energy_rate, _) = model
+    let grade_values = get_grade_sample_values(&grade_unit)?;
+    let speed_values = get_speed_sample_values(&speed_unit)?;
+
+    for grade in grade_values.iter() {
+        for speed in speed_values.iter() {
+            let (energy_rate, _) = model
             .predict(
-                (speed, speed_unit),
-                (grade, grade_unit),
+                (*speed, &speed_unit),
+                (*grade, &grade_unit),
             )
             .map_err(|e| TraversalModelError::BuildError(format!("failure while executing grid search for minimum energy rate in prediction model: {}", e)))?;
-        if energy_rate < minimum_energy_rate {
-            minimum_energy_rate = energy_rate;
+            if energy_rate < minimum_energy_rate {
+                minimum_energy_rate = energy_rate;
+            }
         }
     }
 
@@ -129,4 +137,28 @@ pub fn find_min_energy_rate(
     );
 
     Ok(minimum_energy_rate)
+}
+
+/// generate Percent Grade values in the range [-20, 0] converted to the target grade unit
+fn get_grade_sample_values(grade_unit: &GradeUnit) -> Result<Vec<Grade>, UnitError> {
+    (1..101)
+        .map(|i| {
+            let grade_dec_f64 = ((i as f64) * 0.2) - 20.0; // values in range [-20.0, 0.0]
+            let mut converted = Cow::Owned(Grade::from(grade_dec_f64));
+            GradeUnit::Decimal.convert(&mut converted, grade_unit)?;
+            Ok(converted.into_owned())
+        })
+        .try_collect()
+}
+
+/// generate MPH Speed values in the range [1, 100] converted to the target speed unit
+fn get_speed_sample_values(speed_unit: &SpeedUnit) -> Result<Vec<Speed>, UnitError> {
+    (1..1001)
+        .map(|i| {
+            let mph_f64 = i as f64 * 0.1; // values in range [0.0, 100.0]
+            let mut converted = Cow::Owned(Speed::from(mph_f64));
+            SpeedUnit::MPS.convert(&mut converted, speed_unit)?;
+            Ok(converted.into_owned())
+        })
+        .try_collect()
 }

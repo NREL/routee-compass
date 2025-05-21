@@ -16,7 +16,8 @@ pub fn calculate_vehicle_costs(
     cost_aggregation: &CostAggregation,
 ) -> Result<Cost, CostModelError> {
     let (prev_state, next_state) = state_sequence;
-    let costs = indices.iter().map(|(name, state_idx)| {
+    let mut costs: Vec<(&String, Cost)> = vec![];
+    for (name, state_idx) in indices.iter() {
         // compute delta
         let prev_state_var = prev_state
             .get(*state_idx)
@@ -35,12 +36,13 @@ pub fn calculate_vehicle_costs(
         })?;
 
         // compute cost
-        let delta_cost = mapping.map_value(delta);
-        let cost = delta_cost * weight;
-        Ok((name, cost))
-    });
 
-    cost_aggregation.agg_iter(costs)
+        if let Some(delta_cost) = mapping.map_value(delta) {
+            costs.push((name, delta_cost * weight));
+        }
+    }
+
+    cost_aggregation.aggregate(&costs)
 }
 
 pub fn calculate_network_traversal_costs(
@@ -52,7 +54,8 @@ pub fn calculate_network_traversal_costs(
     cost_aggregation: &CostAggregation,
 ) -> Result<Cost, CostModelError> {
     let (prev_state, next_state) = state_sequence;
-    let costs = indices.iter().map(|(name, state_idx)| {
+    let mut costs: Vec<(&String, Cost)> = vec![];
+    for (name, state_idx) in indices.iter() {
         let prev_state_var = prev_state
             .get(*state_idx)
             .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*state_idx, name.clone()))?;
@@ -69,10 +72,10 @@ pub fn calculate_network_traversal_costs(
         })?;
         let access_cost = rate.traversal_cost(*prev_state_var, *next_state_var, edge)?;
         let cost = access_cost * weight;
-        Ok((name, cost))
-    });
+        costs.push((name, cost));
+    }
 
-    cost_aggregation.agg_iter(costs)
+    cost_aggregation.aggregate(&costs)
 }
 
 pub fn calculate_network_access_costs(
@@ -85,9 +88,9 @@ pub fn calculate_network_access_costs(
 ) -> Result<Cost, CostModelError> {
     let (prev_state, next_state) = state_sequence;
     let (prev_edge, next_edge) = edge_sequence;
-    let costs = indices.iter().map(|(name, idx)| match rates.get(*idx) {
-        None => Ok((name, Cost::ZERO)),
-        Some(m) => {
+    let mut costs: Vec<(&String, Cost)> = vec![];
+    for (name, idx) in indices.iter() {
+        if let Some(m) = rates.get(*idx) {
             let prev_state_var = prev_state
                 .get(*idx)
                 .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*idx, name.clone()))?;
@@ -98,9 +101,9 @@ pub fn calculate_network_access_costs(
                 m.access_cost(*prev_state_var, *next_state_var, prev_edge, next_edge)?;
             let coefficient = weights.get(*idx).unwrap_or(&1.0);
             let cost = access_cost * coefficient;
-            Ok((name, cost))
+            costs.push((name, cost));
         }
-    });
+    }
 
-    cost_aggregation.agg_iter(costs)
+    cost_aggregation.aggregate(&costs)
 }

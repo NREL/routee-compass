@@ -56,34 +56,45 @@ query = [
         "destination_y": 39.693005,
         "starting_soc_percent": 100,
         "vehicle_rates": {
-            "distance": {"type": "factor", "factor": 0.655},
-            "time": {"type": "factor", "factor": 0.33},
-            "energy_electric": {"type": "factor", "factor": 0.5},
-            "energy_liquid": {"type": "factor", "factor": 3.1},
+            "trip_distance": {"type": "factor", "factor": 0.655},
+            "trip_time": {"type": "factor", "factor": 0.33},
         },
         "grid_search": {
-            "model_name": [
-                "2017_CHEVROLET_Bolt",
-                "2016_TOYOTA_Camry_4cyl_2WD",
-                "2016_CHEVROLET_Volt",
+            "_models": [
+                {
+                    "model_name": "2017_CHEVROLET_Bolt",
+                    "vehicle_rates": {
+                        "trip_energy_electric": {"type": "factor", "factor": 0.5}
+                    },
+                },
+                {
+                    "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
+                    "vehicle_rates": {
+                        "trip_energy_liquid": {"type": "factor", "factor": 3.1},
+                    },
+                },
+                {
+                    "model_name": "2016_CHEVROLET_Volt",
+                    "vehicle_rates": {
+                        "trip_energy_electric": {"type": "factor", "factor": 0.5}
+                    },
+                },
             ],
             "test_cases": [
                 {
                     "name": "least_time",
                     "weights": {
-                        "distance": 0,
-                        "time": 1,
-                        "energy_electric": 0,
-                        "energy_liquid": 0,
+                        "trip_distance": 0,
+                        "trip_time": 1,
+                        "trip_energy": 0,
                     },
                 },
                 {
                     "name": "least_energy",
                     "weights": {
-                        "distance": 0,
-                        "time": 0,
-                        "energy_electric": 1,
-                        "energy_liquid": 1,
+                        "trip_distance": 0,
+                        "trip_time": 0,
+                        "trip_energy": 1,
                     },
                 },
             ],
@@ -126,11 +137,27 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 
 # %%
 
+bolt_rows = gdf["request.model_name"] == "2017_CHEVROLET_Bolt"
+bolt_energy = gdf.loc[bolt_rows, "route.traversal_summary.trip_energy"]
+gdf.loc[bolt_rows, "gge"] = bolt_energy * (1 / 33.694)
 
-gdf["gge"] = (
-    gdf["route.traversal_summary.energy_electric"].fillna(0) * (1 / 33.694)
-) + gdf["route.traversal_summary.energy_liquid"].fillna(0)
+volt_rows = gdf["request.model_name"] == "2016_CHEVROLET_Volt"
+volt_elec = gdf.loc[
+    volt_rows,
+    "route.traversal_summary.trip_energy_electric",
+]
+volt_liq = gdf.loc[
+    volt_rows,
+    "route.traversal_summary.trip_energy_liquid",
+]
+gdf.loc[volt_rows, "gge"] = volt_elec * (1 / 33.694) + volt_liq
 
+camry_rows = gdf["request.model_name"] == "2016_TOYOTA_Camry_4cyl_2WD"
+camry_energy = gdf.loc[
+    camry_rows,
+    "route.traversal_summary.trip_energy",
+]
+gdf.loc[camry_rows, "gge"] = camry_energy
 
 """
 Next, we can look at the energy usage versus the route time, broken out by powertrain and route objective
@@ -141,7 +168,7 @@ Next, we can look at the energy usage versus the route time, broken out by power
 
 sns.scatterplot(
     gdf,
-    x="route.traversal_summary.time",
+    x="route.traversal_summary.trip_time",
     y="gge",
     hue="request.model_name",
     style="request.name",
@@ -166,7 +193,7 @@ We could also look at the estimated cost based on our assumptions of:
 sns.scatterplot(
     data=gdf,
     y="route.cost.total_cost",
-    x="route.traversal_summary.time",
+    x="route.traversal_summary.trip_time",
     hue="request.model_name",
     style="request.name",
 )

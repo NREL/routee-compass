@@ -1,7 +1,10 @@
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
+use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, fmt::Display, str::FromStr};
+
+use crate::model::state::StateVariable;
 
 use super::{internal_float::InternalFloat, AsF64};
 
@@ -28,6 +31,18 @@ pub struct Grade(pub InternalFloat);
 impl From<f64> for Grade {
     fn from(value: f64) -> Self {
         Grade(InternalFloat::new(value))
+    }
+}
+
+impl From<StateVariable> for Grade {
+    fn from(value: StateVariable) -> Self {
+        Grade::from(value.0)
+    }
+}
+
+impl From<&StateVariable> for Grade {
+    fn from(value: &StateVariable) -> Self {
+        Grade::from(value.0)
     }
 }
 
@@ -73,4 +88,7 @@ impl FromStr for Grade {
 
 impl Grade {
     pub const ZERO: Grade = Grade(InternalFloat::ZERO);
+    pub fn to_ordered_float(&self) -> OrderedFloat<f64> {
+        *self.0
+    }
 }

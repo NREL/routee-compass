@@ -104,23 +104,35 @@ query = [
         "destination_y": 39.693005,
         "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
         "vehicle_rates": {
-            "distance": {"type": "factor", "factor": 0.655},
-            "time": {"type": "factor", "factor": 0.33},
-            "energy_liquid": {"type": "factor", "factor": 3.0},
+            "trip_distance": {"type": "factor", "factor": 0.655},
+            "trip_time": {"type": "factor", "factor": 0.33},
+            "trip_energy": {"type": "factor", "factor": 3.0},
         },
         "grid_search": {
             "test_cases": [
                 {
                     "name": "least_time",
-                    "weights": {"distance": 0, "time": 1, "energy_liquid": 0},
+                    "weights": {
+                        "trip_distance": 0,
+                        "trip_time": 1,
+                        "trip_energy": 0,
+                    },
                 },
                 {
                     "name": "least_energy",
-                    "weights": {"distance": 0, "time": 0, "energy_liquid": 1},
+                    "weights": {
+                        "trip_distance": 0,
+                        "trip_time": 0,
+                        "trip_energy": 1,
+                    },
                 },
                 {
                     "name": "least_cost",
-                    "weights": {"distance": 1, "time": 1, "energy_liquid": 1},
+                    "weights": {
+                        "trip_distance": 1,
+                        "trip_time": 1,
+                        "trip_energy": 1,
+                    },
                 },
             ]
         },
@@ -263,24 +275,26 @@ What becomes interesting is if we can compare our choices. Here's a quick compar
 
 
 dist_diff = (
-    shortest_time_result["route"]["traversal_summary"]["distance"]
-    - least_energy_result["route"]["traversal_summary"]["distance"]
+    shortest_time_result["route"]["traversal_summary"]["trip_distance"]
+    - least_energy_result["route"]["traversal_summary"]["trip_distance"]
 )
 time_diff = (
-    shortest_time_result["route"]["traversal_summary"]["time"]
-    - least_energy_result["route"]["traversal_summary"]["time"]
+    shortest_time_result["route"]["traversal_summary"]["trip_time"]
+    - least_energy_result["route"]["traversal_summary"]["trip_time"]
 )
 enrg_diff = (
-    shortest_time_result["route"]["traversal_summary"]["energy_liquid"]
-    - least_energy_result["route"]["traversal_summary"]["energy_liquid"]
+    shortest_time_result["route"]["traversal_summary"]["trip_energy"]
+    - least_energy_result["route"]["traversal_summary"]["trip_energy"]
 )
 cost_diff = (
     shortest_time_result["route"]["cost"]["total_cost"]
     - least_energy_result["route"]["cost"]["total_cost"]
 )
-dist_unit = shortest_time_result["route"]["state_model"]["distance"]["distance_unit"]
-time_unit = shortest_time_result["route"]["state_model"]["time"]["time_unit"]
-enrg_unit = shortest_time_result["route"]["state_model"]["energy_liquid"]["energy_unit"]
+dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"][
+    "distance_unit"
+]
+time_unit = shortest_time_result["route"]["state_model"]["trip_time"]["time_unit"]
+enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy"]["energy_unit"]
 print(f" - distance: {dist_diff:.2f} {dist_unit} further with time-optimal")
 print(f" - time: {-time_diff:.2f} {time_unit} longer with energy-optimal")
 print(f" - energy: {enrg_diff:.2f} {enrg_unit} more with time-optimal")
@@ -360,7 +374,7 @@ We can also use the plot_routes_folium function and pass in multiple results. Th
 
 folium_map = plot_routes_folium(
     results,
-    value_fn=lambda r: r["route"]["traversal_summary"]["energy_liquid"],
+    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy"],
     color_map="plasma",
 )
 folium_map
@@ -386,7 +400,7 @@ new_results = app.run(query)
 
 folium_map = plot_routes_folium(
     new_results,
-    value_fn=lambda r: r["route"]["traversal_summary"]["energy_liquid"],
+    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy"],
     color_map="plasma",
     folium_map=folium_map,
 )

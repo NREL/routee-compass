@@ -27,28 +27,23 @@ impl CostAggregation {
         }
     }
 
-    pub fn agg_iter<'a>(
-        &self,
-        costs: impl Iterator<Item = Result<(&'a String, Cost), CostModelError>>,
-    ) -> Result<Cost, CostModelError> {
+    pub fn aggregate<'a>(&self, costs: &[(&String, Cost)]) -> Result<Cost, CostModelError> {
         match self {
             CostAggregation::Sum => {
                 let mut sum = Cost::ZERO;
-                for cost in costs {
-                    let (_, cost) = cost?;
-                    sum = sum + cost;
+                for (_, cost) in costs.iter() {
+                    sum = sum + *cost;
                 }
                 Ok(sum)
             }
             CostAggregation::Mul => {
                 // test if the iterator is empty
-                let mut costs = costs.peekable();
-                if costs.peek().is_none() {
+                if costs.is_empty() {
                     return Ok(Cost::ZERO);
                 }
+
                 let mut product = Cost::ONE;
-                for cost in costs {
-                    let (_, cost) = cost?;
+                for (_, cost) in costs.iter() {
                     product = Cost::new(product.as_f64() * cost.as_f64());
                 }
                 Ok(product)

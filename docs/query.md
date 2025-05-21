@@ -72,19 +72,19 @@ For example if you had this query:
       {
         "name": "shortest_time",
         "weights": {
-          "distance": 0.0,
-          "time": 1.0,
-          "energy_liquid": 0.0,
-          "energy_electric": 0.0
+          "trip_distance": 0.0,
+          "trip_time": 1.0,
+          "trip_energy_liquid": 0.0,
+          "trip_energy_electric": 0.0
         }
       },
       {
         "name": "least_energy",
         "weights": {
-          "distance": 0.0,
-          "time": 0.0,
-          "energy_liquid": 1.0,
-          "energy_electric": 1.0
+          "trip_distance": 0.0,
+          "trip_time": 0.0,
+          "trip_energy_liquid": 1.0,
+          "trip_energy_electric": 1.0
         }
       }
     ]
@@ -106,10 +106,10 @@ The grid search plugin would take this single query and generate two queries tha
     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
     "name": "shortest_time",
     "weights": {
-      "distance": 0.0,
-      "time": 1.0,
-      "energy_liquid": 0.0,
-      "energy_electric": 0.0
+      "trip_distance": 0.0,
+      "trip_time": 1.0,
+      "trip_energy_liquid": 0.0,
+      "trip_energy_electric": 0.0
     }
   },
   {
@@ -122,10 +122,10 @@ The grid search plugin would take this single query and generate two queries tha
     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
     "name": "least_energy",
     "weights": {
-      "distance": 0.0,
-      "time": 0.0,
-      "energy_liquid": 1.0,
-      "energy_electric": 1.0
+      "trip_distance": 0.0,
+      "trip_time": 0.0,
+      "trip_energy_liquid": 1.0,
+      "trip_energy_electric": 1.0
     }
   }
 ]

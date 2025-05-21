@@ -14,10 +14,17 @@ queries_without_destinations = false
 matching_type = ["point", "vertex_id", "edge_id"]
 
 [traversal]
-type = "speed_table"
+type = "combined"
+
+[[traversal.models]]
+type = "distance"
+distance_unit = "miles"
+[[traversal.models]]
+type = "speed"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kph"
-distance_unit = "miles"
+[[traversal.models]]
+type = "time"
 time_unit = "minutes"
 
 [access]
@@ -37,18 +44,18 @@ sharp_left = 3.5
 u_turn = 9.5
 
 # based on 65.5 cents per mile 2023 IRS mileage rate, $/mile
-[cost.vehicle_rates.distance]
+[cost.vehicle_rates.trip_distance]
 type = "factor"
 factor = 0.655
 
 # based on $20/hr approximation of 2023 median hourly wages, $/second
-[cost.vehicle_rates.time]
+[cost.vehicle_rates.trip_time]
 type = "factor"
 factor = 0.333336
 
 [cost.weights]
-distance = 1
-time = 1
+trip_distance = 1
+trip_time = 1
 
 [plugin]
 input_plugins = [

@@ -1,4 +1,4 @@
-use crate::model::unit::{AsF64, Distance, Energy, Time};
+use crate::model::unit::{AsF64, Distance, Energy, Grade, Speed, Time};
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
@@ -52,6 +52,18 @@ impl From<Time> for StateVariable {
 }
 impl From<Energy> for StateVariable {
     fn from(value: Energy) -> Self {
+        StateVariable(value.as_f64())
+    }
+}
+
+impl From<Speed> for StateVariable {
+    fn from(value: Speed) -> Self {
+        StateVariable(value.as_f64())
+    }
+}
+
+impl From<Grade> for StateVariable {
+    fn from(value: Grade) -> Self {
         StateVariable(value.as_f64())
     }
 }
