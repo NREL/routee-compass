@@ -32,14 +32,14 @@ impl Convert<Energy> for EnergyUnit {
         const UKgal2L: f64 = UKgal2USgal * USgal2L;
         const L2UKgal: f64 = L2USgal * USgal2UKgal;
 
-        const Gas2Die: f64 = 0.8803;
-        const Die2Gas: f64 = 1.13597;
+        const Gas2Die: f64 = 33.41 / 37.95;
+        const Die2Gas: f64 = 37.95 / 33.41;
         const Gas2Kwh: f64 = 33.41;
-        const kWh2Gas: f64 = 0.029931;
+        const kWh2Gas: f64 = 1. / 33.41;
         const kWh2Kj: f64 = 3_600.;
-        const Kj2Kwh: f64 = 0.00027778;  // 1 / 3600
+        const Kj2Kwh: f64 = 1. / 3600.; 
         const kWh2BTU: f64 = 3_412.14;
-        const BTU2Kwh: f64 = 0.00029307; // 1 / 3412.14
+        const BTU2Kwh: f64 = 1. / 3412.14;
 
         let conversion_factor = match (self, to) {
             (S::Gasoline(V::GallonsUs), S::Gasoline(V::GallonsUs)) => None,
@@ -227,4 +227,96 @@ impl TryFrom<String> for EnergyUnit {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         Self::from_str(&value)
     }
+}
+#[cfg(test)]
+mod test{
+    /// The logic behind these test is to manually compute
+    /// conversion factors from kWh to all other units.
+    /// We then run two tests:
+    ///     - All these conversion factors match the `EnergyUnit::kWh::convert` implementation
+    ///     - All pairs of `EnergyUnit` variants match the implementation
+    /// We implement the second point by computing A->B from the manually computed constants as
+    ///     A -> kWh x kWh -> B
+    /// and compare that to the value implemented in `convert`
+    /// 
+    /// One shortcoming of this approach is that the tests short-circuit if one fails. This could
+    /// be fixed with a macro or a crate to generate tests
+
+    use std::borrow::Cow;
+    use crate::model::unit::Energy;
+    use crate::model::unit::{AsF64, Convert};
+    use crate::model::unit::EnergyUnit as U;
+    use crate::model::unit::VolumeUnit as V;
+    
+    const UNIT_VARIANTS: [U; 11] = [
+        U::KilowattHours,
+        U::KiloJoules,
+        U::BTU,
+        U::Gasoline(V::GallonsUs),
+        U::Gasoline(V::GallonsUk),
+        U::Gasoline(V::Liters),
+        U::Diesel(V::GallonsUs),
+        U::Diesel(V::GallonsUk),
+        U::Diesel(V::Liters),
+        U::GallonsGasolineEquivalent,
+        U::GallonsDieselEquivalent
+    ];
+
+    // Manually compute kWh -> * factors
+    fn kwh_factors(to: U) -> f64 {
+        match to {
+            U::KilowattHours => 1.,
+            U::Gasoline(V::GallonsUs) => 1. / 33.41,
+            U::Gasoline(V::GallonsUk) => 0.832674 / 33.41,
+            U::Gasoline(V::Liters) => 3.78541 / 33.41,
+            U::Diesel(V::GallonsUs) => 1. / 37.95,
+            U::Diesel(V::GallonsUk) => 0.832674 / 37.95,
+            U::Diesel(V::Liters) => 3.78541 / 37.95,
+            U::GallonsGasolineEquivalent => 1. / 33.41,
+            U::GallonsDieselEquivalent => 1. / 37.95,
+            U::KiloJoules => 3600.,
+            U::BTU => 3412.14,
+        }
+    }
+    
+    fn assert_approx_eq(a: Energy, b: Energy, error: f64, unit_a: U, unit_b: U) {
+        let result = match (a, b) {
+            (c, d) if c < d => (d - c).as_f64() < error,
+            (c, d) if c > d => (c - d).as_f64() < error,
+            (_, _) => true,
+        };
+        assert!(
+            result,
+            "{:?} -> {:?}: {} ~= {} is not true within an error of {}",
+            unit_a, unit_b, a, b, error
+        )
+    }
+
+    #[test]
+    fn test_base_values(){
+        for to_unit in UNIT_VARIANTS{
+            let mut value: Cow<'_, Energy> = Cow::Owned(Energy::ONE);
+            let target = kwh_factors(to_unit);
+            U::KilowattHours.convert(&mut value, &to_unit).unwrap();
+            assert_approx_eq(value.into_owned(), Energy::from(target), 0.001, U::KilowattHours, to_unit);
+        }
+    }
+
+    #[test]
+    fn test_all_pairs(){
+        for from_unit in UNIT_VARIANTS{
+            for to_unit in UNIT_VARIANTS{
+                // From -> kWh
+                let from_factor = 1. / kwh_factors(from_unit);
+                // kWh -> To
+                let to_factor = kwh_factors(to_unit);
+                let target = from_factor * to_factor;
+                
+                let mut value: Cow<'_, Energy> = Cow::Owned(Energy::ONE);
+                from_unit.convert(&mut value, &to_unit).unwrap();
+                assert_approx_eq(value.into_owned(), Energy::from(target), 0.001, from_unit, to_unit);
+            }
+        }
+    }
+
 }
