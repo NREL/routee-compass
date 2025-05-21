@@ -143,14 +143,14 @@ gdf.loc[bolt_rows, "gge"] = bolt_energy * (1 / 33.694)
 
 volt_rows = gdf["request.model_name"] == "2016_CHEVROLET_Volt"
 volt_elec = gdf.loc[
-       volt_rows ,
-        "route.traversal_summary.trip_energy_electric",
-    ]
+    volt_rows,
+    "route.traversal_summary.trip_energy_electric",
+]
 volt_liq = gdf.loc[
-       volt_rows ,
-        "route.traversal_summary.trip_energy_liquid",
-    ]
-gdf.loc[volt_rows, "gge"] = (volt_elec * (1 / 33.694) + volt_liq)
+    volt_rows,
+    "route.traversal_summary.trip_energy_liquid",
+]
+gdf.loc[volt_rows, "gge"] = volt_elec * (1 / 33.694) + volt_liq
 
 camry_rows = gdf["request.model_name"] == "2016_TOYOTA_Camry_4cyl_2WD"
 camry_energy = gdf.loc[
