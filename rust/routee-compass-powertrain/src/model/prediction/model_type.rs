@@ -1,5 +1,6 @@
-use routee_compass_core::model::unit::{Grade, Speed};
 use serde::{Deserialize, Serialize};
+
+use super::interpolation::feature_bounds::FeatureBounds;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
@@ -8,12 +9,7 @@ pub enum ModelType {
     Onnx,
     Interpolate {
         underlying_model_type: Box<ModelType>,
-        speed_lower_bound: Speed,
-        speed_upper_bound: Speed,
-        speed_bins: usize,
-        grade_lower_bound: Grade,
-        grade_upper_bound: Grade,
-        grade_bins: usize,
+        feature_bounds: FeatureBounds,
     },
 }
 

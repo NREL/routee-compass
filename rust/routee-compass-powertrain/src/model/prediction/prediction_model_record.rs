@@ -1,18 +1,16 @@
 use super::{
-    interpolation::InterpolationSpeedGradeModel, model_type::ModelType, prediction_model_ops,
-    smartcore::SmartcoreSpeedGradeModel, PredictionModel, PredictionModelConfig,
+    interpolation::InterpolationModel, model_type::ModelType, prediction_model_ops,
+    smartcore::SmartcoreModel, PredictionModel, PredictionModelConfig,
 };
 #[cfg(feature = "onnx")]
 use crate::model::prediction::onnx::OnnxSpeedGradeModel;
-use routee_compass_core::{
-    model::{
-        traversal::TraversalModelError,
-        unit::{
-            AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit, Grade,
-            GradeUnit, Speed, SpeedUnit,
-        },
+use routee_compass_core::model::{
+    state::{InputFeature, StateModel, StateVariable},
+    traversal::TraversalModelError,
+    unit::{
+        Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit, Grade, GradeUnit,
+        Speed, SpeedUnit,
     },
-    util::cache_policy::float_cache_policy::FloatCachePolicy,
 };
 use std::sync::Arc;
 
@@ -21,12 +19,10 @@ pub struct PredictionModelRecord {
     pub name: String,
     pub prediction_model: Arc<dyn PredictionModel>,
     pub model_type: ModelType,
-    pub speed_unit: SpeedUnit,
-    pub grade_unit: GradeUnit,
+    pub input_features: Vec<(String, InputFeature)>,
     pub energy_rate_unit: EnergyRateUnit,
     pub ideal_energy_rate: EnergyRate,
     pub real_world_energy_adjustment: f64,
-    pub cache: Option<FloatCachePolicy>,
 }
 
 impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
@@ -35,10 +31,9 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
     fn try_from(config: &PredictionModelConfig) -> Result<Self, Self::Error> {
         let prediction_model: Arc<dyn PredictionModel> = match &config.model_type {
             ModelType::Smartcore => {
-                let model = SmartcoreSpeedGradeModel::new(
+                let model = SmartcoreModel::new(
                     &config.model_input_file,
-                    config.speed_unit,
-                    config.grade_unit,
+                    config.input_features,
                     config.energy_rate_unit,
                 )?;
                 Arc::new(model)
@@ -64,14 +59,9 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
             }
             ModelType::Interpolate {
                 underlying_model_type: underlying_model,
-                speed_lower_bound,
-                speed_upper_bound,
-                speed_bins: speed_bin_size,
-                grade_lower_bound,
-                grade_upper_bound,
-                grade_bins: grade_bin_size,
+                feature_bounds,
             } => {
-                let model = InterpolationSpeedGradeModel::new(
+                let model = InterpolationModel::new(
                     &config.model_input_file,
                     *underlying_model.clone(),
                     config.name.clone(),
@@ -94,21 +84,15 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
         )?;
 
         let real_world_energy_adjustment = config.real_world_energy_adjustment.unwrap_or(1.0);
-        let cache_policy = match &config.float_cache_policy {
-            Some(cache_config) => Some(FloatCachePolicy::from_config(cache_config.clone())?),
-            None => None,
-        };
 
         Ok(PredictionModelRecord {
             name: config.name.clone(),
             prediction_model,
             model_type: config.model_type.clone(),
-            speed_unit: config.speed_unit,
-            grade_unit: config.grade_unit,
+            input_features: config.input_features.clone(),
             energy_rate_unit: config.energy_rate_unit,
             ideal_energy_rate,
             real_world_energy_adjustment,
-            cache: cache_policy,
         })
     }
 }
@@ -116,35 +100,16 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
 impl PredictionModelRecord {
     pub fn predict(
         &self,
-        speed: (Speed, &SpeedUnit),
-        grade: (Grade, &GradeUnit),
+        input_features: &[(String, InputFeature)],
         distance: (Distance, &DistanceUnit),
+        state: &mut Vec<StateVariable>,
+        state_model: &StateModel,
     ) -> Result<(Energy, EnergyUnit), TraversalModelError> {
         let (distance, distance_unit) = distance;
-        let (speed, speed_unit) = speed;
-        let (grade, grade_unit) = grade;
 
-        let energy_rate = match &self.cache {
-            Some(cache) => {
-                let key = vec![speed.as_f64(), grade.as_f64()];
-                match cache.get(&key)? {
-                    Some(er) => EnergyRate::from(er),
-                    None => {
-                        let (energy_rate, _energy_rate_unit) = self
-                            .prediction_model
-                            .predict((speed, speed_unit), (grade, grade_unit))?;
-                        cache.update(&key, energy_rate.as_f64())?;
-                        energy_rate
-                    }
-                }
-            }
-            None => {
-                let (energy_rate, _energy_rate_unit) = self
-                    .prediction_model
-                    .predict((speed, speed_unit), (grade, grade_unit))?;
-                energy_rate
-            }
-        };
+        let (energy_rate, _energy_rate_unit) =
+            self.prediction_model
+                .predict(input_features, state, state_model)?;
 
         let energy_rate_real_world = energy_rate * self.real_world_energy_adjustment;
 

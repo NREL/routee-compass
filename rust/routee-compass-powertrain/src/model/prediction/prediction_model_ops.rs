@@ -1,6 +1,6 @@
 use super::{
-    interpolation::InterpolationSpeedGradeModel, model_type::ModelType,
-    smartcore::SmartcoreSpeedGradeModel, PredictionModel, PredictionModelRecord,
+    interpolation::InterpolationModel, model_type::ModelType, smartcore::SmartcoreModel,
+    PredictionModel, PredictionModelRecord,
 };
 use itertools::Itertools;
 use routee_compass_core::{
@@ -31,12 +31,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
 ) -> Result<PredictionModelRecord, TraversalModelError> {
     let prediction_model: Arc<dyn PredictionModel> = match model_type.clone() {
         ModelType::Smartcore => {
-            let model = SmartcoreSpeedGradeModel::new(
-                model_path,
-                speed_unit,
-                grade_unit,
-                energy_rate_unit,
-            )?;
+            let model = SmartcoreModel::new(model_path, speed_unit, grade_unit, energy_rate_unit)?;
             Arc::new(model)
         }
         ModelType::Onnx => {
@@ -63,7 +58,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
             grade_upper_bound,
             grade_bins: grade_bin_size,
         } => {
-            let model = InterpolationSpeedGradeModel::new(
+            let model = InterpolationModel::new(
                 model_path,
                 *underlying_model,
                 name.clone(),

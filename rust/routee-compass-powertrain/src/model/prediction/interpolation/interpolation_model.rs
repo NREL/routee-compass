@@ -4,6 +4,7 @@ use crate::model::prediction::{
 };
 use ninterp::prelude::*;
 use routee_compass_core::model::{
+    state::{InputFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
     unit::{
         AsF64, Convert, Distance, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit,
@@ -11,18 +12,18 @@ use routee_compass_core::model::{
 };
 use std::{borrow::Cow, path::Path};
 
-pub struct InterpolationSpeedGradeModel {
+pub struct InterpolationModel {
     interpolator: Interp2DOwned<f64, strategy::Linear>,
-    speed_unit: SpeedUnit,
-    grade_unit: GradeUnit,
+    input_features: Vec<InputFeature>,
     energy_rate_unit: EnergyRateUnit,
 }
 
-impl PredictionModel for InterpolationSpeedGradeModel {
+impl PredictionModel for InterpolationModel {
     fn predict(
         &self,
-        speed: (Speed, &SpeedUnit),
-        grade: (Grade, &GradeUnit),
+        input_features: &[(String, InputFeature)],
+        state: &mut Vec<StateVariable>,
+        state_model: &StateModel,
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
         let (speed, speed_unit) = speed;
         let (grade, grade_unit) = grade;
@@ -47,7 +48,7 @@ impl PredictionModel for InterpolationSpeedGradeModel {
     }
 }
 
-impl InterpolationSpeedGradeModel {
+impl InterpolationModel {
     #[allow(clippy::too_many_arguments)]
     pub fn new<P: AsRef<Path>>(
         underlying_model_path: &P,
@@ -117,7 +118,7 @@ impl InterpolationSpeedGradeModel {
             ))
         })?;
 
-        Ok(InterpolationSpeedGradeModel {
+        Ok(InterpolationModel {
             interpolator,
             speed_unit,
             grade_unit,
@@ -142,7 +143,7 @@ mod test {
             .join("test")
             .join("Toyota_Camry.bin");
 
-        let interp_model = InterpolationSpeedGradeModel::new(
+        let interp_model = InterpolationModel::new(
             &model_path,
             ModelType::Smartcore,
             "Toyota Camry".to_string(),
