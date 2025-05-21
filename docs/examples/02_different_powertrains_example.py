@@ -138,7 +138,27 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 # %%
 
 
-gdf["gge"] = (
+gdf.loc[gdf["request.model_name"] == "2017_CHEVROLET_Bolt", "gge"] = gdf.loc[
+    gdf["request.model_name"] == "2017_CHEVROLET_Bolt",
+    "route.traversal_summary.trip_energy",
+] * (1 / 33.694)
+
+gdf.loc[gdf["request.model_name"] == "2016_CHEVROLET_Volt", "gge"] = (
+    gdf.loc[
+        gdf["request.model_name"] == "2016_CHEVROLET_Volt",
+        "route.traversal_summary.trip_energy_electric",
+    ]
+    * (1 / 33.694)
+    + gdf.loc[
+        gdf["request.model_name"] == "2016_CHEVROLET_Volt",
+        "route.traversal_summary.trip_energy_liquid",
+    ]
+)
+
+gdf.loc[gdf["request.model_name"] == "2016_TOYOTA_Camry_4cyl_2WD", "gge"] = gdf.loc[
+    gdf["request.model_name"] == "2016_TOYOTA_Camry_4cyl_2WD",
+    "route.traversal_summary.trip_energy",
+]
     gdf["route.traversal_summary.trip_energy_electric"].fillna(0) * (1 / 33.694)
 ) + gdf["route.traversal_summary.trip_energy_liquid"].fillna(0)
 
