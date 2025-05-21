@@ -472,34 +472,45 @@ By default, the PHEV will run using battery energy exclusively (starting at <cod
         <span class="s2">&quot;destination_y&quot;</span><span class="p">:</span> <span class="mf">39.693005</span><span class="p">,</span>
         <span class="s2">&quot;starting_soc_percent&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
         <span class="s2">&quot;vehicle_rates&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.655</span><span class="p">},</span>
-            <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.33</span><span class="p">},</span>
-            <span class="s2">&quot;energy_electric&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
-            <span class="s2">&quot;energy_liquid&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">3.1</span><span class="p">},</span>
+            <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.655</span><span class="p">},</span>
+            <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.33</span><span class="p">},</span>
         <span class="p">},</span>
         <span class="s2">&quot;grid_search&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="s2">&quot;2017_CHEVROLET_Bolt&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;2016_CHEVROLET_Volt&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_models&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="s2">&quot;2017_CHEVROLET_Bolt&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;vehicle_rates&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;trip_energy_electric&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span>
+                    <span class="p">},</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;vehicle_rates&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">3.1</span><span class="p">},</span>
+                    <span class="p">},</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="s2">&quot;2016_CHEVROLET_Volt&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;vehicle_rates&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;trip_energy_electric&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}</span>
+                    <span class="p">},</span>
+                <span class="p">},</span>
             <span class="p">],</span>
             <span class="s2">&quot;test_cases&quot;</span><span class="p">:</span> <span class="p">[</span>
                 <span class="p">{</span>
                     <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;least_time&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                        <span class="s2">&quot;energy_electric&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                        <span class="s2">&quot;energy_liquid&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="s2">&quot;trip_energy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                     <span class="p">},</span>
                 <span class="p">},</span>
                 <span class="p">{</span>
                     <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;least_energy&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                        <span class="s2">&quot;energy_electric&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                        <span class="s2">&quot;energy_liquid&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;trip_energy&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
                     <span class="p">},</span>
                 <span class="p">},</span>
             <span class="p">],</span>
@@ -516,13 +527,14 @@ By default, the PHEV will run using battery energy exclusively (starting at <cod
 </div>
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 2502.34it/s]
+applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 2312.35it/s]
 
-applying input plugin 2: 100%|██████████| 6/6 [00:00&lt;00:00, 113488.05it/s]
+applying input plugin 2: 100%|██████████| 6/6 [00:00&lt;00:00, 108082.80it/s]
 
 
 
-search: 100%|██████████| 6/6 [00:00&lt;00:00, 136.30it/s]
+search:  83%|████████▄ | 5/6 [00:00&lt;00:00, 45.49it/s]
+search: 100%|██████████| 6/6 [00:00&lt;00:00, 47.23it/s]
 </pre></div>
 </div>
 </div>
@@ -535,20 +547,52 @@ search: 100%|██████████| 6/6 [00:00&lt;00:00, 136.30it/s]
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;distance&#39;: {&#39;distance_unit&#39;: &#39;miles&#39;,
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;edge_speed&#39;: {&#39;speed_unit&#39;: &#39;kilometers/hours&#39;,
   &#39;initial&#39;: 0.0,
+  &#39;accumulator&#39;: False,
   &#39;index&#39;: 0,
-  &#39;name&#39;: &#39;distance&#39;},
- &#39;energy_electric&#39;: {&#39;energy_unit&#39;: &#39;kilowatt_hours&#39;,
-  &#39;initial&#39;: 0.0,
-  &#39;index&#39;: 1,
-  &#39;name&#39;: &#39;energy_electric&#39;},
- &#39;battery_state&#39;: {&#39;type&#39;: &#39;soc&#39;,
-  &#39;unit&#39;: &#39;percent&#39;,
+  &#39;name&#39;: &#39;edge_speed&#39;},
+ &#39;trip_soc&#39;: {&#39;type&#39;: &#39;soc&#39;,
+  &#39;unit&#39;: &#39;Percent&#39;,
   &#39;format&#39;: {&#39;floating_point&#39;: {&#39;initial&#39;: 100.0}},
+  &#39;accumulator&#39;: True,
+  &#39;index&#39;: 1,
+  &#39;name&#39;: &#39;trip_soc&#39;},
+ &#39;edge_time&#39;: {&#39;time_unit&#39;: &#39;minutes&#39;,
+  &#39;initial&#39;: 0.0,
+  &#39;accumulator&#39;: False,
   &#39;index&#39;: 2,
-  &#39;name&#39;: &#39;battery_state&#39;},
- &#39;time&#39;: {&#39;time_unit&#39;: &#39;minutes&#39;, &#39;initial&#39;: 0.0, &#39;index&#39;: 3, &#39;name&#39;: &#39;time&#39;}}
+  &#39;name&#39;: &#39;edge_time&#39;},
+ &#39;edge_distance&#39;: {&#39;distance_unit&#39;: &#39;miles&#39;,
+  &#39;initial&#39;: 0.0,
+  &#39;accumulator&#39;: False,
+  &#39;index&#39;: 3,
+  &#39;name&#39;: &#39;edge_distance&#39;},
+ &#39;trip_energy&#39;: {&#39;energy_unit&#39;: &#39;kilowatt_hours&#39;,
+  &#39;initial&#39;: 0.0,
+  &#39;accumulator&#39;: True,
+  &#39;index&#39;: 4,
+  &#39;name&#39;: &#39;trip_energy&#39;},
+ &#39;edge_energy&#39;: {&#39;energy_unit&#39;: &#39;kilowatt_hours&#39;,
+  &#39;initial&#39;: 0.0,
+  &#39;accumulator&#39;: False,
+  &#39;index&#39;: 5,
+  &#39;name&#39;: &#39;edge_energy&#39;},
+ &#39;trip_time&#39;: {&#39;time_unit&#39;: &#39;minutes&#39;,
+  &#39;initial&#39;: 0.0,
+  &#39;accumulator&#39;: True,
+  &#39;index&#39;: 6,
+  &#39;name&#39;: &#39;trip_time&#39;},
+ &#39;edge_grade&#39;: {&#39;grade_unit&#39;: &#39;decimal&#39;,
+  &#39;initial&#39;: 0.0,
+  &#39;accumulator&#39;: False,
+  &#39;index&#39;: 7,
+  &#39;name&#39;: &#39;edge_grade&#39;},
+ &#39;trip_distance&#39;: {&#39;distance_unit&#39;: &#39;miles&#39;,
+  &#39;initial&#39;: 0.0,
+  &#39;accumulator&#39;: True,
+  &#39;index&#39;: 8,
+  &#39;name&#39;: &#39;trip_distance&#39;}}
 </pre></div>
 </div>
 </div>
@@ -566,9 +610,33 @@ First let's convert the results into a dataframe</p>
 We'll use gge as our unit and convert the electrical energy using a factor of 33.694 kwh/gge</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;gge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;route.traversal_summary.energy_electric&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">33.694</span><span class="p">)</span>
-<span class="p">)</span> <span class="o">+</span> <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;route.traversal_summary.energy_liquid&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bolt_rows</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;request.model_name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;2017_CHEVROLET_Bolt&quot;</span>
+<span class="n">bolt_energy</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">bolt_rows</span><span class="p">,</span> <span class="s2">&quot;route.traversal_summary.trip_energy&quot;</span><span class="p">]</span>
+<span class="n">gdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">bolt_rows</span><span class="p">,</span> <span class="s2">&quot;gge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bolt_energy</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">33.694</span><span class="p">)</span>
+
+<span class="n">volt_rows</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;request.model_name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;2016_CHEVROLET_Volt&quot;</span>
+<span class="n">volt_elec</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+    <span class="n">volt_rows</span><span class="p">,</span>
+    <span class="s2">&quot;route.traversal_summary.trip_energy_electric&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">volt_liq</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+    <span class="n">volt_rows</span><span class="p">,</span>
+    <span class="s2">&quot;route.traversal_summary.trip_energy_liquid&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">gdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">volt_rows</span><span class="p">,</span> <span class="s2">&quot;gge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">volt_elec</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">33.694</span><span class="p">)</span> <span class="o">+</span> <span class="n">volt_liq</span>
+
+<span class="n">camry_rows</span> <span class="o">=</span> <span class="n">gdf</span><span class="p">[</span><span class="s2">&quot;request.model_name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span>
+<span class="n">camry_energy</span> <span class="o">=</span> <span class="n">gdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+    <span class="n">camry_rows</span><span class="p">,</span>
+    <span class="s2">&quot;route.traversal_summary.trip_energy&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">gdf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">camry_rows</span><span class="p">,</span> <span class="s2">&quot;gge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">camry_energy</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/geopandas/geodataframe.py:1819: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  super().__setitem__(key, value)
 </pre></div>
 </div>
 </div>
@@ -578,7 +646,7 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span>
     <span class="n">gdf</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.time&quot;</span><span class="p">,</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_time&quot;</span><span class="p">,</span>
     <span class="n">y</span><span class="o">=</span><span class="s2">&quot;gge&quot;</span><span class="p">,</span>
     <span class="n">hue</span><span class="o">=</span><span class="s2">&quot;request.model_name&quot;</span><span class="p">,</span>
     <span class="n">style</span><span class="o">=</span><span class="s2">&quot;request.name&quot;</span><span class="p">,</span>
@@ -587,10 +655,10 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.time&#39;, ylabel=&#39;gge&#39;&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.trip_time&#39;, ylabel=&#39;gge&#39;&gt;
 </pre></div>
 </div>
-<img alt="../_images/4f2bda56cb17b6b8fda7b86e6f8ee171833eb5a87f0a3381c184be238999bae0.png" src="../_images/4f2bda56cb17b6b8fda7b86e6f8ee171833eb5a87f0a3381c184be238999bae0.png" />
+<img alt="../_images/88764f86c3e1bc7668694cee564a80c81aaf8369541bfd5fd653158cb815fdba.png" src="../_images/88764f86c3e1bc7668694cee564a80c81aaf8369541bfd5fd653158cb815fdba.png" />
 </div>
 </div>
 <p>Here, we see that the BEV and the PHEV use much less energy than the ICE alternative but all powertrains have a route that uses less energy and more time.</p>
@@ -606,7 +674,7 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span>
     <span class="n">data</span><span class="o">=</span><span class="n">gdf</span><span class="p">,</span>
     <span class="n">y</span><span class="o">=</span><span class="s2">&quot;route.cost.total_cost&quot;</span><span class="p">,</span>
-    <span class="n">x</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.time&quot;</span><span class="p">,</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_time&quot;</span><span class="p">,</span>
     <span class="n">hue</span><span class="o">=</span><span class="s2">&quot;request.model_name&quot;</span><span class="p">,</span>
     <span class="n">style</span><span class="o">=</span><span class="s2">&quot;request.name&quot;</span><span class="p">,</span>
 <span class="p">)</span>
@@ -614,10 +682,10 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.time&#39;, ylabel=&#39;route.cost.total_cost&#39;&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.trip_time&#39;, ylabel=&#39;route.cost.total_cost&#39;&gt;
 </pre></div>
 </div>
-<img alt="../_images/0e68a3b1380ac4376adfba5f343b41c9a8caf533725667d46463b7c4ceae6af3.png" src="../_images/0e68a3b1380ac4376adfba5f343b41c9a8caf533725667d46463b7c4ceae6af3.png" />
+<img alt="../_images/2d4d0b026223e3a51422eac6958e67bc9e7fb2d9a2f2c5f826999e3805db1399.png" src="../_images/2d4d0b026223e3a51422eac6958e67bc9e7fb2d9a2f2c5f826999e3805db1399.png" />
 </div>
 </div>
 <p>Here, we notice that the ICE vehicle has the lowest costs and all powertrains save money on the optimal energy route.
@@ -633,7 +701,7 @@ This would likely change based on our cost assumptions (for example if we assume
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: &gt;
 </pre></div>
 </div>
-<img alt="../_images/22a85778fdca4d42fa1ac47a09eb85cff875af8f7041d819e6973aa5087f0bd0.png" src="../_images/22a85778fdca4d42fa1ac47a09eb85cff875af8f7041d819e6973aa5087f0bd0.png" />
+<img alt="../_images/aedf52e58f4a3e62885676d7c24d2264cca7dc2d6aee964f35f75e32e8da92ad.png" src="../_images/aedf52e58f4a3e62885676d7c24d2264cca7dc2d6aee964f35f75e32e8da92ad.png" />
 </div>
 </div>
 </section>
