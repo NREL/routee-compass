@@ -137,31 +137,27 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 
 # %%
 
+bolt_rows = gdf["request.model_name"] == "2017_CHEVROLET_Bolt"
+bolt_energy = gdf.loc[bolt_rows, "route.traversal_summary.trip_energy"]
+gdf.loc[bolt_rows, "gge"] = bolt_energy * (1 / 33.694)
 
-gdf.loc[gdf["request.model_name"] == "2017_CHEVROLET_Bolt", "gge"] = gdf.loc[
-    gdf["request.model_name"] == "2017_CHEVROLET_Bolt",
-    "route.traversal_summary.trip_energy",
-] * (1 / 33.694)
-
-gdf.loc[gdf["request.model_name"] == "2016_CHEVROLET_Volt", "gge"] = (
-    gdf.loc[
-        gdf["request.model_name"] == "2016_CHEVROLET_Volt",
+volt_rows = gdf["request.model_name"] == "2016_CHEVROLET_Volt"
+volt_elec = gdf.loc[
+       volt_rows ,
         "route.traversal_summary.trip_energy_electric",
     ]
-    * (1 / 33.694)
-    + gdf.loc[
-        gdf["request.model_name"] == "2016_CHEVROLET_Volt",
+volt_liq = gdf.loc[
+       volt_rows ,
         "route.traversal_summary.trip_energy_liquid",
     ]
-)
+gdf.loc[volt_rows, "gge"] = (volt_elec * (1 / 33.694) + volt_liq)
 
-gdf.loc[gdf["request.model_name"] == "2016_TOYOTA_Camry_4cyl_2WD", "gge"] = gdf.loc[
-    gdf["request.model_name"] == "2016_TOYOTA_Camry_4cyl_2WD",
+camry_rows = gdf["request.model_name"] == "2016_TOYOTA_Camry_4cyl_2WD"
+camry_energy = gdf.loc[
+    camry_rows,
     "route.traversal_summary.trip_energy",
 ]
-    gdf["route.traversal_summary.trip_energy_electric"].fillna(0) * (1 / 33.694)
-) + gdf["route.traversal_summary.trip_energy_liquid"].fillna(0)
-
+gdf.loc[camry_rows, "gge"] = camry_energy
 
 """
 Next, we can look at the energy usage versus the route time, broken out by powertrain and route objective
