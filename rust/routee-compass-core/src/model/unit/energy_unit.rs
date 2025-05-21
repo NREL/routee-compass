@@ -166,10 +166,14 @@ impl FromStr for EnergyUnit {
         {
             "gallonsgasoline" => Ok(E::Gasoline(VolumeUnit::GallonsUs)),
             "gallonsdiesel" => Ok(E::Diesel(VolumeUnit::GallonsUs)),
+            "ukgallonsgasoline" => Ok(E::Gasoline(VolumeUnit::GallonsUk)),
+            "ukgallonsdiesel" => Ok(E::Diesel(VolumeUnit::GallonsUk)),
             "kilowatthours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
-            "litersgasoline" => Ok(E::LitersGasoline),
-            "litersdiesel" => Ok(E::LitersDiesel),
+            "litersgasoline" => Ok(E::Gasoline(VolumeUnit::Liters)),
+            "litersdiesel" => Ok(E::Diesel(VolumeUnit::Liters)),
             "gallonsgasolineequivalent" | "gge" => Ok(E::GallonsGasolineEquivalent),
+            "kilojoules" | "kj" => Ok(E::KiloJoules),
+            "btu" | "britishthermalunit" => Ok(E::BTU),
             _ => Err(format!("unknown energy unit '{}'", s)),
         }
     }
