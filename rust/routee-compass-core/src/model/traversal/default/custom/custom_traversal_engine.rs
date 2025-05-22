@@ -33,7 +33,7 @@ impl CustomTraversalEngine {
         OutputFeature::Custom {
             name: config.name.clone(),
             unit: config.feature.to_string(),
-            format: config.feature.clone(),
+            format: config.feature,
             accumulator: config.accumulator,
         }
     }
@@ -80,7 +80,7 @@ impl TryFrom<&CustomTraversalConfig> for CustomTraversalEngine {
     type Error = TraversalModelError;
 
     fn try_from(config: &CustomTraversalConfig) -> Result<Self, Self::Error> {
-        let bar_builder = BarBuilder::default().desc(format!("{}", &config.input_file));
+        let bar_builder = BarBuilder::default().desc(config.input_file.to_string());
 
         match config.file_format {
             super::CustomInputFormat::Dense => {

@@ -278,7 +278,7 @@ impl Display for OutputFeature {
                 grade_unit, initial, accumulator
             ),
             OutputFeature::Custom {
-                name: name,
+                name,
                 unit,
                 format,
                 accumulator,
