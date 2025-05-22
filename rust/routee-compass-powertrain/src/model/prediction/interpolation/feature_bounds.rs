@@ -4,5 +4,5 @@ use serde::{Deserialize, Serialize};
 pub struct FeatureBounds {
     pub lower_bound: f64,
     pub upper_bound: f64,
-    pub bin_size: usize,
+    pub num_bins: usize,
 }

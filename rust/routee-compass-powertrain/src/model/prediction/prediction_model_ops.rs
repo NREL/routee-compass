@@ -23,7 +23,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
 ) -> Result<PredictionModelRecord, TraversalModelError> {
     let prediction_model: Arc<dyn PredictionModel> = match model_type.clone() {
         ModelType::Smartcore => {
-            let model = SmartcoreModel::new(model_path, input_features, energy_rate_unit)?;
+            let model = SmartcoreModel::new(model_path, input_features.clone(), energy_rate_unit)?;
             Arc::new(model)
         }
         ModelType::Interpolate {
@@ -59,7 +59,7 @@ pub fn load_prediction_model<P: AsRef<Path>>(
     })
 }
 
-fn transpose<T>(v: Vec<Vec<T>>) -> Result<Vec<Vec<T>>, TraversalModelError> {
+pub fn transpose<T>(v: Vec<Vec<T>>) -> Result<Vec<Vec<T>>, TraversalModelError> {
     assert!(!v.is_empty());
     if v.iter().any(|n| n.is_empty()) {
         return Err(TraversalModelError::BuildError(
@@ -138,11 +138,9 @@ pub fn find_min_energy_rate(
 
     let transposed_vectors = transpose(feature_vectors)?;
     for feature_vec in transposed_vectors {
-        let (energy_rate, _) = model
-            .predict(
-                &feature_vec,
-            )
-            .map_err(|e| TraversalModelError::BuildError(format!("failure while executing grid search for minimum energy rate in prediction model: {}", e)))?;
+        let (energy_rate, _) = model.predict(&feature_vec).map_err(|e| {
+            TraversalModelError::BuildError(format!("{} {}", MIN_ENERGY_ERROR_MESSAGE, e))
+        })?;
         if energy_rate < minimum_energy_rate {
             minimum_energy_rate = energy_rate;
         }

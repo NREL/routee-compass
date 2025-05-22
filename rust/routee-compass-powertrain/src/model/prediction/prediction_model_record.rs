@@ -28,7 +28,7 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
             ModelType::Smartcore => {
                 let model = SmartcoreModel::new(
                     &config.model_input_file,
-                    config.input_features,
+                    config.input_features.clone(),
                     config.energy_rate_unit,
                 )?;
                 Arc::new(model)
@@ -50,8 +50,7 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
         };
         let ideal_energy_rate = prediction_model_ops::find_min_energy_rate(
             &prediction_model,
-            config.speed_unit,
-            config.grade_unit,
+            &config.input_features,
             &config.energy_rate_unit,
         )?;
 
