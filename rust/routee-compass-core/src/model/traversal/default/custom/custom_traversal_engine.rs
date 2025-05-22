@@ -135,5 +135,3 @@ impl TryFrom<&CustomTraversalConfig> for CustomTraversalEngine {
         }
     }
 }
-
-// fn read_bools()
