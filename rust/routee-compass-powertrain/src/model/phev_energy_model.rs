@@ -175,7 +175,7 @@ impl TraversalModel for PhevEnergyModel {
             (
                 String::from(fieldname::TRIP_SOC),
                 OutputFeature::Custom {
-                    r#type: String::from("soc"),
+                    name: String::from("soc"),
                     unit: String::from("Percent"),
                     format: CustomFeatureFormat::FloatingPoint {
                         initial: self.starting_soc.into(),

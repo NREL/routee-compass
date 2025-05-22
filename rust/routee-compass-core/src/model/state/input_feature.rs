@@ -15,7 +15,7 @@ pub enum InputFeature {
     Time(Option<TimeUnit>),
     Energy(Option<EnergyUnit>),
     Grade(Option<GradeUnit>),
-    Custom { r#type: String, unit: String },
+    Custom { name: String, unit: String },
 }
 
 impl std::fmt::Display for InputFeature {
@@ -54,12 +54,12 @@ impl From<&OutputFeature> for InputFeature {
                 accumulator: _,
             } => InputFeature::Grade(Some(*grade_unit)),
             OutputFeature::Custom {
-                r#type,
+                name,
                 unit,
                 format: _,
                 accumulator: _,
             } => InputFeature::Custom {
-                r#type: r#type.clone(),
+                name: name.clone(),
                 unit: unit.clone(),
             },
         }

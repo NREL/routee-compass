@@ -38,7 +38,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
     type Error = FrontierModelError;
 
     fn try_from(row: &RestrictionRow) -> Result<Self, Self::Error> {
-        let vehicle_parameter = match row.r#type.as_str() {
+        let vehicle_parameter = match row.name.as_str() {
             "height" => Ok(VehicleParameter::Height {
                 value: Distance::from(row.value),
                 unit: DistanceUnit::from_str(&row.unit).map_err(|e| {
@@ -95,7 +95,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
             }),
             _ => Err(FrontierModelError::BuildError(format!(
                 "Unknown vehicle parameter type: {}",
-                row.r#type
+                row.name
             ))),
         }?;
         let comparison_operation = row.operation.clone();

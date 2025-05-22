@@ -2,7 +2,7 @@ use crate::model::unit::{AsF64, Distance, Energy, Grade, Speed, Time};
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 #[derive(
     Copy,
@@ -71,5 +71,16 @@ impl From<Grade> for StateVariable {
 impl From<&StateVariable> for f64 {
     fn from(val: &StateVariable) -> Self {
         val.0
+    }
+}
+
+impl FromStr for StateVariable {
+    type Err = std::io::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse::<f64>().map(StateVariable).map_err(|e| {
+            let msg = format!("failure decoding state variable {} due to: {:}", s, e);
+            std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
+        })
     }
 }

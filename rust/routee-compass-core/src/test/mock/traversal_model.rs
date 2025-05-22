@@ -97,14 +97,14 @@ impl MockUpstreamModel {
                         },
                     )
                 }
-                InputFeature::Custom { r#type, unit } => {
+                InputFeature::Custom { name, unit } => {
                     let format = CustomFeatureFormat::FloatingPoint {
                         initial: 0.0.into(),
                     };
                     (
                         n.clone(),
                         OutputFeature::Custom {
-                            r#type: r#type.clone(),
+                            name: name.clone(),
                             unit: unit.clone(),
                             format,
                             accumulator: true,

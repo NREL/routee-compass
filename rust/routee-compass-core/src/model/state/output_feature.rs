@@ -60,7 +60,7 @@ pub enum OutputFeature {
         accumulator: bool,
     },
     Custom {
-        r#type: String,
+        name: String,
         unit: String,
         format: CustomFeatureFormat,
         accumulator: bool,
@@ -141,13 +141,13 @@ impl PartialEq for OutputFeature {
             ) => true,
             (
                 OutputFeature::Custom {
-                    r#type: a_name,
+                    name: a_name,
                     unit: a_unit,
                     format: _,
                     accumulator: _,
                 },
                 OutputFeature::Custom {
-                    r#type: b_name,
+                    name: b_name,
                     unit: b_unit,
                     format: _,
                     accumulator: _,
@@ -212,13 +212,13 @@ impl PartialEq<InputFeature> for OutputFeature {
             ) => true,
             (
                 OutputFeature::Custom {
-                    r#type: a_name,
+                    name: a_name,
                     unit: a_unit,
                     format: _,
                     accumulator: _,
                 },
                 InputFeature::Custom {
-                    r#type: b_name,
+                    name: b_name,
                     unit: b_unit,
                 },
             ) => a_name == b_name && a_unit == b_unit,
@@ -278,7 +278,7 @@ impl Display for OutputFeature {
                 grade_unit, initial, accumulator
             ),
             OutputFeature::Custom {
-                r#type: name,
+                name,
                 unit,
                 format,
                 accumulator,
@@ -324,7 +324,7 @@ impl OutputFeature {
                 accumulator,
             } => *accumulator,
             OutputFeature::Custom {
-                r#type: _,
+                name: _,
                 unit: _,
                 format: _,
                 accumulator,
@@ -360,11 +360,11 @@ impl OutputFeature {
                 accumulator: _,
             } => String::from("grade"),
             OutputFeature::Custom {
-                r#type,
+                name,
                 unit: _,
                 format: _,
                 accumulator: _,
-            } => r#type.clone(),
+            } => name.clone(),
         }
     }
 
@@ -396,7 +396,7 @@ impl OutputFeature {
                 accumulator: _,
             } => grade_unit.to_string(),
             OutputFeature::Custom {
-                r#type: _,
+                name: _,
                 unit,
                 format: _,
                 accumulator: _,
@@ -411,7 +411,7 @@ impl OutputFeature {
     pub fn get_feature_format(&self) -> &CustomFeatureFormat {
         match self {
             OutputFeature::Custom {
-                r#type: _,
+                name: _,
                 unit: _,
                 format,
                 accumulator: _,
@@ -448,7 +448,7 @@ impl OutputFeature {
                 accumulator: _,
             } => Ok((*initial).into()),
             OutputFeature::Custom {
-                r#type: _,
+                name: _,
                 unit: _,
                 format,
                 accumulator: _,
@@ -529,7 +529,7 @@ impl OutputFeature {
     pub fn get_custom_feature_format(&self) -> Result<&CustomFeatureFormat, StateModelError> {
         match self {
             OutputFeature::Custom {
-                r#type: _,
+                name: _,
                 unit: _,
                 format,
                 accumulator: _,
