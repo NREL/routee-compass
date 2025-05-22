@@ -1,3 +1,4 @@
+use super::CustomTraversalEngine;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
@@ -6,8 +7,8 @@ use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
 use std::sync::Arc;
 
-use super::CustomTraversalEngine;
-
+/// looks up values to assign to a traversal based on the edge id for some
+/// custom value type stored in a file.
 pub struct CustomTraversalModel {
     engine: Arc<CustomTraversalEngine>,
 }
