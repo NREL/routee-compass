@@ -50,7 +50,7 @@ pub fn bool_to_state_variable(_idx: usize, row: String) -> Result<StateVariable,
     }
 }
 
-/// used when reading boolean files into custom feature types, stored as a Box<[StateVariable]>
+/// used when reading numeric i64 values into custom feature types, stored as a Box<[StateVariable]>
 /// see [`crate::model::traversal::default::custom::CustomTraversalEngine`].
 pub fn i64_to_state_variable(_idx: usize, row: String) -> Result<StateVariable, std::io::Error> {
     let value = row.parse::<i64>().map_err(|e| {
