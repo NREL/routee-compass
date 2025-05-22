@@ -3,78 +3,46 @@ use super::{
     PredictionModel, PredictionModelRecord,
 };
 use itertools::Itertools;
-use routee_compass_core::{
-    model::{
-        traversal::TraversalModelError,
-        unit::{
-            Convert, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit, UnitError,
-        },
+use routee_compass_core::model::{
+    state::InputFeature,
+    traversal::TraversalModelError,
+    unit::{
+        AsF64, Convert, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit, UnitError,
     },
-    util::cache_policy::float_cache_policy::FloatCachePolicy,
 };
 use std::{borrow::Cow, path::Path, sync::Arc};
 
-#[cfg(feature = "onnx")]
-use crate::model::prediction::onnx::OnnxSpeedGradeModel;
-
-#[allow(clippy::too_many_arguments)]
 pub fn load_prediction_model<P: AsRef<Path>>(
     name: String,
     model_path: &P,
     model_type: ModelType,
-    speed_unit: SpeedUnit,
-    grade_unit: GradeUnit,
+    input_features: Vec<(String, InputFeature)>,
     energy_rate_unit: EnergyRateUnit,
     ideal_energy_rate_option: Option<EnergyRate>,
     real_world_energy_adjustment_option: Option<f64>,
-    cache: Option<FloatCachePolicy>,
 ) -> Result<PredictionModelRecord, TraversalModelError> {
     let prediction_model: Arc<dyn PredictionModel> = match model_type.clone() {
         ModelType::Smartcore => {
-            let model = SmartcoreModel::new(model_path, speed_unit, grade_unit, energy_rate_unit)?;
+            let model = SmartcoreModel::new(model_path, input_features, energy_rate_unit)?;
             Arc::new(model)
-        }
-        ModelType::Onnx => {
-            #[cfg(feature = "onnx")]
-            {
-                let model =
-                    OnnxSpeedGradeModel::new(model_path, speed_unit, grade_unit, energy_rate_unit)?;
-                Arc::new(model)
-            }
-            #[cfg(not(feature = "onnx"))]
-            {
-                return Err(TraversalModelError::BuildError(
-                    "Cannot build Onnx model without `onnx` feature enabled for compass-powertrain"
-                        .to_string(),
-                ));
-            }
         }
         ModelType::Interpolate {
             underlying_model_type: underlying_model,
-            speed_lower_bound,
-            speed_upper_bound,
-            speed_bins: speed_bin_size,
-            grade_lower_bound,
-            grade_upper_bound,
-            grade_bins: grade_bin_size,
+            feature_bounds,
         } => {
             let model = InterpolationModel::new(
                 model_path,
                 *underlying_model,
                 name.clone(),
-                speed_unit,
-                (speed_lower_bound, speed_upper_bound),
-                speed_bin_size,
-                grade_unit,
-                (grade_lower_bound, grade_upper_bound),
-                grade_bin_size,
+                input_features.clone(),
+                feature_bounds.clone(),
                 energy_rate_unit,
             )?;
             Arc::new(model)
         }
     };
     let ideal_energy_rate = match ideal_energy_rate_option {
-        None => find_min_energy_rate(&prediction_model, speed_unit, grade_unit, &energy_rate_unit)?,
+        None => find_min_energy_rate(&prediction_model, &input_features, &energy_rate_unit)?,
         Some(ier) => ier,
     };
 
@@ -84,40 +52,99 @@ pub fn load_prediction_model<P: AsRef<Path>>(
         name,
         prediction_model,
         model_type,
-        speed_unit,
-        grade_unit,
+        input_features,
         energy_rate_unit,
         ideal_energy_rate,
         real_world_energy_adjustment,
-        cache,
     })
 }
+
+fn transpose<T>(v: Vec<Vec<T>>) -> Result<Vec<Vec<T>>, TraversalModelError> {
+    assert!(!v.is_empty());
+    if v.iter().any(|n| n.is_empty()) {
+        return Err(TraversalModelError::BuildError(
+            "cannot transpose an empty vector".to_string(),
+        ));
+    }
+    let len = v[0].len();
+    let mut iters: Vec<_> = v.into_iter().map(|n| n.into_iter()).collect();
+    let result = (0..len)
+        .map(|_| {
+            iters
+                .iter_mut()
+                .map(|n| n.next().unwrap())
+                .collect::<Vec<T>>()
+        })
+        .collect();
+    Ok(result)
+}
+
+const MIN_ENERGY_ERROR_MESSAGE: &str =
+    "Failure while executing grid search for minimum energy rate in prediction model:";
 
 /// sweep speed and grade values to find the minimum energy per mile rate from the incoming rf model
 pub fn find_min_energy_rate(
     model: &Arc<dyn PredictionModel>,
-    speed_unit: SpeedUnit,
-    grade_unit: GradeUnit,
+    input_features: &[(String, InputFeature)],
     energy_model_energy_rate_unit: &EnergyRateUnit,
 ) -> Result<EnergyRate, TraversalModelError> {
     // sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
     let mut minimum_energy_rate = EnergyRate::from(f64::MAX);
     let start_time = std::time::Instant::now();
 
-    let grade_values = get_grade_sample_values(&grade_unit)?;
-    let speed_values = get_speed_sample_values(&speed_unit)?;
+    let mut feature_vectors: Vec<Vec<f64>> = Vec::new();
 
-    for grade in grade_values.iter() {
-        for speed in speed_values.iter() {
-            let (energy_rate, _) = model
+    for (_, input_feature) in input_features {
+        let input_vector: Vec<f64> = match input_feature {
+            InputFeature::Speed(unit) => {
+                match unit {
+                    None => {
+                        return Err(TraversalModelError::TraversalModelFailure(format!(
+                            "{} expected input feature: {} to have an associated unit in the model prediction",
+                            MIN_ENERGY_ERROR_MESSAGE,
+                            input_feature
+                        )))
+                    },
+                    Some(unit) => {
+                        // create a vector of speed values
+                        get_speed_sample_values(unit)?.into_iter().map(|s| s.as_f64()).collect()
+                    }
+                }
+            }
+            InputFeature::Grade(unit) => {
+                match unit {
+                    None => {
+                        return Err(TraversalModelError::TraversalModelFailure(format!(
+                            "{} expected input feature: {} to have an associated unit in the model prediction",
+                            MIN_ENERGY_ERROR_MESSAGE,
+                            input_feature
+                        )))
+                    },
+                    Some(unit) => {
+                        // create a vector of grade values
+                        get_grade_sample_values(unit)?.into_iter().map(|g| g.as_f64()).collect()
+                    }
+                }
+            }
+            _ => {
+                return Err(TraversalModelError::TraversalModelFailure(format!(
+                    "{} got an unexpected input feature in the smartcore model prediction {}",
+                    MIN_ENERGY_ERROR_MESSAGE, input_feature
+                )))
+            }
+        };
+        feature_vectors.push(input_vector);
+    }
+
+    let transposed_vectors = transpose(feature_vectors)?;
+    for feature_vec in transposed_vectors {
+        let (energy_rate, _) = model
             .predict(
-                (*speed, &speed_unit),
-                (*grade, &grade_unit),
+                &feature_vec,
             )
             .map_err(|e| TraversalModelError::BuildError(format!("failure while executing grid search for minimum energy rate in prediction model: {}", e)))?;
-            if energy_rate < minimum_energy_rate {
-                minimum_energy_rate = energy_rate;
-            }
+        if energy_rate < minimum_energy_rate {
+            minimum_energy_rate = energy_rate;
         }
     }
 

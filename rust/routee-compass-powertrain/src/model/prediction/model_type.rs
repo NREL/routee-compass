@@ -6,10 +6,9 @@ use super::interpolation::feature_bounds::FeatureBounds;
 #[serde(rename_all = "snake_case")]
 pub enum ModelType {
     Smartcore,
-    Onnx,
     Interpolate {
         underlying_model_type: Box<ModelType>,
-        feature_bounds: FeatureBounds,
+        feature_bounds: Vec<(String, FeatureBounds)>,
     },
 }
 

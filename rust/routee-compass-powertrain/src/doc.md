@@ -8,16 +8,6 @@ A RouteE Powertrain is an energy estimation model trained on NREL's [FASTSim](ht
 RouteE Powertrain is an ML model which makes it sufficiently fast to run within the loop of a route planner cost model.
 RouteE Powertrain models are trained and exported via the RouteE Powertrain utility and then loaded into a runtime at the core of this crate.
 
-### Model Runtimes
-
-There are two underlying model runtimes available, [smartcore](https://smartcorelib.org/) and [ort](https://github.com/pykeio/ort) (for [ONNX](https://onnx.ai/) models).
-By default, this crate is loaded with ONNX deactivated.
-To activate the ONNX feature, pass the `onnx` feature flag during compilation.
-Runtime kernels for 3 common OSs have been provided in the onnx-runtime directory within this crate.
-For more information on cargo features, see The Cargo Book chapter on [Features](https://doc.rust-lang.org/cargo/reference/features.html).
-
-The runtime is loaded via the TraversalModel(s) in this crate and used to estimate costs in RouteE Compass searches.
-
 ### Usage
 
 The TraversalModel in this crate is integrated into [compass-app](../compass-app/README.md) and can be installed by running compass-app with a TraversalModel that uses energy.

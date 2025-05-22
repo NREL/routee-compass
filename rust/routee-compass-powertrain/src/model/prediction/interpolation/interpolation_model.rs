@@ -1,4 +1,4 @@
-use super::utils::linspace;
+use super::{feature_bounds::FeatureBounds, utils::linspace};
 use crate::model::prediction::{
     load_prediction_model, model_type::ModelType, prediction_model::PredictionModel,
 };
@@ -14,7 +14,8 @@ use std::{borrow::Cow, path::Path};
 
 pub struct InterpolationModel {
     interpolator: Interp2DOwned<f64, strategy::Linear>,
-    input_features: Vec<InputFeature>,
+    input_features: Vec<(String, InputFeature)>,
+    feature_bounds: Vec<(String, FeatureBounds)>,
     energy_rate_unit: EnergyRateUnit,
 }
 
@@ -49,17 +50,12 @@ impl PredictionModel for InterpolationModel {
 }
 
 impl InterpolationModel {
-    #[allow(clippy::too_many_arguments)]
     pub fn new<P: AsRef<Path>>(
         underlying_model_path: &P,
         underlying_model_type: ModelType,
         underlying_model_name: String,
-        speed_unit: SpeedUnit,
-        speed_bounds: (Speed, Speed),
-        speed_bins: usize,
-        grade_unit: GradeUnit,
-        grade_bounds: (Grade, Grade),
-        grade_bins: usize,
+        input_features: Vec<(String, InputFeature)>,
+        feature_bounds: Vec<(String, FeatureBounds)>,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
         // load underlying model to build the interpolation grid
@@ -67,12 +63,10 @@ impl InterpolationModel {
             underlying_model_name,
             underlying_model_path,
             underlying_model_type,
-            speed_unit,
-            grade_unit,
+            input_features,
             energy_rate_unit,
             None,
-            None,
-            None,
+            None
         )?;
 
         // Create a linear grid of speed and grade values
@@ -120,8 +114,8 @@ impl InterpolationModel {
 
         Ok(InterpolationModel {
             interpolator,
-            speed_unit,
-            grade_unit,
+            input_features,
+            feature_bounds,
             energy_rate_unit,
         })
     }

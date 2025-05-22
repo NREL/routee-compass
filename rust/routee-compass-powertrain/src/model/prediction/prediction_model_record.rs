@@ -2,15 +2,10 @@ use super::{
     interpolation::InterpolationModel, model_type::ModelType, prediction_model_ops,
     smartcore::SmartcoreModel, PredictionModel, PredictionModelConfig,
 };
-#[cfg(feature = "onnx")]
-use crate::model::prediction::onnx::OnnxSpeedGradeModel;
 use routee_compass_core::model::{
     state::{InputFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
-    unit::{
-        Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit, Grade, GradeUnit,
-        Speed, SpeedUnit,
-    },
+    unit::{AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit},
 };
 use std::sync::Arc;
 
@@ -38,25 +33,6 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
                 )?;
                 Arc::new(model)
             }
-            ModelType::Onnx => {
-                #[cfg(feature = "onnx")]
-                {
-                    let model = OnnxSpeedGradeModel::new(
-                        &config.model_input_file,
-                        config.speed_unit,
-                        config.grade_unit,
-                        config.energy_rate_unit,
-                    )?;
-                    Arc::new(model)
-                }
-                #[cfg(not(feature = "onnx"))]
-                {
-                    return Err(TraversalModelError::BuildError(
-                        "Cannot build Onnx model without `onnx` feature enabled for compass-powertrain"
-                            .to_string(),
-                    ));
-                }
-            }
             ModelType::Interpolate {
                 underlying_model_type: underlying_model,
                 feature_bounds,
@@ -65,12 +41,8 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
                     &config.model_input_file,
                     *underlying_model.clone(),
                     config.name.clone(),
-                    config.speed_unit,
-                    (*speed_lower_bound, *speed_upper_bound),
-                    *speed_bin_size,
-                    config.grade_unit,
-                    (*grade_lower_bound, *grade_upper_bound),
-                    *grade_bin_size,
+                    config.input_features.clone(),
+                    feature_bounds.clone(),
                     config.energy_rate_unit,
                 )?;
                 Arc::new(model)
@@ -106,10 +78,31 @@ impl PredictionModelRecord {
         state_model: &StateModel,
     ) -> Result<(Energy, EnergyUnit), TraversalModelError> {
         let (distance, distance_unit) = distance;
+        let mut feature_vector: Vec<f64> = Vec::new();
+        for (name, input_feature) in input_features {
+            let state_variable_f64: f64 = match input_feature {
+                InputFeature::Speed(unit) => {
+                    let (speed, _speed_unit) = state_model.get_speed(state, name, unit.as_ref())?;
+                    speed.as_f64()
+                }
+                InputFeature::Grade(unit) => {
+                    let (grade, _grade_unit) = state_model.get_grade(state, name, unit.as_ref())?;
+                    grade.as_f64()
+                }
+                InputFeature::Custom { r#type: _, unit: _ } => {
+                    state_model.get_custom_f64(state, name)?
+                }
+                _ => {
+                    return Err(TraversalModelError::TraversalModelFailure(format!(
+                        "got an unexpected input feature in the smartcore model prediction {}",
+                        input_feature
+                    )))
+                }
+            };
+            feature_vector.push(state_variable_f64);
+        }
 
-        let (energy_rate, _energy_rate_unit) =
-            self.prediction_model
-                .predict(input_features, state, state_model)?;
+        let (energy_rate, _energy_rate_unit) = self.prediction_model.predict(&feature_vector)?;
 
         let energy_rate_real_world = energy_rate * self.real_world_energy_adjustment;
 

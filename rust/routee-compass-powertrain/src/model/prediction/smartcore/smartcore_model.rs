@@ -1,13 +1,13 @@
 use crate::model::prediction::prediction_model::PredictionModel;
 use routee_compass_core::model::{
-    state::{InputFeature, StateModel, StateVariable},
+    state::InputFeature,
     traversal::TraversalModelError,
-    unit::{AsF64, Convert, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    unit::{EnergyRate, EnergyRateUnit},
 };
 use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
 };
-use std::{borrow::Cow, fs::File, path::Path};
+use std::{fs::File, path::Path};
 
 pub struct SmartcoreModel {
     rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
@@ -18,34 +18,9 @@ pub struct SmartcoreModel {
 impl PredictionModel for SmartcoreModel {
     fn predict(
         &self,
-        input_features: &[(String, InputFeature)],
-        state: &mut Vec<StateVariable>,
-        state_model: &StateModel,
+        feature_vector: &Vec<f64>,
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
-        let mut feature_vector: Vec<f64> = Vec::new();
-        for (name, input_feature) in input_features {
-            let state_variable_f64: f64 = match input_feature {
-                InputFeature::Speed(unit) => {
-                    let (speed, _speed_unit) = state_model.get_speed(state, name, unit.as_ref())?;
-                    speed.as_f64()
-                }
-                InputFeature::Grade(unit) => {
-                    let (grade, _grade_unit) = state_model.get_grade(state, name, unit.as_ref())?;
-                    grade.as_f64()
-                }
-                InputFeature::Custom { r#type: _, unit: _ } => {
-                    state_model.get_custom_f64(state, name)?
-                }
-                _ => {
-                    return Err(TraversalModelError::TraversalModelFailure(format!(
-                        "got an unexpected input feature in the smartcore model prediction {}",
-                        input_feature
-                    )))
-                }
-            };
-            feature_vector.push(state_variable_f64);
-        }
-        let x = DenseMatrix::from_2d_vec(&vec![feature_vector]).map_err(|e| {
+        let x = DenseMatrix::from_2d_vec(&vec![feature_vector.to_vec()]).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
                 "unable to set up prediction input vector: {}",
                 e
