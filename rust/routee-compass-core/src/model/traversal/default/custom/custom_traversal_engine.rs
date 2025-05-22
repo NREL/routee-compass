@@ -59,7 +59,7 @@ impl CustomTraversalEngine {
                 let mut value = config.feature.decode_f64(found_value)?;
                 if config.accumulator {
                     let prev = state_model.get_custom_f64(state, &config.name)?;
-                    value = value + prev;
+                    value += prev;
                 }
                 state_model.set_custom_f64(state, &config.name, &value)?;
             }
@@ -67,7 +67,7 @@ impl CustomTraversalEngine {
                 let mut value = config.feature.decode_i64(found_value)?;
                 if config.accumulator {
                     let prev = state_model.get_custom_i64(state, &config.name)?;
-                    value = value + prev;
+                    value += prev;
                 }
                 state_model.set_custom_i64(state, &config.name, &value)?;
             }
@@ -75,7 +75,7 @@ impl CustomTraversalEngine {
                 let mut value = config.feature.decode_u64(found_value)?;
                 if config.accumulator {
                     let prev = state_model.get_custom_u64(state, &config.name)?;
-                    value = value + prev;
+                    value += prev;
                 }
                 state_model.set_custom_u64(state, &config.name, &value)?;
             }
