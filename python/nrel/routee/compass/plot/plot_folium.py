@@ -197,7 +197,7 @@ def plot_coords_folium(
 
     kwargs = {**DEFAULT_LINE_KWARGS, **(line_kwargs or {})}
 
-    folium.PolyLine(  # type: ignore
+    folium.PolyLine(
         locations=coords,
         **kwargs,
     ).add_to(folium_map)
