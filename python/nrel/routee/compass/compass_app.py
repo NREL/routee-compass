@@ -24,7 +24,7 @@ if TYPE_CHECKING:
         Results,
     )
 
-import toml
+import tomlkit
 import json
 
 
@@ -74,13 +74,13 @@ class CompassApp:
         if not config_path.is_file():
             raise ValueError(f"Config file {str(config_path)} does not exist")
         with open(config_path) as f:
-            toml_config = toml.load(f)
+            toml_config = tomlkit.load(f)
 
         return cls.from_dict(toml_config, config_path)
 
     @classmethod
     def from_dict(
-        cls, config: Config, working_dir: Optional[Path] = None
+        cls, config: tomlkit.TOMLDocument, working_dir: Optional[Path] = None
     ) -> CompassApp:
         """
         Build a CompassApp from a configuration object
@@ -98,7 +98,7 @@ class CompassApp:
             >>> app = CompassApp.from_config(conf)
         """
         path_str = str(working_dir.absolute()) if working_dir is not None else ""
-        toml_string = toml.dumps(config)
+        toml_string = tomlkit.dumps(config)
         app = cls.get_constructor()._from_config_toml_string(toml_string, path_str)
         return cls(app, config)
 
@@ -157,9 +157,7 @@ class CompassApp:
         try:
             import osmnx as ox
         except ImportError:
-            raise ImportError(
-                "requires osmnx to be installed. " "Try 'pip install osmnx'"
-            )
+            raise ImportError("requires osmnx to be installed. Try 'pip install osmnx'")
         if cache_dir is None:
             temp_dir = TemporaryDirectory()
             cache_dir = temp_dir.name
@@ -243,9 +241,7 @@ class CompassApp:
         try:
             import osmnx as ox
         except ImportError:
-            raise ImportError(
-                "requires osmnx to be installed. " "Try 'pip install osmnx'"
-            )
+            raise ImportError("requires osmnx to be installed. Try 'pip install osmnx'")
         if cache_dir is None:
             temp_dir = TemporaryDirectory()
             cache_dir = temp_dir.name

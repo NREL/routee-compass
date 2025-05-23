@@ -27,6 +27,12 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
     type Error = TraversalModelError;
 
     fn try_from(config: &PredictionModelConfig) -> Result<Self, Self::Error> {
+        if config.input_features.is_empty() {
+            return Err(TraversalModelError::BuildError(format!(
+                "You must supply at least one input feature for vehicle model {}",
+                config.name
+            )));
+        }
         let prediction_model: Arc<dyn PredictionModel> = match &config.model_type {
             ModelType::Smartcore => {
                 let model = SmartcoreModel::new(&config.model_input_file, config.energy_rate_unit)?;
