@@ -56,6 +56,11 @@ pub fn find_min_energy_rate(
         }
     }
 
+    // Cap the lower bound of the minimum energy rate to 0.0
+    if minimum_energy_rate < EnergyRate::ZERO {
+        minimum_energy_rate = EnergyRate::ZERO;
+    }
+
     let end_time = std::time::Instant::now();
     let search_time = end_time - start_time;
 
@@ -75,7 +80,7 @@ fn get_grade_sample_values(grade_unit: &GradeUnit) -> Result<Vec<Grade>, UnitErr
         .map(|i| {
             let grade_dec_f64 = ((i as f64) * 0.2) - 20.0; // values in range [-20.0, 0.0]
             let mut converted = Cow::Owned(Grade::from(grade_dec_f64));
-            GradeUnit::Decimal.convert(&mut converted, grade_unit)?;
+            GradeUnit::Percent.convert(&mut converted, grade_unit)?;
             Ok(converted.into_owned())
         })
         .try_collect()
@@ -87,7 +92,7 @@ fn get_speed_sample_values(speed_unit: &SpeedUnit) -> Result<Vec<Speed>, UnitErr
         .map(|i| {
             let mph_f64 = i as f64 * 0.1; // values in range [0.0, 100.0]
             let mut converted = Cow::Owned(Speed::from(mph_f64));
-            SpeedUnit::MPS.convert(&mut converted, speed_unit)?;
+            SpeedUnit::MPH.convert(&mut converted, speed_unit)?;
             Ok(converted.into_owned())
         })
         .try_collect()

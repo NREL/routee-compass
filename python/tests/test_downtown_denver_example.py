@@ -134,7 +134,7 @@ class TestDowntownDenverExample(TestCase):
         t_opt_query["weights"] = {
             "trip_distance": 0,
             "trip_time": 1,
-            energy_key: 1,
+            energy_key: 0,
         }
 
         e_opt_query = dict(base_query)
