@@ -438,7 +438,7 @@ mod test {
             traversal::TraversalModel,
             unit::{
                 AsF64, Distance, DistanceUnit, Energy, EnergyRateUnit, EnergyUnit, Grade,
-                GradeUnit, Speed, SpeedUnit,
+                GradeUnit, Speed, SpeedUnit, VolumeUnit,
             },
         },
         test::mock::traversal_model::TestTraversalModel,
@@ -485,7 +485,7 @@ mod test {
             .get_energy(
                 &state,
                 fieldname::EDGE_ENERGY_LIQUID,
-                Some(&EnergyUnit::GallonsGasoline),
+                Some(&EnergyUnit::Gasoline(VolumeUnit::GallonsUs)),
             )
             .expect("test invariant failed");
 
@@ -543,7 +543,7 @@ mod test {
             .get_energy(
                 &state,
                 fieldname::EDGE_ENERGY_LIQUID,
-                Some(&EnergyUnit::GallonsGasoline),
+                Some(&EnergyUnit::Gasoline(VolumeUnit::GallonsUs)),
             )
             .expect("test invariant failed");
 
@@ -584,7 +584,7 @@ mod test {
             .get_energy(
                 &state,
                 fieldname::EDGE_ENERGY_LIQUID,
-                Some(&EnergyUnit::GallonsGasoline),
+                Some(&EnergyUnit::Gasoline(VolumeUnit::GallonsUs)),
             )
             .expect("test invariant failed");
 

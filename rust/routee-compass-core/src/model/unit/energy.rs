@@ -123,14 +123,14 @@ mod tests {
             (
                 &EnergyRate::from(ten_mpg_rate),
                 &EnergyRateUnit::EnergyPerDistance(
-                    EnergyUnit::GallonsGasoline,
+                    EnergyUnit::Gasoline(VolumeUnit::GallonsUs),
                     DistanceUnit::Miles,
                 ),
             ),
         )
         .unwrap();
         approx_eq_energy(energy, Energy::from(ten_mpg_rate), 0.00001);
-        assert_eq!(energy_unit, EnergyUnit::GallonsGasoline);
+        assert_eq!(energy_unit, EnergyUnit::Gasoline(VolumeUnit::GallonsUs));
     }
 
     #[test]
@@ -141,13 +141,13 @@ mod tests {
             (
                 &EnergyRate::from(ten_mpg_rate),
                 &EnergyRateUnit::EnergyPerDistance(
-                    EnergyUnit::GallonsGasoline,
+                    EnergyUnit::Gasoline(VolumeUnit::GallonsUs),
                     DistanceUnit::Miles,
                 ),
             ),
         )
         .unwrap();
         approx_eq_energy(energy, Energy::from(ten_mpg_rate), 0.00001);
-        assert_eq!(energy_unit, EnergyUnit::GallonsGasoline);
+        assert_eq!(energy_unit, EnergyUnit::Gasoline(VolumeUnit::GallonsUs));
     }
 }
