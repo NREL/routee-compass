@@ -26,7 +26,7 @@ impl TraversalModel for CustomTraversalModel {
 
     fn output_features(&self) -> Vec<(String, OutputFeature)> {
         let feature = self.engine.output_feature();
-        let name = feature.get_feature_unit_name();
+        let name = self.engine.config().name.clone();
         vec![(name, feature)]
     }
 
