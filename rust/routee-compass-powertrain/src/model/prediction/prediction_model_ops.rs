@@ -60,7 +60,7 @@ pub fn find_min_energy_rate(
     let search_time = end_time - start_time;
 
     log::debug!(
-        "found minimum energy: {}/{} in {} milliseconds",
+        "found minimum energy: {} {} in {} milliseconds",
         minimum_energy_rate,
         energy_model_energy_rate_unit,
         search_time.as_millis()

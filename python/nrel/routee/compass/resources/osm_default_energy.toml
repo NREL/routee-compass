@@ -45,6 +45,7 @@ factor = 0.50
 [cost.weights]
 trip_distance = 1
 trip_time = 1
+trip_energy = 1
 trip_energy_liquid = 1
 trip_energy_electric = 1
 

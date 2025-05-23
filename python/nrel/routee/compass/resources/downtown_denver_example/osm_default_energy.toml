@@ -14,24 +14,14 @@ queries_without_destinations = false
 matching_type = ["point", "vertex_id", "edge_id"]
 
 [plugin]
-[[plugin.input_plugins]]
-type = "grid_search"
-
-[[plugin.input_plugins]]
-type = "load_balancer"
-
-[plugin.input_plugins.weight_heuristic]
-type = "haversine"
-[[plugin.output_plugins]]
-type = "summary"
-
-[[plugin.output_plugins]]
-type = "traversal"
-route = "geo_json"
-tree = "geo_json"
-geometry_input_file = "edges-geometries-enumerated.txt.gz"
-
-
+input_plugins = [
+    { type = "grid_search" },
+    { type = "load_balancer", weight_heuristic = { type = "haversine" } },
+]
+output_plugins = [
+    { type = "summary" },
+    { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
+]
 # based on 65.5 cents per mile 2023 IRS mileage rate, $/mile to match traversal distance_unit = "miles"
 [cost.vehicle_rates.trip_distance]
 type = "factor"
@@ -42,21 +32,22 @@ factor = 0.655
 type = "factor"
 factor = 0.333336
 
-# # based on AAA regular unleaded gas prices sampled 12/21/2023
-# [cost.vehicle_rates.trip_energy_liquid]
-# type = "factor"
-# factor = 3.120
+# based on AAA regular unleaded gas prices sampled 12/21/2023
+[cost.vehicle_rates.trip_energy_liquid]
+type = "factor"
+factor = 3.120
 
 # based on $0.50/kWh approximation of DCFC charge rates, $/kWhtype = "factor"
-[cost.vehicle_rates.trip_energy]
+[cost.vehicle_rates.trip_energy_electric]
 type = "factor"
 factor = 0.50
 
 [cost.weights]
 trip_distance = 1
 trip_time = 1
-# trip_energy_liquid = 1
 trip_energy = 1
+trip_energy_liquid = 1
+trip_energy_electric = 1
 
 [access]
 type = "turn_delay"
@@ -94,79 +85,118 @@ time_unit = "minutes"
 type = "grade"
 grade_unit = "decimal"
 grade_table_input_file = "edges-grade-enumerated.txt.gz"
-
 [[traversal.models]]
 type = "energy"
 [[traversal.models.vehicles]]
 name = "2016_TOYOTA_Camry_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_TOYOTA_Camry_4cyl_2WD.bin"
-speed_unit = "mph"
-grade_unit = "percent"
+distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
-ideal_energy_rate = 0.02857143
 real_world_energy_adjustment = 1.166
-[traversal.models.vehicles.model_type.interpolate]
-underlying_model_type = "smartcore"
-speed_lower_bound = 0
-speed_upper_bound = 100
-speed_bins = 101
-grade_lower_bound = -20
-grade_upper_bound = 20
-grade_bins = 41
+input_features = [
+    [
+        "edge_speed",
+        { type = "speed", convert = "mph" },
+    ],
+    [
+        "edge_grade",
+        { type = "grade", convert = "percent" },
+    ],
+]
+
+[traversal.models.vehicles.model_type]
+interpolate.underlying_model_type = "smartcore"
+interpolate.feature_bounds.edge_speed.lower_bound = 0
+interpolate.feature_bounds.edge_speed.upper_bound = 100
+interpolate.feature_bounds.edge_speed.num_bins = 101
+interpolate.feature_bounds.edge_grade.lower_bound = -20
+interpolate.feature_bounds.edge_grade.upper_bound = 20
+interpolate.feature_bounds.edge_grade.num_bins = 41
 
 [[traversal.models.vehicles]]
 name = "2017_CHEVROLET_Bolt"
 type = "bev"
 model_input_file = "models/2017_CHEVROLET_Bolt.bin"
-speed_unit = "mph"
-grade_unit = "percent"
+distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
-ideal_energy_rate = 0.2
 real_world_energy_adjustment = 1.3958
-[traversal.models.vehicles.model_type.interpolate]
-underlying_model_type = "smartcore"
-speed_lower_bound = 0
-speed_upper_bound = 100
-speed_bins = 101
-grade_lower_bound = -20
-grade_upper_bound = 20
-grade_bins = 41
+input_features = [
+    [
+        "edge_speed",
+        { type = "speed", convert = "mph" },
+    ],
+    [
+        "edge_grade",
+        { type = "grade", convert = "percent" },
+    ],
+]
+
+[traversal.models.vehicles.model_type]
+interpolate.underlying_model_type = "smartcore"
+interpolate.feature_bounds.edge_speed.lower_bound = 0
+interpolate.feature_bounds.edge_speed.upper_bound = 100
+interpolate.feature_bounds.edge_speed.num_bins = 101
+interpolate.feature_bounds.edge_grade.lower_bound = -20
+interpolate.feature_bounds.edge_grade.upper_bound = 20
+interpolate.feature_bounds.edge_grade.num_bins = 41
 
 [[traversal.models.vehicles]]
 type = "phev"
 name = "2016_CHEVROLET_Volt"
 battery_capacity = 12
 battery_capacity_unit = "kilowatt_hours"
+
 [traversal.models.vehicles.charge_depleting]
 name = "2016_CHEVROLET_Volt_Charge_Depleting"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Depleting.bin"
-speed_unit = "mph"
-grade_unit = "percent"
+distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 real_world_energy_adjustment = 1.3958
-[traversal.models.vehicles.charge_depleting.model_type.interpolate]
-underlying_model_type = "smartcore"
-speed_lower_bound = 0
-speed_upper_bound = 100
-speed_bins = 101
-grade_lower_bound = -20
-grade_upper_bound = 20
-grade_bins = 41
+input_features = [
+    [
+        "edge_speed",
+        { type = "speed", convert = "mph" },
+    ],
+    [
+        "edge_grade",
+        { type = "grade", convert = "percent" },
+    ],
+]
+
+[traversal.models.vehicles.charge_depleting.model_type]
+interpolate.underlying_model_type = "smartcore"
+interpolate.feature_bounds.edge_speed.lower_bound = 0
+interpolate.feature_bounds.edge_speed.upper_bound = 100
+interpolate.feature_bounds.edge_speed.num_bins = 101
+interpolate.feature_bounds.edge_grade.lower_bound = -20
+interpolate.feature_bounds.edge_grade.upper_bound = 20
+interpolate.feature_bounds.edge_grade.num_bins = 41
+
 [traversal.models.vehicles.charge_sustaining]
 name = "2016_CHEVROLET_Volt_Charge_Sustaining"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Sustaining.bin"
-speed_unit = "mph"
-grade_unit = "percent"
+distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
-[traversal.models.vehicles.charge_sustaining.model_type.interpolate]
-underlying_model_type = "smartcore"
-speed_lower_bound = 0
-speed_upper_bound = 100
-speed_bins = 101
-grade_lower_bound = -20
-grade_upper_bound = 20
-grade_bins = 41
+input_features = [
+    [
+        "edge_speed",
+        { type = "speed", convert = "mph" },
+    ],
+    [
+        "edge_grade",
+        { type = "grade", convert = "percent" },
+    ],
+]
+
+[traversal.models.vehicles.charge_sustaining.model_type]
+interpolate.underlying_model_type = "smartcore"
+interpolate.feature_bounds.edge_speed.lower_bound = 0
+interpolate.feature_bounds.edge_speed.upper_bound = 100
+interpolate.feature_bounds.edge_speed.num_bins = 101
+interpolate.feature_bounds.edge_grade.lower_bound = -20
+interpolate.feature_bounds.edge_grade.upper_bound = 20
+interpolate.feature_bounds.edge_grade.num_bins = 41

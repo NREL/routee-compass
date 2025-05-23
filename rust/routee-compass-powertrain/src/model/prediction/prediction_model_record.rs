@@ -52,6 +52,7 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
                 Arc::new(model)
             }
         };
+        log::debug!("Finding minimum energy for {}", config.name);
         let ideal_energy_rate = prediction_model_ops::find_min_energy_rate(
             &prediction_model,
             &config.input_features,
