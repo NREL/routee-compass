@@ -128,6 +128,11 @@ class TestDowntownDenverExample(TestCase):
             "origin_x": -104.86796368632217,
             "starting_soc_percent": 100,
             "model_name": "2017_CHEVROLET_Bolt",
+            "vehicle_rates": {
+                "trip_distance": {"type": "factor", "factor": 0.655},
+                "trip_time": {"type": "factor", "factor": 0.5},
+                "trip_energy": {"type": "factor", "factor": 0.12},
+            },
         }
 
         t_opt_query = dict(base_query)
