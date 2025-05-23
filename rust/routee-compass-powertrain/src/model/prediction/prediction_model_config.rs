@@ -1,7 +1,7 @@
 use super::ModelType;
-use routee_compass_core::{
-    model::unit::{EnergyRateUnit, GradeUnit, SpeedUnit},
-    util::cache_policy::float_cache_policy::FloatCachePolicyConfig,
+use routee_compass_core::model::{
+    state::InputFeature,
+    unit::{DistanceUnit, EnergyRateUnit},
 };
 use serde::{Deserialize, Serialize};
 
@@ -11,11 +11,10 @@ pub struct PredictionModelConfig {
     pub name: String,
     pub model_input_file: String,
     pub model_type: ModelType,
-    pub speed_unit: SpeedUnit,
-    pub grade_unit: GradeUnit,
+    pub input_features: Vec<(String, InputFeature)>,
+    pub distance_unit: DistanceUnit,
     pub energy_rate_unit: EnergyRateUnit,
     pub real_world_energy_adjustment: Option<f64>,
-    pub float_cache_policy: Option<FloatCachePolicyConfig>,
 }
 
 impl PredictionModelConfig {
@@ -23,21 +22,19 @@ impl PredictionModelConfig {
         name: String,
         model_input_file: String,
         model_type: ModelType,
-        speed_unit: SpeedUnit,
-        grade_unit: GradeUnit,
+        input_features: Vec<(String, InputFeature)>,
+        distance_unit: DistanceUnit,
         energy_rate_unit: EnergyRateUnit,
         real_world_energy_adjustment: Option<f64>,
-        float_cache_policy: Option<FloatCachePolicyConfig>,
     ) -> Self {
         Self {
             name,
             model_input_file,
             model_type,
-            speed_unit,
-            grade_unit,
+            input_features,
+            distance_unit,
             energy_rate_unit,
             real_world_energy_adjustment,
-            float_cache_policy,
         }
     }
 }

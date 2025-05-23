@@ -87,7 +87,7 @@ ideal_energy_rate = 0.02857143
 # A real world adjustment factor for things like temperature and auxillary loads
 real_world_energy_adjustment = 1.166
 
-# what underlying machine learn framework to use [smartcore | interpolate | onnx]
+# what underlying machine learn framework to use [smartcore | interpolate ]
 # in this case we use a model that interpolates the underlying model type over a regular grid
 [traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
@@ -312,7 +312,7 @@ ideal_energy_rate = 0.02857143
 # A real world adjustment factor for things like temperature and auxillary loads
 real_world_energy_adjustment = 1.166
 
-# what underlying machine learn framework to use [smartcore | interpolate | onnx]
+# what underlying machine learn framework to use [smartcore | interpolate ]
 # in this case we use a model that interpolates the underlying model type over a regular grid
 [traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"

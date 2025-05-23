@@ -3,7 +3,7 @@ use crate::{
         access::AccessModelError, frontier::FrontierModelError,
         network::network_error::NetworkError, traversal::TraversalModelError,
     },
-    util::{cache_policy::cache_error::CacheError, conversion::conversion_error::ConversionError},
+    util::conversion::conversion_error::ConversionError,
 };
 
 #[derive(thiserror::Error, Debug)]
@@ -57,8 +57,6 @@ pub enum CompassConfigurationError {
     SerdeDeserializationError(#[from] serde_json::Error),
     #[error(transparent)]
     ConversionError(#[from] ConversionError),
-    #[error(transparent)]
-    CacheError(#[from] CacheError),
     #[error(transparent)]
     TraversalModelError(#[from] TraversalModelError),
     #[error(transparent)]

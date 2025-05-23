@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 keywords = ["eco routing"]
-dependencies = ["toml"]
+dependencies = ["tomlkit"]
 
 [project.optional-dependencies]
 dev = [
@@ -33,7 +33,6 @@ dev = [
     "jupyterlab",
     "boxsdk",
     "types-requests",
-    "types-toml",
 ]
 osm = [
     "osmnx",

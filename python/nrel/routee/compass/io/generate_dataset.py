@@ -7,6 +7,7 @@ import importlib.resources
 import json
 import logging
 import shutil
+import tomlkit
 
 
 from nrel.routee.compass.io import utils
@@ -85,17 +86,7 @@ def generate_compass_dataset(
         import pandas as pd
         import requests
     except ImportError:
-        raise ImportError("requires osmnx to be installed. " "Try 'pip install osmnx'")
-
-    try:
-        import toml
-    except ImportError:
-        try:
-            import tomllib as toml  # type: ignore
-        except ImportError:
-            raise ImportError(
-                "requires Python 3.11 tomllib or pip install toml for earier Python versions"
-            )
+        raise ImportError("requires osmnx to be installed. Try 'pip install osmnx'")
 
     print(f"running pipeline import with phases: [{[p.name for p in phases]}]")
     output_directory = Path(output_directory)
@@ -219,7 +210,7 @@ def generate_compass_dataset(
                 "nrel.routee.compass.resources", filename
             ) as init_toml_path:
                 with init_toml_path.open() as f:
-                    init_toml = toml.loads(f.read())
+                    init_toml: dict[str, Any] = tomlkit.load(f)
                 if filename == "osm_default_energy.toml":
                     if GeneratePipelinePhase.GRADE in phases:
                         init_toml["traversal"]["grade_table_input_file"] = (
@@ -227,7 +218,7 @@ def generate_compass_dataset(
                         )
                         init_toml["traversal"]["grade_table_grade_unit"] = "decimal"
             with open(output_directory / filename, "w") as f:
-                f.write(toml.dumps(init_toml))
+                f.write(tomlkit.dumps(init_toml))
 
     # DOWLOAD ROUTEE ENERGY MODEL CATALOG
     if GeneratePipelinePhase.POWERTRAIN in phases:
