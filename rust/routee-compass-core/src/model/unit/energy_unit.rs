@@ -20,6 +20,7 @@ pub enum EnergyUnit {
     BTU
 }
 
+#[allow(non_upper_case_globals)]
 impl Convert<Energy> for EnergyUnit {
     fn convert(&self, value: &mut std::borrow::Cow<Energy>, to: &Self) -> Result<(), UnitError> {
         use EnergyUnit as S;
@@ -100,7 +101,7 @@ impl Convert<Energy> for EnergyUnit {
             (S::GallonsDieselEquivalent, S::Diesel(V::Liters)) => Some(USgal2L),
             (S::GallonsDieselEquivalent, S::KilowattHours) => Some(Die2Gas * Gas2Kwh),
             (S::GallonsDieselEquivalent, S::KiloJoules) => Some(Die2Gas * Gas2Kwh * kWh2Kj),
-            (S::GallonsDieselEquivalent, S::BTU) => Some(Die2Gas * Gas2Kwh * kWh2Kj),
+            (S::GallonsDieselEquivalent, S::BTU) => Some(Die2Gas * Gas2Kwh * kWh2BTU),
             
             (S::Diesel(V::Liters), S::Gasoline(V::GallonsUs)) => Some(L2USgal * Die2Gas),
             (S::Diesel(V::Liters), S::GallonsGasolineEquivalent) => Some(L2USgal * Die2Gas),
@@ -280,14 +281,19 @@ mod test{
     }
     
     fn assert_approx_eq(a: Energy, b: Energy, error: f64, unit_a: U, unit_b: U) {
-        let result = match (a, b) {
-            (c, d) if c < d => (d - c).as_f64() < error,
-            (c, d) if c > d => (c - d).as_f64() < error,
-            (_, _) => true,
+        // We are checking for relative error so `a` should be large enough
+        const ZERO_TOLERANCE: f64 = 0.00000001;
+        assert!((a.as_f64() > ZERO_TOLERANCE) || (a.as_f64() < -ZERO_TOLERANCE), "Cannot test relative error {} ~= {}: Value {} is too close to zero", a, b, a);
+        
+        let abs_diff = match (a, b) {
+            (c, d) if c < d => (d - c).as_f64(),
+            (c, d) if c >= d => (c - d).as_f64(),
+            (_, _) => 0.
         };
+        let relative_error = abs_diff / a.as_f64();
         assert!(
-            result,
-            "{:?} -> {:?}: {} ~= {} is not true within an error of {}",
+            relative_error < error,
+            "{:?} -> {:?}: {} ~= {} is not true within a relative error of {}",
             unit_a, unit_b, a, b, error
         )
     }
