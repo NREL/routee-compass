@@ -6,7 +6,7 @@ use crate::model::state::StateVariable;
 use crate::model::state::{InputFeature, OutputFeature};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::{Convert, SpeedUnit};
+use crate::model::unit::{baseunit, Convert, SpeedUnit};
 use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
 use std::borrow::Cow;
 use std::sync::Arc;
@@ -43,7 +43,7 @@ impl TraversalModel for SpeedTraversalModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
         vec![(
             String::from(fieldname::EDGE_DISTANCE),
-            InputFeature::Distance(None),
+            InputFeature::Distance(baseunit::DISTANCE_UNIT),
         )]
     }
 

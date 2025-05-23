@@ -89,7 +89,7 @@ mod test {
         network::{Edge, Vertex},
         state::{InputFeature, OutputFeature, StateModel, StateVariable},
         traversal::{TraversalModel, TraversalModelError},
-        unit::{Distance, DistanceUnit},
+        unit::{baseunit, Distance, DistanceUnit},
     };
     use itertools::Itertools;
     use std::sync::Arc;
@@ -237,7 +237,7 @@ mod test {
         fn input_features(&self) -> Vec<(String, InputFeature)> {
             self.in_features
                 .iter()
-                .map(|n| (n.clone(), InputFeature::Distance(None)))
+                .map(|n| (n.clone(), InputFeature::Distance(baseunit::DISTANCE_UNIT)))
                 .collect_vec()
         }
 

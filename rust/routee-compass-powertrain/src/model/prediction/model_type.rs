@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 
 use super::interpolation::feature_bounds::FeatureBounds;
@@ -8,7 +10,7 @@ pub enum ModelType {
     Smartcore,
     Interpolate {
         underlying_model_type: Box<ModelType>,
-        feature_bounds: Vec<(String, FeatureBounds)>,
+        feature_bounds: HashMap<String, FeatureBounds>,
     },
 }
 

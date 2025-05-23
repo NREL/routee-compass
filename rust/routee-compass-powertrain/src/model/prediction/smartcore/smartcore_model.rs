@@ -1,6 +1,5 @@
 use crate::model::prediction::prediction_model::PredictionModel;
 use routee_compass_core::model::{
-    state::InputFeature,
     traversal::TraversalModelError,
     unit::{EnergyRate, EnergyRateUnit},
 };
@@ -11,7 +10,6 @@ use std::{fs::File, path::Path};
 
 pub struct SmartcoreModel {
     rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
-    input_features: Vec<(String, InputFeature)>,
     energy_rate_unit: EnergyRateUnit,
 }
 
@@ -41,7 +39,6 @@ impl PredictionModel for SmartcoreModel {
 impl SmartcoreModel {
     pub fn new<P: AsRef<Path>>(
         routee_model_path: &P,
-        input_features: Vec<(String, InputFeature)>,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
         let mut file = File::open(routee_model_path).map_err(|e| {
@@ -63,7 +60,6 @@ impl SmartcoreModel {
             )?;
         Ok(SmartcoreModel {
             rf,
-            input_features,
             energy_rate_unit,
         })
     }

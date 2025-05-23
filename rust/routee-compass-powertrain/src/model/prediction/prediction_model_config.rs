@@ -1,5 +1,8 @@
 use super::ModelType;
-use routee_compass_core::model::{state::InputFeature, unit::EnergyRateUnit};
+use routee_compass_core::model::{
+    state::InputFeature,
+    unit::{DistanceUnit, EnergyRateUnit},
+};
 use serde::{Deserialize, Serialize};
 
 /// Configuration for a prediction model parsed from the Compass configuration file.
@@ -9,6 +12,7 @@ pub struct PredictionModelConfig {
     pub model_input_file: String,
     pub model_type: ModelType,
     pub input_features: Vec<(String, InputFeature)>,
+    pub distance_unit: DistanceUnit,
     pub energy_rate_unit: EnergyRateUnit,
     pub real_world_energy_adjustment: Option<f64>,
 }
@@ -19,6 +23,7 @@ impl PredictionModelConfig {
         model_input_file: String,
         model_type: ModelType,
         input_features: Vec<(String, InputFeature)>,
+        distance_unit: DistanceUnit,
         energy_rate_unit: EnergyRateUnit,
         real_world_energy_adjustment: Option<f64>,
     ) -> Self {
@@ -27,6 +32,7 @@ impl PredictionModelConfig {
             model_input_file,
             model_type,
             input_features,
+            distance_unit,
             energy_rate_unit,
             real_world_energy_adjustment,
         }

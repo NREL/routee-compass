@@ -1,7 +1,6 @@
 use super::{feature_bounds::FeatureBounds, utils::linspace};
 use crate::model::prediction::{
-    load_prediction_model, model_type::ModelType, prediction_model::PredictionModel,
-    smartcore::SmartcoreModel,
+    model_type::ModelType, prediction_model::PredictionModel, smartcore::SmartcoreModel,
 };
 use itertools::Itertools;
 use ndarray::{ArrayD, IxDyn};
@@ -9,15 +8,12 @@ use ninterp::prelude::*;
 use routee_compass_core::model::{
     state::InputFeature,
     traversal::TraversalModelError,
-    unit::{
-        AsF64, Convert, Distance, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit,
-    },
+    unit::{AsF64, EnergyRate, EnergyRateUnit},
 };
-use std::{borrow::Cow, collections::HashMap, path::Path};
+use std::{collections::HashMap, path::Path};
 
 pub struct InterpolationModel {
     interpolator: InterpNDOwned<f64, strategy::Linear>,
-    input_features: Vec<(String, InputFeature)>,
     energy_rate_unit: EnergyRateUnit,
 }
 
@@ -48,11 +44,7 @@ impl InterpolationModel {
     ) -> Result<Self, TraversalModelError> {
         // load underlying model to build the interpolation grid
         let model = match underlying_model_type {
-            ModelType::Smartcore => SmartcoreModel::new(
-                underlying_model_path,
-                input_features.clone(),
-                energy_rate_unit,
-            )?,
+            ModelType::Smartcore => SmartcoreModel::new(underlying_model_path, energy_rate_unit)?,
             _ => {
                 return Err(TraversalModelError::TraversalModelFailure(
                     "Got unexpected model type when building the interpolation model".to_string(),
@@ -112,7 +104,6 @@ impl InterpolationModel {
 
         Ok(InterpolationModel {
             interpolator,
-            input_features,
             energy_rate_unit,
         })
     }
@@ -123,10 +114,8 @@ mod test {
     use std::path::PathBuf;
 
     use super::*;
-    use crate::model::prediction::{
-        interpolation::feature_bounds, prediction_model::PredictionModel,
-    };
-    use routee_compass_core::model::unit::EnergyRateUnit;
+    use crate::model::prediction::prediction_model::PredictionModel;
+    use routee_compass_core::model::unit::{EnergyRateUnit, GradeUnit, SpeedUnit};
 
     #[test]
     fn test_interpolation_speed_grade_model() {
@@ -137,14 +126,8 @@ mod test {
             .join("Toyota_Camry.bin");
 
         let input_features = vec![
-            (
-                "speed".to_string(),
-                InputFeature::Speed(Some(SpeedUnit::MPH)),
-            ),
-            (
-                "grade".to_string(),
-                InputFeature::Grade(Some(GradeUnit::Decimal)),
-            ),
+            ("speed".to_string(), InputFeature::Speed(SpeedUnit::MPH)),
+            ("grade".to_string(), InputFeature::Grade(GradeUnit::Decimal)),
         ];
         let feature_bounds = HashMap::from([
             (
@@ -173,8 +156,7 @@ mod test {
         )
         .unwrap();
 
-        let underlying_model =
-            SmartcoreModel::new(&model_path, input_features, EnergyRateUnit::GGPM).unwrap();
+        let underlying_model = SmartcoreModel::new(&model_path, EnergyRateUnit::GGPM).unwrap();
 
         // let's check to make sure the interpolation model is
         // producing similar results to the underlying model

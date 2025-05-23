@@ -1,3 +1,5 @@
+use crate::model::fieldname;
+
 use super::{
     interpolation::InterpolationModel, model_type::ModelType, prediction_model_ops,
     smartcore::SmartcoreModel, PredictionModel, PredictionModelConfig,
@@ -5,7 +7,7 @@ use super::{
 use routee_compass_core::model::{
     state::{InputFeature, StateModel, StateVariable},
     traversal::TraversalModelError,
-    unit::{AsF64, Distance, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit},
+    unit::{AsF64, DistanceUnit, Energy, EnergyRate, EnergyRateUnit, EnergyUnit},
 };
 use std::sync::Arc;
 
@@ -15,6 +17,7 @@ pub struct PredictionModelRecord {
     pub prediction_model: Arc<dyn PredictionModel>,
     pub model_type: ModelType,
     pub input_features: Vec<(String, InputFeature)>,
+    pub distance_unit: DistanceUnit,
     pub energy_rate_unit: EnergyRateUnit,
     pub ideal_energy_rate: EnergyRate,
     pub real_world_energy_adjustment: f64,
@@ -26,11 +29,7 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
     fn try_from(config: &PredictionModelConfig) -> Result<Self, Self::Error> {
         let prediction_model: Arc<dyn PredictionModel> = match &config.model_type {
             ModelType::Smartcore => {
-                let model = SmartcoreModel::new(
-                    &config.model_input_file,
-                    config.input_features.clone(),
-                    config.energy_rate_unit,
-                )?;
+                let model = SmartcoreModel::new(&config.model_input_file, config.energy_rate_unit)?;
                 Arc::new(model)
             }
             ModelType::Interpolate {
@@ -40,7 +39,6 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
                 let model = InterpolationModel::new(
                     &config.model_input_file,
                     *underlying_model.clone(),
-                    config.name.clone(),
                     config.input_features.clone(),
                     feature_bounds.clone(),
                     config.energy_rate_unit,
@@ -61,6 +59,7 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
             prediction_model,
             model_type: config.model_type.clone(),
             input_features: config.input_features.clone(),
+            distance_unit: config.distance_unit,
             energy_rate_unit: config.energy_rate_unit,
             ideal_energy_rate,
             real_world_energy_adjustment,
@@ -71,21 +70,20 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
 impl PredictionModelRecord {
     pub fn predict(
         &self,
-        input_features: &[(String, InputFeature)],
-        distance: (Distance, &DistanceUnit),
-        state: &mut Vec<StateVariable>,
+        state: &mut [StateVariable],
         state_model: &StateModel,
     ) -> Result<(Energy, EnergyUnit), TraversalModelError> {
-        let (distance, distance_unit) = distance;
+        let (distance, distance_unit) =
+            state_model.get_distance(state, fieldname::EDGE_DISTANCE, Some(&self.distance_unit))?;
         let mut feature_vector: Vec<f64> = Vec::new();
-        for (name, input_feature) in input_features {
+        for (name, input_feature) in &self.input_features {
             let state_variable_f64: f64 = match input_feature {
                 InputFeature::Speed(unit) => {
-                    let (speed, _speed_unit) = state_model.get_speed(state, name, unit.as_ref())?;
+                    let (speed, _speed_unit) = state_model.get_speed(state, name, Some(unit))?;
                     speed.as_f64()
                 }
                 InputFeature::Grade(unit) => {
-                    let (grade, _grade_unit) = state_model.get_grade(state, name, unit.as_ref())?;
+                    let (grade, _grade_unit) = state_model.get_grade(state, name, Some(unit))?;
                     grade.as_f64()
                 }
                 InputFeature::Custom { r#type: _, unit: _ } => {

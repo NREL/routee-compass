@@ -7,14 +7,14 @@ use super::OutputFeature;
 /// defines the required input feature and its requested unit type for a given state variable
 ///
 /// if a unit type is provided, then the state variable is provided in the requested unit to the model.
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(tag = "type", content = "convert", rename_all = "snake_case")]
 pub enum InputFeature {
-    Distance(Option<DistanceUnit>),
-    Speed(Option<SpeedUnit>),
-    Time(Option<TimeUnit>),
-    Energy(Option<EnergyUnit>),
-    Grade(Option<GradeUnit>),
+    Distance(DistanceUnit),
+    Speed(SpeedUnit),
+    Time(TimeUnit),
+    Energy(EnergyUnit),
+    Grade(GradeUnit),
     Custom { r#type: String, unit: String },
 }
 
@@ -32,27 +32,27 @@ impl From<&OutputFeature> for InputFeature {
                 distance_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Distance(Some(*distance_unit)),
+            } => InputFeature::Distance(*distance_unit),
             OutputFeature::Time {
                 time_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Time(Some(*time_unit)),
+            } => InputFeature::Time(*time_unit),
             OutputFeature::Energy {
                 energy_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Energy(Some(*energy_unit)),
+            } => InputFeature::Energy(*energy_unit),
             OutputFeature::Speed {
                 speed_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Speed(Some(*speed_unit)),
+            } => InputFeature::Speed(*speed_unit),
             OutputFeature::Grade {
                 grade_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Grade(Some(*grade_unit)),
+            } => InputFeature::Grade(*grade_unit),
             OutputFeature::Custom {
                 r#type,
                 unit,
