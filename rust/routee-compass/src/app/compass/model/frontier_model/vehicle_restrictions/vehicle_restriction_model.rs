@@ -148,6 +148,7 @@ mod test {
     }
 
     fn test_dir() -> PathBuf {
+        // rust/routee-compass/src/app/compass/model/frontier_model/vehicle_restrictions/test
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("app")

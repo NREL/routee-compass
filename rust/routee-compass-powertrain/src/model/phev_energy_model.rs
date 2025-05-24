@@ -441,7 +441,7 @@ mod test {
                 GradeUnit, Speed, SpeedUnit,
             },
         },
-        test::mock::traversal_model::TestTraversalModel,
+        testing::mock::traversal_model::TestTraversalModel,
     };
     use std::{path::PathBuf, sync::Arc};
 

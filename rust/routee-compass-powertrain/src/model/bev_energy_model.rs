@@ -226,7 +226,7 @@ fn bev_traversal(
 mod tests {
     use super::*;
     use crate::model::prediction::{ModelType, PredictionModelConfig};
-    use routee_compass_core::{model::unit::*, test::mock::traversal_model::TestTraversalModel};
+    use routee_compass_core::{model::unit::*, testing::mock::traversal_model::TestTraversalModel};
     use std::path::PathBuf;
 
     #[test]
