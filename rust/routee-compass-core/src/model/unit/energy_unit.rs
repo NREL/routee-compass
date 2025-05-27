@@ -244,6 +244,7 @@ mod test{
     /// be fixed with a macro or a crate to generate tests
 
     use std::borrow::Cow;
+    use crate::model::unit::internal_float::InternalFloat;
     use crate::model::unit::Energy;
     use crate::model::unit::{AsF64, Convert};
     use crate::model::unit::EnergyUnit as U;
@@ -282,8 +283,7 @@ mod test{
     
     fn assert_approx_eq(a: Energy, b: Energy, error: f64, unit_a: U, unit_b: U) {
         // We are checking for relative error so `a` should be large enough
-        const ZERO_TOLERANCE: f64 = 0.00000001;
-        assert!((a.as_f64() > ZERO_TOLERANCE) || (a.as_f64() < -ZERO_TOLERANCE), "Cannot test relative error {} ~= {}: Value {} is too close to zero", a, b, a);
+        assert!((*a > InternalFloat::MIN) || (*a < -InternalFloat::MIN), "Cannot test relative error {} ~= {}: Value {} is too close to zero", a, b, a);
         
         let abs_diff = match (a, b) {
             (c, d) if c < d => (d - c).as_f64(),

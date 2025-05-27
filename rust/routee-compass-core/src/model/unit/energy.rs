@@ -7,6 +7,7 @@ use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, cmp::Ordering, fmt::Display};
+use std::ops::{Deref, DerefMut};
 
 #[derive(
     Copy,
@@ -67,6 +68,20 @@ impl PartialOrd for Energy {
 impl Ord for Energy {
     fn cmp(&self, other: &Self) -> Ordering {
         self.0.cmp(&other.0)
+    }
+}
+
+impl Deref for Energy {
+    type Target = InternalFloat;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Energy {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
