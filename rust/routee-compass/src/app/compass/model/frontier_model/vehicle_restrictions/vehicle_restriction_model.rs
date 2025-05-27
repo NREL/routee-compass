@@ -119,7 +119,12 @@ mod test {
         let query = read_json_file(query_filename);
         let service = VehicleRestrictionBuilder {}
             .build(&conf)
-            .unwrap_or_else(|_| panic!("failed to read test CSV {}", restriction_filename));
+            .unwrap_or_else(|e| {
+                panic!(
+                    "failed to read test CSV {} due to: {}",
+                    restriction_filename, e
+                )
+            });
         let state_model = Arc::new(StateModel::new(vec![]));
 
         (service.build(&query, state_model).unwrap_or_else(|_| {
