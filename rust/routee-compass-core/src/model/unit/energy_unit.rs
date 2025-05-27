@@ -1,7 +1,7 @@
 use super::{baseunit, Convert, Energy, UnitError, VolumeUnit};
-use crate::model::unit::{ AsF64, Volume};
+use crate::model::unit::{AsF64, Volume};
 use serde::{Deserialize, Serialize};
-use std::{ str::FromStr, borrow::Cow };
+use std::{borrow::Cow, str::FromStr};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy)]
 #[serde(rename_all = "snake_case", try_from = "String")]
@@ -17,10 +17,10 @@ pub enum EnergyUnit {
     GallonsDieselEquivalent,
     /// Other commonly-used energy units
     KiloJoules,
-    BTU
+    BTU,
 }
 
-fn get_volume_factor(from: &VolumeUnit, to: &VolumeUnit) -> Result<f64, UnitError>{
+fn get_volume_factor(from: &VolumeUnit, to: &VolumeUnit) -> Result<f64, UnitError> {
     let mut volume_value = Cow::<Volume>::Owned(Volume::ONE);
     from.convert(&mut volume_value, to)?;
     Ok(volume_value.as_f64())
@@ -37,62 +37,114 @@ impl Convert<Energy> for EnergyUnit {
         const Gas2Kwh: f64 = 33.41;
         const kWh2Gas: f64 = 1. / 33.41;
         const kWh2Kj: f64 = 3_600.;
-        const Kj2Kwh: f64 = 1. / 3600.; 
+        const Kj2Kwh: f64 = 1. / 3600.;
         const kWh2BTU: f64 = 3_412.14;
         const BTU2Kwh: f64 = 1. / 3412.14;
 
         let conversion_factor = match (self, to) {
             // Variants that do not need transformation
             (x, y) if x == y => None,
-            (EU::Gasoline(V::GallonsUs), EU::GallonsGasolineEquivalent) | (EU::GallonsGasolineEquivalent, EU::Gasoline(V::GallonsUs)) => None,
-            (EU::Diesel(V::GallonsUs), EU::GallonsDieselEquivalent) | (EU::GallonsDieselEquivalent, EU::Diesel(V::GallonsUs)) => None,
+            (EU::Gasoline(V::GallonsUs), EU::GallonsGasolineEquivalent)
+            | (EU::GallonsGasolineEquivalent, EU::Gasoline(V::GallonsUs)) => None,
+            (EU::Diesel(V::GallonsUs), EU::GallonsDieselEquivalent)
+            | (EU::GallonsDieselEquivalent, EU::Diesel(V::GallonsUs)) => None,
 
             // Volume to Volume Variants
-            (EU::Gasoline(volume_from), EU::Gasoline(volume_to)) |
-            (EU::Diesel(volume_from),   EU::Diesel(volume_to)) => Some(get_volume_factor(volume_from, volume_to)?),
+            (EU::Gasoline(volume_from), EU::Gasoline(volume_to))
+            | (EU::Diesel(volume_from), EU::Diesel(volume_to)) => {
+                Some(get_volume_factor(volume_from, volume_to)?)
+            }
             // Same volume Unit
-            (EU::Gasoline(volume_from), EU::Diesel(volume_to)) if volume_from == volume_to => Some(Gas2Die),
-            (EU::Diesel(volume_from), EU::Gasoline(volume_to)) if volume_from == volume_to => Some(Die2Gas),
+            (EU::Gasoline(volume_from), EU::Diesel(volume_to)) if volume_from == volume_to => {
+                Some(Gas2Die)
+            }
+            (EU::Diesel(volume_from), EU::Gasoline(volume_to)) if volume_from == volume_to => {
+                Some(Die2Gas)
+            }
             // Different liquid diffent volume
-            (EU::Gasoline(volume_from), EU::Diesel(volume_to)) => Some(get_volume_factor(volume_from, volume_to)? * Gas2Die),
-            (EU::Diesel(volume_from), EU::Gasoline(volume_to)) => Some(get_volume_factor(volume_from, volume_to)? * Die2Gas),
+            (EU::Gasoline(volume_from), EU::Diesel(volume_to)) => {
+                Some(get_volume_factor(volume_from, volume_to)? * Gas2Die)
+            }
+            (EU::Diesel(volume_from), EU::Gasoline(volume_to)) => {
+                Some(get_volume_factor(volume_from, volume_to)? * Die2Gas)
+            }
             // Liquid equivalents non-gallons
-            (EU::Gasoline(volume_from), EU::GallonsGasolineEquivalent) => Some(get_volume_factor(volume_from, &V::GallonsUs)?),
-            (EU::Gasoline(volume_from), EU::GallonsDieselEquivalent) => Some(get_volume_factor(volume_from, &V::GallonsUs)? * Gas2Die),
-            (EU::Diesel(volume_from), EU::GallonsDieselEquivalent) => Some(get_volume_factor(volume_from, &V::GallonsUs)?),
-            (EU::Diesel(volume_from), EU::GallonsGasolineEquivalent) => Some(get_volume_factor(volume_from, &V::GallonsUs)? * Die2Gas),
-            (EU::GallonsGasolineEquivalent, EU::Gasoline(volume_to)) => Some(get_volume_factor(&V::GallonsUs, volume_to)?),
-            (EU::GallonsGasolineEquivalent, EU::Diesel(volume_to)) => Some(get_volume_factor(&V::GallonsUs, volume_to)? * Gas2Die),
-            (EU::GallonsDieselEquivalent, EU::Diesel(volume_to)) => Some(get_volume_factor(&V::GallonsUs, volume_to)?),
-            (EU::GallonsDieselEquivalent, EU::Gasoline(volume_to)) => Some(get_volume_factor(&V::GallonsUs, volume_to)? * Die2Gas),
-            
+            (EU::Gasoline(volume_from), EU::GallonsGasolineEquivalent) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)?)
+            }
+            (EU::Gasoline(volume_from), EU::GallonsDieselEquivalent) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)? * Gas2Die)
+            }
+            (EU::Diesel(volume_from), EU::GallonsDieselEquivalent) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)?)
+            }
+            (EU::Diesel(volume_from), EU::GallonsGasolineEquivalent) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)? * Die2Gas)
+            }
+            (EU::GallonsGasolineEquivalent, EU::Gasoline(volume_to)) => {
+                Some(get_volume_factor(&V::GallonsUs, volume_to)?)
+            }
+            (EU::GallonsGasolineEquivalent, EU::Diesel(volume_to)) => {
+                Some(get_volume_factor(&V::GallonsUs, volume_to)? * Gas2Die)
+            }
+            (EU::GallonsDieselEquivalent, EU::Diesel(volume_to)) => {
+                Some(get_volume_factor(&V::GallonsUs, volume_to)?)
+            }
+            (EU::GallonsDieselEquivalent, EU::Gasoline(volume_to)) => {
+                Some(get_volume_factor(&V::GallonsUs, volume_to)? * Die2Gas)
+            }
+
             // Liquid to Non-liquid
-            (EU::Gasoline(volume_from), EU::KilowattHours) => Some(get_volume_factor(volume_from, &V::GallonsUs)? * Gas2Kwh),
-            (EU::Gasoline(volume_from), EU::KiloJoules) => Some(get_volume_factor(volume_from, &V::GallonsUs)? * Gas2Kwh * kWh2Kj),
-            (EU::Gasoline(volume_from), EU::BTU) => Some(get_volume_factor(volume_from, &V::GallonsUs)? * Gas2Kwh * kWh2BTU),
-            (EU::Diesel(volume_from), EU::KilowattHours) => Some(get_volume_factor(volume_from, &V::GallonsUs)? * Die2Gas * Gas2Kwh),
-            (EU::Diesel(volume_from), EU::KiloJoules) => Some(get_volume_factor(volume_from, &V::GallonsUs)? * Die2Gas * Gas2Kwh * kWh2Kj),
-            (EU::Diesel(volume_from), EU::BTU) => Some(get_volume_factor(volume_from, &V::GallonsUs)? * Die2Gas * Gas2Kwh * kWh2BTU),
-            
+            (EU::Gasoline(volume_from), EU::KilowattHours) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)? * Gas2Kwh)
+            }
+            (EU::Gasoline(volume_from), EU::KiloJoules) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)? * Gas2Kwh * kWh2Kj)
+            }
+            (EU::Gasoline(volume_from), EU::BTU) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)? * Gas2Kwh * kWh2BTU)
+            }
+            (EU::Diesel(volume_from), EU::KilowattHours) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)? * Die2Gas * Gas2Kwh)
+            }
+            (EU::Diesel(volume_from), EU::KiloJoules) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)? * Die2Gas * Gas2Kwh * kWh2Kj)
+            }
+            (EU::Diesel(volume_from), EU::BTU) => {
+                Some(get_volume_factor(volume_from, &V::GallonsUs)? * Die2Gas * Gas2Kwh * kWh2BTU)
+            }
+
             // Non-liquid to Liquid
-            (EU::KilowattHours, EU::Gasoline(volume_to)) => Some(kWh2Gas * get_volume_factor(&V::GallonsUs, volume_to)?),
-            (EU::KiloJoules,    EU::Gasoline(volume_to)) => Some(Kj2Kwh  * kWh2Gas * get_volume_factor(&V::GallonsUs, volume_to)?),
-            (EU::BTU,           EU::Gasoline(volume_to)) => Some(BTU2Kwh * kWh2Gas * get_volume_factor(&V::GallonsUs, volume_to)?),
-            (EU::KilowattHours, EU::Diesel(volume_to)) => Some(kWh2Gas * Gas2Die * get_volume_factor(&V::GallonsUs, volume_to)?),
-            (EU::KiloJoules,    EU::Diesel(volume_to)) => Some(Kj2Kwh  * kWh2Gas * Gas2Die * get_volume_factor(&V::GallonsUs, volume_to)?),
-            (EU::BTU,           EU::Diesel(volume_to)) => Some(BTU2Kwh * kWh2Gas * Gas2Die * get_volume_factor(&V::GallonsUs, volume_to)?),
-            
+            (EU::KilowattHours, EU::Gasoline(volume_to)) => {
+                Some(kWh2Gas * get_volume_factor(&V::GallonsUs, volume_to)?)
+            }
+            (EU::KiloJoules, EU::Gasoline(volume_to)) => {
+                Some(Kj2Kwh * kWh2Gas * get_volume_factor(&V::GallonsUs, volume_to)?)
+            }
+            (EU::BTU, EU::Gasoline(volume_to)) => {
+                Some(BTU2Kwh * kWh2Gas * get_volume_factor(&V::GallonsUs, volume_to)?)
+            }
+            (EU::KilowattHours, EU::Diesel(volume_to)) => {
+                Some(kWh2Gas * Gas2Die * get_volume_factor(&V::GallonsUs, volume_to)?)
+            }
+            (EU::KiloJoules, EU::Diesel(volume_to)) => {
+                Some(Kj2Kwh * kWh2Gas * Gas2Die * get_volume_factor(&V::GallonsUs, volume_to)?)
+            }
+            (EU::BTU, EU::Diesel(volume_to)) => {
+                Some(BTU2Kwh * kWh2Gas * Gas2Die * get_volume_factor(&V::GallonsUs, volume_to)?)
+            }
+
             // Non-liquid to Non-liquid
             (EU::KilowattHours, EU::KiloJoules) => Some(kWh2Kj),
             (EU::KilowattHours, EU::BTU) => Some(kWh2BTU),
             (EU::KilowattHours, EU::GallonsGasolineEquivalent) => Some(kWh2Gas),
             (EU::KilowattHours, EU::GallonsDieselEquivalent) => Some(kWh2Gas * Gas2Die),
-            (EU::KiloJoules, EU::KilowattHours) =>Some(Kj2Kwh),
-            (EU::KiloJoules, EU::BTU) =>Some(Kj2Kwh * kWh2BTU),
+            (EU::KiloJoules, EU::KilowattHours) => Some(Kj2Kwh),
+            (EU::KiloJoules, EU::BTU) => Some(Kj2Kwh * kWh2BTU),
             (EU::KiloJoules, EU::GallonsGasolineEquivalent) => Some(Kj2Kwh * kWh2Gas),
             (EU::KiloJoules, EU::GallonsDieselEquivalent) => Some(Kj2Kwh * kWh2Gas * Gas2Die),
-            (EU::BTU, EU::KilowattHours) =>Some(BTU2Kwh),
-            (EU::BTU, EU::KiloJoules) =>Some(BTU2Kwh * kWh2Kj),
+            (EU::BTU, EU::KilowattHours) => Some(BTU2Kwh),
+            (EU::BTU, EU::KiloJoules) => Some(BTU2Kwh * kWh2Kj),
             (EU::BTU, EU::GallonsGasolineEquivalent) => Some(BTU2Kwh * kWh2Gas),
             (EU::BTU, EU::GallonsDieselEquivalent) => Some(BTU2Kwh * kWh2Gas * Gas2Die),
             (EU::GallonsGasolineEquivalent, EU::KilowattHours) => Some(Gas2Kwh),
@@ -103,11 +155,11 @@ impl Convert<Energy> for EnergyUnit {
             (EU::GallonsDieselEquivalent, EU::KiloJoules) => Some(Die2Gas * Gas2Kwh * kWh2Kj),
             (EU::GallonsDieselEquivalent, EU::BTU) => Some(Die2Gas * Gas2Kwh * kWh2BTU),
             (EU::GallonsDieselEquivalent, EU::GallonsGasolineEquivalent) => Some(Die2Gas),
-            
+
             // This arm was needed to keep the compiler happy about the (x, y) if x == y arm
-            _ => None
+            _ => None,
         };
-        
+
         if let Some(factor) = conversion_factor {
             let updated = Energy::from(value.as_ref().as_f64() * factor);
             *value.to_mut() = updated;
@@ -163,7 +215,12 @@ impl TryFrom<String> for EnergyUnit {
     }
 }
 #[cfg(test)]
-mod test{
+mod test {
+    use crate::model::unit::internal_float::InternalFloat;
+    use crate::model::unit::Energy;
+    use crate::model::unit::EnergyUnit as U;
+    use crate::model::unit::VolumeUnit as V;
+    use crate::model::unit::{AsF64, Convert};
     /// The logic behind these test is to manually compute
     /// conversion factors from kWh to all other units.
     /// We then run two tests:
@@ -172,17 +229,11 @@ mod test{
     /// We implement the second point by computing A->B from the manually computed constants as
     ///     A -> kWh x kWh -> B
     /// and compare that to the value implemented in `convert`
-    /// 
+    ///
     /// One shortcoming of this approach is that the tests short-circuit if one fails. This could
     /// be fixed with a macro or a crate to generate tests
-
     use std::borrow::Cow;
-    use crate::model::unit::internal_float::InternalFloat;
-    use crate::model::unit::Energy;
-    use crate::model::unit::{AsF64, Convert};
-    use crate::model::unit::EnergyUnit as U;
-    use crate::model::unit::VolumeUnit as V;
-    
+
     const UNIT_VARIANTS: [U; 11] = [
         U::KilowattHours,
         U::KiloJoules,
@@ -194,7 +245,7 @@ mod test{
         U::Diesel(V::GallonsUk),
         U::Diesel(V::Liters),
         U::GallonsGasolineEquivalent,
-        U::GallonsDieselEquivalent
+        U::GallonsDieselEquivalent,
     ];
 
     // Manually compute kWh -> * factors
@@ -213,49 +264,70 @@ mod test{
             U::BTU => 3412.14,
         }
     }
-    
+
     fn assert_approx_eq(a: Energy, b: Energy, error: f64, unit_a: U, unit_b: U) {
         // We are checking for relative error so `a` should be large enough
-        assert!((*a > InternalFloat::MIN) || (*a < -InternalFloat::MIN), "Cannot test relative error {} ~= {}: Value {} is too close to zero", a, b, a);
-        
+        assert!(
+            (*a > InternalFloat::MIN) || (*a < -InternalFloat::MIN),
+            "Cannot test relative error {} ~= {}: Value {} is too close to zero",
+            a,
+            b,
+            a
+        );
+
         let abs_diff = match (a, b) {
             (c, d) if c < d => (d - c).as_f64(),
             (c, d) if c >= d => (c - d).as_f64(),
-            (_, _) => 0.
+            (_, _) => 0.,
         };
         let relative_error = abs_diff / a.as_f64();
         assert!(
             relative_error < error,
             "{:?} -> {:?}: {} ~= {} is not true within a relative error of {}",
-            unit_a, unit_b, a, b, error
+            unit_a,
+            unit_b,
+            a,
+            b,
+            error
         )
     }
 
     #[test]
-    fn test_base_values(){
-        for to_unit in UNIT_VARIANTS{
+    fn test_base_values() {
+        for to_unit in UNIT_VARIANTS {
             let mut value: Cow<'_, Energy> = Cow::Owned(Energy::ONE);
             let target = kwh_factors(to_unit);
             U::KilowattHours.convert(&mut value, &to_unit).unwrap();
-            assert_approx_eq(value.into_owned(), Energy::from(target), 0.001, U::KilowattHours, to_unit);
+            assert_approx_eq(
+                value.into_owned(),
+                Energy::from(target),
+                0.001,
+                U::KilowattHours,
+                to_unit,
+            );
         }
     }
 
     #[test]
-    fn test_all_pairs(){
-        for from_unit in UNIT_VARIANTS{
-            for to_unit in UNIT_VARIANTS{
+    fn test_all_pairs() {
+        for from_unit in UNIT_VARIANTS {
+            for to_unit in UNIT_VARIANTS {
                 // From -> kWh
                 let from_factor = 1. / kwh_factors(from_unit);
                 // kWh -> To
                 let to_factor = kwh_factors(to_unit);
                 let target = from_factor * to_factor;
-                
+
                 let mut value: Cow<'_, Energy> = Cow::Owned(Energy::ONE);
                 from_unit.convert(&mut value, &to_unit).unwrap();
-                assert_approx_eq(value.into_owned(), Energy::from(target), 0.001, from_unit, to_unit);
+                assert_approx_eq(
+                    value.into_owned(),
+                    Energy::from(target),
+                    0.001,
+                    from_unit,
+                    to_unit,
+                );
             }
         }
     }
-
 }
