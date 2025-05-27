@@ -140,7 +140,7 @@ impl TraversalModel for BevEnergyModel {
             (
                 String::from(fieldname::TRIP_SOC),
                 OutputFeature::Custom {
-                    r#type: String::from("soc"),
+                    name: String::from("soc"),
                     unit: String::from("Percent"),
                     format: CustomFeatureFormat::FloatingPoint {
                         initial: self.starting_soc.into(),
@@ -226,7 +226,7 @@ fn bev_traversal(
 mod tests {
     use super::*;
     use crate::model::prediction::{ModelType, PredictionModelConfig};
-    use routee_compass_core::{model::unit::*, test::mock::traversal_model::TestTraversalModel};
+    use routee_compass_core::{model::unit::*, testing::mock::traversal_model::TestTraversalModel};
     use std::path::PathBuf;
 
     #[test]

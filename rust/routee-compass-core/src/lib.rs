@@ -9,4 +9,4 @@ pub mod util;
 // managing exposure of test assets to only be available when the dev dependency
 // feature is active
 // #[cfg(feature = "test-utils")]
-pub mod test;
+pub mod testing;
