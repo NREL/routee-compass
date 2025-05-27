@@ -4,9 +4,9 @@ use crate::model::traversal::TraversalModelError;
 use crate::model::traversal::TraversalModelService;
 use std::sync::Arc;
 
-pub struct SpeedTraversalBuilder {}
+pub struct CustomTraversalBuilder {}
 
-impl TraversalModelBuilder for SpeedTraversalBuilder {
+impl TraversalModelBuilder for CustomTraversalBuilder {
     fn build(
         &self,
         params: &serde_json::Value,
