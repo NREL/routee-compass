@@ -87,64 +87,63 @@ mod test {
     }
 
     #[test]
-    fn test_l_l(){
+    fn test_l_l() {
         let mut value = Cow::Owned(Volume::ONE);
         V::Liters.convert(&mut value, &V::Liters).unwrap();
         assert_approx_eq(value.into_owned(), Volume::ONE, 0.001);
     }
 
     #[test]
-    fn test_l_gal(){
+    fn test_l_gal() {
         let mut value = Cow::Owned(Volume::ONE);
         V::Liters.convert(&mut value, &V::GallonsUs).unwrap();
         assert_approx_eq(value.into_owned(), Volume::from(0.264172), 0.001);
     }
 
     #[test]
-    fn test_l_ukgal(){
+    fn test_l_ukgal() {
         let mut value = Cow::Owned(Volume::ONE);
         V::Liters.convert(&mut value, &V::GallonsUk).unwrap();
         assert_approx_eq(value.into_owned(), Volume::from(0.219969), 0.001);
     }
 
     #[test]
-    fn test_gal_l(){
+    fn test_gal_l() {
         let mut value = Cow::Owned(Volume::ONE);
         V::GallonsUs.convert(&mut value, &V::Liters).unwrap();
         assert_approx_eq(value.into_owned(), Volume::from(3.78541), 0.001);
     }
 
     #[test]
-    fn test_gal_gal(){
+    fn test_gal_gal() {
         let mut value = Cow::Owned(Volume::ONE);
         V::GallonsUs.convert(&mut value, &V::GallonsUs).unwrap();
         assert_approx_eq(value.into_owned(), Volume::ONE, 0.001);
     }
 
     #[test]
-    fn test_gal_ukgal(){
+    fn test_gal_ukgal() {
         let mut value = Cow::Owned(Volume::ONE);
         V::GallonsUs.convert(&mut value, &V::GallonsUk).unwrap();
         assert_approx_eq(value.into_owned(), Volume::from(0.832674), 0.001);
     }
 
-
     #[test]
-    fn test_ukgal_l(){
+    fn test_ukgal_l() {
         let mut value = Cow::Owned(Volume::ONE);
         V::GallonsUk.convert(&mut value, &V::Liters).unwrap();
         assert_approx_eq(value.into_owned(), Volume::from(4.54609), 0.001);
     }
 
     #[test]
-    fn test_ukgal_gal(){
+    fn test_ukgal_gal() {
         let mut value = Cow::Owned(Volume::ONE);
         V::GallonsUk.convert(&mut value, &V::GallonsUs).unwrap();
         assert_approx_eq(value.into_owned(), Volume::from(1.20095), 0.001);
     }
 
     #[test]
-    fn test_ukgal_ukgal(){
+    fn test_ukgal_ukgal() {
         let mut value = Cow::Owned(Volume::ONE);
         V::GallonsUk.convert(&mut value, &V::GallonsUk).unwrap();
         assert_approx_eq(value.into_owned(), Volume::ONE, 0.001);

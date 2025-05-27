@@ -1,7 +1,7 @@
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
-use std::{cmp::Ordering, fmt::Display};
 use ordered_float::OrderedFloat;
+use std::{cmp::Ordering, fmt::Display};
 
 use crate::model::state::StateVariable;
 

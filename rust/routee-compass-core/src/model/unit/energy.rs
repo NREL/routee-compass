@@ -6,8 +6,8 @@ use crate::model::state::StateVariable;
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, cmp::Ordering, fmt::Display};
 use std::ops::{Deref, DerefMut};
+use std::{borrow::Cow, cmp::Ordering, fmt::Display};
 
 #[derive(
     Copy,

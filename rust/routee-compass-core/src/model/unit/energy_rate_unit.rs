@@ -1,6 +1,8 @@
 use crate::model::unit::Energy;
 
-use super::{baseunit, AsF64, Convert, Distance, DistanceUnit, EnergyRate, EnergyUnit, UnitError, VolumeUnit};
+use super::{
+    baseunit, AsF64, Convert, Distance, DistanceUnit, EnergyRate, EnergyUnit, UnitError, VolumeUnit,
+};
 use itertools::Itertools;
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize};
 use std::{borrow::Cow, str::FromStr};
@@ -12,10 +14,14 @@ pub enum EnergyRateUnit {
 }
 
 impl EnergyRateUnit {
-    pub const GGPM: EnergyRateUnit =
-        EnergyRateUnit::EnergyPerDistance(EnergyUnit::Gasoline(VolumeUnit::GallonsUs), DistanceUnit::Miles);
-    pub const GDPM: EnergyRateUnit =
-        EnergyRateUnit::EnergyPerDistance(EnergyUnit::Diesel(VolumeUnit::GallonsUs), DistanceUnit::Miles);
+    pub const GGPM: EnergyRateUnit = EnergyRateUnit::EnergyPerDistance(
+        EnergyUnit::Gasoline(VolumeUnit::GallonsUs),
+        DistanceUnit::Miles,
+    );
+    pub const GDPM: EnergyRateUnit = EnergyRateUnit::EnergyPerDistance(
+        EnergyUnit::Diesel(VolumeUnit::GallonsUs),
+        DistanceUnit::Miles,
+    );
     pub const KWHPM: EnergyRateUnit =
         EnergyRateUnit::EnergyPerDistance(EnergyUnit::KilowattHours, DistanceUnit::Miles);
     pub const KWHPKM: EnergyRateUnit =
@@ -211,7 +217,9 @@ mod tests {
     use std::{borrow::Cow, str::FromStr};
 
     use super::EnergyRateUnit as ERU;
-    use crate::model::unit::{AsF64, Convert, DistanceUnit as DU, EnergyRate, EnergyUnit as EU, VolumeUnit};
+    use crate::model::unit::{
+        AsF64, Convert, DistanceUnit as DU, EnergyRate, EnergyUnit as EU, VolumeUnit,
+    };
     use serde_json::{self as sj, json};
 
     fn assert_approx_eq(a: EnergyRate, b: EnergyRate, error: f64) {
