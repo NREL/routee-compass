@@ -30,7 +30,7 @@ impl TraversalModel for CustomTraversalModel {
         vec![(name, feature)]
     }
 
-    /// records the speed that will be driven over this edge into the state vector.
+    /// records the value that will be assigned to this edge into the state vector.
     fn traverse_edge(
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
@@ -41,7 +41,7 @@ impl TraversalModel for CustomTraversalModel {
         self.engine.insert_value(&edge.edge_id, state, state_model)
     }
 
-    /// (over-)estimates speed over remainder of the trip as the maximum-possible speed value.
+    /// records the value that will be assigned to this edge into the state vector.
     fn estimate_traversal(
         &self,
         _od: (&Vertex, &Vertex),
