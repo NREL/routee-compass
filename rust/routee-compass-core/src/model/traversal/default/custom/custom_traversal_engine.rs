@@ -32,7 +32,7 @@ impl CustomTraversalEngine {
         let config = self.config();
         OutputFeature::Custom {
             name: config.name.clone(),
-            unit: config.feature.to_string(),
+            unit: config.unit.clone(),
             format: config.feature,
             accumulator: config.accumulator,
         }

@@ -11,6 +11,8 @@ pub struct CustomTraversalConfig {
     pub file_format: CustomInputFormat,
     /// name of the feature, a unique name apart from it's unit type
     pub name: String,
+    /// name of the unit space the feature exists in, such as Percent
+    pub unit: String,
     /// format and initial value of this feature
     pub feature: CustomFeatureFormat,
     /// whether to accumulate values (via addition) or simply insert/set them
