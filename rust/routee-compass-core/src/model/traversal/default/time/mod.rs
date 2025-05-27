@@ -5,5 +5,6 @@ mod time_configuration;
 mod time_traversal_builder;
 mod time_traversal_model;
 
+pub use time_configuration::TimeConfiguration;
 pub use time_traversal_builder::TimeTraversalBuilder;
 pub use time_traversal_model::TimeTraversalModel;
