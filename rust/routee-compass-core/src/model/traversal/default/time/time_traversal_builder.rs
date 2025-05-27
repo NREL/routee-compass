@@ -16,7 +16,7 @@ impl TraversalModelBuilder for TimeTraversalBuilder {
                     e
                 ))
             })?;
-        let service = Arc::new(TimeTraversalModel::new(&config));
+        let service = Arc::new(TimeTraversalModel::from(&config));
         Ok(service)
     }
 }
