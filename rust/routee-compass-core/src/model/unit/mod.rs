@@ -41,3 +41,5 @@ pub use volume::Volume;
 pub use volume_unit::VolumeUnit;
 pub use weight::Weight;
 pub use weight_unit::WeightUnit;
+
+mod test_units;

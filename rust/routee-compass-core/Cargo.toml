@@ -34,3 +34,5 @@ wkb = { workspace = true }
 allocative = { workspace = true }
 rstar = { workspace = true }
 topological-sort = "0.2.2"
+
+uom = "0.37.0"
