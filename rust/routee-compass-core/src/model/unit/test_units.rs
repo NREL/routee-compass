@@ -1,6 +1,4 @@
 use uom::si::f64::{Length, Time};
-use uom::si::velocity::{kilometer_per_hour, mile_per_hour};
-use uom::si::{length::meter, time::second};
 
 #[derive(Debug, Clone, Copy)]
 pub enum StateFeature {
