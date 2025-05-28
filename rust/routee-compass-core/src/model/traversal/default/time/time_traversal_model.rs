@@ -14,11 +14,19 @@ use std::{borrow::Cow, sync::Arc};
 
 #[derive(Clone, Debug)]
 pub struct TimeTraversalModel {
-    time_unit: TimeUnit,
+    pub time_unit: TimeUnit,
 }
 
 impl TimeTraversalModel {
-    pub fn new(config: &TimeConfiguration) -> TimeTraversalModel {
+    pub fn new(time_unit: &TimeUnit) -> TimeTraversalModel {
+        TimeTraversalModel {
+            time_unit: *time_unit,
+        }
+    }
+}
+
+impl From<&TimeConfiguration> for TimeTraversalModel {
+    fn from(config: &TimeConfiguration) -> Self {
         TimeTraversalModel {
             time_unit: config.time_unit,
         }

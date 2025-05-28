@@ -1,4 +1,5 @@
 pub mod combined;
+pub mod custom;
 pub mod distance;
 pub mod elevation;
 pub mod fieldname;

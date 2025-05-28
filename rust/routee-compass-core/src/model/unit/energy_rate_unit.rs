@@ -1,6 +1,8 @@
 use crate::model::unit::Energy;
 
-use super::{baseunit, AsF64, Convert, Distance, DistanceUnit, EnergyRate, EnergyUnit, UnitError};
+use super::{
+    baseunit, AsF64, Convert, Distance, DistanceUnit, EnergyRate, EnergyUnit, UnitError, VolumeUnit,
+};
 use itertools::Itertools;
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize};
 use std::{borrow::Cow, str::FromStr};
@@ -12,10 +14,14 @@ pub enum EnergyRateUnit {
 }
 
 impl EnergyRateUnit {
-    pub const GGPM: EnergyRateUnit =
-        EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsGasoline, DistanceUnit::Miles);
-    pub const GDPM: EnergyRateUnit =
-        EnergyRateUnit::EnergyPerDistance(EnergyUnit::GallonsDiesel, DistanceUnit::Miles);
+    pub const GGPM: EnergyRateUnit = EnergyRateUnit::EnergyPerDistance(
+        EnergyUnit::Gasoline(VolumeUnit::GallonsUs),
+        DistanceUnit::Miles,
+    );
+    pub const GDPM: EnergyRateUnit = EnergyRateUnit::EnergyPerDistance(
+        EnergyUnit::Diesel(VolumeUnit::GallonsUs),
+        DistanceUnit::Miles,
+    );
     pub const KWHPM: EnergyRateUnit =
         EnergyRateUnit::EnergyPerDistance(EnergyUnit::KilowattHours, DistanceUnit::Miles);
     pub const KWHPKM: EnergyRateUnit =
@@ -89,7 +95,7 @@ impl FromStr for EnergyRateUnit {
         match s.split("/").collect_vec()[..] {
             ["mpg"] => Ok(EnergyRateUnit::DistancePerEnergy(
                 DistanceUnit::Miles,
-                EnergyUnit::GallonsGasoline,
+                EnergyUnit::Gasoline(VolumeUnit::GallonsUs),
             )),
             [s1, s2] => try_deserialize_unknown_unit_order(s1, s2),
             _ => Err(format!(
@@ -211,7 +217,9 @@ mod tests {
     use std::{borrow::Cow, str::FromStr};
 
     use super::EnergyRateUnit as ERU;
-    use crate::model::unit::{AsF64, Convert, DistanceUnit as DU, EnergyRate, EnergyUnit as EU};
+    use crate::model::unit::{
+        AsF64, Convert, DistanceUnit as DU, EnergyRate, EnergyUnit as EU, VolumeUnit,
+    };
     use serde_json::{self as sj, json};
 
     fn assert_approx_eq(a: EnergyRate, b: EnergyRate, error: f64) {
@@ -230,7 +238,7 @@ mod tests {
     #[test]
     fn test_mpg_from_str() {
         let result = ERU::from_str("gallons gasoline/mile");
-        let expected = ERU::EnergyPerDistance(EU::GallonsGasoline, DU::Miles);
+        let expected = ERU::EnergyPerDistance(EU::Gasoline(VolumeUnit::GallonsUs), DU::Miles);
         assert_eq!(result, Ok(expected))
     }
 
@@ -238,7 +246,7 @@ mod tests {
     fn test_gpm_from_json() {
         let result: Result<ERU, String> =
             sj::from_value(json!("gallons gasoline/mile")).map_err(|e| e.to_string());
-        let expected = ERU::EnergyPerDistance(EU::GallonsGasoline, DU::Miles);
+        let expected = ERU::EnergyPerDistance(EU::Gasoline(VolumeUnit::GallonsUs), DU::Miles);
         assert_eq!(result, Ok(expected))
     }
 
@@ -246,15 +254,15 @@ mod tests {
     fn test_mpg_from_json() {
         let result: Result<ERU, String> =
             sj::from_value(json!("miles/gallons gasoline")).map_err(|e| e.to_string());
-        let expected = ERU::DistancePerEnergy(DU::Miles, EU::GallonsGasoline);
+        let expected = ERU::DistancePerEnergy(DU::Miles, EU::Gasoline(VolumeUnit::GallonsUs));
         assert_eq!(result, Ok(expected))
     }
 
     #[test]
     fn test_convert_mpg_gpm() {
         let mut energy_rate = Cow::Owned(EnergyRate::from(35.0));
-        let mpg = ERU::DistancePerEnergy(DU::Miles, EU::GallonsGasoline);
-        let gpm = ERU::EnergyPerDistance(EU::GallonsGasoline, DU::Miles);
+        let mpg = ERU::DistancePerEnergy(DU::Miles, EU::Gasoline(VolumeUnit::GallonsUs));
+        let gpm = ERU::EnergyPerDistance(EU::Gasoline(VolumeUnit::GallonsUs), DU::Miles);
         mpg.convert(&mut energy_rate, &gpm).unwrap();
         assert_approx_eq(
             energy_rate.into_owned(),
@@ -266,8 +274,8 @@ mod tests {
     #[test]
     fn test_convert_mpg_kpl() {
         let mut energy_rate = Cow::Owned(EnergyRate::from(10.0));
-        let mpg = ERU::DistancePerEnergy(DU::Miles, EU::GallonsGasoline);
-        let kpl = ERU::DistancePerEnergy(DU::Kilometers, EU::LitersGasoline);
+        let mpg = ERU::DistancePerEnergy(DU::Miles, EU::Gasoline(VolumeUnit::GallonsUs));
+        let kpl = ERU::DistancePerEnergy(DU::Kilometers, EU::Gasoline(VolumeUnit::Liters));
         mpg.convert(&mut energy_rate, &kpl).unwrap();
         assert_approx_eq(energy_rate.into_owned(), EnergyRate::from(4.25144), 0.001);
     }
@@ -275,8 +283,8 @@ mod tests {
     #[test]
     fn test_convert_lp100km_mpg() {
         let mut energy_rate = Cow::Owned(EnergyRate::from(1.0));
-        let lp100k = ERU::EnergyPerDistance(EU::LitersDiesel, DU::Kilometers);
-        let mpg = ERU::DistancePerEnergy(DU::Miles, EU::GallonsDiesel);
+        let lp100k = ERU::EnergyPerDistance(EU::Diesel(VolumeUnit::Liters), DU::Kilometers);
+        let mpg = ERU::DistancePerEnergy(DU::Miles, EU::Diesel(VolumeUnit::GallonsUs));
         lp100k.convert(&mut energy_rate, &mpg).unwrap();
         let lp1km = energy_rate.into_owned();
         let lp100km = EnergyRate::from(lp1km.as_f64() * 100.0);

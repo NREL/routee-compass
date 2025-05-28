@@ -1,6 +1,6 @@
 [package]
 name = "routee-compass-macros"
-version = "0.10.2"
+version = "0.11.1"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -8,7 +8,7 @@ description = "Macros for the RouteE-Compass energy-aware routing engine"
 homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
-exclude = ["test/", "**/.DS_Store", "target/"]
+exclude = ["test", "**/.DS_Store", "target/"]
 
 [dependencies]
 proc-macro2 = "1.0"

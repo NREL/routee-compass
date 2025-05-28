@@ -129,7 +129,7 @@ mod tests {
     use super::*;
     use crate::model::network::{Edge, EdgeId, Vertex, VertexId};
     use crate::model::unit::{Distance, SpeedUnit};
-    use crate::test::mock::traversal_model::TestTraversalModel;
+    use crate::testing::mock::traversal_model::TestTraversalModel;
     use crate::util::geo::InternalCoord;
     use geo::coord;
     use std::path::PathBuf;

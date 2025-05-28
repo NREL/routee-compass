@@ -5,7 +5,7 @@ use serde::Deserialize;
 #[derive(Debug, Clone, Deserialize)]
 pub struct RestrictionRow {
     pub edge_id: EdgeId,
-    pub r#type: String,
+    pub name: String,
     pub value: f64,
     pub operation: ComparisonOperation,
     pub unit: String,

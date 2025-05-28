@@ -174,7 +174,7 @@ impl TraversalModel for PhevEnergyModel {
             (
                 String::from(fieldname::TRIP_SOC),
                 OutputFeature::Custom {
-                    r#type: String::from("soc"),
+                    name: String::from("soc"),
                     unit: String::from("Percent"),
                     format: CustomFeatureFormat::FloatingPoint {
                         initial: self.starting_soc.into(),
@@ -436,10 +436,10 @@ mod test {
             traversal::TraversalModel,
             unit::{
                 AsF64, Distance, DistanceUnit, Energy, EnergyRateUnit, EnergyUnit, Grade,
-                GradeUnit, Speed, SpeedUnit,
+                GradeUnit, Speed, SpeedUnit, VolumeUnit,
             },
         },
-        test::mock::traversal_model::TestTraversalModel,
+        testing::mock::traversal_model::TestTraversalModel,
     };
     use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
@@ -483,7 +483,7 @@ mod test {
             .get_energy(
                 &state,
                 fieldname::EDGE_ENERGY_LIQUID,
-                Some(&EnergyUnit::GallonsGasoline),
+                Some(&EnergyUnit::Gasoline(VolumeUnit::GallonsUs)),
             )
             .expect("test invariant failed");
 
@@ -541,7 +541,7 @@ mod test {
             .get_energy(
                 &state,
                 fieldname::EDGE_ENERGY_LIQUID,
-                Some(&EnergyUnit::GallonsGasoline),
+                Some(&EnergyUnit::Gasoline(VolumeUnit::GallonsUs)),
             )
             .expect("test invariant failed");
 
@@ -582,7 +582,7 @@ mod test {
             .get_energy(
                 &state,
                 fieldname::EDGE_ENERGY_LIQUID,
-                Some(&EnergyUnit::GallonsGasoline),
+                Some(&EnergyUnit::Gasoline(VolumeUnit::GallonsUs)),
             )
             .expect("test invariant failed");
 

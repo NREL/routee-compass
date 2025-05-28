@@ -97,7 +97,7 @@ impl TraversalModel for BevEnergyModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
         let mut input_features = vec![(
             String::from(fieldname::EDGE_DISTANCE),
-            InputFeature::Distance(self.prediction_model_record.distance_unit),
+            InputFeature::Distance(Some(self.prediction_model_record.distance_unit)),
         )];
         input_features.extend(self.prediction_model_record.input_features.clone());
         input_features
@@ -128,7 +128,7 @@ impl TraversalModel for BevEnergyModel {
             (
                 String::from(fieldname::TRIP_SOC),
                 OutputFeature::Custom {
-                    r#type: String::from("soc"),
+                    name: String::from("soc"),
                     unit: String::from("Percent"),
                     format: CustomFeatureFormat::FloatingPoint {
                         initial: self.starting_soc.into(),
@@ -210,7 +210,7 @@ mod tests {
     use crate::model::prediction::{
         interpolation::feature_bounds::FeatureBounds, ModelType, PredictionModelConfig,
     };
-    use routee_compass_core::{model::unit::*, test::mock::traversal_model::TestTraversalModel};
+    use routee_compass_core::{model::unit::*, testing::mock::traversal_model::TestTraversalModel};
     use std::{collections::HashMap, path::PathBuf};
 
     #[test]
@@ -377,11 +377,11 @@ mod tests {
         let input_features = vec![
             (
                 fieldname::EDGE_SPEED.to_string(),
-                InputFeature::Speed(SpeedUnit::MPH),
+                InputFeature::Speed(Some(SpeedUnit::MPH)),
             ),
             (
                 fieldname::EDGE_GRADE.to_string(),
-                InputFeature::Grade(GradeUnit::Decimal),
+                InputFeature::Grade(Some(GradeUnit::Decimal)),
             ),
         ];
 

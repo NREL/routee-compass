@@ -10,12 +10,12 @@ use super::OutputFeature;
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
 #[serde(tag = "type", content = "convert", rename_all = "snake_case")]
 pub enum InputFeature {
-    Distance(DistanceUnit),
-    Speed(SpeedUnit),
-    Time(TimeUnit),
-    Energy(EnergyUnit),
-    Grade(GradeUnit),
-    Custom { r#type: String, unit: String },
+    Distance(Option<DistanceUnit>),
+    Speed(Option<SpeedUnit>),
+    Time(Option<TimeUnit>),
+    Energy(Option<EnergyUnit>),
+    Grade(Option<GradeUnit>),
+    Custom { name: String, unit: String },
 }
 
 impl std::fmt::Display for InputFeature {
@@ -32,34 +32,34 @@ impl From<&OutputFeature> for InputFeature {
                 distance_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Distance(*distance_unit),
+            } => InputFeature::Distance(Some(*distance_unit)),
             OutputFeature::Time {
                 time_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Time(*time_unit),
+            } => InputFeature::Time(Some(*time_unit)),
             OutputFeature::Energy {
                 energy_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Energy(*energy_unit),
+            } => InputFeature::Energy(Some(*energy_unit)),
             OutputFeature::Speed {
                 speed_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Speed(*speed_unit),
+            } => InputFeature::Speed(Some(*speed_unit)),
             OutputFeature::Grade {
                 grade_unit,
                 initial: _,
                 accumulator: _,
-            } => InputFeature::Grade(*grade_unit),
+            } => InputFeature::Grade(Some(*grade_unit)),
             OutputFeature::Custom {
-                r#type,
+                name,
                 unit,
                 format: _,
                 accumulator: _,
             } => InputFeature::Custom {
-                r#type: r#type.clone(),
+                name: name.clone(),
                 unit: unit.clone(),
             },
         }

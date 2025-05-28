@@ -36,8 +36,9 @@ use routee_compass_core::model::{
     frontier::{FrontierModelBuilder, FrontierModelService},
     traversal::{
         default::{
-            combined::CombinedTraversalBuilder, elevation::ElevationTraversalBuilder,
-            grade::GradeTraversalBuilder, time::TimeTraversalBuilder,
+            combined::CombinedTraversalBuilder, custom::CustomTraversalBuilder,
+            elevation::ElevationTraversalBuilder, grade::GradeTraversalBuilder,
+            time::TimeTraversalBuilder,
         },
         TraversalModelBuilder, TraversalModelService,
     },
@@ -282,6 +283,7 @@ impl Default for CompassAppBuilder {
         let grade: Rc<dyn TraversalModelBuilder> = Rc::new(GradeTraversalBuilder {});
         let elevation: Rc<dyn TraversalModelBuilder> = Rc::new(ElevationTraversalBuilder {});
         let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder {});
+        let custom: Rc<dyn TraversalModelBuilder> = Rc::new(CustomTraversalBuilder {});
         let traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> =
             HashMap::from([
                 (String::from("distance"), distance),
@@ -290,6 +292,7 @@ impl Default for CompassAppBuilder {
                 (String::from("grade"), grade),
                 (String::from("elevation"), elevation),
                 (String::from("energy"), energy),
+                (String::from("custom"), custom),
             ]);
 
         // Access model builders
