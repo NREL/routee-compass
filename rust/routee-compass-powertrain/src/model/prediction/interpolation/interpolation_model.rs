@@ -126,8 +126,8 @@ mod test {
             .join("Toyota_Camry.bin");
 
         let input_features = vec![
-            ("speed".to_string(), InputFeature::Speed(SpeedUnit::MPH)),
-            ("grade".to_string(), InputFeature::Grade(GradeUnit::Decimal)),
+            ("speed".to_string(), InputFeature::Speed(Some(SpeedUnit::MPH))),
+            ("grade".to_string(), InputFeature::Grade(Some(GradeUnit::Decimal))),
         ];
         let feature_bounds = HashMap::from([
             (

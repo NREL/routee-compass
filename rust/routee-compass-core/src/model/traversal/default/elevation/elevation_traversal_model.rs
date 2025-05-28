@@ -4,7 +4,7 @@ use crate::model::{
     network::{Edge, Vertex},
     state::{InputFeature, OutputFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{baseunit, Distance, DistanceUnit, Grade, GradeUnit},
+    unit::{Distance, DistanceUnit, Grade, GradeUnit},
 };
 
 use super::{ElevationChange, ElevationConfiguration};
@@ -36,11 +36,11 @@ impl TraversalModel for ElevationTraversalModel {
         vec![
             (
                 String::from(fieldname::EDGE_DISTANCE),
-                InputFeature::Distance(baseunit::DISTANCE_UNIT),
+                InputFeature::Distance(None),
             ),
             (
                 String::from(fieldname::EDGE_GRADE),
-                InputFeature::Grade(super::ELEVATION_GRADE_UNIT),
+                InputFeature::Grade(None),
             ),
         ]
     }

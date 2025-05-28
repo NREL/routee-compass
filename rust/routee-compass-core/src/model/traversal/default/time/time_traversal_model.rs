@@ -6,7 +6,7 @@ use crate::{
         traversal::{
             default::fieldname, TraversalModel, TraversalModelError, TraversalModelService,
         },
-        unit::{baseunit, Convert, Distance, DistanceUnit, Time, TimeUnit},
+        unit::{Convert, Distance, DistanceUnit, Time, TimeUnit},
     },
     util::geo::haversine,
 };
@@ -47,11 +47,11 @@ impl TraversalModel for TimeTraversalModel {
         vec![
             (
                 String::from(fieldname::EDGE_DISTANCE),
-                InputFeature::Distance(baseunit::DISTANCE_UNIT),
+                InputFeature::Distance(None),
             ),
             (
                 String::from(fieldname::EDGE_SPEED),
-                InputFeature::Speed(baseunit::SPEED_UNIT),
+                InputFeature::Speed(None),
             ),
         ]
     }

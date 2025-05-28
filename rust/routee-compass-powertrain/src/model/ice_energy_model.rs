@@ -53,7 +53,7 @@ impl TraversalModel for IceEnergyModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
         let mut input_features = vec![(
             String::from(fieldname::EDGE_DISTANCE),
-            InputFeature::Distance(self.prediction_model_record.distance_unit),
+            InputFeature::Distance(Some(self.prediction_model_record.distance_unit)),
         )];
         input_features.extend(self.prediction_model_record.input_features.clone());
         input_features

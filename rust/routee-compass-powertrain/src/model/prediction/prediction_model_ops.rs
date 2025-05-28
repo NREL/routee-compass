@@ -27,14 +27,30 @@ pub fn find_min_energy_rate(
 
     for (_, input_feature) in input_features {
         let values = match input_feature {
-            InputFeature::Speed(unit) => get_speed_sample_values(unit)?
-                .into_iter()
-                .map(|s| s.as_f64())
-                .collect(),
-            InputFeature::Grade(unit) => get_grade_sample_values(unit)?
-                .into_iter()
-                .map(|g| g.as_f64())
-                .collect(),
+            InputFeature::Speed(unit) => match unit {
+                Some(speed_unit) => get_speed_sample_values(speed_unit)?
+                    .into_iter()
+                    .map(|s| s.as_f64())
+                    .collect(),
+                None => {
+                    return Err(TraversalModelError::TraversalModelFailure(format!(
+                        "{} Unit must be set for speed input feature {} but got None",
+                        MIN_ENERGY_ERROR_MESSAGE, input_feature
+                    )))
+                }
+            },
+            InputFeature::Grade(unit) => match unit {
+                Some(grade_unit) => get_grade_sample_values(grade_unit)?
+                    .into_iter()
+                    .map(|g| g.as_f64())
+                    .collect(),
+                None => {
+                    return Err(TraversalModelError::TraversalModelFailure(format!(
+                        "{} Unit must be set for grade input feature {} but got None",
+                        MIN_ENERGY_ERROR_MESSAGE, input_feature
+                    )))
+                }
+            },
             _ => {
                 return Err(TraversalModelError::TraversalModelFailure(format!(
                     "{} got an unexpected input feature in the smartcore model prediction {}",

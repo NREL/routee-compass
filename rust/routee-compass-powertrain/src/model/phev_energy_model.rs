@@ -99,7 +99,7 @@ impl TraversalModel for PhevEnergyModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
         let mut input_features = vec![(
             String::from(fieldname::EDGE_DISTANCE),
-            InputFeature::Distance(self.charge_depleting_model.distance_unit),
+            InputFeature::Distance(Some(self.charge_depleting_model.distance_unit)),
         )];
         input_features.extend(self.charge_depleting_model.input_features.clone());
         input_features.extend(self.charge_sustain_model.input_features.clone());
@@ -648,11 +648,11 @@ mod test {
         let input_features = vec![
             (
                 fieldname::EDGE_SPEED.to_string(),
-                InputFeature::Speed(SpeedUnit::MPH),
+                InputFeature::Speed(Some(SpeedUnit::MPH)),
             ),
             (
                 fieldname::EDGE_GRADE.to_string(),
-                InputFeature::Grade(GradeUnit::Decimal),
+                InputFeature::Grade(Some(GradeUnit::Decimal)),
             ),
         ];
 

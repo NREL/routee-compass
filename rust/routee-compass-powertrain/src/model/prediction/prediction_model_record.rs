@@ -52,7 +52,6 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
                 Arc::new(model)
             }
         };
-        log::debug!("Finding minimum energy for {}", config.name);
         let ideal_energy_rate = prediction_model_ops::find_min_energy_rate(
             &prediction_model,
             &config.input_features,
@@ -86,15 +85,24 @@ impl PredictionModelRecord {
         for (name, input_feature) in &self.input_features {
             let state_variable_f64: f64 = match input_feature {
                 InputFeature::Speed(unit) => {
-                    let (speed, _speed_unit) = state_model.get_speed(state, name, Some(unit))?;
+                    if unit.is_none() {
+                        return Err(TraversalModelError::TraversalModelFailure(format!(
+                            "Unit must be set for speed input feature {} but got None",
+                            input_feature
+                        )));
+                    }
+                    let (speed, _speed_unit) = state_model.get_speed(state, name, unit.as_ref())?;
                     speed.as_f64()
                 }
                 InputFeature::Grade(unit) => {
-                    let (grade, _grade_unit) = state_model.get_grade(state, name, Some(unit))?;
+                    if unit.is_none() {
+                        return Err(TraversalModelError::TraversalModelFailure(format!(
+                            "Unit must be set for grade input feature {} but got None",
+                            input_feature
+                        )));
+                    }
+                    let (grade, _grade_unit) = state_model.get_grade(state, name, unit.as_ref())?;
                     grade.as_f64()
-                }
-                InputFeature::Custom { r#type: _, unit: _ } => {
-                    state_model.get_custom_f64(state, name)?
                 }
                 _ => {
                     return Err(TraversalModelError::TraversalModelFailure(format!(
