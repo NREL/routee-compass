@@ -5,6 +5,9 @@ from nrel.routee.compass.compass_app import CompassApp
 
 
 class TestDowntownDenverExample(TestCase):
+    # Define a small epsilon value for floating point comparisons
+    EPSILON = 1e-6
+
     def test_time(self) -> None:
         app = CompassApp.from_config_file(
             package_root()
@@ -63,10 +66,14 @@ class TestDowntownDenverExample(TestCase):
         c_opt_cost = c_opt_result["route"]["cost"]["total_cost"]
 
         # Test 1: Time optimal has shortest time and greatest energy
-        self.assertLessEqual(t_opt_time, c_opt_time, "not time.time <= balanced.time")
+        self.assertLessEqual(
+            t_opt_time, c_opt_time + self.EPSILON, "not time.time <= balanced.time"
+        )
 
         # Test 2: Cost optimal has the least total cost
-        self.assertLessEqual(c_opt_cost, t_opt_cost, "not balanced.cost <= time.cost")
+        self.assertLessEqual(
+            c_opt_cost, t_opt_cost + self.EPSILON, "not balanced.cost <= time.cost"
+        )
 
         # Test 4: Monotonicity across weight spectrum
         # Run range of cases from weight p=0 to p=1 for time, with distance=(1-p)
@@ -100,12 +107,12 @@ class TestDowntownDenverExample(TestCase):
         for i in range(1, len(weight_results)):
             self.assertLessEqual(
                 weight_results[i]["time"],
-                weight_results[i - 1]["time"],
+                weight_results[i - 1]["time"] + self.EPSILON,
                 f"Time not decreasing as weight p increases from {weight_results[i - 1]['p']} to {weight_results[i]['p']}",
             )
             self.assertGreaterEqual(
                 weight_results[i]["dist"],
-                weight_results[i - 1]["dist"],
+                weight_results[i - 1]["dist"] - self.EPSILON,
                 f"Distance not increasing as weight p increases from {weight_results[i - 1]['p']} to {weight_results[i]['p']}",
             )
 
@@ -197,24 +204,32 @@ class TestDowntownDenverExample(TestCase):
         c_opt_cost = c_opt_result["route"]["cost"]["total_cost"]
 
         # Test 1: Time optimal has shortest time and greatest energy
-        self.assertLessEqual(t_opt_time, e_opt_time, "not time.time <= energy.time")
+        self.assertLessEqual(
+            t_opt_time, e_opt_time + self.EPSILON, "not time.time <= energy.time"
+        )
         self.assertGreaterEqual(
             t_opt_energy,
-            e_opt_energy,
+            e_opt_energy - self.EPSILON,
             "not time.energy >= energy.energy",
         )
 
         # Test 2: Energy optimal has least energy and longest time
         self.assertLessEqual(
             e_opt_energy,
-            t_opt_energy,
+            t_opt_energy + self.EPSILON,
             "not energy.energy <= time.energy",
         )
-        self.assertGreaterEqual(e_opt_time, t_opt_time, "not energy.time >= time.time")
+        self.assertGreaterEqual(
+            e_opt_time, t_opt_time - self.EPSILON, "not energy.time >= time.time"
+        )
 
         # Test 3: Cost optimal has the least total cost
-        self.assertLessEqual(c_opt_cost, t_opt_cost, "not balanced.cost <= time.cost")
-        self.assertLessEqual(c_opt_cost, e_opt_cost, "not balanced.cost <= energy.cost")
+        self.assertLessEqual(
+            c_opt_cost, t_opt_cost + self.EPSILON, "not balanced.cost <= time.cost"
+        )
+        self.assertLessEqual(
+            c_opt_cost, e_opt_cost + self.EPSILON, "not balanced.cost <= energy.cost"
+        )
 
         # Test 4: Monotonicity across weight spectrum
         # Run range of cases from weight p=0 to p=1 for time, with energy=(1-p)
@@ -248,11 +263,11 @@ class TestDowntownDenverExample(TestCase):
         for i in range(1, len(weight_results)):
             self.assertLessEqual(
                 weight_results[i]["time"],
-                weight_results[i - 1]["time"],
+                weight_results[i - 1]["time"] + self.EPSILON,
                 f"Time not decreasing as weight p increases from {weight_results[i - 1]['p']} to {weight_results[i]['p']}",
             )
             self.assertGreaterEqual(
                 weight_results[i]["energy"],
-                weight_results[i - 1]["energy"],
+                weight_results[i - 1]["energy"] - self.EPSILON,
                 f"Energy not increasing as weight p increases from {weight_results[i - 1]['p']} to {weight_results[i]['p']}",
             )
