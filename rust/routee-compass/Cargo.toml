@@ -1,6 +1,6 @@
 [package]
 name = "routee-compass"
-version = "0.11.1"
+version = "0.11.2"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -19,8 +19,8 @@ keywords = [
 categories = ["science", "science::geo"]
 
 [dependencies]
-routee-compass-core = { path = "../routee-compass-core", version = "0.11.1" }
-routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.11.1" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.11.2" }
+routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.11.2" }
 thiserror = { workspace = true }
 flate2 = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
