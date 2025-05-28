@@ -6,6 +6,7 @@ use crate::model::state::StateVariable;
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
+use std::ops::{Deref, DerefMut};
 use std::{borrow::Cow, cmp::Ordering, fmt::Display};
 
 #[derive(
@@ -70,6 +71,20 @@ impl Ord for Energy {
     }
 }
 
+impl Deref for Energy {
+    type Target = InternalFloat;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Energy {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 impl Display for Energy {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.0)
@@ -123,14 +138,14 @@ mod tests {
             (
                 &EnergyRate::from(ten_mpg_rate),
                 &EnergyRateUnit::EnergyPerDistance(
-                    EnergyUnit::GallonsGasoline,
+                    EnergyUnit::Gasoline(VolumeUnit::GallonsUs),
                     DistanceUnit::Miles,
                 ),
             ),
         )
         .unwrap();
         approx_eq_energy(energy, Energy::from(ten_mpg_rate), 0.00001);
-        assert_eq!(energy_unit, EnergyUnit::GallonsGasoline);
+        assert_eq!(energy_unit, EnergyUnit::Gasoline(VolumeUnit::GallonsUs));
     }
 
     #[test]
@@ -141,13 +156,13 @@ mod tests {
             (
                 &EnergyRate::from(ten_mpg_rate),
                 &EnergyRateUnit::EnergyPerDistance(
-                    EnergyUnit::GallonsGasoline,
+                    EnergyUnit::Gasoline(VolumeUnit::GallonsUs),
                     DistanceUnit::Miles,
                 ),
             ),
         )
         .unwrap();
         approx_eq_energy(energy, Energy::from(ten_mpg_rate), 0.00001);
-        assert_eq!(energy_unit, EnergyUnit::GallonsGasoline);
+        assert_eq!(energy_unit, EnergyUnit::Gasoline(VolumeUnit::GallonsUs));
     }
 }

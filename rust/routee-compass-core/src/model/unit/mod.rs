@@ -16,6 +16,8 @@ mod speed_unit;
 mod time;
 mod time_unit;
 mod unit_error;
+mod volume;
+mod volume_unit;
 mod weight;
 mod weight_unit;
 
@@ -35,5 +37,7 @@ pub use speed_unit::SpeedUnit;
 pub use time::Time;
 pub use time_unit::TimeUnit;
 pub use unit_error::UnitError;
+pub use volume::Volume;
+pub use volume_unit::VolumeUnit;
 pub use weight::Weight;
 pub use weight_unit::WeightUnit;
