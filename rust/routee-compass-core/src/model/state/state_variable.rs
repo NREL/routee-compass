@@ -4,6 +4,8 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
+use super::state_feature::StateFeature;
+
 #[derive(
     Copy,
     Clone,
@@ -40,6 +42,12 @@ impl From<StateVariable> for f64 {
         val.0
     }
 }
+impl From<StateFeature> for StateVariable {
+    fn from(value: StateFeature) -> Self {
+        StateVariable(value.as_f64())
+    }
+}
+
 impl From<Distance> for StateVariable {
     fn from(value: Distance) -> Self {
         StateVariable(value.as_f64())

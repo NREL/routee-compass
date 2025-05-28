@@ -2,6 +2,7 @@ mod custom_feature_format;
 mod indexed_state_feature;
 mod input_feature;
 mod output_feature;
+mod state_feature;
 mod state_model;
 mod state_model_error;
 mod state_variable;

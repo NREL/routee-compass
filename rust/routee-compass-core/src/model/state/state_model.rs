@@ -1,31 +1,30 @@
+use super::state_feature::StateFeature;
+use super::StateVariable;
 use super::{
     custom_feature_format::CustomFeatureFormat, output_feature::OutputFeature,
     state_model_error::StateModelError, update_operation::UpdateOperation,
 };
-use super::{InputFeature, StateVariable};
-use crate::model::unit::{Convert, Grade, GradeUnit, Speed, SpeedUnit};
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
-use crate::{
-    model::unit::{Distance, DistanceUnit, Energy, EnergyUnit, Time, TimeUnit},
-    util::compact_ordered_hash_map::IndexedEntry,
-};
+use crate::util::compact_ordered_hash_map::IndexedEntry;
 use itertools::Itertools;
 use serde_json::json;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::iter::Enumerate;
 
+use uom::si::f64::*;
+
 /// a state model tracks information about each feature in a search state vector.
 /// in concept, it is modeled as a mapping from a feature_name String to a StateFeature
 /// object (see NFeatures, below). there are 4 additional implementations that specialize
 /// for the case where fewer than 5 features are required in order to improve CPU performance.
-pub struct StateModel(CompactOrderedHashMap<String, OutputFeature>);
-type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a OutputFeature)> + 'a>;
+pub struct StateModel(CompactOrderedHashMap<String, StateFeature>);
+type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>;
 type IndexedFeatureIterator<'a> =
-    Enumerate<Box<dyn Iterator<Item = (&'a String, &'a OutputFeature)> + 'a>>;
+    Enumerate<Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>>;
 
 impl StateModel {
-    pub fn new(features: Vec<(String, OutputFeature)>) -> StateModel {
+    pub fn new(features: Vec<(String, StateFeature)>) -> StateModel {
         let map = CompactOrderedHashMap::new(features);
         StateModel(map)
     }
@@ -43,8 +42,8 @@ impl StateModel {
     /// * `query` - JSON search query contents containing state model information
     pub fn register(
         &self,
-        input_features: Vec<(String, InputFeature)>,
-        output_features: Vec<(String, OutputFeature)>,
+        input_features: Vec<(String, StateFeature)>,
+        output_features: Vec<(String, StateFeature)>,
     ) -> Result<StateModel, StateModelError> {
         // start by creating a new copy of the state model
         let mut map = self
@@ -120,7 +119,7 @@ impl StateModel {
 
     /// collects the state model tuples and clones them so they can
     /// be used to build other collections
-    pub fn to_vec(&self) -> Vec<(String, IndexedEntry<OutputFeature>)> {
+    pub fn to_vec(&self) -> Vec<(String, IndexedEntry<StateFeature>)> {
         self.0.to_vec()
     }
 
@@ -136,7 +135,7 @@ impl StateModel {
 
     pub fn is_accumlator(&self, name: &str) -> Result<bool, StateModelError> {
         let feature = self.get_feature(name)?;
-        Ok(feature.is_accumlator())
+        Ok(feature.is_accumulator())
     }
 
     /// Creates the initial state of a search. this should be a vector of
@@ -149,7 +148,7 @@ impl StateModel {
         self.0
             .iter()
             .map(|(_, feature)| {
-                let initial = feature.get_initial()?;
+                let initial = StateVariable(feature.as_f64());
                 Ok(initial)
             })
             .collect::<Result<Vec<_>, _>>()
@@ -169,19 +168,10 @@ impl StateModel {
         &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: Option<&'a DistanceUnit>,
-    ) -> Result<(Distance, &'a DistanceUnit), StateModelError> {
-        let value: Distance = self.get_state_variable(state, name)?.into();
-        let feature = self.get_feature(name)?;
-        let from_unit = feature.get_distance_unit()?;
-        match unit {
-            Some(to_unit) => {
-                let mut v_cow = Cow::Owned(value);
-                from_unit.convert(&mut v_cow, to_unit)?;
-                Ok((v_cow.into_owned(), to_unit))
-            }
-            None => Ok((value, from_unit)),
-        }
+    ) -> Result<Length, StateModelError> {
+        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let length = Length::new::<uom::si::length::meter>(value.0);
+        Ok(length)
     }
 
     /// retrieves a state variable that is expected to have a type of Time
@@ -198,19 +188,10 @@ impl StateModel {
         &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: Option<&'a TimeUnit>,
-    ) -> Result<(Time, &'a TimeUnit), StateModelError> {
-        let value: Time = self.get_state_variable(state, name)?.into();
-        let feature = self.get_feature(name)?;
-        let from_unit = feature.get_time_unit()?;
-        match unit {
-            Some(to_unit) => {
-                let mut v_cow = Cow::Owned(value);
-                from_unit.convert(&mut v_cow, to_unit)?;
-                Ok((v_cow.into_owned(), to_unit))
-            }
-            None => Ok((value, from_unit)),
-        }
+    ) -> Result<Time, StateModelError> {
+        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let time = Time::new::<uom::si::time::second>(value.0);
+        Ok(time)
     }
     /// retrieves a state variable that is expected to have a type of Energy
     ///
@@ -226,19 +207,10 @@ impl StateModel {
         &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: Option<&'a EnergyUnit>,
-    ) -> Result<(Energy, &'a EnergyUnit), StateModelError> {
-        let value: Energy = self.get_state_variable(state, name)?.into();
-        let feature = self.get_feature(name)?;
-        let from_unit = feature.get_energy_unit()?;
-        match unit {
-            Some(to_unit) => {
-                let mut v_cow = Cow::Owned(value);
-                from_unit.convert(&mut v_cow, to_unit)?;
-                Ok((v_cow.into_owned(), to_unit))
-            }
-            None => Ok((value, from_unit)),
-        }
+    ) -> Result<Energy, StateModelError> {
+        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let energy = Energy::new::<uom::si::energy::joule>(value.0);
+        Ok(energy)
     }
     /// retrieves a state variable that is expected to have a type of Speed
     ///
@@ -254,19 +226,10 @@ impl StateModel {
         &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: Option<&'a SpeedUnit>,
-    ) -> Result<(Speed, &'a SpeedUnit), StateModelError> {
-        let value: Speed = self.get_state_variable(state, name)?.into();
-        let feature = self.get_feature(name)?;
-        let from_unit = feature.get_speed_unit()?;
-        match unit {
-            Some(to_unit) => {
-                let mut v_cow = Cow::Owned(value);
-                from_unit.convert(&mut v_cow, to_unit)?;
-                Ok((v_cow.into_owned(), to_unit))
-            }
-            None => Ok((value, from_unit)),
-        }
+    ) -> Result<Velocity, StateModelError> {
+        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let speed = Velocity::new::<uom::si::velocity::meter_per_second>(value.0);
+        Ok(speed)
     }
     /// retrieves a state variable that is expected to have a type of Grade
     ///
@@ -282,19 +245,10 @@ impl StateModel {
         &'a self,
         state: &[StateVariable],
         name: &str,
-        unit: Option<&'a GradeUnit>,
-    ) -> Result<(Grade, &'a GradeUnit), StateModelError> {
-        let value: Grade = self.get_state_variable(state, name)?.into();
-        let feature = self.get_feature(name)?;
-        let from_unit = feature.get_grade_unit()?;
-        match unit {
-            Some(to_unit) => {
-                let mut v_cow = Cow::Owned(value);
-                from_unit.convert(&mut v_cow, to_unit)?;
-                Ok((v_cow.into_owned(), to_unit))
-            }
-            None => Ok((value, from_unit)),
-        }
+    ) -> Result<Ratio, StateModelError> {
+        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let grade = Ratio::new::<uom::si::ratio::ratio>(value.0);
+        Ok(grade)
     }
     /// retrieves a state variable that is expected to have a type of f64.
     ///
@@ -419,12 +373,11 @@ impl StateModel {
         &self,
         state: &mut [StateVariable],
         name: &str,
-        distance: &Distance,
-        from_unit: &DistanceUnit,
+        distance: &Length,
     ) -> Result<(), StateModelError> {
-        let (prev_distance, _) = self.get_distance(state, name, Some(from_unit))?;
+        let prev_distance: Length = self.get_distance(state, name)?;
         let next_distance = prev_distance + *distance;
-        self.set_distance(state, name, &next_distance, from_unit)
+        self.set_distance(state, name, &next_distance)
     }
 
     /// adds a time value with time unit to this feature vector
@@ -433,11 +386,10 @@ impl StateModel {
         state: &mut [StateVariable],
         name: &str,
         time: &Time,
-        from_unit: &TimeUnit,
     ) -> Result<(), StateModelError> {
-        let (prev_time, _) = self.get_time(state, name, Some(from_unit))?;
+        let prev_time = self.get_time(state, name)?;
         let next_time = prev_time + *time;
-        self.set_time(state, name, &next_time, from_unit)
+        self.set_time(state, name, &next_time)
     }
 
     /// adds a energy value with energy unit to this feature vector
@@ -446,11 +398,10 @@ impl StateModel {
         state: &mut [StateVariable],
         name: &str,
         energy: &Energy,
-        from_unit: &EnergyUnit,
     ) -> Result<(), StateModelError> {
-        let (prev_energy, _) = self.get_energy(state, name, Some(from_unit))?;
+        let prev_energy = self.get_energy(state, name)?;
         let next_energy = prev_energy + *energy;
-        self.set_energy(state, name, &next_energy, from_unit)
+        self.set_energy(state, name, &next_energy)
     }
 
     /// adds a speed value with energy unit to this feature vector
@@ -458,12 +409,11 @@ impl StateModel {
         &self,
         state: &mut [StateVariable],
         name: &str,
-        speed: &Speed,
-        from_unit: &SpeedUnit,
+        speed: &Velocity,
     ) -> Result<(), StateModelError> {
-        let (prev_speed, _) = self.get_speed(state, name, Some(from_unit))?;
+        let prev_speed = self.get_speed(state, name)?;
         let next_speed = prev_speed + *speed;
-        self.set_speed(state, name, &next_speed, from_unit)
+        self.set_speed(state, name, &next_speed)
     }
 
     /// adds a grade value with energy unit to this feature vector
@@ -471,30 +421,21 @@ impl StateModel {
         &self,
         state: &mut [StateVariable],
         name: &str,
-        grade: &Grade,
-        from_unit: &GradeUnit,
+        grade: &Ratio,
     ) -> Result<(), StateModelError> {
-        let (prev_grade, _) = self.get_grade(state, name, Some(from_unit))?;
+        let prev_grade = self.get_grade(state, name)?;
         let next_grade = prev_grade + *grade;
-        self.set_grade(state, name, &next_grade, from_unit)
+        self.set_grade(state, name, &next_grade)
     }
 
     pub fn set_distance(
         &self,
         state: &mut [StateVariable],
         name: &str,
-        distance: &Distance,
-        from_unit: &DistanceUnit,
+        distance: &Length,
     ) -> Result<(), StateModelError> {
-        let mut dist_cow = Cow::Borrowed(distance);
-        let to_unit = self.get_feature(name)?.get_distance_unit()?;
-        from_unit.convert(&mut dist_cow, to_unit)?;
-        self.update_state(
-            state,
-            name,
-            &dist_cow.into_owned().into(),
-            UpdateOperation::Replace,
-        )
+        let value = StateVariable(distance.get::<uom::si::length::meter>());
+        self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
     pub fn set_time(
@@ -502,17 +443,9 @@ impl StateModel {
         state: &mut [StateVariable],
         name: &str,
         time: &Time,
-        from_unit: &TimeUnit,
     ) -> Result<(), StateModelError> {
-        let mut time_mut = Cow::Borrowed(time);
-        let to_unit = self.get_feature(name)?.get_time_unit()?;
-        from_unit.convert(&mut time_mut, to_unit)?;
-        self.update_state(
-            state,
-            name,
-            &time_mut.into_owned().into(),
-            UpdateOperation::Replace,
-        )
+        let value = StateVariable(time.get::<uom::si::time::second>());
+        self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
     pub fn set_energy(
@@ -520,53 +453,29 @@ impl StateModel {
         state: &mut [StateVariable],
         name: &str,
         energy: &Energy,
-        from_unit: &EnergyUnit,
     ) -> Result<(), StateModelError> {
-        let mut energy_mut = Cow::Borrowed(energy);
-        let to_unit = self.get_feature(name)?.get_energy_unit()?;
-        from_unit.convert(&mut energy_mut, to_unit)?;
-        self.update_state(
-            state,
-            name,
-            &energy_mut.into_owned().into(),
-            UpdateOperation::Replace,
-        )
+        let value = StateVariable(energy.get::<uom::si::energy::joule>());
+        self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
     pub fn set_grade(
         &self,
         state: &mut [StateVariable],
         name: &str,
-        grade: &Grade,
-        from_unit: &GradeUnit,
+        grade: &Ratio,
     ) -> Result<(), StateModelError> {
-        let mut grade_mut = Cow::Borrowed(grade);
-        let to_unit = self.get_feature(name)?.get_grade_unit()?;
-        from_unit.convert(&mut grade_mut, to_unit)?;
-        self.update_state(
-            state,
-            name,
-            &grade_mut.into_owned().into(),
-            UpdateOperation::Replace,
-        )
+        let value = StateVariable(grade.get::<uom::si::ratio::ratio>());
+        self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
     pub fn set_speed(
         &self,
         state: &mut [StateVariable],
         name: &str,
-        speed: &Speed,
-        from_unit: &SpeedUnit,
+        speed: &Velocity,
     ) -> Result<(), StateModelError> {
-        let mut speed_mut = Cow::Borrowed(speed);
-        let to_unit = self.get_feature(name)?.get_speed_unit()?;
-        from_unit.convert(&mut speed_mut, to_unit)?;
-        self.update_state(
-            state,
-            name,
-            &speed_mut.into_owned().into(),
-            UpdateOperation::Replace,
-        )
+        let value = StateVariable(speed.get::<uom::si::velocity::meter_per_second>());
+        self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
     pub fn set_custom_f64(
@@ -629,7 +538,7 @@ impl StateModel {
             .iter()
             .zip(state.iter())
             .filter_map(
-                |((name, feature), state_var)| match feature.is_accumlator() {
+                |((name, feature), state_var)| match feature.is_accumulator() {
                     false => None,
                     true => Some((name, state_var)),
                 },
@@ -660,7 +569,7 @@ impl StateModel {
         self.0.iter().map(|(k, _)| k.clone()).join(",")
     }
 
-    fn get_feature(&self, feature_name: &str) -> Result<&OutputFeature, StateModelError> {
+    fn get_feature(&self, feature_name: &str) -> Result<&StateFeature, StateModelError> {
         self.0.get(feature_name).ok_or_else(|| {
             StateModelError::UnknownStateVariableName(feature_name.to_string(), self.get_names())
         })

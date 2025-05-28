@@ -33,4 +33,5 @@ wkt = { workspace = true }
 wkb = { workspace = true }
 allocative = { workspace = true }
 rstar = { workspace = true }
+uom = { workspace = true, features = ["serde"] }
 topological-sort = "0.2.2"
