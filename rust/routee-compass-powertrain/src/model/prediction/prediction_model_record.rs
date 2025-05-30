@@ -104,6 +104,30 @@ impl PredictionModelRecord {
                     let (grade, _grade_unit) = state_model.get_grade(state, name, unit.as_ref())?;
                     grade.as_f64()
                 }
+                InputFeature::Distance(unit) => {
+                    if unit.is_none() {
+                        return Err(TraversalModelError::TraversalModelFailure(format!(
+                            "Unit must be set for distance input feature {} but got None",
+                            input_feature
+                        )));
+                    }
+                    let (distance, _distance_unit) =
+                        state_model.get_distance(state, name, unit.as_ref())?;
+                    distance.as_f64()
+                }
+                InputFeature::Time(unit) => {
+                    if unit.is_none() {
+                        return Err(TraversalModelError::TraversalModelFailure(format!(
+                            "Unit must be set for time input feature {} but got None",
+                            input_feature
+                        )));
+                    }
+                    let (time, _time_unit) = state_model.get_time(state, name, unit.as_ref())?;
+                    time.as_f64()
+                }
+                InputFeature::Custom { name, unit: _ } => {
+                    state_model.get_custom_f64(state, name)?
+                }
                 _ => {
                     return Err(TraversalModelError::TraversalModelFailure(format!(
                         "got an unexpected input feature in the smartcore model prediction {}",
