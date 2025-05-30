@@ -1,12 +1,11 @@
-use routee_compass_core::{
-    model::traversal::TraversalModelError,
-    model::unit::{EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+use routee_compass_core::model::{
+    traversal::TraversalModelError,
+    unit::{EnergyRate, EnergyRateUnit},
 };
 
 pub trait PredictionModel: Send + Sync {
     fn predict(
         &self,
-        speed: (Speed, &SpeedUnit),
-        grade: (Grade, &GradeUnit),
+        feature_vector: &Vec<f64>,
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError>;
 }

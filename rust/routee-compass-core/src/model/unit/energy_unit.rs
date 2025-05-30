@@ -3,7 +3,7 @@ use crate::model::unit::{AsF64, Volume};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, str::FromStr};
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy, Hash)]
 #[serde(rename_all = "snake_case", try_from = "String")]
 pub enum EnergyUnit {
     /// electric fuel

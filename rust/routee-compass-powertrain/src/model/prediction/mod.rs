@@ -5,12 +5,9 @@ pub mod prediction_model_ops;
 mod prediction_model_record;
 pub mod smartcore;
 
-#[cfg(feature = "onnx")]
-pub mod onnx;
 mod prediction_model_config;
 
 pub use model_type::ModelType;
 pub use prediction_model::PredictionModel;
 pub use prediction_model_config::PredictionModelConfig;
-pub use prediction_model_ops::load_prediction_model;
 pub use prediction_model_record::PredictionModelRecord;

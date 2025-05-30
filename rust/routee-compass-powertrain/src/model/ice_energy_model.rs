@@ -51,24 +51,12 @@ impl TryFrom<&Value> for IceEnergyModel {
 
 impl TraversalModel for IceEnergyModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
-        vec![
-            (
-                String::from(fieldname::EDGE_DISTANCE),
-                InputFeature::Distance(Some(
-                    self.prediction_model_record
-                        .speed_unit
-                        .associated_distance_unit(),
-                )),
-            ),
-            (
-                String::from(fieldname::EDGE_SPEED),
-                InputFeature::Speed(Some(self.prediction_model_record.speed_unit)),
-            ),
-            (
-                String::from(fieldname::EDGE_GRADE),
-                InputFeature::Grade(Some(self.prediction_model_record.grade_unit)),
-            ),
-        ]
+        let mut input_features = vec![(
+            String::from(fieldname::EDGE_DISTANCE),
+            InputFeature::Distance(Some(self.prediction_model_record.distance_unit)),
+        )];
+        input_features.extend(self.prediction_model_record.input_features.clone());
+        input_features
     }
 
     fn output_features(&self) -> Vec<(String, OutputFeature)> {
@@ -133,8 +121,6 @@ fn ice_traversal(
 ) -> Result<(), TraversalModelError> {
     let (distance, distance_unit) =
         state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
-    let (speed, speed_unit) = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
-    let (grade, grade_unit) = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
 
     // generate energy for link traversal
     let (energy, energy_unit) = if estimate {
@@ -143,11 +129,7 @@ fn ice_traversal(
             (&record.ideal_energy_rate, &record.energy_rate_unit),
         )?
     } else {
-        record.predict(
-            (speed, speed_unit),
-            (grade, grade_unit),
-            (distance, distance_unit),
-        )?
+        record.predict(state, state_model)?
     };
 
     state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy, &energy_unit)?;

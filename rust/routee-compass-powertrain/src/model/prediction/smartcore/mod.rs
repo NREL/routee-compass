@@ -1,3 +1,3 @@
-mod smartcore_speed_grade_model;
+mod smartcore_model;
 
-pub use smartcore_speed_grade_model::SmartcoreSpeedGradeModel;
+pub use smartcore_model::SmartcoreModel;

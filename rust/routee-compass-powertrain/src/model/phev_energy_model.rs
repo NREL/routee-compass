@@ -12,7 +12,7 @@ use routee_compass_core::model::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{borrow::Cow, sync::Arc};
+use std::{borrow::Cow, collections::HashSet, sync::Arc};
 
 #[derive(Clone)]
 pub struct PhevEnergyModel {
@@ -97,20 +97,19 @@ impl TraversalModelService for PhevEnergyModel {
 
 impl TraversalModel for PhevEnergyModel {
     fn input_features(&self) -> Vec<(String, InputFeature)> {
-        vec![
-            (
-                String::from(fieldname::EDGE_DISTANCE),
-                InputFeature::Distance(None),
-            ),
-            (
-                String::from(fieldname::EDGE_SPEED),
-                InputFeature::Speed(None),
-            ),
-            (
-                String::from(fieldname::EDGE_GRADE),
-                InputFeature::Grade(None),
-            ),
-        ]
+        let mut input_features = vec![(
+            String::from(fieldname::EDGE_DISTANCE),
+            InputFeature::Distance(Some(self.charge_depleting_model.distance_unit)),
+        )];
+        input_features.extend(self.charge_depleting_model.input_features.clone());
+        input_features.extend(self.charge_sustain_model.input_features.clone());
+
+        // remove any duplicates
+        let mut unique_features: HashSet<(String, InputFeature)> = HashSet::new();
+        for feature in input_features {
+            unique_features.insert(feature);
+        }
+        unique_features.into_iter().collect()
     }
 
     fn output_features(&self) -> Vec<(String, OutputFeature)> {
@@ -253,9 +252,7 @@ fn phev_traversal(
             (&depleting.ideal_energy_rate, &depleting.energy_rate_unit),
         )?
     } else {
-        let speed = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
-        let grade = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
-        depleting.predict(speed, grade, (distance, distance_unit))?
+        depleting.predict(state, state_model)?
     };
 
     let mut est_edge_elec = Cow::Owned(est_edge_elec);
@@ -376,9 +373,7 @@ fn mixed_traversal(
             (&sustaining.ideal_energy_rate, &sustaining.energy_rate_unit),
         )?
     } else {
-        let speed = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
-        let grade = state_model.get_grade(state, fieldname::EDGE_GRADE, None)?;
-        sustaining.predict(speed, grade, (remaining_dist, distance_unit))?
+        sustaining.predict(state, state_model)?
     };
 
     state_model.set_energy(
@@ -430,11 +425,14 @@ mod test {
     use crate::model::{
         fieldname,
         phev_energy_model::phev_traversal,
-        prediction::{ModelType, PredictionModelConfig, PredictionModelRecord},
+        prediction::{
+            interpolation::feature_bounds::FeatureBounds, ModelType, PredictionModelConfig,
+            PredictionModelRecord,
+        },
     };
     use routee_compass_core::{
         model::{
-            state::{StateModel, StateVariable},
+            state::{InputFeature, StateModel, StateVariable},
             traversal::TraversalModel,
             unit::{
                 AsF64, Distance, DistanceUnit, Energy, EnergyRateUnit, EnergyUnit, Grade,
@@ -443,7 +441,7 @@ mod test {
         },
         testing::mock::traversal_model::TestTraversalModel,
     };
-    use std::{path::PathBuf, sync::Arc};
+    use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
     #[test]
     fn test_phev_energy_model_just_electric() {
@@ -628,23 +626,47 @@ mod test {
             .join(format!("{}.bin", &model_name));
         let model_filename = model_file_path.to_str().expect("test invariant failed");
 
+        let feature_bounds = HashMap::from([
+            (
+                fieldname::EDGE_SPEED.to_string(),
+                FeatureBounds {
+                    lower_bound: 0.0,
+                    upper_bound: 100.0,
+                    num_bins: 101,
+                },
+            ),
+            (
+                fieldname::EDGE_GRADE.to_string(),
+                FeatureBounds {
+                    lower_bound: -0.2,
+                    upper_bound: 0.2,
+                    num_bins: 41,
+                },
+            ),
+        ]);
+
+        let input_features = vec![
+            (
+                fieldname::EDGE_SPEED.to_string(),
+                InputFeature::Speed(Some(SpeedUnit::MPH)),
+            ),
+            (
+                fieldname::EDGE_GRADE.to_string(),
+                InputFeature::Grade(Some(GradeUnit::Decimal)),
+            ),
+        ];
+
         let model_config = PredictionModelConfig::new(
             model_name.to_string(),
             model_filename.to_string(),
             ModelType::Interpolate {
                 underlying_model_type: Box::new(ModelType::Smartcore),
-                speed_lower_bound: Speed::from(0.0),
-                speed_upper_bound: Speed::from(100.0),
-                speed_bins: 101,
-                grade_lower_bound: Grade::from(-0.20),
-                grade_upper_bound: Grade::from(0.20),
-                grade_bins: 41,
+                feature_bounds,
             },
-            SpeedUnit::MPH,
-            GradeUnit::Decimal,
+            input_features,
+            DistanceUnit::Miles,
             EnergyRateUnit::KWHPM,
             Some(1.3958),
-            None,
         );
         let model_record =
             PredictionModelRecord::try_from(&model_config).expect("test invariant failed");

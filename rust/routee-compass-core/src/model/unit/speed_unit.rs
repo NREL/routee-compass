@@ -3,7 +3,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::{borrow::Cow, str::FromStr};
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Hash)]
 pub struct SpeedUnit(pub DistanceUnit, pub TimeUnit);
 
 impl std::fmt::Display for SpeedUnit {
