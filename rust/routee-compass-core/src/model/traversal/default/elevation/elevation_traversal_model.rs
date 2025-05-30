@@ -40,7 +40,7 @@ impl TraversalModel for ElevationTraversalModel {
             ),
             (
                 String::from(fieldname::EDGE_GRADE),
-                InputFeature::Grade(None),
+                InputFeature::Grade(Some(super::ELEVATION_GRADE_UNIT)),
             ),
         ]
     }
