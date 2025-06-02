@@ -361,6 +361,7 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tomlkit</span>
 
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">nrel.routee.compass.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
@@ -444,17 +445,7 @@ document.write(`
         <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
     <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;requires osmnx to be installed. &quot;</span> <span class="s2">&quot;Try &#39;pip install osmnx&#39;&quot;</span><span class="p">)</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">toml</span>
-    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">tomllib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">toml</span>  <span class="c1"># type: ignore</span>
-        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;requires Python 3.11 tomllib or pip install toml for earier Python versions&quot;</span>
-            <span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;requires osmnx to be installed. Try &#39;pip install osmnx&#39;&quot;</span><span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;running pipeline import with phases: [</span><span class="si">{</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">phases</span><span class="p">]</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
     <span class="n">output_directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_directory</span><span class="p">)</span>
@@ -578,7 +569,7 @@ document.write(`
                 <span class="s2">&quot;nrel.routee.compass.resources&quot;</span><span class="p">,</span> <span class="n">filename</span>
             <span class="p">)</span> <span class="k">as</span> <span class="n">init_toml_path</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">init_toml_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                    <span class="n">init_toml</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                    <span class="n">init_toml</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">tomlkit</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">GRADE</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
                         <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_input_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
@@ -586,7 +577,7 @@ document.write(`
                         <span class="p">)</span>
                         <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_grade_unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;decimal&quot;</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">toml</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">init_toml</span><span class="p">))</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tomlkit</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">init_toml</span><span class="p">))</span>
 
     <span class="c1"># DOWLOAD ROUTEE ENERGY MODEL CATALOG</span>
     <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">POWERTRAIN</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>

@@ -378,7 +378,7 @@ document.write(`
         <span class="n">Results</span><span class="p">,</span>
     <span class="p">)</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">toml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tomlkit</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 
 
@@ -435,7 +435,7 @@ document.write(`
         <span class="k">if</span> <span class="ow">not</span> <span class="n">config_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="si">}</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">toml_config</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">toml_config</span> <span class="o">=</span> <span class="n">tomlkit</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">toml_config</span><span class="p">,</span> <span class="n">config_path</span><span class="p">)</span></div>
 
@@ -444,7 +444,7 @@ document.write(`
 <a class="viewcode-back" href="../../../../python_api_docs.html#nrel.routee.compass.compass_app.CompassApp.from_dict">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span>
-        <span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Config</span><span class="p">,</span> <span class="n">working_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">tomlkit</span><span class="o">.</span><span class="n">TOMLDocument</span><span class="p">,</span> <span class="n">working_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CompassApp</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a CompassApp from a configuration object</span>
@@ -462,7 +462,7 @@ document.write(`
 <span class="sd">            &gt;&gt;&gt; app = CompassApp.from_config(conf)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">path_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">working_dir</span><span class="o">.</span><span class="n">absolute</span><span class="p">())</span> <span class="k">if</span> <span class="n">working_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-        <span class="n">toml_string</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">toml_string</span> <span class="o">=</span> <span class="n">tomlkit</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="n">app</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">get_constructor</span><span class="p">()</span><span class="o">.</span><span class="n">_from_config_toml_string</span><span class="p">(</span><span class="n">toml_string</span><span class="p">,</span> <span class="n">path_str</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></div>
 
@@ -524,9 +524,7 @@ document.write(`
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">osmnx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ox</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;requires osmnx to be installed. &quot;</span> <span class="s2">&quot;Try &#39;pip install osmnx&#39;&quot;</span>
-            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;requires osmnx to be installed. Try &#39;pip install osmnx&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cache_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">temp_dir</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
             <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">temp_dir</span><span class="o">.</span><span class="n">name</span>
@@ -613,9 +611,7 @@ document.write(`
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span><span class="w"> </span><span class="nn">osmnx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ox</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                <span class="s2">&quot;requires osmnx to be installed. &quot;</span> <span class="s2">&quot;Try &#39;pip install osmnx&#39;&quot;</span>
-            <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;requires osmnx to be installed. Try &#39;pip install osmnx&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cache_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">temp_dir</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
             <span class="n">cache_dir</span> <span class="o">=</span> <span class="n">temp_dir</span><span class="o">.</span><span class="n">name</span>
