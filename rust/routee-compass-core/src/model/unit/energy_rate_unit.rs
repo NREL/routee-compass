@@ -7,7 +7,7 @@ use itertools::Itertools;
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize};
 use std::{borrow::Cow, str::FromStr};
 
-#[derive(Debug, Clone, Eq, PartialEq, Copy)]
+#[derive(Debug, Clone, Eq, PartialEq, Copy, Hash)]
 pub enum EnergyRateUnit {
     DistancePerEnergy(DistanceUnit, EnergyUnit),
     EnergyPerDistance(EnergyUnit, DistanceUnit),
