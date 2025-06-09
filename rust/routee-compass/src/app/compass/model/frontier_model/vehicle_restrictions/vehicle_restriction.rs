@@ -28,8 +28,8 @@ impl VehicleRestriction {
     }
 
     /// compares this restriction against some query-time vehicle parameter using
-    /// this comparison operator
-    pub fn validate_parameters(&self, query_parameter: &VehicleParameter) -> bool {
+    /// the restriction's comparison operator
+    pub fn within_restriction(&self, query_parameter: &VehicleParameter) -> bool {
         self.comparison_operation
             .compare_parameters(query_parameter, &self.restriction_parameter)
     }
@@ -39,8 +39,9 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
     type Error = FrontierModelError;
 
     fn try_from(row: &RestrictionRow) -> Result<Self, Self::Error> {
-        let vehicle_parameter = match row.name.as_str() {
-            "height" => Ok(VehicleParameter::Height {
+        use VehicleParameterType as VPT;
+        let vehicle_parameter = match row.name {
+            VPT::Height => Ok(VehicleParameter::Height {
                 value: Distance::from(row.value),
                 unit: DistanceUnit::from_str(&row.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -49,7 +50,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     ))
                 })?,
             }),
-            "width" => Ok(VehicleParameter::Width {
+            VPT::Width => Ok(VehicleParameter::Width {
                 value: Distance::from(row.value),
                 unit: DistanceUnit::from_str(&row.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -58,7 +59,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     ))
                 })?,
             }),
-            "total_length" => Ok(VehicleParameter::TotalLength {
+            VPT::TotalLength => Ok(VehicleParameter::TotalLength {
                 value: Distance::from(row.value),
                 unit: DistanceUnit::from_str(&row.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -67,7 +68,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     ))
                 })?,
             }),
-            "trailer_length" => Ok(VehicleParameter::TrailerLength {
+            VPT::TrailerLength => Ok(VehicleParameter::TrailerLength {
                 value: Distance::from(row.value),
                 unit: DistanceUnit::from_str(&row.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -76,7 +77,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     ))
                 })?,
             }),
-            "total_weight" => Ok(VehicleParameter::TotalWeight {
+            VPT::TotalWeight => Ok(VehicleParameter::TotalWeight {
                 value: Weight::from(row.value),
                 unit: WeightUnit::from_str(&row.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -85,7 +86,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     ))
                 })?,
             }),
-            "weight_per_axle" => Ok(VehicleParameter::WeightPerAxle {
+            VPT::WeightPerAxle => Ok(VehicleParameter::WeightPerAxle {
                 value: Weight::from(row.value),
                 unit: WeightUnit::from_str(&row.unit).map_err(|e| {
                     FrontierModelError::BuildError(format!(
@@ -94,10 +95,6 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     ))
                 })?,
             }),
-            _ => Err(FrontierModelError::BuildError(format!(
-                "Unknown vehicle parameter type: {}",
-                row.name
-            ))),
         }?;
         let comparison_operation = row.operation.clone();
         Ok(VehicleRestriction {
