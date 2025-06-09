@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
 use super::{ComparisonOperation, RestrictionRow, VehicleParameter};
 use routee_compass_core::model::{
@@ -15,11 +15,11 @@ pub struct VehicleRestriction {
 
 impl VehicleRestriction {
     pub fn new(
-        vehicle_parameter: VehicleParameter,
+        restriction_parameter: VehicleParameter,
         comparison_operation: ComparisonOperation,
     ) -> Self {
         VehicleRestriction {
-            restriction_parameter: vehicle_parameter,
+            restriction_parameter,
             comparison_operation,
         }
     }
@@ -28,6 +28,8 @@ impl VehicleRestriction {
         self.restriction_parameter.name()
     }
 
+    /// compares this restriction against some query-time vehicle parameter using
+    /// this comparison operator
     pub fn validate_parameters(&self, query_parameter: &VehicleParameter) -> bool {
         self.comparison_operation
             .compare_parameters(query_parameter, &self.restriction_parameter)
@@ -103,5 +105,16 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
             restriction_parameter: vehicle_parameter,
             comparison_operation,
         })
+    }
+}
+
+impl Display for VehicleRestriction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "query parameter is {} link restrictions matching {}",
+            self.comparison_operation,
+            self.restriction_parameter.name()
+        )
     }
 }
