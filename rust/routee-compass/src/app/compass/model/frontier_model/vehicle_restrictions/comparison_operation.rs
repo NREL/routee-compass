@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
-
 use super::VehicleParameter;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum ComparisonOperation {

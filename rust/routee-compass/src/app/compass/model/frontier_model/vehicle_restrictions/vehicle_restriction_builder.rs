@@ -1,9 +1,5 @@
-use crate::app::compass::model::frontier_model::vehicle_restrictions::vehicle_parameter_type::VehicleParameterType;
-
-use super::VehicleRestriction;
 use super::{
-    vehicle_restriction_row::RestrictionRow,
-    vehicle_restriction_service::VehicleRestrictionFrontierService,
+    RestrictionRow, VehicleParameterType, VehicleRestriction, VehicleRestrictionFrontierService,
 };
 use kdam::Bar;
 use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};

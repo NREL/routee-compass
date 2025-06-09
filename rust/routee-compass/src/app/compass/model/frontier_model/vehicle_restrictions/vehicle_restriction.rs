@@ -1,13 +1,10 @@
-use std::{fmt::Display, str::FromStr};
-
-use crate::app::compass::model::frontier_model::vehicle_restrictions::vehicle_parameter_type::VehicleParameterType;
-
-use super::{ComparisonOperation, RestrictionRow, VehicleParameter};
+use super::{ComparisonOperation, RestrictionRow, VehicleParameter, VehicleParameterType};
 use routee_compass_core::model::{
     frontier::FrontierModelError,
     unit::{Distance, DistanceUnit, Weight, WeightUnit},
 };
 use serde::{Deserialize, Serialize};
+use std::{fmt::Display, str::FromStr};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct VehicleRestriction {

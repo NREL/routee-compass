@@ -1,9 +1,8 @@
+use super::VehicleParameterType;
 use routee_compass_core::model::unit::Convert;
 use routee_compass_core::model::unit::{Distance, DistanceUnit, Weight, WeightUnit};
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
-
-use crate::app::compass::model::frontier_model::vehicle_restrictions::vehicle_parameter_type::VehicleParameterType;
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "snake_case")]
