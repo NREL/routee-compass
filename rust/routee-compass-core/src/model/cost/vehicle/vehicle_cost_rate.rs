@@ -12,9 +12,9 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum VehicleCostRate {
     /// no cost
-    #[default]
     Zero,
     /// use a value directly as a cost
+    #[default]
     Raw,
     /// multiply a value by a factor to become a cost
     Factor {

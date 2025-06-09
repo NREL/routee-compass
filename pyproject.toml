@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "nrel.routee.compass"
-version = "0.11.1"
+version = "0.11.2"
 description = "An eco-routing tool build upon RouteE-Powertrain"
 readme = "README.md"
 documentation = "nrel.github.io/routee-compass"
@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 keywords = ["eco routing"]
-dependencies = ["toml"]
+dependencies = ["tomlkit"]
 
 [project.optional-dependencies]
 dev = [
@@ -33,7 +33,6 @@ dev = [
     "jupyterlab",
     "boxsdk",
     "types-requests",
-    "types-toml",
 ]
 osm = [
     "osmnx",

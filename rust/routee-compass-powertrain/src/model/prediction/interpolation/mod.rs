@@ -1,4 +1,5 @@
-mod interpolation_speed_grade_model;
+pub mod feature_bounds;
+mod interpolation_model;
 pub mod utils;
 
-pub use interpolation_speed_grade_model::InterpolationSpeedGradeModel;
+pub use interpolation_model::InterpolationModel;

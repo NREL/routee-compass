@@ -1,34 +1,24 @@
 use crate::model::prediction::prediction_model::PredictionModel;
 use routee_compass_core::model::{
     traversal::TraversalModelError,
-    unit::{AsF64, Convert, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit},
+    unit::{EnergyRate, EnergyRateUnit},
 };
 use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
 };
-use std::{borrow::Cow, fs::File, path::Path};
+use std::{fs::File, path::Path};
 
-pub struct SmartcoreSpeedGradeModel {
+pub struct SmartcoreModel {
     rf: RandomForestRegressor<f64, f64, DenseMatrix<f64>, Vec<f64>>,
-    speed_unit: SpeedUnit,
-    grade_unit: GradeUnit,
     energy_rate_unit: EnergyRateUnit,
 }
 
-impl PredictionModel for SmartcoreSpeedGradeModel {
+impl PredictionModel for SmartcoreModel {
     fn predict(
         &self,
-        speed: (Speed, &SpeedUnit),
-        grade: (Grade, &GradeUnit),
+        feature_vector: &Vec<f64>,
     ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
-        let (speed, speed_unit) = speed;
-        let (grade, grade_unit) = grade;
-        let mut speed_value = Cow::Owned(speed);
-        let mut grade_value = Cow::Owned(grade);
-        speed_unit.convert(&mut speed_value, &self.speed_unit)?;
-        grade_unit.convert(&mut grade_value, &self.grade_unit)?;
-        let x = DenseMatrix::from_2d_vec(&vec![vec![speed_value.as_f64(), grade_value.as_f64()]])
-            .map_err(|e| {
+        let x = DenseMatrix::from_2d_vec(&vec![feature_vector.to_vec()]).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
                 "unable to set up prediction input vector: {}",
                 e
@@ -46,11 +36,9 @@ impl PredictionModel for SmartcoreSpeedGradeModel {
     }
 }
 
-impl SmartcoreSpeedGradeModel {
+impl SmartcoreModel {
     pub fn new<P: AsRef<Path>>(
         routee_model_path: &P,
-        speed_unit: SpeedUnit,
-        grade_unit: GradeUnit,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
         let mut file = File::open(routee_model_path).map_err(|e| {
@@ -70,10 +58,8 @@ impl SmartcoreSpeedGradeModel {
                     ))
                 },
             )?;
-        Ok(SmartcoreSpeedGradeModel {
+        Ok(SmartcoreModel {
             rf,
-            speed_unit,
-            grade_unit,
             energy_rate_unit,
         })
     }
