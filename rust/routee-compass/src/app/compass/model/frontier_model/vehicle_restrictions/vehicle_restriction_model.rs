@@ -38,8 +38,8 @@ fn validate_edge(
     // if there are no parameters or restrictions, the edge is valid
     let restriction_map_option = model.service.vehicle_restriction_lookup.get(&edge.edge_id);
     let restrictions = match (restriction_map_option, model.vehicle_parameters.as_slice()) {
-        (None, _) => return Ok(true),
-        (_, []) => return Ok(true),
+        (None, _) => return Ok(true), // no restrictions on edge
+        (_, []) => return Ok(true),   // no vehicle parameters on query
         (Some(vehicle_restrictions), _) => vehicle_restrictions,
     };
 
@@ -47,7 +47,7 @@ fn validate_edge(
     for p in model.vehicle_parameters.iter() {
         let p_type = p.vehicle_parameter_type();
         match restrictions.get(p_type) {
-            Some(r) if !r.validate_parameters(p) => {
+            Some(r) if !r.within_restriction(p) => {
                 return Ok(false);
             }
             _ => {}
