@@ -35,10 +35,12 @@ fn validate_edge(
     model: &VehicleRestrictionFrontierModel,
     edge: &Edge,
 ) -> Result<bool, FrontierModelError> {
-    // check if there are any restrictions for this edge
-    let restrictions = match model.service.vehicle_restriction_lookup.get(&edge.edge_id) {
-        None => return Ok(true),
-        Some(vehicle_restrictions) => vehicle_restrictions,
+    // if there are no parameters or restrictions, the edge is valid
+    let restriction_map_option = model.service.vehicle_restriction_lookup.get(&edge.edge_id);
+    let restrictions = match (restriction_map_option, model.vehicle_parameters.as_slice()) {
+        (None, _) => return Ok(true),
+        (_, []) => return Ok(true),
+        (Some(vehicle_restrictions), _) => vehicle_restrictions,
     };
 
     // for each parameter of this frontier model, test if the parameter is valid for any matching restriction
