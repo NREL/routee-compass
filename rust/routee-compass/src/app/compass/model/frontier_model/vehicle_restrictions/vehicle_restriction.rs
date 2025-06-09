@@ -1,5 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
+use crate::app::compass::model::frontier_model::vehicle_restrictions::vehicle_parameter_type::VehicleParameterType;
+
 use super::{ComparisonOperation, RestrictionRow, VehicleParameter};
 use routee_compass_core::model::{
     frontier::FrontierModelError,
@@ -24,8 +26,8 @@ impl VehicleRestriction {
         }
     }
 
-    pub fn name(&self) -> String {
-        self.restriction_parameter.name()
+    pub fn vehicle_parameter_type(&self) -> &VehicleParameterType {
+        self.restriction_parameter.vehicle_parameter_type()
     }
 
     /// compares this restriction against some query-time vehicle parameter using
@@ -114,7 +116,7 @@ impl Display for VehicleRestriction {
             f,
             "query parameter is {} link restrictions matching {}",
             self.comparison_operation,
-            self.restriction_parameter.name()
+            self.restriction_parameter.vehicle_parameter_type()
         )
     }
 }

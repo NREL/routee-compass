@@ -1,7 +1,4 @@
-use super::{
-    vehicle_parameter::VehicleParameter,
-    vehicle_restriction_service::VehicleRestrictionFrontierService,
-};
+use super::{VehicleParameter, VehicleRestrictionFrontierService};
 use routee_compass_core::{
     algorithm::search::{Direction, SearchTreeBranch},
     model::{
@@ -38,22 +35,24 @@ fn validate_edge(
     model: &VehicleRestrictionFrontierModel,
     edge: &Edge,
 ) -> Result<bool, FrontierModelError> {
-    match model.service.vehicle_restriction_lookup.get(&edge.edge_id) {
-        None => Ok(true),
-        Some(vehicle_restrictions) => {
-            let valid =
-                model
-                    .vehicle_parameters
-                    .iter()
-                    .all(|vehicle_parameter| {
-                        match vehicle_restrictions.get(&vehicle_parameter.name()) {
-                            Some(restriction) => restriction.validate_parameters(vehicle_parameter),
-                            None => true,
-                        }
-                    });
-            Ok(valid)
+    // check if there are any restrictions for this edge
+    let restrictions = match model.service.vehicle_restriction_lookup.get(&edge.edge_id) {
+        None => return Ok(true),
+        Some(vehicle_restrictions) => vehicle_restrictions,
+    };
+
+    // for each parameter of this frontier model, test if the parameter is valid for any matching restriction
+    for p in model.vehicle_parameters.iter() {
+        let p_type = p.vehicle_parameter_type();
+        match restrictions.get(p_type) {
+            Some(r) if !r.validate_parameters(&p) => {
+                return Ok(false);
+            }
+            _ => {}
         }
     }
+
+    Ok(true)
 }
 
 #[cfg(test)]

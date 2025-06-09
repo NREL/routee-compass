@@ -1,3 +1,5 @@
+use crate::app::compass::model::frontier_model::vehicle_restrictions::vehicle_parameter_type::VehicleParameterType;
+
 use super::VehicleRestriction;
 use super::{
     vehicle_restriction_row::RestrictionRow,
@@ -48,8 +50,10 @@ impl FrontierModelBuilder for VehicleRestrictionBuilder {
 
 pub fn vehicle_restriction_lookup_from_file(
     vehicle_restriction_input_file: &PathBuf,
-) -> Result<HashMap<EdgeId, CompactOrderedHashMap<String, VehicleRestriction>>, FrontierModelError>
-{
+) -> Result<
+    HashMap<EdgeId, CompactOrderedHashMap<VehicleParameterType, VehicleRestriction>>,
+    FrontierModelError,
+> {
     let rows: Vec<RestrictionRow> = read_utils::from_csv(
         &vehicle_restriction_input_file,
         true,
@@ -66,18 +70,18 @@ pub fn vehicle_restriction_lookup_from_file(
 
     let mut vehicle_restriction_lookup: HashMap<
         EdgeId,
-        CompactOrderedHashMap<String, VehicleRestriction>,
+        CompactOrderedHashMap<VehicleParameterType, VehicleRestriction>,
     > = HashMap::new();
     for row in rows {
         let restriction = VehicleRestriction::try_from(&row)?;
         match vehicle_restriction_lookup.get_mut(&row.edge_id) {
             None => {
                 let mut restrictions = CompactOrderedHashMap::empty();
-                restrictions.insert(restriction.name(), restriction);
+                restrictions.insert(restriction.vehicle_parameter_type().clone(), restriction);
                 vehicle_restriction_lookup.insert(row.edge_id, restrictions);
             }
             Some(restrictions) => {
-                restrictions.insert(restriction.name(), restriction);
+                restrictions.insert(restriction.vehicle_parameter_type().clone(), restriction);
             }
         }
     }

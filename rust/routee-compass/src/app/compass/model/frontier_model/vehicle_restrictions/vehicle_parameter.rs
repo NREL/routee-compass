@@ -3,6 +3,8 @@ use routee_compass_core::model::unit::{Distance, DistanceUnit, Weight, WeightUni
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
+use crate::app::compass::model::frontier_model::vehicle_restrictions::vehicle_parameter_type::VehicleParameterType;
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum VehicleParameter {
@@ -15,14 +17,15 @@ pub enum VehicleParameter {
 }
 
 impl VehicleParameter {
-    pub fn name(&self) -> String {
+    pub fn vehicle_parameter_type(&self) -> &VehicleParameterType {
+        use VehicleParameterType as VPT;
         match self {
-            VehicleParameter::Height { .. } => "height".to_string(),
-            VehicleParameter::Width { .. } => "width".to_string(),
-            VehicleParameter::TotalLength { .. } => "total_length".to_string(),
-            VehicleParameter::TrailerLength { .. } => "trailer_length".to_string(),
-            VehicleParameter::TotalWeight { .. } => "total_weight".to_string(),
-            VehicleParameter::WeightPerAxle { .. } => "weight_per_axle".to_string(),
+            VehicleParameter::Height { .. } => &VPT::Height,
+            VehicleParameter::Width { .. } => &VPT::Width,
+            VehicleParameter::TotalLength { .. } => &VPT::TotalLength,
+            VehicleParameter::TrailerLength { .. } => &VPT::TrailerLength,
+            VehicleParameter::TotalWeight { .. } => &VPT::TotalWeight,
+            VehicleParameter::WeightPerAxle { .. } => &VPT::WeightPerAxle,
         }
     }
 }
