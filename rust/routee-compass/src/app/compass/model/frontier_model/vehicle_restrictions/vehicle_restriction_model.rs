@@ -45,7 +45,7 @@ fn validate_edge(
     for p in model.vehicle_parameters.iter() {
         let p_type = p.vehicle_parameter_type();
         match restrictions.get(p_type) {
-            Some(r) if !r.validate_parameters(&p) => {
+            Some(r) if !r.validate_parameters(p) => {
                 return Ok(false);
             }
             _ => {}
