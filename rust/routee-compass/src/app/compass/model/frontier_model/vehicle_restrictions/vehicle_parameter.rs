@@ -89,7 +89,7 @@ impl PartialOrd for VehicleParameter {
 /// using the quantity's comparison operator.
 fn cmp_params<Q, U>(a: &Q, au: &U, b: &Q, bu: &U) -> Option<std::cmp::Ordering>
 where
-    Q: Clone + PartialOrd + ?Sized,
+    Q: Clone + PartialOrd,
     U: Convert<Q>,
 {
     let mut b_cmp = Cow::Borrowed(b);
