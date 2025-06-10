@@ -1,7 +1,4 @@
 mod custom_feature_format;
-mod indexed_state_feature;
-mod input_feature;
-mod output_feature;
 mod state_feature;
 mod state_model;
 mod state_model_error;
@@ -10,9 +7,7 @@ mod unit_codec_type;
 mod update_operation;
 
 pub use custom_feature_format::CustomFeatureFormat;
-pub use indexed_state_feature::IndexedStateFeature;
-pub use input_feature::InputFeature;
-pub use output_feature::OutputFeature;
+pub use state_feature::StateFeature;
 pub use state_model::StateModel;
 pub use state_model_error::StateModelError;
 pub use state_variable::StateVariable;

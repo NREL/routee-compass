@@ -2,14 +2,35 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use uom::si::f64::*;
 
+use crate::model::state::{CustomFeatureFormat, StateModelError};
+
 #[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
 pub enum StateFeature {
-    Distance { value: Length, accumulator: bool },
-    Time { value: Time, accumulator: bool },
-    Speed { value: Velocity, accumulator: bool },
-    Energy { value: Energy, accumulator: bool },
-    Grade { value: Ratio, accumulator: bool },
-    CustomF64 { value: f64, accumulator: bool },
+    Distance {
+        value: Length,
+        accumulator: bool,
+    },
+    Time {
+        value: Time,
+        accumulator: bool,
+    },
+    Speed {
+        value: Velocity,
+        accumulator: bool,
+    },
+    Energy {
+        value: Energy,
+        accumulator: bool,
+    },
+    Grade {
+        value: Ratio,
+        accumulator: bool,
+    },
+    Custom {
+        value: f64,
+        accumulator: bool,
+        format: CustomFeatureFormat,
+    },
 }
 
 impl StateFeature {
@@ -20,7 +41,7 @@ impl StateFeature {
             StateFeature::Speed { value, .. } => value.get::<uom::si::velocity::meter_per_second>(),
             StateFeature::Energy { value, .. } => value.get::<uom::si::energy::joule>(),
             StateFeature::Grade { value, .. } => value.get::<uom::si::ratio::ratio>(),
-            StateFeature::CustomF64 { value, .. } => *value,
+            StateFeature::Custom { value, .. } => *value,
         }
     }
     pub fn is_accumulator(&self) -> bool {
@@ -30,7 +51,16 @@ impl StateFeature {
             StateFeature::Speed { accumulator, .. } => *accumulator,
             StateFeature::Energy { accumulator, .. } => *accumulator,
             StateFeature::Grade { accumulator, .. } => *accumulator,
-            StateFeature::CustomF64 { accumulator, .. } => *accumulator,
+            StateFeature::Custom { accumulator, .. } => *accumulator,
+        }
+    }
+    pub fn get_custom_feature_format(&self) -> Result<&CustomFeatureFormat, StateModelError> {
+        match self {
+            StateFeature::Custom { format, .. } => Ok(format),
+            _ => Err(StateModelError::UnexpectedFeatureType(
+                "Expected Custom feature type".to_string(),
+                format!("Got: {:?}", self),
+            )),
         }
     }
 }
@@ -53,9 +83,18 @@ impl Display for StateFeature {
             StateFeature::Grade { value, accumulator } => {
                 write!(f, "Grade: {:?} (Accumulator: {})", value, accumulator)
             }
-            StateFeature::CustomF64 { value, accumulator } => {
-                write!(f, "CustomF64: {} (Accumulator: {})", value, accumulator)
+            StateFeature::Custom {
+                value,
+                accumulator,
+                format,
+            } => {
+                write!(
+                    f,
+                    "CustomF64: {} (Accumulator: {}, Format: {})",
+                    value, accumulator, format
+                )
             }
         }
     }
 }
+

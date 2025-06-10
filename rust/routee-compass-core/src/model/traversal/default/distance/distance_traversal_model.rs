@@ -1,26 +1,17 @@
-use std::borrow::Cow;
+use uom::si::f64::Length;
+use uom::ConstZero;
 
 use crate::model::network::{Edge, Vertex};
+use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
-use crate::model::state::{InputFeature, OutputFeature};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
-use crate::model::unit::{baseunit, Convert, Distance, DistanceUnit};
 use crate::util::geo::haversine;
 
 /// a model for traversing edges based on distance.
-pub struct DistanceTraversalModel {
-    /// this is the unit used to store distance in the state vector
-    distance_unit: DistanceUnit,
-}
-
-impl DistanceTraversalModel {
-    pub fn new(distance_unit: DistanceUnit) -> DistanceTraversalModel {
-        DistanceTraversalModel { distance_unit }
-    }
-}
+pub struct DistanceTraversalModel {}
 
 impl TraversalModel for DistanceTraversalModel {
     /// traverses a graph edge and updates the state vector with the distance.
@@ -34,21 +25,9 @@ impl TraversalModel for DistanceTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
-        let mut distance = Cow::Borrowed(&edge.distance);
-        baseunit::DISTANCE_UNIT.convert(&mut distance, &self.distance_unit)?;
 
-        state_model.set_distance(
-            state,
-            fieldname::EDGE_DISTANCE,
-            &distance,
-            &self.distance_unit,
-        )?;
-        state_model.add_distance(
-            state,
-            fieldname::TRIP_DISTANCE,
-            &distance,
-            &self.distance_unit,
-        )?;
+        state_model.set_distance(state, fieldname::EDGE_DISTANCE, &edge.distance)?;
+        state_model.add_distance(state, fieldname::TRIP_DISTANCE, &edge.distance)?;
         Ok(())
     }
 
@@ -61,47 +40,34 @@ impl TraversalModel for DistanceTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (src, dst) = od;
         let distance =
-            haversine::coord_distance(&src.coordinate, &dst.coordinate, self.distance_unit)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "could not compute haversine distance between {} and {}: {}",
-                        src, dst, e
-                    ))
-                })?;
-        state_model.add_distance(
-            state,
-            fieldname::TRIP_DISTANCE,
-            &distance,
-            &self.distance_unit,
-        )?;
-        state_model.set_distance(
-            state,
-            fieldname::EDGE_DISTANCE,
-            &distance,
-            &self.distance_unit,
-        )?;
+            haversine::coord_distance(&src.coordinate, &dst.coordinate).map_err(|e| {
+                TraversalModelError::TraversalModelFailure(format!(
+                    "could not compute haversine distance between {} and {}: {}",
+                    src, dst, e
+                ))
+            })?;
+        state_model.add_distance(state, fieldname::TRIP_DISTANCE, &distance)?;
+        state_model.set_distance(state, fieldname::EDGE_DISTANCE, &distance)?;
         Ok(())
     }
 
-    fn input_features(&self) -> Vec<(String, InputFeature)> {
+    fn input_features(&self) -> Vec<String> {
         vec![]
     }
 
-    fn output_features(&self) -> Vec<(String, OutputFeature)> {
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
         vec![
             (
                 String::from(fieldname::TRIP_DISTANCE),
-                OutputFeature::Distance {
-                    distance_unit: self.distance_unit,
-                    initial: Distance::ZERO,
+                StateFeature::Distance {
+                    value: Length::ZERO,
                     accumulator: true,
                 },
             ),
             (
                 String::from(fieldname::EDGE_DISTANCE),
-                OutputFeature::Distance {
-                    distance_unit: self.distance_unit,
-                    initial: Distance::ZERO,
+                StateFeature::Distance {
+                    value: Length::ZERO,
                     accumulator: false,
                 },
             ),

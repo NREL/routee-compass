@@ -6,11 +6,12 @@ use crate::{
 };
 use kdam::Bar;
 use std::path::Path;
+use uom::si::f64::Velocity;
+use uom::ConstZero;
 
 pub struct SpeedTraversalEngine {
-    pub speed_table: Box<[Speed]>,
-    pub speed_unit: SpeedUnit,
-    pub max_speed: Speed,
+    pub speed_table: Box<[Velocity]>,
+    pub max_speed: Velocity,
 }
 
 impl SpeedTraversalEngine {
@@ -18,9 +19,9 @@ impl SpeedTraversalEngine {
         speed_table_path: &P,
         speed_unit: SpeedUnit,
     ) -> Result<SpeedTraversalEngine, TraversalModelError> {
-        let speed_table: Box<[Speed]> = read_utils::read_raw_file(
+        let speed_table: Box<[Velocity]> = read_utils::read_raw_file(
             speed_table_path,
-            read_decoders::default,
+            read_decoders::f64,
             Some(Bar::builder().desc("link speeds")),
             None,
         )
@@ -30,22 +31,25 @@ impl SpeedTraversalEngine {
                 speed_table_path.as_ref().to_str().unwrap_or_default(),
                 e,
             ))
-        })?;
+        })?
+        .iter()
+        .map(|&s| speed_unit.to_uom(s))
+        .collect::<Vec<Velocity>>()
+        .into_boxed_slice();
         let max_speed = get_max_speed(&speed_table)?;
         let model = SpeedTraversalEngine {
             speed_table,
-            speed_unit,
             max_speed,
         };
         Ok(model)
     }
 }
 
-pub fn get_max_speed(speed_table: &[Speed]) -> Result<Speed, TraversalModelError> {
+pub fn get_max_speed(speed_table: &[Velocity]) -> Result<Velocity, TraversalModelError> {
     let (max_speed, count) =
         speed_table
             .iter()
-            .fold((Speed::ZERO, 0), |(acc_max, acc_cnt), row| {
+            .fold((Velocity::ZERO, 0), |(acc_max, acc_cnt), row| {
                 let next_max = if acc_max > *row { acc_max } else { *row };
                 (next_max, acc_cnt + 1)
             });
@@ -53,7 +57,7 @@ pub fn get_max_speed(speed_table: &[Speed]) -> Result<Speed, TraversalModelError
     if count == 0 {
         let msg = format!("parsed {} entries for speed table", count);
         Err(TraversalModelError::BuildError(msg))
-    } else if max_speed == Speed::ZERO {
+    } else if max_speed == Velocity::ZERO {
         let msg = format!("max speed was zero in speed table with {} entries", count);
         Err(TraversalModelError::BuildError(msg))
     } else {
