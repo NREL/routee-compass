@@ -312,7 +312,7 @@ Here's a list of all the different sections that get returned:
 
 def print_keys(d, indent=0):
     for k in sorted(d.keys()):
-        print(f"{' '*indent} - {k}")
+        print(f"{' ' * indent} - {k}")
         if isinstance(d[k], dict):
             print_keys(d[k], indent + 2)
 
