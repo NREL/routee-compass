@@ -1,10 +1,6 @@
 use super::GradeConfiguration;
 use crate::{
-    model::{
-        network::EdgeId,
-        traversal::TraversalModelError,
-        unit::{Grade, GradeUnit},
-    },
+    model::{network::EdgeId, traversal::TraversalModelError},
     util::fs::{read_decoders, read_utils},
 };
 use kdam::Bar;

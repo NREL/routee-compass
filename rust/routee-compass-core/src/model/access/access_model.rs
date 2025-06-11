@@ -1,7 +1,7 @@
 use super::AccessModelError;
 use crate::model::{
     network::{Edge, Vertex},
-    state::{OutputFeature, StateModel, StateVariable},
+    state::{StateFeature, StateModel, StateVariable},
 };
 
 pub trait AccessModel: Send + Sync {
@@ -9,7 +9,7 @@ pub trait AccessModel: Send + Sync {
     /// defined on the base configuration. for example, if this access model
     /// has state variables that differ based on the query, they can be injected
     /// into the state model by listing them here.
-    fn state_features(&self) -> Vec<(String, OutputFeature)>;
+    fn state_features(&self) -> Vec<(String, StateFeature)>;
 
     /// Updates the traversal state by accessing some destination edge
     /// when coming from some previous edge.

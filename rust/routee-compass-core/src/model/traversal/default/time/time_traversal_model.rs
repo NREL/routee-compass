@@ -1,37 +1,22 @@
-use super::time_configuration::TimeConfiguration;
+use uom::{
+    si::f64::{Length, Time, Velocity},
+    ConstZero,
+};
+
 use crate::{
     model::{
         network::{Edge, Vertex},
-        state::{InputFeature, OutputFeature, StateModel, StateVariable},
+        state::{StateFeature, StateModel, StateVariable},
         traversal::{
             default::fieldname, TraversalModel, TraversalModelError, TraversalModelService,
         },
-        unit::{Convert, Distance, DistanceUnit, Time, TimeUnit},
     },
     util::geo::haversine,
 };
-use std::{borrow::Cow, sync::Arc};
+use std::sync::Arc;
 
 #[derive(Clone, Debug)]
-pub struct TimeTraversalModel {
-    pub time_unit: TimeUnit,
-}
-
-impl TimeTraversalModel {
-    pub fn new(time_unit: &TimeUnit) -> TimeTraversalModel {
-        TimeTraversalModel {
-            time_unit: *time_unit,
-        }
-    }
-}
-
-impl From<&TimeConfiguration> for TimeTraversalModel {
-    fn from(config: &TimeConfiguration) -> Self {
-        TimeTraversalModel {
-            time_unit: config.time_unit,
-        }
-    }
-}
+pub struct TimeTraversalModel {}
 
 impl TraversalModelService for TimeTraversalModel {
     fn build(
@@ -43,34 +28,26 @@ impl TraversalModelService for TimeTraversalModel {
 }
 
 impl TraversalModel for TimeTraversalModel {
-    fn input_features(&self) -> Vec<(String, InputFeature)> {
+    fn input_features(&self) -> Vec<String> {
         vec![
-            (
-                String::from(fieldname::EDGE_DISTANCE),
-                InputFeature::Distance(None),
-            ),
-            (
-                String::from(fieldname::EDGE_SPEED),
-                InputFeature::Speed(None),
-            ),
+            String::from(fieldname::EDGE_DISTANCE),
+            String::from(fieldname::EDGE_SPEED),
         ]
     }
 
-    fn output_features(&self) -> Vec<(String, OutputFeature)> {
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
         vec![
             (
                 String::from(fieldname::EDGE_TIME),
-                OutputFeature::Time {
-                    time_unit: self.time_unit,
-                    initial: Time::ZERO,
+                StateFeature::Time {
+                    value: Time::ZERO,
                     accumulator: false,
                 },
             ),
             (
                 String::from(fieldname::TRIP_TIME),
-                OutputFeature::Time {
-                    time_unit: self.time_unit,
-                    initial: Time::ZERO,
+                StateFeature::Time {
+                    value: Time::ZERO,
                     accumulator: true,
                 },
             ),
@@ -83,16 +60,13 @@ impl TraversalModel for TimeTraversalModel {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let (distance, distance_unit) =
-            state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
-        let (speed, speed_unit) = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
+        let distance: Length = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
+        let speed: Velocity = state_model.get_speed(state, fieldname::EDGE_SPEED)?;
 
-        let (t, tu) = Time::create((&distance, distance_unit), (&speed, speed_unit))?;
-        let mut edge_time = Cow::Owned(t);
-        tu.convert(&mut edge_time, &self.time_unit)?;
+        let edge_time = distance / speed;
 
-        state_model.add_time(state, fieldname::TRIP_TIME, &edge_time, &self.time_unit)?;
-        state_model.set_time(state, fieldname::EDGE_TIME, &edge_time, &self.time_unit)?;
+        state_model.add_time(state, fieldname::TRIP_TIME, &edge_time)?;
+        state_model.set_time(state, fieldname::EDGE_TIME, &edge_time)?;
 
         Ok(())
     }
@@ -104,26 +78,22 @@ impl TraversalModel for TimeTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (src, dst) = od;
-        let distance =
-            haversine::coord_distance_meters(&src.coordinate, &dst.coordinate).map_err(|e| {
+        let distance: Length = haversine::coord_distance(&src.coordinate, &dst.coordinate)
+            .map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
                     "could not compute haversine distance between {} and {}: {}",
                     src, dst, e
                 ))
             })?;
 
-        if distance == Distance::ZERO {
+        if distance == Length::ZERO {
             return Ok(());
         }
-        let distance_unit = DistanceUnit::Meters;
-        let (speed, speed_unit) = state_model.get_speed(state, fieldname::EDGE_SPEED, None)?;
+        let speed = state_model.get_speed(state, fieldname::EDGE_SPEED)?;
+        let time = distance / speed;
 
-        let (t, tu) = Time::create((&distance, &distance_unit), (&speed, speed_unit))?;
-        let mut edge_time = Cow::Owned(t);
-        tu.convert(&mut edge_time, &self.time_unit)?;
-
-        state_model.add_time(state, fieldname::TRIP_TIME, &edge_time, &self.time_unit)?;
-        state_model.set_time(state, fieldname::EDGE_TIME, &edge_time, &self.time_unit)?;
+        state_model.add_time(state, fieldname::TRIP_TIME, &time)?;
+        state_model.set_time(state, fieldname::EDGE_TIME, &time)?;
 
         Ok(())
     }

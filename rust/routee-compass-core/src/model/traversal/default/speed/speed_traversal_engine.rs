@@ -1,9 +1,6 @@
 use crate::model::unit::SpeedUnit;
 use crate::util::fs::read_decoders;
-use crate::{
-    model::{traversal::TraversalModelError, unit::Speed},
-    util::fs::read_utils,
-};
+use crate::{model::traversal::TraversalModelError, util::fs::read_utils};
 use kdam::Bar;
 use std::path::Path;
 use uom::si::f64::Velocity;

@@ -5,7 +5,6 @@ use crate::model::{
     network::{Edge, Vertex},
     state::{StateFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError},
-    unit::Grade,
 };
 use std::sync::Arc;
 
@@ -44,11 +43,7 @@ impl TraversalModel for GradeTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
         let grade = self.engine.get_grade(edge.edge_id)?;
-        state_model.set_grade(
-            state,
-            fieldname::EDGE_GRADE,
-            &grade,
-        )?;
+        state_model.set_grade(state, fieldname::EDGE_GRADE, &grade)?;
         Ok(())
     }
 

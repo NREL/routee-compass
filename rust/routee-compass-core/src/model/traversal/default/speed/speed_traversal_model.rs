@@ -9,7 +9,7 @@ use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
+use crate::model::traversal::traversal_model_error::TraversalModelError;
 use std::sync::Arc;
 
 pub struct SpeedTraversalModel {
@@ -179,8 +179,7 @@ mod tests {
             .traverse_edge((&v, &e1, &v), &mut state, &state_model)
             .unwrap();
 
-        let expected_speed = Speed::from(10.0);
-        let expected_unit = SpeedUnit::KPH;
+        let expected_speed = Velocity::new::<uom::si::velocity::kilometer_per_hour>(10.0);
         let result_speed = state_model
             .get_speed(&state, "edge_speed")
             .expect("test invariant failed");
@@ -193,8 +192,7 @@ mod tests {
     #[test]
     fn test_speed_limit_enforcement() {
         // We know from the test data that edge 0 has a speed of 10 kph, so set a limit of 5 kph
-        let speed_limit_value = Speed::from(5.0);
-        let speed_limit = Some((speed_limit_value, SpeedUnit::KPH));
+        let speed_limit = Some(Velocity::new::<uom::si::velocity::kilometer_per_hour>(5.0));
 
         let file: PathBuf = filepath();
         let engine = Arc::new(
@@ -248,24 +246,14 @@ mod tests {
             .expect("test invariant failed");
 
         assert_eq!(
-            speed_with_limit, speed_limit_value,
+            speed_with_limit,
+            speed_limit.unwrap(),
             "speed with limit should match the speed limit value"
         );
         assert_eq!(
             speed_without_limit,
-            Speed::from(10.0),
+            Velocity::new::<uom::si::velocity::kilometer_per_hour>(10.0),
             "speed without limit should match velocities.txt (10)"
         );
-
-        // // 100 meters @ 5kph should take 72 seconds ((0.1/5) * 3600)
-        // let expected_time_with_limit = 72.0;
-        // // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        // let expected_time_without_limit = 36.0;
-
-        // approx_eq(time_with_limit, expected_time_with_limit, 0.001);
-        // approx_eq(time_without_limit, expected_time_without_limit, 0.001);
-
-        // // Verify that time with limit is about double the time without limit
-        // approx_eq(time_with_limit / time_without_limit, 2.0, 0.001);
     }
 }

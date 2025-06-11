@@ -2,7 +2,6 @@ use super::{Edge, EdgeId, NetworkError, Vertex, VertexId};
 use crate::algorithm::search::Direction;
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::util::fs::read_utils;
-use allocative::Allocative;
 use itertools::Itertools;
 use kdam::Bar;
 use std::collections::HashSet;
@@ -27,7 +26,7 @@ use std::path::Path;
 /// into Vecs because of error handling or lifetimes, but those cases will only produce a
 /// smaller subset of the source data.
 
-#[derive(Debug, Allocative)]
+#[derive(Debug)]
 pub struct Graph {
     pub adj: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
     pub rev: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,

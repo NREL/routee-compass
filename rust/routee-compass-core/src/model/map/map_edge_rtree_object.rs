@@ -1,10 +1,8 @@
 use super::{map_error::MapError, spatial_index_ops as ops};
-use crate::model::{
-    network::{Edge, EdgeId},
-    unit::{Distance, DistanceUnit},
-};
+use crate::model::network::{Edge, EdgeId};
 use geo::{LineString, Point};
 use rstar::{PointDistance, RTreeObject, AABB};
+use uom::si::f64::Length;
 
 /// rtree element for edge-oriented map matching.
 #[derive(Clone)]
@@ -24,10 +22,10 @@ impl MapEdgeRTreeObject {
     pub fn test_threshold(
         &self,
         point: &Point<f32>,
-        tolerance: &Option<(Distance, DistanceUnit)>,
+        tolerance: &Option<Length>,
     ) -> Result<bool, MapError> {
         match tolerance {
-            Some((dist, unit)) => ops::test_threshold(&self.envelope, point, *dist, *unit),
+            Some(dist) => ops::test_threshold(&self.envelope, point, *dist),
             None => Ok(true),
         }
     }
@@ -35,10 +33,10 @@ impl MapEdgeRTreeObject {
     pub fn within_distance_threshold(
         &self,
         point: &Point<f32>,
-        tolerance: &Option<(Distance, DistanceUnit)>,
+        tolerance: &Option<Length>,
     ) -> Result<(), MapError> {
         match tolerance {
-            Some((dist, unit)) => ops::within_threshold(&self.envelope, point, *dist, *unit),
+            Some(dist) => ops::within_threshold(&self.envelope, point, *dist),
             None => Ok(()),
         }
     }

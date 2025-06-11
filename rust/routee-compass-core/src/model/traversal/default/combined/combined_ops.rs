@@ -33,7 +33,7 @@ pub fn topological_dependency_sort(
         if input_features.is_empty() {
             sort.insert(idx);
         } else {
-            for (n, _) in input_features.iter() {
+            for n in input_features.iter() {
                 match &output_features_lookup.get(n) {
                     None => {
                         missing_parents.push(n.clone());
@@ -87,12 +87,12 @@ mod test {
     use super::topological_dependency_sort;
     use crate::model::{
         network::{Edge, Vertex},
-        state::{InputFeature, OutputFeature, StateModel, StateVariable},
+        state::{StateFeature, StateModel, StateVariable},
         traversal::{TraversalModel, TraversalModelError},
-        unit::{Distance, DistanceUnit},
     };
     use itertools::Itertools;
     use std::sync::Arc;
+    use uom::{si::f64::Length, ConstZero};
 
     /// tests dependency sort on the typical setup for modeling distance, speed,
     /// time, grade, elevation, and energy.
@@ -125,7 +125,7 @@ mod test {
                 let in_names = if input_features.is_empty() {
                     String::from("*")
                 } else {
-                    m.input_features().iter().map(|(n, _)| n).join("+")
+                    m.input_features().iter().join("+")
                 };
                 let out_name = m.output_features().iter().map(|(n, _)| n).join("");
                 format!("{}->{}", in_names, out_name)
@@ -185,7 +185,7 @@ mod test {
                 let in_names = if input_features.is_empty() {
                     String::from("*")
                 } else {
-                    m.input_features().iter().map(|(n, _)| n).join("+")
+                    m.input_features().iter().join("+")
                 };
                 let out_name = m.output_features().iter().map(|(n, _)| n).join("+");
                 format!("{}->{}", in_names, out_name)
@@ -234,22 +234,18 @@ mod test {
     }
 
     impl TraversalModel for MockModel {
-        fn input_features(&self) -> Vec<(String, InputFeature)> {
-            self.in_features
-                .iter()
-                .map(|n| (n.clone(), InputFeature::Distance(None)))
-                .collect_vec()
+        fn input_features(&self) -> Vec<String> {
+            self.in_features.clone()
         }
 
-        fn output_features(&self) -> Vec<(String, OutputFeature)> {
+        fn output_features(&self) -> Vec<(String, StateFeature)> {
             self.out_features
                 .iter()
                 .map(|n| {
                     (
                         n.clone(),
-                        OutputFeature::Distance {
-                            distance_unit: DistanceUnit::Feet,
-                            initial: Distance::ZERO,
+                        StateFeature::Distance {
+                            value: Length::ZERO,
                             accumulator: true,
                         },
                     )

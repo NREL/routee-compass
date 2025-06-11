@@ -4,18 +4,9 @@ use uom::si::f64::Length;
 pub const APPROX_EARTH_RADIUS_M: f32 = 6_371_000.0;
 
 /// get the distance between two coordinates and return the value
-/// in the base distance unit, which is meters.
-/// coordinates are assumed to be in the WGS84 Coordinate System.
-pub fn coord_distance_meters(src: &Coord<f32>, dst: &Coord<f32>) -> Result<Length, String> {
-    let distance_meters = haversine_distance_meters(src.x, src.y, dst.x, dst.y)?;
-    Ok(distance_meters)
-}
-
-/// get the distance between two coordinates and return the value
-/// in the requested distance unit
 /// coordinates are assumed to be in the WGS84 Coordinate System.
 pub fn coord_distance(src: &Coord<f32>, dst: &Coord<f32>) -> Result<Length, String> {
-    let distance_meters: Length = haversine_distance_meters(src.x, src.y, dst.x, dst.y)?;
+    let distance_meters: Length = haversine_distance(src.x, src.y, dst.x, dst.y)?;
     Ok(distance_meters)
 }
 
@@ -23,7 +14,7 @@ pub fn coord_distance(src: &Coord<f32>, dst: &Coord<f32>) -> Result<Length, Stri
 /// https://rosettacode.org/wiki/Haversine_formula#Rust
 /// computes the great circle distance between two points in meters.
 /// assumes input data is in WGS84 projection (aka EPSG:4326 CRS)
-pub fn haversine_distance_meters(
+pub fn haversine_distance(
     src_x: f32,
     src_y: f32,
     dst_x: f32,
