@@ -155,13 +155,12 @@ impl StateModel {
     /// # Arguments
     /// * `state` - state vector to inspect
     /// * `name`  - feature name to extract
-    /// * `unit`  - if provided, feature is converted to this unit before returning
     ///
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_distance<'a>(
-        &'a self,
+    pub fn get_distance(
+        &self,
         state: &[StateVariable],
         name: &str,
     ) -> Result<Length, StateModelError> {
@@ -175,16 +174,11 @@ impl StateModel {
     /// # Arguments
     /// * `state` - state vector to inspect
     /// * `name`  - feature name to extract
-    /// * `unit`  - feature is converted to this unit before returning
     ///
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_time<'a>(
-        &'a self,
-        state: &[StateVariable],
-        name: &str,
-    ) -> Result<Time, StateModelError> {
+    pub fn get_time(&self, state: &[StateVariable], name: &str) -> Result<Time, StateModelError> {
         let value: &StateVariable = self.get_state_variable(state, name)?;
         let time = Time::new::<uom::si::time::second>(value.0);
         Ok(time)
@@ -194,13 +188,12 @@ impl StateModel {
     /// # Arguments
     /// * `state` - state vector to inspect
     /// * `name`  - feature name to extract
-    /// * `unit`  - feature is converted to this unit before returning
     ///
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_energy<'a>(
-        &'a self,
+    pub fn get_energy(
+        &self,
         state: &[StateVariable],
         name: &str,
     ) -> Result<Energy, StateModelError> {
@@ -213,13 +206,12 @@ impl StateModel {
     /// # Arguments
     /// * `state` - state vector to inspect
     /// * `name`  - feature name to extract
-    /// * `unit`  - feature is converted to this unit before returning
     ///
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_speed<'a>(
-        &'a self,
+    pub fn get_speed(
+        &self,
         state: &[StateVariable],
         name: &str,
     ) -> Result<Velocity, StateModelError> {
@@ -232,19 +224,32 @@ impl StateModel {
     /// # Arguments
     /// * `state` - state vector to inspect
     /// * `name`  - feature name to extract
-    /// * `unit`  - feature is converted to this unit before returning
     ///
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_grade<'a>(
-        &'a self,
+    pub fn get_grade(&self, state: &[StateVariable], name: &str) -> Result<Ratio, StateModelError> {
+        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let grade = Ratio::new::<uom::si::ratio::ratio>(value.0);
+        Ok(grade)
+    }
+
+    /// retrieves a state variable that is expected to have a type of StateOfCharge
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    /// # Returns
+    ///
+    /// the expected value in the state of charge unit, or an error
+    pub fn get_state_of_charge(
+        &self,
         state: &[StateVariable],
         name: &str,
     ) -> Result<Ratio, StateModelError> {
         let value: &StateVariable = self.get_state_variable(state, name)?;
-        let grade = Ratio::new::<uom::si::ratio::ratio>(value.0);
-        Ok(grade)
+        let soc = Ratio::new::<uom::si::ratio::ratio>(value.0);
+        Ok(soc)
     }
     /// retrieves a state variable that is expected to have a type of f64.
     ///
@@ -471,6 +476,16 @@ impl StateModel {
         speed: &Velocity,
     ) -> Result<(), StateModelError> {
         let value = StateVariable(speed.get::<uom::si::velocity::meter_per_second>());
+        self.update_state(state, name, &value, UpdateOperation::Replace)
+    }
+
+    pub fn set_state_of_charge(
+        &self,
+        state: &mut [StateVariable],
+        name: &str,
+        soc: &Ratio,
+    ) -> Result<(), StateModelError> {
+        let value = StateVariable(soc.get::<uom::si::ratio::ratio>());
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 

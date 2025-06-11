@@ -1,22 +1,42 @@
-use super::VolumeUnit;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use uom::si::f64::Energy;
+
+// TODO: These should be added to UOM as new si::energy units, but for now we define them here.
+// https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
+pub const GALLON_GASOLINE_TO_BTU: f64 = 120_214.0;
+pub const GALLON_DIESEL_TO_BTU: f64 = 137_381.0;
+pub const LITER_GASOLINE_TO_BTU: f64 = 31_757.0;
+pub const LITER_DIESEL_TO_BTU: f64 = 36_292.0;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy, Hash)]
 #[serde(rename_all = "snake_case", try_from = "String")]
 pub enum EnergyUnit {
-    /// electric fuel
     KilowattHours,
-    /// 1 [VolumeUnit] Gasoline fuel
-    Gasoline(VolumeUnit),
-    /// 1 [VolumeUnit] Diesel fuel
-    Diesel(VolumeUnit),
-    /// unit representing either electric or liquid fuel
     GallonsGasolineEquivalent,
     GallonsDieselEquivalent,
-    /// Other commonly-used energy units
-    KiloJoules,
-    BTU,
+    LitersGasolineEquivalent,
+    LitersDieselEquivalent,
+}
+
+impl EnergyUnit {
+    pub fn to_uom(&self, value: f64) -> Energy {
+        match self {
+            Self::KilowattHours => Energy::new::<uom::si::energy::kilowatt_hour>(value),
+            Self::GallonsGasolineEquivalent => {
+                Energy::new::<uom::si::energy::btu>(value * GALLON_GASOLINE_TO_BTU)
+            }
+            Self::GallonsDieselEquivalent => {
+                Energy::new::<uom::si::energy::btu>(value * GALLON_DIESEL_TO_BTU)
+            }
+            Self::LitersGasolineEquivalent => {
+                Energy::new::<uom::si::energy::btu>(value * LITER_GASOLINE_TO_BTU)
+            }
+            Self::LitersDieselEquivalent => {
+                Energy::new::<uom::si::energy::btu>(value * LITER_DIESEL_TO_BTU)
+            }
+        }
+    }
 }
 
 impl std::fmt::Display for EnergyUnit {
@@ -40,16 +60,12 @@ impl FromStr for EnergyUnit {
             .replace(" ", "")
             .as_str()
         {
-            "gallonsgasoline" => Ok(E::Gasoline(VolumeUnit::GallonsUs)),
-            "gallonsdiesel" => Ok(E::Diesel(VolumeUnit::GallonsUs)),
-            "ukgallonsgasoline" => Ok(E::Gasoline(VolumeUnit::GallonsUk)),
-            "ukgallonsdiesel" => Ok(E::Diesel(VolumeUnit::GallonsUk)),
+            "gallonsgasoline" => Ok(E::GallonsDieselEquivalent),
+            "gallonsdiesel" => Ok(E::GallonsDieselEquivalent),
             "kilowatthours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
-            "litersgasoline" => Ok(E::Gasoline(VolumeUnit::Liters)),
-            "litersdiesel" => Ok(E::Diesel(VolumeUnit::Liters)),
+            "litersgasoline" => Ok(E::LitersGasolineEquivalent),
+            "litersdiesel" => Ok(E::LitersDieselEquivalent),
             "gallonsgasolineequivalent" | "gge" => Ok(E::GallonsGasolineEquivalent),
-            "kilojoules" | "kj" => Ok(E::KiloJoules),
-            "btu" | "britishthermalunit" => Ok(E::BTU),
             _ => Err(format!("unknown energy unit '{}'", s)),
         }
     }

@@ -21,7 +21,11 @@ impl SpeedUnit {
 
 impl std::fmt::Display for SpeedUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.to_string().fmt(f)
+        match self {
+            SpeedUnit::KPH => write!(f, "kilometers/hour"),
+            SpeedUnit::MPH => write!(f, "miles/hour"),
+            SpeedUnit::MPS => write!(f, "meters/second"),
+        }
     }
 }
 

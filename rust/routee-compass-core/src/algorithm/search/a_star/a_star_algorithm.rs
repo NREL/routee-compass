@@ -392,10 +392,10 @@ mod tests {
     use crate::model::termination::TerminationModel;
     use crate::model::traversal::default::distance::DistanceTraversalModel;
     use crate::model::traversal::TraversalModel;
-    use crate::model::unit::DistanceUnit;
     use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
     use rayon::prelude::*;
     use std::sync::Arc;
+    use uom::si::f64::Length;
 
     fn build_mock_graph() -> Graph {
         let vertices = vec![
@@ -406,14 +406,14 @@ mod tests {
         ];
 
         let edges = vec![
-            Edge::new(0, 0, 1, 10.0),
-            Edge::new(1, 1, 0, 10.0),
-            Edge::new(2, 1, 2, 2.0),
-            Edge::new(3, 2, 1, 2.0),
-            Edge::new(4, 2, 3, 1.0),
-            Edge::new(5, 3, 2, 1.0),
-            Edge::new(6, 3, 0, 2.0),
-            Edge::new(7, 0, 3, 2.0),
+            Edge::new(0, 0, 1, Length::new::<uom::si::length::kilometer>(10.0)),
+            Edge::new(1, 1, 0, Length::new::<uom::si::length::kilometer>(10.0)),
+            Edge::new(2, 1, 2, Length::new::<uom::si::length::kilometer>(2.0)),
+            Edge::new(3, 2, 1, Length::new::<uom::si::length::kilometer>(2.0)),
+            Edge::new(4, 2, 3, Length::new::<uom::si::length::kilometer>(1.0)),
+            Edge::new(5, 3, 2, Length::new::<uom::si::length::kilometer>(1.0)),
+            Edge::new(6, 3, 0, Length::new::<uom::si::length::kilometer>(2.0)),
+            Edge::new(7, 0, 3, Length::new::<uom::si::length::kilometer>(2.0)),
         ];
 
         let mut adj = vec![CompactOrderedHashMap::empty(); vertices.len()];
@@ -481,7 +481,7 @@ mod tests {
 
         let graph = Arc::new(build_mock_graph());
         let map_model = Arc::new(MapModel::new(graph.clone(), MapModelConfig::default()).unwrap());
-        let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::Meters));
+        let traversal_model = Arc::new(DistanceTraversalModel {});
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process

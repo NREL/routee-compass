@@ -4,4 +4,6 @@ pub enum UnitError {
     NumericParsingError(String),
     #[error("failure due to numeric precision: {0}")]
     PrecisionError(String),
+    #[error("zero division error: {0}")]
+    ZeroDivisionError(String),
 }

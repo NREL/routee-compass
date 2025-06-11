@@ -1,15 +1,17 @@
-use std::borrow::Cow;
-
 use routee_compass_core::model::{
-    access::default::turn_delays::EdgeHeading,
-    network::edge_id::EdgeId,
-    traversal::TraversalModelError,
-    unit::{AsF64, Convert, Energy, EnergyUnit, Grade, UnitError},
+    access::default::turn_delays::EdgeHeading, network::edge_id::EdgeId,
+    traversal::TraversalModelError, unit::UnitError,
+};
+use uom::{
+    si::f64::{Energy, Ratio},
+    ConstZero,
 };
 
 /// used as a replacement for zero in energy calculations
 /// where zero is not a valid value.
 pub const SAFE_MIN_ENERGY: f64 = 1e-9;
+pub const MIN_SOC_PERCENT: f64 = 0.0;
+pub const MAX_SOC_PERCENT: f64 = 100.0;
 
 /// updates the SOC feature for a vehicle type with a battery based on the
 /// state, the energy delta, and max battery capacity.
@@ -21,47 +23,39 @@ pub const SAFE_MIN_ENERGY: f64 = 1e-9;
 /// * `delta`        - change in energy
 /// * `maximum_energy` - maximum energy for this vehicle
 pub fn update_soc_percent(
-    start_soc: &f64,
-    energy_consumption: (&Energy, &EnergyUnit),
-    maximum_energy: (&Energy, &EnergyUnit),
-) -> Result<f64, UnitError> {
-    let (delta_energy, delta_unit) = energy_consumption;
-    let (max_energy, max_unit) = maximum_energy;
-    let mut delta = Cow::Borrowed(delta_energy);
-    delta_unit.convert(&mut delta, max_unit)?;
-    let start_battery = Energy::from(max_energy.as_f64() * (start_soc / 100.0));
-    let current_energy = start_battery - *delta_energy;
-    let percent_remaining = (current_energy.as_f64() / max_energy.as_f64()) * 100.0;
-    Ok(percent_remaining.clamp(0.0, 100.0))
+    start_soc: Ratio,
+    energy_consumption: Energy,
+    maximum_energy: Energy,
+) -> Result<Ratio, UnitError> {
+    let start_battery: Energy = maximum_energy * start_soc;
+    let current_energy: Energy = start_battery - energy_consumption;
+    let percent_remaining: Ratio = soc_from_energy(current_energy, maximum_energy)?;
+    Ok(percent_remaining)
 }
 
-pub fn soc_from_energy(
-    energy: (&Energy, &EnergyUnit),
-    maximum_energy: (&Energy, &EnergyUnit),
-) -> Result<f64, String> {
-    let (e, eu) = energy;
-    let (me, meu) = maximum_energy;
-    let mut e_mut = Cow::Borrowed(e);
-    eu.convert(&mut e_mut, meu).map_err(|e| format!("while converting energy to soc, failed to match energy units of max value and current value: {}", e))?;
-    let energy = e_mut.into_owned();
-    if energy < Energy::ZERO {
-        return Ok(0.0);
-    }
-    if me < &energy {
-        return Err(format!(
-            "vehicle energy {} is greater than battery capacity {}",
-            energy, me
+pub fn soc_from_energy(energy: Energy, maximum_energy: Energy) -> Result<Ratio, UnitError> {
+    if maximum_energy == Energy::ZERO {
+        return Err(UnitError::ZeroDivisionError(
+            "maximum energy cannot be zero".to_string(),
         ));
     }
-    let soc = (energy.as_f64() / me.as_f64()) * 100.0;
-    Ok(soc)
+    let soc = energy / maximum_energy;
+    let min = Ratio::new::<uom::si::ratio::percent>(MIN_SOC_PERCENT);
+    let max = Ratio::new::<uom::si::ratio::percent>(MAX_SOC_PERCENT);
+    if soc < min {
+        Ok(min)
+    } else if soc > max {
+        Ok(max)
+    } else {
+        Ok(soc)
+    }
 }
 
 /// inspect the user query for a starting_soc_percent value. if provided, compute the
 /// energy value to use as the starting energy for the vehicle. if not provided, return None.
 pub fn get_query_start_energy(
     query: &serde_json::Value,
-    capacity: &Energy,
+    capacity: Energy,
 ) -> Result<Option<Energy>, TraversalModelError> {
     let starting_soc_percent = match query.get("starting_soc_percent".to_string()) {
         Some(soc_string) => soc_string.as_f64().ok_or_else(|| {
@@ -76,19 +70,20 @@ pub fn get_query_start_energy(
             "Expected 'starting_soc_percent' value to be between 0 and 100".to_string(),
         ));
     }
-    let starting_battery_energy = Energy::from(0.01 * starting_soc_percent * capacity.as_f64());
+    let starting_soc = Ratio::new::<uom::si::ratio::percent>(starting_soc_percent);
+    let starting_battery_energy = starting_soc * capacity;
     Ok(Some(starting_battery_energy))
 }
 
 /// look up the grade from the grade table
 pub fn get_grade(
-    grade_table: &Option<Box<[Grade]>>,
+    grade_table: &Option<Box<[Ratio]>>,
     edge_id: EdgeId,
-) -> Result<Grade, TraversalModelError> {
+) -> Result<Ratio, TraversalModelError> {
     match grade_table {
-        None => Ok(Grade::ZERO),
+        None => Ok(Ratio::ZERO),
         Some(gt) => {
-            let grade: &Grade = gt.get(edge_id.as_usize()).ok_or_else(|| {
+            let grade: &Ratio = gt.get(edge_id.as_usize()).ok_or_else(|| {
                 TraversalModelError::TraversalModelFailure(format!(
                     "missing index {} from grade table",
                     edge_id
@@ -116,35 +111,41 @@ pub fn get_headings(
 #[cfg(test)]
 mod test {
     use super::update_soc_percent;
-    use routee_compass_core::model::unit::{Energy, EnergyUnit};
+    use routee_compass_core::model::unit::EnergyUnit;
+    use uom::si::f64::{Energy, Ratio};
 
     #[test]
     fn test_update_soc_percent() {
-        let start_soc = 100.0;
-        let maximum_energy = (&Energy::from(100.0), &EnergyUnit::KilowattHours);
-        let energy_consumption = (&Energy::from(20.0), &EnergyUnit::KilowattHours);
-        let result = update_soc_percent(&start_soc, energy_consumption, maximum_energy)
+        let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
+        let maximum_energy = Energy::new::<uom::si::energy::kilowatt_hour>(100.0);
+        let energy_consumption = Energy::new::<uom::si::energy::kilowatt_hour>(20.0);
+        let result = update_soc_percent(start_soc, energy_consumption, maximum_energy)
             .expect("failed to update");
-        assert_eq!(result, 80.0, "should have used 20/100 = 20% of the soc")
+        let expected_soc = Ratio::new::<uom::si::ratio::percent>(80.0);
+        assert_eq!(
+            result, expected_soc,
+            "should have used 20/100 = 20% of the soc"
+        )
     }
 
     #[test]
     fn test_update_soc_no_underflow() {
-        let start_soc = 50.0;
-        let maximum_energy = (&Energy::from(100.0), &EnergyUnit::KilowattHours);
-        let energy_consumption = (&Energy::from(70.0), &EnergyUnit::KilowattHours);
-        let result = update_soc_percent(&start_soc, energy_consumption, maximum_energy)
+        let start_soc = Ratio::new::<uom::si::ratio::percent>(50.0);
+        let maximum_energy = Energy::new::<uom::si::energy::kilowatt_hour>(100.0);
+        let energy_consumption = Energy::new::<uom::si::energy::kilowatt_hour>(70.0);
+        let result = update_soc_percent(start_soc, energy_consumption, maximum_energy)
             .expect("failed to update");
-        assert_eq!(result, 0.0, "should prevent soc underflow")
+        let expected_soc = Ratio::new::<uom::si::ratio::percent>(0.0);
+        assert_eq!(result, expected_soc, "should prevent soc underflow")
     }
 
     #[test]
     fn test_update_soc_no_overflow() {
-        let start_soc = 50.0;
-        let maximum_energy = (&Energy::from(100.0), &EnergyUnit::KilowattHours);
-        let energy_consumption = (&Energy::from(-70.0), &EnergyUnit::KilowattHours);
-        let result = update_soc_percent(&start_soc, energy_consumption, maximum_energy)
+        let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
+        let maximum_energy = Energy::new::<uom::si::energy::kilowatt_hour>(100.0);
+        let energy_consumption = Energy::new::<uom::si::energy::kilowatt_hour>(-70.0);
+        let result = update_soc_percent(start_soc, energy_consumption, maximum_energy)
             .expect("failed to update");
-        assert_eq!(result, 100.0, "should prevent soc overflow")
+        assert_eq!(result, start_soc, "should prevent soc overflow")
     }
 }

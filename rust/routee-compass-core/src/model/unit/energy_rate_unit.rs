@@ -10,6 +10,12 @@ pub enum EnergyRateUnit {
     KWHPKM,
 }
 
+impl EnergyRateUnit {
+    pub fn to_uom(&self, _value: f64) -> String {
+        todo!()
+    }
+}
+
 impl std::fmt::Display for EnergyRateUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

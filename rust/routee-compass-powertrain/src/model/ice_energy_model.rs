@@ -2,12 +2,13 @@ use super::prediction::PredictionModelConfig;
 use crate::model::{fieldname, prediction::PredictionModelRecord};
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, OutputFeature, StateModel, StateVariable},
+    state::{StateFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::Energy,
+    unit::{EnergyRateUnit, EnergyUnit},
 };
 use serde_json::Value;
 use std::sync::Arc;
+use uom::{si::f64::Energy, ConstZero};
 
 #[derive(Clone)]
 pub struct IceEnergyModel {
@@ -50,34 +51,25 @@ impl TryFrom<&Value> for IceEnergyModel {
 }
 
 impl TraversalModel for IceEnergyModel {
-    fn input_features(&self) -> Vec<(String, InputFeature)> {
-        let mut input_features = vec![(
-            String::from(fieldname::EDGE_DISTANCE),
-            InputFeature::Distance(Some(self.prediction_model_record.distance_unit)),
-        )];
+    fn input_features(&self) -> Vec<String> {
+        let mut input_features = vec![String::from(fieldname::EDGE_DISTANCE)];
         input_features.extend(self.prediction_model_record.input_features.clone());
         input_features
     }
 
-    fn output_features(&self) -> Vec<(String, OutputFeature)> {
-        let energy_unit = self
-            .prediction_model_record
-            .energy_rate_unit
-            .associated_energy_unit();
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
         vec![
             (
                 String::from(fieldname::TRIP_ENERGY),
-                OutputFeature::Energy {
-                    energy_unit,
-                    initial: Energy::ZERO,
+                StateFeature::Energy {
+                    value: Energy::ZERO,
                     accumulator: true,
                 },
             ),
             (
                 String::from(fieldname::EDGE_ENERGY),
-                OutputFeature::Energy {
-                    energy_unit,
-                    initial: Energy::ZERO,
+                StateFeature::Energy {
+                    value: Energy::ZERO,
                     accumulator: false,
                 },
             ),
@@ -119,20 +111,33 @@ fn ice_traversal(
     record: Arc<PredictionModelRecord>,
     estimate: bool,
 ) -> Result<(), TraversalModelError> {
-    let (distance, distance_unit) =
-        state_model.get_distance(state, fieldname::EDGE_DISTANCE, None)?;
+    let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
 
     // generate energy for link traversal
-    let (energy, energy_unit) = if estimate {
-        Energy::create(
-            (&distance, distance_unit),
-            (&record.ideal_energy_rate, &record.energy_rate_unit),
-        )?
+    let energy = if estimate {
+        match record.energy_rate_unit {
+            EnergyRateUnit::GGPM => {
+                let distance_miles = distance.get::<uom::si::length::mile>();
+                let energy_gallons_gas = record.ideal_energy_rate * distance_miles;
+                EnergyUnit::GallonsGasolineEquivalent.to_uom(energy_gallons_gas)
+            }
+            EnergyRateUnit::GDPM => {
+                let distance_miles = distance.get::<uom::si::length::mile>();
+                let energy_gallons_diesel = record.ideal_energy_rate * distance_miles;
+                EnergyUnit::GallonsDieselEquivalent.to_uom(energy_gallons_diesel)
+            }
+            _ => {
+                return Err(TraversalModelError::InternalError(format!(
+                    "Unsupported energy rate unit: {}",
+                    record.energy_rate_unit
+                )));
+            }
+        }
     } else {
         record.predict(state, state_model)?
     };
 
-    state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy, &energy_unit)?;
-    state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy, &energy_unit)?;
+    state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
+    state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy)?;
     Ok(())
 }

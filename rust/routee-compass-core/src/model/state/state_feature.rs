@@ -26,6 +26,10 @@ pub enum StateFeature {
         value: Ratio,
         accumulator: bool,
     },
+    StateOfCharge {
+        value: Ratio,
+        accumulator: bool,
+    },
     Custom {
         value: f64,
         accumulator: bool,
@@ -41,6 +45,7 @@ impl StateFeature {
             StateFeature::Speed { value, .. } => value.get::<uom::si::velocity::meter_per_second>(),
             StateFeature::Energy { value, .. } => value.get::<uom::si::energy::joule>(),
             StateFeature::Grade { value, .. } => value.get::<uom::si::ratio::ratio>(),
+            StateFeature::StateOfCharge { value, .. } => value.get::<uom::si::ratio::ratio>(),
             StateFeature::Custom { value, .. } => *value,
         }
     }
@@ -52,6 +57,7 @@ impl StateFeature {
             StateFeature::Energy { accumulator, .. } => *accumulator,
             StateFeature::Grade { accumulator, .. } => *accumulator,
             StateFeature::Custom { accumulator, .. } => *accumulator,
+            StateFeature::StateOfCharge { accumulator, .. } => *accumulator,
         }
     }
     pub fn get_custom_feature_format(&self) -> Result<&CustomFeatureFormat, StateModelError> {
@@ -82,6 +88,13 @@ impl Display for StateFeature {
             }
             StateFeature::Grade { value, accumulator } => {
                 write!(f, "Grade: {:?} (Accumulator: {})", value, accumulator)
+            }
+            StateFeature::StateOfCharge { value, accumulator } => {
+                write!(
+                    f,
+                    "State of Charge: {:?} (Accumulator: {})",
+                    value, accumulator
+                )
             }
             StateFeature::Custom {
                 value,
