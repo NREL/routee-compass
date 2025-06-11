@@ -97,4 +97,3 @@ impl Display for StateFeature {
         }
     }
 }
-
