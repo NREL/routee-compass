@@ -100,7 +100,8 @@ def _download_tile(
         except requests.exceptions.HTTPError as e:
             raise ValueError(
                 f"Failed to download USGS tile {tile} from {url}. "
-                "If this road network is outside of the US, consider re-running with `grade=False`."
+                "If this road network is outside of the US, consider re-running without "
+                "GeneratePipelinePhase.GRADE in the `phases` argument."
             ) from e
 
         destination.parent.mkdir(exist_ok=True)
@@ -179,7 +180,7 @@ def add_grade_to_graph(
         if len(files) == 0:
             raise ValueError(
                 "No USGS tiles were downloaded. "
-                "If this road network is outside of the US, consider re-running with `grade=False`."
+                "If this road network is outside of the US, consider re-running without `grade` in your ."
             )
         elif len(files) == 1:
             filepath: Union[Path, list[Path]] = files[
