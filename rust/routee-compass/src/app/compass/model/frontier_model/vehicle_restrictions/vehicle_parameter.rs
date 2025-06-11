@@ -1,3 +1,4 @@
+use super::VehicleParameterType;
 use routee_compass_core::model::unit::Convert;
 use routee_compass_core::model::unit::{Distance, DistanceUnit, Weight, WeightUnit};
 use serde::{Deserialize, Serialize};
@@ -15,14 +16,15 @@ pub enum VehicleParameter {
 }
 
 impl VehicleParameter {
-    pub fn name(&self) -> String {
+    pub fn vehicle_parameter_type(&self) -> &VehicleParameterType {
+        use VehicleParameterType as VPT;
         match self {
-            VehicleParameter::Height { .. } => "height".to_string(),
-            VehicleParameter::Width { .. } => "width".to_string(),
-            VehicleParameter::TotalLength { .. } => "total_length".to_string(),
-            VehicleParameter::TrailerLength { .. } => "trailer_length".to_string(),
-            VehicleParameter::TotalWeight { .. } => "total_weight".to_string(),
-            VehicleParameter::WeightPerAxle { .. } => "weight_per_axle".to_string(),
+            VehicleParameter::Height { .. } => &VPT::Height,
+            VehicleParameter::Width { .. } => &VPT::Width,
+            VehicleParameter::TotalLength { .. } => &VPT::TotalLength,
+            VehicleParameter::TrailerLength { .. } => &VPT::TrailerLength,
+            VehicleParameter::TotalWeight { .. } => &VPT::TotalWeight,
+            VehicleParameter::WeightPerAxle { .. } => &VPT::WeightPerAxle,
         }
     }
 }
@@ -52,92 +54,47 @@ impl PartialOrd for VehicleParameter {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         match (self, other) {
             (
-                VehicleParameter::Height {
-                    value: a,
-                    unit: a_unit,
-                },
-                VehicleParameter::Height {
-                    value: b,
-                    unit: b_unit,
-                },
-            ) => {
-                let mut b_convert = Cow::Borrowed(b);
-                b_unit.convert(&mut b_convert, a_unit).ok()?;
-                a.partial_cmp(b_convert.as_ref())
-            }
+                VehicleParameter::Height { value: a, unit: au },
+                VehicleParameter::Height { value: b, unit: bu },
+            ) => cmp_params(a, au, b, bu),
             (
-                VehicleParameter::Width {
-                    value: a,
-                    unit: a_unit,
-                },
-                VehicleParameter::Width {
-                    value: b,
-                    unit: b_unit,
-                },
-            ) => {
-                let mut b_convert = Cow::Borrowed(b);
-                b_unit.convert(&mut b_convert, a_unit).ok()?;
-                a.partial_cmp(b_convert.as_ref())
-            }
+                VehicleParameter::Width { value: a, unit: au },
+                VehicleParameter::Width { value: b, unit: bu },
+            ) => cmp_params(a, au, b, bu),
             (
-                VehicleParameter::TotalLength {
-                    value: a,
-                    unit: a_unit,
-                },
-                VehicleParameter::TotalLength {
-                    value: b,
-                    unit: b_unit,
-                },
-            ) => {
-                let mut b_convert = Cow::Borrowed(b);
-                b_unit.convert(&mut b_convert, a_unit).ok()?;
-                a.partial_cmp(b_convert.as_ref())
-            }
+                VehicleParameter::TotalLength { value: a, unit: au },
+                VehicleParameter::TotalLength { value: b, unit: bu },
+            ) => cmp_params(a, au, b, bu),
             (
-                VehicleParameter::TrailerLength {
-                    value: a,
-                    unit: a_unit,
-                },
-                VehicleParameter::TrailerLength {
-                    value: b,
-                    unit: b_unit,
-                },
-            ) => {
-                let mut b_convert = Cow::Borrowed(b);
-                b_unit.convert(&mut b_convert, a_unit).ok()?;
-                a.partial_cmp(b_convert.as_ref())
-            }
+                VehicleParameter::TrailerLength { value: a, unit: au },
+                VehicleParameter::TrailerLength { value: b, unit: bu },
+            ) => cmp_params(a, au, b, bu),
             (
-                VehicleParameter::TotalWeight {
-                    value: a,
-                    unit: a_unit,
-                },
-                VehicleParameter::TotalWeight {
-                    value: b,
-                    unit: b_unit,
-                },
-            ) => {
-                let mut b_convert = Cow::Borrowed(b);
-                b_unit.convert(&mut b_convert, a_unit).ok()?;
-                a.partial_cmp(b_convert.as_ref())
-            }
+                VehicleParameter::TotalWeight { value: a, unit: au },
+                VehicleParameter::TotalWeight { value: b, unit: bu },
+            ) => cmp_params(a, au, b, bu),
             (
-                VehicleParameter::WeightPerAxle {
-                    value: a,
-                    unit: a_unit,
-                },
-                VehicleParameter::WeightPerAxle {
-                    value: b,
-                    unit: b_unit,
-                },
-            ) => {
-                let mut b_convert = Cow::Borrowed(b);
-                b_unit.convert(&mut b_convert, a_unit).ok()?;
-                a.partial_cmp(b_convert.as_ref())
+                VehicleParameter::WeightPerAxle { value: a, unit: au },
+                VehicleParameter::WeightPerAxle { value: b, unit: bu },
+            ) => cmp_params(a, au, b, bu),
+            _ => {
+                // invalid comparison when enum variant of self != variant of other
+                None
             }
-            _ => None,
         }
     }
+}
+
+/// compares two matching parameter variants, first ensuring their unit types match, then
+/// using the quantity's comparison operator.
+fn cmp_params<Q, U>(a: &Q, au: &U, b: &Q, bu: &U) -> Option<std::cmp::Ordering>
+where
+    Q: Clone + PartialOrd,
+    U: Convert<Q>,
+{
+    let mut b_cmp = Cow::Borrowed(b);
+    bu.convert(&mut b_cmp, au).ok()?;
+    a.partial_cmp(b_cmp.as_ref())
 }
 
 #[cfg(test)]

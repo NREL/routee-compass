@@ -49,10 +49,10 @@ pub enum SearchError {
     },
     #[error("query terminated due to {0}")]
     QueryTerminated(String),
-    #[error("no path exists between vertices {0} and {1}")]
-    NoPathExistsBetweenVertices(VertexId, VertexId),
-    #[error("no path exists between edges {0} and {1}")]
-    NoPathExistsBetweenEdges(EdgeId, EdgeId),
+    #[error("no path exists between vertices {0} and {1} after searching {2} edges")]
+    NoPathExistsBetweenVertices(VertexId, VertexId, usize),
+    #[error("no path exists between edges {0} and {1} after searching {2} edges")]
+    NoPathExistsBetweenEdges(EdgeId, EdgeId, usize),
     #[error("error accessing shared read-only dataset: {0}")]
     ReadOnlyPoisonError(String),
     #[error("internal error due to search logic: {0}")]

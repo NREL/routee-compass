@@ -257,7 +257,7 @@ pub fn run_edge_oriented(
                 } = alg.run_vertex_oriented(e1_dst, Some(e2_src), query, direction, si)?;
 
                 if trees.is_empty() {
-                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src));
+                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src, 0));
                 }
 
                 // it is possible that the search already found these vertices. one major edge

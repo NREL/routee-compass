@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
-
 use super::VehicleParameter;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub enum ComparisonOperation {
@@ -30,13 +29,18 @@ impl std::fmt::Display for ComparisonOperation {
 }
 
 impl ComparisonOperation {
-    pub fn compare_parameters(&self, a: &VehicleParameter, b: &VehicleParameter) -> bool {
-        match (self, a, b) {
-            (ComparisonOperation::LessThan, a, b) => a < b,
-            (ComparisonOperation::GreaterThan, a, b) => a > b,
-            (ComparisonOperation::Equal, a, b) => a == b,
-            (ComparisonOperation::LessThanOrEqual, a, b) => a <= b,
-            (ComparisonOperation::GreaterThanOrEqual, a, b) => a >= b,
+    /// leverage the PartialCmp implementation for VehicleParameter to test if a particular comparison is true.
+    pub fn compare_parameters(
+        &self,
+        query: &VehicleParameter,
+        restriction: &VehicleParameter,
+    ) -> bool {
+        match (self, query, restriction) {
+            (ComparisonOperation::LessThan, q, r) => q < r,
+            (ComparisonOperation::GreaterThan, q, r) => q > r,
+            (ComparisonOperation::Equal, q, r) => q == r,
+            (ComparisonOperation::LessThanOrEqual, q, r) => q <= r,
+            (ComparisonOperation::GreaterThanOrEqual, q, r) => q >= r,
         }
     }
 }
