@@ -100,7 +100,8 @@ def _download_tile(
         except requests.exceptions.HTTPError as e:
             raise ValueError(
                 f"Failed to download USGS tile {tile} from {url}. "
-                "If this road network is outside of the US, consider re-running with `grade=False`."
+                "If this road network is outside of the US, consider re-running without "
+                "GeneratePipelinePhase.GRADE in the `phases` argument."
             ) from e
 
         destination.parent.mkdir(exist_ok=True)
@@ -174,9 +175,21 @@ def add_grade_to_graph(
             downloaded_file = _download_tile(
                 tile, output_dir=output_dir, resolution=resolution
             )
-            files.append(str(downloaded_file))
+            files.append(downloaded_file)
 
-        g = ox.add_node_elevations_raster(g, files)
+        if len(files) == 0:
+            raise ValueError(
+                "No USGS tiles were downloaded. "
+                "If this road network is outside of the US, consider re-running without `grade` in your ."
+            )
+        elif len(files) == 1:
+            filepath: Union[Path, list[Path]] = files[
+                0
+            ]  # if only one file, pass it directly
+        else:
+            filepath = files
+
+        g = ox.add_node_elevations_raster(g, filepath)
     else:
         g = ox.add_node_elevations_google(g, api_key=api_key)
     g = ox.add_edge_grades(g)
