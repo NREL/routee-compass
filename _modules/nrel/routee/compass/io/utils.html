@@ -457,7 +457,8 @@ document.write(`
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Failed to download USGS tile </span><span class="si">{</span><span class="n">tile</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">. &quot;</span>
-                <span class="s2">&quot;If this road network is outside of the US, consider re-running with `grade=False`.&quot;</span>
+                <span class="s2">&quot;If this road network is outside of the US, consider re-running without &quot;</span>
+                <span class="s2">&quot;GeneratePipelinePhase.GRADE in the `phases` argument.&quot;</span>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 
         <span class="n">destination</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -533,9 +534,21 @@ document.write(`
             <span class="n">downloaded_file</span> <span class="o">=</span> <span class="n">_download_tile</span><span class="p">(</span>
                 <span class="n">tile</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span>
             <span class="p">)</span>
-            <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">downloaded_file</span><span class="p">))</span>
+            <span class="n">files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">downloaded_file</span><span class="p">)</span>
 
-        <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_node_elevations_raster</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">files</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;No USGS tiles were downloaded. &quot;</span>
+                <span class="s2">&quot;If this road network is outside of the US, consider re-running without `grade` in your .&quot;</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">filepath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]]</span> <span class="o">=</span> <span class="n">files</span><span class="p">[</span>
+                <span class="mi">0</span>
+            <span class="p">]</span>  <span class="c1"># if only one file, pass it directly</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">files</span>
+
+        <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_node_elevations_raster</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_node_elevations_google</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
     <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_edge_grades</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
