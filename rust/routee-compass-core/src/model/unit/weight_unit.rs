@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use uom::si::f64::Mass;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
@@ -7,6 +8,16 @@ pub enum WeightUnit {
     Pounds,
     Tons,
     Kg,
+}
+
+impl WeightUnit {
+    pub fn to_uom(&self, value: f64) -> Mass {
+        match self {
+            Self::Pounds => uom::si::mass::Mass::new::<uom::si::mass::pound>(value),
+            Self::Tons => uom::si::mass::Mass::new::<uom::si::mass::ton>(value),
+            Self::Kg => uom::si::mass::Mass::new::<uom::si::mass::kilogram>(value),
+        }
+    }
 }
 
 impl std::fmt::Display for WeightUnit {

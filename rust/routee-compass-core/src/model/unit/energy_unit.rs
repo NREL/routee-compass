@@ -21,6 +21,7 @@ pub enum EnergyUnit {
 
 impl EnergyUnit {
     pub fn to_uom(&self, value: f64) -> Energy {
+        // TODO: This should be updated when we have gas and diesel units in UOM.
         match self {
             Self::KilowattHours => Energy::new::<uom::si::energy::kilowatt_hour>(value),
             Self::GallonsGasolineEquivalent => {

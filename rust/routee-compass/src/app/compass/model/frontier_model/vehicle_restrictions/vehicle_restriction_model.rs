@@ -66,15 +66,20 @@ mod test {
         state::StateModel,
     };
     use serde_json::{json, Value};
+    use uom::{si::f64::Length, ConstZero};
     use std::{
         path::{Path, PathBuf},
         sync::Arc,
     };
 
+    fn mock_edge() -> Edge {
+        Edge::new(0, 0, 0, Length::ZERO)
+    }
+
     #[test]
     fn test_e2e_valid_weight_and_height() {
         let model = build_model("test_restrictions.csv", "unrestricted.json");
-        let edge = Edge::new(0, 0, 0, 0.0);
+        let edge = mock_edge();
         match model.valid_edge(&edge) {
             Ok(is_ok) => assert!(is_ok),
             Err(e) => panic!("{}", e),
@@ -84,7 +89,7 @@ mod test {
     #[test]
     fn test_e2e_invalid_weight() {
         let model = build_model("test_restrictions.csv", "overweight.json");
-        let edge = Edge::new(0, 0, 0, 0.0);
+        let edge = mock_edge();
         match model.valid_edge(&edge) {
             Ok(is_ok) => assert!(!is_ok),
             Err(e) => panic!("{}", e),
@@ -94,7 +99,7 @@ mod test {
     #[test]
     fn test_e2e_invalid_height() {
         let model = build_model("test_restrictions.csv", "overheight.json");
-        let edge = Edge::new(0, 0, 0, 0.0);
+        let edge = mock_edge();
         match model.valid_edge(&edge) {
             Ok(is_ok) => assert!(!is_ok),
             Err(e) => panic!("{}", e),
@@ -104,7 +109,7 @@ mod test {
     #[test]
     fn test_e2e_unrestricted_parameter() {
         let model = build_model("test_restrictions.csv", "unknown_parameter.json");
-        let edge = Edge::new(0, 0, 0, 0.0);
+        let edge = mock_edge();
         match model.valid_edge(&edge) {
             Ok(is_ok) => assert!(is_ok),
             Err(e) => panic!("{}", e),

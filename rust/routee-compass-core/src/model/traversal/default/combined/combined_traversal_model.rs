@@ -1,6 +1,6 @@
 use crate::model::{
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError},
 };
 use std::sync::Arc;
@@ -19,7 +19,7 @@ impl CombinedTraversalModel {
 }
 
 impl TraversalModel for CombinedTraversalModel {
-    fn input_features(&self) -> Vec<String> {
+    fn input_features(&self) -> Vec<InputFeature> {
         self.models
             .iter()
             .flat_map(|m| m.input_features())

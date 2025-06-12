@@ -3,7 +3,7 @@ use uom::{si::f64::Ratio, ConstZero};
 use super::GradeTraversalEngine;
 use crate::model::{
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError},
 };
 use std::sync::Arc;
@@ -20,7 +20,7 @@ impl GradeTraversalModel {
 
 impl TraversalModel for GradeTraversalModel {
     /// no upstream state dependencies
-    fn input_features(&self) -> Vec<String> {
+    fn input_features(&self) -> Vec<InputFeature> {
         vec![]
     }
 

@@ -5,7 +5,7 @@ use super::{
 use crate::model::fieldname;
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit},
 };
@@ -100,8 +100,11 @@ impl TryFrom<&Value> for BevEnergyModel {
 }
 
 impl TraversalModel for BevEnergyModel {
-    fn input_features(&self) -> Vec<String> {
-        let mut input_features = vec![String::from(fieldname::EDGE_DISTANCE)];
+    fn input_features(&self) -> Vec<InputFeature> {
+        let mut input_features = vec![InputFeature::Distance {
+            name: String::from(fieldname::EDGE_DISTANCE),
+            unit: None,
+        }];
         input_features.extend(self.prediction_model_record.input_features.clone());
         input_features
     }
@@ -198,7 +201,7 @@ fn bev_traversal(
     } else {
         record.predict(state, state_model)?
     };
-    let end_soc = energy_model_ops::update_soc_percent(start_soc, &energy, battery_capacity)?;
+    let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
 
     // update state vector
     state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
@@ -245,11 +248,13 @@ mod tests {
         );
 
         let soc = state_model
-            .get_custom_f64(&state, fieldname::TRIP_SOC)
+            .get_state_of_charge(&state, fieldname::TRIP_SOC)
             .unwrap();
+        let lower_bound = Ratio::new::<uom::si::ratio::percent>(40.0);
+        let upper_bound = Ratio::new::<uom::si::ratio::percent>(60.0);
 
-        assert!(soc < 60.0, "soc {} should be < 60.0%", soc);
-        assert!(soc > 40.0, "soc {} should be > 40.0%", soc);
+        assert!(soc < upper_bound, "soc {:?} should be < 60.0%", soc);
+        assert!(soc > lower_bound, "soc {:?} should be > 40.0%", soc);
     }
 
     #[test]
@@ -279,10 +284,12 @@ mod tests {
         );
 
         let soc = state_model
-            .get_custom_f64(&state, fieldname::TRIP_SOC)
+            .get_state_of_charge(&state, fieldname::TRIP_SOC)
             .unwrap();
-        assert!(soc > 20.0, "soc {} should be > 20.0", soc);
-        assert!(soc < 30.0, "soc {} should be < 30.0", soc);
+        let lower_bound = Ratio::new::<uom::si::ratio::percent>(20.0);
+        let upper_bound = Ratio::new::<uom::si::ratio::percent>(30.0);
+        assert!(soc < upper_bound, "soc {:?} should be < 30.0%", soc);
+        assert!(soc > lower_bound, "soc {:?} should be > 20.0%", soc);
     }
 
     #[test]
@@ -302,9 +309,9 @@ mod tests {
         bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
 
         let battery_percent_soc = state_model
-            .get_custom_f64(&state, fieldname::TRIP_SOC)
+            .get_state_of_charge(&state, fieldname::TRIP_SOC)
             .unwrap();
-        assert!(battery_percent_soc <= 100.0);
+        assert!(battery_percent_soc <= Ratio::new::<uom::si::ratio::percent>(100.0));
     }
 
     #[test]
@@ -324,9 +331,9 @@ mod tests {
         bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
 
         let battery_percent_soc = state_model
-            .get_custom_f64(&state, fieldname::TRIP_SOC)
+            .get_state_of_charge(&state, fieldname::TRIP_SOC)
             .unwrap();
-        assert!(battery_percent_soc >= 0.0);
+        assert!(battery_percent_soc >= Ratio::ZERO);
     }
 
     fn mock_prediction_model() -> Arc<PredictionModelRecord> {
@@ -359,8 +366,14 @@ mod tests {
         ]);
 
         let input_features = vec![
-            (fieldname::EDGE_SPEED.to_string(),),
-            (fieldname::EDGE_GRADE.to_string(),),
+            InputFeature::Speed {
+                name: fieldname::EDGE_SPEED.to_string(),
+                unit: Some(SpeedUnit::MPH),
+            },
+            InputFeature::Grade {
+                name: fieldname::EDGE_GRADE.to_string(),
+                unit: Some(RatioUnit::Decimal),
+            },
         ];
 
         let model_config = PredictionModelConfig::new(
@@ -371,7 +384,6 @@ mod tests {
                 feature_bounds,
             },
             input_features,
-            DistanceUnit::Miles,
             EnergyRateUnit::KWHPM,
             Some(1.3958),
         );

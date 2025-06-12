@@ -1,6 +1,5 @@
 use super::custom_weight_type::CustomWeightType;
 use crate::plugin::{input::InputJsonExtensions, input::InputPluginError};
-use routee_compass_core::model::unit::{AsF64, DistanceUnit};
 use routee_compass_core::util::geo::haversine;
 use serde::{Deserialize, Serialize};
 
@@ -27,8 +26,8 @@ impl WeightHeuristic {
                     None => Err(InputPluginError::InputPluginFailed(String::from(
                         "cannot estimate search size without destination coordinate",
                     ))),
-                    Some(d) => haversine::coord_distance(&o, &d, DistanceUnit::Kilometers)
-                        .map(|d| d.as_f64())
+                    Some(d) => haversine::coord_distance(&o, &d)
+                        .map(|d| d.get::<uom::si::length::kilometer>())
                         .map_err(|s| {
                             InputPluginError::InputPluginFailed(format!(
                                 "failed calculating load balancing weight value due to {}",

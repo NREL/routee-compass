@@ -17,6 +17,14 @@ impl SpeedUnit {
             Self::MPS => Velocity::new::<uom::si::velocity::meter_per_second>(value),
         }
     }
+
+    pub fn from_uom(&self, value: Velocity) -> f64 {
+        match self {
+            Self::KPH => value.get::<uom::si::velocity::kilometer_per_hour>(),
+            Self::MPH => value.get::<uom::si::velocity::mile_per_hour>(),
+            Self::MPS => value.get::<uom::si::velocity::meter_per_second>(),
+        }
+    }
 }
 
 impl std::fmt::Display for SpeedUnit {

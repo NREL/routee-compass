@@ -4,9 +4,9 @@ use uom::ConstZero;
 use super::speed_traversal_engine::SpeedTraversalEngine;
 use crate::model::network::edge_id::EdgeId;
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::StateFeature;
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
+use crate::model::state::{InputFeature, StateFeature};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
@@ -37,8 +37,11 @@ impl SpeedTraversalModel {
 }
 
 impl TraversalModel for SpeedTraversalModel {
-    fn input_features(&self) -> Vec<String> {
-        vec![String::from(fieldname::EDGE_DISTANCE)]
+    fn input_features(&self) -> Vec<InputFeature> {
+        vec![InputFeature::Distance {
+            name: fieldname::EDGE_DISTANCE.to_string(),
+            unit: None,
+        }]
     }
 
     fn output_features(&self) -> Vec<(String, StateFeature)> {
@@ -170,7 +173,7 @@ mod tests {
             TestTraversalModel::new(Arc::new(speed_model)).expect("test invariant failed");
         let state_model = StateModel::empty()
             .register(test_model.input_features(), test_model.output_features())
-            .expect("test invariant failed");
+            .expect("failed tp register state features");
 
         let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();

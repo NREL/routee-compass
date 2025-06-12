@@ -2,7 +2,7 @@ use super::prediction::PredictionModelConfig;
 use crate::model::{fieldname, prediction::PredictionModelRecord};
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit},
 };
@@ -51,8 +51,11 @@ impl TryFrom<&Value> for IceEnergyModel {
 }
 
 impl TraversalModel for IceEnergyModel {
-    fn input_features(&self) -> Vec<String> {
-        let mut input_features = vec![String::from(fieldname::EDGE_DISTANCE)];
+    fn input_features(&self) -> Vec<InputFeature> {
+        let mut input_features = vec![InputFeature::Distance {
+            name: String::from(fieldname::EDGE_DISTANCE),
+            unit: None,
+        }];
         input_features.extend(self.prediction_model_record.input_features.clone());
         input_features
     }

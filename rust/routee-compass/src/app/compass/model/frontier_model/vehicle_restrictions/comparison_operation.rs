@@ -31,6 +31,7 @@ impl std::fmt::Display for ComparisonOperation {
 
 impl ComparisonOperation {
     pub fn compare_parameters(&self, a: &VehicleParameter, b: &VehicleParameter) -> bool {
+        println!("Comparing {:?} {} {:?}", a, self, b);
         match (self, a, b) {
             (ComparisonOperation::LessThan, a, b) => a < b,
             (ComparisonOperation::GreaterThan, a, b) => a > b,

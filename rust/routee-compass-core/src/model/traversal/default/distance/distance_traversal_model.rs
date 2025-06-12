@@ -2,7 +2,7 @@ use uom::si::f64::Length;
 use uom::ConstZero;
 
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::StateFeature;
+use crate::model::state::{InputFeature, StateFeature};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::traversal::default::fieldname;
@@ -51,7 +51,7 @@ impl TraversalModel for DistanceTraversalModel {
         Ok(())
     }
 
-    fn input_features(&self) -> Vec<String> {
+    fn input_features(&self) -> Vec<InputFeature> {
         vec![]
     }
 

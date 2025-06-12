@@ -16,7 +16,7 @@ pub use cost::{Cost, ReverseCost};
 pub use distance_unit::DistanceUnit;
 pub use energy_rate_unit::EnergyRateUnit;
 pub use energy_unit::EnergyUnit;
-pub use grade_unit::GradeUnit;
+pub use grade_unit::RatioUnit;
 pub use speed_unit::SpeedUnit;
 pub use time_unit::TimeUnit;
 pub use unit_error::UnitError;

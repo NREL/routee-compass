@@ -6,13 +6,13 @@ use super::{
 };
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{EnergyRateUnit, EnergyUnit, UnitError},
+    unit::{EnergyRateUnit, EnergyUnit},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{borrow::Cow, collections::HashSet, sync::Arc};
+use std::{collections::HashSet, sync::Arc};
 use uom::{
     si::f64::{Energy, Ratio},
     ConstZero,
@@ -103,13 +103,16 @@ impl TraversalModelService for PhevEnergyModel {
 }
 
 impl TraversalModel for PhevEnergyModel {
-    fn input_features(&self) -> Vec<String> {
-        let mut input_features = vec![String::from(fieldname::EDGE_DISTANCE)];
+    fn input_features(&self) -> Vec<InputFeature> {
+        let mut input_features = vec![InputFeature::Distance {
+            name: String::from(fieldname::EDGE_DISTANCE),
+            unit: None,
+        }];
         input_features.extend(self.charge_depleting_model.input_features.clone());
         input_features.extend(self.charge_sustain_model.input_features.clone());
 
         // remove any duplicates
-        let mut unique_features: HashSet<String> = HashSet::new();
+        let mut unique_features: HashSet<InputFeature> = HashSet::new();
         for feature in input_features {
             unique_features.insert(feature);
         }
@@ -292,7 +295,6 @@ fn depleting_only_traversal(
     Ok(())
 }
 
-///
 fn mixed_traversal(
     state: &mut [StateVariable],
     state_model: &StateModel,
@@ -354,7 +356,7 @@ fn mixed_traversal(
 mod test {
     use super::PhevEnergyModel;
     use crate::model::{
-        energy_model_ops, fieldname,
+        fieldname,
         phev_energy_model::phev_traversal,
         prediction::{
             interpolation::feature_bounds::FeatureBounds, ModelType, PredictionModelConfig,
@@ -363,9 +365,9 @@ mod test {
     };
     use routee_compass_core::{
         model::{
-            state::{StateFeature, StateModel, StateVariable},
+            state::{InputFeature, StateModel, StateVariable},
             traversal::TraversalModel,
-            unit::{EnergyRateUnit, EnergyUnit},
+            unit::{EnergyRateUnit, EnergyUnit, RatioUnit, SpeedUnit},
         },
         testing::mock::traversal_model::TestTraversalModel,
     };
@@ -378,8 +380,14 @@ mod test {
     #[test]
     fn test_phev_energy_model_just_electric() {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(12.0);
-        let charge_depleting = mock_prediction_model("2016_CHEVROLET_Volt_Charge_Depleting");
-        let charge_sustaining = mock_prediction_model("2016_CHEVROLET_Volt_Charge_Sustaining");
+        let charge_depleting = mock_prediction_model(
+            "2016_CHEVROLET_Volt_Charge_Depleting",
+            EnergyRateUnit::KWHPM,
+        );
+        let charge_sustaining = mock_prediction_model(
+            "2016_CHEVROLET_Volt_Charge_Sustaining",
+            EnergyRateUnit::GGPM,
+        );
         let model = mock_phev(
             charge_sustaining.clone(),
             charge_depleting.clone(),
@@ -407,9 +415,6 @@ mod test {
         let elec = state_model
             .get_energy(&state, fieldname::EDGE_ENERGY_ELECTRIC)
             .expect("test invariant failed");
-        let liquid = state_model
-            .get_energy(&state, fieldname::EDGE_ENERGY_LIQUID)
-            .expect("test invariant failed");
 
         let soc = state_model
             .get_state_of_charge(&state, fieldname::TRIP_SOC)
@@ -426,8 +431,14 @@ mod test {
     #[test]
     fn test_phev_energy_model_gas_and_electric() {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(12.0);
-        let charge_depleting = mock_prediction_model("2016_CHEVROLET_Volt_Charge_Depleting");
-        let charge_sustaining = mock_prediction_model("2016_CHEVROLET_Volt_Charge_Sustaining");
+        let charge_depleting = mock_prediction_model(
+            "2016_CHEVROLET_Volt_Charge_Depleting",
+            EnergyRateUnit::KWHPM,
+        );
+        let charge_sustaining = mock_prediction_model(
+            "2016_CHEVROLET_Volt_Charge_Sustaining",
+            EnergyRateUnit::GGPM,
+        );
         let model = mock_phev(
             charge_sustaining.clone(),
             charge_depleting.clone(),
@@ -463,26 +474,6 @@ mod test {
             .get_state_of_charge(&state, fieldname::TRIP_SOC)
             .expect("test invariant failed");
 
-        let liquid_if_no_electricity_used = match charge_sustaining.energy_rate_unit {
-            // TODO: This should be updated once we have a uom EnergyRateUnit
-            EnergyRateUnit::GGPM => {
-                let distance_miles = distance.get::<uom::si::length::mile>();
-                EnergyUnit::GallonsGasolineEquivalent
-                    .to_uom(charge_sustaining.ideal_energy_rate * distance_miles)
-            }
-            EnergyRateUnit::GDPM => {
-                let distance_miles = distance.get::<uom::si::length::mile>();
-                EnergyUnit::GallonsDieselEquivalent
-                    .to_uom(charge_sustaining.ideal_energy_rate * distance_miles)
-            }
-            _ => {
-                panic!(
-                    "PHEV liquid energy model does not support energy rate unit: {}",
-                    charge_sustaining.energy_rate_unit
-                );
-            }
-        };
-
         assert!(
             elec == bat_cap,
             "elec energy {:?} should be == battery capacity {:?}",
@@ -490,7 +481,6 @@ mod test {
             bat_cap
         );
         assert!(soc == Ratio::ZERO, "soc {:?} should be 0", soc);
-        assert!(liquid < liquid_if_no_electricity_used, "liquid energy {:?} should have been less than the amount if we only used liquid energy {:?}", liquid, liquid_if_no_electricity_used);
 
         // and then traverse the same distance but this time we should only use liquid_fuel energy
         phev_traversal(
@@ -535,7 +525,10 @@ mod test {
         (TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed")) as _
     }
 
-    fn mock_prediction_model(model_name: &str) -> Arc<PredictionModelRecord> {
+    fn mock_prediction_model(
+        model_name: &str,
+        energy_rate_unit: EnergyRateUnit,
+    ) -> Arc<PredictionModelRecord> {
         let model_file_path: PathBuf = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
@@ -563,8 +556,14 @@ mod test {
         ]);
 
         let input_features = vec![
-            (fieldname::EDGE_SPEED.to_string(),),
-            (fieldname::EDGE_GRADE.to_string(),),
+            InputFeature::Speed {
+                name: fieldname::EDGE_SPEED.to_string(),
+                unit: Some(SpeedUnit::MPH),
+            },
+            InputFeature::Grade {
+                name: fieldname::EDGE_GRADE.to_string(),
+                unit: Some(RatioUnit::Decimal),
+            },
         ];
 
         let model_config = PredictionModelConfig::new(
@@ -575,8 +574,7 @@ mod test {
                 feature_bounds,
             },
             input_features,
-            DistanceUnit::Miles,
-            EnergyRateUnit::KWHPM,
+            energy_rate_unit,
             Some(1.3958),
         );
         let model_record =

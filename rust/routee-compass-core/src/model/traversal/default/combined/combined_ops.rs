@@ -33,10 +33,10 @@ pub fn topological_dependency_sort(
         if input_features.is_empty() {
             sort.insert(idx);
         } else {
-            for n in input_features.iter() {
-                match &output_features_lookup.get(n) {
+            for feature in input_features.iter() {
+                match &output_features_lookup.get(&feature.name()) {
                     None => {
-                        missing_parents.push(n.clone());
+                        missing_parents.push(feature.name());
                     }
                     Some(ref_idxs) => {
                         // look at all dependencies but ignore self-looping dependencies
@@ -87,7 +87,7 @@ mod test {
     use super::topological_dependency_sort;
     use crate::model::{
         network::{Edge, Vertex},
-        state::{StateFeature, StateModel, StateVariable},
+        state::{InputFeature, StateFeature, StateModel, StateVariable},
         traversal::{TraversalModel, TraversalModelError},
     };
     use itertools::Itertools;
@@ -100,13 +100,32 @@ mod test {
     fn test_default_model_setup() {
         init_test_logger();
 
+        let distance_feature = InputFeature::Distance {
+            name: "distance".to_string(),
+            unit: None,
+        };
+        let speed_feature = InputFeature::Speed {
+            name: "speed".to_string(),
+            unit: None,
+        };
+        let grade_feature = InputFeature::Grade {
+            name: "grade".to_string(),
+            unit: None,
+        };
+
         // mock up models for 6 dimensions, 3 of which have upstream dependencies
         let distance = MockModel::new(vec![], vec!["distance"]);
         let speed = MockModel::new(vec![], vec!["speed"]);
-        let time = MockModel::new(vec!["distance", "speed"], vec!["time"]);
+        let time = MockModel::new(
+            vec![distance_feature.clone(), speed_feature.clone()],
+            vec!["time"],
+        );
         let grade = MockModel::new(vec![], vec!["grade"]);
-        let elevation = MockModel::new(vec!["grade"], vec!["elevation"]);
-        let energy = MockModel::new(vec!["distance", "speed", "grade"], vec!["energy"]);
+        let elevation = MockModel::new(vec![grade_feature.clone()], vec!["elevation"]);
+        let energy = MockModel::new(
+            vec![distance_feature, speed_feature, grade_feature],
+            vec!["energy"],
+        );
         let models: Vec<Arc<dyn TraversalModel>> =
             vec![energy, elevation, time, grade, speed, distance]
                 .into_iter()
@@ -125,7 +144,10 @@ mod test {
                 let in_names = if input_features.is_empty() {
                     String::from("*")
                 } else {
-                    m.input_features().iter().join("+")
+                    m.input_features()
+                        .iter()
+                        .map(|feature| feature.name())
+                        .join("+")
                 };
                 let out_name = m.output_features().iter().map(|(n, _)| n).join("");
                 format!("{}->{}", in_names, out_name)
@@ -157,14 +179,34 @@ mod test {
     fn test_self_dependency() {
         init_test_logger();
 
+        let distance_feature = InputFeature::Distance {
+            name: "distance".to_string(),
+            unit: None,
+        };
+        let speed_feature = InputFeature::Speed {
+            name: "speed".to_string(),
+            unit: None,
+        };
+        let grade_feature = InputFeature::Grade {
+            name: "grade".to_string(),
+            unit: None,
+        };
+        let soc_feature = InputFeature::StateOfCharge {
+            name: "soc".to_string(),
+            unit: None,
+        };
+
         // mock up models for 6 dimensions, 3 of which have upstream dependencies
         let distance = MockModel::new(vec![], vec!["distance"]);
         let speed = MockModel::new(vec![], vec!["speed"]);
-        let time = MockModel::new(vec!["distance", "speed"], vec!["time"]);
+        let time = MockModel::new(
+            vec![distance_feature.clone(), speed_feature.clone()],
+            vec!["time"],
+        );
         let grade = MockModel::new(vec![], vec!["grade"]);
-        let elevation = MockModel::new(vec!["grade"], vec!["elevation"]);
+        let elevation = MockModel::new(vec![grade_feature.clone()], vec!["elevation"]);
         let energy = MockModel::new(
-            vec!["distance", "speed", "grade", "soc"],
+            vec![distance_feature, speed_feature, grade_feature, soc_feature],
             vec!["energy", "soc"],
         );
         let models: Vec<Arc<dyn TraversalModel>> =
@@ -185,7 +227,10 @@ mod test {
                 let in_names = if input_features.is_empty() {
                     String::from("*")
                 } else {
-                    m.input_features().iter().join("+")
+                    m.input_features()
+                        .iter()
+                        .map(|feature| feature.name())
+                        .join("+")
                 };
                 let out_name = m.output_features().iter().map(|(n, _)| n).join("+");
                 format!("{}->{}", in_names, out_name)
@@ -220,21 +265,21 @@ mod test {
     }
 
     struct MockModel {
-        in_features: Vec<String>,
+        in_features: Vec<InputFeature>,
         out_features: Vec<String>,
     }
 
     impl MockModel {
-        pub fn new(in_features: Vec<&str>, out_features: Vec<&str>) -> MockModel {
+        pub fn new(in_features: Vec<InputFeature>, out_features: Vec<&str>) -> MockModel {
             MockModel {
-                in_features: in_features.into_iter().map(String::from).collect_vec(),
+                in_features,
                 out_features: out_features.into_iter().map(String::from).collect_vec(),
             }
         }
     }
 
     impl TraversalModel for MockModel {
-        fn input_features(&self) -> Vec<String> {
+        fn input_features(&self) -> Vec<InputFeature> {
             self.in_features.clone()
         }
 

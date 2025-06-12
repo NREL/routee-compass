@@ -1,6 +1,6 @@
 use super::CustomTraversalEngine;
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::StateFeature;
+use crate::model::state::{InputFeature, StateFeature};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::traversal::traversal_model::TraversalModel;
@@ -20,7 +20,7 @@ impl CustomTraversalModel {
 }
 
 impl TraversalModel for CustomTraversalModel {
-    fn input_features(&self) -> Vec<String> {
+    fn input_features(&self) -> Vec<InputFeature> {
         vec![]
     }
 

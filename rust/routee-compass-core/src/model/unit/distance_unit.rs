@@ -22,6 +22,15 @@ impl DistanceUnit {
             DistanceUnit::Feet => Length::new::<uom::si::length::foot>(value),
         }
     }
+    pub fn from_uom(&self, value: Length) -> f64 {
+        match self {
+            DistanceUnit::Meters => value.get::<uom::si::length::meter>(),
+            DistanceUnit::Kilometers => value.get::<uom::si::length::kilometer>(),
+            DistanceUnit::Miles => value.get::<uom::si::length::mile>(),
+            DistanceUnit::Inches => value.get::<uom::si::length::inch>(),
+            DistanceUnit::Feet => value.get::<uom::si::length::foot>(),
+        }
+    }
 }
 
 impl std::fmt::Display for DistanceUnit {

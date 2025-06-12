@@ -1,4 +1,4 @@
-use crate::model::unit::GradeUnit;
+use crate::model::unit::RatioUnit;
 use serde::{Deserialize, Serialize};
 
 /// provides configuration for instantiating the grade engine used in grade modeling.
@@ -10,5 +10,5 @@ pub struct GradeConfiguration {
     /// if a dummy grade model were not provided, energy models would fail to build.
     pub grade_input_file: Option<String>,
     /// type of grade values in file
-    pub grade_unit: GradeUnit,
+    pub grade_unit: RatioUnit,
 }

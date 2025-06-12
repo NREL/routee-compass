@@ -6,9 +6,7 @@ use itertools::Itertools;
 use ndarray::{ArrayD, IxDyn};
 use ninterp::prelude::*;
 use routee_compass_core::model::{
-    state::InputFeature,
-    traversal::TraversalModelError,
-    unit::{AsF64, EnergyRate, EnergyRateUnit},
+    state::InputFeature, traversal::TraversalModelError, unit::EnergyRateUnit,
 };
 use std::{collections::HashMap, path::Path};
 
@@ -21,7 +19,7 @@ impl PredictionModel for InterpolationModel {
     fn predict(
         &self,
         feature_vector: &Vec<f64>,
-    ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
+    ) -> Result<(f64, EnergyRateUnit), TraversalModelError> {
         let y = self.interpolator.interpolate(feature_vector).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
                 "Failed to interpolate speed/grade model output during prediction: {}",
@@ -29,7 +27,7 @@ impl PredictionModel for InterpolationModel {
             ))
         })?;
 
-        let energy_rate = EnergyRate::from(y);
+        let energy_rate = y;
         Ok((energy_rate, self.energy_rate_unit))
     }
 }
@@ -38,7 +36,7 @@ impl InterpolationModel {
     pub fn new<P: AsRef<Path>>(
         underlying_model_path: &P,
         underlying_model_type: ModelType,
-        input_features: Vec<(String, InputFeature)>,
+        input_features: Vec<InputFeature>,
         feature_bounds: HashMap<String, FeatureBounds>,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
@@ -54,8 +52,9 @@ impl InterpolationModel {
 
         let mut grid: Vec<ndarray::Array1<f64>> = Vec::new();
 
-        for (feature_name, _input_feature) in input_features.iter() {
-            let feature_bounds = feature_bounds.get(feature_name).ok_or_else(|| {
+        for input_feature in input_features.iter() {
+            let feature_name = input_feature.name();
+            let feature_bounds = feature_bounds.get(&feature_name).ok_or_else(|| {
                 TraversalModelError::BuildError(format!(
                     "Missing feature bounds for {}",
                     feature_name
@@ -91,7 +90,7 @@ impl InterpolationModel {
                     e
                 ))
             })?;
-            values[IxDyn(&indices)] = energy_rate.as_f64();
+            values[IxDyn(&indices)] = energy_rate;
         }
 
         let interpolator = InterpND::new(grid, values, strategy::Linear, Extrapolate::Clamp)
@@ -115,7 +114,7 @@ mod test {
 
     use super::*;
     use crate::model::prediction::prediction_model::PredictionModel;
-    use routee_compass_core::model::unit::{EnergyRateUnit, GradeUnit, SpeedUnit};
+    use routee_compass_core::model::unit::{EnergyRateUnit, RatioUnit, SpeedUnit};
 
     #[test]
     fn test_interpolation_speed_grade_model() {
@@ -126,14 +125,14 @@ mod test {
             .join("Toyota_Camry.bin");
 
         let input_features = vec![
-            (
-                "speed".to_string(),
-                InputFeature::Speed(Some(SpeedUnit::MPH)),
-            ),
-            (
-                "grade".to_string(),
-                InputFeature::Grade(Some(GradeUnit::Decimal)),
-            ),
+            InputFeature::Speed {
+                name: "speed".to_string(),
+                unit: Some(SpeedUnit::MPH),
+            },
+            InputFeature::Grade {
+                name: "grade".to_string(),
+                unit: Some(RatioUnit::Decimal),
+            },
         ];
         let feature_bounds = HashMap::from([
             (
@@ -177,8 +176,7 @@ mod test {
                     underlying_model.predict(&input).unwrap();
 
                 // check if they're within 1% of each other
-                let diff = (interp_energy_rate.as_f64() - underlying_energy_rate.as_f64())
-                    / underlying_energy_rate.as_f64();
+                let diff = (interp_energy_rate - underlying_energy_rate) / underlying_energy_rate;
                 assert!(diff.abs() < 0.01);
             }
         }
@@ -188,8 +186,8 @@ mod test {
         assert_eq!(energy_rate_unit, EnergyRateUnit::GGPM);
 
         // energy rate should be between 28-32 mpg
-        let expected_lower = EnergyRate::from(1.0 / 32.0);
-        let expected_upper = EnergyRate::from(1.0 / 28.0);
+        let expected_lower = 1.0 / 32.0;
+        let expected_upper = 1.0 / 28.0;
         assert!(energy_rate >= expected_lower);
         assert!(energy_rate <= expected_upper);
     }

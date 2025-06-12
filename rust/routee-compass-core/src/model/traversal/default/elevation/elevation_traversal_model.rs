@@ -7,7 +7,7 @@ use uom::{
 
 use crate::model::{
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
 };
 
@@ -26,10 +26,16 @@ impl TraversalModelService for ElevationTraversalModel {
 }
 
 impl TraversalModel for ElevationTraversalModel {
-    fn input_features(&self) -> Vec<String> {
+    fn input_features(&self) -> Vec<InputFeature> {
         vec![
-            String::from(fieldname::EDGE_DISTANCE),
-            String::from(fieldname::EDGE_GRADE),
+            InputFeature::Distance {
+                name: String::from(fieldname::EDGE_DISTANCE),
+                unit: None,
+            },
+            InputFeature::Grade {
+                name: String::from(fieldname::EDGE_GRADE),
+                unit: None,
+            },
         ]
     }
 

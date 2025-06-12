@@ -6,7 +6,7 @@ use uom::{
 use crate::{
     model::{
         network::{Edge, Vertex},
-        state::{StateFeature, StateModel, StateVariable},
+        state::{InputFeature, StateFeature, StateModel, StateVariable},
         traversal::{
             default::fieldname, TraversalModel, TraversalModelError, TraversalModelService,
         },
@@ -28,10 +28,16 @@ impl TraversalModelService for TimeTraversalModel {
 }
 
 impl TraversalModel for TimeTraversalModel {
-    fn input_features(&self) -> Vec<String> {
+    fn input_features(&self) -> Vec<InputFeature> {
         vec![
-            String::from(fieldname::EDGE_DISTANCE),
-            String::from(fieldname::EDGE_SPEED),
+            InputFeature::Distance {
+                name: String::from(fieldname::EDGE_DISTANCE),
+                unit: None,
+            },
+            InputFeature::Speed {
+                name: String::from(fieldname::EDGE_SPEED),
+                unit: None,
+            },
         ]
     }
 

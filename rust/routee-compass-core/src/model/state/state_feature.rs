@@ -69,6 +69,18 @@ impl StateFeature {
             )),
         }
     }
+
+    pub fn get_feature_type(&self) -> String {
+        match self {
+            StateFeature::Distance { .. } => "distance".to_string(),
+            StateFeature::Time { .. } => "time".to_string(),
+            StateFeature::Speed { .. } => "speed".to_string(),
+            StateFeature::Energy { .. } => "energy".to_string(),
+            StateFeature::Grade { .. } => "grade".to_string(),
+            StateFeature::StateOfCharge { .. } => "state_of_charge".to_string(),
+            StateFeature::Custom { .. } => "custom".to_string(),
+        }
+    }
 }
 
 impl Display for StateFeature {
