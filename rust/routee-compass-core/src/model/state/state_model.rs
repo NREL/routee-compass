@@ -5,6 +5,7 @@ use super::{
     update_operation::UpdateOperation,
 };
 use crate::model::state::InputFeature;
+use crate::model::unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TimeUnit};
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::util::compact_ordered_hash_map::IndexedEntry;
 use itertools::Itertools;
@@ -166,7 +167,7 @@ impl StateModel {
         name: &str,
     ) -> Result<Length, StateModelError> {
         let value: &StateVariable = self.get_state_variable(state, name)?;
-        let length = Length::new::<uom::si::length::meter>(value.0);
+        let length = DistanceUnit::default().to_uom(value.0);
         Ok(length)
     }
 
@@ -181,7 +182,7 @@ impl StateModel {
     /// feature value in the expected unit type, or an error
     pub fn get_time(&self, state: &[StateVariable], name: &str) -> Result<Time, StateModelError> {
         let value: &StateVariable = self.get_state_variable(state, name)?;
-        let time = Time::new::<uom::si::time::second>(value.0);
+        let time = TimeUnit::default().to_uom(value.0);
         Ok(time)
     }
     /// retrieves a state variable that is expected to have a type of Energy
@@ -199,7 +200,7 @@ impl StateModel {
         name: &str,
     ) -> Result<Energy, StateModelError> {
         let value: &StateVariable = self.get_state_variable(state, name)?;
-        let energy = Energy::new::<uom::si::energy::joule>(value.0);
+        let energy = EnergyUnit::default().to_uom(value.0);
         Ok(energy)
     }
     /// retrieves a state variable that is expected to have a type of Speed
@@ -217,10 +218,10 @@ impl StateModel {
         name: &str,
     ) -> Result<Velocity, StateModelError> {
         let value: &StateVariable = self.get_state_variable(state, name)?;
-        let speed = Velocity::new::<uom::si::velocity::meter_per_second>(value.0);
+        let speed = SpeedUnit::default().to_uom(value.0);
         Ok(speed)
     }
-    /// retrieves a state variable that is expected to have a type of Grade
+    /// retrieves a state variable that is expected to have a type of Ratio
     ///
     /// # Arguments
     /// * `state` - state vector to inspect
@@ -229,29 +230,12 @@ impl StateModel {
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    pub fn get_grade(&self, state: &[StateVariable], name: &str) -> Result<Ratio, StateModelError> {
+    pub fn get_ratio(&self, state: &[StateVariable], name: &str) -> Result<Ratio, StateModelError> {
         let value: &StateVariable = self.get_state_variable(state, name)?;
-        let grade = Ratio::new::<uom::si::ratio::ratio>(value.0);
+        let grade = RatioUnit::default().to_uom(value.0);
         Ok(grade)
     }
 
-    /// retrieves a state variable that is expected to have a type of StateOfCharge
-    ///
-    /// # Arguments
-    /// * `state` - state vector to inspect
-    /// * `name`  - feature name to extract
-    /// # Returns
-    ///
-    /// the expected value in the state of charge unit, or an error
-    pub fn get_state_of_charge(
-        &self,
-        state: &[StateVariable],
-        name: &str,
-    ) -> Result<Ratio, StateModelError> {
-        let value: &StateVariable = self.get_state_variable(state, name)?;
-        let soc = Ratio::new::<uom::si::ratio::ratio>(value.0);
-        Ok(soc)
-    }
     /// retrieves a state variable that is expected to have a type of f64.
     ///
     /// # Arguments
@@ -425,9 +409,9 @@ impl StateModel {
         name: &str,
         grade: &Ratio,
     ) -> Result<(), StateModelError> {
-        let prev_grade = self.get_grade(state, name)?;
+        let prev_grade = self.get_ratio(state, name)?;
         let next_grade = prev_grade + *grade;
-        self.set_grade(state, name, &next_grade)
+        self.set_ratio(state, name, &next_grade)
     }
 
     pub fn set_distance(
@@ -436,7 +420,7 @@ impl StateModel {
         name: &str,
         distance: &Length,
     ) -> Result<(), StateModelError> {
-        let value = StateVariable(distance.get::<uom::si::length::meter>());
+        let value = StateVariable(DistanceUnit::default().from_uom(*distance));
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
@@ -446,7 +430,7 @@ impl StateModel {
         name: &str,
         time: &Time,
     ) -> Result<(), StateModelError> {
-        let value = StateVariable(time.get::<uom::si::time::second>());
+        let value = StateVariable(TimeUnit::default().from_uom(*time));
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
@@ -456,17 +440,17 @@ impl StateModel {
         name: &str,
         energy: &Energy,
     ) -> Result<(), StateModelError> {
-        let value = StateVariable(energy.get::<uom::si::energy::joule>());
+        let value = StateVariable(EnergyUnit::default().from_uom(*energy));
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
-    pub fn set_grade(
+    pub fn set_ratio(
         &self,
         state: &mut [StateVariable],
         name: &str,
         grade: &Ratio,
     ) -> Result<(), StateModelError> {
-        let value = StateVariable(grade.get::<uom::si::ratio::ratio>());
+        let value = StateVariable(RatioUnit::default().from_uom(*grade));
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
@@ -476,17 +460,7 @@ impl StateModel {
         name: &str,
         speed: &Velocity,
     ) -> Result<(), StateModelError> {
-        let value = StateVariable(speed.get::<uom::si::velocity::meter_per_second>());
-        self.update_state(state, name, &value, UpdateOperation::Replace)
-    }
-
-    pub fn set_state_of_charge(
-        &self,
-        state: &mut [StateVariable],
-        name: &str,
-        soc: &Ratio,
-    ) -> Result<(), StateModelError> {
-        let value = StateVariable(soc.get::<uom::si::ratio::ratio>());
+        let value = StateVariable(SpeedUnit::default().from_uom(*speed));
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 

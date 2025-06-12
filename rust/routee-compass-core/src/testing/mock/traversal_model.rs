@@ -50,9 +50,9 @@ impl MockUpstreamModel {
                         output_unit: None,
                     },
                 ),
-                InputFeature::Grade { name, unit: _ } => (
+                InputFeature::Ratio { name, unit: _ } => (
                     name.clone(),
-                    StateFeature::Grade {
+                    StateFeature::Ratio {
                         value: uom::si::f64::Ratio::ZERO,
                         accumulator: false,
                         output_unit: None,
@@ -78,14 +78,6 @@ impl MockUpstreamModel {
                     name.clone(),
                     StateFeature::Energy {
                         value: uom::si::f64::Energy::ZERO,
-                        accumulator: false,
-                        output_unit: None,
-                    },
-                ),
-                InputFeature::StateOfCharge { name, unit: _ } => (
-                    name.clone(),
-                    StateFeature::StateOfCharge {
-                        value: uom::si::f64::Ratio::ZERO,
                         accumulator: false,
                         output_unit: None,
                     },

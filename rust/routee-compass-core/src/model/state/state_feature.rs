@@ -29,12 +29,7 @@ pub enum StateFeature {
         accumulator: bool,
         output_unit: Option<EnergyUnit>,
     },
-    Grade {
-        value: Ratio,
-        accumulator: bool,
-        output_unit: Option<RatioUnit>,
-    },
-    StateOfCharge {
+    Ratio {
         value: Ratio,
         accumulator: bool,
         output_unit: Option<RatioUnit>,
@@ -49,12 +44,11 @@ pub enum StateFeature {
 impl StateFeature {
     pub fn as_f64(&self) -> f64 {
         match self {
-            StateFeature::Distance { value, .. } => value.get::<uom::si::length::meter>(),
-            StateFeature::Time { value, .. } => value.get::<uom::si::time::second>(),
-            StateFeature::Speed { value, .. } => value.get::<uom::si::velocity::meter_per_second>(),
-            StateFeature::Energy { value, .. } => value.get::<uom::si::energy::joule>(),
-            StateFeature::Grade { value, .. } => value.get::<uom::si::ratio::ratio>(),
-            StateFeature::StateOfCharge { value, .. } => value.get::<uom::si::ratio::ratio>(),
+            StateFeature::Distance { value, .. } => DistanceUnit::default().from_uom(*value),
+            StateFeature::Time { value, .. } => TimeUnit::default().from_uom(*value),
+            StateFeature::Speed { value, .. } => SpeedUnit::default().from_uom(*value),
+            StateFeature::Energy { value, .. } => EnergyUnit::default().from_uom(*value),
+            StateFeature::Ratio { value, .. } => RatioUnit::default().from_uom(*value),
             StateFeature::Custom { value, .. } => *value,
         }
     }
@@ -64,9 +58,8 @@ impl StateFeature {
             StateFeature::Time { accumulator, .. } => *accumulator,
             StateFeature::Speed { accumulator, .. } => *accumulator,
             StateFeature::Energy { accumulator, .. } => *accumulator,
-            StateFeature::Grade { accumulator, .. } => *accumulator,
+            StateFeature::Ratio { accumulator, .. } => *accumulator,
             StateFeature::Custom { accumulator, .. } => *accumulator,
-            StateFeature::StateOfCharge { accumulator, .. } => *accumulator,
         }
     }
     pub fn get_custom_feature_format(&self) -> Result<&CustomFeatureFormat, StateModelError> {
@@ -85,8 +78,7 @@ impl StateFeature {
             StateFeature::Time { .. } => "time".to_string(),
             StateFeature::Speed { .. } => "speed".to_string(),
             StateFeature::Energy { .. } => "energy".to_string(),
-            StateFeature::Grade { .. } => "grade".to_string(),
-            StateFeature::StateOfCharge { .. } => "state_of_charge".to_string(),
+            StateFeature::Ratio { .. } => "ratio".to_string(),
             StateFeature::Custom { .. } => "custom".to_string(),
         }
     }
@@ -95,38 +87,31 @@ impl StateFeature {
         match self {
             StateFeature::Distance { output_unit, .. } => {
                 output_unit.map_or(state_variable.into(), |unit| {
-                    let uom_value = Length::new::<uom::si::length::meter>(state_variable.into());
+                    let uom_value = DistanceUnit::default().to_uom(state_variable.into());
                     unit.from_uom(uom_value)
                 })
             }
             StateFeature::Time { output_unit, .. } => {
                 output_unit.map_or(state_variable.into(), |unit| {
-                    let uom_value = Time::new::<uom::si::time::second>(state_variable.into());
+                    let uom_value = TimeUnit::default().to_uom(state_variable.into());
                     unit.from_uom(uom_value)
                 })
             }
             StateFeature::Speed { output_unit, .. } => {
                 output_unit.map_or(state_variable.into(), |unit| {
-                    let uom_value =
-                        Velocity::new::<uom::si::velocity::meter_per_second>(state_variable.into());
+                    let uom_value = SpeedUnit::default().to_uom(state_variable.into());
                     unit.from_uom(uom_value)
                 })
             }
             StateFeature::Energy { output_unit, .. } => {
                 output_unit.map_or(state_variable.into(), |unit| {
-                    let uom_value = Energy::new::<uom::si::energy::joule>(state_variable.into());
+                    let uom_value = EnergyUnit::default().to_uom(state_variable.into());
                     unit.from_uom(uom_value)
                 })
             }
-            StateFeature::Grade { output_unit, .. } => {
+            StateFeature::Ratio { output_unit, .. } => {
                 output_unit.map_or(state_variable.into(), |unit| {
-                    let uom_value = Ratio::new::<uom::si::ratio::ratio>(state_variable.into());
-                    unit.from_uom(uom_value)
-                })
-            }
-            StateFeature::StateOfCharge { output_unit, .. } => {
-                output_unit.map_or(state_variable.into(), |unit| {
-                    let uom_value = Ratio::new::<uom::si::ratio::ratio>(state_variable.into());
+                    let uom_value = RatioUnit::default().to_uom(state_variable.into());
                     unit.from_uom(uom_value)
                 })
             }
@@ -182,7 +167,7 @@ impl Display for StateFeature {
                     value, accumulator, output_unit
                 )
             }
-            StateFeature::Grade {
+            StateFeature::Ratio {
                 value,
                 accumulator,
                 output_unit,
@@ -190,17 +175,6 @@ impl Display for StateFeature {
                 write!(
                     f,
                     "Grade: {:?} (Accumulator: {}, Output Unit: {:?})",
-                    value, accumulator, output_unit
-                )
-            }
-            StateFeature::StateOfCharge {
-                value,
-                accumulator,
-                output_unit,
-            } => {
-                write!(
-                    f,
-                    "StateOfCharge: {:?} (Accumulator: {}, Output Unit: {:?})",
                     value, accumulator, output_unit
                 )
             }

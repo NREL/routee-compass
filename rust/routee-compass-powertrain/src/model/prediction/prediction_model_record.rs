@@ -94,8 +94,8 @@ impl PredictionModelRecord {
                         Some(u) => u.from_uom(speed),
                     }
                 }
-                InputFeature::Grade { name, unit } => {
-                    let grade = state_model.get_grade(state, name)?;
+                InputFeature::Ratio { name, unit } => {
+                    let grade = state_model.get_ratio(state, name)?;
                     match unit {
                         None => {
                             return Err(TraversalModelError::TraversalModelFailure(format!(

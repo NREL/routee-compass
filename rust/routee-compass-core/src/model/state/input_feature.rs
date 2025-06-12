@@ -24,11 +24,7 @@ pub enum InputFeature {
         name: String,
         unit: Option<EnergyUnit>,
     },
-    Grade {
-        name: String,
-        unit: Option<RatioUnit>,
-    },
-    StateOfCharge {
+    Ratio {
         name: String,
         unit: Option<RatioUnit>,
     },
@@ -45,8 +41,7 @@ impl InputFeature {
             InputFeature::Speed { name, .. } => name.to_owned(),
             InputFeature::Time { name, .. } => name.to_owned(),
             InputFeature::Energy { name, .. } => name.to_owned(),
-            InputFeature::Grade { name, .. } => name.to_owned(),
-            InputFeature::StateOfCharge { name, .. } => name.to_owned(),
+            InputFeature::Ratio { name, .. } => name.to_owned(),
             InputFeature::Custom { name, .. } => name.to_owned(),
         }
     }

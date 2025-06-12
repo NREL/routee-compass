@@ -171,7 +171,7 @@ impl TraversalModel for PhevEnergyModel {
             ),
             (
                 String::from(fieldname::TRIP_SOC),
-                StateFeature::StateOfCharge {
+                StateFeature::Ratio {
                     value: self.starting_soc,
                     accumulator: false,
                     output_unit: Some(RatioUnit::Percent),
@@ -229,7 +229,7 @@ fn phev_traversal(
 ) -> Result<(), TraversalModelError> {
     // collect state variables
     let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
-    let start_soc = state_model.get_state_of_charge(state, fieldname::TRIP_SOC)?;
+    let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
     let trip_energy_elec = state_model.get_energy(state, fieldname::TRIP_ENERGY_ELECTRIC)?;
 
     // figure out how much energy we had at the start of the edge
@@ -298,7 +298,7 @@ fn depleting_only_traversal(
     state_model.set_energy(state, fieldname::EDGE_ENERGY, &est_edge_elec)?;
     state_model.add_energy(state, fieldname::TRIP_ENERGY, &est_edge_elec)?;
     let end_soc = energy_model_ops::update_soc_percent(start_soc, est_edge_elec, battery_capacity)?;
-    state_model.set_state_of_charge(state, fieldname::TRIP_SOC, &end_soc)?;
+    state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
     Ok(())
 }
 
@@ -316,7 +316,7 @@ fn mixed_traversal(
     // use up remaining battery first (edge start electricity, not edge consumption electricity)
     state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &edge_start_elec)?;
     state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &edge_start_elec)?;
-    state_model.set_state_of_charge(state, fieldname::TRIP_SOC, &Ratio::ZERO)?;
+    state_model.set_ratio(state, fieldname::TRIP_SOC, &Ratio::ZERO)?;
 
     // find the amount of distance remaining on this edge as a ratio of remaining energy to total energy used
     let numer = trip_energy_elec;
@@ -424,7 +424,7 @@ mod test {
             .expect("test invariant failed");
 
         let soc = state_model
-            .get_state_of_charge(&state, fieldname::TRIP_SOC)
+            .get_ratio(&state, fieldname::TRIP_SOC)
             .expect("test invariant failed");
         assert!(elec > Energy::ZERO, "elec energy {:?} should be > 0", elec);
 
@@ -474,7 +474,7 @@ mod test {
             .get_energy(&state, fieldname::EDGE_ENERGY_ELECTRIC)
             .expect("test invariant failed");
         let soc = state_model
-            .get_state_of_charge(&state, fieldname::TRIP_SOC)
+            .get_ratio(&state, fieldname::TRIP_SOC)
             .expect("test invariant failed");
 
         assert!(
@@ -563,7 +563,7 @@ mod test {
                 name: fieldname::EDGE_SPEED.to_string(),
                 unit: Some(SpeedUnit::MPH),
             },
-            InputFeature::Grade {
+            InputFeature::Ratio {
                 name: fieldname::EDGE_GRADE.to_string(),
                 unit: Some(RatioUnit::Decimal),
             },
@@ -605,7 +605,7 @@ mod test {
             .set_speed(&mut state, fieldname::EDGE_SPEED, &speed)
             .expect("test invariant failed");
         state_model
-            .set_grade(&mut state, fieldname::EDGE_GRADE, &grade)
+            .set_ratio(&mut state, fieldname::EDGE_GRADE, &grade)
             .expect("test invariant failed");
         state
     }

@@ -35,7 +35,7 @@ pub fn find_min_energy_rate(
                     )))
                 }
             },
-            InputFeature::Grade { name: _, unit } => match unit {
+            InputFeature::Ratio { name: _, unit } => match unit {
                 Some(grade_unit) => get_grade_sample_values(grade_unit),
                 None => {
                     return Err(TraversalModelError::TraversalModelFailure(format!(

@@ -33,7 +33,7 @@ impl TraversalModel for ElevationTraversalModel {
                 name: String::from(fieldname::EDGE_DISTANCE),
                 unit: None,
             },
-            InputFeature::Grade {
+            InputFeature::Ratio {
                 name: String::from(fieldname::EDGE_GRADE),
                 unit: None,
             },
@@ -52,7 +52,7 @@ impl TraversalModel for ElevationTraversalModel {
             ),
             (
                 String::from(fieldname::TRIP_ELEVATION_LOSS),
-                StateFeature::Grade {
+                StateFeature::Ratio {
                     value: Ratio::ZERO,
                     accumulator: true,
                     output_unit: Some(RatioUnit::default()),
@@ -69,7 +69,7 @@ impl TraversalModel for ElevationTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
-        let grade = state_model.get_grade(state, fieldname::EDGE_GRADE)?;
+        let grade = state_model.get_ratio(state, fieldname::EDGE_GRADE)?;
         let elevation_change = ElevationChange::new(distance, grade).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!("Elevation change error: {}", e))
         })?;

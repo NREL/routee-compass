@@ -29,7 +29,7 @@ impl TraversalModel for GradeTraversalModel {
     fn output_features(&self) -> Vec<(String, StateFeature)> {
         vec![(
             String::from(fieldname::EDGE_GRADE),
-            StateFeature::Grade {
+            StateFeature::Ratio {
                 value: Ratio::ZERO,
                 accumulator: false,
                 output_unit: Some(RatioUnit::default()),
@@ -45,7 +45,7 @@ impl TraversalModel for GradeTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
         let grade = self.engine.get_grade(edge.edge_id)?;
-        state_model.set_grade(state, fieldname::EDGE_GRADE, &grade)?;
+        state_model.set_ratio(state, fieldname::EDGE_GRADE, &grade)?;
         Ok(())
     }
 

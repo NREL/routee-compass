@@ -129,7 +129,7 @@ mod test {
                 name: "speed".to_string(),
                 unit: Some(SpeedUnit::MPH),
             },
-            InputFeature::Grade {
+            InputFeature::Ratio {
                 name: "grade".to_string(),
                 unit: Some(RatioUnit::Decimal),
             },

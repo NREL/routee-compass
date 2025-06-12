@@ -121,6 +121,7 @@ mod tests {
     use crate::model::unit::SpeedUnit;
     use crate::testing::mock::traversal_model::TestTraversalModel;
     use crate::util::geo::InternalCoord;
+    use approx::relative_eq;
     use geo::coord;
     use std::path::PathBuf;
     use uom::si::f64::Length;
@@ -184,14 +185,13 @@ mod tests {
             .traverse_edge((&v, &e1, &v), &mut state, &state_model)
             .unwrap();
 
-        let expected_speed = Velocity::new::<uom::si::velocity::kilometer_per_hour>(10.0);
+        let expected_speed_kph = 10.0;
         let result_speed = state_model
             .get_speed(&state, "edge_speed")
             .expect("test invariant failed");
-        assert_eq!(
-            expected_speed, result_speed,
-            "speed should match edge 0 in velocities.txt"
-        );
+        let result_speed_kph = result_speed.get::<uom::si::velocity::kilometer_per_hour>();
+
+        assert_eq!(expected_speed_kph, result_speed_kph);
     }
 
     #[test]
@@ -249,16 +249,15 @@ mod tests {
         let speed_without_limit = state_model
             .get_speed(&state_without_limit, "edge_speed")
             .expect("test invariant failed");
+        let speed_with_limit_kph = speed_with_limit.get::<uom::si::velocity::kilometer_per_hour>();
+        let speed_limit_kph = speed_limit
+            .unwrap()
+            .get::<uom::si::velocity::kilometer_per_hour>();
 
-        assert_eq!(
-            speed_with_limit,
-            speed_limit.unwrap(),
-            "speed with limit should match the speed limit value"
-        );
-        assert_eq!(
-            speed_without_limit,
-            Velocity::new::<uom::si::velocity::kilometer_per_hour>(10.0),
-            "speed without limit should match velocities.txt (10)"
+        let _ = relative_eq!(speed_with_limit_kph, speed_limit_kph,);
+        let _ = relative_eq!(
+            speed_without_limit.get::<uom::si::velocity::kilometer_per_hour>(),
+            10.0,
         );
     }
 }

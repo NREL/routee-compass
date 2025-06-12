@@ -108,7 +108,7 @@ mod test {
             name: "speed".to_string(),
             unit: None,
         };
-        let grade_feature = InputFeature::Grade {
+        let grade_feature = InputFeature::Ratio {
             name: "grade".to_string(),
             unit: None,
         };
@@ -187,11 +187,11 @@ mod test {
             name: "speed".to_string(),
             unit: None,
         };
-        let grade_feature = InputFeature::Grade {
+        let grade_feature = InputFeature::Ratio {
             name: "grade".to_string(),
             unit: None,
         };
-        let soc_feature = InputFeature::StateOfCharge {
+        let soc_feature = InputFeature::Ratio {
             name: "soc".to_string(),
             unit: None,
         };

@@ -129,7 +129,7 @@ impl TraversalModel for BevEnergyModel {
             ),
             (
                 String::from(fieldname::TRIP_SOC),
-                StateFeature::StateOfCharge {
+                StateFeature::Ratio {
                     value: self.starting_soc,
                     accumulator: false,
                     output_unit: Some(RatioUnit::default()),
@@ -178,7 +178,7 @@ fn bev_traversal(
 ) -> Result<(), TraversalModelError> {
     // gather state variables
     let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
-    let start_soc = state_model.get_state_of_charge(state, fieldname::TRIP_SOC)?;
+    let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
 
     // generate energy for link traversal
     let energy = if estimate {
@@ -209,7 +209,7 @@ fn bev_traversal(
     // update state vector
     state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
     state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy)?;
-    state_model.set_state_of_charge(state, fieldname::TRIP_SOC, &end_soc)?;
+    state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
     Ok(())
 }
 
@@ -250,9 +250,7 @@ mod tests {
             elec
         );
 
-        let soc = state_model
-            .get_state_of_charge(&state, fieldname::TRIP_SOC)
-            .unwrap();
+        let soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         let lower_bound = Ratio::new::<uom::si::ratio::percent>(40.0);
         let upper_bound = Ratio::new::<uom::si::ratio::percent>(60.0);
 
@@ -286,9 +284,7 @@ mod tests {
             elec
         );
 
-        let soc = state_model
-            .get_state_of_charge(&state, fieldname::TRIP_SOC)
-            .unwrap();
+        let soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         let lower_bound = Ratio::new::<uom::si::ratio::percent>(20.0);
         let upper_bound = Ratio::new::<uom::si::ratio::percent>(30.0);
         assert!(soc < upper_bound, "soc {:?} should be < 30.0%", soc);
@@ -311,9 +307,7 @@ mod tests {
 
         bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
 
-        let battery_percent_soc = state_model
-            .get_state_of_charge(&state, fieldname::TRIP_SOC)
-            .unwrap();
+        let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc <= Ratio::new::<uom::si::ratio::percent>(100.0));
     }
 
@@ -333,9 +327,7 @@ mod tests {
 
         bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
 
-        let battery_percent_soc = state_model
-            .get_state_of_charge(&state, fieldname::TRIP_SOC)
-            .unwrap();
+        let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc >= Ratio::ZERO);
     }
 
@@ -373,7 +365,7 @@ mod tests {
                 name: fieldname::EDGE_SPEED.to_string(),
                 unit: Some(SpeedUnit::MPH),
             },
-            InputFeature::Grade {
+            InputFeature::Ratio {
                 name: fieldname::EDGE_GRADE.to_string(),
                 unit: Some(RatioUnit::Decimal),
             },
@@ -429,7 +421,7 @@ mod tests {
             .set_speed(&mut state, fieldname::EDGE_SPEED, &speed)
             .expect("test invariant failed");
         state_model
-            .set_grade(&mut state, fieldname::EDGE_GRADE, &grade)
+            .set_ratio(&mut state, fieldname::EDGE_GRADE, &grade)
             .expect("test invariant failed");
         state
     }
