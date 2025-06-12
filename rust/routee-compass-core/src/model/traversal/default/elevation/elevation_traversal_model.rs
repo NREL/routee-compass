@@ -4,7 +4,7 @@ use crate::model::{
     network::{Edge, Vertex},
     state::{InputFeature, OutputFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{Distance, DistanceUnit, Grade, GradeUnit},
+    unit::{Distance, DistanceUnit},
 };
 
 use super::{ElevationChange, ElevationConfiguration};
@@ -57,9 +57,9 @@ impl TraversalModel for ElevationTraversalModel {
             ),
             (
                 String::from(fieldname::TRIP_ELEVATION_LOSS),
-                OutputFeature::Grade {
-                    grade_unit: GradeUnit::Decimal,
-                    initial: Grade::ZERO,
+                OutputFeature::Distance {
+                    distance_unit: self.distance_unit,
+                    initial: Distance::ZERO,
                     accumulator: true,
                 },
             ),
