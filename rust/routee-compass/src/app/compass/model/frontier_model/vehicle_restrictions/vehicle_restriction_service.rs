@@ -1,8 +1,8 @@
 use crate::app::compass::model::frontier_model::vehicle_restrictions::VehicleParameterConfig;
 
 use super::{
-    vehicle_parameter::VehicleParameter,
-    vehicle_restriction_model::VehicleRestrictionFrontierModel, VehicleRestriction,
+    vehicle_restriction_model::VehicleRestrictionFrontierModel, VehicleParameter,
+    VehicleParameterType, VehicleRestriction,
 };
 use routee_compass_core::{
     model::{
@@ -17,7 +17,7 @@ use std::{collections::HashMap, sync::Arc};
 #[derive(Clone)]
 pub struct VehicleRestrictionFrontierService {
     pub vehicle_restriction_lookup:
-        Arc<HashMap<EdgeId, CompactOrderedHashMap<String, VehicleRestriction>>>,
+        Arc<HashMap<EdgeId, CompactOrderedHashMap<VehicleParameterType, VehicleRestriction>>>,
 }
 
 impl FrontierModelService for VehicleRestrictionFrontierService {

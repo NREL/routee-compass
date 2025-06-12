@@ -56,8 +56,8 @@ impl InterpolationModel {
             let feature_name = input_feature.name();
             let feature_bounds = feature_bounds.get(&feature_name).ok_or_else(|| {
                 TraversalModelError::BuildError(format!(
-                    "Missing feature bounds for {}",
-                    feature_name
+                    "Missing feature bounds for {}, got: {:?}",
+                    feature_name, feature_bounds
                 ))
             })?;
 

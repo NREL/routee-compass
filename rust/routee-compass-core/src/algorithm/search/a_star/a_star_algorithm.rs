@@ -54,7 +54,7 @@ pub fn run_vertex_oriented(
         si.termination_model
             .test(&start_time, solution.len(), iterations)?;
 
-        let current_vertex_id = match advance_search(&mut costs, source, target)? {
+        let current_vertex_id = match advance_search(&mut costs, source, target, &solution)? {
             None => break,
             Some(id) => id,
         };
@@ -258,7 +258,7 @@ pub fn run_edge_oriented(
                 } = run_vertex_oriented(e1_dst, Some(e2_src), direction, weight_factor, si)?;
 
                 if tree.is_empty() {
-                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src));
+                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src, 0));
                 }
 
                 let final_state = &tree
@@ -321,11 +321,13 @@ fn advance_search(
     cost: &mut InternalPriorityQueue<VertexId, ReverseCost>,
     source: VertexId,
     target: Option<VertexId>,
+    solution: &HashMap<VertexId, SearchTreeBranch>,
 ) -> Result<Option<VertexId>, SearchError> {
     match (cost.pop(), target) {
         (None, Some(target_vertex_id)) => Err(SearchError::NoPathExistsBetweenVertices(
             source,
             target_vertex_id,
+            solution.len(),
         )),
         (None, None) => Ok(None),
         (Some((current_v, _)), Some(target_v)) if current_v == target_v => Ok(None),

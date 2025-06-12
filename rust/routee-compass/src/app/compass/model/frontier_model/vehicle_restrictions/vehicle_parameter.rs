@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use uom::si::f64::{Length, Mass};
 
+use crate::app::compass::model::frontier_model::vehicle_restrictions::VehicleParameterType;
+
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize)]
 pub enum VehicleParameter {
     Height { value: Length },
@@ -12,14 +14,15 @@ pub enum VehicleParameter {
 }
 
 impl VehicleParameter {
-    pub fn name(&self) -> String {
+    pub fn vehicle_parameter_type(&self) -> &VehicleParameterType {
+        use VehicleParameterType as VPT;
         match self {
-            VehicleParameter::Height { .. } => "height".to_string(),
-            VehicleParameter::Width { .. } => "width".to_string(),
-            VehicleParameter::TotalLength { .. } => "total_length".to_string(),
-            VehicleParameter::TrailerLength { .. } => "trailer_length".to_string(),
-            VehicleParameter::TotalWeight { .. } => "total_weight".to_string(),
-            VehicleParameter::WeightPerAxle { .. } => "weight_per_axle".to_string(),
+            VehicleParameter::Height { .. } => &VPT::Height,
+            VehicleParameter::Width { .. } => &VPT::Width,
+            VehicleParameter::TotalLength { .. } => &VPT::TotalLength,
+            VehicleParameter::TrailerLength { .. } => &VPT::TrailerLength,
+            VehicleParameter::TotalWeight { .. } => &VPT::TotalWeight,
+            VehicleParameter::WeightPerAxle { .. } => &VPT::WeightPerAxle,
         }
     }
 }

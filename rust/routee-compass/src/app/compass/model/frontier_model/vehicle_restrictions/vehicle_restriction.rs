@@ -1,6 +1,6 @@
-use std::str::FromStr;
+use std::{fmt::Display, str::FromStr};
 
-use super::{ComparisonOperation, RestrictionRow, VehicleParameter};
+use super::{ComparisonOperation, RestrictionRow, VehicleParameter, VehicleParameterType};
 use routee_compass_core::model::{
     frontier::FrontierModelError,
     unit::{DistanceUnit, WeightUnit},
@@ -15,20 +15,22 @@ pub struct VehicleRestriction {
 
 impl VehicleRestriction {
     pub fn new(
-        vehicle_parameter: VehicleParameter,
+        restriction_parameter: VehicleParameter,
         comparison_operation: ComparisonOperation,
     ) -> Self {
         VehicleRestriction {
-            restriction_parameter: vehicle_parameter,
+            restriction_parameter,
             comparison_operation,
         }
     }
 
-    pub fn name(&self) -> String {
-        self.restriction_parameter.name()
+    pub fn vehicle_parameter_type(&self) -> &VehicleParameterType {
+        self.restriction_parameter.vehicle_parameter_type()
     }
 
-    pub fn validate_parameters(&self, query_parameter: &VehicleParameter) -> bool {
+    /// compares this restriction against some query-time vehicle parameter using
+    /// the restriction's comparison operator
+    pub fn within_restriction(&self, query_parameter: &VehicleParameter) -> bool {
         self.comparison_operation
             .compare_parameters(query_parameter, &self.restriction_parameter)
     }
@@ -38,8 +40,9 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
     type Error = FrontierModelError;
 
     fn try_from(row: &RestrictionRow) -> Result<Self, Self::Error> {
-        let vehicle_parameter = match row.name.as_str() {
-            "height" => Ok(VehicleParameter::Height {
+        use VehicleParameterType as VPT;
+        let vehicle_parameter = match row.name {
+            VPT::Height => Ok(VehicleParameter::Height {
                 value: DistanceUnit::from_str(&row.unit)
                     .map_err(|e| {
                         FrontierModelError::BuildError(format!(
@@ -49,7 +52,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     })?
                     .to_uom(row.value),
             }),
-            "width" => Ok(VehicleParameter::Width {
+            VPT::Width => Ok(VehicleParameter::Width {
                 value: DistanceUnit::from_str(&row.unit)
                     .map_err(|e| {
                         FrontierModelError::BuildError(format!(
@@ -59,7 +62,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     })?
                     .to_uom(row.value),
             }),
-            "total_length" => Ok(VehicleParameter::TotalLength {
+            VPT::TotalLength => Ok(VehicleParameter::TotalLength {
                 value: DistanceUnit::from_str(&row.unit)
                     .map_err(|e| {
                         FrontierModelError::BuildError(format!(
@@ -69,7 +72,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     })?
                     .to_uom(row.value),
             }),
-            "trailer_length" => Ok(VehicleParameter::TrailerLength {
+            VPT::TrailerLength => Ok(VehicleParameter::TrailerLength {
                 value: DistanceUnit::from_str(&row.unit)
                     .map_err(|e| {
                         FrontierModelError::BuildError(format!(
@@ -79,7 +82,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     })?
                     .to_uom(row.value),
             }),
-            "total_weight" => Ok(VehicleParameter::TotalWeight {
+            VPT::TotalWeight => Ok(VehicleParameter::TotalWeight {
                 value: WeightUnit::from_str(&row.unit)
                     .map_err(|e| {
                         FrontierModelError::BuildError(format!(
@@ -89,7 +92,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     })?
                     .to_uom(row.value),
             }),
-            "weight_per_axle" => Ok(VehicleParameter::WeightPerAxle {
+            VPT::WeightPerAxle => Ok(VehicleParameter::WeightPerAxle {
                 value: WeightUnit::from_str(&row.unit)
                     .map_err(|e| {
                         FrontierModelError::BuildError(format!(
@@ -99,15 +102,22 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
                     })?
                     .to_uom(row.value),
             }),
-            _ => Err(FrontierModelError::BuildError(format!(
-                "Unknown vehicle parameter type: {}",
-                row.name
-            ))),
         }?;
         let comparison_operation = row.operation.clone();
         Ok(VehicleRestriction {
             restriction_parameter: vehicle_parameter,
             comparison_operation,
         })
+    }
+}
+
+impl Display for VehicleRestriction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "query parameter is {} link restrictions matching {}",
+            self.comparison_operation,
+            self.restriction_parameter.vehicle_parameter_type()
+        )
     }
 }
