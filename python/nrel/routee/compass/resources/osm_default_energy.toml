@@ -54,6 +54,10 @@ type = "distance"
 distance_unit = "miles"
 
 [[traversal.models]]
+type = "elevation"
+distance_unit = "feet"
+
+[[traversal.models]]
 type = "speed"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kph"
@@ -65,7 +69,7 @@ time_unit = "minutes"
 [[traversal.models]]
 type = "grade"
 grade_unit = "decimal"
-grade_table_input_file = "edges-grade-enumerated.txt.gz"
+grade_input_file = "edges-grade-enumerated.txt.gz"
 [[traversal.models]]
 type = "energy"
 [[traversal.models.vehicles]]

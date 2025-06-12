@@ -83,7 +83,7 @@ time_unit = "minutes"
 [[traversal.models]]
 type = "grade"
 grade_unit = "decimal"
-grade_table_input_file = "edges-grade-enumerated.txt.gz"
+grade_input_file = "edges-grade-enumerated.txt.gz"
 
 [[traversal.models]]
 type = "energy"

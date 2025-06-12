@@ -1,15 +1,12 @@
 use std::sync::Arc;
 
-use uom::{
-    si::f64::{Length, Ratio},
-    ConstZero,
-};
+use uom::{si::f64::Length, ConstZero};
 
 use crate::model::{
     network::{Edge, Vertex},
     state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{DistanceUnit, RatioUnit},
+    unit::DistanceUnit,
 };
 
 use super::elevation_change::ElevationChange;
@@ -52,10 +49,10 @@ impl TraversalModel for ElevationTraversalModel {
             ),
             (
                 String::from(fieldname::TRIP_ELEVATION_LOSS),
-                StateFeature::Ratio {
-                    value: Ratio::ZERO,
+                StateFeature::Distance {
+                    value: Length::ZERO,
                     accumulator: true,
-                    output_unit: Some(RatioUnit::default()),
+                    output_unit: Some(DistanceUnit::default()),
                 },
             ),
         ]
