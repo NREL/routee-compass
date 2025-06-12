@@ -3,7 +3,6 @@ use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
-use super::state_feature::StateFeature;
 
 #[derive(
     Copy,
