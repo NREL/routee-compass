@@ -19,34 +19,26 @@ impl GradeTraversalEngine {
     /// builds a grade lookup table from the input file, or, if not provided, stubs a
     /// grade engine that always returns 0.
     pub fn new(config: &GradeConfiguration) -> Result<GradeTraversalEngine, TraversalModelError> {
-        match &config.grade_input_file {
-            None => Ok(Self {
-                grade_by_edge_id: None,
-                grade_unit: config.grade_unit,
-            }),
-            Some(grade_input_file) => {
-                let grade_table: Box<[Grade]> = read_utils::read_raw_file(
-                    grade_input_file,
-                    read_decoders::default,
-                    Some(Bar::builder().desc("link grades")),
-                    None,
-                )
-                .map_err(|e| {
-                    TraversalModelError::BuildError(format!(
-                        "failure reading grade table {} due to {}",
-                        grade_input_file.clone(),
-                        e
-                    ))
-                })?;
+        let grade_table: Box<[Grade]> = read_utils::read_raw_file(
+            config.grade_input_file.clone(),
+            read_decoders::default,
+            Some(Bar::builder().desc("link grades")),
+            None,
+        )
+        .map_err(|e| {
+            TraversalModelError::BuildError(format!(
+                "failure reading grade table {} due to {}",
+                config.grade_input_file.clone(),
+                e
+            ))
+        })?;
 
-                let engine = GradeTraversalEngine {
-                    grade_by_edge_id: Some(Arc::new(grade_table)),
-                    grade_unit: config.grade_unit,
-                };
+        let engine = GradeTraversalEngine {
+            grade_by_edge_id: Some(Arc::new(grade_table)),
+            grade_unit: config.grade_unit,
+        };
 
-                Ok(engine)
-            }
-        }
+        Ok(engine)
     }
 
     pub fn get_grade(&self, edge_id: EdgeId) -> Result<Grade, TraversalModelError> {
