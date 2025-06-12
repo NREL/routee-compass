@@ -9,10 +9,11 @@ pub const GALLON_DIESEL_TO_BTU: f64 = 137_381.0;
 pub const LITER_GASOLINE_TO_BTU: f64 = 31_757.0;
 pub const LITER_DIESEL_TO_BTU: f64 = 36_292.0;
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Default)]
 #[serde(rename_all = "snake_case", try_from = "String")]
 pub enum EnergyUnit {
     KilowattHours,
+    #[default]
     GallonsGasolineEquivalent,
     GallonsDieselEquivalent,
     LitersGasolineEquivalent,
@@ -35,6 +36,23 @@ impl EnergyUnit {
             }
             Self::LitersDieselEquivalent => {
                 Energy::new::<uom::si::energy::btu>(value * LITER_DIESEL_TO_BTU)
+            }
+        }
+    }
+    pub fn from_uom(&self, value: Energy) -> f64 {
+        match self {
+            Self::KilowattHours => value.get::<uom::si::energy::kilowatt_hour>(),
+            Self::GallonsGasolineEquivalent => {
+                value.get::<uom::si::energy::btu>() / GALLON_GASOLINE_TO_BTU
+            }
+            Self::GallonsDieselEquivalent => {
+                value.get::<uom::si::energy::btu>() / GALLON_DIESEL_TO_BTU
+            }
+            Self::LitersGasolineEquivalent => {
+                value.get::<uom::si::energy::btu>() / LITER_GASOLINE_TO_BTU
+            }
+            Self::LitersDieselEquivalent => {
+                value.get::<uom::si::energy::btu>() / LITER_DIESEL_TO_BTU
             }
         }
     }

@@ -8,6 +8,7 @@ use crate::model::state::{InputFeature, StateFeature};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
+use crate::model::unit::DistanceUnit;
 use crate::util::geo::haversine;
 
 /// a model for traversing edges based on distance.
@@ -62,6 +63,7 @@ impl TraversalModel for DistanceTraversalModel {
                 StateFeature::Distance {
                     value: Length::ZERO,
                     accumulator: true,
+                    output_unit: Some(DistanceUnit::default()),
                 },
             ),
             (
@@ -69,6 +71,7 @@ impl TraversalModel for DistanceTraversalModel {
                 StateFeature::Distance {
                     value: Length::ZERO,
                     accumulator: false,
+                    output_unit: Some(DistanceUnit::default()),
                 },
             ),
         ]

@@ -67,6 +67,7 @@ impl TraversalModel for IceEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: true,
+                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
@@ -74,6 +75,7 @@ impl TraversalModel for IceEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: false,
+                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
         ]

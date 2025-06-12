@@ -8,7 +8,7 @@ use routee_compass_core::model::{
     network::{Edge, Vertex},
     state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{EnergyRateUnit, EnergyUnit},
+    unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -126,6 +126,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: true,
+                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
@@ -133,6 +134,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: false,
+                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
@@ -140,6 +142,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: true,
+                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
@@ -147,6 +150,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: false,
+                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
@@ -154,6 +158,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: true,
+                    output_unit: Some(EnergyUnit::KilowattHours),
                 },
             ),
             (
@@ -161,6 +166,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: false,
+                    output_unit: Some(EnergyUnit::KilowattHours),
                 },
             ),
             (
@@ -168,6 +174,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateFeature::StateOfCharge {
                     value: self.starting_soc,
                     accumulator: false,
+                    output_unit: Some(RatioUnit::Percent),
                 },
             ),
         ]

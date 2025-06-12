@@ -41,12 +41,6 @@ impl From<StateVariable> for f64 {
         val.0
     }
 }
-impl From<StateFeature> for StateVariable {
-    fn from(value: StateFeature) -> Self {
-        StateVariable(value.as_f64())
-    }
-}
-
 impl From<&StateVariable> for f64 {
     fn from(val: &StateVariable) -> Self {
         val.0

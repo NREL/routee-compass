@@ -7,7 +7,7 @@ use routee_compass_core::model::{
     network::{Edge, Vertex},
     state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{EnergyRateUnit, EnergyUnit},
+    unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
 };
 use serde_json::Value;
 use std::sync::Arc;
@@ -116,6 +116,7 @@ impl TraversalModel for BevEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: true,
+                    output_unit: Some(EnergyUnit::KilowattHours),
                 },
             ),
             (
@@ -123,6 +124,7 @@ impl TraversalModel for BevEnergyModel {
                 StateFeature::Energy {
                     value: Energy::ZERO,
                     accumulator: false,
+                    output_unit: Some(EnergyUnit::KilowattHours),
                 },
             ),
             (
@@ -130,6 +132,7 @@ impl TraversalModel for BevEnergyModel {
                 StateFeature::StateOfCharge {
                     value: self.starting_soc,
                     accumulator: false,
+                    output_unit: Some(RatioUnit::default()),
                 },
             ),
         ]

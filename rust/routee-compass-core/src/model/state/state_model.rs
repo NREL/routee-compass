@@ -552,7 +552,7 @@ impl StateModel {
             .filter_map(
                 |((name, feature), state_var)| match feature.is_accumulator() {
                     false => None,
-                    true => Some((name, state_var)),
+                    true => Some((name, feature.state_variable_to_f64(*state_var))),
                 },
             )
             .collect::<HashMap<_, _>>();

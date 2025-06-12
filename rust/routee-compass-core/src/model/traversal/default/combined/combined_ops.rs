@@ -292,6 +292,7 @@ mod test {
                         StateFeature::Distance {
                             value: Length::ZERO,
                             accumulator: true,
+                            output_unit: None,
                         },
                     )
                 })

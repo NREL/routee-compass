@@ -10,6 +10,7 @@ use crate::{
         traversal::{
             default::fieldname, TraversalModel, TraversalModelError, TraversalModelService,
         },
+        unit::TimeUnit,
     },
     util::geo::haversine,
 };
@@ -48,6 +49,7 @@ impl TraversalModel for TimeTraversalModel {
                 StateFeature::Time {
                     value: Time::ZERO,
                     accumulator: false,
+                    output_unit: Some(TimeUnit::default()),
                 },
             ),
             (
@@ -55,6 +57,7 @@ impl TraversalModel for TimeTraversalModel {
                 StateFeature::Time {
                     value: Time::ZERO,
                     accumulator: true,
+                    output_unit: Some(TimeUnit::default()),
                 },
             ),
         ]

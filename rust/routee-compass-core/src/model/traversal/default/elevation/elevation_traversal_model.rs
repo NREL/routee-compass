@@ -9,6 +9,7 @@ use crate::model::{
     network::{Edge, Vertex},
     state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
+    unit::{DistanceUnit, RatioUnit},
 };
 
 use super::elevation_change::ElevationChange;
@@ -46,6 +47,7 @@ impl TraversalModel for ElevationTraversalModel {
                 StateFeature::Distance {
                     value: Length::ZERO,
                     accumulator: true,
+                    output_unit: Some(DistanceUnit::default()),
                 },
             ),
             (
@@ -53,6 +55,7 @@ impl TraversalModel for ElevationTraversalModel {
                 StateFeature::Grade {
                     value: Ratio::ZERO,
                     accumulator: true,
+                    output_unit: Some(RatioUnit::default()),
                 },
             ),
         ]

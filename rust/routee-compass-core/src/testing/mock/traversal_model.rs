@@ -47,6 +47,7 @@ impl MockUpstreamModel {
                     StateFeature::Distance {
                         value: uom::si::f64::Length::ZERO,
                         accumulator: false,
+                        output_unit: None,
                     },
                 ),
                 InputFeature::Grade { name, unit: _ } => (
@@ -54,6 +55,7 @@ impl MockUpstreamModel {
                     StateFeature::Grade {
                         value: uom::si::f64::Ratio::ZERO,
                         accumulator: false,
+                        output_unit: None,
                     },
                 ),
                 InputFeature::Speed { name, unit: _ } => (
@@ -61,6 +63,7 @@ impl MockUpstreamModel {
                     StateFeature::Speed {
                         value: uom::si::f64::Velocity::ZERO,
                         accumulator: false,
+                        output_unit: None,
                     },
                 ),
                 InputFeature::Time { name, unit: _ } => (
@@ -68,6 +71,7 @@ impl MockUpstreamModel {
                     StateFeature::Time {
                         value: uom::si::f64::Time::ZERO,
                         accumulator: false,
+                        output_unit: None,
                     },
                 ),
                 InputFeature::Energy { name, unit: _ } => (
@@ -75,6 +79,7 @@ impl MockUpstreamModel {
                     StateFeature::Energy {
                         value: uom::si::f64::Energy::ZERO,
                         accumulator: false,
+                        output_unit: None,
                     },
                 ),
                 InputFeature::StateOfCharge { name, unit: _ } => (
@@ -82,6 +87,7 @@ impl MockUpstreamModel {
                     StateFeature::StateOfCharge {
                         value: uom::si::f64::Ratio::ZERO,
                         accumulator: false,
+                        output_unit: None,
                     },
                 ),
                 InputFeature::Custom { name, unit: _ } => (

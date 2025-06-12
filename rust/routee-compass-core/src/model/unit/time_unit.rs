@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Default, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Default, Hash, PartialOrd)]
 #[serde(rename_all = "snake_case")]
 pub enum TimeUnit {
     Hours,
@@ -18,6 +18,14 @@ impl TimeUnit {
             TimeUnit::Minutes => uom::si::f64::Time::new::<uom::si::time::minute>(value),
             TimeUnit::Seconds => uom::si::f64::Time::new::<uom::si::time::second>(value),
             TimeUnit::Milliseconds => uom::si::f64::Time::new::<uom::si::time::millisecond>(value),
+        }
+    }
+    pub fn from_uom(&self, value: uom::si::f64::Time) -> f64 {
+        match self {
+            TimeUnit::Hours => value.get::<uom::si::time::hour>(),
+            TimeUnit::Minutes => value.get::<uom::si::time::minute>(),
+            TimeUnit::Seconds => value.get::<uom::si::time::second>(),
+            TimeUnit::Milliseconds => value.get::<uom::si::time::millisecond>(),
         }
     }
 }

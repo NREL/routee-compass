@@ -72,11 +72,6 @@ impl Cost {
     }
 }
 
-impl From<StateFeature> for Cost {
-    fn from(value: StateFeature) -> Self {
-        Cost::new(value.as_f64())
-    }
-}
 impl From<f64> for Cost {
     fn from(f: f64) -> Self {
         Cost(InternalFloat::new(f))

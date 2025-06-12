@@ -10,6 +10,7 @@ use crate::model::state::{InputFeature, StateFeature};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
+use crate::model::unit::SpeedUnit;
 use std::sync::Arc;
 
 pub struct SpeedTraversalModel {
@@ -50,6 +51,7 @@ impl TraversalModel for SpeedTraversalModel {
             StateFeature::Speed {
                 value: Velocity::ZERO,
                 accumulator: false,
+                output_unit: Some(SpeedUnit::default()),
             },
         )]
     }

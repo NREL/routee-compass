@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Default)]
 #[serde(rename_all = "snake_case", try_from = "String")]
 pub enum VolumeUnit {
+    #[default]
     GallonsUs,
     GallonsUk,
     Liters,

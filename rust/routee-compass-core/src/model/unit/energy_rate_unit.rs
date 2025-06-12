@@ -2,7 +2,7 @@ use itertools::Itertools;
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, Clone, Eq, PartialEq, Copy, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Copy, Hash, PartialOrd)]
 pub enum EnergyRateUnit {
     GGPM,
     GDPM,

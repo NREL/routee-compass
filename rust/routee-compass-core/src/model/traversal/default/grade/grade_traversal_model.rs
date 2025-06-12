@@ -5,6 +5,7 @@ use crate::model::{
     network::{Edge, Vertex},
     state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError},
+    unit::RatioUnit,
 };
 use std::sync::Arc;
 
@@ -31,6 +32,7 @@ impl TraversalModel for GradeTraversalModel {
             StateFeature::Grade {
                 value: Ratio::ZERO,
                 accumulator: false,
+                output_unit: Some(RatioUnit::default()),
             },
         )]
     }
