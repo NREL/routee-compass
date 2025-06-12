@@ -1,4 +1,3 @@
-use super::VehicleParameterConfig;
 use serde::Deserialize;
 use uom::si::f64::{Length, Mass};
 
@@ -24,7 +23,6 @@ impl VehicleParameter {
         }
     }
 }
-
 
 impl std::fmt::Display for VehicleParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

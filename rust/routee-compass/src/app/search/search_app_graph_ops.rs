@@ -2,9 +2,7 @@ use super::search_app::SearchApp;
 use crate::app::compass::CompassAppError;
 use routee_compass_core::{
     algorithm::search::Direction,
-    model::{
-        network::{edge_id::EdgeId, vertex_id::VertexId},
-    },
+    model::network::{edge_id::EdgeId, vertex_id::VertexId},
 };
 use uom::si::f64::Length;
 

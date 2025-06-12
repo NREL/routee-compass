@@ -38,60 +38,64 @@ impl MockUpstreamModel {
     /// requirements for the provided model.
     pub fn new_upstream_from(model: Arc<dyn TraversalModel>) -> MockUpstreamModel {
         let input_features = vec![];
-        let output_features = model.input_features().iter().map(|feature| match feature {
-            InputFeature::Distance { name, unit: _ } => (
-                name.clone(),
-                StateFeature::Distance {
-                    value: uom::si::f64::Length::ZERO,
-                    accumulator: false,
-                },
-            ),
-            InputFeature::Grade { name, unit: _ } => (
-                name.clone(),
-                StateFeature::Grade {
-                    value: uom::si::f64::Ratio::ZERO,
-                    accumulator: false,
-                },
-            ),
-            InputFeature::Speed { name, unit: _ } => (
-                name.clone(),
-                StateFeature::Speed {
-                    value: uom::si::f64::Velocity::ZERO,
-                    accumulator: false,
-                },
-            ),
-            InputFeature::Time { name, unit: _ } => (
-                name.clone(),
-                StateFeature::Time {
-                    value: uom::si::f64::Time::ZERO,
-                    accumulator: false,
-                },
-            ),
-            InputFeature::Energy { name, unit: _ } => (
-                name.clone(),
-                StateFeature::Energy {
-                    value: uom::si::f64::Energy::ZERO,
-                    accumulator: false,
-                },
-            ),
-            InputFeature::StateOfCharge { name, unit: _ } => (
-                name.clone(),
-                StateFeature::StateOfCharge {
-                    value: uom::si::f64::Ratio::ZERO,
-                    accumulator: false,
-                },
-            ),
-            InputFeature::Custom { name, unit: _ } => (
-                name.clone(),
-                StateFeature::Custom {
-                    value: 0.0,
-                    accumulator: false,
-                    format: CustomFeatureFormat::FloatingPoint {
-                        initial: ordered_float::OrderedFloat(0.0),
+        let output_features = model
+            .input_features()
+            .iter()
+            .map(|feature| match feature {
+                InputFeature::Distance { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Distance {
+                        value: uom::si::f64::Length::ZERO,
+                        accumulator: false,
                     },
-                },
-            ),
-        }).collect();
+                ),
+                InputFeature::Grade { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Grade {
+                        value: uom::si::f64::Ratio::ZERO,
+                        accumulator: false,
+                    },
+                ),
+                InputFeature::Speed { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Speed {
+                        value: uom::si::f64::Velocity::ZERO,
+                        accumulator: false,
+                    },
+                ),
+                InputFeature::Time { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Time {
+                        value: uom::si::f64::Time::ZERO,
+                        accumulator: false,
+                    },
+                ),
+                InputFeature::Energy { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Energy {
+                        value: uom::si::f64::Energy::ZERO,
+                        accumulator: false,
+                    },
+                ),
+                InputFeature::StateOfCharge { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::StateOfCharge {
+                        value: uom::si::f64::Ratio::ZERO,
+                        accumulator: false,
+                    },
+                ),
+                InputFeature::Custom { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Custom {
+                        value: 0.0,
+                        accumulator: false,
+                        format: CustomFeatureFormat::FloatingPoint {
+                            initial: ordered_float::OrderedFloat(0.0),
+                        },
+                    },
+                ),
+            })
+            .collect();
         Self {
             input_features,
             output_features,

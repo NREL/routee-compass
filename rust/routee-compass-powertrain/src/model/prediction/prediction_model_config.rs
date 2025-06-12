@@ -1,8 +1,5 @@
 use super::ModelType;
-use routee_compass_core::model::{
-    state::InputFeature,
-    unit::{DistanceUnit, EnergyRateUnit},
-};
+use routee_compass_core::model::{state::InputFeature, unit::EnergyRateUnit};
 use serde::{Deserialize, Serialize};
 
 /// Configuration for a prediction model parsed from the Compass configuration file.

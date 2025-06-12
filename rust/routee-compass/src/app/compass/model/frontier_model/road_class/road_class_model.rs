@@ -79,9 +79,7 @@ mod test {
     fn test_no_road_classes() {
         let model = mock(Box::new([String::from("a")]), json!({}));
         let edge = mock_edge();
-        let result = model
-            .valid_edge(&edge)
-            .unwrap();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(result)
     }
 
@@ -92,9 +90,7 @@ mod test {
             json!({"road_classes": ["a"]}),
         );
         let edge = mock_edge();
-        let result = model
-            .valid_edge(&edge)
-            .unwrap();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(result)
     }
 

@@ -20,7 +20,7 @@ impl RatioUnit {
             G::Millis => Ratio::new::<uom::si::ratio::per_mille>(value),
         }
     }
-    
+
     pub fn from_uom(&self, value: Ratio) -> f64 {
         use RatioUnit as G;
         match self {

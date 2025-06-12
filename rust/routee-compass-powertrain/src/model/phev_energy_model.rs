@@ -367,7 +367,7 @@ mod test {
         model::{
             state::{InputFeature, StateModel, StateVariable},
             traversal::TraversalModel,
-            unit::{EnergyRateUnit, EnergyUnit, RatioUnit, SpeedUnit},
+            unit::{EnergyRateUnit, RatioUnit, SpeedUnit},
         },
         testing::mock::traversal_model::TestTraversalModel,
     };
@@ -466,10 +466,6 @@ mod test {
         let elec = state_model
             .get_energy(&state, fieldname::EDGE_ENERGY_ELECTRIC)
             .expect("test invariant failed");
-        let liquid = state_model
-            .get_energy(&state, fieldname::EDGE_ENERGY_LIQUID)
-            .expect("test invariant failed");
-
         let soc = state_model
             .get_state_of_charge(&state, fieldname::TRIP_SOC)
             .expect("test invariant failed");

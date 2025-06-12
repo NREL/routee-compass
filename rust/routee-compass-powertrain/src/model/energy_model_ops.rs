@@ -111,7 +111,7 @@ pub fn get_headings(
 #[cfg(test)]
 mod test {
     use super::update_soc_percent;
-    use routee_compass_core::model::unit::EnergyUnit;
+
     use uom::si::f64::{Energy, Ratio};
 
     #[test]

@@ -5,7 +5,7 @@ use routee_compass_core::model::{
     frontier::FrontierModelError,
     unit::{DistanceUnit, WeightUnit},
 };
-use serde::{Deserialize};
+use serde::Deserialize;
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct VehicleRestriction {

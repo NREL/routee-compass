@@ -5,7 +5,7 @@ use routee_compass_core::{
     algorithm::search::Direction,
     model::{
         network::{edge_id::EdgeId, vertex_id::VertexId},
-        unit::{AsF64, DistanceUnit},
+        unit::DistanceUnit,
     },
 };
 use std::str::FromStr;

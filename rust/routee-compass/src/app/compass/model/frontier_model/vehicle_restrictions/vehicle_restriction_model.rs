@@ -66,11 +66,11 @@ mod test {
         state::StateModel,
     };
     use serde_json::{json, Value};
-    use uom::{si::f64::Length, ConstZero};
     use std::{
         path::{Path, PathBuf},
         sync::Arc,
     };
+    use uom::{si::f64::Length, ConstZero};
 
     fn mock_edge() -> Edge {
         Edge::new(0, 0, 0, Length::ZERO)

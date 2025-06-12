@@ -32,8 +32,8 @@ impl FrontierModelService for VehicleRestrictionFrontierService {
                 "Missing field `vehicle_parameters` in query".to_string(),
             )
         })?;
-        let vehicle_parameter_configs: Vec<VehicleParameterConfig> = serde_json::from_value(vp_json.clone())
-            .map_err(|e| {
+        let vehicle_parameter_configs: Vec<VehicleParameterConfig> =
+            serde_json::from_value(vp_json.clone()).map_err(|e| {
                 FrontierModelError::BuildError(format!(
                     "Unable to deserialize `vehicle_parameters` key: {}",
                     e

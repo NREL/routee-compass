@@ -1,8 +1,8 @@
 use super::CustomTraversalEngine;
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::{InputFeature, StateFeature};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
+use crate::model::state::{InputFeature, StateFeature};
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
 use std::sync::Arc;

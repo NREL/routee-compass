@@ -1,7 +1,4 @@
-use routee_compass_core::model::{
-    traversal::TraversalModelError,
-    unit::{EnergyRateUnit},
-};
+use routee_compass_core::model::{traversal::TraversalModelError, unit::EnergyRateUnit};
 
 pub trait PredictionModel: Send + Sync {
     fn predict(
