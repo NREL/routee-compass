@@ -80,14 +80,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 
 [traversal.models.vehicles.model_type]
@@ -109,14 +103,8 @@ battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 
 [traversal.models.vehicles.model_type]
@@ -141,14 +129,8 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 
 [traversal.models.vehicles.charge_depleting.model_type]
@@ -167,14 +149,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 
 [traversal.models.vehicles.charge_sustaining.model_type]

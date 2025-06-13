@@ -5,20 +5,21 @@ use super::{
     map_vertex_rtree_object::MapVertexRTreeObject, nearest_search_result::NearestSearchResult,
 };
 use crate::model::{
+    map::map_model_config::DistanceTolerance,
     network::{Graph, Vertex},
-    unit::{Distance, DistanceUnit},
 };
 use geo::Point;
 use rstar::RTree;
+use uom::si::f64::Length;
 
 pub enum SpatialIndex {
     VertexOrientedIndex {
         rtree: RTree<MapVertexRTreeObject>,
-        tolerance: Option<(Distance, DistanceUnit)>,
+        tolerance: Option<Length>,
     },
     EdgeOrientedIndex {
         rtree: RTree<MapEdgeRTreeObject>,
-        tolerance: Option<(Distance, DistanceUnit)>,
+        tolerance: Option<Length>,
     },
 }
 
@@ -26,13 +27,11 @@ impl SpatialIndex {
     /// creates a new instance of the rtree model that is vertex-oriented; that is, the
     /// rtree is built over the vertices in the graph, and nearest neighbor searches return
     /// a VertexId.
-    pub fn new_vertex_oriented(
-        vertices: &[Vertex],
-        tolerance: Option<(Distance, DistanceUnit)>,
-    ) -> Self {
+    pub fn new_vertex_oriented(vertices: &[Vertex], tolerance: Option<DistanceTolerance>) -> Self {
         let entries: Vec<MapVertexRTreeObject> =
             vertices.iter().map(MapVertexRTreeObject::new).collect();
         let rtree = RTree::bulk_load(entries);
+        let tolerance = tolerance.map(|t| t.to_uom());
         Self::VertexOrientedIndex { rtree, tolerance }
     }
 
@@ -43,7 +42,7 @@ impl SpatialIndex {
     pub fn new_edge_oriented(
         graph: Arc<Graph>,
         geometry_model: &GeometryModel,
-        tolerance: Option<(Distance, DistanceUnit)>,
+        tolerance: Option<DistanceTolerance>,
     ) -> Self {
         let entries: Vec<MapEdgeRTreeObject> = graph
             .edges
@@ -52,6 +51,7 @@ impl SpatialIndex {
             .map(|(e, g)| MapEdgeRTreeObject::new(e, g))
             .collect();
         let rtree = RTree::bulk_load(entries.to_vec());
+        let tolerance = tolerance.map(|t| t.to_uom());
 
         Self::EdgeOrientedIndex { rtree, tolerance }
     }

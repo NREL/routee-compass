@@ -1,3 +1,4 @@
+use self::internal_float::InternalFloat;
 use crate::model::unit::{AsF64, *};
 use allocative::Allocative;
 use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
@@ -6,8 +7,6 @@ use std::{
     fmt::Display,
     ops::{Deref, DerefMut},
 };
-
-use self::internal_float::InternalFloat;
 
 /// Represents the cost for traversing a graph edge.
 /// A cost does not carry any units but can be built from a unit type like [`Time`] or [`Energy`]  
@@ -67,27 +66,6 @@ impl Cost {
         } else {
             cost
         }
-    }
-}
-
-impl From<&Distance> for Cost {
-    fn from(value: &Distance) -> Self {
-        Cost::new(value.as_f64())
-    }
-}
-impl From<Time> for Cost {
-    fn from(value: Time) -> Self {
-        Cost::new(value.as_f64())
-    }
-}
-impl From<Energy> for Cost {
-    fn from(value: Energy) -> Self {
-        Cost::new(value.as_f64())
-    }
-}
-impl From<&Speed> for Cost {
-    fn from(value: &Speed) -> Self {
-        Cost::new(value.as_f64())
     }
 }
 

@@ -57,6 +57,7 @@ mod test {
     };
     use serde_json::{json, Value};
     use std::sync::Arc;
+    use uom::si::f64::Length;
 
     /// builds the test model for a given RoadClassModel test
     /// # Arguments
@@ -70,10 +71,15 @@ mod test {
         service.build(&query, state_model.clone()).unwrap()
     }
 
+    fn mock_edge() -> Edge {
+        Edge::new(0, 0, 1, Length::new::<uom::si::length::meter>(1.0))
+    }
+
     #[test]
     fn test_no_road_classes() {
         let model = mock(Box::new([String::from("a")]), json!({}));
-        let result = model.valid_edge(&Edge::new(0, 0, 1, 1.0)).unwrap();
+        let edge = mock_edge();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(result)
     }
 
@@ -83,7 +89,8 @@ mod test {
             Box::new([String::from("a")]),
             json!({"road_classes": ["a"]}),
         );
-        let result = model.valid_edge(&Edge::new(0, 0, 1, 1.0)).unwrap();
+        let edge = mock_edge();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(result)
     }
 
@@ -93,7 +100,8 @@ mod test {
             Box::new([String::from("oh no!")]),
             json!({"road_classes": ["a"]}),
         );
-        let result = model.valid_edge(&Edge::new(0, 0, 1, 1.0)).unwrap();
+        let edge = mock_edge();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(!result)
     }
 
@@ -103,7 +111,8 @@ mod test {
             Box::new([String::from("a")]),
             json!({"road_classes": ["a", "b", "c"]}),
         );
-        let result = model.valid_edge(&Edge::new(0, 0, 1, 1.0)).unwrap();
+        let edge = mock_edge();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(result)
     }
 
@@ -113,14 +122,16 @@ mod test {
             Box::new([String::from("oh no!")]),
             json!({"road_classes": ["a", "b", "c"]}),
         );
-        let result = model.valid_edge(&Edge::new(0, 0, 1, 1.0)).unwrap();
+        let edge = mock_edge();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(!result)
     }
 
     #[test]
     fn test_valid_numeric_class() {
         let model = mock(Box::new([String::from("1")]), json!({"road_classes": [1]}));
-        let result = model.valid_edge(&Edge::new(0, 0, 1, 1.0)).unwrap();
+        let edge = mock_edge();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(result)
     }
 
@@ -130,7 +141,8 @@ mod test {
             Box::new([String::from("OH NO!")]),
             json!({"road_classes": [1]}),
         );
-        let result = model.valid_edge(&Edge::new(0, 0, 1, 1.0)).unwrap();
+        let edge = mock_edge();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(!result)
     }
 
@@ -140,7 +152,8 @@ mod test {
             Box::new([String::from("true")]),
             json!({"road_classes": [true]}),
         );
-        let result = model.valid_edge(&Edge::new(0, 0, 1, 1.0)).unwrap();
+        let edge = mock_edge();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(result)
     }
 
@@ -150,7 +163,8 @@ mod test {
             Box::new([String::from("OH NO!")]),
             json!({"road_classes": [true]}),
         );
-        let result = model.valid_edge(&Edge::new(0, 0, 1, 1.0)).unwrap();
+        let edge = mock_edge();
+        let result = model.valid_edge(&edge).unwrap();
         assert!(!result)
     }
 }

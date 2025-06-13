@@ -11,6 +11,7 @@ repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
 
 [dependencies]
+approx = "0.5.1"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 rayon = { workspace = true }
@@ -33,4 +34,5 @@ wkt = { workspace = true }
 wkb = { workspace = true }
 allocative = { workspace = true }
 rstar = { workspace = true }
+uom = { workspace = true, features = ["serde"] }
 topological-sort = "0.2.2"

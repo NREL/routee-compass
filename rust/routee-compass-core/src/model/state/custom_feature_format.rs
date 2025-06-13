@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 /// warning: this could backfire, but probably in extreme cases that can be avoided.
 /// for example, if the user selects esoteric integer values that are not well-represented
 /// in floating point, then an encode -> decode roundtrip may not be idempotent.
-#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd)]
 #[serde(rename_all = "snake_case")]
 pub enum CustomFeatureFormat {
     FloatingPoint { initial: OrderedFloat<f64> },

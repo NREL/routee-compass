@@ -5,7 +5,7 @@ use routee_compass_core::{
     algorithm::search::Direction,
     model::{
         network::{edge_id::EdgeId, vertex_id::VertexId},
-        unit::{AsF64, DistanceUnit},
+        unit::DistanceUnit,
     },
 };
 use std::str::FromStr;
@@ -146,10 +146,11 @@ pub trait CompassAppBindings {
             None => None,
         };
         let edge_id_internal = EdgeId(edge_id);
-        self.app()
-            .search_app
-            .get_edge_distance(&edge_id_internal, du_internal)
-            .map(|o| o.as_f64())
+        let edge_distance_internal = self.app().search_app.get_edge_distance(&edge_id_internal)?;
+        match du_internal {
+            Some(du) => Ok(du.from_uom(edge_distance_internal)),
+            None => Ok(DistanceUnit::Meters.from_uom(edge_distance_internal)),
+        }
     }
 
     /// Get the ids of the edges incident to a vertex in the forward direction

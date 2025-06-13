@@ -3,7 +3,8 @@ use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::{
     model::access::{
         default::turn_delays::{
-            EdgeHeading, TurnDelayAccessModelEngine, TurnDelayAccessModelService, TurnDelayModel,
+            EdgeHeading, TurnDelayAccessModelEngine, TurnDelayAccessModelService,
+            TurnDelayModelConfig,
         },
         AccessModelBuilder, AccessModelError, AccessModelService,
     },
@@ -38,17 +39,21 @@ impl AccessModelBuilder for TurnDelayAccessModelBuilder {
                 file_path, e
             ))
         })?;
-        let turn_delay_model = parameters
-            .get_config_serde::<TurnDelayModel>(&"turn_delay_model", &"turn delay access model")
+        let turn_delay_model_config = parameters
+            .get_config_serde::<TurnDelayModelConfig>(
+                &"turn_delay_model",
+                &"turn delay access model",
+            )
             .map_err(|e| {
                 AccessModelError::BuildError(format!(
                     "failure reading 'turn_delay_model' from access model configuration: {}",
                     e
                 ))
             })?;
+
         let engine = TurnDelayAccessModelEngine {
             edge_headings,
-            turn_delay_model,
+            turn_delay_model: turn_delay_model_config.into(),
         };
         let service = TurnDelayAccessModelService {
             engine: Arc::new(engine),

@@ -16,6 +16,7 @@ smartcore = { version = "0.4.0", features = ["serde"] }                       # 
 thiserror = { workspace = true }
 log = { workspace = true }
 geo = { workspace = true }
+uom = { workspace = true, features = ["serde"] }
 kdam = { workspace = true }
 bincode = { version = "2.0.1", features = ["serde"] }
 env_logger = { workspace = true }

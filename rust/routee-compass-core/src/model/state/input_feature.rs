@@ -1,67 +1,55 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::unit::{DistanceUnit, EnergyUnit, GradeUnit, SpeedUnit, TimeUnit};
-
-use super::OutputFeature;
+use crate::model::unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TimeUnit};
 
 /// defines the required input feature and its requested unit type for a given state variable
 ///
 /// if a unit type is provided, then the state variable is provided in the requested unit to the model.
 #[derive(Serialize, Deserialize, Clone, Debug, Hash, Eq, PartialEq)]
-#[serde(tag = "type", content = "convert", rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum InputFeature {
-    Distance(Option<DistanceUnit>),
-    Speed(Option<SpeedUnit>),
-    Time(Option<TimeUnit>),
-    Energy(Option<EnergyUnit>),
-    Grade(Option<GradeUnit>),
-    Custom { name: String, unit: String },
+    Distance {
+        name: String,
+        unit: Option<DistanceUnit>,
+    },
+    Speed {
+        name: String,
+        unit: Option<SpeedUnit>,
+    },
+    Time {
+        name: String,
+        unit: Option<TimeUnit>,
+    },
+    Energy {
+        name: String,
+        unit: Option<EnergyUnit>,
+    },
+    Ratio {
+        name: String,
+        unit: Option<RatioUnit>,
+    },
+    Custom {
+        name: String,
+        unit: String,
+    },
+}
+
+impl InputFeature {
+    pub fn name(&self) -> String {
+        match self {
+            InputFeature::Distance { name, .. } => name.to_owned(),
+            InputFeature::Speed { name, .. } => name.to_owned(),
+            InputFeature::Time { name, .. } => name.to_owned(),
+            InputFeature::Energy { name, .. } => name.to_owned(),
+            InputFeature::Ratio { name, .. } => name.to_owned(),
+            InputFeature::Custom { name, .. } => name.to_owned(),
+        }
+    }
 }
 
 impl std::fmt::Display for InputFeature {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = serde_json::to_string_pretty(self).unwrap_or_default();
         write!(f, "{}", s)
-    }
-}
-
-impl From<&OutputFeature> for InputFeature {
-    fn from(value: &OutputFeature) -> Self {
-        match value {
-            OutputFeature::Distance {
-                distance_unit,
-                initial: _,
-                accumulator: _,
-            } => InputFeature::Distance(Some(*distance_unit)),
-            OutputFeature::Time {
-                time_unit,
-                initial: _,
-                accumulator: _,
-            } => InputFeature::Time(Some(*time_unit)),
-            OutputFeature::Energy {
-                energy_unit,
-                initial: _,
-                accumulator: _,
-            } => InputFeature::Energy(Some(*energy_unit)),
-            OutputFeature::Speed {
-                speed_unit,
-                initial: _,
-                accumulator: _,
-            } => InputFeature::Speed(Some(*speed_unit)),
-            OutputFeature::Grade {
-                grade_unit,
-                initial: _,
-                accumulator: _,
-            } => InputFeature::Grade(Some(*grade_unit)),
-            OutputFeature::Custom {
-                name,
-                unit,
-                format: _,
-                accumulator: _,
-            } => InputFeature::Custom {
-                name: name.clone(),
-                unit: unit.clone(),
-            },
-        }
     }
 }

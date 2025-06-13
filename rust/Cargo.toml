@@ -32,4 +32,5 @@ config = "0.15.11"
 ordered-float = { version = "5.0.0", features = ["serde"] }
 allocative = "0.3.4"
 indoc = "2.0.6"
+uom = { version = "0.37.0", features = ["serde"] }
 derive_more = { version = "2.0.1", features = ["full"] }

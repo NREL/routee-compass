@@ -207,9 +207,6 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             graph_duration.hhmmss()
         );
 
-        let graph_bytes = allocative::size_of_unique_allocated_data(&graph);
-        log::info!("graph size: {} GB", graph_bytes as f64 / 1e9);
-
         let map_start = Local::now();
         let map_model_json = config_json.get(CompassConfigurationField::MapModel.to_str());
         let map_model_config =
@@ -222,33 +219,6 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             "finished loading map model with duration {}",
             map_dur.hhmmss()
         );
-
-        #[cfg(debug_assertions)]
-        {
-            use std::io::Write;
-
-            log::debug!("Building flamegraph for graph memory usage..");
-
-            let mut flamegraph = allocative::FlameGraphBuilder::default();
-            flamegraph.visit_root(&graph);
-            let output = flamegraph.finish_and_write_flame_graph();
-
-            let outdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .join("..")
-                .join("target")
-                .join("flamegraph");
-
-            if !outdir.exists() {
-                std::fs::create_dir(&outdir).unwrap();
-            }
-
-            let outfile = outdir.join("graph_memory_flamegraph.out");
-
-            log::debug!("writing graph flamegraph to {:?}", outfile);
-
-            let mut output_file = std::fs::File::create(outfile).unwrap();
-            output_file.write_all(output.as_bytes()).unwrap();
-        }
 
         // build search app
         let search_app = Arc::new(SearchApp::new(

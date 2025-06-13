@@ -1,8 +1,9 @@
 use super::{map_error::MapError, matching_type::MatchingType};
-use crate::model::unit::{Distance, DistanceUnit};
+use crate::model::unit::DistanceUnit;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::str::FromStr;
+use uom::si::f64::Length;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
@@ -94,12 +95,12 @@ impl TryFrom<Option<&Value>> for MapModelConfig {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DistanceTolerance {
-    pub distance: Distance,
+    pub distance: f64,
     pub unit: DistanceUnit,
 }
 
 impl DistanceTolerance {
-    pub fn unpack(&self) -> (Distance, DistanceUnit) {
-        (self.distance, self.unit)
+    pub fn to_uom(&self) -> Length {
+        self.unit.to_uom(self.distance)
     }
 }
