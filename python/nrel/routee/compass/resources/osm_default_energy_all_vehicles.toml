@@ -99,14 +99,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -125,14 +119,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -151,14 +139,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -177,14 +159,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -203,14 +179,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -229,14 +199,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -257,14 +221,8 @@ battery_capacity = 20
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -283,14 +241,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -309,14 +261,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -335,14 +281,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -361,14 +301,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -387,14 +321,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -415,14 +343,8 @@ battery_capacity = 24
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -443,14 +365,8 @@ battery_capacity = 16
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -471,14 +387,8 @@ battery_capacity = 30
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -499,14 +409,8 @@ battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -525,14 +429,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -551,14 +449,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -577,14 +469,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -603,14 +489,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -631,14 +511,8 @@ battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -657,14 +531,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -683,14 +551,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -709,14 +571,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -735,14 +591,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -761,14 +611,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -787,14 +631,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -813,14 +651,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -841,14 +673,8 @@ battery_capacity = 71
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -869,14 +695,8 @@ battery_capacity = 58
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -895,14 +715,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -923,14 +737,8 @@ battery_capacity = 98
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -951,14 +759,8 @@ battery_capacity = 50
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -979,14 +781,8 @@ battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1007,14 +803,8 @@ battery_capacity = 52
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1035,14 +825,8 @@ battery_capacity = 52
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1061,14 +845,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1089,14 +867,8 @@ battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1117,14 +889,8 @@ battery_capacity = 62
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1143,14 +909,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1172,14 +932,8 @@ battery_capacity = 82
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1198,14 +952,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1226,14 +974,8 @@ battery_capacity = 78
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1254,14 +996,8 @@ battery_capacity = 75
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1282,14 +1018,8 @@ battery_capacity = 45
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1310,14 +1040,8 @@ battery_capacity = 42
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1336,14 +1060,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1364,14 +1082,8 @@ battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1390,14 +1102,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1416,14 +1122,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1442,14 +1142,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1468,14 +1162,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1494,14 +1182,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1520,14 +1202,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1546,14 +1222,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.2
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1572,14 +1242,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.166
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1602,14 +1266,8 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1626,14 +1284,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1656,14 +1308,8 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1680,14 +1326,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1710,14 +1350,8 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1734,14 +1368,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1764,14 +1392,8 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1788,14 +1410,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1818,14 +1434,8 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 real_world_energy_adjustment = 1.3958
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1842,14 +1452,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons gasoline/mile"
 real_world_energy_adjustment = 1.1252
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1869,14 +1473,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.0
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1895,14 +1493,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.0
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1921,14 +1513,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.0
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1947,14 +1533,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.0
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1973,14 +1553,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.0
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -1999,14 +1573,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.0
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -2025,14 +1593,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.0
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
@@ -2051,14 +1613,8 @@ distance_unit = "miles"
 energy_rate_unit = "gallons diesel/mile"
 real_world_energy_adjustment = 1.0
 input_features = [
-    [
-        "edge_speed",
-        { type = "speed", convert = "mph" },
-    ],
-    [
-        "edge_grade",
-        { type = "grade", convert = "percent" },
-    ],
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 [traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"

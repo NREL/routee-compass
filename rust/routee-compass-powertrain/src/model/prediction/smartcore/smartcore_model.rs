@@ -1,8 +1,5 @@
 use crate::model::prediction::prediction_model::PredictionModel;
-use routee_compass_core::model::{
-    traversal::TraversalModelError,
-    unit::{EnergyRate, EnergyRateUnit},
-};
+use routee_compass_core::model::{traversal::TraversalModelError, unit::EnergyRateUnit};
 use smartcore::{
     ensemble::random_forest_regressor::RandomForestRegressor, linalg::basic::matrix::DenseMatrix,
 };
@@ -17,7 +14,7 @@ impl PredictionModel for SmartcoreModel {
     fn predict(
         &self,
         feature_vector: &Vec<f64>,
-    ) -> Result<(EnergyRate, EnergyRateUnit), TraversalModelError> {
+    ) -> Result<(f64, EnergyRateUnit), TraversalModelError> {
         let x = DenseMatrix::from_2d_vec(&vec![feature_vector.to_vec()]).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
                 "unable to set up prediction input vector: {}",
@@ -31,7 +28,7 @@ impl PredictionModel for SmartcoreModel {
             ))
         })?;
 
-        let energy_rate = EnergyRate::from(y[0]);
+        let energy_rate = y[0];
         Ok((energy_rate, self.energy_rate_unit))
     }
 }

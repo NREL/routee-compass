@@ -1,3 +1,5 @@
+use crate::app::compass::model::frontier_model::vehicle_restrictions::VehicleParameterConfig;
+
 use super::{
     vehicle_restriction_model::VehicleRestrictionFrontierModel, VehicleParameter,
     VehicleParameterType, VehicleRestriction,
@@ -30,13 +32,17 @@ impl FrontierModelService for VehicleRestrictionFrontierService {
                 "Missing field `vehicle_parameters` in query".to_string(),
             )
         })?;
-        let vehicle_parameters: Vec<VehicleParameter> = serde_json::from_value(vp_json.clone())
-            .map_err(|e| {
+        let vehicle_parameter_configs: Vec<VehicleParameterConfig> =
+            serde_json::from_value(vp_json.clone()).map_err(|e| {
                 FrontierModelError::BuildError(format!(
                     "Unable to deserialize `vehicle_parameters` key: {}",
                     e
                 ))
             })?;
+        let vehicle_parameters: Vec<VehicleParameter> = vehicle_parameter_configs
+            .into_iter()
+            .map(|vpc| vpc.into())
+            .collect();
         let model = VehicleRestrictionFrontierModel {
             service,
             vehicle_parameters,

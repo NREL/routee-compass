@@ -1,6 +1,6 @@
 use super::{sparse_read_ops, CustomTraversalConfig};
 use crate::model::network::EdgeId;
-use crate::model::state::{CustomFeatureFormat, OutputFeature, StateModel, StateVariable};
+use crate::model::state::{CustomFeatureFormat, StateFeature, StateModel, StateVariable};
 use crate::util::fs::read_decoders;
 use crate::{model::traversal::TraversalModelError, util::fs::read_utils};
 use kdam::BarBuilder;
@@ -28,13 +28,12 @@ impl CustomTraversalEngine {
         }
     }
 
-    pub fn output_feature(&self) -> OutputFeature {
+    pub fn output_feature(&self) -> StateFeature {
         let config = self.config();
-        OutputFeature::Custom {
-            name: config.name.clone(),
-            unit: config.unit.clone(),
-            format: config.feature,
+        StateFeature::Custom {
+            value: 0.0,
             accumulator: config.accumulator,
+            format: config.feature,
         }
     }
 

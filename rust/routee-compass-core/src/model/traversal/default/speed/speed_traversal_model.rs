@@ -1,34 +1,32 @@
+use uom::si::f64::Velocity;
+use uom::ConstZero;
+
 use super::speed_traversal_engine::SpeedTraversalEngine;
 use crate::model::network::edge_id::EdgeId;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
-use crate::model::state::{InputFeature, OutputFeature};
+use crate::model::state::{InputFeature, StateFeature};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
-use crate::model::unit::{Convert, SpeedUnit};
-use crate::model::{traversal::traversal_model_error::TraversalModelError, unit::Speed};
-use std::borrow::Cow;
+use crate::model::traversal::traversal_model_error::TraversalModelError;
+use crate::model::unit::SpeedUnit;
 use std::sync::Arc;
 
 pub struct SpeedTraversalModel {
     engine: Arc<SpeedTraversalEngine>,
-    speed_limit: Option<(Speed, SpeedUnit)>,
+    speed_limit: Option<Velocity>,
 }
 
 impl SpeedTraversalModel {
     pub fn new(
         engine: Arc<SpeedTraversalEngine>,
-        speed_limit: Option<(Speed, SpeedUnit)>,
+        speed_limit: Option<Velocity>,
     ) -> Result<SpeedTraversalModel, TraversalModelError> {
-        if let Some((max_speed, from_unit)) = speed_limit {
-            // match speed limit value to the speed unit of the speed table
-            let mut max_speed_convert = Cow::Owned(max_speed);
-            let to_unit = engine.speed_unit;
-            from_unit.convert(&mut max_speed_convert, &to_unit)?;
+        if let Some(max_speed) = speed_limit {
             Ok(SpeedTraversalModel {
                 engine,
-                speed_limit: Some((max_speed_convert.into_owned(), to_unit)),
+                speed_limit: Some(max_speed),
             })
         } else {
             Ok(SpeedTraversalModel {
@@ -40,20 +38,20 @@ impl SpeedTraversalModel {
 }
 
 impl TraversalModel for SpeedTraversalModel {
-    fn input_features(&self) -> Vec<(String, InputFeature)> {
-        vec![(
-            String::from(fieldname::EDGE_DISTANCE),
-            InputFeature::Distance(None),
-        )]
+    fn input_features(&self) -> Vec<InputFeature> {
+        vec![InputFeature::Distance {
+            name: fieldname::EDGE_DISTANCE.to_string(),
+            unit: None,
+        }]
     }
 
-    fn output_features(&self) -> Vec<(String, OutputFeature)> {
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
         vec![(
             String::from(fieldname::EDGE_SPEED),
-            OutputFeature::Speed {
-                speed_unit: self.engine.speed_unit,
-                initial: Speed::ZERO,
+            StateFeature::Speed {
+                value: Velocity::ZERO,
                 accumulator: false,
+                output_unit: Some(SpeedUnit::default()),
             },
         )]
     }
@@ -67,13 +65,8 @@ impl TraversalModel for SpeedTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
         let lookup_speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
-        let speed = apply_speed_limit(lookup_speed, self.speed_limit.as_ref());
-        state_model.set_speed(
-            state,
-            fieldname::EDGE_SPEED,
-            &speed,
-            &self.engine.speed_unit,
-        )?;
+        let speed = apply_speed_limit(lookup_speed, self.speed_limit);
+        state_model.set_speed(state, fieldname::EDGE_SPEED, &speed)?;
         Ok(())
     }
 
@@ -84,24 +77,22 @@ impl TraversalModel for SpeedTraversalModel {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let speed = match self.speed_limit {
-            Some((speed_limit, _speed_unit)) => speed_limit,
+        let speed: Velocity = match self.speed_limit {
+            Some(speed_limit) => speed_limit,
             None => self.engine.max_speed,
         };
-        state_model.set_speed(
-            state,
-            fieldname::EDGE_SPEED,
-            &speed,
-            &self.engine.speed_unit,
-        )?;
+        state_model.set_speed(state, fieldname::EDGE_SPEED, &speed)?;
 
         Ok(())
     }
 }
 
 /// look up a speed from the speed table
-pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, TraversalModelError> {
-    let speed: &Speed = speed_table.get(edge_id.as_usize()).ok_or_else(|| {
+pub fn get_speed(
+    speed_table: &[Velocity],
+    edge_id: EdgeId,
+) -> Result<Velocity, TraversalModelError> {
+    let speed: &Velocity = speed_table.get(edge_id.as_usize()).ok_or_else(|| {
         TraversalModelError::TraversalModelFailure(format!(
             "could not find expected index {} in speed table",
             edge_id
@@ -110,12 +101,11 @@ pub fn get_speed(speed_table: &[Speed], edge_id: EdgeId) -> Result<Speed, Traver
     Ok(*speed)
 }
 
-fn apply_speed_limit(lookup_speed: Speed, speed_limit: Option<&(Speed, SpeedUnit)>) -> Speed {
+fn apply_speed_limit(lookup_speed: Velocity, speed_limit: Option<Velocity>) -> Velocity {
     match speed_limit {
-        // speed unit here is unused since we've already converted into the same unit as the speed model
-        Some((speed_limit, _speed_unit)) => {
-            if &lookup_speed > speed_limit {
-                *speed_limit
+        Some(speed_limit) => {
+            if lookup_speed > speed_limit {
+                speed_limit
             } else {
                 lookup_speed
             }
@@ -128,11 +118,13 @@ fn apply_speed_limit(lookup_speed: Speed, speed_limit: Option<&(Speed, SpeedUnit
 mod tests {
     use super::*;
     use crate::model::network::{Edge, EdgeId, Vertex, VertexId};
-    use crate::model::unit::{Distance, SpeedUnit};
+    use crate::model::unit::SpeedUnit;
     use crate::testing::mock::traversal_model::TestTraversalModel;
     use crate::util::geo::InternalCoord;
+    use approx::relative_eq;
     use geo::coord;
     use std::path::PathBuf;
+    use uom::si::f64::Length;
 
     fn mock_vertex() -> Vertex {
         Vertex {
@@ -145,7 +137,7 @@ mod tests {
             edge_id: EdgeId(edge_id),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),
-            distance: Distance::from(100.0),
+            distance: Length::new::<uom::si::length::meter>(100.0),
         }
     }
     fn filepath() -> PathBuf {
@@ -184,7 +176,7 @@ mod tests {
             TestTraversalModel::new(Arc::new(speed_model)).expect("test invariant failed");
         let state_model = StateModel::empty()
             .register(test_model.input_features(), test_model.output_features())
-            .expect("test invariant failed");
+            .expect("failed tp register state features");
 
         let mut state = state_model.initial_state().unwrap();
         let v = mock_vertex();
@@ -193,26 +185,19 @@ mod tests {
             .traverse_edge((&v, &e1, &v), &mut state, &state_model)
             .unwrap();
 
-        let expected_speed = Speed::from(10.0);
-        let expected_unit = SpeedUnit::KPH;
-        let (result_speed, result_unit) = state_model
-            .get_speed(&state, "edge_speed", None)
+        let expected_speed_kph = 10.0;
+        let result_speed = state_model
+            .get_speed(&state, "edge_speed")
             .expect("test invariant failed");
-        assert_eq!(
-            expected_speed, result_speed,
-            "speed should match edge 0 in velocities.txt"
-        );
-        assert_eq!(
-            expected_unit, *result_unit,
-            "unit should match SpeedUnit of traversal model (KPH)"
-        );
+        let result_speed_kph = result_speed.get::<uom::si::velocity::kilometer_per_hour>();
+
+        assert_eq!(expected_speed_kph, result_speed_kph);
     }
 
     #[test]
     fn test_speed_limit_enforcement() {
         // We know from the test data that edge 0 has a speed of 10 kph, so set a limit of 5 kph
-        let speed_limit_value = Speed::from(5.0);
-        let speed_limit = Some((speed_limit_value, SpeedUnit::KPH));
+        let speed_limit = Some(Velocity::new::<uom::si::velocity::kilometer_per_hour>(5.0));
 
         let file: PathBuf = filepath();
         let engine = Arc::new(
@@ -258,32 +243,21 @@ mod tests {
 
         // The time with speed limit should be about twice the time without limit
         // because we set the limit to half the edge speed (5 kph vs 10 kph)
-        let (speed_with_limit, _) = state_model
-            .get_speed(&state_with_limit, "edge_speed", None)
+        let speed_with_limit = state_model
+            .get_speed(&state_with_limit, "edge_speed")
             .expect("test invariant failed");
-        let (speed_without_limit, _) = state_model
-            .get_speed(&state_without_limit, "edge_speed", None)
+        let speed_without_limit = state_model
+            .get_speed(&state_without_limit, "edge_speed")
             .expect("test invariant failed");
+        let speed_with_limit_kph = speed_with_limit.get::<uom::si::velocity::kilometer_per_hour>();
+        let speed_limit_kph = speed_limit
+            .unwrap()
+            .get::<uom::si::velocity::kilometer_per_hour>();
 
-        assert_eq!(
-            speed_with_limit, speed_limit_value,
-            "speed with limit should match the speed limit value"
+        let _ = relative_eq!(speed_with_limit_kph, speed_limit_kph,);
+        let _ = relative_eq!(
+            speed_without_limit.get::<uom::si::velocity::kilometer_per_hour>(),
+            10.0,
         );
-        assert_eq!(
-            speed_without_limit,
-            Speed::from(10.0),
-            "speed without limit should match velocities.txt (10)"
-        );
-
-        // // 100 meters @ 5kph should take 72 seconds ((0.1/5) * 3600)
-        // let expected_time_with_limit = 72.0;
-        // // 100 meters @ 10kph should take 36 seconds ((0.1/10) * 3600)
-        // let expected_time_without_limit = 36.0;
-
-        // approx_eq(time_with_limit, expected_time_with_limit, 0.001);
-        // approx_eq(time_without_limit, expected_time_without_limit, 0.001);
-
-        // // Verify that time with limit is about double the time without limit
-        // approx_eq(time_with_limit / time_without_limit, 2.0, 0.001);
     }
 }

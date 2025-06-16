@@ -1,9 +1,11 @@
+use uom::{si::f64::Ratio, ConstZero};
+
 use super::GradeTraversalEngine;
 use crate::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, OutputFeature, StateModel, StateVariable},
+    state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError},
-    unit::Grade,
+    unit::RatioUnit,
 };
 use std::sync::Arc;
 
@@ -19,18 +21,18 @@ impl GradeTraversalModel {
 
 impl TraversalModel for GradeTraversalModel {
     /// no upstream state dependencies
-    fn input_features(&self) -> Vec<(String, InputFeature)> {
+    fn input_features(&self) -> Vec<InputFeature> {
         vec![]
     }
 
     //
-    fn output_features(&self) -> Vec<(String, OutputFeature)> {
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
         vec![(
             String::from(fieldname::EDGE_GRADE),
-            OutputFeature::Grade {
-                grade_unit: self.engine.grade_unit,
-                initial: Grade::ZERO,
+            StateFeature::Ratio {
+                value: Ratio::ZERO,
                 accumulator: false,
+                output_unit: Some(RatioUnit::default()),
             },
         )]
     }
@@ -43,12 +45,7 @@ impl TraversalModel for GradeTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
         let grade = self.engine.get_grade(edge.edge_id)?;
-        state_model.set_grade(
-            state,
-            fieldname::EDGE_GRADE,
-            &grade,
-            &self.engine.grade_unit,
-        )?;
+        state_model.set_ratio(state, fieldname::EDGE_GRADE, &grade)?;
         Ok(())
     }
 

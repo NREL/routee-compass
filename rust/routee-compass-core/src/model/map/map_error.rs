@@ -1,7 +1,7 @@
 use super::{map_json_key::MapJsonKey, matching_type::MatchingType};
 use crate::model::{
     network::EdgeId,
-    unit::{Distance, DistanceUnit, UnitError},
+    unit::{DistanceUnit, UnitError},
 };
 
 #[derive(thiserror::Error, Debug)]
@@ -30,7 +30,7 @@ pub enum MapError {
         source: UnitError,
     },
     #[error("result not found within distance threshold of {1}/{2}: {0}")]
-    DistanceThresholdError(String, Distance, DistanceUnit),
+    DistanceThresholdError(String, f64, DistanceUnit),
     #[error("{0}")]
     InternalError(String),
 }

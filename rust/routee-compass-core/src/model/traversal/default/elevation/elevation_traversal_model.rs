@@ -1,26 +1,18 @@
 use std::sync::Arc;
 
+use uom::{si::f64::Length, ConstZero};
+
 use crate::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, OutputFeature, StateModel, StateVariable},
+    state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{Distance, DistanceUnit},
+    unit::DistanceUnit,
 };
 
-use super::{ElevationChange, ElevationConfiguration};
+use super::elevation_change::ElevationChange;
 
 #[derive(Clone, Debug)]
-pub struct ElevationTraversalModel {
-    distance_unit: DistanceUnit,
-}
-
-impl ElevationTraversalModel {
-    pub fn new(config: &ElevationConfiguration) -> ElevationTraversalModel {
-        ElevationTraversalModel {
-            distance_unit: config.distance_unit,
-        }
-    }
-}
+pub struct ElevationTraversalModel {}
 
 impl TraversalModelService for ElevationTraversalModel {
     fn build(
@@ -32,35 +24,35 @@ impl TraversalModelService for ElevationTraversalModel {
 }
 
 impl TraversalModel for ElevationTraversalModel {
-    fn input_features(&self) -> Vec<(String, InputFeature)> {
+    fn input_features(&self) -> Vec<InputFeature> {
         vec![
-            (
-                String::from(fieldname::EDGE_DISTANCE),
-                InputFeature::Distance(None),
-            ),
-            (
-                String::from(fieldname::EDGE_GRADE),
-                InputFeature::Grade(Some(super::ELEVATION_GRADE_UNIT)),
-            ),
+            InputFeature::Distance {
+                name: String::from(fieldname::EDGE_DISTANCE),
+                unit: None,
+            },
+            InputFeature::Ratio {
+                name: String::from(fieldname::EDGE_GRADE),
+                unit: None,
+            },
         ]
     }
 
-    fn output_features(&self) -> Vec<(String, OutputFeature)> {
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
         vec![
             (
                 String::from(fieldname::TRIP_ELEVATION_GAIN),
-                OutputFeature::Distance {
-                    distance_unit: self.distance_unit,
-                    initial: Distance::ZERO,
+                StateFeature::Distance {
+                    value: Length::ZERO,
                     accumulator: true,
+                    output_unit: Some(DistanceUnit::default()),
                 },
             ),
             (
                 String::from(fieldname::TRIP_ELEVATION_LOSS),
-                OutputFeature::Distance {
-                    distance_unit: self.distance_unit,
-                    initial: Distance::ZERO,
+                StateFeature::Distance {
+                    value: Length::ZERO,
                     accumulator: true,
+                    output_unit: Some(DistanceUnit::default()),
                 },
             ),
         ]
@@ -73,15 +65,11 @@ impl TraversalModel for ElevationTraversalModel {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let (distance, distance_unit) =
-            state_model.get_distance(state, fieldname::EDGE_DISTANCE, Some(&self.distance_unit))?;
-        let (grade, grade_unit) = state_model.get_grade(
-            state,
-            fieldname::EDGE_GRADE,
-            Some(&super::ELEVATION_GRADE_UNIT),
-        )?;
-        let elevation_change =
-            ElevationChange::new((&distance, distance_unit), (&grade, grade_unit))?;
+        let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
+        let grade = state_model.get_ratio(state, fieldname::EDGE_GRADE)?;
+        let elevation_change = ElevationChange::new(distance, grade).map_err(|e| {
+            TraversalModelError::TraversalModelFailure(format!("Elevation change error: {}", e))
+        })?;
         elevation_change.add_elevation_to_state(state, state_model)?;
         Ok(())
     }

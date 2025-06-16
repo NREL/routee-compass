@@ -148,6 +148,8 @@ pub fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexI
 
 #[cfg(test)]
 mod tests {
+    use uom::si::f64::Length;
+
     use super::*;
     use crate::{
         model::network::{Edge, Vertex},
@@ -163,20 +165,22 @@ mod tests {
             Vertex::new(4, 4.0, 4.0),
         ];
 
+        let length = Length::new::<uom::si::length::kilometer>(10.0);
+
         let edges = vec![
-            Edge::new(0, 0, 1, 10.0),
-            Edge::new(1, 1, 0, 10.0),
-            Edge::new(2, 1, 2, 10.0),
-            Edge::new(3, 2, 1, 10.0),
-            Edge::new(4, 2, 3, 10.0),
-            Edge::new(5, 3, 2, 10.0),
-            Edge::new(6, 3, 0, 10.0),
-            Edge::new(7, 0, 3, 10.0),
-            Edge::new(8, 0, 2, 10.0),
-            Edge::new(9, 1, 3, 10.0),
-            Edge::new(10, 2, 0, 10.0),
-            Edge::new(11, 3, 1, 10.0),
-            Edge::new(12, 4, 4, 10.0),
+            Edge::new(0, 0, 1, length),
+            Edge::new(1, 1, 0, length),
+            Edge::new(2, 1, 2, length),
+            Edge::new(3, 2, 1, length),
+            Edge::new(4, 2, 3, length),
+            Edge::new(5, 3, 2, length),
+            Edge::new(6, 3, 0, length),
+            Edge::new(7, 0, 3, length),
+            Edge::new(8, 0, 2, length),
+            Edge::new(9, 1, 3, length),
+            Edge::new(10, 2, 0, length),
+            Edge::new(11, 3, 1, length),
+            Edge::new(12, 4, 4, length),
         ];
 
         // Create the adjacency and reverse adjacency lists.

@@ -1,12 +1,13 @@
+use std::{fmt::Display, str::FromStr};
+
 use super::{ComparisonOperation, RestrictionRow, VehicleParameter, VehicleParameterType};
 use routee_compass_core::model::{
     frontier::FrontierModelError,
-    unit::{Distance, DistanceUnit, Weight, WeightUnit},
+    unit::{DistanceUnit, WeightUnit},
 };
-use serde::{Deserialize, Serialize};
-use std::{fmt::Display, str::FromStr};
+use serde::Deserialize;
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct VehicleRestriction {
     pub restriction_parameter: VehicleParameter,
     pub comparison_operation: ComparisonOperation,
@@ -42,58 +43,64 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
         use VehicleParameterType as VPT;
         let vehicle_parameter = match row.name {
             VPT::Height => Ok(VehicleParameter::Height {
-                value: Distance::from(row.value),
-                unit: DistanceUnit::from_str(&row.unit).map_err(|e| {
-                    FrontierModelError::BuildError(format!(
-                        "Unable to parse height unit {}: {}",
-                        row.unit, e
-                    ))
-                })?,
+                value: DistanceUnit::from_str(&row.unit)
+                    .map_err(|e| {
+                        FrontierModelError::BuildError(format!(
+                            "Unable to parse height unit {}: {}",
+                            row.unit, e
+                        ))
+                    })?
+                    .to_uom(row.value),
             }),
             VPT::Width => Ok(VehicleParameter::Width {
-                value: Distance::from(row.value),
-                unit: DistanceUnit::from_str(&row.unit).map_err(|e| {
-                    FrontierModelError::BuildError(format!(
-                        "Unable to parse height unit {}: {}",
-                        row.unit, e
-                    ))
-                })?,
+                value: DistanceUnit::from_str(&row.unit)
+                    .map_err(|e| {
+                        FrontierModelError::BuildError(format!(
+                            "Unable to parse height unit {}: {}",
+                            row.unit, e
+                        ))
+                    })?
+                    .to_uom(row.value),
             }),
             VPT::TotalLength => Ok(VehicleParameter::TotalLength {
-                value: Distance::from(row.value),
-                unit: DistanceUnit::from_str(&row.unit).map_err(|e| {
-                    FrontierModelError::BuildError(format!(
-                        "Unable to parse height unit {}: {}",
-                        row.unit, e
-                    ))
-                })?,
+                value: DistanceUnit::from_str(&row.unit)
+                    .map_err(|e| {
+                        FrontierModelError::BuildError(format!(
+                            "Unable to parse height unit {}: {}",
+                            row.unit, e
+                        ))
+                    })?
+                    .to_uom(row.value),
             }),
             VPT::TrailerLength => Ok(VehicleParameter::TrailerLength {
-                value: Distance::from(row.value),
-                unit: DistanceUnit::from_str(&row.unit).map_err(|e| {
-                    FrontierModelError::BuildError(format!(
-                        "Unable to parse height unit {}: {}",
-                        row.unit, e
-                    ))
-                })?,
+                value: DistanceUnit::from_str(&row.unit)
+                    .map_err(|e| {
+                        FrontierModelError::BuildError(format!(
+                            "Unable to parse height unit {}: {}",
+                            row.unit, e
+                        ))
+                    })?
+                    .to_uom(row.value),
             }),
             VPT::TotalWeight => Ok(VehicleParameter::TotalWeight {
-                value: Weight::from(row.value),
-                unit: WeightUnit::from_str(&row.unit).map_err(|e| {
-                    FrontierModelError::BuildError(format!(
-                        "Unable to parse weight unit {}: {}",
-                        row.unit, e
-                    ))
-                })?,
+                value: WeightUnit::from_str(&row.unit)
+                    .map_err(|e| {
+                        FrontierModelError::BuildError(format!(
+                            "Unable to parse weight unit {}: {}",
+                            row.unit, e
+                        ))
+                    })?
+                    .to_uom(row.value),
             }),
             VPT::WeightPerAxle => Ok(VehicleParameter::WeightPerAxle {
-                value: Weight::from(row.value),
-                unit: WeightUnit::from_str(&row.unit).map_err(|e| {
-                    FrontierModelError::BuildError(format!(
-                        "Unable to parse weight unit {}: {}",
-                        row.unit, e
-                    ))
-                })?,
+                value: WeightUnit::from_str(&row.unit)
+                    .map_err(|e| {
+                        FrontierModelError::BuildError(format!(
+                            "Unable to parse weight unit {}: {}",
+                            row.unit, e
+                        ))
+                    })?
+                    .to_uom(row.value),
             }),
         }?;
         let comparison_operation = row.operation.clone();

@@ -2,7 +2,7 @@ use crate::{
     algorithm::search::{
         edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
     },
-    model::{network::edge_id::EdgeId, unit::AsF64},
+    model::network::edge_id::EdgeId,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -87,7 +87,7 @@ impl RouteSimilarityFunction {
                 let dist_fn = Box::new(|edge_id: &EdgeId| {
                     si.graph
                         .get_edge(edge_id)
-                        .map(|edge| edge.distance.as_f64())
+                        .map(|edge| edge.distance.get::<uom::si::length::meter>())
                         .map_err(SearchError::from)
                 });
                 cos_similarity(a, b, dist_fn)

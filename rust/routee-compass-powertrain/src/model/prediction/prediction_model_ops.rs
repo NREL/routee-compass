@@ -3,11 +3,10 @@ use itertools::Itertools;
 use routee_compass_core::model::{
     state::InputFeature,
     traversal::TraversalModelError,
-    unit::{
-        AsF64, Convert, EnergyRate, EnergyRateUnit, Grade, GradeUnit, Speed, SpeedUnit, UnitError,
-    },
+    unit::{EnergyRateUnit, RatioUnit, SpeedUnit},
 };
-use std::{borrow::Cow, sync::Arc};
+use std::sync::Arc;
+use uom::si::f64::{Ratio, Velocity};
 
 const MIN_ENERGY_ERROR_MESSAGE: &str =
     "Failure while executing grid search for minimum energy rate in prediction model:";
@@ -15,23 +14,20 @@ const MIN_ENERGY_ERROR_MESSAGE: &str =
 /// sweep speed and grade values to find the minimum energy per mile rate from the incoming rf model
 pub fn find_min_energy_rate(
     model: &Arc<dyn PredictionModel>,
-    input_features: &[(String, InputFeature)],
+    input_features: &[InputFeature],
     energy_model_energy_rate_unit: &EnergyRateUnit,
-) -> Result<EnergyRate, TraversalModelError> {
+) -> Result<f64, TraversalModelError> {
     // sweep a fixed set of speed and grade values to find the minimum energy per mile rate from the incoming rf model
-    let mut minimum_energy_rate = EnergyRate::from(f64::MAX);
+    let mut minimum_energy_rate = f64::MAX;
     let start_time = std::time::Instant::now();
 
     // Create vectors of sample values for each feature type
     let mut sample_values: Vec<Vec<f64>> = Vec::new();
 
-    for (_, input_feature) in input_features {
+    for input_feature in input_features {
         let values = match input_feature {
-            InputFeature::Speed(unit) => match unit {
-                Some(speed_unit) => get_speed_sample_values(speed_unit)?
-                    .into_iter()
-                    .map(|s| s.as_f64())
-                    .collect(),
+            InputFeature::Speed { name: _, unit } => match unit {
+                Some(speed_unit) => get_speed_sample_values(speed_unit),
                 None => {
                     return Err(TraversalModelError::TraversalModelFailure(format!(
                         "{} Unit must be set for speed input feature {} but got None",
@@ -39,11 +35,8 @@ pub fn find_min_energy_rate(
                     )))
                 }
             },
-            InputFeature::Grade(unit) => match unit {
-                Some(grade_unit) => get_grade_sample_values(grade_unit)?
-                    .into_iter()
-                    .map(|g| g.as_f64())
-                    .collect(),
+            InputFeature::Ratio { name: _, unit } => match unit {
+                Some(grade_unit) => get_grade_sample_values(grade_unit),
                 None => {
                     return Err(TraversalModelError::TraversalModelFailure(format!(
                         "{} Unit must be set for grade input feature {} but got None",
@@ -73,8 +66,8 @@ pub fn find_min_energy_rate(
     }
 
     // Cap the lower bound of the minimum energy rate to 0.0
-    if minimum_energy_rate < EnergyRate::ZERO {
-        minimum_energy_rate = EnergyRate::ZERO;
+    if minimum_energy_rate < 0.0 {
+        minimum_energy_rate = 0.0;
     }
 
     let end_time = std::time::Instant::now();
@@ -91,25 +84,21 @@ pub fn find_min_energy_rate(
 }
 
 /// generate Percent Grade values in the range [-20, 0] converted to the target grade unit
-fn get_grade_sample_values(grade_unit: &GradeUnit) -> Result<Vec<Grade>, UnitError> {
+fn get_grade_sample_values(grade_unit: &RatioUnit) -> Vec<f64> {
     (1..101)
         .map(|i| {
-            let grade_dec_f64 = ((i as f64) * 0.2) - 20.0; // values in range [-20.0, 0.0]
-            let mut converted = Cow::Owned(Grade::from(grade_dec_f64));
-            GradeUnit::Percent.convert(&mut converted, grade_unit)?;
-            Ok(converted.into_owned())
+            let grade = Ratio::new::<uom::si::ratio::ratio>(i as f64 * 0.2 - 20.0); // values in range [-20.0, 0.0]
+            grade_unit.from_uom(grade)
         })
-        .try_collect()
+        .collect()
 }
 
-/// generate MPH Speed values in the range [1, 100] converted to the target speed unit
-fn get_speed_sample_values(speed_unit: &SpeedUnit) -> Result<Vec<Speed>, UnitError> {
-    (1..1001)
+/// generate MPH Speed values in the range [1, 100]
+fn get_speed_sample_values(speed_unit: &SpeedUnit) -> Vec<f64> {
+    (1..101)
         .map(|i| {
-            let mph_f64 = i as f64 * 0.1; // values in range [0.0, 100.0]
-            let mut converted = Cow::Owned(Speed::from(mph_f64));
-            SpeedUnit::MPH.convert(&mut converted, speed_unit)?;
-            Ok(converted.into_owned())
+            let speed = Velocity::new::<uom::si::velocity::mile_per_hour>(i as f64); // values in range [1, 100.0]
+            speed_unit.from_uom(speed)
         })
-        .try_collect()
+        .collect()
 }

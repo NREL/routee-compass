@@ -1,10 +1,11 @@
+use uom::ConstZero;
+
+use crate::model::state::{CustomFeatureFormat, InputFeature};
 use crate::model::traversal::TraversalModel;
 use crate::model::{
-    state::{CustomFeatureFormat, InputFeature, OutputFeature},
+    state::StateFeature,
     traversal::{default::combined::CombinedTraversalModel, TraversalModelError},
-    unit::*,
 };
-use itertools::Itertools;
 use std::sync::Arc;
 
 /// a traversal model that can be used in tests which will "plug in" a mock model that
@@ -28,91 +29,71 @@ impl TestTraversalModel {
 }
 
 struct MockUpstreamModel {
-    input_features: Vec<(String, InputFeature)>,
-    output_features: Vec<(String, OutputFeature)>,
+    input_features: Vec<InputFeature>,
+    output_features: Vec<(String, StateFeature)>,
 }
 
 impl MockUpstreamModel {
     /// builds a new mock upstream TraversalModel that registers all of the input feature
     /// requirements for the provided model.
     pub fn new_upstream_from(model: Arc<dyn TraversalModel>) -> MockUpstreamModel {
-        // let input_features = model.input_features();
         let input_features = vec![];
         let output_features = model
             .input_features()
             .iter()
-            .map(|(n, f)| match f {
-                InputFeature::Distance(distance_unit) => {
-                    let du = distance_unit.unwrap_or_else(|| DistanceUnit::Miles);
-                    (
-                        n.clone(),
-                        OutputFeature::Distance {
-                            distance_unit: du,
-                            initial: Distance::ZERO,
-                            accumulator: true,
+            .map(|feature| match feature {
+                InputFeature::Distance { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Distance {
+                        value: uom::si::f64::Length::ZERO,
+                        accumulator: false,
+                        output_unit: None,
+                    },
+                ),
+                InputFeature::Ratio { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Ratio {
+                        value: uom::si::f64::Ratio::ZERO,
+                        accumulator: false,
+                        output_unit: None,
+                    },
+                ),
+                InputFeature::Speed { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Speed {
+                        value: uom::si::f64::Velocity::ZERO,
+                        accumulator: false,
+                        output_unit: None,
+                    },
+                ),
+                InputFeature::Time { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Time {
+                        value: uom::si::f64::Time::ZERO,
+                        accumulator: false,
+                        output_unit: None,
+                    },
+                ),
+                InputFeature::Energy { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Energy {
+                        value: uom::si::f64::Energy::ZERO,
+                        accumulator: false,
+                        output_unit: None,
+                    },
+                ),
+                InputFeature::Custom { name, unit: _ } => (
+                    name.clone(),
+                    StateFeature::Custom {
+                        value: 0.0,
+                        accumulator: false,
+                        format: CustomFeatureFormat::FloatingPoint {
+                            initial: ordered_float::OrderedFloat(0.0),
                         },
-                    )
-                }
-                InputFeature::Speed(speed_unit) => {
-                    let unit = speed_unit.unwrap_or_else(|| SpeedUnit::MPH);
-                    (
-                        n.clone(),
-                        OutputFeature::Speed {
-                            speed_unit: unit,
-                            initial: Speed::ZERO,
-                            accumulator: true,
-                        },
-                    )
-                }
-                InputFeature::Time(time_unit) => {
-                    let unit = time_unit.unwrap_or_else(|| TimeUnit::Hours);
-                    (
-                        n.clone(),
-                        OutputFeature::Time {
-                            time_unit: unit,
-                            initial: Time::ZERO,
-                            accumulator: true,
-                        },
-                    )
-                }
-                InputFeature::Energy(energy_unit) => {
-                    let unit = energy_unit.unwrap_or_else(|| EnergyUnit::KilowattHours);
-                    (
-                        n.clone(),
-                        OutputFeature::Energy {
-                            energy_unit: unit,
-                            initial: Energy::ZERO,
-                            accumulator: true,
-                        },
-                    )
-                }
-                InputFeature::Grade(grade_unit) => {
-                    let unit = grade_unit.unwrap_or_else(|| GradeUnit::Percent);
-                    (
-                        n.clone(),
-                        OutputFeature::Grade {
-                            grade_unit: unit,
-                            initial: Grade::ZERO,
-                            accumulator: true,
-                        },
-                    )
-                }
-                InputFeature::Custom { name, unit } => {
-                    let format = CustomFeatureFormat::FloatingPoint {
-                        initial: 0.0.into(),
-                    };
-                    (
-                        n.clone(),
-                        OutputFeature::Custom {
-                            name: name.clone(),
-                            unit: unit.clone(),
-                            format,
-                            accumulator: true,
-                        },
-                    )
-                }
+                    },
+                ),
             })
-            .collect_vec();
+            .collect();
         Self {
             input_features,
             output_features,
@@ -121,12 +102,12 @@ impl MockUpstreamModel {
 }
 
 impl TraversalModel for MockUpstreamModel {
-    fn input_features(&self) -> Vec<(String, crate::model::state::InputFeature)> {
-        self.input_features.to_vec()
+    fn input_features(&self) -> Vec<InputFeature> {
+        self.input_features.clone()
     }
 
-    fn output_features(&self) -> Vec<(String, OutputFeature)> {
-        self.output_features.to_vec()
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
+        self.output_features.clone()
     }
 
     fn traverse_edge(

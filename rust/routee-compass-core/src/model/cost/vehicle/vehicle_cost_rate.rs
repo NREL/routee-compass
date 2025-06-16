@@ -48,12 +48,8 @@ impl VehicleCostRate {
             VehicleCostRate::Factor { factor } => Some(Cost::new(state.0 * factor)),
             VehicleCostRate::Offset { offset } => Some(Cost::new(state.0 + offset)),
             VehicleCostRate::Combined(mappings) => {
-                mappings.iter().fold(Some(Cost::new(state.0)), |acc, f| {
-                    let next_acc = match acc {
-                        None => Cost::ZERO,
-                        Some(acc) => acc,
-                    };
-                    f.map_value(StateVariable(next_acc.as_f64()))
+                mappings.iter().try_fold(Cost::new(state.0), |acc, f| {
+                    f.map_value(StateVariable(acc.as_f64()))
                 })
             }
         }
