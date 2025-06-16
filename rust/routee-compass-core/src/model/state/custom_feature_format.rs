@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 /// for example, if the user selects esoteric integer values that are not well-represented
 /// in floating point, then an encode -> decode roundtrip may not be idempotent.
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum CustomFeatureFormat {
     FloatingPoint { initial: OrderedFloat<f64> },
     SignedInteger { initial: i64 },
