@@ -86,6 +86,10 @@ grade_unit = "decimal"
 grade_input_file = "edges-grade-enumerated.txt.gz"
 
 [[traversal.models]]
+type = "elevation"
+distance_unit = "feet"
+
+[[traversal.models]]
 type = "energy"
 [[traversal.models.vehicles]]
 name = "2010_Mazda_3_i-Stop"
