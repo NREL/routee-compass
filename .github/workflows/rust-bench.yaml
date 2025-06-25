@@ -1,0 +1,39 @@
+name: Rust Benchmark
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+        - "docs/**"
+        - "**.md"
+
+permissions:
+    contents: write
+    deployments: write
+
+jobs:
+  benchmark:
+    name: Rust Performance Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cargo-criterion
+        run: cargo install cargo-criterion
+
+      - name: Run benchmark with criterion
+        working-directory: ./rust
+        run: cargo criterion --output-format bencher --benches 2>&1 | tee output.txt
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Rust Benchmark
+          tool: 'cargo'
+          output-file-path: output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: '200%'
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@nreinicke @robfitzgerald'
