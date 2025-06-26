@@ -18,12 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install cargo-criterion
-        run: cargo install cargo-criterion
-
       - name: Run benchmark with criterion
         working-directory: ./rust
-        run: cargo criterion --output-format bencher --benches 2>&1 | tee output.txt
+        run: cargo bench -p routee-compass -- --output-format bencher | tee output.txt
 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1

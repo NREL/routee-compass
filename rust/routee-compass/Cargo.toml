@@ -56,3 +56,16 @@ tempfile = "3.20.0"
 [[bench]]
 name = "denver_bench"
 harness = false
+
+[lib]
+bench = false
+
+[[bin]]
+name = "routee-compass"
+path = "src/main.rs"
+bench = false
+
+[[bin]]
+name = "geom-app"
+path = "src/bin/geom-app.rs"
+bench = false

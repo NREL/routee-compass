@@ -8,9 +8,7 @@ The results from the benchmark workflow are saved in the repository on the `gh-p
 To run the benchmarks manually
 ```
 cd rust/
-cargo criterion
+cargo bench
 ```
-> [cargo-criterion](https://github.com/bheisler/cargo-criterion) is used to provide machine-readable output.
 
-## A note about relative paths with `cargo criterion`
- `cargo-criterion` finds relative paths based on the current working directory, while the command `cargo bench` finds the relative paths based on the package location.
+> Note passing many command-line arguments requires disabling bench building in the `Cargo.toml`. See [criterion docs](https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options) for more information.

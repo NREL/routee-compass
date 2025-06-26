@@ -2,15 +2,7 @@
 //!
 //! ```
 //! cd rust/
-//! cargo criterion
-//! ```
-//!
-//! If you use the command `cargo bench`, then you will have to change the `config_file` to
-//! ```
-//! // this path is relative to `routee-compass/rust/routee-compass`
-//! config_file: String::from(
-//!     "../../python/nrel/routee/compass/resources/downtown_denver_example/osm_default_speed.toml",
-//! ),
+//! cargo bench
 //! ```
 
 use std::{hint::black_box, io::Write};
@@ -25,9 +17,8 @@ use tempfile::NamedTempFile;
 /// Run the query on the downtown denver example config file
 fn downtown_denver_example(query_file: String) {
     let args = CliArgs {
-        // this path is relative to `routee-compass/rust`
         config_file: String::from(
-            "../python/nrel/routee/compass/resources/downtown_denver_example/osm_default_speed.toml",
+            "../../python/nrel/routee/compass/resources/downtown_denver_example/osm_default_speed.toml",
         ),
         query_file: query_file,
         chunksize: None,
