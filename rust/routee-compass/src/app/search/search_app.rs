@@ -1,15 +1,15 @@
 use super::{search_app_ops, search_app_result::SearchAppResult};
 use crate::{
-    app::compass::{model::cost_model::cost_model_service::CostModelService, CompassAppError},
+    app::compass::CompassAppError,
     plugin::{input::InputJsonExtensions, PluginError},
 };
 use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance},
     model::{
-        access::AccessModelService, frontier::FrontierModelService, map::MapModel,
-        network::graph::Graph, state::StateModel, termination::TerminationModel,
-        traversal::TraversalModelService,
+        access::AccessModelService, cost::cost_model_service::CostModelService,
+        frontier::FrontierModelService, map::MapModel, network::graph::Graph, state::StateModel,
+        termination::TerminationModel, traversal::TraversalModelService,
     },
 };
 use std::sync::Arc;

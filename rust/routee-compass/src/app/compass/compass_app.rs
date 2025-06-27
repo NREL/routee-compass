@@ -5,14 +5,7 @@ use super::{compass_app_ops as ops, CompassAppBuilder};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
 use crate::{
     app::{
-        compass::{
-            compass_input_field::CompassInputField,
-            model::{
-                cost_model::cost_model_builder::CostModelBuilder,
-                termination_model_builder::TerminationModelBuilder,
-            },
-            CompassAppError,
-        },
+        compass::{compass_input_field::CompassInputField, CompassAppError},
         search::{SearchApp, SearchAppResult},
     },
     plugin::{
@@ -27,9 +20,11 @@ use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
 use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
 use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
+use routee_compass_core::model::cost::cost_model_builder::CostModelBuilder;
 use routee_compass_core::model::map::{MapModel, MapModelConfig};
 use routee_compass_core::model::network::Graph;
 use routee_compass_core::model::state::StateModel;
+use routee_compass_core::model::termination::TerminationModelBuilder;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
 use std::{

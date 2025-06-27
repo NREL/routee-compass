@@ -4,36 +4,35 @@ use crate::plugin::{
             debug::DebugInputPluginBuilder, grid_search::GridSearchBuilder,
             inject::InjectPluginBuilder, load_balancer::LoadBalancerBuilder,
         },
-        InputPlugin,
+        InputPlugin, InputPluginBuilder,
     },
     output::{
         default::{
             summary::SummaryOutputPluginBuilder, traversal::TraversalPluginBuilder,
             uuid::UUIDOutputPluginBuilder,
         },
-        OutputPlugin,
+        OutputPlugin, OutputPluginBuilder,
     },
 };
-use crate::{
-    app::compass::model::{
-        access_model::{
+use itertools::Itertools;
+use routee_compass_core::model::{
+    access::{
+        default::{
             combined_access_model_builder::CombinedAccessModelBuilder,
-            turn_delay_access_model_builder::TurnDelayAccessModelBuilder,
+            turn_delays::TurnDelayAccessModelBuilder, NoAccessModel,
         },
-        frontier_model::{
+        AccessModelBuilder, AccessModelService,
+    },
+    frontier::{
+        default::{
             combined::combined_builder::CombinedFrontierModelBuilder,
             no_restriction_builder::NoRestrictionBuilder,
             road_class::road_class_builder::RoadClassBuilder,
             turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
             vehicle_restrictions::VehicleRestrictionBuilder,
         },
+        FrontierModelBuilder, FrontierModelService,
     },
-    plugin::{input::InputPluginBuilder, output::OutputPluginBuilder},
-};
-use itertools::Itertools;
-use routee_compass_core::model::{
-    access::{default::NoAccessModel, AccessModelBuilder, AccessModelService},
-    frontier::{FrontierModelBuilder, FrontierModelService},
     traversal::{
         default::{
             combined::CombinedTraversalBuilder, custom::CustomTraversalBuilder,
