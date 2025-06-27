@@ -19,6 +19,7 @@ geo = { workspace = true }
 uom = { workspace = true, features = ["serde"] }
 kdam = { workspace = true }
 bincode = { version = "2.0.1", features = ["serde"] }
+csv = { workspace = true }
 env_logger = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_repr = "0.1"
