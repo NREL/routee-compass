@@ -18,7 +18,7 @@ pub struct InterpolationModel {
 impl PredictionModel for InterpolationModel {
     fn predict(
         &self,
-        feature_vector: &Vec<f64>,
+        feature_vector: &[f64],
     ) -> Result<(f64, EnergyRateUnit), TraversalModelError> {
         let y = self.interpolator.interpolate(feature_vector).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
@@ -181,7 +181,7 @@ mod test {
             }
         }
 
-        let (energy_rate, energy_rate_unit) = interp_model.predict(&vec![50.0, 0.0]).unwrap();
+        let (energy_rate, energy_rate_unit) = interp_model.predict(&[50.0, 0.0]).unwrap();
 
         assert_eq!(energy_rate_unit, EnergyRateUnit::GGPM);
 

@@ -15,9 +15,9 @@ pub enum VehicleParameterConfig {
     WeightPerAxle { value: f64, unit: WeightUnit },
 }
 
-impl Into<VehicleParameter> for VehicleParameterConfig {
-    fn into(self) -> VehicleParameter {
-        match self {
+impl From<VehicleParameterConfig> for VehicleParameter {
+    fn from(val: VehicleParameterConfig) -> Self {
+        match val {
             VehicleParameterConfig::Height { value, unit } => VehicleParameter::Height {
                 value: unit.to_uom(value),
             },

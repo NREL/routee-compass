@@ -27,7 +27,7 @@ impl CostAggregation {
         }
     }
 
-    pub fn aggregate<'a>(&self, costs: &[(&String, Cost)]) -> Result<Cost, CostModelError> {
+    pub fn aggregate(&self, costs: &[(&String, Cost)]) -> Result<Cost, CostModelError> {
         match self {
             CostAggregation::Sum => {
                 let mut sum = Cost::ZERO;

@@ -13,7 +13,7 @@ pub struct SmartcoreModel {
 impl PredictionModel for SmartcoreModel {
     fn predict(
         &self,
-        feature_vector: &Vec<f64>,
+        feature_vector: &[f64],
     ) -> Result<(f64, EnergyRateUnit), TraversalModelError> {
         let x = DenseMatrix::from_2d_vec(&vec![feature_vector.to_vec()]).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(

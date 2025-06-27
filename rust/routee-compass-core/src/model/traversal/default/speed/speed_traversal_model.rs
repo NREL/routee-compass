@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn test_speed_limit_enforcement() {
         // We know from the test data that edge 0 has a speed of 10 kph, so set a limit of 5 kph
-        let speed_limit = Some(Velocity::new::<uom::si::velocity::kilometer_per_hour>(5.0));
+        let speed_limit = Velocity::new::<uom::si::velocity::kilometer_per_hour>(5.0);
 
         let file: PathBuf = filepath();
         let engine = Arc::new(
@@ -206,8 +206,8 @@ mod tests {
 
         let regular_model =
             SpeedTraversalModel::new(engine.clone(), None).expect("test invariant failed");
-        let limited_model =
-            SpeedTraversalModel::new(engine.clone(), speed_limit).expect("test invariant failed");
+        let limited_model = SpeedTraversalModel::new(engine.clone(), Some(speed_limit))
+            .expect("test invariant failed");
 
         let test_regular_model =
             TestTraversalModel::new(Arc::new(regular_model)).expect("test invariant failed");
@@ -250,9 +250,7 @@ mod tests {
             .get_speed(&state_without_limit, "edge_speed")
             .expect("test invariant failed");
         let speed_with_limit_kph = speed_with_limit.get::<uom::si::velocity::kilometer_per_hour>();
-        let speed_limit_kph = speed_limit
-            .unwrap()
-            .get::<uom::si::velocity::kilometer_per_hour>();
+        let speed_limit_kph = speed_limit.get::<uom::si::velocity::kilometer_per_hour>();
 
         let _ = relative_eq!(speed_with_limit_kph, speed_limit_kph,);
         let _ = relative_eq!(
