@@ -30,6 +30,10 @@ trip_energy = 1
 trip_energy_liquid = 1
 trip_energy_electric = 1
 
+[frontier]
+type = "battery_restriction"
+soc_lower_bound_percent = 1
+
 [access]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
@@ -101,6 +105,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
+charging_station_input_file = "charging-stations.csv.gz"
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },

@@ -27,12 +27,20 @@ impl FrontierModel for BatteryRestriction {
         _direction: &Direction,
         state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
+        if !state_model.contains_key(&fieldname::TRIP_SOC.to_string()) {
+            // if we don't have the trip_soc, then this frontier is valid
+            return Ok(true);
+        }
         let soc: Ratio = state_model.get_ratio(state, fieldname::TRIP_SOC).map_err(|_| {
             FrontierModelError::FrontierModelError(
-                "BatteryRestriction fronteir model requires the state variable 'soc' but not found".to_string(),
+                "BatteryRestriction frontier model requires the state variable 'trip_soc' but not found".to_string(),
             )
         })?;
-        log::debug!("BatteryRestriction valid_frontier soc: {:?}, {:?}", soc, self.soc_lower_bound);
+        log::debug!(
+            "BatteryRestriction valid_frontier soc: {:?}, {:?}",
+            soc,
+            self.soc_lower_bound
+        );
         Ok(soc > self.soc_lower_bound)
     }
 
@@ -52,20 +60,10 @@ impl Default for BatteryRestriction {
 impl FrontierModelService for BatteryRestriction {
     fn build(
         &self,
-        query: &serde_json::Value,
+        _query: &serde_json::Value,
         _state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn FrontierModel>, FrontierModelError> {
-        // see if the query has an soc_lower_bound_percent or use the default otherwise
-        let soc_lower_bound_percent = query
-            .get("soc_lower_bound_percent")
-            .and_then(|v| v.as_f64());
-        let model = match soc_lower_bound_percent {
-            Some(percent) => BatteryRestriction {
-                soc_lower_bound: Ratio::new::<uom::si::ratio::percent>(percent),
-            },
-            None => BatteryRestriction::default(),
-        };
-        Ok(Arc::new(model))
+        Ok(Arc::new(self.clone()))
     }
 }
 
@@ -85,7 +83,10 @@ impl FrontierModelBuilder for BatteryRestrictionBuilder {
                 ))
             })?;
 
-        log::debug!("BatteryRestrictionBuilder: soc_lower_bound_percent: {}", soc_lower_bound_percent);
+        log::debug!(
+            "BatteryRestrictionBuilder: soc_lower_bound_percent: {}",
+            soc_lower_bound_percent
+        );
         let model = BatteryRestriction {
             soc_lower_bound: Ratio::new::<uom::si::ratio::percent>(soc_lower_bound_percent),
         };
