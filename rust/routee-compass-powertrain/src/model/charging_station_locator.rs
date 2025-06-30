@@ -18,6 +18,24 @@ pub enum ChargingStation {
     DCFC { power: Power, cost_per_kwh: f64 },
 }
 
+impl ChargingStation {
+    pub fn power(&self) -> Power {
+        match self {
+            ChargingStation::L1 { power, .. } => *power,
+            ChargingStation::L2 { power, .. } => *power,
+            ChargingStation::DCFC { power, .. } => *power,
+        }
+    }
+
+    pub fn cost_per_kwh(&self) -> f64 {
+        match self {
+            ChargingStation::L1 { cost_per_kwh, .. } => *cost_per_kwh,
+            ChargingStation::L2 { cost_per_kwh, .. } => *cost_per_kwh,
+            ChargingStation::DCFC { cost_per_kwh, .. } => *cost_per_kwh,
+        }
+    }
+}
+
 impl TryFrom<ChargingStationConfig> for ChargingStation {
     type Error = TraversalModelError;
     fn try_from(config: ChargingStationConfig) -> Result<Self, TraversalModelError> {

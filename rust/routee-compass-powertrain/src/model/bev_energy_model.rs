@@ -2,9 +2,9 @@ use super::{
     energy_model_ops,
     prediction::{PredictionModelConfig, PredictionModelRecord},
 };
-use crate::model::fieldname;
+use crate::model::{charging_station_locator::ChargingStationLocator, fieldname};
 use routee_compass_core::model::{
-    network::{Edge, Vertex},
+    network::{Edge, Vertex, VertexId},
     state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
@@ -12,7 +12,7 @@ use routee_compass_core::model::{
 use serde_json::Value;
 use std::sync::Arc;
 use uom::{
-    si::f64::{Energy, Ratio},
+    si::f64::{Energy, Ratio, Time},
     ConstZero,
 };
 
@@ -21,6 +21,7 @@ pub struct BevEnergyModel {
     prediction_model_record: Arc<PredictionModelRecord>,
     battery_capacity: Energy,
     starting_soc: Ratio,
+    charging_station_locator: Arc<ChargingStationLocator>,
 }
 
 impl BevEnergyModel {
@@ -28,6 +29,7 @@ impl BevEnergyModel {
         prediction_model_record: Arc<PredictionModelRecord>,
         battery_capacity: Energy,
         starting_battery_energy: Energy,
+        charging_station_locator: Arc<ChargingStationLocator>,
     ) -> Result<Self, TraversalModelError> {
         let starting_soc = energy_model_ops::soc_from_energy(
             starting_battery_energy,
@@ -40,6 +42,7 @@ impl BevEnergyModel {
             prediction_model_record,
             battery_capacity,
             starting_soc,
+            charging_station_locator,
         })
     }
 }
@@ -56,6 +59,7 @@ impl TraversalModelService for BevEnergyModel {
                     self.prediction_model_record.clone(),
                     self.battery_capacity,
                     starting_energy,
+                    self.charging_station_locator.clone(),
                 )?;
                 Ok(Arc::new(updated))
             }
@@ -90,10 +94,30 @@ impl TryFrom<&Value> for BevEnergyModel {
         .map_err(|e| {
             TraversalModelError::BuildError(format!("failed to parse battery capacity unit: {}", e))
         })?;
+
+        let charging_station_input_file = value
+            .get("charging_station_input_file")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+
+        let charging_station_locator = match charging_station_input_file {
+            Some(file) => {
+                let locator = ChargingStationLocator::from_csv_file(&file).map_err(|e| {
+                    TraversalModelError::BuildError(format!(
+                        "failed to load charging station locator: {}",
+                        e
+                    ))
+                })?;
+                Arc::new(locator)
+            }
+            None => Arc::new(ChargingStationLocator::default()),
+        };
+
         let bev = BevEnergyModel::new(
             Arc::new(prediction_model),
             battery_energy_unit.to_uom(battery_capacity),
             battery_energy_unit.to_uom(battery_capacity),
+            charging_station_locator,
         )?;
         Ok(bev)
     }
@@ -140,7 +164,7 @@ impl TraversalModel for BevEnergyModel {
 
     fn traverse_edge(
         &self,
-        _trajectory: (&Vertex, &Edge, &Vertex),
+        trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
@@ -149,7 +173,8 @@ impl TraversalModel for BevEnergyModel {
             state_model,
             self.prediction_model_record.clone(),
             self.battery_capacity,
-            false,
+            &trajectory.2.vertex_id,
+            self.charging_station_locator.clone(),
         )
     }
 
@@ -159,14 +184,49 @@ impl TraversalModel for BevEnergyModel {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        bev_traversal(
+        bev_traversal_estimate(
             state,
             state_model,
             self.prediction_model_record.clone(),
             self.battery_capacity,
-            true,
         )
     }
+}
+
+fn bev_traversal_estimate(
+    state: &mut [StateVariable],
+    state_model: &StateModel,
+    record: Arc<PredictionModelRecord>,
+    battery_capacity: Energy,
+) -> Result<(), TraversalModelError> {
+    // gather state variables
+    let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
+    let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
+
+    let energy = match record.energy_rate_unit {
+        EnergyRateUnit::KWHPM => {
+            let distance_miles = distance.get::<uom::si::length::mile>();
+            let energy_kwh = record.ideal_energy_rate * distance_miles;
+            Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
+        }
+        EnergyRateUnit::KWHPKM => {
+            let distance_km = distance.get::<uom::si::length::kilometer>();
+            let energy_kwh = record.ideal_energy_rate * distance_km;
+            Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
+        }
+        _ => {
+            return Err(TraversalModelError::BuildError(format!(
+                "unsupported energy rate unit: {}",
+                record.energy_rate_unit
+            )));
+        }
+    };
+    let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
+
+    state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
+    state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy)?;
+    state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
+    Ok(())
 }
 
 fn bev_traversal(
@@ -174,61 +234,66 @@ fn bev_traversal(
     state_model: &StateModel,
     record: Arc<PredictionModelRecord>,
     battery_capacity: Energy,
-    estimate: bool,
+    destination_vertex_id: &VertexId,
+    charging_station_locator: Arc<ChargingStationLocator>,
 ) -> Result<(), TraversalModelError> {
     // gather state variables
-    let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
     let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
 
     // generate energy for link traversal
-    let energy = if estimate {
-        // TODO: This can be replaced entirely with a new uom EnergyRate quantity
-        match record.energy_rate_unit {
-            EnergyRateUnit::KWHPM => {
-                let distance_miles = distance.get::<uom::si::length::mile>();
-                let energy_kwh = record.ideal_energy_rate * distance_miles;
-                Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
-            }
-            EnergyRateUnit::KWHPKM => {
-                let distance_km = distance.get::<uom::si::length::kilometer>();
-                let energy_kwh = record.ideal_energy_rate * distance_km;
-                Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
-            }
-            _ => {
-                return Err(TraversalModelError::BuildError(format!(
-                    "unsupported energy rate unit: {}",
-                    record.energy_rate_unit
-                )));
-            }
-        }
-    } else {
-        record.predict(state, state_model)?
-    };
-    let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
+    let energy = record.predict(state, state_model)?;
 
-    // update state vector
     state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
     state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy)?;
-    state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
+
+    let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
+
+    // check if we are at a charging station
+    if let Some(charging_station) = charging_station_locator.get_station(destination_vertex_id) {
+        // if we are at a charging station, we can charge the battery to full
+        let full_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
+        let soc_to_full = full_soc - end_soc;
+        let charge_energy = soc_to_full * battery_capacity;
+        let time_to_charge: Time = charge_energy / charging_station.power();
+
+        state_model.set_ratio(state, fieldname::TRIP_SOC, &full_soc)?;
+        state_model.add_time(state, fieldname::TRIP_TIME, &time_to_charge)?;
+    } else {
+        state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
+    }
+
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::prediction::{
-        interpolation::feature_bounds::FeatureBounds, ModelType, PredictionModelConfig,
+    use crate::model::{
+        charging_station_locator::ChargingStation,
+        prediction::{
+            interpolation::feature_bounds::FeatureBounds, ModelType, PredictionModelConfig,
+        },
     };
-    use routee_compass_core::{model::unit::*, testing::mock::traversal_model::TestTraversalModel};
+    use routee_compass_core::{
+        model::{network::VertexId, unit::*},
+        testing::mock::traversal_model::TestTraversalModel,
+    };
     use std::{collections::HashMap, path::PathBuf};
-    use uom::si::{f64::Length, f64::Velocity};
+    use uom::si::f64::{Length, Power, Velocity};
 
     #[test]
     fn test_bev_energy_model() {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
-        let model = mock_traversal_model(record.clone(), start_soc, bat_cap);
+        let charging_station_locator = mock_charging_station_locator();
+        let destination_vertex_id = VertexId(1);
+        let model = mock_traversal_model(
+            record.clone(),
+            start_soc,
+            bat_cap,
+            charging_station_locator.clone(),
+        );
         let state_model = state_model(model);
 
         // starting at 100% SOC, we should be able to traverse a flat 110 miles at 60 mph
@@ -238,7 +303,15 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(0.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            &destination_vertex_id,
+            charging_station_locator.clone(),
+        )
+        .unwrap();
 
         let elec = state_model
             .get_energy(&state, fieldname::TRIP_ENERGY)
@@ -263,7 +336,14 @@ mod tests {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(20.0);
-        let model = mock_traversal_model(record.clone(), start_soc, bat_cap);
+        let destination_vertex_id = VertexId(1);
+        let charging_station_locator = mock_charging_station_locator();
+        let model = mock_traversal_model(
+            record.clone(),
+            start_soc,
+            bat_cap,
+            charging_station_locator.clone(),
+        );
         let state_model = state_model(model);
 
         // starting at 20% SOC, going downhill at -5% grade for 10 miles at 55mph, we should be see
@@ -273,7 +353,15 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(-5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            &destination_vertex_id,
+            charging_station_locator.clone(),
+        )
+        .unwrap();
 
         let elec = state_model
             .get_energy(&state, fieldname::TRIP_ENERGY)
@@ -297,7 +385,14 @@ mod tests {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
-        let model = mock_traversal_model(record.clone(), start_soc, bat_cap);
+        let destination_vertex_id = VertexId(1);
+        let charging_station_locator = mock_charging_station_locator();
+        let model = mock_traversal_model(
+            record.clone(),
+            start_soc,
+            bat_cap,
+            charging_station_locator.clone(),
+        );
         let state_model = state_model(model);
 
         let distance = Length::new::<uom::si::length::mile>(10.0);
@@ -305,7 +400,15 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(-5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            &destination_vertex_id,
+            charging_station_locator.clone(),
+        )
+        .unwrap();
 
         let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc <= Ratio::new::<uom::si::ratio::percent>(100.0));
@@ -317,7 +420,14 @@ mod tests {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
-        let model = mock_traversal_model(record.clone(), start_soc, bat_cap);
+        let destination_vertex_id = VertexId(1);
+        let charging_station_locator = mock_charging_station_locator();
+        let model = mock_traversal_model(
+            record.clone(),
+            start_soc,
+            bat_cap,
+            charging_station_locator.clone(),
+        );
         let state_model = state_model(model);
 
         let distance = Length::new::<uom::si::length::mile>(100.0);
@@ -325,10 +435,31 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            &destination_vertex_id,
+            charging_station_locator.clone(),
+        )
+        .unwrap();
 
         let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc >= Ratio::ZERO);
+    }
+
+    fn mock_charging_station_locator() -> Arc<ChargingStationLocator> {
+        let mut station_map = HashMap::new();
+        // Mock a charging station at vertex 1 with 50 kW power and $0.20 per kWh
+        station_map.insert(
+            VertexId(1),
+            ChargingStation::L2 {
+                power: Power::new::<uom::si::power::kilowatt>(50.0),
+                cost_per_kwh: 0.20,
+            },
+        );
+        Arc::new(ChargingStationLocator::new(station_map))
     }
 
     fn mock_prediction_model() -> Arc<PredictionModelRecord> {
@@ -391,10 +522,16 @@ mod tests {
         prediction_model_record: Arc<PredictionModelRecord>,
         starting_soc: Ratio,
         battery_capacity: Energy,
+        charging_station_locator: Arc<ChargingStationLocator>,
     ) -> Arc<dyn TraversalModel> {
         let starting_energy = battery_capacity * starting_soc;
-        let bev = BevEnergyModel::new(prediction_model_record, battery_capacity, starting_energy)
-            .expect("test invariant failed");
+        let bev = BevEnergyModel::new(
+            prediction_model_record,
+            battery_capacity,
+            starting_energy,
+            charging_station_locator,
+        )
+        .expect("test invariant failed");
 
         // mock the upstream models via TestTraversalModel
 
