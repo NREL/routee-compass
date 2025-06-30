@@ -46,7 +46,9 @@ use routee_compass_core::{
     config::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions},
     model::traversal::default::{distance::DistanceTraversalBuilder, speed::SpeedTraversalBuilder},
 };
-use routee_compass_powertrain::model::EnergyModelBuilder;
+use routee_compass_powertrain::model::{
+    battery_frontier_model::BatteryRestrictionBuilder, EnergyModelBuilder,
+};
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 use super::CompassComponentError;
@@ -306,6 +308,8 @@ impl Default for CompassAppBuilder {
         let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});
         let road_class: Rc<dyn FrontierModelBuilder> = Rc::new(RoadClassBuilder {});
         let turn_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
+        let battery_restriction: Rc<dyn FrontierModelBuilder> =
+            Rc::new(BatteryRestrictionBuilder {});
         let vehicle_restriction: Rc<dyn FrontierModelBuilder> =
             Rc::new(VehicleRestrictionBuilder {});
         let frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
@@ -314,6 +318,7 @@ impl Default for CompassAppBuilder {
                 (String::from("road_class"), road_class),
                 (String::from("turn_restriction"), turn_restriction),
                 (String::from("vehicle_restriction"), vehicle_restriction),
+                (String::from("battery_restriction"), battery_restriction),
             ]);
 
         // Input plugin builders

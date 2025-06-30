@@ -3,11 +3,14 @@ use super::{
     prediction::{PredictionModelConfig, PredictionModelRecord},
 };
 use crate::model::{charging_station_locator::ChargingStationLocator, fieldname};
-use routee_compass_core::model::{
-    network::{Edge, Vertex, VertexId},
-    state::{InputFeature, StateFeature, StateModel, StateVariable},
-    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
+use routee_compass_core::{
+    config::ConfigJsonExtensions,
+    model::{
+        network::{Edge, Vertex, VertexId},
+        state::{InputFeature, StateFeature, StateModel, StateVariable},
+        traversal::{TraversalModel, TraversalModelError, TraversalModelService},
+        unit::{EnergyRateUnit, EnergyUnit, RatioUnit, TimeUnit},
+    },
 };
 use serde_json::Value;
 use std::sync::Arc;
@@ -96,9 +99,13 @@ impl TryFrom<&Value> for BevEnergyModel {
         })?;
 
         let charging_station_input_file = value
-            .get("charging_station_input_file")
-            .and_then(|v| v.as_str())
-            .map(|s| s.to_string());
+            .get_config_path_optional(&"charging_station_input_file", &"bev_energy_model")
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "failure reading 'charging_station_input_file' from bev energy model configuration: {}",
+                    e
+                ))
+            })?;
 
         let charging_station_locator = match charging_station_input_file {
             Some(file) => {
@@ -141,6 +148,14 @@ impl TraversalModel for BevEnergyModel {
                     value: Energy::ZERO,
                     accumulator: true,
                     output_unit: Some(EnergyUnit::KilowattHours),
+                },
+            ),
+            (
+                String::from(fieldname::TRIP_TIME),
+                StateFeature::Time {
+                    value: Time::ZERO,
+                    accumulator: true,
+                    output_unit: Some(TimeUnit::default()),
                 },
             ),
             (
@@ -287,7 +302,8 @@ mod tests {
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
         let charging_station_locator = mock_charging_station_locator();
-        let destination_vertex_id = VertexId(1);
+        // we don't want charging so don't use vertex 1
+        let destination_vertex_id = VertexId(99);
         let model = mock_traversal_model(
             record.clone(),
             start_soc,
@@ -336,7 +352,8 @@ mod tests {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(20.0);
-        let destination_vertex_id = VertexId(1);
+        // we don't want charging so don't use vertex 1
+        let destination_vertex_id = VertexId(99);
         let charging_station_locator = mock_charging_station_locator();
         let model = mock_traversal_model(
             record.clone(),
@@ -447,6 +464,251 @@ mod tests {
 
         let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc >= Ratio::ZERO);
+    }
+
+    #[test]
+    fn test_bev_charging_at_station_from_low_soc() {
+        // Test charging behavior when arriving at a charging station with low SOC
+        let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
+        let record = mock_prediction_model();
+        let start_soc = Ratio::new::<uom::si::ratio::percent>(15.0);
+        let destination_vertex_id = VertexId(1); // This vertex has a charging station
+        let charging_station_locator = mock_charging_station_locator();
+        let model = mock_traversal_model(
+            record.clone(),
+            start_soc,
+            bat_cap,
+            charging_station_locator.clone(),
+        );
+        let state_model = state_model(model);
+
+        // Travel a short distance to a charging station
+        let distance = Length::new::<uom::si::length::mile>(5.0);
+        let speed = Velocity::new::<uom::si::velocity::mile_per_hour>(30.0);
+        let grade = Ratio::new::<uom::si::ratio::percent>(0.0);
+        let mut state = state_vector(&state_model, distance, speed, grade);
+
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            &destination_vertex_id,
+            charging_station_locator.clone(),
+        )
+        .unwrap();
+
+        // After charging, SOC should be 100%
+        let final_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
+        let expected_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
+        assert_eq!(final_soc, expected_soc, "SOC should be 100% after charging");
+
+        // Should have added charging time to trip time
+        let trip_time = state_model.get_time(&state, fieldname::TRIP_TIME).unwrap();
+        assert!(
+            trip_time > Time::ZERO,
+            "Should have added charging time to trip"
+        );
+    }
+
+    #[test]
+    fn test_bev_charging_at_station_from_medium_soc() {
+        // Test charging behavior when arriving at a charging station with medium SOC
+        let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
+        let record = mock_prediction_model();
+        let start_soc = Ratio::new::<uom::si::ratio::percent>(50.0);
+        let destination_vertex_id = VertexId(1); // This vertex has a charging station
+        let charging_station_locator = mock_charging_station_locator();
+        let model = mock_traversal_model(
+            record.clone(),
+            start_soc,
+            bat_cap,
+            charging_station_locator.clone(),
+        );
+        let state_model = state_model(model);
+
+        // Travel a short distance to a charging station
+        let distance = Length::new::<uom::si::length::mile>(2.0);
+        let speed = Velocity::new::<uom::si::velocity::mile_per_hour>(25.0);
+        let grade = Ratio::new::<uom::si::ratio::percent>(0.0);
+        let mut state = state_vector(&state_model, distance, speed, grade);
+
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            &destination_vertex_id,
+            charging_station_locator.clone(),
+        )
+        .unwrap();
+
+        // After charging, SOC should be 100%
+        let final_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
+        let expected_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
+        assert_eq!(final_soc, expected_soc, "SOC should be 100% after charging");
+
+        // Should have added charging time (less than when starting from low SOC)
+        let trip_time = state_model.get_time(&state, fieldname::TRIP_TIME).unwrap();
+        assert!(
+            trip_time > Time::ZERO,
+            "Should have added charging time to trip"
+        );
+    }
+
+    #[test]
+    fn test_bev_no_charging_at_non_station_vertex() {
+        // Test that no charging occurs when not at a charging station
+        let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
+        let record = mock_prediction_model();
+        let start_soc = Ratio::new::<uom::si::ratio::percent>(30.0);
+        let destination_vertex_id = VertexId(99); // This vertex has NO charging station
+        let charging_station_locator = mock_charging_station_locator();
+        let model = mock_traversal_model(
+            record.clone(),
+            start_soc,
+            bat_cap,
+            charging_station_locator.clone(),
+        );
+        let state_model = state_model(model);
+
+        // Travel a distance that would normally consume some energy
+        let distance = Length::new::<uom::si::length::mile>(10.0);
+        let speed = Velocity::new::<uom::si::velocity::mile_per_hour>(45.0);
+        let grade = Ratio::new::<uom::si::ratio::percent>(2.0);
+        let mut state = state_vector(&state_model, distance, speed, grade);
+
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            &destination_vertex_id,
+            charging_station_locator.clone(),
+        )
+        .unwrap();
+
+        // SOC should be less than starting SOC (no charging occurred)
+        let final_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
+        assert!(
+            final_soc < start_soc,
+            "SOC should decrease when not at charging station"
+        );
+
+        // Trip time should only include travel time, no charging time
+        let trip_time = state_model.get_time(&state, fieldname::TRIP_TIME).unwrap();
+        assert_eq!(
+            trip_time,
+            Time::ZERO,
+            "Should not add charging time when not at charging station"
+        );
+    }
+
+    #[test]
+    fn test_bev_charging_at_station_from_full_battery() {
+        // Test charging behavior when arriving at a charging station with full battery
+        let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
+        let record = mock_prediction_model();
+        let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
+        let destination_vertex_id = VertexId(1); // This vertex has a charging station
+        let charging_station_locator = mock_charging_station_locator();
+        let model = mock_traversal_model(
+            record.clone(),
+            start_soc,
+            bat_cap,
+            charging_station_locator.clone(),
+        );
+        let state_model = state_model(model);
+
+        // Travel a very short distance that uses minimal energy
+        let distance = Length::new::<uom::si::length::mile>(0.5);
+        let speed = Velocity::new::<uom::si::velocity::mile_per_hour>(15.0);
+        let grade = Ratio::new::<uom::si::ratio::percent>(0.0);
+        let mut state = state_vector(&state_model, distance, speed, grade);
+
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            &destination_vertex_id,
+            charging_station_locator.clone(),
+        )
+        .unwrap();
+
+        // After "charging", SOC should still be 100%
+        let final_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
+        let expected_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
+        assert_eq!(
+            final_soc, expected_soc,
+            "SOC should remain 100% when charging from nearly full"
+        );
+
+        // Should have minimal or no charging time since battery was nearly full
+        let trip_time = state_model.get_time(&state, fieldname::TRIP_TIME).unwrap();
+        // Time should be very small since we're charging from ~99% to 100%
+        assert!(
+            trip_time >= Time::ZERO,
+            "Charging time should be non-negative"
+        );
+    }
+
+    #[test]
+    fn test_bev_charging_time_calculation() {
+        // Test that charging time is calculated correctly based on SOC difference and charging power
+        let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
+        let record = mock_prediction_model();
+        let start_soc = Ratio::new::<uom::si::ratio::percent>(20.0);
+        let destination_vertex_id = VertexId(1); // This vertex has a 50kW charging station
+        let charging_station_locator = mock_charging_station_locator();
+        let model = mock_traversal_model(
+            record.clone(),
+            start_soc,
+            bat_cap,
+            charging_station_locator.clone(),
+        );
+        let state_model = state_model(model);
+
+        // Travel a short distance that uses some energy
+        let distance = Length::new::<uom::si::length::mile>(5.0);
+        let speed = Velocity::new::<uom::si::velocity::mile_per_hour>(30.0);
+        let grade = Ratio::new::<uom::si::ratio::percent>(1.0);
+        let mut state = state_vector(&state_model, distance, speed, grade);
+
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            &destination_vertex_id,
+            charging_station_locator.clone(),
+        )
+        .unwrap();
+
+        // Calculate expected charging time
+        // Starting from ~15-20% SOC (after consuming some energy), charging to 100%
+        let final_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
+        assert_eq!(final_soc, Ratio::new::<uom::si::ratio::percent>(100.0));
+
+        let trip_time = state_model.get_time(&state, fieldname::TRIP_TIME).unwrap();
+
+        // With a 60kWh battery and 50kW charging power, charging from ~15% to 100% should take
+        // approximately (85% * 60kWh) / 50kW = ~1.02 hours
+        let expected_min_time = Time::new::<uom::si::time::hour>(0.8); // At least 48 minutes
+        let expected_max_time = Time::new::<uom::si::time::hour>(1.3); // At most 78 minutes
+
+        assert!(
+            trip_time >= expected_min_time,
+            "Charging time {:?} should be at least {:?}",
+            trip_time,
+            expected_min_time
+        );
+        assert!(
+            trip_time <= expected_max_time,
+            "Charging time {:?} should be at most {:?}",
+            trip_time,
+            expected_max_time
+        );
     }
 
     fn mock_charging_station_locator() -> Arc<ChargingStationLocator> {

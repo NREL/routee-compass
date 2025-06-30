@@ -110,6 +110,12 @@ fn construct_route_output(
         )
         .map_err(|e| e.to_string())?;
     let traversal_summary = si.state_model.serialize_state(&last_edge.result_state);
+
+
+    log::debug!("state model: {:?}", si.state_model);
+    log::debug!("traversal summary: {:?}", traversal_summary);
+    log::debug!("result state: {:?}", last_edge.result_state);
+
     let state_model = si.state_model.serialize_state_model();
     let cost = si
         .cost_model

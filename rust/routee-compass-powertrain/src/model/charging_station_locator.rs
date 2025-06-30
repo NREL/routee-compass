@@ -1,6 +1,9 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
-use routee_compass_core::model::{network::VertexId, traversal::TraversalModelError};
+use routee_compass_core::{
+    model::{network::VertexId, traversal::TraversalModelError},
+    util::fs::read_utils,
+};
 use serde::{Deserialize, Serialize};
 use uom::si::f64::Power;
 
@@ -71,23 +74,22 @@ impl ChargingStationLocator {
         Self { station_map }
     }
 
-    pub fn from_csv_file(file_path: &str) -> Result<Self, TraversalModelError> {
+    pub fn from_csv_file(file_path: &PathBuf) -> Result<Self, TraversalModelError> {
         let mut station_map = HashMap::new();
-        // csv file is expected to have lines in the format:
-        // vertex_id,power_type,power_kw,cost_per_kwh
-        let mut rdr = csv::Reader::from_path(file_path).map_err(|e| {
+
+        let charging_stations = read_utils::from_csv::<ChargingStationConfig>(
+            &file_path.as_path(),
+            true,
+            Some(kdam::Bar::builder().desc("charging stations")),
+            None,
+        )
+        .map_err(|e| {
             TraversalModelError::BuildError(format!(
-                "Failed to read charging station CSV file {}: {}",
+                "Failed to read charging stations from file {:?}: {}",
                 file_path, e
             ))
         })?;
-        for result in rdr.deserialize() {
-            let config: ChargingStationConfig = result.map_err(|e| {
-                TraversalModelError::BuildError(format!(
-                    "Failed to deserialize charging station config: {}",
-                    e
-                ))
-            })?;
+        for config in charging_stations {
             let vertex_id = config.vertex_id;
             let station: ChargingStation = config.try_into()?;
             station_map.insert(vertex_id, station);
