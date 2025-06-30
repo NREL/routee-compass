@@ -524,10 +524,12 @@ impl StateModel {
         let output = self
             .iter()
             .zip(state.iter())
-            .filter_map(|((name, feature), state_var)| match !name.contains("edge") {
-                false => None,
-                true => Some((name, feature.state_variable_to_f64(*state_var))),
-            })
+            .filter_map(
+                |((name, feature), state_var)| match !name.contains("edge") {
+                    false => None,
+                    true => Some((name, feature.state_variable_to_f64(*state_var))),
+                },
+            )
             .collect::<HashMap<_, _>>();
         json![output]
     }
