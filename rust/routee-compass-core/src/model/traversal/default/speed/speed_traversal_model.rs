@@ -38,6 +38,9 @@ impl SpeedTraversalModel {
 }
 
 impl TraversalModel for SpeedTraversalModel {
+    fn name(&self) -> String {
+        String::from("Speed Traversal Model")
+    }
     fn input_features(&self) -> Vec<InputFeature> {
         vec![InputFeature::Distance {
             name: fieldname::EDGE_DISTANCE.to_string(),

@@ -15,6 +15,9 @@ use crate::util::geo::haversine;
 pub struct DistanceTraversalModel {}
 
 impl TraversalModel for DistanceTraversalModel {
+    fn name(&self) -> String {
+        String::from("Distance Traversal Model")
+    }
     /// traverses a graph edge and updates the state vector with the distance.
     /// the distance values are directly available on the [`Graph`] model edges.
     ///

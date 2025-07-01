@@ -45,6 +45,8 @@ low_soc_result = app.run(low_soc_query)
 if "error" in low_soc_result:
     print(low_soc_result["error"])
 # %%
+low_soc_result["route"]["traversal_summary"]
+# %%
 m = plot_route_folium(low_soc_result)
 m
 # %%
@@ -76,4 +78,17 @@ for feature in low_soc_result["route"]["path"]["features"]:
 plt.plot(time, socs)
 # %%
 plt.plot(distance, socs)
+# %%
+route_gdf, tree_gdf = results_to_geopandas(low_soc_result)
+# %%
+tree_gdf
+# %%
+tree_gdf["trip_soc"] = tree_gdf["state"].apply(lambda x: x["trip_soc"])
+tree_gdf["trip_time"] = tree_gdf["state"].apply(lambda x: x["trip_time"])
+# %%
+tree_gdf = tree_gdf[["trip_soc", "trip_time", "geometry"]]
+# %%
+tree_gdf.explore(column="trip_time")
+# %%
+tree_gdf.explore(column="trip_soc")
 # %%

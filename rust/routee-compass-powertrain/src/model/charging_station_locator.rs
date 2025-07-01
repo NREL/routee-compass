@@ -15,6 +15,7 @@ struct ChargingStationConfig {
     cost_per_kwh: f64,
 }
 
+#[derive(Debug)]
 pub enum ChargingStation {
     L1 { power: Power, cost_per_kwh: f64 },
     L2 { power: Power, cost_per_kwh: f64 },

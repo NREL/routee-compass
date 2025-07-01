@@ -1,5 +1,8 @@
 use super::CombinedTraversalModel;
-use crate::model::traversal::{TraversalModel, TraversalModelError, TraversalModelService};
+use crate::model::traversal::{
+    default::combined::combined_ops::topological_dependency_sort, TraversalModel,
+    TraversalModelError, TraversalModelService,
+};
 use itertools::Itertools;
 use std::sync::Arc;
 
@@ -26,6 +29,11 @@ impl TraversalModelService for CombinedTraversalService {
                 service.build(query)
             })
             .try_collect()?;
-        Ok(Arc::new(CombinedTraversalModel::new(models)))
+        let sorted_models = topological_dependency_sort(&models)?;
+        log::info!(
+            "The topological sort of the traversal models is: {}",
+            sorted_models.iter().map(|m| m.name()).join(", "),
+        );
+        Ok(Arc::new(CombinedTraversalModel::new(sorted_models)))
     }
 }

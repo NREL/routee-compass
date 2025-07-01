@@ -20,6 +20,9 @@ impl GradeTraversalModel {
 }
 
 impl TraversalModel for GradeTraversalModel {
+    fn name(&self) -> String {
+        String::from("Grade Traversal Model")
+    }
     /// no upstream state dependencies
     fn input_features(&self) -> Vec<InputFeature> {
         vec![]

@@ -2,7 +2,10 @@ use super::{
     energy_model_ops,
     prediction::{PredictionModelConfig, PredictionModelRecord},
 };
-use crate::model::{charging_station_locator::ChargingStationLocator, fieldname};
+use crate::model::{
+    charging_station_locator::{ChargingStation, ChargingStationLocator},
+    fieldname,
+};
 use routee_compass_core::{
     config::ConfigJsonExtensions,
     model::{
@@ -131,11 +134,20 @@ impl TryFrom<&Value> for BevEnergyModel {
 }
 
 impl TraversalModel for BevEnergyModel {
+    fn name(&self) -> String {
+        format!("BEV Energy Model: {}", self.prediction_model_record.name)
+    }
     fn input_features(&self) -> Vec<InputFeature> {
-        let mut input_features = vec![InputFeature::Distance {
-            name: String::from(fieldname::EDGE_DISTANCE),
-            unit: None,
-        }];
+        let mut input_features = vec![
+            InputFeature::Distance {
+                name: String::from(fieldname::EDGE_DISTANCE),
+                unit: None,
+            },
+            InputFeature::Time {
+                name: fieldname::EDGE_TIME.to_string(),
+                unit: None,
+            },
+        ];
         input_features.extend(self.prediction_model_record.input_features.clone());
         input_features
     }
@@ -155,6 +167,14 @@ impl TraversalModel for BevEnergyModel {
                 StateFeature::Time {
                     value: Time::ZERO,
                     accumulator: true,
+                    output_unit: Some(TimeUnit::default()),
+                },
+            ),
+            (
+                String::from(fieldname::EDGE_TIME),
+                StateFeature::Time {
+                    value: Time::ZERO,
+                    accumulator: false,
                     output_unit: Some(TimeUnit::default()),
                 },
             ),
@@ -263,9 +283,7 @@ fn bev_traversal(
 
     let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
 
-    // check if we are at a charging station
     if let Some(charging_station) = charging_station_locator.get_station(destination_vertex_id) {
-        // if we are at a charging station, we can charge the battery to full
         let full_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
         let soc_to_full = full_soc - end_soc;
         let charge_energy = soc_to_full * battery_capacity;
@@ -273,6 +291,7 @@ fn bev_traversal(
 
         state_model.set_ratio(state, fieldname::TRIP_SOC, &full_soc)?;
         state_model.add_time(state, fieldname::TRIP_TIME, &time_to_charge)?;
+        state_model.add_time(state, fieldname::EDGE_TIME, &time_to_charge)?;
     } else {
         state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
     }

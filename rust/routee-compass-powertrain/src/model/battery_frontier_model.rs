@@ -36,11 +36,6 @@ impl FrontierModel for BatteryRestriction {
                 "BatteryRestriction frontier model requires the state variable 'trip_soc' but not found".to_string(),
             )
         })?;
-        log::debug!(
-            "BatteryRestriction valid_frontier soc: {:?}, {:?}",
-            soc,
-            self.soc_lower_bound
-        );
         Ok(soc > self.soc_lower_bound)
     }
 

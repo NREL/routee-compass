@@ -279,6 +279,13 @@ mod test {
     }
 
     impl TraversalModel for MockModel {
+        fn name(&self) -> String {
+            format!(
+                "Mock Traversal Model: {} -> {}",
+                self.in_features.iter().map(|f| f.name()).join("+"),
+                self.out_features.join("+")
+            )
+        }
         fn input_features(&self) -> Vec<InputFeature> {
             self.in_features.clone()
         }
