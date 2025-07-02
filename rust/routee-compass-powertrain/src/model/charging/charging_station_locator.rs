@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
+    str::FromStr,
 };
 
 use routee_compass_core::{
@@ -26,7 +27,15 @@ pub enum PowerType {
 }
 
 impl PowerType {
-    pub fn from_str(s: &str) -> Result<Self, TraversalModelError> {
+    pub fn all() -> Vec<PowerType> {
+        vec![PowerType::L1, PowerType::L2, PowerType::DCFC]
+    }
+}
+
+impl FromStr for PowerType {
+    type Err = TraversalModelError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "l1" => Ok(PowerType::L1),
             "l2" => Ok(PowerType::L2),
@@ -36,9 +45,6 @@ impl PowerType {
                 s
             ))),
         }
-    }
-    pub fn all() -> Vec<PowerType> {
-        vec![PowerType::L1, PowerType::L2, PowerType::DCFC]
     }
 }
 

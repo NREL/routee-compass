@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 # %%
 # %%
 # %%
-app = CompassApp.from_config_file("./denver_co/osm_default_energy.toml")
+app = CompassApp.from_config_file("./denver_co/osm_default_charging.toml")
 # %%
 query = {
     "origin_x": -104.969307,
@@ -38,6 +38,8 @@ low_soc_query = {
     "model_name": "2017_CHEVROLET_Bolt",
     "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy": 0},
     "starting_soc_percent": 3,
+    "full_soc_percent": 80,
+    "valid_power_types": ["DCFC", "L2"],
 }
 # %%
 low_soc_result = app.run(low_soc_query)
@@ -47,12 +49,11 @@ if "error" in low_soc_result:
 # %%
 low_soc_result["route"]["traversal_summary"]
 # %%
+# %%
 m = plot_route_folium(low_soc_result)
 m
 # %%
 cdf = pd.read_csv("./denver_co/charging-stations.csv.gz")
-# %%
-cdf = cdf[cdf["power_type"] == "DCFC"]
 # %%
 # plot the charging_stations on the map
 for station in cdf.itertuples():

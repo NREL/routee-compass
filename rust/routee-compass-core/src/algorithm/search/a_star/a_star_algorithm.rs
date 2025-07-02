@@ -141,39 +141,6 @@ pub fn run_vertex_oriented(
         solution.len()
     );
 
-    // #[cfg(debug_assertions)]
-    // {
-    //     use std::io::Write;
-    //     use std::path::PathBuf;
-
-    //     log::debug!("Building flamegraph for search memory usage..");
-    //     let mut flamegraph = allocative::FlameGraphBuilder::default();
-    //     flamegraph.visit_root(&costs);
-    //     flamegraph.visit_root(&traversal_costs);
-    //     flamegraph.visit_root(&solution);
-    //     let output = flamegraph.finish_and_write_flame_graph();
-
-    //     let search_name = match target {
-    //         None => format!("{}_to_all", source),
-    //         Some(tid) => format!("{}_to_{}", source, tid),
-    //     };
-
-    //     let outdir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-    //         .join("..")
-    //         .join("target")
-    //         .join("flamegraph");
-
-    //     if !outdir.exists() {
-    //         std::fs::create_dir(&outdir).unwrap();
-    //     }
-
-    //     let mut flamegraph_file = std::fs::File::create(
-    //         outdir.join(format!("search_memory_flamegraph_{}.out", search_name)),
-    //     )
-    //     .unwrap();
-    //     flamegraph_file.write_all(output.as_bytes()).unwrap();
-    // }
-
     let result = SearchResult::new(solution, iterations);
     Ok(result)
 }

@@ -1,4 +1,4 @@
-use std::{collections::HashSet, sync::Arc};
+use std::{collections::HashSet, str::FromStr, sync::Arc};
 
 use routee_compass_core::model::traversal::{
     TraversalModel, TraversalModelError, TraversalModelService,

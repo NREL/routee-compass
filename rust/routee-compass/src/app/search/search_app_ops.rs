@@ -28,7 +28,6 @@ pub fn collect_features(
         .chain(access_model.state_features())
         .collect::<HashMap<_, _>>();
 
-    log::debug!("Model features collected: {:?}", model_features);
     // build the state model. inject state features from the traversal and access models
     // and then allow the user to optionally override any initial conditions for those
     // state features.

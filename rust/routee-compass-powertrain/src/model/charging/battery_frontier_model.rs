@@ -33,11 +33,6 @@ impl FrontierModel for BatteryFrontier {
                 "BatteryFrontier frontier model requires the state variable 'trip_soc' but not found".to_string(),
             )
         })?;
-        log::debug!(
-            "BatteryFrontier valid_frontier: soc = {}, soc_lower_bound = {}",
-            soc.get::<uom::si::ratio::percent>(),
-            self.soc_lower_bound.get::<uom::si::ratio::percent>()
-        );
         Ok(soc > self.soc_lower_bound)
     }
 

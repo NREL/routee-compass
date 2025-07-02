@@ -1,5 +1,8 @@
 parallelism = 2
 
+[algorithm]
+type = "dijkstra"
+
 [graph]
 edge_list_input_file = "edges-compass.csv.gz"
 vertex_list_input_file = "vertices-compass.csv.gz"
@@ -33,7 +36,6 @@ trip_energy_electric = 1
 # Used for restricting travel after the battery is depleted.
 [frontier]
 type = "battery_frontier"
-soc_lower_bound_percent = 1
 
 [access]
 type = "turn_delay"
