@@ -30,10 +30,6 @@ impl TraversalModelService for CombinedTraversalService {
             })
             .try_collect()?;
         let sorted_models = topological_dependency_sort(&models)?;
-        log::info!(
-            "The topological sort of the traversal models is: {}",
-            sorted_models.iter().map(|m| m.name()).join(", "),
-        );
         Ok(Arc::new(CombinedTraversalModel::new(sorted_models)))
     }
 }

@@ -70,11 +70,18 @@ pub fn topological_dependency_sort(
     }
     result.reverse();
 
+    log::debug!(
+        "topological sort of traversal models: {}",
+        result.iter().map(|m| m.name()).join(", ")
+    );
+
     // topological_sort crate's pop() method stops when collection is empty, unless there is a cyclical
     // dependency, in which case the collection will return None and remain non-empty.
     if !sort.is_empty() {
-        let remaining = sort.join(", ");
-        let msg = format!("cyclical dependency in traversal model features between the following model indices: [{}]", remaining);
+        let msg = format!(
+            "cyclical dependency in traversal model features: {:?}",
+            sort
+        );
         return Err(TraversalModelError::BuildError(msg));
     }
 

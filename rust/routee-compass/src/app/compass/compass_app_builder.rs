@@ -47,7 +47,11 @@ use routee_compass_core::{
     model::traversal::default::{distance::DistanceTraversalBuilder, speed::SpeedTraversalBuilder},
 };
 use routee_compass_powertrain::model::{
-    battery_frontier_model::BatteryRestrictionBuilder, EnergyModelBuilder,
+    charging::{
+        battery_frontier_builder::BatteryFrontierBuilder,
+        simple_charging_builder::SimpleChargingBuilder,
+    },
+    EnergyModelBuilder,
 };
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
@@ -284,6 +288,7 @@ impl Default for CompassAppBuilder {
         let grade: Rc<dyn TraversalModelBuilder> = Rc::new(GradeTraversalBuilder {});
         let elevation: Rc<dyn TraversalModelBuilder> = Rc::new(ElevationTraversalBuilder {});
         let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder {});
+        let simple_charging = Rc::new(SimpleChargingBuilder::default());
         let custom: Rc<dyn TraversalModelBuilder> = Rc::new(CustomTraversalBuilder {});
         let traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> =
             HashMap::from([
@@ -293,6 +298,7 @@ impl Default for CompassAppBuilder {
                 (String::from("grade"), grade),
                 (String::from("elevation"), elevation),
                 (String::from("energy"), energy),
+                (String::from("simple_charging"), simple_charging),
                 (String::from("custom"), custom),
             ]);
 
@@ -308,8 +314,8 @@ impl Default for CompassAppBuilder {
         let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});
         let road_class: Rc<dyn FrontierModelBuilder> = Rc::new(RoadClassBuilder {});
         let turn_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
-        let battery_restriction: Rc<dyn FrontierModelBuilder> =
-            Rc::new(BatteryRestrictionBuilder {});
+        let battery_frontier: Rc<dyn FrontierModelBuilder> =
+            Rc::new(BatteryFrontierBuilder::default());
         let vehicle_restriction: Rc<dyn FrontierModelBuilder> =
             Rc::new(VehicleRestrictionBuilder {});
         let frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
@@ -318,7 +324,7 @@ impl Default for CompassAppBuilder {
                 (String::from("road_class"), road_class),
                 (String::from("turn_restriction"), turn_restriction),
                 (String::from("vehicle_restriction"), vehicle_restriction),
-                (String::from("battery_restriction"), battery_restriction),
+                (String::from("battery_frontier"), battery_frontier),
             ]);
 
         // Input plugin builders

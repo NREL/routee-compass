@@ -1,0 +1,47 @@
+use routee_compass_core::{
+    algorithm::search::{Direction, SearchTreeBranch},
+    model::{
+        frontier::{FrontierModel, FrontierModelError},
+        network::{Edge, VertexId},
+        state::{StateModel, StateVariable},
+    },
+};
+use uom::si::f64::Ratio;
+
+use crate::model::fieldname;
+
+#[derive(Clone)]
+pub struct BatteryFrontier {
+    pub soc_lower_bound: Ratio,
+}
+
+impl FrontierModel for BatteryFrontier {
+    fn valid_frontier(
+        &self,
+        _edge: &Edge,
+        state: &[StateVariable],
+        _tree: &std::collections::HashMap<VertexId, SearchTreeBranch>,
+        _direction: &Direction,
+        state_model: &StateModel,
+    ) -> Result<bool, FrontierModelError> {
+        if !state_model.contains_key(&fieldname::TRIP_SOC.to_string()) {
+            // if we don't have the trip_soc, then this frontier is valid
+            return Ok(true);
+        }
+        let soc: Ratio = state_model.get_ratio(state, fieldname::TRIP_SOC).map_err(|_| {
+            FrontierModelError::FrontierModelError(
+                "BatteryFrontier frontier model requires the state variable 'trip_soc' but not found".to_string(),
+            )
+        })?;
+        log::debug!(
+            "BatteryFrontier valid_frontier: soc = {}, soc_lower_bound = {}",
+            soc.get::<uom::si::ratio::percent>(),
+            self.soc_lower_bound.get::<uom::si::ratio::percent>()
+        );
+        Ok(soc > self.soc_lower_bound)
+    }
+
+    fn valid_edge(&self, _edge: &Edge) -> Result<bool, FrontierModelError> {
+        Ok(true)
+    }
+}

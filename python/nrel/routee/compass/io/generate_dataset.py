@@ -207,12 +207,15 @@ def generate_compass_dataset(
     # COPY DEFAULT CONFIGURATION FILES
     if GeneratePipelinePhase.CONFIG in phases and default_config:
         log.info("copying default configuration TOML files")
-        for filename in [
+        base_config_files = [
             "osm_default_distance.toml",
             "osm_default_speed.toml",
             "osm_default_energy.toml",
             "osm_default_energy_all_vehicles.toml",
-        ]:
+        ]
+        if GeneratePipelinePhase.CHARGING_STATIONS in phases:
+            base_config_files.append("osm_default_charging.toml")
+        for filename in base_config_files:
             with importlib.resources.path(
                 "nrel.routee.compass.resources", filename
             ) as init_toml_path:

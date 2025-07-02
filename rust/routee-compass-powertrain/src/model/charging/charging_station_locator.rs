@@ -1,4 +1,7 @@
-use std::{collections::HashMap, path::PathBuf};
+use std::{
+    collections::{HashMap, HashSet},
+    path::PathBuf,
+};
 
 use routee_compass_core::{
     model::{network::VertexId, traversal::TraversalModelError},
@@ -15,29 +18,35 @@ struct ChargingStationConfig {
     cost_per_kwh: f64,
 }
 
-#[derive(Debug)]
-pub enum ChargingStation {
-    L1 { power: Power, cost_per_kwh: f64 },
-    L2 { power: Power, cost_per_kwh: f64 },
-    DCFC { power: Power, cost_per_kwh: f64 },
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum PowerType {
+    L1,
+    L2,
+    DCFC,
 }
 
-impl ChargingStation {
-    pub fn power(&self) -> Power {
-        match self {
-            ChargingStation::L1 { power, .. } => *power,
-            ChargingStation::L2 { power, .. } => *power,
-            ChargingStation::DCFC { power, .. } => *power,
+impl PowerType {
+    pub fn from_str(s: &str) -> Result<Self, TraversalModelError> {
+        match s.to_lowercase().as_str() {
+            "l1" => Ok(PowerType::L1),
+            "l2" => Ok(PowerType::L2),
+            "dcfc" => Ok(PowerType::DCFC),
+            _ => Err(TraversalModelError::BuildError(format!(
+                "Unknown power type: {}",
+                s
+            ))),
         }
     }
+    pub fn all() -> Vec<PowerType> {
+        vec![PowerType::L1, PowerType::L2, PowerType::DCFC]
+    }
+}
 
-    pub fn cost_per_kwh(&self) -> f64 {
-        match self {
-            ChargingStation::L1 { cost_per_kwh, .. } => *cost_per_kwh,
-            ChargingStation::L2 { cost_per_kwh, .. } => *cost_per_kwh,
-            ChargingStation::DCFC { cost_per_kwh, .. } => *cost_per_kwh,
-        }
-    }
+#[derive(Debug, Clone, Copy)]
+pub struct ChargingStation {
+    pub power_type: PowerType,
+    pub power: Power,
+    pub cost_per_kwh: f64,
 }
 
 impl TryFrom<ChargingStationConfig> for ChargingStation {
@@ -45,15 +54,18 @@ impl TryFrom<ChargingStationConfig> for ChargingStation {
     fn try_from(config: ChargingStationConfig) -> Result<Self, TraversalModelError> {
         let power = Power::new::<uom::si::power::kilowatt>(config.power_kw);
         match config.power_type.to_lowercase().as_str() {
-            "l1" => Ok(ChargingStation::L1 {
+            "l1" => Ok(ChargingStation {
+                power_type: PowerType::L1,
                 power,
                 cost_per_kwh: config.cost_per_kwh,
             }),
-            "l2" => Ok(ChargingStation::L2 {
+            "l2" => Ok(ChargingStation {
+                power_type: PowerType::L2,
                 power,
                 cost_per_kwh: config.cost_per_kwh,
             }),
-            "dcfc" => Ok(ChargingStation::DCFC {
+            "dcfc" => Ok(ChargingStation {
+                power_type: PowerType::DCFC,
                 power,
                 cost_per_kwh: config.cost_per_kwh,
             }),
@@ -104,5 +116,23 @@ impl ChargingStationLocator {
 
     pub fn get_station(&self, vertex_id: &VertexId) -> Option<&ChargingStation> {
         self.station_map.get(vertex_id)
+    }
+
+    pub fn with_power_types(&self, power_types: &HashSet<PowerType>) -> Self {
+        let filtered_stations: HashMap<VertexId, ChargingStation> = self
+            .station_map
+            .clone()
+            .into_iter()
+            .filter_map(|(vertex_id, station)| {
+                if power_types.contains(&station.power_type) {
+                    Some((vertex_id, station))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        ChargingStationLocator {
+            station_map: filtered_stations,
+        }
     }
 }

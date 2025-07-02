@@ -1,6 +1,5 @@
-pub mod battery_frontier_model;
 mod bev_energy_model;
-pub mod charging_station_locator;
+pub mod charging;
 mod energy_model_builder;
 pub mod energy_model_ops;
 pub mod energy_model_service;
