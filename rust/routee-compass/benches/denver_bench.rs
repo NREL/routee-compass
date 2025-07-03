@@ -52,9 +52,7 @@ fn bench_example(c: &mut Criterion) {
 
     group.bench_with_input("downtown denver example", &tmp_path, |b, input| {
         b.iter(|| {
-            downtown_denver_example(black_box(
-                input.to_str().unwrap().to_string(),
-            ));
+            downtown_denver_example(black_box(input.to_str().unwrap().to_string()));
             black_box(())
         })
     });

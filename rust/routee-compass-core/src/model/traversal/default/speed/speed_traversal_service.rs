@@ -49,7 +49,8 @@ impl TraversalModelService for SpeedLookupService {
             }
             None => None,
         };
-        let speed_limit = speed_limit_tuple.map(|(speed_limit, max_speed_unit)| max_speed_unit.to_uom(speed_limit));
+        let speed_limit = speed_limit_tuple
+            .map(|(speed_limit, max_speed_unit)| max_speed_unit.to_uom(speed_limit));
 
         let model = SpeedTraversalModel::new(self.e.clone(), speed_limit)?;
         Ok(Arc::new(model))
