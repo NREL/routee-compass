@@ -27,9 +27,6 @@ output_plugins = [
 trip_distance = 1
 trip_time = 1
 trip_energy = 1
-trip_energy_liquid = 1
-trip_energy_electric = 1
-
 
 [access]
 type = "turn_delay"

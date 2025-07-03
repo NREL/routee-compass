@@ -30,12 +30,18 @@ output_plugins = [
 trip_distance = 1
 trip_time = 1
 trip_energy = 1
-trip_energy_liquid = 1
-trip_energy_electric = 1
 
 # Used for restricting travel after the battery is depleted.
 [frontier]
 type = "battery_frontier"
+
+[label]
+type = "soc"
+[label.soc_label_config]
+type = "percent_range"
+start = 0
+end = 100
+step = 1
 
 [access]
 type = "turn_delay"

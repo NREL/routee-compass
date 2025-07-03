@@ -26,6 +26,12 @@ pub fn run_vertex_oriented(
     weight_factor: Option<Cost>,
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
+    log::debug!(
+        "run_vertex_oriented: source: {}, target: {:?}, direction: {:?}",
+        source,
+        target,
+        direction
+    );
     if target == Some(source) {
         return Ok(SearchResult::default());
     }

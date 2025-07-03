@@ -1,7 +1,4 @@
-use crate::{
-    algorithm::search::EdgeTraversal,
-    model::label::label_model::Label,
-};
+use crate::{algorithm::search::EdgeTraversal, model::label::label_model::Label};
 use allocative::Allocative;
 use serde::Serialize;
 use std::fmt::Display;

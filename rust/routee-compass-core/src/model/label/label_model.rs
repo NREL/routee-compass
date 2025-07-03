@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use allocative::Allocative;
 use serde::Serialize;
 
@@ -25,12 +27,12 @@ impl Label {
     }
 }
 
-impl ToString for Label {
-    fn to_string(&self) -> String {
+impl Display for Label {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Label::Vertex(vertex_id) => format!("Vertex({})", vertex_id.0),
+            Label::Vertex(vertex_id) => write!(f, "Vertex({})", vertex_id),
             Label::VertexWithIntState { vertex_id, state } => {
-                format!("VertexWithIntState({}, {:?})", vertex_id.0, state)
+                write!(f, "VertexWithIntState({}, {:?})", vertex_id, state)
             }
         }
     }

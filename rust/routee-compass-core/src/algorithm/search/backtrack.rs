@@ -22,37 +22,53 @@ pub fn label_oriented_route(
         return Ok(vec![]);
     }
 
+    log::debug!(
+        "label_oriented_route: source_id: {}, target_id: {}, solution size: {}",
+        source_id,
+        target_id,
+        solution.len()
+    );
+
     let mut result: Vec<EdgeTraversal> = vec![];
-    let mut visited: HashSet<EdgeId> = HashSet::new();
-    let mut this_vertex = target_id;
+    let mut visited: HashSet<VertexId> = HashSet::new();
+
+    // Find the target label in the solution - there should be exactly one optimal path to target
+    let (mut current_label, _) = solution
+        .iter()
+        .find(|(label, _)| label.vertex_id() == target_id)
+        .ok_or_else(|| {
+            SearchError::InternalError(format!(
+                "target vertex {} not found in solution tree with {} branches",
+                target_id,
+                solution.len()
+            ))
+        })?;
+
     loop {
-        if this_vertex == source_id {
+        let current_vertex = current_label.vertex_id();
+        if current_vertex == source_id {
             break;
         }
 
-        // Find the search tree branch for this vertex by searching through labels
-        let traversal = solution
-            .iter()
-            .find(|(label, _)| label.vertex_id() == this_vertex)
-            .map(|(_, branch)| branch)
-            .ok_or_else(|| {
-                SearchError::InternalError(format!(
-                    "resulting tree with {} branches missing vertex {} expected via backtrack",
-                    solution.len(),
-                    this_vertex
-                ))
-            })?;
-
-        let first_visit = visited.insert(traversal.edge_traversal.edge_id);
+        let first_visit = visited.insert(current_vertex);
         if !first_visit {
             return Err(SearchError::InternalError(format!(
-                "loop in search result, edge {} visited more than once",
-                traversal.edge_traversal.edge_id
+                "loop in search result, vertex {:?} visited more than once",
+                current_vertex
             )));
         }
-        result.push(traversal.edge_traversal.clone());
-        this_vertex = traversal.terminal_label.vertex_id();
+
+        let branch = solution.get(current_label).ok_or_else(|| {
+            SearchError::InternalError(format!(
+                "label {:?} not found in solution tree during backtrack",
+                current_label
+            ))
+        })?;
+
+        result.push(branch.edge_traversal.clone());
+        current_label = &branch.terminal_label;
     }
+
     let reversed = result.into_iter().rev().collect();
     Ok(reversed)
 }
@@ -64,7 +80,7 @@ pub fn label_edge_oriented_route(
     solution: &HashMap<Label, SearchTreeBranch>,
     graph: Arc<Graph>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
-    let o_v = graph.src_vertex_id(&source_id)?;
-    let d_v = graph.dst_vertex_id(&target_id)?;
+    let o_v = graph.dst_vertex_id(&source_id)?;
+    let d_v = graph.src_vertex_id(&target_id)?;
     label_oriented_route(o_v, d_v, solution)
 }

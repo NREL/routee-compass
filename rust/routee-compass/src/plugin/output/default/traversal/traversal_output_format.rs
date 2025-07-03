@@ -5,10 +5,7 @@ use crate::plugin::output::OutputPluginError;
 use geo::{CoordFloat, Geometry, TryConvert};
 use routee_compass_core::{
     algorithm::search::{EdgeTraversal, SearchTreeBranch},
-    model::{
-        cost::CostModel, label::label_model::Label, map::MapModel,
-        state::StateModel,
-    },
+    model::{cost::CostModel, label::label_model::Label, map::MapModel, state::StateModel},
 };
 use serde::{Deserialize, Serialize};
 use wkt::ToWkt;
