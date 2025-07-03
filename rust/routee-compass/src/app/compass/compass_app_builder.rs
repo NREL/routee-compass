@@ -33,6 +33,10 @@ use routee_compass_core::model::{
         },
         FrontierModelBuilder, FrontierModelService,
     },
+    label::{
+        default::vertex_label_model::VertexLabelModelBuilder,
+        label_model_builder::LabelModelBuilder, label_model_service::LabelModelService,
+    },
     traversal::{
         default::{
             combined::CombinedTraversalBuilder, custom::CustomTraversalBuilder,
@@ -49,7 +53,7 @@ use routee_compass_core::{
 use routee_compass_powertrain::model::{
     charging::{
         battery_frontier_builder::BatteryFrontierBuilder,
-        simple_charging_builder::SimpleChargingBuilder,
+        simple_charging_builder::SimpleChargingBuilder, soc_label_builder::SOCLabelModelBuilder,
     },
     EnergyModelBuilder,
 };
@@ -83,6 +87,7 @@ pub struct CompassAppBuilder {
     pub traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
     pub access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>>,
     pub frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
+    pub label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>>,
     pub input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
     pub output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
 }
@@ -103,6 +108,7 @@ impl CompassAppBuilder {
             traversal_model_builders: HashMap::new(),
             access_model_builders: HashMap::new(),
             frontier_model_builders: HashMap::new(),
+            label_model_builders: HashMap::new(),
             input_plugin_builders: HashMap::new(),
             output_plugin_builders: HashMap::new(),
         }
@@ -118,6 +124,10 @@ impl CompassAppBuilder {
 
     pub fn add_frontier_model(&mut self, name: String, builder: Rc<dyn FrontierModelBuilder>) {
         let _ = self.frontier_model_builders.insert(name, builder);
+    }
+
+    pub fn add_label_model(&mut self, name: String, builder: Rc<dyn LabelModelBuilder>) {
+        let _ = self.label_model_builders.insert(name, builder);
     }
 
     pub fn add_input_plugin(&mut self, name: String, builder: Rc<dyn InputPluginBuilder>) {
@@ -209,6 +219,26 @@ impl CompassAppBuilder {
             .and_then(|b| {
                 b.build(config)
                     .map_err(CompassConfigurationError::FrontierModelError)
+            })
+    }
+
+    pub fn build_label_model_service(
+        &self,
+        config: &serde_json::Value,
+    ) -> Result<Arc<dyn LabelModelService>, CompassConfigurationError> {
+        let lm_type = config.get_config_string(&"type", &"label")?;
+        self.label_model_builders
+            .get(&lm_type)
+            .ok_or_else(|| {
+                CompassConfigurationError::UnknownModelNameForComponent(
+                    lm_type.clone(),
+                    String::from("label"),
+                    self.label_model_builders.keys().join(", "),
+                )
+            })
+            .and_then(|b| {
+                b.build(config)
+                    .map_err(CompassConfigurationError::LabelModelError)
             })
     }
 
@@ -327,6 +357,14 @@ impl Default for CompassAppBuilder {
                 (String::from("battery_frontier"), battery_frontier),
             ]);
 
+        // Label model builders
+        let vertex_label: Rc<dyn LabelModelBuilder> = Rc::new(VertexLabelModelBuilder);
+        let soc_label = Rc::new(SOCLabelModelBuilder);
+        let label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>> = HashMap::from([
+            (String::from("vertex"), vertex_label),
+            (String::from("soc"), soc_label),
+        ]);
+
         // Input plugin builders
         let grid_search: Rc<dyn InputPluginBuilder> = Rc::new(GridSearchBuilder {});
         let load_balancer: Rc<dyn InputPluginBuilder> = Rc::new(LoadBalancerBuilder {});
@@ -353,6 +391,7 @@ impl Default for CompassAppBuilder {
             traversal_model_builders,
             access_model_builders,
             frontier_model_builders,
+            label_model_builders,
             input_plugin_builders,
             output_plugin_builders,
         }

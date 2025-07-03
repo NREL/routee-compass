@@ -5,6 +5,7 @@ pub enum CompassConfigurationField {
     Graph,
     Frontier,
     Termination,
+    Label,
     State,
     Traversal,
     Access,
@@ -45,6 +46,7 @@ impl CompassConfigurationField {
             CompassConfigurationField::ChargeSustaining => "charge_sustaining",
             CompassConfigurationField::ResponsePersistencePolicy => "response_persistence_policy",
             CompassConfigurationField::ResponseOutputPolicy => "response_output_policy",
+            CompassConfigurationField::Label => "label",
         }
     }
 }

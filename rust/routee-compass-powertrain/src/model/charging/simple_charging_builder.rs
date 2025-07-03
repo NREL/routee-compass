@@ -14,6 +14,7 @@ use crate::model::charging::{
 pub struct SimpleChargingBuilder {
     full_soc: Ratio,
     starting_soc: Ratio,
+    charge_soc_threshold: Ratio,
     valid_power_types: HashSet<PowerType>,
 }
 
@@ -22,6 +23,7 @@ impl Default for SimpleChargingBuilder {
         SimpleChargingBuilder {
             full_soc: Ratio::new::<uom::si::ratio::percent>(100.0),
             starting_soc: Ratio::new::<uom::si::ratio::percent>(100.0),
+            charge_soc_threshold: Ratio::new::<uom::si::ratio::percent>(20.0),
             valid_power_types: HashSet::from([PowerType::L1, PowerType::L2, PowerType::DCFC]),
         }
     }
@@ -38,6 +40,15 @@ impl TraversalModelBuilder for SimpleChargingBuilder {
             Ratio::new::<uom::si::ratio::percent>(full_soc_percent)
         } else {
             self.full_soc
+        };
+
+        let charge_soc_threshold = if let Some(charge_soc_threshold_percent) = parameters
+            .get("charge_soc_threshold_percent")
+            .and_then(|v| v.as_f64())
+        {
+            Ratio::new::<uom::si::ratio::percent>(charge_soc_threshold_percent)
+        } else {
+            self.charge_soc_threshold
         };
 
         let valid_power_types = if let Some(valid_power_types_str) = parameters
@@ -80,6 +91,7 @@ impl TraversalModelBuilder for SimpleChargingBuilder {
             charging_station_locator,
             starting_soc: self.starting_soc,
             full_soc,
+            charge_soc_threshold,
             valid_power_types,
         }))
     }

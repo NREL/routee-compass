@@ -20,6 +20,7 @@ pub struct SimpleChargingModel {
     pub charging_station_locator: Arc<ChargingStationLocator>,
     pub starting_soc: Ratio,
     pub full_soc: Ratio,
+    pub charge_soc_threshold: Ratio,
     pub valid_power_types: HashSet<PowerType>,
 }
 
@@ -61,7 +62,7 @@ impl TraversalModel for SimpleChargingModel {
                 fieldname::TRIP_SOC.to_string(),
                 StateFeature::Ratio {
                     value: self.starting_soc,
-                    accumulator: false,
+                    accumulator: true,
                     output_unit: None,
                 },
             ),
@@ -88,10 +89,11 @@ impl TraversalModel for SimpleChargingModel {
             .charging_station_locator
             .get_station(&end_vertex.vertex_id)
         {
-            if self
-                .valid_power_types
-                .contains(&charging_station.power_type)
-            {
+            let should_charge = current_soc < self.charge_soc_threshold
+                && self
+                    .valid_power_types
+                    .contains(&charging_station.power_type);
+            if should_charge {
                 let soc_to_full = self.full_soc - current_soc;
                 let charge_energy = soc_to_full * battery_capacity;
                 let time_to_charge: Time = charge_energy / charging_station.power;

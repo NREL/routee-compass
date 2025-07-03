@@ -17,6 +17,7 @@ pub struct SimpleChargingService {
     pub charging_station_locator: Arc<ChargingStationLocator>,
     pub starting_soc: Ratio,
     pub full_soc: Ratio,
+    pub charge_soc_threshold: Ratio,
     pub valid_power_types: HashSet<PowerType>,
 }
 
@@ -36,6 +37,15 @@ impl TraversalModelService for SimpleChargingService {
             Ratio::new::<uom::si::ratio::percent>(full_soc_percent)
         } else {
             self.full_soc
+        };
+
+        let charge_soc_threshold = if let Some(charge_soc_threshold_percent) = query
+            .get("charge_soc_threshold_percent")
+            .and_then(|v| v.as_f64())
+        {
+            Ratio::new::<uom::si::ratio::percent>(charge_soc_threshold_percent)
+        } else {
+            self.charge_soc_threshold
         };
 
         // get the valid power types from the query if they are provided, otherwise use existing values
@@ -63,6 +73,7 @@ impl TraversalModelService for SimpleChargingService {
             charging_station_locator: self.charging_station_locator.clone(),
             starting_soc,
             full_soc,
+            charge_soc_threshold,
             valid_power_types,
         };
         Ok(Arc::new(model))

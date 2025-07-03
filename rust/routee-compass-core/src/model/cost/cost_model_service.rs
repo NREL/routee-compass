@@ -50,7 +50,13 @@ impl CostModelService {
         // invariant: this hashmap dictates the list of keys for all subsequent CostModel hashmaps.
         let weights: Arc<HashMap<String, f64>> = query
             .get_config_serde_optional::<HashMap<String, f64>>(&"weights", &"cost_model")?
-            .map(Arc::new)
+            .map(|query_weights| {
+                let mut merged_weights = self.weights.as_ref().clone();
+                for (k, v) in query_weights.iter() {
+                    merged_weights.insert(k.clone(), *v);
+                }
+                Arc::new(merged_weights)
+            })
             .unwrap_or(self.weights.clone());
 
         // // union the requested state variables with those in the existing traversal model

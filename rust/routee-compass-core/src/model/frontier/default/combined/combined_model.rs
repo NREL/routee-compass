@@ -13,18 +13,14 @@ impl FrontierModel for CombinedFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
+        previous_edge: Option<&Edge>,
         state: &[StateVariable],
-        tree: &std::collections::HashMap<
-            crate::model::network::VertexId,
-            crate::algorithm::search::SearchTreeBranch,
-        >,
-        direction: &crate::algorithm::search::Direction,
         state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         // If any of the inner models return an invalid frontier, it invalidates the whole set and we
         // return an early false. We only return true if all the frontiers are valid.
         for frontier_model in self.inner_models.iter() {
-            if !frontier_model.valid_frontier(edge, state, tree, direction, state_model)? {
+            if !frontier_model.valid_frontier(edge, previous_edge, state, state_model)? {
                 return Ok(false);
             }
         }

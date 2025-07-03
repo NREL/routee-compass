@@ -2,6 +2,7 @@ use crate::model::{
     access::AccessModelError,
     cost::CostModelError,
     frontier::FrontierModelError,
+    label::label_model_error::LabelModelError,
     network::{edge_id::EdgeId, network_error::NetworkError, vertex_id::VertexId},
     state::StateModelError,
     termination::TerminationModelError,
@@ -12,6 +13,11 @@ use crate::model::{
 pub enum SearchError {
     #[error("failure building search algorithm: {0}")]
     BuildError(String),
+    #[error("The search failed due to a label setting error: {source}")]
+    LabelFailure {
+        #[from]
+        source: LabelModelError,
+    },
     #[error("The search failed due to state model error. The state model is responsible for updates to the state of the search at each increment of traversal. Please review the [state] section of your Compass configuration. Source: {source}")]
     StateFailure {
         #[from]

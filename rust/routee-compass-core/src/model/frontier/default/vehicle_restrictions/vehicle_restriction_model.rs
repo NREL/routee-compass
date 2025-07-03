@@ -1,13 +1,10 @@
 use super::{VehicleParameter, VehicleRestrictionFrontierService};
-use crate::{
-    algorithm::search::{Direction, SearchTreeBranch},
-    model::{
-        frontier::{FrontierModel, FrontierModelError},
-        network::{Edge, VertexId},
-        state::{StateModel, StateVariable},
-    },
+use crate::model::{
+    frontier::{FrontierModel, FrontierModelError},
+    network::Edge,
+    state::{StateModel, StateVariable},
 };
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 pub struct VehicleRestrictionFrontierModel {
     pub service: Arc<VehicleRestrictionFrontierService>,
@@ -18,9 +15,8 @@ impl FrontierModel for VehicleRestrictionFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
+        _previos_edge: Option<&Edge>,
         _state: &[StateVariable],
-        _tree: &HashMap<VertexId, SearchTreeBranch>,
-        _direction: &Direction,
         _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         validate_edge(self, edge)

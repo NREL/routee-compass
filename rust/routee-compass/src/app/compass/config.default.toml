@@ -60,6 +60,9 @@ network_rates = {}
 [frontier]
 type = "no_restriction"
 
+[label]
+type = "vertex"
+
 [termination]
 type = "query_runtime"
 limit = "00:10:00"

@@ -28,19 +28,15 @@ impl FrontierModel for EdgeCutFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
+        previous_edge: Option<&Edge>,
         state: &[crate::model::state::StateVariable],
-        tree: &std::collections::HashMap<
-            crate::model::network::VertexId,
-            crate::algorithm::search::SearchTreeBranch,
-        >,
-        direction: &crate::algorithm::search::Direction,
         state_model: &crate::model::state::StateModel,
     ) -> Result<bool, crate::model::frontier::FrontierModelError> {
         if self.cut_edges.contains(&edge.edge_id) {
             Ok(false)
         } else {
             self.underlying
-                .valid_frontier(edge, state, tree, direction, state_model)
+                .valid_frontier(edge, previous_edge, state, state_model)
         }
     }
 

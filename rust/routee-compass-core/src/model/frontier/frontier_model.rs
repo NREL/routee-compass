@@ -1,12 +1,7 @@
-use std::collections::HashMap;
-
 use super::frontier_model_error::FrontierModelError;
-use crate::{
-    algorithm::search::{Direction, SearchTreeBranch},
-    model::{
-        network::{Edge, VertexId},
-        state::{StateModel, StateVariable},
-    },
+use crate::model::{
+    network::Edge,
+    state::{StateModel, StateVariable},
 };
 
 /// Validates edge and traversal states. Provides an API for removing edges from
@@ -21,9 +16,8 @@ pub trait FrontierModel: Send + Sync {
     /// # Arguments
     ///
     /// * `edge` - the edge to traverse
+    /// * `previous_edge` - the edge traversed before this one, used to determine if this edge is a valid part of the frontier
     /// * `state` - the state of the traversal at the beginning of this edge
-    /// * `tree` - the search tree for this search
-    /// * `direction` - search direction
     /// * `state_model` - provides operations on the state vector
     ///
     /// # Returns
@@ -32,9 +26,8 @@ pub trait FrontierModel: Send + Sync {
     fn valid_frontier(
         &self,
         edge: &Edge,
+        previous_edge: Option<&Edge>,
         state: &[StateVariable],
-        tree: &HashMap<VertexId, SearchTreeBranch>,
-        direction: &Direction,
         state_model: &StateModel,
     ) -> Result<bool, FrontierModelError>;
 

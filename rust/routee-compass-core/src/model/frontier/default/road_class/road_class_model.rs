@@ -1,16 +1,10 @@
 use super::road_class_service::RoadClassFrontierService;
-use crate::{
-    algorithm::search::SearchTreeBranch,
-    model::{
-        frontier::{FrontierModel, FrontierModelError},
-        network::{Edge, VertexId},
-        state::{StateModel, StateVariable},
-    },
+use crate::model::{
+    frontier::{FrontierModel, FrontierModelError},
+    network::Edge,
+    state::{StateModel, StateVariable},
 };
-use std::{
-    collections::{HashMap, HashSet},
-    sync::Arc,
-};
+use std::{collections::HashSet, sync::Arc};
 
 pub struct RoadClassFrontierModel {
     pub service: Arc<RoadClassFrontierService>,
@@ -21,9 +15,8 @@ impl FrontierModel for RoadClassFrontierModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
+        _previous_edge: Option<&Edge>,
         _state: &[StateVariable],
-        _tree: &HashMap<VertexId, SearchTreeBranch>,
-        _direction: &crate::algorithm::search::Direction,
         _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         self.valid_edge(edge)

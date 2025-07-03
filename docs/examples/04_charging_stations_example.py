@@ -18,7 +18,7 @@ query = {
     "destination_x": -104.975360,
     "destination_y": 39.693005,
     "model_name": "2017_CHEVROLET_Bolt",
-    "weights": {"trip_distance": 1, "trip_time": 1, "trip_energy": 1},
+    "weights": {"trip_distance": 1, "trip_time": 1, "trip_energy": 1, "trip_soc": 0},
 }
 # %%
 result = app.run(query)
@@ -37,7 +37,7 @@ low_soc_query = {
     "destination_y": 39.693005,
     "model_name": "2017_CHEVROLET_Bolt",
     "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy": 0},
-    "starting_soc_percent": 3,
+    "starting_soc_percent": 5,
     "full_soc_percent": 80,
     "valid_power_types": ["DCFC", "L2"],
 }
@@ -54,6 +54,8 @@ m = plot_route_folium(low_soc_result)
 m
 # %%
 cdf = pd.read_csv("./denver_co/charging-stations.csv.gz")
+# %%
+cdf = cdf[cdf["power_type"].isin(["DCFC"])].copy()
 # %%
 # plot the charging_stations on the map
 for station in cdf.itertuples():
@@ -82,14 +84,21 @@ plt.plot(distance, socs)
 # %%
 route_gdf, tree_gdf = results_to_geopandas(low_soc_result)
 # %%
-tree_gdf
+tree_gdf["cost"].iloc[0]
+# %%
+# %%
+tree_gdf["trip_soc_cost"] = tree_gdf["cost"].apply(lambda x: x["trip_soc"])
+tree_gdf["total_cost"] = tree_gdf["cost"].apply(lambda x: x["total_cost"])
+# %%
 # %%
 tree_gdf["trip_soc"] = tree_gdf["state"].apply(lambda x: x["trip_soc"])
 tree_gdf["trip_time"] = tree_gdf["state"].apply(lambda x: x["trip_time"])
 # %%
-tree_gdf = tree_gdf[["trip_soc", "trip_time", "geometry"]]
+tree_gdf = tree_gdf[["trip_soc", "trip_time", "trip_soc_cost", "total_cost", "geometry"]]
 # %%
 tree_gdf.explore(column="trip_time")
 # %%
 tree_gdf.explore(column="trip_soc")
+# %%
+tree_gdf.explore(column="total_cost")
 # %%

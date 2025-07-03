@@ -151,7 +151,7 @@ impl TraversalModel for BevEnergyModel {
                 String::from(fieldname::TRIP_SOC),
                 StateFeature::Ratio {
                     value: self.starting_soc,
-                    accumulator: false,
+                    accumulator: true,
                     output_unit: Some(RatioUnit::default()),
                 },
             ),

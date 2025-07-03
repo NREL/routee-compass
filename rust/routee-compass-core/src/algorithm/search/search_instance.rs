@@ -3,6 +3,7 @@ use crate::model::{
     access::AccessModel,
     cost::CostModel,
     frontier::FrontierModel,
+    label::label_model::LabelModel,
     map::MapModel,
     network::{graph::Graph, vertex_id::VertexId},
     state::{StateModel, StateVariable},
@@ -23,6 +24,7 @@ pub struct SearchInstance {
     pub cost_model: Arc<CostModel>,
     pub frontier_model: Arc<dyn FrontierModel>,
     pub termination_model: Arc<TerminationModel>,
+    pub label_model: Arc<dyn LabelModel>,
 }
 
 impl SearchInstance {

@@ -184,6 +184,10 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             frontier_duration.hhmmss()
         );
 
+        let label_model_json =
+            config_json.get_config_section(CompassConfigurationField::Label, &"TOML")?;
+        let label_model_service = builder.build_label_model_service(&label_model_json)?;
+
         // build termination model
         let termination_model_json =
             config_json.get_config_section(CompassConfigurationField::Termination, &"TOML")?;
@@ -226,6 +230,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             cost_model_service,
             frontier_model_service,
             termination_model,
+            label_model_service,
         ));
 
         // build plugins

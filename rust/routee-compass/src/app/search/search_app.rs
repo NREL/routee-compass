@@ -8,8 +8,9 @@ use routee_compass_core::{
     algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance},
     model::{
         access::AccessModelService, cost::cost_model_service::CostModelService,
-        frontier::FrontierModelService, map::MapModel, network::graph::Graph, state::StateModel,
-        termination::TerminationModel, traversal::TraversalModelService,
+        frontier::FrontierModelService, label::label_model_service::LabelModelService,
+        map::MapModel, network::graph::Graph, state::StateModel, termination::TerminationModel,
+        traversal::TraversalModelService,
     },
 };
 use std::sync::Arc;
@@ -26,6 +27,7 @@ pub struct SearchApp {
     pub cost_model_service: Arc<CostModelService>,
     pub frontier_model_service: Arc<dyn FrontierModelService>,
     pub termination_model: Arc<TerminationModel>,
+    pub label_model_service: Arc<dyn LabelModelService>,
 }
 
 impl SearchApp {
@@ -42,6 +44,7 @@ impl SearchApp {
         cost_model_service: CostModelService,
         frontier_model_service: Arc<dyn FrontierModelService>,
         termination_model: TerminationModel,
+        label_model_service: Arc<dyn LabelModelService>,
     ) -> Self {
         SearchApp {
             search_algorithm,
@@ -53,6 +56,7 @@ impl SearchApp {
             cost_model_service: Arc::new(cost_model_service),
             frontier_model_service,
             termination_model: Arc::new(termination_model),
+            label_model_service,
         }
     }
 
@@ -152,6 +156,8 @@ impl SearchApp {
             .frontier_model_service
             .build(query, state_model.clone())?;
 
+        let label_model = self.label_model_service.build(query, state_model.clone())?;
+
         let search_assets = SearchInstance {
             graph: self.graph.clone(),
             map_model: self.map_model.clone(),
@@ -161,6 +167,7 @@ impl SearchApp {
             cost_model: Arc::new(cost_model),
             frontier_model,
             termination_model: self.termination_model.clone(),
+            label_model,
         };
 
         Ok(search_assets)

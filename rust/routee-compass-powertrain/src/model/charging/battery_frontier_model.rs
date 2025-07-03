@@ -1,10 +1,7 @@
-use routee_compass_core::{
-    algorithm::search::{Direction, SearchTreeBranch},
-    model::{
-        frontier::{FrontierModel, FrontierModelError},
-        network::{Edge, VertexId},
-        state::{StateModel, StateVariable},
-    },
+use routee_compass_core::model::{
+    frontier::{FrontierModel, FrontierModelError},
+    network::Edge,
+    state::{StateModel, StateVariable},
 };
 use uom::si::f64::Ratio;
 
@@ -19,9 +16,8 @@ impl FrontierModel for BatteryFrontier {
     fn valid_frontier(
         &self,
         _edge: &Edge,
+        _previous_edge: Option<&Edge>,
         state: &[StateVariable],
-        _tree: &std::collections::HashMap<VertexId, SearchTreeBranch>,
-        _direction: &Direction,
         state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         if !state_model.contains_key(&fieldname::TRIP_SOC.to_string()) {
