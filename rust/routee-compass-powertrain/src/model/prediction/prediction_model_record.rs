@@ -83,7 +83,7 @@ impl PredictionModelRecord {
         for input_feature in &self.input_features {
             let state_variable_f64: f64 = match input_feature {
                 InputFeature::Speed { name, unit } => {
-                    let speed = state_model.get_speed(state, &name)?;
+                    let speed = state_model.get_speed(state, name)?;
                     match unit {
                         None => {
                             return Err(TraversalModelError::TraversalModelFailure(format!(

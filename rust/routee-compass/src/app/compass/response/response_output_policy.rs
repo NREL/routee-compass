@@ -47,7 +47,7 @@ impl ResponseOutputPolicy {
                         encoder: GzEncoder::new(file, Compression::default()),
                     }
                 } else {
-                    InternalWriter::File { file: file }
+                    InternalWriter::File { file }
                 };
 
                 // wrap the file in a mutex so we can share it between threads
