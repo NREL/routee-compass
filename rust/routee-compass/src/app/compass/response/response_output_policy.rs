@@ -2,7 +2,8 @@ use super::{
     response_output_format::ResponseOutputFormat, response_sink::ResponseSink,
     write_mode::WriteMode,
 };
-use crate::app::compass::CompassAppError;
+use crate::app::compass::{response::internal_writer::InternalWriter, CompassAppError};
+use flate2::{write::GzEncoder, Compression};
 use serde::{Deserialize, Serialize};
 use std::{
     path::PathBuf,
@@ -40,8 +41,17 @@ impl ResponseOutputPolicy {
                 let output_file_path = PathBuf::from(filename);
                 let file = WriteMode::Append.open_file(&output_file_path, format)?;
 
+                // Optionally wrap file in GzEncoder
+                let wrapped_file = if filename.ends_with(".gz") {
+                    InternalWriter::GzippedFile {
+                        encoder: GzEncoder::new(file, Compression::default()),
+                    }
+                } else {
+                    InternalWriter::File { file: file }
+                };
+
                 // wrap the file in a mutex so we can share it between threads
-                let file_shareable = Arc::new(Mutex::new(file));
+                let file_shareable = Arc::new(Mutex::new(wrapped_file));
 
                 let iterations_per_flush = match file_flush_rate {
                     Some(rate) if *rate <= 0 => Err(CompassAppError::CompassFailure(format!(
