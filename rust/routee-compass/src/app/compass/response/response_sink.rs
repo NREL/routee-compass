@@ -1,16 +1,14 @@
 use super::response_output_format::ResponseOutputFormat;
+use crate::app::compass::response::internal_writer::InternalWriter;
 use crate::app::compass::CompassAppError;
 use std::io::prelude::*;
-use std::{
-    fs::File,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 pub enum ResponseSink {
     None,
     File {
         filename: String,
-        file: Arc<Mutex<File>>,
+        file: Arc<Mutex<InternalWriter>>,
         format: ResponseOutputFormat,
         delimiter: Option<String>,
         iterations_per_flush: u64,
@@ -103,7 +101,7 @@ impl ResponseSink {
                         filename, e
                     ))
                 })?;
-
+                file_attained.finish()?;
                 Ok(filename.clone())
             }
             ResponseSink::Combined(policies) => {
