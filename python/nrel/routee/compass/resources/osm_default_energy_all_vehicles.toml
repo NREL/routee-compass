@@ -219,6 +219,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 20
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
@@ -341,6 +342,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 24
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
@@ -363,6 +365,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 16
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
@@ -385,6 +388,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 30
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
@@ -407,6 +411,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
@@ -509,6 +514,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 60
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
@@ -671,6 +677,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 71
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
@@ -693,6 +700,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 58
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
@@ -735,6 +743,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 98
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
@@ -757,6 +766,7 @@ distance_unit = "miles"
 energy_rate_unit = "kWh/mile"
 battery_capacity = 50
 battery_capacity_unit = "kilowatt_hours"
+
 real_world_energy_adjustment = 1.3958
 input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },

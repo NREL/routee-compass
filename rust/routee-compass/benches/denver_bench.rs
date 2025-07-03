@@ -20,7 +20,7 @@ fn downtown_denver_example(query_file: String) {
         config_file: String::from(
             "../../python/nrel/routee/compass/resources/downtown_denver_example/osm_default_speed.toml",
         ),
-        query_file: query_file,
+        query_file,
         chunksize: None,
         newline_delimited: false,
     };
@@ -52,9 +52,8 @@ fn bench_example(c: &mut Criterion) {
 
     group.bench_with_input("downtown denver example", &tmp_path, |b, input| {
         b.iter(|| {
-            black_box(downtown_denver_example(black_box(
-                input.to_str().unwrap().to_string(),
-            )))
+            downtown_denver_example(black_box(input.to_str().unwrap().to_string()));
+            black_box(())
         })
     });
 }

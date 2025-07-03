@@ -1,5 +1,6 @@
 use crate::model::{
     frontier::{frontier_model_error::FrontierModelError, FrontierModel, FrontierModelService},
+    network::Edge,
     state::StateModel,
 };
 use std::sync::Arc;
@@ -10,13 +11,9 @@ pub struct NoRestriction {}
 impl FrontierModel for NoRestriction {
     fn valid_frontier(
         &self,
-        _edge: &crate::model::network::Edge,
+        _edge: &Edge,
+        _previos_edge: Option<&Edge>,
         _state: &[crate::model::state::StateVariable],
-        _tree: &std::collections::HashMap<
-            crate::model::network::VertexId,
-            crate::algorithm::search::SearchTreeBranch,
-        >,
-        _direction: &crate::algorithm::search::Direction,
         _state_model: &StateModel,
     ) -> Result<bool, FrontierModelError> {
         Ok(true)

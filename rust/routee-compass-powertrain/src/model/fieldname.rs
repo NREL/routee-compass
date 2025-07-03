@@ -34,4 +34,6 @@ pub const EDGE_ENERGY_ELECTRIC: &str = "edge_energy_electric";
 pub const TRIP_ENERGY_ELECTRIC: &str = "trip_energy_electric";
 /// overall trip state of charge percentage value
 pub const TRIP_SOC: &str = "trip_soc";
+
+pub const BATTERY_CAPACITY: &str = "battery_capacity";
 pub use routee_compass_core::model::traversal::default::fieldname::*;

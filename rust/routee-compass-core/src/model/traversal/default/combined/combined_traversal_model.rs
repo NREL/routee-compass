@@ -19,6 +19,16 @@ impl CombinedTraversalModel {
 }
 
 impl TraversalModel for CombinedTraversalModel {
+    fn name(&self) -> String {
+        format!(
+            "Combined Traversal Model: {}",
+            self.models
+                .iter()
+                .map(|m| m.name())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
+    }
     fn input_features(&self) -> Vec<InputFeature> {
         self.models
             .iter()

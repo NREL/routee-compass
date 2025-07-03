@@ -6,7 +6,6 @@ pub mod compass_app_ops;
 pub mod compass_component_error;
 pub mod compass_input_field;
 pub mod compass_json_extensions;
-pub mod model;
 pub mod response;
 
 pub use compass_app_builder::CompassAppBuilder;

@@ -1,4 +1,4 @@
-use crate::model::network::vertex_id::VertexId;
+use crate::model::label::label_model::Label;
 use std::collections::HashMap;
 
 pub mod a_star;
@@ -23,4 +23,4 @@ pub use search_instance::SearchInstance;
 pub use search_result::SearchResult;
 pub use search_tree_branch::SearchTreeBranch;
 
-pub type MinSearchTree = HashMap<VertexId, SearchTreeBranch>;
+pub type MinSearchTree = HashMap<Label, SearchTreeBranch>;

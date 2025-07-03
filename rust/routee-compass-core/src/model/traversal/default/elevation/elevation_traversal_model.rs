@@ -24,6 +24,9 @@ impl TraversalModelService for ElevationTraversalModel {
 }
 
 impl TraversalModel for ElevationTraversalModel {
+    fn name(&self) -> String {
+        String::from("Elevation Traversal Model")
+    }
     fn input_features(&self) -> Vec<InputFeature> {
         vec![
             InputFeature::Distance {

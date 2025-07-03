@@ -5,7 +5,7 @@ use crate::model::network::{Edge, EdgeId, VertexId};
 use crate::model::state::StateVariable;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, Default)]
+#[derive(Copy, Clone, Serialize, Deserialize, Default, Debug)]
 #[serde(rename = "snake_case")]
 pub enum Direction {
     #[default]

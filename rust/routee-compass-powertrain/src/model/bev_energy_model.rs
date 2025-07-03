@@ -7,12 +7,12 @@ use routee_compass_core::model::{
     network::{Edge, Vertex},
     state::{InputFeature, StateFeature, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
+    unit::{EnergyRateUnit, EnergyUnit, RatioUnit, TimeUnit},
 };
 use serde_json::Value;
 use std::sync::Arc;
 use uom::{
-    si::f64::{Energy, Ratio},
+    si::f64::{Energy, Ratio, Time},
     ConstZero,
 };
 
@@ -90,6 +90,7 @@ impl TryFrom<&Value> for BevEnergyModel {
         .map_err(|e| {
             TraversalModelError::BuildError(format!("failed to parse battery capacity unit: {}", e))
         })?;
+
         let bev = BevEnergyModel::new(
             Arc::new(prediction_model),
             battery_energy_unit.to_uom(battery_capacity),
@@ -100,6 +101,9 @@ impl TryFrom<&Value> for BevEnergyModel {
 }
 
 impl TraversalModel for BevEnergyModel {
+    fn name(&self) -> String {
+        format!("BEV Energy Model: {}", self.prediction_model_record.name)
+    }
     fn input_features(&self) -> Vec<InputFeature> {
         let mut input_features = vec![InputFeature::Distance {
             name: String::from(fieldname::EDGE_DISTANCE),
@@ -120,6 +124,22 @@ impl TraversalModel for BevEnergyModel {
                 },
             ),
             (
+                String::from(fieldname::TRIP_TIME),
+                StateFeature::Time {
+                    value: Time::ZERO,
+                    accumulator: true,
+                    output_unit: Some(TimeUnit::default()),
+                },
+            ),
+            (
+                String::from(fieldname::EDGE_TIME),
+                StateFeature::Time {
+                    value: Time::ZERO,
+                    accumulator: false,
+                    output_unit: Some(TimeUnit::default()),
+                },
+            ),
+            (
                 String::from(fieldname::EDGE_ENERGY),
                 StateFeature::Energy {
                     value: Energy::ZERO,
@@ -131,8 +151,16 @@ impl TraversalModel for BevEnergyModel {
                 String::from(fieldname::TRIP_SOC),
                 StateFeature::Ratio {
                     value: self.starting_soc,
-                    accumulator: false,
+                    accumulator: true,
                     output_unit: Some(RatioUnit::default()),
+                },
+            ),
+            (
+                String::from(fieldname::BATTERY_CAPACITY),
+                StateFeature::Energy {
+                    value: self.battery_capacity,
+                    accumulator: false,
+                    output_unit: Some(EnergyUnit::KilowattHours),
                 },
             ),
         ]
@@ -149,7 +177,6 @@ impl TraversalModel for BevEnergyModel {
             state_model,
             self.prediction_model_record.clone(),
             self.battery_capacity,
-            false,
         )
     }
 
@@ -159,14 +186,49 @@ impl TraversalModel for BevEnergyModel {
         state: &mut Vec<StateVariable>,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        bev_traversal(
+        bev_traversal_estimate(
             state,
             state_model,
             self.prediction_model_record.clone(),
             self.battery_capacity,
-            true,
         )
     }
+}
+
+fn bev_traversal_estimate(
+    state: &mut [StateVariable],
+    state_model: &StateModel,
+    record: Arc<PredictionModelRecord>,
+    battery_capacity: Energy,
+) -> Result<(), TraversalModelError> {
+    // gather state variables
+    let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
+    let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
+
+    let energy = match record.energy_rate_unit {
+        EnergyRateUnit::KWHPM => {
+            let distance_miles = distance.get::<uom::si::length::mile>();
+            let energy_kwh = record.ideal_energy_rate * distance_miles;
+            Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
+        }
+        EnergyRateUnit::KWHPKM => {
+            let distance_km = distance.get::<uom::si::length::kilometer>();
+            let energy_kwh = record.ideal_energy_rate * distance_km;
+            Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
+        }
+        _ => {
+            return Err(TraversalModelError::BuildError(format!(
+                "unsupported energy rate unit: {}",
+                record.energy_rate_unit
+            )));
+        }
+    };
+    let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
+
+    state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
+    state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy)?;
+    state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
+    Ok(())
 }
 
 fn bev_traversal(
@@ -174,42 +236,20 @@ fn bev_traversal(
     state_model: &StateModel,
     record: Arc<PredictionModelRecord>,
     battery_capacity: Energy,
-    estimate: bool,
 ) -> Result<(), TraversalModelError> {
     // gather state variables
-    let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
     let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
 
     // generate energy for link traversal
-    let energy = if estimate {
-        // TODO: This can be replaced entirely with a new uom EnergyRate quantity
-        match record.energy_rate_unit {
-            EnergyRateUnit::KWHPM => {
-                let distance_miles = distance.get::<uom::si::length::mile>();
-                let energy_kwh = record.ideal_energy_rate * distance_miles;
-                Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
-            }
-            EnergyRateUnit::KWHPKM => {
-                let distance_km = distance.get::<uom::si::length::kilometer>();
-                let energy_kwh = record.ideal_energy_rate * distance_km;
-                Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
-            }
-            _ => {
-                return Err(TraversalModelError::BuildError(format!(
-                    "unsupported energy rate unit: {}",
-                    record.energy_rate_unit
-                )));
-            }
-        }
-    } else {
-        record.predict(state, state_model)?
-    };
-    let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
+    let energy = record.predict(state, state_model)?;
 
-    // update state vector
     state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
     state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy)?;
+
+    let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
+
     state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
+
     Ok(())
 }
 
@@ -221,7 +261,7 @@ mod tests {
     };
     use routee_compass_core::{model::unit::*, testing::mock::traversal_model::TestTraversalModel};
     use std::{collections::HashMap, path::PathBuf};
-    use uom::si::{f64::Length, f64::Velocity};
+    use uom::si::f64::{Length, Velocity};
 
     #[test]
     fn test_bev_energy_model() {
@@ -238,7 +278,7 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(0.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
+        bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
 
         let elec = state_model
             .get_energy(&state, fieldname::TRIP_ENERGY)
@@ -273,7 +313,7 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(-5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
+        bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
 
         let elec = state_model
             .get_energy(&state, fieldname::TRIP_ENERGY)
@@ -305,7 +345,7 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(-5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
+        bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
 
         let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc <= Ratio::new::<uom::si::ratio::percent>(100.0));
@@ -325,7 +365,7 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, false).unwrap();
+        bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
 
         let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc >= Ratio::ZERO);

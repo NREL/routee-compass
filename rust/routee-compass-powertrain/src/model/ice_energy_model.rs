@@ -51,6 +51,9 @@ impl TryFrom<&Value> for IceEnergyModel {
 }
 
 impl TraversalModel for IceEnergyModel {
+    fn name(&self) -> String {
+        format!("ICE Energy Model: {}", self.prediction_model_record.name)
+    }
     fn input_features(&self) -> Vec<InputFeature> {
         let mut input_features = vec![InputFeature::Distance {
             name: String::from(fieldname::EDGE_DISTANCE),

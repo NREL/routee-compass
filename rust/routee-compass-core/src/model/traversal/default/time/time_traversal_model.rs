@@ -29,6 +29,9 @@ impl TraversalModelService for TimeTraversalModel {
 }
 
 impl TraversalModel for TimeTraversalModel {
+    fn name(&self) -> String {
+        String::from("Time Traversal Model")
+    }
     fn input_features(&self) -> Vec<InputFeature> {
         vec![
             InputFeature::Distance {

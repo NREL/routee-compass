@@ -103,6 +103,12 @@ impl TraversalModelService for PhevEnergyModel {
 }
 
 impl TraversalModel for PhevEnergyModel {
+    fn name(&self) -> String {
+        format!(
+            "PHEV Energy Model: {} / {}",
+            self.charge_depleting_model.name, self.charge_sustain_model.name
+        )
+    }
     fn input_features(&self) -> Vec<InputFeature> {
         let mut input_features = vec![InputFeature::Distance {
             name: String::from(fieldname::EDGE_DISTANCE),

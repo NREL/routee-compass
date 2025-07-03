@@ -4,36 +4,39 @@ use crate::plugin::{
             debug::DebugInputPluginBuilder, grid_search::GridSearchBuilder,
             inject::InjectPluginBuilder, load_balancer::LoadBalancerBuilder,
         },
-        InputPlugin,
+        InputPlugin, InputPluginBuilder,
     },
     output::{
         default::{
             summary::SummaryOutputPluginBuilder, traversal::TraversalPluginBuilder,
             uuid::UUIDOutputPluginBuilder,
         },
-        OutputPlugin,
+        OutputPlugin, OutputPluginBuilder,
     },
 };
-use crate::{
-    app::compass::model::{
-        access_model::{
+use itertools::Itertools;
+use routee_compass_core::model::{
+    access::{
+        default::{
             combined_access_model_builder::CombinedAccessModelBuilder,
-            turn_delay_access_model_builder::TurnDelayAccessModelBuilder,
+            turn_delays::TurnDelayAccessModelBuilder, NoAccessModel,
         },
-        frontier_model::{
+        AccessModelBuilder, AccessModelService,
+    },
+    frontier::{
+        default::{
             combined::combined_builder::CombinedFrontierModelBuilder,
             no_restriction_builder::NoRestrictionBuilder,
             road_class::road_class_builder::RoadClassBuilder,
             turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
             vehicle_restrictions::VehicleRestrictionBuilder,
         },
+        FrontierModelBuilder, FrontierModelService,
     },
-    plugin::{input::InputPluginBuilder, output::OutputPluginBuilder},
-};
-use itertools::Itertools;
-use routee_compass_core::model::{
-    access::{default::NoAccessModel, AccessModelBuilder, AccessModelService},
-    frontier::{FrontierModelBuilder, FrontierModelService},
+    label::{
+        default::vertex_label_model::VertexLabelModelBuilder,
+        label_model_builder::LabelModelBuilder, label_model_service::LabelModelService,
+    },
     traversal::{
         default::{
             combined::CombinedTraversalBuilder, custom::CustomTraversalBuilder,
@@ -47,7 +50,13 @@ use routee_compass_core::{
     config::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions},
     model::traversal::default::{distance::DistanceTraversalBuilder, speed::SpeedTraversalBuilder},
 };
-use routee_compass_powertrain::model::EnergyModelBuilder;
+use routee_compass_powertrain::model::{
+    charging::{
+        battery_frontier_builder::BatteryFrontierBuilder,
+        simple_charging_builder::SimpleChargingBuilder, soc_label_builder::SOCLabelModelBuilder,
+    },
+    EnergyModelBuilder,
+};
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 use super::CompassComponentError;
@@ -78,6 +87,7 @@ pub struct CompassAppBuilder {
     pub traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
     pub access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>>,
     pub frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
+    pub label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>>,
     pub input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
     pub output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
 }
@@ -98,6 +108,7 @@ impl CompassAppBuilder {
             traversal_model_builders: HashMap::new(),
             access_model_builders: HashMap::new(),
             frontier_model_builders: HashMap::new(),
+            label_model_builders: HashMap::new(),
             input_plugin_builders: HashMap::new(),
             output_plugin_builders: HashMap::new(),
         }
@@ -113,6 +124,10 @@ impl CompassAppBuilder {
 
     pub fn add_frontier_model(&mut self, name: String, builder: Rc<dyn FrontierModelBuilder>) {
         let _ = self.frontier_model_builders.insert(name, builder);
+    }
+
+    pub fn add_label_model(&mut self, name: String, builder: Rc<dyn LabelModelBuilder>) {
+        let _ = self.label_model_builders.insert(name, builder);
     }
 
     pub fn add_input_plugin(&mut self, name: String, builder: Rc<dyn InputPluginBuilder>) {
@@ -207,6 +222,26 @@ impl CompassAppBuilder {
             })
     }
 
+    pub fn build_label_model_service(
+        &self,
+        config: &serde_json::Value,
+    ) -> Result<Arc<dyn LabelModelService>, CompassConfigurationError> {
+        let lm_type = config.get_config_string(&"type", &"label")?;
+        self.label_model_builders
+            .get(&lm_type)
+            .ok_or_else(|| {
+                CompassConfigurationError::UnknownModelNameForComponent(
+                    lm_type.clone(),
+                    String::from("label"),
+                    self.label_model_builders.keys().join(", "),
+                )
+            })
+            .and_then(|b| {
+                b.build(config)
+                    .map_err(CompassConfigurationError::LabelModelError)
+            })
+    }
+
     pub fn build_input_plugins(
         &self,
         config: &serde_json::Value,
@@ -283,6 +318,7 @@ impl Default for CompassAppBuilder {
         let grade: Rc<dyn TraversalModelBuilder> = Rc::new(GradeTraversalBuilder {});
         let elevation: Rc<dyn TraversalModelBuilder> = Rc::new(ElevationTraversalBuilder {});
         let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder {});
+        let simple_charging = Rc::new(SimpleChargingBuilder::default());
         let custom: Rc<dyn TraversalModelBuilder> = Rc::new(CustomTraversalBuilder {});
         let traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> =
             HashMap::from([
@@ -292,6 +328,7 @@ impl Default for CompassAppBuilder {
                 (String::from("grade"), grade),
                 (String::from("elevation"), elevation),
                 (String::from("energy"), energy),
+                (String::from("simple_charging"), simple_charging),
                 (String::from("custom"), custom),
             ]);
 
@@ -307,6 +344,8 @@ impl Default for CompassAppBuilder {
         let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});
         let road_class: Rc<dyn FrontierModelBuilder> = Rc::new(RoadClassBuilder {});
         let turn_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
+        let battery_frontier: Rc<dyn FrontierModelBuilder> =
+            Rc::new(BatteryFrontierBuilder::default());
         let vehicle_restriction: Rc<dyn FrontierModelBuilder> =
             Rc::new(VehicleRestrictionBuilder {});
         let frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
@@ -315,7 +354,16 @@ impl Default for CompassAppBuilder {
                 (String::from("road_class"), road_class),
                 (String::from("turn_restriction"), turn_restriction),
                 (String::from("vehicle_restriction"), vehicle_restriction),
+                (String::from("battery_frontier"), battery_frontier),
             ]);
+
+        // Label model builders
+        let vertex_label: Rc<dyn LabelModelBuilder> = Rc::new(VertexLabelModelBuilder);
+        let soc_label = Rc::new(SOCLabelModelBuilder);
+        let label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>> = HashMap::from([
+            (String::from("vertex"), vertex_label),
+            (String::from("soc"), soc_label),
+        ]);
 
         // Input plugin builders
         let grid_search: Rc<dyn InputPluginBuilder> = Rc::new(GridSearchBuilder {});
@@ -343,6 +391,7 @@ impl Default for CompassAppBuilder {
             traversal_model_builders,
             access_model_builders,
             frontier_model_builders,
+            label_model_builders,
             input_plugin_builders,
             output_plugin_builders,
         }

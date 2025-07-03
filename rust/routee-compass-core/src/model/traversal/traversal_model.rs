@@ -11,6 +11,7 @@ use crate::model::state::{InputFeature, StateFeature, StateModel, StateVariable}
 /// [DistanceModel]: super::default::distance::DistanceModel
 /// [SpeedLookupModel]: super::default::speed_lookup_model::SpeedLookupModel
 pub trait TraversalModel: Send + Sync {
+    fn name(&self) -> String;
     /// list the state variables required as inputs to this traversal model. for
     /// example, if this traversal model uses a distance metric to compute time, then
     /// it should list the expected distance state variable here.

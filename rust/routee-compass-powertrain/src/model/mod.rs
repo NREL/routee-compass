@@ -1,4 +1,5 @@
 mod bev_energy_model;
+pub mod charging;
 mod energy_model_builder;
 pub mod energy_model_ops;
 pub mod energy_model_service;

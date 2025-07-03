@@ -1,6 +1,6 @@
 use crate::model::{state::StateVariable, unit::UnitError};
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Clone)]
 pub enum StateModelError {
     #[error("attempting to encode {0} as state variable when value is a {1}")]
     EncodeError(String, String),

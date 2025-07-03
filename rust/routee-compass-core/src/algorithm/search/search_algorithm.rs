@@ -67,7 +67,7 @@ impl SearchAlgorithm {
                     None => vec![],
                     Some(dst_id) => {
                         let route =
-                            backtrack::vertex_oriented_route(src_id, dst_id, &search_result.tree)?;
+                            backtrack::label_oriented_route(src_id, dst_id, &search_result.tree)?;
                         vec![route]
                     }
                 };
@@ -135,7 +135,7 @@ impl SearchAlgorithm {
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
-                        let route = backtrack::edge_oriented_route(
+                        let route = backtrack::label_edge_oriented_route(
                             src_id,
                             dst_id,
                             &search_result.tree,
@@ -181,7 +181,11 @@ pub fn run_edge_oriented(
     si: &SearchInstance,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
+    let initial_state = si.state_model.initial_state()?;
     let e1_src = si.graph.src_vertex_id(&source)?;
+    let e1_label = si
+        .label_model
+        .label_from_state(e1_src, &initial_state, &si.state_model)?;
     let e1_dst = si.graph.dst_vertex_id(&source)?;
     let src_et = EdgeTraversal {
         edge_id: source,
@@ -193,7 +197,7 @@ pub fn run_edge_oriented(
     match target {
         None => {
             let src_branch = SearchTreeBranch {
-                terminal_vertex: e1_src,
+                terminal_label: e1_label,
                 edge_traversal: src_et.clone(),
             };
             let SearchAlgorithmResult {
@@ -201,9 +205,14 @@ pub fn run_edge_oriented(
                 mut routes,
                 iterations,
             } = alg.run_vertex_oriented(e1_dst, None, query, direction, si)?;
+
+            let dst_label =
+                si.label_model
+                    .label_from_state(e1_dst, &initial_state, &si.state_model)?;
+
             for tree in trees.iter_mut() {
-                if !tree.contains_key(&e1_dst) {
-                    tree.extend([(e1_dst, src_branch.clone())]);
+                if !tree.contains_key(&dst_label) {
+                    tree.extend([(dst_label.clone(), src_branch.clone())]);
                 }
             }
             for route in routes.iter_mut() {
@@ -232,15 +241,29 @@ pub fn run_edge_oriented(
                     &src_et.result_state,
                     si,
                 )?;
+
+                // Create labels for the vertices using appropriate states
+                let dst_label = si.label_model.label_from_state(
+                    e2_dst,
+                    &dst_et.result_state,
+                    &si.state_model,
+                )?;
+                let src_label = si.label_model.label_from_state(
+                    e1_dst,
+                    &src_et.result_state,
+                    &si.state_model,
+                )?;
+
                 let src_traversal = SearchTreeBranch {
-                    terminal_vertex: e2_src,
+                    terminal_label: src_label.clone(),
                     edge_traversal: dst_et.clone(),
                 };
                 let dst_traversal = SearchTreeBranch {
-                    terminal_vertex: e1_src,
+                    terminal_label: dst_label.clone(),
                     edge_traversal: src_et.clone(),
                 };
-                let tree = HashMap::from([(e2_dst, src_traversal), (e1_dst, dst_traversal)]);
+
+                let tree = HashMap::from([(dst_label, src_traversal), (src_label, dst_traversal)]);
                 let route = vec![src_et, dst_et];
                 let result = SearchAlgorithmResult {
                     trees: vec![tree],

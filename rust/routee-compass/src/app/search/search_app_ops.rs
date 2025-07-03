@@ -27,6 +27,7 @@ pub fn collect_features(
         .into_iter()
         .chain(access_model.state_features())
         .collect::<HashMap<_, _>>();
+
     // build the state model. inject state features from the traversal and access models
     // and then allow the user to optionally override any initial conditions for those
     // state features.

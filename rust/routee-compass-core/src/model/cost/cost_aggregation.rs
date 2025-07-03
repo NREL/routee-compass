@@ -12,22 +12,7 @@ pub enum CostAggregation {
 }
 
 impl CostAggregation {
-    pub fn agg(&self, costs: &[(&String, Cost)]) -> Cost {
-        match self {
-            CostAggregation::Sum => costs.iter().fold(Cost::ZERO, |acc, (_, c)| acc + *c),
-            CostAggregation::Mul => {
-                if costs.is_empty() {
-                    Cost::ZERO
-                } else {
-                    costs.iter().fold(Cost::ONE, |acc, (_, c)| {
-                        Cost::new(acc.as_f64() * c.as_f64())
-                    })
-                }
-            }
-        }
-    }
-
-    pub fn aggregate<'a>(&self, costs: &[(&String, Cost)]) -> Result<Cost, CostModelError> {
+    pub fn aggregate(&self, costs: &[(&String, Cost)]) -> Result<Cost, CostModelError> {
         match self {
             CostAggregation::Sum => {
                 let mut sum = Cost::ZERO;

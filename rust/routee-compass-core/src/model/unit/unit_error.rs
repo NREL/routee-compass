@@ -1,4 +1,4 @@
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, Clone)]
 pub enum UnitError {
     #[error("unable to parse {0} as a number")]
     NumericParsingError(String),
