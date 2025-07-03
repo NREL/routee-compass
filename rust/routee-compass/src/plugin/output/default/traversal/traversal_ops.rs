@@ -5,6 +5,7 @@ use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::EdgeTraversal;
 use routee_compass_core::algorithm::search::SearchTreeBranch;
 use routee_compass_core::model::cost::CostModel;
+use routee_compass_core::model::label::label_model::Label;
 use routee_compass_core::model::map::MapModel;
 use routee_compass_core::model::network::vertex_id::VertexId;
 use routee_compass_core::model::state::StateModel;
@@ -14,7 +15,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 pub fn create_tree_geojson(
-    tree: &HashMap<VertexId, SearchTreeBranch>,
+    tree: &HashMap<Label, SearchTreeBranch>,
     map_model: Arc<MapModel>,
     state_model: Arc<StateModel>,
     cost_model: Arc<CostModel>,
@@ -170,7 +171,7 @@ pub fn create_route_linestring(
 }
 
 pub fn create_tree_multilinestring(
-    tree: &HashMap<VertexId, SearchTreeBranch>,
+    tree: &HashMap<Label, SearchTreeBranch>,
     // geoms: &[LineString<f32>],
     map_model: Arc<MapModel>,
 ) -> Result<MultiLineString<f32>, OutputPluginError> {

@@ -62,26 +62,26 @@ pub fn run(
         .ok_or_else(|| SearchError::InternalError(String::from("cannot retrieve rev tree 0")))?;
 
     // find intersection vertices
-    let rev_vertices = rev_trees.iter().flatten().collect::<HashMap<_, _>>();
+    let rev_labels = rev_trees.iter().flatten().collect::<HashMap<_, _>>();
     let mut intersection_queue: InternalPriorityQueue<VertexId, ReverseCost> =
         InternalPriorityQueue::default();
 
     // valid intersection vertices should appear both as terminal vertices and lookup vertices in both trees
     // - being a "terminal vertex" places them at the shared meeting location, terminus of each tree somewhere
     // - being a "lookup vertex" means we can use them for backtracking forward and reverse paths
-    for (vertex_id, fwd_branch) in fwd_tree {
-        if let Some(rev_branch) = rev_vertices.get(&fwd_branch.terminal_vertex) {
-            if rev_vertices.contains_key(&vertex_id) {
+    for (label, fwd_branch) in fwd_tree {
+        if let Some(rev_branch) = rev_labels.get(&fwd_branch.terminal_label) {
+            if rev_labels.contains_key(&label) {
                 let total_cost =
                     fwd_branch.edge_traversal.total_cost() + rev_branch.edge_traversal.total_cost();
-                intersection_queue.push(*vertex_id, total_cost.into());
+                intersection_queue.push(label.vertex_id(), total_cost.into());
             }
         }
     }
 
     log::debug!("ksp intersection has {} vertices", intersection_queue.len());
 
-    let tsp = backtrack::vertex_oriented_route(query.source, query.target, fwd_tree)?;
+    let tsp = backtrack::label_oriented_route(query.source, query.target, fwd_tree)?;
     let mut solution: Vec<Vec<EdgeTraversal>> = vec![tsp];
     let mut ksp_it: u64 = 0;
     loop {
@@ -102,12 +102,12 @@ pub fn run(
             Some((intersection_vertex_id, _)) => {
                 let mut accept_route = true;
                 // create the i'th route by backtracking both trees and concatenating the result
-                let fwd_route = backtrack::vertex_oriented_route(
+                let fwd_route = backtrack::label_oriented_route(
                     query.source,
                     intersection_vertex_id,
                     fwd_tree,
                 )?;
-                let rev_route_backward = backtrack::vertex_oriented_route(
+                let rev_route_backward = backtrack::label_oriented_route(
                     query.target,
                     intersection_vertex_id,
                     rev_tree,

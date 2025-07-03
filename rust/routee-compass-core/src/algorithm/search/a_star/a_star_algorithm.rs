@@ -140,7 +140,7 @@ pub fn run_vertex_oriented(
 
                 // update solution
                 let traversal = SearchTreeBranch {
-                    terminal_vertex: terminal_vertex_id,
+                    terminal_label,
                     edge_traversal: et.clone(),
                 };
                 solution.insert(key_label.clone(), traversal);
@@ -165,13 +165,7 @@ pub fn run_vertex_oriented(
         solution.len()
     );
 
-    // convert back to a vertex based solution
-    let vertex_tree = solution
-        .iter()
-        .map(|(label, branch)| (label.vertex_id(), branch.clone()))
-        .collect();
-
-    let result = SearchResult::new(vertex_tree, iterations);
+    let result = SearchResult::new(solution, iterations);
     Ok(result)
 }
 
@@ -263,7 +257,7 @@ fn serialize_search_tree(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::algorithm::search::backtrack::vertex_oriented_route;
+    use crate::algorithm::search::backtrack::label_oriented_route;
     use crate::algorithm::search::MinSearchTree;
     use crate::model::access::default::NoAccessModel;
     use crate::model::cost::CostAggregation;
@@ -420,7 +414,7 @@ mod tests {
         // review the search results, confirming that the route result matches the expected route
         for (r, (o, d, expected_route)) in result.into_iter().zip(queries) {
             let solution = r.unwrap();
-            let route = vertex_oriented_route(o, d, &solution).unwrap();
+            let route = label_oriented_route(o, d, &solution).unwrap();
             let route_edges: Vec<EdgeId> = route.iter().map(|r| r.edge_id).collect();
             assert_eq!(
                 route_edges, expected_route,

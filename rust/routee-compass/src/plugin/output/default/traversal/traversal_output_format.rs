@@ -5,7 +5,10 @@ use crate::plugin::output::OutputPluginError;
 use geo::{CoordFloat, Geometry, TryConvert};
 use routee_compass_core::{
     algorithm::search::{EdgeTraversal, SearchTreeBranch},
-    model::{cost::CostModel, map::MapModel, network::vertex_id::VertexId, state::StateModel},
+    model::{
+        cost::CostModel, label::label_model::Label, map::MapModel,
+        state::StateModel,
+    },
 };
 use serde::{Deserialize, Serialize};
 use wkt::ToWkt;
@@ -64,7 +67,7 @@ impl TraversalOutputFormat {
     /// generates output for a tree based on the configured TraversalOutputFormat
     pub fn generate_tree_output(
         &self,
-        tree: &HashMap<VertexId, SearchTreeBranch>,
+        tree: &HashMap<Label, SearchTreeBranch>,
         map_model: Arc<MapModel>,
         state_model: Arc<StateModel>,
         cost_model: Arc<CostModel>,
