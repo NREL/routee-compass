@@ -15,10 +15,7 @@ pub enum WriteMode {
 }
 
 impl WriteMode {
-    pub fn open_file(
-        &self,
-        path: &Path
-    ) -> Result<File, CompassAppError> {
+    pub fn open_file(&self, path: &Path) -> Result<File, CompassAppError> {
         match self {
             WriteMode::Append => {
                 if !path.exists() {
@@ -56,7 +53,8 @@ fn open_append(path: &Path) -> Result<File, CompassAppError> {
     })
 }
 
-fn create_file(path: &Path) -> Result<File, CompassConfigurationError>{
-    File::create(path).map_err(|e| 
-        CompassConfigurationError::UserConfigurationError(format!("Could not create file: {}", e)))
+fn create_file(path: &Path) -> Result<File, CompassConfigurationError> {
+    File::create(path).map_err(|e| {
+        CompassConfigurationError::UserConfigurationError(format!("Could not create file: {}", e))
+    })
 }

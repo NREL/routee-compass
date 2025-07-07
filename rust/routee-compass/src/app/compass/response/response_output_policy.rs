@@ -39,7 +39,7 @@ impl ResponseOutputPolicy {
                 // write_mode,
             } => {
                 let output_file_path = PathBuf::from(filename);
-                
+
                 // Optionally wrap file in GzEncoder
                 let mut wrapped_file = if filename.ends_with(".gz") {
                     let file = WriteMode::Overwrite.open_file(&output_file_path)?;
