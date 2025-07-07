@@ -1,7 +1,7 @@
 use flate2::write::GzEncoder;
 use std::{fs::File, io::Result, io::Write};
 
-use crate::app::compass::CompassAppError;
+use crate::app::compass::{response::response_output_format::ResponseOutputFormat, CompassAppError};
 
 pub enum InternalWriter {
     File { file: File },
@@ -9,6 +9,16 @@ pub enum InternalWriter {
 }
 
 impl InternalWriter {
+    pub fn write_header(&mut self, format: &ResponseOutputFormat) -> core::result::Result<(), CompassAppError> {
+        let header = format
+            .initial_file_contents()
+            .unwrap_or_else(|| String::from(""));
+
+        self.write(header.as_bytes())
+            .map(|_| {})
+            .map_err(|e| CompassAppError::InternalError(format!("Failure writing header to file: {}", e)))
+    }
+
     pub fn finish(&mut self) -> core::result::Result<(), CompassAppError> {
         match self {
             InternalWriter::File { ref mut file } => {
@@ -20,6 +30,7 @@ impl InternalWriter {
             InternalWriter::GzippedFile { ref mut encoder } => {
                 // NOTE: Because GzEncoder::finish requires ownership, we use try_finish instead.
                 // Subsequent attempts to write to this file will panic!
+                let _ = encoder.flush();
                 encoder.try_finish().map_err(|e| {
                     CompassAppError::InternalError(format!("failure finishig encoded output {}", e))
                 })?;

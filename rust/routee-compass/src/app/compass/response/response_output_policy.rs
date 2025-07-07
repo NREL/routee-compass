@@ -39,16 +39,18 @@ impl ResponseOutputPolicy {
                 // write_mode,
             } => {
                 let output_file_path = PathBuf::from(filename);
-                let file = WriteMode::Append.open_file(&output_file_path, format)?;
-
+                
                 // Optionally wrap file in GzEncoder
-                let wrapped_file = if filename.ends_with(".gz") {
+                let mut wrapped_file = if filename.ends_with(".gz") {
+                    let file = WriteMode::Overwrite.open_file(&output_file_path)?;
                     InternalWriter::GzippedFile {
                         encoder: GzEncoder::new(file, Compression::default()),
                     }
                 } else {
+                    let file = WriteMode::Append.open_file(&output_file_path)?;
                     InternalWriter::File { file }
                 };
+                wrapped_file.write_header(format)?;
 
                 // wrap the file in a mutex so we can share it between threads
                 let file_shareable = Arc::new(Mutex::new(wrapped_file));

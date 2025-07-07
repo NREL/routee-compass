@@ -1,4 +1,3 @@
-use super::response_output_format::ResponseOutputFormat;
 use crate::app::compass::CompassAppError;
 use routee_compass_core::config::CompassConfigurationError;
 use serde::{Deserialize, Serialize};
@@ -18,18 +17,17 @@ pub enum WriteMode {
 impl WriteMode {
     pub fn open_file(
         &self,
-        path: &Path,
-        format: &ResponseOutputFormat,
+        path: &Path
     ) -> Result<File, CompassAppError> {
         match self {
             WriteMode::Append => {
                 if !path.exists() {
-                    write_header(path, format)?
+                    create_file(path)?;
                 }
                 open_append(path)
             }
             WriteMode::Overwrite => {
-                write_header(path, format)?;
+                create_file(path)?;
                 open_append(path)
             }
             WriteMode::Error => {
@@ -41,24 +39,11 @@ impl WriteMode {
                         )),
                     ))?
                 }
-                write_header(path, format)?;
+                create_file(path)?;
                 open_append(path)
             }
         }
     }
-}
-
-fn write_header(path: &Path, format: &ResponseOutputFormat) -> Result<(), CompassAppError> {
-    let header = format
-        .initial_file_contents()
-        .unwrap_or_else(|| String::from(""));
-    std::fs::write(path, header).map_err(|e| {
-        CompassAppError::InternalError(format!(
-            "failure writing to {}: {}",
-            path.to_str().unwrap_or_default(),
-            e
-        ))
-    })
 }
 
 fn open_append(path: &Path) -> Result<File, CompassAppError> {
@@ -69,4 +54,9 @@ fn open_append(path: &Path) -> Result<File, CompassAppError> {
             e
         ))
     })
+}
+
+fn create_file(path: &Path) -> Result<File, CompassConfigurationError>{
+    File::create(path).map_err(|e| 
+        CompassConfigurationError::UserConfigurationError(format!("Could not create file: {}", e)))
 }
