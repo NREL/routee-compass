@@ -1,11 +1,11 @@
 """
 # Charging Stations Example
 
-In this example, we'll demonstrate how to use RouteE Compass to plan routes 
+In this example, we'll demonstrate how to use RouteE Compass to plan routes
 that incorporate charging stations for electric vehicles.
 
-This builds off the [Open Street Maps Example](01_open_street_maps_example) 
-and assumes that we've already downloaded a road network and charging station data, 
+This builds off the [Open Street Maps Example](01_open_street_maps_example)
+and assumes that we've already downloaded a road network and charging station data,
 so be sure to check that one out first.
 """
 

@@ -1,19 +1,19 @@
 import importlib
-from shapely.geometry import Polygon
 import requests
-import pandas as pd
 import re
-import geopandas as gpd
-from typing import List, Union
+from typing import List, Union, TYPE_CHECKING
 
 import logging
+
+if TYPE_CHECKING:
+    from pandas import DataFrame
+    from geopandas import GeoDataFrame
+    from shapely.geometry import Polygon
 
 log = logging.getLogger(__name__)
 
 
-def download_ev_charging_stations(
-    state: str, api_key: str = "DEMO_KEY"
-) -> pd.DataFrame:
+def download_ev_charging_stations(state: str, api_key: str = "DEMO_KEY") -> "DataFrame":
     """
     Download EV charging stations for a given state and return processed dataframe.
 
@@ -30,6 +30,10 @@ def download_ev_charging_stations(
         DataFrame with columns: latitude, longitude, power_type, power_kw, cost_per_kwh
         Each row represents one charging station/power type combination.
     """
+    try:
+        import pandas as pd
+    except ImportError as _:
+        raise ImportError("Required libraries not installed. Please install pandas.")
     # Build query URL
     query = f"https://developer.nrel.gov/api/alt-fuel-stations/v1.json?api_key={api_key}&status=E&access=public&fuel_type=ELEC&state={state}"
 
@@ -66,7 +70,7 @@ def download_ev_charging_stations(
     # Process each station and create rows for each power type available
     processed_rows = []
 
-    for _, station in df.iterrows():
+    for _index, station in df.iterrows():
         lat, lon = station["latitude"], station["longitude"]
         pricing = station["ev_pricing"]
         cost_per_kwh = _parse_cost_per_kwh(pricing)
@@ -130,6 +134,10 @@ def _parse_cost_per_kwh(pricing_str: str) -> float:
     float
         Cost per kWh in dollars, or np.nan if free/unknown
     """
+    try:
+        import pandas as pd
+    except ImportError as _:
+        raise ImportError("Required libraries not installed. Please install pandas.")
     if pd.isna(pricing_str) or pricing_str is None:
         return 0.0
 
@@ -191,8 +199,8 @@ def _parse_cost_per_kwh(pricing_str: str) -> float:
 
 
 def states_intersecting_with_polygon(
-    polygon: Union[Polygon, List[Polygon]], states_gdf: gpd.GeoDataFrame
-) -> gpd.GeoDataFrame:
+    polygon: Union["Polygon", List["Polygon"]], states_gdf: "GeoDataFrame"
+) -> "GeoDataFrame":
     """
     Find states that intersect with a given polygon.
 
@@ -208,6 +216,10 @@ def states_intersecting_with_polygon(
     gpd.GeoDataFrame
         A GeoDataFrame containing the states that intersect with the given polygon(s).
     """
+    try:
+        from shapely.geometry import Polygon
+    except ImportError as _:
+        raise ImportError("Required libraries not installed. Please install geopandas.")
     if isinstance(polygon, Polygon):
         polygon = [polygon]  # Convert to list for consistency
 
@@ -226,7 +238,7 @@ def states_intersecting_with_polygon(
 
 
 def get_states_from_polygon(
-    polygon: Polygon, states_gdf: gpd.GeoDataFrame = None
+    polygon: "Polygon", states_gdf: "GeoDataFrame" = None
 ) -> list[str]:
     """
     Find all US states that intersect with the given polygon.
@@ -255,7 +267,7 @@ def get_states_from_polygon(
     return state_list
 
 
-def load_us_state_boundaries() -> gpd.GeoDataFrame:
+def load_us_state_boundaries() -> "GeoDataFrame":
     """
     Load US state boundaries from the Census Bureau's cartographic boundary files.
 
@@ -264,6 +276,13 @@ def load_us_state_boundaries() -> gpd.GeoDataFrame:
     geopandas.GeoDataFrame
         GeoDataFrame containing state boundaries with STUSPS (state code) column
     """
+    try:
+        import pandas as pd
+        import geopandas as gpd
+    except ImportError as _:
+        raise ImportError(
+            "Required libraries not installed. Please install pandas and geopandas."
+        )
     with importlib.resources.path(
         "nrel.routee.compass.resources", "us_states.csv.gz"
     ) as state_filepath:
@@ -278,8 +297,8 @@ def load_us_state_boundaries() -> gpd.GeoDataFrame:
 
 
 def download_ev_charging_stations_for_polygon(
-    polygon: Polygon, api_key: str = "DEMO_KEY", states_gdf: gpd.GeoDataFrame = None
-) -> gpd.GeoDataFrame:
+    polygon: "Polygon", api_key: str = "DEMO_KEY", states_gdf: "GeoDataFrame" = None
+) -> "GeoDataFrame":
     """
     Download EV charging stations for all states that intersect with a polygon.
 
@@ -297,6 +316,13 @@ def download_ev_charging_stations_for_polygon(
     pd.DataFrame
         Combined DataFrame with charging stations from all intersecting states
     """
+    try:
+        import pandas as pd
+        import geopandas as gpd
+    except ImportError as _:
+        raise ImportError(
+            "Required libraries not installed. Please install pandas and geopandas."
+        )
     # Get states that intersect with the polygon
     intersecting_states = get_states_from_polygon(polygon, states_gdf)
 
