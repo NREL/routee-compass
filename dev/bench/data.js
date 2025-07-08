@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1750964831017,
+  "lastUpdate": 1751996388348,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -29,6 +29,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7394538,
             "range": "± 545414",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "yaessus@ncsu.edu",
+            "name": "Yamil Essus",
+            "username": "yamilbknsu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b57253bc1ba0c9f7fe952fca8d2c2f75a3fdaa82",
+          "message": "Merge pull request #353 from NREL/yep/gzip-output\n\nImplemented option to return a compressed file when the provided filename ends in `.gz`",
+          "timestamp": "2025-07-08T13:37:38-04:00",
+          "tree_id": "97eaffe04e11987d25532140be201e7d576b84d3",
+          "url": "https://github.com/NREL/routee-compass/commit/b57253bc1ba0c9f7fe952fca8d2c2f75a3fdaa82"
+        },
+        "date": 1751996386872,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7438683,
+            "range": "± 587676",
             "unit": "ns/iter"
           }
         ]
