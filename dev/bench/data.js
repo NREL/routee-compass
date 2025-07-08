@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1751996388348,
+  "lastUpdate": 1752012229473,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -59,6 +59,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7438683,
             "range": "± 587676",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c375394859e06051f199e611162f1830260ffa20",
+          "message": "Merge pull request #350 from NREL/ndr/bev-charging\n\nBEV charging",
+          "timestamp": "2025-07-08T16:01:39-06:00",
+          "tree_id": "e6a0cdcfc7036867c9f4a21e9f6d4094d0de66f6",
+          "url": "https://github.com/NREL/routee-compass/commit/c375394859e06051f199e611162f1830260ffa20"
+        },
+        "date": 1752012228021,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7619081,
+            "range": "± 169042",
             "unit": "ns/iter"
           }
         ]
