@@ -366,6 +366,7 @@ impl CompassApp {
             )?,
         };
         eprintln!();
+        response_writer.close()?;
 
         // combine successful runs along with any error rows for response
         let run_result = run_query_result
