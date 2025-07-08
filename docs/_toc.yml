@@ -15,6 +15,7 @@ parts:
       - file: examples/01_open_street_maps_example
       - file: examples/02_different_powertrains_example
       - file: examples/03_time_energy_tradeoff_example
+      - file: examples/04_charging_stations_example
 
   - caption: User Reference
     chapters:

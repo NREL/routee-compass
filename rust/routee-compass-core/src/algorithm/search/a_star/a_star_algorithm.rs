@@ -3,7 +3,7 @@ use crate::algorithm::search::SearchError;
 use crate::algorithm::search::SearchInstance;
 use crate::algorithm::search::SearchResult;
 use crate::algorithm::search::SearchTreeBranch;
-use crate::model::label::label_model::Label;
+use crate::model::label::Label;
 use crate::model::network::edge_id::EdgeId;
 use crate::model::network::vertex_id::VertexId;
 use crate::model::unit::AsF64;

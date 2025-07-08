@@ -136,12 +136,7 @@ def _parse_cost_per_kwh(pricing_str: str) -> float:
     pricing_str = str(pricing_str).strip()
 
     # Handle free cases
-    if pricing_str.lower() in [
-        "free",
-        "free for guests",
-        "free for guest use",
-        "free for guests",
-    ]:
+    if "free" in pricing_str.lower():
         return 0.0
 
     # Look for patterns like "$0.20 per kWh" or "$0.15/kWh"
@@ -257,7 +252,7 @@ def get_states_from_polygon(
 
     # Return list of state codes
     state_list: list[str] = intersecting_states["state_code"].tolist()
-    return state_list 
+    return state_list
 
 
 def load_us_state_boundaries() -> gpd.GeoDataFrame:

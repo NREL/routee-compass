@@ -1,4 +1,4 @@
-use crate::model::label::label_model::Label;
+use crate::model::label::Label;
 
 use super::search_tree_branch::SearchTreeBranch;
 use std::collections::HashMap;

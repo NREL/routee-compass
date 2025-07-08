@@ -2,7 +2,7 @@ use super::{
     edge_traversal::EdgeTraversal, search_error::SearchError, search_tree_branch::SearchTreeBranch,
 };
 use crate::model::{
-    label::label_model::Label,
+    label::Label,
     network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
 };
 use std::{

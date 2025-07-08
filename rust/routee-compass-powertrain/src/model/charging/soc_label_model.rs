@@ -2,8 +2,7 @@ use std::sync::Arc;
 
 use routee_compass_core::model::{
     label::{
-        label_model::{Label, LabelModel},
-        label_model_error::LabelModelError,
+        label_enum::Label, label_model::LabelModel, label_model_error::LabelModelError,
         label_model_service::LabelModelService,
     },
     network::VertexId,
@@ -37,11 +36,11 @@ impl LabelModel for SOCLabelModel {
             .soc_percent_bins
             .iter()
             .position(|&bin| bin as f64 >= soc_percent)
-            .unwrap_or(self.soc_percent_bins.len() - 1) as u64;
+            .unwrap_or(self.soc_percent_bins.len() - 1);
 
         Ok(Label::VertexWithIntState {
             vertex_id,
-            state: vec![soc_bin],
+            state: soc_bin,
         })
     }
 }

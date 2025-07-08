@@ -2,10 +2,8 @@ use std::sync::Arc;
 
 use crate::model::{
     label::{
-        label_model::{Label, LabelModel},
-        label_model_builder::LabelModelBuilder,
-        label_model_error::LabelModelError,
-        label_model_service::LabelModelService,
+        label_enum::Label, label_model::LabelModel, label_model_builder::LabelModelBuilder,
+        label_model_error::LabelModelError, label_model_service::LabelModelService,
     },
     network::VertexId,
     state::{StateModel, StateVariable},

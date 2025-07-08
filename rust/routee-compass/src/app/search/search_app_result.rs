@@ -2,7 +2,7 @@ use allocative::Allocative;
 
 use routee_compass_core::{
     algorithm::search::{EdgeTraversal, SearchTreeBranch},
-    model::label::label_model::Label,
+    model::label::Label,
 };
 
 use std::{collections::HashMap, time::Duration};

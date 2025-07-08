@@ -7,8 +7,6 @@ import importlib.resources
 import json
 import logging
 import shutil
-from shapely import box
-import geopandas as gpd
 import tomlkit
 
 
@@ -82,6 +80,7 @@ def generate_compass_dataset(
         raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
         default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
         requests_kwds (Optional[Dict], optional): Keyword arguments to pass to the `requests` Python library for HTTP configuration. Defaults to None.
+        afdc_api_key (str, optional): API key for the AFDC API to download EV charging stations. Defaults to "DEMO_KEY". See https://developer.nrel.gov/docs/transportation/alt-fuel-stations-v1/all/ for more information.
     Example:
         >>> import osmnx as ox
         >>> g = ox.graph_from_place("Denver, Colorado, USA")
@@ -91,6 +90,8 @@ def generate_compass_dataset(
         import osmnx as ox
         import numpy as np
         import pandas as pd
+        import geopandas as gpd
+        from shapely.geometry import box
         import requests
     except ImportError:
         raise ImportError("requires osmnx to be installed. Try 'pip install osmnx'")
