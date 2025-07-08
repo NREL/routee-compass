@@ -93,6 +93,7 @@ pub fn run(
                 cost_model: si.cost_model.clone(),
                 frontier_model: Arc::new(yens_frontier),
                 termination_model: si.termination_model.clone(),
+                label_model: si.label_model.clone(),
             };
             let spur_result = underlying.run_vertex_oriented(
                 spur_vertex_id,

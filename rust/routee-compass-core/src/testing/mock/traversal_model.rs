@@ -102,6 +102,9 @@ impl MockUpstreamModel {
 }
 
 impl TraversalModel for MockUpstreamModel {
+    fn name(&self) -> String {
+        String::from("Mock Upstream Traversal Model")
+    }
     fn input_features(&self) -> Vec<InputFeature> {
         self.input_features.clone()
     }

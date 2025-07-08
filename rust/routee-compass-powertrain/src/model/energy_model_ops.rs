@@ -51,12 +51,9 @@ pub fn soc_from_energy(energy: Energy, maximum_energy: Energy) -> Result<Ratio, 
     }
 }
 
-/// inspect the user query for a starting_soc_percent value. if provided, compute the
-/// energy value to use as the starting energy for the vehicle. if not provided, return None.
-pub fn get_query_start_energy(
+pub fn get_query_start_soc(
     query: &serde_json::Value,
-    capacity: Energy,
-) -> Result<Option<Energy>, TraversalModelError> {
+) -> Result<Option<Ratio>, TraversalModelError> {
     let starting_soc_percent = match query.get("starting_soc_percent".to_string()) {
         Some(soc_string) => soc_string.as_f64().ok_or_else(|| {
             TraversalModelError::BuildError(
@@ -71,6 +68,19 @@ pub fn get_query_start_energy(
         ));
     }
     let starting_soc = Ratio::new::<uom::si::ratio::percent>(starting_soc_percent);
+    Ok(Some(starting_soc))
+}
+
+/// inspect the user query for a starting_soc_percent value. if provided, compute the
+/// energy value to use as the starting energy for the vehicle. if not provided, return None.
+pub fn get_query_start_energy(
+    query: &serde_json::Value,
+    capacity: Energy,
+) -> Result<Option<Energy>, TraversalModelError> {
+    let starting_soc = match get_query_start_soc(query)? {
+        Some(soc) => soc,
+        None => return Ok(None),
+    };
     let starting_battery_energy = starting_soc * capacity;
     Ok(Some(starting_battery_energy))
 }

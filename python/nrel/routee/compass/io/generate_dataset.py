@@ -12,6 +12,9 @@ import tomlkit
 
 from nrel.routee.compass.io import utils
 from nrel.routee.compass.io.utils import CACHE_DIR, add_grade_to_graph
+from nrel.routee.compass.io.charging_station_ops import (
+    download_ev_charging_stations_for_polygon,
+)
 
 if TYPE_CHECKING:
     import networkx
@@ -34,6 +37,7 @@ class GeneratePipelinePhase(enum.Enum):
     GRADE = 2
     CONFIG = 3
     POWERTRAIN = 4
+    CHARGING_STATIONS = 5
 
     @classmethod
     def default(cls) -> List[GeneratePipelinePhase]:
@@ -50,6 +54,7 @@ def generate_compass_dataset(
     raster_resolution_arc_seconds: Union[str, int] = 1,
     default_config: bool = True,
     requests_kwds: Optional[Dict[Any, Any]] = None,
+    afdc_api_key: str = "DEMO_KEY",
 ) -> None:
     """
     Processes a graph downloaded via OSMNx, generating the set of input
@@ -75,6 +80,7 @@ def generate_compass_dataset(
         raster_resolution_arc_seconds (str, optional): If grade is added, the resolution (in arc-seconds) of the tiles to download (either 1 or 1/3). Defaults to 1.
         default_config (bool, optional): If true, copy default configuration files into the output directory. Defaults to True.
         requests_kwds (Optional[Dict], optional): Keyword arguments to pass to the `requests` Python library for HTTP configuration. Defaults to None.
+        afdc_api_key (str, optional): API key for the AFDC API to download EV charging stations. Defaults to "DEMO_KEY". See https://developer.nrel.gov/docs/transportation/alt-fuel-stations-v1/all/ for more information.
     Example:
         >>> import osmnx as ox
         >>> g = ox.graph_from_place("Denver, Colorado, USA")
@@ -84,11 +90,13 @@ def generate_compass_dataset(
         import osmnx as ox
         import numpy as np
         import pandas as pd
+        import geopandas as gpd
+        from shapely.geometry import box
         import requests
     except ImportError:
         raise ImportError("requires osmnx to be installed. Try 'pip install osmnx'")
 
-    print(f"running pipeline import with phases: [{[p.name for p in phases]}]")
+    log.info(f"running pipeline import with phases: [{[p.name for p in phases]}]")
     output_directory = Path(output_directory)
     output_directory.mkdir(parents=True, exist_ok=True)
 
@@ -96,13 +104,13 @@ def generate_compass_dataset(
     agg = agg if agg is not None else np.mean
 
     # pre-process the graph
-    print("processing graph topology and speeds")
+    log.info("processing graph topology and speeds")
     g1 = ox.truncate.largest_component(g)
     g1 = ox.add_edge_speeds(g1, hwy_speeds=hwy_speeds, fallback=fallback, agg=agg)
     g1 = ox.add_edge_bearings(g1)
 
     if GeneratePipelinePhase.GRADE in phases:
-        print("adding grade information")
+        log.info("adding grade information")
         g1 = add_grade_to_graph(
             g1, resolution_arc_seconds=raster_resolution_arc_seconds
         )
@@ -110,12 +118,12 @@ def generate_compass_dataset(
     v, e = ox.graph_to_gdfs(g1)
 
     # process vertices
-    print("processing vertices")
+    log.info("processing vertices")
     v = v.reset_index(drop=False).rename(columns={"osmid": "vertex_uuid"})
     v["vertex_id"] = range(len(v))
 
     # process edges
-    print("processing edges")
+    log.info("processing edges")
     lookup = v.set_index("vertex_uuid")
 
     def replace_id(vertex_uuid: pd.Index) -> pd.Series[int]:
@@ -136,7 +144,7 @@ def generate_compass_dataset(
 
     if GeneratePipelinePhase.GRAPH in phases:
         #   vertex tables
-        print("writing vertex files")
+        log.info("writing vertex files")
         v.to_csv(output_directory / "vertices-complete.csv.gz", index=False)
         v[["vertex_id", "vertex_uuid"]].to_csv(
             output_directory / "vertices-mapping.csv.gz", index=False
@@ -151,7 +159,7 @@ def generate_compass_dataset(
         )
 
         #   edge tables (CSV)
-        print("writing edge files")
+        log.info("writing edge files")
         compass_cols = ["edge_id", "src_vertex_id", "dst_vertex_id", "distance"]
         e.to_csv(output_directory / "edges-complete.csv.gz", index=False)
         e[compass_cols].to_csv(output_directory / "edges-compass.csv.gz", index=False)
@@ -160,7 +168,7 @@ def generate_compass_dataset(
         )
 
         #   edge tables (TXT)
-        print("writing edge attribute files")
+        log.info("writing edge attribute files")
         e.edge_uuid.to_csv(
             output_directory / "edges-uuid-enumerated.txt.gz", index=False, header=False
         )
@@ -199,13 +207,16 @@ def generate_compass_dataset(
 
     # COPY DEFAULT CONFIGURATION FILES
     if GeneratePipelinePhase.CONFIG in phases and default_config:
-        print("copying default configuration TOML files")
-        for filename in [
+        log.info("copying default configuration TOML files")
+        base_config_files = [
             "osm_default_distance.toml",
             "osm_default_speed.toml",
             "osm_default_energy.toml",
             "osm_default_energy_all_vehicles.toml",
-        ]:
+        ]
+        if GeneratePipelinePhase.CHARGING_STATIONS in phases:
+            base_config_files.append("osm_default_charging.toml")
+        for filename in base_config_files:
             with importlib.resources.path(
                 "nrel.routee.compass.resources", filename
             ) as init_toml_path:
@@ -222,7 +233,7 @@ def generate_compass_dataset(
 
     # DOWLOAD ROUTEE ENERGY MODEL CATALOG
     if GeneratePipelinePhase.POWERTRAIN in phases:
-        print("downloading the default RouteE Powertrain models")
+        log.info("downloading the default RouteE Powertrain models")
         model_output_directory = output_directory / "models"
         if not model_output_directory.exists():
             model_output_directory.mkdir(exist_ok=True)
@@ -247,3 +258,52 @@ def generate_compass_dataset(
                         f.write(download_response.content)  # type: ignore
 
                 shutil.copy(cached_model_destination, model_destination)
+
+    if GeneratePipelinePhase.CHARGING_STATIONS in phases:
+        log.info("Downloading EV charging stations for the road network bounding box.")
+        vertex_gdf = gpd.GeoDataFrame(
+            v[["vertex_id", "x", "y"]].copy(),
+            geometry=gpd.points_from_xy(v.x, v.y),
+            crs="EPSG:4326",
+        )
+
+        vertex_bounds = vertex_gdf.total_bounds
+        vertex_bbox = box(
+            xmin=vertex_bounds[0],
+            ymin=vertex_bounds[1],
+            xmax=vertex_bounds[2],
+            ymax=vertex_bounds[3],
+        )
+
+        charging_gdf = download_ev_charging_stations_for_polygon(
+            vertex_bbox, api_key=afdc_api_key
+        )
+
+        if charging_gdf.empty:
+            log.warning(
+                "No charging stations found in the bounding box for the road network. "
+                "Skipping charging station processing."
+            )
+            return
+
+        # join the charging stations with the vertices
+        charging_gdf = charging_gdf.to_crs("EPSG:3857").sjoin_nearest(
+            vertex_gdf.to_crs("EPSG:3857"), how="left"
+        )
+
+        out_df = charging_gdf[
+            [
+                "vertex_id",
+                "power_type",
+                "power_kw",
+                "cost_per_kwh",
+                "x",
+                "y",
+            ]
+        ]
+
+        out_df.to_csv(
+            output_directory / "charging-stations.csv.gz",
+            index=False,
+            compression="gzip",
+        )

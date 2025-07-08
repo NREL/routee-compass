@@ -19,6 +19,7 @@ use uom::si::f64::*;
 /// in concept, it is modeled as a mapping from a feature_name String to a StateFeature
 /// object (see NFeatures, below). there are 4 additional implementations that specialize
 /// for the case where fewer than 5 features are required in order to improve CPU performance.
+#[derive(Debug)]
 pub struct StateModel(CompactOrderedHashMap<String, StateFeature>);
 type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>;
 type IndexedFeatureIterator<'a> =
@@ -524,7 +525,7 @@ impl StateModel {
             .iter()
             .zip(state.iter())
             .filter_map(
-                |((name, feature), state_var)| match feature.is_accumulator() {
+                |((name, feature), state_var)| match !name.contains("edge") {
                     false => None,
                     true => Some((name, feature.state_variable_to_f64(*state_var))),
                 },
