@@ -14,7 +14,7 @@ exclude = ["test", "**/.DS_Store", "target/"]
 routee-compass = { path = "../routee-compass", version = "0.11.3" }
 routee-compass-core = { path = "../routee-compass-core", version = "0.11.3" }
 routee-compass-macros = { path = "../routee-compass-macros", version = "0.11.3" }
-pyo3 = { version = "0.22.2", features = ["extension-module", "serde"] }
+pyo3 = { version = "0.24.1", features = ["extension-module", "serde"] }
 serde_json = { workspace = true }
 config = { workspace = true }
 
