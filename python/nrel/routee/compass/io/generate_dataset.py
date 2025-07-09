@@ -269,10 +269,10 @@ def generate_compass_dataset(
 
         vertex_bounds = vertex_gdf.total_bounds
         vertex_bbox = box(
-            xmin=vertex_bounds[0],
-            ymin=vertex_bounds[1],
-            xmax=vertex_bounds[2],
-            ymax=vertex_bounds[3],
+            vertex_bounds[0],
+            vertex_bounds[1],
+            vertex_bounds[2],
+            vertex_bounds[3],
         )
 
         charging_gdf = download_ev_charging_stations_for_polygon(
