@@ -3,12 +3,16 @@ use crate::model::network::{Edge, EdgeId};
 use geo::{LineString, Point};
 use rstar::{PointDistance, RTreeObject, AABB};
 use uom::si::f64::Length;
+use std::f32;
+use crate::util::geo::haversine;
 
 /// rtree element for edge-oriented map matching.
 #[derive(Clone)]
 pub struct MapEdgeRTreeObject {
     pub edge_id: EdgeId,
     pub envelope: AABB<Point<f32>>,
+    // added line_coords variable
+    pub line_coords: LineString<f32>,
 }
 
 impl MapEdgeRTreeObject {
@@ -16,6 +20,8 @@ impl MapEdgeRTreeObject {
         MapEdgeRTreeObject {
             edge_id: edge.edge_id,
             envelope: linestring.envelope(),
+            // added line_coords
+            line_coords: linestring.clone(),
         }
     }
 
@@ -52,6 +58,15 @@ impl RTreeObject for MapEdgeRTreeObject {
 
 impl PointDistance for MapEdgeRTreeObject {
     fn distance_2(&self, point: &Point<f32>) -> f32 {
-        self.envelope.distance_2(point)
+        // get edge center point, linestring<f32>, line of coordinates from start and end of edge
+        let coord_vec = self.line_coords.clone().into_inner();
+        let mid_index = coord_vec.len()/2;
+        let midpoint = coord_vec[mid_index];
+
+        // use haversine to calculate distance
+        match haversine::coord_distance(&midpoint.as_ref(), point.as_ref()){
+            Ok(length) => length.value.powi(2) as f32,
+            Err(error) => {println!("Error, invalid distance {error} "); f32::MAX}
+        } 
     }
 }
