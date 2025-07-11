@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752252395969,
+  "lastUpdate": 1752256533726,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -59,6 +59,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7460413,
             "range": "± 142750",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cc9acf27edc690b97219d5133a4ebfb60dcc0721",
+          "message": "Update python-release.yaml\n\ndrop py3.9 from build and add py3.13",
+          "timestamp": "2025-07-11T11:53:24-06:00",
+          "tree_id": "339298962c886aa24516870ecce5edcb98e29251",
+          "url": "https://github.com/NREL/routee-compass/commit/cc9acf27edc690b97219d5133a4ebfb60dcc0721"
+        },
+        "date": 1752256531675,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7464163,
+            "range": "± 391040",
             "unit": "ns/iter"
           }
         ]
