@@ -370,5 +370,8 @@ def download_ev_charging_stations_for_polygon(
     # Filter to stations within the polygon
     within_polygon = stations_gdf[stations_gdf.within(polygon)]
 
-    # Return as regular DataFrame
+    # Create x and y columns from geometry
+    within_polygon = within_polygon.assign(x=within_polygon.geometry.x)
+    within_polygon = within_polygon.assign(y=within_polygon.geometry.y)
+
     return within_polygon
