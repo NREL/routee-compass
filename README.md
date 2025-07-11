@@ -1,7 +1,7 @@
 # <img src="docs/images/routeelogo.png" alt="Routee Compass" width="100"/>
 
 <div align="left">
-    <img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue"/>
+    <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue"/>
   <a href="https://anaconda.org/conda-forge/nrel.routee.compass">
     <img src="https://img.shields.io/conda/v/conda-forge/nrel.routee.compass" alt="Conda Latest Release"/>
   </a>
