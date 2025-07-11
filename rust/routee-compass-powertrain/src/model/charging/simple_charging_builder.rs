@@ -2,7 +2,10 @@ use std::{collections::HashSet, str::FromStr, sync::Arc};
 
 use routee_compass_core::{
     config::ConfigJsonExtensions,
-    model::traversal::{TraversalModelBuilder, TraversalModelError, TraversalModelService},
+    model::{
+        map::DistanceTolerance,
+        traversal::{TraversalModelBuilder, TraversalModelError, TraversalModelService},
+    },
 };
 use uom::si::f64::Ratio;
 
@@ -78,8 +81,28 @@ impl TraversalModelBuilder for SimpleChargingBuilder {
                     e
                 ))
             })?;
+
+        let vertex_input_file = parameters.get_config_path(&"vertex_input_file", &"simple charging model")
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "failure reading 'vertex_input_file' from simple charging model configuration: {}",
+                    e
+                ))
+            })?;
+
+        let station_match_tolerance: Option<DistanceTolerance> = parameters.get_config_serde_optional(&"station_match_tolerance", &"simple charging model").map_err(|e| {
+            TraversalModelError::BuildError(format!(
+                "failure reading 'station_match_tolerance' from simple charging model configuration: {}",
+                e
+            ))
+        })?;
         let charging_station_locator = Arc::new(
-            ChargingStationLocator::from_csv_file(&charging_station_input_file).map_err(|e| {
+            ChargingStationLocator::from_csv_files(
+                &charging_station_input_file,
+                &vertex_input_file,
+                station_match_tolerance,
+            )
+            .map_err(|e| {
                 TraversalModelError::BuildError(format!(
                     "failed to load charging station locator: {}",
                     e

@@ -4,8 +4,13 @@ use std::{
     str::FromStr,
 };
 
+use kdam::Bar;
 use routee_compass_core::{
-    model::{network::VertexId, traversal::TraversalModelError},
+    model::{
+        map::{DistanceTolerance, NearestSearchResult, SpatialIndex},
+        network::{Vertex, VertexId},
+        traversal::TraversalModelError,
+    },
     util::fs::read_utils,
 };
 use serde::{Deserialize, Serialize};
@@ -13,10 +18,11 @@ use uom::si::f64::Power;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 struct ChargingStationConfig {
-    vertex_id: VertexId,
     power_type: String,
     power_kw: f64,
     cost_per_kwh: f64,
+    x: f32,
+    y: f32,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -93,11 +99,30 @@ impl ChargingStationLocator {
         Self { station_map }
     }
 
-    pub fn from_csv_file(file_path: &PathBuf) -> Result<Self, TraversalModelError> {
+    pub fn from_csv_files(
+        charge_station_filepath: &PathBuf,
+        vertex_filepath: &PathBuf,
+        station_match_tolerance: Option<DistanceTolerance>,
+    ) -> Result<Self, TraversalModelError> {
+        let vertices: Box<[Vertex]> = read_utils::from_csv(
+            &vertex_filepath,
+            true,
+            Some(Bar::builder().desc("graph vertices")),
+            None,
+        )
+        .map_err(|e| {
+            TraversalModelError::BuildError(format!(
+                "Failed to read vertices from file {:?}: {}",
+                vertex_filepath, e
+            ))
+        })?;
+
+        let spatial_index = SpatialIndex::new_vertex_oriented(&vertices, station_match_tolerance);
+
         let mut station_map = HashMap::new();
 
         let charging_stations = read_utils::from_csv::<ChargingStationConfig>(
-            &file_path.as_path(),
+            &charge_station_filepath.as_path(),
             true,
             Some(kdam::Bar::builder().desc("charging stations")),
             None,
@@ -105,11 +130,26 @@ impl ChargingStationLocator {
         .map_err(|e| {
             TraversalModelError::BuildError(format!(
                 "Failed to read charging stations from file {:?}: {}",
-                file_path, e
+                charge_station_filepath, e
             ))
         })?;
         for config in charging_stations {
-            let vertex_id = config.vertex_id;
+            let point = geo::Point::new(config.x, config.y);
+            let nearest = spatial_index.nearest_graph_id(&point).map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Failed to find nearest vertex for charging station at ({}, {}): {}",
+                    config.x, config.y, e
+                ))
+            })?;
+            let vertex_id = match nearest {
+                NearestSearchResult::NearestVertex(v_id) => v_id,
+                _ => {
+                    return Err(TraversalModelError::BuildError(format!(
+                        "Expected nearest vertex, found edge for charging station at ({}, {})",
+                        config.x, config.y
+                    )))
+                }
+            };
             let station: ChargingStation = config.try_into()?;
             station_map.insert(vertex_id, station);
         }

@@ -286,14 +286,8 @@ def generate_compass_dataset(
             )
             return
 
-        # join the charging stations with the vertices
-        charging_gdf = charging_gdf.to_crs("EPSG:3857").sjoin_nearest(
-            vertex_gdf.to_crs("EPSG:3857"), how="left"
-        )
-
         out_df = charging_gdf[
             [
-                "vertex_id",
                 "power_type",
                 "power_kw",
                 "cost_per_kwh",

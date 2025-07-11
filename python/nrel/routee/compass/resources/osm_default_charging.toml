@@ -82,6 +82,7 @@ time_unit = "minutes"
 [[traversal.models]]
 type = "simple_charging"
 charging_station_input_file = "charging-stations.csv.gz"
+vertex_input_file = "vertices-compass.csv.gz"
 
 [[traversal.models]]
 type = "grade"
