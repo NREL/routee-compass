@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752256533726,
+  "lastUpdate": 1753461227269,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -89,6 +89,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7464163,
             "range": "± 391040",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "92f8045fad7ca722313e75f0f40c3a4764c03b7c",
+          "message": "Merge pull request #367 from NREL/hotfix/smartcore-version\n\nhold smartcore at =0.4.0",
+          "timestamp": "2025-07-25T10:31:38-06:00",
+          "tree_id": "519838ceca1fd47155dbc875d8346010e4082562",
+          "url": "https://github.com/NREL/routee-compass/commit/92f8045fad7ca722313e75f0f40c3a4764c03b7c"
+        },
+        "date": 1753461225681,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7382290,
+            "range": "± 152530",
             "unit": "ns/iter"
           }
         ]
