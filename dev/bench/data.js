@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1752256533726,
+  "lastUpdate": 1753976528297,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -209,6 +209,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7464163,
             "range": "± 391040",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "126987327+brycemines@users.noreply.github.com",
+            "name": "brycemines",
+            "username": "brycemines"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1f326f952aa97def4d1859433fb1e0b5209e92dc",
+          "message": "Merge pull request #365 from NREL/bai/fix-bench-ci\n\nfix: deploy-docs and rust-bench GA no longer conflict",
+          "timestamp": "2025-07-31T09:39:37-06:00",
+          "tree_id": "119aa37e92af5af3d5f1ea092292d8e80103e918",
+          "url": "https://github.com/NREL/routee-compass/commit/1f326f952aa97def4d1859433fb1e0b5209e92dc"
+        },
+        "date": 1753976527377,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7482073,
+            "range": "± 521060",
             "unit": "ns/iter"
           }
         ]
