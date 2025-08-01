@@ -75,7 +75,7 @@ jobs:
         run: pip install -U maturin wheel twine cibuildwheel
 
       - name: build sdist
-        if: matrix.os == 'ubuntu' && matrix.python-version == '9'
+        if: matrix.os == 'ubuntu' && matrix.python-version == '11'
         run: |
           pip install -U maturin
           maturin build --sdist --out dist/
