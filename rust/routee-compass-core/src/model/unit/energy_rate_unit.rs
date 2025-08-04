@@ -20,7 +20,7 @@ impl std::fmt::Display for EnergyRateUnit {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             EnergyRateUnit::GGPM => write!(f, "gallons gasoline/mile"),
-            EnergyRateUnit::GDPM => write!(f, "gallons diesel/kilometer"),
+            EnergyRateUnit::GDPM => write!(f, "gallons diesel/mile"),
             EnergyRateUnit::KWHPM => write!(f, "kilowatt hour/mile"),
             EnergyRateUnit::KWHPKM => write!(f, "kilowatt hour/kilometer"),
         }
@@ -33,7 +33,7 @@ impl FromStr for EnergyRateUnit {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.split("/").collect_vec()[..] {
             ["gallons gasoline", "mile"] => Ok(EnergyRateUnit::GGPM),
-            ["gallons diesel", "kilometer"] => Ok(EnergyRateUnit::GDPM),
+            ["gallons diesel", "mile"] => Ok(EnergyRateUnit::GDPM),
             ["kilowatt hour", "mile"] => Ok(EnergyRateUnit::KWHPM),
             ["kilowatt hour", "kilometer"] => Ok(EnergyRateUnit::KWHPKM),
             ["kWh", "mile"] => Ok(EnergyRateUnit::KWHPM),
