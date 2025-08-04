@@ -64,6 +64,10 @@ left = 2.5
 sharp_left = 3.5
 u_turn = 9.5
 
+# Used for restricting travel after the battery is depleted.
+[frontier]
+type = "battery_frontier"
+
 [traversal]
 type = "combined"
 
