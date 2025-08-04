@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1754084942270,
+  "lastUpdate": 1754343623006,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -299,6 +299,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7466794,
             "range": "± 264256",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f858ed981bd2728685777ee7004569247cb88933",
+          "message": "Merge pull request #370 from NREL/ndr/fix-unit-deserialize\n\nFix diesel unit deserialization",
+          "timestamp": "2025-08-04T15:38:20-06:00",
+          "tree_id": "d7d985d183f4deb694856db49f123951fd8ff7b3",
+          "url": "https://github.com/NREL/routee-compass/commit/f858ed981bd2728685777ee7004569247cb88933"
+        },
+        "date": 1754343622076,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7515779,
+            "range": "± 150795",
             "unit": "ns/iter"
           }
         ]
