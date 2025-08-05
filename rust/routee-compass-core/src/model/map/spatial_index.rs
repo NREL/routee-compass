@@ -129,16 +129,15 @@ mod test {
         //     .join("test")
         //     .join("rtree_query.json");
 
-        let vertices: Box<[Vertex]> =
-            read_utils::from_csv(&vertices_filepath.as_path(), true, None, None).unwrap();
+        //let vertices: Box<[Vertex]> = read_utils::from_csv(&vertices_filepath.as_path(), true, None, None).unwrap();
         let index = SpatialIndex::new_vertex_oriented(&vertices, None);
 
         // test nearest neighbor queries perform as expected
         let o_result = index
-            .nearest_graph_id(&geo::Point(geo::Coord::from((0.101, 0.101))))
+            .nearest_graph_id(&geo::Point(geo::Coord::from((-121.843872, 39.730426))))
             .unwrap();
         let d_result = index
-            .nearest_graph_id(&geo::Point(geo::Coord::from((1.901, 2.101))))
+            .nearest_graph_id(&geo::Point::new(-121.843872, 39.066114))
             .unwrap();
         match o_result {
             NearestSearchResult::NearestEdge(_) => panic!("should find a vertex!"),
@@ -146,7 +145,7 @@ mod test {
         }
         match d_result {
             NearestSearchResult::NearestEdge(_) => panic!("should find a vertex!"),
-            NearestSearchResult::NearestVertex(vertex_id) => assert_eq!(vertex_id, VertexId(2)),
+            NearestSearchResult::NearestVertex(vertex_id2) => assert_eq!(vertex_id2, VertexId(1), "vertex_id is {:?}", vertex_id2),
         }
     }
 }
