@@ -102,6 +102,13 @@ mod tests {
     }
 
     #[test]
+    fn test_gdpm_from_str() {
+        let result = ERU::from_str("gallons diesel/mile");
+        let expected = ERU::GDPM;
+        assert_eq!(result, Ok(expected))
+    }
+
+    #[test]
     fn test_gpm_from_json() {
         let result: Result<ERU, String> =
             sj::from_value(json!("gallons gasoline/mile")).map_err(|e| e.to_string());
