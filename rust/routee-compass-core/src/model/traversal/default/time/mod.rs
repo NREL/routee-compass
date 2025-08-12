@@ -3,6 +3,8 @@
 
 mod time_traversal_builder;
 mod time_traversal_model;
+mod time_traversal_config;
 
 pub use time_traversal_builder::TimeTraversalBuilder;
 pub use time_traversal_model::TimeTraversalModel;
+pub use time_traversal_config::TimeTraversalConfig;
