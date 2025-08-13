@@ -112,7 +112,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     /// # Arguments
     ///
     /// * `pair` - a tuple containing a config object (such as a parsed TOML file) and
-    ///            a [`super::config::compass_app_builder::CompassAppBuilder`] instance
+    ///   a [`super::config::compass_app_builder::CompassAppBuilder`] instance
     ///
     /// # Returns
     ///
