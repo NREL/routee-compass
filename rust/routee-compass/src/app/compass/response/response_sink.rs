@@ -45,9 +45,7 @@ impl ResponseSink {
 
                 let output_row = format.format_response(response)?;
                 writeln!(file_attained, "{output_row}").map_err(|e| {
-                    CompassAppError::InternalError(format!(
-                        "failure writing to {filename}: {e}"
-                    ))
+                    CompassAppError::InternalError(format!("failure writing to {filename}: {e}"))
                 })?;
                 *it_attained += 1;
                 if *it_attained % iterations_per_flush == 0 {

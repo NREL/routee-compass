@@ -109,9 +109,7 @@ fn geometry_to_wkb_string<T: CoordFloat + Into<f64>>(
         OutputPluginError::OutputPluginFailed(format!("unable to convert geometry to f64: {e}"))
     })?;
     wkb::writer::write_geometry(&mut out_bytes, &geom, wkb::Endianness::BigEndian).map_err(
-        |e| {
-            OutputPluginError::OutputPluginFailed(format!("failed to write geometry as WKB: {e}"))
-        },
+        |e| OutputPluginError::OutputPluginFailed(format!("failed to write geometry as WKB: {e}")),
     )?;
     let out_string = String::from_utf8(out_bytes).map_err(|e| {
         OutputPluginError::OutputPluginFailed(format!("failed to read WKB as utf8: {e}"))

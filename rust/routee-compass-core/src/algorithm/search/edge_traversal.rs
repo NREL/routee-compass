@@ -109,7 +109,7 @@ impl EdgeTraversal {
     ///
     /// * `prev_edge_id`     - the edge to traverse
     /// * `next_edge_id_opt` - the edge previously traversed that appears closer to the origin
-    ///                        of this reverse search
+    ///   of this reverse search
     /// * `prev_state`       - the state before traversal, positioned closer to the destination
     /// * `si`               - the search assets for this query
     ///

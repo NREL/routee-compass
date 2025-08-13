@@ -29,9 +29,7 @@ pub fn package_invariant_error(query: Option<&mut Value>, sub_section: Option<&V
         Some(ref q) => {
             let json_intro = "here is the invalid query state that was found:";
             let json = serde_json::to_string_pretty(q).unwrap_or_else(|e| {
-                format!(
-                    "oops, i can't even serialize that query because of an error: {e}"
-                )
+                format!("oops, i can't even serialize that query because of an error: {e}")
             });
             format!("{json_intro}\n\n{json}")
         }
@@ -42,9 +40,7 @@ pub fn package_invariant_error(query: Option<&mut Value>, sub_section: Option<&V
         Some(ss) => {
             let ss_msg = "error triggered by the following sub-section:";
             let ss_json = serde_json::to_string_pretty(&ss).unwrap_or_else(|e| {
-                format!(
-                    "oops, i can't even serialize that sub-section because of an error: {e}"
-                )
+                format!("oops, i can't even serialize that sub-section because of an error: {e}")
             });
 
             format!("{intro}\n\n{json_msg}\n\n{ss_msg}\n\n{ss_json}")

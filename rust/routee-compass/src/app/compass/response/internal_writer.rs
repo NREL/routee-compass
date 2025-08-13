@@ -37,9 +37,7 @@ impl InternalWriter {
                 // Subsequent attempts to write to this file will panic!
                 let _ = encoder.flush();
                 encoder.try_finish().map_err(|e| {
-                    CompassAppError::InternalError(format!(
-                        "failure finishing encoded output {e}"
-                    ))
+                    CompassAppError::InternalError(format!("failure finishing encoded output {e}"))
                 })?;
                 Ok(())
             }

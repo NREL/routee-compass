@@ -124,9 +124,7 @@ mod test {
         let service = VehicleRestrictionBuilder {}
             .build(&conf)
             .unwrap_or_else(|e| {
-                panic!(
-                    "failed to read test CSV {restriction_filename} due to: {e}"
-                )
+                panic!("failed to read test CSV {restriction_filename} due to: {e}")
             });
         let state_model = Arc::new(StateModel::new(vec![]));
 

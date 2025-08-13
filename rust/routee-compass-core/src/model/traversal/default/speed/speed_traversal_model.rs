@@ -160,10 +160,7 @@ mod tests {
             (c, d) if c > d => c - d < error,
             (_, _) => true,
         };
-        assert!(
-            result,
-            "{a} ~= {b} is not true within an error of {error}"
-        )
+        assert!(result, "{a} ~= {b} is not true within an error of {error}")
     }
 
     #[test]

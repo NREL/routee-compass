@@ -283,10 +283,7 @@ mod tests {
             .get_energy(&state, fieldname::TRIP_ENERGY)
             .expect("test invariant failed");
 
-        assert!(
-            elec > Energy::ZERO,
-            "elec energy {elec:?} should be > 0.0"
-        );
+        assert!(elec > Energy::ZERO, "elec energy {elec:?} should be > 0.0");
 
         let soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         let lower_bound = Ratio::new::<uom::si::ratio::percent>(40.0);

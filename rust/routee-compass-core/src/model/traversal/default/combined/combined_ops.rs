@@ -77,9 +77,7 @@ pub fn topological_dependency_sort(
     // topological_sort crate's pop() method stops when collection is empty, unless there is a cyclical
     // dependency, in which case the collection will return None and remain non-empty.
     if !sort.is_empty() {
-        let msg = format!(
-            "cyclical dependency in traversal model features: {sort:?}"
-        );
+        let msg = format!("cyclical dependency in traversal model features: {sort:?}");
         return Err(TraversalModelError::BuildError(msg));
     }
 

@@ -68,9 +68,7 @@ impl GeomApp {
             None,
         )
         .map_err(|e| {
-            CompassAppError::BuildFailure(format!(
-                "failure reading linestring file {file}: {e}"
-            ))
+            CompassAppError::BuildFailure(format!("failure reading linestring file {file}: {e}"))
         })?;
         eprintln!();
         Ok(result)

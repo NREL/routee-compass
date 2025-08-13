@@ -73,9 +73,7 @@ fn traverse(value: &serde_json::Value, path: &Vec<&str>) -> Result<serde_json::V
         match cursor.get(*next) {
             None => {
                 let path_str = path.iter().join(".");
-                return Err(format!(
-                    "could not find object {next} in path {path_str}"
-                ));
+                return Err(format!("could not find object {next} in path {path_str}"));
             }
             Some(child) => {
                 cursor = child;
