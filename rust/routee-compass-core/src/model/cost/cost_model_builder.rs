@@ -1,7 +1,7 @@
 use super::cost_model_service::CostModelService;
-use crate::config::{CompassConfigurationError};
-use crate::model::cost::{CostModelConfig};
-use std::{sync::Arc};
+use crate::config::CompassConfigurationError;
+use crate::model::cost::CostModelConfig;
+use std::sync::Arc;
 
 pub struct CostModelBuilder {}
 
