@@ -270,7 +270,7 @@ pub fn run_edge_oriented(
                     routes: vec![route],
                     iterations: 1,
                 };
-                return Ok(result);
+                Ok(result)
             } else {
                 // run a search and append source/target edges to result
                 let SearchAlgorithmResult {
