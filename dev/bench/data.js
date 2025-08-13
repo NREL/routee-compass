@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755101834100,
+  "lastUpdate": 1755101934933,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -359,6 +359,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7492509,
             "range": "± 138336",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a91bbae5d6b58af926c89627f1a01d2c5e1b3d9a",
+          "message": "Merge pull request #371 from NREL/rjf/test-gdpm\n\ntest case for gal diesel/mile type",
+          "timestamp": "2025-08-13T10:16:48-06:00",
+          "tree_id": "b080f3cc998b939b539d73ea6aaa68158b30db60",
+          "url": "https://github.com/NREL/routee-compass/commit/a91bbae5d6b58af926c89627f1a01d2c5e1b3d9a"
+        },
+        "date": 1755101934528,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7324719,
+            "range": "± 551380",
             "unit": "ns/iter"
           }
         ]
