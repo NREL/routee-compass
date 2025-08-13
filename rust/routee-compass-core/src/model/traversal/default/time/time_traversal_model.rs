@@ -8,7 +8,8 @@ use crate::{
         network::{Edge, Vertex},
         state::{InputFeature, StateFeature, StateModel, StateVariable},
         traversal::{
-            default::{fieldname, time::TimeTraversalConfig}, TraversalModel, TraversalModelError, TraversalModelService,
+            default::{fieldname, time::TimeTraversalConfig},
+            TraversalModel, TraversalModelError, TraversalModelService,
         },
         unit::TimeUnit,
     },
@@ -18,7 +19,7 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct TimeTraversalModel {
-    config: TimeTraversalConfig
+    config: TimeTraversalConfig,
 }
 
 impl TimeTraversalModel {
