@@ -15,8 +15,7 @@ impl TraversalModelBuilder for TimeTraversalBuilder {
         let config: TimeTraversalConfig =
             serde_json::from_value(parameters.clone()).map_err(|e| {
                 TraversalModelError::BuildError(format!(
-                    "failed to read time traversal model configuration: {}",
-                    e
+                    "failed to read time traversal model configuration: {e}"
                 ))
             })?;
         let model = TimeTraversalModel::new(config);

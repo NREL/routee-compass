@@ -34,8 +34,7 @@ impl TraversalModelService for SpeedLookupService {
                         let max_speed_unit =
                             SpeedUnit::from_str(max_speed_unit_str).map_err(|_| {
                                 TraversalModelError::BuildError(format!(
-                                    "key `speed_limit_unit` {} is not a valid speed unit",
-                                    max_speed_unit_str
+                                    "key `speed_limit_unit` {max_speed_unit_str} is not a valid speed unit"
                                 ))
                             })?;
                         Ok(max_speed_unit)

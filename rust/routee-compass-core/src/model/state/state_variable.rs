@@ -50,7 +50,7 @@ impl FromStr for StateVariable {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         s.parse::<f64>().map(StateVariable).map_err(|e| {
-            let msg = format!("failure decoding state variable {} due to: {:}", s, e);
+            let msg = format!("failure decoding state variable {s} due to: {e:}");
             std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
         })
     }

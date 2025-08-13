@@ -12,8 +12,7 @@ impl TraversalModelBuilder for GradeTraversalBuilder {
         let config: GradeConfiguration =
             serde_json::from_value(parameters.clone()).map_err(|e| {
                 TraversalModelError::BuildError(format!(
-                    "failed to read grade configuration: {}",
-                    e
+                    "failed to read grade configuration: {e}"
                 ))
             })?;
         let engine = Arc::new(GradeTraversalEngine::new(&config)?);

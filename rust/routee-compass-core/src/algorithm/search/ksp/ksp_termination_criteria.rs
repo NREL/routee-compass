@@ -20,10 +20,10 @@ impl Display for KspTerminationCriteria {
         match self {
             KspTerminationCriteria::Exact => write!(f, "terminate with up to k routes found"),
             KspTerminationCriteria::MaxIteration { max } => {
-                write!(f, "terminate with {} routes found", max)
+                write!(f, "terminate with {max} routes found")
             }
             KspTerminationCriteria::Factor { factor } => {
-                write!(f, "terminate with k*{} routes found", factor)
+                write!(f, "terminate with k*{factor} routes found")
             }
         }
     }

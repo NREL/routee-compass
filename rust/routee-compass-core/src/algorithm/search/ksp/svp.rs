@@ -96,7 +96,7 @@ pub fn run(
         }
         match intersection_queue.pop() {
             None => {
-                log::debug!("ksp:{} queue is empty, quitting", ksp_it);
+                log::debug!("ksp:{ksp_it} queue is empty, quitting");
                 break;
             }
             Some((intersection_vertex_id, _)) => {
@@ -118,7 +118,7 @@ pub fn run(
 
                 // test loop
                 if bidirectional_ops::route_contains_loop(&this_route, si)? {
-                    log::debug!("ksp:{} contains loop", ksp_it);
+                    log::debug!("ksp:{ksp_it} contains loop");
                     accept_route = false;
                 }
 
@@ -131,14 +131,14 @@ pub fn run(
                         si,
                     )?;
                     if absolute_similarity || too_similar {
-                        log::debug!("ksp:{} too similar", ksp_it);
+                        log::debug!("ksp:{ksp_it} too similar");
                         accept_route = false;
                         break;
                     }
                 }
 
                 if accept_route {
-                    log::debug!("ksp:{} alternative accepted", ksp_it);
+                    log::debug!("ksp:{ksp_it} alternative accepted");
                     solution.push(this_route);
                 }
                 ksp_it += 1;
@@ -146,7 +146,7 @@ pub fn run(
         }
     }
 
-    log::debug!("ksp ran in {} iterations", ksp_it);
+    log::debug!("ksp ran in {ksp_it} iterations");
 
     let routes = solution.into_iter().take(query.k).collect_vec();
 

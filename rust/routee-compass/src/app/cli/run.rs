@@ -36,7 +36,7 @@ pub fn command_line_runner(
     let compass_app = match CompassApp::try_from((&config, &builder_or_default)) {
         Ok(app) => app,
         Err(e) => {
-            error!("Could not build CompassApp from config file: {}", e);
+            error!("Could not build CompassApp from config file: {e}");
             return Err(e);
         }
     };
@@ -106,8 +106,7 @@ fn run_newline_json(
                     )),
                 },
                 Err(e) => Either::Right(CompassAppError::CompassFailure(format!(
-                    "failed to parse query row due to: {}",
-                    e
+                    "failed to parse query row due to: {e}"
                 ))),
             });
 
@@ -132,6 +131,6 @@ fn run_newline_json(
 fn log_error(result: &Value) {
     if let Some(error) = result.get("error") {
         let error_string = error.to_string().replace("\\n", "\n");
-        error!("Error: {}", error_string);
+        error!("Error: {error_string}");
     }
 }

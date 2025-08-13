@@ -57,7 +57,7 @@ impl Display for MatchingType {
             MatchingType::EdgeId => String::from("edge_id"),
             MatchingType::Point => String::from("point"),
         };
-        write!(f, "{}", self_str)
+        write!(f, "{self_str}")
     }
 }
 
@@ -100,7 +100,7 @@ impl MatchingType {
                         Ok(_) => return Ok(()),
                         Err(e) => {
                             let mit = serde_json::to_string(matching_type).unwrap_or_default();
-                            let msg = format!("no origin {} on input query: {}", mit, e);
+                            let msg = format!("no origin {mit} on input query: {e}");
                             errors.push(msg);
                         }
                     }
@@ -108,8 +108,7 @@ impl MatchingType {
                 if !errors.is_empty() {
                     let msg = errors.iter().join("; ");
                     Err(MapError::MapMatchError(format!(
-                        "unable to match query to map: {}",
-                        msg
+                        "unable to match query to map: {msg}"
                     )))
                 } else {
                     Ok(())
@@ -118,18 +117,18 @@ impl MatchingType {
             MT::VertexId => {
                 // validate all out-edges for this vertex
                 let vertex_id = query.get_origin_vertex()?;
-                let edges = si.graph.out_edges(&vertex_id).iter().map(|edge_id| si.graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {} for map matching, the underlying Graph model caused an error: {}", vertex_id, e)))?;
+                let edges = si.graph.out_edges(&vertex_id).iter().map(|edge_id| si.graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {vertex_id} for map matching, the underlying Graph model caused an error: {e}")))?;
                 for edge in edges.into_iter() {
                     if let Ok(true) = test_edge(edge, si.frontier_model.clone()) {
                         return Ok(());
                     }
                 }
-                Err(MapError::MapMatchError(format!("attempted to map match origin vertex_id {} provided in query, but no out-edges are valid for traversal according to this FrontierModel instance", vertex_id)))
+                Err(MapError::MapMatchError(format!("attempted to map match origin vertex_id {vertex_id} provided in query, but no out-edges are valid for traversal according to this FrontierModel instance")))
             }
             MT::EdgeId => {
                 // validate this edge
                 let edge_id = query.get_origin_edge()?;
-                let edge = si.graph.get_edge(&edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge id {} for map matching, the underlying Graph model caused an error: {}", edge_id, e)))?;
+                let edge = si.graph.get_edge(&edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge id {edge_id} for map matching, the underlying Graph model caused an error: {e}")))?;
                 validate_edge(edge, si.frontier_model.clone())
             }
             MT::Point => {
@@ -140,7 +139,7 @@ impl MatchingType {
                     match nearest {
                         NearestSearchResult::NearestVertex(vertex_id) => {
                             // if any of the out-edges of this vertex are valid, we can finish
-                            let edges = si.graph.out_edges(&vertex_id).iter().map(|edge_id| si.graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {} for map matching, the underlying Graph model caused an error: {}", vertex_id, e)))?;
+                            let edges = si.graph.out_edges(&vertex_id).iter().map(|edge_id| si.graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {vertex_id} for map matching, the underlying Graph model caused an error: {e}")))?;
                             for edge in edges.into_iter() {
                                 let is_valid = test_edge(edge, si.frontier_model.clone())?;
                                 if is_valid {
@@ -151,7 +150,7 @@ impl MatchingType {
                             continue;
                         }
                         NearestSearchResult::NearestEdge(edge_id) => {
-                            let edge = si.graph.get_edge(&edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge id {} from nearest neighbor search for map matching, the underlying Graph model caused an error: {}", edge_id, e)))?;
+                            let edge = si.graph.get_edge(&edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge id {edge_id} from nearest neighbor search for map matching, the underlying Graph model caused an error: {e}")))?;
                             let is_valid = test_edge(edge, si.frontier_model.clone())?;
                             if is_valid {
                                 query.add_origin_edge(edge_id)?;
@@ -187,7 +186,7 @@ impl MatchingType {
                         Ok(_) => return Ok(MapInputResult::Found),
                         Err(e) => {
                             let mit = serde_json::to_string(matching_type).unwrap_or_default();
-                            let msg = format!("no destination {} on input query: {}", mit, e);
+                            let msg = format!("no destination {mit} on input query: {e}");
                             errors.push(msg);
                         }
                     }
@@ -195,8 +194,7 @@ impl MatchingType {
                 if !errors.is_empty() {
                     let msg = errors.iter().join("; ");
                     Err(MapError::MapMatchError(format!(
-                        "unable to match query to map: {}",
-                        msg
+                        "unable to match query to map: {msg}"
                     )))
                 } else {
                     Ok(MapInputResult::NotFound)
@@ -208,13 +206,13 @@ impl MatchingType {
                 let vertex_id_option = query.get_destination_vertex()?;
                 match vertex_id_option {
                     Some(vertex_id) => {
-                        let edges = si.graph.in_edges(&vertex_id).iter().map(|edge_id| si.graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {} for map matching, the underlying Graph model caused an error: {}", vertex_id, e)))?;
+                        let edges = si.graph.in_edges(&vertex_id).iter().map(|edge_id| si.graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {vertex_id} for map matching, the underlying Graph model caused an error: {e}")))?;
                         for edge in edges.into_iter() {
                             if let Ok(true) = test_edge(edge, si.frontier_model.clone()) {
                                 return Ok(MapInputResult::Found);
                             }
                         }
-                        Err(MapError::MapMatchError(format!("attempted to map match destination vertex_id {} provided in query, but no in-edges are valid for traversal according to this FrontierModel instance", vertex_id)))
+                        Err(MapError::MapMatchError(format!("attempted to map match destination vertex_id {vertex_id} provided in query, but no in-edges are valid for traversal according to this FrontierModel instance")))
                     }
                     None => Ok(MapInputResult::NotFound),
                 }
@@ -225,7 +223,7 @@ impl MatchingType {
                 let dest_edge_option = query.get_destination_edge()?;
                 match dest_edge_option {
                     Some(edge_id) => {
-                        let edge = si.graph.get_edge(&edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge id {} for map matching, the underlying Graph model caused an error: {}", edge_id, e)))?;
+                        let edge = si.graph.get_edge(&edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge id {edge_id} for map matching, the underlying Graph model caused an error: {e}")))?;
                         validate_edge(edge, si.frontier_model.clone())?;
                         Ok(MapInputResult::Found)
                     }
@@ -245,7 +243,7 @@ impl MatchingType {
                     match nearest {
                         NearestSearchResult::NearestVertex(vertex_id) => {
                             // if any of the out-edges of this vertex are valid, we can finish
-                            let edges = si.graph.out_edges(&vertex_id).iter().map(|edge_id| si.graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {} for map matching, the underlying Graph model caused an error: {}", vertex_id, e)))?;
+                            let edges = si.graph.out_edges(&vertex_id).iter().map(|edge_id| si.graph.get_edge(edge_id)).collect::<Result<Vec<_>, _>>().map_err(|e| MapError::MapMatchError(format!("while attempting to validate vertex id {vertex_id} for map matching, the underlying Graph model caused an error: {e}")))?;
                             for edge in edges.into_iter() {
                                 let is_valid = test_edge(edge, si.frontier_model.clone())?;
                                 if is_valid {
@@ -256,7 +254,7 @@ impl MatchingType {
                             continue;
                         }
                         NearestSearchResult::NearestEdge(edge_id) => {
-                            let edge = si.graph.get_edge(&edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge id {} from nearest neighbor search for map matching, the underlying Graph model caused an error: {}", edge_id, e)))?;
+                            let edge = si.graph.get_edge(&edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge id {edge_id} from nearest neighbor search for map matching, the underlying Graph model caused an error: {e}")))?;
                             let is_valid = test_edge(edge, si.frontier_model.clone())?;
                             if is_valid {
                                 query.add_destination_edge(edge_id)?;

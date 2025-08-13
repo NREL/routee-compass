@@ -81,7 +81,7 @@ impl CostModelService {
                 .collect::<Vec<_>>()
                 .join(",");
 
-            let msg = format!("unknown weights in query: [{}]", extras);
+            let msg = format!("unknown weights in query: [{extras}]");
             return Err(CompassConfigurationError::UserConfigurationError(msg));
         }
 
@@ -116,8 +116,7 @@ impl CostModelService {
         )
         .map_err(|e| {
             CompassConfigurationError::UserConfigurationError(format!(
-                "failed to build cost model: {}",
-                e
+                "failed to build cost model: {e}"
             ))
         })?;
 

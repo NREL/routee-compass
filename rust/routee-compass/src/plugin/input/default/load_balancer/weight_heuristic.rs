@@ -30,8 +30,7 @@ impl WeightHeuristic {
                         .map(|d| d.get::<uom::si::length::kilometer>())
                         .map_err(|s| {
                             InputPluginError::InputPluginFailed(format!(
-                                "failed calculating load balancing weight value due to {}",
-                                s
+                                "failed calculating load balancing weight value due to {s}"
                             ))
                         }),
                 }

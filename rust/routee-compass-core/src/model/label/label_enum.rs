@@ -31,12 +31,12 @@ impl Label {
 impl Display for Label {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Label::Vertex(vertex_id) => write!(f, "Vertex({})", vertex_id),
+            Label::Vertex(vertex_id) => write!(f, "Vertex({vertex_id})"),
             Label::VertexWithIntState { vertex_id, state } => {
-                write!(f, "VertexWithIntState({}, {})", vertex_id, state)
+                write!(f, "VertexWithIntState({vertex_id}, {state})")
             }
             Label::VertexWithIntStateVec { vertex_id, state } => {
-                write!(f, "VertexWithIntStateVec({}, {:?})", vertex_id, state)
+                write!(f, "VertexWithIntStateVec({vertex_id}, {state:?})")
             }
         }
     }

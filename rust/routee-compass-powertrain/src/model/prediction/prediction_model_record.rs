@@ -87,8 +87,7 @@ impl PredictionModelRecord {
                     match unit {
                         None => {
                             return Err(TraversalModelError::TraversalModelFailure(format!(
-                                "Unit must be set for speed input feature {} but got None",
-                                input_feature
+                                "Unit must be set for speed input feature {input_feature} but got None"
                             )));
                         }
                         Some(u) => u.from_uom(speed),
@@ -99,8 +98,7 @@ impl PredictionModelRecord {
                     match unit {
                         None => {
                             return Err(TraversalModelError::TraversalModelFailure(format!(
-                                "Unit must be set for grade input feature {} but got None",
-                                input_feature
+                                "Unit must be set for grade input feature {input_feature} but got None"
                             )));
                         }
                         Some(u) => u.from_uom(grade),
@@ -111,8 +109,7 @@ impl PredictionModelRecord {
                 }
                 _ => {
                     return Err(TraversalModelError::TraversalModelFailure(format!(
-                        "got an unexpected input feature in the smartcore model prediction {}",
-                        input_feature
+                        "got an unexpected input feature in the smartcore model prediction {input_feature}"
                     )))
                 }
             };

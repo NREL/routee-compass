@@ -26,7 +26,7 @@ impl InputPlugin for DebugInputPlugin {
                 "#, error}
             }
         };
-        log::debug!("{}", string);
+        log::debug!("{string}");
         Ok(())
     }
 }

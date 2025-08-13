@@ -31,7 +31,7 @@ impl CsvMapping {
                         format!(" with these valid paths: {}", ok.iter().join(", "))
                     };
                     let invalid = err.join(", ");
-                    let msg = format!("unable to sum invalid paths: {}{}", invalid, valid);
+                    let msg = format!("unable to sum invalid paths: {invalid}{valid}");
                     Err(msg)
                 } else {
                     let (nums, num_errs): (Vec<_>, Vec<_>) = ok
@@ -39,9 +39,9 @@ impl CsvMapping {
                         .map(|v| match v {
                             serde_json::Value::Null => Ok(0.0),
                             serde_json::Value::Number(n) => {
-                                n.as_f64().ok_or_else(|| format!("invalid number {}", v))
+                                n.as_f64().ok_or_else(|| format!("invalid number {v}"))
                             }
-                            _ => Err(format!("expected a number, found {}", v)),
+                            _ => Err(format!("expected a number, found {v}")),
                         })
                         .partition_result();
                     if !num_errs.is_empty() {
@@ -51,7 +51,7 @@ impl CsvMapping {
                             format!(" with these valid numbers: {}", nums.iter().join(", "))
                         };
                         let invalid = num_errs.join(", ");
-                        let msg = format!("unable to sum invalid numbers: {}{}", invalid, valid);
+                        let msg = format!("unable to sum invalid numbers: {invalid}{valid}");
                         Err(msg)
                     } else {
                         Ok(json![nums.into_iter().sum::<f64>()])
@@ -74,8 +74,7 @@ fn traverse(value: &serde_json::Value, path: &Vec<&str>) -> Result<serde_json::V
             None => {
                 let path_str = path.iter().join(".");
                 return Err(format!(
-                    "could not find object {} in path {}",
-                    next, path_str
+                    "could not find object {next} in path {path_str}"
                 ));
             }
             Some(child) => {

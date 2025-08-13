@@ -24,7 +24,7 @@ impl TraversalModelBuilder for CombinedTraversalBuilder {
         match parameters.get("models") {
             None => {
                 let model_names = self.builders.keys().join(", ");
-                log::info!("no model selection provided, attempting to build all models in collection: [{}]", model_names);
+                log::info!("no model selection provided, attempting to build all models in collection: [{model_names}]");
                 build_all_models(parameters, &self.builders)
             }
             Some(conf) => build_selected_models(conf, &self.builders),
@@ -82,8 +82,7 @@ fn build_model_from_json(
     let b = builders.get(key).ok_or_else(|| {
         let valid = builders.keys().join(", ");
         TraversalModelError::BuildError(format!(
-            "unknown traversal model name '{}', must be one of: [{}]",
-            key_json, valid
+            "unknown traversal model name '{key_json}', must be one of: [{valid}]"
         ))
     })?;
     b.build(conf)

@@ -36,8 +36,7 @@ impl NetworkCostRateBuilder {
                 )
                 .map_err(|source| {
                     CostModelError::BuildError(format!(
-                        "failure reading file {}: {}",
-                        cost_input_file, source
+                        "failure reading file {cost_input_file}: {source}"
                     ))
                 })?
                 .iter()
@@ -54,8 +53,7 @@ impl NetworkCostRateBuilder {
                 )
                 .map_err(|source| {
                     CostModelError::BuildError(format!(
-                        "failure reading file {}: {}",
-                        cost_input_file, source
+                        "failure reading file {cost_input_file}: {source}"
                     ))
                 })?
                 .iter()

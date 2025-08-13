@@ -49,8 +49,7 @@ impl CustomTraversalEngine {
         };
         let found_value = value.ok_or_else(|| {
             TraversalModelError::TraversalModelFailure(format!(
-                "edge id {} not found in custom feature model with configuration: {}",
-                edge_id, config
+                "edge id {edge_id} not found in custom feature model with configuration: {config}"
             ))
         })?;
         match config.feature {

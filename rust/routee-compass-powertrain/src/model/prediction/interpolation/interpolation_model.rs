@@ -22,8 +22,7 @@ impl PredictionModel for InterpolationModel {
     ) -> Result<(f64, EnergyRateUnit), TraversalModelError> {
         let y = self.interpolator.interpolate(feature_vector).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
-                "Failed to interpolate speed/grade model output during prediction: {}",
-                e
+                "Failed to interpolate speed/grade model output during prediction: {e}"
             ))
         })?;
 
@@ -56,8 +55,7 @@ impl InterpolationModel {
             let feature_name = input_feature.name();
             let feature_bounds = feature_bounds.get(&feature_name).ok_or_else(|| {
                 TraversalModelError::BuildError(format!(
-                    "Missing feature bounds for {}, got: {:?}",
-                    feature_name, feature_bounds
+                    "Missing feature bounds for {feature_name}, got: {feature_bounds:?}"
                 ))
             })?;
 
@@ -86,8 +84,7 @@ impl InterpolationModel {
             // predict the energy rate
             let (energy_rate, _energy_rate_unit) = model.predict(&input).map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to predict energy rate: {}",
-                    e
+                    "Failed to predict energy rate: {e}"
                 ))
             })?;
             values[IxDyn(&indices)] = energy_rate;
@@ -96,8 +93,7 @@ impl InterpolationModel {
         let interpolator = InterpND::new(grid, values, strategy::Linear, Extrapolate::Clamp)
             .map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to validate interpolation model: {}",
-                    e
+                    "Failed to validate interpolation model: {e}"
                 ))
             })?;
 

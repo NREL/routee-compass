@@ -64,8 +64,7 @@ impl TraversalModelBuilder for SimpleChargingBuilder {
                 .map(|s| {
                     PowerType::from_str(s).map_err(|_| {
                         TraversalModelError::BuildError(format!(
-                            "Invalid power type: '{}'. Valid power types are: l1, l2, dcfc",
-                            s
+                            "Invalid power type: '{s}'. Valid power types are: l1, l2, dcfc"
                         ))
                     })
                 })
@@ -77,23 +76,20 @@ impl TraversalModelBuilder for SimpleChargingBuilder {
         let charging_station_input_file = parameters.get_config_path(&"charging_station_input_file", &"simple charging model")
             .map_err(|e| {
                 TraversalModelError::BuildError(format!(
-                    "failure reading 'charging_station_input_file' from simple charging model configuration: {}",
-                    e
+                    "failure reading 'charging_station_input_file' from simple charging model configuration: {e}"
                 ))
             })?;
 
         let vertex_input_file = parameters.get_config_path(&"vertex_input_file", &"simple charging model")
             .map_err(|e| {
                 TraversalModelError::BuildError(format!(
-                    "failure reading 'vertex_input_file' from simple charging model configuration: {}",
-                    e
+                    "failure reading 'vertex_input_file' from simple charging model configuration: {e}"
                 ))
             })?;
 
         let station_match_tolerance: Option<DistanceTolerance> = parameters.get_config_serde_optional(&"station_match_tolerance", &"simple charging model").map_err(|e| {
             TraversalModelError::BuildError(format!(
-                "failure reading 'station_match_tolerance' from simple charging model configuration: {}",
-                e
+                "failure reading 'station_match_tolerance' from simple charging model configuration: {e}"
             ))
         })?;
         let charging_station_locator = Arc::new(
@@ -104,8 +100,7 @@ impl TraversalModelBuilder for SimpleChargingBuilder {
             )
             .map_err(|e| {
                 TraversalModelError::BuildError(format!(
-                    "failed to load charging station locator: {}",
-                    e
+                    "failed to load charging station locator: {e}"
                 ))
             })?,
         );

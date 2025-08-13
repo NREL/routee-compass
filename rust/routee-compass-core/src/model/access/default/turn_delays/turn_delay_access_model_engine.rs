@@ -25,7 +25,7 @@ impl TurnDelayAccessModelEngine {
                 let turn = Turn::from_angle(angle)?;
                 let delay = table.get(&turn).ok_or_else(|| {
                     let name = String::from("tabular discrete turn delay model");
-                    let error = format!("table missing entry for turn {}", turn);
+                    let error = format!("table missing entry for turn {turn}");
                     AccessModelError::RuntimeError { name, error }
                 })?;
                 Ok(*delay)
@@ -44,7 +44,7 @@ pub fn get_headings(
             .get(edge_id.as_usize())
             .ok_or_else(|| AccessModelError::RuntimeError {
                 name: String::from("turn delay access model"),
-                error: format!("missing edge id {} ", edge_id),
+                error: format!("missing edge id {edge_id} "),
             })?;
     Ok(*heading)
 }

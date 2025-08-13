@@ -28,7 +28,7 @@ fn downtown_denver_example(query_file: String) {
     match run::command_line_runner(&args, Some(builder), None) {
         Ok(_) => {}
         Err(e) => {
-            println!("{}", e)
+            println!("{e}")
         }
     }
 }

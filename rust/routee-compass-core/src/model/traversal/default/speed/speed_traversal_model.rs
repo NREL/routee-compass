@@ -97,8 +97,7 @@ pub fn get_speed(
 ) -> Result<Velocity, TraversalModelError> {
     let speed: &Velocity = speed_table.get(edge_id.as_usize()).ok_or_else(|| {
         TraversalModelError::TraversalModelFailure(format!(
-            "could not find expected index {} in speed table",
-            edge_id
+            "could not find expected index {edge_id} in speed table"
         ))
     })?;
     Ok(*speed)
@@ -163,8 +162,7 @@ mod tests {
         };
         assert!(
             result,
-            "{} ~= {} is not true within an error of {}",
-            a, b, error
+            "{a} ~= {b} is not true within an error of {error}"
         )
     }
 

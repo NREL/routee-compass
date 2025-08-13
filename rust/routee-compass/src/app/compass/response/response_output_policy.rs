@@ -57,8 +57,7 @@ impl ResponseOutputPolicy {
 
                 let iterations_per_flush = match file_flush_rate {
                     Some(rate) if *rate <= 0 => Err(CompassAppError::CompassFailure(format!(
-                        "file policy iterations_per_flush must be positive, found {}",
-                        rate
+                        "file policy iterations_per_flush must be positive, found {rate}"
                     ))),
                     None => Ok(1),
                     Some(rate) => Ok(*rate as u64),

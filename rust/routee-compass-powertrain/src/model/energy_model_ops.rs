@@ -95,8 +95,7 @@ pub fn get_grade(
         Some(gt) => {
             let grade: &Ratio = gt.get(edge_id.as_usize()).ok_or_else(|| {
                 TraversalModelError::TraversalModelFailure(format!(
-                    "missing index {} from grade table",
-                    edge_id
+                    "missing index {edge_id} from grade table"
                 ))
             })?;
             Ok(*grade)
@@ -111,8 +110,7 @@ pub fn get_headings(
 ) -> Result<EdgeHeading, TraversalModelError> {
     let heading: &EdgeHeading = headings_table.get(edge_id.as_usize()).ok_or_else(|| {
         TraversalModelError::TraversalModelFailure(format!(
-            "missing index {} from headings table",
-            edge_id
+            "missing index {edge_id} from headings table"
         ))
     })?;
     Ok(*heading)

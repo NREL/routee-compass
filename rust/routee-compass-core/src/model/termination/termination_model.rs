@@ -110,14 +110,14 @@ impl TerminationModel {
             }
             T::SolutionSizeLimit { limit } => {
                 if caused_termination {
-                    Some(format!("exceeded solution size limit of {}", limit))
+                    Some(format!("exceeded solution size limit of {limit}"))
                 } else {
                     None
                 }
             }
             T::IterationsLimit { limit } => {
                 if caused_termination {
-                    Some(format!("exceeded iteration limit of {}", limit))
+                    Some(format!("exceeded iteration limit of {limit}"))
                 } else {
                     None
                 }

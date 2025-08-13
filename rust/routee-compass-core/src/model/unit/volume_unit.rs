@@ -15,7 +15,7 @@ impl std::fmt::Display for VolumeUnit {
         let s = serde_json::to_string(self)
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -28,7 +28,7 @@ impl FromStr for VolumeUnit {
             "gal" | "usgal" | "usgals" => Ok(V::GallonsUs),
             "ukgal" | "ukgals" => Ok(V::GallonsUk),
             "liter" | "liters" | "l" => Ok(V::Liters),
-            _ => Err(format!("unknown volume unit '{}'", s)),
+            _ => Err(format!("unknown volume unit '{s}'")),
         }
     }
 }

@@ -39,8 +39,7 @@ impl FromStr for EnergyRateUnit {
             ["kWh", "mile"] => Ok(EnergyRateUnit::KWHPM),
             ["kWh", "kilometer"] => Ok(EnergyRateUnit::KWHPKM),
             _ => Err(format!(
-                "expected energy rate unit in the format '<energy>/<distance>', found: {}",
-                s
+                "expected energy rate unit in the format '<energy>/<distance>', found: {s}"
             )),
         }
     }
@@ -62,8 +61,7 @@ impl Visitor<'_> for StrVisitor {
         let result = FromStr::from_str(v);
         result.map_err(|e| {
             serde::de::Error::custom(format!(
-                "while attempting to deserialize value '{}', had the following error: {}",
-                v, e
+                "while attempting to deserialize value '{v}', had the following error: {e}"
             ))
         })
     }

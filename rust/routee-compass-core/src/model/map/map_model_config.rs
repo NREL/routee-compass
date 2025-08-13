@@ -82,9 +82,7 @@ impl TryFrom<Option<&Value>> for MapModelConfig {
                 let map_model_config: MapModelConfig =
                     serde_json::from_value(json.clone()).map_err(|e| {
                         format!(
-                            "unable to deserialize map model configuration section due to '{}'. input data: \n{}",
-                            e,
-                            map_model_str
+                            "unable to deserialize map model configuration section due to '{e}'. input data: \n{map_model_str}"
                         )
                     })?;
                 Ok(map_model_config)

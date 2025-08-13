@@ -257,7 +257,7 @@ impl ConfigJsonExtensions for serde_json::Value {
         let result = T::from_str(value).map_err(|_| {
             CompassConfigurationError::ExpectedFieldWithType(
                 String::from(key.as_ref()),
-                format!("failed to parse type from string {}", value),
+                format!("failed to parse type from string {value}"),
             )
         })?;
         Ok(result)

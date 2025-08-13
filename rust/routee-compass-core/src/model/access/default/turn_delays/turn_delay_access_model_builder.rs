@@ -23,8 +23,7 @@ impl AccessModelBuilder for TurnDelayAccessModelBuilder {
             .get_config_path(&"edge_heading_input_file", &"turn delay access model")
             .map_err(|e| {
                 AccessModelError::BuildError(format!(
-                    "failure reading 'edge_heading_input_file' from access model configuration: {}",
-                    e
+                    "failure reading 'edge_heading_input_file' from access model configuration: {e}"
                 ))
             })?;
         let edge_headings = read_utils::from_csv::<EdgeHeading>(
@@ -35,8 +34,7 @@ impl AccessModelBuilder for TurnDelayAccessModelBuilder {
         )
         .map_err(|e| {
             AccessModelError::BuildError(format!(
-                "error reading headings from file {:?}: {}",
-                file_path, e
+                "error reading headings from file {file_path:?}: {e}"
             ))
         })?;
         let turn_delay_model_config = parameters
@@ -46,8 +44,7 @@ impl AccessModelBuilder for TurnDelayAccessModelBuilder {
             )
             .map_err(|e| {
                 AccessModelError::BuildError(format!(
-                    "failure reading 'turn_delay_model' from access model configuration: {}",
-                    e
+                    "failure reading 'turn_delay_model' from access model configuration: {e}"
                 ))
             })?;
 

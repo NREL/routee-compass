@@ -22,7 +22,7 @@ impl std::fmt::Display for VehicleParameterType {
             Self::TotalWeight => "total_weight".to_string(),
             Self::WeightPerAxle => "weight_per_axle".to_string(),
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -37,7 +37,7 @@ impl FromStr for VehicleParameterType {
             "trailer_length" => Ok(Self::TrailerLength),
             "total_weight" => Ok(Self::TotalWeight),
             "weight_per_axle" => Ok(Self::WeightPerAxle),
-            _ => Err(format!("unknown VehicleParameterType {}", s)),
+            _ => Err(format!("unknown VehicleParameterType {s}")),
         }
     }
 }

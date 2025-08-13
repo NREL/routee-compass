@@ -37,7 +37,7 @@ impl std::fmt::Display for RatioUnit {
         let s = serde_json::to_string(self)
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 

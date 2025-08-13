@@ -55,8 +55,7 @@ impl SearchAlgorithm {
                     Some(w_json) => w_json
                         .as_f64()
                         .ok_or(SearchError::BuildError(format!(
-                            "weight_factor must be a float, found {}",
-                            w_json
+                            "weight_factor must be a float, found {w_json}"
                         )))
                         .map(|f| Some(Cost::new(f))),
                     None => Ok(*weight_factor),

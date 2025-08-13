@@ -209,7 +209,7 @@ mod tests {
             .join("fs")
             .join("test")
             .join("test.txt");
-        println!("loading file {:?}", filepath);
+        println!("loading file {filepath:?}");
         let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
         let result = read_raw_file(&filepath, op, None, None).unwrap();
@@ -234,7 +234,7 @@ mod tests {
             .join("fs")
             .join("test")
             .join("test.txt.gz");
-        println!("loading file {:?}", filepath);
+        println!("loading file {filepath:?}");
         let bonus_word = " yay";
         let op = |_idx: usize, row: String| Ok(row + bonus_word);
         let result = read_raw_file(&filepath, op, None, None).unwrap();

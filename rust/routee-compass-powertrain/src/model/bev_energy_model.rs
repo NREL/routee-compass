@@ -34,7 +34,7 @@ impl BevEnergyModel {
             battery_capacity,
         )
         .map_err(|e| {
-            TraversalModelError::BuildError(format!("Error building BEV Energy model due to {}", e))
+            TraversalModelError::BuildError(format!("Error building BEV Energy model due to {e}"))
         })?;
         Ok(Self {
             prediction_model_record,
@@ -69,8 +69,7 @@ impl TryFrom<&Value> for BevEnergyModel {
     fn try_from(value: &Value) -> Result<Self, Self::Error> {
         let config: PredictionModelConfig = serde_json::from_value(value.clone()).map_err(|e| {
             TraversalModelError::BuildError(format!(
-                "failure reading prediction model configuration: {}",
-                e
+                "failure reading prediction model configuration: {e}"
             ))
         })?;
         let prediction_model = PredictionModelRecord::try_from(&config)?;
@@ -82,13 +81,13 @@ impl TryFrom<&Value> for BevEnergyModel {
         })?;
         let battery_capacity = serde_json::from_value::<f64>(battery_capacity_conf.clone())
             .map_err(|e| {
-                TraversalModelError::BuildError(format!("failed to parse battery capacity: {}", e))
+                TraversalModelError::BuildError(format!("failed to parse battery capacity: {e}"))
             })?;
         let battery_energy_unit = serde_json::from_value::<EnergyUnit>(
             battery_energy_unit_conf.clone(),
         )
         .map_err(|e| {
-            TraversalModelError::BuildError(format!("failed to parse battery capacity unit: {}", e))
+            TraversalModelError::BuildError(format!("failed to parse battery capacity unit: {e}"))
         })?;
 
         let bev = BevEnergyModel::new(
@@ -286,16 +285,15 @@ mod tests {
 
         assert!(
             elec > Energy::ZERO,
-            "elec energy {:?} should be > 0.0",
-            elec
+            "elec energy {elec:?} should be > 0.0"
         );
 
         let soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         let lower_bound = Ratio::new::<uom::si::ratio::percent>(40.0);
         let upper_bound = Ratio::new::<uom::si::ratio::percent>(60.0);
 
-        assert!(soc < upper_bound, "soc {:?} should be < 60.0%", soc);
-        assert!(soc > lower_bound, "soc {:?} should be > 40.0%", soc);
+        assert!(soc < upper_bound, "soc {soc:?} should be < 60.0%");
+        assert!(soc > lower_bound, "soc {soc:?} should be > 40.0%");
     }
 
     #[test]
@@ -320,15 +318,14 @@ mod tests {
             .expect("test invariant failed");
         assert!(
             elec < Energy::ZERO,
-            "elec energy {:?} should be < 0 (regen)",
-            elec
+            "elec energy {elec:?} should be < 0 (regen)"
         );
 
         let soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         let lower_bound = Ratio::new::<uom::si::ratio::percent>(20.0);
         let upper_bound = Ratio::new::<uom::si::ratio::percent>(30.0);
-        assert!(soc < upper_bound, "soc {:?} should be < 30.0%", soc);
-        assert!(soc > lower_bound, "soc {:?} should be > 20.0%", soc);
+        assert!(soc < upper_bound, "soc {soc:?} should be < 30.0%");
+        assert!(soc > lower_bound, "soc {soc:?} should be > 20.0%");
     }
 
     #[test]

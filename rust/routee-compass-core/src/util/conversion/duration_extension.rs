@@ -9,7 +9,7 @@ pub trait DurationExtension {
 impl DurationExtension for serde_json::Value {
     fn as_duration(&self) -> Result<Duration, ConversionError> {
         let d_str = self.as_str().ok_or_else(|| {
-            ConversionError::DecoderError(format!("{:?}", self), String::from("JSON"))
+            ConversionError::DecoderError(format!("{self:?}"), String::from("JSON"))
         })?;
 
         // regex lib recommends not building these within-the-loop, so this is not
@@ -18,7 +18,7 @@ impl DurationExtension for serde_json::Value {
         let duration_regex: Regex = Regex::new(r"^(?<h>\d+):(?<m>\d{2}):(?<s>\d{2})$")?;
         let Some(group) = duration_regex.captures(d_str) else {
             return Err(ConversionError::DecoderError(
-                format!("{:?}", self),
+                format!("{self:?}"),
                 String::from("JSON"),
             ));
         };

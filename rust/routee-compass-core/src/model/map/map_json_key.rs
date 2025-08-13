@@ -27,6 +27,6 @@ impl Display for MapJsonKey {
             I::OriginEdge => "origin_edge",
             I::DestinationEdge => "destination_edge",
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }

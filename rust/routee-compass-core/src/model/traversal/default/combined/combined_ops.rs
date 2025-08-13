@@ -53,8 +53,7 @@ pub fn topological_dependency_sort(
     if !missing_parents.is_empty() {
         let joined = missing_parents.iter().join(",");
         let msg = format!(
-            "the following state variables are required by traversal models but missing: {{{}}}",
-            joined
+            "the following state variables are required by traversal models but missing: {{{joined}}}"
         );
         return Err(TraversalModelError::BuildError(msg));
     }
@@ -64,7 +63,7 @@ pub fn topological_dependency_sort(
     let mut result = vec![];
     while let Some(m_idx) = sort.pop() {
         let model = models.get(m_idx).ok_or_else(|| {
-            TraversalModelError::BuildError(format!("internal error: sort has model index {} which is not found in the model collection", m_idx))
+            TraversalModelError::BuildError(format!("internal error: sort has model index {m_idx} which is not found in the model collection"))
         })?;
         result.push(model.clone());
     }
@@ -79,8 +78,7 @@ pub fn topological_dependency_sort(
     // dependency, in which case the collection will return None and remain non-empty.
     if !sort.is_empty() {
         let msg = format!(
-            "cyclical dependency in traversal model features: {:?}",
-            sort
+            "cyclical dependency in traversal model features: {sort:?}"
         );
         return Err(TraversalModelError::BuildError(msg));
     }
@@ -157,7 +155,7 @@ mod test {
                         .join("+")
                 };
                 let out_name = m.output_features().iter().map(|(n, _)| n).join("");
-                format!("{}->{}", in_names, out_name)
+                format!("{in_names}->{out_name}")
             })
             .collect_vec();
 
@@ -176,7 +174,7 @@ mod test {
                 }
                 "distance+speed->time" => assert!(distance_seen && speed_seen),
                 "grade->elevation" => assert!(grade_seen),
-                other => panic!("unexpected key: '{}'", other),
+                other => panic!("unexpected key: '{other}'"),
             }
         }
     }
@@ -240,7 +238,7 @@ mod test {
                         .join("+")
                 };
                 let out_name = m.output_features().iter().map(|(n, _)| n).join("+");
-                format!("{}->{}", in_names, out_name)
+                format!("{in_names}->{out_name}")
             })
             .collect_vec();
 
@@ -259,7 +257,7 @@ mod test {
                 }
                 "distance+speed->time" => assert!(distance_seen && speed_seen),
                 "grade->elevation" => assert!(grade_seen),
-                other => panic!("unexpected key: '{}'", other),
+                other => panic!("unexpected key: '{other}'"),
             }
         }
     }

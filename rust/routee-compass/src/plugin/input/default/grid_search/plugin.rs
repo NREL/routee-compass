@@ -47,7 +47,7 @@ fn process_grid_search(
 
     let map = grid_search_input
         .as_object()
-        .ok_or_else(|| InputPluginError::UnexpectedQueryStructure(format!("{:?}", input)))?;
+        .ok_or_else(|| InputPluginError::UnexpectedQueryStructure(format!("{input:?}")))?;
     let mut keys: Vec<String> = vec![];
     let mut multiset_input: Vec<Vec<serde_json::Value>> = vec![];
     let mut multiset_indices: Vec<Vec<usize>> = vec![];
@@ -64,7 +64,7 @@ fn process_grid_search(
     // let remove_key = InputField::GridSearch.to_str();
     let mut initial_map = input
         .as_object()
-        .ok_or_else(|| InputPluginError::UnexpectedQueryStructure(format!("{:?}", input)))?
+        .ok_or_else(|| InputPluginError::UnexpectedQueryStructure(format!("{input:?}")))?
         .clone();
     initial_map.remove(InputField::GridSearch.to_str());
     let initial = serde_json::json!(initial_map);

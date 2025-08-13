@@ -11,7 +11,6 @@ use crate::{
             default::{fieldname, time::TimeTraversalConfig},
             TraversalModel, TraversalModelError, TraversalModelService,
         },
-        unit::TimeUnit,
     },
     util::geo::haversine,
 };
@@ -102,8 +101,7 @@ impl TraversalModel for TimeTraversalModel {
         let distance: Length = haversine::coord_distance(&src.coordinate, &dst.coordinate)
             .map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
-                    "could not compute haversine distance between {} and {}: {}",
-                    src, dst, e
+                    "could not compute haversine distance between {src} and {dst}: {e}"
                 ))
             })?;
 

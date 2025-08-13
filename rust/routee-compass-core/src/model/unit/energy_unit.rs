@@ -63,7 +63,7 @@ impl std::fmt::Display for EnergyUnit {
         let s = serde_json::to_string(self)
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -85,7 +85,7 @@ impl FromStr for EnergyUnit {
             "litersgasoline" => Ok(E::LitersGasolineEquivalent),
             "litersdiesel" => Ok(E::LitersDieselEquivalent),
             "gallonsgasolineequivalent" | "gge" => Ok(E::GallonsGasolineEquivalent),
-            _ => Err(format!("unknown energy unit '{}'", s)),
+            _ => Err(format!("unknown energy unit '{s}'")),
         }
     }
 }

@@ -135,8 +135,7 @@ pub trait CompassAppBindings {
             Some(du_str) => {
                 let du = DistanceUnit::from_str(du_str.as_str()).map_err(|_| {
                     CompassAppError::InternalError(format!(
-                        "could not deserialize distance unit '{}'",
-                        du_str
+                        "could not deserialize distance unit '{du_str}'"
                     ))
                 })?;
 

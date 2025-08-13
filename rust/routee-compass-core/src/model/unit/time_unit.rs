@@ -35,7 +35,7 @@ impl std::fmt::Display for TimeUnit {
         let s = serde_json::to_string(self)
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -47,7 +47,7 @@ impl FromStr for TimeUnit {
             "minute" | "minutes" | "min" | "mins" | "m" => Ok(TimeUnit::Minutes),
             "second" | "seconds" | "sec" | "secs" | "s" => Ok(TimeUnit::Seconds),
             "millisecond" | "milliseconds" | "ms" => Ok(TimeUnit::Milliseconds),
-            _ => Err(format!("unknown time unit '{}'", s)),
+            _ => Err(format!("unknown time unit '{s}'")),
         }
     }
 }

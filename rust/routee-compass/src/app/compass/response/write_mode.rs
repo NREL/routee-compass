@@ -55,6 +55,6 @@ fn open_append(path: &Path) -> Result<File, CompassAppError> {
 
 fn create_file(path: &Path) -> Result<File, CompassConfigurationError> {
     File::create(path).map_err(|e| {
-        CompassConfigurationError::UserConfigurationError(format!("Could not create file: {}", e))
+        CompassConfigurationError::UserConfigurationError(format!("Could not create file: {e}"))
     })
 }

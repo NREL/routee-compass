@@ -40,7 +40,7 @@ impl PhevEnergyModel {
             battery_capacity,
         )
         .map_err(|e| {
-            TraversalModelError::BuildError(format!("Error building PHEV traversal model: {}", e))
+            TraversalModelError::BuildError(format!("Error building PHEV traversal model: {e}"))
         })?;
         Ok(Self {
             charge_sustain_model,
@@ -65,8 +65,7 @@ impl TryFrom<&Value> for PhevEnergyModel {
     fn try_from(value: &Value) -> Result<Self, Self::Error> {
         let config: PhevEnergyModelConfig = serde_json::from_value(value.clone()).map_err(|e| {
             TraversalModelError::BuildError(format!(
-                "failure reading phev energy model configuration: {}",
-                e
+                "failure reading phev energy model configuration: {e}"
             ))
         })?;
         let charge_depleting_record = PredictionModelRecord::try_from(&config.charge_depleting)?;
@@ -432,12 +431,11 @@ mod test {
         let soc = state_model
             .get_ratio(&state, fieldname::TRIP_SOC)
             .expect("test invariant failed");
-        assert!(elec > Energy::ZERO, "elec energy {:?} should be > 0", elec);
+        assert!(elec > Energy::ZERO, "elec energy {elec:?} should be > 0");
 
         assert!(
             soc < Ratio::new::<uom::si::ratio::percent>(100.0),
-            "soc {:?} should be < 100%",
-            soc
+            "soc {soc:?} should be < 100%"
         );
     }
 
@@ -485,11 +483,9 @@ mod test {
 
         assert!(
             elec == bat_cap,
-            "elec energy {:?} should be == battery capacity {:?}",
-            elec,
-            bat_cap
+            "elec energy {elec:?} should be == battery capacity {bat_cap:?}"
         );
-        assert!(soc == Ratio::ZERO, "soc {:?} should be 0", soc);
+        assert!(soc == Ratio::ZERO, "soc {soc:?} should be 0");
 
         // and then traverse the same distance but this time we should only use liquid_fuel energy
         phev_traversal(

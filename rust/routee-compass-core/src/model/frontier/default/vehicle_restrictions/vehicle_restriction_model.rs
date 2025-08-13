@@ -125,8 +125,7 @@ mod test {
             .build(&conf)
             .unwrap_or_else(|e| {
                 panic!(
-                    "failed to read test CSV {} due to: {}",
-                    restriction_filename, e
+                    "failed to read test CSV {restriction_filename} due to: {e}"
                 )
             });
         let state_model = Arc::new(StateModel::new(vec![]));
@@ -152,7 +151,7 @@ mod test {
         let mut path = test_dir();
         path.push(filename);
         path.to_str()
-            .unwrap_or_else(|| panic!("test invariant failed, unable to load {}", filename))
+            .unwrap_or_else(|| panic!("test invariant failed, unable to load {filename}"))
             .to_string()
     }
 

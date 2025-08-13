@@ -18,6 +18,6 @@ impl Display for UnitCodecType {
             UnitCodecType::UnsignedInteger => String::from("unsigned_integer"),
             UnitCodecType::Boolean => String::from("boolean"),
         };
-        write!(f, "{}", msg)
+        write!(f, "{msg}")
     }
 }
