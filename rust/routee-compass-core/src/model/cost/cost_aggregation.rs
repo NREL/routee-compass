@@ -46,37 +46,49 @@ mod test {
 
     #[test]
     fn test_agg_sum_empty() {
-        let result = CostAggregation::Sum.aggregate(&[]).expect("sum should not fail over any real numbers");
+        let result = CostAggregation::Sum
+            .aggregate(&[])
+            .expect("sum should not fail over any real numbers");
         assert_eq!(result, Cost::ZERO)
     }
 
     #[test]
     fn test_agg_sum_singleton() {
-        let result = CostAggregation::Sum.aggregate(&[("a", Cost::new(1.0))]).expect("sum should not fail over any real numbers");
+        let result = CostAggregation::Sum
+            .aggregate(&[("a", Cost::new(1.0))])
+            .expect("sum should not fail over any real numbers");
         assert_eq!(result, Cost::ONE)
     }
 
     #[test]
     fn test_agg_sum_pair() {
-        let result = CostAggregation::Sum.aggregate(&[("a", Cost::new(0.5)),("b", Cost::new(0.5))]).expect("sum should not fail over any real numbers");
+        let result = CostAggregation::Sum
+            .aggregate(&[("a", Cost::new(0.5)), ("b", Cost::new(0.5))])
+            .expect("sum should not fail over any real numbers");
         assert_eq!(result, Cost::ONE)
     }
 
-#[test]
+    #[test]
     fn test_agg_mul_empty() {
-        let result = CostAggregation::Mul.aggregate(&[]).expect("mul should not fail over any real numbers");
+        let result = CostAggregation::Mul
+            .aggregate(&[])
+            .expect("mul should not fail over any real numbers");
         assert_eq!(result, Cost::ZERO)
     }
 
     #[test]
     fn test_agg_mul_singleton() {
-        let result = CostAggregation::Mul.aggregate(&[("a", Cost::new(1.0))]).expect("mul should not fail over any real numbers");
+        let result = CostAggregation::Mul
+            .aggregate(&[("a", Cost::new(1.0))])
+            .expect("mul should not fail over any real numbers");
         assert_eq!(result, Cost::ONE)
     }
 
     #[test]
     fn test_agg_mul_pair() {
-        let result = CostAggregation::Mul.aggregate(&[("a", Cost::new(0.5)),("b", Cost::new(0.5))]).expect("mul should not fail over any real numbers");
+        let result = CostAggregation::Mul
+            .aggregate(&[("a", Cost::new(0.5)), ("b", Cost::new(0.5))])
+            .expect("mul should not fail over any real numbers");
         assert_eq!(result, Cost::new(0.25))
     }
 }
