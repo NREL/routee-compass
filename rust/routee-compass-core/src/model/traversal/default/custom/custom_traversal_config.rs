@@ -22,6 +22,6 @@ pub struct CustomTraversalConfig {
 impl std::fmt::Display for CustomTraversalConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let output = serde_json::to_string_pretty(self).unwrap_or_default();
-        write!(f, "{}", output)
+        write!(f, "{output}")
     }
 }

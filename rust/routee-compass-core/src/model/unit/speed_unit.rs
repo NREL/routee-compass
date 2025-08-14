@@ -50,8 +50,7 @@ impl FromStr for SpeedUnit {
             "kilometers/hour" => Ok(SpeedUnit::KPH),
             "meters/second" => Ok(SpeedUnit::MPS),
             _ => Err(format!(
-                "expected speed unit as 'kph', 'mph', 'mps', or in the format '<distance unit>/<time unit>', found: {}",
-                s
+                "expected speed unit as 'kph', 'mph', 'mps', or in the format '<distance unit>/<time unit>', found: {s}"
             )),
         }
     }

@@ -39,7 +39,7 @@ impl std::fmt::Display for DistanceUnit {
         let s = serde_json::to_string(self)
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -54,7 +54,7 @@ impl FromStr for DistanceUnit {
             "miles" | "mile" => Ok(D::Miles),
             "inches" | "inch" | "in" => Ok(D::Inches),
             "feet" | "ft" => Ok(D::Feet),
-            _ => Err(format!("unknown distance unit '{}'", s)),
+            _ => Err(format!("unknown distance unit '{s}'")),
         }
     }
 }

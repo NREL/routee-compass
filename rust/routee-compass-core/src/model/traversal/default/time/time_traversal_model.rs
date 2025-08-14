@@ -8,16 +8,24 @@ use crate::{
         network::{Edge, Vertex},
         state::{InputFeature, StateFeature, StateModel, StateVariable},
         traversal::{
-            default::fieldname, TraversalModel, TraversalModelError, TraversalModelService,
+            default::{fieldname, time::TimeTraversalConfig},
+            TraversalModel, TraversalModelError, TraversalModelService,
         },
-        unit::TimeUnit,
     },
     util::geo::haversine,
 };
 use std::sync::Arc;
 
 #[derive(Clone, Debug)]
-pub struct TimeTraversalModel {}
+pub struct TimeTraversalModel {
+    config: TimeTraversalConfig,
+}
+
+impl TimeTraversalModel {
+    pub fn new(config: TimeTraversalConfig) -> TimeTraversalModel {
+        TimeTraversalModel { config }
+    }
+}
 
 impl TraversalModelService for TimeTraversalModel {
     fn build(
@@ -52,7 +60,7 @@ impl TraversalModel for TimeTraversalModel {
                 StateFeature::Time {
                     value: Time::ZERO,
                     accumulator: false,
-                    output_unit: Some(TimeUnit::default()),
+                    output_unit: Some(self.config.time_unit),
                 },
             ),
             (
@@ -60,7 +68,7 @@ impl TraversalModel for TimeTraversalModel {
                 StateFeature::Time {
                     value: Time::ZERO,
                     accumulator: true,
-                    output_unit: Some(TimeUnit::default()),
+                    output_unit: Some(self.config.time_unit),
                 },
             ),
         ]
@@ -93,8 +101,7 @@ impl TraversalModel for TimeTraversalModel {
         let distance: Length = haversine::coord_distance(&src.coordinate, &dst.coordinate)
             .map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
-                    "could not compute haversine distance between {} and {}: {}",
-                    src, dst, e
+                    "could not compute haversine distance between {src} and {dst}: {e}"
                 ))
             })?;
 

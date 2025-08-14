@@ -13,8 +13,7 @@ impl InputPluginBuilder for InjectPluginBuilder {
         let config: InjectPluginConfig = serde_json::from_value(parameters.clone())?;
         let plugin = config.build().map_err(|e| {
             CompassConfigurationError::UserConfigurationError(format!(
-                "failed to build inject plugin from configuration: {}",
-                e
+                "failed to build inject plugin from configuration: {e}"
             ))
         })?;
         Ok(Arc::new(plugin))

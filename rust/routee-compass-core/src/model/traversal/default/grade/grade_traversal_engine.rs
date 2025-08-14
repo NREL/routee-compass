@@ -46,8 +46,7 @@ impl GradeTraversalEngine {
             Some(table) => {
                 let grade: &Ratio = table.get(edge_id.as_usize()).ok_or_else(|| {
                     TraversalModelError::TraversalModelFailure(format!(
-                        "missing index {} from grade table",
-                        edge_id
+                        "missing index {edge_id} from grade table"
                     ))
                 })?;
                 Ok(*grade)

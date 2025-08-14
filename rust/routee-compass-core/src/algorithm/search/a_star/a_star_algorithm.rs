@@ -27,10 +27,7 @@ pub fn run_vertex_oriented(
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     log::debug!(
-        "run_vertex_oriented: source: {}, target: {:?}, direction: {:?}",
-        source,
-        target,
-        direction
+        "run_vertex_oriented: source: {source}, target: {target:?}, direction: {direction:?}"
     );
     if target == Some(source) {
         return Ok(SearchResult::default());
@@ -85,8 +82,7 @@ pub fn run_vertex_oriented(
                 .get(&current_label)
                 .ok_or_else(|| {
                     SearchError::InternalError(format!(
-                        "expected label {:?} missing from solution",
-                        current_label
+                        "expected label {current_label:?} missing from solution"
                     ))
                 })?
                 .edge_traversal
@@ -424,8 +420,7 @@ mod tests {
             let route_edges: Vec<EdgeId> = route.iter().map(|r| r.edge_id).collect();
             assert_eq!(
                 route_edges, expected_route,
-                "route did not match expected: {:?} {:?}",
-                route_edges, expected_route
+                "route did not match expected: {route_edges:?} {expected_route:?}"
             );
         }
     }

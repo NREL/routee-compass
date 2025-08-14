@@ -55,7 +55,7 @@ impl GeomApp {
             let result = self.geoms.get(edge_idx).cloned().ok_or_else(|| {
                 std::io::Error::new(
                     ErrorKind::InvalidData,
-                    format!("EdgeId {} is out of bounds, should be in range [0, )", idx),
+                    format!("EdgeId {idx} is out of bounds, should be in range [0, )"),
                 )
             });
             result
@@ -68,10 +68,7 @@ impl GeomApp {
             None,
         )
         .map_err(|e| {
-            CompassAppError::BuildFailure(format!(
-                "failure reading linestring file {}: {}",
-                file, e
-            ))
+            CompassAppError::BuildFailure(format!("failure reading linestring file {file}: {e}"))
         })?;
         eprintln!();
         Ok(result)

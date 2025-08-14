@@ -29,8 +29,7 @@ impl LabelModelBuilder for SOCLabelModelBuilder {
             .get_config_serde(&"soc_label_config", &"soc_label")
             .map_err(|e| {
                 LabelModelError::LabelModelError(format!(
-                    "Failed to deserialize SOCLabelConfig: {}",
-                    e
+                    "Failed to deserialize SOCLabelConfig: {e}"
                 ))
             })?;
 

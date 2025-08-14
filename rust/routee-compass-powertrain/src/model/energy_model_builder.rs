@@ -29,16 +29,14 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 .get_config_string(&"name", &parent_key)
                 .map_err(|e| {
                     TraversalModelError::BuildError(format!(
-                        "vehicle model missing 'name' field: {}",
-                        e
+                        "vehicle model missing 'name' field: {e}"
                     ))
                 })?;
             let vehicle_type = vehicle_config
                 .get_config_string(&"type", &parent_key)
                 .map_err(|e| {
                     TraversalModelError::BuildError(format!(
-                        "vehicle model missing 'type' field: {}",
-                        e
+                        "vehicle model missing 'type' field: {e}"
                     ))
                 })?;
             let service: Arc<dyn TraversalModelService> = match vehicle_type.as_str() {
@@ -47,8 +45,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                 "phev" => Arc::new(PhevEnergyModel::try_from(&vehicle_config)?),
                 _ => {
                     return Err(TraversalModelError::BuildError(format!(
-                        "unknown vehicle model type: {}",
-                        vehicle_type
+                        "unknown vehicle model type: {vehicle_type}"
                     )));
                 }
             };

@@ -130,6 +130,6 @@ impl InjectPluginConfig {
 fn get_id(row: &Feature) -> String {
     row.id
         .as_ref()
-        .map(|i| format!("{:?}", i))
+        .map(|i| format!("{i:?}"))
         .unwrap_or_default()
 }

@@ -30,8 +30,7 @@ pub fn find_min_energy_rate(
                 Some(speed_unit) => get_speed_sample_values(speed_unit),
                 None => {
                     return Err(TraversalModelError::TraversalModelFailure(format!(
-                        "{} Unit must be set for speed input feature {} but got None",
-                        MIN_ENERGY_ERROR_MESSAGE, input_feature
+                        "{MIN_ENERGY_ERROR_MESSAGE} Unit must be set for speed input feature {input_feature} but got None"
                     )))
                 }
             },
@@ -39,15 +38,13 @@ pub fn find_min_energy_rate(
                 Some(grade_unit) => get_grade_sample_values(grade_unit),
                 None => {
                     return Err(TraversalModelError::TraversalModelFailure(format!(
-                        "{} Unit must be set for grade input feature {} but got None",
-                        MIN_ENERGY_ERROR_MESSAGE, input_feature
+                        "{MIN_ENERGY_ERROR_MESSAGE} Unit must be set for grade input feature {input_feature} but got None"
                     )))
                 }
             },
             _ => {
                 return Err(TraversalModelError::TraversalModelFailure(format!(
-                    "{} got an unexpected input feature in the smartcore model prediction {}",
-                    MIN_ENERGY_ERROR_MESSAGE, input_feature
+                    "{MIN_ENERGY_ERROR_MESSAGE} got an unexpected input feature in the smartcore model prediction {input_feature}"
                 )))
             }
         };
@@ -57,7 +54,7 @@ pub fn find_min_energy_rate(
     for feature_vec in sample_values.into_iter().multi_cartesian_product() {
         // Predict energy rate
         let (energy_rate, _) = model.predict(&feature_vec).map_err(|e| {
-            TraversalModelError::BuildError(format!("{} {}", MIN_ENERGY_ERROR_MESSAGE, e))
+            TraversalModelError::BuildError(format!("{MIN_ENERGY_ERROR_MESSAGE} {e}"))
         })?;
 
         if energy_rate < minimum_energy_rate {

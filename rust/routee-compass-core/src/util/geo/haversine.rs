@@ -21,16 +21,16 @@ pub fn haversine_distance(
     dst_y: f32,
 ) -> Result<Length, String> {
     if !(-180.0..=180.0).contains(&src_x) {
-        return Err(format!("src x value not in range [-180, 180]: {}", src_x));
+        return Err(format!("src x value not in range [-180, 180]: {src_x}"));
     }
     if !(-180.0..=180.0).contains(&dst_x) {
-        return Err(format!("dst x value not in range [-180, 180]: {}", dst_x));
+        return Err(format!("dst x value not in range [-180, 180]: {dst_x}"));
     }
     if !(-90.0..=90.0).contains(&src_y) {
-        return Err(format!("src y value not in range [-90, 90]: {}", src_y));
+        return Err(format!("src y value not in range [-90, 90]: {src_y}"));
     }
     if !(-90.0..=90.0).contains(&dst_y) {
-        return Err(format!("dst y value not in range [-90, 90]: {}", dst_y));
+        return Err(format!("dst y value not in range [-90, 90]: {dst_y}"));
     }
 
     let lat1 = src_y.to_radians();

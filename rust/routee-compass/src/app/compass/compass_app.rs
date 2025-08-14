@@ -112,7 +112,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     /// # Arguments
     ///
     /// * `pair` - a tuple containing a config object (such as a parsed TOML file) and
-    ///            a [`super::config::compass_app_builder::CompassAppBuilder`] instance
+    ///   a [`super::config::compass_app_builder::CompassAppBuilder`] instance
     ///
     /// # Returns
     ///
@@ -211,7 +211,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
         let map_model_config =
             MapModelConfig::try_from(map_model_json).map_err(CompassAppError::BuildFailure)?;
         let map_model = Arc::new(MapModel::new(graph.clone(), map_model_config).map_err(|e| {
-            CompassAppError::BuildFailure(format!("unable to load MapModel from config: {}", e))
+            CompassAppError::BuildFailure(format!("unable to load MapModel from config: {e}"))
         })?);
         let map_dur = to_std(Local::now() - map_start)?;
         log::info!(
@@ -329,7 +329,7 @@ impl CompassApp {
             .iter()
             .map(|qs| qs.len())
             .collect::<Vec<_>>();
-        log::info!("queries assigned per executor: {:?}", proc_batch_sizes);
+        log::info!("queries assigned per executor: {proc_batch_sizes:?}");
 
         // set up search progress bar
         let num_balanced_inputs = load_balanced_inputs
@@ -343,7 +343,7 @@ impl CompassApp {
             .desc("search")
             .build()
             .map_err(|e| {
-                CompassAppError::InternalError(format!("could not build progress bar: {}", e))
+                CompassAppError::InternalError(format!("could not build progress bar: {e}"))
             })?;
         let search_pb_shared = Arc::new(Mutex::new(search_pb));
 
@@ -410,8 +410,7 @@ fn apply_input_plugins(
                 .build()
                 .map_err(|e| {
                     CompassAppError::InternalError(format!(
-                        "could not build input plugin progress bar: {}",
-                        e
+                        "could not build input plugin progress bar: {e}"
                     ))
                 })?,
         ));
@@ -492,8 +491,7 @@ pub fn run_single_query(
 fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
     dur.to_std().map_err(|e| {
         CompassAppError::InternalError(format!(
-            "unexpected internal error mapping chrono duration to std duration: {}",
-            e
+            "unexpected internal error mapping chrono duration to std duration: {e}"
         ))
     })
 }

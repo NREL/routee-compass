@@ -11,10 +11,7 @@ impl TraversalModelBuilder for GradeTraversalBuilder {
     ) -> Result<Arc<dyn TraversalModelService>, TraversalModelError> {
         let config: GradeConfiguration =
             serde_json::from_value(parameters.clone()).map_err(|e| {
-                TraversalModelError::BuildError(format!(
-                    "failed to read grade configuration: {}",
-                    e
-                ))
+                TraversalModelError::BuildError(format!("failed to read grade configuration: {e}"))
             })?;
         let engine = Arc::new(GradeTraversalEngine::new(&config)?);
         let service = Arc::new(GradeTraversalService::new(engine));

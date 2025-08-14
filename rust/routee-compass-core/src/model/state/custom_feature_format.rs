@@ -39,7 +39,7 @@ impl Display for CustomFeatureFormat {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let initial = self
             .initial()
-            .map(|i| format!("{}", i))
+            .map(|i| format!("{i}"))
             .unwrap_or_else(|_| String::from("<invalid initial argument>"));
         write!(f, "{}: {}", self.name(), initial)
     }

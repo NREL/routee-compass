@@ -54,7 +54,7 @@ fn read_linestrings(
         None,
     )
     .map_err(|e: std::io::Error| {
-        MapError::BuildError(format!("error loading {}: {}", geometry_input_file, e))
+        MapError::BuildError(format!("error loading {geometry_input_file}: {e}"))
     })?
     .to_vec();
     eprintln!();

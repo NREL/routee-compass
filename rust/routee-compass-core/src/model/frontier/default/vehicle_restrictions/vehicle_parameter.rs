@@ -30,19 +30,19 @@ impl VehicleParameter {
 impl std::fmt::Display for VehicleParameter {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            VehicleParameter::Height { value } => write!(f, "height: {:?}", value),
-            VehicleParameter::Width { value } => write!(f, "width: {:?}", value),
+            VehicleParameter::Height { value } => write!(f, "height: {value:?}"),
+            VehicleParameter::Width { value } => write!(f, "width: {value:?}"),
             VehicleParameter::TotalLength { value } => {
-                write!(f, "total length: {:?}", value)
+                write!(f, "total length: {value:?}")
             }
             VehicleParameter::TrailerLength { value } => {
-                write!(f, "trailer length: {:?}", value)
+                write!(f, "trailer length: {value:?}")
             }
             VehicleParameter::TotalWeight { value } => {
-                write!(f, "total weight: {:?}", value)
+                write!(f, "total weight: {value:?}")
             }
             VehicleParameter::WeightPerAxle { value } => {
-                write!(f, "weight per axle: {:?}", value)
+                write!(f, "weight per axle: {value:?}")
             }
         }
     }

@@ -9,7 +9,7 @@ pub trait DurationExtension {
 
 fn pad_zero(n: u64) -> String {
     if n < 10 {
-        format!("0{}", n)
+        format!("0{n}")
     } else {
         n.to_string()
     }
@@ -17,9 +17,9 @@ fn pad_zero(n: u64) -> String {
 
 fn pad_millis(n: u64) -> String {
     if n < 10 {
-        format!("00{}", n)
+        format!("00{n}")
     } else if n < 100 {
-        format!("0{}", n)
+        format!("0{n}")
     } else {
         n.to_string()
     }
@@ -35,7 +35,7 @@ impl DurationExtension for Duration {
         let d_str = if d == 0 {
             String::from("")
         } else {
-            format!("+{}.", d)
+            format!("+{d}.")
         };
         format!(
             "{}{}:{}:{}.{}",

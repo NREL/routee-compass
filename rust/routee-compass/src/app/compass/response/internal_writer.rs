@@ -20,7 +20,7 @@ impl InternalWriter {
             .unwrap_or_else(|| String::from(""));
 
         self.write(header.as_bytes()).map(|_| {}).map_err(|e| {
-            CompassAppError::InternalError(format!("Failure writing header to file: {}", e))
+            CompassAppError::InternalError(format!("Failure writing header to file: {e}"))
         })
     }
 
@@ -28,7 +28,7 @@ impl InternalWriter {
         match self {
             InternalWriter::File { ref mut file } => {
                 file.flush().map_err(|e| {
-                    CompassAppError::InternalError(format!("failure flushing output {}", e))
+                    CompassAppError::InternalError(format!("failure flushing output {e}"))
                 })?;
                 Ok(())
             }
@@ -37,10 +37,7 @@ impl InternalWriter {
                 // Subsequent attempts to write to this file will panic!
                 let _ = encoder.flush();
                 encoder.try_finish().map_err(|e| {
-                    CompassAppError::InternalError(format!(
-                        "failure finishing encoded output {}",
-                        e
-                    ))
+                    CompassAppError::InternalError(format!("failure finishing encoded output {e}"))
                 })?;
                 Ok(())
             }

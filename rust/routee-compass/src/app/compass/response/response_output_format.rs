@@ -33,7 +33,7 @@ impl ResponseOutputFormat {
                 } else {
                     mapping.keys().rev().join(",")
                 };
-                Some(format!("{}\n", header))
+                Some(format!("{header}\n"))
             }
         }
     }

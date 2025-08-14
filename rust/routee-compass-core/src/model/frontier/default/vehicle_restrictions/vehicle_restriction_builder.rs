@@ -58,8 +58,7 @@ pub fn vehicle_restriction_lookup_from_file(
     )
     .map_err(|e| {
         FrontierModelError::BuildError(format!(
-            "Could not load vehicle restriction file {:?}: {}",
-            vehicle_restriction_input_file, e
+            "Could not load vehicle restriction file {vehicle_restriction_input_file:?}: {e}"
         ))
     })?
     .to_vec();

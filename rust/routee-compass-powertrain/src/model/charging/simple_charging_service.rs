@@ -59,8 +59,7 @@ impl TraversalModelService for SimpleChargingService {
                 .map(|s| {
                     PowerType::from_str(s).map_err(|_| {
                         TraversalModelError::BuildError(format!(
-                            "Invalid power type: '{}'. Valid power types are: l1, l2, dcfc",
-                            s
+                            "Invalid power type: '{s}'. Valid power types are: l1, l2, dcfc"
                         ))
                     })
                 })

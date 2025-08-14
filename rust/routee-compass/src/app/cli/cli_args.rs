@@ -32,8 +32,7 @@ impl CliArgs {
             (Some(chunksize), _) if chunksize < 1 => {
                 Err(CompassAppError::CompassConfigurationError(
                     CompassConfigurationError::UserConfigurationError(format!(
-                        "chunksize must be positive, found {}",
-                        chunksize
+                        "chunksize must be positive, found {chunksize}"
                     )),
                 ))
             }
@@ -49,8 +48,7 @@ impl CliArgs {
                     Ok(Some(c as usize))
                 } else {
                     Err(CompassAppError::CompassFailure(format!(
-                        "chunksize must be positive, found {}",
-                        c
+                        "chunksize must be positive, found {c}"
                     )))
                 }
             }

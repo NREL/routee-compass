@@ -26,7 +26,7 @@ impl std::fmt::Display for WeightUnit {
         let s = serde_json::to_string(self)
             .map_err(|_| std::fmt::Error)?
             .replace('\"', "");
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 
@@ -37,7 +37,7 @@ impl FromStr for WeightUnit {
             "pound" | "pounds" | "lb" | "lbs" => Ok(Self::Pounds),
             "ton" | "tons" => Ok(Self::Tons),
             "kilogram" | "kilograms" | "kg" | "kgs" => Ok(Self::Kg),
-            _ => Err(format!("unknown weight unit '{}'", s)),
+            _ => Err(format!("unknown weight unit '{s}'")),
         }
     }
 }

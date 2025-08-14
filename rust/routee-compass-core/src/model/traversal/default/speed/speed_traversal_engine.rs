@@ -52,10 +52,10 @@ pub fn get_max_speed(speed_table: &[Velocity]) -> Result<Velocity, TraversalMode
             });
 
     if count == 0 {
-        let msg = format!("parsed {} entries for speed table", count);
+        let msg = format!("parsed {count} entries for speed table");
         Err(TraversalModelError::BuildError(msg))
     } else if max_speed == Velocity::ZERO {
-        let msg = format!("max speed was zero in speed table with {} entries", count);
+        let msg = format!("max speed was zero in speed table with {count} entries");
         Err(TraversalModelError::BuildError(msg))
     } else {
         Ok(max_speed)

@@ -71,7 +71,7 @@ impl TraversalModel for ElevationTraversalModel {
         let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
         let grade = state_model.get_ratio(state, fieldname::EDGE_GRADE)?;
         let elevation_change = ElevationChange::new(distance, grade).map_err(|e| {
-            TraversalModelError::TraversalModelFailure(format!("Elevation change error: {}", e))
+            TraversalModelError::TraversalModelFailure(format!("Elevation change error: {e}"))
         })?;
         elevation_change.add_elevation_to_state(state, state_model)?;
         Ok(())

@@ -33,8 +33,7 @@ impl FrontierModelService for VehicleRestrictionFrontierService {
         let vehicle_parameter_configs: Vec<VehicleParameterConfig> =
             serde_json::from_value(vp_json.clone()).map_err(|e| {
                 FrontierModelError::BuildError(format!(
-                    "Unable to deserialize `vehicle_parameters` key: {}",
-                    e
+                    "Unable to deserialize `vehicle_parameters` key: {e}"
                 ))
             })?;
         let vehicle_parameters: Vec<VehicleParameter> = vehicle_parameter_configs

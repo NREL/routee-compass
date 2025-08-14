@@ -14,8 +14,7 @@ pub fn read_bools(
     let rows =
         read_utils::from_csv::<BoolRow>(&file, true, Some(bar_builder), None).map_err(|e| {
             TraversalModelError::BuildError(format!(
-                "failure reading custom input file {}: {}",
-                file, e
+                "failure reading custom input file {file}: {e}"
             ))
         })?;
     let values = rows
@@ -34,8 +33,7 @@ pub fn read_state_variables(
     let rows =
         read_utils::from_csv::<F64Row>(&file, true, Some(bar_builder), None).map_err(|e| {
             TraversalModelError::BuildError(format!(
-                "failure reading custom input file {}: {}",
-                file, e
+                "failure reading custom input file {file}: {e}"
             ))
         })?;
     let values = rows

@@ -14,8 +14,7 @@ impl TraversalModelBuilder for CustomTraversalBuilder {
         let config: CustomTraversalConfig =
             serde_json::from_value(params.clone()).map_err(|e| {
                 TraversalModelError::BuildError(format!(
-                    "failure building custom traversal model service: {}",
-                    e
+                    "failure building custom traversal model service: {e}"
                 ))
             })?;
 

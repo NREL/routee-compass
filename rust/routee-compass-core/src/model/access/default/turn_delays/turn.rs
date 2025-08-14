@@ -36,7 +36,7 @@ impl Turn {
             160..=180 => Ok(Turn::UTurn),
             _ => Err(AccessModelError::RuntimeError {
                 name: String::from("turn delays"),
-                error: format!("Angle {0} out of range of -180 to 180", angle),
+                error: format!("Angle {angle} out of range of -180 to 180"),
             }),
         }
     }

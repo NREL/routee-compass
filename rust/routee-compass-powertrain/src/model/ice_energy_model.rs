@@ -40,8 +40,7 @@ impl TryFrom<&Value> for IceEnergyModel {
     fn try_from(value: &Value) -> Result<Self, Self::Error> {
         let config: PredictionModelConfig = serde_json::from_value(value.clone()).map_err(|e| {
             TraversalModelError::BuildError(format!(
-                "failure reading prediction model configuration: {}",
-                e
+                "failure reading prediction model configuration: {e}"
             ))
         })?;
         let prediction_model = PredictionModelRecord::try_from(&config)?;

@@ -17,14 +17,12 @@ impl PredictionModel for SmartcoreModel {
     ) -> Result<(f64, EnergyRateUnit), TraversalModelError> {
         let x = DenseMatrix::from_2d_vec(&vec![feature_vector.to_vec()]).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
-                "unable to set up prediction input vector: {}",
-                e
+                "unable to set up prediction input vector: {e}"
             ))
         })?;
         let y = self.rf.predict(&x).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
-                "failure running underlying Smartcore random forest energy prediction: {}",
-                e
+                "failure running underlying Smartcore random forest energy prediction: {e}"
             ))
         })?;
 

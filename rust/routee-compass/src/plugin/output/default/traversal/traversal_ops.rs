@@ -28,8 +28,7 @@ pub fn create_tree_geojson(
                 .cloned()
                 .map_err(|e| {
                     OutputPluginError::OutputPluginFailed(format!(
-                        "failure creating tree GeoJSON: {}",
-                        e
+                        "failure creating tree GeoJSON: {e}"
                     ))
                 })
                 .and_then(|g| {
@@ -65,8 +64,7 @@ pub fn create_route_geojson(
         .map(|t| {
             let g = map_model.get(&t.edge_id).cloned().map_err(|e| {
                 OutputPluginError::OutputPluginFailed(format!(
-                    "failure building route geojson: {}",
-                    e
+                    "failure building route geojson: {e}"
                 ))
             })?;
             let geojson_feature =
@@ -95,16 +93,14 @@ pub fn create_geojson_feature(
         .serialize_cost(&t.result_state, state_model.clone())
         .map_err(|e| {
             OutputPluginError::OutputPluginFailed(format!(
-                "failure serializing cost for geojson feature: {}",
-                e
+                "failure serializing cost for geojson feature: {e}"
             ))
         })?;
 
     let serialized_traversal = match serde_json::to_value(t).map(|v| v.as_object().cloned()) {
         Ok(Some(obj)) => Ok(json![obj]),
         Ok(None) => Err(OutputPluginError::InternalError(format!(
-            "serialized EdgeTraversal was not a JSON object for {}",
-            t
+            "serialized EdgeTraversal was not a JSON object for {t}"
         ))),
         Err(err) => Err(OutputPluginError::JsonError { source: err }),
     }?;
@@ -159,8 +155,7 @@ pub fn create_route_linestring(
         .map(|eid| {
             let geom = map_model.get(eid).map_err(|e| {
                 OutputPluginError::OutputPluginFailed(format!(
-                    "failure building route linestring: {}",
-                    e
+                    "failure building route linestring: {e}"
                 ))
             });
             geom
@@ -184,7 +179,7 @@ pub fn create_tree_multilinestring(
         .iter()
         .map(|eid| {
             let geom = map_model.get(eid).map_err(|e| {
-                OutputPluginError::OutputPluginFailed(format!("failure building tree WKT: {}", e))
+                OutputPluginError::OutputPluginFailed(format!("failure building tree WKT: {e}"))
             });
             geom.cloned()
         })
@@ -216,8 +211,7 @@ pub fn create_tree_multipoint(
                 .map(|l| {
                     l.points().next_back().ok_or_else(|| {
                         OutputPluginError::OutputPluginFailed(format!(
-                            "linestring is invalid for edge_id {}",
-                            eid
+                            "linestring is invalid for edge_id {eid}"
                         ))
                     })
                 });

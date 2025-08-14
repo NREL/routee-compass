@@ -24,7 +24,7 @@ impl std::fmt::Display for ComparisonOperation {
             ComparisonOperation::LessThanOrEqual => "<=".to_string(),
             ComparisonOperation::GreaterThanOrEqual => ">=".to_string(),
         };
-        write!(f, "{}", s)
+        write!(f, "{s}")
     }
 }
 

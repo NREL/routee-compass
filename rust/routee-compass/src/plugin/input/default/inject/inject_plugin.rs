@@ -62,8 +62,7 @@ pub fn process_inject(
             let point = geo::Geometry::Point(geo::Point(coord));
             let mut intersect_iter = values.intersection(&point).map_err(|e| {
                 InputPluginError::InputPluginFailed(format!(
-                    "failure while intersecting spatial inject data: {}",
-                    e
+                    "failure while intersecting spatial inject data: {e}"
                 ))
             })?;
             match (intersect_iter.next(), default) {

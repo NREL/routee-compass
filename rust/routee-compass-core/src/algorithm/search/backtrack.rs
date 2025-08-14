@@ -53,15 +53,13 @@ pub fn label_oriented_route(
         let first_visit = visited.insert(current_vertex);
         if !first_visit {
             return Err(SearchError::InternalError(format!(
-                "loop in search result, vertex {:?} visited more than once",
-                current_vertex
+                "loop in search result, vertex {current_vertex:?} visited more than once"
             )));
         }
 
         let branch = solution.get(current_label).ok_or_else(|| {
             SearchError::InternalError(format!(
-                "label {:?} not found in solution tree during backtrack",
-                current_label
+                "label {current_label:?} not found in solution tree during backtrack"
             ))
         })?;
 

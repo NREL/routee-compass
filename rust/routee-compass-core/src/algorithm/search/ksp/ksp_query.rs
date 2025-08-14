@@ -20,8 +20,7 @@ impl<'a> KspQuery<'a> {
                 .as_u64()
                 .ok_or_else(|| {
                     SearchError::BuildError(format!(
-                        "user supplied k value {} is not an integer",
-                        k_json
+                        "user supplied k value {k_json} is not an integer"
                     ))
                 })
                 .map(|k_u64| k_u64 as usize),

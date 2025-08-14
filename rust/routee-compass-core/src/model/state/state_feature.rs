@@ -67,7 +67,7 @@ impl StateFeature {
             StateFeature::Custom { format, .. } => Ok(format),
             _ => Err(StateModelError::UnexpectedFeatureType(
                 "Expected Custom feature type".to_string(),
-                format!("Got: {:?}", self),
+                format!("Got: {self:?}"),
             )),
         }
     }
@@ -130,8 +130,7 @@ impl Display for StateFeature {
             } => {
                 write!(
                     f,
-                    "Distance: {:?} (Accumulator: {}, Output Unit: {:?})",
-                    value, accumulator, output_unit
+                    "Distance: {value:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
                 )
             }
             StateFeature::Time {
@@ -141,8 +140,7 @@ impl Display for StateFeature {
             } => {
                 write!(
                     f,
-                    "Time: {:?} (Accumulator: {}, Output Unit: {:?})",
-                    value, accumulator, output_unit
+                    "Time: {value:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
                 )
             }
             StateFeature::Speed {
@@ -152,8 +150,7 @@ impl Display for StateFeature {
             } => {
                 write!(
                     f,
-                    "Speed: {:?} (Accumulator: {}, Output Unit: {:?})",
-                    value, accumulator, output_unit
+                    "Speed: {value:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
                 )
             }
             StateFeature::Energy {
@@ -163,8 +160,7 @@ impl Display for StateFeature {
             } => {
                 write!(
                     f,
-                    "Energy: {:?} (Accumulator: {}, Output Unit: {:?})",
-                    value, accumulator, output_unit
+                    "Energy: {value:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
                 )
             }
             StateFeature::Ratio {
@@ -174,8 +170,7 @@ impl Display for StateFeature {
             } => {
                 write!(
                     f,
-                    "Grade: {:?} (Accumulator: {}, Output Unit: {:?})",
-                    value, accumulator, output_unit
+                    "Grade: {value:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
                 )
             }
             StateFeature::Custom {
@@ -185,8 +180,7 @@ impl Display for StateFeature {
             } => {
                 write!(
                     f,
-                    "CustomF64: {} (Accumulator: {}, Format: {})",
-                    value, accumulator, format
+                    "CustomF64: {value} (Accumulator: {accumulator}, Format: {format})"
                 )
             }
         }

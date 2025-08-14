@@ -47,8 +47,7 @@ impl FromStr for PowerType {
             "l2" => Ok(PowerType::L2),
             "dcfc" => Ok(PowerType::DCFC),
             _ => Err(TraversalModelError::BuildError(format!(
-                "Unknown power type: {}",
-                s
+                "Unknown power type: {s}"
             ))),
         }
     }
@@ -112,8 +111,7 @@ impl ChargingStationLocator {
         )
         .map_err(|e| {
             TraversalModelError::BuildError(format!(
-                "Failed to read vertices from file {:?}: {}",
-                vertex_filepath, e
+                "Failed to read vertices from file {vertex_filepath:?}: {e}"
             ))
         })?;
 
@@ -129,8 +127,7 @@ impl ChargingStationLocator {
         )
         .map_err(|e| {
             TraversalModelError::BuildError(format!(
-                "Failed to read charging stations from file {:?}: {}",
-                charge_station_filepath, e
+                "Failed to read charging stations from file {charge_station_filepath:?}: {e}"
             ))
         })?;
         for config in charging_stations {

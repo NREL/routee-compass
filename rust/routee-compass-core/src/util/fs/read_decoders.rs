@@ -53,6 +53,6 @@ pub fn u64_to_state_variable(_idx: usize, row: String) -> Result<StateVariable, 
 
 /// helper to construct error messages
 fn handle_error<E: Display>(row: &String, e: E) -> std::io::Error {
-    let msg = format!("failure decoding row {} due to: {:}", row, e);
+    let msg = format!("failure decoding row {row} due to: {e:}");
     std::io::Error::new(std::io::ErrorKind::InvalidData, msg)
 }

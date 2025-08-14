@@ -57,7 +57,7 @@ impl CustomWeightType {
                 match (mapping.get(&categorical_value), default) {
                     (Some(result), _) => Ok(*result),
                     (None, Some(fallback)) => Ok(*fallback),
-                    _ => Err(InputPluginError::InputPluginFailed(format!("load balancing categorical {} not found in mapping and no default was provided", categorical_value))),
+                    _ => Err(InputPluginError::InputPluginFailed(format!("load balancing categorical {categorical_value} not found in mapping and no default was provided"))),
                 }
             }
         }

@@ -28,7 +28,7 @@ pub trait OutputPlugin: Send + Sync {
     ///
     /// * `output` - the search result passed to this plugin
     /// * `result` - the result of the search via the [internal representation].
-    ///              this is passed as a `Result` as the search may have failed.
+    ///   this is passed as a `Result` as the search may have failed.
     ///
     /// # Returns
     ///
