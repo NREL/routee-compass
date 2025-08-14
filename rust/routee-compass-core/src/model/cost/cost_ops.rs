@@ -16,7 +16,7 @@ pub fn calculate_vehicle_costs(
     cost_aggregation: &CostAggregation,
 ) -> Result<Cost, CostModelError> {
     let (prev_state, next_state) = state_sequence;
-    let mut costs: Vec<(&String, Cost)> = vec![];
+    let mut costs: Vec<(&str, Cost)> = vec![];
     for (name, state_idx) in indices.iter() {
         // compute delta
         let prev_state_var = prev_state
@@ -54,7 +54,7 @@ pub fn calculate_network_traversal_costs(
     cost_aggregation: &CostAggregation,
 ) -> Result<Cost, CostModelError> {
     let (prev_state, next_state) = state_sequence;
-    let mut costs: Vec<(&String, Cost)> = vec![];
+    let mut costs: Vec<(&str, Cost)> = vec![];
     for (name, state_idx) in indices.iter() {
         let prev_state_var = prev_state
             .get(*state_idx)
@@ -88,7 +88,7 @@ pub fn calculate_network_access_costs(
 ) -> Result<Cost, CostModelError> {
     let (prev_state, next_state) = state_sequence;
     let (prev_edge, next_edge) = edge_sequence;
-    let mut costs: Vec<(&String, Cost)> = vec![];
+    let mut costs: Vec<(&str, Cost)> = vec![];
     for (name, idx) in indices.iter() {
         if let Some(m) = rates.get(*idx) {
             let prev_state_var = prev_state

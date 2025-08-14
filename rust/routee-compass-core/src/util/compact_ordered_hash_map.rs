@@ -391,7 +391,7 @@ impl<K, V> CompactOrderedHashMap<K, V> {
                         (k, IndexedEntry::new(v, 4)),
                     ]);
 
-                    std::mem::swap(self, &mut CompactOrderedHashMap::NEntries(five));
+                    *self = CompactOrderedHashMap::NEntries(five);
                     None
                 }
             }
