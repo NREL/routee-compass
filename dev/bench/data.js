@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1755190327410,
+  "lastUpdate": 1755191255371,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -419,6 +419,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7539046,
             "range": "± 396945",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "607004262a44d990a2399bda905d3a66a5cc6ed4",
+          "message": "Merge pull request #373 from NREL/rjf/time-model-unit\n\ntime model with configurable time unit",
+          "timestamp": "2025-08-14T11:05:08-06:00",
+          "tree_id": "e2cfcf7fa0e9ffee87329579deb24ac5fa14d29e",
+          "url": "https://github.com/NREL/routee-compass/commit/607004262a44d990a2399bda905d3a66a5cc6ed4"
+        },
+        "date": 1755191254837,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7396716,
+            "range": "± 652852",
             "unit": "ns/iter"
           }
         ]
