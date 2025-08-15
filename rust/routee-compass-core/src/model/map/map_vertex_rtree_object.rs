@@ -3,6 +3,9 @@ use crate::model::network::{Vertex, VertexId};
 use geo::{coord, Point};
 use rstar::{PointDistance, RTreeObject, AABB};
 use uom::si::f64::Length;
+use crate::util::geo::haversine;
+use rstar::Envelope;
+use std::f32;
 
 /// rtree element for vertex-oriented map matching.
 #[derive(Clone)]
@@ -13,7 +16,11 @@ pub struct MapVertexRTreeObject {
 
 impl PointDistance for MapVertexRTreeObject {
     fn distance_2(&self, point: &Point<f32>) -> f32 {
-        self.envelope.distance_2(point)
+        // use haversine to calculate distance
+        match haversine::coord_distance(&self.envelope.center().as_ref(), point.as_ref()){
+            Ok(length) => length.value.powi(2) as f32,
+            Err(error) => {println!("Error, invalid distance {error} "); f32::MAX}
+        } 
     }
 }
 
