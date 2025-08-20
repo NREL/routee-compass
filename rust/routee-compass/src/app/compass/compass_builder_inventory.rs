@@ -73,7 +73,7 @@ inventory::collect!(BuilderRegistration);
 // along with any plugins registered by downstream libraries.
 inventory::submit! {
     BuilderRegistration(|builder| {
-        builder.add_traversal_model(String::from("distance"),  Rc::new(DistanceTraversalBuilder {}));
+        builder.add_traversal_model("distance".to_string(),  Rc::new(DistanceTraversalBuilder {}));
         builder.add_traversal_model("speed".to_string(), Rc::new(SpeedTraversalBuilder {}));
         builder.add_traversal_model("time".to_string(), Rc::new(TimeTraversalBuilder {}));
         builder.add_traversal_model("grade".to_string(), Rc::new(GradeTraversalBuilder {}));
