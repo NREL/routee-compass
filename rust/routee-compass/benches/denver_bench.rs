@@ -9,7 +9,7 @@ use std::{hint::black_box, io::Write};
 
 use routee_compass::app::cli::cli_args::CliArgs;
 use routee_compass::app::cli::run;
-use routee_compass::app::compass::CompassAppBuilder;
+use routee_compass::app::compass::CompassBuilderInventory;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use tempfile::NamedTempFile;
@@ -24,7 +24,7 @@ fn downtown_denver_example(query_file: String) {
         chunksize: None,
         newline_delimited: false,
     };
-    let builder = CompassAppBuilder::new().expect("failed to load compass app builder");
+    let builder = CompassBuilderInventory::new().expect("failed to load compass app builder");
     match run::command_line_runner(&args, Some(builder), None) {
         Ok(_) => {}
         Err(e) => {

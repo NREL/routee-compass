@@ -62,16 +62,17 @@ use routee_compass_powertrain::model::{
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 /// provides a plugin API for downstream libraries to inject values into the CompassAppBuilder.
-/// for details, see the [`inventory`] crate.
-pub struct PluginRegistration(
-    pub fn(&mut CompassAppBuilder) -> Result<(), CompassConfigurationError>,
+/// for details, see the [`inventory`] crate. must be a "type" defined in this crate in order to 
+/// get used at compile time, hence it's a struct.
+pub struct BuilderRegistration(
+    pub fn(&mut CompassBuilderInventory) -> Result<(), CompassConfigurationError>,
 );
-inventory::collect!(PluginRegistration);
+inventory::collect!(BuilderRegistration);
 
 // this macro will register the default set of builders with inventory. these are iterated through in the CompassAppBuilder::new method
 // along with any plugins registered by downstream libraries.
 inventory::submit! {
-    PluginRegistration(|builder| {
+    BuilderRegistration(|builder| {
         builder.add_traversal_model(String::from("distance"),  Rc::new(DistanceTraversalBuilder {}));
         builder.add_traversal_model("speed".to_string(), Rc::new(SpeedTraversalBuilder {}));
         builder.add_traversal_model("time".to_string(), Rc::new(TimeTraversalBuilder {}));
@@ -115,7 +116,7 @@ inventory::submit! {
 /// It is only once these are referenced during CompassApp construction that files and models
 /// will be loaded and CPU/RAM impacted.
 ///
-pub struct CompassAppBuilder {
+pub struct CompassBuilderInventory {
     traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
     access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>>,
     frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
@@ -124,7 +125,7 @@ pub struct CompassAppBuilder {
     output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
 }
 
-impl CompassAppBuilder {
+impl CompassBuilderInventory {
     /// Build an empty [`CompassAppBuilder`] instance. does not inject any builders
     /// submitted by this or downstream libraries using [`inventory::submit!`].
     ///
@@ -137,8 +138,8 @@ impl CompassAppBuilder {
     /// # Returns
     ///
     /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
-    pub fn empty() -> CompassAppBuilder {
-        CompassAppBuilder {
+    pub fn empty() -> CompassBuilderInventory {
+        CompassBuilderInventory {
             traversal_model_builders: HashMap::new(),
             access_model_builders: HashMap::new(),
             frontier_model_builders: HashMap::new(),
@@ -153,11 +154,11 @@ impl CompassAppBuilder {
     /// # Returns
     ///
     /// * an instance of a [`CompassAppBuilder`] with all injected builders
-    pub fn new() -> Result<CompassAppBuilder, CompassConfigurationError> {
+    pub fn new() -> Result<CompassBuilderInventory, CompassConfigurationError> {
         let mut builder = Self::empty();
 
         // Iterate through all registered plugins
-        for plugin_reg in inventory::iter::<PluginRegistration> {
+        for plugin_reg in inventory::iter::<BuilderRegistration> {
             (plugin_reg.0)(&mut builder)?;
         }
         Ok(builder)

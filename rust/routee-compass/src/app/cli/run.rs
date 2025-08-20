@@ -1,7 +1,7 @@
 use super::cli_args::CliArgs;
 use crate::app::compass::compass_app_ops as ops;
 use crate::app::compass::{
-    compass_app::CompassApp, compass_json_extensions::CompassJsonExtensions, CompassAppBuilder,
+    compass_app::CompassApp, compass_json_extensions::CompassJsonExtensions, CompassBuilderInventory,
     CompassAppError,
 };
 use itertools::{Either, Itertools};
@@ -24,7 +24,7 @@ use std::{fs::File, io::BufReader, path::Path};
 /// Any user errors are logged and optionally written to an output file depending on the file io policy.
 pub fn command_line_runner(
     args: &CliArgs,
-    builder: Option<CompassAppBuilder>,
+    builder: Option<CompassBuilderInventory>,
     run_config: Option<&Value>,
 ) -> Result<(), CompassAppError> {
     args.validate()?;
@@ -32,7 +32,7 @@ pub fn command_line_runner(
     // build the app
     let builder_or_default = match builder {
         Some(b) => b,
-        None => CompassAppBuilder::new()?,
+        None => CompassBuilderInventory::new()?,
     };
     let config_path = Path::new(&args.config_file);
     let config = ops::read_config_from_file(config_path)?;

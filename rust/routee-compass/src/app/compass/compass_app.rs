@@ -1,7 +1,7 @@
 use super::compass_app_configuration::CompassAppConfiguration;
 use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
-use super::{compass_app_ops as ops, CompassAppBuilder};
+use super::{compass_app_ops as ops, CompassBuilderInventory};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
 use crate::{
     app::{
@@ -62,7 +62,7 @@ impl CompassApp {
     pub fn try_from_config_toml_string(
         config_string: String,
         original_file_path: String,
-        builder: &CompassAppBuilder,
+        builder: &CompassBuilderInventory,
     ) -> Result<Self, CompassAppError> {
         let config = ops::read_config_from_string(
             config_string.clone(),
@@ -91,7 +91,7 @@ impl TryFrom<&Path> for CompassApp {
     /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(conf_file: &Path) -> Result<Self, Self::Error> {
         let config = ops::read_config_from_file(conf_file)?;
-        let builder = CompassAppBuilder::new()?;
+        let builder = CompassBuilderInventory::new()?;
         let compass_app = CompassApp::new(&config, &builder)?;
         Ok(compass_app)
     }
@@ -115,7 +115,7 @@ impl CompassApp {
     /// # Returns
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
-    pub fn new(config: &Config, builder: &CompassAppBuilder) -> Result<Self, CompassAppError> {
+    pub fn new(config: &Config, builder: &CompassBuilderInventory) -> Result<Self, CompassAppError> {
         // Get the root config path so we can resolve paths relative
         // to where the config file is located.
         let root_config_path =
