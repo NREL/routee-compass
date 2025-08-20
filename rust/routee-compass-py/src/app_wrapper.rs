@@ -1,6 +1,6 @@
 use routee_compass::app::{
     bindings::CompassAppBindings,
-    compass::{compass_app::CompassApp, CompassBuilderInventory, CompassAppError},
+    compass::{compass_app::CompassApp, CompassAppError, CompassBuilderInventory},
 };
 use routee_compass_macros::pybindings;
 

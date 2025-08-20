@@ -62,7 +62,7 @@ use routee_compass_powertrain::model::{
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 /// provides a plugin API for downstream libraries to inject values into the CompassAppBuilder.
-/// for details, see the [`inventory`] crate. must be a "type" defined in this crate in order to 
+/// for details, see the [`inventory`] crate. must be a "type" defined in this crate in order to
 /// get used at compile time, hence it's a struct.
 pub struct BuilderRegistration(
     pub fn(&mut CompassBuilderInventory) -> Result<(), CompassConfigurationError>,

@@ -115,7 +115,10 @@ impl CompassApp {
     /// # Returns
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
-    pub fn new(config: &Config, builder: &CompassBuilderInventory) -> Result<Self, CompassAppError> {
+    pub fn new(
+        config: &Config,
+        builder: &CompassBuilderInventory,
+    ) -> Result<Self, CompassAppError> {
         // Get the root config path so we can resolve paths relative
         // to where the config file is located.
         let root_config_path =
