@@ -1,4 +1,5 @@
-use crate::{plugin::{
+use super::CompassComponentError;
+use crate::plugin::{
     input::{
         default::{
             debug::DebugInputPluginBuilder, grid_search::GridSearchBuilder,
@@ -13,7 +14,8 @@ use crate::{plugin::{
         },
         OutputPlugin, OutputPluginBuilder,
     },
-}};
+};
+use inventory;
 use itertools::Itertools;
 use routee_compass_core::model::{
     access::{
@@ -58,14 +60,13 @@ use routee_compass_powertrain::model::{
     EnergyModelBuilder,
 };
 use std::{collections::HashMap, rc::Rc, sync::Arc};
-use inventory;
-use super::CompassComponentError;
 
 /// provides a plugin API for downstream libraries to inject values into the CompassAppBuilder.
 /// for details, see the [`inventory`] crate.
-pub struct PluginRegistration(pub fn(&mut CompassAppBuilder) -> Result<(), CompassConfigurationError>);
+pub struct PluginRegistration(
+    pub fn(&mut CompassAppBuilder) -> Result<(), CompassConfigurationError>,
+);
 inventory::collect!(PluginRegistration);
-
 
 // this macro will register the default set of builders with inventory. these are iterated through in the CompassAppBuilder::new method
 // along with any plugins registered by downstream libraries.
@@ -99,7 +100,6 @@ inventory::submit! {
     })
 }
 
-
 /// Upstream component factory of [`crate::app::compass::compass_app::CompassApp`]
 /// that builds components when constructing a CompassApp instance.
 ///
@@ -124,12 +124,10 @@ pub struct CompassAppBuilder {
     output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
 }
 
-
-
 impl CompassAppBuilder {
     /// Build an empty [`CompassAppBuilder`] instance. does not inject any builders
     /// submitted by this or downstream libraries using [`inventory::submit!`].
-    /// 
+    ///
     /// If no additional builders are added, this will be unable to create
     /// components for a [`crate::app::compass::compass_app::CompassApp`],
     /// so this method is only useful is seeking a blank slate for customizing.
@@ -349,4 +347,3 @@ impl CompassAppBuilder {
         Ok(plugins)
     }
 }
-

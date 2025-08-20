@@ -98,7 +98,6 @@ impl TryFrom<&Path> for CompassApp {
 }
 
 impl CompassApp {
-
     /// Builds a CompassApp from configuration and a (possibly customized) CompassAppBuilder.
     /// Builds all modules such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
     /// Also builds the input and output plugins.
@@ -117,7 +116,6 @@ impl CompassApp {
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
     pub fn new(config: &Config, builder: &CompassAppBuilder) -> Result<Self, CompassAppError> {
-
         // Get the root config path so we can resolve paths relative
         // to where the config file is located.
         let root_config_path =
