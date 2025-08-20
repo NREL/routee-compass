@@ -46,7 +46,7 @@ use std::str::FromStr;
 ///     where
 ///         Self: Sized,
 ///     {
-///         let mut builder = CompassBuilderInventory::new();
+///         let mut builder = CompassBuilderInventory::new()?;
 ///
 ///         // inject custom traversal model here like:
 ///
