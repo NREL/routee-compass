@@ -17,7 +17,7 @@ impl CompassAppBindings for CompassAppWrapper {
     where
         Self: Sized,
     {
-        let builder = CompassAppBuilder::default();
+        let builder = CompassAppBuilder::new()?;
         let app =
             CompassApp::try_from_config_toml_string(config_string, original_file_path, &builder)?;
         Ok(CompassAppWrapper { app })

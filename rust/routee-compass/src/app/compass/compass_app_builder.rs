@@ -1,4 +1,4 @@
-use crate::plugin::{
+use crate::{plugin::{
     input::{
         default::{
             debug::DebugInputPluginBuilder, grid_search::GridSearchBuilder,
@@ -13,7 +13,7 @@ use crate::plugin::{
         },
         OutputPlugin, OutputPluginBuilder,
     },
-};
+}};
 use itertools::Itertools;
 use routee_compass_core::model::{
     access::{
@@ -58,15 +58,54 @@ use routee_compass_powertrain::model::{
     EnergyModelBuilder,
 };
 use std::{collections::HashMap, rc::Rc, sync::Arc};
-
+use inventory;
 use super::CompassComponentError;
+
+/// provides a plugin API for downstream libraries to inject values into the CompassAppBuilder.
+/// for details, see the [`inventory`] crate.
+pub struct PluginRegistration(pub fn(&mut CompassAppBuilder) -> Result<(), CompassConfigurationError>);
+inventory::collect!(PluginRegistration);
+
+
+// this macro will register the default set of builders with inventory. these are iterated through in the CompassAppBuilder::new method
+// along with any plugins registered by downstream libraries.
+inventory::submit! {
+    PluginRegistration(|builder| {
+        builder.add_traversal_model(String::from("distance"),  Rc::new(DistanceTraversalBuilder {}));
+        builder.add_traversal_model("speed".to_string(), Rc::new(SpeedTraversalBuilder {}));
+        builder.add_traversal_model("time".to_string(), Rc::new(TimeTraversalBuilder {}));
+        builder.add_traversal_model("grade".to_string(), Rc::new(GradeTraversalBuilder {}));
+        builder.add_traversal_model("elevation".to_string(), Rc::new(ElevationTraversalBuilder {}));
+        builder.add_traversal_model("energy".to_string(), Rc::new(EnergyModelBuilder {}));
+        builder.add_traversal_model("simple_charging".to_string(), Rc::new(SimpleChargingBuilder::default()));
+        builder.add_traversal_model("custom".to_string(), Rc::new(CustomTraversalBuilder {}));
+        builder.add_access_model("no_access_model".to_string(),Rc::new(NoAccessModel {}));
+        builder.add_access_model("turn_delay".to_string(),Rc::new(TurnDelayAccessModelBuilder {}));
+        builder.add_frontier_model("no_restriction".to_string(), Rc::new(NoRestrictionBuilder {}));
+        builder.add_frontier_model("road_class".to_string(), Rc::new(RoadClassBuilder {}));
+        builder.add_frontier_model("turn_restriction".to_string(), Rc::new(TurnRestrictionBuilder {}));
+        builder.add_frontier_model("battery_frontier".to_string(), Rc::new(BatteryFrontierBuilder::default()));
+        builder.add_frontier_model("vehicle_restriction".to_string(), Rc::new(VehicleRestrictionBuilder {}));
+        builder.add_label_model("vertex_label".to_string(), Rc::new(VertexLabelModelBuilder));
+        builder.add_label_model("soc_label".to_string(), Rc::new(SOCLabelModelBuilder));
+        builder.add_input_plugin("grid_search".to_string(), Rc::new(GridSearchBuilder {}));
+        builder.add_input_plugin("load_balancer".to_string(), Rc::new(LoadBalancerBuilder {}));
+        builder.add_input_plugin("inject".to_string(), Rc::new(InjectPluginBuilder {}));
+        builder.add_input_plugin("debug".to_string(), Rc::new(DebugInputPluginBuilder {}));
+        builder.add_output_plugin("traversal".to_string(), Rc::new(TraversalPluginBuilder {}));
+        builder.add_output_plugin("summary".to_string(), Rc::new(SummaryOutputPluginBuilder {}));
+        builder.add_output_plugin("uuid".to_string(), Rc::new(UUIDOutputPluginBuilder {}));
+        Ok(())
+    })
+}
+
 
 /// Upstream component factory of [`crate::app::compass::compass_app::CompassApp`]
 /// that builds components when constructing a CompassApp instance.
 ///
 /// A [`CompassAppBuilder`] instance is typically created via the [`CompassAppBuilder::default']
 /// method, which provides builders for commonly-used components.
-/// Alternatively, there is a [`CompassAppBuilder::new'] method to build an empty instance.
+/// Alternatively, there is a [`CompassAppBuilder::new'] method to build an empty instance
 /// Custom builder types can be added to an instance of CompassAppBuilder and
 /// then loaded into a CompassApp when the configuration TOML input provides a `type` argument
 /// signaling the key associated with the builder below.
@@ -76,34 +115,31 @@ use super::CompassComponentError;
 /// It is only once these are referenced during CompassApp construction that files and models
 /// will be loaded and CPU/RAM impacted.
 ///
-/// # Arguments
-///
-/// * `tm_builders` - a mapping of TraversalModel `type` names to builders
-/// * `frontier_builders` - a mapping of FrontierModel `type` names to builders
-/// * `input_plugin_builders` - a mapping of InputPlugin `type` names to builders
-/// * `output_plugin_builders` - a mapping of OutputPlugin `type` names to builders
-///
 pub struct CompassAppBuilder {
-    pub traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
-    pub access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>>,
-    pub frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
-    pub label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>>,
-    pub input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
-    pub output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
+    traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
+    access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>>,
+    frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
+    label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>>,
+    input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
+    output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
 }
 
+
+
 impl CompassAppBuilder {
-    /// Build an empty [`CompassAppBuilder`] instance.
+    /// Build an empty [`CompassAppBuilder`] instance. does not inject any builders
+    /// submitted by this or downstream libraries using [`inventory::submit!`].
+    /// 
     /// If no additional builders are added, this will be unable to create
     /// components for a [`crate::app::compass::compass_app::CompassApp`],
-    /// so this method is only useful is seeking a blank page for customizing.
-    /// the [`CompassAppBuilder::default`] method provides the default builder set and is a better
-    /// starting point.
+    /// so this method is only useful is seeking a blank slate for customizing.
+    /// the [`CompassAppBuilder::default`] method provides the default builder set and is
+    /// the preferred method.
     ///
     /// # Returns
     ///
     /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
-    pub fn new() -> CompassAppBuilder {
+    pub fn empty() -> CompassAppBuilder {
         CompassAppBuilder {
             traversal_model_builders: HashMap::new(),
             access_model_builders: HashMap::new(),
@@ -112,6 +148,21 @@ impl CompassAppBuilder {
             input_plugin_builders: HashMap::new(),
             output_plugin_builders: HashMap::new(),
         }
+    }
+
+    /// creates a new [`CompassAppBuilder`] with all registered builder objects injected from any [`inventory`] submissions.
+    ///
+    /// # Returns
+    ///
+    /// * an instance of a [`CompassAppBuilder`] with all injected builders
+    pub fn new() -> Result<CompassAppBuilder, CompassConfigurationError> {
+        let mut builder = Self::empty();
+
+        // Iterate through all registered plugins
+        for plugin_reg in inventory::iter::<PluginRegistration> {
+            (plugin_reg.0)(&mut builder)?;
+        }
+        Ok(builder)
     }
 
     pub fn add_traversal_model(&mut self, name: String, builder: Rc<dyn TraversalModelBuilder>) {
@@ -299,101 +350,3 @@ impl CompassAppBuilder {
     }
 }
 
-impl Default for CompassAppBuilder {
-    /// Builds the default builder.
-    /// All components present in the routee-compass library are injected here
-    /// into a builder instance with their expected `type` keys.
-    ///
-    /// The Combined variants which allow stringing together multiple models of
-    /// the same type are automatically made available when constructing an instance of CompassApp.
-    ///
-    /// # Returns
-    ///
-    /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
-    fn default() -> Self {
-        // Traversal model builders
-        let distance: Rc<dyn TraversalModelBuilder> = Rc::new(DistanceTraversalBuilder {});
-        let speed: Rc<dyn TraversalModelBuilder> = Rc::new(SpeedTraversalBuilder {});
-        let time: Rc<dyn TraversalModelBuilder> = Rc::new(TimeTraversalBuilder {});
-        let grade: Rc<dyn TraversalModelBuilder> = Rc::new(GradeTraversalBuilder {});
-        let elevation: Rc<dyn TraversalModelBuilder> = Rc::new(ElevationTraversalBuilder {});
-        let energy: Rc<dyn TraversalModelBuilder> = Rc::new(EnergyModelBuilder {});
-        let simple_charging = Rc::new(SimpleChargingBuilder::default());
-        let custom: Rc<dyn TraversalModelBuilder> = Rc::new(CustomTraversalBuilder {});
-        let traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>> =
-            HashMap::from([
-                (String::from("distance"), distance),
-                (String::from("speed"), speed),
-                (String::from("time"), time),
-                (String::from("grade"), grade),
-                (String::from("elevation"), elevation),
-                (String::from("energy"), energy),
-                (String::from("simple_charging"), simple_charging),
-                (String::from("custom"), custom),
-            ]);
-
-        // Access model builders
-        let no_access_model: Rc<dyn AccessModelBuilder> = Rc::new(NoAccessModel {});
-        let turn_delay: Rc<dyn AccessModelBuilder> = Rc::new(TurnDelayAccessModelBuilder {});
-        let access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>> = HashMap::from([
-            (String::from("no_access_model"), no_access_model),
-            (String::from("turn_delay"), turn_delay),
-        ]);
-
-        // Frontier model builders
-        let no_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(NoRestrictionBuilder {});
-        let road_class: Rc<dyn FrontierModelBuilder> = Rc::new(RoadClassBuilder {});
-        let turn_restriction: Rc<dyn FrontierModelBuilder> = Rc::new(TurnRestrictionBuilder {});
-        let battery_frontier: Rc<dyn FrontierModelBuilder> =
-            Rc::new(BatteryFrontierBuilder::default());
-        let vehicle_restriction: Rc<dyn FrontierModelBuilder> =
-            Rc::new(VehicleRestrictionBuilder {});
-        let frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>> =
-            HashMap::from([
-                (String::from("no_restriction"), no_restriction),
-                (String::from("road_class"), road_class),
-                (String::from("turn_restriction"), turn_restriction),
-                (String::from("vehicle_restriction"), vehicle_restriction),
-                (String::from("battery_frontier"), battery_frontier),
-            ]);
-
-        // Label model builders
-        let vertex_label: Rc<dyn LabelModelBuilder> = Rc::new(VertexLabelModelBuilder);
-        let soc_label = Rc::new(SOCLabelModelBuilder);
-        let label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>> = HashMap::from([
-            (String::from("vertex"), vertex_label),
-            (String::from("soc"), soc_label),
-        ]);
-
-        // Input plugin builders
-        let grid_search: Rc<dyn InputPluginBuilder> = Rc::new(GridSearchBuilder {});
-        let load_balancer: Rc<dyn InputPluginBuilder> = Rc::new(LoadBalancerBuilder {});
-        let inject: Rc<dyn InputPluginBuilder> = Rc::new(InjectPluginBuilder {});
-        let debug: Rc<dyn InputPluginBuilder> = Rc::new(DebugInputPluginBuilder {});
-        let input_plugin_builders = HashMap::from([
-            (String::from("grid_search"), grid_search),
-            (String::from("load_balancer"), load_balancer),
-            (String::from("inject"), inject),
-            (String::from("debug"), debug),
-        ]);
-
-        // Output plugin builders
-        let traversal: Rc<dyn OutputPluginBuilder> = Rc::new(TraversalPluginBuilder {});
-        let summary: Rc<dyn OutputPluginBuilder> = Rc::new(SummaryOutputPluginBuilder {});
-        let uuid: Rc<dyn OutputPluginBuilder> = Rc::new(UUIDOutputPluginBuilder {});
-        let output_plugin_builders = HashMap::from([
-            (String::from("traversal"), traversal),
-            (String::from("summary"), summary),
-            (String::from("uuid"), uuid),
-        ]);
-
-        CompassAppBuilder {
-            traversal_model_builders,
-            access_model_builders,
-            frontier_model_builders,
-            label_model_builders,
-            input_plugin_builders,
-            output_plugin_builders,
-        }
-    }
-}

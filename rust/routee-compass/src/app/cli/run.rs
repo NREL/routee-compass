@@ -30,10 +30,13 @@ pub fn command_line_runner(
     args.validate()?;
 
     // build the app
-    let builder_or_default = builder.unwrap_or_default();
+    let builder_or_default = match builder {
+        Some(b) => b,
+        None => CompassAppBuilder::new()?,
+    };
     let config_path = Path::new(&args.config_file);
     let config = ops::read_config_from_file(config_path)?;
-    let compass_app = match CompassApp::try_from((&config, &builder_or_default)) {
+    let compass_app = match CompassApp::new(&config, &builder_or_default) {
         Ok(app) => app,
         Err(e) => {
             error!("Could not build CompassApp from config file: {e}");

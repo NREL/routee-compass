@@ -69,7 +69,7 @@ impl CompassApp {
             config::FileFormat::Toml,
             original_file_path,
         )?;
-        let app = CompassApp::try_from((&config, builder))?;
+        let app = CompassApp::new(&config, builder)?;
         Ok(app)
     }
 }
@@ -91,14 +91,13 @@ impl TryFrom<&Path> for CompassApp {
     /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(conf_file: &Path) -> Result<Self, Self::Error> {
         let config = ops::read_config_from_file(conf_file)?;
-        let builder = CompassAppBuilder::default();
-        let compass_app = CompassApp::try_from((&config, &builder))?;
+        let builder = CompassAppBuilder::new()?;
+        let compass_app = CompassApp::new(&config, &builder)?;
         Ok(compass_app)
     }
 }
 
-impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
-    type Error = CompassAppError;
+impl CompassApp {
 
     /// Builds a CompassApp from configuration and a (possibly customized) CompassAppBuilder.
     /// Builds all modules such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
@@ -117,8 +116,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     /// # Returns
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
-    fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
-        let (config, builder) = pair;
+    pub fn new(config: &Config, builder: &CompassAppBuilder) -> Result<Self, CompassAppError> {
 
         // Get the root config path so we can resolve paths relative
         // to where the config file is located.
@@ -261,9 +259,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             configuration,
         })
     }
-}
 
-impl CompassApp {
     /// runs a set of queries via this instance of CompassApp. this
     ///   1. processes each input query based on the InputPlugins
     ///   2. runs the search algorithm with each query via SearchApp
