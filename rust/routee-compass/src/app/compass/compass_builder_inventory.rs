@@ -61,7 +61,7 @@ use routee_compass_powertrain::model::{
 };
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
-/// provides a plugin API for downstream libraries to inject values into the CompassAppBuilder.
+/// provides a plugin API for downstream libraries to inject values into the CompassBuilderInventory.
 /// for details, see the [`inventory`] crate. must be a "type" defined in this crate in order to
 /// get used at compile time, hence it's a struct.
 pub struct BuilderRegistration(
@@ -69,7 +69,7 @@ pub struct BuilderRegistration(
 );
 inventory::collect!(BuilderRegistration);
 
-// this macro will register the default set of builders with inventory. these are iterated through in the CompassAppBuilder::new method
+// this macro will register the default set of builders with inventory. these are iterated through in the CompassBuilderInventory::new method
 // along with any plugins registered by downstream libraries.
 inventory::submit! {
     BuilderRegistration(|builder| {
@@ -81,8 +81,8 @@ inventory::submit! {
         builder.add_traversal_model("energy".to_string(), Rc::new(EnergyModelBuilder {}));
         builder.add_traversal_model("simple_charging".to_string(), Rc::new(SimpleChargingBuilder::default()));
         builder.add_traversal_model("custom".to_string(), Rc::new(CustomTraversalBuilder {}));
-        builder.add_access_model("no_access_model".to_string(),Rc::new(NoAccessModel {}));
-        builder.add_access_model("turn_delay".to_string(),Rc::new(TurnDelayAccessModelBuilder {}));
+        builder.add_access_model("no_access_model".to_string(), Rc::new(NoAccessModel {}));
+        builder.add_access_model("turn_delay".to_string(), Rc::new(TurnDelayAccessModelBuilder {}));
         builder.add_frontier_model("no_restriction".to_string(), Rc::new(NoRestrictionBuilder {}));
         builder.add_frontier_model("road_class".to_string(), Rc::new(RoadClassBuilder {}));
         builder.add_frontier_model("turn_restriction".to_string(), Rc::new(TurnRestrictionBuilder {}));
@@ -104,10 +104,10 @@ inventory::submit! {
 /// Upstream component factory of [`crate::app::compass::compass_app::CompassApp`]
 /// that builds components when constructing a CompassApp instance.
 ///
-/// A [`CompassAppBuilder`] instance is typically created via the [`CompassAppBuilder::default']
+/// A [`CompassBuilderInventory`] instance is typically created via the [`CompassBuilderInventory::new']
 /// method, which provides builders for commonly-used components.
-/// Alternatively, there is a [`CompassAppBuilder::new'] method to build an empty instance
-/// Custom builder types can be added to an instance of CompassAppBuilder and
+/// Alternatively, there is a [`CompassBuilderInventory::new'] method to build an empty instance
+/// Custom builder types can be added to an instance of CompassBuilderInventory and
 /// then loaded into a CompassApp when the configuration TOML input provides a `type` argument
 /// signaling the key associated with the builder below.
 ///
@@ -126,18 +126,18 @@ pub struct CompassBuilderInventory {
 }
 
 impl CompassBuilderInventory {
-    /// Build an empty [`CompassAppBuilder`] instance. does not inject any builders
+    /// Build an empty [`CompassBuilderInventory`] instance. does not inject any builders
     /// submitted by this or downstream libraries using [`inventory::submit!`].
     ///
     /// If no additional builders are added, this will be unable to create
     /// components for a [`crate::app::compass::compass_app::CompassApp`],
     /// so this method is only useful is seeking a blank slate for customizing.
-    /// the [`CompassAppBuilder::default`] method provides the default builder set and is
+    /// the [`CompassBuilderInventory::new`] method provides the default builder set and is
     /// the preferred method.
     ///
     /// # Returns
     ///
-    /// * an instance of a CompassAppBuilder that can be used to build a CompassApp
+    /// * an instance of a CompassBuilderInventory that can be used to build a CompassApp
     pub fn empty() -> CompassBuilderInventory {
         CompassBuilderInventory {
             traversal_model_builders: HashMap::new(),
@@ -149,11 +149,11 @@ impl CompassBuilderInventory {
         }
     }
 
-    /// creates a new [`CompassAppBuilder`] with all registered builder objects injected from any [`inventory`] submissions.
+    /// creates a new [`CompassBuilderInventory`] with all registered builder objects injected from any [`inventory`] submissions.
     ///
     /// # Returns
     ///
-    /// * an instance of a [`CompassAppBuilder`] with all injected builders
+    /// * an instance of a [`CompassBuilderInventory`] with all injected builders
     pub fn new() -> Result<CompassBuilderInventory, CompassConfigurationError> {
         let mut builder = Self::empty();
 

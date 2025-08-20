@@ -48,13 +48,13 @@ pub struct CompassApp {
 }
 
 impl CompassApp {
-    /// Builds a CompassApp from a configuration TOML string, using a custom CompassAppBuilder.
+    /// Builds a CompassApp from a configuration TOML string, using a custom CompassBuilderInventory.
     ///
     /// # Arguments
     ///
     /// * `config_string` - a string containing the configuration in TOML format
     /// * `original_file_path` - the original file path of the TOML
-    /// * `builder` - a custom CompassAppBuilder instance
+    /// * `builder` - a custom CompassBuilderInventory instance
     ///
     /// # Returns
     ///
@@ -77,7 +77,7 @@ impl CompassApp {
 impl TryFrom<&Path> for CompassApp {
     type Error = CompassAppError;
 
-    /// Builds a CompassApp from a configuration filepath, using the default CompassAppBuilder.
+    /// Builds a CompassApp from a configuration filepath, using the default CompassBuilderInventory.
     /// Builds all components such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
     /// Also builds the input and output plugins.
     /// Returns a persistent application that can run user queries in parallel.
@@ -98,7 +98,7 @@ impl TryFrom<&Path> for CompassApp {
 }
 
 impl CompassApp {
-    /// Builds a CompassApp from configuration and a (possibly customized) CompassAppBuilder.
+    /// Builds a CompassApp from configuration and a (possibly customized) CompassBuilderInventory.
     /// Builds all modules such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
     /// Also builds the input and output plugins.
     /// Returns a persistent application that can run user queries in parallel.
@@ -110,7 +110,7 @@ impl CompassApp {
     /// # Arguments
     ///
     /// * `pair` - a tuple containing a config object (such as a parsed TOML file) and
-    ///   a [`super::config::compass_app_builder::CompassAppBuilder`] instance
+    ///   a [`super::config::compass_app_builder::CompassBuilderInventory`] instance
     ///
     /// # Returns
     ///

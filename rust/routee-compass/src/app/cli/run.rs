@@ -16,7 +16,7 @@ use std::{fs::File, io::BufReader, path::Path};
 ///
 /// # Arguments
 /// * `args`       - command line arguments for this run
-/// * `builder`    - optional builder instance to overwrite the default. see CompassAppBuilder for explanation.
+/// * `builder`    - optional builder instance to overwrite the default. see CompassBuilderInventory for explanation.
 /// * `run_config` - optional CompassApp configuration overrides
 ///
 /// # Returns
