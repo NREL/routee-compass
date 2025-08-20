@@ -88,8 +88,8 @@ inventory::submit! {
         builder.add_frontier_model("turn_restriction".to_string(), Rc::new(TurnRestrictionBuilder {}));
         builder.add_frontier_model("battery_frontier".to_string(), Rc::new(BatteryFrontierBuilder::default()));
         builder.add_frontier_model("vehicle_restriction".to_string(), Rc::new(VehicleRestrictionBuilder {}));
-        builder.add_label_model("vertex_label".to_string(), Rc::new(VertexLabelModelBuilder));
-        builder.add_label_model("soc_label".to_string(), Rc::new(SOCLabelModelBuilder));
+        builder.add_label_model("vertex".to_string(), Rc::new(VertexLabelModelBuilder));
+        builder.add_label_model("soc".to_string(), Rc::new(SOCLabelModelBuilder));
         builder.add_input_plugin("grid_search".to_string(), Rc::new(GridSearchBuilder {}));
         builder.add_input_plugin("load_balancer".to_string(), Rc::new(LoadBalancerBuilder {}));
         builder.add_input_plugin("inject".to_string(), Rc::new(InjectPluginBuilder {}));
