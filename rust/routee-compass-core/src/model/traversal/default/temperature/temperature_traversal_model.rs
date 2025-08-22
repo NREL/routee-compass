@@ -1,0 +1,56 @@
+use uom::{si::f64::ThermodynamicTemperature, ConstZero};
+
+use crate::model::{
+    network::{Edge, Vertex},
+    state::{InputFeature, StateFeature, StateModel, StateVariable},
+    traversal::{default::fieldname, TraversalModel, TraversalModelError},
+    unit::TemperatureUnit,
+};
+
+#[derive(Clone, Debug)]
+pub struct TemperatureTraversalModel {
+    pub ambient_temperature: ThermodynamicTemperature,
+}
+
+impl TraversalModel for TemperatureTraversalModel {
+    fn name(&self) -> String {
+        String::from("Temperature Traversal Model")
+    }
+    fn input_features(&self) -> Vec<InputFeature> {
+        vec![]
+    }
+
+    fn output_features(&self) -> Vec<(String, StateFeature)> {
+        vec![(
+            String::from(fieldname::AMBIENT_TEMPERATURE),
+            StateFeature::Temperature {
+                value: ThermodynamicTemperature::ZERO,
+                accumulator: false,
+                output_unit: Some(TemperatureUnit::default()),
+            },
+        )]
+    }
+
+    fn traverse_edge(
+        &self,
+        _trajectory: (&Vertex, &Edge, &Vertex),
+        state: &mut Vec<StateVariable>,
+        state_model: &StateModel,
+    ) -> Result<(), TraversalModelError> {
+        state_model.set_temperature(
+            state,
+            fieldname::AMBIENT_TEMPERATURE,
+            &self.ambient_temperature,
+        )?;
+        Ok(())
+    }
+
+    fn estimate_traversal(
+        &self,
+        _od: (&Vertex, &Vertex),
+        _state: &mut Vec<StateVariable>,
+        _state_model: &StateModel,
+    ) -> Result<(), TraversalModelError> {
+        Ok(())
+    }
+}

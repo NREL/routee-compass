@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::model::unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TimeUnit};
+use crate::model::unit::{
+    DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TemperatureUnit, TimeUnit,
+};
 
 /// defines the required input feature and its requested unit type for a given state variable
 ///
@@ -28,6 +30,10 @@ pub enum InputFeature {
         name: String,
         unit: Option<RatioUnit>,
     },
+    Temperature {
+        name: String,
+        unit: Option<TemperatureUnit>,
+    },
     Custom {
         name: String,
         unit: String,
@@ -42,6 +48,7 @@ impl InputFeature {
             InputFeature::Time { name, .. } => name.to_owned(),
             InputFeature::Energy { name, .. } => name.to_owned(),
             InputFeature::Ratio { name, .. } => name.to_owned(),
+            InputFeature::Temperature { name, .. } => name.to_owned(),
             InputFeature::Custom { name, .. } => name.to_owned(),
         }
     }

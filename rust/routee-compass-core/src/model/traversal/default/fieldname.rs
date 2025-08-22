@@ -29,3 +29,6 @@ pub const EDGE_GRADE: &str = "edge_grade";
 pub const TRIP_ELEVATION_GAIN: &str = "trip_elevation_gain";
 /// state feature name for elevation loss accumulated over a trip
 pub const TRIP_ELEVATION_LOSS: &str = "trip_elevation_loss";
+
+/// state feature name for ambient temperature
+pub const AMBIENT_TEMPERATURE: &str = "ambient_temperature";

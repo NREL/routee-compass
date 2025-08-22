@@ -10,6 +10,7 @@ mod time_unit;
 mod unit_error;
 mod volume_unit;
 mod weight_unit;
+mod temperature_unit;
 
 pub use as_f64::AsF64;
 pub use cost::{Cost, ReverseCost};
@@ -22,3 +23,4 @@ pub use time_unit::TimeUnit;
 pub use unit_error::UnitError;
 pub use volume_unit::VolumeUnit;
 pub use weight_unit::WeightUnit;
+pub use temperature_unit::TemperatureUnit;
