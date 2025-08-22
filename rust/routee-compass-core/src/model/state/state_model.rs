@@ -5,7 +5,9 @@ use super::{
     update_operation::UpdateOperation,
 };
 use crate::model::state::InputFeature;
-use crate::model::unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TemperatureUnit, TimeUnit};
+use crate::model::unit::{
+    DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TemperatureUnit, TimeUnit,
+};
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::util::compact_ordered_hash_map::IndexedEntry;
 use itertools::Itertools;
@@ -252,7 +254,6 @@ impl StateModel {
         let temperature = TemperatureUnit::default().to_uom(value.0);
         Ok(temperature)
     }
-
 
     /// retrieves a state variable that is expected to have a type of f64.
     ///

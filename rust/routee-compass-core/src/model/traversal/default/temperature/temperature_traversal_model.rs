@@ -26,7 +26,7 @@ impl TraversalModel for TemperatureTraversalModel {
             StateFeature::Temperature {
                 value: ThermodynamicTemperature::ZERO,
                 accumulator: false,
-                output_unit: Some(TemperatureUnit::default()),
+                output_unit: Some(TemperatureUnit::Fahrenheit),
             },
         )]
     }
