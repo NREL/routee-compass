@@ -1,8 +1,8 @@
 use super::cli_args::CliArgs;
 use crate::app::compass::compass_app_ops as ops;
 use crate::app::compass::{
-    compass_app::CompassApp, compass_json_extensions::CompassJsonExtensions, CompassAppBuilder,
-    CompassAppError,
+    compass_app::CompassApp, compass_json_extensions::CompassJsonExtensions, CompassAppError,
+    CompassBuilderInventory,
 };
 use itertools::{Either, Itertools};
 use log::{debug, error};
@@ -16,7 +16,7 @@ use std::{fs::File, io::BufReader, path::Path};
 ///
 /// # Arguments
 /// * `args`       - command line arguments for this run
-/// * `builder`    - optional builder instance to overwrite the default. see CompassAppBuilder for explanation.
+/// * `builder`    - optional builder instance to overwrite the default. see CompassBuilderInventory for explanation.
 /// * `run_config` - optional CompassApp configuration overrides
 ///
 /// # Returns
@@ -24,16 +24,19 @@ use std::{fs::File, io::BufReader, path::Path};
 /// Any user errors are logged and optionally written to an output file depending on the file io policy.
 pub fn command_line_runner(
     args: &CliArgs,
-    builder: Option<CompassAppBuilder>,
+    builder: Option<CompassBuilderInventory>,
     run_config: Option<&Value>,
 ) -> Result<(), CompassAppError> {
     args.validate()?;
 
     // build the app
-    let builder_or_default = builder.unwrap_or_default();
+    let builder_or_default = match builder {
+        Some(b) => b,
+        None => CompassBuilderInventory::new()?,
+    };
     let config_path = Path::new(&args.config_file);
     let config = ops::read_config_from_file(config_path)?;
-    let compass_app = match CompassApp::try_from((&config, &builder_or_default)) {
+    let compass_app = match CompassApp::new(&config, &builder_or_default) {
         Ok(app) => app,
         Err(e) => {
             error!("Could not build CompassApp from config file: {e}");

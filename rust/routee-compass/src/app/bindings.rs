@@ -29,7 +29,7 @@ use std::str::FromStr;
 /// use routee_compass::app::bindings::CompassAppBindings;
 /// use routee_compass::app::compass::compass_app::CompassApp;
 /// use routee_compass::app::compass::CompassAppError;
-/// use routee_compass::app::compass::CompassAppBuilder;
+/// use routee_compass::app::compass::CompassBuilderInventory;
 ///
 /// //use routee_compass_macros::pybindings;
 ///
@@ -46,7 +46,7 @@ use std::str::FromStr;
 ///     where
 ///         Self: Sized,
 ///     {
-///         let mut builder = CompassAppBuilder::default();
+///         let mut builder = CompassBuilderInventory::new()?;
 ///
 ///         // inject custom traversal model here like:
 ///

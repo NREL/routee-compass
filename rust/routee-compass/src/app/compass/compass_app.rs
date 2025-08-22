@@ -1,7 +1,7 @@
 use super::compass_app_configuration::CompassAppConfiguration;
 use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
-use super::{compass_app_ops as ops, CompassAppBuilder};
+use super::{compass_app_ops as ops, CompassBuilderInventory};
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
 use crate::{
     app::{
@@ -48,13 +48,13 @@ pub struct CompassApp {
 }
 
 impl CompassApp {
-    /// Builds a CompassApp from a configuration TOML string, using a custom CompassAppBuilder.
+    /// Builds a CompassApp from a configuration TOML string, using a custom CompassBuilderInventory.
     ///
     /// # Arguments
     ///
     /// * `config_string` - a string containing the configuration in TOML format
     /// * `original_file_path` - the original file path of the TOML
-    /// * `builder` - a custom CompassAppBuilder instance
+    /// * `builder` - a custom CompassBuilderInventory instance
     ///
     /// # Returns
     ///
@@ -62,14 +62,14 @@ impl CompassApp {
     pub fn try_from_config_toml_string(
         config_string: String,
         original_file_path: String,
-        builder: &CompassAppBuilder,
+        builder: &CompassBuilderInventory,
     ) -> Result<Self, CompassAppError> {
         let config = ops::read_config_from_string(
             config_string.clone(),
             config::FileFormat::Toml,
             original_file_path,
         )?;
-        let app = CompassApp::try_from((&config, builder))?;
+        let app = CompassApp::new(&config, builder)?;
         Ok(app)
     }
 }
@@ -77,7 +77,7 @@ impl CompassApp {
 impl TryFrom<&Path> for CompassApp {
     type Error = CompassAppError;
 
-    /// Builds a CompassApp from a configuration filepath, using the default CompassAppBuilder.
+    /// Builds a CompassApp from a configuration filepath, using the default CompassBuilderInventory.
     /// Builds all components such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
     /// Also builds the input and output plugins.
     /// Returns a persistent application that can run user queries in parallel.
@@ -91,16 +91,14 @@ impl TryFrom<&Path> for CompassApp {
     /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(conf_file: &Path) -> Result<Self, Self::Error> {
         let config = ops::read_config_from_file(conf_file)?;
-        let builder = CompassAppBuilder::default();
-        let compass_app = CompassApp::try_from((&config, &builder))?;
+        let builder = CompassBuilderInventory::new()?;
+        let compass_app = CompassApp::new(&config, &builder)?;
         Ok(compass_app)
     }
 }
 
-impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
-    type Error = CompassAppError;
-
-    /// Builds a CompassApp from configuration and a (possibly customized) CompassAppBuilder.
+impl CompassApp {
+    /// Builds a CompassApp from configuration and a (possibly customized) CompassBuilderInventory.
     /// Builds all modules such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
     /// Also builds the input and output plugins.
     /// Returns a persistent application that can run user queries in parallel.
@@ -112,14 +110,15 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
     /// # Arguments
     ///
     /// * `pair` - a tuple containing a config object (such as a parsed TOML file) and
-    ///   a [`super::config::compass_app_builder::CompassAppBuilder`] instance
+    ///   a [`super::config::compass_app_builder::CompassBuilderInventory`] instance
     ///
     /// # Returns
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
-    fn try_from(pair: (&Config, &CompassAppBuilder)) -> Result<Self, Self::Error> {
-        let (config, builder) = pair;
-
+    pub fn new(
+        config: &Config,
+        builder: &CompassBuilderInventory,
+    ) -> Result<Self, CompassAppError> {
         // Get the root config path so we can resolve paths relative
         // to where the config file is located.
         let root_config_path =
@@ -261,9 +260,7 @@ impl TryFrom<(&Config, &CompassAppBuilder)> for CompassApp {
             configuration,
         })
     }
-}
 
-impl CompassApp {
     /// runs a set of queries via this instance of CompassApp. this
     ///   1. processes each input query based on the InputPlugins
     ///   2. runs the search algorithm with each query via SearchApp

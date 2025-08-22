@@ -53,10 +53,10 @@ For more information, see[`crate::plugin::output`].
 
 A RouteE Compass app exists as a value of type [CompassApp] on a given system.
 An instance can be built using one of two `try_from` methods:
-  1. from a path, which assumes the default [CompassAppBuilder]
-  2. from an instance of [Config](https://docs.rs/config/latest/config/) along with a (possibly customized) [CompassAppBuilder]
+  1. from a path, which assumes the default [CompassBuilderInventory]
+  2. from an instance of [Config](https://docs.rs/config/latest/config/) along with a (possibly customized) [CompassBuilderInventory]
 
-Customizing a [CompassAppBuilder] is the extension point for adding 3rd party extensions to [CompassApp].
+Customizing a [CompassBuilderInventory] is the extension point for adding 3rd party extensions to [CompassApp].
 If this is not needed, then sticking to the default is sufficient, via the `CompassApp::try_from(path)` builder method.
 
 #### Running queries on CompassApp
@@ -99,8 +99,8 @@ Memory requirements for the CompassApp at this time are not reported.
 In order to add capabilities to Compass, you can choose from a number of trait objects to implement your solution.
 The way this is typically done is as follows:
   1. write custom models or input plugins
-  2. create a [CompassAppBuilder] object and inject your custom modules into it
-  3. create your own run application (such as a `fn main`) which uses your [CompassAppBuilder] to create a [CompassApp]
+  2. create a [CompassBuilderInventory] object and inject your custom modules into it
+  3. create your own run application (such as a `fn main`) which uses your [CompassBuilderInventory] to create a [CompassApp]
 
 #### Custom Models
 
@@ -128,7 +128,7 @@ For examples, review the implementation of the built-in plugins:
 [CompassApp]: crate::app::compass::CompassApp
 [SearchApp]: crate::app::search::SearchApp
 [SearchInstance]: routee_compass_core::algorithm::search::SearchInstance
-[CompassAppBuilder]: crate::app::compass::CompassAppBuilder
+[CompassBuilderInventory]: crate::app::compass::CompassBuilderInventory
 
 [traversal]: routee_compass_core::model::traversal
 [access]: routee_compass_core::model::access
