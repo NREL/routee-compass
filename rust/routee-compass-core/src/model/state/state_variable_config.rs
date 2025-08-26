@@ -146,42 +146,6 @@ impl StateVariableConfig {
             },
         }
     }
-
-    // pub fn state_variable_to_f64(&self, state_variable: StateVariable) -> Result<f64, StateModelError> {
-    //     match self {
-    //         StateVariableConfig::Distance { output_unit, .. } => {
-    //             output_unit.map_or(Ok(state_variable.into()), |unit| {
-    //                 let uom_value = DistanceUnit::default().to_uom(state_variable.into());
-    //                 Ok(unit.from_uom(uom_value))
-    //             })
-    //         }
-    //         StateVariableConfig::Time { output_unit, .. } => {
-    //             output_unit.map_or(Ok(state_variable.into()), |unit| {
-    //                 let uom_value = TimeUnit::default().to_uom(state_variable.into());
-    //                 Ok(unit.from_uom(uom_value))
-    //             })
-    //         }
-    //         StateVariableConfig::Speed { output_unit, .. } => {
-    //             output_unit.map_or(Ok(state_variable.into()), |unit| {
-    //                 let uom_value = SpeedUnit::default().to_uom(state_variable.into());
-    //                 Ok(unit.from_uom(uom_value))
-    //             })
-    //         }
-    //         StateVariableConfig::Energy { output_unit, .. } => {
-    //             output_unit.map_or(Ok(state_variable.into()), |unit| {
-    //                 let uom_value = EnergyUnit::default().to_uom(state_variable.into());
-    //                 Ok(unit.from_uom(uom_value))
-    //             })
-    //         }
-    //         StateVariableConfig::Ratio { output_unit, .. } => {
-    //             output_unit.map_or(Ok(state_variable.into()), |unit| {
-    //                 let uom_value = RatioUnit::default().to_uom(state_variable.into());
-    //                 Ok(unit.from_uom(uom_value))
-    //             })
-    //         }
-    //         StateVariableConfig::Custom { .. } => Ok(state_variable.into())
-    //     }
-    // }
 }
 
 impl Display for StateVariableConfig {
