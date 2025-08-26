@@ -198,7 +198,7 @@ impl Display for StateVariableConfig {
             } => {
                 write!(
                     f,
-                    "Grade: {initial:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
+                    "Ratio: {initial:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
                 )
             }
             StateVariableConfig::Custom {
