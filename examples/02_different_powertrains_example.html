@@ -528,14 +528,14 @@ By default, the PHEV will run using battery energy exclusively (starting at <cod
 </div>
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 2570.36it/s]
+applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 2433.33it/s]
 
-applying input plugin 2: 100%|██████████| 6/6 [00:00&lt;00:00, 159536.28it/s]
+applying input plugin 2: 100%|██████████| 6/6 [00:00&lt;00:00, 109337.41it/s]
 
 
 
-search:  67%|██████▆   | 4/6 [00:00&lt;00:00, 27.10it/s]
-search: 100%|██████████| 6/6 [00:00&lt;00:00, 23.44it/s]
+search:  67%|██████▆   | 4/6 [00:00&lt;00:00, 25.28it/s]
+search: 100%|██████████| 6/6 [00:00&lt;00:00, 22.18it/s]
 </pre></div>
 </div>
 </div>
@@ -548,66 +548,66 @@ search: 100%|██████████| 6/6 [00:00&lt;00:00, 23.44it/s]
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;edge_time&#39;: {&#39;Time&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: False,
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;trip_time&#39;: {&#39;Time&#39;: {&#39;value&#39;: 0.0,
+   &#39;accumulator&#39;: True,
    &#39;output_unit&#39;: &#39;minutes&#39;},
   &#39;index&#39;: 0,
-  &#39;name&#39;: &#39;edge_time&#39;},
- &#39;edge_speed&#39;: {&#39;Speed&#39;: {&#39;value&#39;: 0.0,
+  &#39;name&#39;: &#39;trip_time&#39;},
+ &#39;edge_distance&#39;: {&#39;Distance&#39;: {&#39;value&#39;: 0.0,
    &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;miles/hour&#39;},
+   &#39;output_unit&#39;: &#39;miles&#39;},
   &#39;index&#39;: 1,
-  &#39;name&#39;: &#39;edge_speed&#39;},
- &#39;edge_grade&#39;: {&#39;Ratio&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;decimal&#39;},
-  &#39;index&#39;: 2,
-  &#39;name&#39;: &#39;edge_grade&#39;},
- &#39;edge_energy&#39;: {&#39;Energy&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;kilowatt_hours&#39;},
-  &#39;index&#39;: 3,
-  &#39;name&#39;: &#39;edge_energy&#39;},
+  &#39;name&#39;: &#39;edge_distance&#39;},
  &#39;trip_elevation_gain&#39;: {&#39;Distance&#39;: {&#39;value&#39;: 0.0,
    &#39;accumulator&#39;: True,
    &#39;output_unit&#39;: &#39;miles&#39;},
-  &#39;index&#39;: 4,
+  &#39;index&#39;: 2,
   &#39;name&#39;: &#39;trip_elevation_gain&#39;},
+ &#39;edge_time&#39;: {&#39;Time&#39;: {&#39;value&#39;: 0.0,
+   &#39;accumulator&#39;: False,
+   &#39;output_unit&#39;: &#39;minutes&#39;},
+  &#39;index&#39;: 3,
+  &#39;name&#39;: &#39;edge_time&#39;},
+ &#39;battery_capacity&#39;: {&#39;Energy&#39;: {&#39;value&#39;: 216000000.0,
+   &#39;accumulator&#39;: False,
+   &#39;output_unit&#39;: &#39;kilowatt_hours&#39;},
+  &#39;index&#39;: 4,
+  &#39;name&#39;: &#39;battery_capacity&#39;},
  &#39;trip_elevation_loss&#39;: {&#39;Distance&#39;: {&#39;value&#39;: 0.0,
    &#39;accumulator&#39;: True,
    &#39;output_unit&#39;: &#39;miles&#39;},
   &#39;index&#39;: 5,
   &#39;name&#39;: &#39;trip_elevation_loss&#39;},
- &#39;battery_capacity&#39;: {&#39;Energy&#39;: {&#39;value&#39;: 216000000.0,
+ &#39;edge_energy&#39;: {&#39;Energy&#39;: {&#39;value&#39;: 0.0,
    &#39;accumulator&#39;: False,
    &#39;output_unit&#39;: &#39;kilowatt_hours&#39;},
   &#39;index&#39;: 6,
-  &#39;name&#39;: &#39;battery_capacity&#39;},
- &#39;trip_energy&#39;: {&#39;Energy&#39;: {&#39;value&#39;: 0.0,
+  &#39;name&#39;: &#39;edge_energy&#39;},
+ &#39;trip_soc&#39;: {&#39;Ratio&#39;: {&#39;value&#39;: 1.0,
    &#39;accumulator&#39;: True,
-   &#39;output_unit&#39;: &#39;kilowatt_hours&#39;},
+   &#39;output_unit&#39;: &#39;decimal&#39;},
   &#39;index&#39;: 7,
-  &#39;name&#39;: &#39;trip_energy&#39;},
- &#39;edge_distance&#39;: {&#39;Distance&#39;: {&#39;value&#39;: 0.0,
+  &#39;name&#39;: &#39;trip_soc&#39;},
+ &#39;edge_speed&#39;: {&#39;Speed&#39;: {&#39;value&#39;: 0.0,
    &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;miles&#39;},
+   &#39;output_unit&#39;: &#39;miles/hour&#39;},
   &#39;index&#39;: 8,
-  &#39;name&#39;: &#39;edge_distance&#39;},
- &#39;trip_time&#39;: {&#39;Time&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: True,
-   &#39;output_unit&#39;: &#39;minutes&#39;},
+  &#39;name&#39;: &#39;edge_speed&#39;},
+ &#39;edge_grade&#39;: {&#39;Ratio&#39;: {&#39;value&#39;: 0.0,
+   &#39;accumulator&#39;: False,
+   &#39;output_unit&#39;: &#39;decimal&#39;},
   &#39;index&#39;: 9,
-  &#39;name&#39;: &#39;trip_time&#39;},
+  &#39;name&#39;: &#39;edge_grade&#39;},
  &#39;trip_distance&#39;: {&#39;Distance&#39;: {&#39;value&#39;: 0.0,
    &#39;accumulator&#39;: True,
    &#39;output_unit&#39;: &#39;miles&#39;},
   &#39;index&#39;: 10,
   &#39;name&#39;: &#39;trip_distance&#39;},
- &#39;trip_soc&#39;: {&#39;Ratio&#39;: {&#39;value&#39;: 1.0,
+ &#39;trip_energy&#39;: {&#39;Energy&#39;: {&#39;value&#39;: 0.0,
    &#39;accumulator&#39;: True,
-   &#39;output_unit&#39;: &#39;decimal&#39;},
+   &#39;output_unit&#39;: &#39;kilowatt_hours&#39;},
   &#39;index&#39;: 11,
-  &#39;name&#39;: &#39;trip_soc&#39;}}
+  &#39;name&#39;: &#39;trip_energy&#39;}}
 </pre></div>
 </div>
 </div>
@@ -673,7 +673,7 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.trip_time&#39;, ylabel=&#39;gge&#39;&gt;
 </pre></div>
 </div>
-<img alt="../_images/c60a950c3bcd11ab680e441978da6adef0e0a639578e417dcd0c6d0175d732d3.png" src="../_images/c60a950c3bcd11ab680e441978da6adef0e0a639578e417dcd0c6d0175d732d3.png" />
+<img alt="../_images/36be931d2243e0b96c67795041eb95bce21720e985bedad698beaecb55918239.png" src="../_images/36be931d2243e0b96c67795041eb95bce21720e985bedad698beaecb55918239.png" />
 </div>
 </div>
 <p>Here, we see that the BEV and the PHEV use much less energy than the ICE alternative but all powertrains have a route that uses less energy and more time.</p>
@@ -700,7 +700,7 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.trip_time&#39;, ylabel=&#39;route.cost.total_cost&#39;&gt;
 </pre></div>
 </div>
-<img alt="../_images/538144662c554726465d251cbd97fb21d4a33f44b8b34fe1ca2b4678e5bb273b.png" src="../_images/538144662c554726465d251cbd97fb21d4a33f44b8b34fe1ca2b4678e5bb273b.png" />
+<img alt="../_images/3a864b77cff4862292c6bf60637c133eaf1b339e161c5d30b25ac4600888dfac.png" src="../_images/3a864b77cff4862292c6bf60637c133eaf1b339e161c5d30b25ac4600888dfac.png" />
 </div>
 </div>
 <p>Here, we notice that the ICE vehicle has the lowest costs and all powertrains save money on the optimal energy route.
