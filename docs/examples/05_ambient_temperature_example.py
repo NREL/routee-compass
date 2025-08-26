@@ -37,7 +37,7 @@ query = {
     "destination_y": 39.693005,
     "model_name": "2016_Nissan_Leaf_30_kWh_Steady_Thermal",
     "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy": 0},
-    "ambient_temperature_f": 72,
+    "ambient_temperature": {"value": 72, "unit": "fahrenheit"},
 }
 # %%
 result = app.run(query)
@@ -51,7 +51,7 @@ Let's look at the energy consumption for the route.
 
 energy = result["route"]["traversal_summary"]["trip_energy"]
 print(
-    f"Ambient Temperature: {query['ambient_temperature_f']} F, Trip Energy: {round(energy, 3)} kWh"
+    f"Ambient Temperature: {query['ambient_temperature']['value']} F, Trip Energy: {round(energy, 3)} kWh"
 )
 # %%
 """
@@ -61,7 +61,7 @@ with different temperature settings.
 # %%
 temp_results = []
 for temp in [0, 15, 32, 50, 72, 90, 110]:
-    query["ambient_temperature_f"] = temp
+    query["ambient_temperature"] = {"value": temp, "unit": "fahrenheit"} 
     result = app.run(query)
     if "error" in result:
         print(result["error"])
@@ -97,7 +97,7 @@ for model in [
 ]:
     for temp in [0, 15, 32, 50, 72, 90, 110]:
         query["model_name"] = model
-        query["ambient_temperature_f"] = temp
+        query["ambient_temperature"] = {"value": temp, "unit": "fahrenheit"}
         result = app.run(query)
         if "error" in result:
             print(result["error"])

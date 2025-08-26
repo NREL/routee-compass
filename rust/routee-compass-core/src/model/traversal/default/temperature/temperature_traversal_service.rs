@@ -1,34 +1,35 @@
 use std::sync::Arc;
 
-use uom::si::f64::ThermodynamicTemperature;
-
 use crate::model::traversal::{
-    default::temperature::TemperatureTraversalModel, TraversalModel, TraversalModelError,
-    TraversalModelService,
+    default::temperature::{
+        ambient_temperature_config::AmbientTemperatureConfig, TemperatureTraversalModel,
+    },
+    TraversalModel, TraversalModelError, TraversalModelService,
 };
 
-pub struct TemperatureTraversalService {}
+pub struct TemperatureTraversalService {
+    pub default_ambient_temperature: Option<AmbientTemperatureConfig>,
+}
 
 impl TraversalModelService for TemperatureTraversalService {
     fn build(
         &self,
         query: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        let ambient_temperature_f = query
-            .get("ambient_temperature_f")
-            .and_then(|v| v.as_f64())
-            .ok_or_else(|| {
-                TraversalModelError::TraversalModelFailure(
-                    "Missing or invalid ambient_temperature parameter".to_string(),
-                )
-            })?;
-
-        let ambient_temperature = ThermodynamicTemperature::new::<
-            uom::si::thermodynamic_temperature::degree_fahrenheit,
-        >(ambient_temperature_f);
+        let ambient_temp_config: AmbientTemperatureConfig = match query.get("ambient_temperature") {
+            Some(value) => {
+                serde_json::from_value(
+                    value.clone()
+                ).map_err(|_| TraversalModelError::BuildError("Could not parse ambient_temperature key from query. Expected a JSON object with a value and unit key.".to_string()))
+            }
+            None => match &self.default_ambient_temperature {
+                Some(config) => Ok(config.clone()),
+                None => Err(TraversalModelError::BuildError("No ambient_temperature key provided in query and no default set.".to_string())),
+            }
+        }?;
 
         Ok(Arc::new(TemperatureTraversalModel {
-            ambient_temperature,
+            ambient_temperature: ambient_temp_config.to_uom(),
         }))
     }
 }
