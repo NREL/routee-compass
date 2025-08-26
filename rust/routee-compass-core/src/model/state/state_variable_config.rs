@@ -132,16 +132,16 @@ impl StateVariableConfig {
             }
             StateVariableConfig::Custom { value, .. } => match value {
                 CustomVariableConfig::FloatingPoint { .. } => {
-                    value.decode_f64(&state_variable).map(|v| json![v])
+                    value.decode_f64(state_variable).map(|v| json![v])
                 }
                 CustomVariableConfig::SignedInteger { .. } => {
-                    value.decode_i64(&state_variable).map(|v| json![v])
+                    value.decode_i64(state_variable).map(|v| json![v])
                 }
                 CustomVariableConfig::UnsignedInteger { .. } => {
-                    value.decode_u64(&state_variable).map(|v| json![v])
+                    value.decode_u64(state_variable).map(|v| json![v])
                 }
                 CustomVariableConfig::Boolean { .. } => {
-                    value.decode_bool(&state_variable).map(|v| json![v])
+                    value.decode_bool(state_variable).map(|v| json![v])
                 }
             },
         }
