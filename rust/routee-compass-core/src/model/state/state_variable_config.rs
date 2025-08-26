@@ -1,11 +1,11 @@
+use crate::model::{
+    state::{CustomVariableConfig, StateModelError, StateVariable},
+    unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TemperatureUnit, TimeUnit},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fmt::Display;
 use uom::si::f64::*;
-use crate::model::{
-    state::{CustomVariableConfig, StateModelError, StateVariable},
-    unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TimeUnit, TemperatureUnit},
-};
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -67,7 +67,7 @@ impl StateVariableConfig {
             }
             StateVariableConfig::Temperature { initial, .. } => {
                 Ok(StateVariable(TemperatureUnit::default().from_uom(*initial)))
-            },
+            }
             StateVariableConfig::Custom { value, .. } => value.initial(),
         }
     }

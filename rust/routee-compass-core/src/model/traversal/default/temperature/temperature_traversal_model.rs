@@ -2,7 +2,7 @@ use uom::{si::f64::ThermodynamicTemperature, ConstZero};
 
 use crate::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
+    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{default::fieldname, TraversalModel, TraversalModelError},
     unit::TemperatureUnit,
 };
