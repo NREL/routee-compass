@@ -43,7 +43,7 @@ use routee_compass_core::model::{
         default::{
             combined::CombinedTraversalBuilder, custom::CustomTraversalBuilder,
             elevation::ElevationTraversalBuilder, grade::GradeTraversalBuilder,
-            time::TimeTraversalBuilder,
+            temperature::TemperatureTraversalBuilder, time::TimeTraversalBuilder,
         },
         TraversalModelBuilder, TraversalModelService,
     },
@@ -80,6 +80,7 @@ inventory::submit! {
         builder.add_traversal_model("elevation".to_string(), Rc::new(ElevationTraversalBuilder {}));
         builder.add_traversal_model("energy".to_string(), Rc::new(EnergyModelBuilder {}));
         builder.add_traversal_model("simple_charging".to_string(), Rc::new(SimpleChargingBuilder::default()));
+        builder.add_traversal_model("temperature".to_string(), Rc::new(TemperatureTraversalBuilder {}));
         builder.add_traversal_model("custom".to_string(), Rc::new(CustomTraversalBuilder {}));
         builder.add_access_model("no_access_model".to_string(), Rc::new(NoAccessModel {}));
         builder.add_access_model("turn_delay".to_string(), Rc::new(TurnDelayAccessModelBuilder {}));

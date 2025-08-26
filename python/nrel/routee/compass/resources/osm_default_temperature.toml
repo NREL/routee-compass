@@ -1,0 +1,157 @@
+parallelism = 2
+
+[graph]
+edge_list_input_file = "edges-compass.csv.gz"
+vertex_list_input_file = "vertices-compass.csv.gz"
+verbose = true
+
+[mapping]
+type = "edge"
+geometry_input_file = "edges-geometries-enumerated.txt.gz"
+tolerance.distance = 15.0
+tolerance.unit = "meters"
+queries_without_destinations = false
+matching_type = ["point", "vertex_id", "edge_id"]
+
+[plugin]
+input_plugins = [
+    { type = "grid_search" },
+    { type = "load_balancer", weight_heuristic = { type = "haversine" } },
+]
+output_plugins = [
+    { type = "summary" },
+    { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
+]
+
+[cost.weights]
+trip_distance = 1
+trip_time = 1
+trip_energy = 1
+
+[access]
+type = "turn_delay"
+edge_heading_input_file = "edges-headings-enumerated.csv.gz"
+[access.turn_delay_model]
+type = "tabular_discrete"
+time_unit = "seconds"
+[access.turn_delay_model.table]
+no_turn = 0.0
+slight_right = 0.5
+right = 1.0
+sharp_right = 1.5
+slight_left = 1.0
+left = 2.5
+sharp_left = 3.5
+u_turn = 9.5
+
+# Used for restricting travel after the battery is depleted.
+[frontier]
+type = "battery_frontier"
+
+[traversal]
+type = "combined"
+
+[[traversal.models]]
+type = "temperature"
+
+[[traversal.models]]
+type = "distance"
+distance_unit = "miles"
+
+[[traversal.models]]
+type = "elevation"
+distance_unit = "feet"
+
+[[traversal.models]]
+type = "speed"
+speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
+speed_unit = "kph"
+
+[[traversal.models]]
+type = "time"
+time_unit = "minutes"
+
+[[traversal.models]]
+type = "grade"
+grade_unit = "decimal"
+grade_input_file = "edges-grade-enumerated.txt.gz"
+[[traversal.models]]
+type = "energy"
+
+[[traversal.models.vehicles]]
+name = "2016_Nissan_Leaf_30_kWh_Steady_Thermal"
+type = "bev"
+model_input_file = "models/2016_Nissan_Leaf_30_kWh_Steady_Thermal.bin"
+distance_unit = "miles"
+energy_rate_unit = "kWh/mile"
+battery_capacity = 30
+battery_capacity_unit = "kilowatt_hours"
+input_features = [
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
+    { type = "temperature", name = "ambient_temperature", unit = "fahrenheit" },
+]
+
+[traversal.models.vehicles.model_type]
+interpolate.underlying_model_type = "smartcore"
+interpolate.feature_bounds.edge_speed.lower_bound = 0
+interpolate.feature_bounds.edge_speed.upper_bound = 100
+interpolate.feature_bounds.edge_speed.num_bins = 101
+interpolate.feature_bounds.edge_grade.lower_bound = -20
+interpolate.feature_bounds.edge_grade.upper_bound = 20
+interpolate.feature_bounds.edge_grade.num_bins = 41
+interpolate.feature_bounds.ambient_temperature.lower_bound = 0 
+interpolate.feature_bounds.ambient_temperature.upper_bound = 110
+interpolate.feature_bounds.ambient_temperature.num_bins = 111 
+
+[[traversal.models.vehicles]]
+name = "2022_Tesla_Model_3_RWD_Steady_Thermal"
+type = "bev"
+model_input_file = "models/2022_Tesla_Model_3_RWD_Steady_Thermal.bin"
+distance_unit = "miles"
+energy_rate_unit = "kWh/mile"
+battery_capacity = 58 
+battery_capacity_unit = "kilowatt_hours"
+input_features = [
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
+    { type = "temperature", name = "ambient_temperature", unit = "fahrenheit" },
+]
+
+[traversal.models.vehicles.model_type]
+interpolate.underlying_model_type = "smartcore"
+interpolate.feature_bounds.edge_speed.lower_bound = 0
+interpolate.feature_bounds.edge_speed.upper_bound = 100
+interpolate.feature_bounds.edge_speed.num_bins = 101
+interpolate.feature_bounds.edge_grade.lower_bound = -20
+interpolate.feature_bounds.edge_grade.upper_bound = 20
+interpolate.feature_bounds.edge_grade.num_bins = 41
+interpolate.feature_bounds.ambient_temperature.lower_bound = 0 
+interpolate.feature_bounds.ambient_temperature.upper_bound = 110
+interpolate.feature_bounds.ambient_temperature.num_bins = 111 
+
+[[traversal.models.vehicles]]
+name = "2020_Chevrolet_Bolt_EV_Steady_Thermal"
+type = "bev"
+model_input_file = "models/2020_Chevrolet_Bolt_EV_Steady_Thermal.bin"
+distance_unit = "miles"
+energy_rate_unit = "kWh/mile"
+battery_capacity = 66 
+battery_capacity_unit = "kilowatt_hours"
+input_features = [
+    { type = "speed", name = "edge_speed", unit = "mph" },
+    { type = "ratio", name = "edge_grade", unit = "percent" },
+    { type = "temperature", name = "ambient_temperature", unit = "fahrenheit" },
+]
+
+[traversal.models.vehicles.model_type]
+interpolate.underlying_model_type = "smartcore"
+interpolate.feature_bounds.edge_speed.lower_bound = 0
+interpolate.feature_bounds.edge_speed.upper_bound = 100
+interpolate.feature_bounds.edge_speed.num_bins = 101
+interpolate.feature_bounds.edge_grade.lower_bound = -20
+interpolate.feature_bounds.edge_grade.upper_bound = 20
+interpolate.feature_bounds.edge_grade.num_bins = 41
+interpolate.feature_bounds.ambient_temperature.lower_bound = 0 
+interpolate.feature_bounds.ambient_temperature.upper_bound = 110
+interpolate.feature_bounds.ambient_temperature.num_bins = 111 

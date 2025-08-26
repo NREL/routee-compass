@@ -104,6 +104,17 @@ impl PredictionModelRecord {
                         Some(u) => u.from_uom(grade),
                     }
                 }
+                InputFeature::Temperature { name, unit } => {
+                    let temperature = state_model.get_temperature(state, name)?;
+                    match unit {
+                        None => {
+                            return Err(TraversalModelError::TraversalModelFailure(format!(
+                                "Unit must be set for temperature input feature {input_feature} but got None"
+                            )));
+                        }
+                        Some(u) => u.from_uom(temperature),
+                    }
+                }
                 InputFeature::Custom { name, unit: _ } => {
                     state_model.get_custom_f64(state, name)?
                 }

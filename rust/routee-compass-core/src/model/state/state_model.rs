@@ -5,7 +5,9 @@ use super::{
     update_operation::UpdateOperation,
 };
 use crate::model::state::InputFeature;
-use crate::model::unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TimeUnit};
+use crate::model::unit::{
+    DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TemperatureUnit, TimeUnit,
+};
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::util::compact_ordered_hash_map::IndexedEntry;
 use itertools::Itertools;
@@ -230,6 +232,24 @@ impl StateModel {
         let value: &StateVariable = self.get_state_variable(state, name)?;
         let grade = RatioUnit::default().to_uom(value.0);
         Ok(grade)
+    }
+    /// retrieves a state variable that is expected to have a type of Temperature
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `name`  - feature name to extract
+    ///
+    /// # Returns
+    ///
+    /// feature value in the expected unit type, or an error
+    pub fn get_temperature(
+        &self,
+        state: &[StateVariable],
+        name: &str,
+    ) -> Result<ThermodynamicTemperature, StateModelError> {
+        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let temperature = TemperatureUnit::default().to_uom(value.0);
+        Ok(temperature)
     }
 
     /// retrieves a state variable that is expected to have a type of f64.
@@ -457,6 +477,16 @@ impl StateModel {
         speed: &Velocity,
     ) -> Result<(), StateModelError> {
         let value = StateVariable(SpeedUnit::default().from_uom(*speed));
+        self.update_state(state, name, &value, UpdateOperation::Replace)
+    }
+
+    pub fn set_temperature(
+        &self,
+        state: &mut [StateVariable],
+        name: &str,
+        temperature: &ThermodynamicTemperature,
+    ) -> Result<(), StateModelError> {
+        let value = StateVariable(TemperatureUnit::default().from_uom(*temperature));
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
