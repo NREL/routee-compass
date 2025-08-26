@@ -154,7 +154,7 @@ impl<K, V> CompactOrderedHashMap<K, V> {
         self.get(k).is_some()
     }
 
-    pub fn keys(&self) -> KeyIterator<K> {
+    pub fn keys(&self) -> KeyIterator<'_, K> {
         match self {
             CompactOrderedHashMap::OneEntry { k1, v1: _ } => Box::new([k1].into_iter()),
             CompactOrderedHashMap::TwoEntries {
@@ -566,7 +566,7 @@ impl<K, V> CompactOrderedHashMap<K, V> {
     }
 
     /// iterates over the entries in this collection in their index ordering.
-    pub fn iter(&self) -> ValueIterator<K, V>
+    pub fn iter(&self) -> ValueIterator<'_, K, V>
     where
         K: Hash + Ord + PartialEq + Clone,
         V: Clone,
@@ -579,7 +579,7 @@ impl<K, V> CompactOrderedHashMap<K, V> {
     }
 
     /// iterator that includes the IndexedEntry wrapper around each value
-    pub fn indexed_iter(&self) -> IndexedFeatureIterator<K, V>
+    pub fn indexed_iter(&self) -> IndexedFeatureIterator<'_, K, V>
     where
         K: Hash + Ord + PartialEq + Clone,
         V: Clone,
