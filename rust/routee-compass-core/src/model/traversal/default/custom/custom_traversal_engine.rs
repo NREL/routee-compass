@@ -1,6 +1,6 @@
 use super::{sparse_read_ops, CustomTraversalConfig};
 use crate::model::network::EdgeId;
-use crate::model::state::{CustomVariableConfig, StateVariableConfig, StateModel, StateVariable};
+use crate::model::state::{CustomVariableConfig, StateModel, StateVariable, StateVariableConfig};
 use crate::util::fs::read_decoders;
 use crate::{model::traversal::TraversalModelError, util::fs::read_utils};
 use kdam::BarBuilder;

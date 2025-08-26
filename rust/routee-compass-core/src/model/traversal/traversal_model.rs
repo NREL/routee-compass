@@ -1,6 +1,6 @@
 use super::traversal_model_error::TraversalModelError;
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::{InputFeature, StateVariableConfig, StateModel, StateVariable};
+use crate::model::state::{InputFeature, StateModel, StateVariable, StateVariableConfig};
 
 /// Dictates how state transitions occur while traversing a graph in a search algorithm.
 ///

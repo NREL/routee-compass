@@ -9,7 +9,7 @@ use crate::model::{
 };
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
-#[serde(tag = "type", rename_all="snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum StateVariableConfig {
     Distance {
         initial: Length,
@@ -46,11 +46,21 @@ pub enum StateVariableConfig {
 impl StateVariableConfig {
     pub fn initial_value(&self) -> Result<StateVariable, StateModelError> {
         match self {
-            StateVariableConfig::Distance { initial, .. } => Ok(StateVariable(DistanceUnit::default().from_uom(*initial))),
-            StateVariableConfig::Time { initial, .. } => Ok(StateVariable(TimeUnit::default().from_uom(*initial))),
-            StateVariableConfig::Speed { initial, .. } => Ok(StateVariable(SpeedUnit::default().from_uom(*initial))),
-            StateVariableConfig::Energy { initial, .. } => Ok(StateVariable(EnergyUnit::default().from_uom(*initial))),
-            StateVariableConfig::Ratio { initial, .. } => Ok(StateVariable(RatioUnit::default().from_uom(*initial))),
+            StateVariableConfig::Distance { initial, .. } => {
+                Ok(StateVariable(DistanceUnit::default().from_uom(*initial)))
+            }
+            StateVariableConfig::Time { initial, .. } => {
+                Ok(StateVariable(TimeUnit::default().from_uom(*initial)))
+            }
+            StateVariableConfig::Speed { initial, .. } => {
+                Ok(StateVariable(SpeedUnit::default().from_uom(*initial)))
+            }
+            StateVariableConfig::Energy { initial, .. } => {
+                Ok(StateVariable(EnergyUnit::default().from_uom(*initial)))
+            }
+            StateVariableConfig::Ratio { initial, .. } => {
+                Ok(StateVariable(RatioUnit::default().from_uom(*initial)))
+            }
             StateVariableConfig::Custom { value, .. } => value.initial(),
         }
     }
@@ -85,7 +95,10 @@ impl StateVariableConfig {
         }
     }
 
-    pub fn serialize_variable(&self, state_variable: &StateVariable) -> Result<serde_json::Value, StateModelError> {
+    pub fn serialize_variable(
+        &self,
+        state_variable: &StateVariable,
+    ) -> Result<serde_json::Value, StateModelError> {
         match self {
             StateVariableConfig::Distance { output_unit, .. } => {
                 output_unit.map_or(Ok(json![state_variable]), |unit| {
@@ -118,11 +131,19 @@ impl StateVariableConfig {
                 })
             }
             StateVariableConfig::Custom { value, .. } => match value {
-                CustomVariableConfig::FloatingPoint { .. } => value.decode_f64(&state_variable).map(|v| json![v]),
-                CustomVariableConfig::SignedInteger { .. } => value.decode_i64(&state_variable).map(|v| json![v]),
-                CustomVariableConfig::UnsignedInteger { .. } => value.decode_u64(&state_variable).map(|v| json![v]),
-                CustomVariableConfig::Boolean { .. } => value.decode_bool(&state_variable).map(|v| json![v]),
-            }
+                CustomVariableConfig::FloatingPoint { .. } => {
+                    value.decode_f64(&state_variable).map(|v| json![v])
+                }
+                CustomVariableConfig::SignedInteger { .. } => {
+                    value.decode_i64(&state_variable).map(|v| json![v])
+                }
+                CustomVariableConfig::UnsignedInteger { .. } => {
+                    value.decode_u64(&state_variable).map(|v| json![v])
+                }
+                CustomVariableConfig::Boolean { .. } => {
+                    value.decode_bool(&state_variable).map(|v| json![v])
+                }
+            },
         }
     }
 
@@ -229,4 +250,3 @@ impl Display for StateVariableConfig {
         }
     }
 }
-

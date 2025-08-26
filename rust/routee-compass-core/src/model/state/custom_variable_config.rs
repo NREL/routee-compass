@@ -96,7 +96,9 @@ impl CustomVariableConfig {
 
     pub fn encode_u64(&self, value: &u64) -> Result<StateVariable, StateModelError> {
         match self {
-            CustomVariableConfig::UnsignedInteger { initial: _ } => Ok(StateVariable(*value as f64)),
+            CustomVariableConfig::UnsignedInteger { initial: _ } => {
+                Ok(StateVariable(*value as f64))
+            }
             _ => Err(StateModelError::EncodeError(
                 UnitCodecType::UnsignedInteger.to_string(),
                 self.name(),

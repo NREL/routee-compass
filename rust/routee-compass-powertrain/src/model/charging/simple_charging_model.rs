@@ -2,7 +2,7 @@ use std::{collections::HashSet, sync::Arc};
 
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
+    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{TraversalModel, TraversalModelError},
     unit::TimeUnit,
 };
@@ -40,7 +40,12 @@ impl TraversalModel for SimpleChargingModel {
             },
         ]
     }
-    fn output_features(&self) -> Vec<(String, routee_compass_core::model::state::StateVariableConfig)> {
+    fn output_features(
+        &self,
+    ) -> Vec<(
+        String,
+        routee_compass_core::model::state::StateVariableConfig,
+    )> {
         vec![
             (
                 fieldname::EDGE_TIME.to_string(),

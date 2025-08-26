@@ -3,7 +3,7 @@ use uom::{si::f64::Ratio, ConstZero};
 use super::GradeTraversalEngine;
 use crate::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
+    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{default::fieldname, TraversalModel, TraversalModelError},
     unit::RatioUnit,
 };

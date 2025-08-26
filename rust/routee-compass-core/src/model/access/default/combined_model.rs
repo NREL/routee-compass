@@ -1,7 +1,7 @@
 use crate::model::{
     access::{AccessModel, AccessModelError, AccessModelService},
     network::{Edge, Vertex},
-    state::{StateVariableConfig, StateModel, StateVariable},
+    state::{StateModel, StateVariable, StateVariableConfig},
 };
 use itertools::Itertools;
 use std::sync::Arc;

@@ -1,7 +1,7 @@
 use super::AccessModelError;
 use crate::model::{
     network::{Edge, Vertex},
-    state::{StateVariableConfig, StateModel, StateVariable},
+    state::{StateModel, StateVariable, StateVariableConfig},
 };
 
 pub trait AccessModel: Send + Sync {

@@ -2,7 +2,7 @@ use super::prediction::PredictionModelConfig;
 use crate::model::{fieldname, prediction::PredictionModelRecord};
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
+    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit},
 };

@@ -6,7 +6,7 @@ use super::{
 };
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
+    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
 };
@@ -506,7 +506,8 @@ mod test {
 
         println!(
             "{:?}",
-            serde_json::to_string_pretty(&state_model.serialize_state(&state, true).unwrap()).unwrap()
+            serde_json::to_string_pretty(&state_model.serialize_state(&state, true).unwrap())
+                .unwrap()
         );
     }
 

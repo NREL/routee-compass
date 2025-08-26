@@ -4,7 +4,7 @@ use uom::{si::f64::Length, ConstZero};
 
 use crate::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
+    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
     unit::DistanceUnit,
 };

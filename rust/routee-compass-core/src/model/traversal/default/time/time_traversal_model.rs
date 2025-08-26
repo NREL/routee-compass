@@ -6,7 +6,7 @@ use uom::{
 use crate::{
     model::{
         network::{Edge, Vertex},
-        state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
         traversal::{
             default::{fieldname, time::TimeTraversalConfig},
             TraversalModel, TraversalModelError, TraversalModelService,

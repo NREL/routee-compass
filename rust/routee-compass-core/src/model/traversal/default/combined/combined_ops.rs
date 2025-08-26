@@ -90,7 +90,7 @@ mod test {
     use super::topological_dependency_sort;
     use crate::model::{
         network::{Edge, Vertex},
-        state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
         traversal::{TraversalModel, TraversalModelError},
     };
     use itertools::Itertools;

@@ -515,19 +515,19 @@ impl StateModel {
     ///
     /// # Result
     /// A JSON object representation of that vector
-    pub fn serialize_state(&self, state: &[StateVariable], accumulators_only: bool) -> Result<serde_json::Value, StateModelError> {
+    pub fn serialize_state(
+        &self,
+        state: &[StateVariable],
+        accumulators_only: bool,
+    ) -> Result<serde_json::Value, StateModelError> {
         let output = self
             .iter()
             .zip(state.iter())
-            .filter(|((_, feature), _)| {
-                !accumulators_only || feature.is_accumulator()
+            .filter(|((_, feature), _)| !accumulators_only || feature.is_accumulator())
+            .map(|((name, feature), state_var)| {
+                let serialized = feature.serialize_variable(state_var)?;
+                Ok((name, serialized))
             })
-            .map(
-                |((name, feature), state_var)| {
-                    let serialized = feature.serialize_variable(state_var)?;
-                    Ok((name, serialized))
-                },
-            )
             .collect::<Result<HashMap<_, _>, StateModelError>>()?;
         Ok(json![output])
     }
@@ -651,13 +651,13 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
             .map(|(feature_name, feature_json)| {
                 let feature = serde_json::from_value::<StateVariableConfig>(feature_json.clone())
                     .map_err(|e| {
-                        StateModelError::BuildError(format!(
+                    StateModelError::BuildError(format!(
                         "unable to parse state feature row with name '{}' contents '{}' due to: {}",
                         feature_name.clone(),
                         feature_json.clone(),
                         e
                     ))
-                    })?;
+                })?;
                 Ok((feature_name.clone(), feature))
             })
             .collect::<Result<Vec<_>, StateModelError>>()?;

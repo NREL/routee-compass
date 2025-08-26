@@ -21,7 +21,10 @@ impl CustomTraversalModel {
 
 impl TraversalModel for CustomTraversalModel {
     fn name(&self) -> String {
-        format!("Custom Traversal Model: {}", self.engine.config().custom_type)
+        format!(
+            "Custom Traversal Model: {}",
+            self.engine.config().custom_type
+        )
     }
     fn input_features(&self) -> Vec<InputFeature> {
         vec![]
