@@ -4,7 +4,7 @@ use uom::si::f64::*;
 
 use crate::model::{
     state::{CustomFeatureFormat, StateModelError, StateVariable},
-    unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TimeUnit},
+    unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TemperatureUnit, TimeUnit},
 };
 
 #[derive(Copy, Clone, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
@@ -34,6 +34,11 @@ pub enum StateFeature {
         accumulator: bool,
         output_unit: Option<RatioUnit>,
     },
+    Temperature {
+        value: ThermodynamicTemperature,
+        accumulator: bool,
+        output_unit: Option<TemperatureUnit>,
+    },
     Custom {
         value: f64,
         accumulator: bool,
@@ -49,6 +54,7 @@ impl StateFeature {
             StateFeature::Speed { value, .. } => SpeedUnit::default().from_uom(*value),
             StateFeature::Energy { value, .. } => EnergyUnit::default().from_uom(*value),
             StateFeature::Ratio { value, .. } => RatioUnit::default().from_uom(*value),
+            StateFeature::Temperature { value, .. } => TemperatureUnit::default().from_uom(*value),
             StateFeature::Custom { value, .. } => *value,
         }
     }
@@ -59,6 +65,7 @@ impl StateFeature {
             StateFeature::Speed { accumulator, .. } => *accumulator,
             StateFeature::Energy { accumulator, .. } => *accumulator,
             StateFeature::Ratio { accumulator, .. } => *accumulator,
+            StateFeature::Temperature { accumulator, .. } => *accumulator,
             StateFeature::Custom { accumulator, .. } => *accumulator,
         }
     }
@@ -79,6 +86,7 @@ impl StateFeature {
             StateFeature::Speed { .. } => "speed".to_string(),
             StateFeature::Energy { .. } => "energy".to_string(),
             StateFeature::Ratio { .. } => "ratio".to_string(),
+            StateFeature::Temperature { .. } => "temperature".to_string(),
             StateFeature::Custom { .. } => "custom".to_string(),
         }
     }
@@ -112,6 +120,12 @@ impl StateFeature {
             StateFeature::Ratio { output_unit, .. } => {
                 output_unit.map_or(state_variable.into(), |unit| {
                     let uom_value = RatioUnit::default().to_uom(state_variable.into());
+                    unit.from_uom(uom_value)
+                })
+            }
+            StateFeature::Temperature { output_unit, .. } => {
+                output_unit.map_or(state_variable.into(), |unit| {
+                    let uom_value = TemperatureUnit::default().to_uom(state_variable.into());
                     unit.from_uom(uom_value)
                 })
             }
@@ -171,6 +185,16 @@ impl Display for StateFeature {
                 write!(
                     f,
                     "Grade: {value:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
+                )
+            }
+            StateFeature::Temperature {
+                value,
+                accumulator,
+                output_unit,
+            } => {
+                write!(
+                    f,
+                    "Temperature: {value:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
                 )
             }
             StateFeature::Custom {

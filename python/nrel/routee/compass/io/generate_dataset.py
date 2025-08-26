@@ -213,6 +213,7 @@ def generate_compass_dataset(
             "osm_default_speed.toml",
             "osm_default_energy.toml",
             "osm_default_energy_all_vehicles.toml",
+            "osm_default_temperature.toml",
         ]
         if GeneratePipelinePhase.CHARGING_STATIONS in phases:
             base_config_files.append("osm_default_charging.toml")

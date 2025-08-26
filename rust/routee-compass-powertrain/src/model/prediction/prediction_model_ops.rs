@@ -3,10 +3,10 @@ use itertools::Itertools;
 use routee_compass_core::model::{
     state::InputFeature,
     traversal::TraversalModelError,
-    unit::{EnergyRateUnit, RatioUnit, SpeedUnit},
+    unit::{EnergyRateUnit, RatioUnit, SpeedUnit, TemperatureUnit},
 };
 use std::sync::Arc;
-use uom::si::f64::{Ratio, Velocity};
+use uom::si::f64::{Ratio, ThermodynamicTemperature, Velocity};
 
 const MIN_ENERGY_ERROR_MESSAGE: &str =
     "Failure while executing grid search for minimum energy rate in prediction model:";
@@ -39,6 +39,14 @@ pub fn find_min_energy_rate(
                 None => {
                     return Err(TraversalModelError::TraversalModelFailure(format!(
                         "{MIN_ENERGY_ERROR_MESSAGE} Unit must be set for grade input feature {input_feature} but got None"
+                    )))
+                }
+            },
+            InputFeature::Temperature { name: _, unit } => match unit {
+                Some(temp_unit) => get_temperature_sample_values(temp_unit),
+                None => {
+                    return Err(TraversalModelError::TraversalModelFailure(format!(
+                        "{MIN_ENERGY_ERROR_MESSAGE} Unit must be set for temperature input feature {input_feature} but got None"
                     )))
                 }
             },
@@ -96,6 +104,17 @@ fn get_speed_sample_values(speed_unit: &SpeedUnit) -> Vec<f64> {
         .map(|i| {
             let speed = Velocity::new::<uom::si::velocity::mile_per_hour>(i as f64); // values in range [1, 100.0]
             speed_unit.from_uom(speed)
+        })
+        .collect()
+}
+
+fn get_temperature_sample_values(temperature_unit: &TemperatureUnit) -> Vec<f64> {
+    (0..=110)
+        .map(|i| {
+            let temp = ThermodynamicTemperature::new::<
+                uom::si::thermodynamic_temperature::degree_celsius,
+            >(i as f64); // values in range [0, 110.0]
+            temperature_unit.from_uom(temp)
         })
         .collect()
 }
