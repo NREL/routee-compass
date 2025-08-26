@@ -1,6 +1,6 @@
 use super::{sparse_read_ops, CustomTraversalConfig};
 use crate::model::network::EdgeId;
-use crate::model::state::{CustomFeatureFormat, StateFeature, StateModel, StateVariable};
+use crate::model::state::{CustomVariableConfig, StateVariableConfig, StateModel, StateVariable};
 use crate::util::fs::read_decoders;
 use crate::{model::traversal::TraversalModelError, util::fs::read_utils};
 use kdam::BarBuilder;
@@ -28,12 +28,12 @@ impl CustomTraversalEngine {
         }
     }
 
-    pub fn output_feature(&self) -> StateFeature {
+    pub fn output_feature(&self) -> StateVariableConfig {
         let config = self.config();
-        StateFeature::Custom {
-            value: 0.0,
+        StateVariableConfig::Custom {
+            custom_type: config.custom_type.clone(),
             accumulator: config.accumulator,
-            format: config.feature,
+            value: config.variable_config,
         }
     }
 
@@ -52,38 +52,38 @@ impl CustomTraversalEngine {
                 "edge id {edge_id} not found in custom feature model with configuration: {config}"
             ))
         })?;
-        match config.feature {
-            CustomFeatureFormat::FloatingPoint { .. } => {
-                let mut value = config.feature.decode_f64(found_value)?;
+        match config.variable_config {
+            CustomVariableConfig::FloatingPoint { .. } => {
+                let mut value = config.variable_config.decode_f64(found_value)?;
                 if config.accumulator {
-                    let prev = state_model.get_custom_f64(state, &config.name)?;
+                    let prev = state_model.get_custom_f64(state, &config.custom_type)?;
                     value += prev;
                 }
-                state_model.set_custom_f64(state, &config.name, &value)?;
+                state_model.set_custom_f64(state, &config.custom_type, &value)?;
             }
-            CustomFeatureFormat::SignedInteger { .. } => {
-                let mut value = config.feature.decode_i64(found_value)?;
+            CustomVariableConfig::SignedInteger { .. } => {
+                let mut value = config.variable_config.decode_i64(found_value)?;
                 if config.accumulator {
-                    let prev = state_model.get_custom_i64(state, &config.name)?;
+                    let prev = state_model.get_custom_i64(state, &config.custom_type)?;
                     value += prev;
                 }
-                state_model.set_custom_i64(state, &config.name, &value)?;
+                state_model.set_custom_i64(state, &config.custom_type, &value)?;
             }
-            CustomFeatureFormat::UnsignedInteger { .. } => {
-                let mut value = config.feature.decode_u64(found_value)?;
+            CustomVariableConfig::UnsignedInteger { .. } => {
+                let mut value = config.variable_config.decode_u64(found_value)?;
                 if config.accumulator {
-                    let prev = state_model.get_custom_u64(state, &config.name)?;
+                    let prev = state_model.get_custom_u64(state, &config.custom_type)?;
                     value += prev;
                 }
-                state_model.set_custom_u64(state, &config.name, &value)?;
+                state_model.set_custom_u64(state, &config.custom_type, &value)?;
             }
-            CustomFeatureFormat::Boolean { .. } => {
-                let mut value = config.feature.decode_bool(found_value)?;
+            CustomVariableConfig::Boolean { .. } => {
+                let mut value = config.variable_config.decode_bool(found_value)?;
                 if config.accumulator {
-                    let prev = state_model.get_custom_bool(state, &config.name)?;
+                    let prev = state_model.get_custom_bool(state, &config.custom_type)?;
                     value = value && prev;
                 }
-                state_model.set_custom_bool(state, &config.name, &value)?;
+                state_model.set_custom_bool(state, &config.custom_type, &value)?;
             }
         }
         Ok(())
@@ -98,8 +98,8 @@ impl TryFrom<&CustomTraversalConfig> for CustomTraversalEngine {
 
         match config.file_format {
             super::CustomInputFormat::Dense => {
-                use CustomFeatureFormat as C;
-                let decoder = match config.feature {
+                use CustomVariableConfig as C;
+                let decoder = match config.variable_config {
                     C::FloatingPoint { .. } => read_decoders::state_variable,
                     C::SignedInteger { .. } => read_decoders::i64_to_state_variable,
                     C::UnsignedInteger { .. } => read_decoders::u64_to_state_variable,
@@ -119,8 +119,8 @@ impl TryFrom<&CustomTraversalConfig> for CustomTraversalEngine {
                 })
             }
             super::CustomInputFormat::Sparse => {
-                let values = match config.feature {
-                    CustomFeatureFormat::Boolean { .. } => {
+                let values = match config.variable_config {
+                    CustomVariableConfig::Boolean { .. } => {
                         sparse_read_ops::read_bools(&config.input_file, bar_builder)
                     }
                     _ => sparse_read_ops::read_state_variables(&config.input_file, bar_builder),

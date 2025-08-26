@@ -4,7 +4,7 @@ use uom::ConstZero;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
-use crate::model::state::{InputFeature, StateFeature};
+use crate::model::state::{InputFeature, StateVariableConfig};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
@@ -58,20 +58,20 @@ impl TraversalModel for DistanceTraversalModel {
         vec![]
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![
             (
                 String::from(fieldname::TRIP_DISTANCE),
-                StateFeature::Distance {
-                    value: Length::ZERO,
+                StateVariableConfig::Distance {
+                    initial: Length::ZERO,
                     accumulator: true,
                     output_unit: Some(DistanceUnit::default()),
                 },
             ),
             (
                 String::from(fieldname::EDGE_DISTANCE),
-                StateFeature::Distance {
-                    value: Length::ZERO,
+                StateVariableConfig::Distance {
+                    initial: Length::ZERO,
                     accumulator: false,
                     output_unit: Some(DistanceUnit::default()),
                 },

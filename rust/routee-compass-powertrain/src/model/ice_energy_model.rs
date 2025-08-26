@@ -2,7 +2,7 @@ use super::prediction::PredictionModelConfig;
 use crate::model::{fieldname, prediction::PredictionModelRecord};
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit},
 };
@@ -62,20 +62,20 @@ impl TraversalModel for IceEnergyModel {
         input_features
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![
             (
                 String::from(fieldname::TRIP_ENERGY),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: true,
                     output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
                 String::from(fieldname::EDGE_ENERGY),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: false,
                     output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },

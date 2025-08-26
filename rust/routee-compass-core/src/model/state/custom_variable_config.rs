@@ -22,20 +22,20 @@ use serde::{Deserialize, Serialize};
 /// in floating point, then an encode -> decode roundtrip may not be idempotent.
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq, PartialOrd)]
 #[serde(rename_all = "snake_case", tag = "type")]
-pub enum CustomFeatureFormat {
+pub enum CustomVariableConfig {
     FloatingPoint { initial: OrderedFloat<f64> },
     SignedInteger { initial: i64 },
     UnsignedInteger { initial: u64 },
     Boolean { initial: bool },
 }
 
-impl Default for CustomFeatureFormat {
+impl Default for CustomVariableConfig {
     fn default() -> Self {
         Self::DEFAULT
     }
 }
 
-impl Display for CustomFeatureFormat {
+impl Display for CustomVariableConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let initial = self
             .initial()
@@ -45,38 +45,38 @@ impl Display for CustomFeatureFormat {
     }
 }
 
-impl CustomFeatureFormat {
+impl CustomVariableConfig {
     pub const DEFAULT: Self = Self::FloatingPoint {
         initial: OrderedFloat(0.0),
     };
 
     pub fn name(&self) -> String {
         match self {
-            CustomFeatureFormat::FloatingPoint { initial: _ } => {
+            CustomVariableConfig::FloatingPoint { initial: _ } => {
                 UnitCodecType::FloatingPoint.to_string()
             }
-            CustomFeatureFormat::SignedInteger { initial: _ } => {
+            CustomVariableConfig::SignedInteger { initial: _ } => {
                 UnitCodecType::SignedInteger.to_string()
             }
-            CustomFeatureFormat::UnsignedInteger { initial: _ } => {
+            CustomVariableConfig::UnsignedInteger { initial: _ } => {
                 UnitCodecType::UnsignedInteger.to_string()
             }
-            CustomFeatureFormat::Boolean { initial: _ } => UnitCodecType::Boolean.to_string(),
+            CustomVariableConfig::Boolean { initial: _ } => UnitCodecType::Boolean.to_string(),
         }
     }
 
     pub fn initial(&self) -> Result<StateVariable, StateModelError> {
         match self {
-            CustomFeatureFormat::FloatingPoint { initial } => self.encode_f64(initial),
-            CustomFeatureFormat::SignedInteger { initial } => self.encode_i64(initial),
-            CustomFeatureFormat::UnsignedInteger { initial } => self.encode_u64(initial),
-            CustomFeatureFormat::Boolean { initial } => self.encode_bool(initial),
+            CustomVariableConfig::FloatingPoint { initial } => self.encode_f64(initial),
+            CustomVariableConfig::SignedInteger { initial } => self.encode_i64(initial),
+            CustomVariableConfig::UnsignedInteger { initial } => self.encode_u64(initial),
+            CustomVariableConfig::Boolean { initial } => self.encode_bool(initial),
         }
     }
 
     pub fn encode_f64(&self, value: &f64) -> Result<StateVariable, StateModelError> {
         match self {
-            CustomFeatureFormat::FloatingPoint { initial: _ } => Ok(StateVariable(*value)),
+            CustomVariableConfig::FloatingPoint { initial: _ } => Ok(StateVariable(*value)),
             _ => Err(StateModelError::EncodeError(
                 UnitCodecType::FloatingPoint.to_string(),
                 self.name(),
@@ -86,7 +86,7 @@ impl CustomFeatureFormat {
 
     pub fn encode_i64(&self, value: &i64) -> Result<StateVariable, StateModelError> {
         match self {
-            CustomFeatureFormat::SignedInteger { initial: _ } => Ok(StateVariable(*value as f64)),
+            CustomVariableConfig::SignedInteger { initial: _ } => Ok(StateVariable(*value as f64)),
             _ => Err(StateModelError::EncodeError(
                 UnitCodecType::SignedInteger.to_string(),
                 self.name(),
@@ -96,7 +96,7 @@ impl CustomFeatureFormat {
 
     pub fn encode_u64(&self, value: &u64) -> Result<StateVariable, StateModelError> {
         match self {
-            CustomFeatureFormat::UnsignedInteger { initial: _ } => Ok(StateVariable(*value as f64)),
+            CustomVariableConfig::UnsignedInteger { initial: _ } => Ok(StateVariable(*value as f64)),
             _ => Err(StateModelError::EncodeError(
                 UnitCodecType::UnsignedInteger.to_string(),
                 self.name(),
@@ -106,7 +106,7 @@ impl CustomFeatureFormat {
 
     pub fn encode_bool(&self, value: &bool) -> Result<StateVariable, StateModelError> {
         match self {
-            CustomFeatureFormat::Boolean { initial: _ } => {
+            CustomVariableConfig::Boolean { initial: _ } => {
                 if *value {
                     Ok(StateVariable(1.0))
                 } else {
@@ -122,7 +122,7 @@ impl CustomFeatureFormat {
 
     pub fn decode_f64(&self, value: &StateVariable) -> Result<f64, StateModelError> {
         match self {
-            CustomFeatureFormat::FloatingPoint { initial: _ } => Ok(value.0),
+            CustomVariableConfig::FloatingPoint { initial: _ } => Ok(value.0),
             _ => Err(StateModelError::DecodeError(
                 *value,
                 UnitCodecType::FloatingPoint.to_string(),
@@ -132,7 +132,7 @@ impl CustomFeatureFormat {
     }
     pub fn decode_i64(&self, value: &StateVariable) -> Result<i64, StateModelError> {
         match self {
-            CustomFeatureFormat::SignedInteger { initial: _ } => Ok(value.0 as i64),
+            CustomVariableConfig::SignedInteger { initial: _ } => Ok(value.0 as i64),
             _ => Err(StateModelError::DecodeError(
                 *value,
                 UnitCodecType::SignedInteger.to_string(),
@@ -142,7 +142,7 @@ impl CustomFeatureFormat {
     }
     pub fn decode_u64(&self, value: &StateVariable) -> Result<u64, StateModelError> {
         match self {
-            CustomFeatureFormat::UnsignedInteger { initial: _ } => {
+            CustomVariableConfig::UnsignedInteger { initial: _ } => {
                 if value < &StateVariable::ZERO {
                     Err(StateModelError::ValueError(
                         *value,
@@ -161,7 +161,7 @@ impl CustomFeatureFormat {
     }
     pub fn decode_bool(&self, value: &StateVariable) -> Result<bool, StateModelError> {
         match self {
-            CustomFeatureFormat::Boolean { initial: _ } => {
+            CustomVariableConfig::Boolean { initial: _ } => {
                 let is_false = value.0 == 0.0;
                 if is_false {
                     Ok(false)

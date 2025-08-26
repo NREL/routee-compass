@@ -3,7 +3,7 @@ use uom::{si::f64::Ratio, ConstZero};
 use super::GradeTraversalEngine;
 use crate::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError},
     unit::RatioUnit,
 };
@@ -29,11 +29,11 @@ impl TraversalModel for GradeTraversalModel {
     }
 
     //
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![(
             String::from(fieldname::EDGE_GRADE),
-            StateFeature::Ratio {
-                value: Ratio::ZERO,
+            StateVariableConfig::Ratio {
+                initial: Ratio::ZERO,
                 accumulator: false,
                 output_unit: Some(RatioUnit::default()),
             },

@@ -2,7 +2,7 @@ use std::{collections::HashSet, sync::Arc};
 
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError},
     unit::TimeUnit,
 };
@@ -40,28 +40,28 @@ impl TraversalModel for SimpleChargingModel {
             },
         ]
     }
-    fn output_features(&self) -> Vec<(String, routee_compass_core::model::state::StateFeature)> {
+    fn output_features(&self) -> Vec<(String, routee_compass_core::model::state::StateVariableConfig)> {
         vec![
             (
                 fieldname::EDGE_TIME.to_string(),
-                StateFeature::Time {
-                    value: Time::ZERO,
+                StateVariableConfig::Time {
+                    initial: Time::ZERO,
                     accumulator: false,
                     output_unit: Some(TimeUnit::default()),
                 },
             ),
             (
                 fieldname::TRIP_TIME.to_string(),
-                StateFeature::Time {
-                    value: Time::ZERO,
+                StateVariableConfig::Time {
+                    initial: Time::ZERO,
                     accumulator: true,
                     output_unit: Some(TimeUnit::default()),
                 },
             ),
             (
                 fieldname::TRIP_SOC.to_string(),
-                StateFeature::Ratio {
-                    value: self.starting_soc,
+                StateVariableConfig::Ratio {
+                    initial: self.starting_soc,
                     accumulator: true,
                     output_unit: None,
                 },
@@ -186,8 +186,8 @@ mod tests {
         // Create output features - we need to provide battery_capacity as an output feature
         let mut output_features = vec![(
             fieldname::BATTERY_CAPACITY.to_string(),
-            StateFeature::Energy {
-                value: Energy::new::<uom::si::energy::kilowatt_hour>(60.0),
+            StateVariableConfig::Energy {
+                initial: Energy::new::<uom::si::energy::kilowatt_hour>(60.0),
                 accumulator: false,
                 output_unit: None,
             },

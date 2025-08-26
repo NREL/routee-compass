@@ -1,6 +1,6 @@
 use super::traversal_model_error::TraversalModelError;
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::{InputFeature, StateFeature, StateModel, StateVariable};
+use crate::model::state::{InputFeature, StateVariableConfig, StateModel, StateVariable};
 
 /// Dictates how state transitions occur while traversing a graph in a search algorithm.
 ///
@@ -19,7 +19,7 @@ pub trait TraversalModel: Send + Sync {
 
     /// lists the state variables produced by this traversal model. for example,
     /// if this traversal model produces leg distances, it should specify that here.
-    fn output_features(&self) -> Vec<(String, StateFeature)>;
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)>;
 
     /// Updates the traversal state by traversing an edge.
     ///

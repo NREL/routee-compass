@@ -88,7 +88,8 @@ pub fn create_geojson_feature(
     state_model: Arc<StateModel>,
     cost_model: Arc<CostModel>,
 ) -> Result<Feature, OutputPluginError> {
-    let serialized_state = state_model.serialize_state(&t.result_state);
+    let serialized_state = state_model.serialize_state(&t.result_state, true)
+        .map_err(|e| OutputPluginError::OutputPluginFailed(format!("failure serializing final trip state while constructing geojson output: {e}")))?;
     let serialized_cost = cost_model
         .serialize_cost(&t.result_state, state_model.clone())
         .map_err(|e| {

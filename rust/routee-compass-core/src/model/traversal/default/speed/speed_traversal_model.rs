@@ -6,7 +6,7 @@ use crate::model::network::edge_id::EdgeId;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
-use crate::model::state::{InputFeature, StateFeature};
+use crate::model::state::{InputFeature, StateVariableConfig};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
@@ -48,11 +48,11 @@ impl TraversalModel for SpeedTraversalModel {
         }]
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![(
             String::from(fieldname::EDGE_SPEED),
-            StateFeature::Speed {
-                value: Velocity::ZERO,
+            StateVariableConfig::Speed {
+                initial: Velocity::ZERO,
                 accumulator: false,
                 output_unit: Some(SpeedUnit::default()),
             },

@@ -2,7 +2,7 @@ use super::turn_delay_access_model_engine::TurnDelayAccessModelEngine;
 use crate::model::{
     access::{AccessModel, AccessModelError},
     network::{Edge, Vertex},
-    state::{StateFeature, StateModel, StateVariable},
+    state::{StateVariableConfig, StateModel, StateVariable},
 };
 use std::sync::Arc;
 
@@ -32,7 +32,7 @@ impl AccessModel for TurnDelayAccessModel {
         Ok(())
     }
 
-    fn state_features(&self) -> Vec<(String, StateFeature)> {
+    fn state_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![]
     }
 }

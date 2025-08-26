@@ -4,7 +4,7 @@ use uom::{si::f64::Length, ConstZero};
 
 use crate::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
     traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
     unit::DistanceUnit,
 };
@@ -40,20 +40,20 @@ impl TraversalModel for ElevationTraversalModel {
         ]
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![
             (
                 String::from(fieldname::TRIP_ELEVATION_GAIN),
-                StateFeature::Distance {
-                    value: Length::ZERO,
+                StateVariableConfig::Distance {
+                    initial: Length::ZERO,
                     accumulator: true,
                     output_unit: Some(DistanceUnit::default()),
                 },
             ),
             (
                 String::from(fieldname::TRIP_ELEVATION_LOSS),
-                StateFeature::Distance {
-                    value: Length::ZERO,
+                StateVariableConfig::Distance {
+                    initial: Length::ZERO,
                     accumulator: true,
                     output_unit: Some(DistanceUnit::default()),
                 },

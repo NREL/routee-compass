@@ -2,7 +2,7 @@ use super::CustomTraversalEngine;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
-use crate::model::state::{InputFeature, StateFeature};
+use crate::model::state::{InputFeature, StateVariableConfig};
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
 use std::sync::Arc;
@@ -21,15 +21,15 @@ impl CustomTraversalModel {
 
 impl TraversalModel for CustomTraversalModel {
     fn name(&self) -> String {
-        format!("Custom Traversal Model: {}", self.engine.config().name)
+        format!("Custom Traversal Model: {}", self.engine.config().custom_type)
     }
     fn input_features(&self) -> Vec<InputFeature> {
         vec![]
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         let feature = self.engine.output_feature();
-        let name = self.engine.config().name.clone();
+        let name = self.engine.config().custom_type.clone();
         vec![(name, feature)]
     }
 

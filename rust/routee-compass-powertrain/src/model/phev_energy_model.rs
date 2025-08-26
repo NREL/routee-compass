@@ -6,7 +6,7 @@ use super::{
 };
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateVariableConfig, StateModel, StateVariable},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
 };
@@ -124,60 +124,60 @@ impl TraversalModel for PhevEnergyModel {
         unique_features.into_iter().collect()
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![
             (
                 String::from(fieldname::TRIP_ENERGY),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: true,
                     output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
                 String::from(fieldname::EDGE_ENERGY),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: false,
                     output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
                 String::from(fieldname::TRIP_ENERGY_LIQUID),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: true,
                     output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
                 String::from(fieldname::EDGE_ENERGY_LIQUID),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: false,
                     output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
                 },
             ),
             (
                 String::from(fieldname::TRIP_ENERGY_ELECTRIC),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: true,
                     output_unit: Some(EnergyUnit::KilowattHours),
                 },
             ),
             (
                 String::from(fieldname::EDGE_ENERGY_ELECTRIC),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: false,
                     output_unit: Some(EnergyUnit::KilowattHours),
                 },
             ),
             (
                 String::from(fieldname::TRIP_SOC),
-                StateFeature::Ratio {
-                    value: self.starting_soc,
+                StateVariableConfig::Ratio {
+                    initial: self.starting_soc,
                     accumulator: false,
                     output_unit: Some(RatioUnit::Percent),
                 },
@@ -506,7 +506,7 @@ mod test {
 
         println!(
             "{:?}",
-            serde_json::to_string_pretty(&state_model.serialize_state(&state)).unwrap()
+            serde_json::to_string_pretty(&state_model.serialize_state(&state, true).unwrap()).unwrap()
         );
     }
 
