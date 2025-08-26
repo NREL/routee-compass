@@ -1,7 +1,7 @@
-use super::state_feature::StateFeature;
+use super::state_variable_config::StateVariableConfig;
 use super::StateVariable;
 use super::{
-    custom_feature_format::CustomFeatureFormat, state_model_error::StateModelError,
+    custom_variable_config::CustomVariableConfig, state_model_error::StateModelError,
     update_operation::UpdateOperation,
 };
 use crate::model::state::InputFeature;
@@ -22,13 +22,13 @@ use uom::si::f64::*;
 /// object (see NFeatures, below). there are 4 additional implementations that specialize
 /// for the case where fewer than 5 features are required in order to improve CPU performance.
 #[derive(Debug)]
-pub struct StateModel(CompactOrderedHashMap<String, StateFeature>);
-type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>;
+pub struct StateModel(CompactOrderedHashMap<String, StateVariableConfig>);
+type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a StateVariableConfig)> + 'a>;
 type IndexedFeatureIterator<'a> =
-    Enumerate<Box<dyn Iterator<Item = (&'a String, &'a StateFeature)> + 'a>>;
+    Enumerate<Box<dyn Iterator<Item = (&'a String, &'a StateVariableConfig)> + 'a>>;
 
 impl StateModel {
-    pub fn new(features: Vec<(String, StateFeature)>) -> StateModel {
+    pub fn new(features: Vec<(String, StateVariableConfig)>) -> StateModel {
         let map = CompactOrderedHashMap::new(features);
         StateModel(map)
     }
@@ -47,19 +47,19 @@ impl StateModel {
     pub fn register(
         &self,
         input_features: Vec<InputFeature>,
-        output_features: Vec<(String, StateFeature)>,
+        output_features: Vec<(String, StateVariableConfig)>,
     ) -> Result<StateModel, StateModelError> {
         // start by creating a new copy of the state model
         let mut map = self
             .0
             .iter()
-            .map(|(k, v)| (k.clone(), *v))
+            .map(|(k, v)| (k.clone(), v.clone()))
             .collect::<CompactOrderedHashMap<_, _>>();
 
         // add each new state feature, tracking any cases where a name collision has a configuration mismatch
         let overwrites = output_features
             .iter()
-            .flat_map(|(name, new)| match map.insert(name.clone(), *new) {
+            .flat_map(|(name, new)| match map.insert(name.clone(), new.clone()) {
                 Some(old) if old != *new => Some((name.clone(), old, new)),
                 _ => None,
             })
@@ -94,7 +94,7 @@ impl StateModel {
 
         // all feature updates are valid; add the new output features to the map.
         for (name, feature) in output_features.iter() {
-            map.insert(name.to_string(), *feature);
+            map.insert(name.to_string(), feature.clone());
         }
 
         Ok(Self(map))
@@ -118,17 +118,17 @@ impl StateModel {
 
     /// collects the state model tuples and clones them so they can
     /// be used to build other collections
-    pub fn to_vec(&self) -> Vec<(String, IndexedEntry<StateFeature>)> {
+    pub fn to_vec(&self) -> Vec<(String, IndexedEntry<StateVariableConfig>)> {
         self.0.to_vec()
     }
 
     /// iterates over the features in this state in their state vector index ordering.
-    pub fn iter(&self) -> FeatureIterator {
+    pub fn iter(&self) -> FeatureIterator<'_> {
         self.0.iter()
     }
 
     /// iterator that includes the state vector index along with the feature name and StateFeature
-    pub fn indexed_iter(&self) -> IndexedFeatureIterator {
+    pub fn indexed_iter(&self) -> IndexedFeatureIterator<'_> {
         self.0.indexed_iter()
     }
 
@@ -146,10 +146,7 @@ impl StateModel {
     pub fn initial_state(&self) -> Result<Vec<StateVariable>, StateModelError> {
         self.0
             .iter()
-            .map(|(_, feature)| {
-                let initial = StateVariable(feature.as_f64());
-                Ok(initial)
-            })
+            .map(|(_, feature)| feature.initial_value())
             .collect::<Result<Vec<_>, _>>()
     }
 
@@ -343,7 +340,7 @@ impl StateModel {
         &self,
         state: &'a [StateVariable],
         name: &str,
-    ) -> Result<(&'a StateVariable, &CustomFeatureFormat), StateModelError> {
+    ) -> Result<(&'a StateVariable, &CustomVariableConfig), StateModelError> {
         let value = self.get_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
@@ -548,18 +545,21 @@ impl StateModel {
     ///
     /// # Result
     /// A JSON object representation of that vector
-    pub fn serialize_state(&self, state: &[StateVariable]) -> serde_json::Value {
+    pub fn serialize_state(
+        &self,
+        state: &[StateVariable],
+        accumulators_only: bool,
+    ) -> Result<serde_json::Value, StateModelError> {
         let output = self
             .iter()
             .zip(state.iter())
-            .filter_map(
-                |((name, feature), state_var)| match !name.contains("edge") {
-                    false => None,
-                    true => Some((name, feature.state_variable_to_f64(*state_var))),
-                },
-            )
-            .collect::<HashMap<_, _>>();
-        json![output]
+            .filter(|((_, feature), _)| !accumulators_only || feature.is_accumulator())
+            .map(|((name, feature), state_var)| {
+                let serialized = feature.serialize_variable(state_var)?;
+                Ok((name, serialized))
+            })
+            .collect::<Result<HashMap<_, _>, StateModelError>>()?;
+        Ok(json![output])
     }
 
     /// uses the built-in serialization codec to output the state model representation as a JSON object
@@ -584,7 +584,7 @@ impl StateModel {
         self.0.iter().map(|(k, _)| k.clone()).join(",")
     }
 
-    fn get_feature(&self, feature_name: &str) -> Result<&StateFeature, StateModelError> {
+    fn get_feature(&self, feature_name: &str) -> Result<&StateVariableConfig, StateModelError> {
         self.0.get(feature_name).ok_or_else(|| {
             StateModelError::UnknownStateVariableName(feature_name.to_string(), self.get_names())
         })
@@ -679,15 +679,15 @@ impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
             })?
             .into_iter()
             .map(|(feature_name, feature_json)| {
-                let feature = serde_json::from_value::<StateFeature>(feature_json.clone())
+                let feature = serde_json::from_value::<StateVariableConfig>(feature_json.clone())
                     .map_err(|e| {
-                        StateModelError::BuildError(format!(
+                    StateModelError::BuildError(format!(
                         "unable to parse state feature row with name '{}' contents '{}' due to: {}",
                         feature_name.clone(),
                         feature_json.clone(),
                         e
                     ))
-                    })?;
+                })?;
                 Ok((feature_name.clone(), feature))
             })
             .collect::<Result<Vec<_>, StateModelError>>()?;

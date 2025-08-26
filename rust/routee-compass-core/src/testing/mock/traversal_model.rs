@@ -1,9 +1,9 @@
 use uom::ConstZero;
 
-use crate::model::state::{CustomFeatureFormat, InputFeature};
+use crate::model::state::{CustomVariableConfig, InputFeature};
 use crate::model::traversal::TraversalModel;
 use crate::model::{
-    state::StateFeature,
+    state::StateVariableConfig,
     traversal::{default::combined::CombinedTraversalModel, TraversalModelError},
 };
 use std::sync::Arc;
@@ -30,7 +30,7 @@ impl TestTraversalModel {
 
 struct MockUpstreamModel {
     input_features: Vec<InputFeature>,
-    output_features: Vec<(String, StateFeature)>,
+    output_features: Vec<(String, StateVariableConfig)>,
 }
 
 impl MockUpstreamModel {
@@ -44,58 +44,58 @@ impl MockUpstreamModel {
             .map(|feature| match feature {
                 InputFeature::Distance { name, unit: _ } => (
                     name.clone(),
-                    StateFeature::Distance {
-                        value: uom::si::f64::Length::ZERO,
+                    StateVariableConfig::Distance {
+                        initial: uom::si::f64::Length::ZERO,
                         accumulator: false,
                         output_unit: None,
                     },
                 ),
                 InputFeature::Ratio { name, unit: _ } => (
                     name.clone(),
-                    StateFeature::Ratio {
-                        value: uom::si::f64::Ratio::ZERO,
+                    StateVariableConfig::Ratio {
+                        initial: uom::si::f64::Ratio::ZERO,
                         accumulator: false,
                         output_unit: None,
                     },
                 ),
                 InputFeature::Speed { name, unit: _ } => (
                     name.clone(),
-                    StateFeature::Speed {
-                        value: uom::si::f64::Velocity::ZERO,
+                    StateVariableConfig::Speed {
+                        initial: uom::si::f64::Velocity::ZERO,
                         accumulator: false,
                         output_unit: None,
                     },
                 ),
                 InputFeature::Time { name, unit: _ } => (
                     name.clone(),
-                    StateFeature::Time {
-                        value: uom::si::f64::Time::ZERO,
+                    StateVariableConfig::Time {
+                        initial: uom::si::f64::Time::ZERO,
                         accumulator: false,
                         output_unit: None,
                     },
                 ),
                 InputFeature::Energy { name, unit: _ } => (
                     name.clone(),
-                    StateFeature::Energy {
-                        value: uom::si::f64::Energy::ZERO,
+                    StateVariableConfig::Energy {
+                        initial: uom::si::f64::Energy::ZERO,
                         accumulator: false,
                         output_unit: None,
                     },
                 ),
                 InputFeature::Temperature { name, unit: _ } => (
                     name.clone(),
-                    StateFeature::Temperature {
-                        value: uom::si::f64::ThermodynamicTemperature::ZERO,
+                    StateVariableConfig::Temperature {
+                        initial: uom::si::f64::ThermodynamicTemperature::ZERO,
                         accumulator: false,
                         output_unit: None,
                     },
                 ),
                 InputFeature::Custom { name, unit: _ } => (
                     name.clone(),
-                    StateFeature::Custom {
-                        value: 0.0,
+                    StateVariableConfig::Custom {
+                        custom_type: name.clone(),
                         accumulator: false,
-                        format: CustomFeatureFormat::FloatingPoint {
+                        value: CustomVariableConfig::FloatingPoint {
                             initial: ordered_float::OrderedFloat(0.0),
                         },
                     },
@@ -117,7 +117,7 @@ impl TraversalModel for MockUpstreamModel {
         self.input_features.clone()
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         self.output_features.clone()
     }
 

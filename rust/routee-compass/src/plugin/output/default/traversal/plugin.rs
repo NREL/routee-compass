@@ -109,7 +109,10 @@ fn construct_route_output(
             si.cost_model.clone(),
         )
         .map_err(|e| e.to_string())?;
-    let traversal_summary = si.state_model.serialize_state(&last_edge.result_state);
+    let traversal_summary = si
+        .state_model
+        .serialize_state(&last_edge.result_state, true)
+        .map_err(|e| format!("failed serializing final trip state: {e}"))?;
 
     log::debug!("state model: {:?}", si.state_model);
     log::debug!("traversal summary: {traversal_summary:?}");

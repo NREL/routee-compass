@@ -90,7 +90,7 @@ mod test {
     use super::topological_dependency_sort;
     use crate::model::{
         network::{Edge, Vertex},
-        state::{InputFeature, StateFeature, StateModel, StateVariable},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
         traversal::{TraversalModel, TraversalModelError},
     };
     use itertools::Itertools;
@@ -293,14 +293,14 @@ mod test {
             self.in_features.clone()
         }
 
-        fn output_features(&self) -> Vec<(String, StateFeature)> {
+        fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
             self.out_features
                 .iter()
                 .map(|n| {
                     (
                         n.clone(),
-                        StateFeature::Distance {
-                            value: Length::ZERO,
+                        StateVariableConfig::Distance {
+                            initial: Length::ZERO,
                             accumulator: true,
                             output_unit: None,
                         },

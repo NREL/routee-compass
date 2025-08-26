@@ -2,7 +2,7 @@ use uom::{si::f64::ThermodynamicTemperature, ConstZero};
 
 use crate::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{default::fieldname, TraversalModel, TraversalModelError},
     unit::TemperatureUnit,
 };
@@ -20,11 +20,11 @@ impl TraversalModel for TemperatureTraversalModel {
         vec![]
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![(
             String::from(fieldname::AMBIENT_TEMPERATURE),
-            StateFeature::Temperature {
-                value: ThermodynamicTemperature::ZERO,
+            StateVariableConfig::Temperature {
+                initial: ThermodynamicTemperature::ZERO,
                 accumulator: false,
                 output_unit: Some(TemperatureUnit::Fahrenheit),
             },

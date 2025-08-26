@@ -5,7 +5,7 @@ use super::{
 use crate::model::fieldname;
 use routee_compass_core::model::{
     network::{Edge, Vertex},
-    state::{InputFeature, StateFeature, StateModel, StateVariable},
+    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit, RatioUnit, TimeUnit},
 };
@@ -112,52 +112,52 @@ impl TraversalModel for BevEnergyModel {
         input_features
     }
 
-    fn output_features(&self) -> Vec<(String, StateFeature)> {
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![
             (
                 String::from(fieldname::TRIP_ENERGY),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: true,
                     output_unit: Some(EnergyUnit::KilowattHours),
                 },
             ),
             (
                 String::from(fieldname::TRIP_TIME),
-                StateFeature::Time {
-                    value: Time::ZERO,
+                StateVariableConfig::Time {
+                    initial: Time::ZERO,
                     accumulator: true,
                     output_unit: Some(TimeUnit::default()),
                 },
             ),
             (
                 String::from(fieldname::EDGE_TIME),
-                StateFeature::Time {
-                    value: Time::ZERO,
+                StateVariableConfig::Time {
+                    initial: Time::ZERO,
                     accumulator: false,
                     output_unit: Some(TimeUnit::default()),
                 },
             ),
             (
                 String::from(fieldname::EDGE_ENERGY),
-                StateFeature::Energy {
-                    value: Energy::ZERO,
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
                     accumulator: false,
                     output_unit: Some(EnergyUnit::KilowattHours),
                 },
             ),
             (
                 String::from(fieldname::TRIP_SOC),
-                StateFeature::Ratio {
-                    value: self.starting_soc,
+                StateVariableConfig::Ratio {
+                    initial: self.starting_soc,
                     accumulator: true,
                     output_unit: Some(RatioUnit::default()),
                 },
             ),
             (
                 String::from(fieldname::BATTERY_CAPACITY),
-                StateFeature::Energy {
-                    value: self.battery_capacity,
+                StateVariableConfig::Energy {
+                    initial: self.battery_capacity,
                     accumulator: false,
                     output_unit: Some(EnergyUnit::KilowattHours),
                 },
