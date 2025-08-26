@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756140684287,
+  "lastUpdate": 1756244301645,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -509,6 +509,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7576882,
             "range": "± 518212",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c021208417b3667ec5942690fa10783263846f92",
+          "message": "Merge pull request #380 from NREL/ndr/368-temperature\n\nNdr/368 temperature",
+          "timestamp": "2025-08-26T15:36:08-06:00",
+          "tree_id": "ae3cf8711775a071a279933020d6d6bb62d959d3",
+          "url": "https://github.com/NREL/routee-compass/commit/c021208417b3667ec5942690fa10783263846f92"
+        },
+        "date": 1756244301152,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7561531,
+            "range": "± 177881",
             "unit": "ns/iter"
           }
         ]
