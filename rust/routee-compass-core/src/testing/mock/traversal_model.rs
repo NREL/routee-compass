@@ -84,8 +84,8 @@ impl MockUpstreamModel {
                 ),
                 InputFeature::Temperature { name, unit: _ } => (
                     name.clone(),
-                    StateFeature::Temperature {
-                        value: uom::si::f64::ThermodynamicTemperature::ZERO,
+                    StateVariableConfig::Temperature {
+                        initial: uom::si::f64::ThermodynamicTemperature::ZERO,
                         accumulator: false,
                         output_unit: None,
                     },

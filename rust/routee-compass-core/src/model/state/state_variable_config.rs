@@ -2,10 +2,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fmt::Display;
 use uom::si::f64::*;
-
 use crate::model::{
     state::{CustomVariableConfig, StateModelError, StateVariable},
-    unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TimeUnit},
+    unit::{DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TimeUnit, TemperatureUnit},
 };
 
 #[derive(Clone, PartialEq, PartialOrd, Debug, Deserialize, Serialize)]
@@ -36,6 +35,11 @@ pub enum StateVariableConfig {
         accumulator: bool,
         output_unit: Option<RatioUnit>,
     },
+    Temperature {
+        initial: ThermodynamicTemperature,
+        accumulator: bool,
+        output_unit: Option<TemperatureUnit>,
+    },
     Custom {
         custom_type: String,
         value: CustomVariableConfig,
@@ -61,6 +65,9 @@ impl StateVariableConfig {
             StateVariableConfig::Ratio { initial, .. } => {
                 Ok(StateVariable(RatioUnit::default().from_uom(*initial)))
             }
+            StateVariableConfig::Temperature { initial, .. } => {
+                Ok(StateVariable(TemperatureUnit::default().from_uom(*initial)))
+            },
             StateVariableConfig::Custom { value, .. } => value.initial(),
         }
     }
@@ -71,6 +78,7 @@ impl StateVariableConfig {
             StateVariableConfig::Speed { accumulator, .. } => *accumulator,
             StateVariableConfig::Energy { accumulator, .. } => *accumulator,
             StateVariableConfig::Ratio { accumulator, .. } => *accumulator,
+            StateVariableConfig::Temperature { accumulator, .. } => *accumulator,
             StateVariableConfig::Custom { accumulator, .. } => *accumulator,
         }
     }
@@ -91,6 +99,7 @@ impl StateVariableConfig {
             StateVariableConfig::Speed { .. } => "speed".to_string(),
             StateVariableConfig::Energy { .. } => "energy".to_string(),
             StateVariableConfig::Ratio { .. } => "ratio".to_string(),
+            StateVariableConfig::Temperature { .. } => "temperature".to_string(),
             StateVariableConfig::Custom { .. } => "custom".to_string(),
         }
     }
@@ -127,6 +136,12 @@ impl StateVariableConfig {
             StateVariableConfig::Ratio { output_unit, .. } => {
                 output_unit.map_or(Ok(json![state_variable]), |unit| {
                     let uom_value = RatioUnit::default().to_uom(state_variable.into());
+                    Ok(json![unit.from_uom(uom_value)])
+                })
+            }
+            StateVariableConfig::Temperature { output_unit, .. } => {
+                output_unit.map_or(Ok(json![state_variable]), |unit| {
+                    let uom_value = TemperatureUnit::default().to_uom(state_variable.into());
                     Ok(json![unit.from_uom(uom_value)])
                 })
             }
@@ -199,6 +214,16 @@ impl Display for StateVariableConfig {
                 write!(
                     f,
                     "Ratio: {initial:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
+                )
+            }
+            StateVariableConfig::Temperature {
+                initial,
+                accumulator,
+                output_unit,
+            } => {
+                write!(
+                    f,
+                    "Temperature: {initial:?} (Accumulator: {accumulator}, Output Unit: {output_unit:?})"
                 )
             }
             StateVariableConfig::Custom {
