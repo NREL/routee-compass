@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1756245091979,
+  "lastUpdate": 1756329292765,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -569,6 +569,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7557250,
             "range": "± 592110",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f6f0bf6a4119288317fa29aac928e557e6b23bee",
+          "message": "Merge pull request #385 from NREL/release/0.14.0\n\nv0.14.0",
+          "timestamp": "2025-08-27T15:12:39-06:00",
+          "tree_id": "2c867549e00711322f00cdcd49f17e1ceb60bbad",
+          "url": "https://github.com/NREL/routee-compass/commit/f6f0bf6a4119288317fa29aac928e557e6b23bee"
+        },
+        "date": 1756329291857,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7660883,
+            "range": "± 588023",
             "unit": "ns/iter"
           }
         ]
