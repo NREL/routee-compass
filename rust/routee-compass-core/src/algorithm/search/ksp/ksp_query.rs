@@ -1,4 +1,4 @@
-use crate::{algorithm::search::SearchError, model::network::vertex_id::VertexId};
+use crate::{algorithm::search::SearchError, model::network::VertexId};
 
 #[derive(Debug, Clone)]
 pub struct KspQuery<'a> {

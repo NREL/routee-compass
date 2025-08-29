@@ -9,7 +9,7 @@ use routee_compass_core::{
     model::{
         access::AccessModelService, cost::cost_model_service::CostModelService,
         frontier::FrontierModelService, label::label_model_service::LabelModelService,
-        map::MapModel, network::graph::Graph, state::StateModel, termination::TerminationModel,
+        map::MapModel, network::Graph, state::StateModel, termination::TerminationModel,
         traversal::TraversalModelService,
     },
 };

@@ -4,7 +4,7 @@ use itertools::Itertools;
 use routee_compass_core::{
     algorithm::search::Direction,
     model::{
-        network::{edge_id::EdgeId, vertex_id::VertexId},
+        network::{EdgeId, VertexId},
         unit::DistanceUnit,
     },
 };

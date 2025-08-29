@@ -3,7 +3,7 @@ use super::{
 };
 use crate::model::{
     label::Label,
-    network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
+    network::{EdgeId, Graph, VertexId},
 };
 use std::{
     collections::{HashMap, HashSet},

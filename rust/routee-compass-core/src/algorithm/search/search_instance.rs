@@ -5,7 +5,7 @@ use crate::model::{
     frontier::FrontierModel,
     label::label_model::LabelModel,
     map::MapModel,
-    network::{graph::Graph, vertex_id::VertexId},
+    network::{Graph, VertexId},
     state::{StateModel, StateVariable},
     termination::TerminationModel,
     traversal::TraversalModel,
@@ -21,8 +21,8 @@ pub struct SearchInstance {
     pub state_model: Arc<StateModel>,
     pub traversal_model: Arc<dyn TraversalModel>,
     pub access_model: Arc<dyn AccessModel>,
-    pub cost_model: Arc<CostModel>,
     pub frontier_model: Arc<dyn FrontierModel>,
+    pub cost_model: Arc<CostModel>,
     pub termination_model: Arc<TerminationModel>,
     pub label_model: Arc<dyn LabelModel>,
 }

@@ -1,6 +1,6 @@
 use super::search_error::SearchError;
 use super::search_instance::SearchInstance;
-use crate::model::network::edge_id::EdgeId;
+use crate::model::network::EdgeId;
 use crate::model::state::StateVariable;
 use crate::model::unit::Cost;
 use allocative::Allocative;

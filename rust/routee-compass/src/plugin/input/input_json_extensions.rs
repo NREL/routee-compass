@@ -2,7 +2,7 @@ use crate::{app::compass::CompassAppError, plugin::PluginError};
 
 use super::{InputField, InputPluginError};
 use geo;
-use routee_compass_core::model::network::{edge_id::EdgeId, vertex_id::VertexId};
+use routee_compass_core::model::network::{EdgeId, VertexId};
 use serde_json::{self, json};
 
 pub trait InputJsonExtensions {

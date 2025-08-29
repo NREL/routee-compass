@@ -2,8 +2,7 @@ use uom::si::f64::Velocity;
 use uom::ConstZero;
 
 use super::speed_traversal_engine::SpeedTraversalEngine;
-use crate::model::network::edge_id::EdgeId;
-use crate::model::network::{Edge, Vertex};
+use crate::model::network::{EdgeId, Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::state::{InputFeature, StateVariableConfig};

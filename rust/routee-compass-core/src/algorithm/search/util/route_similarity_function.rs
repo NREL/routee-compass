@@ -2,7 +2,7 @@ use crate::{
     algorithm::search::{
         edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
     },
-    model::network::edge_id::EdgeId,
+    model::network::EdgeId,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};

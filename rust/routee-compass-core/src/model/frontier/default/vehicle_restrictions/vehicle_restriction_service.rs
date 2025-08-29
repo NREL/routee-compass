@@ -5,7 +5,7 @@ use super::{
 use crate::{
     model::{
         frontier::{FrontierModel, FrontierModelError, FrontierModelService},
-        network::edge_id::EdgeId,
+        network::EdgeId,
         state::StateModel,
     },
     util::compact_ordered_hash_map::CompactOrderedHashMap,

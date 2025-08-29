@@ -1,5 +1,4 @@
-use crate::model::network::graph::Graph;
-use crate::model::network::{network_error::NetworkError, vertex_id::VertexId};
+use crate::model::network::{Graph, NetworkError, VertexId};
 use std::collections::HashSet;
 
 /// Conducts a depth-first search (DFS) on a directed graph.

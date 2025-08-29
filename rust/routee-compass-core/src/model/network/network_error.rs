@@ -1,7 +1,9 @@
-use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::network::{EdgeId, VertexId};
 
 #[derive(thiserror::Error, Debug)]
 pub enum NetworkError {
+    // #[error("edge attribute not found for edge {0}")]
+    // EdgeListNotFound(EdgeListId),
     #[error("edge attribute not found for edge {0}")]
     EdgeNotFound(EdgeId),
     #[error("vertex attribute not found for vertex {0}")]
