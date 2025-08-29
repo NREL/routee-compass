@@ -290,8 +290,8 @@ impl Graph2 {
     /// # Returns
     ///
     /// The source `VertexId` of an `Edge` or an error if the edge is missing
-    pub fn src_vertex_id(&self, edge_id: &EdgeId) -> Result<VertexId, NetworkError> {
-        self.get_edge(edge_id).map(|e| e.src_vertex_id)
+    pub fn src_vertex_id(&self, edge_list_id: &EdgeListId, edge_id: &EdgeId) -> Result<VertexId, NetworkError> {
+        self.get_edge(edge_list_id, edge_id).map(|e| e.src_vertex_id)
     }
 
     /// retrieve the destination vertex id of an edge
@@ -303,8 +303,8 @@ impl Graph2 {
     /// # Returns
     ///
     /// The destination `VertexId` of an `Edge` or an error if the edge is missing
-    pub fn dst_vertex_id(&self, edge_id: &EdgeId) -> Result<VertexId, NetworkError> {
-        self.get_edge(edge_id).map(|e| e.dst_vertex_id)
+    pub fn dst_vertex_id(&self, edge_list_id: &EdgeListId, edge_id: &EdgeId) -> Result<VertexId, NetworkError> {
+        self.get_edge(edge_list_id, edge_id).map(|e| e.dst_vertex_id)
     }
 
     /// helper function to give incident edges to a vertex based on a
@@ -318,7 +318,7 @@ impl Graph2 {
     /// # Returns
     ///
     /// The incident `EdgeId`s or an error if the vertex is not connected.
-    pub fn incident_edges(&self, vertex_id: &VertexId, direction: &Direction) -> Vec<EdgeId> {
+    pub fn incident_edges(&self, vertex_id: &VertexId, direction: &Direction) -> Vec<(EdgeListId, EdgeId)> {
         match direction {
             Direction::Forward => self.out_edges(vertex_id),
             Direction::Reverse => self.in_edges(vertex_id),
@@ -338,9 +338,9 @@ impl Graph2 {
     /// The incident `EdgeId`s or an error if the vertex is not connected.
     pub fn incident_edges_iter<'a>(
         &'a self,
-        vertex_id: &VertexId,
+        vertex_id: &'a VertexId,
         direction: &Direction,
-    ) -> Box<dyn Iterator<Item = &'a EdgeId> + 'a> {
+    ) -> Box<dyn Iterator<Item = (EdgeListId, EdgeId)> + 'a> {
         match direction {
             Direction::Forward => self.out_edges_iter(vertex_id),
             Direction::Reverse => self.in_edges_iter(vertex_id),
@@ -360,12 +360,13 @@ impl Graph2 {
     /// The incident `VertexId` of an edge or an error if the edge is missing
     pub fn incident_vertex(
         &self,
+        edge_list_id: &EdgeListId,
         edge_id: &EdgeId,
         direction: &Direction,
     ) -> Result<VertexId, NetworkError> {
         match direction {
-            Direction::Forward => self.dst_vertex_id(edge_id),
-            Direction::Reverse => self.src_vertex_id(edge_id),
+            Direction::Forward => self.dst_vertex_id(edge_list_id, edge_id),
+            Direction::Reverse => self.src_vertex_id(edge_list_id, edge_id),
         }
     }
 
@@ -381,9 +382,10 @@ impl Graph2 {
     /// any id is invalid.
     pub fn edge_triplet(
         &self,
+        edge_list_id: &EdgeListId,
         edge_id: &EdgeId,
     ) -> Result<(&Vertex, &Edge, &Vertex), NetworkError> {
-        let edge = self.get_edge(edge_id)?;
+        let edge = self.get_edge(edge_list_id, edge_id)?;
         let src = self.get_vertex(&edge.src_vertex_id)?;
         let dst = self.get_vertex(&edge.dst_vertex_id)?;
 
@@ -409,11 +411,11 @@ impl Graph2 {
         &self,
         vertex_id: &VertexId,
         direction: &Direction,
-    ) -> Result<Vec<(VertexId, EdgeId, VertexId)>, NetworkError> {
+    ) -> Result<Vec<(VertexId, EdgeListId, EdgeId, VertexId)>, NetworkError> {
         self.incident_edges_iter(vertex_id, direction)
-            .map(|edge_id| {
-                let terminal_vid = self.incident_vertex(edge_id, direction)?;
-                Ok((*vertex_id, *edge_id, terminal_vid))
+            .map(|(edge_list_id, edge_id)| {
+                let terminal_vid = self.incident_vertex(&edge_list_id, &edge_id, direction)?;
+                Ok((*vertex_id, edge_list_id, edge_id, terminal_vid))
             })
             .collect()
     }
@@ -440,9 +442,9 @@ impl Graph2 {
     ) -> Result<Vec<(&Vertex, &Edge, &Vertex)>, NetworkError> {
         self.incident_triplet_ids(vertex_id, direction)?
             .iter()
-            .map(|(src_id, edge_id, dst_id)| {
+            .map(|(src_id, edge_list_id, edge_id, dst_id)| {
                 let src = self.get_vertex(src_id)?;
-                let edge = self.get_edge(edge_id)?;
+                let edge = self.get_edge(edge_list_id, edge_id)?;
                 let dst = self.get_vertex(dst_id)?;
                 Ok((src, edge, dst))
             })
