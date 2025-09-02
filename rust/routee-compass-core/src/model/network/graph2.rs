@@ -28,8 +28,8 @@ use std::path::Path;
 /// smaller subset of the source data.
 #[derive(Debug)]
 pub struct Graph2 {
-    pub edge_lists: Vec<EdgeList>,
     pub vertices: Box<[Vertex]>,
+    pub edge_lists: Vec<EdgeList>,
 }
 
 impl TryFrom<&serde_json::Value> for Graph2 {
