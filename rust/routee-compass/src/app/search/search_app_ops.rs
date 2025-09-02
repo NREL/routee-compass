@@ -18,14 +18,16 @@ use std::{collections::HashMap, sync::Arc};
 /// StateFeature::get_feature_unit_name.
 pub fn collect_features(
     query: &serde_json::Value,
-    traversal_model: Arc<dyn TraversalModel>,
-    access_model: Arc<dyn AccessModel>,
+    traversal_models: &[Arc<dyn TraversalModel>],
+    access_models: &[Arc<dyn AccessModel>],
 ) -> Result<Vec<(String, StateVariableConfig)>, StateModelError> {
     // prepare the set of features for this state model
-    let model_features = traversal_model
+    let model_features = traversal_models.iter().flat_map(|m| {
+        m
         .output_features()
         .into_iter()
-        .chain(access_model.state_features())
+    })
+        .chain(access_models.iter().flat_map(|m| m.state_features()))
         .collect::<HashMap<_, _>>();
 
     // build the state model. inject state features from the traversal and access models
