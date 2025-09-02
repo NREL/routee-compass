@@ -5,7 +5,7 @@ use crate::{
 };
 use chrono::Local;
 use routee_compass_core::{
-    algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance},
+    algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance2},
     model::{
         access::AccessModelService, cost::cost_model_service::CostModelService,
         frontier::FrontierModelService, label::label_model_service::LabelModelService,
@@ -75,7 +75,7 @@ impl SearchApp {
     pub fn run(
         &self,
         query: &mut serde_json::Value,
-    ) -> Result<(SearchAppResult, SearchInstance), CompassAppError> {
+    ) -> Result<(SearchAppResult, SearchInstance2), CompassAppError> {
         let search_start_time = Local::now();
         let si = self.build_search_instance(query)?;
         self.map_model.map_match(query, &si)?;
@@ -135,11 +135,11 @@ impl SearchApp {
     ///
     /// # Results
     ///
-    /// The SearchInstance which runs this search query.
+    /// The SearchInstance2 which runs this search query.
     pub fn build_search_instance(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchInstance, SearchError> {
+    ) -> Result<SearchInstance2, SearchError> {
         let traversal_model = self.traversal_model_service.build(query)?;
         let access_model = self.access_model_service.build(query)?;
 
@@ -158,7 +158,7 @@ impl SearchApp {
 
         let label_model = self.label_model_service.build(query, state_model.clone())?;
 
-        let search_assets = SearchInstance {
+        let search_assets = SearchInstance2 {
             graph: self.graph.clone(),
             map_model: self.map_model.clone(),
             state_model,

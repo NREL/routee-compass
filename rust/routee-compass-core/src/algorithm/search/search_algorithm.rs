@@ -5,7 +5,7 @@ use super::ksp::KspTerminationCriteria;
 use super::ksp::{svp, yens};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
-use super::search_instance::SearchInstance;
+use super::SearchInstance2;
 use super::search_tree_branch::SearchTreeBranch;
 use super::util::RouteSimilarityFunction;
 use super::{a_star, direction::Direction};
@@ -43,7 +43,7 @@ impl SearchAlgorithm {
         dst_id_opt: Option<VertexId>,
         query: &serde_json::Value,
         direction: &Direction,
-        si: &SearchInstance,
+        si: &SearchInstance2,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
@@ -116,7 +116,7 @@ impl SearchAlgorithm {
         dst_id_opt: Option<EdgeId>,
         query: &serde_json::Value,
         direction: &Direction,
-        search_instance: &SearchInstance,
+        search_instance: &SearchInstance2,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
@@ -177,7 +177,7 @@ pub fn run_edge_oriented(
     query: &serde_json::Value,
     direction: &Direction,
     alg: &SearchAlgorithm,
-    si: &SearchInstance,
+    si: &SearchInstance2,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let initial_state = si.state_model.initial_state()?;
@@ -233,8 +233,8 @@ pub fn run_edge_oriented(
             } else if e1_dst == e2_src {
                 // route is simply source -> target
                 let init_state = si.state_model.initial_state()?;
-                let src_et = EdgeTraversal::forward_traversal(source, None, &init_state, si)?;
-                let dst_et = EdgeTraversal::forward_traversal(
+                let src_et = EdgeTraversal::new(source, None, &init_state, si)?;
+                let dst_et = EdgeTraversal::new(
                     target_edge,
                     Some(source),
                     &src_et.result_state,

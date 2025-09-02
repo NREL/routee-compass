@@ -4,7 +4,7 @@ use crate::app::search::SearchAppResult;
 use crate::plugin::output::default::uuid::output_json_extensions::UUIDJsonField;
 use crate::plugin::output::{OutputPlugin, OutputPluginError};
 use kdam::Bar;
-use routee_compass_core::algorithm::search::SearchInstance;
+use routee_compass_core::algorithm::search::SearchInstance2;
 use routee_compass_core::util::fs::read_utils::read_raw_file;
 use std::path::Path;
 
@@ -45,7 +45,7 @@ impl OutputPlugin for UUIDOutputPlugin {
     fn process(
         &self,
         output: &mut serde_json::Value,
-        search_result: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
+        search_result: &Result<(SearchAppResult, SearchInstance2), CompassAppError>,
     ) -> Result<(), OutputPluginError> {
         match search_result {
             Err(_) => Ok(()),

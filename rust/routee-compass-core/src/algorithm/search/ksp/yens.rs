@@ -3,7 +3,7 @@ use crate::{
     algorithm::search::{
         edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm,
         search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
-        search_instance::SearchInstance, util::EdgeCutFrontierModel, util::RouteSimilarityFunction,
+        SearchInstance2, util::EdgeCutFrontierModel, util::RouteSimilarityFunction,
     },
     model::{network::EdgeId, unit::Cost},
 };
@@ -22,7 +22,7 @@ pub fn run(
     query: &KspQuery,
     termination: &KspTerminationCriteria,
     similarity: &RouteSimilarityFunction,
-    si: &SearchInstance,
+    si: &SearchInstance2,
     underlying: &SearchAlgorithm,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // base case: we always have the true-shortest path
@@ -84,7 +84,7 @@ pub fn run(
 
             // execute a new path search using a wrapped frontier model to exclude edges
             let yens_frontier = EdgeCutFrontierModel::new(si.frontier_model.clone(), cut_edges);
-            let yens_si = SearchInstance {
+            let yens_si = SearchInstance2 {
                 graph: si.graph.clone(),
                 map_model: si.map_model.clone(),
                 state_model: si.state_model.clone(),

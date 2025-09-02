@@ -3,8 +3,8 @@ use super::map_model_config::MapModelConfig;
 use super::matching_type::MatchingType;
 use super::spatial_index::SpatialIndex;
 use super::{geometry_model::GeometryModel, matching_type::MapInputResult};
-use crate::algorithm::search::SearchInstance;
-use crate::model::network::{EdgeId, Graph};
+use crate::algorithm::search::SearchInstance2;
+use crate::model::network::{EdgeId, Graph2};
 use geo::LineString;
 use std::sync::Arc;
 
@@ -16,7 +16,7 @@ pub struct MapModel {
 }
 
 impl MapModel {
-    pub fn new(graph: Arc<Graph>, config: MapModelConfig) -> Result<MapModel, MapError> {
+    pub fn new(graph: Arc<Graph2>, config: MapModelConfig) -> Result<MapModel, MapError> {
         let matching_type = config.get_matching_type()?;
         match config {
             MapModelConfig::VertexMapModelConfig {
@@ -29,7 +29,7 @@ impl MapModel {
                     SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance);
                 let geometry_model = match geometry_input_file {
                     None => GeometryModel::new_from_vertices(graph),
-                    Some(file) => GeometryModel::new_from_edges(&file, graph.clone()),
+                    Some(file) => GeometryModel::new_from_edges(&[file], graph.clone()),
                 }?;
 
                 let map_model = MapModel {
@@ -42,12 +42,12 @@ impl MapModel {
             }
             MapModelConfig::EdgeMapModelConfig {
                 tolerance,
-                geometry_input_file,
+                geometry_input_files,
                 queries_without_destinations,
                 matching_type: _,
             } => {
                 let geometry_model =
-                    GeometryModel::new_from_edges(&geometry_input_file, graph.clone())?;
+                    GeometryModel::new_from_edges(&geometry_input_files, graph.clone())?;
                 let spatial_index =
                     SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance);
                 let map_model = MapModel {
@@ -68,7 +68,7 @@ impl MapModel {
     pub fn map_match(
         &self,
         query: &mut serde_json::Value,
-        si: &SearchInstance,
+        si: &SearchInstance2,
     ) -> Result<(), MapError> {
         self.matching_type.process_origin(query, si)?;
         match self.matching_type.process_destination(query, si)? {

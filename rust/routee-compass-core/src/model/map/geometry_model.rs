@@ -2,10 +2,11 @@ use std::sync::Arc;
 
 use super::map_error::MapError;
 use crate::{
-    model::network::{EdgeId, Graph},
+    model::network::{EdgeId, Graph2},
     util::{fs::read_utils, geo::geo_io_utils},
 };
 use geo::LineString;
+use itertools::Itertools;
 use kdam::{Bar, BarExt};
 
 /// model for link geometries by edge id. can be constructed either
@@ -16,17 +17,30 @@ pub struct GeometryModel(Vec<LineString<f32>>);
 
 impl GeometryModel {
     /// with no provided geometries, create minimal LineStrings from pairs of vertex Points
-    pub fn new_from_vertices(graph: Arc<Graph>) -> Result<GeometryModel, MapError> {
+    pub fn new_from_vertices(graph: Arc<Graph2>) -> Result<GeometryModel, MapError> {
         let edges = create_linestrings_from_vertices(graph)?;
         Ok(GeometryModel(edges))
     }
 
     /// use a user-provided enumerated textfile input to load LineString geometries
     pub fn new_from_edges(
-        geometry_input_file: &String,
-        graph: Arc<Graph>,
+        geometry_input_files: &[String],
+        graph: Arc<Graph2>,
     ) -> Result<GeometryModel, MapError> {
-        let edges = read_linestrings(geometry_input_file, graph.edges.len())?;
+        let input_iter = geometry_input_files.iter().zip(graph.edge_lists.iter()).enumerate();
+        let edges = input_iter.map(|(idx, (file, edge_list))| {
+            let edge_list_len = edge_list.n_edges();
+            let linestrings = read_linestrings(file, edge_list_len)?;
+             if linestrings.len() != edge_list_len {
+                Err(MapError::BuildError(format!("edge list {idx} geometry file {file} should have {edge_list_len} rows, found {}", linestrings.len())))
+             } else {
+                Ok(linestrings)
+             }
+
+        }).collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .flatten()
+            .collect_vec();
         Ok(GeometryModel(edges))
     }
 
@@ -61,8 +75,8 @@ fn read_linestrings(
     Ok(geoms)
 }
 
-fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<f32>>, MapError> {
-    let n_edges = graph.edges.len();
+fn create_linestrings_from_vertices(graph: Arc<Graph2>) -> Result<Vec<LineString<f32>>, MapError> {
+    let n_edges = graph.n_edges();
     let mut pb = kdam::Bar::builder()
         .total(n_edges)
         .animation("fillup")
@@ -71,8 +85,7 @@ fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<
         .map_err(MapError::InternalError)?;
 
     let edges = graph
-        .edges
-        .iter()
+        .edges()
         .map(|e| {
             let src_v = graph.get_vertex(&e.src_vertex_id).map_err(|_| {
                 MapError::InternalError(format!(
@@ -98,7 +111,7 @@ fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<
 }
 
 // TODO:
-//   - the API for OutputPlugin now expects a SearchInstance which is non-trivial to instantiate.
+//   - the API for OutputPlugin now expects a SearchInstance2 which is non-trivial to instantiate.
 //   the logic for adding geometries should be refactored into a separate function and this test
 //   should be moved to the file where that function exists.
 //   - the loading of geometries is now handled by the MapModel. testing geometry retrieval and

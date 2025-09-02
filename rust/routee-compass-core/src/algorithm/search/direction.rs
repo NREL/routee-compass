@@ -1,8 +1,5 @@
-use super::{
-    edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
-};
-use crate::model::network::{Edge, EdgeId, VertexId};
-use crate::model::state::StateVariable;
+use super::SearchInstance2;
+use crate::model::network::{Edge, EdgeId, EdgeListId, VertexId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Serialize, Deserialize, Default, Debug)]
@@ -16,9 +13,9 @@ pub enum Direction {
 impl Direction {
     pub fn get_incident_edges<'a>(
         &'a self,
-        vertex_id: &VertexId,
-        si: &'a SearchInstance,
-    ) -> Box<dyn Iterator<Item = &'a EdgeId> + 'a> {
+        vertex_id: &'a VertexId,
+        si: &'a SearchInstance2,
+    ) -> Box<dyn Iterator<Item = (EdgeListId, EdgeId)> + 'a> {
         match self {
             Direction::Forward => si.graph.out_edges_iter(vertex_id),
             Direction::Reverse => si.graph.in_edges_iter(vertex_id),
@@ -39,20 +36,21 @@ impl Direction {
         }
     }
 
-    pub fn perform_edge_traversal(
-        &self,
-        edge_id: EdgeId,
-        last_edge_id: Option<EdgeId>,
-        start_state: &[StateVariable],
-        si: &SearchInstance,
-    ) -> Result<EdgeTraversal, SearchError> {
-        match self {
-            Direction::Forward => {
-                EdgeTraversal::forward_traversal(edge_id, last_edge_id, start_state, si)
-            }
-            Direction::Reverse => {
-                EdgeTraversal::reverse_traversal(edge_id, last_edge_id, start_state, si)
-            }
-        }
-    }
+    
+    // pub fn perform_edge_traversal(
+    //     &self,
+    //     edge_id: EdgeId,
+    //     last_edge_id: Option<EdgeId>,
+    //     start_state: &[StateVariable],
+    //     si: &SearchInstance2,
+    // ) -> Result<EdgeTraversal, SearchError> {
+    //     match self {
+    //         Direction::Forward => {
+    //             EdgeTraversal::forward_traversal(edge_id, last_edge_id, start_state, si)
+    //         }
+    //         Direction::Reverse => {
+    //             EdgeTraversal::reverse_traversal(edge_id, last_edge_id, start_state, si)
+    //         }
+    //     }
+    // }
 }

@@ -6,7 +6,7 @@ use super::{
 };
 use crate::model::{
     map::map_model_config::DistanceTolerance,
-    network::{Graph, Vertex},
+    network::{Graph2, Vertex},
 };
 use geo::Point;
 use rstar::RTree;
@@ -40,13 +40,12 @@ impl SpatialIndex {
     /// the edge's destination vertex.
     /// - future work: make SearchOrientation set which incident vertex is returned.
     pub fn new_edge_oriented(
-        graph: Arc<Graph>,
+        graph: Arc<Graph2>,
         geometry_model: &GeometryModel,
         tolerance: Option<DistanceTolerance>,
     ) -> Self {
         let entries: Vec<MapEdgeRTreeObject> = graph
-            .edges
-            .iter()
+            .edges()
             .zip(geometry_model.geometries())
             .map(|(e, g)| MapEdgeRTreeObject::new(e, g))
             .collect();
@@ -72,7 +71,7 @@ impl SpatialIndex {
                     MapError::MapMatchError(String::from("no map vertices exist for matching"))
                 })?;
                 nearest.within_distance_threshold(point, tolerance)?;
-                Ok(NearestSearchResult::NearestEdge(nearest.edge_id))
+                Ok(NearestSearchResult::NearestEdge(nearest.edge_list_id, nearest.edge_id))
             }
         }
     }
@@ -95,7 +94,7 @@ impl SpatialIndex {
                 let iter = rtree
                     .nearest_neighbor_iter_with_distance_2(point)
                     .filter(|(obj, _)| obj.test_threshold(point, tolerance).unwrap_or(false))
-                    .map(|(next, _)| NearestSearchResult::NearestEdge(next.edge_id));
+                    .map(|(next, _)| NearestSearchResult::NearestEdge(next.edge_list_id, next.edge_id));
                 Box::new(iter)
             }
         }
@@ -141,11 +140,11 @@ mod test {
             .nearest_graph_id(&geo::Point(geo::Coord::from((1.901, 2.101))))
             .unwrap();
         match o_result {
-            NearestSearchResult::NearestEdge(_) => panic!("should find a vertex!"),
+            NearestSearchResult::NearestEdge(_, _) => panic!("should find a vertex!"),
             NearestSearchResult::NearestVertex(vertex_id) => assert_eq!(vertex_id, VertexId(0)),
         }
         match d_result {
-            NearestSearchResult::NearestEdge(_) => panic!("should find a vertex!"),
+            NearestSearchResult::NearestEdge(_, _) => panic!("should find a vertex!"),
             NearestSearchResult::NearestVertex(vertex_id) => assert_eq!(vertex_id, VertexId(2)),
         }
     }

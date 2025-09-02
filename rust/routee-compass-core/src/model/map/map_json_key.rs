@@ -10,23 +10,31 @@ pub enum MapJsonKey {
     DestinationY,
     OriginVertex,
     DestinationVertex,
+    OriginEdgeList,
     OriginEdge,
+    DestinationEdgeList,
     DestinationEdge,
+}
+
+impl MapJsonKey {
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            MapJsonKey::OriginX => "origin_x",
+            MapJsonKey::OriginY => "origin_y",
+            MapJsonKey::DestinationX => "destination_x",
+            MapJsonKey::DestinationY => "destination_y",
+            MapJsonKey::OriginVertex => "origin_vertex",
+            MapJsonKey::DestinationVertex => "destination_vertex",
+            MapJsonKey::OriginEdgeList => "origin_edge_list",
+            MapJsonKey::OriginEdge => "origin_edge",
+            MapJsonKey::DestinationEdgeList => "destination_edge_list",
+            MapJsonKey::DestinationEdge => "destination_edge",
+        }
+    }
 }
 
 impl Display for MapJsonKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use MapJsonKey as I;
-        let s = match self {
-            I::OriginX => "origin_x",
-            I::OriginY => "origin_y",
-            I::DestinationX => "destination_x",
-            I::DestinationY => "destination_y",
-            I::OriginVertex => "origin_vertex",
-            I::DestinationVertex => "destination_vertex",
-            I::OriginEdge => "origin_edge",
-            I::DestinationEdge => "destination_edge",
-        };
-        write!(f, "{s}")
+        write!(f, "{}", self.as_str())
     }
 }

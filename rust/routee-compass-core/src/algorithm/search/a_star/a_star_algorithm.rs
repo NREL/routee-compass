@@ -1,6 +1,6 @@
 use crate::algorithm::search::Direction;
 use crate::algorithm::search::SearchError;
-use crate::algorithm::search::SearchInstance;
+use crate::algorithm::search::SearchInstance2;
 use crate::algorithm::search::SearchResult;
 use crate::algorithm::search::SearchTreeBranch;
 use crate::model::label::Label;
@@ -23,7 +23,7 @@ pub fn run_vertex_oriented(
     target: Option<VertexId>,
     direction: &Direction,
     weight_factor: Option<Cost>,
-    si: &SearchInstance,
+    si: &SearchInstance2,
 ) -> Result<SearchResult, SearchError> {
     log::debug!(
         "run_vertex_oriented: source: {source}, target: {target:?}, direction: {direction:?}"
@@ -181,7 +181,7 @@ pub fn run_edge_oriented(
     target: Option<EdgeId>,
     direction: &Direction,
     weight_factor: Option<Cost>,
-    si: &SearchInstance,
+    si: &SearchInstance2,
 ) -> Result<SearchResult, SearchError> {
     // For now, convert to vertex-oriented search and use compatibility layer
     let _e1_src = si.graph.src_vertex_id(&source)?;
@@ -390,7 +390,7 @@ mod tests {
             state_model.clone(),
         )
         .unwrap();
-        let si = SearchInstance {
+        let si = SearchInstance2 {
             graph,
             map_model,
             state_model: state_model.clone(),

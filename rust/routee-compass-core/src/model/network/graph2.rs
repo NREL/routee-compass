@@ -1,4 +1,4 @@
-use super::{Edge, EdgeId, NetworkError, Vertex, VertexId};
+use super::{Edge, EdgeId, NetworkError, Vertex, VertexId, EdgeList};
 use crate::algorithm::search::Direction;
 use crate::model::network::EdgeListId;
 use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
@@ -30,22 +30,6 @@ use std::path::Path;
 pub struct Graph2 {
     pub edge_lists: Vec<EdgeList>,
     pub vertices: Box<[Vertex]>,
-}
-
-/// An 
-#[derive(Clone, Debug)]
-pub struct EdgeList {
-    pub adj: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
-    pub rev: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
-    pub edges: Box<[Edge]>,
-}
-
-impl EdgeList {
-    /// number of edges in the Graph2
-    pub fn n_edges(&self) -> usize {
-        self.edges.len()
-    }
-
 }
 
 impl TryFrom<&serde_json::Value> for Graph2 {
@@ -159,9 +143,9 @@ impl Graph2 {
         self.edge_lists.get(edge_list_id.0).ok_or_else(|| NetworkError::EdgeListNotFound(*edge_list_id))
     }
 
-    /// number of edges in the Graph2
-    pub fn n_edges(&self, edge_list_id: &EdgeListId) -> Result<usize, NetworkError> {
-        self.get_edge_list(edge_list_id).map(|e| e.n_edges())
+    /// number of edges in the Graph2, not to be conflated with the list of edge ids
+    pub fn n_edges(&self) -> usize {
+        self.edge_lists.iter().map(|el| el.n_edges()).sum::<usize>()
     }
 
     /// number of vertices in the Graph2
@@ -185,6 +169,11 @@ impl Graph2 {
     pub fn vertex_ids(&self) -> Box<dyn Iterator<Item = VertexId>> {
         let range = (0..self.n_vertices()).map(VertexId);
         Box::new(range)
+    }
+
+    /// iterates through all edges in the graph
+    pub fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Edge> + 'a> {
+        Box::new(self.edge_lists.iter().flat_map(|el| el.edges.iter()))
     }
 
     /// retrieve an `Edge` record from the graph

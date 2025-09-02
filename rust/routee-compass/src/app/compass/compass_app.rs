@@ -18,7 +18,7 @@ use config::Config;
 use itertools::Itertools;
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
-use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
+use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance2};
 use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
 use routee_compass_core::model::cost::cost_model_builder::CostModelBuilder;
 use routee_compass_core::model::map::{MapModel, MapModelConfig};
@@ -561,7 +561,7 @@ pub fn run_batch_without_responses(
 // 2. applying the output plugins
 pub fn apply_output_processing(
     request_json: &serde_json::Value,
-    result: Result<(SearchAppResult, SearchInstance), CompassAppError>,
+    result: Result<(SearchAppResult, SearchInstance2), CompassAppError>,
     search_app: &SearchApp,
     output_plugins: &[Arc<dyn OutputPlugin>],
 ) -> serde_json::Value {

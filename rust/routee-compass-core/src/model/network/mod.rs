@@ -1,3 +1,4 @@
+mod edge_list;
 mod edge;
 mod edge_id;
 mod graph;
@@ -14,3 +15,5 @@ pub use network_error::NetworkError;
 pub use vertex::Vertex;
 pub use vertex_id::VertexId;
 pub use edge_list_id::EdgeListId;
+pub use graph2::Graph2;
+pub use edge_list::EdgeList;

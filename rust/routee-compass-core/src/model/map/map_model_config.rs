@@ -20,7 +20,7 @@ pub enum MapModelConfig {
     EdgeMapModelConfig {
         // #[serde(deserialize_with = "de_tolerance")]
         tolerance: Option<DistanceTolerance>,
-        geometry_input_file: String,
+        geometry_input_files: Vec<String>,
         queries_without_destinations: bool,
         matching_type: Option<Vec<String>>,
     },
@@ -37,7 +37,7 @@ impl MapModelConfig {
             } => matching_type,
             MapModelConfig::EdgeMapModelConfig {
                 tolerance: _,
-                geometry_input_file: _,
+                geometry_input_files: _,
                 queries_without_destinations: _,
                 matching_type,
             } => matching_type,

@@ -1,7 +1,7 @@
 use crate::app::{compass::CompassAppError, search::SearchAppResult};
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::output::OutputPluginError;
-use routee_compass_core::algorithm::search::SearchInstance;
+use routee_compass_core::algorithm::search::SearchInstance2;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::{self, json};
 
@@ -13,7 +13,7 @@ impl OutputPlugin for SummaryOutputPlugin {
     fn process(
         &self,
         output: &mut serde_json::Value,
-        search_result: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
+        search_result: &Result<(SearchAppResult, SearchInstance2), CompassAppError>,
     ) -> Result<(), OutputPluginError> {
         match search_result {
             Err(_e) => Ok(()),
