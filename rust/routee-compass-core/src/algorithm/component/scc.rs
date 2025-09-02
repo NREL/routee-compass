@@ -1,4 +1,4 @@
-use crate::model::network::{Graph, NetworkError, VertexId};
+use crate::model::network::{Graph, Graph2, NetworkError, VertexId};
 use std::collections::HashSet;
 
 /// Conducts a depth-first search (DFS) on a directed graph.
@@ -19,7 +19,7 @@ use std::collections::HashSet;
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
 pub fn depth_first_search(
-    graph: &Graph,
+    graph: &Graph2,
     vertex: &VertexId,
     visited: &mut HashSet<VertexId>,
     stack: &mut Vec<VertexId>,
@@ -31,8 +31,8 @@ pub fn depth_first_search(
     visited.insert(*vertex);
 
     let edges = graph.out_edges(vertex);
-    for edge in edges {
-        let dst = graph.dst_vertex_id(&edge)?;
+    for (edge_list_id, edge_id) in edges {
+        let dst = graph.dst_vertex_id(&edge_list_id, &edge_id)?;
         depth_first_search(graph, &dst, visited, stack)?;
     }
 
@@ -59,7 +59,7 @@ pub fn depth_first_search(
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
 pub fn reverse_depth_first_search(
-    graph: &Graph,
+    graph: &Graph2,
     vertex: &VertexId,
     visited: &mut HashSet<VertexId>,
     stack: &mut Vec<VertexId>,
@@ -71,8 +71,8 @@ pub fn reverse_depth_first_search(
     visited.insert(*vertex);
 
     let edges = graph.in_edges(vertex);
-    for edge in edges {
-        let src = graph.src_vertex_id(&edge)?;
+    for (edge_list_id, edge_id) in edges {
+        let src = graph.src_vertex_id(&edge_list_id, &edge_id)?;
         reverse_depth_first_search(graph, &src, visited, stack)?;
     }
 
@@ -94,7 +94,7 @@ pub fn reverse_depth_first_search(
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
 pub fn all_strongly_connected_componenets(
-    graph: &Graph,
+    graph: &Graph2,
 ) -> Result<Vec<Vec<VertexId>>, NetworkError> {
     let mut visited: HashSet<VertexId> = HashSet::new();
     let mut container: Vec<VertexId> = Vec::new();
@@ -131,7 +131,7 @@ pub fn all_strongly_connected_componenets(
 ///
 /// Returns an error if the `graph` has an issue like a non-existing vertex.
 ///
-pub fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexId>, NetworkError> {
+pub fn largest_strongly_connected_component(graph: &Graph2) -> Result<Vec<VertexId>, NetworkError> {
     let components = all_strongly_connected_componenets(graph)?;
 
     let mut largest_component: Vec<VertexId> = Vec::new();
@@ -151,11 +151,11 @@ mod tests {
 
     use super::*;
     use crate::{
-        model::network::{Edge, Vertex},
+        model::network::{Edge, EdgeList, Graph2, Vertex},
         util::compact_ordered_hash_map::CompactOrderedHashMap,
     };
 
-    fn build_mock_graph() -> Graph {
+    fn build_mock_graph() -> Graph2 {
         let vertices = vec![
             Vertex::new(0, 0.0, 0.0),
             Vertex::new(1, 1.0, 1.0),
@@ -167,19 +167,19 @@ mod tests {
         let length = Length::new::<uom::si::length::kilometer>(10.0);
 
         let edges = vec![
-            Edge::new(0, 0, 1, length),
-            Edge::new(1, 1, 0, length),
-            Edge::new(2, 1, 2, length),
-            Edge::new(3, 2, 1, length),
-            Edge::new(4, 2, 3, length),
-            Edge::new(5, 3, 2, length),
-            Edge::new(6, 3, 0, length),
-            Edge::new(7, 0, 3, length),
-            Edge::new(8, 0, 2, length),
-            Edge::new(9, 1, 3, length),
-            Edge::new(10, 2, 0, length),
-            Edge::new(11, 3, 1, length),
-            Edge::new(12, 4, 4, length),
+            Edge::new(0, 0, 0, 1, length),
+            Edge::new(0, 1, 1, 0, length),
+            Edge::new(0, 2, 1, 2, length),
+            Edge::new(0, 3, 2, 1, length),
+            Edge::new(0, 4, 2, 3, length),
+            Edge::new(0, 5, 3, 2, length),
+            Edge::new(0, 6, 3, 0, length),
+            Edge::new(0, 7, 0, 3, length),
+            Edge::new(0, 8, 0, 2, length),
+            Edge::new(0, 9, 1, 3, length),
+            Edge::new(0, 10, 2, 0, length),
+            Edge::new(0, 11, 3, 1, length),
+            Edge::new(0, 12, 4, 4, length),
         ];
 
         // Create the adjacency and reverse adjacency lists.
@@ -193,11 +193,15 @@ mod tests {
 
         // Construct the Graph instance.
 
-        Graph {
-            adj: adj.into_boxed_slice(),
-            rev: rev.into_boxed_slice(),
-            edges: edges.into_boxed_slice(),
+        Graph2 {
             vertices: vertices.into_boxed_slice(),
+            edge_lists: vec![
+                EdgeList {
+                    adj: adj.into_boxed_slice(),
+                    rev: rev.into_boxed_slice(),
+                    edges: edges.into_boxed_slice(),
+                }
+            ]
         }
     }
 

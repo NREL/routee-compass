@@ -143,6 +143,10 @@ impl Graph2 {
         self.edge_lists.get(edge_list_id.0).ok_or_else(|| NetworkError::EdgeListNotFound(*edge_list_id))
     }
 
+    pub fn n_edge_lists(&self) -> usize {
+        self.edge_lists.len()
+    }
+
     /// number of edges in the Graph2, not to be conflated with the list of edge ids
     pub fn n_edges(&self) -> usize {
         self.edge_lists.iter().map(|el| el.n_edges()).sum::<usize>()

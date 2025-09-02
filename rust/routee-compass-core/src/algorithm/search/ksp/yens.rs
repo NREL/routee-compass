@@ -1,14 +1,12 @@
 use super::{ksp_query::KspQuery, ksp_termination_criteria::KspTerminationCriteria};
 use crate::{
     algorithm::search::{
-        edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm,
-        search_algorithm_result::SearchAlgorithmResult, search_error::SearchError,
-        SearchInstance2, util::EdgeCutFrontierModel, util::RouteSimilarityFunction,
+        edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm, search_algorithm_result::SearchAlgorithmResult, search_error::SearchError, util::{EdgeCutFrontierModel, RouteSimilarityFunction}, SearchInstance2
     },
-    model::{network::EdgeId, unit::Cost},
+    model::{frontier::{FrontierModel, FrontierModelError}, network::EdgeId, unit::Cost},
 };
 use itertools::Itertools;
-use std::{collections::HashSet, sync::Arc};
+use std::{collections::{HashSet}, sync::Arc};
 
 /// an implementation of Yen's k-Shortest Paths Algorithm as described in the paper
 ///
@@ -59,7 +57,7 @@ pub fn run(
         // step through each index along the most recently-accepted path
         for spur_idx in 0..prev_accepted_path.len() - 2 {
             let spur_len: usize = spur_idx + 1;
-            let mut cut_edges: HashSet<EdgeId> = HashSet::new();
+            let mut cut_edges: Vec<HashSet<EdgeId>> = (0..si.graph.n_edge_lists()).map(|_| HashSet::new()).collect_vec();
             let root_path = prev_accepted_path.iter().take(spur_len).collect_vec();
             let spur_edge_traversal =
                 root_path
@@ -69,7 +67,7 @@ pub fn run(
                     )))?;
             let spur_vertex_id = si
                 .graph
-                .get_edge(&spur_edge_traversal.edge_id)?
+                .get_edge(&spur_edge_traversal.edge_list_id, &spur_edge_traversal.edge_id)?
                 .dst_vertex_id;
 
             // cut frontier edges based on previous paths with matching root path
@@ -77,23 +75,30 @@ pub fn run(
                 let accepted_path_root = accepted_path.iter().take(spur_len).collect_vec();
                 if same_path(&root_path, &accepted_path_root) {
                     if let Some(cut_edge) = accepted_path.get(spur_idx + 1) {
-                        cut_edges.insert(cut_edge.edge_id);
+                        if let Some(cut_set) = cut_edges.get_mut(cut_edge.edge_list_id.0) {
+                            cut_set.insert(cut_edge.edge_id);
+                        }
                     }
                 }
             }
 
             // execute a new path search using a wrapped frontier model to exclude edges
-            let yens_frontier = EdgeCutFrontierModel::new(si.frontier_model.clone(), cut_edges);
+            let yens_frontier: Vec<Arc<dyn FrontierModel>> = cut_edges.iter().enumerate().map(|(edge_list_id, cut)| {
+                let underlying = si.frontier_models.get(edge_list_id).ok_or_else(|| FrontierModelError::FrontierModelError(format!("when constructing edge cut frontier model, could not find edge list '{edge_list_id}'")))?;
+                let model: Arc<dyn FrontierModel> = Arc::new(EdgeCutFrontierModel::new(underlying.clone(), cut.clone()));
+                Ok(model)
+            }).collect::<Result<Vec<_>, SearchError>>()?;
             let yens_si = SearchInstance2 {
                 graph: si.graph.clone(),
                 map_model: si.map_model.clone(),
                 state_model: si.state_model.clone(),
-                traversal_model: si.traversal_model.clone(),
-                access_model: si.access_model.clone(),
+                traversal_models: si.traversal_models.iter().cloned().collect_vec(),
+                access_models: si.access_models.iter().cloned().collect_vec(),
                 cost_model: si.cost_model.clone(),
-                frontier_model: Arc::new(yens_frontier),
+                frontier_models: yens_frontier,
                 termination_model: si.termination_model.clone(),
                 label_model: si.label_model.clone(),
+                default_edge_list: si.default_edge_list
             };
             let spur_result = underlying.run_vertex_oriented(
                 spur_vertex_id,

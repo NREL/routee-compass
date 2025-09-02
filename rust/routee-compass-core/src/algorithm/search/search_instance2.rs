@@ -23,9 +23,16 @@ pub struct SearchInstance2 {
     pub cost_model: Arc<CostModel>,
     pub termination_model: Arc<TerminationModel>,
     pub label_model: Arc<dyn LabelModel>,
+    pub default_edge_list: Option<usize>
 }
 
 impl SearchInstance2 {
+
+    /// in the case of traversal estimation, where no edges are used, divert to the traversal model
+    /// associated with the default edge list
+    pub fn get_traversal_estimation_model(&self) -> Arc<dyn TraversalModel> {
+        self.traversal_models[self.default_edge_list.unwrap_or_default()].clone()
+    }
 
     pub fn get_frontier_model(&self, edge_list_id: &EdgeListId) -> Result<Arc<dyn FrontierModel>, SearchError> {
         self.frontier_models

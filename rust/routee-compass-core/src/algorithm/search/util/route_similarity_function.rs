@@ -2,7 +2,7 @@ use crate::{
     algorithm::search::{
         edge_traversal::EdgeTraversal, search_error::SearchError, SearchInstance2,
     },
-    model::network::EdgeId,
+    model::network::{EdgeId, EdgeListId},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -20,7 +20,7 @@ pub enum RouteSimilarityFunction {
     },
 }
 
-type DistanceFunction<'a> = Box<dyn Fn(&'_ EdgeId) -> Result<f64, SearchError> + 'a>;
+type DistanceFunction<'a> = Box<dyn Fn(&'_ EdgeListId, &'_ EdgeId) -> Result<f64, SearchError> + 'a>;
 
 impl RouteSimilarityFunction {
     /// tests for similarity between two paths.
@@ -80,13 +80,13 @@ impl RouteSimilarityFunction {
         match self {
             RouteSimilarityFunction::AcceptAll => Ok(0.0),
             RouteSimilarityFunction::EdgeIdCosineSimilarity { threshold: _ } => {
-                let unit_dist_fn = Box::new(|_: &EdgeId| Ok(1.0));
+                let unit_dist_fn = Box::new(|_: &EdgeListId, _: &EdgeId| Ok(1.0));
                 cos_similarity(a, b, unit_dist_fn)
             }
             RouteSimilarityFunction::DistanceWeightedCosineSimilarity { threshold: _ } => {
-                let dist_fn = Box::new(|edge_id: &EdgeId| {
+                let dist_fn = Box::new(|edge_list_id: &EdgeListId, edge_id: &EdgeId| {
                     si.graph
-                        .get_edge(edge_id)
+                        .get_edge(edge_list_id, edge_id)
                         .map(|edge| edge.distance.get::<uom::si::length::meter>())
                         .map_err(SearchError::from)
                 });
@@ -114,11 +114,11 @@ fn cos_similarity(
 ) -> Result<f64, SearchError> {
     let a_map = a
         .iter()
-        .map(|e| dist_fn(&e.edge_id).map(|dist| (e.edge_id, dist)))
+        .map(|e| dist_fn(&e.edge_list_id, &e.edge_id).map(|dist| (e.edge_id, dist)))
         .collect::<Result<HashMap<_, _>, _>>()?;
     let b_map = b
         .iter()
-        .map(|e| dist_fn(&e.edge_id).map(|dist| (e.edge_id, dist)))
+        .map(|e| dist_fn(&e.edge_list_id, &e.edge_id).map(|dist| (e.edge_id, dist)))
         .collect::<Result<HashMap<_, _>, _>>()?;
 
     let numer: f64 = a_map
