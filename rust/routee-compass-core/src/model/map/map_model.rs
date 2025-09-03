@@ -48,8 +48,11 @@ impl MapModel {
             } => {
                 let geometry_model =
                     GeometryModel::new_from_edges(&geometry_input_files, graph.clone())?;
-                let spatial_index =
-                    SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance.clone());
+                let spatial_index = SpatialIndex::new_edge_oriented(
+                    graph.clone(),
+                    &geometry_model,
+                    tolerance.clone(),
+                );
                 let map_model = MapModel {
                     matching_type,
                     spatial_index,

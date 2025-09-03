@@ -20,7 +20,8 @@ pub enum RouteSimilarityFunction {
     },
 }
 
-type DistanceFunction<'a> = Box<dyn Fn(&'_ EdgeListId, &'_ EdgeId) -> Result<f64, SearchError> + 'a>;
+type DistanceFunction<'a> =
+    Box<dyn Fn(&'_ EdgeListId, &'_ EdgeId) -> Result<f64, SearchError> + 'a>;
 
 impl RouteSimilarityFunction {
     /// tests for similarity between two paths.

@@ -30,7 +30,7 @@ use routee_compass_core::model::traversal::TraversalModelService;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
 use std::{
-    path::{Path},
+    path::Path,
     sync::{Arc, Mutex},
 };
 
@@ -73,7 +73,6 @@ impl TryFrom<&Path> for CompassApp {
 }
 
 impl CompassApp {
-
     /// Builds a CompassApp from configuration and a (possibly customized) CompassBuilderInventory.
     /// Builds all modules such as the DirectedGraph, TraversalModel, and SearchAlgorithm.
     /// Also builds the input and output plugins.
@@ -85,7 +84,7 @@ impl CompassApp {
     ///
     /// # Arguments
     ///
-    /// * `config` - deserialized TOML file contents 
+    /// * `config` - deserialized TOML file contents
     /// * `builder` - inventory of Compass components that can be built from the config object
     ///
     /// # Returns
@@ -95,35 +94,26 @@ impl CompassApp {
         config: &CompassAppConfig,
         builder: &CompassBuilderInventory,
     ) -> Result<Self, CompassAppError> {
-
         let state_model = Arc::new(StateModel::new(config.state.clone()));
         let cost_model_service = CostModelService::from(&config.cost);
         let label_model_service = builder.build_label_model_service(&config.label)?;
         let termination_model = TerminationModelBuilder::build(&config.termination, None)?;
 
         // build selected components for search behaviors
-        let traversal_model_services = with_timing(
-            "traversal models",
-            || config.build_traversal_model_services(builder)
-        )?;
-        let access_model_services = with_timing(
-            "access models",
-            || config.build_access_model_services(builder)
-        )?;
-        let frontier_model_services = with_timing(
-            "frontier models",
-            || config.build_frontier_model_services(builder)
-        )?;
+        let traversal_model_services = with_timing("traversal models", || {
+            config.build_traversal_model_services(builder)
+        })?;
+        let access_model_services = with_timing("access models", || {
+            config.build_access_model_services(builder)
+        })?;
+        let frontier_model_services = with_timing("frontier models", || {
+            config.build_frontier_model_services(builder)
+        })?;
 
         // build graph
-        let graph = with_timing(
-            "graph",
-            || Ok(Arc::new(Graph2::try_from(&config.graph)?))
-        )?;
+        let graph = with_timing("graph", || Ok(Arc::new(Graph2::try_from(&config.graph)?)))?;
 
-        let map_model = with_timing(
-            "map model", 
-        || {
+        let map_model = with_timing("map model", || {
             let mm = MapModel::new(graph.clone(), &config.map).map_err(|e| {
                 CompassAppError::BuildFailure(format!("unable to load MapModel from config: {e}"))
             })?;
@@ -142,17 +132,15 @@ impl CompassApp {
             cost_model_service,
             termination_model,
             label_model_service,
-            config.system.default_edge_list
+            config.system.default_edge_list,
         ));
 
-        let input_plugins = with_timing(
-            "input plugins", 
-            || Ok(builder.build_input_plugins(&config.plugin.input_plugins)?)
-        )?;
-        let output_plugins = with_timing(
-            "output plugins",
-            || Ok(builder.build_output_plugins(&config.plugin.output_plugins)?)
-        )?;
+        let input_plugins = with_timing("input plugins", || {
+            Ok(builder.build_input_plugins(&config.plugin.input_plugins)?)
+        })?;
+        let output_plugins = with_timing("output plugins", || {
+            Ok(builder.build_output_plugins(&config.plugin.output_plugins)?)
+        })?;
 
         let app = CompassApp {
             search_app,
@@ -197,7 +185,7 @@ impl CompassApp {
             .flatten()
             .or(self.system_parameters.parallelism)
             .unwrap_or(1);
-        
+
         let response_persistence_policy = override_config_opt
             .as_ref()
             .map(|c| c.response_persistence_policy)
@@ -480,7 +468,10 @@ pub fn apply_output_processing(
 }
 
 /// helper function to wrap some lambda with runtime logging
-fn with_timing<T>(name: &str, thunk: impl Fn() -> Result<T, CompassAppError>) -> Result<T, CompassAppError> {
+fn with_timing<T>(
+    name: &str,
+    thunk: impl Fn() -> Result<T, CompassAppError>,
+) -> Result<T, CompassAppError> {
     let start = Local::now();
     let result = thunk();
     let duration = (Local::now() - start)
@@ -593,4 +584,3 @@ mod tests {
     //     assert_eq!(edge_ids, &expected);
     // }
 }
-

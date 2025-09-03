@@ -22,11 +22,9 @@ pub fn collect_features(
     access_models: &[Arc<dyn AccessModel>],
 ) -> Result<Vec<(String, StateVariableConfig)>, StateModelError> {
     // prepare the set of features for this state model
-    let model_features = traversal_models.iter().flat_map(|m| {
-        m
-        .output_features()
-        .into_iter()
-    })
+    let model_features = traversal_models
+        .iter()
+        .flat_map(|m| m.output_features().into_iter())
         .chain(access_models.iter().flat_map(|m| m.state_features()))
         .collect::<HashMap<_, _>>();
 

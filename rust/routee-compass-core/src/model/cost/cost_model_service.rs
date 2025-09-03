@@ -126,7 +126,6 @@ impl CostModelService {
 }
 
 impl From<&CostModelConfig> for CostModelService {
-
     fn from(value: &CostModelConfig) -> Self {
         CostModelService {
             vehicle_rates: Arc::new(value.vehicle_rates.clone().unwrap_or_default()),
@@ -134,6 +133,6 @@ impl From<&CostModelConfig> for CostModelService {
             weights: Arc::new(value.weights.clone().unwrap_or_default()),
             cost_aggregation: value.cost_aggregation.unwrap_or_default(),
             ignore_unknown_weights: value.ignore_unknown_user_provided_weights.unwrap_or(true),
-        }     
+        }
     }
 }

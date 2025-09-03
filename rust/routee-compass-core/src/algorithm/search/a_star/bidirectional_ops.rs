@@ -24,7 +24,10 @@ pub fn reorient_reverse_route(
     // get the final edge id and state for the forward traversal
     let (final_fwd_edge_id, mut acc_state) = match fwd_route.last() {
         None => (None, si.state_model.initial_state()?),
-        Some(last) => (Some((last.edge_list_id, last.edge_id)), last.result_state.clone()),
+        Some(last) => (
+            Some((last.edge_list_id, last.edge_id)),
+            last.result_state.clone(),
+        ),
     };
 
     // get all edge ids along the reverse route when traversed in forward direction,

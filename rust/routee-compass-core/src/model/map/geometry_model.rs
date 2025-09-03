@@ -27,7 +27,10 @@ impl GeometryModel {
         geometry_input_files: &[String],
         graph: Arc<Graph2>,
     ) -> Result<GeometryModel, MapError> {
-        let input_iter = geometry_input_files.iter().zip(graph.edge_lists.iter()).enumerate();
+        let input_iter = geometry_input_files
+            .iter()
+            .zip(graph.edge_lists.iter())
+            .enumerate();
         let edges = input_iter.map(|(idx, (file, edge_list))| {
             let edge_list_len = edge_list.n_edges();
             let linestrings = read_linestrings(file, edge_list_len)?;

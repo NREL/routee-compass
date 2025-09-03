@@ -1,8 +1,6 @@
-use super::{
-    response::{
-        response_output_policy::ResponseOutputPolicy,
-        response_persistence_policy::ResponsePersistencePolicy,
-    },
+use super::response::{
+    response_output_policy::ResponseOutputPolicy,
+    response_persistence_policy::ResponsePersistencePolicy,
 };
 use serde::{Deserialize, Serialize};
 

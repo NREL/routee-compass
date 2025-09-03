@@ -1,12 +1,21 @@
 use super::{ksp_query::KspQuery, ksp_termination_criteria::KspTerminationCriteria};
 use crate::{
     algorithm::search::{
-        edge_traversal::EdgeTraversal, search_algorithm::SearchAlgorithm, search_algorithm_result::SearchAlgorithmResult, search_error::SearchError, util::{EdgeCutFrontierModel, RouteSimilarityFunction}, SearchInstance2
+        edge_traversal::EdgeTraversal,
+        search_algorithm::SearchAlgorithm,
+        search_algorithm_result::SearchAlgorithmResult,
+        search_error::SearchError,
+        util::{EdgeCutFrontierModel, RouteSimilarityFunction},
+        SearchInstance2,
     },
-    model::{frontier::{FrontierModel, FrontierModelError}, network::EdgeId, unit::Cost},
+    model::{
+        frontier::{FrontierModel, FrontierModelError},
+        network::EdgeId,
+        unit::Cost,
+    },
 };
 use itertools::Itertools;
-use std::{collections::{HashSet}, sync::Arc};
+use std::{collections::HashSet, sync::Arc};
 
 /// an implementation of Yen's k-Shortest Paths Algorithm as described in the paper
 ///
@@ -57,7 +66,9 @@ pub fn run(
         // step through each index along the most recently-accepted path
         for spur_idx in 0..prev_accepted_path.len() - 2 {
             let spur_len: usize = spur_idx + 1;
-            let mut cut_edges: Vec<HashSet<EdgeId>> = (0..si.graph.n_edge_lists()).map(|_| HashSet::new()).collect_vec();
+            let mut cut_edges: Vec<HashSet<EdgeId>> = (0..si.graph.n_edge_lists())
+                .map(|_| HashSet::new())
+                .collect_vec();
             let root_path = prev_accepted_path.iter().take(spur_len).collect_vec();
             let spur_edge_traversal =
                 root_path
@@ -67,7 +78,10 @@ pub fn run(
                     )))?;
             let spur_vertex_id = si
                 .graph
-                .get_edge(&spur_edge_traversal.edge_list_id, &spur_edge_traversal.edge_id)?
+                .get_edge(
+                    &spur_edge_traversal.edge_list_id,
+                    &spur_edge_traversal.edge_id,
+                )?
                 .dst_vertex_id;
 
             // cut frontier edges based on previous paths with matching root path
@@ -98,7 +112,7 @@ pub fn run(
                 frontier_models: yens_frontier,
                 termination_model: si.termination_model.clone(),
                 label_model: si.label_model.clone(),
-                default_edge_list: si.default_edge_list
+                default_edge_list: si.default_edge_list,
             };
             let spur_result = underlying.run_vertex_oriented(
                 spur_vertex_id,

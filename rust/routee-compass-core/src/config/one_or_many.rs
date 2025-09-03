@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Helper type that can deserialize either a single item or a vector of items
 #[derive(Serialize, Deserialize, Clone, Debug)]

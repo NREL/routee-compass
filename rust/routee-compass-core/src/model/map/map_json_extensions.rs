@@ -7,8 +7,16 @@ pub trait MapJsonExtensions {
     fn get_destination_coordinate(&self) -> Result<Option<geo::Coord<f32>>, MapError>;
     fn add_origin_vertex(&mut self, vertex_id: VertexId) -> Result<(), MapError>;
     fn add_destination_vertex(&mut self, vertex_id: VertexId) -> Result<(), MapError>;
-    fn add_origin_edge(&mut self, edge_list_id: EdgeListId, edge_id: EdgeId) -> Result<(), MapError>;
-    fn add_destination_edge(&mut self, edge_list_id: EdgeListId, edge_id: EdgeId) -> Result<(), MapError>;
+    fn add_origin_edge(
+        &mut self,
+        edge_list_id: EdgeListId,
+        edge_id: EdgeId,
+    ) -> Result<(), MapError>;
+    fn add_destination_edge(
+        &mut self,
+        edge_list_id: EdgeListId,
+        edge_id: EdgeId,
+    ) -> Result<(), MapError>;
     fn get_origin_vertex(&self) -> Result<VertexId, MapError>;
     fn get_destination_vertex(&self) -> Result<Option<VertexId>, MapError>;
     fn get_origin_edge(&self) -> Result<(EdgeListId, EdgeId), MapError>;
@@ -116,44 +124,85 @@ impl MapJsonExtensions for serde_json::Value {
     }
 
     fn get_origin_edge(&self) -> Result<(EdgeListId, EdgeId), MapError> {
-        let edge_list_id = self.get(MapJsonKey::OriginEdgeList.as_str())
+        let edge_list_id = self
+            .get(MapJsonKey::OriginEdgeList.as_str())
             .ok_or(MapError::InputMissingField(MapJsonKey::OriginEdgeList))?
             .as_u64()
             .map(|v| EdgeListId(v as usize))
-            .ok_or_else(|| MapError::InputDeserializingError(MapJsonKey::OriginEdgeList.to_string(), String::from("u64")))?;
-        let edge_id = self.get(MapJsonKey::OriginEdge.as_str())
+            .ok_or_else(|| {
+                MapError::InputDeserializingError(
+                    MapJsonKey::OriginEdgeList.to_string(),
+                    String::from("u64"),
+                )
+            })?;
+        let edge_id = self
+            .get(MapJsonKey::OriginEdge.as_str())
             .ok_or(MapError::InputMissingField(MapJsonKey::OriginEdge))?
             .as_u64()
             .map(|v| EdgeId(v as usize))
-            .ok_or_else(|| MapError::InputDeserializingError(MapJsonKey::OriginEdge.to_string(), String::from("u64")))?;
+            .ok_or_else(|| {
+                MapError::InputDeserializingError(
+                    MapJsonKey::OriginEdge.to_string(),
+                    String::from("u64"),
+                )
+            })?;
         Ok((edge_list_id, edge_id))
     }
 
     fn get_destination_edge(&self) -> Result<Option<(EdgeListId, EdgeId)>, MapError> {
-        let lookup = (self.get(MapJsonKey::DestinationEdge.as_str()), self.get(MapJsonKey::DestinationEdgeList.as_str()));
+        let lookup = (
+            self.get(MapJsonKey::DestinationEdge.as_str()),
+            self.get(MapJsonKey::DestinationEdgeList.as_str()),
+        );
         match lookup {
             (None, None) => Ok(None),
-            (None, Some(_)) => Err(MapError::InputMissingPairedField(MapJsonKey::DestinationEdge, MapJsonKey::DestinationEdgeList)),
-            (Some(_), None) => Err(MapError::InputMissingPairedField(MapJsonKey::DestinationEdgeList, MapJsonKey::DestinationEdge)),
+            (None, Some(_)) => Err(MapError::InputMissingPairedField(
+                MapJsonKey::DestinationEdge,
+                MapJsonKey::DestinationEdgeList,
+            )),
+            (Some(_), None) => Err(MapError::InputMissingPairedField(
+                MapJsonKey::DestinationEdgeList,
+                MapJsonKey::DestinationEdge,
+            )),
             (Some(edge_list_json), Some(edge_json)) => {
                 let edge_list_id = edge_list_json
-                .as_u64()
-                .map(|v| EdgeListId(v as usize))
-                .ok_or_else(|| MapError::InputDeserializingError(MapJsonKey::DestinationEdgeList.to_string(), String::from("u64")))?;
-            let edge_id = edge_json
-                .as_u64()
-                .map(|v| EdgeId(v as usize))
-                .ok_or_else(|| MapError::InputDeserializingError(MapJsonKey::DestinationEdge.to_string(), String::from("u64")))?;
+                    .as_u64()
+                    .map(|v| EdgeListId(v as usize))
+                    .ok_or_else(|| {
+                        MapError::InputDeserializingError(
+                            MapJsonKey::DestinationEdgeList.to_string(),
+                            String::from("u64"),
+                        )
+                    })?;
+                let edge_id = edge_json
+                    .as_u64()
+                    .map(|v| EdgeId(v as usize))
+                    .ok_or_else(|| {
+                        MapError::InputDeserializingError(
+                            MapJsonKey::DestinationEdge.to_string(),
+                            String::from("u64"),
+                        )
+                    })?;
                 Ok(Some((edge_list_id, edge_id)))
-            },
+            }
         }
     }
 
-    fn add_origin_edge(&mut self, edge_list_id: EdgeListId, edge_id: EdgeId) -> Result<(), MapError> {
+    fn add_origin_edge(
+        &mut self,
+        edge_list_id: EdgeListId,
+        edge_id: EdgeId,
+    ) -> Result<(), MapError> {
         match self {
             serde_json::Value::Object(map) => {
-                map.insert(MapJsonKey::OriginEdgeList.to_string(), serde_json::Value::from(edge_list_id.0));
-                map.insert(MapJsonKey::OriginEdge.to_string(), serde_json::Value::from(edge_id.0));
+                map.insert(
+                    MapJsonKey::OriginEdgeList.to_string(),
+                    serde_json::Value::from(edge_list_id.0),
+                );
+                map.insert(
+                    MapJsonKey::OriginEdge.to_string(),
+                    serde_json::Value::from(edge_id.0),
+                );
                 Ok(())
             }
             _ => Err(MapError::InputDeserializingError(
@@ -163,11 +212,21 @@ impl MapJsonExtensions for serde_json::Value {
         }
     }
 
-    fn add_destination_edge(&mut self, edge_list_id: EdgeListId, edge_id: EdgeId) -> Result<(), MapError> {
+    fn add_destination_edge(
+        &mut self,
+        edge_list_id: EdgeListId,
+        edge_id: EdgeId,
+    ) -> Result<(), MapError> {
         match self {
             serde_json::Value::Object(map) => {
-                map.insert(MapJsonKey::DestinationEdgeList.to_string(), serde_json::Value::from(edge_list_id.0));
-                map.insert(MapJsonKey::DestinationEdge.to_string(), serde_json::Value::from(edge_id.0));
+                map.insert(
+                    MapJsonKey::DestinationEdgeList.to_string(),
+                    serde_json::Value::from(edge_list_id.0),
+                );
+                map.insert(
+                    MapJsonKey::DestinationEdge.to_string(),
+                    serde_json::Value::from(edge_id.0),
+                );
                 Ok(())
             }
             _ => Err(MapError::InputDeserializingError(

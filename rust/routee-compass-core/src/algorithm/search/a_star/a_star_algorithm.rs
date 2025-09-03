@@ -71,13 +71,11 @@ pub fn run_vertex_oriented(
         let last_edge_id = if current_vertex_id == source {
             None
         } else {
-            solution
-                .get(&current_label)
-                .map(|branch| {
-                    let edge_list_id = branch.edge_traversal.edge_list_id;
-                    let edge_id = branch.edge_traversal.edge_id;
-                    (edge_list_id, edge_id)
-                })
+            solution.get(&current_label).map(|branch| {
+                let edge_list_id = branch.edge_traversal.edge_list_id;
+                let edge_id = branch.edge_traversal.edge_id;
+                (edge_list_id, edge_id)
+            })
         };
 
         // grab the current state from the solution
@@ -125,8 +123,7 @@ pub fn run_vertex_oriented(
                 continue;
             }
 
-            let et =
-                EdgeTraversal::new((edge_list_id, edge_id), last_edge_id, &current_state, si)?;
+            let et = EdgeTraversal::new((edge_list_id, edge_id), last_edge_id, &current_state, si)?;
 
             let key_label = si.label_model.label_from_state(
                 key_vertex_id,
@@ -215,14 +212,17 @@ pub fn estimate_traversal_cost(
     src: VertexId,
     dst: VertexId,
     state: &[StateVariable],
-    si: &SearchInstance2
+    si: &SearchInstance2,
 ) -> Result<Cost, SearchError> {
     let src = si.graph.get_vertex(&src)?;
     let dst = si.graph.get_vertex(&dst)?;
     let mut dst_state = state.to_vec();
 
-    si.get_traversal_estimation_model()
-        .estimate_traversal((src, dst), &mut dst_state, &si.state_model)?;
+    si.get_traversal_estimation_model().estimate_traversal(
+        (src, dst),
+        &mut dst_state,
+        &si.state_model,
+    )?;
     let cost_estimate = si.cost_model.cost_estimate(state, &dst_state)?;
     Ok(cost_estimate)
 }
@@ -294,9 +294,9 @@ mod tests {
     use crate::model::label::default::vertex_label_model::VertexLabelModel;
     use crate::model::map::MapModel;
     use crate::model::map::MapModelConfig;
+    use crate::model::network::Edge;
     use crate::model::network::EdgeId;
     use crate::model::network::EdgeList;
-    use crate::model::network::Edge;
     use crate::model::network::Graph2;
     use crate::model::network::Vertex;
     use crate::model::state::StateModel;
@@ -337,13 +337,11 @@ mod tests {
 
         Graph2 {
             vertices: vertices.into_boxed_slice(),
-            edge_lists: vec![
-                EdgeList{
-                    adj: adj.into_boxed_slice(),
-                    rev: rev.into_boxed_slice(),
-                    edges: edges.into_boxed_slice(),
-                }
-            ]
+            edge_lists: vec![EdgeList {
+                adj: adj.into_boxed_slice(),
+                rev: rev.into_boxed_slice(),
+                edges: edges.into_boxed_slice(),
+            }],
         }
     }
 
@@ -430,8 +428,7 @@ mod tests {
             cost_model: Arc::new(cost_model),
             termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
             label_model: Arc::new(VertexLabelModel {}),
-            default_edge_list: None
-            
+            default_edge_list: None,
         };
 
         // execute the route search

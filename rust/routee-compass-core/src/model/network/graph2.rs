@@ -1,11 +1,10 @@
-use super::{Edge, EdgeId, NetworkError, Vertex, VertexId, EdgeList};
+use super::{Edge, EdgeId, EdgeList, NetworkError, Vertex, VertexId};
 use crate::algorithm::search::Direction;
-use crate::model::network::GraphConfig;
 use crate::model::network::EdgeListId;
+use crate::model::network::GraphConfig;
 use crate::util::fs::read_utils;
 use itertools::Itertools;
 use kdam::Bar;
-
 
 /// Road network topology represented as an adjacency list.
 /// The `EdgeId` and `VertexId` values correspond to edge and
@@ -45,7 +44,8 @@ impl TryFrom<&GraphConfig> for Graph2 {
         )
         .map_err(|e| NetworkError::CsvError { source: e })?;
 
-        let edge_lists = config.edge_list
+        let edge_lists = config
+            .edge_list
             .iter()
             .enumerate()
             .map(|(idx, c)| EdgeList::new(&c.edge_list_input_file, EdgeListId(idx), vertices.len()))
@@ -61,9 +61,10 @@ impl TryFrom<&GraphConfig> for Graph2 {
 }
 
 impl Graph2 {
-    
     pub fn get_edge_list(&self, edge_list_id: &EdgeListId) -> Result<&EdgeList, NetworkError> {
-        self.edge_lists.get(edge_list_id.0).ok_or_else(|| NetworkError::EdgeListNotFound(*edge_list_id))
+        self.edge_lists
+            .get(edge_list_id.0)
+            .ok_or_else(|| NetworkError::EdgeListNotFound(*edge_list_id))
     }
 
     pub fn n_edge_lists(&self) -> usize {
@@ -83,7 +84,10 @@ impl Graph2 {
     /// helper function for creating a range of all edge ids in the graph.
     /// uses the knowledge that all ids are unique and consecutive integers
     /// beginning at zero.
-    pub fn edge_ids(&self, edge_list_id: &EdgeListId) -> Result<Box<dyn Iterator<Item = EdgeId>>, NetworkError> {
+    pub fn edge_ids(
+        &self,
+        edge_list_id: &EdgeListId,
+    ) -> Result<Box<dyn Iterator<Item = EdgeId>>, NetworkError> {
         self.get_edge_list(edge_list_id).map(|e| {
             let iter: Box<dyn Iterator<Item = EdgeId>> = Box::new((0..e.n_edges()).map(EdgeId));
             iter
@@ -112,14 +116,19 @@ impl Graph2 {
     /// # Returns
     ///
     /// The associated `Edge` or an error if the id is missing
-    pub fn get_edge(&self, edge_list_id: &EdgeListId, edge_id: &EdgeId) -> Result<&Edge, NetworkError> {
+    pub fn get_edge(
+        &self,
+        edge_list_id: &EdgeListId,
+        edge_id: &EdgeId,
+    ) -> Result<&Edge, NetworkError> {
         match self.edge_lists.get(edge_list_id.0) {
-            None => Err(NetworkError::InternalError(format!("EdgeListId not found: {}", edge_list_id))),
-            Some(edge_list) => {
-                match edge_list.edges.get(edge_id.0) {
-                    None => Err(NetworkError::EdgeNotFound(*edge_id)),
-                    Some(edge) => Ok(edge),
-                }
+            None => Err(NetworkError::InternalError(format!(
+                "EdgeListId not found: {}",
+                edge_list_id
+            ))),
+            Some(edge_list) => match edge_list.edges.get(edge_id.0) {
+                None => Err(NetworkError::EdgeNotFound(*edge_id)),
+                Some(edge) => Ok(edge),
             },
         }
     }
@@ -159,13 +168,17 @@ impl Graph2 {
         &'a self,
         src: &'a VertexId,
     ) -> Box<dyn Iterator<Item = (EdgeListId, EdgeId)> + 'a> {
-        let result = self.edge_lists.iter().enumerate().flat_map(|(edge_list_idx, edge_list)| {
-            let out_keys = match edge_list.adj.get(src.0) {
-                None => Box::new(std::iter::empty()),
-                Some(out_map) => out_map.keys(),
-            };
-            out_keys.map(move |edge_id| (EdgeListId(edge_list_idx), *edge_id))
-        });
+        let result = self
+            .edge_lists
+            .iter()
+            .enumerate()
+            .flat_map(|(edge_list_idx, edge_list)| {
+                let out_keys = match edge_list.adj.get(src.0) {
+                    None => Box::new(std::iter::empty()),
+                    Some(out_map) => out_map.keys(),
+                };
+                out_keys.map(move |edge_id| (EdgeListId(edge_list_idx), *edge_id))
+            });
         Box::new(result)
     }
 
@@ -187,13 +200,17 @@ impl Graph2 {
         &'a self,
         src: &'a VertexId,
     ) -> Box<dyn Iterator<Item = (EdgeListId, EdgeId)> + 'a> {
-        let result = self.edge_lists.iter().enumerate().flat_map(|(edge_list_idx, edge_list)| {
-            let in_keys = match edge_list.rev.get(src.0) {
-                None => Box::new(std::iter::empty()),
-                Some(in_map) => in_map.keys(),
-            };
-            in_keys.map(move |edge_id| (EdgeListId(edge_list_idx), *edge_id))
-        });
+        let result = self
+            .edge_lists
+            .iter()
+            .enumerate()
+            .flat_map(|(edge_list_idx, edge_list)| {
+                let in_keys = match edge_list.rev.get(src.0) {
+                    None => Box::new(std::iter::empty()),
+                    Some(in_map) => in_map.keys(),
+                };
+                in_keys.map(move |edge_id| (EdgeListId(edge_list_idx), *edge_id))
+            });
         Box::new(result)
     }
 
@@ -206,8 +223,13 @@ impl Graph2 {
     /// # Returns
     ///
     /// The source `VertexId` of an `Edge` or an error if the edge is missing
-    pub fn src_vertex_id(&self, edge_list_id: &EdgeListId, edge_id: &EdgeId) -> Result<VertexId, NetworkError> {
-        self.get_edge(edge_list_id, edge_id).map(|e| e.src_vertex_id)
+    pub fn src_vertex_id(
+        &self,
+        edge_list_id: &EdgeListId,
+        edge_id: &EdgeId,
+    ) -> Result<VertexId, NetworkError> {
+        self.get_edge(edge_list_id, edge_id)
+            .map(|e| e.src_vertex_id)
     }
 
     /// retrieve the destination vertex id of an edge
@@ -219,8 +241,13 @@ impl Graph2 {
     /// # Returns
     ///
     /// The destination `VertexId` of an `Edge` or an error if the edge is missing
-    pub fn dst_vertex_id(&self, edge_list_id: &EdgeListId, edge_id: &EdgeId) -> Result<VertexId, NetworkError> {
-        self.get_edge(edge_list_id, edge_id).map(|e| e.dst_vertex_id)
+    pub fn dst_vertex_id(
+        &self,
+        edge_list_id: &EdgeListId,
+        edge_id: &EdgeId,
+    ) -> Result<VertexId, NetworkError> {
+        self.get_edge(edge_list_id, edge_id)
+            .map(|e| e.dst_vertex_id)
     }
 
     /// helper function to give incident edges to a vertex based on a
@@ -234,7 +261,11 @@ impl Graph2 {
     /// # Returns
     ///
     /// The incident `EdgeId`s or an error if the vertex is not connected.
-    pub fn incident_edges(&self, vertex_id: &VertexId, direction: &Direction) -> Vec<(EdgeListId, EdgeId)> {
+    pub fn incident_edges(
+        &self,
+        vertex_id: &VertexId,
+        direction: &Direction,
+    ) -> Vec<(EdgeListId, EdgeId)> {
         match direction {
             Direction::Forward => self.out_edges(vertex_id),
             Direction::Reverse => self.in_edges(vertex_id),

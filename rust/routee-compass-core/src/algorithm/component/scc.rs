@@ -195,13 +195,11 @@ mod tests {
 
         Graph2 {
             vertices: vertices.into_boxed_slice(),
-            edge_lists: vec![
-                EdgeList {
-                    adj: adj.into_boxed_slice(),
-                    rev: rev.into_boxed_slice(),
-                    edges: edges.into_boxed_slice(),
-                }
-            ]
+            edge_lists: vec![EdgeList {
+                adj: adj.into_boxed_slice(),
+                rev: rev.into_boxed_slice(),
+                edges: edges.into_boxed_slice(),
+            }],
         }
     }
 

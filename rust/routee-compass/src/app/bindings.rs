@@ -96,7 +96,11 @@ pub trait CompassAppBindings {
     ///
     /// # Returns
     /// * the id of the origin vertex
-    fn graph_edge_origin(&self, edge_list_id: Option<usize>, edge_id: usize) -> Result<usize, CompassAppError> {
+    fn graph_edge_origin(
+        &self,
+        edge_list_id: Option<usize>,
+        edge_id: usize,
+    ) -> Result<usize, CompassAppError> {
         let edge_list_id = EdgeListId(edge_list_id.unwrap_or_default());
         let edge_id_internal = EdgeId(edge_id);
         self.app()
@@ -113,7 +117,11 @@ pub trait CompassAppBindings {
     ///
     /// # Returns
     /// * the id of the destination vertex
-    fn graph_edge_destination(&self, edge_list_id: Option<usize>, edge_id: usize) -> Result<usize, CompassAppError> {
+    fn graph_edge_destination(
+        &self,
+        edge_list_id: Option<usize>,
+        edge_id: usize,
+    ) -> Result<usize, CompassAppError> {
         let edge_list_id = EdgeListId(edge_list_id.unwrap_or_default());
         let edge_id_internal = EdgeId(edge_id);
         self.app()
@@ -152,7 +160,10 @@ pub trait CompassAppBindings {
             None => None,
         };
         let edge_id_internal = EdgeId(edge_id);
-        let edge_distance_internal = self.app().search_app.get_edge_distance(&edge_list_id, &edge_id_internal)?;
+        let edge_distance_internal = self
+            .app()
+            .search_app
+            .get_edge_distance(&edge_list_id, &edge_id_internal)?;
         match du_internal {
             Some(du) => Ok(du.from_uom(edge_distance_internal)),
             None => Ok(DistanceUnit::Meters.from_uom(edge_distance_internal)),
@@ -172,7 +183,7 @@ pub trait CompassAppBindings {
             .search_app
             .get_incident_edge_ids(&vertex_id_internal, &Direction::Forward)
             .into_iter()
-            .map(|e| (e.0.0, e.1.0))
+            .map(|e| (e.0 .0, e.1 .0))
             .collect_vec()
     }
 
@@ -190,7 +201,7 @@ pub trait CompassAppBindings {
             .get_incident_edge_ids(&vertex_id_internal, &Direction::Reverse)
             // .map(|es| es.iter().map(|e| e.0).collect())
             .into_iter()
-            .map(|e| (e.0.0, e.1.0))
+            .map(|e| (e.0 .0, e.1 .0))
             .collect_vec()
     }
 

@@ -8,8 +8,8 @@ use crate::{
 };
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
-use wkt::ToWkt;
 use std::{fmt::Display, str::FromStr, sync::Arc};
+use wkt::ToWkt;
 
 /// a [`MatchingType`] is the type of data expected on a query
 /// that can be mapped to the graph.
@@ -229,7 +229,6 @@ impl MatchingType {
                 let dest_edge_option = query.get_destination_edge()?;
                 match dest_edge_option {
                     Some((edge_list_id, edge_id)) => {
-                        
                         let edge = si.graph.get_edge(&edge_list_id, &edge_id).map_err(|e| MapError::MapMatchError(format!("while attempting to validate edge_list_id '{edge_list_id}', edge_id {edge_id} for map matching, the underlying Graph model caused an error: {e}")))?;
                         let fm =  si.get_frontier_model(&edge_list_id).map_err(|e| MapError::InternalError(format!("while map matching edge_list_id '{edge_list_id}', edge_id '{edge_id}', failed to retrieve frontier model for out edge list '{}', edge '{}': {e}", edge_list_id, edge_id)))?;
                         validate_edge(edge, fm)?;

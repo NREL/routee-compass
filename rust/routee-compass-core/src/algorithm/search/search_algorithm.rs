@@ -5,9 +5,9 @@ use super::ksp::KspTerminationCriteria;
 use super::ksp::{svp, yens};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
-use super::SearchInstance2;
 use super::search_tree_branch::SearchTreeBranch;
 use super::util::RouteSimilarityFunction;
+use super::SearchInstance2;
 use super::{a_star, direction::Direction};
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
@@ -236,12 +236,8 @@ pub fn run_edge_oriented(
                 // route is simply source -> target
                 let init_state = si.state_model.initial_state()?;
                 let src_et = EdgeTraversal::new(source, None, &init_state, si)?;
-                let dst_et = EdgeTraversal::new(
-                    target_edge,
-                    Some(source),
-                    &src_et.result_state,
-                    si,
-                )?;
+                let dst_et =
+                    EdgeTraversal::new(target_edge, Some(source), &src_et.result_state, si)?;
 
                 // Create labels for the vertices using appropriate states
                 let dst_label = si.label_model.label_from_state(

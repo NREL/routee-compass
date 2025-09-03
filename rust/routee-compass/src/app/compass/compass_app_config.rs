@@ -1,11 +1,22 @@
 use std::{path::Path, sync::Arc};
 
 use config::Config;
-use routee_compass_core::{algorithm::search::SearchAlgorithm, config::{ConfigJsonExtensions, OneOrMany}, model::{access::AccessModelService, cost::CostModelConfig, frontier::FrontierModelService, map::MapModelConfig, network::GraphConfig, state::StateVariableConfig, traversal::TraversalModelService}};
+use routee_compass_core::{
+    algorithm::search::SearchAlgorithm,
+    config::{ConfigJsonExtensions, OneOrMany},
+    model::{
+        access::AccessModelService, cost::CostModelConfig, frontier::FrontierModelService,
+        map::MapModelConfig, network::GraphConfig, state::StateVariableConfig,
+        traversal::TraversalModelService,
+    },
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{app::compass::{CompassAppSystemParameters, CompassAppError, CompassBuilderInventory}, plugin::PluginConfig};
+use crate::{
+    app::compass::{CompassAppError, CompassAppSystemParameters, CompassBuilderInventory},
+    plugin::PluginConfig,
+};
 
 /// high-level application configuration that orchestrates together
 /// configuration requirements for the various components making up a
@@ -22,7 +33,7 @@ pub struct CompassAppConfig {
     pub search: OneOrMany<SearchConfig>,
     pub plugin: PluginConfig,
     pub termination: Value,
-    pub system: CompassAppSystemParameters
+    pub system: CompassAppSystemParameters,
 }
 
 impl CompassAppConfig {
@@ -78,27 +89,47 @@ impl TryFrom<&Path> for CompassAppConfig {
     }
 }
 
-/// sub-section of [`CompassAppConfig`] where the [`TraversalModelService`], [`AccessModelService`], and [`FrontierModelService`] components 
+/// sub-section of [`CompassAppConfig`] where the [`TraversalModelService`], [`AccessModelService`], and [`FrontierModelService`] components
 /// for an [`EdgeList`] are specified.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SearchConfig {
     pub traversal: Value,
     pub access: Value,
-    pub frontier: Value
+    pub frontier: Value,
 }
 
 impl CompassAppConfig {
-
-    pub fn build_traversal_model_services(&self, builders: &CompassBuilderInventory) -> Result<Vec<Arc<dyn TraversalModelService>>, CompassAppError> {
-        let result = self.search.iter().map(|el| builders.build_traversal_model_service(&el.traversal)).collect::<Result<Vec<_>, _>>()?;
+    pub fn build_traversal_model_services(
+        &self,
+        builders: &CompassBuilderInventory,
+    ) -> Result<Vec<Arc<dyn TraversalModelService>>, CompassAppError> {
+        let result = self
+            .search
+            .iter()
+            .map(|el| builders.build_traversal_model_service(&el.traversal))
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(result)
     }
-    pub fn build_access_model_services(&self, builders: &CompassBuilderInventory) -> Result<Vec<Arc<dyn AccessModelService>>, CompassAppError> {
-        let result = self.search.iter().map(|el| builders.build_access_model_service(&el.traversal)).collect::<Result<Vec<_>, _>>()?;
+    pub fn build_access_model_services(
+        &self,
+        builders: &CompassBuilderInventory,
+    ) -> Result<Vec<Arc<dyn AccessModelService>>, CompassAppError> {
+        let result = self
+            .search
+            .iter()
+            .map(|el| builders.build_access_model_service(&el.traversal))
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(result)
     }
-    pub fn build_frontier_model_services(&self, builders: &CompassBuilderInventory) -> Result<Vec<Arc<dyn FrontierModelService>>, CompassAppError> {
-        let result = self.search.iter().map(|el| builders.build_frontier_model_service(&el.traversal)).collect::<Result<Vec<_>, _>>()?;
+    pub fn build_frontier_model_services(
+        &self,
+        builders: &CompassBuilderInventory,
+    ) -> Result<Vec<Arc<dyn FrontierModelService>>, CompassAppError> {
+        let result = self
+            .search
+            .iter()
+            .map(|el| builders.build_frontier_model_service(&el.traversal))
+            .collect::<Result<Vec<_>, _>>()?;
         Ok(result)
     }
 }

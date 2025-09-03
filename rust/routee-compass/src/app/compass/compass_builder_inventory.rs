@@ -301,10 +301,10 @@ impl CompassBuilderInventory {
         &self,
         config: &[serde_json::Value],
     ) -> Result<Vec<Arc<dyn InputPlugin>>, CompassConfigurationError> {
-
         let mut plugins: Vec<Arc<dyn InputPlugin>> = Vec::new();
         for (idx, plugin_json) in config.iter().enumerate() {
-            let plugin_type = plugin_json.get_config_string(&"type", &format!("input plugin {idx}"))?;
+            let plugin_type =
+                plugin_json.get_config_string(&"type", &format!("input plugin {idx}"))?;
             log::info!("loading input plugin '{plugin_type}'");
             let builder = self
                 .input_plugin_builders
@@ -326,10 +326,10 @@ impl CompassBuilderInventory {
         &self,
         config: &[serde_json::Value],
     ) -> Result<Vec<Arc<dyn OutputPlugin>>, CompassComponentError> {
-
         let mut plugins: Vec<Arc<dyn OutputPlugin>> = Vec::new();
         for (idx, plugin_json) in config.iter().enumerate() {
-            let plugin_type = plugin_json.get_config_string(&"type", &format!("output_plugin {idx}"))?;
+            let plugin_type =
+                plugin_json.get_config_string(&"type", &format!("output_plugin {idx}"))?;
             log::info!("loading output plugin '{plugin_type}'");
             let builder = self
                 .output_plugin_builders

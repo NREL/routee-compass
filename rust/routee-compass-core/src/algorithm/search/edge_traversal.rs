@@ -35,8 +35,8 @@ impl Display for EdgeTraversal {
 impl EdgeTraversal {
     /// traverses an edge, possibly after traversing some previous edge,
     /// collecting the access and traversal costs. returns the
-    /// accumulated cost and updated search state. 
-    /// 
+    /// accumulated cost and updated search state.
+    ///
     /// The traversal and access models for the destination edge list are used
     /// over the following graph trajectory:
     ///   `(v1) -[e1]-> (v2) -[e2]-> (v3)`
@@ -79,8 +79,11 @@ impl EdgeTraversal {
             let (v2, e2, v3) = traversal_trajectory;
             let access_trajectory = (v1, e1, v2, e2, v3);
 
-            si.get_access_model(&next_edge_list_id)?
-                .access_edge(access_trajectory, &mut result_state, &si.state_model)?;
+            si.get_access_model(&next_edge_list_id)?.access_edge(
+                access_trajectory,
+                &mut result_state,
+                &si.state_model,
+            )?;
 
             let ac = si
                 .cost_model

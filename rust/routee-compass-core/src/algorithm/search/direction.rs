@@ -36,7 +36,6 @@ impl Direction {
         }
     }
 
-    
     // pub fn perform_edge_traversal(
     //     &self,
     //     edge_id: EdgeId,

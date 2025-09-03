@@ -71,7 +71,10 @@ impl SpatialIndex {
                     MapError::MapMatchError(String::from("no map vertices exist for matching"))
                 })?;
                 nearest.within_distance_threshold(point, tolerance)?;
-                Ok(NearestSearchResult::NearestEdge(nearest.edge_list_id, nearest.edge_id))
+                Ok(NearestSearchResult::NearestEdge(
+                    nearest.edge_list_id,
+                    nearest.edge_id,
+                ))
             }
         }
     }
@@ -94,7 +97,9 @@ impl SpatialIndex {
                 let iter = rtree
                     .nearest_neighbor_iter_with_distance_2(point)
                     .filter(|(obj, _)| obj.test_threshold(point, tolerance).unwrap_or(false))
-                    .map(|(next, _)| NearestSearchResult::NearestEdge(next.edge_list_id, next.edge_id));
+                    .map(|(next, _)| {
+                        NearestSearchResult::NearestEdge(next.edge_list_id, next.edge_id)
+                    });
                 Box::new(iter)
             }
         }

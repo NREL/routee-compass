@@ -1,15 +1,17 @@
 use super::{search_app_ops, search_app_result::SearchAppResult};
-use crate::{
-    app::compass::CompassAppError,
-    plugin::{PluginError},
-};
+use crate::{app::compass::CompassAppError, plugin::PluginError};
 use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance2},
     model::{
-        access::AccessModelService, cost::cost_model_service::CostModelService,
-        frontier::FrontierModelService, label::label_model_service::LabelModelService,
-        map::{MapJsonExtensions, MapModel}, network::Graph2, state::StateModel, termination::TerminationModel,
+        access::AccessModelService,
+        cost::cost_model_service::CostModelService,
+        frontier::FrontierModelService,
+        label::label_model_service::LabelModelService,
+        map::{MapJsonExtensions, MapModel},
+        network::Graph2,
+        state::StateModel,
+        termination::TerminationModel,
         traversal::TraversalModelService,
     },
 };
@@ -28,7 +30,7 @@ pub struct SearchApp {
     pub cost_model_service: Arc<CostModelService>,
     pub termination_model: Arc<TerminationModel>,
     pub label_model_service: Arc<dyn LabelModelService>,
-    pub default_edge_list: Option<usize>
+    pub default_edge_list: Option<usize>,
 }
 
 impl SearchApp {
@@ -46,7 +48,7 @@ impl SearchApp {
         cost_model_service: CostModelService,
         termination_model: TerminationModel,
         label_model_service: Arc<dyn LabelModelService>,
-        default_edge_list: Option<usize>
+        default_edge_list: Option<usize>,
     ) -> Self {
         SearchApp {
             search_algorithm,
@@ -59,7 +61,7 @@ impl SearchApp {
             frontier_model_services: frontier_model_services,
             termination_model: Arc::new(termination_model),
             label_model_service,
-            default_edge_list
+            default_edge_list,
         }
     }
 
@@ -143,8 +145,16 @@ impl SearchApp {
         &self,
         query: &serde_json::Value,
     ) -> Result<SearchInstance2, SearchError> {
-        let traversal_models = self.traversal_model_services.iter().map(|m| m.build(query)).collect::<Result<Vec<_>, _>>()?;
-        let access_models = self.access_model_services.iter().map(|m| m.build(query)).collect::<Result<Vec<_>, _>>()?;
+        let traversal_models = self
+            .traversal_model_services
+            .iter()
+            .map(|m| m.build(query))
+            .collect::<Result<Vec<_>, _>>()?;
+        let access_models = self
+            .access_model_services
+            .iter()
+            .map(|m| m.build(query))
+            .collect::<Result<Vec<_>, _>>()?;
 
         let output_features =
             search_app_ops::collect_features(query, &traversal_models, &access_models)?;
@@ -155,7 +165,11 @@ impl SearchApp {
             .cost_model_service
             .build(query, state_model.clone())
             .map_err(|e| SearchError::BuildError(e.to_string()))?;
-        let frontier_models = self.frontier_model_services.iter().map(|m| m.build(query, state_model.clone())).collect::<Result<Vec<_>, _>>()?;
+        let frontier_models = self
+            .frontier_model_services
+            .iter()
+            .map(|m| m.build(query, state_model.clone()))
+            .collect::<Result<Vec<_>, _>>()?;
 
         let label_model = self.label_model_service.build(query, state_model.clone())?;
 
@@ -169,7 +183,7 @@ impl SearchApp {
             frontier_models,
             termination_model: self.termination_model.clone(),
             label_model,
-            default_edge_list: self.default_edge_list.clone()
+            default_edge_list: self.default_edge_list.clone(),
         };
 
         Ok(search_assets)
