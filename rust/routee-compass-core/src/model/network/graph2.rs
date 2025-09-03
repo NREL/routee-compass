@@ -64,7 +64,7 @@ impl Graph2 {
     pub fn get_edge_list(&self, edge_list_id: &EdgeListId) -> Result<&EdgeList, NetworkError> {
         self.edge_lists
             .get(edge_list_id.0)
-            .ok_or_else(|| NetworkError::EdgeListNotFound(*edge_list_id))
+            .ok_or(NetworkError::EdgeListNotFound(*edge_list_id))
     }
 
     pub fn n_edge_lists(&self) -> usize {

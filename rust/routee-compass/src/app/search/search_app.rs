@@ -55,10 +55,10 @@ impl SearchApp {
             graph,
             map_model,
             state_model,
-            traversal_model_services: traversal_model_services,
-            access_model_services: access_model_services,
+            traversal_model_services,
+            access_model_services,
             cost_model_service: Arc::new(cost_model_service),
-            frontier_model_services: frontier_model_services,
+            frontier_model_services,
             termination_model: Arc::new(termination_model),
             label_model_service,
             default_edge_list,
@@ -183,7 +183,7 @@ impl SearchApp {
             frontier_models,
             termination_model: self.termination_model.clone(),
             label_model,
-            default_edge_list: self.default_edge_list.clone(),
+            default_edge_list: self.default_edge_list,
         };
 
         Ok(search_assets)

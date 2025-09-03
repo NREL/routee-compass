@@ -316,7 +316,7 @@ impl CompassBuilderInventory {
                         self.input_plugin_builders.keys().join(", "),
                     )
                 })?;
-            let input_plugin = builder.build(&plugin_json)?;
+            let input_plugin = builder.build(plugin_json)?;
             plugins.push(input_plugin);
         }
         Ok(plugins)
@@ -341,7 +341,7 @@ impl CompassBuilderInventory {
                         self.output_plugin_builders.keys().join(", "),
                     )
                 })?;
-            let output_plugin = builder.build(&plugin_json)?;
+            let output_plugin = builder.build(plugin_json)?;
             plugins.push(output_plugin);
         }
         Ok(plugins)

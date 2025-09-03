@@ -53,7 +53,7 @@ impl EdgeList {
 
         // read each row as an [`EdgeConfig`] and then assign the [`EdgeListId`] to finalize it as a [`Edge`].
         let edge_config_iter = tqdm!(
-            read_utils::iterator_from_csv(&edge_list_input_file, true, Some(cb))?,
+            read_utils::iterator_from_csv(edge_list_input_file, true, Some(cb))?,
             desc = format!("graph edge list {}: {}", edge_list_id, edge_list_input_file)
         );
         let edges = edge_config_iter

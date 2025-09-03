@@ -48,7 +48,7 @@ impl CompassAppConfig {
             config::FileFormat::Toml,
         );
 
-        let user_config = config::File::from_str(&config, format);
+        let user_config = config::File::from_str(config, format);
 
         let config = Config::builder()
             .add_source(default_config)
@@ -82,7 +82,7 @@ impl TryFrom<&Path> for CompassAppConfig {
         let config_json = config
             .clone()
             .try_deserialize::<serde_json::Value>()?
-            .normalize_file_paths(&"", &config_path)?;
+            .normalize_file_paths(&"", config_path)?;
         let compass_config: CompassAppConfig = serde_json::from_value(config_json)?;
 
         Ok(compass_config)

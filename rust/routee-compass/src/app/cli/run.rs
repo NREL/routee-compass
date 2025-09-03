@@ -3,10 +3,10 @@ use crate::app::compass::{
     compass_app::CompassApp, compass_json_extensions::CompassJsonExtensions, CompassAppError,
     CompassBuilderInventory,
 };
-use crate::app::compass::{compass_app_ops as ops, CompassAppConfig};
+use crate::app::compass::CompassAppConfig;
 use itertools::{Either, Itertools};
 use log::{debug, error};
-use routee_compass_core::config::{CompassConfigurationError, ConfigJsonExtensions};
+use routee_compass_core::config::CompassConfigurationError;
 use serde_json::{json, Value};
 use std::io::BufRead;
 use std::{fs::File, io::BufReader, path::Path};

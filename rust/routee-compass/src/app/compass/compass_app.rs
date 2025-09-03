@@ -1,12 +1,11 @@
 use super::compass_app_system::CompassAppSystemParameters;
-use super::response::response_output_policy::ResponseOutputPolicy;
 use super::response::response_sink::ResponseSink;
 use super::{compass_app_ops as ops, CompassBuilderInventory};
 use crate::app::compass::compass_app_config::CompassAppConfig;
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
 use crate::{
     app::{
-        compass::{compass_input_field::CompassInputField, CompassAppError},
+        compass::CompassAppError,
         search::{SearchApp, SearchAppResult},
     },
     plugin::{
@@ -14,16 +13,15 @@ use crate::{
         output::{output_plugin_ops as out_ops, OutputPlugin},
     },
 };
-use chrono::{Duration, Local};
-use config::Config;
+use chrono::Local;
 use itertools::Itertools;
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
-use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance2};
-use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
+use routee_compass_core::algorithm::search::SearchInstance2;
+use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::model::cost::cost_model_service::CostModelService;
-use routee_compass_core::model::map::{MapModel, MapModelConfig};
-use routee_compass_core::model::network::{Graph, Graph2};
+use routee_compass_core::model::map::MapModel;
+use routee_compass_core::model::network::Graph2;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::model::termination::TerminationModelBuilder;
 use routee_compass_core::model::traversal::TraversalModelService;
@@ -181,22 +179,19 @@ impl CompassApp {
         // allow the user to overwrite global configurations for this run
         let parallelism = override_config_opt
             .as_ref()
-            .map(|c| c.parallelism)
-            .flatten()
+            .and_then(|c| c.parallelism)
             .or(self.system_parameters.parallelism)
             .unwrap_or(1);
 
         let response_persistence_policy = override_config_opt
             .as_ref()
-            .map(|c| c.response_persistence_policy)
-            .flatten()
+            .and_then(|c| c.response_persistence_policy)
             .or(self.system_parameters.response_persistence_policy)
             .unwrap_or_default();
 
         let response_output_policy = override_config_opt
             .as_ref()
-            .map(|c| c.response_output_policy.clone())
-            .flatten()
+            .and_then(|c| c.response_output_policy.clone())
             .or(self.system_parameters.response_output_policy.clone())
             .unwrap_or_default();
         let response_writer = response_output_policy.build()?;
