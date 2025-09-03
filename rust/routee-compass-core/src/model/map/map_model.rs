@@ -16,7 +16,7 @@ pub struct MapModel {
 }
 
 impl MapModel {
-    pub fn new(graph: Arc<Graph2>, config: MapModelConfig) -> Result<MapModel, MapError> {
+    pub fn new(graph: Arc<Graph2>, config: &MapModelConfig) -> Result<MapModel, MapError> {
         let matching_type = config.get_matching_type()?;
         match config {
             MapModelConfig::VertexMapModelConfig {
@@ -26,17 +26,17 @@ impl MapModel {
                 matching_type: _,
             } => {
                 let spatial_index =
-                    SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance);
+                    SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance.clone());
                 let geometry_model = match geometry_input_file {
                     None => GeometryModel::new_from_vertices(graph),
-                    Some(file) => GeometryModel::new_from_edges(&[file], graph.clone()),
+                    Some(file) => GeometryModel::new_from_edges(&[file.clone()], graph.clone()),
                 }?;
 
                 let map_model = MapModel {
                     matching_type,
                     spatial_index,
                     geometry_model,
-                    queries_without_destinations,
+                    queries_without_destinations: *queries_without_destinations,
                 };
                 Ok(map_model)
             }
@@ -49,12 +49,12 @@ impl MapModel {
                 let geometry_model =
                     GeometryModel::new_from_edges(&geometry_input_files, graph.clone())?;
                 let spatial_index =
-                    SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance);
+                    SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance.clone());
                 let map_model = MapModel {
                     matching_type,
                     spatial_index,
                     geometry_model,
-                    queries_without_destinations,
+                    queries_without_destinations: *queries_without_destinations,
                 };
                 Ok(map_model)
             }

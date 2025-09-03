@@ -49,7 +49,7 @@ use routee_compass_core::model::{
     },
 };
 use routee_compass_core::{
-    config::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions},
+    config::{CompassConfigurationError, ConfigJsonExtensions},
     model::traversal::default::{distance::DistanceTraversalBuilder, speed::SpeedTraversalBuilder},
 };
 use routee_compass_powertrain::model::{
@@ -202,6 +202,7 @@ impl CompassBuilderInventory {
             Rc::new(CombinedTraversalBuilder::new(builders.clone())),
         );
         let tm_type = config.get_config_string(&"type", &"traversal")?;
+        log::info!("loading traversal model service '{tm_type}'");
         let result = builders
             .get(&tm_type)
             .ok_or_else(|| {
@@ -228,12 +229,13 @@ impl CompassBuilderInventory {
             String::from("combined"),
             Rc::new(CombinedAccessModelBuilder::new(builders.clone())),
         );
-        let tm_type = config.get_config_string(&"type", &"access")?;
+        let am_type = config.get_config_string(&"type", &"access")?;
+        log::info!("loading access model service '{am_type}'");
         let result = builders
-            .get(&tm_type)
+            .get(&am_type)
             .ok_or_else(|| {
                 CompassConfigurationError::UnknownModelNameForComponent(
-                    tm_type.clone(),
+                    am_type.clone(),
                     String::from("access"),
                     self.access_model_builders.keys().join(", "),
                 )
@@ -258,6 +260,7 @@ impl CompassBuilderInventory {
             Rc::new(CombinedFrontierModelBuilder::new(builders.clone())),
         );
         let fm_type = config.get_config_string(&"type", &"frontier")?;
+        log::info!("loading frontier model service '{fm_type}'");
         builders
             .get(&fm_type)
             .ok_or_else(|| {
@@ -278,6 +281,7 @@ impl CompassBuilderInventory {
         config: &serde_json::Value,
     ) -> Result<Arc<dyn LabelModelService>, CompassConfigurationError> {
         let lm_type = config.get_config_string(&"type", &"label")?;
+        log::info!("loading label model service '{lm_type}'");
         self.label_model_builders
             .get(&lm_type)
             .ok_or_else(|| {
@@ -295,16 +299,13 @@ impl CompassBuilderInventory {
 
     pub fn build_input_plugins(
         &self,
-        config: &serde_json::Value,
+        config: &[serde_json::Value],
     ) -> Result<Vec<Arc<dyn InputPlugin>>, CompassConfigurationError> {
-        let input_plugins = config.get_config_array(
-            &CompassConfigurationField::InputPlugins,
-            &CompassConfigurationField::Plugins,
-        )?;
 
         let mut plugins: Vec<Arc<dyn InputPlugin>> = Vec::new();
-        for plugin_json in input_plugins.into_iter() {
-            let plugin_type = plugin_json.get_config_string(&"type", &"input_plugin")?;
+        for (idx, plugin_json) in config.iter().enumerate() {
+            let plugin_type = plugin_json.get_config_string(&"type", &format!("input plugin {idx}"))?;
+            log::info!("loading input plugin '{plugin_type}'");
             let builder = self
                 .input_plugin_builders
                 .get(&plugin_type)
@@ -323,16 +324,13 @@ impl CompassBuilderInventory {
 
     pub fn build_output_plugins(
         &self,
-        config: &serde_json::Value,
+        config: &[serde_json::Value],
     ) -> Result<Vec<Arc<dyn OutputPlugin>>, CompassComponentError> {
-        let output_plugins = config.get_config_array(
-            &CompassConfigurationField::OutputPlugins,
-            &CompassConfigurationField::Plugins,
-        )?;
 
         let mut plugins: Vec<Arc<dyn OutputPlugin>> = Vec::new();
-        for plugin_json in output_plugins.into_iter() {
-            let plugin_type = plugin_json.get_config_string(&"type", &"output_plugin")?;
+        for (idx, plugin_json) in config.iter().enumerate() {
+            let plugin_type = plugin_json.get_config_string(&"type", &format!("output_plugin {idx}"))?;
+            log::info!("loading output plugin '{plugin_type}'");
             let builder = self
                 .output_plugin_builders
                 .get(&plugin_type)

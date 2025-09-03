@@ -395,7 +395,7 @@ mod tests {
         ];
 
         let graph = Arc::new(build_mock_graph());
-        let map_model = Arc::new(MapModel::new(graph.clone(), MapModelConfig::default()).unwrap());
+        let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
         let traversal_model = Arc::new(DistanceTraversalModel {});
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel

@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Default, Clone)]
+#[derive(Serialize, Deserialize, Default, Clone, Debug)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum KspTerminationCriteria {
     /// for a given k-shortest paths search, run exactly k iterations

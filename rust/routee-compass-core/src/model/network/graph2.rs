@@ -1,12 +1,11 @@
 use super::{Edge, EdgeId, NetworkError, Vertex, VertexId, EdgeList};
 use crate::algorithm::search::Direction;
+use crate::model::network::GraphConfig;
 use crate::model::network::EdgeListId;
-use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::util::fs::read_utils;
 use itertools::Itertools;
 use kdam::Bar;
-use std::collections::HashSet;
-use std::path::Path;
+
 
 /// Road network topology represented as an adjacency list.
 /// The `EdgeId` and `VertexId` values correspond to edge and
@@ -32,112 +31,36 @@ pub struct Graph2 {
     pub edge_lists: Vec<EdgeList>,
 }
 
-impl TryFrom<&serde_json::Value> for Graph2 {
+impl TryFrom<&GraphConfig> for Graph2 {
     type Error = NetworkError;
 
     /// create a graph from a JSON argument. it should be an object that contains
     /// two keys, one for each file path.
-    fn try_from(value: &serde_json::Value) -> Result<Self, Self::Error> {
-        let edge_list_value = value.get("edge_list_input_file").ok_or_else(|| {
-            NetworkError::DatasetError(String::from(
-                "configuration key edge_list_input_file missing",
-            ))
-        })?;
-        let edge_list_str = edge_list_value
-            .as_str()
-            .ok_or_else(|| {
-                NetworkError::DatasetError(String::from(
-                    "configuration value at key edge_list_input_file is not a string",
-                ))
-            })?
-            .to_string();
-        let vertex_list_value = value.get("vertex_list_input_file").ok_or_else(|| {
-            NetworkError::DatasetError(String::from(
-                "configuration key edge_list_input_file missing",
-            ))
-        })?;
-        let vertex_list_str = vertex_list_value
-            .as_str()
-            .ok_or_else(|| {
-                NetworkError::DatasetError(String::from(
-                    "configuration value at key vertex_list_input_file is not a string",
-                ))
-            })?
-            .to_string();
-        Self::from_files(&edge_list_str, &vertex_list_str)
-    }
-}
-
-impl Graph2 {
-    /// Build a `Graph2` from a pair of CSV files.
-    ///
-    /// # Arguments
-    ///
-    /// * `edge_list_csv` - path to the CSV file containing edge attributes
-    /// * `vertex_list_csv` - path to the CSV file containing vertex attributes
-    ///
-    /// # Returns
-    ///
-    /// A graph instance, or an error if an IO error occurred.
-    ///
-    pub fn from_files<P: AsRef<Path>>(
-        edge_list_csv: &P,
-        vertex_list_csv: &P,
-    ) -> Result<Graph2, NetworkError> {
+    fn try_from(config: &GraphConfig) -> Result<Self, Self::Error> {
         let vertices: Box<[Vertex]> = read_utils::from_csv(
-            &vertex_list_csv,
+            &config.vertex_list_input_file,
             true,
-            Some(Bar::builder().desc("graph vertices")),
+            Some(Bar::builder().desc(format!("graph vertices: {}", config.vertex_list_input_file))),
             None,
         )
         .map_err(|e| NetworkError::CsvError { source: e })?;
 
-        let mut adj: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
-            vec![CompactOrderedHashMap::empty(); vertices.len()];
-        let mut rev: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
-            vec![CompactOrderedHashMap::empty(); vertices.len()];
-        let mut missing_vertices: HashSet<VertexId> = HashSet::new();
-        let cb = Box::new(|edge: &Edge| {
-            // the Edge provides us with all id information to build our adjacency lists as well
-            match adj.get_mut(edge.src_vertex_id.0) {
-                None => {
-                    missing_vertices.insert(edge.src_vertex_id);
-                }
-                Some(out_links) => {
-                    out_links.insert(edge.edge_id, edge.dst_vertex_id);
-                }
-            }
-            match rev.get_mut(edge.dst_vertex_id.0) {
-                None => {
-                    missing_vertices.insert(edge.dst_vertex_id);
-                }
-                Some(in_links) => {
-                    in_links.insert(edge.edge_id, edge.src_vertex_id);
-                }
-            }
-        });
-
-        let edges = read_utils::from_csv(
-            &edge_list_csv,
-            true,
-            Some(Bar::builder().desc("graph edges")),
-            Some(cb),
-        )
-        .map_err(|e| NetworkError::CsvError { source: e })?;
-
-        let edge_list = EdgeList {
-            adj: adj.into_boxed_slice(),
-            rev: rev.into_boxed_slice(),
-            edges,
-        };
+        let edge_lists = config.edge_list
+            .iter()
+            .enumerate()
+            .map(|(idx, c)| EdgeList::new(&c.edge_list_input_file, EdgeListId(idx), vertices.len()))
+            .collect::<Result<Vec<_>, _>>()?;
 
         let graph = Graph2 {
-            edge_lists: vec![edge_list],
+            edge_lists,
             vertices,
         };
 
         Ok(graph)
     }
+}
+
+impl Graph2 {
     
     pub fn get_edge_list(&self, edge_list_id: &EdgeListId) -> Result<&EdgeList, NetworkError> {
         self.edge_lists.get(edge_list_id.0).ok_or_else(|| NetworkError::EdgeListNotFound(*edge_list_id))

@@ -1,12 +1,12 @@
 use super::cli_args::CliArgs;
-use crate::app::compass::compass_app_ops as ops;
+use crate::app::compass::{compass_app_ops as ops, CompassAppConfig};
 use crate::app::compass::{
     compass_app::CompassApp, compass_json_extensions::CompassJsonExtensions, CompassAppError,
     CompassBuilderInventory,
 };
 use itertools::{Either, Itertools};
 use log::{debug, error};
-use routee_compass_core::config::CompassConfigurationError;
+use routee_compass_core::config::{CompassConfigurationError, ConfigJsonExtensions};
 use serde_json::{json, Value};
 use std::io::BufRead;
 use std::{fs::File, io::BufReader, path::Path};
@@ -35,7 +35,7 @@ pub fn command_line_runner(
         None => CompassBuilderInventory::new()?,
     };
     let config_path = Path::new(&args.config_file);
-    let config = ops::read_config_from_file(config_path)?;
+    let config = CompassAppConfig::try_from(config_path)?;
     let compass_app = match CompassApp::new(&config, &builder_or_default) {
         Ok(app) => app,
         Err(e) => {
