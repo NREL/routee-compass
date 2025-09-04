@@ -4,8 +4,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum OneOrMany<T: Clone> {
-    One(T),
+    /// first attempt: this is a Vector of T
     Many(Vec<T>),
+    /// second attempt: this is a single instance of T
+    One(T),
 }
 
 impl<T: Clone> OneOrMany<T> {

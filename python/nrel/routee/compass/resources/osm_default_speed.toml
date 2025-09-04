@@ -2,7 +2,7 @@ parallelism = 2
 
 [graph]
 vertex_list_input_file = "vertices-compass.csv.gz"
-edge_list.input_file = "edges-compass.csv.gz"
+edge_list = { input_file = "edges-compass.csv.gz" }
 
 [mapping]
 type = "edge"
@@ -62,5 +62,5 @@ input_plugins = [
 ]
 output_plugins = [
     { type = "summary" },
-    { type = "search.traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
+    { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
 ]
