@@ -1,5 +1,5 @@
 use super::{map_error::MapError, matching_type::MatchingType};
-use crate::model::unit::DistanceUnit;
+use crate::{config::OneOrMany, model::{map::GeometryInput, unit::DistanceUnit}};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::str::FromStr;
@@ -10,18 +10,24 @@ use uom::si::f64::Length;
 pub enum MapModelConfig {
     #[serde(rename = "vertex")]
     VertexMapModelConfig {
-        // #[serde(deserialize_with = "de_tolerance")]
+        /// distance from coordinate to the nearest vertex required for map matching
         tolerance: Option<DistanceTolerance>,
-        geometry_input_file: Option<String>,
+        /// edge geometries. if not provided, edge geometries are created from vertex coordinates.
+        geometry: Option<OneOrMany<GeometryInput>>,
+        /// allow source-only queries for shortest path tree outputs
         queries_without_destinations: bool,
+        /// the [`MatchingType`]s supported
         matching_type: Option<Vec<String>>,
     },
     #[serde(rename = "edge")]
     EdgeMapModelConfig {
-        // #[serde(deserialize_with = "de_tolerance")]
+        /// distance from coordinate to the nearest vertex required for map matching
         tolerance: Option<DistanceTolerance>,
-        geometry_input_files: Vec<String>,
+        /// edge geometries for each [`EdgeList`]
+        geometry: OneOrMany<GeometryInput>,
+        /// allow source-only queries for shortest path tree outputs
         queries_without_destinations: bool,
+        /// the [`MatchingType`]s supported
         matching_type: Option<Vec<String>>,
     },
 }
@@ -31,13 +37,13 @@ impl MapModelConfig {
         let matching_type = match self {
             MapModelConfig::VertexMapModelConfig {
                 tolerance: _,
-                geometry_input_file: _,
+                geometry: _,
                 queries_without_destinations: _,
                 matching_type,
             } => matching_type,
             MapModelConfig::EdgeMapModelConfig {
                 tolerance: _,
-                geometry_input_files: _,
+                geometry: _,
                 queries_without_destinations: _,
                 matching_type,
             } => matching_type,
@@ -64,7 +70,7 @@ impl Default for MapModelConfig {
     fn default() -> Self {
         MapModelConfig::VertexMapModelConfig {
             tolerance: None,
-            geometry_input_file: None,
+            geometry: None,
             queries_without_destinations: true,
             matching_type: Some(MatchingType::names()),
         }

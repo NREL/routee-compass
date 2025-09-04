@@ -21,15 +21,15 @@ impl MapModel {
         match config {
             MapModelConfig::VertexMapModelConfig {
                 tolerance,
-                geometry_input_file,
+                geometry,
                 queries_without_destinations,
                 matching_type: _,
             } => {
                 let spatial_index =
                     SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance.clone());
-                let geometry_model = match geometry_input_file {
+                let geometry_model = match geometry {
                     None => GeometryModel::new_from_vertices(graph),
-                    Some(file) => GeometryModel::new_from_edges(&[file.clone()], graph.clone()),
+                    Some(files) => GeometryModel::new_from_edges(&files.to_vec(), graph.clone()),
                 }?;
 
                 let map_model = MapModel {
@@ -42,12 +42,12 @@ impl MapModel {
             }
             MapModelConfig::EdgeMapModelConfig {
                 tolerance,
-                geometry_input_files,
+                geometry,
                 queries_without_destinations,
                 matching_type: _,
             } => {
                 let geometry_model =
-                    GeometryModel::new_from_edges(geometry_input_files, graph.clone())?;
+                    GeometryModel::new_from_edges(&geometry.to_vec(), graph.clone())?;
                 let spatial_index = SpatialIndex::new_edge_oriented(
                     graph.clone(),
                     &geometry_model,

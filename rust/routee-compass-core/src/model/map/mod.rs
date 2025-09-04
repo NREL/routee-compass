@@ -10,6 +10,7 @@ mod matching_type;
 mod nearest_search_result;
 mod spatial_index;
 pub mod spatial_index_ops;
+mod geometry_input;
 
 pub use geometry_model::GeometryModel;
 pub use map_edge_rtree_object::MapEdgeRTreeObject;
@@ -23,3 +24,4 @@ pub use map_vertex_rtree_object::MapVertexRTreeObject;
 pub use matching_type::{MapInputResult, MatchingType};
 pub use nearest_search_result::NearestSearchResult;
 pub use spatial_index::SpatialIndex;
+pub use geometry_input::GeometryInput;
