@@ -135,7 +135,7 @@ pub trait CompassAppBindings {
     /// * `distance_unit` - the distance unit to use. If not provided, the default distance unit is meters
     ///
     /// # Returns
-    /// * the distance  edge_list_id: Option<usize>,of the edge in the specified distance unit
+    /// * the distance of the edge in the specified distance unit
     fn graph_edge_distance(
         &self,
         edge_list_id: Option<usize>,
