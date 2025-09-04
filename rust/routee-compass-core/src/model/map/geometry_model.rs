@@ -114,7 +114,7 @@ fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<
 }
 
 // TODO:
-//   - the API for OutputPlugin now expects a SearchInstance2 which is non-trivial to instantiate.
+//   - the API for OutputPlugin now expects a SearchInstance which is non-trivial to instantiate.
 //   the logic for adding geometries should be refactored into a separate function and this test
 //   should be moved to the file where that function exists.
 //   - the loading of geometries is now handled by the MapModel. testing geometry retrieval and

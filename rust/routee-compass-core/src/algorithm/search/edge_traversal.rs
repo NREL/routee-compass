@@ -136,7 +136,7 @@ impl EdgeTraversal {
     //     prev_edge: (EdgeListId, EdgeId),
     //     next_edge: Option<(EdgeListId, EdgeId)>,
     //     prev_state: &[StateVariable],
-    //     si: &SearchInstance2,
+    //     si: &SearchInstance,
     // ) -> Result<EdgeTraversal, SearchError> {
     //     let mut result_state = prev_state.to_vec();
     //     let mut access_cost = Cost::ZERO;

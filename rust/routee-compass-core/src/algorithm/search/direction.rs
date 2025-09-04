@@ -41,7 +41,7 @@ impl Direction {
     //     edge_id: EdgeId,
     //     last_edge_id: Option<EdgeId>,
     //     start_state: &[StateVariable],
-    //     si: &SearchInstance2,
+    //     si: &SearchInstance,
     // ) -> Result<EdgeTraversal, SearchError> {
     //     match self {
     //         Direction::Forward => {

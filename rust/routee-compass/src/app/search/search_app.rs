@@ -140,7 +140,7 @@ impl SearchApp {
     ///
     /// # Results
     ///
-    /// The SearchInstance2 which runs this search query.
+    /// The SearchInstance which runs this search query.
     pub fn build_search_instance(
         &self,
         query: &serde_json::Value,

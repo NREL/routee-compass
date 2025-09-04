@@ -19,7 +19,7 @@ use kdam::Bar;
 ///
 /// # Performance
 ///
-/// Methods provided via the `Graph2` type prefer avoiding copies.
+/// Methods provided via the `Graph` type prefer avoiding copies.
 /// Operations on a single entity should be _O(1)_. Most methods returning
 /// collections will prefer chained iterators. A few will collect
 /// into Vecs because of error handling or lifetimes, but those cases will only produce a
@@ -71,12 +71,12 @@ impl Graph {
         self.edge_lists.len()
     }
 
-    /// number of edges in the Graph2, not to be conflated with the list of edge ids
+    /// number of edges in the Graph, not to be conflated with the list of edge ids
     pub fn n_edges(&self) -> usize {
         self.edge_lists.iter().map(|el| el.n_edges()).sum::<usize>()
     }
 
-    /// number of vertices in the Graph2
+    /// number of vertices in the Graph
     pub fn n_vertices(&self) -> usize {
         self.vertices.len()
     }
@@ -158,7 +158,7 @@ impl Graph {
     /// # Returns
     ///
     /// A list of `EdgeIds` for outbound edges that leave this `VertexId`, or an error
-    /// if the vertex is missing from the Graph2 adjacency matrix.
+    /// if the vertex is missing from the Graph adjacency matrix.
     pub fn out_edges(&self, src: &VertexId) -> Vec<(EdgeListId, EdgeId)> {
         self.out_edges_iter(src).collect_vec()
     }
@@ -191,7 +191,7 @@ impl Graph {
     /// # Returns
     ///
     /// A list of `EdgeIds` for inbound edges that arrive at this `VertexId`, or an error
-    /// if the vertex is missing from the Graph2 adjacency matrix.
+    /// if the vertex is missing from the Graph adjacency matrix.
     pub fn in_edges(&self, dst: &VertexId) -> Vec<(EdgeListId, EdgeId)> {
         self.in_edges_iter(dst).collect_vec()
     }

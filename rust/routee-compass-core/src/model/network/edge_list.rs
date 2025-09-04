@@ -69,7 +69,7 @@ impl EdgeList {
         Ok(edge_list)
     }
 
-    /// number of edges in the Graph2
+    /// number of edges in the Graph
     pub fn n_edges(&self) -> usize {
         self.edges.len()
     }
