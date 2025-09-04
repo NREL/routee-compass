@@ -93,7 +93,7 @@ impl CompassApp {
     ) -> Result<Self, CompassAppError> {
         let state_model = match &config.state {
             Some(state_config) => Arc::new(StateModel::new(state_config.clone())),
-            None => Arc::new(StateModel::empty())
+            None => Arc::new(StateModel::empty()),
         };
         let cost_model_service = CostModelService::from(&config.cost);
         let label_model_service = builder.build_label_model_service(&config.label)?;
@@ -517,17 +517,21 @@ mod tests {
             .join("speeds_test")
             .join("speeds_debug.toml");
 
-        println!("attempting to load '{}'", conf_file_test.to_str().unwrap_or_default());
+        println!(
+            "attempting to load '{}'",
+            conf_file_test.to_str().unwrap_or_default()
+        );
         let app = match CompassApp::try_from(conf_file_test.as_path()) {
-            Ok(a) => {
-                Ok(a)
-            },
+            Ok(a) => Ok(a),
             Err(CompassAppError::CompassConfigurationError(
                 CompassConfigurationError::FileNormalizationNotFound(..),
             )) => {
                 // could just be the run location, depending on the environment/runner/IDE
                 // try the alternative configuration that runs from the root directory
-                println!("attempting to load '{}'", conf_file_debug.to_str().unwrap_or_default());
+                println!(
+                    "attempting to load '{}'",
+                    conf_file_debug.to_str().unwrap_or_default()
+                );
                 CompassApp::try_from(conf_file_debug.as_path())
             }
             Err(other) => panic!("{}", other),
