@@ -1,7 +1,7 @@
 use super::cli_args::CliArgs;
 use crate::app::compass::CompassAppConfig;
 use crate::app::compass::{
-    compass_app::CompassApp, compass_json_extensions::CompassJsonExtensions, CompassAppError,
+    CompassApp, CompassJsonExtensions, CompassAppError,
     CompassBuilderInventory,
 };
 use itertools::{Either, Itertools};

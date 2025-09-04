@@ -1,4 +1,4 @@
-use super::compass::{compass_app::CompassApp, CompassAppError};
+use super::compass::{CompassApp, CompassAppError};
 use crate::app::search::SearchAppGraphOps;
 use itertools::Itertools;
 use routee_compass_core::{
@@ -27,12 +27,9 @@ use std::str::FromStr;
 ///
 /// ```
 /// use routee_compass::app::bindings::CompassAppBindings;
-/// use routee_compass::app::compass::compass_app::CompassApp;
-/// use routee_compass::app::compass::CompassAppError;
-/// use routee_compass::app::compass::CompassBuilderInventory;
-///
-/// //use routee_compass_macros::pybindings;
-///
+/// use routee_compass::app::compass::{CompassApp, CompassAppError, CompassAppConfig, CompassBuilderInventory};
+/// use config::FileFormat;
+/// 
 /// //#[pybindings]
 /// pub struct CustomAppPy {
 ///     app: CompassApp,
@@ -53,8 +50,8 @@ use std::str::FromStr;
 ///         // my_custom_traversal_model_builder = MyCustomTraversalModelBuilder::new();
 ///         // builder.add_traversal_model("my_custom_model", Rc::new(my_custom_traversal_model));
 ///
-///         let app =
-///             CompassApp::try_from_config_toml_string(config_string, original_file_path, &builder)?;
+///         let config = CompassAppConfig::from_str(&config_string, &original_file_path, FileFormat::Toml)?;
+///         let app = CompassApp::new(&config, &builder)?;
 ///         Ok(CustomAppPy { app })
 ///     }
 ///     fn app(&self) -> &CompassApp {
