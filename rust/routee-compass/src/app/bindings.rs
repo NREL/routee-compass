@@ -29,7 +29,7 @@ use std::str::FromStr;
 /// use routee_compass::app::bindings::CompassAppBindings;
 /// use routee_compass::app::compass::{CompassApp, CompassAppError, CompassAppConfig, CompassBuilderInventory};
 /// use config::FileFormat;
-/// 
+///
 /// //#[pybindings]
 /// pub struct CustomAppPy {
 ///     app: CompassApp,

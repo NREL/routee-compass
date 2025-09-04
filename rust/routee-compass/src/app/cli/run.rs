@@ -1,8 +1,7 @@
 use super::cli_args::CliArgs;
 use crate::app::compass::CompassAppConfig;
 use crate::app::compass::{
-    CompassApp, CompassJsonExtensions, CompassAppError,
-    CompassBuilderInventory,
+    CompassApp, CompassAppError, CompassBuilderInventory, CompassJsonExtensions,
 };
 use itertools::{Either, Itertools};
 use log::{debug, error};

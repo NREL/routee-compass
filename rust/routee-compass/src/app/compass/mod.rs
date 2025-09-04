@@ -9,12 +9,12 @@ mod compass_input_field;
 mod compass_json_extensions;
 pub mod response;
 
-pub use compass_input_field::CompassInputField;
-pub use compass_component_error::CompassComponentError;
+pub use compass_app::CompassApp;
 pub use compass_app_config::CompassAppConfig;
 pub use compass_app_error::CompassAppError;
 pub use compass_app_system::CompassAppSystemParameters;
 pub use compass_builder_inventory::BuilderRegistration;
 pub use compass_builder_inventory::CompassBuilderInventory;
-pub use compass_app::CompassApp;
+pub use compass_component_error::CompassComponentError;
+pub use compass_input_field::CompassInputField;
 pub use compass_json_extensions::CompassJsonExtensions;

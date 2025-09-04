@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use super::map_error::MapError;
 use crate::{
-    model::{map::GeometryInput, network::{EdgeId, Graph}},
+    model::{
+        map::GeometryInput,
+        network::{EdgeId, Graph},
+    },
     util::{fs::read_utils, geo::geo_io_utils},
 };
 use geo::LineString;

@@ -1,5 +1,8 @@
 use super::{map_error::MapError, matching_type::MatchingType};
-use crate::{config::OneOrMany, model::{map::GeometryInput, unit::DistanceUnit}};
+use crate::{
+    config::OneOrMany,
+    model::{map::GeometryInput, unit::DistanceUnit},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::str::FromStr;
