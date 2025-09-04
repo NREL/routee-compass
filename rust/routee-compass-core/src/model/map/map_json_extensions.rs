@@ -104,12 +104,7 @@ impl MapJsonExtensions for serde_json::Value {
             .ok_or(MapError::InputMissingField(MapJsonKey::OriginVertex))?
             .as_u64()
             .map(|v| VertexId(v as usize))
-            .ok_or_else(|| {
-                MapError::InputDeserializingError(
-                    MapJsonKey::OriginVertex.to_string(),
-                    String::from("u64"),
-                )
-            })
+            .ok_or_else(|| MapError::InputDeserializingError(key, String::from("u64")))
     }
 
     fn get_destination_vertex(&self) -> Result<Option<VertexId>, MapError> {
@@ -119,7 +114,7 @@ impl MapJsonExtensions for serde_json::Value {
             Some(v) => v
                 .as_u64()
                 .map(|v| Some(VertexId(v as usize)))
-                .ok_or_else(|| MapError::InputDeserializingError(key.clone(), String::from("u64"))),
+                .ok_or_else(|| MapError::InputDeserializingError(key, String::from("u64"))),
         }
     }
 
