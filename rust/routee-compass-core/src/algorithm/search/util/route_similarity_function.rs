@@ -1,7 +1,5 @@
 use crate::{
-    algorithm::search::{
-        edge_traversal::EdgeTraversal, search_error::SearchError, SearchInstance,
-    },
+    algorithm::search::{edge_traversal::EdgeTraversal, search_error::SearchError, SearchInstance},
     model::network::{EdgeId, EdgeListId},
 };
 use serde::{Deserialize, Serialize};
