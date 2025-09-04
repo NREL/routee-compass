@@ -91,7 +91,10 @@ impl CompassApp {
         config: &CompassAppConfig,
         builder: &CompassBuilderInventory,
     ) -> Result<Self, CompassAppError> {
-        let state_model = Arc::new(StateModel::new(config.state.clone()));
+        let state_model = match &config.state {
+            Some(state_config) => Arc::new(StateModel::new(state_config.clone())),
+            None => Arc::new(StateModel::empty())
+        };
         let cost_model_service = CostModelService::from(&config.cost);
         let label_model_service = builder.build_label_model_service(&config.label)?;
         let termination_model = TerminationModelBuilder::build(&config.termination, None)?;
@@ -111,7 +114,7 @@ impl CompassApp {
         let graph = with_timing("graph", || Ok(Arc::new(Graph::try_from(&config.graph)?)))?;
 
         let map_model = with_timing("map model", || {
-            let mm = MapModel::new(graph.clone(), &config.map).map_err(|e| {
+            let mm = MapModel::new(graph.clone(), &config.mapping).map_err(|e| {
                 CompassAppError::BuildFailure(format!("unable to load MapModel from config: {e}"))
             })?;
             Ok(Arc::new(mm))
@@ -514,13 +517,17 @@ mod tests {
             .join("speeds_test")
             .join("speeds_debug.toml");
 
+        println!("attempting to load '{}'", conf_file_test.to_str().unwrap_or_default());
         let app = match CompassApp::try_from(conf_file_test.as_path()) {
-            Ok(a) => Ok(a),
+            Ok(a) => {
+                Ok(a)
+            },
             Err(CompassAppError::CompassConfigurationError(
                 CompassConfigurationError::FileNormalizationNotFound(..),
             )) => {
                 // could just be the run location, depending on the environment/runner/IDE
                 // try the alternative configuration that runs from the root directory
+                println!("attempting to load '{}'", conf_file_debug.to_str().unwrap_or_default());
                 CompassApp::try_from(conf_file_debug.as_path())
             }
             Err(other) => panic!("{}", other),

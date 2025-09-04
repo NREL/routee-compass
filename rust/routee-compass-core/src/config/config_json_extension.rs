@@ -6,7 +6,7 @@ use std::{
     str::FromStr,
 };
 
-const FILE_NORMALIZATION_POSTFIX: &str = "_input_file";
+const FILE_NORMALIZATION_POSTFIX: &str = "input_file";
 
 pub trait ConfigJsonExtensions {
     fn get_config_section(

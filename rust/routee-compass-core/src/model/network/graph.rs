@@ -48,7 +48,7 @@ impl TryFrom<&GraphConfig> for Graph {
             .edge_list
             .iter()
             .enumerate()
-            .map(|(idx, c)| EdgeList::new(&c.edge_list_input_file, EdgeListId(idx), vertices.len()))
+            .map(|(idx, c)| EdgeList::new(&c.input_file, EdgeListId(idx), vertices.len()))
             .collect::<Result<Vec<_>, _>>()?;
 
         let graph = Graph {

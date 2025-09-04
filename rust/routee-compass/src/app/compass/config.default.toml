@@ -1,8 +1,3 @@
-parallelism = 2
-response_persistence_policy = "persist_response_in_memory"
-[response_output_policy]
-type = "none"
-
 # # example file output policy
 # response_persistence_policy = "discard_response_from_memory"
 # [response_output_policy]
@@ -10,8 +5,8 @@ type = "none"
 # filename = "output.json"
 # format = { type = "json", newline_delimited = true }
 
-[graph]
-verbose = true
+# [graph]
+# verbose = true
 
 # [mapping]
 # # when type = "vertex", simpler mapping is used. (default)
@@ -43,29 +38,37 @@ verbose = true
 # # specified here with a subset of these values or a single value such as "point".
 # matching_type = ["point", "edge_id", "vertex_id"]
 
+[system]
+parallelism = 2
+default_edge_list = 0
+response_persistence_policy = "persist_response_in_memory"
+response_output_policy.type = "none"
+
+[mapping]
+type = "vertex"
+tolerance.distance = 30.0
+tolerance.unit = "meters"
+queries_without_destinations = false
+matching_type = ["vertex_id"]
+
 [algorithm]
 type = "a*"
 
-[traversal]
-type = "distance"
-distance_unit = "kilometers"
-
-[access]
-type = "no_access_model"
+[search]
+traversal = { type = "distance", distance_unit = "kilometers" }
+access.type = "no_access_model"
+frontier.type = "no_restriction"
 
 [cost]
 cost_aggregation = "sum"
 network_rates = {}
-
-[frontier]
-type = "no_restriction"
 
 [label]
 type = "vertex"
 
 [termination]
 type = "query_runtime"
-limit = "00:10:00"
+limit = "00:01:00"
 frequency = 100_000
 
 [plugin]

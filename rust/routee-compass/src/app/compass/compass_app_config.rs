@@ -24,10 +24,10 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CompassAppConfig {
     pub algorithm: SearchAlgorithm,
-    pub state: Vec<(String, StateVariableConfig)>,
+    pub state: Option<Vec<(String, StateVariableConfig)>>,
     pub cost: CostModelConfig,
     pub label: Value,
-    pub map: MapModelConfig,
+    pub mapping: MapModelConfig,
     pub graph: GraphConfig,
     /// section containing a single search config or an array of search configs (OneOrMany).
     pub search: OneOrMany<SearchConfig>,
@@ -117,7 +117,7 @@ impl CompassAppConfig {
         let result = self
             .search
             .iter()
-            .map(|el| builders.build_access_model_service(&el.traversal))
+            .map(|el| builders.build_access_model_service(&el.access))
             .collect::<Result<Vec<_>, _>>()?;
         Ok(result)
     }
@@ -128,7 +128,7 @@ impl CompassAppConfig {
         let result = self
             .search
             .iter()
-            .map(|el| builders.build_frontier_model_service(&el.traversal))
+            .map(|el| builders.build_frontier_model_service(&el.frontier))
             .collect::<Result<Vec<_>, _>>()?;
         Ok(result)
     }

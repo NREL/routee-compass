@@ -113,7 +113,7 @@ impl MapJsonExtensions for serde_json::Value {
     }
 
     fn get_destination_vertex(&self) -> Result<Option<VertexId>, MapError> {
-        let key = MapJsonKey::OriginVertex.to_string();
+        let key = MapJsonKey::DestinationVertex.to_string();
         match self.get(&key) {
             None => Ok(None),
             Some(v) => v
