@@ -151,8 +151,8 @@ impl MapJsonExtensions for serde_json::Value {
 
     fn get_destination_edge(&self) -> Result<Option<(EdgeListId, EdgeId)>, MapError> {
         let lookup = (
-            self.get(MapJsonKey::DestinationEdge.as_str()),
             self.get(MapJsonKey::DestinationEdgeList.as_str()),
+            self.get(MapJsonKey::DestinationEdge.as_str()),
         );
         match lookup {
             (None, None) => Ok(None),
