@@ -3,7 +3,7 @@ use super::{
     nearest_search_result::NearestSearchResult,
 };
 use crate::{
-    algorithm::search::SearchInstance2,
+    algorithm::search::SearchInstance,
     model::{frontier::FrontierModel, network::Edge},
 };
 use itertools::Itertools;
@@ -90,7 +90,7 @@ impl MatchingType {
     pub fn process_origin(
         &self,
         query: &mut serde_json::Value,
-        si: &SearchInstance2,
+        si: &SearchInstance,
     ) -> Result<(), MapError> {
         use MatchingType as MT;
         match self {
@@ -180,7 +180,7 @@ impl MatchingType {
     pub fn process_destination(
         &self,
         query: &mut serde_json::Value,
-        si: &SearchInstance2,
+        si: &SearchInstance,
     ) -> Result<MapInputResult, MapError> {
         use MatchingType as MT;
         match self {

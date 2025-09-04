@@ -3,8 +3,8 @@ use super::map_model_config::MapModelConfig;
 use super::matching_type::MatchingType;
 use super::spatial_index::SpatialIndex;
 use super::{geometry_model::GeometryModel, matching_type::MapInputResult};
-use crate::algorithm::search::SearchInstance2;
-use crate::model::network::{EdgeId, Graph2};
+use crate::algorithm::search::SearchInstance;
+use crate::model::network::{EdgeId, Graph};
 use geo::LineString;
 use std::sync::Arc;
 
@@ -16,7 +16,7 @@ pub struct MapModel {
 }
 
 impl MapModel {
-    pub fn new(graph: Arc<Graph2>, config: &MapModelConfig) -> Result<MapModel, MapError> {
+    pub fn new(graph: Arc<Graph>, config: &MapModelConfig) -> Result<MapModel, MapError> {
         let matching_type = config.get_matching_type()?;
         match config {
             MapModelConfig::VertexMapModelConfig {
@@ -71,7 +71,7 @@ impl MapModel {
     pub fn map_match(
         &self,
         query: &mut serde_json::Value,
-        si: &SearchInstance2,
+        si: &SearchInstance,
     ) -> Result<(), MapError> {
         self.matching_type.process_origin(query, si)?;
         match self.matching_type.process_destination(query, si)? {

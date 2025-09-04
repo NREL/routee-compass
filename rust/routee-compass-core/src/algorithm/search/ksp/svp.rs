@@ -3,7 +3,7 @@ use crate::{
     algorithm::search::{
         a_star::bidirectional_ops, backtrack, direction::Direction, edge_traversal::EdgeTraversal,
         search_algorithm::SearchAlgorithm, search_algorithm_result::SearchAlgorithmResult,
-        search_error::SearchError, util::RouteSimilarityFunction, SearchInstance2,
+        search_error::SearchError, util::RouteSimilarityFunction, SearchInstance,
     },
     model::{network::VertexId, unit::ReverseCost},
     util::priority_queue::InternalPriorityQueue,
@@ -16,7 +16,7 @@ pub fn run(
     query: &KspQuery,
     termination: &KspTerminationCriteria,
     similarity: &RouteSimilarityFunction,
-    si: &SearchInstance2,
+    si: &SearchInstance,
     underlying: &SearchAlgorithm,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // run forward and reverse search

@@ -1,5 +1,5 @@
 use super::search_error::SearchError;
-use super::SearchInstance2;
+use super::SearchInstance;
 use crate::model::network::{EdgeId, EdgeListId};
 use crate::model::state::StateVariable;
 use crate::model::unit::Cost;
@@ -60,7 +60,7 @@ impl EdgeTraversal {
         next_edge: (EdgeListId, EdgeId),
         prev_edge: Option<(EdgeListId, EdgeId)>,
         prev_state: &[StateVariable],
-        si: &SearchInstance2,
+        si: &SearchInstance,
     ) -> Result<EdgeTraversal, SearchError> {
         let mut result_state = prev_state.to_vec();
         let mut access_cost = Cost::ZERO;

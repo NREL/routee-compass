@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use super::map_error::MapError;
 use crate::{
-    model::network::{EdgeId, Graph2},
+    model::network::{EdgeId, Graph},
     util::{fs::read_utils, geo::geo_io_utils},
 };
 use geo::LineString;
@@ -17,7 +17,7 @@ pub struct GeometryModel(Vec<LineString<f32>>);
 
 impl GeometryModel {
     /// with no provided geometries, create minimal LineStrings from pairs of vertex Points
-    pub fn new_from_vertices(graph: Arc<Graph2>) -> Result<GeometryModel, MapError> {
+    pub fn new_from_vertices(graph: Arc<Graph>) -> Result<GeometryModel, MapError> {
         let edges = create_linestrings_from_vertices(graph)?;
         Ok(GeometryModel(edges))
     }
@@ -25,7 +25,7 @@ impl GeometryModel {
     /// use a user-provided enumerated textfile input to load LineString geometries
     pub fn new_from_edges(
         geometry_input_files: &[String],
-        graph: Arc<Graph2>,
+        graph: Arc<Graph>,
     ) -> Result<GeometryModel, MapError> {
         let input_iter = geometry_input_files
             .iter()
@@ -78,7 +78,7 @@ fn read_linestrings(
     Ok(geoms)
 }
 
-fn create_linestrings_from_vertices(graph: Arc<Graph2>) -> Result<Vec<LineString<f32>>, MapError> {
+fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<f32>>, MapError> {
     let n_edges = graph.n_edges();
     let mut pb = kdam::Bar::builder()
         .total(n_edges)

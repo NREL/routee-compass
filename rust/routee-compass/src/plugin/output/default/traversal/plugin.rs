@@ -5,7 +5,7 @@ use crate::app::search::SearchAppResult;
 use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::output::OutputPluginError;
 use routee_compass_core::algorithm::search::EdgeTraversal;
-use routee_compass_core::algorithm::search::SearchInstance2;
+use routee_compass_core::algorithm::search::SearchInstance;
 use serde_json::json;
 
 pub struct TraversalPlugin {
@@ -35,7 +35,7 @@ impl OutputPlugin for TraversalPlugin {
     fn process(
         &self,
         output: &mut serde_json::Value,
-        search_result: &Result<(SearchAppResult, SearchInstance2), CompassAppError>,
+        search_result: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
     ) -> Result<(), OutputPluginError> {
         let (result, si) = match search_result {
             Err(_) => return Ok(()),
@@ -95,7 +95,7 @@ impl OutputPlugin for TraversalPlugin {
 /// creates the JSON output for a route.
 fn construct_route_output(
     route: &Vec<EdgeTraversal>,
-    si: &SearchInstance2,
+    si: &SearchInstance,
     output_format: &TraversalOutputFormat,
 ) -> Result<serde_json::Value, String> {
     let last_edge = route

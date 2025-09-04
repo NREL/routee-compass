@@ -6,7 +6,7 @@ use crate::{
         search_algorithm_result::SearchAlgorithmResult,
         search_error::SearchError,
         util::{EdgeCutFrontierModel, RouteSimilarityFunction},
-        SearchInstance2,
+        SearchInstance,
     },
     model::{
         frontier::{FrontierModel, FrontierModelError},
@@ -29,7 +29,7 @@ pub fn run(
     query: &KspQuery,
     termination: &KspTerminationCriteria,
     similarity: &RouteSimilarityFunction,
-    si: &SearchInstance2,
+    si: &SearchInstance,
     underlying: &SearchAlgorithm,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // base case: we always have the true-shortest path
@@ -102,7 +102,7 @@ pub fn run(
                 let model: Arc<dyn FrontierModel> = Arc::new(EdgeCutFrontierModel::new(underlying.clone(), cut.clone()));
                 Ok(model)
             }).collect::<Result<Vec<_>, SearchError>>()?;
-            let yens_si = SearchInstance2 {
+            let yens_si = SearchInstance {
                 graph: si.graph.clone(),
                 map_model: si.map_model.clone(),
                 state_model: si.state_model.clone(),

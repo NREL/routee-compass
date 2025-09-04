@@ -1,7 +1,7 @@
 use crate::algorithm::search::Direction;
 use crate::algorithm::search::EdgeTraversal;
 use crate::algorithm::search::SearchError;
-use crate::algorithm::search::SearchInstance2;
+use crate::algorithm::search::SearchInstance;
 use crate::algorithm::search::SearchResult;
 use crate::algorithm::search::SearchTreeBranch;
 use crate::model::label::Label;
@@ -26,7 +26,7 @@ pub fn run_vertex_oriented(
     target: Option<VertexId>,
     direction: &Direction,
     weight_factor: Option<Cost>,
-    si: &SearchInstance2,
+    si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     log::debug!(
         "run_vertex_oriented: source: {source}, target: {target:?}, direction: {direction:?}"
@@ -185,7 +185,7 @@ pub fn run_edge_oriented(
     target: Option<(EdgeListId, EdgeId)>,
     direction: &Direction,
     weight_factor: Option<Cost>,
-    si: &SearchInstance2,
+    si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     // For now, convert to vertex-oriented search and use compatibility layer
     let _e1_src = si.graph.src_vertex_id(&source.0, &source.1)?;
@@ -212,7 +212,7 @@ pub fn estimate_traversal_cost(
     src: VertexId,
     dst: VertexId,
     state: &[StateVariable],
-    si: &SearchInstance2,
+    si: &SearchInstance,
 ) -> Result<Cost, SearchError> {
     let src = si.graph.get_vertex(&src)?;
     let dst = si.graph.get_vertex(&dst)?;
@@ -297,7 +297,7 @@ mod tests {
     use crate::model::network::Edge;
     use crate::model::network::EdgeId;
     use crate::model::network::EdgeList;
-    use crate::model::network::Graph2;
+    use crate::model::network::Graph;
     use crate::model::network::Vertex;
     use crate::model::state::StateModel;
     use crate::model::termination::TerminationModel;
@@ -308,7 +308,7 @@ mod tests {
     use std::sync::Arc;
     use uom::si::f64::Length;
 
-    fn build_mock_graph() -> Graph2 {
+    fn build_mock_graph() -> Graph {
         let vertices = vec![
             Vertex::new(0, 0.0, 0.0),
             Vertex::new(1, 0.0, 0.0),
@@ -335,7 +335,7 @@ mod tests {
             rev[edge.dst_vertex_id.0].insert(edge.edge_id, edge.src_vertex_id);
         }
 
-        Graph2 {
+        Graph {
             vertices: vertices.into_boxed_slice(),
             edge_lists: vec![EdgeList {
                 adj: adj.into_boxed_slice(),
@@ -418,7 +418,7 @@ mod tests {
             state_model.clone(),
         )
         .unwrap();
-        let si = SearchInstance2 {
+        let si = SearchInstance {
             graph,
             map_model,
             state_model: state_model.clone(),

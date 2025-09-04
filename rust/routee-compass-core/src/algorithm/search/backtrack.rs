@@ -3,7 +3,7 @@ use super::{
 };
 use crate::model::{
     label::Label,
-    network::{EdgeId, EdgeListId, Graph2, VertexId},
+    network::{EdgeId, EdgeListId, Graph, VertexId},
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -76,7 +76,7 @@ pub fn label_edge_oriented_route(
     source: (EdgeListId, EdgeId),
     target: (EdgeListId, EdgeId),
     solution: &HashMap<Label, SearchTreeBranch>,
-    graph: Arc<Graph2>,
+    graph: Arc<Graph>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
     let (s_el, s_e) = source;
     let (d_el, d_e) = target;

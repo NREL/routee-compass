@@ -1,6 +1,6 @@
 use crate::{
     algorithm::search::{
-        edge_traversal::EdgeTraversal, search_error::SearchError, SearchInstance2,
+        edge_traversal::EdgeTraversal, search_error::SearchError, SearchInstance,
     },
     model::network::{EdgeId, EdgeListId},
 };
@@ -37,7 +37,7 @@ impl RouteSimilarityFunction {
         self,
         a: &[&EdgeTraversal],
         b: &[&EdgeTraversal],
-        si: &SearchInstance2,
+        si: &SearchInstance,
     ) -> Result<bool, SearchError> {
         let similarity = self.rank_similarity(a, b, si)?;
         Ok(self.is_similar(similarity))
@@ -76,7 +76,7 @@ impl RouteSimilarityFunction {
         &self,
         a: &[&EdgeTraversal],
         b: &[&EdgeTraversal],
-        si: &SearchInstance2,
+        si: &SearchInstance,
     ) -> Result<f64, SearchError> {
         match self {
             RouteSimilarityFunction::AcceptAll => Ok(0.0),

@@ -17,14 +17,13 @@ use chrono::Local;
 use itertools::Itertools;
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
-use routee_compass_core::algorithm::search::SearchInstance2;
+use routee_compass_core::algorithm::search::SearchInstance;
 use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::model::cost::cost_model_service::CostModelService;
 use routee_compass_core::model::map::MapModel;
-use routee_compass_core::model::network::Graph2;
+use routee_compass_core::model::network::Graph;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::model::termination::TerminationModelBuilder;
-use routee_compass_core::model::traversal::TraversalModelService;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
 use std::{
@@ -109,7 +108,7 @@ impl CompassApp {
         })?;
 
         // build graph
-        let graph = with_timing("graph", || Ok(Arc::new(Graph2::try_from(&config.graph)?)))?;
+        let graph = with_timing("graph", || Ok(Arc::new(Graph::try_from(&config.graph)?)))?;
 
         let map_model = with_timing("map model", || {
             let mm = MapModel::new(graph.clone(), &config.map).map_err(|e| {
@@ -443,7 +442,7 @@ pub fn run_batch_without_responses(
 // 2. applying the output plugins
 pub fn apply_output_processing(
     request_json: &serde_json::Value,
-    result: Result<(SearchAppResult, SearchInstance2), CompassAppError>,
+    result: Result<(SearchAppResult, SearchInstance), CompassAppError>,
     search_app: &SearchApp,
     output_plugins: &[Arc<dyn OutputPlugin>],
 ) -> serde_json::Value {

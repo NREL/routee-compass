@@ -2,14 +2,14 @@ use crate::app::{
     compass::CompassAppError,
     search::{SearchApp, SearchAppResult},
 };
-use routee_compass_core::algorithm::search::SearchInstance2;
+use routee_compass_core::algorithm::search::SearchInstance;
 use serde_json::{json, Value};
 
 /// creates the initial output with summary information from the search app,
 /// which happens regardless of the output plugin setup.
 pub fn create_initial_output(
     req: &Value,
-    res: &Result<(SearchAppResult, SearchInstance2), CompassAppError>,
+    res: &Result<(SearchAppResult, SearchInstance), CompassAppError>,
     _app: &SearchApp,
 ) -> Result<Value, Value> {
     match &res {

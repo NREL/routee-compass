@@ -9,7 +9,6 @@ mod search_algorithm;
 mod search_algorithm_result;
 mod search_error;
 mod search_instance;
-mod search_instance2;
 mod search_result;
 mod search_tree_branch;
 pub mod util;
@@ -20,7 +19,6 @@ pub use search_algorithm::SearchAlgorithm;
 pub use search_algorithm_result::SearchAlgorithmResult;
 pub use search_error::SearchError;
 pub use search_instance::SearchInstance;
-pub use search_instance2::SearchInstance2;
 pub use search_result::SearchResult;
 pub use search_tree_branch::SearchTreeBranch;
 

@@ -2,14 +2,14 @@ use super::{search_app_ops, search_app_result::SearchAppResult};
 use crate::{app::compass::CompassAppError, plugin::PluginError};
 use chrono::Local;
 use routee_compass_core::{
-    algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance2},
+    algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance},
     model::{
         access::AccessModelService,
         cost::cost_model_service::CostModelService,
         frontier::FrontierModelService,
         label::label_model_service::LabelModelService,
         map::{MapJsonExtensions, MapModel},
-        network::Graph2,
+        network::Graph,
         state::StateModel,
         termination::TerminationModel,
         traversal::TraversalModelService,
@@ -21,7 +21,7 @@ use std::time;
 /// a configured and loaded application to execute searches.
 pub struct SearchApp {
     pub search_algorithm: SearchAlgorithm,
-    pub graph: Arc<Graph2>,
+    pub graph: Arc<Graph>,
     pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
     pub traversal_model_services: Vec<Arc<dyn TraversalModelService>>,
@@ -39,7 +39,7 @@ impl SearchApp {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         search_algorithm: SearchAlgorithm,
-        graph: Arc<Graph2>,
+        graph: Arc<Graph>,
         map_model: Arc<MapModel>,
         state_model: Arc<StateModel>,
         traversal_model_services: Vec<Arc<dyn TraversalModelService>>,
@@ -80,7 +80,7 @@ impl SearchApp {
     pub fn run(
         &self,
         query: &mut serde_json::Value,
-    ) -> Result<(SearchAppResult, SearchInstance2), CompassAppError> {
+    ) -> Result<(SearchAppResult, SearchInstance), CompassAppError> {
         let search_start_time = Local::now();
         let si = self.build_search_instance(query)?;
         self.map_model.map_match(query, &si)?;
@@ -144,7 +144,7 @@ impl SearchApp {
     pub fn build_search_instance(
         &self,
         query: &serde_json::Value,
-    ) -> Result<SearchInstance2, SearchError> {
+    ) -> Result<SearchInstance, SearchError> {
         let traversal_models = self
             .traversal_model_services
             .iter()
@@ -173,7 +173,7 @@ impl SearchApp {
 
         let label_model = self.label_model_service.build(query, state_model.clone())?;
 
-        let search_assets = SearchInstance2 {
+        let search_assets = SearchInstance {
             graph: self.graph.clone(),
             map_model: self.map_model.clone(),
             state_model,

@@ -6,7 +6,7 @@ use super::{
 };
 use crate::model::{
     map::map_model_config::DistanceTolerance,
-    network::{Graph2, Vertex},
+    network::{Graph, Vertex},
 };
 use geo::Point;
 use rstar::RTree;
@@ -40,7 +40,7 @@ impl SpatialIndex {
     /// the edge's destination vertex.
     /// - future work: make SearchOrientation set which incident vertex is returned.
     pub fn new_edge_oriented(
-        graph: Arc<Graph2>,
+        graph: Arc<Graph>,
         geometry_model: &GeometryModel,
         tolerance: Option<DistanceTolerance>,
     ) -> Self {

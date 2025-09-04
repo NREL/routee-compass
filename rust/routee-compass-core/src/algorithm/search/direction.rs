@@ -1,4 +1,4 @@
-use super::SearchInstance2;
+use super::SearchInstance;
 use crate::model::network::{Edge, EdgeId, EdgeListId, VertexId};
 use serde::{Deserialize, Serialize};
 
@@ -14,7 +14,7 @@ impl Direction {
     pub fn get_incident_edges<'a>(
         &'a self,
         vertex_id: &'a VertexId,
-        si: &'a SearchInstance2,
+        si: &'a SearchInstance,
     ) -> Box<dyn Iterator<Item = (EdgeListId, EdgeId)> + 'a> {
         match self {
             Direction::Forward => si.graph.out_edges_iter(vertex_id),
