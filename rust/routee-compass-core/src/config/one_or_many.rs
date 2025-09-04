@@ -30,7 +30,7 @@ impl<T: Clone> OneOrMany<T> {
     pub fn to_vec(&self) -> Vec<T> {
         match self {
             OneOrMany::One(item) => vec![item.clone()],
-            OneOrMany::Many(items) => items.iter().cloned().collect(),
+            OneOrMany::Many(items) => items.to_vec(),
         }
     }
 
