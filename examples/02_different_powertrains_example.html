@@ -443,7 +443,19 @@ document.write(`
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ValueError</span><span class="g g-Whitespace">                                </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">app</span> <span class="o">=</span> <span class="n">CompassApp</span><span class="o">.</span><span class="n">from_config_file</span><span class="p">(</span><span class="s2">&quot;denver_co/osm_default_energy.toml&quot;</span><span class="p">)</span>
+
+<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/compass_app.py:75,</span> in <span class="ni">CompassApp.from_config_file</span><span class="nt">(cls, config_file)</span>
+<span class="g g-Whitespace">     </span><span class="mi">73</span> <span class="n">config_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">74</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">config_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+<span class="ne">---&gt; </span><span class="mi">75</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span><span class="si">}</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">76</span> <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="g g-Whitespace">     </span><span class="mi">77</span>     <span class="n">toml_config</span> <span class="o">=</span> <span class="n">tomlkit</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="ne">ValueError</span>: Config file denver_co/osm_default_energy.toml does not exist
 </pre></div>
 </div>
 </div>
@@ -526,88 +538,11 @@ By default, the PHEV will run using battery energy exclusively (starting at <cod
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 2433.33it/s]
-
-applying input plugin 2: 100%|██████████| 6/6 [00:00&lt;00:00, 109337.41it/s]
-
-
-
-search:  67%|██████▆   | 4/6 [00:00&lt;00:00, 25.28it/s]
-search: 100%|██████████| 6/6 [00:00&lt;00:00, 22.18it/s]
-</pre></div>
-</div>
-</div>
 </div>
 <p>First, let's review the state model to see what energy units we're using.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">]</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;trip_time&#39;: {&#39;Time&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: True,
-   &#39;output_unit&#39;: &#39;minutes&#39;},
-  &#39;index&#39;: 0,
-  &#39;name&#39;: &#39;trip_time&#39;},
- &#39;edge_distance&#39;: {&#39;Distance&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;miles&#39;},
-  &#39;index&#39;: 1,
-  &#39;name&#39;: &#39;edge_distance&#39;},
- &#39;trip_elevation_gain&#39;: {&#39;Distance&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: True,
-   &#39;output_unit&#39;: &#39;miles&#39;},
-  &#39;index&#39;: 2,
-  &#39;name&#39;: &#39;trip_elevation_gain&#39;},
- &#39;edge_time&#39;: {&#39;Time&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;minutes&#39;},
-  &#39;index&#39;: 3,
-  &#39;name&#39;: &#39;edge_time&#39;},
- &#39;battery_capacity&#39;: {&#39;Energy&#39;: {&#39;value&#39;: 216000000.0,
-   &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;kilowatt_hours&#39;},
-  &#39;index&#39;: 4,
-  &#39;name&#39;: &#39;battery_capacity&#39;},
- &#39;trip_elevation_loss&#39;: {&#39;Distance&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: True,
-   &#39;output_unit&#39;: &#39;miles&#39;},
-  &#39;index&#39;: 5,
-  &#39;name&#39;: &#39;trip_elevation_loss&#39;},
- &#39;edge_energy&#39;: {&#39;Energy&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;kilowatt_hours&#39;},
-  &#39;index&#39;: 6,
-  &#39;name&#39;: &#39;edge_energy&#39;},
- &#39;trip_soc&#39;: {&#39;Ratio&#39;: {&#39;value&#39;: 1.0,
-   &#39;accumulator&#39;: True,
-   &#39;output_unit&#39;: &#39;decimal&#39;},
-  &#39;index&#39;: 7,
-  &#39;name&#39;: &#39;trip_soc&#39;},
- &#39;edge_speed&#39;: {&#39;Speed&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;miles/hour&#39;},
-  &#39;index&#39;: 8,
-  &#39;name&#39;: &#39;edge_speed&#39;},
- &#39;edge_grade&#39;: {&#39;Ratio&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: False,
-   &#39;output_unit&#39;: &#39;decimal&#39;},
-  &#39;index&#39;: 9,
-  &#39;name&#39;: &#39;edge_grade&#39;},
- &#39;trip_distance&#39;: {&#39;Distance&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: True,
-   &#39;output_unit&#39;: &#39;miles&#39;},
-  &#39;index&#39;: 10,
-  &#39;name&#39;: &#39;trip_distance&#39;},
- &#39;trip_energy&#39;: {&#39;Energy&#39;: {&#39;value&#39;: 0.0,
-   &#39;accumulator&#39;: True,
-   &#39;output_unit&#39;: &#39;kilowatt_hours&#39;},
-  &#39;index&#39;: 11,
-  &#39;name&#39;: &#39;trip_energy&#39;}}
 </pre></div>
 </div>
 </div>
@@ -649,12 +584,6 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/share/miniconda/envs/test/lib/python3.11/site-packages/geopandas/geodataframe.py:1968: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
-  super().__setitem__(key, value)
-</pre></div>
-</div>
-</div>
 </div>
 <p>Next, we can look at the energy usage versus the route time, broken out by powertrain and route objective</p>
 <div class="cell docutils container">
@@ -668,12 +597,6 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 <span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.trip_time&#39;, ylabel=&#39;gge&#39;&gt;
-</pre></div>
-</div>
-<img alt="../_images/36be931d2243e0b96c67795041eb95bce21720e985bedad698beaecb55918239.png" src="../_images/36be931d2243e0b96c67795041eb95bce21720e985bedad698beaecb55918239.png" />
 </div>
 </div>
 <p>Here, we see that the BEV and the PHEV use much less energy than the ICE alternative but all powertrains have a route that uses less energy and more time.</p>
@@ -696,12 +619,6 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: xlabel=&#39;route.traversal_summary.trip_time&#39;, ylabel=&#39;route.cost.total_cost&#39;&gt;
-</pre></div>
-</div>
-<img alt="../_images/3a864b77cff4862292c6bf60637c133eaf1b339e161c5d30b25ac4600888dfac.png" src="../_images/3a864b77cff4862292c6bf60637c133eaf1b339e161c5d30b25ac4600888dfac.png" />
-</div>
 </div>
 <p>Here, we notice that the ICE vehicle has the lowest costs and all powertrains save money on the optimal energy route.
 This would likely change based on our cost assumptions (for example if we assume that charging is done at home for a much lower cost of electricity)</p>
@@ -711,12 +628,6 @@ This would likely change based on our cost assumptions (for example if we assume
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gdf</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="s2">&quot;gge&quot;</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Axes: &gt;
-</pre></div>
-</div>
-<img alt="../_images/fdca08c225cc3a0690dfc703ad1825fe04e50054a4631e252d462825737220ec.png" src="../_images/fdca08c225cc3a0690dfc703ad1825fe04e50054a4631e252d462825737220ec.png" />
 </div>
 </div>
 </section>
