@@ -122,7 +122,7 @@ mod tests {
     use geo::coord;
     use routee_compass_core::{
         model::{
-            network::{Edge, EdgeId, Vertex, VertexId},
+            network::{Edge, EdgeId, EdgeListId, Vertex, VertexId},
             state::{StateModel, StateVariable},
         },
         util::geo::InternalCoord,
@@ -227,6 +227,7 @@ mod tests {
             coordinate: InternalCoord(coord! {x: 0.0f32, y: 0.0f32}),
         };
         let edge = Edge {
+            edge_list_id: EdgeListId(0),
             edge_id: EdgeId(0),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(vertex_id),

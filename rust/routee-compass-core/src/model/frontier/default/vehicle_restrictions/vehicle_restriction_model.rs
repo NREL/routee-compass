@@ -72,7 +72,7 @@ mod test {
     use uom::{si::f64::Length, ConstZero};
 
     fn mock_edge() -> Edge {
-        Edge::new(0, 0, 0, Length::ZERO)
+        Edge::new(0, 0, 0, 0, Length::ZERO)
     }
 
     #[test]

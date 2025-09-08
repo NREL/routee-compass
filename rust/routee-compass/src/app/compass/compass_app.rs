@@ -1,11 +1,11 @@
-use super::compass_app_configuration::CompassAppConfiguration;
-use super::response::response_output_policy::ResponseOutputPolicy;
+use super::compass_app_system::CompassAppSystemParameters;
 use super::response::response_sink::ResponseSink;
 use super::{compass_app_ops as ops, CompassBuilderInventory};
+use crate::app::compass::compass_app_config::CompassAppConfig;
 use crate::app::compass::response::response_persistence_policy::ResponsePersistencePolicy;
 use crate::{
     app::{
-        compass::{compass_input_field::CompassInputField, CompassAppError},
+        compass::CompassAppError,
         search::{SearchApp, SearchAppResult},
     },
     plugin::{
@@ -13,22 +13,21 @@ use crate::{
         output::{output_plugin_ops as out_ops, OutputPlugin},
     },
 };
-use chrono::{Duration, Local};
-use config::Config;
+use chrono::Local;
 use itertools::Itertools;
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
-use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
-use routee_compass_core::config::{CompassConfigurationField, ConfigJsonExtensions};
-use routee_compass_core::model::cost::cost_model_builder::CostModelBuilder;
-use routee_compass_core::model::map::{MapModel, MapModelConfig};
+use routee_compass_core::algorithm::search::SearchInstance;
+use routee_compass_core::config::ConfigJsonExtensions;
+use routee_compass_core::model::cost::cost_model_service::CostModelService;
+use routee_compass_core::model::map::MapModel;
 use routee_compass_core::model::network::Graph;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::model::termination::TerminationModelBuilder;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
 use std::{
-    path::{Path, PathBuf},
+    path::Path,
     sync::{Arc, Mutex},
 };
 
@@ -44,34 +43,7 @@ pub struct CompassApp {
     pub search_app: Arc<SearchApp>,
     pub input_plugins: Vec<Arc<dyn InputPlugin>>,
     pub output_plugins: Vec<Arc<dyn OutputPlugin>>,
-    pub configuration: CompassAppConfiguration,
-}
-
-impl CompassApp {
-    /// Builds a CompassApp from a configuration TOML string, using a custom CompassBuilderInventory.
-    ///
-    /// # Arguments
-    ///
-    /// * `config_string` - a string containing the configuration in TOML format
-    /// * `original_file_path` - the original file path of the TOML
-    /// * `builder` - a custom CompassBuilderInventory instance
-    ///
-    /// # Returns
-    ///
-    /// * an instance of [`CompassApp`], or an error if load failed.
-    pub fn try_from_config_toml_string(
-        config_string: String,
-        original_file_path: String,
-        builder: &CompassBuilderInventory,
-    ) -> Result<Self, CompassAppError> {
-        let config = ops::read_config_from_string(
-            config_string.clone(),
-            config::FileFormat::Toml,
-            original_file_path,
-        )?;
-        let app = CompassApp::new(&config, builder)?;
-        Ok(app)
-    }
+    pub system_parameters: CompassAppSystemParameters,
 }
 
 impl TryFrom<&Path> for CompassApp {
@@ -90,7 +62,7 @@ impl TryFrom<&Path> for CompassApp {
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
     fn try_from(conf_file: &Path) -> Result<Self, Self::Error> {
-        let config = ops::read_config_from_file(conf_file)?;
+        let config = CompassAppConfig::try_from(conf_file)?;
         let builder = CompassBuilderInventory::new()?;
         let compass_app = CompassApp::new(&config, &builder)?;
         Ok(compass_app)
@@ -109,156 +81,74 @@ impl CompassApp {
     ///
     /// # Arguments
     ///
-    /// * `pair` - a tuple containing a config object (such as a parsed TOML file) and
-    ///   a [`super::config::compass_app_builder::CompassBuilderInventory`] instance
+    /// * `config` - deserialized TOML file contents
+    /// * `builder` - inventory of Compass components that can be built from the config object
     ///
     /// # Returns
     ///
     /// * an instance of [`CompassApp`], or an error if load failed.
     pub fn new(
-        config: &Config,
+        config: &CompassAppConfig,
         builder: &CompassBuilderInventory,
     ) -> Result<Self, CompassAppError> {
-        // Get the root config path so we can resolve paths relative
-        // to where the config file is located.
-        let root_config_path =
-            config.get::<PathBuf>(CompassInputField::ConfigInputFile.to_str())?;
-
-        let config_json = config
-            .clone()
-            .try_deserialize::<serde_json::Value>()?
-            .normalize_file_paths(&"", &root_config_path)?;
-
-        let search_algorithm: SearchAlgorithm =
-            config_json.get_config_serde(&CompassConfigurationField::Algorithm, &"TOML")?;
-
-        let state_model = match config_json.get(CompassConfigurationField::State.to_string()) {
-            Some(state_config) => Arc::new(StateModel::try_from(state_config)?),
+        let state_model = match &config.state {
+            Some(state_config) => Arc::new(StateModel::new(state_config.clone())),
             None => Arc::new(StateModel::empty()),
         };
+        let cost_model_service = CostModelService::from(&config.cost);
+        let label_model_service = builder.build_label_model_service(&config.label)?;
+        let termination_model = TerminationModelBuilder::build(&config.termination, None)?;
 
-        // build traversal model
-        let traversal_start = Local::now();
-        let traversal_params =
-            config_json.get_config_section(CompassConfigurationField::Traversal, &"TOML")?;
-        let traversal_model_service = builder.build_traversal_model_service(&traversal_params)?;
-        let traversal_duration = (Local::now() - traversal_start)
-            .to_std()
-            .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
-        log::info!(
-            "finished reading traversal model with duration {}",
-            traversal_duration.hhmmss()
-        );
-
-        // build access model
-        let access_start = Local::now();
-        let access_params =
-            config_json.get_config_section(CompassConfigurationField::Access, &"TOML")?;
-        let access_model_service = builder.build_access_model_service(&access_params)?;
-        let access_duration = (Local::now() - access_start)
-            .to_std()
-            .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
-        log::info!(
-            "finished reading access model with duration {}",
-            access_duration.hhmmss()
-        );
-
-        // build utility model
-        let cost_params =
-            config_json.get_config_section(CompassConfigurationField::Cost, &"TOML")?;
-        let cost_model_service = CostModelBuilder {}.build(&cost_params)?;
-
-        // build frontier model
-        let frontier_start = Local::now();
-        let frontier_params =
-            config_json.get_config_section(CompassConfigurationField::Frontier, &"TOML")?;
-
-        let frontier_model_service = builder.build_frontier_model_service(&frontier_params)?;
-
-        let frontier_duration = (Local::now() - frontier_start)
-            .to_std()
-            .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
-        log::info!(
-            "finished reading frontier model with duration {}",
-            frontier_duration.hhmmss()
-        );
-
-        let label_model_json =
-            config_json.get_config_section(CompassConfigurationField::Label, &"TOML")?;
-        let label_model_service = builder.build_label_model_service(&label_model_json)?;
-
-        // build termination model
-        let termination_model_json =
-            config_json.get_config_section(CompassConfigurationField::Termination, &"TOML")?;
-        let termination_model = TerminationModelBuilder::build(&termination_model_json, None)?;
+        // build selected components for search behaviors
+        let traversal_model_services = with_timing("traversal models", || {
+            config.build_traversal_model_services(builder)
+        })?;
+        let access_model_services = with_timing("access models", || {
+            config.build_access_model_services(builder)
+        })?;
+        let frontier_model_services = with_timing("frontier models", || {
+            config.build_frontier_model_services(builder)
+        })?;
 
         // build graph
-        let graph_start = Local::now();
-        let graph_params =
-            config_json.get_config_section(CompassConfigurationField::Graph, &"TOML")?;
-        let graph = Arc::new(Graph::try_from(&graph_params)?);
-        let graph_duration = (Local::now() - graph_start)
-            .to_std()
-            .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
-        log::info!(
-            "finished reading graph with duration {}",
-            graph_duration.hhmmss()
-        );
+        let graph = with_timing("graph", || Ok(Arc::new(Graph::try_from(&config.graph)?)))?;
 
-        let map_start = Local::now();
-        let map_model_json = config_json.get(CompassConfigurationField::MapModel.to_str());
-        let map_model_config =
-            MapModelConfig::try_from(map_model_json).map_err(CompassAppError::BuildFailure)?;
-        let map_model = Arc::new(MapModel::new(graph.clone(), map_model_config).map_err(|e| {
-            CompassAppError::BuildFailure(format!("unable to load MapModel from config: {e}"))
-        })?);
-        let map_dur = to_std(Local::now() - map_start)?;
-        log::info!(
-            "finished loading map model with duration {}",
-            map_dur.hhmmss()
-        );
+        let map_model = with_timing("map model", || {
+            let mm = MapModel::new(graph.clone(), &config.mapping).map_err(|e| {
+                CompassAppError::BuildFailure(format!("unable to load MapModel from config: {e}"))
+            })?;
+            Ok(Arc::new(mm))
+        })?;
 
         // build search app
         let search_app = Arc::new(SearchApp::new(
-            search_algorithm,
+            config.algorithm.clone(),
             graph,
             map_model,
             state_model,
-            traversal_model_service,
-            access_model_service,
+            traversal_model_services,
+            access_model_services,
+            frontier_model_services,
             cost_model_service,
-            frontier_model_service,
             termination_model,
             label_model_service,
+            config.system.default_edge_list,
         ));
 
-        // build plugins
-        let plugins_start = Local::now();
-        let plugins_config =
-            config_json.get_config_section(CompassConfigurationField::Plugins, &"TOML")?;
+        let input_plugins = with_timing("input plugins", || {
+            Ok(builder.build_input_plugins(&config.plugin.input_plugins)?)
+        })?;
+        let output_plugins = with_timing("output plugins", || {
+            Ok(builder.build_output_plugins(&config.plugin.output_plugins)?)
+        })?;
 
-        let input_plugins = builder.build_input_plugins(&plugins_config)?;
-        let output_plugins = builder.build_output_plugins(&plugins_config)?;
-
-        let plugins_duration = to_std(Local::now() - plugins_start)?;
-        log::info!(
-            "finished loading plugins with duration {}",
-            plugins_duration.hhmmss()
-        );
-
-        let configuration = CompassAppConfiguration::try_from(config)?;
-
-        log::info!(
-            "additional parameters - parallelism={}",
-            configuration.parallelism,
-        );
-
-        Ok(CompassApp {
+        let app = CompassApp {
             search_app,
             input_plugins,
             output_plugins,
-            configuration,
-        })
+            system_parameters: config.system.clone(),
+        };
+        Ok(app)
     }
 
     /// runs a set of queries via this instance of CompassApp. this
@@ -284,25 +174,28 @@ impl CompassApp {
         queries: &mut Vec<Value>,
         config: Option<&Value>,
     ) -> Result<Vec<Value>, CompassAppError> {
+        let override_config_opt: Option<CompassAppSystemParameters> = match config {
+            Some(c) => serde_json::from_value(c.clone())?,
+            None => None,
+        };
         // allow the user to overwrite global configurations for this run
-        let parallelism: usize = get_optional_run_config(
-            &CompassConfigurationField::Parallelism.to_str(),
-            &"run configuration",
-            config,
-        )?
-        .unwrap_or(self.configuration.parallelism);
-        let response_persistence_policy: ResponsePersistencePolicy = get_optional_run_config(
-            &CompassConfigurationField::ResponsePersistencePolicy.to_str(),
-            &"run configuration",
-            config,
-        )?
-        .unwrap_or(self.configuration.response_persistence_policy);
-        let response_output_policy: ResponseOutputPolicy = get_optional_run_config(
-            &CompassConfigurationField::ResponseOutputPolicy.to_str(),
-            &"run configuration",
-            config,
-        )?
-        .unwrap_or_else(|| self.configuration.response_output_policy.clone());
+        let parallelism = override_config_opt
+            .as_ref()
+            .and_then(|c| c.parallelism)
+            .or(self.system_parameters.parallelism)
+            .unwrap_or(1);
+
+        let response_persistence_policy = override_config_opt
+            .as_ref()
+            .and_then(|c| c.response_persistence_policy)
+            .or(self.system_parameters.response_persistence_policy)
+            .unwrap_or_default();
+
+        let response_output_policy = override_config_opt
+            .as_ref()
+            .and_then(|c| c.response_output_policy.clone())
+            .or(self.system_parameters.response_output_policy.clone())
+            .unwrap_or_default();
         let response_writer = response_output_policy.build()?;
 
         // INPUT PROCESSING
@@ -319,7 +212,7 @@ impl CompassApp {
 
         log::info!(
             "creating {} parallel batches across {} threads to run queries",
-            self.configuration.parallelism,
+            parallelism,
             current_num_threads(),
         );
         let proc_batch_sizes = load_balanced_inputs
@@ -484,15 +377,6 @@ pub fn run_single_query(
     Ok(output)
 }
 
-/// helper for handling conversion from Chrono Duration to std Duration
-fn to_std(dur: Duration) -> Result<std::time::Duration, CompassAppError> {
-    dur.to_std().map_err(|e| {
-        CompassAppError::InternalError(format!(
-            "unexpected internal error mapping chrono duration to std duration: {e}"
-        ))
-    })
-}
-
 /// runs a query batch which has been sorted into parallel chunks
 /// and retains the responses from each search in memory.
 pub fn run_batch_with_responses(
@@ -580,6 +464,23 @@ pub fn apply_output_processing(
     initial
 }
 
+/// helper function to wrap some lambda with runtime logging
+fn with_timing<T>(
+    name: &str,
+    thunk: impl Fn() -> Result<T, CompassAppError>,
+) -> Result<T, CompassAppError> {
+    let start = Local::now();
+    let result = thunk();
+    let duration = (Local::now() - start)
+        .to_std()
+        .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
+    log::info!(
+        "finished reading {name} with duration {}",
+        duration.hhmmss()
+    );
+    result
+}
+
 #[cfg(test)]
 mod tests {
     use super::CompassApp;
@@ -616,6 +517,10 @@ mod tests {
             .join("speeds_test")
             .join("speeds_debug.toml");
 
+        println!(
+            "attempting to load '{}'",
+            conf_file_test.to_str().unwrap_or_default()
+        );
         let app = match CompassApp::try_from(conf_file_test.as_path()) {
             Ok(a) => Ok(a),
             Err(CompassAppError::CompassConfigurationError(
@@ -623,6 +528,10 @@ mod tests {
             )) => {
                 // could just be the run location, depending on the environment/runner/IDE
                 // try the alternative configuration that runs from the root directory
+                println!(
+                    "attempting to load '{}'",
+                    conf_file_debug.to_str().unwrap_or_default()
+                );
                 CompassApp::try_from(conf_file_debug.as_path())
             }
             Err(other) => panic!("{}", other),

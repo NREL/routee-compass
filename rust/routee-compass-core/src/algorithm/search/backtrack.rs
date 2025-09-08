@@ -3,7 +3,7 @@ use super::{
 };
 use crate::model::{
     label::Label,
-    network::{edge_id::EdgeId, graph::Graph, vertex_id::VertexId},
+    network::{EdgeId, EdgeListId, Graph, VertexId},
 };
 use std::{
     collections::{HashMap, HashSet},
@@ -73,12 +73,14 @@ pub fn label_oriented_route(
 
 /// edge-oriented backtrack method using labels
 pub fn label_edge_oriented_route(
-    source_id: EdgeId,
-    target_id: EdgeId,
+    source: (EdgeListId, EdgeId),
+    target: (EdgeListId, EdgeId),
     solution: &HashMap<Label, SearchTreeBranch>,
     graph: Arc<Graph>,
 ) -> Result<Vec<EdgeTraversal>, SearchError> {
-    let o_v = graph.dst_vertex_id(&source_id)?;
-    let d_v = graph.src_vertex_id(&target_id)?;
+    let (s_el, s_e) = source;
+    let (d_el, d_e) = target;
+    let o_v = graph.dst_vertex_id(&s_el, &s_e)?;
+    let d_v = graph.src_vertex_id(&d_el, &d_e)?;
     label_oriented_route(o_v, d_v, solution)
 }

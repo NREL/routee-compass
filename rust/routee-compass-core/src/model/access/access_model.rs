@@ -21,7 +21,7 @@ pub trait AccessModel: Send + Sync {
     ///
     /// # Arguments
     ///
-    /// * `traversal` - the vertex/edge traversal
+    /// * `traversal` - the vertex/edge traversal, which may span across multiple EdgeLists
     /// * `state` - state of the search at the beginning of the dst edge
     /// * `state_variable_indices` - the names and indices of state variables
     ///

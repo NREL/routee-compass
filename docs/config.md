@@ -12,8 +12,13 @@ parallelism = 2
 
 # the parameters for the underlying road network graph
 [graph]
-# a file containing all the graph edges and their adjacencies
-edge_list_input_file = "edges-compass.csv.gz"
+# a file containing all the graph edges and their adjacencies.
+edge_list.input_file = "edges-compass.csv.gz"
+# # more than one edge list can be provided:
+# edge_list = [
+#   { input_file = "edges-compass.csv.gz" },
+#   { input_file = "edges-transit.csv.gz" }
+# ]
 # a file containing all the graph verticies
 vertex_list_input_file = "vertices-compass.csv.gz"
 # if verbose is true, you'll see more information when loading the graph
@@ -22,8 +27,8 @@ verbose = true
 [mapping]
 # vertex or edge-oriented mapping
 type = "edge"
-# geometries used to build linestrings
-geometry_input_file = "edges-geometries-enumerated.txt.gz"
+# geometries used to build linestrings. should be as many entries as there are graph.edge_list entries.
+geometry = { input_file = "edges-geometries-enumerated.txt.gz" }
 # mapping threshold
 tolerance.distance = 15.0
 # mapping threshold distance unit
@@ -33,40 +38,40 @@ queries_without_destinations = true
 # whether we match queries via "point", "vertex_id", or "edge_id" (or arrays of combinations)
 matching_type = "point"
 
-[traversal]
+[search.traversal]
 # the traversal section can either be a single model configuration, or, if "combined"
-# is specified, it can be a collection of models listed at [[traversal.models]]
+# is specified, it can be a collection of models listed at [[search.traversal.models]]
 type = "combined"
-[[traversal.models]]
+[[search.traversal.models]]
 # model distances in miles
 type = "distance"
 distance_unit = "miles"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "speed"
 # the file that has speeds for each edge in the graph
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 # the units of the values in the speed table
 speed_unit = "kph"
 
-[[traversal.models]]
+[[search.traversal.models]]
 # model time in minutes using the above distances and speeds
 type = "time"
 time_unit = "minutes"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "grade"
 # the file that has grades for each edge in the graph
 grade_table_input_file = "edges-grade-enumerated.txt.gz"
 # the units of the grade table
 grade_unit = "decimal"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "energy"
 
 # here, we specify which vehicles to make available at query time
-# if you wanted to add more models, you would make a new [[traversal.models.vehicles]] section.
-[[traversal.models.vehicles]]
+# if you wanted to add more models, you would make a new [[search.traversal.models.vehicles]] section.
+[[search.traversal.models.vehicles]]
 # the name of the model that can be passed in from a query as "model_name"
 name = "2012_Ford_Focus"
 # the type of the vehicle, currently either:
@@ -89,7 +94,7 @@ real_world_energy_adjustment = 1.166
 
 # what underlying machine learn framework to use [smartcore | interpolate ]
 # in this case we use a model that interpolates the underlying model type over a regular grid
-[traversal.models.vehicles.model_type.interpolate]
+[search.traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100
@@ -133,13 +138,13 @@ trip_energy_electric = 1
 ## Access costs
 
 # A turn delay model that assigns a time cost to each type of turn
-[access]
+[search.access]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
-[access.turn_delay_model]
+[search.access.turn_delay_model]
 type = "tabular_discrete"
 time_unit = "seconds"
-[access.turn_delay_model.table]
+[search.access.turn_delay_model.table]
 no_turn = 0.0
 slight_right = 0.5
 right = 1.0
@@ -180,7 +185,7 @@ type = "vertex"
 # # when type = "vertex", this can be omitted, and the system will
 # # instead use the graph vertex coordinates to build map geometries
 # # which produces far simpler route sequences as a result.
-# geometry_input_file = "edges-geometries-enumerated.txt.gz"
+# geometry = { input_file = "edges-geometries-enumerated.txt.gz" }
 
 # # optional query distance tolerance for map matching.
 # tolerance.distance = 15.0
@@ -206,7 +211,8 @@ As opposed to vertex-oriented mapping, the edge-oriented will additionally apply
 ```toml
 [mapping]
 type = "edge"
-geometry_input_file = "edges-geometries-enumerated.txt.gz"
+# this can b
+geometry = { input_file = "edges-geometries-enumerated.txt.gz" }
 
 # # optional query distance tolerance for map matching.
 # tolerance.distance = 15.0
@@ -234,7 +240,7 @@ Here are the default traversal models that come with the `CompassApp`:
 The distance traversal model is a very simple model that just uses distance for computing a route, producing the route that has the shortest distance.
 
 ```toml
-[[traversal.models]]
+[[search.traversal.models]]
 type = "distance"
 distance_unit = "miles"
 ```
@@ -244,7 +250,7 @@ distance_unit = "miles"
 The speed table traversal model uses a speed lookup table to assign edge speeds.
 
 ```toml
-[[traversal.models]]
+[[search.traversal.models]]
 type = "speed"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kph"
@@ -255,7 +261,7 @@ speed_unit = "kph"
 This simple model computes traversal time based on upstream distance and speed models.
 
 ```toml
-[[traversal.models]]
+[[search.traversal.models]]
 type = "time"
 time_unit = "minutes"
 ```
@@ -265,7 +271,7 @@ time_unit = "minutes"
 Uses a lookup table to assign grade values.
 
 ```toml
-[[traversal.models]]
+[[search.traversal.models]]
 type = "grade"
 grade_input_file = "edges-grade-enumerated.txt.gz"
 grade_unit = "decimal"
@@ -276,7 +282,7 @@ grade_unit = "decimal"
 Assigns elevation gain and loss calculated from the grade value and distance.
 
 ```toml
-[[traversal.models]]
+[[search.traversal.models]]
 type = "elevation"
 distance_unit = "feet"
 ```
@@ -286,12 +292,12 @@ distance_unit = "feet"
 The energy model computes energy (with a routee-powertrain vehicle model) and speed over an edge.
 
 ```toml
-[[traversal.models]]
+[[search.traversal.models]]
 type = "energy"
 
 # here, we specify which vehicles to make available at query time
 # if you wanted to add more models, you would make a new [[traversal.models.vehicles]] section.
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 # the name of the model that can be passed in from a query as "model_name"
 name = "2012_Ford_Focus"
 # the type of the vehicle, currently either:
@@ -314,7 +320,7 @@ real_world_energy_adjustment = 1.166
 
 # what underlying machine learn framework to use [smartcore | interpolate ]
 # in this case we use a model that interpolates the underlying model type over a regular grid
-[traversal.models.vehicles.model_type.interpolate]
+[search.traversal.models.vehicles.model_type.interpolate]
 underlying_model_type = "smartcore"
 speed_lower_bound = 0
 speed_upper_bound = 100

@@ -16,45 +16,48 @@ pub struct MapModel {
 }
 
 impl MapModel {
-    pub fn new(graph: Arc<Graph>, config: MapModelConfig) -> Result<MapModel, MapError> {
+    pub fn new(graph: Arc<Graph>, config: &MapModelConfig) -> Result<MapModel, MapError> {
         let matching_type = config.get_matching_type()?;
         match config {
             MapModelConfig::VertexMapModelConfig {
                 tolerance,
-                geometry_input_file,
+                geometry,
                 queries_without_destinations,
                 matching_type: _,
             } => {
                 let spatial_index =
-                    SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance);
-                let geometry_model = match geometry_input_file {
+                    SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance.clone());
+                let geometry_model = match geometry {
                     None => GeometryModel::new_from_vertices(graph),
-                    Some(file) => GeometryModel::new_from_edges(&file, graph.clone()),
+                    Some(files) => GeometryModel::new_from_edges(&files.to_vec(), graph.clone()),
                 }?;
 
                 let map_model = MapModel {
                     matching_type,
                     spatial_index,
                     geometry_model,
-                    queries_without_destinations,
+                    queries_without_destinations: *queries_without_destinations,
                 };
                 Ok(map_model)
             }
             MapModelConfig::EdgeMapModelConfig {
                 tolerance,
-                geometry_input_file,
+                geometry,
                 queries_without_destinations,
                 matching_type: _,
             } => {
                 let geometry_model =
-                    GeometryModel::new_from_edges(&geometry_input_file, graph.clone())?;
-                let spatial_index =
-                    SpatialIndex::new_edge_oriented(graph.clone(), &geometry_model, tolerance);
+                    GeometryModel::new_from_edges(&geometry.to_vec(), graph.clone())?;
+                let spatial_index = SpatialIndex::new_edge_oriented(
+                    graph.clone(),
+                    &geometry_model,
+                    tolerance.clone(),
+                );
                 let map_model = MapModel {
                     matching_type,
                     spatial_index,
                     geometry_model,
-                    queries_without_destinations,
+                    queries_without_destinations: *queries_without_destinations,
                 };
                 Ok(map_model)
             }

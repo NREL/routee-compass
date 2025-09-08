@@ -1,6 +1,6 @@
 use routee_compass::app::{
     bindings::CompassAppBindings,
-    compass::{compass_app::CompassApp, CompassAppError, CompassBuilderInventory},
+    compass::{CompassApp, CompassAppConfig, CompassAppError, CompassBuilderInventory},
 };
 use routee_compass_macros::pybindings;
 
@@ -18,8 +18,12 @@ impl CompassAppBindings for CompassAppWrapper {
         Self: Sized,
     {
         let builder = CompassBuilderInventory::new()?;
-        let app =
-            CompassApp::try_from_config_toml_string(config_string, original_file_path, &builder)?;
+        let config = CompassAppConfig::from_str(
+            &config_string,
+            &original_file_path,
+            config::FileFormat::Toml,
+        )?;
+        let app = CompassApp::new(&config, &builder)?;
         Ok(CompassAppWrapper { app })
     }
     fn app(&self) -> &CompassApp {

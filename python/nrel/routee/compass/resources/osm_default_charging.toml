@@ -4,13 +4,12 @@ parallelism = 2
 type = "dijkstra"
 
 [graph]
-edge_list_input_file = "edges-compass.csv.gz"
 vertex_list_input_file = "vertices-compass.csv.gz"
-verbose = true
+edge_list = { input_file = "edges-compass.csv.gz" }
 
 [mapping]
 type = "edge"
-geometry_input_file = "edges-geometries-enumerated.txt.gz"
+geometry.input_file = "edges-geometries-enumerated.txt.gz"
 tolerance.distance = 15.0
 tolerance.unit = "meters"
 queries_without_destinations = false
@@ -31,10 +30,6 @@ trip_distance = 1
 trip_time = 1
 trip_energy = 1
 
-# Used for restricting travel after the battery is depleted.
-[frontier]
-type = "battery_frontier"
-
 [label]
 type = "soc"
 [label.soc_label_config]
@@ -43,13 +38,18 @@ start = 0
 end = 100
 step = 1
 
-[access]
+# Used for restricting travel after the battery is depleted.
+[search]
+[search.frontier]
+type = "battery_frontier"
+
+[search.access]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
-[access.turn_delay_model]
+[search.access.turn_delay_model]
 type = "tabular_discrete"
 time_unit = "seconds"
-[access.turn_delay_model.table]
+[search.access.turn_delay_model.table]
 no_turn = 0.0
 slight_right = 0.5
 right = 1.0
@@ -59,38 +59,38 @@ left = 2.5
 sharp_left = 3.5
 u_turn = 9.5
 
-[traversal]
+[search.traversal]
 type = "combined"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "distance"
 distance_unit = "miles"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "elevation"
 distance_unit = "feet"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "speed"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kph"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "time"
 time_unit = "minutes"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "simple_charging"
 charging_station_input_file = "charging-stations.csv.gz"
 vertex_input_file = "vertices-compass.csv.gz"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "grade"
 grade_unit = "decimal"
 grade_input_file = "edges-grade-enumerated.txt.gz"
-[[traversal.models]]
+[[search.traversal.models]]
 type = "energy"
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_TOYOTA_Camry_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_TOYOTA_Camry_4cyl_2WD.bin"
@@ -102,7 +102,7 @@ input_features = [
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -111,7 +111,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2017_CHEVROLET_Bolt"
 type = "bev"
 model_input_file = "models/2017_CHEVROLET_Bolt.bin"
@@ -126,7 +126,7 @@ input_features = [
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -135,13 +135,13 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 type = "phev"
 name = "2016_CHEVROLET_Volt"
 battery_capacity = 12
 battery_capacity_unit = "kilowatt_hours"
 
-[traversal.models.vehicles.charge_depleting]
+[search.traversal.models.vehicles.charge_depleting]
 name = "2016_CHEVROLET_Volt_Charge_Depleting"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Depleting.bin"
 distance_unit = "miles"
@@ -152,7 +152,7 @@ input_features = [
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 
-[traversal.models.vehicles.charge_depleting.model_type]
+[search.traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -161,7 +161,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[traversal.models.vehicles.charge_sustaining]
+[search.traversal.models.vehicles.charge_sustaining]
 name = "2016_CHEVROLET_Volt_Charge_Sustaining"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Sustaining.bin"
 distance_unit = "miles"
@@ -172,7 +172,7 @@ input_features = [
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
 
-[traversal.models.vehicles.charge_sustaining.model_type]
+[search.traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100

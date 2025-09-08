@@ -1,15 +1,17 @@
 use super::{search_app_ops, search_app_result::SearchAppResult};
-use crate::{
-    app::compass::CompassAppError,
-    plugin::{input::InputJsonExtensions, PluginError},
-};
+use crate::{app::compass::CompassAppError, plugin::PluginError};
 use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance},
     model::{
-        access::AccessModelService, cost::cost_model_service::CostModelService,
-        frontier::FrontierModelService, label::label_model_service::LabelModelService,
-        map::MapModel, network::graph::Graph, state::StateModel, termination::TerminationModel,
+        access::AccessModelService,
+        cost::cost_model_service::CostModelService,
+        frontier::FrontierModelService,
+        label::label_model_service::LabelModelService,
+        map::{MapJsonExtensions, MapModel},
+        network::Graph,
+        state::StateModel,
+        termination::TerminationModel,
         traversal::TraversalModelService,
     },
 };
@@ -22,12 +24,13 @@ pub struct SearchApp {
     pub graph: Arc<Graph>,
     pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
-    pub traversal_model_service: Arc<dyn TraversalModelService>,
-    pub access_model_service: Arc<dyn AccessModelService>,
+    pub traversal_model_services: Vec<Arc<dyn TraversalModelService>>,
+    pub access_model_services: Vec<Arc<dyn AccessModelService>>,
+    pub frontier_model_services: Vec<Arc<dyn FrontierModelService>>,
     pub cost_model_service: Arc<CostModelService>,
-    pub frontier_model_service: Arc<dyn FrontierModelService>,
     pub termination_model: Arc<TerminationModel>,
     pub label_model_service: Arc<dyn LabelModelService>,
+    pub default_edge_list: Option<usize>,
 }
 
 impl SearchApp {
@@ -39,24 +42,26 @@ impl SearchApp {
         graph: Arc<Graph>,
         map_model: Arc<MapModel>,
         state_model: Arc<StateModel>,
-        traversal_model_service: Arc<dyn TraversalModelService>,
-        access_model_service: Arc<dyn AccessModelService>,
+        traversal_model_services: Vec<Arc<dyn TraversalModelService>>,
+        access_model_services: Vec<Arc<dyn AccessModelService>>,
+        frontier_model_services: Vec<Arc<dyn FrontierModelService>>,
         cost_model_service: CostModelService,
-        frontier_model_service: Arc<dyn FrontierModelService>,
         termination_model: TerminationModel,
         label_model_service: Arc<dyn LabelModelService>,
+        default_edge_list: Option<usize>,
     ) -> Self {
         SearchApp {
             search_algorithm,
             graph,
             map_model,
             state_model,
-            traversal_model_service,
-            access_model_service,
+            traversal_model_services,
+            access_model_services,
             cost_model_service: Arc::new(cost_model_service),
-            frontier_model_service,
+            frontier_model_services,
             termination_model: Arc::new(termination_model),
             label_model_service,
+            default_edge_list,
         }
     }
 
@@ -83,20 +88,20 @@ impl SearchApp {
         // depending on the presence of an origin edge or origin vertex, we run each type of query
         let results = if query.get_origin_edge().is_ok() {
             let o = query.get_origin_edge().map_err(|e| {
-                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+                CompassAppError::PluginError(PluginError::BuildFailed(format!("attempting to run search app with query that has an invalid origin_edge value: {e}")))
             })?;
             let d_opt = query.get_destination_edge().map_err(|e| {
-                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+                CompassAppError::PluginError(PluginError::BuildFailed(format!("attempting to run search app with query that has an invalid destination_edge value: {e}")))
             })?;
             self.search_algorithm
                 .run_edge_oriented(o, d_opt, query, &Direction::Forward, &si)
                 .map_err(CompassAppError::SearchFailure)
         } else if query.get_origin_vertex().is_ok() {
             let o = query.get_origin_vertex().map_err(|e| {
-                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+                CompassAppError::PluginError(PluginError::BuildFailed(format!("attempting to run search app with query that has an invalid origin_vertex value: {e}")))
             })?;
             let d = query.get_destination_vertex().map_err(|e| {
-                CompassAppError::PluginError(PluginError::InputPluginFailed { source: e })
+                CompassAppError::PluginError(PluginError::BuildFailed(format!("attempting to run search app with query that has an invalid origin_vertex value: {e}")))
             })?;
 
             self.search_algorithm
@@ -140,11 +145,19 @@ impl SearchApp {
         &self,
         query: &serde_json::Value,
     ) -> Result<SearchInstance, SearchError> {
-        let traversal_model = self.traversal_model_service.build(query)?;
-        let access_model = self.access_model_service.build(query)?;
+        let traversal_models = self
+            .traversal_model_services
+            .iter()
+            .map(|m| m.build(query))
+            .collect::<Result<Vec<_>, _>>()?;
+        let access_models = self
+            .access_model_services
+            .iter()
+            .map(|m| m.build(query))
+            .collect::<Result<Vec<_>, _>>()?;
 
         let output_features =
-            search_app_ops::collect_features(query, traversal_model.clone(), access_model.clone())?;
+            search_app_ops::collect_features(query, &traversal_models, &access_models)?;
         let state_model_instance = self.state_model.register(vec![], output_features)?;
         let state_model = Arc::new(state_model_instance);
 
@@ -152,9 +165,11 @@ impl SearchApp {
             .cost_model_service
             .build(query, state_model.clone())
             .map_err(|e| SearchError::BuildError(e.to_string()))?;
-        let frontier_model = self
-            .frontier_model_service
-            .build(query, state_model.clone())?;
+        let frontier_models = self
+            .frontier_model_services
+            .iter()
+            .map(|m| m.build(query, state_model.clone()))
+            .collect::<Result<Vec<_>, _>>()?;
 
         let label_model = self.label_model_service.build(query, state_model.clone())?;
 
@@ -162,12 +177,13 @@ impl SearchApp {
             graph: self.graph.clone(),
             map_model: self.map_model.clone(),
             state_model,
-            traversal_model,
-            access_model,
+            traversal_models,
+            access_models,
             cost_model: Arc::new(cost_model),
-            frontier_model,
+            frontier_models,
             termination_model: self.termination_model.clone(),
             label_model,
+            default_edge_list: self.default_edge_list,
         };
 
         Ok(search_assets)

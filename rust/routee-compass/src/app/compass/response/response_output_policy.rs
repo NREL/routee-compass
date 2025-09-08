@@ -10,9 +10,10 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug, Default)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum ResponseOutputPolicy {
+    #[default]
     None,
     File {
         filename: String,

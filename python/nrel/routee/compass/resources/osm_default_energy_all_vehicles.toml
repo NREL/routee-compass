@@ -1,13 +1,12 @@
 parallelism = 2
 
 [graph]
-edge_list_input_file = "edges-compass.csv.gz"
 vertex_list_input_file = "vertices-compass.csv.gz"
-verbose = true
+edge_list = { input_file = "edges-compass.csv.gz" }
 
 [mapping]
 type = "edge"
-geometry_input_file = "edges-geometries-enumerated.txt.gz"
+geometry.input_file = "edges-geometries-enumerated.txt.gz"
 tolerance.distance = 15.0
 tolerance.unit = "meters"
 queries_without_destinations = false
@@ -22,12 +21,12 @@ output_plugins = [
     { type = "summary" },
     { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
 ]
-# based on 65.5 cents per mile 2023 IRS mileage rate, $/mile to match traversal distance_unit = "miles"
+# based on 65.5 cents per mile 2023 IRS mileage rate, $/mile to match search.traversal distance_unit = "miles"
 [cost.vehicle_rates.trip_distance]
 type = "factor"
 factor = 0.655
 
-# based on $20/hr approximation of 2023 median hourly wages, $/minute to match traversal time_unit = "minutes"
+# based on $20/hr approximation of 2023 median hourly wages, $/minute to match search.traversal time_unit = "minutes"
 [cost.vehicle_rates.trip_time]
 type = "factor"
 factor = 0.333336
@@ -48,13 +47,13 @@ trip_time = 1
 trip_energy_liquid = 1
 trip_energy_electric = 1
 
-[access]
+[search.access]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
-[access.turn_delay_model]
+[search.access.turn_delay_model]
 type = "tabular_discrete"
 time_unit = "seconds"
-[access.turn_delay_model.table]
+[search.access.turn_delay_model.table]
 no_turn = 0.0
 slight_right = 0.5
 right = 1.0
@@ -65,37 +64,37 @@ sharp_left = 3.5
 u_turn = 9.5
 
 # Used for restricting travel after the battery is depleted.
-[frontier]
+[search.frontier]
 type = "battery_frontier"
 
-[traversal]
+[search.traversal]
 type = "combined"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "distance"
 distance_unit = "miles"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "speed"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kph"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "time"
 time_unit = "minutes"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "grade"
 grade_unit = "decimal"
 grade_input_file = "edges-grade-enumerated.txt.gz"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "elevation"
 distance_unit = "feet"
 
-[[traversal.models]]
+[[search.traversal.models]]
 type = "energy"
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2010_Mazda_3_i-Stop"
 type = "ice"
 model_input_file = "models/2010_Mazda_3_i-Stop.bin"
@@ -106,7 +105,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -115,7 +114,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2012_Ford_Focus"
 type = "ice"
 model_input_file = "models/2012_Ford_Focus.bin"
@@ -126,7 +125,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -135,7 +134,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2012_Ford_Fusion"
 type = "ice"
 model_input_file = "models/2012_Ford_Fusion.bin"
@@ -146,7 +145,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -155,7 +154,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_AUDI_A3_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_AUDI_A3_4cyl_2WD.bin"
@@ -166,7 +165,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -175,7 +174,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_BMW_328d_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_BMW_328d_4cyl_2WD.bin"
@@ -186,7 +185,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -195,7 +194,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_CHEVROLET_Malibu_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_CHEVROLET_Malibu_4cyl_2WD.bin"
@@ -206,7 +205,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -215,7 +214,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_CHEVROLET_Spark_EV"
 type = "bev"
 model_input_file = "models/2016_CHEVROLET_Spark_EV.bin"
@@ -229,7 +228,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -238,7 +237,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_FORD_C-MAX_HEV"
 type = "ice"
 model_input_file = "models/2016_FORD_C-MAX_HEV.bin"
@@ -249,7 +248,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -258,7 +257,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_FORD_Escape_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_FORD_Escape_4cyl_2WD.bin"
@@ -269,7 +268,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -278,7 +277,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_FORD_Explorer_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_FORD_Explorer_4cyl_2WD.bin"
@@ -289,7 +288,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -298,7 +297,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_HYUNDAI_Elantra_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_HYUNDAI_Elantra_4cyl_2WD.bin"
@@ -309,7 +308,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -318,7 +317,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_KIA_Optima_Hybrid"
 type = "ice"
 model_input_file = "models/2016_KIA_Optima_Hybrid.bin"
@@ -329,7 +328,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -338,7 +337,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_Leaf_24_kWh"
 type = "bev"
 model_input_file = "models/2016_Leaf_24_kWh.bin"
@@ -352,7 +351,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -361,7 +360,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_MITSUBISHI_i-MiEV"
 type = "bev"
 model_input_file = "models/2016_MITSUBISHI_i-MiEV.bin"
@@ -375,7 +374,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -384,7 +383,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_Nissan_Leaf_30_kWh"
 type = "bev"
 model_input_file = "models/2016_Nissan_Leaf_30_kWh.bin"
@@ -398,7 +397,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -407,7 +406,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_TESLA_Model_S60_2WD"
 type = "bev"
 model_input_file = "models/2016_TESLA_Model_S60_2WD.bin"
@@ -421,7 +420,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -430,7 +429,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_TOYOTA_Camry_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_TOYOTA_Camry_4cyl_2WD.bin"
@@ -441,7 +440,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -450,7 +449,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_TOYOTA_Corolla_4cyl_2WD"
 type = "ice"
 model_input_file = "models/2016_TOYOTA_Corolla_4cyl_2WD.bin"
@@ -461,7 +460,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -470,7 +469,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_TOYOTA_Highlander_Hybrid"
 type = "ice"
 model_input_file = "models/2016_TOYOTA_Highlander_Hybrid.bin"
@@ -481,7 +480,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -490,7 +489,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2016_Toyota_Prius_Two_FWD"
 type = "ice"
 model_input_file = "models/2016_Toyota_Prius_Two_FWD.bin"
@@ -501,7 +500,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -510,7 +509,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2017_CHEVROLET_Bolt"
 type = "bev"
 model_input_file = "models/2017_CHEVROLET_Bolt.bin"
@@ -524,7 +523,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -533,7 +532,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2017_Maruti_Dzire_VDI"
 type = "ice"
 model_input_file = "models/2017_Maruti_Dzire_VDI.bin"
@@ -544,7 +543,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -553,7 +552,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2017_Toyota_Highlander_3.5_L"
 type = "ice"
 model_input_file = "models/2017_Toyota_Highlander_3.bin"
@@ -564,7 +563,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -573,7 +572,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2020_Chevrolet_Colorado_2WD_Diesel"
 type = "ice"
 model_input_file = "models/2020_Chevrolet_Colorado_2WD_Diesel.bin"
@@ -584,7 +583,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -593,7 +592,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2020_VW_Golf_1.5TSI"
 type = "ice"
 model_input_file = "models/2020_VW_Golf_1.bin"
@@ -604,7 +603,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -613,7 +612,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2020_VW_Golf_2.0TDI"
 type = "ice"
 model_input_file = "models/2020_VW_Golf_2.bin"
@@ -624,7 +623,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -633,7 +632,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2021_Fiat_Panda_Mild_Hybrid"
 type = "ice"
 model_input_file = "models/2021_Fiat_Panda_Mild_Hybrid.bin"
@@ -644,7 +643,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -653,7 +652,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2021_Honda_N-Box_G"
 type = "ice"
 model_input_file = "models/2021_Honda_N-Box_G.bin"
@@ -664,7 +663,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -673,7 +672,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2021_BMW_iX_xDrive40"
 type = "bev"
 model_input_file = "models/2021_BMW_iX_xDrive40.bin"
@@ -687,7 +686,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -696,7 +695,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2021_Cupra_Born"
 type = "bev"
 model_input_file = "models/2021_Cupra_Born.bin"
@@ -710,7 +709,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -719,7 +718,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2021_Peugot_3008"
 type = "ice"
 model_input_file = "models/2021_Peugot_3008.bin"
@@ -730,7 +729,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -739,7 +738,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_Ford_F-150_Lightning_4WD"
 type = "bev"
 model_input_file = "models/2022_Ford_F-150_Lightning_4WD.bin"
@@ -753,7 +752,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -762,7 +761,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_MINI_Cooper_SE_Hardtop_2_door"
 type = "bev"
 model_input_file = "models/2022_MINI_Cooper_SE_Hardtop_2_door.bin"
@@ -776,7 +775,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -785,7 +784,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_Renault_Megane_E-Tech"
 type = "bev"
 model_input_file = "models/2022_Renault_Megane_E-Tech.bin"
@@ -798,7 +797,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -807,7 +806,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_Renault_Zoe_ZE50_R135"
 type = "bev"
 model_input_file = "models/2022_Renault_Zoe_ZE50_R135.bin"
@@ -820,7 +819,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -829,7 +828,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_Toyota_Avanza_E_J_MT"
 type = "bev"
 model_input_file = "models/2022_Toyota_Avanza_E_J_MT.bin"
@@ -842,7 +841,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -851,7 +850,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_Toyota_RAV4_Hybrid_LE"
 type = "ice"
 model_input_file = "models/2022_Toyota_RAV4_Hybrid_LE.bin"
@@ -862,7 +861,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -871,7 +870,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_Tesla_Model_3_RWD"
 type = "bev"
 model_input_file = "models/2022_Tesla_Model_3_RWD.bin"
@@ -884,7 +883,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -893,7 +892,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_Tesla_Model_Y_RWD"
 type = "bev"
 model_input_file = "models/2022_Tesla_Model_Y_RWD.bin"
@@ -906,7 +905,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -915,7 +914,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_Toyota_Yaris_Hybrid_Mid"
 type = "ice"
 model_input_file = "models/2022_Toyota_Yaris_Hybrid_Mid.bin"
@@ -926,7 +925,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -936,7 +935,7 @@ interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2022_Volvo_XC40_Recharge_twin"
 type = "bev"
 model_input_file = "models/2022_Volvo_XC40_Recharge_twin.bin"
@@ -949,7 +948,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -958,7 +957,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2023_Mitsubishi_Pajero_Sport"
 type = "ice"
 model_input_file = "models/2023_Mitsubishi_Pajero_Sport.bin"
@@ -969,7 +968,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -978,7 +977,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2023_Polestar_2_Long_range_Dual_motor"
 type = "bev"
 model_input_file = "models/2023_Polestar_2_Long_range_Dual_motor.bin"
@@ -991,7 +990,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1000,7 +999,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2023_Volvo_C40_Recharge"
 type = "bev"
 model_input_file = "models/2023_Volvo_C40_Recharge.bin"
@@ -1013,7 +1012,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1022,7 +1021,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2024_BYD_Dolphin_Active"
 type = "bev"
 model_input_file = "models/2023_Volvo_C40_Recharge.bin"
@@ -1035,7 +1034,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1044,7 +1043,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2024_VinFast_VF_e34"
 type = "bev"
 model_input_file = "models/2024_VinFast_VF_e34.bin"
@@ -1057,7 +1056,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1066,7 +1065,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2024_Volkswagen_Polo_1.0_MPI"
 type = "ice"
 model_input_file = "models/2024_Volkswagen_Polo_1.bin"
@@ -1077,7 +1076,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1086,7 +1085,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "BYD_ATTO_3"
 type = "bev"
 model_input_file = "models/BYD_ATTO_3.bin"
@@ -1099,7 +1098,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1108,7 +1107,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Maruti_Swift_4cyl_2WD"
 type = "ice"
 model_input_file = "models/Maruti_Swift_4cyl_2WD.bin"
@@ -1119,7 +1118,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1128,7 +1127,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Nissan_Navara"
 type = "ice"
 model_input_file = "models/Nissan_Navara.bin"
@@ -1139,7 +1138,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1148,7 +1147,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Renault_Clio_IV_diesel"
 type = "ice"
 model_input_file = "models/Renault_Clio_IV_diesel.bin"
@@ -1159,7 +1158,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1168,7 +1167,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Renault_Megane_1.5_dCi_Authentique"
 type = "ice"
 model_input_file = "models/Renault_Megane_1.bin"
@@ -1179,7 +1178,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1188,7 +1187,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Toyota_Corolla_Cross_Hybrid"
 type = "ice" # Hybrid, but primarily ICE-driven
 model_input_file = "models/Toyota_Corolla_Cross_Hybrid.bin"
@@ -1199,7 +1198,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1208,7 +1207,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Toyota_Etios_Liva_diesel"
 type = "ice"
 model_input_file = "models/Toyota_Etios_Liva_diesel.bin"
@@ -1219,7 +1218,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1228,7 +1227,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Toyota_Hilux_Double_Cab_4WD"
 type = "ice"
 model_input_file = "models/Toyota_Hilux_Double_Cab_4WD.bin"
@@ -1239,7 +1238,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1248,7 +1247,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "2024_Toyota_Vios_1.5_G"
 type = "ice"
 model_input_file = "models/2024_Toyota_Vios_1.bin"
@@ -1259,7 +1258,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1268,12 +1267,12 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 type = "phev"
 name = "2016_BMW_i3_REx_PHEV"
 battery_capacity = 12
 battery_capacity_unit = "kilowatt_hours"
-[traversal.models.vehicles.charge_depleting]
+[search.traversal.models.vehicles.charge_depleting]
 name = "2016_BMW_i3_REx_PHEV_Charge_Depleting"
 model_input_file = "models/2016_BMW_i3_REx_PHEV_Charge_Depleting.bin"
 distance_unit = "miles"
@@ -1283,7 +1282,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_depleting.model_type]
+[search.traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1291,7 +1290,7 @@ interpolate.feature_bounds.edge_speed.num_bins = 101
 interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
-[traversal.models.vehicles.charge_sustaining]
+[search.traversal.models.vehicles.charge_sustaining]
 name = "2016_BMW_i3_REx_PHEV_Charge_Sustaining"
 model_input_file = "models/2016_BMW_i3_REx_PHEV_Charge_Sustaining.bin"
 distance_unit = "miles"
@@ -1301,7 +1300,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_sustaining.model_type]
+[search.traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1310,12 +1309,12 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 type = "phev"
 name = "2016_CHEVROLET_Volt"
 battery_capacity = 12
 battery_capacity_unit = "kilowatt_hours"
-[traversal.models.vehicles.charge_depleting]
+[search.traversal.models.vehicles.charge_depleting]
 name = "2016_CHEVROLET_Volt_Charge_Depleting"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Depleting.bin"
 distance_unit = "miles"
@@ -1325,7 +1324,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_depleting.model_type]
+[search.traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1333,7 +1332,7 @@ interpolate.feature_bounds.edge_speed.num_bins = 101
 interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
-[traversal.models.vehicles.charge_sustaining]
+[search.traversal.models.vehicles.charge_sustaining]
 name = "2016_CHEVROLET_Volt_Charge_Sustaining"
 model_input_file = "models/2016_CHEVROLET_Volt_Charge_Sustaining.bin"
 distance_unit = "miles"
@@ -1343,7 +1342,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_sustaining.model_type]
+[search.traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1352,12 +1351,12 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 type = "phev"
 name = "2016_FORD_C-MAX_(PHEV)"
 battery_capacity = 7.6
 battery_capacity_unit = "kilowatt_hours"
-[traversal.models.vehicles.charge_depleting]
+[search.traversal.models.vehicles.charge_depleting]
 name = "2016_FORD_C-MAX_(PHEV)_Charge_Depleting"
 model_input_file = "models/2016_FORD_C-MAX_(PHEV)_Charge_Depleting.bin"
 distance_unit = "miles"
@@ -1367,7 +1366,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_depleting.model_type]
+[search.traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1375,7 +1374,7 @@ interpolate.feature_bounds.edge_speed.num_bins = 101
 interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
-[traversal.models.vehicles.charge_sustaining]
+[search.traversal.models.vehicles.charge_sustaining]
 name = "2016_FORD_C-MAX_(PHEV)_Charge_Sustaining"
 model_input_file = "models/2016_FORD_C-MAX_(PHEV)_Charge_Sustaining.bin"
 distance_unit = "miles"
@@ -1385,7 +1384,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_sustaining.model_type]
+[search.traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1394,12 +1393,12 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 type = "phev"
 name = "2016_HYUNDAI_Sonata_PHEV"
 battery_capacity = 9.8
 battery_capacity_unit = "kilowatt_hours"
-[traversal.models.vehicles.charge_depleting]
+[search.traversal.models.vehicles.charge_depleting]
 name = "2016_HYUNDAI_Sonata_PHEV_Charge_Depleting"
 model_input_file = "models/2016_HYUNDAI_Sonata_PHEV_Charge_Depleting.bin"
 distance_unit = "miles"
@@ -1409,7 +1408,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_depleting.model_type]
+[search.traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1417,7 +1416,7 @@ interpolate.feature_bounds.edge_speed.num_bins = 101
 interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
-[traversal.models.vehicles.charge_sustaining]
+[search.traversal.models.vehicles.charge_sustaining]
 name = "2016_HYUNDAI_Sonata_PHEV_Charge_Sustaining"
 model_input_file = "models/2016_HYUNDAI_Sonata_PHEV_Charge_Sustaining.bin"
 distance_unit = "miles"
@@ -1427,7 +1426,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_sustaining.model_type]
+[search.traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1436,12 +1435,12 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 type = "phev"
 name = "2017_Prius_Prime"
 battery_capacity = 8
 battery_capacity_unit = "kilowatt_hours"
-[traversal.models.vehicles.charge_depleting]
+[search.traversal.models.vehicles.charge_depleting]
 name = "2017_Prius_Prime_Charge_Depleting"
 model_input_file = "models/2017_Prius_Prime_Charge_Depleting.bin"
 distance_unit = "miles"
@@ -1451,7 +1450,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_depleting.model_type]
+[search.traversal.models.vehicles.charge_depleting.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1459,7 +1458,7 @@ interpolate.feature_bounds.edge_speed.num_bins = 101
 interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
-[traversal.models.vehicles.charge_sustaining]
+[search.traversal.models.vehicles.charge_sustaining]
 name = "2017_Prius_Prime_Charge_Sustaining"
 model_input_file = "models/2017_Prius_Prime_Charge_Sustaining.bin"
 distance_unit = "miles"
@@ -1469,7 +1468,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.charge_sustaining.model_type]
+[search.traversal.models.vehicles.charge_sustaining.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1479,7 +1478,7 @@ interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Daycab_new_300kW"
 type = "ice"
 model_input_file = "models/Daycab_new_300kW.bin"
@@ -1490,7 +1489,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1499,7 +1498,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Daycab_new_400kW"
 type = "ice"
 model_input_file = "models/Daycab_new_400kW.bin"
@@ -1510,7 +1509,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1519,7 +1518,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Daycab_old_300kW"
 type = "ice"
 model_input_file = "models/Daycab_old_300kW.bin"
@@ -1530,7 +1529,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1539,7 +1538,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Daycab_old_400kW"
 type = "ice"
 model_input_file = "models/Daycab_old_400kW.bin"
@@ -1550,7 +1549,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1559,7 +1558,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Sleeper_new_300kW"
 type = "ice"
 model_input_file = "models/Sleeper_new_300kW.bin"
@@ -1570,7 +1569,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1579,7 +1578,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Sleeper_new_400kW"
 type = "ice"
 model_input_file = "models/Sleeper_new_400kW.bin"
@@ -1590,7 +1589,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1599,7 +1598,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Sleeper_old_300kW"
 type = "ice"
 model_input_file = "models/Sleeper_old_300kW.bin"
@@ -1610,7 +1609,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100
@@ -1619,7 +1618,7 @@ interpolate.feature_bounds.edge_grade.lower_bound = -20
 interpolate.feature_bounds.edge_grade.upper_bound = 20
 interpolate.feature_bounds.edge_grade.num_bins = 41
 
-[[traversal.models.vehicles]]
+[[search.traversal.models.vehicles]]
 name = "Sleeper_old_400kW"
 type = "ice"
 model_input_file = "models/Sleeper_old_400kW.bin"
@@ -1630,7 +1629,7 @@ input_features = [
     { type = "speed", name = "edge_speed", unit = "mph" },
     { type = "ratio", name = "edge_grade", unit = "percent" },
 ]
-[traversal.models.vehicles.model_type]
+[search.traversal.models.vehicles.model_type]
 interpolate.underlying_model_type = "smartcore"
 interpolate.feature_bounds.edge_speed.lower_bound = 0
 interpolate.feature_bounds.edge_speed.upper_bound = 100

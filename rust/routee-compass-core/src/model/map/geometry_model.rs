@@ -2,10 +2,14 @@ use std::sync::Arc;
 
 use super::map_error::MapError;
 use crate::{
-    model::network::{EdgeId, Graph},
+    model::{
+        map::GeometryInput,
+        network::{EdgeId, Graph},
+    },
     util::{fs::read_utils, geo::geo_io_utils},
 };
 use geo::LineString;
+use itertools::Itertools;
 use kdam::{Bar, BarExt};
 
 /// model for link geometries by edge id. can be constructed either
@@ -23,10 +27,26 @@ impl GeometryModel {
 
     /// use a user-provided enumerated textfile input to load LineString geometries
     pub fn new_from_edges(
-        geometry_input_file: &String,
+        geometry_input_files: &[GeometryInput],
         graph: Arc<Graph>,
     ) -> Result<GeometryModel, MapError> {
-        let edges = read_linestrings(geometry_input_file, graph.edges.len())?;
+        let input_iter = geometry_input_files
+            .iter()
+            .zip(graph.edge_lists.iter())
+            .enumerate();
+        let edges = input_iter.map(|(idx, (f, edge_list))| {
+            let edge_list_len = edge_list.n_edges();
+            let linestrings = read_linestrings(&f.input_file, edge_list_len)?;
+             if linestrings.len() != edge_list_len {
+                Err(MapError::BuildError(format!("edge list {idx} geometry file {} should have {edge_list_len} rows, found {}", f.input_file, linestrings.len())))
+             } else {
+                Ok(linestrings)
+             }
+
+        }).collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .flatten()
+            .collect_vec();
         Ok(GeometryModel(edges))
     }
 
@@ -62,7 +82,7 @@ fn read_linestrings(
 }
 
 fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<f32>>, MapError> {
-    let n_edges = graph.edges.len();
+    let n_edges = graph.n_edges();
     let mut pb = kdam::Bar::builder()
         .total(n_edges)
         .animation("fillup")
@@ -71,8 +91,7 @@ fn create_linestrings_from_vertices(graph: Arc<Graph>) -> Result<Vec<LineString<
         .map_err(MapError::InternalError)?;
 
     let edges = graph
-        .edges
-        .iter()
+        .edges()
         .map(|e| {
             let src_v = graph.get_vertex(&e.src_vertex_id).map_err(|_| {
                 MapError::InternalError(format!(

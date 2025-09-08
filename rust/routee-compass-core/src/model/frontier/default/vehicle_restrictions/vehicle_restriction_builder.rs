@@ -6,7 +6,7 @@ use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::{
     model::{
         frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
-        network::edge_id::EdgeId,
+        network::EdgeId,
     },
     util::fs::read_utils,
 };

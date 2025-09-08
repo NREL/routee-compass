@@ -1,10 +1,10 @@
-use super::compass::{compass_app::CompassApp, CompassAppError};
+use super::compass::{CompassApp, CompassAppError};
 use crate::app::search::SearchAppGraphOps;
 use itertools::Itertools;
 use routee_compass_core::{
     algorithm::search::Direction,
     model::{
-        network::{edge_id::EdgeId, vertex_id::VertexId},
+        network::{EdgeId, EdgeListId, VertexId},
         unit::DistanceUnit,
     },
 };
@@ -27,11 +27,8 @@ use std::str::FromStr;
 ///
 /// ```
 /// use routee_compass::app::bindings::CompassAppBindings;
-/// use routee_compass::app::compass::compass_app::CompassApp;
-/// use routee_compass::app::compass::CompassAppError;
-/// use routee_compass::app::compass::CompassBuilderInventory;
-///
-/// //use routee_compass_macros::pybindings;
+/// use routee_compass::app::compass::{CompassApp, CompassAppError, CompassAppConfig, CompassBuilderInventory};
+/// use config::FileFormat;
 ///
 /// //#[pybindings]
 /// pub struct CustomAppPy {
@@ -53,8 +50,8 @@ use std::str::FromStr;
 ///         // my_custom_traversal_model_builder = MyCustomTraversalModelBuilder::new();
 ///         // builder.add_traversal_model("my_custom_model", Rc::new(my_custom_traversal_model));
 ///
-///         let app =
-///             CompassApp::try_from_config_toml_string(config_string, original_file_path, &builder)?;
+///         let config = CompassAppConfig::from_str(&config_string, &original_file_path, FileFormat::Toml)?;
+///         let app = CompassApp::new(&config, &builder)?;
 ///         Ok(CustomAppPy { app })
 ///     }
 ///     fn app(&self) -> &CompassApp {
@@ -91,36 +88,49 @@ pub trait CompassAppBindings {
     /// Get the origin vertex of an edge
     ///
     /// # Arguments
+    /// * `edge_list_id` - edge list to use, defaults to edge list zero
     /// * `edge_id` - the id of the edge
     ///
     /// # Returns
     /// * the id of the origin vertex
-    fn graph_edge_origin(&self, edge_id: usize) -> Result<usize, CompassAppError> {
+    fn graph_edge_origin(
+        &self,
+        edge_list_id: Option<usize>,
+        edge_id: usize,
+    ) -> Result<usize, CompassAppError> {
+        let edge_list_id = EdgeListId(edge_list_id.unwrap_or_default());
         let edge_id_internal = EdgeId(edge_id);
         self.app()
             .search_app
-            .get_edge_origin(&edge_id_internal)
+            .get_edge_origin(&edge_list_id, &edge_id_internal)
             .map(|o| o.0)
     }
 
     /// Get the destination vertex of an edge
     ///
     /// # Arguments
+    /// * `edge_list_id` - edge list to use, defaults to edge list zero
     /// * `edge_id` - the id of the edge
     ///
     /// # Returns
     /// * the id of the destination vertex
-    fn graph_edge_destination(&self, edge_id: usize) -> Result<usize, CompassAppError> {
+    fn graph_edge_destination(
+        &self,
+        edge_list_id: Option<usize>,
+        edge_id: usize,
+    ) -> Result<usize, CompassAppError> {
+        let edge_list_id = EdgeListId(edge_list_id.unwrap_or_default());
         let edge_id_internal = EdgeId(edge_id);
         self.app()
             .search_app
-            .get_edge_destination(&edge_id_internal)
+            .get_edge_destination(&edge_list_id, &edge_id_internal)
             .map(|o| o.0)
     }
 
     /// Get the distance of an edge
     ///
     /// # Arguments
+    /// * `edge_list_id` - edge list to use, defaults to edge list zero
     /// * `edge_id` - the id of the edge
     /// * `distance_unit` - the distance unit to use. If not provided, the default distance unit is meters
     ///
@@ -128,9 +138,11 @@ pub trait CompassAppBindings {
     /// * the distance of the edge in the specified distance unit
     fn graph_edge_distance(
         &self,
+        edge_list_id: Option<usize>,
         edge_id: usize,
         distance_unit: Option<String>,
     ) -> Result<f64, CompassAppError> {
+        let edge_list_id = EdgeListId(edge_list_id.unwrap_or_default());
         let du_internal: Option<DistanceUnit> = match distance_unit {
             Some(du_str) => {
                 let du = DistanceUnit::from_str(du_str.as_str()).map_err(|_| {
@@ -145,7 +157,10 @@ pub trait CompassAppBindings {
             None => None,
         };
         let edge_id_internal = EdgeId(edge_id);
-        let edge_distance_internal = self.app().search_app.get_edge_distance(&edge_id_internal)?;
+        let edge_distance_internal = self
+            .app()
+            .search_app
+            .get_edge_distance(&edge_list_id, &edge_id_internal)?;
         match du_internal {
             Some(du) => Ok(du.from_uom(edge_distance_internal)),
             None => Ok(DistanceUnit::Meters.from_uom(edge_distance_internal)),
@@ -158,14 +173,14 @@ pub trait CompassAppBindings {
     /// * `vertex_id` - the id of the vertex
     ///
     /// # Returns
-    /// * the ids of the edges incident to the vertex in the forward direction
-    fn graph_get_out_edge_ids(&self, vertex_id: usize) -> Vec<usize> {
+    /// * the edge list ids and edge ids of the edges incident to the vertex in the forward direction
+    fn graph_get_out_edge_ids(&self, vertex_id: usize) -> Vec<(usize, usize)> {
         let vertex_id_internal = VertexId(vertex_id);
         self.app()
             .search_app
             .get_incident_edge_ids(&vertex_id_internal, &Direction::Forward)
             .into_iter()
-            .map(|e| e.0)
+            .map(|e| (e.0 .0, e.1 .0))
             .collect_vec()
     }
 
@@ -175,15 +190,15 @@ pub trait CompassAppBindings {
     /// * `vertex_id` - the id of the vertex
     ///
     /// # Returns
-    /// * the ids of the edges incident to the vertex in the reverse direction
-    fn graph_get_in_edge_ids(&self, vertex_id: usize) -> Vec<usize> {
+    /// * the edge list ids and edge ids of the edges incident to the vertex in the reverse direction
+    fn graph_get_in_edge_ids(&self, vertex_id: usize) -> Vec<(usize, usize)> {
         let vertex_id_internal = VertexId(vertex_id);
         self.app()
             .search_app
             .get_incident_edge_ids(&vertex_id_internal, &Direction::Reverse)
             // .map(|es| es.iter().map(|e| e.0).collect())
             .into_iter()
-            .map(|e| e.0)
+            .map(|e| (e.0 .0, e.1 .0))
             .collect_vec()
     }
 

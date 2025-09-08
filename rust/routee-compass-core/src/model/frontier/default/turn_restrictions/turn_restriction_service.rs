@@ -1,7 +1,7 @@
 use super::turn_restriction_model::TurnRestrictionFrontierModel;
 use crate::model::{
     frontier::{FrontierModel, FrontierModelError, FrontierModelService},
-    network::edge_id::EdgeId,
+    network::EdgeId,
     state::StateModel,
 };
 use serde::Deserialize;

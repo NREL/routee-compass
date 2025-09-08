@@ -1,5 +1,5 @@
 use super::{ComparisonOperation, VehicleParameterType};
-use crate::model::network::edge_id::EdgeId;
+use crate::model::network::EdgeId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

@@ -1,5 +1,4 @@
-use crate::model::network::graph::Graph;
-use crate::model::network::{network_error::NetworkError, vertex_id::VertexId};
+use crate::model::network::{Graph, NetworkError, VertexId};
 use std::collections::HashSet;
 
 /// Conducts a depth-first search (DFS) on a directed graph.
@@ -32,8 +31,8 @@ pub fn depth_first_search(
     visited.insert(*vertex);
 
     let edges = graph.out_edges(vertex);
-    for edge in edges {
-        let dst = graph.dst_vertex_id(&edge)?;
+    for (edge_list_id, edge_id) in edges {
+        let dst = graph.dst_vertex_id(&edge_list_id, &edge_id)?;
         depth_first_search(graph, &dst, visited, stack)?;
     }
 
@@ -72,8 +71,8 @@ pub fn reverse_depth_first_search(
     visited.insert(*vertex);
 
     let edges = graph.in_edges(vertex);
-    for edge in edges {
-        let src = graph.src_vertex_id(&edge)?;
+    for (edge_list_id, edge_id) in edges {
+        let src = graph.src_vertex_id(&edge_list_id, &edge_id)?;
         reverse_depth_first_search(graph, &src, visited, stack)?;
     }
 
@@ -152,7 +151,7 @@ mod tests {
 
     use super::*;
     use crate::{
-        model::network::{Edge, Vertex},
+        model::network::{Edge, EdgeList, Graph, Vertex},
         util::compact_ordered_hash_map::CompactOrderedHashMap,
     };
 
@@ -168,19 +167,19 @@ mod tests {
         let length = Length::new::<uom::si::length::kilometer>(10.0);
 
         let edges = vec![
-            Edge::new(0, 0, 1, length),
-            Edge::new(1, 1, 0, length),
-            Edge::new(2, 1, 2, length),
-            Edge::new(3, 2, 1, length),
-            Edge::new(4, 2, 3, length),
-            Edge::new(5, 3, 2, length),
-            Edge::new(6, 3, 0, length),
-            Edge::new(7, 0, 3, length),
-            Edge::new(8, 0, 2, length),
-            Edge::new(9, 1, 3, length),
-            Edge::new(10, 2, 0, length),
-            Edge::new(11, 3, 1, length),
-            Edge::new(12, 4, 4, length),
+            Edge::new(0, 0, 0, 1, length),
+            Edge::new(0, 1, 1, 0, length),
+            Edge::new(0, 2, 1, 2, length),
+            Edge::new(0, 3, 2, 1, length),
+            Edge::new(0, 4, 2, 3, length),
+            Edge::new(0, 5, 3, 2, length),
+            Edge::new(0, 6, 3, 0, length),
+            Edge::new(0, 7, 0, 3, length),
+            Edge::new(0, 8, 0, 2, length),
+            Edge::new(0, 9, 1, 3, length),
+            Edge::new(0, 10, 2, 0, length),
+            Edge::new(0, 11, 3, 1, length),
+            Edge::new(0, 12, 4, 4, length),
         ];
 
         // Create the adjacency and reverse adjacency lists.
@@ -195,10 +194,12 @@ mod tests {
         // Construct the Graph instance.
 
         Graph {
-            adj: adj.into_boxed_slice(),
-            rev: rev.into_boxed_slice(),
-            edges: edges.into_boxed_slice(),
             vertices: vertices.into_boxed_slice(),
+            edge_lists: vec![EdgeList {
+                adj: adj.into_boxed_slice(),
+                rev: rev.into_boxed_slice(),
+                edges: edges.into_boxed_slice(),
+            }],
         }
     }
 

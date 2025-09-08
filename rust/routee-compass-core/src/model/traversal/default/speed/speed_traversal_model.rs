@@ -2,8 +2,7 @@ use uom::si::f64::Velocity;
 use uom::ConstZero;
 
 use super::speed_traversal_engine::SpeedTraversalEngine;
-use crate::model::network::edge_id::EdgeId;
-use crate::model::network::{Edge, Vertex};
+use crate::model::network::{Edge, EdgeId, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
 use crate::model::state::{InputFeature, StateVariableConfig};
@@ -119,7 +118,7 @@ fn apply_speed_limit(lookup_speed: Velocity, speed_limit: Option<Velocity>) -> V
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::network::{Edge, EdgeId, Vertex, VertexId};
+    use crate::model::network::{Edge, EdgeId, EdgeListId, Vertex, VertexId};
     use crate::model::unit::SpeedUnit;
     use crate::testing::mock::traversal_model::TestTraversalModel;
     use crate::util::geo::InternalCoord;
@@ -136,6 +135,7 @@ mod tests {
     }
     fn mock_edge(edge_id: usize) -> Edge {
         Edge {
+            edge_list_id: EdgeListId(0),
             edge_id: EdgeId(edge_id),
             src_vertex_id: VertexId(0),
             dst_vertex_id: VertexId(1),

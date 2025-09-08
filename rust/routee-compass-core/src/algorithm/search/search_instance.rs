@@ -1,15 +1,16 @@
-use super::search_error::SearchError;
-use crate::model::{
-    access::AccessModel,
-    cost::CostModel,
-    frontier::FrontierModel,
-    label::label_model::LabelModel,
-    map::MapModel,
-    network::{graph::Graph, vertex_id::VertexId},
-    state::{StateModel, StateVariable},
-    termination::TerminationModel,
-    traversal::TraversalModel,
-    unit::Cost,
+use crate::{
+    algorithm::search::SearchError,
+    model::{
+        access::AccessModel,
+        cost::CostModel,
+        frontier::FrontierModel,
+        label::label_model::LabelModel,
+        map::MapModel,
+        network::{EdgeListId, Graph},
+        state::StateModel,
+        termination::TerminationModel,
+        traversal::TraversalModel,
+    },
 };
 use std::sync::Arc;
 
@@ -17,32 +18,51 @@ use std::sync::Arc;
 /// been prepared for a specific query.
 pub struct SearchInstance {
     pub graph: Arc<Graph>,
+    pub frontier_models: Vec<Arc<dyn FrontierModel>>,
+    pub access_models: Vec<Arc<dyn AccessModel>>,
+    pub traversal_models: Vec<Arc<dyn TraversalModel>>,
     pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
-    pub traversal_model: Arc<dyn TraversalModel>,
-    pub access_model: Arc<dyn AccessModel>,
     pub cost_model: Arc<CostModel>,
-    pub frontier_model: Arc<dyn FrontierModel>,
     pub termination_model: Arc<TerminationModel>,
     pub label_model: Arc<dyn LabelModel>,
+    pub default_edge_list: Option<usize>,
 }
 
 impl SearchInstance {
-    /// approximates the traversal state delta between two vertices and uses
-    /// the result to compute a cost estimate.
-    pub fn estimate_traversal_cost(
-        &self,
-        src: VertexId,
-        dst: VertexId,
-        state: &[StateVariable],
-    ) -> Result<Cost, SearchError> {
-        let src = self.graph.get_vertex(&src)?;
-        let dst = self.graph.get_vertex(&dst)?;
-        let mut dst_state = state.to_vec();
+    /// in the case of traversal estimation, where no edges are used, divert to the traversal model
+    /// associated with the default edge list
+    pub fn get_traversal_estimation_model(&self) -> Arc<dyn TraversalModel> {
+        self.traversal_models[self.default_edge_list.unwrap_or_default()].clone()
+    }
 
-        self.traversal_model
-            .estimate_traversal((src, dst), &mut dst_state, &self.state_model)?;
-        let cost_estimate = self.cost_model.cost_estimate(state, &dst_state)?;
-        Ok(cost_estimate)
+    pub fn get_frontier_model(
+        &self,
+        edge_list_id: &EdgeListId,
+    ) -> Result<Arc<dyn FrontierModel>, SearchError> {
+        self.frontier_models
+            .get(edge_list_id.0)
+            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve frontier models for edge list {} that does not exist", edge_list_id)))
+            .cloned()
+    }
+
+    pub fn get_access_model(
+        &self,
+        edge_list_id: &EdgeListId,
+    ) -> Result<Arc<dyn AccessModel>, SearchError> {
+        self.access_models
+            .get(edge_list_id.0)
+            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve access models for edge list {} that does not exist", edge_list_id)))
+            .cloned()
+    }
+
+    pub fn get_traversal_model(
+        &self,
+        edge_list_id: &EdgeListId,
+    ) -> Result<Arc<dyn TraversalModel>, SearchError> {
+        self.traversal_models
+            .get(edge_list_id.0)
+            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve traversal models for edge list {} that does not exist", edge_list_id)))
+            .cloned()
     }
 }

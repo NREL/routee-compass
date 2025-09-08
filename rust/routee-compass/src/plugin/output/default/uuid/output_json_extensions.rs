@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use routee_compass_core::model::network::vertex_id::VertexId;
+use routee_compass_core::model::network::VertexId;
 
 use crate::plugin::{input::InputField, output::OutputPluginError};
 

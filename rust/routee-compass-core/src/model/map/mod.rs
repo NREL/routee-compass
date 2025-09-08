@@ -1,3 +1,4 @@
+mod geometry_input;
 mod geometry_model;
 mod map_edge_rtree_object;
 mod map_error;
@@ -11,6 +12,7 @@ mod nearest_search_result;
 mod spatial_index;
 pub mod spatial_index_ops;
 
+pub use geometry_input::GeometryInput;
 pub use geometry_model::GeometryModel;
 pub use map_edge_rtree_object::MapEdgeRTreeObject;
 pub use map_error::MapError;

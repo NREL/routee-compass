@@ -1,4 +1,4 @@
-use crate::model::network::network_error::NetworkError;
+use crate::model::network::NetworkError;
 use crate::model::state::StateModelError;
 use crate::model::unit::UnitError;
 

@@ -1,5 +1,5 @@
 use super::{map_error::MapError, spatial_index_ops as ops};
-use crate::model::network::{Edge, EdgeId};
+use crate::model::network::{Edge, EdgeId, EdgeListId};
 use geo::{LineString, Point};
 use rstar::{PointDistance, RTreeObject, AABB};
 use uom::si::f64::Length;
@@ -7,6 +7,7 @@ use uom::si::f64::Length;
 /// rtree element for edge-oriented map matching.
 #[derive(Clone)]
 pub struct MapEdgeRTreeObject {
+    pub edge_list_id: EdgeListId,
     pub edge_id: EdgeId,
     pub envelope: AABB<Point<f32>>,
 }
@@ -14,6 +15,7 @@ pub struct MapEdgeRTreeObject {
 impl MapEdgeRTreeObject {
     pub fn new(edge: &Edge, linestring: &LineString<f32>) -> MapEdgeRTreeObject {
         MapEdgeRTreeObject {
+            edge_list_id: edge.edge_list_id,
             edge_id: edge.edge_id,
             envelope: linestring.envelope(),
         }

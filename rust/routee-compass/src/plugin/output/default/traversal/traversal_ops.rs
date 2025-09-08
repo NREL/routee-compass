@@ -7,7 +7,7 @@ use routee_compass_core::algorithm::search::SearchTreeBranch;
 use routee_compass_core::model::cost::CostModel;
 use routee_compass_core::model::label::Label;
 use routee_compass_core::model::map::MapModel;
-use routee_compass_core::model::network::vertex_id::VertexId;
+use routee_compass_core::model::network::VertexId;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::util::geo::geo_io_utils;
 use serde_json::{json, Map};

@@ -1,11 +1,13 @@
 use crate::algorithm::search::Direction;
+use crate::algorithm::search::EdgeTraversal;
 use crate::algorithm::search::SearchError;
 use crate::algorithm::search::SearchInstance;
 use crate::algorithm::search::SearchResult;
 use crate::algorithm::search::SearchTreeBranch;
 use crate::model::label::Label;
-use crate::model::network::edge_id::EdgeId;
-use crate::model::network::vertex_id::VertexId;
+use crate::model::network::EdgeListId;
+use crate::model::network::{EdgeId, VertexId};
+use crate::model::state::StateVariable;
 use crate::model::unit::AsF64;
 use crate::model::unit::Cost;
 use crate::model::unit::ReverseCost;
@@ -47,7 +49,7 @@ pub fn run_vertex_oriented(
     let origin_cost = match target {
         None => Cost::ZERO,
         Some(target) => {
-            let cost_est = si.estimate_traversal_cost(source, target, &initial_state)?;
+            let cost_est = estimate_traversal_cost(source, target, &initial_state, si)?;
             Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
         }
     };
@@ -69,9 +71,11 @@ pub fn run_vertex_oriented(
         let last_edge_id = if current_vertex_id == source {
             None
         } else {
-            solution
-                .get(&current_label)
-                .map(|branch| branch.edge_traversal.edge_id)
+            solution.get(&current_label).map(|branch| {
+                let edge_list_id = branch.edge_traversal.edge_list_id;
+                let edge_id = branch.edge_traversal.edge_id;
+                (edge_list_id, edge_id)
+            })
         };
 
         // grab the current state from the solution
@@ -92,8 +96,8 @@ pub fn run_vertex_oriented(
 
         // visit all neighbors of this source vertex
         let incident_edge_iterator = direction.get_incident_edges(&current_vertex_id, si);
-        for edge_id in incident_edge_iterator {
-            let e = si.graph.get_edge(edge_id)?;
+        for (edge_list_id, edge_id) in incident_edge_iterator {
+            let e = si.graph.get_edge(&edge_list_id, &edge_id)?;
 
             let terminal_vertex_id = direction.terminal_vertex_id(e);
             let terminal_label = si.label_model.label_from_state(
@@ -104,11 +108,11 @@ pub fn run_vertex_oriented(
             let key_vertex_id = direction.tree_key_vertex_id(e);
 
             let previous_edge = match last_edge_id {
-                Some(edge_id) => Some(si.graph.get_edge(&edge_id)?),
+                Some((edge_list_id, edge_id)) => Some(si.graph.get_edge(&edge_list_id, &edge_id)?),
                 None => None,
             };
             let valid_frontier = {
-                si.frontier_model.valid_frontier(
+                si.get_frontier_model(&edge_list_id)?.valid_frontier(
                     e,
                     previous_edge,
                     &current_state,
@@ -119,8 +123,7 @@ pub fn run_vertex_oriented(
                 continue;
             }
 
-            let et =
-                direction.perform_edge_traversal(*edge_id, last_edge_id, &current_state, si)?;
+            let et = EdgeTraversal::new((edge_list_id, edge_id), last_edge_id, &current_state, si)?;
 
             let key_label = si.label_model.label_from_state(
                 key_vertex_id,
@@ -151,7 +154,7 @@ pub fn run_vertex_oriented(
                     None => Cost::ZERO,
                     Some(target_v) => {
                         let cost_est =
-                            si.estimate_traversal_cost(key_vertex_id, target_v, &current_state)?;
+                            estimate_traversal_cost(key_vertex_id, target_v, &current_state, si)?;
                         Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
                     }
                 };
@@ -178,21 +181,21 @@ pub fn run_vertex_oriented(
 ///
 /// not tested.
 pub fn run_edge_oriented(
-    source: EdgeId,
-    target: Option<EdgeId>,
+    source: (EdgeListId, EdgeId),
+    target: Option<(EdgeListId, EdgeId)>,
     direction: &Direction,
     weight_factor: Option<Cost>,
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     // For now, convert to vertex-oriented search and use compatibility layer
-    let _e1_src = si.graph.src_vertex_id(&source)?;
-    let e1_dst = si.graph.dst_vertex_id(&source)?;
+    let _e1_src = si.graph.src_vertex_id(&source.0, &source.1)?;
+    let e1_dst = si.graph.dst_vertex_id(&source.0, &source.1)?;
 
     match target {
         None => run_vertex_oriented(e1_dst, None, direction, weight_factor, si),
         Some(target_edge) => {
-            let e2_src = si.graph.src_vertex_id(&target_edge)?;
-            let _e2_dst = si.graph.dst_vertex_id(&target_edge)?;
+            let e2_src = si.graph.src_vertex_id(&target_edge.0, &target_edge.1)?;
+            let _e2_dst = si.graph.dst_vertex_id(&target_edge.0, &target_edge.1)?;
 
             if source == target_edge {
                 Ok(SearchResult::default())
@@ -201,6 +204,27 @@ pub fn run_edge_oriented(
             }
         }
     }
+}
+
+/// approximates the traversal state delta between two vertices and uses
+/// the result to compute a cost estimate.
+pub fn estimate_traversal_cost(
+    src: VertexId,
+    dst: VertexId,
+    state: &[StateVariable],
+    si: &SearchInstance,
+) -> Result<Cost, SearchError> {
+    let src = si.graph.get_vertex(&src)?;
+    let dst = si.graph.get_vertex(&dst)?;
+    let mut dst_state = state.to_vec();
+
+    si.get_traversal_estimation_model().estimate_traversal(
+        (src, dst),
+        &mut dst_state,
+        &si.state_model,
+    )?;
+    let cost_estimate = si.cost_model.cost_estimate(state, &dst_state)?;
+    Ok(cost_estimate)
 }
 
 /// grab the current vertex id, but handle some other termination conditions
@@ -270,9 +294,10 @@ mod tests {
     use crate::model::label::default::vertex_label_model::VertexLabelModel;
     use crate::model::map::MapModel;
     use crate::model::map::MapModelConfig;
-    use crate::model::network::edge_id::EdgeId;
-    use crate::model::network::graph::Graph;
     use crate::model::network::Edge;
+    use crate::model::network::EdgeId;
+    use crate::model::network::EdgeList;
+    use crate::model::network::Graph;
     use crate::model::network::Vertex;
     use crate::model::state::StateModel;
     use crate::model::termination::TerminationModel;
@@ -292,14 +317,14 @@ mod tests {
         ];
 
         let edges = vec![
-            Edge::new(0, 0, 1, Length::new::<uom::si::length::kilometer>(10.0)),
-            Edge::new(1, 1, 0, Length::new::<uom::si::length::kilometer>(10.0)),
-            Edge::new(2, 1, 2, Length::new::<uom::si::length::kilometer>(2.0)),
-            Edge::new(3, 2, 1, Length::new::<uom::si::length::kilometer>(2.0)),
-            Edge::new(4, 2, 3, Length::new::<uom::si::length::kilometer>(1.0)),
-            Edge::new(5, 3, 2, Length::new::<uom::si::length::kilometer>(1.0)),
-            Edge::new(6, 3, 0, Length::new::<uom::si::length::kilometer>(2.0)),
-            Edge::new(7, 0, 3, Length::new::<uom::si::length::kilometer>(2.0)),
+            Edge::new(0, 0, 0, 1, Length::new::<uom::si::length::kilometer>(10.0)),
+            Edge::new(0, 1, 1, 0, Length::new::<uom::si::length::kilometer>(10.0)),
+            Edge::new(0, 2, 1, 2, Length::new::<uom::si::length::kilometer>(2.0)),
+            Edge::new(0, 3, 2, 1, Length::new::<uom::si::length::kilometer>(2.0)),
+            Edge::new(0, 4, 2, 3, Length::new::<uom::si::length::kilometer>(1.0)),
+            Edge::new(0, 5, 3, 2, Length::new::<uom::si::length::kilometer>(1.0)),
+            Edge::new(0, 6, 3, 0, Length::new::<uom::si::length::kilometer>(2.0)),
+            Edge::new(0, 7, 0, 3, Length::new::<uom::si::length::kilometer>(2.0)),
         ];
 
         let mut adj = vec![CompactOrderedHashMap::empty(); vertices.len()];
@@ -311,10 +336,12 @@ mod tests {
         }
 
         Graph {
-            adj: adj.into_boxed_slice(),
-            rev: rev.into_boxed_slice(),
-            edges: edges.into_boxed_slice(),
             vertices: vertices.into_boxed_slice(),
+            edge_lists: vec![EdgeList {
+                adj: adj.into_boxed_slice(),
+                rev: rev.into_boxed_slice(),
+                edges: edges.into_boxed_slice(),
+            }],
         }
     }
 
@@ -366,7 +393,7 @@ mod tests {
         ];
 
         let graph = Arc::new(build_mock_graph());
-        let map_model = Arc::new(MapModel::new(graph.clone(), MapModelConfig::default()).unwrap());
+        let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
         let traversal_model = Arc::new(DistanceTraversalModel {});
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
@@ -395,12 +422,13 @@ mod tests {
             graph,
             map_model,
             state_model: state_model.clone(),
-            traversal_model: traversal_model.clone(),
-            access_model: Arc::new(NoAccessModel {}),
+            traversal_models: vec![traversal_model.clone()],
+            access_models: vec![Arc::new(NoAccessModel {})],
+            frontier_models: vec![Arc::new(NoRestriction {})],
             cost_model: Arc::new(cost_model),
-            frontier_model: Arc::new(NoRestriction {}),
             termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
             label_model: Arc::new(VertexLabelModel {}),
+            default_edge_list: None,
         };
 
         // execute the route search

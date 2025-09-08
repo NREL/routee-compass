@@ -1,6 +1,6 @@
 use routee_compass_core::model::{
-    access::default::turn_delays::EdgeHeading, network::edge_id::EdgeId,
-    traversal::TraversalModelError, unit::UnitError,
+    access::default::turn_delays::EdgeHeading, network::EdgeId, traversal::TraversalModelError,
+    unit::UnitError,
 };
 use uom::{
     si::f64::{Energy, Ratio},

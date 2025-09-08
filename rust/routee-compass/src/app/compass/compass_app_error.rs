@@ -6,7 +6,7 @@ use routee_compass_core::{
     algorithm::search::SearchError,
     model::{
         access::AccessModelError, cost::CostModelError, frontier::FrontierModelError,
-        map::MapError, network::network_error::NetworkError, state::StateModelError,
+        map::MapError, network::NetworkError, state::StateModelError,
         termination::TerminationModelError, traversal::TraversalModelError,
     },
 };

@@ -1,7 +1,7 @@
 use itertools::Itertools;
 
 use crate::algorithm::search::{
-    edge_traversal::EdgeTraversal, search_error::SearchError, search_instance::SearchInstance,
+    edge_traversal::EdgeTraversal, search_error::SearchError, SearchInstance,
 };
 
 /// helper function to address how the reverse route state and costs are assigned.
@@ -24,7 +24,10 @@ pub fn reorient_reverse_route(
     // get the final edge id and state for the forward traversal
     let (final_fwd_edge_id, mut acc_state) = match fwd_route.last() {
         None => (None, si.state_model.initial_state()?),
-        Some(last_edge) => (Some(last_edge.edge_id), last_edge.result_state.clone()),
+        Some(last) => (
+            Some((last.edge_list_id, last.edge_id)),
+            last.result_state.clone(),
+        ),
     };
 
     // get all edge ids along the reverse route when traversed in forward direction,
@@ -32,7 +35,7 @@ pub fn reorient_reverse_route(
     let mut edge_ids = rev_route
         .iter()
         .rev()
-        .map(|e| Some(e.edge_id))
+        .map(|e| Some((e.edge_list_id, e.edge_id)))
         .collect_vec();
     edge_ids.insert(0, final_fwd_edge_id);
 
@@ -43,7 +46,7 @@ pub fn reorient_reverse_route(
         let next = next_opt.ok_or_else(|| {
             SearchError::InternalError(String::from("next_opt should never be None"))
         })?;
-        let et = EdgeTraversal::forward_traversal(next, *prev_opt, &acc_state, si)?;
+        let et = EdgeTraversal::new(next, *prev_opt, &acc_state, si)?;
         acc_state = et.result_state.clone();
         result.push(et);
     }
@@ -67,7 +70,7 @@ pub fn route_contains_loop(
 ) -> Result<bool, SearchError> {
     let src_vertices = route
         .iter()
-        .map(|e| si.graph.src_vertex_id(&e.edge_id))
+        .map(|e| si.graph.src_vertex_id(&e.edge_list_id, &e.edge_id))
         .collect::<Result<Vec<_>, _>>()?;
     Ok(src_vertices.iter().unique().collect_vec().len() < src_vertices.len())
 }

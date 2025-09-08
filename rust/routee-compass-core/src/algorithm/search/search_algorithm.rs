@@ -5,16 +5,17 @@ use super::ksp::KspTerminationCriteria;
 use super::ksp::{svp, yens};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
-use super::search_instance::SearchInstance;
 use super::search_tree_branch::SearchTreeBranch;
 use super::util::RouteSimilarityFunction;
+use super::SearchInstance;
 use super::{a_star, direction::Direction};
-use crate::model::network::{edge_id::EdgeId, vertex_id::VertexId};
+use crate::model::network::EdgeListId;
+use crate::model::network::{EdgeId, VertexId};
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum SearchAlgorithm {
     Dijkstra,
@@ -112,8 +113,8 @@ impl SearchAlgorithm {
     }
     pub fn run_edge_oriented(
         &self,
-        src_id: EdgeId,
-        dst_id_opt: Option<EdgeId>,
+        src: (EdgeListId, EdgeId),
+        dst_opt: Option<(EdgeListId, EdgeId)>,
         query: &serde_json::Value,
         direction: &Direction,
         search_instance: &SearchInstance,
@@ -122,20 +123,20 @@ impl SearchAlgorithm {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
                 weight_factor: Some(Cost::ZERO),
             }
-            .run_edge_oriented(src_id, dst_id_opt, query, direction, search_instance),
+            .run_edge_oriented(src, dst_opt, query, direction, search_instance),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
                 let search_result = a_star::run_edge_oriented(
-                    src_id,
-                    dst_id_opt,
+                    src,
+                    dst_opt,
                     direction,
                     *weight_factor,
                     search_instance,
                 )?;
-                let routes = match dst_id_opt {
+                let routes = match dst_opt {
                     None => vec![],
                     Some(dst_id) => {
                         let route = backtrack::label_edge_oriented_route(
-                            src_id,
+                            src,
                             dst_id,
                             &search_result.tree,
                             search_instance.graph.clone(),
@@ -154,13 +155,13 @@ impl SearchAlgorithm {
                 underlying: _,
                 similarity: _,
                 termination: _,
-            } => run_edge_oriented(src_id, dst_id_opt, query, direction, self, search_instance),
+            } => run_edge_oriented(src, dst_opt, query, direction, self, search_instance),
             SearchAlgorithm::Yens {
                 k: _,
                 underlying: _,
                 similarity: _,
                 termination: _,
-            } => run_edge_oriented(src_id, dst_id_opt, query, direction, self, search_instance),
+            } => run_edge_oriented(src, dst_opt, query, direction, self, search_instance),
         }
     }
 }
@@ -172,8 +173,8 @@ impl SearchAlgorithm {
 ///
 /// not tested.
 pub fn run_edge_oriented(
-    source: EdgeId,
-    target: Option<EdgeId>,
+    source: (EdgeListId, EdgeId),
+    target: Option<(EdgeListId, EdgeId)>,
     query: &serde_json::Value,
     direction: &Direction,
     alg: &SearchAlgorithm,
@@ -181,13 +182,14 @@ pub fn run_edge_oriented(
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
     let initial_state = si.state_model.initial_state()?;
-    let e1_src = si.graph.src_vertex_id(&source)?;
+    let e1_src = si.graph.src_vertex_id(&source.0, &source.1)?;
     let e1_label = si
         .label_model
         .label_from_state(e1_src, &initial_state, &si.state_model)?;
-    let e1_dst = si.graph.dst_vertex_id(&source)?;
+    let e1_dst = si.graph.dst_vertex_id(&source.0, &source.1)?;
     let src_et = EdgeTraversal {
-        edge_id: source,
+        edge_list_id: source.0,
+        edge_id: source.1,
         access_cost: Cost::ZERO,
         traversal_cost: Cost::ZERO,
         result_state: si.state_model.initial_state()?,
@@ -225,21 +227,17 @@ pub fn run_edge_oriented(
             Ok(updated)
         }
         Some(target_edge) => {
-            let e2_src = si.graph.src_vertex_id(&target_edge)?;
-            let e2_dst = si.graph.dst_vertex_id(&target_edge)?;
+            let e2_src = si.graph.src_vertex_id(&target_edge.0, &target_edge.1)?;
+            let e2_dst = si.graph.dst_vertex_id(&target_edge.0, &target_edge.1)?;
 
             if source == target_edge {
                 Ok(SearchAlgorithmResult::default())
             } else if e1_dst == e2_src {
                 // route is simply source -> target
                 let init_state = si.state_model.initial_state()?;
-                let src_et = EdgeTraversal::forward_traversal(source, None, &init_state, si)?;
-                let dst_et = EdgeTraversal::forward_traversal(
-                    target_edge,
-                    Some(source),
-                    &src_et.result_state,
-                    si,
-                )?;
+                let src_et = EdgeTraversal::new(source, None, &init_state, si)?;
+                let dst_et =
+                    EdgeTraversal::new(target_edge, Some(source), &src_et.result_state, si)?;
 
                 // Create labels for the vertices using appropriate states
                 let dst_label = si.label_model.label_from_state(
@@ -290,7 +288,8 @@ pub fn run_edge_oriented(
                     })?;
 
                     let dst_et = EdgeTraversal {
-                        edge_id: target_edge,
+                        edge_list_id: target_edge.0,
+                        edge_id: target_edge.1,
                         access_cost: Cost::ZERO,
                         traversal_cost: Cost::ZERO,
                         result_state: final_state.result_state.to_vec(),
