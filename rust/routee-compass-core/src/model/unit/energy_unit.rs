@@ -2,12 +2,18 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use uom::si::f64::Energy;
 
-// TODO: These should be added to UOM as new si::energy units, but for now we define them here.
+// Extending the SI system to include liquid fuel units
 // https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
-pub const GALLON_GASOLINE_TO_BTU: f64 = 120_214.0;
-pub const GALLON_DIESEL_TO_BTU: f64 = 137_381.0;
-pub const LITER_GASOLINE_TO_BTU: f64 = 31_757.0;
-pub const LITER_DIESEL_TO_BTU: f64 = 36_292.0;
+unit!{
+    system: uom::si;
+    quantity: uom::si::energy;
+
+    // This is assuming joules as base unit
+    @gal_gas: 1.2683298284_E8; "GGE", "Gallons gasoline equivalent", "Gal gasoline equivalent";
+    @gal_diesel: 1.4494519786_E8; "GDE", "Gallons diesel equivalent", "Gal diesel equivalent";
+    @liter_gas: 3.350_554_042_E7; "LGE", "Liters gasoline equivalent", "L gasoline equivalent";
+    @liter_diesel: 3.829_023_752_E7; "LDE", "Liters diesel equivalent", "L diesel equivalent";
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Default)]
 #[serde(rename_all = "snake_case", try_from = "String")]
@@ -25,35 +31,19 @@ impl EnergyUnit {
         // TODO: This should be updated when we have gas and diesel units in UOM.
         match self {
             Self::KilowattHours => Energy::new::<uom::si::energy::kilowatt_hour>(value),
-            Self::GallonsGasolineEquivalent => {
-                Energy::new::<uom::si::energy::btu>(value * GALLON_GASOLINE_TO_BTU)
-            }
-            Self::GallonsDieselEquivalent => {
-                Energy::new::<uom::si::energy::btu>(value * GALLON_DIESEL_TO_BTU)
-            }
-            Self::LitersGasolineEquivalent => {
-                Energy::new::<uom::si::energy::btu>(value * LITER_GASOLINE_TO_BTU)
-            }
-            Self::LitersDieselEquivalent => {
-                Energy::new::<uom::si::energy::btu>(value * LITER_DIESEL_TO_BTU)
-            }
+            Self::GallonsGasolineEquivalent => Energy::new::<gal_gas>(value),
+            Self::GallonsDieselEquivalent => Energy::new::<gal_diesel>(value),
+            Self::LitersGasolineEquivalent => Energy::new::<liter_gas>(value),
+            Self::LitersDieselEquivalent => Energy::new::<liter_diesel>(value)
         }
     }
     pub fn from_uom(&self, value: Energy) -> f64 {
         match self {
             Self::KilowattHours => value.get::<uom::si::energy::kilowatt_hour>(),
-            Self::GallonsGasolineEquivalent => {
-                value.get::<uom::si::energy::btu>() / GALLON_GASOLINE_TO_BTU
-            }
-            Self::GallonsDieselEquivalent => {
-                value.get::<uom::si::energy::btu>() / GALLON_DIESEL_TO_BTU
-            }
-            Self::LitersGasolineEquivalent => {
-                value.get::<uom::si::energy::btu>() / LITER_GASOLINE_TO_BTU
-            }
-            Self::LitersDieselEquivalent => {
-                value.get::<uom::si::energy::btu>() / LITER_DIESEL_TO_BTU
-            }
+            Self::GallonsGasolineEquivalent => value.get::<gal_gas>(),
+            Self::GallonsDieselEquivalent => value.get::<gal_diesel>(),
+            Self::LitersGasolineEquivalent => value.get::<liter_gas>(),
+            Self::LitersDieselEquivalent => value.get::<liter_diesel>()
         }
     }
 }
