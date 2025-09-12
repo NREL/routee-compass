@@ -4,15 +4,15 @@ use uom::si::f64::Energy;
 
 // Extending the SI system to include liquid fuel units
 // https://www.eia.gov/energyexplained/units-and-calculators/energy-conversion-calculators.php
-unit!{
+unit! {
     system: uom::si;
     quantity: uom::si::energy;
 
     // This is assuming joules as base unit
-    @gal_gas: 1.2683298284_E8; "GGE", "Gallons gasoline equivalent", "Gal gasoline equivalent";
-    @gal_diesel: 1.4494519786_E8; "GDE", "Gallons diesel equivalent", "Gal diesel equivalent";
-    @liter_gas: 3.350_554_042_E7; "LGE", "Liters gasoline equivalent", "L gasoline equivalent";
-    @liter_diesel: 3.829_023_752_E7; "LDE", "Liters diesel equivalent", "L diesel equivalent";
+    @gal_gas: 1.268_329_84E8; "GGE", "Gallons gasoline equivalent", "Gal gasoline equivalent";
+    @gal_diesel: 1.449_452E8; "GDE", "Gallons diesel equivalent", "Gal diesel equivalent";
+    @liter_gas: 3.350_554E7; "LGE", "Liters gasoline equivalent", "L gasoline equivalent";
+    @liter_diesel: 3.829_023_6E7; "LDE", "Liters diesel equivalent", "L diesel equivalent";
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy, Hash, PartialOrd, Default)]
@@ -34,7 +34,7 @@ impl EnergyUnit {
             Self::GallonsGasolineEquivalent => Energy::new::<gal_gas>(value),
             Self::GallonsDieselEquivalent => Energy::new::<gal_diesel>(value),
             Self::LitersGasolineEquivalent => Energy::new::<liter_gas>(value),
-            Self::LitersDieselEquivalent => Energy::new::<liter_diesel>(value)
+            Self::LitersDieselEquivalent => Energy::new::<liter_diesel>(value),
         }
     }
     pub fn from_uom(&self, value: Energy) -> f64 {
@@ -43,7 +43,7 @@ impl EnergyUnit {
             Self::GallonsGasolineEquivalent => value.get::<gal_gas>(),
             Self::GallonsDieselEquivalent => value.get::<gal_diesel>(),
             Self::LitersGasolineEquivalent => value.get::<liter_gas>(),
-            Self::LitersDieselEquivalent => value.get::<liter_diesel>()
+            Self::LitersDieselEquivalent => value.get::<liter_diesel>(),
         }
     }
 }
