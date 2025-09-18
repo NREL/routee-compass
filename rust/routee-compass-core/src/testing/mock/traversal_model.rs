@@ -90,16 +90,29 @@ impl MockUpstreamModel {
                         output_unit: None,
                     },
                 ),
-                InputFeature::Custom { name, unit: _ } => (
-                    name.clone(),
-                    StateVariableConfig::Custom {
-                        custom_type: name.clone(),
-                        accumulator: false,
-                        value: CustomVariableConfig::FloatingPoint {
+                InputFeature::Custom { name, unit } => {
+                    // only current way to hook in custom unit type
+                    use CustomVariableConfig as C;
+                    let var_config = match unit.as_str() {
+                        "floating_point" => C::FloatingPoint {
                             initial: ordered_float::OrderedFloat(0.0),
                         },
-                    },
-                ),
+                        "signed_integer" => C::SignedInteger { initial: 0 },
+                        "unsigned_integer" => C::UnsignedInteger { initial: 0 },
+                        "boolean" => C::Boolean { initial: false },
+                        _ => C::FloatingPoint {
+                            initial: ordered_float::OrderedFloat(0.0),
+                        },
+                    };
+                    (
+                        name.clone(),
+                        StateVariableConfig::Custom {
+                            custom_type: name.clone(),
+                            accumulator: false,
+                            value: var_config,
+                        },
+                    )
+                }
             })
             .collect();
         Self {
