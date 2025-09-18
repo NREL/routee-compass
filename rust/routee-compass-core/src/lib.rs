@@ -10,3 +10,6 @@ pub mod util;
 // feature is active
 // #[cfg(feature = "test-utils")]
 pub mod testing;
+
+#[macro_use]
+extern crate uom;
