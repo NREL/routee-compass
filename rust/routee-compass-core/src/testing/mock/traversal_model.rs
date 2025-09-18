@@ -94,12 +94,12 @@ impl MockUpstreamModel {
                     // only current way to hook in custom unit type
                     use CustomVariableConfig as C;
                     let var_config = match unit.as_str() {
-                        "FloatingPoint" => C::FloatingPoint {
+                        "floating_point" => C::FloatingPoint {
                             initial: ordered_float::OrderedFloat(0.0),
                         },
-                        "SignedInteger" => C::SignedInteger { initial: 0 },
-                        "UnsignedInteger" => C::UnsignedInteger { initial: 0 },
-                        "Boolean" => C::Boolean { initial: false },
+                        "signed_integer" => C::SignedInteger { initial: 0 },
+                        "unsigned_integer" => C::UnsignedInteger { initial: 0 },
+                        "boolean" => C::Boolean { initial: false },
                         _ => C::FloatingPoint {
                             initial: ordered_float::OrderedFloat(0.0),
                         },
