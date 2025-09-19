@@ -54,17 +54,18 @@ impl Label {
     /// 
     /// # Returns
     /// 
-    /// A Result containing the Label or a LabelModelError if validation fails
+    /// A Result containing the Label or a LabelModelError if the state vector length exceeds u8::MAX.
     /// 
     /// # Example
     /// 
-    /// ```
+    /// ```rust
     /// # use routee_compass_core::model::label::label_enum::{Label, OS_ALIGNED_STATE_LEN};
     /// # use routee_compass_core::model::network::VertexId;
     /// let vertex_id = VertexId(42);
-    /// let state = vec![1u8, 2u8, 3u8, 4u8]; // This works on 32-bit systems
-    /// let label = Label::new_aligned_u8_state(vertex_id, state);
-    /// // On 32-bit: Ok(label), on 64-bit: Err(InvalidStateLength)
+    /// let state = vec![1u8, 2u8, 3u8, 4u8];
+    /// let label = Label::new_u8_state(vertex_id, &state).unwrap();
+    /// let out_state = label.get_u8_state().unwrap();
+    /// assert_eq!(state.as_slice(), out_state);
     /// ```
     pub fn new_u8_state(vertex_id: VertexId, state: &[u8]) -> Result<Self, LabelModelError> {
         let mut label_state = state.to_vec();
@@ -89,23 +90,6 @@ impl Label {
                 let len: usize = (*state_len).into();
                 Some(&state[0..len])
             },
-            _ => None,
-        }
-    }
-    
-    /// Gets a mutable reference to the OS-aligned state if this label contains one.
-    /// 
-    /// # Returns
-    /// 
-    /// Some mutable reference to the state vector if this is a VertexWithU8StateVec, None otherwise
-    /// 
-    /// # Safety
-    /// 
-    /// The caller must ensure they don't modify the Vec to have a different length,
-    /// as this would violate the alignment constraint.
-    pub fn get_mut_u8_state(&mut self) -> Option<&mut Vec<u8>> {
-        match self {
-            Label::VertexWithU8StateVec { state, .. } => Some(state),
             _ => None,
         }
     }
@@ -140,7 +124,6 @@ impl Display for Label {
 #[cfg(test)]
 mod tests {
     use super::*;
-
 
     #[test]
     fn test_new_aligned_u8_state_valid() {
