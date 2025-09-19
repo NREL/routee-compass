@@ -158,7 +158,10 @@ mod tests {
             .map(|idx| modes[*idx as usize].to_string())
             .join(",");
         println!("[{}]", trip_modes);
-        assert_eq!(trip_modes, "walk,drive,transit,walk,transit,tnc".to_string());
+        assert_eq!(
+            trip_modes,
+            "walk,drive,transit,walk,transit,tnc".to_string()
+        );
     }
 
     #[test]
