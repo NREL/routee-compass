@@ -143,7 +143,7 @@ mod tests {
     }
 
     #[test]
-    fn test_new_aligned_u8_state_valid() {
+    fn test_new_u8_state_valid() {
         let vertex_id = VertexId(42);
         let state = vec![0u8; OS_ALIGNED_STATE_LEN];
         
@@ -154,7 +154,23 @@ mod tests {
     }
 
     #[test]
-    fn test_aligned_u8_state_none_for_other_variants() {
+    fn test_new_u8_state_aligned() {
+        let vertex_id = VertexId(42);
+        let state = vec![1,2,3];
+        
+        let label = Label::new_u8_state(vertex_id, &state).expect("test failed");
+        match label {
+            Label::VertexWithU8StateVec { state: inner_state, .. } => {
+                // should pad to OS_ALIGNED_STATE_LEN - 1
+                // (minus one due to storing state_len value)
+                assert_eq!(inner_state.len(), super::OS_ALIGNED_STATE_LEN - 1);
+            },
+            _ => panic!("wrong label variant!")
+        };
+    }
+
+    #[test]
+    fn test_u8_state_none_for_other_variants() {
         let vertex_id = VertexId(42);
         
         let vertex_label = Label::Vertex(vertex_id);
@@ -172,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn test_aligned_label_display() {
+    fn test_u8_state_label_display() {
         let vertex_id = VertexId(42);
         let state = vec![1u8; OS_ALIGNED_STATE_LEN];
         let label = Label::new_u8_state(vertex_id, &state).expect("test failed");
