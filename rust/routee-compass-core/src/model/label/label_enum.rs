@@ -146,7 +146,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn disp() {
+    fn test_e2e_display_trip() {
         let modes = ["walk", "bike", "drive", "tnc", "transit"];
         let trip_sequence = [0, 2, 4, 0, 4, 3];
         let vertex_id = VertexId(1234);
@@ -158,6 +158,7 @@ mod tests {
             .map(|idx| modes[*idx as usize].to_string())
             .join(",");
         println!("[{}]", trip_modes);
+        assert_eq!(trip_modes, "walk,drive,transit,walk,transit,tnc".to_string());
     }
 
     #[test]
