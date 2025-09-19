@@ -3,7 +3,7 @@ use std::fmt::Display;
 use allocative::Allocative;
 use serde::Serialize;
 
-use crate::model::network::VertexId;
+use crate::model::{label::label_model_error::LabelModelError, network::VertexId};
 
 /// The required length for OS-aligned state vectors.
 /// This is the word size of the target architecture.
@@ -25,11 +25,22 @@ pub enum Label {
         vertex_id: VertexId,
         state: Vec<usize>,
     },
-    /// Store OS-aligned u8 state data for memory efficiency.
-    /// The state vector must be exactly OS_ALIGNED_STATE_LEN bytes long.
+    /// Store u8 state data. more efficient memory layout for smaller
+    /// numbers or categorical data with 256 or fewer categories.
+    /// 
+    /// For memory alignment, the Vec<u8> will be extended to the 
+    /// nearest integer multiple of OS_ALIGNED_STATE_LEN that covers
+    /// the provided state values.
+    /// 
+    /// In order to ensure reading the state value produces a slice
+    /// of the same length as the Vec<u8> used to construct this 
+    /// Label, we also store a state_len: u8 value. This limits to
+    /// state sizes up to 256 elements. This is guaranteed when using
+    /// the get_u8_state method for retrieval.
     VertexWithU8StateVec {
         vertex_id: VertexId,
         state: Vec<u8>,
+        state_len: u8
     },
 }
 
@@ -55,76 +66,16 @@ impl Label {
     /// let label = Label::new_aligned_u8_state(vertex_id, state);
     /// // On 32-bit: Ok(label), on 64-bit: Err(InvalidStateLength)
     /// ```
-    pub fn new_aligned_u8_state(vertex_id: VertexId, state: Vec<u8>) -> Self {
-        let mut state = state;
-        let remainder = state.len() % OS_ALIGNED_STATE_LEN;
+    pub fn new_u8_state(vertex_id: VertexId, state: &[u8]) -> Result<Self, LabelModelError> {
+        let mut label_state = state.to_vec();
+        let state_len: u8 = state.len().try_into().map_err(|_| LabelModelError::BadLabelVecSize(state.len(), u8::MAX as usize))?;
+        let remainder = label_state.len() % OS_ALIGNED_STATE_LEN;
         if remainder != 0 {
             let padding_needed = OS_ALIGNED_STATE_LEN - remainder;
-            state.extend(vec![0u8; padding_needed]);
+            label_state.extend(vec![0u8; padding_needed]);
         }
         
-        Label::VertexWithU8StateVec { vertex_id, state }
-    }
-    
-    /// Creates a new VertexWithU8StateVec from a raw array slice.
-    /// 
-    /// This method is convenient when you have a fixed-size array and want to 
-    /// ensure it's the correct size at compile time.
-    /// 
-    /// # Arguments
-    /// 
-    /// * `vertex_id` - The vertex identifier
-    /// * `state` - A reference to an array of exactly OS_ALIGNED_STATE_LEN bytes
-    /// 
-    /// # Returns
-    /// 
-    /// A Label instance (no validation needed since array size is checked at compile time)
-    /// 
-    /// # Example
-    /// 
-    /// ```
-    /// # use routee_compass_core::model::label::label_enum::{Label, OS_ALIGNED_STATE_LEN};
-    /// # use routee_compass_core::model::network::VertexId;
-    /// let vertex_id = VertexId(42);
-    /// # #[cfg(target_pointer_width = "32")]
-    /// let state = [1u8, 2u8, 3u8, 4u8];
-    /// # #[cfg(target_pointer_width = "64")]
-    /// # let state = [1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8];
-    /// let label = Label::from_aligned_u8_array(vertex_id, &state);
-    /// ```
-    pub fn from_aligned_u8_array(vertex_id: VertexId, state: &[u8; OS_ALIGNED_STATE_LEN]) -> Self {
-        Label::VertexWithU8StateVec {
-            vertex_id,
-            state: state.to_vec(),
-        }
-    }
-    
-    /// Creates a new VertexWithU8StateVec with zero-initialized state.
-    /// 
-    /// This is useful when you want to create a label with the correct size
-    /// and fill it in later, or when you want all zeros as the initial state.
-    /// 
-    /// # Arguments
-    /// 
-    /// * `vertex_id` - The vertex identifier
-    /// 
-    /// # Returns
-    /// 
-    /// A Label instance with a zero-initialized state vector of the correct size
-    /// 
-    /// # Example
-    /// 
-    /// ```
-    /// # use routee_compass_core::model::label::label_enum::Label;
-    /// # use routee_compass_core::model::network::VertexId;
-    /// let vertex_id = VertexId(42);
-    /// let label = Label::new_aligned_u8_state_zeros(vertex_id);
-    /// ```
-    pub fn empty_u8(vertex_id: VertexId) -> Self {
-        Label::VertexWithU8StateVec {
-            vertex_id,
-            state: vec![0u8; OS_ALIGNED_STATE_LEN],
-        }
+        Ok(Label::VertexWithU8StateVec { vertex_id, state_len, state: label_state })
     }
     
     /// Gets the OS-aligned state if this label contains one.
@@ -132,9 +83,12 @@ impl Label {
     /// # Returns
     /// 
     /// Some reference to the state vector if this is a VertexWithU8StateVec, None otherwise
-    pub fn get_u8_state(&self) -> Option<&Vec<u8>> {
+    pub fn get_u8_state(&self) -> Option<&[u8]> {
         match self {
-            Label::VertexWithU8StateVec { state, .. } => Some(state),
+            Label::VertexWithU8StateVec { state, state_len, .. } => {
+                let len: usize = (*state_len).into();
+                Some(&state[0..len])
+            },
             _ => None,
         }
     }
@@ -176,8 +130,8 @@ impl Display for Label {
             Label::VertexWithIntStateVec { vertex_id, state } => {
                         write!(f, "VertexWithIntStateVec({vertex_id}, {state:?})")
                     }
-            Label::VertexWithU8StateVec { vertex_id, state } => {
-                write!(f, "VertexWithU8StateVec({vertex_id}, {state:?})")
+            Label::VertexWithU8StateVec { vertex_id, state_len, state } => {
+                write!(f, "VertexWithU8StateVec({vertex_id}, {state_len}, {state:?})")
             },
         }
     }
@@ -193,52 +147,10 @@ mod tests {
         let vertex_id = VertexId(42);
         let state = vec![0u8; OS_ALIGNED_STATE_LEN];
         
-        let label = Label::new_aligned_u8_state(vertex_id, state.clone());
+        let label = Label::new_u8_state(vertex_id, &state).expect("test failed");
 
         assert_eq!(label.vertex_id(), vertex_id);
-        assert_eq!(label.get_u8_state(), Some(&state));
-    }
-
-    #[test]
-    fn test_from_aligned_u8_array() {
-        let vertex_id = VertexId(42);
-        let state = [1u8; OS_ALIGNED_STATE_LEN];
-        
-        let label = Label::from_aligned_u8_array(vertex_id, &state);
-        assert_eq!(label.vertex_id(), vertex_id);
-        
-        let expected_vec = state.to_vec();
-        assert_eq!(label.get_u8_state(), Some(&expected_vec));
-    }
-
-    #[test]
-    fn test_new_aligned_u8_state_zeros() {
-        let vertex_id = VertexId(42);
-        let label = Label::empty_u8(vertex_id);
-        
-        assert_eq!(label.vertex_id(), vertex_id);
-        
-        let state = label.get_u8_state().unwrap();
-        assert_eq!(state.len(), OS_ALIGNED_STATE_LEN);
-        assert!(state.iter().all(|&x| x == 0));
-    }
-
-    #[test]
-    fn test_aligned_u8_state_access() {
-        let vertex_id = VertexId(42);
-        let state = vec![1, 2, 3, 4, 5, 6, 7, 8][..OS_ALIGNED_STATE_LEN].to_vec();
-        
-        let mut label = Label::new_aligned_u8_state(vertex_id, state.clone());
-        
-        // Test immutable access
-        assert_eq!(label.get_u8_state(), Some(&state));
-        
-        // Test mutable access
-        if let Some(state_mut) = label.get_mut_u8_state() {
-            state_mut[0] = 255;
-        }
-        
-        assert_eq!(label.get_u8_state().unwrap()[0], 255);
+        assert_eq!(label.get_u8_state(), Some(state.as_slice()));
     }
 
     #[test]
@@ -251,16 +163,21 @@ mod tests {
         let int_state_label = Label::VertexWithIntState { vertex_id, state: 123 };
         assert_eq!(int_state_label.get_u8_state(), None);
         
+        // Test that VertexWithU8StateVec does return the state
         let valid_state = vec![1, 2, 3];
-        let u8_vec_label = Label::VertexWithU8StateVec { vertex_id, state: valid_state.clone() };
-        assert_eq!(u8_vec_label.get_u8_state(), Some(&valid_state));
+        let u8_vec_label = Label::new_u8_state(vertex_id, &valid_state).expect("test failed");
+        let mut expected = [0; super::OS_ALIGNED_STATE_LEN].to_vec();
+        expected[0] = 1;
+        expected[1] = 2;
+        expected[2] = 3;
+        assert_eq!(u8_vec_label.get_u8_state(), Some(valid_state.as_slice()));
     }
 
     #[test]
     fn test_aligned_label_display() {
         let vertex_id = VertexId(42);
         let state = vec![1u8; OS_ALIGNED_STATE_LEN];
-        let label = Label::new_aligned_u8_state(vertex_id, state.clone());
+        let label = Label::new_u8_state(vertex_id, &state).expect("test failed");
         
         let display_string = format!("{}", label);
         assert!(display_string.contains("VertexWithU8StateVec"));
