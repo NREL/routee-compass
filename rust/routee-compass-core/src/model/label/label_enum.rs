@@ -70,7 +70,10 @@ impl Label {
     pub fn new_u8_state(vertex_id: VertexId, state: &[u8]) -> Result<Self, LabelModelError> {
         let mut label_state = state.to_vec();
         let state_len: u8 = state.len().try_into().map_err(|_| LabelModelError::BadLabelVecSize(state.len(), u8::MAX as usize))?;
-        let remainder = label_state.len() % OS_ALIGNED_STATE_LEN;
+        
+        // Calculate total memory needed: state data + 1 byte for state_len
+        let total_data_len = label_state.len() + 1;
+        let remainder = total_data_len % OS_ALIGNED_STATE_LEN;
         if remainder != 0 {
             let padding_needed = OS_ALIGNED_STATE_LEN - remainder;
             label_state.extend(vec![0u8; padding_needed]);
@@ -123,7 +126,21 @@ impl Display for Label {
 
 #[cfg(test)]
 mod tests {
+    use itertools::Itertools;
+
     use super::*;
+
+    #[test]
+    fn disp() {
+        let modes = ["walk", "bike", "drive", "tnc", "transit"];
+        let trip_sequence = [0,2,4,0,4,3];
+        let vertex_id = VertexId(1234);
+        let label = Label::new_u8_state(vertex_id, &trip_sequence).unwrap();
+        println!("label storage: {}", label);
+        let out = label.get_u8_state().unwrap();
+        let trip_modes = out.iter().map(|idx| modes[*idx as usize].to_string()).join(",");
+        println!("[{}]", trip_modes);
+    }
 
     #[test]
     fn test_new_aligned_u8_state_valid() {
@@ -149,11 +166,9 @@ mod tests {
         // Test that VertexWithU8StateVec does return the state
         let valid_state = vec![1, 2, 3];
         let u8_vec_label = Label::new_u8_state(vertex_id, &valid_state).expect("test failed");
-        let mut expected = [0; super::OS_ALIGNED_STATE_LEN].to_vec();
-        expected[0] = 1;
-        expected[1] = 2;
-        expected[2] = 3;
-        assert_eq!(u8_vec_label.get_u8_state(), Some(valid_state.as_slice()));
+        let result = u8_vec_label.get_u8_state().unwrap();
+        let expected = [1, 2, 3];
+        assert_eq!(result, &expected);
     }
 
     #[test]
