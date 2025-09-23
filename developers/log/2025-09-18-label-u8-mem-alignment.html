@@ -1,0 +1,813 @@
+
+<!DOCTYPE html>
+
+
+<html lang="python" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>OS-Aligned Label Implementation &#8212; RouteE Compass</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=30a733bc"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developers/log/2025-09-18-label-u8-mem-alignment';</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="python"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../intro.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/routeelogo.png" class="logo__image only-light" alt="RouteE Compass - Home"/>
+    <script>document.write(`<img src="../../_static/routeelogo.png" class="logo__image only-dark" alt="RouteE Compass - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../intro.html">
+                    RouteE Compass
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../motivation.html">Motivation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../running.html">Running</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../examples/01_open_street_maps_example.html">OpenStreetMap Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/02_different_powertrains_example.html">Different Powertrains Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/03_time_energy_tradeoff_example.html">Time Energy Tradeoff Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/04_charging_stations_example.html">Charging Stations Example</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../query.html">Query</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">App Config</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../python_api_docs.html">Python API Docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rust_api_docs.html">Rust API Docs</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Developers</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../build_the_docs.html">Build The Docs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rust_code_style.html">Rust Code Style</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/NREL/routee-compass" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/NREL/routee-compass/issues/new?title=Issue%20on%20page%20%2Fdevelopers/log/2025-09-18-label-u8-mem-alignment.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/developers/log/2025-09-18-label-u8-mem-alignment.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>OS-Aligned Label Implementation</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-features">Key Features</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#compile-time-os-detection">1. <strong>Compile-time OS Detection</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-padding-construction">2. <strong>Automatic Padding Construction</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1"><strong>Automatic Padding Construction</strong></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#exact-size-array-construction"><strong>Exact-size Array Construction</strong></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-initialized-construction"><strong>Zero-initialized Construction</strong></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-access-methods">3. <strong>State Access Methods</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#immutable-access"><strong>Immutable Access</strong></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#mutable-access"><strong>Mutable Access</strong></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-padding-behavior">Automatic Padding Behavior</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-padding">Examples of Padding:</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#memory-efficiency-benefits">Memory Efficiency Benefits</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#integration-with-existing-code">Integration with Existing Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-methods">API Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#construction-methods">Construction Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#access-methods">Access Methods</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-guidelines">Usage Guidelines</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recommended-uses">✅ <strong>Recommended Uses</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#considerations">⚠️ <strong>Considerations</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#advantages-over-strict-validation">✅ <strong>Advantages Over Strict Validation</strong></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">Testing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#public-api">Public API</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#migration-from-previous-implementation">Migration from Previous Implementation</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="os-aligned-label-implementation">
+<h1>OS-Aligned Label Implementation<a class="headerlink" href="#os-aligned-label-implementation" title="Link to this heading">#</a></h1>
+<p>This document describes the updated <code class="docutils literal notranslate"><span class="pre">VertexWithU8StateVec</span></code> variant in the <code class="docutils literal notranslate"><span class="pre">Label</span></code> enum in RouteE-Compass. This variant provides memory-efficient storage for u8 state vectors that are automatically padded to align with the operating system's word size.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">#</a></h2>
+<p>The updated label variant addresses memory segmentation concerns by automatically padding state vectors to match the system's word size:</p>
+<ul class="simple">
+<li><p><strong>32-bit systems</strong>: Vectors padded to multiples of 4 bytes</p></li>
+<li><p><strong>64-bit systems</strong>: Vectors padded to multiples of 8 bytes</p></li>
+</ul>
+<p><strong>Key Change</strong>: Unlike strict validation approaches, this implementation automatically pads vectors to the correct alignment, making it impossible to create misaligned state vectors.</p>
+</section>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading">#</a></h2>
+<section id="compile-time-os-detection">
+<h3>1. <strong>Compile-time OS Detection</strong><a class="headerlink" href="#compile-time-os-detection" title="Link to this heading">#</a></h3>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="cp">#[cfg(target_pointer_width = </span><span class="s">&quot;32&quot;</span><span class="cp">)]</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">OS_ALIGNED_STATE_LEN</span><span class="p">:</span><span class="w"> </span><span class="kt">usize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span>
+
+<span class="cp">#[cfg(target_pointer_width = </span><span class="s">&quot;64&quot;</span><span class="cp">)]</span>
+<span class="k">pub</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">OS_ALIGNED_STATE_LEN</span><span class="p">:</span><span class="w"> </span><span class="kt">usize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+<section id="automatic-padding-construction">
+<h3>2. <strong>Automatic Padding Construction</strong><a class="headerlink" href="#automatic-padding-construction" title="Link to this heading">#</a></h3>
+<p>The implementation provides several ways to create aligned labels with automatic padding:</p>
+<section id="id1">
+<h4><strong>Automatic Padding Construction</strong><a class="headerlink" href="#id1" title="Link to this heading">#</a></h4>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">use</span><span class="w"> </span><span class="n">routee_compass_core</span><span class="p">::</span><span class="n">model</span><span class="p">::</span><span class="n">label</span><span class="p">::</span><span class="n">label_enum</span><span class="p">::{</span><span class="n">Label</span><span class="p">,</span><span class="w"> </span><span class="n">OS_ALIGNED_STATE_LEN</span><span class="p">};</span>
+<span class="k">use</span><span class="w"> </span><span class="n">routee_compass_core</span><span class="p">::</span><span class="n">model</span><span class="p">::</span><span class="n">network</span><span class="p">::</span><span class="n">VertexId</span><span class="p">;</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">vertex_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">VertexId</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="fm">vec!</span><span class="p">[</span><span class="mi">1</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="k">u8</span><span class="p">];</span><span class="w"> </span><span class="c1">// Any length works - will be padded automatically</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Label</span><span class="p">::</span><span class="n">new_aligned_u8_state</span><span class="p">(</span><span class="n">vertex_id</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="c1">// On 32-bit: becomes [1, 2, 3, 0] (padded to 4 bytes)</span>
+<span class="c1">// On 64-bit: becomes [1, 2, 3, 0, 0, 0, 0, 0] (padded to 8 bytes)</span>
+</pre></div>
+</div>
+</section>
+<section id="exact-size-array-construction">
+<h4><strong>Exact-size Array Construction</strong><a class="headerlink" href="#exact-size-array-construction" title="Link to this heading">#</a></h4>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="kd">let</span><span class="w"> </span><span class="n">vertex_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">VertexId</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+
+<span class="c1">// This array size is checked at compile time</span>
+<span class="cp">#[cfg(target_pointer_width = </span><span class="s">&quot;32&quot;</span><span class="cp">)]</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="k">u8</span><span class="p">];</span>
+
+<span class="cp">#[cfg(target_pointer_width = </span><span class="s">&quot;64&quot;</span><span class="cp">)]</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="k">u8</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="k">u8</span><span class="p">];</span>
+
+<span class="kd">let</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Label</span><span class="p">::</span><span class="n">from_aligned_u8_array</span><span class="p">(</span><span class="n">vertex_id</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">state</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="zero-initialized-construction">
+<h4><strong>Zero-initialized Construction</strong><a class="headerlink" href="#zero-initialized-construction" title="Link to this heading">#</a></h4>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="kd">let</span><span class="w"> </span><span class="n">vertex_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">VertexId</span><span class="p">(</span><span class="mi">42</span><span class="p">);</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Label</span><span class="p">::</span><span class="n">empty_u8</span><span class="p">(</span><span class="n">vertex_id</span><span class="p">);</span>
+<span class="c1">// Creates a label with [0, 0, 0, 0] on 32-bit or [0, 0, 0, 0, 0, 0, 0, 0] on 64-bit</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="state-access-methods">
+<h3>3. <strong>State Access Methods</strong><a class="headerlink" href="#state-access-methods" title="Link to this heading">#</a></h3>
+<section id="immutable-access">
+<h4><strong>Immutable Access</strong><a class="headerlink" href="#immutable-access" title="Link to this heading">#</a></h4>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="kd">let</span><span class="w"> </span><span class="nb">Some</span><span class="p">(</span><span class="n">state</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">label</span><span class="p">.</span><span class="n">get_u8_state</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="fm">println!</span><span class="p">(</span><span class="s">&quot;State: {:?}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="mutable-access">
+<h4><strong>Mutable Access</strong><a class="headerlink" href="#mutable-access" title="Link to this heading">#</a></h4>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="kd">let</span><span class="w"> </span><span class="nb">Some</span><span class="p">(</span><span class="n">state_mut</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">label</span><span class="p">.</span><span class="n">get_mut_u8_state</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Safe to modify values, length is maintained by the system</span>
+<span class="w">    </span><span class="n">state_mut</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">255</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="automatic-padding-behavior">
+<h2>Automatic Padding Behavior<a class="headerlink" href="#automatic-padding-behavior" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">new_aligned_u8_state</span></code> method automatically handles padding:</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">pub</span><span class="w"> </span><span class="k">fn</span><span class="w"> </span><span class="nf">new_aligned_u8_state</span><span class="p">(</span><span class="n">vertex_id</span><span class="p">:</span><span class="w"> </span><span class="nc">VertexId</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="p">:</span><span class="w"> </span><span class="nb">Vec</span><span class="o">&lt;</span><span class="kt">u8</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">-&gt;</span><span class="w"> </span><span class="nc">Self</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="k">mut</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">;</span>
+<span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="n">remainder</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">state</span><span class="p">.</span><span class="n">len</span><span class="p">()</span><span class="w"> </span><span class="o">%</span><span class="w"> </span><span class="n">OS_ALIGNED_STATE_LEN</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="n">remainder</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="kd">let</span><span class="w"> </span><span class="n">padding_needed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">OS_ALIGNED_STATE_LEN</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">remainder</span><span class="p">;</span>
+<span class="w">        </span><span class="n">state</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="fm">vec!</span><span class="p">[</span><span class="mi">0</span><span class="k">u8</span><span class="p">;</span><span class="w"> </span><span class="n">padding_needed</span><span class="p">]);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span>
+<span class="w">    </span><span class="n">Label</span><span class="p">::</span><span class="n">VertexWithU8StateVec</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">vertex_id</span><span class="p">,</span><span class="w"> </span><span class="n">state</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="examples-of-padding">
+<h3>Examples of Padding:<a class="headerlink" href="#examples-of-padding" title="Link to this heading">#</a></h3>
+<p><strong>32-bit system (4-byte alignment):</strong></p>
+<ul class="simple">
+<li><p>Input: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3]</span></code> → Output: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">0]</span></code></p></li>
+<li><p>Input: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4]</span></code> → Output: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4]</span></code> (no padding needed)</p></li>
+<li><p>Input: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5]</span></code> → Output: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code></p></li>
+</ul>
+<p><strong>64-bit system (8-byte alignment):</strong></p>
+<ul class="simple">
+<li><p>Input: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3]</span></code> → Output: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code></p></li>
+<li><p>Input: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5,</span> <span class="pre">6,</span> <span class="pre">7,</span> <span class="pre">8]</span></code> → Output: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5,</span> <span class="pre">6,</span> <span class="pre">7,</span> <span class="pre">8]</span></code> (no padding needed)</p></li>
+<li><p>Input: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5,</span> <span class="pre">6,</span> <span class="pre">7,</span> <span class="pre">8,</span> <span class="pre">9]</span></code> → Output: <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4,</span> <span class="pre">5,</span> <span class="pre">6,</span> <span class="pre">7,</span> <span class="pre">8,</span> <span class="pre">9,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0]</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="memory-efficiency-benefits">
+<h2>Memory Efficiency Benefits<a class="headerlink" href="#memory-efficiency-benefits" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Consistent Alignment</strong>: All state vectors are aligned to word boundaries</p></li>
+<li><p><strong>Reduced Fragmentation</strong>: Aligned data helps memory allocators manage heap more efficiently</p></li>
+<li><p><strong>Cache Performance</strong>: Word-aligned data works better with CPU cache lines</p></li>
+<li><p><strong>No Runtime Errors</strong>: Automatic padding eliminates validation errors</p></li>
+</ol>
+</section>
+<section id="integration-with-existing-code">
+<h2>Integration with Existing Code<a class="headerlink" href="#integration-with-existing-code" title="Link to this heading">#</a></h2>
+<p>The updated variant integrates seamlessly with existing <code class="docutils literal notranslate"><span class="pre">Label</span></code> functionality:</p>
+<ul class="simple">
+<li><p>✅ <code class="docutils literal notranslate"><span class="pre">vertex_id()</span></code> method works normally</p></li>
+<li><p>✅ <code class="docutils literal notranslate"><span class="pre">Display</span></code> trait provides debug output: <code class="docutils literal notranslate"><span class="pre">VertexWithU8StateVec(42,</span> <span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">0])</span></code></p></li>
+<li><p>✅ Serialization support via <code class="docutils literal notranslate"><span class="pre">Serialize</span></code></p></li>
+<li><p>✅ Hash and equality comparisons work</p></li>
+<li><p>✅ All pattern matching uses the existing <code class="docutils literal notranslate"><span class="pre">VertexWithU8StateVec</span></code> variant</p></li>
+</ul>
+</section>
+<section id="api-methods">
+<h2>API Methods<a class="headerlink" href="#api-methods" title="Link to this heading">#</a></h2>
+<section id="construction-methods">
+<h3>Construction Methods<a class="headerlink" href="#construction-methods" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Label::new_aligned_u8_state(vertex_id,</span> <span class="pre">state)</span></code> - Automatic padding to alignment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Label::from_aligned_u8_array(vertex_id,</span> <span class="pre">&amp;array)</span></code> - From exact-size array</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Label::empty_u8(vertex_id)</span></code> - Zero-initialized aligned state</p></li>
+</ul>
+</section>
+<section id="access-methods">
+<h3>Access Methods<a class="headerlink" href="#access-methods" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">label.get_u8_state()</span></code> - Immutable access to state vector</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">label.get_mut_u8_state()</span></code> - Mutable access to state vector</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">label.vertex_id()</span></code> - Get vertex ID (works for all Label variants)</p></li>
+</ul>
+</section>
+</section>
+<section id="usage-guidelines">
+<h2>Usage Guidelines<a class="headerlink" href="#usage-guidelines" title="Link to this heading">#</a></h2>
+<section id="recommended-uses">
+<h3>✅ <strong>Recommended Uses</strong><a class="headerlink" href="#recommended-uses" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Small to medium-size state data (efficiently padded)</p></li>
+<li><p>Frequently allocated/deallocated labels</p></li>
+<li><p>Performance-critical search algorithms where alignment matters</p></li>
+<li><p>When you want automatic memory optimization without manual padding</p></li>
+</ul>
+</section>
+<section id="considerations">
+<h3>⚠️ <strong>Considerations</strong><a class="headerlink" href="#considerations" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Padding adds zero bytes which may affect data interpretation</p></li>
+<li><p>Slightly larger memory usage due to padding (but better aligned)</p></li>
+<li><p>Final vector length may be larger than input length</p></li>
+</ul>
+</section>
+<section id="advantages-over-strict-validation">
+<h3>✅ <strong>Advantages Over Strict Validation</strong><a class="headerlink" href="#advantages-over-strict-validation" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>No runtime errors from &quot;wrong&quot; sizes</p></li>
+<li><p>Automatic optimization without user burden</p></li>
+<li><p>Flexible input sizes while maintaining performance benefits</p></li>
+<li><p>Simpler API - no error handling needed for construction</p></li>
+</ul>
+</section>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading">#</a></h2>
+<p>The implementation includes comprehensive tests covering:</p>
+<ul class="simple">
+<li><p>Automatic padding behavior</p></li>
+<li><p>Constructor methods</p></li>
+<li><p>State access methods</p></li>
+<li><p>Integration with existing functionality</p></li>
+</ul>
+<p>Run tests with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cargo<span class="w"> </span><span class="nb">test</span><span class="w"> </span>label_enum
+</pre></div>
+</div>
+</section>
+<section id="public-api">
+<h2>Public API<a class="headerlink" href="#public-api" title="Link to this heading">#</a></h2>
+<p>The following items are exported from the label module:</p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="k">pub</span><span class="w"> </span><span class="k">use</span><span class="w"> </span><span class="n">label_enum</span><span class="p">::</span><span class="n">Label</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><strong>Note</strong>: The updated implementation reuses the existing <code class="docutils literal notranslate"><span class="pre">VertexWithU8StateVec</span></code> variant rather than creating a new variant, making it backward compatible while adding the alignment behavior.</p>
+</section>
+<section id="migration-from-previous-implementation">
+<h2>Migration from Previous Implementation<a class="headerlink" href="#migration-from-previous-implementation" title="Link to this heading">#</a></h2>
+<p>If you were previously using validation-based approaches:</p>
+<p><strong>Before (validation-based):</strong></p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="c1">// This could fail</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Label</span><span class="p">::</span><span class="n">new_aligned_u8_state</span><span class="p">(</span><span class="n">vertex_id</span><span class="p">,</span><span class="w"> </span><span class="fm">vec!</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]);</span>
+<span class="k">match</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nb">Ok</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* use label */</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="nb">Err</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="cm">/* handle error */</span><span class="w"> </span><span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>After (padding-based):</strong></p>
+<div class="highlight-rust notranslate"><div class="highlight"><pre><span></span><span class="c1">// This always succeeds</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Label</span><span class="p">::</span><span class="n">new_aligned_u8_state</span><span class="p">(</span><span class="n">vertex_id</span><span class="p">,</span><span class="w"> </span><span class="fm">vec!</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]);</span>
+<span class="c1">// Automatically padded to [1, 2, 3, 0] on 32-bit or [1, 2, 3, 0, 0, 0, 0, 0] on 64-bit</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./developers/log"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview">Overview</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-features">Key Features</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#compile-time-os-detection">1. <strong>Compile-time OS Detection</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-padding-construction">2. <strong>Automatic Padding Construction</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id1"><strong>Automatic Padding Construction</strong></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#exact-size-array-construction"><strong>Exact-size Array Construction</strong></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#zero-initialized-construction"><strong>Zero-initialized Construction</strong></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#state-access-methods">3. <strong>State Access Methods</strong></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#immutable-access"><strong>Immutable Access</strong></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#mutable-access"><strong>Mutable Access</strong></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#automatic-padding-behavior">Automatic Padding Behavior</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#examples-of-padding">Examples of Padding:</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#memory-efficiency-benefits">Memory Efficiency Benefits</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#integration-with-existing-code">Integration with Existing Code</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#api-methods">API Methods</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#construction-methods">Construction Methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#access-methods">Access Methods</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-guidelines">Usage Guidelines</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recommended-uses">✅ <strong>Recommended Uses</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#considerations">⚠️ <strong>Considerations</strong></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#advantages-over-strict-validation">✅ <strong>Advantages Over Strict Validation</strong></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#testing">Testing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#public-api">Public API</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#migration-from-previous-implementation">Migration from Previous Implementation</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By National Renewable Energy Laboratory
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2023.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
