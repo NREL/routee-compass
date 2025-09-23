@@ -54,7 +54,7 @@ pub fn topological_dependency_sort(
         }
     }
 
-    // if there are input features listed by models that are not provided by other traversal models, we can report this to the user and fail here.
+    // if there are input features listed by models that are not provided by other traversal models, we can report this to the user and fail here, but only when `ignore_missing` is false.
     if !missing_parents.is_empty() && !ignore_missing {
         let joined = missing_parents.iter().join(",");
         let msg = format!(
