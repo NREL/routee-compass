@@ -12,6 +12,7 @@ mod search_instance;
 mod search_result;
 mod search_tree_branch;
 pub mod util;
+mod search_tree;
 
 pub use direction::Direction;
 pub use edge_traversal::EdgeTraversal;
@@ -21,6 +22,7 @@ pub use search_error::SearchError;
 pub use search_instance::SearchInstance;
 pub use search_result::SearchResult;
 pub use search_tree_branch::SearchTreeBranch;
+pub use search_tree::{SearchTree, SearchTreeNode, SearchTreeError};
 
 use crate::model::label::Label;
 
