@@ -16,6 +16,7 @@ impl CombinedTraversalService {
         services: Vec<Arc<dyn TraversalModelService>>,
         ignore_missing: bool,
     ) -> CombinedTraversalService {
+        log::info!("CombinedTraversalService: user set `ignore_missing` on topological sort");
         CombinedTraversalService {
             services,
             ignore_missing,
