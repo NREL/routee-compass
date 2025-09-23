@@ -272,7 +272,10 @@ mod test {
     fn test_ignore_missing_dependency() {
         init_test_logger();
 
-        let missing_feature = InputFeature::Custom { name: "system_of_measurement".to_string(), unit: "category".to_string() };
+        let missing_feature = InputFeature::Custom {
+            name: "system_of_measurement".to_string(),
+            unit: "category".to_string(),
+        };
         let distance_feature = InputFeature::Distance {
             name: "distance".to_string(),
             unit: None,
