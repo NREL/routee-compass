@@ -1,5 +1,8 @@
 use super::CombinedTraversalService;
-use crate::model::traversal::{default::combined::CombinedTraversalConfig, TraversalModelBuilder, TraversalModelError, TraversalModelService};
+use crate::model::traversal::{
+    default::combined::CombinedTraversalConfig, TraversalModelBuilder, TraversalModelError,
+    TraversalModelService,
+};
 use itertools::Itertools;
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
@@ -20,12 +23,19 @@ impl TraversalModelBuilder for CombinedTraversalBuilder {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModelService>, TraversalModelError> {
-        let conf: CombinedTraversalConfig = serde_json::from_value(parameters.clone()).map_err(|e| TraversalModelError::BuildError(format!("failure reading Combined Traversal Config: {e}")))?;
-        let services: Vec<Arc<dyn TraversalModelService>> = conf.models
+        let conf: CombinedTraversalConfig =
+            serde_json::from_value(parameters.clone()).map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "failure reading Combined Traversal Config: {e}"
+                ))
+            })?;
+        let services: Vec<Arc<dyn TraversalModelService>> = conf
+            .models
             .iter()
             .map(|conf| build_model_from_json(conf, &self.builders))
             .try_collect()?;
-        let service: Arc<dyn TraversalModelService> = Arc::new(CombinedTraversalService::new(services, conf.ignore_missing));
+        let service: Arc<dyn TraversalModelService> =
+            Arc::new(CombinedTraversalService::new(services, conf.ignore_missing));
         Ok(service)
     }
 }

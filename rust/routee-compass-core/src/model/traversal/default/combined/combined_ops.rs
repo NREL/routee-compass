@@ -21,7 +21,7 @@ use topological_sort;
 /// Sorted list of models, or an error if dependencies are missing
 pub fn topological_dependency_sort(
     models: &[Arc<dyn TraversalModel>],
-    ignore_missing: bool
+    ignore_missing: bool,
 ) -> Result<Vec<Arc<dyn TraversalModel>>, TraversalModelError> {
     let output_features_lookup = models
         .iter()
@@ -144,7 +144,8 @@ mod test {
                 .collect_vec();
 
         // apply sort and then reconstruct descriptions for each model on the sorted values
-        let sorted = topological_dependency_sort(&models, false).expect("failure during sort function");
+        let sorted =
+            topological_dependency_sort(&models, false).expect("failure during sort function");
         let sorted_descriptions = sorted
             .iter()
             .map(|m| {
@@ -227,7 +228,8 @@ mod test {
                 .collect_vec();
 
         // apply sort and then reconstruct descriptions for each model on the sorted values
-        let sorted = topological_dependency_sort(&models, false).expect("failure during sort function");
+        let sorted =
+            topological_dependency_sort(&models, false).expect("failure during sort function");
         let sorted_descriptions = sorted
             .iter()
             .map(|m| {

@@ -8,12 +8,18 @@ use std::sync::Arc;
 
 pub struct CombinedTraversalService {
     services: Vec<Arc<dyn TraversalModelService>>,
-    ignore_missing: bool
+    ignore_missing: bool,
 }
 
 impl CombinedTraversalService {
-    pub fn new(services: Vec<Arc<dyn TraversalModelService>>, ignore_missing: bool) -> CombinedTraversalService {
-        CombinedTraversalService { services, ignore_missing }
+    pub fn new(
+        services: Vec<Arc<dyn TraversalModelService>>,
+        ignore_missing: bool,
+    ) -> CombinedTraversalService {
+        CombinedTraversalService {
+            services,
+            ignore_missing,
+        }
     }
 }
 

@@ -5,5 +5,5 @@ use serde_json::Value;
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CombinedTraversalConfig {
     pub models: Vec<Value>,
-    pub ignore_missing: bool
+    pub ignore_missing: bool,
 }
