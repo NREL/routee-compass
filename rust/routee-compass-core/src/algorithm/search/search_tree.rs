@@ -251,9 +251,9 @@ impl SearchTree {
         // in state-dependent searches, so we need to find the right one
         let target_label = self
             .find_label_for_vertex(leaf_vertex)
-            .ok_or_else(|| SearchTreeError::VertexNotFound(leaf_vertex))?;
+            .ok_or(SearchTreeError::VertexNotFound(leaf_vertex))?;
 
-        self.reconstruct_path(&target_label)
+        self.reconstruct_path(target_label)
     }
 
     /// Backtrack from a leaf vertex to construct a path with explicit direction override
@@ -271,7 +271,7 @@ impl SearchTree {
     ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
         let target_label = self
             .find_label_for_vertex(leaf_vertex)
-            .ok_or_else(|| SearchTreeError::VertexNotFound(leaf_vertex))?;
+            .ok_or(SearchTreeError::VertexNotFound(leaf_vertex))?;
 
         let mut path = Vec::new();
         let mut current_label = target_label;
@@ -312,7 +312,7 @@ impl SearchTree {
     /// Find a label for the given vertex ID
     /// In case of multiple labels for the same vertex (state-dependent search),
     /// returns the first one found. For more precise control, use reconstruct_path directly.
-    fn find_label_for_vertex<'a>(&'a self, vertex: VertexId) -> Option<&'a Label> {
+    fn find_label_for_vertex(&self, vertex: VertexId) -> Option<&Label> {
         self.nodes.keys().find(|label| label.vertex_id() == vertex)
     }
 
