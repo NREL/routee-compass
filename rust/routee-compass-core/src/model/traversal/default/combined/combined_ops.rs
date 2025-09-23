@@ -267,6 +267,87 @@ mod test {
         }
     }
 
+    /// tests the "ignore_missing" argument, adding a joke "system_of_measurement" dependency on "distance".
+    #[test]
+    fn test_ignore_missing_dependency() {
+        init_test_logger();
+
+        let missing_feature = InputFeature::Custom { name: "system_of_measurement".to_string(), unit: "category".to_string() };
+        let distance_feature = InputFeature::Distance {
+            name: "distance".to_string(),
+            unit: None,
+        };
+        let speed_feature = InputFeature::Speed {
+            name: "speed".to_string(),
+            unit: None,
+        };
+        let grade_feature = InputFeature::Ratio {
+            name: "grade".to_string(),
+            unit: None,
+        };
+
+        // mock up models for 6 dimensions, 3 of which have upstream dependencies
+        let distance = MockModel::new(vec![missing_feature], vec!["distance"]);
+        let speed = MockModel::new(vec![], vec!["speed"]);
+        let time = MockModel::new(
+            vec![distance_feature.clone(), speed_feature.clone()],
+            vec!["time"],
+        );
+        let grade = MockModel::new(vec![], vec!["grade"]);
+        let elevation = MockModel::new(vec![grade_feature.clone()], vec!["elevation"]);
+        let energy = MockModel::new(
+            vec![distance_feature, speed_feature, grade_feature],
+            vec!["energy"],
+        );
+        let models: Vec<Arc<dyn TraversalModel>> =
+            vec![energy, elevation, time, grade, speed, distance]
+                .into_iter()
+                .map(|m| {
+                    let am: Arc<dyn TraversalModel> = Arc::new(m);
+                    am
+                })
+                .collect_vec();
+
+        // apply sort and then reconstruct descriptions for each model on the sorted values
+        let sorted =
+            topological_dependency_sort(&models, true).expect("failure during sort function");
+        let sorted_descriptions = sorted
+            .iter()
+            .map(|m| {
+                let input_features = m.input_features();
+                let in_names = if input_features.is_empty() {
+                    String::from("*")
+                } else {
+                    m.input_features()
+                        .iter()
+                        .map(|feature| feature.name())
+                        .join("+")
+                };
+                let out_name = m.output_features().iter().map(|(n, _)| n).join("");
+                format!("{in_names}->{out_name}")
+            })
+            .collect_vec();
+
+        // validate that the dependencies are honored. the algorithm makes no guarantees about
+        // tiebreaking usize values so we cannot expect a deterministic output here.
+        let mut distance_seen = false;
+        let mut speed_seen = false;
+        let mut grade_seen = false;
+        for description in sorted_descriptions.iter() {
+            match description.as_str() {
+                "*->grade" => grade_seen = true,
+                "*->speed" => speed_seen = true,
+                "system_of_measurement->distance" => distance_seen = true,
+                "distance+speed+grade->energy" => {
+                    assert!(distance_seen && speed_seen && grade_seen)
+                }
+                "distance+speed->time" => assert!(distance_seen && speed_seen),
+                "grade->elevation" => assert!(grade_seen),
+                other => panic!("unexpected key: '{other}'"),
+            }
+        }
+    }
+
     fn init_test_logger() {
         let _ = env_logger::builder()
             .is_test(true)
