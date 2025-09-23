@@ -34,8 +34,10 @@ impl TraversalModelBuilder for CombinedTraversalBuilder {
             .iter()
             .map(|conf| build_model_from_json(conf, &self.builders))
             .try_collect()?;
-        let service: Arc<dyn TraversalModelService> =
-            Arc::new(CombinedTraversalService::new(services, conf.ignore_missing.unwrap_or_default()));
+        let service: Arc<dyn TraversalModelService> = Arc::new(CombinedTraversalService::new(
+            services,
+            conf.ignore_missing.unwrap_or_default(),
+        ));
         Ok(service)
     }
 }
