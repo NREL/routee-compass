@@ -12,12 +12,16 @@ use topological_sort;
 /// # Arguments
 ///
 /// * `models` - the traversal models to sort
+/// * `ignore_missing` - if true, ignore any missing "parent features". for example,
+///   access models may provide features that cannot be accounted for here. with "ignore_missing"
+///   true, the sort still runs on feature dependencies amongst TraversalModels.
 ///
 /// # Returns
 ///
 /// Sorted list of models, or an error if dependencies are missing
 pub fn topological_dependency_sort(
     models: &[Arc<dyn TraversalModel>],
+    ignore_missing: bool
 ) -> Result<Vec<Arc<dyn TraversalModel>>, TraversalModelError> {
     let output_features_lookup = models
         .iter()
@@ -50,10 +54,11 @@ pub fn topological_dependency_sort(
         }
     }
 
-    if !missing_parents.is_empty() {
+    // if there are input features listed by models that are not provided by other traversal models, we can report this to the user and fail here.
+    if !missing_parents.is_empty() && !ignore_missing {
         let joined = missing_parents.iter().join(",");
         let msg = format!(
-            "the following state variables are required by traversal models but missing: {{{joined}}}"
+            "the following state variables are required by traversal models but missing: {{{joined}}}. to ignore missing, set `ignore_missing` in configuration"
         );
         return Err(TraversalModelError::BuildError(msg));
     }
@@ -139,7 +144,7 @@ mod test {
                 .collect_vec();
 
         // apply sort and then reconstruct descriptions for each model on the sorted values
-        let sorted = topological_dependency_sort(&models).expect("failure during sort function");
+        let sorted = topological_dependency_sort(&models, false).expect("failure during sort function");
         let sorted_descriptions = sorted
             .iter()
             .map(|m| {
@@ -222,7 +227,7 @@ mod test {
                 .collect_vec();
 
         // apply sort and then reconstruct descriptions for each model on the sorted values
-        let sorted = topological_dependency_sort(&models).expect("failure during sort function");
+        let sorted = topological_dependency_sort(&models, false).expect("failure during sort function");
         let sorted_descriptions = sorted
             .iter()
             .map(|m| {

@@ -8,11 +8,12 @@ use std::sync::Arc;
 
 pub struct CombinedTraversalService {
     services: Vec<Arc<dyn TraversalModelService>>,
+    ignore_missing: bool
 }
 
 impl CombinedTraversalService {
-    pub fn new(services: Vec<Arc<dyn TraversalModelService>>) -> CombinedTraversalService {
-        CombinedTraversalService { services }
+    pub fn new(services: Vec<Arc<dyn TraversalModelService>>, ignore_missing: bool) -> CombinedTraversalService {
+        CombinedTraversalService { services, ignore_missing }
     }
 }
 
@@ -29,7 +30,7 @@ impl TraversalModelService for CombinedTraversalService {
                 service.build(query)
             })
             .try_collect()?;
-        let sorted_models = topological_dependency_sort(&models)?;
+        let sorted_models = topological_dependency_sort(&models, self.ignore_missing)?;
         Ok(Arc::new(CombinedTraversalModel::new(sorted_models)))
     }
 }
