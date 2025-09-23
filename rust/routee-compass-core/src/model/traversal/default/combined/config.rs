@@ -6,7 +6,7 @@ use serde_json::Value;
 pub struct CombinedTraversalConfig {
     /// an array of model configurations, each its own argument to a TraversalModelBuilder::build() invocation
     pub models: Vec<Value>,
-    /// if true, unaccounted for features will not trigger an error. see combined_ops for more details.
+    /// if true, unaccounted for features will not trigger an error. see combined_ops::topological_dependency_sort for more details.
     /// if ignore_missing is None, the default will be false ("do not ignore missing").
     pub ignore_missing: Option<bool>,
 }
