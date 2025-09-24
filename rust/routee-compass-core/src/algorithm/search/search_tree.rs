@@ -6,15 +6,15 @@ use std::collections::{HashMap, HashSet};
 /// A node in the search tree containing parent/child relationships and traversal data
 #[derive(Debug, Clone)]
 pub enum SearchTreeNode {
-    Root { 
+    Root {
         /// The label for this node
-        label: Label, 
+        label: Label,
         /// Children node labels
         children: HashSet<Label>,
         /// Tree orientation this node belongs to
         direction: Direction,
     },
-    Branch { 
+    Branch {
         /// The label for this node
         label: Label,
         /// The edge traversal that led to this node (None for root)
@@ -25,7 +25,7 @@ pub enum SearchTreeNode {
         children: HashSet<Label>,
         /// Tree orientation this node belongs to
         direction: Direction,
-    }
+    },
 }
 
 impl SearchTreeNode {
@@ -54,22 +54,22 @@ impl SearchTreeNode {
 
     pub fn label(&self) -> &Label {
         match self {
-            SearchTreeNode::Root { label, ..} => label,
-            SearchTreeNode::Branch { label, ..} => label,
+            SearchTreeNode::Root { label, .. } => label,
+            SearchTreeNode::Branch { label, .. } => label,
         }
     }
 
     pub fn vertex_id(&self) -> VertexId {
         match self {
-            SearchTreeNode::Root { label, ..} => label.vertex_id(),
-            SearchTreeNode::Branch { label, ..} => label.vertex_id(),
+            SearchTreeNode::Root { label, .. } => label.vertex_id(),
+            SearchTreeNode::Branch { label, .. } => label.vertex_id(),
         }
     }
 
     pub fn parent_label(&self) -> Option<&Label> {
         match self {
-            SearchTreeNode::Root { ..} => None,
-            SearchTreeNode::Branch { parent, ..} => Some(parent),
+            SearchTreeNode::Root { .. } => None,
+            SearchTreeNode::Branch { parent, .. } => Some(parent),
         }
     }
 
@@ -96,14 +96,14 @@ impl SearchTreeNode {
 
     pub fn add_child(&mut self, child_label: Label) {
         match self {
-            SearchTreeNode::Root {  children, ..} => children.insert(child_label),
+            SearchTreeNode::Root { children, .. } => children.insert(child_label),
             SearchTreeNode::Branch { children, .. } => children.insert(child_label),
         };
     }
 
     pub fn remove_child(&mut self, child_label: &Label) {
         match self {
-            SearchTreeNode::Root {  children, ..} => children.remove(child_label),
+            SearchTreeNode::Root { children, .. } => children.remove(child_label),
             SearchTreeNode::Branch { children, .. } => children.remove(child_label),
         };
     }
@@ -206,12 +206,11 @@ impl SearchTree {
     pub fn get_children(&self, label: &Label) -> Vec<&SearchTreeNode> {
         match self.get(label) {
             None => vec![],
-            Some(node) => {
-                node.children()
-                    .iter()
-                    .filter_map(|child_label| self.get(child_label))
-                    .collect()
-            },
+            Some(node) => node
+                .children()
+                .iter()
+                .filter_map(|child_label| self.get(child_label))
+                .collect(),
         }
     }
 
@@ -262,10 +261,14 @@ impl SearchTree {
             // If this is the root, we're done, otherwise traverse path
             match current_node {
                 SearchTreeNode::Root { .. } => break,
-                SearchTreeNode::Branch { incoming_edge, parent, .. } => {
+                SearchTreeNode::Branch {
+                    incoming_edge,
+                    parent,
+                    ..
+                } => {
                     path.push(incoming_edge.clone());
                     current_label = parent;
-                },
+                }
             }
         }
 
@@ -415,18 +418,12 @@ mod tests {
         let child1_node = tree.get(&child1_label).unwrap();
         assert!(!child1_node.is_root());
         assert_eq!(child1_node.parent_label(), Some(&root_label));
-        assert_eq!(
-            child1_node.incoming_edge().unwrap().edge_id,
-            EdgeId(1)
-        );
+        assert_eq!(child1_node.incoming_edge().unwrap().edge_id, EdgeId(1));
 
         let child2_node = tree.get(&child2_label).unwrap();
         assert!(!child2_node.is_root());
         assert_eq!(child2_node.parent_label(), Some(&root_label));
-        assert_eq!(
-            child2_node.incoming_edge().unwrap().edge_id,
-            EdgeId(2)
-        );
+        assert_eq!(child2_node.incoming_edge().unwrap().edge_id, EdgeId(2));
     }
 
     #[test]
@@ -740,10 +737,7 @@ mod tests {
         let child_node = tree.get(&child_label).unwrap();
         assert!(!child_node.is_root());
         assert_eq!(child_node.parent_label(), Some(&parent_label));
-        assert_eq!(
-            child_node.incoming_edge().unwrap().edge_id,
-            EdgeId(1)
-        );
+        assert_eq!(child_node.incoming_edge().unwrap().edge_id, EdgeId(1));
     }
 
     #[test]
