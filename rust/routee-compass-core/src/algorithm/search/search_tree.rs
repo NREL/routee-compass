@@ -46,7 +46,7 @@ impl SearchTreeNode {
         Self::Branch {
             label: label.clone(),
             incoming_edge: edge_traversal,
-            parent: parent,
+            parent,
             children: HashSet::new(),
             direction,
         }
