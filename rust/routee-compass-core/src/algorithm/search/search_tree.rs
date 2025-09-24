@@ -5,25 +5,33 @@ use std::collections::{HashMap, HashSet};
 
 /// A node in the search tree containing parent/child relationships and traversal data
 #[derive(Debug, Clone)]
-pub struct SearchTreeNode {
-    /// The label for this node
-    pub label: Label,
-    /// The edge traversal that led to this node (None for root)
-    pub edge_traversal: Option<EdgeTraversal>,
-    /// Parent node label (None for root)
-    pub parent: Option<Label>,
-    /// Children node labels
-    pub children: HashSet<Label>,
-    /// Tree orientation this node belongs to
-    pub direction: Direction,
+pub enum SearchTreeNode {
+    Root { 
+        /// The label for this node
+        label: Label, 
+        /// Children node labels
+        children: HashSet<Label>,
+        /// Tree orientation this node belongs to
+        direction: Direction,
+    },
+    Branch { 
+        /// The label for this node
+        label: Label,
+        /// The edge traversal that led to this node (None for root)
+        incoming_edge: EdgeTraversal,
+        /// Parent node label (None for root)
+        parent: Label,
+        /// Children node labels
+        children: HashSet<Label>,
+        /// Tree orientation this node belongs to
+        direction: Direction,
+    }
 }
 
 impl SearchTreeNode {
     pub fn new_root(label: Label, orientation: Direction) -> Self {
-        Self {
+        Self::Root {
             label: label.clone(),
-            edge_traversal: None,
-            parent: None,
             children: HashSet::new(),
             direction: orientation,
         }
@@ -35,29 +43,69 @@ impl SearchTreeNode {
         parent: Label,
         direction: Direction,
     ) -> Self {
-        Self {
+        Self::Branch {
             label: label.clone(),
-            edge_traversal: Some(edge_traversal),
-            parent: Some(parent),
+            incoming_edge: edge_traversal,
+            parent: parent,
             children: HashSet::new(),
             direction,
         }
     }
 
+    pub fn label(&self) -> &Label {
+        match self {
+            SearchTreeNode::Root { label, ..} => label,
+            SearchTreeNode::Branch { label, ..} => label,
+        }
+    }
+
     pub fn vertex_id(&self) -> VertexId {
-        self.label.vertex_id()
+        match self {
+            SearchTreeNode::Root { label, ..} => label.vertex_id(),
+            SearchTreeNode::Branch { label, ..} => label.vertex_id(),
+        }
+    }
+
+    pub fn parent_label(&self) -> Option<&Label> {
+        match self {
+            SearchTreeNode::Root { ..} => None,
+            SearchTreeNode::Branch { parent, ..} => Some(parent),
+        }
+    }
+
+    pub fn children(&self) -> &HashSet<Label> {
+        match self {
+            SearchTreeNode::Root { children, .. } => children,
+            SearchTreeNode::Branch { children, .. } => children,
+        }
+    }
+
+    pub fn incoming_edge(&self) -> Option<&EdgeTraversal> {
+        match self {
+            SearchTreeNode::Root { .. } => None,
+            SearchTreeNode::Branch { incoming_edge, .. } => Some(incoming_edge),
+        }
     }
 
     pub fn is_root(&self) -> bool {
-        self.parent.is_none()
+        match self {
+            SearchTreeNode::Root { .. } => true,
+            SearchTreeNode::Branch { .. } => false,
+        }
     }
 
     pub fn add_child(&mut self, child_label: Label) {
-        self.children.insert(child_label);
+        match self {
+            SearchTreeNode::Root {  children, ..} => children.insert(child_label),
+            SearchTreeNode::Branch { children, .. } => children.insert(child_label),
+        };
     }
 
     pub fn remove_child(&mut self, child_label: &Label) {
-        self.children.remove(child_label);
+        match self {
+            SearchTreeNode::Root {  children, ..} => children.remove(child_label),
+            SearchTreeNode::Branch { children, .. } => children.remove(child_label),
+        };
     }
 }
 
@@ -149,28 +197,28 @@ impl SearchTree {
 
     /// Get the parent of a node
     pub fn get_parent(&self, label: &Label) -> Option<&SearchTreeNode> {
-        self.get(label)?
-            .parent
-            .as_ref()
-            .and_then(|parent_label| self.get(parent_label))
+        let node = self.get(label)?;
+        let parent_label = node.parent_label()?;
+        self.get(parent_label)
     }
 
     /// Get all children of a node
     pub fn get_children(&self, label: &Label) -> Vec<&SearchTreeNode> {
-        if let Some(node) = self.get(label) {
-            node.children
-                .iter()
-                .filter_map(|child_label| self.get(child_label))
-                .collect()
-        } else {
-            Vec::new()
+        match self.get(label) {
+            None => vec![],
+            Some(node) => {
+                node.children()
+                    .iter()
+                    .filter_map(|child_label| self.get(child_label))
+                    .collect()
+            },
         }
     }
 
     /// Get all child labels of a node
     pub fn get_child_labels(&self, label: &Label) -> Vec<Label> {
         if let Some(node) = self.get(label) {
-            node.children.iter().cloned().collect()
+            node.children().iter().cloned().collect()
         } else {
             Vec::new()
         }
@@ -211,21 +259,14 @@ impl SearchTree {
                 .get(current_label)
                 .ok_or_else(|| SearchTreeError::LabelNotFound(current_label.clone()))?;
 
-            // If this is the root, we're done
-            if current_node.is_root() {
-                break;
+            // If this is the root, we're done, otherwise traverse path
+            match current_node {
+                SearchTreeNode::Root { .. } => break,
+                SearchTreeNode::Branch { incoming_edge, parent, .. } => {
+                    path.push(incoming_edge.clone());
+                    current_label = parent;
+                },
             }
-
-            // Add the edge traversal that led to this node
-            if let Some(ref edge_traversal) = current_node.edge_traversal {
-                path.push(edge_traversal.clone());
-            }
-
-            // Move to parent
-            current_label = current_node
-                .parent
-                .as_ref()
-                .ok_or_else(|| SearchTreeError::MissingParent(current_label.clone()))?;
         }
 
         // For forward search, reverse the path to go from root to target
@@ -256,59 +297,6 @@ impl SearchTree {
         self.reconstruct_path(target_label)
     }
 
-    /// Backtrack from a leaf vertex to construct a path with explicit direction override
-    ///
-    /// # Arguments
-    /// * `leaf_vertex` - The vertex ID to backtrack from
-    /// * `direction` - Direction to use for path construction (overrides tree's direction)
-    ///
-    /// # Returns
-    /// A path of EdgeTraversals oriented according to the specified direction
-    pub fn backtrack_with_direction(
-        &self,
-        leaf_vertex: VertexId,
-        direction: Direction,
-    ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
-        let target_label = self
-            .find_label_for_vertex(leaf_vertex)
-            .ok_or(SearchTreeError::VertexNotFound(leaf_vertex))?;
-
-        let mut path = Vec::new();
-        let mut current_label = target_label;
-
-        // Walk up from target to root
-        loop {
-            let current_node = self
-                .get(current_label)
-                .ok_or_else(|| SearchTreeError::LabelNotFound(current_label.clone()))?;
-
-            // If this is the root, we're done
-            if current_node.is_root() {
-                break;
-            }
-
-            // Add the edge traversal that led to this node
-            if let Some(ref edge_traversal) = current_node.edge_traversal {
-                path.push(edge_traversal.clone());
-            }
-
-            // Move to parent
-            current_label = current_node
-                .parent
-                .as_ref()
-                .ok_or_else(|| SearchTreeError::MissingParent(current_label.clone()))?;
-        }
-
-        // Apply direction-specific ordering
-        match direction {
-            Direction::Forward => {
-                path.reverse();
-                Ok(path)
-            }
-            Direction::Reverse => Ok(path),
-        }
-    }
-
     /// Find a label for the given vertex ID
     /// In case of multiple labels for the same vertex (state-dependent search),
     /// returns the first one found. For more precise control, use reconstruct_path directly.
@@ -324,97 +312,6 @@ impl SearchTree {
     /// Get all nodes in the tree
     pub fn nodes(&self) -> impl Iterator<Item = &SearchTreeNode> {
         self.nodes.values()
-    }
-
-    /// Convert to a HashMap<Label, SearchTreeBranch> for compatibility with existing code
-    pub fn to_search_tree_branches(&self) -> HashMap<Label, super::SearchTreeBranch> {
-        self.nodes
-            .iter()
-            .filter_map(|(label, node)| {
-                if let Some(ref edge_traversal) = node.edge_traversal {
-                    let terminal_label = node.parent.as_ref()?.clone();
-                    Some((
-                        label.clone(),
-                        super::SearchTreeBranch {
-                            terminal_label,
-                            edge_traversal: edge_traversal.clone(),
-                        },
-                    ))
-                } else {
-                    // Skip root nodes as they don't have edge traversals
-                    None
-                }
-            })
-            .collect()
-    }
-
-    /// Create from a HashMap<Label, SearchTreeBranch> for compatibility
-    pub fn from_search_tree_branches(
-        branches: HashMap<Label, super::SearchTreeBranch>,
-        direction: Direction,
-    ) -> Result<Self, SearchTreeError> {
-        let mut tree = Self::new(direction);
-
-        if branches.is_empty() {
-            return Ok(tree);
-        }
-
-        // First pass: find the root (node that appears as terminal_label but not as a key)
-        // The terminal_label points to the parent node
-        let mut potential_roots: HashSet<Label> = HashSet::new();
-        let child_labels: HashSet<Label> = branches.keys().cloned().collect();
-
-        // Collect all terminal_labels (these are parents)
-        for branch in branches.values() {
-            potential_roots.insert(branch.terminal_label.clone());
-        }
-
-        // Root is a potential root that is not also a child
-        let mut roots: Vec<_> = potential_roots.difference(&child_labels).cloned().collect();
-
-        if roots.len() != 1 {
-            return Err(SearchTreeError::InvalidBranchStructure(format!(
-                "Expected exactly one root, found {}. Potential roots: {:?}, Child labels: {:?}",
-                roots.len(),
-                potential_roots,
-                child_labels
-            )));
-        }
-
-        let root_label = roots.pop().unwrap();
-        tree.set_root(root_label.clone());
-
-        // Second pass: build the tree by inserting nodes whose parents already exist
-        let mut pending = branches;
-        while !pending.is_empty() {
-            let mut progress = false;
-            let mut to_remove = Vec::new();
-
-            for (label, branch) in &pending {
-                if tree.contains(&branch.terminal_label) {
-                    tree.insert(
-                        label.clone(),
-                        branch.edge_traversal.clone(),
-                        branch.terminal_label.clone(),
-                    )?;
-                    to_remove.push(label.clone());
-                    progress = true;
-                }
-            }
-
-            if !progress {
-                return Err(SearchTreeError::InvalidBranchStructure(format!(
-                    "Circular dependencies or missing parents in branch structure. Remaining: {:?}",
-                    pending.keys().collect::<Vec<_>>()
-                )));
-            }
-
-            for label in to_remove {
-                pending.remove(&label);
-            }
-        }
-
-        Ok(tree)
     }
 }
 
@@ -476,7 +373,7 @@ mod tests {
         let root_node = tree.get(&root_label).unwrap();
         assert!(root_node.is_root());
         assert_eq!(root_node.vertex_id(), VertexId(0));
-        assert!(root_node.children.is_empty());
+        assert!(root_node.children().is_empty());
     }
 
     #[test]
@@ -517,17 +414,17 @@ mod tests {
         // Verify child nodes
         let child1_node = tree.get(&child1_label).unwrap();
         assert!(!child1_node.is_root());
-        assert_eq!(child1_node.parent, Some(root_label.clone()));
+        assert_eq!(child1_node.parent_label(), Some(&root_label));
         assert_eq!(
-            child1_node.edge_traversal.as_ref().unwrap().edge_id,
+            child1_node.incoming_edge().unwrap().edge_id,
             EdgeId(1)
         );
 
         let child2_node = tree.get(&child2_label).unwrap();
         assert!(!child2_node.is_root());
-        assert_eq!(child2_node.parent, Some(root_label.clone()));
+        assert_eq!(child2_node.parent_label(), Some(&root_label));
         assert_eq!(
-            child2_node.edge_traversal.as_ref().unwrap().edge_id,
+            child2_node.incoming_edge().unwrap().edge_id,
             EdgeId(2)
         );
     }
@@ -560,7 +457,7 @@ mod tests {
 
         // Child has root as parent
         let parent = tree.get_parent(&child_label).unwrap();
-        assert_eq!(parent.label, root_label);
+        assert_eq!(parent.label(), &root_label);
     }
 
     #[test]
@@ -653,124 +550,6 @@ mod tests {
         let nonexistent_label = create_test_label(99);
         let result = tree.reconstruct_path(&nonexistent_label);
         assert!(matches!(result, Err(SearchTreeError::LabelNotFound(_))));
-    }
-
-    #[test]
-    fn test_to_search_tree_branches() {
-        let root_label = create_test_label(0);
-        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
-
-        let child1_label = create_test_label(1);
-        let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(
-            child1_label.clone(),
-            child1_traversal.clone(),
-            root_label.clone(),
-        )
-        .unwrap();
-
-        let child2_label = create_test_label(2);
-        let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(
-            child2_label.clone(),
-            child2_traversal.clone(),
-            child1_label.clone(),
-        )
-        .unwrap();
-
-        let branches = tree.to_search_tree_branches();
-        assert_eq!(branches.len(), 2); // Root is excluded (no edge traversal)
-
-        let branch1 = branches.get(&child1_label).unwrap();
-        assert_eq!(branch1.terminal_label, root_label);
-        assert_eq!(branch1.edge_traversal.edge_id, EdgeId(1));
-
-        let branch2 = branches.get(&child2_label).unwrap();
-        assert_eq!(branch2.terminal_label, child1_label);
-        assert_eq!(branch2.edge_traversal.edge_id, EdgeId(2));
-    }
-
-    #[test]
-    fn test_from_search_tree_branches() {
-        use super::super::SearchTreeBranch;
-        use std::collections::HashMap;
-
-        // Create branches representing: root(0) -> 1 -> 2
-        let mut branches = HashMap::new();
-
-        let root_label = create_test_label(0);
-        let child1_label = create_test_label(1);
-        let child2_label = create_test_label(2);
-
-        branches.insert(
-            child1_label.clone(),
-            SearchTreeBranch {
-                terminal_label: root_label.clone(),
-                edge_traversal: create_test_edge_traversal(1, 10.0),
-            },
-        );
-
-        branches.insert(
-            child2_label.clone(),
-            SearchTreeBranch {
-                terminal_label: child1_label.clone(),
-                edge_traversal: create_test_edge_traversal(2, 15.0),
-            },
-        );
-
-        let tree = SearchTree::from_search_tree_branches(branches, Direction::Forward).unwrap();
-
-        assert_eq!(tree.len(), 3);
-        assert_eq!(tree.root(), Some(&root_label));
-
-        // Verify structure
-        let children = tree.get_child_labels(&root_label);
-        assert_eq!(children.len(), 1);
-        assert!(children.contains(&child1_label));
-
-        let grandchildren = tree.get_child_labels(&child1_label);
-        assert_eq!(grandchildren.len(), 1);
-        assert!(grandchildren.contains(&child2_label));
-
-        // Verify path reconstruction
-        let path = tree.reconstruct_path(&child2_label).unwrap();
-        assert_eq!(path.len(), 2);
-        assert_eq!(path[0].edge_id, EdgeId(1));
-        assert_eq!(path[1].edge_id, EdgeId(2));
-    }
-
-    #[test]
-    fn test_from_search_tree_branches_invalid_structure() {
-        use super::super::SearchTreeBranch;
-        use std::collections::HashMap;
-
-        // Create invalid structure with circular reference
-        let mut branches = HashMap::new();
-
-        let label1 = create_test_label(1);
-        let label2 = create_test_label(2);
-
-        branches.insert(
-            label1.clone(),
-            SearchTreeBranch {
-                terminal_label: label2.clone(),
-                edge_traversal: create_test_edge_traversal(1, 10.0),
-            },
-        );
-
-        branches.insert(
-            label2.clone(),
-            SearchTreeBranch {
-                terminal_label: label1.clone(),
-                edge_traversal: create_test_edge_traversal(2, 15.0),
-            },
-        );
-
-        let result = SearchTree::from_search_tree_branches(branches, Direction::Forward);
-        assert!(matches!(
-            result,
-            Err(SearchTreeError::InvalidBranchStructure(_))
-        ));
     }
 
     #[test]
@@ -889,58 +668,6 @@ mod tests {
     }
 
     #[test]
-    fn test_backtrack_with_direction_override() {
-        let root_label = create_test_label(0);
-        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
-
-        // Build a linear path: 0 -> 1 -> 2 -> 3
-        let child1_label = create_test_label(1);
-        let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(
-            child1_label.clone(),
-            child1_traversal.clone(),
-            root_label.clone(),
-        )
-        .unwrap();
-
-        let child2_label = create_test_label(2);
-        let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(
-            child2_label.clone(),
-            child2_traversal.clone(),
-            child1_label.clone(),
-        )
-        .unwrap();
-
-        let child3_label = create_test_label(3);
-        let child3_traversal = create_test_edge_traversal(3, 20.0);
-        tree.insert(
-            child3_label.clone(),
-            child3_traversal.clone(),
-            child2_label.clone(),
-        )
-        .unwrap();
-
-        // Backtrack from vertex 3 with explicit Forward direction (same as tree's direction)
-        let forward_path = tree
-            .backtrack_with_direction(VertexId(3), Direction::Forward)
-            .unwrap();
-        assert_eq!(forward_path.len(), 3);
-        assert_eq!(forward_path[0].edge_id, EdgeId(1)); // root -> 1
-        assert_eq!(forward_path[1].edge_id, EdgeId(2)); // 1 -> 2
-        assert_eq!(forward_path[2].edge_id, EdgeId(3)); // 2 -> 3
-
-        // Backtrack from vertex 3 with explicit Reverse direction (override tree's direction)
-        let reverse_path = tree
-            .backtrack_with_direction(VertexId(3), Direction::Reverse)
-            .unwrap();
-        assert_eq!(reverse_path.len(), 3);
-        assert_eq!(reverse_path[0].edge_id, EdgeId(3)); // 3 -> 2
-        assert_eq!(reverse_path[1].edge_id, EdgeId(2)); // 2 -> 1
-        assert_eq!(reverse_path[2].edge_id, EdgeId(1)); // 1 -> root
-    }
-
-    #[test]
     fn test_backtrack_nonexistent_vertex() {
         let root_label = create_test_label(0);
         let tree = SearchTree::with_root(root_label, Direction::Forward);
@@ -1007,14 +734,14 @@ mod tests {
         // Verify structure
         let root_node = tree.get(&parent_label).unwrap();
         assert!(root_node.is_root());
-        assert_eq!(root_node.children.len(), 1);
-        assert!(root_node.children.contains(&child_label));
+        assert_eq!(root_node.children().len(), 1);
+        assert!(root_node.children().contains(&child_label));
 
         let child_node = tree.get(&child_label).unwrap();
         assert!(!child_node.is_root());
-        assert_eq!(child_node.parent, Some(parent_label));
+        assert_eq!(child_node.parent_label(), Some(&parent_label));
         assert_eq!(
-            child_node.edge_traversal.as_ref().unwrap().edge_id,
+            child_node.incoming_edge().unwrap().edge_id,
             EdgeId(1)
         );
     }
