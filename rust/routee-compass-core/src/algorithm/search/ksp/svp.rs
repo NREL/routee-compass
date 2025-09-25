@@ -64,8 +64,7 @@ pub fn run(
     // find intersection vertices
     let rev_labels = rev_trees
         .iter()
-        .map(|t| t.iter())
-        .flatten()
+        .flat_map(|t| t.iter())
         .collect::<HashMap<_, _>>();
     let mut intersection_queue: InternalPriorityQueue<VertexId, ReverseCost> =
         InternalPriorityQueue::default();

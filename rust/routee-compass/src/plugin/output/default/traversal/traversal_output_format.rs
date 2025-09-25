@@ -93,7 +93,7 @@ impl TraversalOutputFormat {
                 let tree_ids = tree
                     .values()
                     .filter_map(|b| match b.incoming_edge() {
-                        None => return None,
+                        None => None,
                         Some(e) => Some((e.edge_list_id, e.edge_id)),
                     })
                     .collect::<Vec<_>>();

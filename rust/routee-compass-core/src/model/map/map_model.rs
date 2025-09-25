@@ -70,9 +70,9 @@ impl MapModel {
         let gm = self
             .geometry
             .get(edge_list_id.0)
-            .ok_or_else(|| MapError::MissingEdgeListId(*edge_list_id))?;
+            .ok_or(MapError::MissingEdgeListId(*edge_list_id))?;
         gm.get(edge_id)
-            .ok_or_else(|| MapError::MissingEdgeId(*edge_list_id, *edge_id))
+            .ok_or(MapError::MissingEdgeId(*edge_list_id, *edge_id))
     }
 
     pub fn map_match(

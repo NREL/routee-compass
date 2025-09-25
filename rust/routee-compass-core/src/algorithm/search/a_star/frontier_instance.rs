@@ -55,8 +55,7 @@ impl FrontierInstance {
             (Some((prev_label, _)), _) => {
                 let prev_edge_traversal_opt = solution
                     .get(&prev_label)
-                    .map(|n| n.incoming_edge())
-                    .flatten()
+                    .and_then(|n| n.incoming_edge())
                     .cloned();
 
                 // grab the current state from the solution, or get initial state if we are at the search root

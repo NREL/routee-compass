@@ -36,7 +36,7 @@ pub fn create_tree_geojson(
                     ))
                 })
                 .and_then(|g| {
-                    create_geojson_feature(&et, g, state_model.clone(), cost_model.clone())
+                    create_geojson_feature(et, g, state_model.clone(), cost_model.clone())
                 });
 
             Some(row_result)
