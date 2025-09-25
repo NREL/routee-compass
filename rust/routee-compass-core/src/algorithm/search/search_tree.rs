@@ -5,6 +5,7 @@ use super::EdgeTraversal;
 use crate::model::network::{EdgeId, EdgeListId, Graph, NetworkError, VertexId};
 use crate::{algorithm::search::Direction, model::label::Label};
 use std::collections::{HashMap, HashSet};
+use std::num::NonZero;
 use std::sync::Arc;
 
 /// A node in the search tree containing parent/child relationships and traversal data
@@ -268,15 +269,22 @@ impl SearchTree {
 
     /// Reconstruct a path from root to the given target label
     /// This is the primary backtracking method for route reconstruction
+    /// If depth is provided, the path will be limited to a specified number of EdgeTraversals.
     pub fn reconstruct_path(
         &self,
         target_label: &Label,
+        depth: Option<NonZero<u64>>
     ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
         let mut path = Vec::new();
         let mut current_label = target_label;
+        let mut steps: u64 = 0;
 
         // Walk up from target to root
         loop {
+            let exceeds_depth = depth.map(|l| steps >= l.into()).unwrap_or_default();
+            if exceeds_depth {
+                break;
+            }
             let current_node = self
                 .get(current_label)
                 .ok_or_else(|| SearchTreeError::LabelNotFound(current_label.clone()))?;
@@ -293,6 +301,7 @@ impl SearchTree {
                     current_label = parent;
                 }
             }
+            steps += 1;
         }
 
         // For forward search, reverse the path to go from root to target
@@ -304,6 +313,25 @@ impl SearchTree {
             }
             Direction::Reverse => Ok(path),
         }
+    }
+
+    /// Backtrack from a leaf vertex to construct a path using the tree's inherent direction
+    /// and limit the backtracking depth to some nonzero count of edges.
+    ///
+    /// # Arguments
+    /// * `leaf_vertex` - The vertex ID to backtrack from
+    /// * `depth` - max number of edges to find for the path starting at leaf_vertex
+    /// 
+    /// # Returns
+    /// A path of EdgeTraversals from root to leaf (forward) or leaf to root (reverse)
+    pub fn backtrack_with_depth(&self, leaf_vertex: VertexId, depth: NonZero<u64>) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
+        // Find the label for this vertex - there might be multiple labels for the same vertex
+        // in state-dependent searches, so we need to find the right one
+        let target_label = self
+            .find_label_for_vertex(leaf_vertex)
+            .ok_or(SearchTreeError::VertexNotFound(leaf_vertex))?;
+
+        self.reconstruct_path(target_label, Some(depth))
     }
 
     /// Backtrack from a leaf vertex to construct a path using the tree's inherent direction
@@ -320,7 +348,7 @@ impl SearchTree {
             .find_label_for_vertex(leaf_vertex)
             .ok_or(SearchTreeError::VertexNotFound(leaf_vertex))?;
 
-        self.reconstruct_path(target_label)
+        self.reconstruct_path(target_label, None)
     }
 
     /// backtrack for edge-oriented search, begins from source vertex of target edge.
@@ -378,20 +406,6 @@ mod tests {
         network::{EdgeId, EdgeListId, VertexId},
         unit::Cost,
     };
-
-    fn create_test_edge_traversal(edge_id: usize, cost: f64) -> EdgeTraversal {
-        EdgeTraversal {
-            edge_id: EdgeId(edge_id),
-            edge_list_id: EdgeListId(0),
-            access_cost: Cost::new(0.0),
-            traversal_cost: Cost::new(cost),
-            result_state: vec![],
-        }
-    }
-
-    fn create_test_label(vertex_id: usize) -> Label {
-        Label::Vertex(VertexId(vertex_id))
-    }
 
     #[test]
     fn test_new_empty_tree() {
@@ -530,7 +544,7 @@ mod tests {
         .unwrap();
 
         // Reconstruct path to child3
-        let path = tree.reconstruct_path(&child3_label).unwrap();
+        let path = tree.reconstruct_path(&child3_label, None).unwrap();
         assert_eq!(path.len(), 3);
         assert_eq!(path[0].edge_id, EdgeId(1)); // root -> 1
         assert_eq!(path[1].edge_id, EdgeId(2)); // 1 -> 2
@@ -571,7 +585,7 @@ mod tests {
         .unwrap();
 
         // Reconstruct path to child3 (reverse orientation keeps natural order)
-        let path = tree.reconstruct_path(&child3_label).unwrap();
+        let path = tree.reconstruct_path(&child3_label, None).unwrap();
         assert_eq!(path.len(), 3);
         assert_eq!(path[0].edge_id, EdgeId(3)); // 3 -> 2
         assert_eq!(path[1].edge_id, EdgeId(2)); // 2 -> 1
@@ -584,7 +598,7 @@ mod tests {
         let tree = SearchTree::with_root(root_label, Direction::Forward);
 
         let nonexistent_label = create_test_label(99);
-        let result = tree.reconstruct_path(&nonexistent_label);
+        let result = tree.reconstruct_path(&nonexistent_label, None);
         assert!(matches!(result, Err(SearchTreeError::LabelNotFound(_))));
     }
 
@@ -850,5 +864,307 @@ mod tests {
             nonexistent_parent.clone(),
         );
         assert!(matches!(result, Err(SearchTreeError::ParentNotFound(_))));
+    }
+
+    #[test]
+    fn test_backtrack_with_depth_forward_tree_full_path() {
+        let root_label = create_test_label(0);
+        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
+
+        // Build a linear path: 0 -> 1 -> 2 -> 3 -> 4
+        let child1_label = create_test_label(1);
+        let child1_traversal = create_test_edge_traversal(1, 10.0);
+        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+            .unwrap();
+
+        let child2_label = create_test_label(2);
+        let child2_traversal = create_test_edge_traversal(2, 15.0);
+        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+            .unwrap();
+
+        let child3_label = create_test_label(3);
+        let child3_traversal = create_test_edge_traversal(3, 20.0);
+        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+            .unwrap();
+
+        let child4_label = create_test_label(4);
+        let child4_traversal = create_test_edge_traversal(4, 25.0);
+        tree.insert(child4_label.clone(), child4_traversal, child3_label.clone())
+            .unwrap();
+
+        // Backtrack with depth equal to total path length
+        let depth = NonZero::new(4).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
+        
+        assert_eq!(path.len(), 4);
+        assert_eq!(path[0].edge_id, EdgeId(1)); // root -> 1
+        assert_eq!(path[1].edge_id, EdgeId(2)); // 1 -> 2
+        assert_eq!(path[2].edge_id, EdgeId(3)); // 2 -> 3
+        assert_eq!(path[3].edge_id, EdgeId(4)); // 3 -> 4
+    }
+
+    #[test]
+    fn test_backtrack_with_depth_forward_tree_limited_depth() {
+        let root_label = create_test_label(0);
+        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
+
+        // Build a linear path: 0 -> 1 -> 2 -> 3 -> 4
+        let child1_label = create_test_label(1);
+        let child1_traversal = create_test_edge_traversal(1, 10.0);
+        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+            .unwrap();
+
+        let child2_label = create_test_label(2);
+        let child2_traversal = create_test_edge_traversal(2, 15.0);
+        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+            .unwrap();
+
+        let child3_label = create_test_label(3);
+        let child3_traversal = create_test_edge_traversal(3, 20.0);
+        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+            .unwrap();
+
+        let child4_label = create_test_label(4);
+        let child4_traversal = create_test_edge_traversal(4, 25.0);
+        tree.insert(child4_label.clone(), child4_traversal, child3_label.clone())
+            .unwrap();
+
+        // Backtrack with depth less than total path length
+        let depth = NonZero::new(2).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
+        
+        // Should only get the last 2 edges (limited by depth)
+        assert_eq!(path.len(), 2);
+        assert_eq!(path[0].edge_id, EdgeId(3)); // 2 -> 3
+        assert_eq!(path[1].edge_id, EdgeId(4)); // 3 -> 4
+    }
+
+    #[test]
+    fn test_backtrack_with_depth_forward_tree_depth_one() {
+        let root_label = create_test_label(0);
+        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
+
+        // Build a linear path: 0 -> 1 -> 2 -> 3
+        let child1_label = create_test_label(1);
+        let child1_traversal = create_test_edge_traversal(1, 10.0);
+        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+            .unwrap();
+
+        let child2_label = create_test_label(2);
+        let child2_traversal = create_test_edge_traversal(2, 15.0);
+        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+            .unwrap();
+
+        let child3_label = create_test_label(3);
+        let child3_traversal = create_test_edge_traversal(3, 20.0);
+        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+            .unwrap();
+
+        // Backtrack with depth of 1
+        let depth = NonZero::new(1).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(3), depth).unwrap();
+        
+        // Should only get the last edge
+        assert_eq!(path.len(), 1);
+        assert_eq!(path[0].edge_id, EdgeId(3)); // 2 -> 3
+    }
+
+    #[test]
+    fn test_backtrack_with_depth_reverse_tree_full_path() {
+        let root_label = create_test_label(0);
+        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Reverse);
+
+        // Build a linear path: 0 -> 1 -> 2 -> 3 -> 4
+        let child1_label = create_test_label(1);
+        let child1_traversal = create_test_edge_traversal(1, 10.0);
+        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+            .unwrap();
+
+        let child2_label = create_test_label(2);
+        let child2_traversal = create_test_edge_traversal(2, 15.0);
+        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+            .unwrap();
+
+        let child3_label = create_test_label(3);
+        let child3_traversal = create_test_edge_traversal(3, 20.0);
+        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+            .unwrap();
+
+        let child4_label = create_test_label(4);
+        let child4_traversal = create_test_edge_traversal(4, 25.0);
+        tree.insert(child4_label.clone(), child4_traversal, child3_label.clone())
+            .unwrap();
+
+        // Backtrack with depth equal to total path length (reverse orientation)
+        let depth = NonZero::new(4).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
+        
+        assert_eq!(path.len(), 4);
+        // In reverse orientation, path is not reversed, so it goes from target to root
+        assert_eq!(path[0].edge_id, EdgeId(4)); // 4 -> 3
+        assert_eq!(path[1].edge_id, EdgeId(3)); // 3 -> 2
+        assert_eq!(path[2].edge_id, EdgeId(2)); // 2 -> 1
+        assert_eq!(path[3].edge_id, EdgeId(1)); // 1 -> root
+    }
+
+    #[test]
+    fn test_backtrack_with_depth_reverse_tree_limited_depth() {
+        let root_label = create_test_label(0);
+        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Reverse);
+
+        // Build a linear path: 0 -> 1 -> 2 -> 3 -> 4
+        let child1_label = create_test_label(1);
+        let child1_traversal = create_test_edge_traversal(1, 10.0);
+        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+            .unwrap();
+
+        let child2_label = create_test_label(2);
+        let child2_traversal = create_test_edge_traversal(2, 15.0);
+        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+            .unwrap();
+
+        let child3_label = create_test_label(3);
+        let child3_traversal = create_test_edge_traversal(3, 20.0);
+        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+            .unwrap();
+
+        let child4_label = create_test_label(4);
+        let child4_traversal = create_test_edge_traversal(4, 25.0);
+        tree.insert(child4_label.clone(), child4_traversal, child3_label.clone())
+            .unwrap();
+
+        // Backtrack with depth less than total path length
+        let depth = NonZero::new(2).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
+        
+        // Should only get the first 2 edges from the target
+        assert_eq!(path.len(), 2);
+        assert_eq!(path[0].edge_id, EdgeId(4)); // 4 -> 3
+        assert_eq!(path[1].edge_id, EdgeId(3)); // 3 -> 2
+    }
+
+    #[test]
+    fn test_backtrack_with_depth_from_root() {
+        let root_label = create_test_label(0);
+        let tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
+
+        // Backtracking from root with any depth should return empty path
+        let depth = NonZero::new(5).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(0), depth).unwrap();
+        assert_eq!(path.len(), 0);
+    }
+
+    #[test]
+    fn test_backtrack_with_depth_nonexistent_vertex() {
+        let root_label = create_test_label(0);
+        let tree = SearchTree::with_root(root_label, Direction::Forward);
+
+        let depth = NonZero::new(1).unwrap();
+        let result = tree.backtrack_with_depth(VertexId(99), depth);
+        assert!(matches!(
+            result,
+            Err(SearchTreeError::VertexNotFound(VertexId(99)))
+        ));
+    }
+
+    #[test]
+    fn test_backtrack_with_depth_exceeds_available_path() {
+        let root_label = create_test_label(0);
+        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
+
+        // Build a short path: 0 -> 1 -> 2
+        let child1_label = create_test_label(1);
+        let child1_traversal = create_test_edge_traversal(1, 10.0);
+        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+            .unwrap();
+
+        let child2_label = create_test_label(2);
+        let child2_traversal = create_test_edge_traversal(2, 15.0);
+        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+            .unwrap();
+
+        // Request more depth than available
+        let depth = NonZero::new(10).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(2), depth).unwrap();
+        
+        // Should return the entire available path (2 edges)
+        assert_eq!(path.len(), 2);
+        assert_eq!(path[0].edge_id, EdgeId(1)); // root -> 1
+        assert_eq!(path[1].edge_id, EdgeId(2)); // 1 -> 2
+    }
+
+    #[test]
+    fn test_backtrack_with_depth_branching_tree() {
+        let root_label = create_test_label(0);
+        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
+
+        // Build a branching tree:
+        //     0
+        //   /   \
+        //  1     2
+        //  |     |
+        //  3     4
+        //        |
+        //        5
+        
+        let child1_label = create_test_label(1);
+        let child1_traversal = create_test_edge_traversal(1, 10.0);
+        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+            .unwrap();
+
+        let child2_label = create_test_label(2);
+        let child2_traversal = create_test_edge_traversal(2, 15.0);
+        tree.insert(child2_label.clone(), child2_traversal, root_label.clone())
+            .unwrap();
+
+        let child3_label = create_test_label(3);
+        let child3_traversal = create_test_edge_traversal(3, 20.0);
+        tree.insert(child3_label.clone(), child3_traversal, child1_label.clone())
+            .unwrap();
+
+        let child4_label = create_test_label(4);
+        let child4_traversal = create_test_edge_traversal(4, 25.0);
+        tree.insert(child4_label.clone(), child4_traversal, child2_label.clone())
+            .unwrap();
+
+        let child5_label = create_test_label(5);
+        let child5_traversal = create_test_edge_traversal(5, 30.0);
+        tree.insert(child5_label.clone(), child5_traversal, child4_label.clone())
+            .unwrap();
+
+        // Test backtrack from leaf node 3 with depth 1
+        let depth = NonZero::new(1).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(3), depth).unwrap();
+        assert_eq!(path.len(), 1);
+        assert_eq!(path[0].edge_id, EdgeId(3)); // 1 -> 3
+
+        // Test backtrack from leaf node 5 with depth 2
+        let depth = NonZero::new(2).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(5), depth).unwrap();
+        assert_eq!(path.len(), 2);
+        assert_eq!(path[0].edge_id, EdgeId(4)); // 2 -> 4
+        assert_eq!(path[1].edge_id, EdgeId(5)); // 4 -> 5
+
+        // Test backtrack from leaf node 5 with full depth
+        let depth = NonZero::new(3).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(5), depth).unwrap();
+        assert_eq!(path.len(), 3);
+        assert_eq!(path[0].edge_id, EdgeId(2)); // root -> 2
+        assert_eq!(path[1].edge_id, EdgeId(4)); // 2 -> 4
+        assert_eq!(path[2].edge_id, EdgeId(5)); // 4 -> 5
+    }
+
+        fn create_test_edge_traversal(edge_id: usize, cost: f64) -> EdgeTraversal {
+        EdgeTraversal {
+            edge_id: EdgeId(edge_id),
+            edge_list_id: EdgeListId(0),
+            access_cost: Cost::new(0.0),
+            traversal_cost: Cost::new(cost),
+            result_state: vec![],
+        }
+    }
+
+    fn create_test_label(vertex_id: usize) -> Label {
+        Label::Vertex(VertexId(vertex_id))
     }
 }
