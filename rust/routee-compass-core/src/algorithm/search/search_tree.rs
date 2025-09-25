@@ -273,7 +273,7 @@ impl SearchTree {
     pub fn reconstruct_path(
         &self,
         target_label: &Label,
-        depth: Option<NonZero<u64>>
+        depth: Option<NonZero<u64>>,
     ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
         let mut path = Vec::new();
         let mut current_label = target_label;
@@ -321,10 +321,14 @@ impl SearchTree {
     /// # Arguments
     /// * `leaf_vertex` - The vertex ID to backtrack from
     /// * `depth` - max number of edges to find for the path starting at leaf_vertex
-    /// 
+    ///
     /// # Returns
     /// A path of EdgeTraversals from root to leaf (forward) or leaf to root (reverse)
-    pub fn backtrack_with_depth(&self, leaf_vertex: VertexId, depth: NonZero<u64>) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
+    pub fn backtrack_with_depth(
+        &self,
+        leaf_vertex: VertexId,
+        depth: NonZero<u64>,
+    ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
         // Find the label for this vertex - there might be multiple labels for the same vertex
         // in state-dependent searches, so we need to find the right one
         let target_label = self
@@ -895,7 +899,7 @@ mod tests {
         // Backtrack with depth equal to total path length
         let depth = NonZero::new(4).unwrap();
         let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
-        
+
         assert_eq!(path.len(), 4);
         assert_eq!(path[0].edge_id, EdgeId(1)); // root -> 1
         assert_eq!(path[1].edge_id, EdgeId(2)); // 1 -> 2
@@ -932,7 +936,7 @@ mod tests {
         // Backtrack with depth less than total path length
         let depth = NonZero::new(2).unwrap();
         let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
-        
+
         // Should only get the last 2 edges (limited by depth)
         assert_eq!(path.len(), 2);
         assert_eq!(path[0].edge_id, EdgeId(3)); // 2 -> 3
@@ -963,7 +967,7 @@ mod tests {
         // Backtrack with depth of 1
         let depth = NonZero::new(1).unwrap();
         let path = tree.backtrack_with_depth(VertexId(3), depth).unwrap();
-        
+
         // Should only get the last edge
         assert_eq!(path.len(), 1);
         assert_eq!(path[0].edge_id, EdgeId(3)); // 2 -> 3
@@ -998,7 +1002,7 @@ mod tests {
         // Backtrack with depth equal to total path length (reverse orientation)
         let depth = NonZero::new(4).unwrap();
         let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
-        
+
         assert_eq!(path.len(), 4);
         // In reverse orientation, path is not reversed, so it goes from target to root
         assert_eq!(path[0].edge_id, EdgeId(4)); // 4 -> 3
@@ -1036,7 +1040,7 @@ mod tests {
         // Backtrack with depth less than total path length
         let depth = NonZero::new(2).unwrap();
         let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
-        
+
         // Should only get the first 2 edges from the target
         assert_eq!(path.len(), 2);
         assert_eq!(path[0].edge_id, EdgeId(4)); // 4 -> 3
@@ -1086,7 +1090,7 @@ mod tests {
         // Request more depth than available
         let depth = NonZero::new(10).unwrap();
         let path = tree.backtrack_with_depth(VertexId(2), depth).unwrap();
-        
+
         // Should return the entire available path (2 edges)
         assert_eq!(path.len(), 2);
         assert_eq!(path[0].edge_id, EdgeId(1)); // root -> 1
@@ -1106,7 +1110,7 @@ mod tests {
         //  3     4
         //        |
         //        5
-        
+
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
         tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
@@ -1154,7 +1158,7 @@ mod tests {
         assert_eq!(path[2].edge_id, EdgeId(5)); // 4 -> 5
     }
 
-        fn create_test_edge_traversal(edge_id: usize, cost: f64) -> EdgeTraversal {
+    fn create_test_edge_traversal(edge_id: usize, cost: f64) -> EdgeTraversal {
         EdgeTraversal {
             edge_id: EdgeId(edge_id),
             edge_list_id: EdgeListId(0),
