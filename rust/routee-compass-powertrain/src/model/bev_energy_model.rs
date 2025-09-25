@@ -3,12 +3,12 @@ use super::{
     prediction::{PredictionModelConfig, PredictionModelRecord},
 };
 use crate::model::fieldname;
-use routee_compass_core::model::{
+use routee_compass_core::{algorithm::search::SearchTree, model::{
     network::{Edge, Vertex},
     state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit, RatioUnit, TimeUnit},
-};
+}};
 use serde_json::Value;
 use std::sync::Arc;
 use uom::{
@@ -169,6 +169,7 @@ impl TraversalModel for BevEnergyModel {
         &self,
         _trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         bev_traversal(
@@ -183,6 +184,7 @@ impl TraversalModel for BevEnergyModel {
         &self,
         _od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         bev_traversal_estimate(

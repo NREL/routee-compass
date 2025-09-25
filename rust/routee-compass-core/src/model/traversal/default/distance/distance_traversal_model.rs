@@ -1,6 +1,7 @@
 use uom::si::f64::Length;
 use uom::ConstZero;
 
+use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
@@ -26,6 +27,7 @@ impl TraversalModel for DistanceTraversalModel {
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
@@ -40,6 +42,7 @@ impl TraversalModel for DistanceTraversalModel {
         &self,
         od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (src, dst) = od;

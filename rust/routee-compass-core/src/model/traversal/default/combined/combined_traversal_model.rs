@@ -1,8 +1,8 @@
-use crate::model::{
+use crate::{algorithm::search::SearchTree, model::{
     network::{Edge, Vertex},
     state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{TraversalModel, TraversalModelError},
-};
+}};
 use std::sync::Arc;
 
 pub struct CombinedTraversalModel {
@@ -47,10 +47,11 @@ impl TraversalModel for CombinedTraversalModel {
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         for model in self.models.iter() {
-            model.traverse_edge(trajectory, state, state_model)?;
+            model.traverse_edge(trajectory, state, tree, state_model)?;
         }
         Ok(())
     }
@@ -59,10 +60,11 @@ impl TraversalModel for CombinedTraversalModel {
         &self,
         od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
+        tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         for model in self.models.iter() {
-            model.estimate_traversal(od, state, state_model)?;
+            model.estimate_traversal(od, state, tree, state_model)?;
         }
         Ok(())
     }

@@ -1,5 +1,7 @@
 use uom::ConstZero;
 
+use crate::algorithm::search::SearchTree;
+use crate::model::network::{Edge, Vertex};
 use crate::model::state::{CustomVariableConfig, InputFeature};
 use crate::model::traversal::TraversalModel;
 use crate::model::{
@@ -136,12 +138,9 @@ impl TraversalModel for MockUpstreamModel {
 
     fn traverse_edge(
         &self,
-        _trajectory: (
-            &crate::model::network::Vertex,
-            &crate::model::network::Edge,
-            &crate::model::network::Vertex,
-        ),
+        _trajectory: (&Vertex,&Edge,&Vertex,),
         _state: &mut Vec<crate::model::state::StateVariable>,
+        _tree: &SearchTree,
         _state_model: &crate::model::state::StateModel,
     ) -> Result<(), TraversalModelError> {
         Ok(())
@@ -149,11 +148,9 @@ impl TraversalModel for MockUpstreamModel {
 
     fn estimate_traversal(
         &self,
-        _od: (
-            &crate::model::network::Vertex,
-            &crate::model::network::Vertex,
-        ),
+        _od: (&Vertex,&Vertex),
         _state: &mut Vec<crate::model::state::StateVariable>,
+        _tree: &SearchTree,
         _state_model: &crate::model::state::StateModel,
     ) -> Result<(), TraversalModelError> {
         Ok(())

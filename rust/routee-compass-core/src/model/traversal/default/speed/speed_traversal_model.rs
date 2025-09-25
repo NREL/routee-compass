@@ -2,6 +2,7 @@ use uom::si::f64::Velocity;
 use uom::ConstZero;
 
 use super::speed_traversal_engine::SpeedTraversalEngine;
+use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, EdgeId, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
@@ -63,6 +64,7 @@ impl TraversalModel for SpeedTraversalModel {
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
@@ -77,6 +79,7 @@ impl TraversalModel for SpeedTraversalModel {
         &self,
         _od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let speed: Velocity = match self.speed_limit {
@@ -180,7 +183,7 @@ mod tests {
         let v = mock_vertex();
         let e1 = mock_edge(0);
         test_model
-            .traverse_edge((&v, &e1, &v), &mut state, &state_model)
+            .traverse_edge((&v, &e1, &v), &mut state, &SearchTree::default(), &state_model)
             .unwrap();
 
         let expected_speed_kph = 10.0;
@@ -217,11 +220,7 @@ mod tests {
                 test_regular_model.output_features(),
             )
             .expect("test invariant failed");
-
-        // // Create model with speed limit
-        // let model_with_limit = SpeedTraversalModel::new(engine.clone(), speed_limit);
-        // // Create model without speed limit for comparison
-        // let model_without_limit = SpeedTraversalModel::new(engine, None);
+        let tree = SearchTree::default();
 
         let mut state_with_limit = state_model.initial_state().unwrap();
         let mut state_without_limit = state_model.initial_state().unwrap();
@@ -231,12 +230,12 @@ mod tests {
 
         // Traverse with speed limit
         test_limited_model
-            .traverse_edge((&v, &e, &v), &mut state_with_limit, &state_model)
+            .traverse_edge((&v, &e, &v), &mut state_with_limit, &tree, &state_model)
             .unwrap();
 
         // Traverse without speed limit
         test_regular_model
-            .traverse_edge((&v, &e, &v), &mut state_without_limit, &state_model)
+            .traverse_edge((&v, &e, &v), &mut state_without_limit, &tree, &state_model)
             .unwrap();
 
         // The time with speed limit should be about twice the time without limit

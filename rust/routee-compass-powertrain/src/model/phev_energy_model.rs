@@ -4,12 +4,12 @@ use super::{
     energy_model_ops,
     prediction::{PredictionModelConfig, PredictionModelRecord},
 };
-use routee_compass_core::model::{
+use routee_compass_core::{algorithm::search::SearchTree, model::{
     network::{Edge, Vertex},
     state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
     traversal::{TraversalModel, TraversalModelError, TraversalModelService},
     unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
-};
+}};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::HashSet, sync::Arc};
@@ -189,6 +189,7 @@ impl TraversalModel for PhevEnergyModel {
         &self,
         _trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         phev_traversal(
@@ -206,6 +207,7 @@ impl TraversalModel for PhevEnergyModel {
         &self,
         _od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         phev_traversal(

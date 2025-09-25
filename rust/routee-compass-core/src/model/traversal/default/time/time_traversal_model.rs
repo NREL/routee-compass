@@ -4,15 +4,14 @@ use uom::{
 };
 
 use crate::{
-    model::{
+    algorithm::search::SearchTree, model::{
         network::{Edge, Vertex},
         state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
         traversal::{
             default::{fieldname, time::TimeTraversalConfig},
             TraversalModel, TraversalModelError, TraversalModelService,
         },
-    },
-    util::geo::haversine,
+    }, util::geo::haversine
 };
 use std::sync::Arc;
 
@@ -78,6 +77,7 @@ impl TraversalModel for TimeTraversalModel {
         &self,
         _trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let distance: Length = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
@@ -95,6 +95,7 @@ impl TraversalModel for TimeTraversalModel {
         &self,
         od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (src, dst) = od;
