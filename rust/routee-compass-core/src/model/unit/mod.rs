@@ -16,7 +16,7 @@ pub use as_f64::AsF64;
 pub use cost::{Cost, ReverseCost};
 pub use distance_unit::DistanceUnit;
 pub use energy_rate_unit::EnergyRateUnit;
-pub use energy_unit::EnergyUnit;
+pub use energy_unit::{ EnergyUnit, gal_gas, gal_diesel, liter_gas, liter_diesel };
 pub use ratio_unit::RatioUnit;
 pub use speed_unit::SpeedUnit;
 pub use temperature_unit::TemperatureUnit;
