@@ -104,7 +104,7 @@ The way this is typically done is as follows:
 
 #### Custom Models
 
-The [traversal], [access], and [frontier] modules all contain Builder, Service, and Model traits that can be implemented. 
+The [traversal] and [frontier] modules all contain Builder, Service, and Model traits that can be implemented. 
 For each new type of model, you must implement the builder and service as well, such that
   - your builder's `build` method creates or reads all data related to your model that can be shared across all queries (see lifetime image, above)
   - your service's `build` method can gather values from the incoming query that may further paramerize or override your service while producing a model for the incoming query
@@ -113,7 +113,6 @@ For each new type of model, you must implement the builder and service as well, 
 
 For an example, review the implementation of the built-in models:
   - [`routee_compass_core::model::traversal::default`]
-  - [`routee_compass_core::model::access::default`]
   - [`routee_compass_core::model::frontier::default`]
 
 To understand how these each interact with the state model, review the documentation of the [state] module.
@@ -131,7 +130,6 @@ For examples, review the implementation of the built-in plugins:
 [CompassBuilderInventory]: crate::app::compass::CompassBuilderInventory
 
 [traversal]: routee_compass_core::model::traversal
-[access]: routee_compass_core::model::access
 [frontier]: routee_compass_core::model::frontier
 [state]:routee_compass_core::model::state
 
@@ -139,7 +137,6 @@ For examples, review the implementation of the built-in plugins:
 [TraversalModelService]: routee_compass_core::model::traversal::TraversalModelService
 [TraversalModel]: routee_compass_core::model::traversal::TraversalModel
 
-[AccessModelBuilder]: routee_compass_core::model::access::AccessModelBuilder
 [FrontierModelBuilder]: routee_compass_core::model::frontier::FrontierModelBuilder
 
 [TerminationModel]: routee_compass_core::model::termination::TerminationModel

@@ -135,16 +135,14 @@ trip_time = 1
 trip_energy_liquid = 1
 trip_energy_electric = 1
 
-## Access costs
-
 # A turn delay model that assigns a time cost to each type of turn
-[search.access]
+[search.traversal.models]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
-[search.access.turn_delay_model]
+[search.traversal.models.turn_delay_model]
 type = "tabular_discrete"
 time_unit = "seconds"
-[search.access.turn_delay_model.table]
+[search.traversal.models.turn_delay_model.table]
 no_turn = 0.0
 slight_right = 0.5
 right = 1.0
