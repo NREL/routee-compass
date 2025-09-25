@@ -1,19 +1,17 @@
-use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
 use super::ksp::KspQuery;
 use super::ksp::KspTerminationCriteria;
 use super::ksp::{svp, yens};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
-use super::search_tree_branch::SearchTreeBranch;
 use super::util::RouteSimilarityFunction;
 use super::SearchInstance;
 use super::{a_star, direction::Direction};
+use crate::algorithm::search::SearchTree;
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case", tag = "type")]
@@ -66,8 +64,7 @@ impl SearchAlgorithm {
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
-                        let route =
-                            backtrack::label_oriented_route(src_id, dst_id, &search_result.tree)?;
+                        let route = search_result.tree.backtrack(dst_id)?;
                         vec![route]
                     }
                 };
@@ -117,30 +114,25 @@ impl SearchAlgorithm {
         dst_opt: Option<(EdgeListId, EdgeId)>,
         query: &serde_json::Value,
         direction: &Direction,
-        search_instance: &SearchInstance,
+        si: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
                 weight_factor: Some(Cost::ZERO),
             }
-            .run_edge_oriented(src, dst_opt, query, direction, search_instance),
+            .run_edge_oriented(src, dst_opt, query, direction, si),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
                 let search_result = a_star::run_edge_oriented(
                     src,
                     dst_opt,
                     direction,
                     *weight_factor,
-                    search_instance,
+                    si,
                 )?;
                 let routes = match dst_opt {
                     None => vec![],
                     Some(dst_id) => {
-                        let route = backtrack::label_edge_oriented_route(
-                            src,
-                            dst_id,
-                            &search_result.tree,
-                            search_instance.graph.clone(),
-                        )?;
+                        let route = search_result.tree.backtrack_edge_oriented_route(dst_id, si.graph.clone())?;
                         vec![route]
                     }
                 };
@@ -155,13 +147,13 @@ impl SearchAlgorithm {
                 underlying: _,
                 similarity: _,
                 termination: _,
-            } => run_edge_oriented(src, dst_opt, query, direction, self, search_instance),
+            } => run_edge_oriented(src, dst_opt, query, direction, self, si),
             SearchAlgorithm::Yens {
                 k: _,
                 underlying: _,
                 similarity: _,
                 termination: _,
-            } => run_edge_oriented(src, dst_opt, query, direction, self, search_instance),
+            } => run_edge_oriented(src, dst_opt, query, direction, self, si),
         }
     }
 }
@@ -197,10 +189,6 @@ pub fn run_edge_oriented(
 
     match target {
         None => {
-            let src_branch = SearchTreeBranch {
-                terminal_label: e1_label,
-                edge_traversal: src_et.clone(),
-            };
             let SearchAlgorithmResult {
                 mut trees,
                 mut routes,
@@ -212,8 +200,8 @@ pub fn run_edge_oriented(
                     .label_from_state(e1_dst, &initial_state, &si.state_model)?;
 
             for tree in trees.iter_mut() {
-                if !tree.contains_key(&dst_label) {
-                    tree.extend([(dst_label.clone(), src_branch.clone())]);
+                if !tree.contains(&dst_label) {
+                    tree.insert(dst_label.clone(), src_et.clone(), e1_label.clone())?;
                 }
             }
             for route in routes.iter_mut() {
@@ -240,27 +228,27 @@ pub fn run_edge_oriented(
                     EdgeTraversal::new(target_edge, Some(source), &src_et.result_state, si)?;
 
                 // Create labels for the vertices using appropriate states
-                let dst_label = si.label_model.label_from_state(
-                    e2_dst,
-                    &dst_et.result_state,
+                let v1_label = si.label_model.label_from_state(
+                    e1_src,
+                    &si.state_model.initial_state()?,
                     &si.state_model,
                 )?;
-                let src_label = si.label_model.label_from_state(
+                let v2_label = si.label_model.label_from_state(
                     e1_dst,
                     &src_et.result_state,
                     &si.state_model,
                 )?;
+                let v3_label = si.label_model.label_from_state(
+                    e2_dst,
+                    &dst_et.result_state,
+                    &si.state_model,
+                )?;
 
-                let src_traversal = SearchTreeBranch {
-                    terminal_label: src_label.clone(),
-                    edge_traversal: dst_et.clone(),
-                };
-                let dst_traversal = SearchTreeBranch {
-                    terminal_label: dst_label.clone(),
-                    edge_traversal: src_et.clone(),
-                };
+                let mut tree = SearchTree::default();
+                tree.set_root(v1_label.clone());
+                tree.insert(v2_label.clone(), src_et.clone(), v1_label.clone())?;
+                tree.insert(v3_label.clone(), dst_et.clone(), v2_label.clone())?;
 
-                let tree = HashMap::from([(dst_label, src_traversal), (src_label, dst_traversal)]);
                 let route = vec![src_et, dst_et];
                 let result = SearchAlgorithmResult {
                     trees: vec![tree],

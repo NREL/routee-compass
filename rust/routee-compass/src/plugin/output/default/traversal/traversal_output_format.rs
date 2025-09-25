@@ -1,11 +1,11 @@
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use super::traversal_ops as ops;
 use crate::plugin::output::OutputPluginError;
 use geo::{CoordFloat, Geometry, TryConvert};
 use routee_compass_core::{
-    algorithm::search::{EdgeTraversal, SearchTreeBranch},
-    model::{cost::CostModel, label::Label, map::MapModel, state::StateModel},
+    algorithm::search::{EdgeTraversal, SearchTree},
+    model::{cost::CostModel, map::MapModel, state::StateModel},
 };
 use serde::{Deserialize, Serialize};
 use wkt::ToWkt;
@@ -64,7 +64,7 @@ impl TraversalOutputFormat {
     /// generates output for a tree based on the configured TraversalOutputFormat
     pub fn generate_tree_output(
         &self,
-        tree: &HashMap<Label, SearchTreeBranch>,
+        tree: &SearchTree,
         map_model: Arc<MapModel>,
         state_model: Arc<StateModel>,
         cost_model: Arc<CostModel>,
@@ -92,7 +92,12 @@ impl TraversalOutputFormat {
             TraversalOutputFormat::EdgeId => {
                 let tree_ids = tree
                     .values()
-                    .map(|b| b.edge_traversal.edge_id)
+                    .filter_map(|b| {
+                        match b.incoming_edge() {
+                            None => return None,
+                            Some(e) => Some((e.edge_list_id, e.edge_id))
+                        }
+                    })
                     .collect::<Vec<_>>();
                 let json = serde_json::json![tree_ids];
                 Ok(json)

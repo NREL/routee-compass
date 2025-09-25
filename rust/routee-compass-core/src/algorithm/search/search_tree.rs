@@ -1,10 +1,14 @@
+use allocative::Allocative;
+use serde::Serialize;
+
 use super::EdgeTraversal;
-use crate::model::network::VertexId;
+use crate::model::network::{EdgeId, EdgeListId, Graph, NetworkError, VertexId};
 use crate::{algorithm::search::Direction, model::label::Label};
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 /// A node in the search tree containing parent/child relationships and traversal data
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Allocative, Serialize)]
 pub enum SearchTreeNode {
     Root {
         /// The label for this node
@@ -59,7 +63,7 @@ impl SearchTreeNode {
         }
     }
 
-    pub fn vertex_id(&self) -> VertexId {
+    pub fn vertex_id(&self) -> &VertexId {
         match self {
             SearchTreeNode::Root { label, .. } => label.vertex_id(),
             SearchTreeNode::Branch { label, .. } => label.vertex_id(),
@@ -111,6 +115,7 @@ impl SearchTreeNode {
 
 /// A search tree that supports efficient lookups and bi-directional parent/child traversal
 /// Designed for route planning algorithms that need both indexing and backtracking capabilities
+#[derive(Clone, Debug, Allocative)]
 pub struct SearchTree {
     /// Fast lookup by label
     nodes: HashMap<Label, SearchTreeNode>,
@@ -119,6 +124,13 @@ pub struct SearchTree {
     /// Tree orientation for bi-directional search support
     direction: Direction,
 }
+
+impl Default for SearchTree {
+    fn default() -> Self {
+        Self::new(Direction::Forward)
+    }
+}
+
 
 impl SearchTree {
     /// Create a new empty search tree with the specified orientation
@@ -178,6 +190,18 @@ impl SearchTree {
         self.nodes.insert(label, new_node);
 
         Ok(())
+    }
+
+    pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Label, &'a SearchTreeNode)> + 'a> {
+        Box::new(self.nodes.iter())
+    }
+
+    pub fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Label> + 'a> {
+        Box::new(self.nodes.keys())
+    }
+
+    pub fn values<'a>(&'a self) -> Box<dyn Iterator<Item = &'a SearchTreeNode> + 'a> {
+        Box::new(self.nodes.values())
     }
 
     /// Get a node by its label
@@ -300,11 +324,23 @@ impl SearchTree {
         self.reconstruct_path(target_label)
     }
 
+    /// backtrack for edge-oriented search, begins from source vertex of target edge.
+    pub fn backtrack_edge_oriented_route(
+        &self,
+        target: (EdgeListId, EdgeId),
+        graph: Arc<Graph>,
+    ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
+        let (d_el, d_e) = target;
+        let d_v = graph.src_vertex_id(&d_el, &d_e)?;
+        self.backtrack(d_v)
+    }
+
+
     /// Find a label for the given vertex ID
     /// In case of multiple labels for the same vertex (state-dependent search),
     /// returns the first one found. For more precise control, use reconstruct_path directly.
     fn find_label_for_vertex(&self, vertex: VertexId) -> Option<&Label> {
-        self.nodes.keys().find(|label| label.vertex_id() == vertex)
+        self.nodes.keys().find(|label| label.vertex_id() == &vertex)
     }
 
     /// Get all labels in the tree
@@ -318,7 +354,7 @@ impl SearchTree {
     }
 }
 
-#[derive(Debug, Clone, thiserror::Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum SearchTreeError {
     #[error("parent not found for label {0}")]
     ParentNotFound(Label),
@@ -330,6 +366,11 @@ pub enum SearchTreeError {
     InvalidBranchStructure(String),
     #[error("Vertex not found in tree: {0}")]
     VertexNotFound(VertexId),
+    #[error("Search tree error while interacting with Graph: {source}")]
+    NetworkError {
+        #[from]
+        source: NetworkError
+    }
 }
 
 #[cfg(test)]
@@ -375,7 +416,7 @@ mod tests {
 
         let root_node = tree.get(&root_label).unwrap();
         assert!(root_node.is_root());
-        assert_eq!(root_node.vertex_id(), VertexId(0));
+        assert_eq!(root_node.vertex_id(), &VertexId(0));
         assert!(root_node.children().is_empty());
     }
 

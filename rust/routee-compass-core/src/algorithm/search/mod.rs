@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 pub mod a_star;
-pub mod backtrack;
 mod direction;
 mod edge_traversal;
 pub mod ksp;

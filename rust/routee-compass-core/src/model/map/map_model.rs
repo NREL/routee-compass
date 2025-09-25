@@ -4,68 +4,48 @@ use super::matching_type::MatchingType;
 use super::spatial_index::SpatialIndex;
 use super::{geometry_model::GeometryModel, matching_type::MapInputResult};
 use crate::algorithm::search::SearchInstance;
-use crate::model::network::{EdgeId, Graph};
+use crate::model::map::map_model_config::MapModelGeometryConfig;
+use crate::model::network::{EdgeId, EdgeListId, Graph};
 use geo::LineString;
 use std::sync::Arc;
 
 pub struct MapModel {
+    /// way in which map matching is attempted
     pub matching_type: MatchingType,
+    /// index used during map matching
     pub spatial_index: SpatialIndex,
-    pub geometry_model: GeometryModel,
+    /// collection of geometries associated with the graph edge lists
+    pub geometry: Vec<GeometryModel>,
+    /// allow for queries without a destination location, such as when generating
+    /// shortest path trees or isochrones.
     pub queries_without_destinations: bool,
 }
 
 impl MapModel {
     pub fn new(graph: Arc<Graph>, config: &MapModelConfig) -> Result<MapModel, MapError> {
-        let matching_type = config.get_matching_type()?;
-        match config {
-            MapModelConfig::VertexMapModelConfig {
-                tolerance,
-                geometry,
-                queries_without_destinations,
-                matching_type: _,
-            } => {
-                let spatial_index =
-                    SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance.clone());
-                let geometry_model = match geometry {
-                    None => GeometryModel::new_from_vertices(graph),
-                    Some(files) => GeometryModel::new_from_edges(&files.to_vec(), graph.clone()),
-                }?;
+        let geometry = config.geometry.iter().enumerate().map(|(edge_list, g)| {
+            let edge_list_id = EdgeListId(edge_list);
+            match g {
+                MapModelGeometryConfig::FromVertices => GeometryModel::new_from_vertices(graph.clone(), edge_list_id),
+                MapModelGeometryConfig::FromLinestrings { geometry_input_file } => GeometryModel::new_from_edges(geometry_input_file, edge_list_id, graph.clone()),
+            }
+        }).collect::<Result<Vec<_>, _>>()?;
+        let queries_without_destinations = config.queries_without_destinations;
+        let tolerance = config.tolerance.as_ref().map(|t| t.to_uom());
+        let matching_type = MatchingType::deserialize_matching_types(config.matching_type.as_ref())?;
+        let spatial_index = SpatialIndex::build(&config.spatial_index_type, graph.clone(), &geometry, tolerance);
 
-                let map_model = MapModel {
-                    matching_type,
-                    spatial_index,
-                    geometry_model,
-                    queries_without_destinations: *queries_without_destinations,
-                };
-                Ok(map_model)
-            }
-            MapModelConfig::EdgeMapModelConfig {
-                tolerance,
-                geometry,
-                queries_without_destinations,
-                matching_type: _,
-            } => {
-                let geometry_model =
-                    GeometryModel::new_from_edges(&geometry.to_vec(), graph.clone())?;
-                let spatial_index = SpatialIndex::new_edge_oriented(
-                    graph.clone(),
-                    &geometry_model,
-                    tolerance.clone(),
-                );
-                let map_model = MapModel {
-                    matching_type,
-                    spatial_index,
-                    geometry_model,
-                    queries_without_destinations: *queries_without_destinations,
-                };
-                Ok(map_model)
-            }
-        }
+        Ok(MapModel {
+            matching_type,
+            spatial_index,
+            geometry,
+            queries_without_destinations,
+        })
     }
 
-    pub fn get<'a>(&'a self, edge_id: &EdgeId) -> Result<&'a LineString<f32>, MapError> {
-        self.geometry_model.get(edge_id)
+    pub fn get_linestring<'a>(&'a self, edge_list_id: &EdgeListId, edge_id: &EdgeId) -> Result<&'a LineString<f32>, MapError> {
+        let gm = self.geometry.get(edge_list_id.0).ok_or_else(|| MapError::MissingEdgeListId(*edge_list_id))?;
+        gm.get(edge_id).ok_or_else(|| MapError::MissingEdgeId(*edge_list_id, *edge_id))
     }
 
     pub fn map_match(
@@ -82,3 +62,4 @@ impl MapModel {
         }
     }
 }
+

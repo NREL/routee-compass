@@ -3,9 +3,9 @@ use geo::{LineString, MultiLineString, Point};
 use geo_types::MultiPoint;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::EdgeTraversal;
+use routee_compass_core::algorithm::search::SearchTree;
 use routee_compass_core::algorithm::search::SearchTreeBranch;
 use routee_compass_core::model::cost::CostModel;
-use routee_compass_core::model::label::Label;
 use routee_compass_core::model::map::MapModel;
 use routee_compass_core::model::network::VertexId;
 use routee_compass_core::model::state::StateModel;
@@ -15,16 +15,20 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 pub fn create_tree_geojson(
-    tree: &HashMap<Label, SearchTreeBranch>,
+    tree: &SearchTree,
     map_model: Arc<MapModel>,
     state_model: Arc<StateModel>,
     cost_model: Arc<CostModel>,
 ) -> Result<serde_json::Value, OutputPluginError> {
     let features = tree
         .values()
-        .map(|t| {
+        .filter_map(|t| {
+            let et = match t.incoming_edge() {
+                None => return None,
+                Some(e) => e,
+            };
             let row_result = map_model
-                .get(&t.edge_traversal.edge_id)
+                .get_linestring(&et.edge_list_id, &et.edge_id)
                 .cloned()
                 .map_err(|e| {
                     OutputPluginError::OutputPluginFailed(format!(
@@ -33,14 +37,14 @@ pub fn create_tree_geojson(
                 })
                 .and_then(|g| {
                     create_geojson_feature(
-                        &t.edge_traversal,
+                        &et,
                         g,
                         state_model.clone(),
                         cost_model.clone(),
                     )
                 });
 
-            row_result
+            Some(row_result)
         })
         .collect::<Result<Vec<_>, OutputPluginError>>()?;
     // let result_json = serde_json::to_value(features)?;/
@@ -62,7 +66,7 @@ pub fn create_route_geojson(
     let features = route
         .iter()
         .map(|t| {
-            let g = map_model.get(&t.edge_id).cloned().map_err(|e| {
+            let g = map_model.get_linestring(&t.edge_list_id, &t.edge_id).cloned().map_err(|e| {
                 OutputPluginError::OutputPluginFailed(format!(
                     "failure building route geojson: {e}"
                 ))
@@ -151,15 +155,15 @@ pub fn create_route_linestring(
     route: &[EdgeTraversal],
     map_model: Arc<MapModel>,
 ) -> Result<LineString<f32>, OutputPluginError> {
-    let edge_ids = route
+    let edges = route
         .iter()
-        .map(|traversal| traversal.edge_id)
+        .map(|et| (et.edge_list_id, et.edge_id))
         .collect::<Vec<_>>();
 
-    let edge_linestrings = edge_ids
+    let edge_linestrings = edges
         .iter()
-        .map(|eid| {
-            let geom = map_model.get(eid).map_err(|e| {
+        .map(|(elid, eid)| {
+            let geom = map_model.get_linestring(elid, eid).map_err(|e| {
                 OutputPluginError::OutputPluginFailed(format!(
                     "failure building route linestring: {e}"
                 ))
@@ -172,19 +176,21 @@ pub fn create_route_linestring(
 }
 
 pub fn create_tree_multilinestring(
-    tree: &HashMap<Label, SearchTreeBranch>,
+    tree: &SearchTree,
     // geoms: &[LineString<f32>],
     map_model: Arc<MapModel>,
 ) -> Result<MultiLineString<f32>, OutputPluginError> {
-    let edge_ids = tree
+    let edges = tree
         .values()
-        .map(|traversal| traversal.edge_traversal.edge_id)
+        .flat_map(|node| {
+            node.incoming_edge().map(|et| (et.edge_list_id, et.edge_id))
+        })
         .collect::<Vec<_>>();
 
-    let tree_linestrings = edge_ids
+    let tree_linestrings = edges
         .iter()
-        .map(|eid| {
-            let geom = map_model.get(eid).map_err(|e| {
+        .map(|(elid, eid)| {
+            let geom = map_model.get_linestring(elid, eid).map_err(|e| {
                 OutputPluginError::OutputPluginFailed(format!("failure building tree WKT: {e}"))
             });
             geom.cloned()

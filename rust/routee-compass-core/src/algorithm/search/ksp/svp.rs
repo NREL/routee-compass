@@ -1,9 +1,9 @@
 use super::{ksp_query::KspQuery, ksp_termination_criteria::KspTerminationCriteria};
 use crate::{
     algorithm::search::{
-        a_star::bidirectional_ops, backtrack, direction::Direction, edge_traversal::EdgeTraversal,
+        a_star::bidirectional_ops, direction::Direction, edge_traversal::EdgeTraversal,
         search_algorithm::SearchAlgorithm, search_algorithm_result::SearchAlgorithmResult,
-        search_error::SearchError, util::RouteSimilarityFunction, SearchInstance,
+        search_error::SearchError, util::RouteSimilarityFunction, SearchInstance, SearchTreeNode,
     },
     model::{network::VertexId, unit::ReverseCost},
     util::priority_queue::InternalPriorityQueue,
@@ -62,26 +62,30 @@ pub fn run(
         .ok_or_else(|| SearchError::InternalError(String::from("cannot retrieve rev tree 0")))?;
 
     // find intersection vertices
-    let rev_labels = rev_trees.iter().flatten().collect::<HashMap<_, _>>();
+    let rev_labels = rev_trees.iter().map(|t| t.iter()).flatten().collect::<HashMap<_, _>>();
     let mut intersection_queue: InternalPriorityQueue<VertexId, ReverseCost> =
         InternalPriorityQueue::default();
 
     // valid intersection vertices should appear both as terminal vertices and lookup vertices in both trees
     // - being a "terminal vertex" places them at the shared meeting location, terminus of each tree somewhere
     // - being a "lookup vertex" means we can use them for backtracking forward and reverse paths
-    for (label, fwd_branch) in fwd_tree {
-        if let Some(rev_branch) = rev_labels.get(&fwd_branch.terminal_label) {
+    for (label, fwd_branch) in fwd_tree.iter() {
+        let fwd_et = match fwd_branch.incoming_edge() {
+            None => continue,
+            Some(et) => et
+        };
+        if let Some(SearchTreeNode::Branch { incoming_edge, ..}) = rev_labels.get(fwd_branch.label()) {
             if rev_labels.contains_key(&label) {
                 let total_cost =
-                    fwd_branch.edge_traversal.total_cost() + rev_branch.edge_traversal.total_cost();
-                intersection_queue.push(label.vertex_id(), total_cost.into());
+                    fwd_et.total_cost() + incoming_edge.total_cost();
+                intersection_queue.push(*label.vertex_id(), total_cost.into());
             }
         }
     }
 
     log::debug!("ksp intersection has {} vertices", intersection_queue.len());
 
-    let tsp = backtrack::label_oriented_route(query.source, query.target, fwd_tree)?;
+    let tsp = fwd_tree.backtrack(query.target)?;
     let mut solution: Vec<Vec<EdgeTraversal>> = vec![tsp];
     let mut ksp_it: u64 = 0;
     loop {
@@ -102,18 +106,8 @@ pub fn run(
             Some((intersection_vertex_id, _)) => {
                 let mut accept_route = true;
                 // create the i'th route by backtracking both trees and concatenating the result
-                let fwd_route = backtrack::label_oriented_route(
-                    query.source,
-                    intersection_vertex_id,
-                    fwd_tree,
-                )?;
-                let rev_route_backward = backtrack::label_oriented_route(
-                    query.target,
-                    intersection_vertex_id,
-                    rev_tree,
-                )?;
-                let rev_route =
-                    bidirectional_ops::reorient_reverse_route(&fwd_route, &rev_route_backward, si)?;
+                let fwd_route = fwd_tree.backtrack(intersection_vertex_id)?;
+                let rev_route = rev_tree.backtrack(intersection_vertex_id)?;
                 let this_route = fwd_route.into_iter().chain(rev_route).collect::<Vec<_>>();
 
                 // test loop

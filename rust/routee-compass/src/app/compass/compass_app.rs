@@ -337,6 +337,7 @@ fn apply_input_plugins(
     Ok((queries_processed, query_errors))
 }
 
+#[allow(unused)]
 pub fn get_optional_run_config<'a, K, T>(
     key: &K,
     parent_key: &K,

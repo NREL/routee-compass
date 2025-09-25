@@ -1,85 +1,53 @@
-use super::{map_error::MapError, matching_type::MatchingType};
-use crate::{
-    config::OneOrMany,
-    model::{map::GeometryInput, unit::DistanceUnit},
-};
+//! configuration for the [`super::MapModel`]. 
+//! this model is responsible for:
+//!   - map matching queries to valid Graph Edges/Vertices (via [`super::MatchingType`])
+//!   - lookup of geometries from EdgeListId/EdgeId combinations across Compass
+use crate::{config::OneOrMany, model::{map::SpatialIndexType, unit::DistanceUnit}};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::str::FromStr;
 use uom::si::f64::Length;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(tag = "type")]
-pub enum MapModelConfig {
-    #[serde(rename = "vertex")]
-    VertexMapModelConfig {
-        /// distance from coordinate to the nearest vertex required for map matching
-        tolerance: Option<DistanceTolerance>,
-        /// edge geometries. if not provided, edge geometries are created from vertex coordinates.
-        geometry: Option<OneOrMany<GeometryInput>>,
-        /// allow source-only queries for shortest path tree outputs
-        queries_without_destinations: bool,
-        /// the [`MatchingType`]s supported
-        matching_type: Option<Vec<String>>,
-    },
-    #[serde(rename = "edge")]
-    EdgeMapModelConfig {
-        /// distance from coordinate to the nearest vertex required for map matching
-        tolerance: Option<DistanceTolerance>,
-        /// edge geometries for each [`EdgeList`]
-        geometry: OneOrMany<GeometryInput>,
-        /// allow source-only queries for shortest path tree outputs
-        queries_without_destinations: bool,
-        /// the [`MatchingType`]s supported
-        matching_type: Option<Vec<String>>,
-    },
+pub struct MapModelConfig {
+    /// distance from coordinate to the nearest vertex required for map matching
+    pub tolerance: Option<DistanceTolerance>,
+    /// geometries to place in the spatial index used for map matching.
+    pub spatial_index_type: SpatialIndexType,
+    /// the [`MatchingType`]s supported
+    pub matching_type: Option<Vec<String>>,
+    /// for each edge list, geometry configuration
+    pub geometry: OneOrMany<MapModelGeometryConfig>,
+    /// allow source-only queries for shortest path tree outputs
+    pub queries_without_destinations: bool,
 }
 
-impl MapModelConfig {
-    pub fn get_matching_type(&self) -> Result<MatchingType, MapError> {
-        let matching_type = match self {
-            MapModelConfig::VertexMapModelConfig {
-                tolerance: _,
-                geometry: _,
-                queries_without_destinations: _,
-                matching_type,
-            } => matching_type,
-            MapModelConfig::EdgeMapModelConfig {
-                tolerance: _,
-                geometry: _,
-                queries_without_destinations: _,
-                matching_type,
-            } => matching_type,
-        };
-        match matching_type {
-            None => Ok(MatchingType::default()),
-            Some(string_list) => {
-                let deserialized = string_list
-                    .iter()
-                    .map(|s| MatchingType::from_str(s.as_str()))
-                    .collect::<Result<Vec<_>, _>>()?;
-                match deserialized[..] {
-                    [MatchingType::Point] => Ok(MatchingType::Point),
-                    [MatchingType::VertexId] => Ok(MatchingType::VertexId),
-                    [MatchingType::EdgeId] => Ok(MatchingType::EdgeId),
-                    _ => Ok(MatchingType::Combined(deserialized)),
-                }
-            }
-        }
-    }
+/// for a given EdgeList, the source of its geometries. this can be
+///   - simply constructed by drawing lines between the vertices
+///     used by each edge in this edgelist (from_vertices)
+///   - a file containing LineStrings (from_linestrings)
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum MapModelGeometryConfig {
+    FromVertices,
+    FromLinestrings {
+        /// file containing edge geometries for this [`EdgeList`]
+        geometry_input_file: String,
+    },
 }
 
 impl Default for MapModelConfig {
     fn default() -> Self {
-        MapModelConfig::VertexMapModelConfig {
-            tolerance: None,
-            geometry: None,
-            queries_without_destinations: true,
-            matching_type: Some(MatchingType::names()),
+        Self { 
+            tolerance: Default::default(), 
+            matching_type: Default::default(), 
+            spatial_index_type: Default::default(),
+            geometry: OneOrMany::One(MapModelGeometryConfig::FromVertices), 
+            queries_without_destinations: Default::default() 
         }
     }
 }
 
+/// deserialize an Optional MapModel from configuration
 impl TryFrom<Option<&Value>> for MapModelConfig {
     type Error = String;
 
@@ -87,9 +55,9 @@ impl TryFrom<Option<&Value>> for MapModelConfig {
         match value {
             None => Ok(MapModelConfig::default()),
             Some(json) => {
-                let map_model_str = serde_json::to_string_pretty(&json).unwrap_or_default();
                 let map_model_config: MapModelConfig =
                     serde_json::from_value(json.clone()).map_err(|e| {
+                        let map_model_str = serde_json::to_string_pretty(&json).unwrap_or_default();
                         format!(
                             "unable to deserialize map model configuration section due to '{e}'. input data: \n{map_model_str}"
                         )
