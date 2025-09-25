@@ -82,7 +82,14 @@ impl TryFrom<&Path> for CompassAppConfig {
             .clone()
             .try_deserialize::<serde_json::Value>()?
             .normalize_file_paths(&"", config_path)?;
-        let compass_config: CompassAppConfig = serde_json::from_value(config_json)?;
+        let compass_config: CompassAppConfig = serde_json::from_value(config_json)
+            .map_err(|e| {
+                let filename = match config_path.to_str() {
+                    Some(f) => f,
+                    None => "<config path>",
+                };
+                CompassAppError::BuildFailure(format!("while reading {filename}: {e}"))
+            })?;
 
         Ok(compass_config)
     }
@@ -93,7 +100,6 @@ impl TryFrom<&Path> for CompassAppConfig {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SearchConfig {
     pub traversal: Value,
-    pub access: Value,
     pub frontier: Value,
 }
 

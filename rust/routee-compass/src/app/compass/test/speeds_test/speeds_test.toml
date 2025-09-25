@@ -1,5 +1,3 @@
-
-
 [graph]
 vertex_list_input_file = "src/app/compass/test/speeds_test/test_vertices.csv"
 [graph.edge_list]
