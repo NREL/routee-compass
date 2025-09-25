@@ -18,5 +18,3 @@ pub use search_error::SearchError;
 pub use search_instance::SearchInstance;
 pub use search_result::SearchResult;
 pub use search_tree::{SearchTree, SearchTreeError, SearchTreeNode};
-
-
