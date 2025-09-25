@@ -48,12 +48,8 @@ impl MapModel {
         let matching_type =
             MatchingType::deserialize_matching_types(config.matching_type.as_ref())?;
         let spatial_index_type = config.spatial_index_type.clone().unwrap_or_default();
-        let spatial_index = SpatialIndex::build(
-            &spatial_index_type,
-            graph.clone(),
-            &geometry,
-            tolerance,
-        );
+        let spatial_index =
+            SpatialIndex::build(&spatial_index_type, graph.clone(), &geometry, tolerance);
 
         Ok(MapModel {
             matching_type,
