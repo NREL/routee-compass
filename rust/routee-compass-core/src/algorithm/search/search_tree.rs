@@ -136,8 +136,6 @@ impl Default for SearchTree {
     }
 }
 
-
-
 impl SearchTree {
     /// Create a new empty search tree with the specified orientation
     pub fn new(direction: Direction) -> Self {
@@ -160,7 +158,8 @@ impl SearchTree {
     pub fn set_root(&mut self, root_label: Label) {
         let root_node = SearchTreeNode::new_root(root_label.clone(), self.direction);
         self.nodes.insert(root_label.clone(), root_node);
-        self.labels.entry(root_label.vertex_id().clone())
+        self.labels
+            .entry(root_label.vertex_id().clone())
             .and_modify(|l| {
                 let _ = l.insert(root_label.clone());
             })
@@ -200,7 +199,8 @@ impl SearchTree {
 
         // Insert the new node
         self.nodes.insert(child_label.clone(), new_node);
-        self.labels.entry(child_label.vertex_id().clone())
+        self.labels
+            .entry(child_label.vertex_id().clone())
             .and_modify(|l| {
                 let _ = l.insert(child_label.clone());
             })
@@ -235,26 +235,24 @@ impl SearchTree {
     pub fn get_labels(&self, vertex: VertexId) -> Option<&HashSet<Label>> {
         self.labels.get(&vertex)
     }
-    
+
     /// finds a single label by picking the one that is maximal/minimal wrt some comparison function.
     /// for most cases, using the method get_min_cost_label is the correct choice.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `vertex` - the vertex expected to match some label
     /// * `compare` - a comparison function
     /// * `min` - if true, find the minimal value according to the ordering function F, otherwise, the max
-    pub fn get_label_by<F>(&self, vertex: VertexId, mut compare: F, min: bool) -> Option<&Label> 
+    pub fn get_label_by<F>(&self, vertex: VertexId, mut compare: F, min: bool) -> Option<&Label>
     where
         F: FnMut(&(&Label, Option<&EdgeTraversal>)) -> OrderedFloat<f64>,
     {
-        let label_edge_iter = self.get_labels(vertex)?
-            .iter()
-            .filter_map(|label| {
-                let edge_traversal = self.get(label)?.incoming_edge();
-                Some((label, edge_traversal))
-            });
-        
+        let label_edge_iter = self.get_labels(vertex)?.iter().filter_map(|label| {
+            let edge_traversal = self.get(label)?.incoming_edge();
+            Some((label, edge_traversal))
+        });
+
         let found = if min {
             label_edge_iter.min_by_key(|item| compare(item))
         } else {
@@ -387,7 +385,7 @@ impl SearchTree {
         let target_label = self
             .get_label_by(leaf_vertex, min_cost_ordering, true)
             .ok_or(SearchTreeError::VertexNotFound(leaf_vertex))?;
-        
+
         self.reconstruct_path(target_label, Some(depth))
     }
 
@@ -1004,17 +1002,17 @@ mod tests {
         // Build a linear path: 0 -> 1 -> 2 -> 3
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert( root_label.clone(), child1_traversal,child1_label.clone())
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
             .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert( child1_label.clone(), child2_traversal,child2_label.clone())
+        tree.insert(child1_label.clone(), child2_traversal, child2_label.clone())
             .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
-        tree.insert( child2_label.clone(), child3_traversal,child3_label.clone())
+        tree.insert(child2_label.clone(), child3_traversal, child3_label.clone())
             .unwrap();
 
         // Backtrack with depth of 1
@@ -1225,4 +1223,3 @@ mod tests {
         Label::Vertex(VertexId(vertex_id))
     }
 }
-
