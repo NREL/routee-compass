@@ -1,8 +1,8 @@
 use std::collections::HashMap;
+use crate::model::unit::TimeUnit;
 
+use super::Turn;
 use serde::{Deserialize, Serialize};
-
-use crate::model::{access::default::turn_delays::Turn, unit::TimeUnit};
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "snake_case", tag = "type")]

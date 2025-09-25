@@ -7,7 +7,6 @@ use crate::model::network::{EdgeId, EdgeListId, Graph, NetworkError, VertexId};
 use crate::model::unit::AsF64;
 use crate::{algorithm::search::Direction, model::label::Label};
 use std::collections::{HashMap, HashSet};
-use std::num::NonZero;
 use std::sync::Arc;
 
 /// A node in the search tree containing parent/child relationships and traversal data
@@ -326,7 +325,7 @@ impl SearchTree {
     pub fn reconstruct_path(
         &self,
         target_label: &Label,
-        depth: Option<NonZero<u64>>,
+        depth: Option<u64>,
     ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
         let mut path = Vec::new();
         let mut current_label = target_label;
@@ -334,7 +333,7 @@ impl SearchTree {
 
         // Walk up from target to root
         loop {
-            let exceeds_depth = depth.map(|l| steps >= l.into()).unwrap_or_default();
+            let exceeds_depth = depth.map(|l| steps >= l).unwrap_or_default();
             if exceeds_depth {
                 break;
             }
@@ -380,7 +379,7 @@ impl SearchTree {
     pub fn backtrack_with_depth(
         &self,
         leaf_vertex: VertexId,
-        depth: NonZero<u64>,
+        depth: u64,
     ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
         let target_label = self
             .get_label_by(leaf_vertex, min_cost_ordering, true)
@@ -948,8 +947,7 @@ mod tests {
             .unwrap();
 
         // Backtrack with depth equal to total path length
-        let depth = NonZero::new(4).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(4), 4).unwrap();
 
         assert_eq!(path.len(), 4);
         assert_eq!(path[0].edge_id, EdgeId(1)); // root -> 1
@@ -985,8 +983,7 @@ mod tests {
             .unwrap();
 
         // Backtrack with depth less than total path length
-        let depth = NonZero::new(2).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(4), 2).unwrap();
 
         // Should only get the last 2 edges (limited by depth)
         assert_eq!(path.len(), 2);
@@ -1016,8 +1013,7 @@ mod tests {
             .unwrap();
 
         // Backtrack with depth of 1
-        let depth = NonZero::new(1).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(3), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(3), 1).unwrap();
 
         // Should only get the last edge
         assert_eq!(path.len(), 1);
@@ -1051,8 +1047,7 @@ mod tests {
             .unwrap();
 
         // Backtrack with depth equal to total path length (reverse orientation)
-        let depth = NonZero::new(4).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(4), 4).unwrap();
 
         assert_eq!(path.len(), 4);
         // In reverse orientation, path is not reversed, so it goes from target to root
@@ -1089,8 +1084,7 @@ mod tests {
             .unwrap();
 
         // Backtrack with depth less than total path length
-        let depth = NonZero::new(2).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(4), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(4), 2).unwrap();
 
         // Should only get the first 2 edges from the target
         assert_eq!(path.len(), 2);
@@ -1104,8 +1098,7 @@ mod tests {
         let tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
 
         // Backtracking from root with any depth should return empty path
-        let depth = NonZero::new(5).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(0), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(0), 5).unwrap();
         assert_eq!(path.len(), 0);
     }
 
@@ -1114,8 +1107,7 @@ mod tests {
         let root_label = create_test_label(0);
         let tree = SearchTree::with_root(root_label, Direction::Forward);
 
-        let depth = NonZero::new(1).unwrap();
-        let result = tree.backtrack_with_depth(VertexId(99), depth);
+        let result = tree.backtrack_with_depth(VertexId(99), 1);
         assert!(matches!(
             result,
             Err(SearchTreeError::VertexNotFound(VertexId(99)))
@@ -1139,8 +1131,7 @@ mod tests {
             .unwrap();
 
         // Request more depth than available
-        let depth = NonZero::new(10).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(2), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(2), 10).unwrap();
 
         // Should return the entire available path (2 edges)
         assert_eq!(path.len(), 2);
@@ -1188,21 +1179,18 @@ mod tests {
             .unwrap();
 
         // Test backtrack from leaf node 3 with depth 1
-        let depth = NonZero::new(1).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(3), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(3), 1).unwrap();
         assert_eq!(path.len(), 1);
         assert_eq!(path[0].edge_id, EdgeId(3)); // 1 -> 3
 
         // Test backtrack from leaf node 5 with depth 2
-        let depth = NonZero::new(2).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(5), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(5), 2).unwrap();
         assert_eq!(path.len(), 2);
         assert_eq!(path[0].edge_id, EdgeId(4)); // 2 -> 4
         assert_eq!(path[1].edge_id, EdgeId(5)); // 4 -> 5
 
         // Test backtrack from leaf node 5 with full depth
-        let depth = NonZero::new(3).unwrap();
-        let path = tree.backtrack_with_depth(VertexId(5), depth).unwrap();
+        let path = tree.backtrack_with_depth(VertexId(5), 3).unwrap();
         assert_eq!(path.len(), 3);
         assert_eq!(path[0].edge_id, EdgeId(2)); // root -> 2
         assert_eq!(path[1].edge_id, EdgeId(4)); // 2 -> 4

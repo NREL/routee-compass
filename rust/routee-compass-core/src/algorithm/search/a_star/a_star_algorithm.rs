@@ -210,7 +210,6 @@ pub fn estimate_traversal_cost(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::access::default::NoAccessModel;
     use crate::model::cost::CostAggregation;
     use crate::model::cost::CostModel;
     use crate::model::cost::VehicleCostRate;
@@ -348,7 +347,6 @@ mod tests {
             map_model,
             state_model: state_model.clone(),
             traversal_models: vec![traversal_model.clone()],
-            access_models: vec![Arc::new(NoAccessModel {})],
             frontier_models: vec![Arc::new(NoRestriction {})],
             cost_model: Arc::new(cost_model),
             termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),

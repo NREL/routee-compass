@@ -4,7 +4,6 @@ use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance},
     model::{
-        access::AccessModelService,
         cost::cost_model_service::CostModelService,
         frontier::FrontierModelService,
         label::label_model_service::LabelModelService,
@@ -25,7 +24,6 @@ pub struct SearchApp {
     pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
     pub traversal_model_services: Vec<Arc<dyn TraversalModelService>>,
-    pub access_model_services: Vec<Arc<dyn AccessModelService>>,
     pub frontier_model_services: Vec<Arc<dyn FrontierModelService>>,
     pub cost_model_service: Arc<CostModelService>,
     pub termination_model: Arc<TerminationModel>,
@@ -43,7 +41,6 @@ impl SearchApp {
         map_model: Arc<MapModel>,
         state_model: Arc<StateModel>,
         traversal_model_services: Vec<Arc<dyn TraversalModelService>>,
-        access_model_services: Vec<Arc<dyn AccessModelService>>,
         frontier_model_services: Vec<Arc<dyn FrontierModelService>>,
         cost_model_service: CostModelService,
         termination_model: TerminationModel,
@@ -56,7 +53,6 @@ impl SearchApp {
             map_model,
             state_model,
             traversal_model_services,
-            access_model_services,
             cost_model_service: Arc::new(cost_model_service),
             frontier_model_services,
             termination_model: Arc::new(termination_model),
@@ -150,14 +146,9 @@ impl SearchApp {
             .iter()
             .map(|m| m.build(query))
             .collect::<Result<Vec<_>, _>>()?;
-        let access_models = self
-            .access_model_services
-            .iter()
-            .map(|m| m.build(query))
-            .collect::<Result<Vec<_>, _>>()?;
 
         let output_features =
-            search_app_ops::collect_features(query, &traversal_models, &access_models)?;
+            search_app_ops::collect_features(query, &traversal_models)?;
         let state_model_instance = self.state_model.register(vec![], output_features)?;
         let state_model = Arc::new(state_model_instance);
 
@@ -178,7 +169,6 @@ impl SearchApp {
             map_model: self.map_model.clone(),
             state_model,
             traversal_models,
-            access_models,
             cost_model: Arc::new(cost_model),
             frontier_models,
             termination_model: self.termination_model.clone(),

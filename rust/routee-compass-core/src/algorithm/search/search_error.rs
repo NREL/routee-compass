@@ -1,7 +1,6 @@
 use crate::{
     algorithm::search::SearchTreeError,
     model::{
-        access::AccessModelError,
         cost::CostModelError,
         frontier::FrontierModelError,
         label::label_model_error::LabelModelError,
@@ -45,11 +44,6 @@ pub enum SearchError {
     TraversalModelFailure {
         #[from]
         source: TraversalModelError,
-    },
-    #[error("The search failed due to access model error. The access model performs edge-to-edge transitions by updating the various search dimensions, based on the state and cost models. Please review the [access] section of your Compass Configuration. Source: {source}")]
-    AccessModelFailure {
-        #[from]
-        source: AccessModelError,
     },
     #[error("The search failed due to frontier model error. The frontier model restricts access to edges. Please review the [frontier] section of your Compass Configuration. Source: {source}")]
     FrontierModelFailure {

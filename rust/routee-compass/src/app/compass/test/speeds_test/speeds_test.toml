@@ -19,10 +19,6 @@ speed_unit = "kph"
 type = "time"
 time_unit = "minutes"
 
-[search.access]
-type = "no_access_model"
-
-
 [cost]
 cost_aggregation = "sum"
 [cost.weights]

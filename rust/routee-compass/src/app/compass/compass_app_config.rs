@@ -5,7 +5,7 @@ use routee_compass_core::{
     algorithm::search::SearchAlgorithm,
     config::{ConfigJsonExtensions, OneOrMany},
     model::{
-        access::AccessModelService, cost::CostModelConfig, frontier::FrontierModelService,
+        cost::CostModelConfig, frontier::FrontierModelService,
         map::MapModelConfig, network::GraphConfig, state::StateVariableConfig,
         traversal::TraversalModelService,
     },
@@ -110,17 +110,7 @@ impl CompassAppConfig {
             .collect::<Result<Vec<_>, _>>()?;
         Ok(result)
     }
-    pub fn build_access_model_services(
-        &self,
-        builders: &CompassBuilderInventory,
-    ) -> Result<Vec<Arc<dyn AccessModelService>>, CompassAppError> {
-        let result = self
-            .search
-            .iter()
-            .map(|el| builders.build_access_model_service(&el.access))
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(result)
-    }
+
     pub fn build_frontier_model_services(
         &self,
         builders: &CompassBuilderInventory,

@@ -1,28 +1,26 @@
 use crate::config::ConfigJsonExtensions;
+use super::{ EdgeHeading, TurnDelayTraversalModelEngine, TurnDelayTraversalModelService,
+            TurnDelayModelConfig};
 use crate::{
-    model::access::{
-        default::turn_delays::{
-            EdgeHeading, TurnDelayAccessModelEngine, TurnDelayAccessModelService,
-            TurnDelayModelConfig,
-        },
-        AccessModelBuilder, AccessModelError, AccessModelService,
+    model::traversal::{
+        TraversalModelBuilder, TraversalModelError, TraversalModelService,
     },
     util::fs::read_utils,
 };
 use kdam::Bar;
 use std::sync::Arc;
 
-pub struct TurnDelayAccessModelBuilder {}
+pub struct TurnDelayTraversalModelBuilder {}
 
-impl AccessModelBuilder for TurnDelayAccessModelBuilder {
+impl TraversalModelBuilder for TurnDelayTraversalModelBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn AccessModelService>, AccessModelError> {
+    ) -> Result<Arc<dyn TraversalModelService>, TraversalModelError> {
         let file_path = parameters
             .get_config_path(&"edge_heading_input_file", &"turn delay access model")
             .map_err(|e| {
-                AccessModelError::BuildError(format!(
+                TraversalModelError::BuildError(format!(
                     "failure reading 'edge_heading_input_file' from access model configuration: {e}"
                 ))
             })?;
@@ -33,7 +31,7 @@ impl AccessModelBuilder for TurnDelayAccessModelBuilder {
             None,
         )
         .map_err(|e| {
-            AccessModelError::BuildError(format!(
+            TraversalModelError::BuildError(format!(
                 "error reading headings from file {file_path:?}: {e}"
             ))
         })?;
@@ -43,16 +41,16 @@ impl AccessModelBuilder for TurnDelayAccessModelBuilder {
                 &"turn delay access model",
             )
             .map_err(|e| {
-                AccessModelError::BuildError(format!(
+                TraversalModelError::BuildError(format!(
                     "failure reading 'turn_delay_model' from access model configuration: {e}"
                 ))
             })?;
 
-        let engine = TurnDelayAccessModelEngine {
+        let engine = TurnDelayTraversalModelEngine {
             edge_headings,
             turn_delay_model: turn_delay_model_config.into(),
         };
-        let service = TurnDelayAccessModelService {
+        let service = TurnDelayTraversalModelService {
             engine: Arc::new(engine),
         };
         Ok(Arc::new(service))

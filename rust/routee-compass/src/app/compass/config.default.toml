@@ -55,7 +55,6 @@ type = "a*"
 
 [search]
 traversal = { type = "distance", distance_unit = "kilometers" }
-access.type = "no_access_model"
 frontier.type = "no_restriction"
 
 [cost]

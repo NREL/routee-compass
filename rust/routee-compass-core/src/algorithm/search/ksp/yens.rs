@@ -107,7 +107,6 @@ pub fn run(
                 map_model: si.map_model.clone(),
                 state_model: si.state_model.clone(),
                 traversal_models: si.traversal_models.iter().cloned().collect_vec(),
-                access_models: si.access_models.iter().cloned().collect_vec(),
                 cost_model: si.cost_model.clone(),
                 frontier_models: yens_frontier,
                 termination_model: si.termination_model.clone(),

@@ -1,7 +1,7 @@
 use std::fmt::Display;
-
-use crate::model::access::AccessModelError;
 use serde::{Deserialize, Serialize};
+
+use crate::model::traversal::TraversalModelError;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
@@ -23,7 +23,7 @@ impl Display for Turn {
 }
 
 impl Turn {
-    pub fn from_angle(angle: i16) -> Result<Self, AccessModelError> {
+    pub fn from_angle(angle: i16) -> Result<Self, TraversalModelError> {
         match angle {
             -180..=-160 => Ok(Turn::UTurn),
             -159..=-135 => Ok(Turn::SharpLeft),
@@ -34,10 +34,7 @@ impl Turn {
             45..=134 => Ok(Turn::Right),
             135..=159 => Ok(Turn::SharpRight),
             160..=180 => Ok(Turn::UTurn),
-            _ => Err(AccessModelError::RuntimeError {
-                name: String::from("turn delays"),
-                error: format!("Angle {angle} out of range of -180 to 180"),
-            }),
+            _ => Err(TraversalModelError::TraversalModelFailure(format!("Angle {angle} out of range of -180 to 180"))),
         }
     }
 }

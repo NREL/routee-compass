@@ -1,7 +1,6 @@
 use itertools::Itertools;
 use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::model::{
-    access::AccessModel,
     state::{StateModelError, StateVariableConfig},
     traversal::TraversalModel,
 };
@@ -19,13 +18,11 @@ use std::{collections::HashMap, sync::Arc};
 pub fn collect_features(
     query: &serde_json::Value,
     traversal_models: &[Arc<dyn TraversalModel>],
-    access_models: &[Arc<dyn AccessModel>],
 ) -> Result<Vec<(String, StateVariableConfig)>, StateModelError> {
     // prepare the set of features for this state model
     let model_features = traversal_models
         .iter()
         .flat_map(|m| m.output_features().into_iter())
-        .chain(access_models.iter().flat_map(|m| m.state_features()))
         .collect::<HashMap<_, _>>();
 
     // build the state model. inject state features from the traversal and access models

@@ -1,7 +1,6 @@
 use crate::{
     algorithm::search::SearchError,
     model::{
-        access::AccessModel,
         cost::CostModel,
         frontier::FrontierModel,
         label::label_model::LabelModel,
@@ -19,7 +18,6 @@ use std::sync::Arc;
 pub struct SearchInstance {
     pub graph: Arc<Graph>,
     pub frontier_models: Vec<Arc<dyn FrontierModel>>,
-    pub access_models: Vec<Arc<dyn AccessModel>>,
     pub traversal_models: Vec<Arc<dyn TraversalModel>>,
     pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
@@ -43,16 +41,6 @@ impl SearchInstance {
         self.frontier_models
             .get(edge_list_id.0)
             .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve frontier models for edge list {} that does not exist", edge_list_id)))
-            .cloned()
-    }
-
-    pub fn get_access_model(
-        &self,
-        edge_list_id: &EdgeListId,
-    ) -> Result<Arc<dyn AccessModel>, SearchError> {
-        self.access_models
-            .get(edge_list_id.0)
-            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve access models for edge list {} that does not exist", edge_list_id)))
             .cloned()
     }
 

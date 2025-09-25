@@ -1,6 +1,6 @@
 use crate::{
     model::{
-        access::AccessModelError, frontier::FrontierModelError,
+        frontier::FrontierModelError,
         label::label_model_error::LabelModelError, network::NetworkError,
         traversal::TraversalModelError,
     },
@@ -60,8 +60,6 @@ pub enum CompassConfigurationError {
     ConversionError(#[from] ConversionError),
     #[error(transparent)]
     TraversalModelError(#[from] TraversalModelError),
-    #[error(transparent)]
-    AccessModelError(#[from] AccessModelError),
     #[error(transparent)]
     FrontierModelError(#[from] FrontierModelError),
     #[error(transparent)]
