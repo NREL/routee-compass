@@ -126,7 +126,7 @@ pub fn run_vertex_oriented(
             if tentative_gscore < existing_gscore {
                 // accept this traversal, updating search state
                 traversal_costs.insert(key_label.clone(), tentative_gscore);
-                solution.insert(key_label.clone(), et.clone(), terminal_label)?;
+                solution.insert(terminal_label, et.clone(), key_label.clone())?;
 
                 let dst_h_cost = match target {
                     None => Cost::ZERO,

@@ -171,9 +171,9 @@ impl SearchTree {
     /// Insert a node with a parent relationship
     pub fn insert(
         &mut self,
-        label: Label,
-        edge_traversal: EdgeTraversal,
         parent_label: Label,
+        edge_traversal: EdgeTraversal,
+        label: Label,
     ) -> Result<(), SearchTreeError> {
         // Verify parent exists
         // If parent doesn't exist but tree is empty, make parent the root
@@ -498,9 +498,9 @@ mod tests {
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
         tree.insert(
-            child1_label.clone(),
-            child1_traversal.clone(),
             root_label.clone(),
+            child1_traversal.clone(),
+            child1_label.clone(),
         )
         .unwrap();
 
@@ -508,9 +508,9 @@ mod tests {
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
         tree.insert(
-            child2_label.clone(),
-            child2_traversal.clone(),
             root_label.clone(),
+            child2_traversal.clone(),
+            child2_label.clone(),
         )
         .unwrap();
 
@@ -545,7 +545,7 @@ mod tests {
         let child_traversal = create_test_edge_traversal(1, 10.0);
         let nonexistent_parent = create_test_label(99);
 
-        let result = tree.insert(child_label, child_traversal, nonexistent_parent.clone());
+        let result = tree.insert(nonexistent_parent.clone(), child_traversal, child_label);
         assert!(matches!(result, Err(SearchTreeError::ParentNotFound(_))));
     }
 
@@ -556,7 +556,7 @@ mod tests {
 
         let child_label = create_test_label(1);
         let child_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child_label.clone(), child_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child_traversal, child_label.clone())
             .unwrap();
 
         // Root has no parent
@@ -576,27 +576,27 @@ mod tests {
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
         tree.insert(
-            child1_label.clone(),
-            child1_traversal.clone(),
             root_label.clone(),
+            child1_traversal.clone(),
+            child1_label.clone(),
         )
         .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
         tree.insert(
-            child2_label.clone(),
-            child2_traversal.clone(),
             child1_label.clone(),
+            child2_traversal.clone(),
+            child2_label.clone(),
         )
         .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
         tree.insert(
-            child3_label.clone(),
-            child3_traversal.clone(),
             child2_label.clone(),
+            child3_traversal.clone(),
+            child3_label.clone(),
         )
         .unwrap();
 
@@ -617,27 +617,27 @@ mod tests {
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
         tree.insert(
-            child1_label.clone(),
-            child1_traversal.clone(),
             root_label.clone(),
+            child1_traversal.clone(),
+            child1_label.clone(),
         )
         .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
         tree.insert(
-            child2_label.clone(),
-            child2_traversal.clone(),
             child1_label.clone(),
+            child2_traversal.clone(),
+            child2_label.clone(),
         )
         .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
         tree.insert(
-            child3_label.clone(),
-            child3_traversal.clone(),
             child2_label.clone(),
+            child3_traversal.clone(),
+            child3_label.clone(),
         )
         .unwrap();
 
@@ -666,12 +666,12 @@ mod tests {
 
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
             .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(child2_label.clone(), child2_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child2_traversal, child2_label.clone())
             .unwrap();
 
         // Test labels iterator
@@ -701,27 +701,27 @@ mod tests {
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
         tree.insert(
-            child1_label.clone(),
-            child1_traversal.clone(),
             root_label.clone(),
+            child1_traversal.clone(),
+            child1_label.clone(),
         )
         .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
         tree.insert(
-            child2_label.clone(),
-            child2_traversal.clone(),
             child1_label.clone(),
+            child2_traversal.clone(),
+            child2_label.clone(),
         )
         .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
         tree.insert(
-            child3_label.clone(),
-            child3_traversal.clone(),
             child2_label.clone(),
+            child3_traversal.clone(),
+            child3_label.clone(),
         )
         .unwrap();
 
@@ -742,27 +742,27 @@ mod tests {
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
         tree.insert(
-            child1_label.clone(),
-            child1_traversal.clone(),
             root_label.clone(),
+            child1_traversal.clone(),
+            child1_label.clone(),
         )
         .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
         tree.insert(
-            child2_label.clone(),
-            child2_traversal.clone(),
             child1_label.clone(),
+            child2_traversal.clone(),
+            child2_label.clone(),
         )
         .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
         tree.insert(
-            child3_label.clone(),
-            child3_traversal.clone(),
             child2_label.clone(),
+            child3_traversal.clone(),
+            child3_label.clone(),
         )
         .unwrap();
 
@@ -803,7 +803,7 @@ mod tests {
 
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
             .unwrap();
 
         // Test finding existing vertex
@@ -827,9 +827,9 @@ mod tests {
         let edge_traversal = create_test_edge_traversal(1, 10.0);
 
         tree.insert(
-            child_label.clone(),
-            edge_traversal.clone(),
             parent_label.clone(),
+            edge_traversal.clone(),
+            child_label.clone(),
         )
         .unwrap();
 
@@ -862,23 +862,23 @@ mod tests {
 
         // First insert creates root automatically
         tree.insert(
-            label1.clone(),
-            create_test_edge_traversal(1, 10.0),
             label0.clone(),
+            create_test_edge_traversal(1, 10.0),
+            label1.clone(),
         )
         .unwrap();
 
         // Subsequent inserts work normally
         tree.insert(
-            label2.clone(),
-            create_test_edge_traversal(2, 15.0),
             label1.clone(),
+            create_test_edge_traversal(2, 15.0),
+            label2.clone(),
         )
         .unwrap();
         tree.insert(
-            label3.clone(),
-            create_test_edge_traversal(3, 20.0),
             label2.clone(),
+            create_test_edge_traversal(3, 20.0),
+            label3.clone(),
         )
         .unwrap();
 
@@ -905,7 +905,7 @@ mod tests {
         // Insert should work normally without creating a new root
         let child_label = create_test_label(1);
         let edge_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child_label.clone(), edge_traversal, root_label.clone())
+        tree.insert(root_label.clone(), edge_traversal, child_label.clone())
             .unwrap();
 
         // Root should still be the same
@@ -931,22 +931,22 @@ mod tests {
         // Build a linear path: 0 -> 1 -> 2 -> 3 -> 4
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
             .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+        tree.insert(child1_label.clone(), child2_traversal, child2_label.clone())
             .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
-        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+        tree.insert(child2_label.clone(), child3_traversal, child3_label.clone())
             .unwrap();
 
         let child4_label = create_test_label(4);
         let child4_traversal = create_test_edge_traversal(4, 25.0);
-        tree.insert(child4_label.clone(), child4_traversal, child3_label.clone())
+        tree.insert(child3_label.clone(), child4_traversal, child4_label.clone())
             .unwrap();
 
         // Backtrack with depth equal to total path length
@@ -968,22 +968,22 @@ mod tests {
         // Build a linear path: 0 -> 1 -> 2 -> 3 -> 4
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
             .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+        tree.insert(child1_label.clone(), child2_traversal, child2_label.clone())
             .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
-        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+        tree.insert(child2_label.clone(), child3_traversal, child3_label.clone())
             .unwrap();
 
         let child4_label = create_test_label(4);
         let child4_traversal = create_test_edge_traversal(4, 25.0);
-        tree.insert(child4_label.clone(), child4_traversal, child3_label.clone())
+        tree.insert(child3_label.clone(), child4_traversal, child4_label.clone())
             .unwrap();
 
         // Backtrack with depth less than total path length
@@ -1004,17 +1004,17 @@ mod tests {
         // Build a linear path: 0 -> 1 -> 2 -> 3
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+        tree.insert( root_label.clone(), child1_traversal,child1_label.clone())
             .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+        tree.insert( child1_label.clone(), child2_traversal,child2_label.clone())
             .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
-        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+        tree.insert( child2_label.clone(), child3_traversal,child3_label.clone())
             .unwrap();
 
         // Backtrack with depth of 1
@@ -1034,22 +1034,22 @@ mod tests {
         // Build a linear path: 0 -> 1 -> 2 -> 3 -> 4
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
             .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+        tree.insert(child1_label.clone(), child2_traversal, child2_label.clone())
             .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
-        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+        tree.insert(child2_label.clone(), child3_traversal, child3_label.clone())
             .unwrap();
 
         let child4_label = create_test_label(4);
         let child4_traversal = create_test_edge_traversal(4, 25.0);
-        tree.insert(child4_label.clone(), child4_traversal, child3_label.clone())
+        tree.insert(child3_label.clone(), child4_traversal, child4_label.clone())
             .unwrap();
 
         // Backtrack with depth equal to total path length (reverse orientation)
@@ -1072,22 +1072,22 @@ mod tests {
         // Build a linear path: 0 -> 1 -> 2 -> 3 -> 4
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
             .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+        tree.insert(child1_label.clone(), child2_traversal, child2_label.clone())
             .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
-        tree.insert(child3_label.clone(), child3_traversal, child2_label.clone())
+        tree.insert(child2_label.clone(), child3_traversal, child3_label.clone())
             .unwrap();
 
         let child4_label = create_test_label(4);
         let child4_traversal = create_test_edge_traversal(4, 25.0);
-        tree.insert(child4_label.clone(), child4_traversal, child3_label.clone())
+        tree.insert(child3_label.clone(), child4_traversal, child4_label.clone())
             .unwrap();
 
         // Backtrack with depth less than total path length
@@ -1132,12 +1132,12 @@ mod tests {
         // Build a short path: 0 -> 1 -> 2
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
             .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(child2_label.clone(), child2_traversal, child1_label.clone())
+        tree.insert(child1_label.clone(), child2_traversal, child2_label.clone())
             .unwrap();
 
         // Request more depth than available
@@ -1166,27 +1166,27 @@ mod tests {
 
         let child1_label = create_test_label(1);
         let child1_traversal = create_test_edge_traversal(1, 10.0);
-        tree.insert(child1_label.clone(), child1_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
             .unwrap();
 
         let child2_label = create_test_label(2);
         let child2_traversal = create_test_edge_traversal(2, 15.0);
-        tree.insert(child2_label.clone(), child2_traversal, root_label.clone())
+        tree.insert(root_label.clone(), child2_traversal, child2_label.clone())
             .unwrap();
 
         let child3_label = create_test_label(3);
         let child3_traversal = create_test_edge_traversal(3, 20.0);
-        tree.insert(child3_label.clone(), child3_traversal, child1_label.clone())
+        tree.insert(child1_label.clone(), child3_traversal, child3_label.clone())
             .unwrap();
 
         let child4_label = create_test_label(4);
         let child4_traversal = create_test_edge_traversal(4, 25.0);
-        tree.insert(child4_label.clone(), child4_traversal, child2_label.clone())
+        tree.insert(child2_label.clone(), child4_traversal, child4_label.clone())
             .unwrap();
 
         let child5_label = create_test_label(5);
         let child5_traversal = create_test_edge_traversal(5, 30.0);
-        tree.insert(child5_label.clone(), child5_traversal, child4_label.clone())
+        tree.insert(child4_label.clone(), child5_traversal, child5_label.clone())
             .unwrap();
 
         // Test backtrack from leaf node 3 with depth 1

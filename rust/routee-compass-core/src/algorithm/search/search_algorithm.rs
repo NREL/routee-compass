@@ -198,7 +198,7 @@ pub fn run_edge_oriented(
 
             for tree in trees.iter_mut() {
                 if !tree.contains(&dst_label) {
-                    tree.insert(dst_label.clone(), src_et.clone(), e1_label.clone())?;
+                    tree.insert(e1_label.clone(), src_et.clone(), dst_label.clone())?;
                 }
             }
             for route in routes.iter_mut() {
@@ -243,8 +243,8 @@ pub fn run_edge_oriented(
 
                 let mut tree = SearchTree::default();
                 tree.set_root(v1_label.clone());
-                tree.insert(v2_label.clone(), src_et.clone(), v1_label.clone())?;
-                tree.insert(v3_label.clone(), dst_et.clone(), v2_label.clone())?;
+                tree.insert(v1_label.clone(), src_et.clone(),v2_label.clone())?;
+                tree.insert(v2_label.clone(), dst_et.clone(),v3_label.clone())?;
 
                 let route = vec![src_et, dst_et];
                 let result = SearchAlgorithmResult {
