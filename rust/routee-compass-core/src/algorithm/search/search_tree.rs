@@ -1,8 +1,10 @@
 use allocative::Allocative;
+use ordered_float::OrderedFloat;
 use serde::Serialize;
 
 use super::EdgeTraversal;
 use crate::model::network::{EdgeId, EdgeListId, Graph, NetworkError, VertexId};
+use crate::model::unit::AsF64;
 use crate::{algorithm::search::Direction, model::label::Label};
 use std::collections::{HashMap, HashSet};
 use std::num::NonZero;
@@ -120,6 +122,8 @@ impl SearchTreeNode {
 pub struct SearchTree {
     /// Fast lookup by label
     nodes: HashMap<Label, SearchTreeNode>,
+    /// Fast Label lookup by VertexId
+    labels: HashMap<VertexId, HashSet<Label>>,
     /// The root node (None if empty tree)
     root: Option<Label>,
     /// Tree orientation for bi-directional search support
@@ -132,11 +136,14 @@ impl Default for SearchTree {
     }
 }
 
+
+
 impl SearchTree {
     /// Create a new empty search tree with the specified orientation
     pub fn new(direction: Direction) -> Self {
         Self {
             nodes: HashMap::new(),
+            labels: HashMap::new(),
             root: None,
             direction,
         }
@@ -153,6 +160,11 @@ impl SearchTree {
     pub fn set_root(&mut self, root_label: Label) {
         let root_node = SearchTreeNode::new_root(root_label.clone(), self.direction);
         self.nodes.insert(root_label.clone(), root_node);
+        self.labels.entry(root_label.vertex_id().clone())
+            .and_modify(|l| {
+                let _ = l.insert(root_label.clone());
+            })
+            .or_insert(HashSet::from([root_label.clone()]));
         self.root = Some(root_label);
     }
 
@@ -187,7 +199,12 @@ impl SearchTree {
         }
 
         // Insert the new node
-        self.nodes.insert(label, new_node);
+        self.nodes.insert(label.clone(), new_node);
+        self.labels.entry(label.vertex_id().clone())
+            .and_modify(|l| {
+                let _ = l.insert(label.clone());
+            })
+            .or_insert(HashSet::from([label.clone()]));
 
         Ok(())
     }
@@ -207,6 +224,44 @@ impl SearchTree {
     /// Get a node by its label
     pub fn get(&self, label: &Label) -> Option<&SearchTreeNode> {
         self.nodes.get(label)
+    }
+
+    /// gets the label with the minimum cost associated with a vertex
+    pub fn get_min_cost_label(&self, vertex: VertexId) -> Option<&Label> {
+        self.get_label_by(vertex, min_cost_ordering, true)
+    }
+
+    /// Find labels for the given vertex ID
+    pub fn get_labels(&self, vertex: VertexId) -> Option<&HashSet<Label>> {
+        self.labels.get(&vertex)
+    }
+    
+    /// finds a single label by picking the one that is maximal/minimal wrt some comparison function.
+    /// for most cases, using the method get_min_cost_label is the correct choice.
+    /// 
+    /// # Arguments
+    /// 
+    /// * `vertex` - the vertex expected to match some label
+    /// * `compare` - a comparison function
+    /// * `min` - if true, find the minimal value according to the ordering function F, otherwise, the max
+    pub fn get_label_by<F>(&self, vertex: VertexId, mut compare: F, min: bool) -> Option<&Label> 
+    where
+        F: FnMut(&(&Label, Option<&EdgeTraversal>)) -> OrderedFloat<f64>,
+    {
+        let label_edge_iter = self.get_labels(vertex)?
+            .iter()
+            .filter_map(|label| {
+                let edge_traversal = self.get(label)?.incoming_edge();
+                Some((label, edge_traversal))
+            });
+        
+        let found = if min {
+            label_edge_iter.min_by_key(|item| compare(item))
+        } else {
+            label_edge_iter.max_by_key(|item| compare(item))
+        };
+
+        found.map(|(label, _)| label)
     }
 
     /// Get a mutable reference to a node by its label
@@ -329,12 +384,10 @@ impl SearchTree {
         leaf_vertex: VertexId,
         depth: NonZero<u64>,
     ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
-        // Find the label for this vertex - there might be multiple labels for the same vertex
-        // in state-dependent searches, so we need to find the right one
         let target_label = self
-            .find_label_for_vertex(leaf_vertex)
+            .get_label_by(leaf_vertex, min_cost_ordering, true)
             .ok_or(SearchTreeError::VertexNotFound(leaf_vertex))?;
-
+        
         self.reconstruct_path(target_label, Some(depth))
     }
 
@@ -346,10 +399,8 @@ impl SearchTree {
     /// # Returns
     /// A path of EdgeTraversals from root to leaf (forward) or leaf to root (reverse)
     pub fn backtrack(&self, leaf_vertex: VertexId) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
-        // Find the label for this vertex - there might be multiple labels for the same vertex
-        // in state-dependent searches, so we need to find the right one
         let target_label = self
-            .find_label_for_vertex(leaf_vertex)
+            .get_label_by(leaf_vertex, min_cost_ordering, true)
             .ok_or(SearchTreeError::VertexNotFound(leaf_vertex))?;
 
         self.reconstruct_path(target_label, None)
@@ -366,13 +417,6 @@ impl SearchTree {
         self.backtrack(d_v)
     }
 
-    /// Find a label for the given vertex ID
-    /// In case of multiple labels for the same vertex (state-dependent search),
-    /// returns the first one found. For more precise control, use reconstruct_path directly.
-    fn find_label_for_vertex(&self, vertex: VertexId) -> Option<&Label> {
-        self.nodes.keys().find(|label| label.vertex_id() == &vertex)
-    }
-
     /// Get all labels in the tree
     pub fn labels(&self) -> impl Iterator<Item = &Label> {
         self.nodes.keys()
@@ -381,6 +425,15 @@ impl SearchTree {
     /// Get all nodes in the tree
     pub fn nodes(&self) -> impl Iterator<Item = &SearchTreeNode> {
         self.nodes.values()
+    }
+}
+
+/// helper function to construct the min cost ordering
+fn min_cost_ordering(pair: &(&Label, Option<&EdgeTraversal>)) -> OrderedFloat<f64> {
+    let (_, et) = pair;
+    match et {
+        None => OrderedFloat(f64::MAX),
+        Some(e) => OrderedFloat(e.total_cost().as_f64()),
     }
 }
 
@@ -754,11 +807,11 @@ mod tests {
             .unwrap();
 
         // Test finding existing vertex
-        let found_label = tree.find_label_for_vertex(VertexId(1));
+        let found_label = tree.get_min_cost_label(VertexId(1));
         assert_eq!(found_label, Some(&child1_label));
 
         // Test finding non-existent vertex
-        let not_found = tree.find_label_for_vertex(VertexId(99));
+        let not_found = tree.get_min_cost_label(VertexId(99));
         assert_eq!(not_found, None);
     }
 
@@ -1172,3 +1225,4 @@ mod tests {
         Label::Vertex(VertexId(vertex_id))
     }
 }
+
