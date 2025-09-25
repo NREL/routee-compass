@@ -64,11 +64,9 @@ impl MapModel {
         edge_list_id: &EdgeListId,
         edge_id: &EdgeId,
     ) -> Result<&'a LineString<f32>, MapError> {
-        let gm = self
-            .geometry
+        self.geometry
             .get(edge_list_id.0)
-            .ok_or(MapError::MissingEdgeListId(*edge_list_id))?;
-        gm.get(edge_id)
+            .and_then(|gm| gm.get(edge_id))
             .ok_or(MapError::MissingEdgeId(*edge_list_id, *edge_id))
     }
 
