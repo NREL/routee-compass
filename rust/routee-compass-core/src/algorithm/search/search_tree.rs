@@ -159,7 +159,7 @@ impl SearchTree {
         let root_node = SearchTreeNode::new_root(root_label.clone(), self.direction);
         self.nodes.insert(root_label.clone(), root_node);
         self.labels
-            .entry(root_label.vertex_id().clone())
+            .entry(*root_label.vertex_id())
             .and_modify(|l| {
                 let _ = l.insert(root_label.clone());
             })
@@ -200,7 +200,7 @@ impl SearchTree {
         // Insert the new node
         self.nodes.insert(child_label.clone(), new_node);
         self.labels
-            .entry(child_label.vertex_id().clone())
+            .entry(*child_label.vertex_id())
             .and_modify(|l| {
                 let _ = l.insert(child_label.clone());
             })
