@@ -188,30 +188,26 @@ pub fn create_tree_multilinestring(
 
 pub fn create_tree_multipoint(
     tree: &SearchTree,
-    map_model: Arc<MapModel>
+    map_model: Arc<MapModel>,
 ) -> Result<MultiPoint<f32>, OutputPluginError> {
     let edges = tree
         .values()
-        .filter_map(|node| {
-            node.incoming_edge().map(|et| (et.edge_list_id, et.edge_id))
-        })
+        .filter_map(|node| node.incoming_edge().map(|et| (et.edge_list_id, et.edge_id)))
         .collect::<Vec<_>>();
 
     let tree_destinations = edges
         .iter()
         .map(|(elid, eid)| {
-            let linestring = map_model
-                .get_linestring(elid, eid)
-                .map_err(|e| {
-                    OutputPluginError::OutputPluginFailed(format!(
-                        "failed to get linestring for edge list, edge: {elid}, {eid}: {e}"
-                    ))
-                })?;
+            let linestring = map_model.get_linestring(elid, eid).map_err(|e| {
+                OutputPluginError::OutputPluginFailed(format!(
+                    "failed to get linestring for edge list, edge: {elid}, {eid}: {e}"
+                ))
+            })?;
             let points = linestring.points().next_back().ok_or_else(|| {
-                        OutputPluginError::OutputPluginFailed(format!(
-                            "linestring is invalid for edge_id {eid}"
-                        ))
-                    })?;
+                OutputPluginError::OutputPluginFailed(format!(
+                    "linestring is invalid for edge_id {eid}"
+                ))
+            })?;
             Ok(points)
         })
         .collect::<Result<Vec<Point<f32>>, OutputPluginError>>()?;
