@@ -4,14 +4,11 @@ use geo_types::MultiPoint;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::EdgeTraversal;
 use routee_compass_core::algorithm::search::SearchTree;
-use routee_compass_core::algorithm::search::SearchTreeBranch;
 use routee_compass_core::model::cost::CostModel;
 use routee_compass_core::model::map::MapModel;
-use routee_compass_core::model::network::VertexId;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::util::geo::geo_io_utils;
 use serde_json::{json, Map};
-use std::collections::HashMap;
 use std::sync::Arc;
 
 pub fn create_tree_geojson(
@@ -142,13 +139,6 @@ pub fn create_edge_geometry(
     })
 }
 
-pub fn create_branch_geometry(
-    branch: &SearchTreeBranch,
-    geoms: &[LineString<f32>],
-) -> Result<LineString<f32>, OutputPluginError> {
-    create_edge_geometry(&branch.edge_traversal, geoms)
-}
-
 pub fn create_route_linestring(
     route: &[EdgeTraversal],
     map_model: Arc<MapModel>,
@@ -197,40 +187,34 @@ pub fn create_tree_multilinestring(
 }
 
 pub fn create_tree_multipoint(
-    tree: &HashMap<VertexId, SearchTreeBranch>,
-    geoms: &[LineString<f64>],
-) -> Result<MultiPoint, OutputPluginError> {
-    let edge_ids = tree
+    tree: &SearchTree,
+    map_model: Arc<MapModel>
+) -> Result<MultiPoint<f32>, OutputPluginError> {
+    let edges = tree
         .values()
-        .map(|traversal| traversal.edge_traversal.edge_id)
+        .filter_map(|node| {
+            node.incoming_edge().map(|et| (et.edge_list_id, et.edge_id))
+        })
         .collect::<Vec<_>>();
 
-    let tree_destinations = edge_ids
+    let tree_destinations = edges
         .iter()
-        .map(|eid| {
-            let geom = geoms
-                .get(eid.0)
-                .ok_or_else(|| {
+        .map(|(elid, eid)| {
+            let linestring = map_model
+                .get_linestring(elid, eid)
+                .map_err(|e| {
                     OutputPluginError::OutputPluginFailed(format!(
-                        "geometry table missing edge id {}",
-                        *eid
+                        "failed to get linestring for edge list, edge: {elid}, {eid}: {e}"
                     ))
-                })
-                .map(|l| {
-                    l.points().next_back().ok_or_else(|| {
+                })?;
+            let points = linestring.points().next_back().ok_or_else(|| {
                         OutputPluginError::OutputPluginFailed(format!(
                             "linestring is invalid for edge_id {eid}"
                         ))
-                    })
-                });
-            match geom {
-                // rough "result flatten"
-                Ok(Ok(p)) => Ok(p),
-                Ok(Err(e)) => Err(e),
-                Err(e) => Err(e),
-            }
+                    })?;
+            Ok(points)
         })
-        .collect::<Result<Vec<Point>, OutputPluginError>>()?;
+        .collect::<Result<Vec<Point<f32>>, OutputPluginError>>()?;
     let geometry = MultiPoint::new(tree_destinations);
     Ok(geometry)
 }
