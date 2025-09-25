@@ -5,5 +5,5 @@ use serde::{Deserialize, Serialize};
 pub enum SpatialIndexType {
     VertexOriented,
     #[default]
-    EdgeOriented
+    EdgeOriented,
 }

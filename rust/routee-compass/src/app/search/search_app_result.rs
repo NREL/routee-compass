@@ -1,8 +1,6 @@
 use allocative::Allocative;
 
-use routee_compass_core::{
-    algorithm::search::{EdgeTraversal, SearchTree},
-};
+use routee_compass_core::algorithm::search::{EdgeTraversal, SearchTree};
 
 use std::time::Duration;
 

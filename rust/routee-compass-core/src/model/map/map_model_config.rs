@@ -1,8 +1,11 @@
-//! configuration for the [`super::MapModel`]. 
+//! configuration for the [`super::MapModel`].
 //! this model is responsible for:
 //!   - map matching queries to valid Graph Edges/Vertices (via [`super::MatchingType`])
 //!   - lookup of geometries from EdgeListId/EdgeId combinations across Compass
-use crate::{config::OneOrMany, model::{map::SpatialIndexType, unit::DistanceUnit}};
+use crate::{
+    config::OneOrMany,
+    model::{map::SpatialIndexType, unit::DistanceUnit},
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uom::si::f64::Length;
@@ -37,12 +40,12 @@ pub enum MapModelGeometryConfig {
 
 impl Default for MapModelConfig {
     fn default() -> Self {
-        Self { 
-            tolerance: Default::default(), 
-            matching_type: Default::default(), 
+        Self {
+            tolerance: Default::default(),
+            matching_type: Default::default(),
             spatial_index_type: Default::default(),
-            geometry: OneOrMany::One(MapModelGeometryConfig::FromVertices), 
-            queries_without_destinations: Default::default() 
+            geometry: OneOrMany::One(MapModelGeometryConfig::FromVertices),
+            queries_without_destinations: Default::default(),
         }
     }
 }

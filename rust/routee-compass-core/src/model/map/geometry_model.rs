@@ -16,29 +16,34 @@ pub struct GeometryModel(Vec<LineString<f32>>);
 
 impl GeometryModel {
     /// with no provided geometries, create minimal LineStrings from pairs of vertex Points
-    pub fn new_from_vertices(graph: Arc<Graph>, edge_list_id: EdgeListId) -> Result<GeometryModel, MapError> {
+    pub fn new_from_vertices(
+        graph: Arc<Graph>,
+        edge_list_id: EdgeListId,
+    ) -> Result<GeometryModel, MapError> {
         let edges = create_linestrings_from_vertices(graph, edge_list_id)?;
         Ok(GeometryModel(edges))
     }
 
     /// use a user-provided enumerated textfile input to load LineString geometries
-    pub fn new_from_edges( 
+    pub fn new_from_edges(
         geometry_input_file: &String,
         edge_list_id: EdgeListId,
         graph: Arc<Graph>,
     ) -> Result<GeometryModel, MapError> {
-        let edge_list = graph.get_edge_list(&edge_list_id)
-            .map_err(|e| MapError::BuildError(format!("while creating GeometryModel for input file {geometry_input_file}, {e}")))?;
+        let edge_list = graph.get_edge_list(&edge_list_id).map_err(|e| {
+            MapError::BuildError(format!(
+                "while creating GeometryModel for input file {geometry_input_file}, {e}"
+            ))
+        })?;
 
         let edge_list_len = edge_list.n_edges();
         let linestrings = read_linestrings(geometry_input_file, edge_list_len)?;
-        
+
         if linestrings.len() != edge_list_len {
             Err(MapError::BuildError(format!("edge list {edge_list_id} geometry file {geometry_input_file} should have {edge_list_len} rows, found {}", linestrings.len())))
         } else {
             Ok(GeometryModel(linestrings))
         }
-        
     }
 
     /// iterate through the geometries of this model
@@ -70,10 +75,15 @@ fn read_linestrings(
     Ok(geoms)
 }
 
-fn create_linestrings_from_vertices(graph: Arc<Graph>, edge_list_id: EdgeListId) -> Result<Vec<LineString<f32>>, MapError> {
-    let edge_list = graph.get_edge_list(&edge_list_id).map_err(|e| MapError::BuildError(format!("while creating GeometryModel from vertices, {e}")))?;
+fn create_linestrings_from_vertices(
+    graph: Arc<Graph>,
+    edge_list_id: EdgeListId,
+) -> Result<Vec<LineString<f32>>, MapError> {
+    let edge_list = graph.get_edge_list(&edge_list_id).map_err(|e| {
+        MapError::BuildError(format!("while creating GeometryModel from vertices, {e}"))
+    })?;
 
-    let n_edges = edge_list.n_edges();    
+    let n_edges = edge_list.n_edges();
     let mut pb = kdam::Bar::builder()
         .total(n_edges)
         .animation("fillup")
@@ -81,7 +91,9 @@ fn create_linestrings_from_vertices(graph: Arc<Graph>, edge_list_id: EdgeListId)
         .build()
         .map_err(MapError::InternalError)?;
 
-    let edges = edge_list.edges.iter()
+    let edges = edge_list
+        .edges
+        .iter()
         .map(|e| {
             let src_v = graph.get_vertex(&e.src_vertex_id).map_err(|_| {
                 MapError::InternalError(format!(

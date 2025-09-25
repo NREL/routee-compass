@@ -122,17 +122,14 @@ impl SearchAlgorithm {
             }
             .run_edge_oriented(src, dst_opt, query, direction, si),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
-                let search_result = a_star::run_edge_oriented(
-                    src,
-                    dst_opt,
-                    direction,
-                    *weight_factor,
-                    si,
-                )?;
+                let search_result =
+                    a_star::run_edge_oriented(src, dst_opt, direction, *weight_factor, si)?;
                 let routes = match dst_opt {
                     None => vec![],
                     Some(dst_id) => {
-                        let route = search_result.tree.backtrack_edge_oriented_route(dst_id, si.graph.clone())?;
+                        let route = search_result
+                            .tree
+                            .backtrack_edge_oriented_route(dst_id, si.graph.clone())?;
                         vec![route]
                     }
                 };

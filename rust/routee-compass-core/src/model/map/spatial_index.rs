@@ -1,9 +1,8 @@
 use std::sync::Arc;
 
 use super::{
+    GeometryModel, MapEdgeRTreeObject, MapError, MapVertexRTreeObject, NearestSearchResult,
     SpatialIndexType,
-    GeometryModel, MapEdgeRTreeObject, MapError,
-    MapVertexRTreeObject, NearestSearchResult,
 };
 use crate::model::network::{Graph, Vertex};
 use geo::Point;
@@ -23,14 +22,19 @@ pub enum SpatialIndex {
 
 impl SpatialIndex {
     /// build a spatial index of the declared [`SpatialIndexType`]
-    pub fn build(spatial_index_type: &SpatialIndexType, graph: Arc<Graph>, geometry_models: &[GeometryModel], tolerance: Option<Length>) -> SpatialIndex {
+    pub fn build(
+        spatial_index_type: &SpatialIndexType,
+        graph: Arc<Graph>,
+        geometry_models: &[GeometryModel],
+        tolerance: Option<Length>,
+    ) -> SpatialIndex {
         match spatial_index_type {
             SpatialIndexType::VertexOriented => {
                 SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance)
-            },
+            }
             SpatialIndexType::EdgeOriented => {
                 SpatialIndex::new_edge_oriented(graph, geometry_models, tolerance)
-            },
+            }
         }
     }
 

@@ -1,5 +1,5 @@
-use crate::algorithm::search::SearchTree;
 use super::edge_traversal::EdgeTraversal;
+use crate::algorithm::search::SearchTree;
 
 #[derive(Default)]
 pub struct SearchAlgorithmResult {

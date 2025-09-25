@@ -131,7 +131,6 @@ impl Default for SearchTree {
     }
 }
 
-
 impl SearchTree {
     /// Create a new empty search tree with the specified orientation
     pub fn new(direction: Direction) -> Self {
@@ -335,7 +334,6 @@ impl SearchTree {
         self.backtrack(d_v)
     }
 
-
     /// Find a label for the given vertex ID
     /// In case of multiple labels for the same vertex (state-dependent search),
     /// returns the first one found. For more precise control, use reconstruct_path directly.
@@ -369,8 +367,8 @@ pub enum SearchTreeError {
     #[error("Search tree error while interacting with Graph: {source}")]
     NetworkError {
         #[from]
-        source: NetworkError
-    }
+        source: NetworkError,
+    },
 }
 
 #[cfg(test)]

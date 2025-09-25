@@ -62,7 +62,11 @@ pub fn run(
         .ok_or_else(|| SearchError::InternalError(String::from("cannot retrieve rev tree 0")))?;
 
     // find intersection vertices
-    let rev_labels = rev_trees.iter().map(|t| t.iter()).flatten().collect::<HashMap<_, _>>();
+    let rev_labels = rev_trees
+        .iter()
+        .map(|t| t.iter())
+        .flatten()
+        .collect::<HashMap<_, _>>();
     let mut intersection_queue: InternalPriorityQueue<VertexId, ReverseCost> =
         InternalPriorityQueue::default();
 
@@ -72,12 +76,13 @@ pub fn run(
     for (label, fwd_branch) in fwd_tree.iter() {
         let fwd_et = match fwd_branch.incoming_edge() {
             None => continue,
-            Some(et) => et
+            Some(et) => et,
         };
-        if let Some(SearchTreeNode::Branch { incoming_edge, ..}) = rev_labels.get(fwd_branch.label()) {
+        if let Some(SearchTreeNode::Branch { incoming_edge, .. }) =
+            rev_labels.get(fwd_branch.label())
+        {
             if rev_labels.contains_key(&label) {
-                let total_cost =
-                    fwd_et.total_cost() + incoming_edge.total_cost();
+                let total_cost = fwd_et.total_cost() + incoming_edge.total_cost();
                 intersection_queue.push(*label.vertex_id(), total_cost.into());
             }
         }

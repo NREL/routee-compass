@@ -36,12 +36,7 @@ pub fn create_tree_geojson(
                     ))
                 })
                 .and_then(|g| {
-                    create_geojson_feature(
-                        &et,
-                        g,
-                        state_model.clone(),
-                        cost_model.clone(),
-                    )
+                    create_geojson_feature(&et, g, state_model.clone(), cost_model.clone())
                 });
 
             Some(row_result)
@@ -66,11 +61,14 @@ pub fn create_route_geojson(
     let features = route
         .iter()
         .map(|t| {
-            let g = map_model.get_linestring(&t.edge_list_id, &t.edge_id).cloned().map_err(|e| {
-                OutputPluginError::OutputPluginFailed(format!(
-                    "failure building route geojson: {e}"
-                ))
-            })?;
+            let g = map_model
+                .get_linestring(&t.edge_list_id, &t.edge_id)
+                .cloned()
+                .map_err(|e| {
+                    OutputPluginError::OutputPluginFailed(format!(
+                        "failure building route geojson: {e}"
+                    ))
+                })?;
             let geojson_feature =
                 create_geojson_feature(t, g, state_model.clone(), cost_model.clone())?;
             Ok(geojson_feature)
@@ -182,9 +180,7 @@ pub fn create_tree_multilinestring(
 ) -> Result<MultiLineString<f32>, OutputPluginError> {
     let edges = tree
         .values()
-        .flat_map(|node| {
-            node.incoming_edge().map(|et| (et.edge_list_id, et.edge_id))
-        })
+        .flat_map(|node| node.incoming_edge().map(|et| (et.edge_list_id, et.edge_id)))
         .collect::<Vec<_>>();
 
     let tree_linestrings = edges

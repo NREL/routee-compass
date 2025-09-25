@@ -85,9 +85,10 @@ pub enum MapInputResult {
 }
 
 impl MatchingType {
-
     /// deserialize optional lists of strings from some configuration into matching types.
-    pub fn deserialize_matching_types(types: Option<&Vec<String>>) -> Result<MatchingType, MapError> {
+    pub fn deserialize_matching_types(
+        types: Option<&Vec<String>>,
+    ) -> Result<MatchingType, MapError> {
         match types {
             None => Ok(MatchingType::default()),
             Some(string_list) => {

@@ -23,17 +23,36 @@ pub struct MapModel {
 
 impl MapModel {
     pub fn new(graph: Arc<Graph>, config: &MapModelConfig) -> Result<MapModel, MapError> {
-        let geometry = config.geometry.iter().enumerate().map(|(edge_list, g)| {
-            let edge_list_id = EdgeListId(edge_list);
-            match g {
-                MapModelGeometryConfig::FromVertices => GeometryModel::new_from_vertices(graph.clone(), edge_list_id),
-                MapModelGeometryConfig::FromLinestrings { geometry_input_file } => GeometryModel::new_from_edges(geometry_input_file, edge_list_id, graph.clone()),
-            }
-        }).collect::<Result<Vec<_>, _>>()?;
+        let geometry = config
+            .geometry
+            .iter()
+            .enumerate()
+            .map(|(edge_list, g)| {
+                let edge_list_id = EdgeListId(edge_list);
+                match g {
+                    MapModelGeometryConfig::FromVertices => {
+                        GeometryModel::new_from_vertices(graph.clone(), edge_list_id)
+                    }
+                    MapModelGeometryConfig::FromLinestrings {
+                        geometry_input_file,
+                    } => GeometryModel::new_from_edges(
+                        geometry_input_file,
+                        edge_list_id,
+                        graph.clone(),
+                    ),
+                }
+            })
+            .collect::<Result<Vec<_>, _>>()?;
         let queries_without_destinations = config.queries_without_destinations;
         let tolerance = config.tolerance.as_ref().map(|t| t.to_uom());
-        let matching_type = MatchingType::deserialize_matching_types(config.matching_type.as_ref())?;
-        let spatial_index = SpatialIndex::build(&config.spatial_index_type, graph.clone(), &geometry, tolerance);
+        let matching_type =
+            MatchingType::deserialize_matching_types(config.matching_type.as_ref())?;
+        let spatial_index = SpatialIndex::build(
+            &config.spatial_index_type,
+            graph.clone(),
+            &geometry,
+            tolerance,
+        );
 
         Ok(MapModel {
             matching_type,
@@ -43,9 +62,17 @@ impl MapModel {
         })
     }
 
-    pub fn get_linestring<'a>(&'a self, edge_list_id: &EdgeListId, edge_id: &EdgeId) -> Result<&'a LineString<f32>, MapError> {
-        let gm = self.geometry.get(edge_list_id.0).ok_or_else(|| MapError::MissingEdgeListId(*edge_list_id))?;
-        gm.get(edge_id).ok_or_else(|| MapError::MissingEdgeId(*edge_list_id, *edge_id))
+    pub fn get_linestring<'a>(
+        &'a self,
+        edge_list_id: &EdgeListId,
+        edge_id: &EdgeId,
+    ) -> Result<&'a LineString<f32>, MapError> {
+        let gm = self
+            .geometry
+            .get(edge_list_id.0)
+            .ok_or_else(|| MapError::MissingEdgeListId(*edge_list_id))?;
+        gm.get(edge_id)
+            .ok_or_else(|| MapError::MissingEdgeId(*edge_list_id, *edge_id))
     }
 
     pub fn map_match(
@@ -62,4 +89,3 @@ impl MapModel {
         }
     }
 }
-

@@ -65,7 +65,13 @@ pub fn run_vertex_oriented(
             .test(&start_time, solution.len(), iterations)?;
 
         // grab the frontier assets, or break if there is nothing to pop
-        let f = match FrontierInstance::pop_new(&mut frontier, source, target, &solution, &initial_state)? {
+        let f = match FrontierInstance::pop_new(
+            &mut frontier,
+            source,
+            target,
+            &solution,
+            &initial_state,
+        )? {
             None => break,
             Some(f) => f,
         };

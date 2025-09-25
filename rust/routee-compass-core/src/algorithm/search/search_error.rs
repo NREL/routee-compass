@@ -1,13 +1,16 @@
-use crate::{algorithm::search::SearchTreeError, model::{
-    access::AccessModelError,
-    cost::CostModelError,
-    frontier::FrontierModelError,
-    label::label_model_error::LabelModelError,
-    network::{EdgeId, NetworkError, VertexId},
-    state::StateModelError,
-    termination::TerminationModelError,
-    traversal::TraversalModelError,
-}};
+use crate::{
+    algorithm::search::SearchTreeError,
+    model::{
+        access::AccessModelError,
+        cost::CostModelError,
+        frontier::FrontierModelError,
+        label::label_model_error::LabelModelError,
+        network::{EdgeId, NetworkError, VertexId},
+        state::StateModelError,
+        termination::TerminationModelError,
+        traversal::TraversalModelError,
+    },
+};
 
 #[derive(thiserror::Error, Debug)]
 pub enum SearchError {
@@ -26,7 +29,7 @@ pub enum SearchError {
     #[error("The search failed due with an internal error due to a malformed search tree. Source: {source}")]
     SearchTreeError {
         #[from]
-        source: SearchTreeError
+        source: SearchTreeError,
     },
     #[error("The search failed due to a road network error. Please review the [graph] section of your Compass configuration. Source: {source}")]
     NetworkFailure {

@@ -92,11 +92,9 @@ impl TraversalOutputFormat {
             TraversalOutputFormat::EdgeId => {
                 let tree_ids = tree
                     .values()
-                    .filter_map(|b| {
-                        match b.incoming_edge() {
-                            None => return None,
-                            Some(e) => Some((e.edge_list_id, e.edge_id))
-                        }
+                    .filter_map(|b| match b.incoming_edge() {
+                        None => return None,
+                        Some(e) => Some((e.edge_list_id, e.edge_id)),
                     })
                     .collect::<Vec<_>>();
                 let json = serde_json::json![tree_ids];
