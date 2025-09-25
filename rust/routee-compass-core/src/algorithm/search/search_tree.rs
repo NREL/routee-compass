@@ -431,7 +431,7 @@ fn min_cost_ordering(pair: &(&Label, Option<&EdgeTraversal>)) -> OrderedFloat<f6
     let (_, et) = pair;
     match et {
         None => OrderedFloat(f64::MAX),
-        Some(e) => OrderedFloat(e.total_cost().as_f64()),
+        Some(e) => OrderedFloat(e.cost.as_f64()),
     }
 }
 
@@ -1213,8 +1213,7 @@ mod tests {
         EdgeTraversal {
             edge_id: EdgeId(edge_id),
             edge_list_id: EdgeListId(0),
-            access_cost: Cost::new(0.0),
-            traversal_cost: Cost::new(cost),
+            cost: Cost::new(cost),
             result_state: vec![],
         }
     }

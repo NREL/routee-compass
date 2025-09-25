@@ -1,7 +1,7 @@
 use super::{ksp_query::KspQuery, ksp_termination_criteria::KspTerminationCriteria};
 use crate::{
     algorithm::search::{
-        a_star::bidirectional_ops, direction::Direction, edge_traversal::EdgeTraversal,
+        a_star::a_star_ops, direction::Direction, edge_traversal::EdgeTraversal,
         search_algorithm::SearchAlgorithm, search_algorithm_result::SearchAlgorithmResult,
         search_error::SearchError, util::RouteSimilarityFunction, SearchInstance, SearchTreeNode,
     },
@@ -81,7 +81,7 @@ pub fn run(
             rev_labels.get(fwd_branch.label())
         {
             if rev_labels.contains_key(&label) {
-                let total_cost = fwd_et.total_cost() + incoming_edge.total_cost();
+                let total_cost = fwd_et.cost + incoming_edge.cost;
                 intersection_queue.push(*label.vertex_id(), total_cost.into());
             }
         }
@@ -115,7 +115,7 @@ pub fn run(
                 let this_route = fwd_route.into_iter().chain(rev_route).collect::<Vec<_>>();
 
                 // test loop
-                if bidirectional_ops::route_contains_loop(&this_route, si)? {
+                if a_star_ops::route_contains_loop(&this_route, si)? {
                     log::debug!("ksp:{ksp_it} contains loop");
                     accept_route = false;
                 }

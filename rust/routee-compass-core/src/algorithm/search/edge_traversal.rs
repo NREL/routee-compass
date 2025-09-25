@@ -1,5 +1,6 @@
 use super::search_error::SearchError;
 use super::SearchInstance;
+use crate::algorithm::search::SearchTree;
 use crate::model::network::{EdgeId, EdgeListId};
 use crate::model::state::StateVariable;
 use crate::model::unit::Cost;
@@ -11,23 +12,16 @@ use std::fmt::Display;
 pub struct EdgeTraversal {
     pub edge_list_id: EdgeListId,
     pub edge_id: EdgeId,
-    pub access_cost: Cost,
-    pub traversal_cost: Cost,
+    pub cost: Cost,
     pub result_state: Vec<StateVariable>,
-}
-
-impl EdgeTraversal {
-    pub fn total_cost(&self) -> Cost {
-        self.access_cost + self.traversal_cost
-    }
 }
 
 impl Display for EdgeTraversal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "edge {} acost:{} tcost:{} state:{:?}",
-            self.edge_id, self.access_cost, self.traversal_cost, self.result_state
+            "edge {} cost:{} state:{:?}",
+            self.edge_id, self.cost, self.result_state
         )
     }
 }
@@ -58,56 +52,32 @@ impl EdgeTraversal {
     /// An edge traversal summarizing the costs and result state of accessing and traversing the next edge.
     pub fn new(
         next_edge: (EdgeListId, EdgeId),
-        prev_edge: Option<(EdgeListId, EdgeId)>,
+        tree: &SearchTree,
         prev_state: &[StateVariable],
         si: &SearchInstance,
     ) -> Result<EdgeTraversal, SearchError> {
         let mut result_state = prev_state.to_vec();
-        let mut access_cost = Cost::ZERO;
 
         let (next_edge_list_id, next_edge_id) = next_edge;
 
         // find this traversal in the graph
         let traversal_trajectory = si.graph.edge_triplet(&next_edge_list_id, &next_edge_id)?;
-
-        // perform access traversal for (v2)-[next]->(v3)
-        // access cost for (v1)-[prev]->(v2)-[next]->(v3)
-        if let Some((prev_edge_list_id, prev_edge_id)) = prev_edge {
-            let e1 = si.graph.get_edge(&prev_edge_list_id, &prev_edge_id)?;
-            let v1 = si.graph.get_vertex(&e1.src_vertex_id)?;
-
-            let (v2, e2, v3) = traversal_trajectory;
-            let access_trajectory = (v1, e1, v2, e2, v3);
-
-            si.get_access_model(&next_edge_list_id)?.access_edge(
-                access_trajectory,
-                &mut result_state,
-                &si.state_model,
-            )?;
-
-            let ac = si
-                .cost_model
-                .access_cost(e1, e2, prev_state, &result_state)?;
-            access_cost = access_cost + ac;
-        }
-
         si.get_traversal_model(&next_edge_list_id)?.traverse_edge(
             traversal_trajectory,
             &mut result_state,
+            tree,
             &si.state_model,
         )?;
 
         let (_, edge, _) = traversal_trajectory;
-        let total_cost = si
+        let cost = si
             .cost_model
             .traversal_cost(edge, prev_state, &result_state)?;
-        let traversal_cost = total_cost - access_cost;
 
         let result = EdgeTraversal {
             edge_list_id: next_edge_list_id,
             edge_id: next_edge_id,
-            access_cost,
-            traversal_cost,
+            cost,
             result_state,
         };
 

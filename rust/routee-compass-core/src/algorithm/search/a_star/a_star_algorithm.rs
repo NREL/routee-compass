@@ -50,7 +50,7 @@ pub fn run_vertex_oriented(
     let origin_cost = match target {
         None => Cost::ZERO,
         Some(target) => {
-            let cost_est = estimate_traversal_cost(source, target, &initial_state, si)?;
+            let cost_est = estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
             Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
         }
     };
@@ -106,7 +106,7 @@ pub fn run_vertex_oriented(
             }
 
             let next_edge = (edge_list_id, edge_id);
-            let et = EdgeTraversal::new(next_edge, f.prev_edge, &f.prev_state, si)?;
+            let et = EdgeTraversal::new(next_edge, &solution, &f.prev_state, si)?;
 
             let key_label = si.label_model.label_from_state(
                 key_vertex_id,
@@ -118,7 +118,7 @@ pub fn run_vertex_oriented(
                 .get(&terminal_label)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
-            let tentative_gscore = current_gscore + et.total_cost();
+            let tentative_gscore = current_gscore + et.cost;
             let existing_gscore = traversal_costs
                 .get(&key_label)
                 .unwrap_or(&Cost::INFINITY)
@@ -132,7 +132,7 @@ pub fn run_vertex_oriented(
                     None => Cost::ZERO,
                     Some(target_v) => {
                         let cost_est =
-                            estimate_traversal_cost(key_vertex_id, target_v, &f.prev_state, si)?;
+                            estimate_traversal_cost(key_vertex_id, target_v, &f.prev_state, &solution, si)?;
                         Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
                     }
                 };
@@ -190,6 +190,7 @@ pub fn estimate_traversal_cost(
     src: VertexId,
     dst: VertexId,
     state: &[StateVariable],
+    tree: &SearchTree,
     si: &SearchInstance,
 ) -> Result<Cost, SearchError> {
     let src = si.graph.get_vertex(&src)?;
@@ -199,6 +200,7 @@ pub fn estimate_traversal_cost(
     si.get_traversal_estimation_model().estimate_traversal(
         (src, dst),
         &mut dst_state,
+        tree,
         &si.state_model,
     )?;
     let cost_estimate = si.cost_model.cost_estimate(state, &dst_state)?;
