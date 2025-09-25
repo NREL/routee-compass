@@ -3,9 +3,10 @@ use std::collections::HashSet;
 use allocative::Allocative;
 use serde::Serialize;
 
-use crate::{algorithm::search::{Direction, EdgeTraversal}, model::{label::Label, network::VertexId}};
-
-
+use crate::{
+    algorithm::search::{Direction, EdgeTraversal},
+    model::{label::Label, network::VertexId},
+};
 
 /// A node in the search tree containing parent/child relationships and traversal data
 #[derive(Debug, Clone, Allocative, Serialize)]

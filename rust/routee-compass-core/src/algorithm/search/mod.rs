@@ -8,8 +8,8 @@ mod search_error;
 mod search_instance;
 mod search_result;
 mod search_tree;
-pub mod util;
 mod search_tree_node;
+pub mod util;
 
 pub use direction::Direction;
 pub use edge_traversal::EdgeTraversal;

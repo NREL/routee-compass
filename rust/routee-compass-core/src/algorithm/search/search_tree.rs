@@ -1,9 +1,9 @@
-use allocative::Allocative;
-use ordered_float::OrderedFloat;
 use super::{EdgeTraversal, SearchTreeNode};
 use crate::model::network::{EdgeId, EdgeListId, Graph, NetworkError, VertexId};
 use crate::model::unit::AsF64;
 use crate::{algorithm::search::Direction, model::label::Label};
+use allocative::Allocative;
+use ordered_float::OrderedFloat;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
