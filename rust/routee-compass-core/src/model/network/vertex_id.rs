@@ -8,7 +8,7 @@ pub struct VertexId(pub usize);
 
 impl PartialOrd for VertexId {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
