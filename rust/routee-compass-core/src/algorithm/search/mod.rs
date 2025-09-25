@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 pub mod a_star;
 mod direction;
 mod edge_traversal;
@@ -10,7 +8,6 @@ mod search_error;
 mod search_instance;
 mod search_result;
 mod search_tree;
-mod search_tree_branch;
 pub mod util;
 
 pub use direction::Direction;
@@ -21,8 +18,5 @@ pub use search_error::SearchError;
 pub use search_instance::SearchInstance;
 pub use search_result::SearchResult;
 pub use search_tree::{SearchTree, SearchTreeError, SearchTreeNode};
-pub use search_tree_branch::SearchTreeBranch;
 
-use crate::model::label::Label;
 
-pub type MinSearchTree = HashMap<Label, SearchTreeBranch>;
