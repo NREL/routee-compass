@@ -84,10 +84,7 @@ impl TryFrom<&Path> for CompassAppConfig {
             .normalize_file_paths(&"", config_path)?;
         let compass_config: CompassAppConfig =
             serde_json::from_value(config_json).map_err(|e| {
-                let filename = match config_path.to_str() {
-                    Some(f) => f,
-                    None => "<config path>",
-                };
+                let filename = config_path.to_str().unwrap_or("<config path>");
                 CompassAppError::BuildFailure(format!("while reading {filename}: {e}"))
             })?;
 
