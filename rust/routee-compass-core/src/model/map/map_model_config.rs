@@ -15,7 +15,7 @@ pub struct MapModelConfig {
     /// distance from coordinate to the nearest vertex required for map matching
     pub tolerance: Option<DistanceTolerance>,
     /// geometries to place in the spatial index used for map matching.
-    pub spatial_index_type: SpatialIndexType,
+    pub spatial_index_type: Option<SpatialIndexType>,
     /// the [`MatchingType`]s supported
     pub matching_type: Option<Vec<String>>,
     /// for each edge list, geometry configuration

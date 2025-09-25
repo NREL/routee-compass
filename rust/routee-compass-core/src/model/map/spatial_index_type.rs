@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 pub enum SpatialIndexType {
-    VertexOriented,
     #[default]
+    #[serde(rename = "vertex")]
+    VertexOriented,
+    #[serde(rename = "edge")]
     EdgeOriented,
 }
