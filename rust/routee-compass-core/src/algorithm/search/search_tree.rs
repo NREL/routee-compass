@@ -168,12 +168,12 @@ impl SearchTree {
         self.root = Some(root_label);
     }
 
-    /// Insert a node with a parent relationship
+    /// Insert the trajectory (parent) -[edge]-> (child) as a node in the tree
     pub fn insert(
         &mut self,
         parent_label: Label,
         edge_traversal: EdgeTraversal,
-        label: Label,
+        child_label: Label,
     ) -> Result<(), SearchTreeError> {
         // Verify parent exists
         // If parent doesn't exist but tree is empty, make parent the root
@@ -187,7 +187,7 @@ impl SearchTree {
 
         // Create the new node
         let new_node = SearchTreeNode::new_child(
-            label.clone(),
+            child_label.clone(),
             edge_traversal,
             parent_label.clone(),
             self.direction,
@@ -195,16 +195,16 @@ impl SearchTree {
 
         // Add child relationship to parent
         if let Some(parent_node) = self.nodes.get_mut(&parent_label) {
-            parent_node.add_child(label.clone());
+            parent_node.add_child(child_label.clone());
         }
 
         // Insert the new node
-        self.nodes.insert(label.clone(), new_node);
-        self.labels.entry(label.vertex_id().clone())
+        self.nodes.insert(child_label.clone(), new_node);
+        self.labels.entry(child_label.vertex_id().clone())
             .and_modify(|l| {
-                let _ = l.insert(label.clone());
+                let _ = l.insert(child_label.clone());
             })
-            .or_insert(HashSet::from([label.clone()]));
+            .or_insert(HashSet::from([child_label.clone()]));
 
         Ok(())
     }
