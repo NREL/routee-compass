@@ -1,11 +1,14 @@
 use std::{collections::HashSet, sync::Arc};
 
-use routee_compass_core::{algorithm::search::SearchTree, model::{
-    network::{Edge, Vertex},
-    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-    traversal::{TraversalModel, TraversalModelError},
-    unit::TimeUnit,
-}};
+use routee_compass_core::{
+    algorithm::search::SearchTree,
+    model::{
+        network::{Edge, Vertex},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        traversal::{TraversalModel, TraversalModelError},
+        unit::TimeUnit,
+    },
+};
 use uom::{
     si::f64::{Ratio, Time},
     ConstZero,

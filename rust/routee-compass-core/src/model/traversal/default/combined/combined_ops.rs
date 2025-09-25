@@ -88,11 +88,14 @@ pub fn topological_dependency_sort(
 mod test {
 
     use super::topological_dependency_sort;
-    use crate::{algorithm::search::SearchTree, model::{
-        network::{Edge, Vertex},
-        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-        traversal::{TraversalModel, TraversalModelError},
-    }};
+    use crate::{
+        algorithm::search::SearchTree,
+        model::{
+            network::{Edge, Vertex},
+            state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+            traversal::{TraversalModel, TraversalModelError},
+        },
+    };
     use itertools::Itertools;
     use std::sync::Arc;
     use uom::{si::f64::Length, ConstZero};

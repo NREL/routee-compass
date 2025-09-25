@@ -3,12 +3,15 @@ use super::{
     prediction::{PredictionModelConfig, PredictionModelRecord},
 };
 use crate::model::fieldname;
-use routee_compass_core::{algorithm::search::SearchTree, model::{
-    network::{Edge, Vertex},
-    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{EnergyRateUnit, EnergyUnit, RatioUnit, TimeUnit},
-}};
+use routee_compass_core::{
+    algorithm::search::SearchTree,
+    model::{
+        network::{Edge, Vertex},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        traversal::{TraversalModel, TraversalModelError, TraversalModelService},
+        unit::{EnergyRateUnit, EnergyUnit, RatioUnit, TimeUnit},
+    },
+};
 use serde_json::Value;
 use std::sync::Arc;
 use uom::{

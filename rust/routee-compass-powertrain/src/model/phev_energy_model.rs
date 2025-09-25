@@ -4,12 +4,15 @@ use super::{
     energy_model_ops,
     prediction::{PredictionModelConfig, PredictionModelRecord},
 };
-use routee_compass_core::{algorithm::search::SearchTree, model::{
-    network::{Edge, Vertex},
-    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
-}};
+use routee_compass_core::{
+    algorithm::search::SearchTree,
+    model::{
+        network::{Edge, Vertex},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        traversal::{TraversalModel, TraversalModelError, TraversalModelService},
+        unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
+    },
+};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::HashSet, sync::Arc};

@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::model::unit::TimeUnit;
+use std::collections::HashMap;
 
 use super::Turn;
 use serde::{Deserialize, Serialize};

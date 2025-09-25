@@ -1,10 +1,10 @@
+use super::{
+    EdgeHeading, TurnDelayModelConfig, TurnDelayTraversalModelEngine,
+    TurnDelayTraversalModelService,
+};
 use crate::config::ConfigJsonExtensions;
-use super::{ EdgeHeading, TurnDelayTraversalModelEngine, TurnDelayTraversalModelService,
-            TurnDelayModelConfig};
 use crate::{
-    model::traversal::{
-        TraversalModelBuilder, TraversalModelError, TraversalModelService,
-    },
+    model::traversal::{TraversalModelBuilder, TraversalModelError, TraversalModelService},
     util::fs::read_utils,
 };
 use kdam::Bar;

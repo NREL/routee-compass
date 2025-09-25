@@ -1,5 +1,6 @@
 use routee_compass_core::model::{
-    network::EdgeId, traversal::{default::turn_delays::EdgeHeading, TraversalModelError},
+    network::EdgeId,
+    traversal::{default::turn_delays::EdgeHeading, TraversalModelError},
     unit::UnitError,
 };
 use uom::{

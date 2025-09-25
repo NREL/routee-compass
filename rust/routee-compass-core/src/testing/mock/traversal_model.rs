@@ -138,7 +138,7 @@ impl TraversalModel for MockUpstreamModel {
 
     fn traverse_edge(
         &self,
-        _trajectory: (&Vertex,&Edge,&Vertex,),
+        _trajectory: (&Vertex, &Edge, &Vertex),
         _state: &mut Vec<crate::model::state::StateVariable>,
         _tree: &SearchTree,
         _state_model: &crate::model::state::StateModel,
@@ -148,7 +148,7 @@ impl TraversalModel for MockUpstreamModel {
 
     fn estimate_traversal(
         &self,
-        _od: (&Vertex,&Vertex),
+        _od: (&Vertex, &Vertex),
         _state: &mut Vec<crate::model::state::StateVariable>,
         _tree: &SearchTree,
         _state_model: &crate::model::state::StateModel,

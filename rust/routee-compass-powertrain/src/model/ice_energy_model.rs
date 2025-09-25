@@ -1,11 +1,14 @@
 use super::prediction::PredictionModelConfig;
 use crate::model::{fieldname, prediction::PredictionModelRecord};
-use routee_compass_core::{algorithm::search::SearchTree, model::{
-    network::{Edge, Vertex},
-    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{EnergyRateUnit, EnergyUnit},
-}};
+use routee_compass_core::{
+    algorithm::search::SearchTree,
+    model::{
+        network::{Edge, Vertex},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        traversal::{TraversalModel, TraversalModelError, TraversalModelService},
+        unit::{EnergyRateUnit, EnergyUnit},
+    },
+};
 use serde_json::Value;
 use std::sync::Arc;
 use uom::{si::f64::Energy, ConstZero};

@@ -4,14 +4,16 @@ use uom::{
 };
 
 use crate::{
-    algorithm::search::SearchTree, model::{
+    algorithm::search::SearchTree,
+    model::{
         network::{Edge, Vertex},
         state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
         traversal::{
             default::{fieldname, time::TimeTraversalConfig},
             TraversalModel, TraversalModelError, TraversalModelService,
         },
-    }, util::geo::haversine
+    },
+    util::geo::haversine,
 };
 use std::sync::Arc;
 

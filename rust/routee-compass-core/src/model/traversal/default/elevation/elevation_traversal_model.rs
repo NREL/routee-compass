@@ -2,12 +2,17 @@ use std::sync::Arc;
 
 use uom::{si::f64::Length, ConstZero};
 
-use crate::{algorithm::search::SearchTree, model::{
-    network::{Edge, Vertex},
-    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-    traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
-    unit::DistanceUnit,
-}};
+use crate::{
+    algorithm::search::SearchTree,
+    model::{
+        network::{Edge, Vertex},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        traversal::{
+            default::fieldname, TraversalModel, TraversalModelError, TraversalModelService,
+        },
+        unit::DistanceUnit,
+    },
+};
 
 use super::elevation_change::ElevationChange;
 

@@ -12,7 +12,10 @@ pub struct TurnDelayTraversalModelService {
 impl TurnDelayTraversalModelService {}
 
 impl TraversalModelService for TurnDelayTraversalModelService {
-    fn build(&self, _query: &serde_json::Value) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+    fn build(
+        &self,
+        _query: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let model = TurnDelayTraversalModel {
             engine: self.engine.clone(),
         };

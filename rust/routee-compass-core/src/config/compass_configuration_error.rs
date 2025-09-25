@@ -1,8 +1,7 @@
 use crate::{
     model::{
-        frontier::FrontierModelError,
-        label::label_model_error::LabelModelError, network::NetworkError,
-        traversal::TraversalModelError,
+        frontier::FrontierModelError, label::label_model_error::LabelModelError,
+        network::NetworkError, traversal::TraversalModelError,
     },
     util::conversion::conversion_error::ConversionError,
 };

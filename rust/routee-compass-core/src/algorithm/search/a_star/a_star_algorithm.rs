@@ -131,8 +131,13 @@ pub fn run_vertex_oriented(
                 let dst_h_cost = match target {
                     None => Cost::ZERO,
                     Some(target_v) => {
-                        let cost_est =
-                            estimate_traversal_cost(key_vertex_id, target_v, &f.prev_state, &solution, si)?;
+                        let cost_est = estimate_traversal_cost(
+                            key_vertex_id,
+                            target_v,
+                            &f.prev_state,
+                            &solution,
+                            si,
+                        )?;
                         Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
                     }
                 };

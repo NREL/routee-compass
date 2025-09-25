@@ -147,8 +147,7 @@ impl SearchApp {
             .map(|m| m.build(query))
             .collect::<Result<Vec<_>, _>>()?;
 
-        let output_features =
-            search_app_ops::collect_features(query, &traversal_models)?;
+        let output_features = search_app_ops::collect_features(query, &traversal_models)?;
         let state_model_instance = self.state_model.register(vec![], output_features)?;
         let state_model = Arc::new(state_model_instance);
 

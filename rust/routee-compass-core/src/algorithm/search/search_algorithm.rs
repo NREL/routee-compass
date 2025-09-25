@@ -214,12 +214,11 @@ pub fn run_edge_oriented(
 
             if source == target_edge {
                 return Ok(SearchAlgorithmResult::default());
-            } 
+            }
 
             // removed specialized case that depended on creating EdgeTraversals mechanically. broken
             //   (without substantial refactor) with the inclusion of the SearchTree abstraction.
 
-            
             // run a search and append source/target edges to result
             let SearchAlgorithmResult {
                 trees,

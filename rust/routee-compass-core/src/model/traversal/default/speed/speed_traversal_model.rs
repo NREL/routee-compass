@@ -183,7 +183,12 @@ mod tests {
         let v = mock_vertex();
         let e1 = mock_edge(0);
         test_model
-            .traverse_edge((&v, &e1, &v), &mut state, &SearchTree::default(), &state_model)
+            .traverse_edge(
+                (&v, &e1, &v),
+                &mut state,
+                &SearchTree::default(),
+                &state_model,
+            )
             .unwrap();
 
         let expected_speed_kph = 10.0;

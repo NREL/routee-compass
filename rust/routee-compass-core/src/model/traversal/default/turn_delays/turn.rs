@@ -1,5 +1,5 @@
-use std::fmt::Display;
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 use crate::model::traversal::TraversalModelError;
 
@@ -34,7 +34,9 @@ impl Turn {
             45..=134 => Ok(Turn::Right),
             135..=159 => Ok(Turn::SharpRight),
             160..=180 => Ok(Turn::UTurn),
-            _ => Err(TraversalModelError::TraversalModelFailure(format!("Angle {angle} out of range of -180 to 180"))),
+            _ => Err(TraversalModelError::TraversalModelFailure(format!(
+                "Angle {angle} out of range of -180 to 180"
+            ))),
         }
     }
 }

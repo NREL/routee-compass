@@ -1,11 +1,14 @@
 use uom::{si::f64::ThermodynamicTemperature, ConstZero};
 
-use crate::{algorithm::search::SearchTree, model::{
-    network::{Edge, Vertex},
-    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-    traversal::{default::fieldname, TraversalModel, TraversalModelError},
-    unit::TemperatureUnit,
-}};
+use crate::{
+    algorithm::search::SearchTree,
+    model::{
+        network::{Edge, Vertex},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        traversal::{default::fieldname, TraversalModel, TraversalModelError},
+        unit::TemperatureUnit,
+    },
+};
 
 #[derive(Clone, Debug)]
 pub struct TemperatureTraversalModel {

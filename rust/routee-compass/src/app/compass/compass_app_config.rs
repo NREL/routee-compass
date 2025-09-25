@@ -5,9 +5,8 @@ use routee_compass_core::{
     algorithm::search::SearchAlgorithm,
     config::{ConfigJsonExtensions, OneOrMany},
     model::{
-        cost::CostModelConfig, frontier::FrontierModelService,
-        map::MapModelConfig, network::GraphConfig, state::StateVariableConfig,
-        traversal::TraversalModelService,
+        cost::CostModelConfig, frontier::FrontierModelService, map::MapModelConfig,
+        network::GraphConfig, state::StateVariableConfig, traversal::TraversalModelService,
     },
 };
 use serde::{Deserialize, Serialize};
