@@ -17,9 +17,6 @@ pub struct TurnDelayTraversalModel {
 }
 
 impl TurnDelayTraversalModel {
-    pub const EDGE_TIME: &'static str = "edge_time";
-    pub const TRIP_TIME: &'static str = "trip_time";
-
     pub fn new(engine: Arc<TurnDelayTraversalModelEngine>) -> Self {
         TurnDelayTraversalModel { engine }
     }
@@ -36,6 +33,14 @@ impl TraversalModel for TurnDelayTraversalModel {
 
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![
+            (
+                String::from(fieldname::EDGE_TURN_DELAY),
+                StateVariableConfig::Time {
+                    initial: Time::ZERO,
+                    accumulator: false,
+                    output_unit: Some(TimeUnit::Seconds),
+                },
+            ),
             (
                 String::from(fieldname::EDGE_TIME),
                 StateVariableConfig::Time {
@@ -62,6 +67,9 @@ impl TraversalModel for TurnDelayTraversalModel {
         tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
+        if tree.is_empty() {
+            return Ok(());
+        }
         let (src, edge, _) = traversal;
         let prev_opt = tree
             .backtrack_with_depth(src.vertex_id, 1)
@@ -74,8 +82,9 @@ impl TraversalModel for TurnDelayTraversalModel {
             .map(|et| et.edge_id);
         if let Some(prev) = prev_opt {
             let delay = self.engine.get_delay(prev, edge.edge_id)?;
-            state_model.set_time(state, Self::EDGE_TIME, &delay)?;
-            state_model.add_time(state, Self::TRIP_TIME, &delay)?;
+            state_model.set_time(state, fieldname::EDGE_TURN_DELAY, &delay)?;
+            state_model.add_time(state, fieldname::EDGE_TIME, &delay)?;
+            state_model.add_time(state, fieldname::TRIP_TIME, &delay)?;
         }
 
         Ok(())
