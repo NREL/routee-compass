@@ -125,3 +125,6 @@ ENV/
 # pixi environments
 .pixi
 *.egg-info
+
+# uv
+uv.lock
