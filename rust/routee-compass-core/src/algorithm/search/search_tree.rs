@@ -263,7 +263,8 @@ impl SearchTree {
     /// and limit the backtracking depth to some nonzero count of edges.
     ///
     /// # Arguments
-    /// * `leaf_vertex` - The vertex ID to backtrack from
+    /// * `leaf_vertex` - The vertex ID to backtrack from. this should be the destination vertex
+    /// `dst` of the graph triplet (src)-[edge]->(dst).
     /// * `depth` - max number of edges to find for the path starting at leaf_vertex
     ///
     /// # Returns
