@@ -32,7 +32,7 @@ impl TraversalModel for DistanceTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
 
-        state_model.set_distance(state, fieldname::EDGE_DISTANCE, &edge.distance)?;
+        state_model.add_distance(state, fieldname::EDGE_DISTANCE, &edge.distance)?;
         state_model.add_distance(state, fieldname::TRIP_DISTANCE, &edge.distance)?;
         Ok(())
     }
@@ -53,7 +53,7 @@ impl TraversalModel for DistanceTraversalModel {
                 ))
             })?;
         state_model.add_distance(state, fieldname::TRIP_DISTANCE, &distance)?;
-        state_model.set_distance(state, fieldname::EDGE_DISTANCE, &distance)?;
+        state_model.add_distance(state, fieldname::EDGE_DISTANCE, &distance)?;
         Ok(())
     }
 

@@ -88,7 +88,7 @@ impl TraversalModel for TimeTraversalModel {
         let edge_time = distance / speed;
 
         state_model.add_time(state, fieldname::TRIP_TIME, &edge_time)?;
-        state_model.set_time(state, fieldname::EDGE_TIME, &edge_time)?;
+        state_model.add_time(state, fieldname::EDGE_TIME, &edge_time)?;
 
         Ok(())
     }
@@ -115,7 +115,7 @@ impl TraversalModel for TimeTraversalModel {
         let time = distance / speed;
 
         state_model.add_time(state, fieldname::TRIP_TIME, &time)?;
-        state_model.set_time(state, fieldname::EDGE_TIME, &time)?;
+        state_model.add_time(state, fieldname::EDGE_TIME, &time)?;
 
         Ok(())
     }
