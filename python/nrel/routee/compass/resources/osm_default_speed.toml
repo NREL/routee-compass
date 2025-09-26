@@ -25,7 +25,7 @@ speed_unit = "kph"
 type = "time"
 time_unit = "minutes"
 
-[search.traversal.models]
+[[search.traversal.models]]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
 [search.traversal.models.turn_delay_model]

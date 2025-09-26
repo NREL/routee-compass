@@ -16,7 +16,7 @@ matching_type = ["point", "vertex_id", "edge_id"]
 type = "distance"
 distance_unit = "miles"
 
-[search.traversal.models]
+[[search.traversal.models]]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
 [search.traversal.models.turn_delay_model]

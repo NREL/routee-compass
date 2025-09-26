@@ -136,7 +136,7 @@ trip_energy_liquid = 1
 trip_energy_electric = 1
 
 # A turn delay model that assigns a time cost to each type of turn
-[search.traversal.models]
+[[search.traversal.models]]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
 [search.traversal.models.turn_delay_model]

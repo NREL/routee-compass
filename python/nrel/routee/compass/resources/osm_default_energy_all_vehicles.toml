@@ -47,7 +47,7 @@ trip_time = 1
 trip_energy_liquid = 1
 trip_energy_electric = 1
 
-[search.traversal.models]
+[[search.traversal.models]]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
 [search.traversal.models.turn_delay_model]
