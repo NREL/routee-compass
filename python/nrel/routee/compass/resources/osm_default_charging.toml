@@ -43,22 +43,6 @@ step = 1
 [search.frontier]
 type = "battery_frontier"
 
-[[search.traversal.models]]
-type = "turn_delay"
-edge_heading_input_file = "edges-headings-enumerated.csv.gz"
-[search.traversal.models.turn_delay_model]
-type = "tabular_discrete"
-time_unit = "seconds"
-[search.traversal.models.turn_delay_model.table]
-no_turn = 0.0
-slight_right = 0.5
-right = 1.0
-sharp_right = 1.5
-slight_left = 1.0
-left = 2.5
-sharp_left = 3.5
-u_turn = 9.5
-
 [search.traversal]
 type = "combined"
 
@@ -78,6 +62,22 @@ speed_unit = "kph"
 [[search.traversal.models]]
 type = "time"
 time_unit = "minutes"
+
+[[search.traversal.models]]
+type = "turn_delay"
+edge_heading_input_file = "edges-headings-enumerated.csv.gz"
+[search.traversal.models.turn_delay_model]
+type = "tabular_discrete"
+time_unit = "seconds"
+[search.traversal.models.turn_delay_model.table]
+no_turn = 0.0
+slight_right = 0.5
+right = 1.0
+sharp_right = 1.5
+slight_left = 1.0
+left = 2.5
+sharp_left = 3.5
+u_turn = 9.5
 
 [[search.traversal.models]]
 type = "simple_charging"

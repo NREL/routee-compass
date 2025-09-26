@@ -68,15 +68,14 @@ impl TraversalModel for TurnDelayTraversalModel {
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         if tree.is_empty() {
+            // we need a previous edge to complete a turn
             return Ok(());
         }
         let (src, edge, _) = traversal;
         let prev_opt = tree
             .backtrack_with_depth(src.vertex_id, 1)
             .map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!(
-                    "while applying turn delays, {e}"
-                ))
+                TraversalModelError::TraversalModelFailure(format!("while applying turn delays, {e}"))
             })?
             .first()
             .map(|et| et.edge_id);

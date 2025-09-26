@@ -17,10 +17,12 @@ type = "combined"
 [[search.traversal.models]]
 type = "distance"
 distance_unit = "miles"
+
 [[search.traversal.models]]
 type = "speed"
 speed_table_input_file = "edges-posted-speed-enumerated.txt.gz"
 speed_unit = "kph"
+
 [[search.traversal.models]]
 type = "time"
 time_unit = "minutes"
