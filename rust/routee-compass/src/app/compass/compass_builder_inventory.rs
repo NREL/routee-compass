@@ -36,7 +36,8 @@ use routee_compass_core::model::{
         default::{
             combined::CombinedTraversalBuilder, custom::CustomTraversalBuilder,
             elevation::ElevationTraversalBuilder, grade::GradeTraversalBuilder,
-            temperature::TemperatureTraversalBuilder, time::TimeTraversalBuilder, turn_delays::TurnDelayTraversalModelBuilder,
+            temperature::TemperatureTraversalBuilder, time::TimeTraversalBuilder,
+            turn_delays::TurnDelayTraversalModelBuilder,
         },
         TraversalModelBuilder, TraversalModelService,
     },
