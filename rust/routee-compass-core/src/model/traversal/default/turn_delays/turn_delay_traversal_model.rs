@@ -46,7 +46,7 @@ impl TraversalModel for TurnDelayTraversalModel {
                 StateVariableConfig::Time {
                     initial: Time::ZERO,
                     accumulator: false,
-                    output_unit: Some(TimeUnit::Seconds),
+                    output_unit: None,
                 },
             ),
             (
@@ -54,7 +54,7 @@ impl TraversalModel for TurnDelayTraversalModel {
                 StateVariableConfig::Time {
                     initial: Time::ZERO,
                     accumulator: true,
-                    output_unit: Some(TimeUnit::Seconds),
+                    output_unit: None,
                 },
             ),
         ]
