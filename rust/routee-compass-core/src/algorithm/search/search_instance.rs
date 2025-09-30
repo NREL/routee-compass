@@ -40,7 +40,7 @@ impl SearchInstance {
     ) -> Result<Arc<dyn FrontierModel>, SearchError> {
         self.frontier_models
             .get(edge_list_id.0)
-            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve frontier models for edge list {} that does not exist", edge_list_id)))
+            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve frontier models for edge list {edge_list_id} that does not exist")))
             .cloned()
     }
 
@@ -50,7 +50,7 @@ impl SearchInstance {
     ) -> Result<Arc<dyn TraversalModel>, SearchError> {
         self.traversal_models
             .get(edge_list_id.0)
-            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve traversal models for edge list {} that does not exist", edge_list_id)))
+            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve traversal models for edge list {edge_list_id} that does not exist")))
             .cloned()
     }
 }
