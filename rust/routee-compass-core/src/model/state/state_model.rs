@@ -141,15 +141,18 @@ impl StateModel {
     /// accumulators, defined in the state model configuration.
     ///
     /// # Arguments
-    /// 
+    ///
     /// * `prev_state` - if included, builds a state as a successor to some previous state,
     /// ensuring that non-accumulator state variables are reset to their initial values. if
     /// prev_state is None, the generated state is the initial search state.
-    /// 
+    ///
     /// # Returns
     ///
     /// an initialized, traversal state, or an error
-    pub fn initial_state(&self, prev_state: Option<&[StateVariable]>) -> Result<Vec<StateVariable>, StateModelError> {
+    pub fn initial_state(
+        &self,
+        prev_state: Option<&[StateVariable]>,
+    ) -> Result<Vec<StateVariable>, StateModelError> {
         self.0
             .iter()
             .enumerate()

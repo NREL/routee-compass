@@ -75,7 +75,9 @@ impl TraversalModel for TurnDelayTraversalModel {
         let prev_opt = tree
             .backtrack_with_depth(src.vertex_id, 1)
             .map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!("while applying turn delays, {e}"))
+                TraversalModelError::TraversalModelFailure(format!(
+                    "while applying turn delays, {e}"
+                ))
             })?
             .first()
             .map(|et| et.edge_id);

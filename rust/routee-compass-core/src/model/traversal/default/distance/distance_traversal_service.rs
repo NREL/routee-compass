@@ -6,7 +6,7 @@ use crate::model::unit::DistanceUnit;
 use std::sync::Arc;
 
 pub struct DistanceTraversalService {
-    pub distance_unit: DistanceUnit
+    pub distance_unit: DistanceUnit,
 }
 
 impl DistanceTraversalService {
@@ -24,5 +24,3 @@ impl TraversalModelService for DistanceTraversalService {
         Ok(m)
     }
 }
-
-

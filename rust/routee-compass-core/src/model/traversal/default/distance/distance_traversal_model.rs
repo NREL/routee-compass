@@ -14,7 +14,7 @@ use crate::util::geo::haversine;
 
 /// a model for traversing edges based on distance.
 pub struct DistanceTraversalModel {
-    pub distance_unit: DistanceUnit
+    pub distance_unit: DistanceUnit,
 }
 
 impl DistanceTraversalModel {

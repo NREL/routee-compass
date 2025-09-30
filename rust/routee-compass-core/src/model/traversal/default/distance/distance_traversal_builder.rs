@@ -12,9 +12,13 @@ impl TraversalModelBuilder for DistanceTraversalBuilder {
         &self,
         parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModelService>, TraversalModelError> {
-        let config: DistanceTraversalConfig = serde_json::from_value(parameters.clone()).map_err(|e| TraversalModelError::BuildError(format!("while reading distance config, {e}")))?;
+        let config: DistanceTraversalConfig =
+            serde_json::from_value(parameters.clone()).map_err(|e| {
+                TraversalModelError::BuildError(format!("while reading distance config, {e}"))
+            })?;
         let distance_unit = config.distance_unit.unwrap_or_default();
-        let m: Arc<dyn TraversalModelService> = Arc::new(DistanceTraversalService::new(distance_unit));
+        let m: Arc<dyn TraversalModelService> =
+            Arc::new(DistanceTraversalService::new(distance_unit));
         Ok(m)
     }
 }
