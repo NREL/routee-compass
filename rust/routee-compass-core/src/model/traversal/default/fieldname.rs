@@ -16,7 +16,7 @@ pub const TRIP_DISTANCE: &str = "trip_distance";
 pub const EDGE_SPEED: &str = "edge_speed";
 
 /// state feature name for delays due to turn angles on trip
-pub const EDGE_TURN_DELAY: &str = "access_time";
+pub const EDGE_TURN_DELAY: &str = "edge_turn_delay";
 /// state feature name for time required to traverse this graph edge
 pub const EDGE_TIME: &str = "edge_time";
 /// state feature name for accumulated trip time to traverse this edge
