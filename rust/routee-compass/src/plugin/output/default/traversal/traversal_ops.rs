@@ -88,7 +88,7 @@ pub fn create_geojson_feature(
     cost_model: Arc<CostModel>,
 ) -> Result<Feature, OutputPluginError> {
     let serialized_state = state_model
-        .serialize_state(&t.result_state, true)
+        .serialize_state(&t.result_state, false)
         .map_err(|e| {
             OutputPluginError::OutputPluginFailed(format!(
                 "failure serializing final trip state while constructing geojson output: {e}"
@@ -111,6 +111,7 @@ pub fn create_geojson_feature(
     }?;
     let mut properties = Map::new();
     properties.insert(String::from("edge_id"), json![t.edge_id]);
+    properties.insert(String::from("edge_list_id"), json![t.edge_list_id]);
     properties.insert(String::from("traversal"), serialized_traversal);
     properties.insert(String::from("state"), serialized_state);
     properties.insert(String::from("cost"), serialized_cost);
