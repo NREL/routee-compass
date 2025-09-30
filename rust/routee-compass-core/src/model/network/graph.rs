@@ -123,8 +123,7 @@ impl Graph {
     ) -> Result<&Edge, NetworkError> {
         match self.edge_lists.get(edge_list_id.0) {
             None => Err(NetworkError::InternalError(format!(
-                "EdgeListId not found: {}",
-                edge_list_id
+                "EdgeListId not found: {edge_list_id}"
             ))),
             Some(edge_list) => match edge_list.edges.get(edge_id.0) {
                 None => Err(NetworkError::EdgeNotFound(*edge_id)),
