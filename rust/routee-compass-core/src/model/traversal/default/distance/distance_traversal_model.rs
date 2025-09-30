@@ -13,7 +13,15 @@ use crate::model::unit::DistanceUnit;
 use crate::util::geo::haversine;
 
 /// a model for traversing edges based on distance.
-pub struct DistanceTraversalModel {}
+pub struct DistanceTraversalModel {
+    pub distance_unit: DistanceUnit
+}
+
+impl DistanceTraversalModel {
+    pub fn new(distance_unit: DistanceUnit) -> DistanceTraversalModel {
+        Self { distance_unit }
+    }
+}
 
 impl TraversalModel for DistanceTraversalModel {
     fn name(&self) -> String {
@@ -68,7 +76,7 @@ impl TraversalModel for DistanceTraversalModel {
                 StateVariableConfig::Distance {
                     initial: Length::ZERO,
                     accumulator: true,
-                    output_unit: Some(DistanceUnit::default()),
+                    output_unit: Some(self.distance_unit),
                 },
             ),
             (
@@ -76,7 +84,7 @@ impl TraversalModel for DistanceTraversalModel {
                 StateVariableConfig::Distance {
                     initial: Length::ZERO,
                     accumulator: false,
-                    output_unit: Some(DistanceUnit::default()),
+                    output_unit: Some(self.distance_unit),
                 },
             ),
         ]
