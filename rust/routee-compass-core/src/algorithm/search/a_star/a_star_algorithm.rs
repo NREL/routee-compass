@@ -42,7 +42,7 @@ pub fn run_vertex_oriented(
     let mut solution = SearchTree::new(*direction);
 
     // setup initial search state
-    let initial_state = si.state_model.initial_state()?;
+    let initial_state = si.state_model.initial_state(None)?;
     let inital_label = si
         .label_model
         .label_from_state(source, &initial_state, &si.state_model)?;
@@ -232,6 +232,7 @@ mod tests {
     use crate::model::termination::TerminationModel;
     use crate::model::traversal::default::distance::DistanceTraversalModel;
     use crate::model::traversal::TraversalModel;
+    use crate::model::unit::DistanceUnit;
     use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
     use rayon::prelude::*;
     use std::sync::Arc;
@@ -323,7 +324,7 @@ mod tests {
 
         let graph = Arc::new(build_mock_graph());
         let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
-        let traversal_model = Arc::new(DistanceTraversalModel {});
+        let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::default()));
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process

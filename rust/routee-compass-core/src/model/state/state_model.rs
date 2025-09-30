@@ -140,13 +140,29 @@ impl StateModel {
     /// Creates the initial state of a search. this should be a vector of
     /// accumulators, defined in the state model configuration.
     ///
+    /// # Arguments
+    /// 
+    /// * `prev_state` - if included, builds a state as a successor to some previous state,
+    /// ensuring that non-accumulator state variables are reset to their initial values. if
+    /// prev_state is None, the generated state is the initial search state.
+    /// 
     /// # Returns
     ///
-    /// an initialized, "zero"-valued traversal state, or an error
-    pub fn initial_state(&self) -> Result<Vec<StateVariable>, StateModelError> {
+    /// an initialized, traversal state, or an error
+    pub fn initial_state(&self, prev_state: Option<&[StateVariable]>) -> Result<Vec<StateVariable>, StateModelError> {
         self.0
             .iter()
-            .map(|(_, feature)| feature.initial_value())
+            .enumerate()
+            .map(|(idx, (name, feature))| {
+                match prev_state {
+                    Some(prev) if feature.is_accumulator() => {
+                        prev.get(idx)
+                            .ok_or_else(|| StateModelError::RuntimeError(format!("while initializing state variable '{name}' (not an accumulator), did not find expected previous value at index {idx} in previous state")))
+                            .cloned()
+                    },
+                    _ => feature.initial_value(),
+                }
+            })
             .collect::<Result<Vec<_>, _>>()
     }
 

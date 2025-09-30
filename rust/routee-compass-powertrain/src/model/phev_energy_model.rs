@@ -605,7 +605,7 @@ mod test {
         speed: Velocity,
         grade: Ratio,
     ) -> Vec<StateVariable> {
-        let mut state = state_model.initial_state().unwrap();
+        let mut state = state_model.initial_state(None).unwrap();
         state_model
             .set_distance(&mut state, fieldname::EDGE_DISTANCE, &distance)
             .expect("test invariant failed");

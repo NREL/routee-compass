@@ -216,7 +216,7 @@ mod tests {
         trip_soc: Ratio,
         battery_capacity: Energy,
     ) -> Vec<StateVariable> {
-        let mut state = state_model.initial_state().unwrap();
+        let mut state = state_model.initial_state(None).unwrap();
         state_model
             .set_ratio(&mut state, fieldname::TRIP_SOC, &trip_soc)
             .expect("test invariant failed");

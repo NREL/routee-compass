@@ -169,7 +169,7 @@ pub fn run_edge_oriented(
     si: &SearchInstance,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let initial_state = si.state_model.initial_state()?;
+    let initial_state = si.state_model.initial_state(None)?;
     let e1_src = si.graph.src_vertex_id(&source.0, &source.1)?;
     let e1_label = si
         .label_model
@@ -179,7 +179,7 @@ pub fn run_edge_oriented(
         edge_list_id: source.0,
         edge_id: source.1,
         cost: Cost::ZERO,
-        result_state: si.state_model.initial_state()?,
+        result_state: si.state_model.initial_state(None)?,
     };
 
     match target {

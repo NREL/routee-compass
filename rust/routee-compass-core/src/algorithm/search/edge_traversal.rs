@@ -56,7 +56,7 @@ impl EdgeTraversal {
         prev_state: &[StateVariable],
         si: &SearchInstance,
     ) -> Result<EdgeTraversal, SearchError> {
-        let mut result_state = prev_state.to_vec();
+        let mut result_state = si.state_model.initial_state(Some(prev_state))?;
 
         let (next_edge_list_id, next_edge_id) = next_edge;
 

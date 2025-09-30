@@ -327,7 +327,7 @@ mod tests {
         let state_model = StateModel::empty()
             .extend(vehicle.state_features())
             .unwrap();
-        let mut state = state_model.initial_state().unwrap();
+        let mut state = state_model.initial_state(None).unwrap();
 
         // starting at 100% SOC, we should be able to traverse 1000 meters
         // without using any liquid_fuel
@@ -374,7 +374,7 @@ mod tests {
         let state_model = StateModel::empty()
             .extend(vehicle.state_features())
             .unwrap();
-        let mut state = state_model.initial_state().unwrap();
+        let mut state = state_model.initial_state(None).unwrap();
 
         // now let's traverse a really long link to deplete the battery
         let distance = (Distance::from(100.0), DistanceUnit::Miles);
