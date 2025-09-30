@@ -179,7 +179,7 @@ mod tests {
             .register(test_model.input_features(), test_model.output_features())
             .expect("failed tp register state features");
 
-        let mut state = state_model.initial_state().unwrap();
+        let mut state = state_model.initial_state(None).unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
         test_model
@@ -227,8 +227,8 @@ mod tests {
             .expect("test invariant failed");
         let tree = SearchTree::default();
 
-        let mut state_with_limit = state_model.initial_state().unwrap();
-        let mut state_without_limit = state_model.initial_state().unwrap();
+        let mut state_with_limit = state_model.initial_state(None).unwrap();
+        let mut state_without_limit = state_model.initial_state(None).unwrap();
 
         let v = mock_vertex();
         let e = mock_edge(0);
