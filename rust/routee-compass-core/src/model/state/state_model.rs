@@ -8,8 +8,9 @@ use crate::model::state::InputFeature;
 use crate::model::unit::{
     DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TemperatureUnit, TimeUnit,
 };
-use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
-use crate::util::compact_ordered_hash_map::IndexedEntry;
+use indexmap::IndexMap;
+// use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
+// use crate::util::compact_ordered_hash_map::IndexedEntry;
 use itertools::Itertools;
 use serde_json::json;
 use std::collections::HashMap;
@@ -22,19 +23,19 @@ use uom::si::f64::*;
 /// object (see NFeatures, below). there are 4 additional implementations that specialize
 /// for the case where fewer than 5 features are required in order to improve CPU performance.
 #[derive(Debug)]
-pub struct StateModel(CompactOrderedHashMap<String, StateVariableConfig>);
+pub struct StateModel(IndexMap<String, StateVariableConfig>);
 type FeatureIterator<'a> = Box<dyn Iterator<Item = (&'a String, &'a StateVariableConfig)> + 'a>;
 type IndexedFeatureIterator<'a> =
-    Enumerate<Box<dyn Iterator<Item = (&'a String, &'a StateVariableConfig)> + 'a>>;
+    Box<Enumerate<indexmap::map::Iter<'a, String, StateVariableConfig>>>;
 
 impl StateModel {
     pub fn new(features: Vec<(String, StateVariableConfig)>) -> StateModel {
-        let map = CompactOrderedHashMap::new(features);
+        let map = IndexMap::from_iter(features);
         StateModel(map)
     }
 
     pub fn empty() -> StateModel {
-        StateModel(CompactOrderedHashMap::empty())
+        StateModel(IndexMap::new())
     }
 
     /// extends a state model by adding additional key/value pairs to the model mapping.
@@ -54,7 +55,7 @@ impl StateModel {
             .0
             .iter()
             .map(|(k, v)| (k.clone(), v.clone()))
-            .collect::<CompactOrderedHashMap<_, _>>();
+            .collect::<IndexMap<_, _>>();
 
         // add each new state feature, tracking any cases where a name collision has a configuration mismatch
         let overwrites = output_features
@@ -113,23 +114,23 @@ impl StateModel {
     }
 
     pub fn keys<'a>(&'a self) -> Box<dyn Iterator<Item = &'a String> + 'a> {
-        self.0.keys()
+        Box::new(self.0.keys())
     }
 
     /// collects the state model tuples and clones them so they can
     /// be used to build other collections
-    pub fn to_vec(&self) -> Vec<(String, IndexedEntry<StateVariableConfig>)> {
-        self.0.to_vec()
+    pub fn to_vec(&self) -> Vec<(String, StateVariableConfig)> {
+        self.0.iter().map(|(k, v)| (k.clone(), v.clone())).collect_vec()
     }
 
     /// iterates over the features in this state in their state vector index ordering.
     pub fn iter(&self) -> FeatureIterator<'_> {
-        self.0.iter()
+        Box::new(self.0.iter())
     }
 
     /// iterator that includes the state vector index along with the feature name and StateFeature
-    pub fn indexed_iter(&self) -> IndexedFeatureIterator<'_> {
-        self.0.indexed_iter()
+    pub fn indexed_iter<'a>(&'a self) -> IndexedFeatureIterator<'a>  {
+        Box::new(self.0.iter().enumerate())
     }
 
     pub fn is_accumlator(&self, name: &str) -> Result<bool, StateModelError> {
@@ -614,7 +615,7 @@ impl StateModel {
         state: &'a [StateVariable],
         name: &str,
     ) -> Result<&'a StateVariable, StateModelError> {
-        let idx = self.0.get_index(name).ok_or_else(|| {
+        let idx = self.0.get_index_of(name).ok_or_else(|| {
             StateModelError::UnknownStateVariableName(name.to_string(), self.get_names())
         })?;
         let value = state.get(idx).ok_or_else(|| {
@@ -635,7 +636,7 @@ impl StateModel {
         value: &StateVariable,
         op: UpdateOperation,
     ) -> Result<(), StateModelError> {
-        let index = self.0.get_index(name).ok_or_else(|| {
+        let index = self.0.get_index_of(name).ok_or_else(|| {
             StateModelError::UnknownStateVariableName(name.to_string(), self.get_names())
         })?;
         let prev = state
