@@ -12,7 +12,7 @@ mod search_tree_node;
 pub mod util;
 
 pub use direction::Direction;
-pub use edge_traversal::{traverse, EdgeTraversal};
+pub use edge_traversal::{EdgeTraversal};
 pub use search_algorithm::SearchAlgorithm;
 pub use search_algorithm_result::SearchAlgorithmResult;
 pub use search_error::SearchError;

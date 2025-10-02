@@ -9,7 +9,6 @@ use crate::model::unit::Cost;
 use allocative::Allocative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
-use std::sync::Arc;
 
 #[derive(Clone, Debug, Serialize, Deserialize, Allocative)]
 pub struct EdgeTraversal {
@@ -63,40 +62,45 @@ impl EdgeTraversal {
         let (edge_list_id, edge_id) = next_edge;
         let trajectory = si.graph.edge_triplet(&edge_list_id, &edge_id)?;
         let tm = si.get_traversal_model(&edge_list_id)?;
-        traverse(
+        Self::new_local(
             trajectory,
             tree,
             prev_state,
-            si.state_model.clone(),
-            tm,
-            si.cost_model.clone(),
+            &si.state_model.clone(),
+            tm.clone().as_ref(),
+            &si.cost_model.clone(),
         )
     }
+
+    /// executes a traversal from some source vertex and source state through some edge,
+    /// producing the result state and cost.
+    /// 
+    /// this function signature makes uses lower-level constructs than the associated [`EdgeTraversal::new`]
+    /// method and does not require [`Arc`]-wrapped types.
+    pub fn new_local(
+        trajectory: (&Vertex, &Edge, &Vertex),
+        tree: &SearchTree,
+        prev_state: &[StateVariable],
+        state_model: &StateModel,
+        traversal_model: &dyn TraversalModel,
+        cost_model: &CostModel,
+    ) -> Result<EdgeTraversal, SearchError> {
+        let (_, edge, _) = trajectory;
+        let mut result_state = state_model.initial_state(Some(prev_state))?;
+
+        traversal_model.traverse_edge(trajectory, &mut result_state, tree, &state_model)?;
+
+        let cost = cost_model.traversal_cost(edge, prev_state, &result_state)?;
+
+        let result = EdgeTraversal {
+            edge_list_id: edge.edge_list_id,
+            edge_id: edge.edge_id,
+            cost,
+            result_state,
+        };
+
+        Ok(result)
+    }
+
 }
 
-/// executes a traversal from some source vertex and source state through some edge,
-/// producing the result state and cost.
-pub fn traverse(
-    trajectory: (&Vertex, &Edge, &Vertex),
-    tree: &SearchTree,
-    prev_state: &[StateVariable],
-    state_model: Arc<StateModel>,
-    traversal_model: Arc<dyn TraversalModel>,
-    cost_model: Arc<CostModel>,
-) -> Result<EdgeTraversal, SearchError> {
-    let (_, edge, _) = trajectory;
-    let mut result_state = state_model.initial_state(Some(prev_state))?;
-
-    traversal_model.traverse_edge(trajectory, &mut result_state, tree, &state_model)?;
-
-    let cost = cost_model.traversal_cost(edge, prev_state, &result_state)?;
-
-    let result = EdgeTraversal {
-        edge_list_id: edge.edge_list_id,
-        edge_id: edge.edge_id,
-        cost,
-        result_state,
-    };
-
-    Ok(result)
-}
