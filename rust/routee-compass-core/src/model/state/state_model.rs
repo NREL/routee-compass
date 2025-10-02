@@ -163,7 +163,7 @@ impl StateModel {
                 },
                 _ => feature.initial_value(),
             }?;
-            let _ = result.push(value);
+            result.push(value);
         }
         Ok(result)
     }
