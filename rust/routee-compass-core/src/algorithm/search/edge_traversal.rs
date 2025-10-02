@@ -59,12 +59,18 @@ impl EdgeTraversal {
         prev_state: &[StateVariable],
         si: &SearchInstance,
     ) -> Result<EdgeTraversal, SearchError> {
-
         // find this traversal in the graph
         let (edge_list_id, edge_id) = next_edge;
         let trajectory = si.graph.edge_triplet(&edge_list_id, &edge_id)?;
         let tm = si.get_traversal_model(&edge_list_id)?;
-        traverse(trajectory, tree, prev_state, si.state_model.clone(), tm, si.cost_model.clone())
+        traverse(
+            trajectory,
+            tree,
+            prev_state,
+            si.state_model.clone(),
+            tm,
+            si.cost_model.clone(),
+        )
     }
 }
 
@@ -76,21 +82,14 @@ pub fn traverse(
     prev_state: &[StateVariable],
     state_model: Arc<StateModel>,
     traversal_model: Arc<dyn TraversalModel>,
-    cost_model: Arc<CostModel>
+    cost_model: Arc<CostModel>,
 ) -> Result<EdgeTraversal, SearchError> {
     let (_, edge, _) = trajectory;
     let mut result_state = state_model.initial_state(Some(prev_state))?;
 
-    traversal_model.traverse_edge(
-        trajectory,
-        &mut result_state,
-        tree,
-        &state_model,
-    )?;
+    traversal_model.traverse_edge(trajectory, &mut result_state, tree, &state_model)?;
 
-    
-    let cost = cost_model
-        .traversal_cost(edge, prev_state, &result_state)?;
+    let cost = cost_model.traversal_cost(edge, prev_state, &result_state)?;
 
     let result = EdgeTraversal {
         edge_list_id: edge.edge_list_id,
