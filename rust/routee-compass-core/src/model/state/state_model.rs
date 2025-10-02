@@ -153,20 +153,19 @@ impl StateModel {
         &self,
         prev_state: Option<&[StateVariable]>,
     ) -> Result<Vec<StateVariable>, StateModelError> {
-        self.0
-            .iter()
-            .enumerate()
-            .map(|(idx, (name, feature))| {
-                match prev_state {
-                    Some(prev) if feature.is_accumulator() => {
-                        prev.get(idx)
-                            .ok_or_else(|| StateModelError::RuntimeError(format!("while initializing state variable '{name}' (not an accumulator), did not find expected previous value at index {idx} in previous state")))
-                            .cloned()
-                    },
-                    _ => feature.initial_value(),
-                }
-            })
-            .collect::<Result<Vec<_>, _>>()
+        let mut result: Vec<StateVariable>  = Vec::with_capacity(self.0.len());
+        for (idx, (name, feature)) in self.0.iter().enumerate() {
+            let value = match prev_state {
+                Some(prev) if feature.is_accumulator() => {
+                    prev.get(idx)
+                        .ok_or_else(|| StateModelError::RuntimeError(format!("while initializing state variable '{name}' (not an accumulator), did not find expected previous value at index {idx} in previous state")))
+                        .cloned()
+                },
+                _ => feature.initial_value(),
+            }?;
+            let _ = result.push(value);
+        }
+        Ok(result)
     }
 
     /// retrieves a state variable that is expected to have a type of Distance
