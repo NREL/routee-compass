@@ -1,3 +1,5 @@
+use indexmap::IndexMap;
+
 use super::{
     vehicle_restriction_model::VehicleRestrictionFrontierModel, VehicleParameter,
     VehicleParameterConfig, VehicleParameterType, VehicleRestriction,
@@ -8,14 +10,13 @@ use crate::{
         network::EdgeId,
         state::StateModel,
     },
-    util::compact_ordered_hash_map::CompactOrderedHashMap,
 };
 use std::{collections::HashMap, sync::Arc};
 
 #[derive(Clone)]
 pub struct VehicleRestrictionFrontierService {
     pub vehicle_restriction_lookup:
-        Arc<HashMap<EdgeId, CompactOrderedHashMap<VehicleParameterType, VehicleRestriction>>>,
+        Arc<HashMap<EdgeId, IndexMap<VehicleParameterType, VehicleRestriction>>>,
 }
 
 impl FrontierModelService for VehicleRestrictionFrontierService {

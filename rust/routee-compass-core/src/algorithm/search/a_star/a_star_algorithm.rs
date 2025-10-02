@@ -233,7 +233,7 @@ mod tests {
     use crate::model::traversal::default::distance::DistanceTraversalModel;
     use crate::model::traversal::TraversalModel;
     use crate::model::unit::DistanceUnit;
-    use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
+    use indexmap::IndexMap;
     use rayon::prelude::*;
     use std::sync::Arc;
     use uom::si::f64::Length;
@@ -257,8 +257,8 @@ mod tests {
             Edge::new(0, 7, 0, 3, Length::new::<uom::si::length::kilometer>(2.0)),
         ];
 
-        let mut adj = vec![CompactOrderedHashMap::empty(); vertices.len()];
-        let mut rev = vec![CompactOrderedHashMap::empty(); vertices.len()];
+        let mut adj = vec![IndexMap::new(); vertices.len()];
+        let mut rev = vec![IndexMap::new(); vertices.len()];
 
         for edge in &edges {
             adj[edge.src_vertex_id.0].insert(edge.edge_id, edge.dst_vertex_id);

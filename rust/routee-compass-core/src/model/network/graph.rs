@@ -172,11 +172,13 @@ impl Graph {
             .iter()
             .enumerate()
             .flat_map(|(edge_list_idx, edge_list)| {
-                let out_keys = match edge_list.adj.get(src.0) {
+                let iter: Box<dyn Iterator<Item = (EdgeListId, EdgeId)>> = match edge_list.adj.get(src.0) {
+                    Some(out_map) => {
+                        Box::new(out_map.keys().map(move |edge_id| (EdgeListId(edge_list_idx), *edge_id)))
+                    }
                     None => Box::new(std::iter::empty()),
-                    Some(out_map) => out_map.keys(),
                 };
-                out_keys.map(move |edge_id| (EdgeListId(edge_list_idx), *edge_id))
+                iter
             });
         Box::new(result)
     }
@@ -204,9 +206,9 @@ impl Graph {
             .iter()
             .enumerate()
             .flat_map(|(edge_list_idx, edge_list)| {
-                let in_keys = match edge_list.rev.get(src.0) {
+                let in_keys: Box<dyn Iterator<Item = &EdgeId>> = match edge_list.rev.get(src.0) {
                     None => Box::new(std::iter::empty()),
-                    Some(in_map) => in_map.keys(),
+                    Some(in_map) => Box::new(in_map.keys()),
                 };
                 in_keys.map(move |edge_id| (EdgeListId(edge_list_idx), *edge_id))
             });

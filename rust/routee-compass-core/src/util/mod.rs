@@ -1,4 +1,3 @@
-pub mod compact_ordered_hash_map;
 pub mod conversion;
 pub mod duration_extension;
 pub mod fs;

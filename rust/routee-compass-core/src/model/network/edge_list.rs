@@ -1,17 +1,18 @@
 use std::{collections::HashSet, fmt::Display, path::Path};
 
+use indexmap::IndexMap;
 use kdam::tqdm;
 
 use crate::{
     model::network::{Edge, EdgeConfig, EdgeId, EdgeListId, NetworkError, VertexId},
-    util::{compact_ordered_hash_map::CompactOrderedHashMap, fs::read_utils},
+    util::fs::read_utils,
 };
 
 /// An adjacency list covering some list of edges drawn over the Graph vertex list.
 #[derive(Clone, Debug)]
 pub struct EdgeList {
-    pub adj: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
-    pub rev: Box<[CompactOrderedHashMap<EdgeId, VertexId>]>,
+    pub adj: Box<[IndexMap<EdgeId, VertexId>]>,
+    pub rev: Box<[IndexMap<EdgeId, VertexId>]>,
     pub edges: Box<[Edge]>,
 }
 
@@ -23,10 +24,10 @@ impl EdgeList {
         edge_list_id: EdgeListId,
         n_vertices: usize,
     ) -> Result<EdgeList, NetworkError> {
-        let mut adj: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
-            vec![CompactOrderedHashMap::empty(); n_vertices];
-        let mut rev: Vec<CompactOrderedHashMap<EdgeId, VertexId>> =
-            vec![CompactOrderedHashMap::empty(); n_vertices];
+        let mut adj: Vec<IndexMap<EdgeId, VertexId>> =
+            vec![IndexMap::new(); n_vertices];
+        let mut rev: Vec<IndexMap<EdgeId, VertexId>> =
+            vec![IndexMap::new(); n_vertices];
         let mut missing_vertices: HashSet<VertexId> = HashSet::new();
 
         // this callback is invoked when reading each line of the edge list input file and

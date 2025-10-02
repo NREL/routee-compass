@@ -2,7 +2,6 @@ use super::{
     RestrictionRow, VehicleParameterType, VehicleRestriction, VehicleRestrictionFrontierService,
 };
 use crate::config::{CompassConfigurationField, ConfigJsonExtensions};
-use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
 use crate::{
     model::{
         frontier::{FrontierModelBuilder, FrontierModelError, FrontierModelService},
@@ -10,6 +9,7 @@ use crate::{
     },
     util::fs::read_utils,
 };
+use indexmap::IndexMap;
 use kdam::Bar;
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
@@ -47,7 +47,7 @@ impl FrontierModelBuilder for VehicleRestrictionBuilder {
 pub fn vehicle_restriction_lookup_from_file(
     vehicle_restriction_input_file: &PathBuf,
 ) -> Result<
-    HashMap<EdgeId, CompactOrderedHashMap<VehicleParameterType, VehicleRestriction>>,
+    HashMap<EdgeId, IndexMap<VehicleParameterType, VehicleRestriction>>,
     FrontierModelError,
 > {
     let rows: Vec<RestrictionRow> = read_utils::from_csv(
@@ -65,13 +65,13 @@ pub fn vehicle_restriction_lookup_from_file(
 
     let mut vehicle_restriction_lookup: HashMap<
         EdgeId,
-        CompactOrderedHashMap<VehicleParameterType, VehicleRestriction>,
+        IndexMap<VehicleParameterType, VehicleRestriction>,
     > = HashMap::new();
     for row in rows {
         let restriction = VehicleRestriction::try_from(&row)?;
         match vehicle_restriction_lookup.get_mut(&row.edge_id) {
             None => {
-                let mut restrictions = CompactOrderedHashMap::empty();
+                let mut restrictions = IndexMap::new();
                 restrictions.insert(restriction.vehicle_parameter_type().clone(), restriction);
                 vehicle_restriction_lookup.insert(row.edge_id, restrictions);
             }
