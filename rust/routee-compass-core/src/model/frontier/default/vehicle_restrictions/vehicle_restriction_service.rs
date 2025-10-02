@@ -4,12 +4,10 @@ use super::{
     vehicle_restriction_model::VehicleRestrictionFrontierModel, VehicleParameter,
     VehicleParameterConfig, VehicleParameterType, VehicleRestriction,
 };
-use crate::{
-    model::{
-        frontier::{FrontierModel, FrontierModelError, FrontierModelService},
-        network::EdgeId,
-        state::StateModel,
-    },
+use crate::model::{
+    frontier::{FrontierModel, FrontierModelError, FrontierModelService},
+    network::EdgeId,
+    state::StateModel,
 };
 use std::{collections::HashMap, sync::Arc};
 

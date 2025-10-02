@@ -151,9 +151,7 @@ mod tests {
     use uom::si::f64::Length;
 
     use super::*;
-    use crate::{
-        model::network::{Edge, EdgeList, Graph, Vertex},
-    };
+    use crate::model::network::{Edge, EdgeList, Graph, Vertex};
 
     fn build_mock_graph() -> Graph {
         let vertices = vec![

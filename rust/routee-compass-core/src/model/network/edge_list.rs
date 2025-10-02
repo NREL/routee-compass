@@ -24,10 +24,8 @@ impl EdgeList {
         edge_list_id: EdgeListId,
         n_vertices: usize,
     ) -> Result<EdgeList, NetworkError> {
-        let mut adj: Vec<IndexMap<EdgeId, VertexId>> =
-            vec![IndexMap::new(); n_vertices];
-        let mut rev: Vec<IndexMap<EdgeId, VertexId>> =
-            vec![IndexMap::new(); n_vertices];
+        let mut adj: Vec<IndexMap<EdgeId, VertexId>> = vec![IndexMap::new(); n_vertices];
+        let mut rev: Vec<IndexMap<EdgeId, VertexId>> = vec![IndexMap::new(); n_vertices];
         let mut missing_vertices: HashSet<VertexId> = HashSet::new();
 
         // this callback is invoked when reading each line of the edge list input file and
