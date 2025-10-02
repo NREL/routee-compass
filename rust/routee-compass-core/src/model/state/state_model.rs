@@ -120,7 +120,10 @@ impl StateModel {
     /// collects the state model tuples and clones them so they can
     /// be used to build other collections
     pub fn to_vec(&self) -> Vec<(String, StateVariableConfig)> {
-        self.0.iter().map(|(k, v)| (k.clone(), v.clone())).collect_vec()
+        self.0
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect_vec()
     }
 
     /// iterates over the features in this state in their state vector index ordering.
@@ -129,7 +132,7 @@ impl StateModel {
     }
 
     /// iterator that includes the state vector index along with the feature name and StateFeature
-    pub fn indexed_iter<'a>(&'a self) -> IndexedFeatureIterator<'a>  {
+    pub fn indexed_iter<'a>(&'a self) -> IndexedFeatureIterator<'a> {
         Box::new(self.0.iter().enumerate())
     }
 
