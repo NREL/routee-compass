@@ -153,7 +153,7 @@ impl StateModel {
         &self,
         prev_state: Option<&[StateVariable]>,
     ) -> Result<Vec<StateVariable>, StateModelError> {
-        let mut result: Vec<StateVariable>  = Vec::with_capacity(self.0.len());
+        let mut result: Vec<StateVariable> = Vec::with_capacity(self.0.len());
         for (idx, (name, feature)) in self.0.iter().enumerate() {
             let value = match prev_state {
                 Some(prev) if feature.is_accumulator() => {
