@@ -74,7 +74,7 @@ impl EdgeTraversal {
 
     /// executes a traversal from some source vertex and source state through some edge,
     /// producing the result state and cost.
-    /// 
+    ///
     /// this function signature makes uses lower-level constructs than the associated [`EdgeTraversal::new`]
     /// method and does not require [`Arc`]-wrapped types.
     pub fn new_local(
@@ -101,6 +101,4 @@ impl EdgeTraversal {
 
         Ok(result)
     }
-
 }
-
