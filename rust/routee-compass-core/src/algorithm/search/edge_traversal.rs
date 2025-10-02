@@ -88,7 +88,7 @@ impl EdgeTraversal {
         let (_, edge, _) = trajectory;
         let mut result_state = state_model.initial_state(Some(prev_state))?;
 
-        traversal_model.traverse_edge(trajectory, &mut result_state, tree, &state_model)?;
+        traversal_model.traverse_edge(trajectory, &mut result_state, tree, state_model)?;
 
         let cost = cost_model.traversal_cost(edge, prev_state, &result_state)?;
 
