@@ -45,10 +45,9 @@ Now, we call the `generate_compass_dataset` function which will convert the osmn
 
 ```{note}
 In order to get the most accurate energy results from the routee-powertrain vehicle models, it's important to include road grade information since it plays a large factor in vehicle energy consumption.
-That being said, adding grade can be a big lift computationally. In our case, we pull digital elevation model (DEM) raster files from USGS and then use osmnx to append elevation and grade to the graph. If the graph is large, this can take a while to download and could take up a lot of disk space.
+That being said, adding grade can be a big lift computationally. In our case, we pull digital elevation model (DEM) raster files from USGS and then use osmnx to append elevation and grade to the graph. 
+If the graph is large, this can take a while to download and could take up a lot of disk space.
 So, we recommend that you include grade information in your graph but want to be clear about the requirements for doing so.
-
-If you do not wish to impute grade from node elevations, remove "grade" from the "phases" argument.
 ```
 """
 
@@ -289,15 +288,9 @@ cost_diff = (
     shortest_time_result["route"]["cost"]["total_cost"]
     - least_energy_result["route"]["cost"]["total_cost"]
 )
-dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"]["Distance"][
-    "output_unit"
-]
-time_unit = shortest_time_result["route"]["state_model"]["trip_time"]["Time"][
-    "output_unit"
-]
-enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy"]["Energy"][
-    "output_unit"
-]
+dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"]["output_unit"]
+time_unit = shortest_time_result["route"]["state_model"]["trip_time"]["output_unit"]
+enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy"]["output_unit"]
 print(f" - distance: {dist_diff:.2f} {dist_unit} further with time-optimal")
 print(f" - time: {-time_diff:.2f} {time_unit} longer with energy-optimal")
 print(f" - energy: {enrg_diff:.2f} {enrg_unit} more with time-optimal")

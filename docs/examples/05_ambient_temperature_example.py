@@ -61,7 +61,7 @@ with different temperature settings.
 # %%
 temp_results = []
 for temp in [0, 15, 32, 50, 72, 90, 110]:
-    query["ambient_temperature"] = {"value": temp, "unit": "fahrenheit"} 
+    query["ambient_temperature"] = {"value": temp, "unit": "fahrenheit"}
     result = app.run(query)
     if "error" in result:
         print(result["error"])

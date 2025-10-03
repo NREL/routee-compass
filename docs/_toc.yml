@@ -16,6 +16,7 @@ parts:
       - file: examples/02_different_powertrains_example
       - file: examples/03_time_energy_tradeoff_example
       - file: examples/04_charging_stations_example
+      - file: examples/05_ambient_temperature_example
 
   - caption: User Reference
     chapters:
