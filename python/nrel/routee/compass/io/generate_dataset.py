@@ -223,12 +223,6 @@ def generate_compass_dataset(
             ) as init_toml_path:
                 with init_toml_path.open() as f:
                     init_toml: dict[str, Any] = tomlkit.load(f)
-                if filename == "osm_default_energy.toml":
-                    if GeneratePipelinePhase.GRADE in phases:
-                        init_toml["traversal"]["grade_table_input_file"] = (
-                            "edges-grade-enumerated.txt.gz"
-                        )
-                        init_toml["traversal"]["grade_table_grade_unit"] = "decimal"
             with open(output_directory / filename, "w") as f:
                 f.write(tomlkit.dumps(init_toml))
 

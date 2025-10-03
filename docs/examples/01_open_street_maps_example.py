@@ -289,15 +289,9 @@ cost_diff = (
     shortest_time_result["route"]["cost"]["total_cost"]
     - least_energy_result["route"]["cost"]["total_cost"]
 )
-dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"]["Distance"][
-    "output_unit"
-]
-time_unit = shortest_time_result["route"]["state_model"]["trip_time"]["Time"][
-    "output_unit"
-]
-enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy"]["Energy"][
-    "output_unit"
-]
+dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"]["output_unit"]
+time_unit = shortest_time_result["route"]["state_model"]["trip_time"]["output_unit"]
+enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy"]["output_unit"]
 print(f" - distance: {dist_diff:.2f} {dist_unit} further with time-optimal")
 print(f" - time: {-time_diff:.2f} {time_unit} longer with energy-optimal")
 print(f" - energy: {enrg_diff:.2f} {enrg_unit} more with time-optimal")
