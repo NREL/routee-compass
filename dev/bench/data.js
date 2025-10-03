@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1758657303315,
+  "lastUpdate": 1759509638394,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -689,6 +689,66 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 7771965,
             "range": "± 444330",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "yaessus@ncsu.edu",
+            "name": "Yamil Essus",
+            "username": "yamilbknsu"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e90dd2a8dd148d19ea905fd93d60e30fcadd8633",
+          "message": "Merge pull request #389 from NREL/yep/gasoline_rate_units\n\nAdd liquid fuel as uom units",
+          "timestamp": "2025-09-30T16:50:21-04:00",
+          "tree_id": "9f422790e918d845873f4e68cee3d1df57da7b0d",
+          "url": "https://github.com/NREL/routee-compass/commit/e90dd2a8dd148d19ea905fd93d60e30fcadd8633"
+        },
+        "date": 1759265816893,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 7839010,
+            "range": "± 483680",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "986187b19b6ba330ad562b370c46bc2e127ca289",
+          "message": "Merge pull request #396 from NREL/rjf/departure-access\n\nexpand TraversalModel scope and remove AccessModel",
+          "timestamp": "2025-10-03T10:38:21-06:00",
+          "tree_id": "e43a85d76c6b515d7a45856d0355af0e74b529d7",
+          "url": "https://github.com/NREL/routee-compass/commit/986187b19b6ba330ad562b370c46bc2e127ca289"
+        },
+        "date": 1759509637974,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 6609820,
+            "range": "± 124423",
             "unit": "ns/iter"
           }
         ]

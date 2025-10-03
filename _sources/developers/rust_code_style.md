@@ -364,13 +364,13 @@ These are built in two phases: once at application initialization, and once agai
 ![figure showing relationship between builder, service, and model trait objects](../images/compass-app-lifetime.png)
 
 These phases are represented concretely as [trait objects](https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/first-edition/trait-objects.html).
-The following table illustrates this relationship for the Frontier, Traversal, and Access models in Compass:
+The following table illustrates this relationship for the Frontier and Traversal models in Compass:
 
-| phase       | description                                                      | lifetime                                              | Frontier               | Traversal               | Access
-| ----------- | ---------------------------------------------------------------- | ----------------------------------------------------- | ---------------------- | ----------------------- | ------
-| **builder** | an empty struct with a `build` method that creates a **service** | app initialization only                               | `FrontierModelBuilder` | `TraversalModelBuilder` | `AccessModelBuilder`
-| **service** | struct with a `build` method that creates a **model**            | entire program lifetime (same as CompassApp instance) | `FrontierModelService` | `TraversalModelService` | `AccessModelService`
-| **model**   | object used by the search algorithm                              | duration of a single query                            | `FrontierModel`        | `TraversalModel`        | `AccessModel`
+| phase       | description                                                      | lifetime                                              | Frontier               | Traversal               
+| ----------- | ---------------------------------------------------------------- | ----------------------------------------------------- | ---------------------- | ----------------------- 
+| **builder** | an empty struct with a `build` method that creates a **service** | app initialization only                               | `FrontierModelBuilder` | `TraversalModelBuilder` 
+| **service** | struct with a `build` method that creates a **model**            | entire program lifetime (same as CompassApp instance) | `FrontierModelService` | `TraversalModelService` 
+| **model**   | object used by the search algorithm                              | duration of a single query                            | `FrontierModel`        | `TraversalModel`        
 
 when we apply the `build` methods, we get these results (using the travel time `TraversalModel` as an example):
 

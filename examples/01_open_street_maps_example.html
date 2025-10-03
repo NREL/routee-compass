@@ -489,61 +489,41 @@ So, we recommend that you include grade information in your graph but want to be
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:adding grade information
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w105
-</pre></div>
-</div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w106
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:processing vertices
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:processing edges
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:writing vertex files
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:writing edge files
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:writing edge attribute files
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:copying default configuration TOML files
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w105
 </pre></div>
 </div>
 <div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">NonExistentKey</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
+<span class="ne">ImportError</span><span class="g g-Whitespace">                               </span>Traceback (most recent call last)
 <span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
 <span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">generate_compass_dataset</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;denver_co&quot;</span><span class="p">)</span>
 
-<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/generate_dataset.py:228,</span> in <span class="ni">generate_compass_dataset</span><span class="nt">(g, output_directory, hwy_speeds, fallback, agg, phases, raster_resolution_arc_seconds, default_config, requests_kwds, afdc_api_key)</span>
-<span class="g g-Whitespace">    </span><span class="mi">226</span>     <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">227</span>         <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">GRADE</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">228</span>             <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_input_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">229</span>                 <span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">230</span>             <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">231</span>             <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_grade_unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;decimal&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">232</span> <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/generate_dataset.py:114,</span> in <span class="ni">generate_compass_dataset</span><span class="nt">(g, output_directory, hwy_speeds, fallback, agg, phases, raster_resolution_arc_seconds, default_config, requests_kwds, afdc_api_key)</span>
+<span class="g g-Whitespace">    </span><span class="mi">112</span> <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">GRADE</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">113</span>     <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;adding grade information&quot;</span><span class="p">)</span>
+<span class="ne">--&gt; </span><span class="mi">114</span>     <span class="n">g1</span> <span class="o">=</span> <span class="n">add_grade_to_graph</span><span class="p">(</span>
+<span class="g g-Whitespace">    </span><span class="mi">115</span>         <span class="n">g1</span><span class="p">,</span> <span class="n">resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span>
+<span class="g g-Whitespace">    </span><span class="mi">116</span>     <span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">118</span> <span class="n">v</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_to_gdfs</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">120</span> <span class="c1"># process vertices</span>
 
-<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/tomlkit/container.py:652,</span> in <span class="ni">Container.__getitem__</span><span class="nt">(self, key)</span>
-<span class="g g-Whitespace">    </span><span class="mi">651</span> <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Key</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Item</span> <span class="o">|</span> <span class="n">Container</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">652</span>     <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">653</span>     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Item</span><span class="p">)</span> <span class="ow">and</span> <span class="n">item</span><span class="o">.</span><span class="n">is_boolean</span><span class="p">():</span>
-<span class="g g-Whitespace">    </span><span class="mi">654</span>         <span class="k">return</span> <span class="n">item</span><span class="o">.</span><span class="n">value</span>
+<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/utils.py:192,</span> in <span class="ni">add_grade_to_graph</span><span class="nt">(g, output_dir, resolution_arc_seconds, api_key)</span>
+<span class="g g-Whitespace">    </span><span class="mi">189</span>     <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">190</span>         <span class="n">filepath</span> <span class="o">=</span> <span class="n">files</span>
+<span class="ne">--&gt; </span><span class="mi">192</span>     <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_node_elevations_raster</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">193</span> <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">194</span>     <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_node_elevations_google</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
 
-<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/tomlkit/container.py:470,</span> in <span class="ni">Container.item</span><span class="nt">(self, key)</span>
-<span class="g g-Whitespace">    </span><span class="mi">468</span> <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">469</span> <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">470</span>     <span class="k">raise</span> <span class="n">NonExistentKey</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">472</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-<span class="g g-Whitespace">    </span><span class="mi">473</span>     <span class="c1"># The item we are getting is an out of order table</span>
-<span class="g g-Whitespace">    </span><span class="mi">474</span>     <span class="c1"># so we need a proxy to retrieve the proper objects</span>
-<span class="g g-Whitespace">    </span><span class="mi">475</span>     <span class="c1"># from the parent container</span>
-<span class="g g-Whitespace">    </span><span class="mi">476</span>     <span class="k">return</span> <span class="n">OutOfOrderTableProxy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/osmnx/elevation.py:179,</span> in <span class="ni">add_node_elevations_raster</span><span class="nt">(G, filepath, band, cpus)</span>
+<span class="g g-Whitespace">    </span><span class="mi">177</span> <span class="k">if</span> <span class="n">rasterio</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+<span class="g g-Whitespace">    </span><span class="mi">178</span>     <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;rasterio must be installed as an optional dependency to query rasters.&quot;</span>
+<span class="ne">--&gt; </span><span class="mi">179</span>     <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">181</span> <span class="c1"># if multiple filepaths are passed in, compose them as a virtual raster</span>
+<span class="g g-Whitespace">    </span><span class="mi">182</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
 
-<span class="ne">NonExistentKey</span>: &#39;Key &quot;traversal&quot; does not exist.&#39;
+<span class="ne">ImportError</span>: rasterio must be installed as an optional dependency to query rasters.
 </pre></div>
 </div>
 </div>

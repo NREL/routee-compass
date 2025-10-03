@@ -564,16 +564,14 @@ We added some annotations to describe the different sections:</p>
 <span class="n">trip_energy_liquid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
 <span class="n">trip_energy_electric</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
 
-<span class="c1">## Access costs</span>
-
 <span class="c1"># A turn delay model that assigns a time cost to each type of turn</span>
-<span class="k">[search.access]</span>
+<span class="k">[[search.traversal.models]]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;turn_delay&quot;</span>
 <span class="n">edge_heading_input_file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edges-headings-enumerated.csv.gz&quot;</span>
-<span class="k">[search.access.turn_delay_model]</span>
+<span class="k">[search.traversal.models.turn_delay_model]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;tabular_discrete&quot;</span>
 <span class="n">time_unit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;seconds&quot;</span>
-<span class="k">[search.access.turn_delay_model.table]</span>
+<span class="k">[search.traversal.models.turn_delay_model.table]</span>
 <span class="n">no_turn</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
 <span class="n">slight_right</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span>
 <span class="n">right</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span>
@@ -605,12 +603,18 @@ We added some annotations to describe the different sections:</p>
 <p>For example, if you specify your query origin and destination as lat/lon coordinates (i.e. <code class="docutils literal notranslate"><span class="pre">origin_x</span></code>, <code class="docutils literal notranslate"><span class="pre">origin_y</span></code>) we need a way to match this to the graph and then insert an <code class="docutils literal notranslate"><span class="pre">origin_vertex</span></code> or a <code class="docutils literal notranslate"><span class="pre">destination_vertex</span></code> into the query. Those two fields are what the application expects when conducting a search.</p>
 <p>For vertex-oriented mapping, all fields are optional.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[mapping]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;vertex&quot;</span>
+<span class="c1"># # this matches incoming points to the nearest vertex in the graph.</span>
+<span class="c1"># spatial_index_type = &quot;vertex&quot;</span>
+<span class="c1"># # alternatively, builds the spatial index over edges in the graph.</span>
+<span class="c1"># spatial_index_type = &quot;edge&quot;</span>
 
-<span class="c1"># # when type = &quot;vertex&quot;, this can be omitted, and the system will</span>
-<span class="c1"># # instead use the graph vertex coordinates to build map geometries</span>
-<span class="c1"># # which produces far simpler route sequences as a result.</span>
-<span class="c1"># geometry = { input_file = &quot;edges-geometries-enumerated.txt.gz&quot; }</span>
+<span class="c1"># # if you don&#39;t have a file with linestring geometries, you can build</span>
+<span class="c1"># # simple linestrings from the vertices of each edge list.</span>
+<span class="c1"># geometry = { type = &quot;from_vertices&quot; } </span>
+<span class="c1"># geometry.type = &quot;from_vertices&quot;  # TOML shorthand for above</span>
+
+<span class="c1"># # if you can bring your own, the resulting routes will have greater realism.</span>
+<span class="c1"># geometry = { type = &quot;from_linestrings&quot;, input_file = &quot;edges-geometries-enumerated.txt.gz&quot; }</span>
 
 <span class="c1"># # optional query distance tolerance for map matching.</span>
 <span class="c1"># tolerance.distance = 15.0</span>

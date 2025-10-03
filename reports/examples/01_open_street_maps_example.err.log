@@ -39,52 +39,38 @@ INFO:nrel.routee.compass.io.generate_dataset:processing graph topology and speed
 ----- stderr -----
 INFO:nrel.routee.compass.io.generate_dataset:adding grade information
 ----- stderr -----
-INFO:nrel.routee.compass.io.utils:downloading n40w105
------ stderr -----
 INFO:nrel.routee.compass.io.utils:downloading n40w106
 ----- stderr -----
-INFO:nrel.routee.compass.io.generate_dataset:processing vertices
------ stderr -----
-INFO:nrel.routee.compass.io.generate_dataset:processing edges
------ stderr -----
-INFO:nrel.routee.compass.io.generate_dataset:writing vertex files
------ stderr -----
-INFO:nrel.routee.compass.io.generate_dataset:writing edge files
------ stderr -----
-INFO:nrel.routee.compass.io.generate_dataset:writing edge attribute files
------ stderr -----
-INFO:nrel.routee.compass.io.generate_dataset:copying default configuration TOML files
+INFO:nrel.routee.compass.io.utils:downloading n40w105
 ------------------
 
 [31m---------------------------------------------------------------------------[39m
-[31mNonExistentKey[39m                            Traceback (most recent call last)
+[31mImportError[39m                               Traceback (most recent call last)
 [36mCell[39m[36m [39m[32mIn[3][39m[32m, line 1[39m
 [32m----> [39m[32m1[39m [43mgenerate_compass_dataset[49m[43m([49m[43mg[49m[43m,[49m[43m [49m[43moutput_directory[49m[43m=[49m[33;43m"[39;49m[33;43mdenver_co[39;49m[33;43m"[39;49m[43m)[49m
 
-[36mFile [39m[32m/usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/generate_dataset.py:228[39m, in [36mgenerate_compass_dataset[39m[34m(g, output_directory, hwy_speeds, fallback, agg, phases, raster_resolution_arc_seconds, default_config, requests_kwds, afdc_api_key)[39m
-[32m    226[39m     [38;5;28;01mif[39;00m filename == [33m"[39m[33mosm_default_energy.toml[39m[33m"[39m:
-[32m    227[39m         [38;5;28;01mif[39;00m GeneratePipelinePhase.GRADE [38;5;129;01min[39;00m phases:
-[32m--> [39m[32m228[39m             [43minit_toml[49m[43m[[49m[33;43m"[39;49m[33;43mtraversal[39;49m[33;43m"[39;49m[43m][49m[[33m"[39m[33mgrade_table_input_file[39m[33m"[39m] = (
-[32m    229[39m                 [33m"[39m[33medges-grade-enumerated.txt.gz[39m[33m"[39m
-[32m    230[39m             )
-[32m    231[39m             init_toml[[33m"[39m[33mtraversal[39m[33m"[39m][[33m"[39m[33mgrade_table_grade_unit[39m[33m"[39m] = [33m"[39m[33mdecimal[39m[33m"[39m
-[32m    232[39m [38;5;28;01mwith[39;00m [38;5;28mopen[39m(output_directory / filename, [33m"[39m[33mw[39m[33m"[39m) [38;5;28;01mas[39;00m f:
+[36mFile [39m[32m/usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/generate_dataset.py:114[39m, in [36mgenerate_compass_dataset[39m[34m(g, output_directory, hwy_speeds, fallback, agg, phases, raster_resolution_arc_seconds, default_config, requests_kwds, afdc_api_key)[39m
+[32m    112[39m [38;5;28;01mif[39;00m GeneratePipelinePhase.GRADE [38;5;129;01min[39;00m phases:
+[32m    113[39m     log.info([33m"[39m[33madding grade information[39m[33m"[39m)
+[32m--> [39m[32m114[39m     g1 = [43madd_grade_to_graph[49m[43m([49m
+[32m    115[39m [43m        [49m[43mg1[49m[43m,[49m[43m [49m[43mresolution_arc_seconds[49m[43m=[49m[43mraster_resolution_arc_seconds[49m
+[32m    116[39m [43m    [49m[43m)[49m
+[32m    118[39m v, e = ox.graph_to_gdfs(g1)
+[32m    120[39m [38;5;66;03m# process vertices[39;00m
 
-[36mFile [39m[32m/usr/share/miniconda/envs/test/lib/python3.11/site-packages/tomlkit/container.py:652[39m, in [36mContainer.__getitem__[39m[34m(self, key)[39m
-[32m    651[39m [38;5;28;01mdef[39;00m[38;5;250m [39m[34m__getitem__[39m([38;5;28mself[39m, key: Key | [38;5;28mstr[39m) -> Item | Container:
-[32m--> [39m[32m652[39m     item = [38;5;28;43mself[39;49m[43m.[49m[43mitem[49m[43m([49m[43mkey[49m[43m)[49m
-[32m    653[39m     [38;5;28;01mif[39;00m [38;5;28misinstance[39m(item, Item) [38;5;129;01mand[39;00m item.is_boolean():
-[32m    654[39m         [38;5;28;01mreturn[39;00m item.value
+[36mFile [39m[32m/usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/utils.py:192[39m, in [36madd_grade_to_graph[39m[34m(g, output_dir, resolution_arc_seconds, api_key)[39m
+[32m    189[39m     [38;5;28;01melse[39;00m:
+[32m    190[39m         filepath = files
+[32m--> [39m[32m192[39m     g = [43mox[49m[43m.[49m[43madd_node_elevations_raster[49m[43m([49m[43mg[49m[43m,[49m[43m [49m[43mfilepath[49m[43m)[49m
+[32m    193[39m [38;5;28;01melse[39;00m:
+[32m    194[39m     g = ox.add_node_elevations_google(g, api_key=api_key)
 
-[36mFile [39m[32m/usr/share/miniconda/envs/test/lib/python3.11/site-packages/tomlkit/container.py:470[39m, in [36mContainer.item[39m[34m(self, key)[39m
-[32m    468[39m idx = [38;5;28mself[39m._map.get(key)
-[32m    469[39m [38;5;28;01mif[39;00m idx [38;5;129;01mis[39;00m [38;5;28;01mNone[39;00m:
-[32m--> [39m[32m470[39m     [38;5;28;01mraise[39;00m NonExistentKey(key)
-[32m    472[39m [38;5;28;01mif[39;00m [38;5;28misinstance[39m(idx, [38;5;28mtuple[39m):
-[32m    473[39m     [38;5;66;03m# The item we are getting is an out of order table[39;00m
-[32m    474[39m     [38;5;66;03m# so we need a proxy to retrieve the proper objects[39;00m
-[32m    475[39m     [38;5;66;03m# from the parent container[39;00m
-[32m    476[39m     [38;5;28;01mreturn[39;00m OutOfOrderTableProxy([38;5;28mself[39m, idx)
+[36mFile [39m[32m/usr/share/miniconda/envs/test/lib/python3.11/site-packages/osmnx/elevation.py:179[39m, in [36madd_node_elevations_raster[39m[34m(G, filepath, band, cpus)[39m
+[32m    177[39m [38;5;28;01mif[39;00m rasterio [38;5;129;01mis[39;00m [38;5;28;01mNone[39;00m:  [38;5;66;03m# pragma: no cover[39;00m
+[32m    178[39m     msg = [33m"[39m[33mrasterio must be installed as an optional dependency to query rasters.[39m[33m"[39m
+[32m--> [39m[32m179[39m     [38;5;28;01mraise[39;00m [38;5;167;01mImportError[39;00m(msg)
+[32m    181[39m [38;5;66;03m# if multiple filepaths are passed in, compose them as a virtual raster[39;00m
+[32m    182[39m [38;5;28;01mif[39;00m [38;5;129;01mnot[39;00m [38;5;28misinstance[39m(filepath, ([38;5;28mstr[39m, Path)):
 
-[31mNonExistentKey[39m: 'Key "traversal" does not exist.'
+[31mImportError[39m: rasterio must be installed as an optional dependency to query rasters.
 
