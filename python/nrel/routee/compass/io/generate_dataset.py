@@ -34,10 +34,9 @@ AggFunc = Callable[[Any], Any]
 
 class GeneratePipelinePhase(enum.Enum):
     GRAPH = 1
-    GRADE = 2
-    CONFIG = 3
-    POWERTRAIN = 4
-    CHARGING_STATIONS = 5
+    CONFIG = 2
+    POWERTRAIN = 3
+    CHARGING_STATIONS = 4
 
     @classmethod
     def default(cls) -> List[GeneratePipelinePhase]:
@@ -109,7 +108,7 @@ def generate_compass_dataset(
     g1 = ox.add_edge_speeds(g1, hwy_speeds=hwy_speeds, fallback=fallback, agg=agg)
     g1 = ox.add_edge_bearings(g1)
 
-    if GeneratePipelinePhase.GRADE in phases:
+    if GeneratePipelinePhase.POWERTRAIN in phases:
         log.info("adding grade information")
         g1 = add_grade_to_graph(
             g1, resolution_arc_seconds=raster_resolution_arc_seconds
@@ -198,7 +197,7 @@ def generate_compass_dataset(
             compression="gzip",
         )
 
-    if GeneratePipelinePhase.GRADE in phases:
+    if GeneratePipelinePhase.POWERTRAIN in phases:
         e.grade.to_csv(
             output_directory / "edges-grade-enumerated.txt.gz",
             index=False,
@@ -211,10 +210,15 @@ def generate_compass_dataset(
         base_config_files = [
             "osm_default_distance.toml",
             "osm_default_speed.toml",
-            "osm_default_energy.toml",
-            "osm_default_energy_all_vehicles.toml",
-            "osm_default_temperature.toml",
         ]
+        if GeneratePipelinePhase.POWERTRAIN in phases:
+            base_config_files.extend(
+                [
+                    "osm_default_energy.toml",
+                    "osm_default_energy_all_vehicles.toml",
+                    "osm_default_temperature.toml",
+                ]
+            )
         if GeneratePipelinePhase.CHARGING_STATIONS in phases:
             base_config_files.append("osm_default_charging.toml")
         for filename in base_config_files:
