@@ -191,6 +191,7 @@
 <li class="toctree-l1"><a class="reference internal" href="02_different_powertrains_example.html">Different Powertrains Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03_time_energy_tradeoff_example.html">Time Energy Tradeoff Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04_charging_stations_example.html">Charging Stations Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05_ambient_temperature_example.html">Ambient Temperature Example</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
 <ul class="nav bd-sidenav">
@@ -469,9 +470,9 @@ document.write(`
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>In order to get the most accurate energy results from the routee-powertrain vehicle models, it's important to include road grade information since it plays a large factor in vehicle energy consumption.
-That being said, adding grade can be a big lift computationally. In our case, we pull digital elevation model (DEM) raster files from USGS and then use osmnx to append elevation and grade to the graph. If the graph is large, this can take a while to download and could take up a lot of disk space.
+That being said, adding grade can be a big lift computationally. In our case, we pull digital elevation model (DEM) raster files from USGS and then use osmnx to append elevation and grade to the graph.
+If the graph is large, this can take a while to download and could take up a lot of disk space.
 So, we recommend that you include grade information in your graph but want to be clear about the requirements for doing so.</p>
-<p>If you do not wish to impute grade from node elevations, remove &quot;grade&quot; from the &quot;phases&quot; argument.</p>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -480,7 +481,7 @@ So, we recommend that you include grade information in your graph but want to be
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:running pipeline import with phases: [[&#39;GRAPH&#39;, &#39;GRADE&#39;, &#39;CONFIG&#39;, &#39;POWERTRAIN&#39;, &#39;CHARGING_STATIONS&#39;]]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:running pipeline import with phases: [[&#39;GRAPH&#39;, &#39;CONFIG&#39;, &#39;POWERTRAIN&#39;, &#39;CHARGING_STATIONS&#39;]]
 </pre></div>
 </div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:processing graph topology and speeds
@@ -489,10 +490,10 @@ So, we recommend that you include grade information in your graph but want to be
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:adding grade information
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w106
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w105
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w105
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w106
 </pre></div>
 </div>
 <div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
@@ -500,14 +501,14 @@ So, we recommend that you include grade information in your graph but want to be
 <span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
 <span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">generate_compass_dataset</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;denver_co&quot;</span><span class="p">)</span>
 
-<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/generate_dataset.py:114,</span> in <span class="ni">generate_compass_dataset</span><span class="nt">(g, output_directory, hwy_speeds, fallback, agg, phases, raster_resolution_arc_seconds, default_config, requests_kwds, afdc_api_key)</span>
-<span class="g g-Whitespace">    </span><span class="mi">112</span> <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">GRADE</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">113</span>     <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;adding grade information&quot;</span><span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">114</span>     <span class="n">g1</span> <span class="o">=</span> <span class="n">add_grade_to_graph</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">115</span>         <span class="n">g1</span><span class="p">,</span> <span class="n">resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span>
-<span class="g g-Whitespace">    </span><span class="mi">116</span>     <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">118</span> <span class="n">v</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_to_gdfs</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">120</span> <span class="c1"># process vertices</span>
+<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/generate_dataset.py:113,</span> in <span class="ni">generate_compass_dataset</span><span class="nt">(g, output_directory, hwy_speeds, fallback, agg, phases, raster_resolution_arc_seconds, default_config, requests_kwds, afdc_api_key)</span>
+<span class="g g-Whitespace">    </span><span class="mi">111</span> <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">POWERTRAIN</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">112</span>     <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;adding grade information&quot;</span><span class="p">)</span>
+<span class="ne">--&gt; </span><span class="mi">113</span>     <span class="n">g1</span> <span class="o">=</span> <span class="n">add_grade_to_graph</span><span class="p">(</span>
+<span class="g g-Whitespace">    </span><span class="mi">114</span>         <span class="n">g1</span><span class="p">,</span> <span class="n">resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span>
+<span class="g g-Whitespace">    </span><span class="mi">115</span>     <span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">117</span> <span class="n">v</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_to_gdfs</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">119</span> <span class="c1"># process vertices</span>
 
 <span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/utils.py:192,</span> in <span class="ni">add_grade_to_graph</span><span class="nt">(g, output_dir, resolution_arc_seconds, api_key)</span>
 <span class="g g-Whitespace">    </span><span class="mi">189</span>     <span class="k">else</span><span class="p">:</span>
@@ -730,15 +731,9 @@ Since we used the grid search to specify three separate searches, we should get 
     <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;cost&quot;</span><span class="p">][</span><span class="s2">&quot;total_cost&quot;</span><span class="p">]</span>
     <span class="o">-</span> <span class="n">least_energy_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;cost&quot;</span><span class="p">][</span><span class="s2">&quot;total_cost&quot;</span><span class="p">]</span>
 <span class="p">)</span>
-<span class="n">dist_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_distance&quot;</span><span class="p">][</span><span class="s2">&quot;Distance&quot;</span><span class="p">][</span>
-    <span class="s2">&quot;output_unit&quot;</span>
-<span class="p">]</span>
-<span class="n">time_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_time&quot;</span><span class="p">][</span><span class="s2">&quot;Time&quot;</span><span class="p">][</span>
-    <span class="s2">&quot;output_unit&quot;</span>
-<span class="p">]</span>
-<span class="n">enrg_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy&quot;</span><span class="p">][</span><span class="s2">&quot;Energy&quot;</span><span class="p">][</span>
-    <span class="s2">&quot;output_unit&quot;</span>
-<span class="p">]</span>
+<span class="n">dist_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_distance&quot;</span><span class="p">][</span><span class="s2">&quot;output_unit&quot;</span><span class="p">]</span>
+<span class="n">time_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_time&quot;</span><span class="p">][</span><span class="s2">&quot;output_unit&quot;</span><span class="p">]</span>
+<span class="n">enrg_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy&quot;</span><span class="p">][</span><span class="s2">&quot;output_unit&quot;</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - distance: </span><span class="si">{</span><span class="n">dist_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">dist_unit</span><span class="si">}</span><span class="s2"> further with time-optimal&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - time: </span><span class="si">{</span><span class="o">-</span><span class="n">time_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">time_unit</span><span class="si">}</span><span class="s2"> longer with energy-optimal&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - energy: </span><span class="si">{</span><span class="n">enrg_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">enrg_unit</span><span class="si">}</span><span class="s2"> more with time-optimal&quot;</span><span class="p">)</span>

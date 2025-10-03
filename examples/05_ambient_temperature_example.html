@@ -60,6 +60,8 @@
     <script>DOCUMENTATION_OPTIONS.pagename = 'examples/05_ambient_temperature_example';</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Query" href="../query.html" />
+    <link rel="prev" title="Charging Stations Example" href="04_charging_stations_example.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="python"/>
   </head>
@@ -121,8 +123,6 @@
     <div class="bd-container__inner bd-page-width">
       
       
-      
-        
       
       <div class="bd-sidebar-primary bd-sidebar">
         
@@ -186,11 +186,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../running.html">Running</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
-<ul class="nav bd-sidenav">
+<ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="01_open_street_maps_example.html">OpenStreetMap Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02_different_powertrains_example.html">Different Powertrains Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="03_time_energy_tradeoff_example.html">Time Energy Tradeoff Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04_charging_stations_example.html">Charging Stations Example</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Ambient Temperature Example</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
 <ul class="nav bd-sidenav">
@@ -498,7 +499,7 @@ with different temperature settings.</p>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">temp_results</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">temp</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">110</span><span class="p">]:</span>
-    <span class="n">query</span><span class="p">[</span><span class="s2">&quot;ambient_temperature&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">temp</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;fahrenheit&quot;</span><span class="p">}</span> 
+    <span class="n">query</span><span class="p">[</span><span class="s2">&quot;ambient_temperature&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">temp</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;fahrenheit&quot;</span><span class="p">}</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
     <span class="k">if</span> <span class="s2">&quot;error&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">])</span>
@@ -604,6 +605,24 @@ with different temperature settings.</p>
                 <footer class="prev-next-footer d-print-none">
                   
 <div class="prev-next-area">
+    <a class="left-prev"
+       href="04_charging_stations_example.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Charging Stations Example</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../query.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Query</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
 </div>
                 </footer>
               

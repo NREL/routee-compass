@@ -33,15 +33,15 @@ generate_compass_dataset(g, output_directory="denver_co")
 ------------------
 
 ----- stderr -----
-INFO:nrel.routee.compass.io.generate_dataset:running pipeline import with phases: [['GRAPH', 'GRADE', 'CONFIG', 'POWERTRAIN', 'CHARGING_STATIONS']]
+INFO:nrel.routee.compass.io.generate_dataset:running pipeline import with phases: [['GRAPH', 'CONFIG', 'POWERTRAIN', 'CHARGING_STATIONS']]
 ----- stderr -----
 INFO:nrel.routee.compass.io.generate_dataset:processing graph topology and speeds
 ----- stderr -----
 INFO:nrel.routee.compass.io.generate_dataset:adding grade information
 ----- stderr -----
-INFO:nrel.routee.compass.io.utils:downloading n40w106
------ stderr -----
 INFO:nrel.routee.compass.io.utils:downloading n40w105
+----- stderr -----
+INFO:nrel.routee.compass.io.utils:downloading n40w106
 ------------------
 
 [31m---------------------------------------------------------------------------[39m
@@ -49,14 +49,14 @@ INFO:nrel.routee.compass.io.utils:downloading n40w105
 [36mCell[39m[36m [39m[32mIn[3][39m[32m, line 1[39m
 [32m----> [39m[32m1[39m [43mgenerate_compass_dataset[49m[43m([49m[43mg[49m[43m,[49m[43m [49m[43moutput_directory[49m[43m=[49m[33;43m"[39;49m[33;43mdenver_co[39;49m[33;43m"[39;49m[43m)[49m
 
-[36mFile [39m[32m/usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/generate_dataset.py:114[39m, in [36mgenerate_compass_dataset[39m[34m(g, output_directory, hwy_speeds, fallback, agg, phases, raster_resolution_arc_seconds, default_config, requests_kwds, afdc_api_key)[39m
-[32m    112[39m [38;5;28;01mif[39;00m GeneratePipelinePhase.GRADE [38;5;129;01min[39;00m phases:
-[32m    113[39m     log.info([33m"[39m[33madding grade information[39m[33m"[39m)
-[32m--> [39m[32m114[39m     g1 = [43madd_grade_to_graph[49m[43m([49m
-[32m    115[39m [43m        [49m[43mg1[49m[43m,[49m[43m [49m[43mresolution_arc_seconds[49m[43m=[49m[43mraster_resolution_arc_seconds[49m
-[32m    116[39m [43m    [49m[43m)[49m
-[32m    118[39m v, e = ox.graph_to_gdfs(g1)
-[32m    120[39m [38;5;66;03m# process vertices[39;00m
+[36mFile [39m[32m/usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/generate_dataset.py:113[39m, in [36mgenerate_compass_dataset[39m[34m(g, output_directory, hwy_speeds, fallback, agg, phases, raster_resolution_arc_seconds, default_config, requests_kwds, afdc_api_key)[39m
+[32m    111[39m [38;5;28;01mif[39;00m GeneratePipelinePhase.POWERTRAIN [38;5;129;01min[39;00m phases:
+[32m    112[39m     log.info([33m"[39m[33madding grade information[39m[33m"[39m)
+[32m--> [39m[32m113[39m     g1 = [43madd_grade_to_graph[49m[43m([49m
+[32m    114[39m [43m        [49m[43mg1[49m[43m,[49m[43m [49m[43mresolution_arc_seconds[49m[43m=[49m[43mraster_resolution_arc_seconds[49m
+[32m    115[39m [43m    [49m[43m)[49m
+[32m    117[39m v, e = ox.graph_to_gdfs(g1)
+[32m    119[39m [38;5;66;03m# process vertices[39;00m
 
 [36mFile [39m[32m/usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/utils.py:192[39m, in [36madd_grade_to_graph[39m[34m(g, output_dir, resolution_arc_seconds, api_key)[39m
 [32m    189[39m     [38;5;28;01melse[39;00m:

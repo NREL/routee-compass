@@ -190,6 +190,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../examples/02_different_powertrains_example.html">Different Powertrains Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../examples/03_time_energy_tradeoff_example.html">Time Energy Tradeoff Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../examples/04_charging_stations_example.html">Charging Stations Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../examples/05_ambient_temperature_example.html">Ambient Temperature Example</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">User Reference</span></p>
 <ul class="nav bd-sidenav">
@@ -391,10 +392,9 @@ document.write(`
 <a class="viewcode-back" href="../../../../../python_api_docs.html#nrel.routee.compass.io.generate_dataset.GeneratePipelinePhase">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">GeneratePipelinePhase</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">GRAPH</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">GRADE</span> <span class="o">=</span> <span class="mi">2</span>
-    <span class="n">CONFIG</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="n">POWERTRAIN</span> <span class="o">=</span> <span class="mi">4</span>
-    <span class="n">CHARGING_STATIONS</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">CONFIG</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">POWERTRAIN</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">CHARGING_STATIONS</span> <span class="o">=</span> <span class="mi">4</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">default</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">GeneratePipelinePhase</span><span class="p">]:</span>
@@ -469,7 +469,7 @@ document.write(`
     <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_edge_speeds</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">hwy_speeds</span><span class="o">=</span><span class="n">hwy_speeds</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="n">fallback</span><span class="p">,</span> <span class="n">agg</span><span class="o">=</span><span class="n">agg</span><span class="p">)</span>
     <span class="n">g1</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_edge_bearings</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">GRADE</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">POWERTRAIN</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;adding grade information&quot;</span><span class="p">)</span>
         <span class="n">g1</span> <span class="o">=</span> <span class="n">add_grade_to_graph</span><span class="p">(</span>
             <span class="n">g1</span><span class="p">,</span> <span class="n">resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span>
@@ -558,7 +558,7 @@ document.write(`
             <span class="n">compression</span><span class="o">=</span><span class="s2">&quot;gzip&quot;</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">GRADE</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">POWERTRAIN</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
         <span class="n">e</span><span class="o">.</span><span class="n">grade</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
             <span class="n">output_directory</span> <span class="o">/</span> <span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span><span class="p">,</span>
             <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -571,10 +571,15 @@ document.write(`
         <span class="n">base_config_files</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;osm_default_distance.toml&quot;</span><span class="p">,</span>
             <span class="s2">&quot;osm_default_speed.toml&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;osm_default_energy_all_vehicles.toml&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;osm_default_temperature.toml&quot;</span><span class="p">,</span>
         <span class="p">]</span>
+        <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">POWERTRAIN</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+            <span class="n">base_config_files</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;osm_default_energy_all_vehicles.toml&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;osm_default_temperature.toml&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">CHARGING_STATIONS</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
             <span class="n">base_config_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;osm_default_charging.toml&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">base_config_files</span><span class="p">:</span>
@@ -583,12 +588,6 @@ document.write(`
             <span class="p">)</span> <span class="k">as</span> <span class="n">init_toml_path</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">init_toml_path</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                     <span class="n">init_toml</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">tomlkit</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">filename</span> <span class="o">==</span> <span class="s2">&quot;osm_default_energy.toml&quot;</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">GRADE</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
-                        <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_input_file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                            <span class="s2">&quot;edges-grade-enumerated.txt.gz&quot;</span>
-                        <span class="p">)</span>
-                        <span class="n">init_toml</span><span class="p">[</span><span class="s2">&quot;traversal&quot;</span><span class="p">][</span><span class="s2">&quot;grade_table_grade_unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;decimal&quot;</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_directory</span> <span class="o">/</span> <span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tomlkit</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">init_toml</span><span class="p">))</span>
 
