@@ -1,7 +1,10 @@
 use super::search_error::SearchError;
 use super::SearchInstance;
-use crate::model::network::{EdgeId, EdgeListId};
-use crate::model::state::StateVariable;
+use crate::algorithm::search::SearchTree;
+use crate::model::cost::CostModel;
+use crate::model::network::{Edge, EdgeId, EdgeListId, Vertex};
+use crate::model::state::{StateModel, StateVariable};
+use crate::model::traversal::TraversalModel;
 use crate::model::unit::Cost;
 use allocative::Allocative;
 use serde::{Deserialize, Serialize};
@@ -11,23 +14,16 @@ use std::fmt::Display;
 pub struct EdgeTraversal {
     pub edge_list_id: EdgeListId,
     pub edge_id: EdgeId,
-    pub access_cost: Cost,
-    pub traversal_cost: Cost,
+    pub cost: Cost,
     pub result_state: Vec<StateVariable>,
-}
-
-impl EdgeTraversal {
-    pub fn total_cost(&self) -> Cost {
-        self.access_cost + self.traversal_cost
-    }
 }
 
 impl Display for EdgeTraversal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "edge {} acost:{} tcost:{} state:{:?}",
-            self.edge_id, self.access_cost, self.traversal_cost, self.result_state
+            "edge {} cost:{} state:{:?}",
+            self.edge_id, self.cost, self.result_state
         )
     }
 }
@@ -58,132 +54,51 @@ impl EdgeTraversal {
     /// An edge traversal summarizing the costs and result state of accessing and traversing the next edge.
     pub fn new(
         next_edge: (EdgeListId, EdgeId),
-        prev_edge: Option<(EdgeListId, EdgeId)>,
+        tree: &SearchTree,
         prev_state: &[StateVariable],
         si: &SearchInstance,
     ) -> Result<EdgeTraversal, SearchError> {
-        let mut result_state = prev_state.to_vec();
-        let mut access_cost = Cost::ZERO;
-
-        let (next_edge_list_id, next_edge_id) = next_edge;
-
         // find this traversal in the graph
-        let traversal_trajectory = si.graph.edge_triplet(&next_edge_list_id, &next_edge_id)?;
+        let (edge_list_id, edge_id) = next_edge;
+        let trajectory = si.graph.edge_triplet(&edge_list_id, &edge_id)?;
+        let tm = si.get_traversal_model(&edge_list_id)?;
+        Self::new_local(
+            trajectory,
+            tree,
+            prev_state,
+            &si.state_model.clone(),
+            tm.clone().as_ref(),
+            &si.cost_model.clone(),
+        )
+    }
 
-        // perform access traversal for (v2)-[next]->(v3)
-        // access cost for (v1)-[prev]->(v2)-[next]->(v3)
-        if let Some((prev_edge_list_id, prev_edge_id)) = prev_edge {
-            let e1 = si.graph.get_edge(&prev_edge_list_id, &prev_edge_id)?;
-            let v1 = si.graph.get_vertex(&e1.src_vertex_id)?;
+    /// executes a traversal from some source vertex and source state through some edge,
+    /// producing the result state and cost.
+    ///
+    /// this function signature makes uses lower-level constructs than the associated [`EdgeTraversal::new`]
+    /// method and does not require [`Arc`]-wrapped types.
+    pub fn new_local(
+        trajectory: (&Vertex, &Edge, &Vertex),
+        tree: &SearchTree,
+        prev_state: &[StateVariable],
+        state_model: &StateModel,
+        traversal_model: &dyn TraversalModel,
+        cost_model: &CostModel,
+    ) -> Result<EdgeTraversal, SearchError> {
+        let (_, edge, _) = trajectory;
+        let mut result_state = state_model.initial_state(Some(prev_state))?;
 
-            let (v2, e2, v3) = traversal_trajectory;
-            let access_trajectory = (v1, e1, v2, e2, v3);
+        traversal_model.traverse_edge(trajectory, &mut result_state, tree, state_model)?;
 
-            si.get_access_model(&next_edge_list_id)?.access_edge(
-                access_trajectory,
-                &mut result_state,
-                &si.state_model,
-            )?;
-
-            let ac = si
-                .cost_model
-                .access_cost(e1, e2, prev_state, &result_state)?;
-            access_cost = access_cost + ac;
-        }
-
-        si.get_traversal_model(&next_edge_list_id)?.traverse_edge(
-            traversal_trajectory,
-            &mut result_state,
-            &si.state_model,
-        )?;
-
-        let (_, edge, _) = traversal_trajectory;
-        let total_cost = si
-            .cost_model
-            .traversal_cost(edge, prev_state, &result_state)?;
-        let traversal_cost = total_cost - access_cost;
+        let cost = cost_model.traversal_cost(edge, prev_state, &result_state)?;
 
         let result = EdgeTraversal {
-            edge_list_id: next_edge_list_id,
-            edge_id: next_edge_id,
-            access_cost,
-            traversal_cost,
+            edge_list_id: edge.edge_list_id,
+            edge_id: edge.edge_id,
+            cost,
             result_state,
         };
 
         Ok(result)
     }
-
-    // /// traverses an edge, possibly after traversing some next edge,
-    // /// collecting the access and traversal costs in a reverse-oriented
-    // /// tree building process. returns the accumulated cost and updated search state.
-    // /// used in bi-directional search algorithms. definition of previous and next
-    // /// edges is the same as the forward traversal: (v1)-[prev]->(v2)-[next]->(v3)
-    // /// but the "next" edge is now the Optional edge.
-    // ///
-    // /// # Arguments
-    // ///
-    // /// * `prev_edge_id`     - the edge to traverse
-    // /// * `next_edge_id_opt` - the edge previously traversed that appears closer to the origin
-    // ///   of this reverse search
-    // /// * `prev_state`       - the state before traversal, positioned closer to the destination
-    // /// * `si`               - the search assets for this query
-    // ///
-    // /// # Returns
-    // ///
-    // /// An edge traversal summarizing the costs and result state of accessing and traversing the previous edge.
-    // pub fn reverse_traversal(
-    //     prev_edge: (EdgeListId, EdgeId),
-    //     next_edge: Option<(EdgeListId, EdgeId)>,
-    //     prev_state: &[StateVariable],
-    //     si: &SearchInstance,
-    // ) -> Result<EdgeTraversal, SearchError> {
-    //     let mut result_state = prev_state.to_vec();
-    //     let mut access_cost = Cost::ZERO;
-
-    //     let (prev_edge_list_id, prev_edge_id) = prev_edge;
-
-    //     // find this traversal in the graph
-    //     let traversal_trajectory = si.graph.edge_triplet(&prev_edge_list_id, &prev_edge_id)?;
-
-    //     // perform access traversal for (v1)-[prev]->(v2)
-    //     // access cost for              (v1)-[prev]->(v2)-[next]->(v3)
-    //     if let Some((next_edge_list_id, next_edge_id)) = next_edge {
-    //         let e2 = si.graph.get_edge(&next_edge_list_id, &next_edge_id)?;
-    //         let v3 = si.graph.get_vertex(&e2.dst_vertex_id)?;
-
-    //         let (v1, e1, v2) = traversal_trajectory;
-    //         let access_trajectory = (v1, e1, v2, e2, v3);
-
-    //         si.get_access_model(&next_edge_list_id)?
-    //             .access_edge(access_trajectory, &mut result_state, &si.state_model)?;
-
-    //         let ac = si
-    //             .cost_model
-    //             .access_cost(e1, e2, prev_state, &result_state)?;
-    //         access_cost = access_cost + ac;
-    //     }
-
-    //     si.get_traversal_model(&prev_edge_list_id)?.traverse_edge(
-    //         traversal_trajectory,
-    //         &mut result_state,
-    //         &si.state_model,
-    //     )?;
-
-    //     let (_, edge, _) = traversal_trajectory;
-    //     let total_cost = si
-    //         .cost_model
-    //         .traversal_cost(edge, prev_state, &result_state)?;
-    //     let traversal_cost = total_cost - access_cost;
-
-    //     let result = EdgeTraversal {
-    //         edge_list_id: prev_edge_list_id,
-    //         edge_id: prev_edge_id,
-    //         access_cost,
-    //         traversal_cost,
-    //         result_state,
-    //     };
-
-    //     Ok(result)
-    // }
 }

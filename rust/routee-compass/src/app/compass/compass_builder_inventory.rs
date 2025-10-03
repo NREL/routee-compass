@@ -18,13 +18,6 @@ use crate::plugin::{
 use inventory;
 use itertools::Itertools;
 use routee_compass_core::model::{
-    access::{
-        default::{
-            combined_access_model_builder::CombinedAccessModelBuilder,
-            turn_delays::TurnDelayAccessModelBuilder, NoAccessModel,
-        },
-        AccessModelBuilder, AccessModelService,
-    },
     frontier::{
         default::{
             combined::combined_builder::CombinedFrontierModelBuilder,
@@ -44,6 +37,7 @@ use routee_compass_core::model::{
             combined::CombinedTraversalBuilder, custom::CustomTraversalBuilder,
             elevation::ElevationTraversalBuilder, grade::GradeTraversalBuilder,
             temperature::TemperatureTraversalBuilder, time::TimeTraversalBuilder,
+            turn_delays::TurnDelayTraversalModelBuilder,
         },
         TraversalModelBuilder, TraversalModelService,
     },
@@ -81,9 +75,8 @@ inventory::submit! {
         builder.add_traversal_model("energy".to_string(), Rc::new(EnergyModelBuilder {}));
         builder.add_traversal_model("simple_charging".to_string(), Rc::new(SimpleChargingBuilder::default()));
         builder.add_traversal_model("temperature".to_string(), Rc::new(TemperatureTraversalBuilder {}));
+        builder.add_traversal_model("turn_delay".to_string(), Rc::new(TurnDelayTraversalModelBuilder {}));
         builder.add_traversal_model("custom".to_string(), Rc::new(CustomTraversalBuilder {}));
-        builder.add_access_model("no_access_model".to_string(), Rc::new(NoAccessModel {}));
-        builder.add_access_model("turn_delay".to_string(), Rc::new(TurnDelayAccessModelBuilder {}));
         builder.add_frontier_model("no_restriction".to_string(), Rc::new(NoRestrictionBuilder {}));
         builder.add_frontier_model("road_class".to_string(), Rc::new(RoadClassBuilder {}));
         builder.add_frontier_model("turn_restriction".to_string(), Rc::new(TurnRestrictionBuilder {}));
@@ -119,7 +112,6 @@ inventory::submit! {
 ///
 pub struct CompassBuilderInventory {
     traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
-    access_model_builders: HashMap<String, Rc<dyn AccessModelBuilder>>,
     frontier_model_builders: HashMap<String, Rc<dyn FrontierModelBuilder>>,
     label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>>,
     input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
@@ -142,7 +134,6 @@ impl CompassBuilderInventory {
     pub fn empty() -> CompassBuilderInventory {
         CompassBuilderInventory {
             traversal_model_builders: HashMap::new(),
-            access_model_builders: HashMap::new(),
             frontier_model_builders: HashMap::new(),
             label_model_builders: HashMap::new(),
             input_plugin_builders: HashMap::new(),
@@ -167,10 +158,6 @@ impl CompassBuilderInventory {
 
     pub fn add_traversal_model(&mut self, name: String, builder: Rc<dyn TraversalModelBuilder>) {
         let _ = self.traversal_model_builders.insert(name, builder);
-    }
-
-    pub fn add_access_model(&mut self, name: String, builder: Rc<dyn AccessModelBuilder>) {
-        let _ = self.access_model_builders.insert(name, builder);
     }
 
     pub fn add_frontier_model(&mut self, name: String, builder: Rc<dyn FrontierModelBuilder>) {
@@ -215,34 +202,6 @@ impl CompassBuilderInventory {
             .and_then(|b| {
                 b.build(config)
                     .map_err(CompassConfigurationError::TraversalModelError)
-            });
-        result
-    }
-
-    pub fn build_access_model_service(
-        &self,
-        config: &serde_json::Value,
-    ) -> Result<Arc<dyn AccessModelService>, CompassConfigurationError> {
-        // append the combined access model builder.
-        let mut builders = self.access_model_builders.clone();
-        builders.insert(
-            String::from("combined"),
-            Rc::new(CombinedAccessModelBuilder::new(builders.clone())),
-        );
-        let am_type = config.get_config_string(&"type", &"access")?;
-        log::info!("loading access model service '{am_type}'");
-        let result = builders
-            .get(&am_type)
-            .ok_or_else(|| {
-                CompassConfigurationError::UnknownModelNameForComponent(
-                    am_type.clone(),
-                    String::from("access"),
-                    self.access_model_builders.keys().join(", "),
-                )
-            })
-            .and_then(|b| {
-                b.build(config)
-                    .map_err(CompassConfigurationError::AccessModelError)
             });
         result
     }

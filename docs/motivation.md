@@ -40,20 +40,14 @@ This allows time-of-day features to impact the energy model such as network spee
 
 ### Extensible Model API
 
-The routing model is broken into three components: the **Frontier Model**, **Access Model**, and **Traversal Model**.
+The routing model is broken into three components: the **Frontier Model** and **Traversal Model**.
 Each slices off an aspect of a single iteration of a traditional path search.
 
 The **Frontier Model** serves to restrict travel over links based on criteria such as the road classification, turn restrictions, or vehicle restrictions.
 It is invoked before adding a link to the frontier of unexplored links.
 
-The **Access Model** is invoked when determining what the starting state should be for a given link traversal.
-It uses the previous link as context to determine its behavior.
-This can be used to implement mode shift, route shift, wait times, delay times, idling energy consumption, or charge events.
-The result is an updated state tuple which is fed to the **Traversal Model**.
-
 The **Traversal Model** computes changes to the state tuple due to traversing a single link.
 This is where link travel time and link distance are recorded, and also where link distance, grade and speed can be used to estimate the energy consumption.
-
 
 ## Links
 

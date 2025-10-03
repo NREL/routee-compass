@@ -135,16 +135,14 @@ trip_time = 1
 trip_energy_liquid = 1
 trip_energy_electric = 1
 
-## Access costs
-
 # A turn delay model that assigns a time cost to each type of turn
-[search.access]
+[[search.traversal.models]]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
-[search.access.turn_delay_model]
+[search.traversal.models.turn_delay_model]
 type = "tabular_discrete"
 time_unit = "seconds"
-[search.access.turn_delay_model.table]
+[search.traversal.models.turn_delay_model.table]
 no_turn = 0.0
 slight_right = 0.5
 right = 1.0
@@ -180,12 +178,18 @@ For vertex-oriented mapping, all fields are optional.
 
 ```toml
 [mapping]
-type = "vertex"
+# # this matches incoming points to the nearest vertex in the graph.
+# spatial_index_type = "vertex"
+# # alternatively, builds the spatial index over edges in the graph.
+# spatial_index_type = "edge"
 
-# # when type = "vertex", this can be omitted, and the system will
-# # instead use the graph vertex coordinates to build map geometries
-# # which produces far simpler route sequences as a result.
-# geometry = { input_file = "edges-geometries-enumerated.txt.gz" }
+# # if you don't have a file with linestring geometries, you can build
+# # simple linestrings from the vertices of each edge list.
+# geometry = { type = "from_vertices" } 
+# geometry.type = "from_vertices"  # TOML shorthand for above
+
+# # if you can bring your own, the resulting routes will have greater realism.
+# geometry = { type = "from_linestrings", input_file = "edges-geometries-enumerated.txt.gz" }
 
 # # optional query distance tolerance for map matching.
 # tolerance.distance = 15.0

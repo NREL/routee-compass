@@ -5,9 +5,8 @@ use routee_compass_core::{
     algorithm::search::SearchAlgorithm,
     config::{ConfigJsonExtensions, OneOrMany},
     model::{
-        access::AccessModelService, cost::CostModelConfig, frontier::FrontierModelService,
-        map::MapModelConfig, network::GraphConfig, state::StateVariableConfig,
-        traversal::TraversalModelService,
+        cost::CostModelConfig, frontier::FrontierModelService, map::MapModelConfig,
+        network::GraphConfig, state::StateVariableConfig, traversal::TraversalModelService,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -83,7 +82,11 @@ impl TryFrom<&Path> for CompassAppConfig {
             .clone()
             .try_deserialize::<serde_json::Value>()?
             .normalize_file_paths(&"", config_path)?;
-        let compass_config: CompassAppConfig = serde_json::from_value(config_json)?;
+        let compass_config: CompassAppConfig =
+            serde_json::from_value(config_json).map_err(|e| {
+                let filename = config_path.to_str().unwrap_or("<config path>");
+                CompassAppError::BuildFailure(format!("while reading {filename}: {e}"))
+            })?;
 
         Ok(compass_config)
     }
@@ -94,7 +97,6 @@ impl TryFrom<&Path> for CompassAppConfig {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SearchConfig {
     pub traversal: Value,
-    pub access: Value,
     pub frontier: Value,
 }
 
@@ -110,17 +112,7 @@ impl CompassAppConfig {
             .collect::<Result<Vec<_>, _>>()?;
         Ok(result)
     }
-    pub fn build_access_model_services(
-        &self,
-        builders: &CompassBuilderInventory,
-    ) -> Result<Vec<Arc<dyn AccessModelService>>, CompassAppError> {
-        let result = self
-            .search
-            .iter()
-            .map(|el| builders.build_access_model_service(&el.access))
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(result)
-    }
+
     pub fn build_frontier_model_services(
         &self,
         builders: &CompassBuilderInventory,

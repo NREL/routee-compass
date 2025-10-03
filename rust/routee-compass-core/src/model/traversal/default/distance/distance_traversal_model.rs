@@ -1,6 +1,7 @@
 use uom::si::f64::Length;
 use uom::ConstZero;
 
+use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
@@ -12,7 +13,15 @@ use crate::model::unit::DistanceUnit;
 use crate::util::geo::haversine;
 
 /// a model for traversing edges based on distance.
-pub struct DistanceTraversalModel {}
+pub struct DistanceTraversalModel {
+    pub distance_unit: DistanceUnit,
+}
+
+impl DistanceTraversalModel {
+    pub fn new(distance_unit: DistanceUnit) -> DistanceTraversalModel {
+        Self { distance_unit }
+    }
+}
 
 impl TraversalModel for DistanceTraversalModel {
     fn name(&self) -> String {
@@ -26,11 +35,12 @@ impl TraversalModel for DistanceTraversalModel {
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
 
-        state_model.set_distance(state, fieldname::EDGE_DISTANCE, &edge.distance)?;
+        state_model.add_distance(state, fieldname::EDGE_DISTANCE, &edge.distance)?;
         state_model.add_distance(state, fieldname::TRIP_DISTANCE, &edge.distance)?;
         Ok(())
     }
@@ -40,6 +50,7 @@ impl TraversalModel for DistanceTraversalModel {
         &self,
         od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (src, dst) = od;
@@ -50,7 +61,7 @@ impl TraversalModel for DistanceTraversalModel {
                 ))
             })?;
         state_model.add_distance(state, fieldname::TRIP_DISTANCE, &distance)?;
-        state_model.set_distance(state, fieldname::EDGE_DISTANCE, &distance)?;
+        state_model.add_distance(state, fieldname::EDGE_DISTANCE, &distance)?;
         Ok(())
     }
 
@@ -65,7 +76,7 @@ impl TraversalModel for DistanceTraversalModel {
                 StateVariableConfig::Distance {
                     initial: Length::ZERO,
                     accumulator: true,
-                    output_unit: Some(DistanceUnit::default()),
+                    output_unit: Some(self.distance_unit),
                 },
             ),
             (
@@ -73,7 +84,7 @@ impl TraversalModel for DistanceTraversalModel {
                 StateVariableConfig::Distance {
                     initial: Length::ZERO,
                     accumulator: false,
-                    output_unit: Some(DistanceUnit::default()),
+                    output_unit: Some(self.distance_unit),
                 },
             ),
         ]

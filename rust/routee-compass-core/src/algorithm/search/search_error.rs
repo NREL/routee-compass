@@ -1,12 +1,14 @@
-use crate::model::{
-    access::AccessModelError,
-    cost::CostModelError,
-    frontier::FrontierModelError,
-    label::label_model_error::LabelModelError,
-    network::{EdgeId, NetworkError, VertexId},
-    state::StateModelError,
-    termination::TerminationModelError,
-    traversal::TraversalModelError,
+use crate::{
+    algorithm::search::SearchTreeError,
+    model::{
+        cost::CostModelError,
+        frontier::FrontierModelError,
+        label::label_model_error::LabelModelError,
+        network::{EdgeId, NetworkError, VertexId},
+        state::StateModelError,
+        termination::TerminationModelError,
+        traversal::TraversalModelError,
+    },
 };
 
 #[derive(thiserror::Error, Debug)]
@@ -23,6 +25,11 @@ pub enum SearchError {
         #[from]
         source: StateModelError,
     },
+    #[error("The search failed due with an internal error due to a malformed search tree. Source: {source}")]
+    SearchTreeError {
+        #[from]
+        source: SearchTreeError,
+    },
     #[error("The search failed due to a road network error. Please review the [graph] section of your Compass configuration. Source: {source}")]
     NetworkFailure {
         #[from]
@@ -37,11 +44,6 @@ pub enum SearchError {
     TraversalModelFailure {
         #[from]
         source: TraversalModelError,
-    },
-    #[error("The search failed due to access model error. The access model performs edge-to-edge transitions by updating the various search dimensions, based on the state and cost models. Please review the [access] section of your Compass Configuration. Source: {source}")]
-    AccessModelFailure {
-        #[from]
-        source: AccessModelError,
     },
     #[error("The search failed due to frontier model error. The frontier model restricts access to edges. Please review the [frontier] section of your Compass Configuration. Source: {source}")]
     FrontierModelFailure {

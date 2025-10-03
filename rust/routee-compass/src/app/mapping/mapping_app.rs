@@ -1,6 +1,9 @@
 use super::mapping_app_error::MappingAppError;
 use geo::LineString;
-use routee_compass_core::model::{map::MapModel, network::EdgeId};
+use routee_compass_core::model::{
+    map::MapModel,
+    network::{EdgeId, EdgeListId},
+};
 
 /// stub for a binary centered on map matching
 pub struct MappingApp {
@@ -16,10 +19,11 @@ impl MappingApp {
 
     pub fn get_edge_linestring(
         &self,
+        edge_list_id: EdgeListId,
         edge_id: EdgeId,
     ) -> Result<&LineString<f32>, MappingAppError> {
         self.map_model
-            .get(&edge_id)
+            .get_linestring(&edge_list_id, &edge_id)
             .map_err(MappingAppError::MapError)
     }
 }

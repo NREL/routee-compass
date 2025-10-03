@@ -1,13 +1,10 @@
 use std::sync::Arc;
 
 use super::{
-    geometry_model::GeometryModel, map_edge_rtree_object::MapEdgeRTreeObject, map_error::MapError,
-    map_vertex_rtree_object::MapVertexRTreeObject, nearest_search_result::NearestSearchResult,
+    GeometryModel, MapEdgeRTreeObject, MapError, MapVertexRTreeObject, NearestSearchResult,
+    SpatialIndexType,
 };
-use crate::model::{
-    map::map_model_config::DistanceTolerance,
-    network::{Graph, Vertex},
-};
+use crate::model::network::{Graph, Vertex};
 use geo::Point;
 use rstar::RTree;
 use uom::si::f64::Length;
@@ -24,14 +21,30 @@ pub enum SpatialIndex {
 }
 
 impl SpatialIndex {
+    /// build a spatial index of the declared [`SpatialIndexType`]
+    pub fn build(
+        spatial_index_type: &SpatialIndexType,
+        graph: Arc<Graph>,
+        geometry_models: &[GeometryModel],
+        tolerance: Option<Length>,
+    ) -> SpatialIndex {
+        match spatial_index_type {
+            SpatialIndexType::VertexOriented => {
+                SpatialIndex::new_vertex_oriented(&graph.clone().vertices, tolerance)
+            }
+            SpatialIndexType::EdgeOriented => {
+                SpatialIndex::new_edge_oriented(graph, geometry_models, tolerance)
+            }
+        }
+    }
+
     /// creates a new instance of the rtree model that is vertex-oriented; that is, the
     /// rtree is built over the vertices in the graph, and nearest neighbor searches return
     /// a VertexId.
-    pub fn new_vertex_oriented(vertices: &[Vertex], tolerance: Option<DistanceTolerance>) -> Self {
+    pub fn new_vertex_oriented(vertices: &[Vertex], tolerance: Option<Length>) -> Self {
         let entries: Vec<MapVertexRTreeObject> =
             vertices.iter().map(MapVertexRTreeObject::new).collect();
         let rtree = RTree::bulk_load(entries);
-        let tolerance = tolerance.map(|t| t.to_uom());
         Self::VertexOrientedIndex { rtree, tolerance }
     }
 
@@ -41,16 +54,15 @@ impl SpatialIndex {
     /// - future work: make SearchOrientation set which incident vertex is returned.
     pub fn new_edge_oriented(
         graph: Arc<Graph>,
-        geometry_model: &GeometryModel,
-        tolerance: Option<DistanceTolerance>,
+        geometry_models: &[GeometryModel],
+        tolerance: Option<Length>,
     ) -> Self {
         let entries: Vec<MapEdgeRTreeObject> = graph
             .edges()
-            .zip(geometry_model.geometries())
+            .zip(geometry_models.iter().flat_map(|g| g.geometries()))
             .map(|(e, g)| MapEdgeRTreeObject::new(e, g))
             .collect();
         let rtree = RTree::bulk_load(entries.to_vec());
-        let tolerance = tolerance.map(|t| t.to_uom());
 
         Self::EdgeOrientedIndex { rtree, tolerance }
     }

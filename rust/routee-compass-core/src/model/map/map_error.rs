@@ -1,6 +1,6 @@
 use super::{map_json_key::MapJsonKey, matching_type::MatchingType};
 use crate::model::{
-    network::EdgeId,
+    network::{EdgeId, EdgeListId},
     unit::{DistanceUnit, UnitError},
 };
 
@@ -8,8 +8,10 @@ use crate::model::{
 pub enum MapError {
     #[error("failure building model: {0}")]
     BuildError(String),
-    #[error("map geometries missing EdgeId {0}")]
-    MissingEdgeId(EdgeId),
+    #[error("map geometries missing EdgeListId {0}")]
+    MissingEdgeListId(EdgeListId),
+    #[error("map geometries missing EdgeId {1} in EdgeListId {0}")]
+    MissingEdgeId(EdgeListId, EdgeId),
     #[error("failure matching query to map: {0}")]
     MapMatchError(String),
     #[error("this Compass instance is configured to require destinations on inputs, but the appropriate 'destination_*' fields were not found on query (looked for: {0})")]

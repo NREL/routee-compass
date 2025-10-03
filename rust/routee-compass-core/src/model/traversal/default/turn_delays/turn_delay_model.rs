@@ -1,6 +1,4 @@
-use crate::model::access::default::turn_delays::TurnDelayModelConfig;
-
-use super::turn::Turn;
+use super::{Turn, TurnDelayModelConfig};
 use std::collections::HashMap;
 use uom::si::f64::Time;
 

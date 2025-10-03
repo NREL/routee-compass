@@ -4,6 +4,7 @@ use uom::{
 };
 
 use crate::{
+    algorithm::search::SearchTree,
     model::{
         network::{Edge, Vertex},
         state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
@@ -78,6 +79,7 @@ impl TraversalModel for TimeTraversalModel {
         &self,
         _trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let distance: Length = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
@@ -86,7 +88,7 @@ impl TraversalModel for TimeTraversalModel {
         let edge_time = distance / speed;
 
         state_model.add_time(state, fieldname::TRIP_TIME, &edge_time)?;
-        state_model.set_time(state, fieldname::EDGE_TIME, &edge_time)?;
+        state_model.add_time(state, fieldname::EDGE_TIME, &edge_time)?;
 
         Ok(())
     }
@@ -95,6 +97,7 @@ impl TraversalModel for TimeTraversalModel {
         &self,
         od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (src, dst) = od;
@@ -112,7 +115,7 @@ impl TraversalModel for TimeTraversalModel {
         let time = distance / speed;
 
         state_model.add_time(state, fieldname::TRIP_TIME, &time)?;
-        state_model.set_time(state, fieldname::EDGE_TIME, &time)?;
+        state_model.add_time(state, fieldname::EDGE_TIME, &time)?;
 
         Ok(())
     }

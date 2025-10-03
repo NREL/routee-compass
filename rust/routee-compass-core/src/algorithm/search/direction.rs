@@ -1,8 +1,9 @@
 use super::SearchInstance;
 use crate::model::network::{Edge, EdgeId, EdgeListId, VertexId};
+use allocative::Allocative;
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Serialize, Deserialize, Default, Debug)]
+#[derive(Copy, Clone, Serialize, Deserialize, Default, Debug, PartialEq, Eq, Allocative)]
 #[serde(rename = "snake_case")]
 pub enum Direction {
     #[default]

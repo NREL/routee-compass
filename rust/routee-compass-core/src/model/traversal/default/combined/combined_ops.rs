@@ -88,10 +88,13 @@ pub fn topological_dependency_sort(
 mod test {
 
     use super::topological_dependency_sort;
-    use crate::model::{
-        network::{Edge, Vertex},
-        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-        traversal::{TraversalModel, TraversalModelError},
+    use crate::{
+        algorithm::search::SearchTree,
+        model::{
+            network::{Edge, Vertex},
+            state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+            traversal::{TraversalModel, TraversalModelError},
+        },
     };
     use itertools::Itertools;
     use std::sync::Arc;
@@ -313,6 +316,7 @@ mod test {
             &self,
             _trajectory: (&Vertex, &Edge, &Vertex),
             _state: &mut Vec<StateVariable>,
+            _tree: &SearchTree,
             _state_model: &StateModel,
         ) -> Result<(), TraversalModelError> {
             todo!()
@@ -322,6 +326,7 @@ mod test {
             &self,
             _od: (&Vertex, &Vertex),
             _state: &mut Vec<StateVariable>,
+            _tree: &SearchTree,
             _state_model: &StateModel,
         ) -> Result<(), TraversalModelError> {
             todo!()

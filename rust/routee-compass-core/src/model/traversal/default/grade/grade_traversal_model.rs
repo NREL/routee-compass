@@ -1,11 +1,14 @@
 use uom::{si::f64::Ratio, ConstZero};
 
 use super::GradeTraversalEngine;
-use crate::model::{
-    network::{Edge, Vertex},
-    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-    traversal::{default::fieldname, TraversalModel, TraversalModelError},
-    unit::RatioUnit,
+use crate::{
+    algorithm::search::SearchTree,
+    model::{
+        network::{Edge, Vertex},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        traversal::{default::fieldname, TraversalModel, TraversalModelError},
+        unit::RatioUnit,
+    },
 };
 use std::sync::Arc;
 
@@ -44,6 +47,7 @@ impl TraversalModel for GradeTraversalModel {
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
@@ -56,6 +60,7 @@ impl TraversalModel for GradeTraversalModel {
         &self,
         _od: (&Vertex, &Vertex),
         _state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         _state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         // would be nice if we could use vertex elevation to estimate overall grade change..

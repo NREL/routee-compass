@@ -114,8 +114,8 @@ impl ChargingStationLocator {
                 "Failed to read vertices from file {vertex_filepath:?}: {e}"
             ))
         })?;
-
-        let spatial_index = SpatialIndex::new_vertex_oriented(&vertices, station_match_tolerance);
+        let tolerance = station_match_tolerance.map(|t| t.to_uom());
+        let spatial_index = SpatialIndex::new_vertex_oriented(&vertices, tolerance);
 
         let mut station_map = HashMap::new();
 

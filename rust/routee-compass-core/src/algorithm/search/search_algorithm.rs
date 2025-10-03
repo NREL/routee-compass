@@ -1,11 +1,9 @@
-use super::backtrack;
 use super::edge_traversal::EdgeTraversal;
 use super::ksp::KspQuery;
 use super::ksp::KspTerminationCriteria;
 use super::ksp::{svp, yens};
 use super::search_algorithm_result::SearchAlgorithmResult;
 use super::search_error::SearchError;
-use super::search_tree_branch::SearchTreeBranch;
 use super::util::RouteSimilarityFunction;
 use super::SearchInstance;
 use super::{a_star, direction::Direction};
@@ -13,7 +11,6 @@ use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
 use crate::model::unit::Cost;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case", tag = "type")]
@@ -66,8 +63,7 @@ impl SearchAlgorithm {
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
-                        let route =
-                            backtrack::label_oriented_route(src_id, dst_id, &search_result.tree)?;
+                        let route = search_result.tree.backtrack(dst_id)?;
                         vec![route]
                     }
                 };
@@ -117,30 +113,22 @@ impl SearchAlgorithm {
         dst_opt: Option<(EdgeListId, EdgeId)>,
         query: &serde_json::Value,
         direction: &Direction,
-        search_instance: &SearchInstance,
+        si: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
             SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
                 weight_factor: Some(Cost::ZERO),
             }
-            .run_edge_oriented(src, dst_opt, query, direction, search_instance),
+            .run_edge_oriented(src, dst_opt, query, direction, si),
             SearchAlgorithm::AStarAlgorithm { weight_factor } => {
-                let search_result = a_star::run_edge_oriented(
-                    src,
-                    dst_opt,
-                    direction,
-                    *weight_factor,
-                    search_instance,
-                )?;
+                let search_result =
+                    a_star::run_edge_oriented(src, dst_opt, direction, *weight_factor, si)?;
                 let routes = match dst_opt {
                     None => vec![],
                     Some(dst_id) => {
-                        let route = backtrack::label_edge_oriented_route(
-                            src,
-                            dst_id,
-                            &search_result.tree,
-                            search_instance.graph.clone(),
-                        )?;
+                        let route = search_result
+                            .tree
+                            .backtrack_edge_oriented_route(dst_id, si.graph.clone())?;
                         vec![route]
                     }
                 };
@@ -155,13 +143,13 @@ impl SearchAlgorithm {
                 underlying: _,
                 similarity: _,
                 termination: _,
-            } => run_edge_oriented(src, dst_opt, query, direction, self, search_instance),
+            } => run_edge_oriented(src, dst_opt, query, direction, self, si),
             SearchAlgorithm::Yens {
                 k: _,
                 underlying: _,
                 similarity: _,
                 termination: _,
-            } => run_edge_oriented(src, dst_opt, query, direction, self, search_instance),
+            } => run_edge_oriented(src, dst_opt, query, direction, self, si),
         }
     }
 }
@@ -181,7 +169,7 @@ pub fn run_edge_oriented(
     si: &SearchInstance,
 ) -> Result<SearchAlgorithmResult, SearchError> {
     // 1. guard against edge conditions (src==dst, src.dst_v == dst.src_v)
-    let initial_state = si.state_model.initial_state()?;
+    let initial_state = si.state_model.initial_state(None)?;
     let e1_src = si.graph.src_vertex_id(&source.0, &source.1)?;
     let e1_label = si
         .label_model
@@ -190,17 +178,12 @@ pub fn run_edge_oriented(
     let src_et = EdgeTraversal {
         edge_list_id: source.0,
         edge_id: source.1,
-        access_cost: Cost::ZERO,
-        traversal_cost: Cost::ZERO,
-        result_state: si.state_model.initial_state()?,
+        cost: Cost::ZERO,
+        result_state: si.state_model.initial_state(None)?,
     };
 
     match target {
         None => {
-            let src_branch = SearchTreeBranch {
-                terminal_label: e1_label,
-                edge_traversal: src_et.clone(),
-            };
             let SearchAlgorithmResult {
                 mut trees,
                 mut routes,
@@ -212,8 +195,8 @@ pub fn run_edge_oriented(
                     .label_from_state(e1_dst, &initial_state, &si.state_model)?;
 
             for tree in trees.iter_mut() {
-                if !tree.contains_key(&dst_label) {
-                    tree.extend([(dst_label.clone(), src_branch.clone())]);
+                if !tree.contains(&dst_label) {
+                    tree.insert(e1_label.clone(), src_et.clone(), dst_label.clone())?;
                 }
             }
             for route in routes.iter_mut() {
@@ -228,83 +211,48 @@ pub fn run_edge_oriented(
         }
         Some(target_edge) => {
             let e2_src = si.graph.src_vertex_id(&target_edge.0, &target_edge.1)?;
-            let e2_dst = si.graph.dst_vertex_id(&target_edge.0, &target_edge.1)?;
 
             if source == target_edge {
-                Ok(SearchAlgorithmResult::default())
-            } else if e1_dst == e2_src {
-                // route is simply source -> target
-                let init_state = si.state_model.initial_state()?;
-                let src_et = EdgeTraversal::new(source, None, &init_state, si)?;
-                let dst_et =
-                    EdgeTraversal::new(target_edge, Some(source), &src_et.result_state, si)?;
-
-                // Create labels for the vertices using appropriate states
-                let dst_label = si.label_model.label_from_state(
-                    e2_dst,
-                    &dst_et.result_state,
-                    &si.state_model,
-                )?;
-                let src_label = si.label_model.label_from_state(
-                    e1_dst,
-                    &src_et.result_state,
-                    &si.state_model,
-                )?;
-
-                let src_traversal = SearchTreeBranch {
-                    terminal_label: src_label.clone(),
-                    edge_traversal: dst_et.clone(),
-                };
-                let dst_traversal = SearchTreeBranch {
-                    terminal_label: dst_label.clone(),
-                    edge_traversal: src_et.clone(),
-                };
-
-                let tree = HashMap::from([(dst_label, src_traversal), (src_label, dst_traversal)]);
-                let route = vec![src_et, dst_et];
-                let result = SearchAlgorithmResult {
-                    trees: vec![tree],
-                    routes: vec![route],
-                    iterations: 1,
-                };
-                Ok(result)
-            } else {
-                // run a search and append source/target edges to result
-                let SearchAlgorithmResult {
-                    trees,
-                    mut routes,
-                    iterations,
-                } = alg.run_vertex_oriented(e1_dst, Some(e2_src), query, direction, si)?;
-
-                if trees.is_empty() {
-                    return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src, 0));
-                }
-
-                // it is possible that the search already found these vertices. one major edge
-                // case is when the trip starts with a u-turn.
-                for route in routes.iter_mut() {
-                    let final_state = route.last().ok_or_else(|| {
-                        SearchError::InternalError(String::from("found empty result route"))
-                    })?;
-
-                    let dst_et = EdgeTraversal {
-                        edge_list_id: target_edge.0,
-                        edge_id: target_edge.1,
-                        access_cost: Cost::ZERO,
-                        traversal_cost: Cost::ZERO,
-                        result_state: final_state.result_state.to_vec(),
-                    };
-                    route.insert(0, src_et.clone());
-                    route.push(dst_et.clone());
-                }
-
-                let result = SearchAlgorithmResult {
-                    trees,
-                    routes,
-                    iterations: iterations + 2,
-                };
-                Ok(result)
+                return Ok(SearchAlgorithmResult::default());
             }
+
+            // removed specialized case that depended on creating EdgeTraversals mechanically. broken
+            //   (without substantial refactor) with the inclusion of the SearchTree abstraction.
+
+            // run a search and append source/target edges to result
+            let SearchAlgorithmResult {
+                trees,
+                mut routes,
+                iterations,
+            } = alg.run_vertex_oriented(e1_dst, Some(e2_src), query, direction, si)?;
+
+            if trees.is_empty() {
+                return Err(SearchError::NoPathExistsBetweenVertices(e1_dst, e2_src, 0));
+            }
+
+            // it is possible that the search already found these vertices. one major edge
+            // case is when the trip starts with a u-turn.
+            for route in routes.iter_mut() {
+                let final_state = route.last().ok_or_else(|| {
+                    SearchError::InternalError(String::from("found empty result route"))
+                })?;
+
+                let dst_et = EdgeTraversal {
+                    edge_list_id: target_edge.0,
+                    edge_id: target_edge.1,
+                    cost: Cost::ZERO,
+                    result_state: final_state.result_state.to_vec(),
+                };
+                route.insert(0, src_et.clone());
+                route.push(dst_et.clone());
+            }
+
+            let result = SearchAlgorithmResult {
+                trees,
+                routes,
+                iterations: iterations + 2,
+            };
+            Ok(result)
         }
     }
 }

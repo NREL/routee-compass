@@ -1,9 +1,10 @@
+use crate::algorithm::search::a_star::frontier_instance::FrontierInstance;
 use crate::algorithm::search::Direction;
 use crate::algorithm::search::EdgeTraversal;
 use crate::algorithm::search::SearchError;
 use crate::algorithm::search::SearchInstance;
 use crate::algorithm::search::SearchResult;
-use crate::algorithm::search::SearchTreeBranch;
+use crate::algorithm::search::SearchTree;
 use crate::model::label::Label;
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
@@ -36,12 +37,12 @@ pub fn run_vertex_oriented(
     }
 
     // context for the search (graph, search functions, frontier priority queue)
-    let mut costs: InternalPriorityQueue<Label, ReverseCost> = InternalPriorityQueue::default();
+    let mut frontier: InternalPriorityQueue<Label, ReverseCost> = InternalPriorityQueue::default();
     let mut traversal_costs: HashMap<Label, Cost> = HashMap::new();
-    let mut solution: HashMap<Label, SearchTreeBranch> = HashMap::new();
+    let mut solution = SearchTree::new(*direction);
 
     // setup initial search state
-    let initial_state = si.state_model.initial_state()?;
+    let initial_state = si.state_model.initial_state(None)?;
     let inital_label = si
         .label_model
         .label_from_state(source, &initial_state, &si.state_model)?;
@@ -49,65 +50,46 @@ pub fn run_vertex_oriented(
     let origin_cost = match target {
         None => Cost::ZERO,
         Some(target) => {
-            let cost_est = estimate_traversal_cost(source, target, &initial_state, si)?;
+            let cost_est = estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
             Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
         }
     };
-    costs.push(inital_label, origin_cost.into());
+    frontier.push(inital_label, origin_cost.into());
 
     let start_time = Instant::now();
     let mut iterations = 0;
 
     loop {
+        // terminate the search if a termination condition was met. returns an error.
         si.termination_model
             .test(&start_time, solution.len(), iterations)?;
 
-        let (current_label, current_vertex_id) =
-            match advance_search(&mut costs, source, target, &solution)? {
-                None => break,
-                Some((label, vertex_id)) => (label, vertex_id),
-            };
-
-        let last_edge_id = if current_vertex_id == source {
-            None
-        } else {
-            solution.get(&current_label).map(|branch| {
-                let edge_list_id = branch.edge_traversal.edge_list_id;
-                let edge_id = branch.edge_traversal.edge_id;
-                (edge_list_id, edge_id)
-            })
-        };
-
-        // grab the current state from the solution
-        let current_state = if current_vertex_id == source {
-            initial_state.clone()
-        } else {
-            solution
-                .get(&current_label)
-                .ok_or_else(|| {
-                    SearchError::InternalError(format!(
-                        "expected label {current_label:?} missing from solution"
-                    ))
-                })?
-                .edge_traversal
-                .result_state
-                .clone()
+        // grab the frontier assets, or break if there is nothing to pop
+        let f = match FrontierInstance::pop_new(
+            &mut frontier,
+            source,
+            target,
+            &solution,
+            &initial_state,
+        )? {
+            None => break,
+            Some(f) => f,
         };
 
         // visit all neighbors of this source vertex
-        let incident_edge_iterator = direction.get_incident_edges(&current_vertex_id, si);
+        let incident_edge_iterator = direction.get_incident_edges(f.prev_label.vertex_id(), si);
         for (edge_list_id, edge_id) in incident_edge_iterator {
             let e = si.graph.get_edge(&edge_list_id, &edge_id)?;
 
             let terminal_vertex_id = direction.terminal_vertex_id(e);
             let terminal_label = si.label_model.label_from_state(
                 terminal_vertex_id,
-                &current_state,
+                &f.prev_state,
                 &si.state_model,
             )?;
             let key_vertex_id = direction.tree_key_vertex_id(e);
 
-            let previous_edge = match last_edge_id {
+            let previous_edge = match f.prev_edge {
                 Some((edge_list_id, edge_id)) => Some(si.graph.get_edge(&edge_list_id, &edge_id)?),
                 None => None,
             };
@@ -115,7 +97,7 @@ pub fn run_vertex_oriented(
                 si.get_frontier_model(&edge_list_id)?.valid_frontier(
                     e,
                     previous_edge,
-                    &current_state,
+                    &f.prev_state,
                     &si.state_model,
                 )?
             };
@@ -123,7 +105,8 @@ pub fn run_vertex_oriented(
                 continue;
             }
 
-            let et = EdgeTraversal::new((edge_list_id, edge_id), last_edge_id, &current_state, si)?;
+            let next_edge = (edge_list_id, edge_id);
+            let et = EdgeTraversal::new(next_edge, &solution, &f.prev_state, si)?;
 
             let key_label = si.label_model.label_from_state(
                 key_vertex_id,
@@ -135,31 +118,31 @@ pub fn run_vertex_oriented(
                 .get(&terminal_label)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
-            let tentative_gscore = current_gscore + et.total_cost();
+            let tentative_gscore = current_gscore + et.cost;
             let existing_gscore = traversal_costs
                 .get(&key_label)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
             if tentative_gscore < existing_gscore {
+                // accept this traversal, updating search state
                 traversal_costs.insert(key_label.clone(), tentative_gscore);
-
-                // update solution
-                let traversal = SearchTreeBranch {
-                    terminal_label,
-                    edge_traversal: et.clone(),
-                };
-                solution.insert(key_label.clone(), traversal);
+                solution.insert(terminal_label, et.clone(), key_label.clone())?;
 
                 let dst_h_cost = match target {
                     None => Cost::ZERO,
                     Some(target_v) => {
-                        let cost_est =
-                            estimate_traversal_cost(key_vertex_id, target_v, &current_state, si)?;
+                        let cost_est = estimate_traversal_cost(
+                            key_vertex_id,
+                            target_v,
+                            &f.prev_state,
+                            &solution,
+                            si,
+                        )?;
                         Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
                     }
                 };
                 let f_score_value = tentative_gscore + dst_h_cost;
-                costs.push_increase(key_label, f_score_value.into());
+                frontier.push_increase(key_label, f_score_value.into());
             }
         }
         iterations += 1;
@@ -212,6 +195,7 @@ pub fn estimate_traversal_cost(
     src: VertexId,
     dst: VertexId,
     state: &[StateVariable],
+    tree: &SearchTree,
     si: &SearchInstance,
 ) -> Result<Cost, SearchError> {
     let src = si.graph.get_vertex(&src)?;
@@ -221,71 +205,16 @@ pub fn estimate_traversal_cost(
     si.get_traversal_estimation_model().estimate_traversal(
         (src, dst),
         &mut dst_state,
+        tree,
         &si.state_model,
     )?;
     let cost_estimate = si.cost_model.cost_estimate(state, &dst_state)?;
     Ok(cost_estimate)
 }
 
-/// grab the current vertex id, but handle some other termination conditions
-/// based on the state of the priority queue and optional search destination
-/// - we reach the destination                                       (Ok)
-/// - if the set is ever empty and there's no destination            (Ok)
-/// - if the set is ever empty and there's a destination             (Err)
-///
-/// # Arguments
-/// * `cost`   - queue of priority-ranked labels for exploration
-/// * `source` - search source vertex
-/// * `target` - optional search destination
-///
-/// # Results
-/// The next label and vertex to search. None if the queue has been exhausted in a search with no
-/// destination, or we have reached our destination.
-/// An error if no path exists for a search that includes a destination.
-fn advance_search(
-    cost: &mut InternalPriorityQueue<Label, ReverseCost>,
-    source: VertexId,
-    target: Option<VertexId>,
-    solution: &HashMap<Label, SearchTreeBranch>,
-) -> Result<Option<(Label, VertexId)>, SearchError> {
-    match (cost.pop(), target) {
-        (None, Some(target_vertex_id)) => {
-            // for debugging purposes, we write the current state of the search to a file
-            let outfile = format!("search_no_path_{}_{}.json", source.0, target_vertex_id.0);
-            std::fs::write(outfile, serialize_search_tree(solution).unwrap()).unwrap();
-
-            Err(SearchError::NoPathExistsBetweenVertices(
-                source,
-                target_vertex_id,
-                solution.len(),
-            ))
-        }
-        (None, None) => Ok(None),
-        (Some((current_label, _)), Some(target_v)) if current_label.vertex_id() == target_v => {
-            Ok(None)
-        }
-        (Some((current_label, _)), _) => {
-            Ok(Some((current_label.clone(), current_label.vertex_id())))
-        }
-    }
-}
-
-fn serialize_search_tree(
-    tree: &HashMap<Label, SearchTreeBranch>,
-) -> Result<String, serde_json::Error> {
-    let string_map: HashMap<String, SearchTreeBranch> = tree
-        .iter()
-        .map(|(label, branch)| (label.to_string(), branch.clone()))
-        .collect();
-    serde_json::to_string(&string_map)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::algorithm::search::backtrack::label_oriented_route;
-    use crate::algorithm::search::MinSearchTree;
-    use crate::model::access::default::NoAccessModel;
     use crate::model::cost::CostAggregation;
     use crate::model::cost::CostModel;
     use crate::model::cost::VehicleCostRate;
@@ -303,7 +232,8 @@ mod tests {
     use crate::model::termination::TerminationModel;
     use crate::model::traversal::default::distance::DistanceTraversalModel;
     use crate::model::traversal::TraversalModel;
-    use crate::util::compact_ordered_hash_map::CompactOrderedHashMap;
+    use crate::model::unit::DistanceUnit;
+    use indexmap::IndexMap;
     use rayon::prelude::*;
     use std::sync::Arc;
     use uom::si::f64::Length;
@@ -327,8 +257,8 @@ mod tests {
             Edge::new(0, 7, 0, 3, Length::new::<uom::si::length::kilometer>(2.0)),
         ];
 
-        let mut adj = vec![CompactOrderedHashMap::empty(); vertices.len()];
-        let mut rev = vec![CompactOrderedHashMap::empty(); vertices.len()];
+        let mut adj = vec![IndexMap::new(); vertices.len()];
+        let mut rev = vec![IndexMap::new(); vertices.len()];
 
         for edge in &edges {
             adj[edge.src_vertex_id.0].insert(edge.edge_id, edge.dst_vertex_id);
@@ -394,7 +324,7 @@ mod tests {
 
         let graph = Arc::new(build_mock_graph());
         let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
-        let traversal_model = Arc::new(DistanceTraversalModel {});
+        let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::default()));
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
@@ -423,7 +353,6 @@ mod tests {
             map_model,
             state_model: state_model.clone(),
             traversal_models: vec![traversal_model.clone()],
-            access_models: vec![Arc::new(NoAccessModel {})],
             frontier_models: vec![Arc::new(NoRestriction {})],
             cost_model: Arc::new(cost_model),
             termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
@@ -432,7 +361,7 @@ mod tests {
         };
 
         // execute the route search
-        let result: Vec<Result<MinSearchTree, SearchError>> = queries
+        let result: Vec<Result<SearchTree, SearchError>> = queries
             .clone()
             .into_par_iter()
             .map(|(o, d, _expected)| {
@@ -442,9 +371,9 @@ mod tests {
             .collect();
 
         // review the search results, confirming that the route result matches the expected route
-        for (r, (o, d, expected_route)) in result.into_iter().zip(queries) {
+        for (r, (_, d, expected_route)) in result.into_iter().zip(queries) {
             let solution = r.unwrap();
-            let route = label_oriented_route(o, d, &solution).unwrap();
+            let route = solution.backtrack(d).unwrap();
             let route_edges: Vec<EdgeId> = route.iter().map(|r| r.edge_id).collect();
             assert_eq!(
                 route_edges, expected_route,

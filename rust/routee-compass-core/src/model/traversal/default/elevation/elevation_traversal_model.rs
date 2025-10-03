@@ -2,11 +2,16 @@ use std::sync::Arc;
 
 use uom::{si::f64::Length, ConstZero};
 
-use crate::model::{
-    network::{Edge, Vertex},
-    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-    traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
-    unit::DistanceUnit,
+use crate::{
+    algorithm::search::SearchTree,
+    model::{
+        network::{Edge, Vertex},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        traversal::{
+            default::fieldname, TraversalModel, TraversalModelError, TraversalModelService,
+        },
+        unit::DistanceUnit,
+    },
 };
 
 use super::elevation_change::ElevationChange;
@@ -66,6 +71,7 @@ impl TraversalModel for ElevationTraversalModel {
         &self,
         _trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
@@ -82,6 +88,7 @@ impl TraversalModel for ElevationTraversalModel {
         &self,
         _od: (&Vertex, &Vertex),
         _state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         _state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         Ok(())

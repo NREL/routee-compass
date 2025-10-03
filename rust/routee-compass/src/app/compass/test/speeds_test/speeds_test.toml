@@ -1,5 +1,3 @@
-
-
 [graph]
 vertex_list_input_file = "src/app/compass/test/speeds_test/test_vertices.csv"
 [graph.edge_list]
@@ -18,10 +16,6 @@ speed_unit = "kph"
 [[search.traversal.models]]
 type = "time"
 time_unit = "minutes"
-
-[search.access]
-type = "no_access_model"
-
 
 [cost]
 cost_aggregation = "sum"

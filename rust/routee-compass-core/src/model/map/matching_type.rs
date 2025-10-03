@@ -85,6 +85,27 @@ pub enum MapInputResult {
 }
 
 impl MatchingType {
+    /// deserialize optional lists of strings from some configuration into matching types.
+    pub fn deserialize_matching_types(
+        types: Option<&Vec<String>>,
+    ) -> Result<MatchingType, MapError> {
+        match types {
+            None => Ok(MatchingType::default()),
+            Some(string_list) => {
+                let deserialized = string_list
+                    .iter()
+                    .map(|s| MatchingType::from_str(s.as_str()))
+                    .collect::<Result<Vec<_>, _>>()?;
+                match deserialized[..] {
+                    [MatchingType::Point] => Ok(MatchingType::Point),
+                    [MatchingType::VertexId] => Ok(MatchingType::VertexId),
+                    [MatchingType::EdgeId] => Ok(MatchingType::EdgeId),
+                    _ => Ok(MatchingType::Combined(deserialized)),
+                }
+            }
+        }
+    }
+
     /// attempts to find any valid input origin fields, or performs map matching, in order to
     /// append those fields to the query, based on the type of [`MatchingType`] supported.
     pub fn process_origin(

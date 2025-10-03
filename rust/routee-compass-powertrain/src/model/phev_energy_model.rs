@@ -4,11 +4,14 @@ use super::{
     energy_model_ops,
     prediction::{PredictionModelConfig, PredictionModelRecord},
 };
-use routee_compass_core::model::{
-    network::{Edge, Vertex},
-    state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-    unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
+use routee_compass_core::{
+    algorithm::search::SearchTree,
+    model::{
+        network::{Edge, Vertex},
+        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        traversal::{TraversalModel, TraversalModelError, TraversalModelService},
+        unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
+    },
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -189,6 +192,7 @@ impl TraversalModel for PhevEnergyModel {
         &self,
         _trajectory: (&Vertex, &Edge, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         phev_traversal(
@@ -206,6 +210,7 @@ impl TraversalModel for PhevEnergyModel {
         &self,
         _od: (&Vertex, &Vertex),
         state: &mut Vec<StateVariable>,
+        _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
         phev_traversal(
@@ -600,7 +605,7 @@ mod test {
         speed: Velocity,
         grade: Ratio,
     ) -> Vec<StateVariable> {
-        let mut state = state_model.initial_state().unwrap();
+        let mut state = state_model.initial_state(None).unwrap();
         state_model
             .set_distance(&mut state, fieldname::EDGE_DISTANCE, &distance)
             .expect("test invariant failed");

@@ -35,3 +35,4 @@ allocative = "0.3.4"
 indoc = "2.0.6"
 uom = { version = "0.36.0", features = ["serde"] }
 derive_more = { version = "2.0.1", features = ["full"] }
+indexmap = "2.11.4"

@@ -147,13 +147,11 @@ pub fn largest_strongly_connected_component(graph: &Graph) -> Result<Vec<VertexI
 
 #[cfg(test)]
 mod tests {
+    use indexmap::IndexMap;
     use uom::si::f64::Length;
 
     use super::*;
-    use crate::{
-        model::network::{Edge, EdgeList, Graph, Vertex},
-        util::compact_ordered_hash_map::CompactOrderedHashMap,
-    };
+    use crate::model::network::{Edge, EdgeList, Graph, Vertex};
 
     fn build_mock_graph() -> Graph {
         let vertices = vec![
@@ -183,8 +181,8 @@ mod tests {
         ];
 
         // Create the adjacency and reverse adjacency lists.
-        let mut adj = vec![CompactOrderedHashMap::empty(); vertices.len()];
-        let mut rev = vec![CompactOrderedHashMap::empty(); vertices.len()];
+        let mut adj = vec![IndexMap::new(); vertices.len()];
+        let mut rev = vec![IndexMap::new(); vertices.len()];
 
         for edge in &edges {
             adj[edge.src_vertex_id.0].insert(edge.edge_id, edge.dst_vertex_id);

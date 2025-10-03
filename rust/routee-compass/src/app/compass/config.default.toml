@@ -9,22 +9,20 @@
 # verbose = true
 
 # [mapping]
-# # when type = "vertex", simpler mapping is used. (default)
-# type = "vertex"
+# # this matches incoming points to the nearest vertex in the graph.
+# spatial_index_type = "vertex"
+# # alternatively, builds the spatial index over edges in the graph.
+# spatial_index_type = "edge"
 
-# # default map matching will pair an input origin|destination with
-# # edges in the system. these are also subject to whatever frontier
-# # model is insantiated for the query.
-# type = "edge"
+# # if you don't have a file with linestring geometries, you can build
+# # simple linestrings from the vertices of each edge list.
+# geometry = { type = "from_vertices" } 
+# geometry.type = "from_vertices"  # TOML shorthand for above
 
-# # source for edge geometries used in mapping.
-# # when type = "vertex", this can be omitted, and the system will
-# # instead use the graph vertex coordinates to build map geometries
-# # which produces far simpler route sequences as a result.
-# geometry_input_file = "edges-geometries-enumerated.txt.gz"
+# # if you can bring your own, the resulting routes will have greater realism.
+# geometry = { type = "from_linestrings", input_file = "edges-geometries-enumerated.txt.gz" }
 
-# # optional query distance tolerance for map matching,
-# # an array of [Distance, DistanceUnit].
+# # optional query distance tolerance for map matching.
 # tolerance.distance = 15.0
 # tolerance.unit = "meters"
 
@@ -34,7 +32,7 @@
 
 # # the default map input type is a combined strategy that attempts to
 # # match by Point, otherwise expects the user to pass either a vertex ({origin|destination}_vertex)
-# # or an edge ({origin|destination}_edge). a more restrictive strategy can be 
+# # or an edge ({origin|destination}_edge). a more restrictive strategy can be
 # # specified here with a subset of these values or a single value such as "point".
 # matching_type = ["point", "edge_id", "vertex_id"]
 
@@ -45,18 +43,18 @@ response_persistence_policy = "persist_response_in_memory"
 response_output_policy.type = "none"
 
 [mapping]
-type = "vertex"
 tolerance.distance = 30.0
 tolerance.unit = "meters"
 queries_without_destinations = false
 matching_type = ["vertex_id"]
+spatial_index_type = "vertex"
+geometry.type = "from_vertices"
 
 [algorithm]
 type = "a*"
 
 [search]
 traversal = { type = "distance", distance_unit = "kilometers" }
-access.type = "no_access_model"
 frontier.type = "no_restriction"
 
 [cost]

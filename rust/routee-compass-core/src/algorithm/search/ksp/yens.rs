@@ -107,7 +107,6 @@ pub fn run(
                 map_model: si.map_model.clone(),
                 state_model: si.state_model.clone(),
                 traversal_models: si.traversal_models.iter().cloned().collect_vec(),
-                access_models: si.access_models.iter().cloned().collect_vec(),
                 cost_model: si.cost_model.clone(),
                 frontier_models: yens_frontier,
                 termination_model: si.termination_model.clone(),
@@ -138,8 +137,7 @@ pub fn run(
                     &yens_si,
                 )?;
                 if !similar {
-                    let candidate_cost: Cost =
-                        candidate_test_path.iter().map(|e| e.total_cost()).sum();
+                    let candidate_cost: Cost = candidate_test_path.iter().map(|e| e.cost).sum();
                     match best_candidate {
                         Some((_, best_cost)) if candidate_cost < best_cost => {
                             best_candidate = Some((candidate_path.clone(), candidate_cost));
