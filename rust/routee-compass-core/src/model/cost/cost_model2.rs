@@ -15,7 +15,7 @@ use std::sync::Arc;
 #[derive(Serialize, Clone, Debug)]
 pub struct TraversalCost {
     pub total_cost: Cost,
-    pub components: HashMap<String, Cost>
+    pub components: HashMap<String, Cost>,
 }
 
 /// implementation of a model for calculating Cost from a state transition.
@@ -34,7 +34,7 @@ pub struct CostFeature {
     pub weight: f64,
     pub vehicle_cost_rate: VehicleCostRate,
     pub network_cost_rate: NetworkCostRate,
-    pub display: bool
+    pub display: bool,
 }
 
 impl CostFeature {
@@ -43,21 +43,34 @@ impl CostFeature {
         weight: Option<&f64>,
         vehicle_rate: Option<&VehicleCostRate>,
         network_rate: Option<&NetworkCostRate>,
-        display: bool
+        display: bool,
     ) -> CostFeature {
-         match (weight, vehicle_rate, network_rate) {
-                (None,_, _) => CostFeature::default(),
-                (Some(_), None, None) => CostFeature::default(),
-                (Some(w), None, Some(n)) => CostFeature { weight: *w, vehicle_cost_rate: VehicleCostRate::default(), network_cost_rate: n.clone(), display },
-                (Some(w), Some(v), None) => CostFeature { weight: *w, vehicle_cost_rate: v.clone(), network_cost_rate: NetworkCostRate::default(), display },
-                (Some(w), Some(v), Some(n)) => CostFeature { weight: *w, vehicle_cost_rate: v.clone(), network_cost_rate: n.clone(), display },
-            }
+        match (weight, vehicle_rate, network_rate) {
+            (None, _, _) => CostFeature::default(),
+            (Some(_), None, None) => CostFeature::default(),
+            (Some(w), None, Some(n)) => CostFeature {
+                weight: *w,
+                vehicle_cost_rate: VehicleCostRate::default(),
+                network_cost_rate: n.clone(),
+                display,
+            },
+            (Some(w), Some(v), None) => CostFeature {
+                weight: *w,
+                vehicle_cost_rate: v.clone(),
+                network_cost_rate: NetworkCostRate::default(),
+                display,
+            },
+            (Some(w), Some(v), Some(n)) => CostFeature {
+                weight: *w,
+                vehicle_cost_rate: v.clone(),
+                network_cost_rate: n.clone(),
+                display,
+            },
+        }
     }
 }
 
-
 impl CostModel {
-
     /// builds a cost model for a specific query.
     ///
     /// this search instance has a state model that dictates the location of each feature.
@@ -79,7 +92,7 @@ impl CostModel {
         network_rate_mapping: Arc<HashMap<String, NetworkCostRate>>,
         cost_aggregation: CostAggregation,
         state_model: Arc<StateModel>,
-        log_description: bool
+        log_description: bool,
     ) -> Result<CostModel, CostModelError> {
         let ignored_weights = weights_mapping
             .keys()
@@ -96,26 +109,29 @@ impl CostModel {
         let mut total_weight = 0.0;
 
         for (name, _) in state_model.iter() {
-
             // always instantiate a value for each vector, diverting to default (zero-valued) if not provided
             // which has the following effect:
             // - weight: deactivates costs for this feature (product)
             // - v_rate: ignores vehicle costs for this feature (sum)
             // - n_rate: ignores network costs for this feature (sum)
             if log_description {
-                let desc = cost_ops::describe_cost_feature_configuration(name, &displayed_costs, weights_mapping.clone(), vehicle_rate_mapping.clone());
+                let desc = cost_ops::describe_cost_feature_configuration(
+                    name,
+                    &displayed_costs,
+                    weights_mapping.clone(),
+                    vehicle_rate_mapping.clone(),
+                );
                 log::info!("{desc}");
             }
             let w_opt = weights_mapping.get(name);
             let v_opt = vehicle_rate_mapping.get(name);
             let n_opt = network_rate_mapping.get(name);
             let feature = CostFeature::new(w_opt, v_opt, n_opt, displayed_costs.contains(name));
-            
+
             total_weight += feature.weight.clone();
-            features.insert(name.clone(),feature);
+            features.insert(name.clone(), feature);
         }
 
-        
         if total_weight == 0.0 {
             // TODO: update this Error variant after refactor
             return Err(CostModelError::InvalidCostVariables(vec![]));
@@ -134,7 +150,7 @@ impl CostModel {
         &self,
         edge: &Edge,
         state: &[StateVariable],
-        state_model: Arc<StateModel>
+        state_model: Arc<StateModel>,
     ) -> Result<TraversalCost, CostModelError> {
         todo!()
     }

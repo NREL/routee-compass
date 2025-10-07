@@ -67,7 +67,7 @@ impl std::fmt::Display for VehicleCostRate {
             VehicleCostRate::Combined(vehicle_cost_rates) => {
                 let inner = vehicle_cost_rates.iter().map(|v| format!("{v}")).join(", ");
                 format!("[{inner}]")
-            },
+            }
         };
         write!(f, "{}", s)
     }

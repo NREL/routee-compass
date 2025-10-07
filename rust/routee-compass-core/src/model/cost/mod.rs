@@ -1,12 +1,12 @@
 mod cost_aggregation;
 mod cost_model;
+mod cost_model2;
 mod cost_model_config;
 mod cost_model_error;
 pub mod cost_model_service;
 pub mod cost_ops;
 pub mod network;
 mod vehicle;
-mod cost_model2;
 
 pub use cost_aggregation::CostAggregation;
 pub use cost_model::CostModel;

@@ -1,4 +1,7 @@
-use std::{collections::{HashMap, HashSet}, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 use super::{network::NetworkCostRate, CostAggregation, CostModelError, VehicleCostRate};
 use crate::model::{network::Edge, state::StateVariable, unit::Cost};
@@ -11,7 +14,6 @@ pub fn describe_cost_feature_configuration(
     weights_mapping: Arc<HashMap<String, f64>>,
     vehicle_rate_mapping: Arc<HashMap<String, VehicleCostRate>>,
 ) -> String {
-    
     let has_weight = weights_mapping.get(name);
     let has_rate = vehicle_rate_mapping.get(name);
     let has_display = displayed_costs.contains(name);
@@ -104,4 +106,3 @@ pub fn calculate_network_traversal_costs(
 
     cost_aggregation.aggregate(&costs)
 }
-
