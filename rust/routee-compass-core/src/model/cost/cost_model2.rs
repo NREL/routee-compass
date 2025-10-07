@@ -128,7 +128,7 @@ impl CostModel {
             let n_opt = network_rate_mapping.get(name);
             let feature = CostFeature::new(w_opt, v_opt, n_opt, displayed_costs.contains(name));
 
-            total_weight += feature.weight.clone();
+            total_weight += feature.weight;
             features.insert(name.clone(), feature);
         }
 
