@@ -30,7 +30,8 @@ type IndexedFeatureIterator<'a> =
 
 impl StateModel {
     pub fn new(features: Vec<(String, StateVariableConfig)>) -> StateModel {
-        let map = IndexMap::from_iter(features);
+        let deduped = deduplicate(&features);
+        let map = IndexMap::from_iter(deduped.into_iter());
         StateModel(map)
     }
 
@@ -653,6 +654,38 @@ impl StateModel {
         state[index] = updated;
         Ok(())
     }
+}
+
+/// tests if multiple traversal models are outputting to the same state variable feature
+/// and if so, retains only the configuration that sets an output unit for this type.
+/// if multiple are found, a warning is logged.
+fn deduplicate(features: &[(String, StateVariableConfig)]) -> HashMap<String, StateVariableConfig> {
+    let mut map: HashMap<String, StateVariableConfig> = HashMap::new();
+    for (name, next) in features.iter() {
+        map.entry(name.clone())
+            .and_modify(|prev| {
+                match (prev.output_unit_name(), next.output_unit_name()) {
+                    (Some(prev_unit), Some(next_unit)) => {
+                        log::warn!("{}", duplicate_message(name, &prev_unit, &next_unit));
+                    },
+                    (None, Some(_)) => {
+                        *prev = next.clone();
+                    },
+                    _ => { /* NOOP */}
+                }
+            })
+            .or_insert(next.clone());
+    }
+    map
+}
+
+/// creates the message for cases where two variable configurations have matching
+/// output unit declarations.
+fn duplicate_message(name: &str, prev: &str, next: &str) -> String {
+    let s1 = format!("Two traversal models are producing output feature '{name}'");
+    let s2 = format!("Previous uses '{prev}', next uses '{next}'. Keeping '{prev}'");
+    let s3 = "To avoid non-deterministic behavior, only set output_unit in one traversal model.";
+    format!("{s1} {s2} {s3}")
 }
 
 impl<'a> TryFrom<&'a serde_json::Value> for StateModel {
