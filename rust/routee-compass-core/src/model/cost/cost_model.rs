@@ -122,7 +122,8 @@ impl CostModel {
             let v_cost = feature
                 .vehicle_cost_rate
                 .compute_cost(name, state, state_model)?;
-            result.insert(name, v_cost);
+            let cost = v_cost * feature.weight;
+            result.insert(name, cost);
         }
         Ok(result)
     }
