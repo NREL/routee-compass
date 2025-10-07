@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::model::cost::{network::NetworkCostRate, CostAggregation, VehicleCostRate};
 use serde::{Deserialize, Serialize};
@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 /// configuration for a cost model set at app initialization time.
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct CostModelConfig {
+    pub displayed_costs: Option<HashSet<String>>,
     pub vehicle_rates: Option<HashMap<String, VehicleCostRate>>,
     pub network_rates: Option<HashMap<String, NetworkCostRate>>,
     pub weights: Option<HashMap<String, f64>>,
@@ -14,6 +15,9 @@ pub struct CostModelConfig {
 }
 
 impl CostModelConfig {
+    pub fn get_displayed_costs(&self) -> HashSet<String> {
+        self.displayed_costs.clone().unwrap_or_default()
+    }
     pub fn get_vehicle_rates(&self) -> HashMap<String, VehicleCostRate> {
         self.vehicle_rates.clone().unwrap_or_default()
     }

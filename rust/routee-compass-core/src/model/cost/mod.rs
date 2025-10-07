@@ -6,6 +6,7 @@ pub mod cost_model_service;
 pub mod cost_ops;
 pub mod network;
 mod vehicle;
+mod cost_model2;
 
 pub use cost_aggregation::CostAggregation;
 pub use cost_model::CostModel;
