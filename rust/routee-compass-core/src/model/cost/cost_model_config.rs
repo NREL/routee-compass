@@ -1,6 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::model::cost::{network::{NetworkCostRate, NetworkCostRateBuilder}, CostAggregation, CostModelError, VehicleCostRate};
+use crate::model::cost::{
+    network::{NetworkCostRate, NetworkCostRateBuilder},
+    CostAggregation, CostModelError, VehicleCostRate,
+};
 use serde::{Deserialize, Serialize};
 
 /// configuration for a cost model set at app initialization time.
@@ -22,10 +25,15 @@ impl CostModelConfig {
         self.vehicle_rates.clone().unwrap_or_default()
     }
     pub fn get_network_rates(&self) -> Result<HashMap<String, NetworkCostRate>, CostModelError> {
-        self.network_rates.clone().unwrap_or_default().iter().map(|(name, nr)| {
-            let rates = nr.build()?;
-            Ok((name.clone(), rates))
-        }).collect::<Result<HashMap<_, _>, CostModelError>>()
+        self.network_rates
+            .clone()
+            .unwrap_or_default()
+            .iter()
+            .map(|(name, nr)| {
+                let rates = nr.build()?;
+                Ok((name.clone(), rates))
+            })
+            .collect::<Result<HashMap<_, _>, CostModelError>>()
     }
     pub fn get_weights(&self) -> HashMap<String, f64> {
         self.weights.clone().unwrap_or_default()

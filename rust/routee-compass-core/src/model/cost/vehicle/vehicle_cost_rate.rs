@@ -76,24 +76,12 @@ impl VehicleCostRate {
     pub fn get_unit_name(&self) -> Option<String> {
         match self {
             VehicleCostRate::Zero => None,
-            VehicleCostRate::Distance { unit, .. } => {
-                unit.map(|u| u.to_string())
-            },
-            VehicleCostRate::Time { unit, .. } => {
-                unit.map(|u| u.to_string())
-            },
-            VehicleCostRate::Speed { unit, .. } => {
-                unit.map(|u| u.to_string())
-            },
-            VehicleCostRate::Energy { unit, .. } => {
-                unit.map(|u| u.to_string())
-            },
-            VehicleCostRate::Ratio { unit, .. } => {
-                unit.map(|u| u.to_string())
-            },
-            VehicleCostRate::Temperature { unit, .. } => {
-                unit.map(|u| u.to_string())
-            },
+            VehicleCostRate::Distance { unit, .. } => unit.map(|u| u.to_string()),
+            VehicleCostRate::Time { unit, .. } => unit.map(|u| u.to_string()),
+            VehicleCostRate::Speed { unit, .. } => unit.map(|u| u.to_string()),
+            VehicleCostRate::Energy { unit, .. } => unit.map(|u| u.to_string()),
+            VehicleCostRate::Ratio { unit, .. } => unit.map(|u| u.to_string()),
+            VehicleCostRate::Temperature { unit, .. } => unit.map(|u| u.to_string()),
             VehicleCostRate::Custom { variable_type, .. } => Some(variable_type.to_string()),
         }
     }
@@ -179,7 +167,7 @@ impl VehicleCostRate {
 
 impl std::fmt::Display for VehicleCostRate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let factor= match self {
+        let factor = match self {
             VehicleCostRate::Zero => &None,
             VehicleCostRate::Distance { factor, .. } => factor,
             VehicleCostRate::Time { factor, .. } => factor,

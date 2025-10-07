@@ -126,7 +126,6 @@ impl CostModelService {
 }
 
 impl TryFrom<&CostModelConfig> for CostModelService {
-    
     fn try_from(value: &CostModelConfig) -> Result<Self, Self::Error> {
         let network_rates = value.get_network_rates()?;
         let service = CostModelService {
@@ -138,6 +137,6 @@ impl TryFrom<&CostModelConfig> for CostModelService {
         };
         Ok(service)
     }
-    
+
     type Error = CostModelError;
 }

@@ -147,7 +147,7 @@ impl CostModel {
                 name,
                 self.weights_mapping.clone(),
                 self.vehicle_rate_mapping.clone(),
-                self.network_rate_mapping.clone()
+                self.network_rate_mapping.clone(),
             );
             result.insert(
                 name.clone(),

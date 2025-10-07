@@ -34,7 +34,7 @@ impl NetworkCostRate {
             NetworkCostRate::Combined(rates) => {
                 let names = rates.iter().map(|r| r.rate_type()).join(", ");
                 format!("[{names}]")
-            },
+            }
         }
     }
 
