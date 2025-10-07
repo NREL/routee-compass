@@ -1097,7 +1097,8 @@ mod tests {
             edge_list_id: EdgeListId(0),
             cost: TraversalCost {
                 total_cost: Cost::new(cost),
-                components: HashMap::new(),
+                objective_cost: Cost::new(cost),
+                cost_component: HashMap::new(),
             },
             result_state: vec![],
         }

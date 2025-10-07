@@ -52,7 +52,7 @@ pub fn run_vertex_oriented(
         None => Cost::ZERO,
         Some(target) => {
             let cost_est = estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
-            Cost::new(cost_est.total_cost.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
+            Cost::new(cost_est.objective_cost.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
         }
     };
     frontier.push(inital_label, origin_cost.into());
@@ -119,7 +119,7 @@ pub fn run_vertex_oriented(
             //     .get(&terminal_label)
             //     .unwrap_or(&Cost::INFINITY)
             //     .to_owned();
-            let tentative_gscore = et.cost.total_cost;
+            let tentative_gscore = et.cost.objective_cost;
             let existing_gscore = traversal_costs
                 .get(&key_label)
                 .unwrap_or(&Cost::INFINITY)
@@ -140,7 +140,7 @@ pub fn run_vertex_oriented(
                             si,
                         )?;
                         Cost::new(
-                            cost_est.total_cost.as_f64()
+                            cost_est.objective_cost.as_f64()
                                 * weight_factor.unwrap_or(Cost::ONE).as_f64(),
                         )
                     }
