@@ -187,10 +187,10 @@ Since we have the `traversal` output plugin activated by default, we can take a 
 def pretty_print(dict):
     print(json.dumps(dict, indent=4))
 
-results = { r["request"]["name"]: r for r in results }
-shortest_time_result = results["least_time"]
-least_energy_result = results["least_energy"]
-least_cost_result = results["least_cost"]
+results_map = { r["request"]["name"]: r for r in results }
+shortest_time_result = results_map["least_time"]
+least_energy_result = results_map["least_energy"]
+least_cost_result = results_map["least_cost"]
 
 
 """
