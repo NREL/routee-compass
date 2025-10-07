@@ -73,7 +73,9 @@ impl FromStr for EnergyUnit {
             "kilowatthours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
             "litersgasoline" => Ok(E::LitersGasolineEquivalent),
             "litersdiesel" => Ok(E::LitersDieselEquivalent),
-            "gallonsgasoline" | "gallonsgasolineequivalent" | "gge" => Ok(E::GallonsGasolineEquivalent),
+            "gallonsgasoline" | "gallonsgasolineequivalent" | "gge" => {
+                Ok(E::GallonsGasolineEquivalent)
+            }
             _ => Err(format!("unknown energy unit '{s}'")),
         }
     }

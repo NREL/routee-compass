@@ -19,7 +19,6 @@
 //! - PHEV
 //!   - uses all of the above
 
-
 /// state feature name for liquid fuel state values for a single graph edge
 pub const EDGE_ENERGY_LIQUID: &str = "edge_energy_liquid";
 /// state feature name for accumulated liquid fuel state values at some graph edge

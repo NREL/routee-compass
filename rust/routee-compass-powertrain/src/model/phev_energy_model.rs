@@ -134,7 +134,11 @@ impl TraversalModel for PhevEnergyModel {
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: true,
-                    output_unit: Some(self.charge_sustain_model.energy_rate_unit.associated_energy_unit()),
+                    output_unit: Some(
+                        self.charge_sustain_model
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
                 },
             ),
             (
@@ -142,7 +146,11 @@ impl TraversalModel for PhevEnergyModel {
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: false,
-                    output_unit: Some(self.charge_sustain_model.energy_rate_unit.associated_energy_unit()),
+                    output_unit: Some(
+                        self.charge_sustain_model
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
                 },
             ),
             (
@@ -150,7 +158,11 @@ impl TraversalModel for PhevEnergyModel {
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: true,
-                    output_unit: Some(self.charge_depleting_model.energy_rate_unit.associated_energy_unit()),
+                    output_unit: Some(
+                        self.charge_depleting_model
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
                 },
             ),
             (
@@ -158,7 +170,11 @@ impl TraversalModel for PhevEnergyModel {
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: false,
-                    output_unit: Some(self.charge_depleting_model.energy_rate_unit.associated_energy_unit()),
+                    output_unit: Some(
+                        self.charge_depleting_model
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
                 },
             ),
             (

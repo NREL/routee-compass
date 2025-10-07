@@ -72,7 +72,11 @@ impl TraversalModel for IceEnergyModel {
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: true,
-                    output_unit: Some(self.prediction_model_record.energy_rate_unit.associated_energy_unit()),
+                    output_unit: Some(
+                        self.prediction_model_record
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
                 },
             ),
             (
@@ -80,7 +84,11 @@ impl TraversalModel for IceEnergyModel {
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: false,
-                    output_unit: Some(self.prediction_model_record.energy_rate_unit.associated_energy_unit()),
+                    output_unit: Some(
+                        self.prediction_model_record
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
                 },
             ),
         ]

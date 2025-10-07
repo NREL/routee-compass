@@ -667,11 +667,11 @@ fn deduplicate(features: &[(String, StateVariableConfig)]) -> HashMap<String, St
                 match (prev.output_unit_name(), next.output_unit_name()) {
                     (Some(prev_unit), Some(next_unit)) => {
                         log::warn!("{}", duplicate_message(name, &prev_unit, &next_unit));
-                    },
+                    }
                     (None, Some(_)) => {
                         *prev = next.clone();
-                    },
-                    _ => { /* NOOP */}
+                    }
+                    _ => { /* NOOP */ }
                 }
             })
             .or_insert(next.clone());
