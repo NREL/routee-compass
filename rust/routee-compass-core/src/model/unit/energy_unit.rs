@@ -69,12 +69,11 @@ impl FromStr for EnergyUnit {
             .replace(" ", "")
             .as_str()
         {
-            "gallonsgasoline" => Ok(E::GallonsDieselEquivalent),
-            "gallonsdiesel" => Ok(E::GallonsDieselEquivalent),
+            "gallonsdiesel" | "gallonsdieselequivalent" | "gde" => Ok(E::GallonsDieselEquivalent),
             "kilowatthours" | "kilowatthour" | "kwh" => Ok(E::KilowattHours),
             "litersgasoline" => Ok(E::LitersGasolineEquivalent),
             "litersdiesel" => Ok(E::LitersDieselEquivalent),
-            "gallonsgasolineequivalent" | "gge" => Ok(E::GallonsGasolineEquivalent),
+            "gallonsgasoline" | "gallonsgasolineequivalent" | "gge" => Ok(E::GallonsGasolineEquivalent),
             _ => Err(format!("unknown energy unit '{s}'")),
         }
     }
