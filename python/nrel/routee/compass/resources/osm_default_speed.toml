@@ -43,10 +43,6 @@ left = 2.5
 sharp_left = 3.5
 u_turn = 9.5
 
-[cost.weights]
-trip_distance = 1
-trip_time = 1
-
 # based on 65.5 cents per mile 2023 IRS mileage rate
 [cost.vehicle_rates.trip_distance]
 type = "distance"

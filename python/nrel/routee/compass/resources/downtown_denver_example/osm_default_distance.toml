@@ -22,8 +22,6 @@ type = "distance"
 factor = 0.655
 unit = "miles"
 
-[cost.weights]
-trip_distance = 1
 
 [plugin]
 input_plugins = [

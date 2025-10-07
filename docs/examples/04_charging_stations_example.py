@@ -38,7 +38,7 @@ query = {
     "destination_x": -104.975360,
     "destination_y": 39.693005,
     "model_name": "2017_CHEVROLET_Bolt",
-    "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy": 0},
+    "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy_electric": 0},
 }
 # %%
 result = app.run(query)
@@ -75,7 +75,7 @@ low_soc_query = {
     "destination_x": -104.975360,
     "destination_y": 39.693005,
     "model_name": "2017_CHEVROLET_Bolt",
-    "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy": 0},
+    "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy_electric": 0},
     "starting_soc_percent": 2,
     "full_soc_percent": 80,
     "valid_power_types": ["DCFC", "L2"],

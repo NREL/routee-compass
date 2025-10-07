@@ -25,11 +25,6 @@ output_plugins = [
     { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
 ]
 
-[cost.weights]
-trip_distance = 1
-trip_time = 1
-trip_energy = 1
-
 [label]
 type = "soc"
 [label.soc_label_config]

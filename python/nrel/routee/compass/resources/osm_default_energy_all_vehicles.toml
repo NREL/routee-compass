@@ -35,21 +35,15 @@ unit = "minutes"
 
 # based on AAA regular unleaded gas prices sampled 12/21/2023
 [cost.vehicle_rates.trip_energy_liquid]
-type = "factor"
+type = "energy"
 factor = 3.120
 unit = "gge"
 
 # based on $0.50/kWh approximation of DCFC charge rates
 [cost.vehicle_rates.trip_energy_electric]
-type = "factor"
+type = "energy"
 factor = 0.50
 unit = "kwh"
-
-[cost.weights]
-trip_distance = 1
-trip_time = 1
-trip_energy_liquid = 1
-trip_energy_electric = 1
 
 # Used for restricting travel after the battery is depleted.
 [search.frontier]

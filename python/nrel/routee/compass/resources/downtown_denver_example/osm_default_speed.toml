@@ -55,10 +55,6 @@ type = "time"
 factor = 0.333336
 unit = "minutes"
 
-[cost.weights]
-trip_distance = 1
-trip_time = 1
-
 [plugin]
 input_plugins = [
     { type = "grid_search" },
