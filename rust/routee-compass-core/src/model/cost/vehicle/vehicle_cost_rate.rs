@@ -68,7 +68,8 @@ impl VehicleCostRate {
         state_model: &StateModel,
     ) -> Result<Cost, CostModelError> {
         let raw = self.get_raw(name, state, state_model)?;
-        let cost = Cost::new(raw * self.get_factor());
+        let cost_factor = self.get_factor();
+        let cost = Cost::new(raw * cost_factor);
         Ok(cost)
     }
 
