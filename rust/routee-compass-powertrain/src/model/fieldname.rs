@@ -11,18 +11,14 @@
 //!
 //! ### model types
 //!
-//! - ICE, BEV
-//!   - uses "trip_energy" and "edge_energy" for energy consumption
+//! - ICE
+//!   - uses "trip_energy_liquid" and "edge_energy_liquid" for energy consumption
 //! - BEV
+//!   - uses "trip_energy_electric" and "edge_energy_electric" for energy consumption
 //!   - adds "trip_soc" for state of charge percentage
 //! - PHEV
-//!   - uses all of the above, and adds "_electric" and "_liquid" suffixes
-//!     for a further breakdown of the energy consumption by type
+//!   - uses all of the above
 
-/// state feature name for all fuel state values for a single graph edge
-pub const EDGE_ENERGY: &str = "edge_energy";
-/// state feature name for all accumulated fuel state values at some graph edge
-pub const TRIP_ENERGY: &str = "trip_energy";
 
 /// state feature name for liquid fuel state values for a single graph edge
 pub const EDGE_ENERGY_LIQUID: &str = "edge_energy_liquid";

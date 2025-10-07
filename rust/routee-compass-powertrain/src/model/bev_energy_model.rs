@@ -9,13 +9,13 @@ use routee_compass_core::{
         network::{Edge, Vertex},
         state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
         traversal::{TraversalModel, TraversalModelError, TraversalModelService},
-        unit::{EnergyRateUnit, EnergyUnit, RatioUnit, TimeUnit},
+        unit::{EnergyRateUnit, EnergyUnit, RatioUnit},
     },
 };
 use serde_json::Value;
 use std::sync::Arc;
 use uom::{
-    si::f64::{Energy, Ratio, Time},
+    si::f64::{Energy, Ratio},
     ConstZero,
 };
 
@@ -118,35 +118,19 @@ impl TraversalModel for BevEnergyModel {
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![
             (
-                String::from(fieldname::TRIP_ENERGY),
+                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: true,
-                    output_unit: Some(EnergyUnit::KilowattHours),
+                    output_unit: Some(self.prediction_model_record.energy_rate_unit.associated_energy_unit()),
                 },
             ),
             (
-                String::from(fieldname::TRIP_TIME),
-                StateVariableConfig::Time {
-                    initial: Time::ZERO,
-                    accumulator: true,
-                    output_unit: Some(TimeUnit::default()),
-                },
-            ),
-            (
-                String::from(fieldname::EDGE_TIME),
-                StateVariableConfig::Time {
-                    initial: Time::ZERO,
-                    accumulator: false,
-                    output_unit: Some(TimeUnit::default()),
-                },
-            ),
-            (
-                String::from(fieldname::EDGE_ENERGY),
+                String::from(fieldname::EDGE_ENERGY_ELECTRIC),
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: false,
-                    output_unit: Some(EnergyUnit::KilowattHours),
+                    output_unit: Some(self.prediction_model_record.energy_rate_unit.associated_energy_unit()),
                 },
             ),
             (
@@ -229,8 +213,8 @@ fn bev_traversal_estimate(
     };
     let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
 
-    state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
-    state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy)?;
+    state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &energy)?;
+    state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &energy)?;
     state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
     Ok(())
 }
@@ -247,8 +231,8 @@ fn bev_traversal(
     // generate energy for link traversal
     let energy = record.predict(state, state_model)?;
 
-    state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
-    state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy)?;
+    state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &energy)?;
+    state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &energy)?;
 
     let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
 
@@ -285,7 +269,7 @@ mod tests {
         bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
 
         let elec = state_model
-            .get_energy(&state, fieldname::TRIP_ENERGY)
+            .get_energy(&state, fieldname::TRIP_ENERGY_ELECTRIC)
             .expect("test invariant failed");
 
         assert!(elec > Energy::ZERO, "elec energy {elec:?} should be > 0.0");
@@ -316,7 +300,7 @@ mod tests {
         bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
 
         let elec = state_model
-            .get_energy(&state, fieldname::TRIP_ENERGY)
+            .get_energy(&state, fieldname::TRIP_ENERGY_ELECTRIC)
             .expect("test invariant failed");
         assert!(
             elec < Energy::ZERO,

@@ -130,27 +130,11 @@ impl TraversalModel for PhevEnergyModel {
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![
             (
-                String::from(fieldname::TRIP_ENERGY),
-                StateVariableConfig::Energy {
-                    initial: Energy::ZERO,
-                    accumulator: true,
-                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
-                },
-            ),
-            (
-                String::from(fieldname::EDGE_ENERGY),
-                StateVariableConfig::Energy {
-                    initial: Energy::ZERO,
-                    accumulator: false,
-                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
-                },
-            ),
-            (
                 String::from(fieldname::TRIP_ENERGY_LIQUID),
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: true,
-                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
+                    output_unit: Some(self.charge_sustain_model.energy_rate_unit.associated_energy_unit()),
                 },
             ),
             (
@@ -158,7 +142,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: false,
-                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
+                    output_unit: Some(self.charge_sustain_model.energy_rate_unit.associated_energy_unit()),
                 },
             ),
             (
@@ -166,7 +150,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: true,
-                    output_unit: Some(EnergyUnit::KilowattHours),
+                    output_unit: Some(self.charge_depleting_model.energy_rate_unit.associated_energy_unit()),
                 },
             ),
             (
@@ -174,7 +158,7 @@ impl TraversalModel for PhevEnergyModel {
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: false,
-                    output_unit: Some(EnergyUnit::KilowattHours),
+                    output_unit: Some(self.charge_depleting_model.energy_rate_unit.associated_energy_unit()),
                 },
             ),
             (
@@ -305,8 +289,6 @@ fn depleting_only_traversal(
 ) -> Result<(), TraversalModelError> {
     state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &est_edge_elec)?;
     state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &est_edge_elec)?;
-    state_model.set_energy(state, fieldname::EDGE_ENERGY, &est_edge_elec)?;
-    state_model.add_energy(state, fieldname::TRIP_ENERGY, &est_edge_elec)?;
     let end_soc = energy_model_ops::update_soc_percent(start_soc, est_edge_elec, battery_capacity)?;
     state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
     Ok(())
@@ -362,10 +344,6 @@ fn mixed_traversal(
 
     state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &remaining_energy)?;
     state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &remaining_energy)?;
-    // update trip energy in GGE from both depleting and sustaining phases
-    let total_energy = edge_start_elec + remaining_energy;
-    state_model.set_energy(state, fieldname::EDGE_ENERGY, &total_energy)?;
-    state_model.add_energy(state, fieldname::TRIP_ENERGY, &total_energy)?;
     Ok(())
 }
 
