@@ -1,9 +1,10 @@
+use itertools::Itertools;
+
 use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, Vertex, VertexId};
 use crate::model::state::{StateModel, StateVariable};
 use crate::model::unit::Cost;
 use crate::model::{cost::CostModelError, network::EdgeId};
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// a mapping for how to transform network state values into a Cost.
@@ -11,8 +12,7 @@ use std::collections::HashMap;
 ///
 /// when multiple mappings are specified they are applied sequentially (in user-defined order)
 /// to the state value.
-#[derive(Serialize, Deserialize, Clone, Default, Debug)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[derive(Clone, Default, Debug)]
 pub enum NetworkCostRate {
     #[default]
     Zero,
@@ -26,6 +26,18 @@ pub enum NetworkCostRate {
 }
 
 impl NetworkCostRate {
+    pub fn rate_type(&self) -> String {
+        match self {
+            NetworkCostRate::Zero => "zero".to_string(),
+            NetworkCostRate::EdgeLookup { .. } => "edge".to_string(),
+            NetworkCostRate::VertexLookup { .. } => "vertex".to_string(),
+            NetworkCostRate::Combined(rates) => {
+                let names = rates.iter().map(|r| r.rate_type()).join(", ");
+                format!("[{names}]")
+            },
+        }
+    }
+
     pub fn traversal_cost(
         &self,
         _prev_state_var: StateVariable,

@@ -1,5 +1,5 @@
 use crate::config::{CompassConfigurationError, ConfigJsonExtensions};
-use crate::model::cost::CostModelConfig;
+use crate::model::cost::{CostModelConfig, CostModelError};
 use crate::model::{
     cost::{network::NetworkCostRate, CostAggregation, CostModel, VehicleCostRate},
     state::StateModel,
@@ -125,14 +125,19 @@ impl CostModelService {
     }
 }
 
-impl From<&CostModelConfig> for CostModelService {
-    fn from(value: &CostModelConfig) -> Self {
-        CostModelService {
+impl TryFrom<&CostModelConfig> for CostModelService {
+    
+    fn try_from(value: &CostModelConfig) -> Result<Self, Self::Error> {
+        let network_rates = value.get_network_rates()?;
+        let service = CostModelService {
             vehicle_rates: Arc::new(value.vehicle_rates.clone().unwrap_or_default()),
-            network_rates: Arc::new(value.network_rates.clone().unwrap_or_default()),
+            network_rates: Arc::new(network_rates),
             weights: Arc::new(value.weights.clone().unwrap_or_default()),
             cost_aggregation: value.cost_aggregation.unwrap_or_default(),
             ignore_unknown_weights: value.ignore_unknown_user_provided_weights.unwrap_or(true),
-        }
+        };
+        Ok(service)
     }
+    
+    type Error = CostModelError;
 }

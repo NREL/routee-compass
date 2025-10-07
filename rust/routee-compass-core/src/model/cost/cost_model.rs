@@ -21,6 +21,7 @@ pub struct CostModel {
     features: IndexMap<String, CostFeature>,
     weights_mapping: Arc<HashMap<String, f64>>,
     vehicle_rate_mapping: Arc<HashMap<String, VehicleCostRate>>,
+    network_rate_mapping: Arc<HashMap<String, NetworkCostRate>>,
     cost_aggregation: CostAggregation,
 }
 
@@ -84,6 +85,7 @@ impl CostModel {
             features,
             weights_mapping,
             vehicle_rate_mapping,
+            network_rate_mapping,
             cost_aggregation,
         })
     }
@@ -145,13 +147,14 @@ impl CostModel {
                 name,
                 self.weights_mapping.clone(),
                 self.vehicle_rate_mapping.clone(),
+                self.network_rate_mapping.clone()
             );
             result.insert(
                 name.clone(),
                 json![{
                     Self::WEIGHT: json![feature.weight],
                     Self::VEHICLE_RATE: json![feature.vehicle_cost_rate],
-                    Self::NETWORK_RATE: json![feature.network_cost_rate],
+                    Self::NETWORK_RATE: json![feature.network_cost_rate.rate_type()],
                     Self::INDEX: json![index],
                     Self::DESCRIPTION: json![desc],
                 }],
