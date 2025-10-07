@@ -52,7 +52,9 @@ pub fn run_vertex_oriented(
         None => Cost::ZERO,
         Some(target) => {
             let cost_est = estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
-            Cost::new(cost_est.objective_cost.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
+            Cost::new(
+                cost_est.objective_cost.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64(),
+            )
         }
     };
     frontier.push(inital_label, origin_cost.into());

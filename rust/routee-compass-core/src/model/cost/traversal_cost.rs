@@ -20,7 +20,7 @@ impl TraversalCost {
     /// inserts a new cost into this traversal.
     /// manages storing a separate notion of objective vs total cost
     /// by only applying the "weight" value to the objective cost.
-    /// 
+    ///
     /// when recording a cost component, if it already exists, we append to the cost value.
     pub fn insert(&mut self, name: &str, cost: Cost, weight: f64) {
         self.total_cost += cost;
