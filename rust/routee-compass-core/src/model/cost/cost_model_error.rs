@@ -1,3 +1,5 @@
+use crate::model::state::StateModelError;
+
 #[derive(thiserror::Error, Debug)]
 pub enum CostModelError {
     #[error("{0}")]
@@ -16,4 +18,9 @@ pub enum CostModelError {
     InvalidWeightNames(Vec<String>, Vec<String>),
     #[error("invalid cost variables, sum of state variable coefficients must be non-zero: {0:?}")]
     InvalidCostVariables(Vec<f64>),
+    #[error("failed to calculate cost due to underlying state model error: {source}")]
+    StateModelError {
+        #[from]
+        source: StateModelError
+    }
 }

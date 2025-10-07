@@ -1,10 +1,10 @@
+use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, Vertex, VertexId};
 use crate::model::state::{StateModel, StateVariable};
 use crate::model::unit::Cost;
 use crate::model::{cost::CostModelError, network::EdgeId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::Arc;
 
 /// a mapping for how to transform network state values into a Cost.
 /// mappings come via lookup functions.
@@ -56,7 +56,8 @@ impl NetworkCostRate {
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
         state: &[StateVariable],
-        state_model: Arc<StateModel>
+        tree: &SearchTree,
+        state_model: &StateModel
     ) -> Result<Cost, CostModelError> {
         match self {
             NetworkCostRate::Zero => Ok(Cost::ZERO),
@@ -73,7 +74,7 @@ impl NetworkCostRate {
             NetworkCostRate::Combined(rates) => {
                 let mapped = rates
                     .iter()
-                    .map(|f| f.network_cost(trajectory, state, state_model.clone()))
+                    .map(|f| f.network_cost(trajectory, state, tree, state_model))
                     .collect::<Result<Vec<Cost>, CostModelError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 

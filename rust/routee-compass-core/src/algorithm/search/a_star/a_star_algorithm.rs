@@ -5,6 +5,7 @@ use crate::algorithm::search::SearchError;
 use crate::algorithm::search::SearchInstance;
 use crate::algorithm::search::SearchResult;
 use crate::algorithm::search::SearchTree;
+use crate::model::cost::TraversalCost;
 use crate::model::label::Label;
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
@@ -51,7 +52,7 @@ pub fn run_vertex_oriented(
         None => Cost::ZERO,
         Some(target) => {
             let cost_est = estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
-            Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
+            Cost::new(cost_est.total_cost.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
         }
     };
     frontier.push(inital_label, origin_cost.into());
@@ -114,11 +115,11 @@ pub fn run_vertex_oriented(
                 &si.state_model,
             )?;
 
-            let current_gscore = traversal_costs
-                .get(&terminal_label)
-                .unwrap_or(&Cost::INFINITY)
-                .to_owned();
-            let tentative_gscore = current_gscore + et.cost;
+            // let current_gscore = traversal_costs
+            //     .get(&terminal_label)
+            //     .unwrap_or(&Cost::INFINITY)
+            //     .to_owned();
+            let tentative_gscore = et.cost.total_cost;
             let existing_gscore = traversal_costs
                 .get(&key_label)
                 .unwrap_or(&Cost::INFINITY)
@@ -138,7 +139,7 @@ pub fn run_vertex_oriented(
                             &solution,
                             si,
                         )?;
-                        Cost::new(cost_est.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
+                        Cost::new(cost_est.total_cost.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
                     }
                 };
                 let f_score_value = tentative_gscore + dst_h_cost;
@@ -197,7 +198,7 @@ pub fn estimate_traversal_cost(
     state: &[StateVariable],
     tree: &SearchTree,
     si: &SearchInstance,
-) -> Result<Cost, SearchError> {
+) -> Result<TraversalCost, SearchError> {
     let src = si.graph.get_vertex(&src)?;
     let dst = si.graph.get_vertex(&dst)?;
     let mut dst_state = state.to_vec();
@@ -208,7 +209,7 @@ pub fn estimate_traversal_cost(
         tree,
         &si.state_model,
     )?;
-    let cost_estimate = si.cost_model.cost_estimate(state, &dst_state)?;
+    let cost_estimate = si.cost_model.estimate_cost(&dst_state, &si.state_model)?;
     Ok(cost_estimate)
 }
 
@@ -341,7 +342,7 @@ mod tests {
             Arc::new(HashMap::from([(String::from("trip_distance"), 1.0)])),
             Arc::new(HashMap::from([(
                 String::from("trip_distance"),
-                VehicleCostRate::Raw,
+                VehicleCostRate::Distance { unit: None, factor: None },
             )])),
             Arc::new(HashMap::new()),
             CostAggregation::Sum,

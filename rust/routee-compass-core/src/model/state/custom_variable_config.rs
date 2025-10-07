@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::{state_model_error::StateModelError, unit_codec_type::UnitCodecType};
+use super::{state_model_error::StateModelError, custom_variable_type::CustomVariableType};
 use crate::model::state::StateVariable;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
@@ -53,15 +53,15 @@ impl CustomVariableConfig {
     pub fn name(&self) -> String {
         match self {
             CustomVariableConfig::FloatingPoint { initial: _ } => {
-                UnitCodecType::FloatingPoint.to_string()
+                CustomVariableType::FloatingPoint.to_string()
             }
             CustomVariableConfig::SignedInteger { initial: _ } => {
-                UnitCodecType::SignedInteger.to_string()
+                CustomVariableType::SignedInteger.to_string()
             }
             CustomVariableConfig::UnsignedInteger { initial: _ } => {
-                UnitCodecType::UnsignedInteger.to_string()
+                CustomVariableType::UnsignedInteger.to_string()
             }
-            CustomVariableConfig::Boolean { initial: _ } => UnitCodecType::Boolean.to_string(),
+            CustomVariableConfig::Boolean { initial: _ } => CustomVariableType::Boolean.to_string(),
         }
     }
 
@@ -78,7 +78,7 @@ impl CustomVariableConfig {
         match self {
             CustomVariableConfig::FloatingPoint { initial: _ } => Ok(StateVariable(*value)),
             _ => Err(StateModelError::EncodeError(
-                UnitCodecType::FloatingPoint.to_string(),
+                CustomVariableType::FloatingPoint.to_string(),
                 self.name(),
             )),
         }
@@ -88,7 +88,7 @@ impl CustomVariableConfig {
         match self {
             CustomVariableConfig::SignedInteger { initial: _ } => Ok(StateVariable(*value as f64)),
             _ => Err(StateModelError::EncodeError(
-                UnitCodecType::SignedInteger.to_string(),
+                CustomVariableType::SignedInteger.to_string(),
                 self.name(),
             )),
         }
@@ -100,7 +100,7 @@ impl CustomVariableConfig {
                 Ok(StateVariable(*value as f64))
             }
             _ => Err(StateModelError::EncodeError(
-                UnitCodecType::UnsignedInteger.to_string(),
+                CustomVariableType::UnsignedInteger.to_string(),
                 self.name(),
             )),
         }
@@ -116,7 +116,7 @@ impl CustomVariableConfig {
                 }
             }
             _ => Err(StateModelError::EncodeError(
-                UnitCodecType::Boolean.to_string(),
+                CustomVariableType::Boolean.to_string(),
                 self.name(),
             )),
         }
@@ -127,7 +127,7 @@ impl CustomVariableConfig {
             CustomVariableConfig::FloatingPoint { initial: _ } => Ok(value.0),
             _ => Err(StateModelError::DecodeError(
                 *value,
-                UnitCodecType::FloatingPoint.to_string(),
+                CustomVariableType::FloatingPoint.to_string(),
                 self.name(),
             )),
         }
@@ -137,7 +137,7 @@ impl CustomVariableConfig {
             CustomVariableConfig::SignedInteger { initial: _ } => Ok(value.0 as i64),
             _ => Err(StateModelError::DecodeError(
                 *value,
-                UnitCodecType::SignedInteger.to_string(),
+                CustomVariableType::SignedInteger.to_string(),
                 self.name(),
             )),
         }
@@ -148,7 +148,7 @@ impl CustomVariableConfig {
                 if value < &StateVariable::ZERO {
                     Err(StateModelError::ValueError(
                         *value,
-                        UnitCodecType::UnsignedInteger.to_string(),
+                        CustomVariableType::UnsignedInteger.to_string(),
                     ))
                 } else {
                     Ok(value.0 as u64)
@@ -156,7 +156,7 @@ impl CustomVariableConfig {
             }
             _ => Err(StateModelError::DecodeError(
                 *value,
-                UnitCodecType::UnsignedInteger.to_string(),
+                CustomVariableType::UnsignedInteger.to_string(),
                 self.name(),
             )),
         }
@@ -173,7 +173,7 @@ impl CustomVariableConfig {
             }
             _ => Err(StateModelError::DecodeError(
                 *value,
-                UnitCodecType::Boolean.to_string(),
+                CustomVariableType::Boolean.to_string(),
                 self.name(),
             )),
         }

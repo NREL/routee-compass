@@ -4,7 +4,6 @@ use geo_types::MultiPoint;
 use geojson::{Feature, FeatureCollection};
 use routee_compass_core::algorithm::search::EdgeTraversal;
 use routee_compass_core::algorithm::search::SearchTree;
-use routee_compass_core::model::cost::CostModel;
 use routee_compass_core::model::map::MapModel;
 use routee_compass_core::model::state::StateModel;
 use routee_compass_core::util::geo::geo_io_utils;
@@ -15,7 +14,6 @@ pub fn create_tree_geojson(
     tree: &SearchTree,
     map_model: Arc<MapModel>,
     state_model: Arc<StateModel>,
-    cost_model: Arc<CostModel>,
 ) -> Result<serde_json::Value, OutputPluginError> {
     let features = tree
         .values()
@@ -33,7 +31,7 @@ pub fn create_tree_geojson(
                     ))
                 })
                 .and_then(|g| {
-                    create_geojson_feature(et, g, state_model.clone(), cost_model.clone())
+                    create_geojson_feature(et, g, state_model.clone())
                 });
 
             Some(row_result)
@@ -53,7 +51,6 @@ pub fn create_route_geojson(
     route: &[EdgeTraversal],
     map_model: Arc<MapModel>,
     state_model: Arc<StateModel>,
-    cost_model: Arc<CostModel>,
 ) -> Result<serde_json::Value, OutputPluginError> {
     let features = route
         .iter()
@@ -67,7 +64,7 @@ pub fn create_route_geojson(
                     ))
                 })?;
             let geojson_feature =
-                create_geojson_feature(t, g, state_model.clone(), cost_model.clone())?;
+                create_geojson_feature(t, g, state_model.clone())?;
             Ok(geojson_feature)
         })
         .collect::<Result<Vec<_>, OutputPluginError>>()?;
@@ -85,7 +82,6 @@ pub fn create_geojson_feature(
     t: &EdgeTraversal,
     g: LineString<f32>,
     state_model: Arc<StateModel>,
-    cost_model: Arc<CostModel>,
 ) -> Result<Feature, OutputPluginError> {
     let serialized_state = state_model
         .serialize_state(&t.result_state, false)
@@ -94,13 +90,7 @@ pub fn create_geojson_feature(
                 "failure serializing final trip state while constructing geojson output: {e}"
             ))
         })?;
-    let serialized_cost = cost_model
-        .serialize_cost(&t.result_state, state_model.clone())
-        .map_err(|e| {
-            OutputPluginError::OutputPluginFailed(format!(
-                "failure serializing cost for geojson feature: {e}"
-            ))
-        })?;
+    let serialized_cost = json![t.cost];
 
     let serialized_traversal = match serde_json::to_value(t).map(|v| v.as_object().cloned()) {
         Ok(Some(obj)) => Ok(json![obj]),
