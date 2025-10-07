@@ -30,9 +30,7 @@ pub fn create_tree_geojson(
                         "failure creating tree GeoJSON: {e}"
                     ))
                 })
-                .and_then(|g| {
-                    create_geojson_feature(et, g, state_model.clone())
-                });
+                .and_then(|g| create_geojson_feature(et, g, state_model.clone()));
 
             Some(row_result)
         })
@@ -63,8 +61,7 @@ pub fn create_route_geojson(
                         "failure building route geojson: {e}"
                     ))
                 })?;
-            let geojson_feature =
-                create_geojson_feature(t, g, state_model.clone())?;
+            let geojson_feature = create_geojson_feature(t, g, state_model.clone())?;
             Ok(geojson_feature)
         })
         .collect::<Result<Vec<_>, OutputPluginError>>()?;

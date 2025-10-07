@@ -350,7 +350,9 @@ pub enum SearchTreeError {
 mod tests {
     use super::*;
     use crate::model::{
-        cost::TraversalCost, network::{EdgeId, EdgeListId, VertexId}, unit::Cost
+        cost::TraversalCost,
+        network::{EdgeId, EdgeListId, VertexId},
+        unit::Cost,
     };
 
     #[test]
@@ -1093,7 +1095,10 @@ mod tests {
         EdgeTraversal {
             edge_id: EdgeId(edge_id),
             edge_list_id: EdgeListId(0),
-            cost: TraversalCost { total_cost: Cost::new(cost), components: HashMap::new() },
+            cost: TraversalCost {
+                total_cost: Cost::new(cost),
+                components: HashMap::new(),
+            },
             result_state: vec![],
         }
     }

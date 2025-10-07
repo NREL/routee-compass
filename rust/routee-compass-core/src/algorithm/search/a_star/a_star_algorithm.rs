@@ -139,7 +139,10 @@ pub fn run_vertex_oriented(
                             &solution,
                             si,
                         )?;
-                        Cost::new(cost_est.total_cost.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64())
+                        Cost::new(
+                            cost_est.total_cost.as_f64()
+                                * weight_factor.unwrap_or(Cost::ONE).as_f64(),
+                        )
                     }
                 };
                 let f_score_value = tentative_gscore + dst_h_cost;
@@ -342,7 +345,10 @@ mod tests {
             Arc::new(HashMap::from([(String::from("trip_distance"), 1.0)])),
             Arc::new(HashMap::from([(
                 String::from("trip_distance"),
-                VehicleCostRate::Distance { unit: None, factor: None },
+                VehicleCostRate::Distance {
+                    unit: None,
+                    factor: None,
+                },
             )])),
             Arc::new(HashMap::new()),
             CostAggregation::Sum,

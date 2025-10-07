@@ -27,7 +27,7 @@ pub enum SearchAlgorithm {
         k: usize,
         /// path search algorithm to use
         underlying: Box<SearchAlgorithm>,
-        /// if provided, filters out potential solution paths based on their 
+        /// if provided, filters out potential solution paths based on their
         /// similarity to the paths in the stored result set
         similarity: Option<RouteSimilarityFunction>,
         /// termination criteria for the inner path search function
@@ -38,7 +38,7 @@ pub enum SearchAlgorithm {
         k: usize,
         /// path search algorithm to use
         underlying: Box<SearchAlgorithm>,
-        /// if provided, filters out potential solution paths based on their 
+        /// if provided, filters out potential solution paths based on their
         /// similarity to the paths in the stored result set
         similarity: Option<RouteSimilarityFunction>,
         /// termination criteria for the inner path search function

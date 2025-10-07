@@ -1,8 +1,10 @@
-use uom::si::f64::*;
 use crate::model::{
-    cost::CostModelError, state::{CustomVariableType, StateModel, StateVariable}, unit::{Cost, DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TemperatureUnit, TimeUnit}
+    cost::CostModelError,
+    state::{CustomVariableType, StateModel, StateVariable},
+    unit::{Cost, DistanceUnit, EnergyUnit, RatioUnit, SpeedUnit, TemperatureUnit, TimeUnit},
 };
 use serde::{Deserialize, Serialize};
+use uom::si::f64::*;
 /// a mapping for how to transform vehicle state values into a Cost.
 /// mappings can be a single instance of Raw, Factor, or Offset mapping.
 ///
@@ -18,37 +20,37 @@ pub enum VehicleCostRate {
     /// use a distance value as a cost, optionally multiplied against a cost factor
     Distance {
         unit: Option<DistanceUnit>,
-        factor: Option<f64>
+        factor: Option<f64>,
     },
     /// use a time value as a cost, optionally multiplied against a cost factor
     Time {
         unit: Option<TimeUnit>,
-        factor: Option<f64>
+        factor: Option<f64>,
     },
     /// use a speed value as a cost, optionally multiplied against a cost factor
     Speed {
         unit: Option<SpeedUnit>,
-        factor: Option<f64>
+        factor: Option<f64>,
     },
     /// use a energy value as a cost, optionally multiplied against a cost factor
     Energy {
         unit: Option<EnergyUnit>,
-        factor: Option<f64>
+        factor: Option<f64>,
     },
     /// use a ratio value as a cost, optionally multiplied against a cost factor
     Ratio {
         unit: Option<RatioUnit>,
-        factor: Option<f64>
+        factor: Option<f64>,
     },
     /// use a temperature value as a cost, optionally multiplied against a cost factor
     Temperature {
         unit: Option<TemperatureUnit>,
-        factor: Option<f64>
+        factor: Option<f64>,
     },
     /// use a custom value as a cost, optionally multiplied against a cost factor
     Custom {
         variable_type: CustomVariableType,
-        factor: Option<f64>
+        factor: Option<f64>,
     },
     // Combined(Vec<VehicleCostRate>),
     // leaving room for extension if we need to do any fancier math, maybe not needed
@@ -57,16 +59,15 @@ pub enum VehicleCostRate {
 }
 
 impl VehicleCostRate {
-
     /// computes the cost for a state variable based on a search state using
     /// this vehicle cost rate configuration.
     pub fn compute_cost(
         &self,
         name: &str,
         state: &[StateVariable],
-        state_model: &StateModel
+        state_model: &StateModel,
     ) -> Result<Cost, CostModelError> {
-        let raw = self.get_raw(name,state, state_model)?;
+        let raw = self.get_raw(name, state, state_model)?;
         let cost = Cost::new(raw * self.get_factor());
         Ok(cost)
     }
@@ -90,7 +91,7 @@ impl VehicleCostRate {
         &self,
         name: &str,
         state: &[StateVariable],
-state_model: &StateModel
+        state_model: &StateModel,
     ) -> Result<f64, CostModelError> {
         match self {
             VehicleCostRate::Zero => Ok(0.0),
@@ -98,59 +99,56 @@ state_model: &StateModel
                 let value: Length = state_model.get_distance(state, name)?;
                 let raw = unit.unwrap_or_default().from_uom(value);
                 Ok(raw)
-            },
-            VehicleCostRate::Time { unit , ..} => {
+            }
+            VehicleCostRate::Time { unit, .. } => {
                 let value: Time = state_model.get_time(state, name)?;
                 let raw = unit.unwrap_or_default().from_uom(value);
                 Ok(raw)
-            },
-            VehicleCostRate::Speed { unit , ..} => {
+            }
+            VehicleCostRate::Speed { unit, .. } => {
                 let value: Velocity = state_model.get_speed(state, name)?;
                 let raw = unit.unwrap_or_default().from_uom(value);
                 Ok(raw)
-            },
-            VehicleCostRate::Energy { unit , ..} => {
+            }
+            VehicleCostRate::Energy { unit, .. } => {
                 let value: Energy = state_model.get_energy(state, name)?;
                 let raw = unit.unwrap_or_default().from_uom(value);
                 Ok(raw)
-            },
-            VehicleCostRate::Ratio { unit , ..} => {
+            }
+            VehicleCostRate::Ratio { unit, .. } => {
                 let value: Ratio = state_model.get_ratio(state, name)?;
                 let raw = unit.unwrap_or_default().from_uom(value);
                 Ok(raw)
-            },
-            VehicleCostRate::Temperature { unit , ..} => {
+            }
+            VehicleCostRate::Temperature { unit, .. } => {
                 let value: ThermodynamicTemperature = state_model.get_temperature(state, name)?;
                 let raw = unit.unwrap_or_default().from_uom(value);
                 Ok(raw)
-            },
-            VehicleCostRate::Custom { variable_type, .. }=> {
-                match variable_type {
-                    CustomVariableType::FloatingPoint => {
-                        let value = state_model.get_custom_f64(state, name)?;
-                        Ok(value)
-                    }
-                    CustomVariableType::SignedInteger => {
-                        let value = state_model.get_custom_i64(state, name)?;
-                        Ok(value as f64)
-                    }
-                    CustomVariableType::UnsignedInteger => {
-                        let value = state_model.get_custom_u64(state, name)?;
-                        Ok(value as f64)
-                    }
-                    CustomVariableType::Boolean => {
-                        let is_one = state_model.get_custom_bool(state, name)?;
-                        if is_one {
-                            Ok(1.0)
-                        } else {
-                            Ok(0.0)
-                        }
+            }
+            VehicleCostRate::Custom { variable_type, .. } => match variable_type {
+                CustomVariableType::FloatingPoint => {
+                    let value = state_model.get_custom_f64(state, name)?;
+                    Ok(value)
+                }
+                CustomVariableType::SignedInteger => {
+                    let value = state_model.get_custom_i64(state, name)?;
+                    Ok(value as f64)
+                }
+                CustomVariableType::UnsignedInteger => {
+                    let value = state_model.get_custom_u64(state, name)?;
+                    Ok(value as f64)
+                }
+                CustomVariableType::Boolean => {
+                    let is_one = state_model.get_custom_bool(state, name)?;
+                    if is_one {
+                        Ok(1.0)
+                    } else {
+                        Ok(0.0)
                     }
                 }
             },
         }
     }
-
 
     /// maps a state variable to a Cost value based on a user-configured mapping.
     ///
@@ -181,8 +179,7 @@ state_model: &StateModel
 
 impl std::fmt::Display for VehicleCostRate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = serde_json::to_string_pretty(self)
-            .unwrap_or_default();
+        let s = serde_json::to_string_pretty(self).unwrap_or_default();
         write!(f, "{}", s)
     }
 }

@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use super::{state_model_error::StateModelError, custom_variable_type::CustomVariableType};
+use super::{custom_variable_type::CustomVariableType, state_model_error::StateModelError};
 use crate::model::state::StateVariable;
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};

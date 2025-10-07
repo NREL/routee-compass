@@ -1,4 +1,7 @@
-use super::{cost_ops, network::NetworkCostRate, CostAggregation, VehicleCostRate, CostFeature, TraversalCost};
+use super::{
+    cost_ops, network::NetworkCostRate, CostAggregation, CostFeature, TraversalCost,
+    VehicleCostRate,
+};
 use crate::algorithm::search::SearchTree;
 use crate::model::cost::CostModelError;
 use crate::model::network::Edge;
@@ -10,7 +13,6 @@ use itertools::Itertools;
 use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
-
 
 /// implementation of a model for calculating Cost from a state transition.
 /// vectorized, where each index in these vectors matches the corresponding index
@@ -32,7 +34,7 @@ impl CostModel {
     ///
     /// # Arguments
     /// * `displayed_costs`      - on serialization, the cost values to calculate. state variable names
-    /// can be called out explicitly here that do not contribute to the total cost. 
+    /// can be called out explicitly here that do not contribute to the total cost.
     /// * `weights`              - user-provided weighting factors for each feature
     /// * `vehicle_rate_mapping` - for each feature name, a vehicle cost rate for that feature
     /// * `network_rate_mapping` - for each feature name, a network cost rate for that feature
@@ -96,8 +98,13 @@ impl CostModel {
     ) -> Result<TraversalCost, CostModelError> {
         let mut result = TraversalCost::default();
         for (name, feature) in self.features.iter() {
-            let v_cost = feature.vehicle_cost_rate.compute_cost(name, state, state_model)?;
-            let n_cost = feature.network_cost_rate.network_cost(trajectory, state, tree, state_model)?;
+            let v_cost = feature
+                .vehicle_cost_rate
+                .compute_cost(name, state, state_model)?;
+            let n_cost =
+                feature
+                    .network_cost_rate
+                    .network_cost(trajectory, state, tree, state_model)?;
             let cost = v_cost + n_cost;
             result.insert(&name, cost);
         }
@@ -112,7 +119,9 @@ impl CostModel {
     ) -> Result<TraversalCost, CostModelError> {
         let mut result = TraversalCost::default();
         for (name, feature) in self.features.iter() {
-            let v_cost = feature.vehicle_cost_rate.compute_cost(name, state, state_model)?;
+            let v_cost = feature
+                .vehicle_cost_rate
+                .compute_cost(name, state, state_model)?;
             result.insert(&name, v_cost);
         }
         Ok(result)

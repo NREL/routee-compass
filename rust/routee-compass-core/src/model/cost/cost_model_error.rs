@@ -21,6 +21,6 @@ pub enum CostModelError {
     #[error("failed to calculate cost due to underlying state model error: {source}")]
     StateModelError {
         #[from]
-        source: StateModelError
-    }
+        source: StateModelError,
+    },
 }

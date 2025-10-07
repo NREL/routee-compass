@@ -57,7 +57,7 @@ impl NetworkCostRate {
         trajectory: (&Vertex, &Edge, &Vertex),
         state: &[StateVariable],
         tree: &SearchTree,
-        state_model: &StateModel
+        state_model: &StateModel,
     ) -> Result<Cost, CostModelError> {
         match self {
             NetworkCostRate::Zero => Ok(Cost::ZERO),
@@ -65,12 +65,12 @@ impl NetworkCostRate {
                 let (_, edge, _) = trajectory;
                 let cost = lookup.get(&edge.edge_id).copied().unwrap_or_default();
                 Ok(cost)
-            },
+            }
             NetworkCostRate::VertexLookup { lookup } => {
                 let (src, _, _) = trajectory;
                 let cost = lookup.get(&src.vertex_id).copied().unwrap_or_default();
                 Ok(cost)
-            },
+            }
             NetworkCostRate::Combined(rates) => {
                 let mapped = rates
                     .iter()
@@ -79,7 +79,7 @@ impl NetworkCostRate {
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
                 Ok(cost)
-            },
+            }
         }
     }
 }

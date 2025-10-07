@@ -1,6 +1,5 @@
 use crate::model::cost::{network::NetworkCostRate, VehicleCostRate};
 
-
 /// configures how cost can be calculated for a state feature.
 #[derive(Clone, Debug)]
 pub struct CostFeature {
@@ -11,16 +10,15 @@ pub struct CostFeature {
 }
 
 impl CostFeature {
-
     /// creates a zero-valued cost feature for a given feature name
     pub fn zero(name: String) -> CostFeature {
-        CostFeature { 
-            name, 
-            weight: f64::default(), 
-            vehicle_cost_rate: VehicleCostRate::default(), 
-            network_cost_rate: NetworkCostRate::default()
+        CostFeature {
+            name,
+            weight: f64::default(),
+            vehicle_cost_rate: VehicleCostRate::default(),
+            network_cost_rate: NetworkCostRate::default(),
         }
-    } 
+    }
 
     /// builds a cost feature instance based on the potential combinations of optional configuration arguments
     pub fn new(

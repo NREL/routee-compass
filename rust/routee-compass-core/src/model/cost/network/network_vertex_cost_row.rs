@@ -1,4 +1,4 @@
-use crate::model::{network::{ VertexId}, unit::Cost};
+use crate::model::{network::VertexId, unit::Cost};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

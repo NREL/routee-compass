@@ -101,11 +101,7 @@ fn construct_route_output(
         .last()
         .ok_or_else(|| String::from("cannot find result route state when route is empty"))?;
     let path_json = output_format
-        .generate_route_output(
-            route,
-            si.map_model.clone(),
-            si.state_model.clone(),
-        )
+        .generate_route_output(route, si.map_model.clone(), si.state_model.clone())
         .map_err(|e| e.to_string())?;
     let traversal_summary = si
         .state_model

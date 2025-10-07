@@ -2,10 +2,7 @@ use super::network_cost_rate::NetworkCostRate;
 use crate::model::cost::network::NetworkVertexCostRow;
 use crate::model::cost::CostModelError;
 use crate::{
-    model::cost::network::{
-        network_edge_cost_row::NetworkEdgeCostRow,
-    },
-    util::fs::read_utils,
+    model::cost::network::network_edge_cost_row::NetworkEdgeCostRow, util::fs::read_utils,
 };
 use kdam::Bar;
 use serde::{Deserialize, Serialize};
