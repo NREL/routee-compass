@@ -2,6 +2,7 @@ use crate::model::{
     state::StateVariable,
     unit::{AsF64, Cost},
 };
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 /// a mapping for how to transform vehicle state values into a Cost.
 /// mappings can be a single instance of Raw, Factor, or Offset mapping.
@@ -12,9 +13,9 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum VehicleCostRate {
     /// no cost
+    #[default]
     Zero,
     /// use a value directly as a cost
-    #[default]
     Raw,
     /// multiply a value by a factor to become a cost
     Factor {
@@ -53,5 +54,21 @@ impl VehicleCostRate {
                 })
             }
         }
+    }
+}
+
+impl std::fmt::Display for VehicleCostRate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            VehicleCostRate::Zero => "zero".to_string(),
+            VehicleCostRate::Raw => "raw value".to_string(),
+            VehicleCostRate::Factor { factor } => format!("factor={factor}"),
+            VehicleCostRate::Offset { offset } => format!("offset={offset}"),
+            VehicleCostRate::Combined(vehicle_cost_rates) => {
+                let inner = vehicle_cost_rates.iter().map(|v| format!("{v}")).join(", ");
+                format!("[{inner}]")
+            },
+        };
+        write!(f, "{}", s)
     }
 }
