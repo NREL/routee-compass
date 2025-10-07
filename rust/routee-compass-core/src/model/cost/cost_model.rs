@@ -132,50 +132,6 @@ impl CostModel {
         Ok(pos_cost)
     }
 
-    /// Calculates the cost of accessing some destination edge when coming
-    /// from some previous edge.
-    ///
-    /// These arguments appear in the network as:
-    /// `() -[prev]-> () -[next]-> ()`
-    /// Where `next` is the edge we want to access.
-    ///
-    /// # Arguments
-    ///
-    /// * `prev_edge` - previous edge
-    /// * `next_edge` - edge we are determining the cost to access
-    /// * `prev_state` - state of the search at the beginning of this edge
-    /// * `next_state` - state of the search at the end of this edge
-    ///
-    /// # Returns
-    ///
-    /// Either an access result or an error.
-    pub fn access_cost(
-        &self,
-        prev_edge: &Edge,
-        next_edge: &Edge,
-        prev_state: &[StateVariable],
-        next_state: &[StateVariable],
-    ) -> Result<Cost, CostModelError> {
-        let vehicle_cost = cost_ops::calculate_vehicle_costs(
-            (prev_state, next_state),
-            &self.feature_indices,
-            &self.weights,
-            &self.vehicle_rates,
-            &self.cost_aggregation,
-        )?;
-        let network_cost = cost_ops::calculate_network_access_costs(
-            (prev_state, next_state),
-            (prev_edge, next_edge),
-            &self.feature_indices,
-            &self.weights,
-            &self.network_rates,
-            &self.cost_aggregation,
-        )?;
-        let total_cost = vehicle_cost + network_cost;
-        let pos_cost = Cost::enforce_strictly_positive(total_cost);
-        Ok(pos_cost)
-    }
-
     /// Calculates a cost estimate for traversing between a source and destination
     /// vertex without actually doing the work of traversing the edges.
     /// This estimate is used in search algorithms such as a-star algorithm, where
