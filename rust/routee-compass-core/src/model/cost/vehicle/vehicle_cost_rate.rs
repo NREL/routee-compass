@@ -149,7 +149,6 @@ impl VehicleCostRate {
             },
         }
     }
-
 }
 
 impl std::fmt::Display for VehicleCostRate {
