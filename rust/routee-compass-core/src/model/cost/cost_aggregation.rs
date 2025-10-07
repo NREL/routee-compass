@@ -20,7 +20,7 @@ impl CostAggregation {
             CostAggregation::Sum => {
                 let mut sum = Cost::ZERO;
                 for (_, cost) in costs.iter() {
-                    sum = sum + *cost;
+                    sum += *cost;
                 }
                 Ok(sum)
             }
