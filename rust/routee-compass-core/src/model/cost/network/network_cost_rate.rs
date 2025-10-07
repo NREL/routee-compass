@@ -1,9 +1,10 @@
-use crate::model::network::Edge;
-use crate::model::state::StateVariable;
+use crate::model::network::{Edge, Vertex, VertexId};
+use crate::model::state::{StateModel, StateVariable};
 use crate::model::unit::Cost;
 use crate::model::{cost::CostModelError, network::EdgeId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 /// a mapping for how to transform network state values into a Cost.
 /// mappings come via lookup functions.
@@ -18,8 +19,8 @@ pub enum NetworkCostRate {
     EdgeLookup {
         lookup: HashMap<EdgeId, Cost>,
     },
-    EdgeEdgeLookup {
-        lookup: HashMap<(EdgeId, EdgeId), Cost>,
+    VertexLookup {
+        lookup: HashMap<VertexId, Cost>,
     },
     Combined(Vec<NetworkCostRate>),
 }
@@ -33,7 +34,7 @@ impl NetworkCostRate {
     ) -> Result<Cost, CostModelError> {
         match self {
             NetworkCostRate::Zero => Ok(Cost::ZERO),
-            NetworkCostRate::EdgeEdgeLookup { lookup: _ } => Ok(Cost::ZERO),
+            NetworkCostRate::VertexLookup { lookup: _ } => Ok(Cost::ZERO),
             NetworkCostRate::EdgeLookup { lookup } => {
                 let cost = lookup.get(&edge.edge_id).unwrap_or(&Cost::ZERO).to_owned();
                 Ok(cost)
@@ -47,6 +48,37 @@ impl NetworkCostRate {
 
                 Ok(cost)
             }
+        }
+    }
+
+    /// computes the cost for accessing this part of the network.
+    pub fn network_cost(
+        &self,
+        trajectory: (&Vertex, &Edge, &Vertex),
+        state: &[StateVariable],
+        state_model: Arc<StateModel>
+    ) -> Result<Cost, CostModelError> {
+        match self {
+            NetworkCostRate::Zero => Ok(Cost::ZERO),
+            NetworkCostRate::EdgeLookup { lookup } => {
+                let (_, edge, _) = trajectory;
+                let cost = lookup.get(&edge.edge_id).copied().unwrap_or_default();
+                Ok(cost)
+            },
+            NetworkCostRate::VertexLookup { lookup } => {
+                let (src, _, _) = trajectory;
+                let cost = lookup.get(&src.vertex_id).copied().unwrap_or_default();
+                Ok(cost)
+            },
+            NetworkCostRate::Combined(rates) => {
+                let mapped = rates
+                    .iter()
+                    .map(|f| f.network_cost(trajectory, state, state_model.clone()))
+                    .collect::<Result<Vec<Cost>, CostModelError>>()?;
+                let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
+
+                Ok(cost)
+            },
         }
     }
 }
