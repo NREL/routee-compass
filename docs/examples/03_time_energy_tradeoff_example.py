@@ -72,7 +72,7 @@ bev_query = {
     "model_name": "2017_CHEVROLET_Bolt",
     "vehicle_rates": {
         "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
-        "trip_time": {"type": "factor", "factor": 0.5, "unit": "hours" },
+        "trip_time": {"type": "factor", "factor": 20.0, "unit": "hours" },
         "trip_energy_electric": {"type": "factor", "factor": 0.12, "unit": "kwh" },
     },
     "grid_search": {
@@ -124,7 +124,7 @@ ice_query = {
     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
     "vehicle_rates": {
         "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
-        "trip_time": {"type": "time", "factor": 0.5, "unit": "hours" },
+        "trip_time": {"type": "time", "factor": 20.0, "unit": "hours" },
         "trip_energy_liquid": {"type": "energy", "factor": 3.0, "unit": "gge" },
     },
     "grid_search": {

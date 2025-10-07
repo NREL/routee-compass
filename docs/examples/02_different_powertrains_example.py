@@ -57,7 +57,7 @@ query = [
         "starting_soc_percent": 100,
         "vehicle_rates": {
             "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
-            "trip_time": {"type": "time", "factor": 0.33, "unit": "hours" },
+            "trip_time": {"type": "time", "factor": 20.0, "unit": "hours" },
         },
         "grid_search": {
             "_models": [
