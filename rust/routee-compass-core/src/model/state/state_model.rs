@@ -31,7 +31,7 @@ type IndexedFeatureIterator<'a> =
 impl StateModel {
     pub fn new(features: Vec<(String, StateVariableConfig)>) -> StateModel {
         let deduped = deduplicate(&features);
-        let map = IndexMap::from_iter(deduped.into_iter());
+        let map = IndexMap::from_iter(deduped);
         StateModel(map)
     }
 
