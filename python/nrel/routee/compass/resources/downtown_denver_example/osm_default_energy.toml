@@ -25,7 +25,8 @@ output_plugins = [
 [cost.weights]
 trip_distance = 1
 trip_time = 1
-trip_energy = 1
+trip_energy_electric = 1
+trip_energy_liquid = 1
 # Used for restricting travel after the battery is depleted.
 [search.frontier]
 type = "battery_frontier"

@@ -23,9 +23,9 @@ cost_aggregation = "sum"
 trip_distance = 0
 trip_time = 1
 [cost.vehicle_rates.trip_time]
-type = "raw"
+type = "time"
 [cost.vehicle_rates.trip_distance]
-type = "raw"
+type = "distance"
 
 [plugin]
 input_plugins = []
