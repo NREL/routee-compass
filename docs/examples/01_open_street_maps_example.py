@@ -187,23 +187,10 @@ Since we have the `traversal` output plugin activated by default, we can take a 
 def pretty_print(dict):
     print(json.dumps(dict, indent=4))
 
-
-shortest_time_result = next(
-    filter(lambda r: r["request"]["name"] == "least_time", results)
-)
-least_energy_result = next(
-    filter(lambda r: r["request"]["name"] == "least_energy", results)
-)
-least_cost_result = next(
-    filter(lambda r: r["request"]["name"] == "least_cost", results)
-)
-
-
-# %%
-
-
-shortest_time_result["route"]["path"]["features"][-1]
-# %%
+results = { r["request"]["name"]: r for r in results }
+shortest_time_result = results["least_time"]
+least_energy_result = results["least_energy"]
+least_cost_result = results["least_cost"]
 
 
 """
