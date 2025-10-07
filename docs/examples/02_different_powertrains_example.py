@@ -70,7 +70,7 @@ query = [
                 {
                     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
                     "vehicle_rates": {
-                        "trip_energy_liquid": {"type": "energy", "factor": 3.1}, "unit": "gge",
+                        "trip_energy_liquid": {"type": "energy", "factor": 3.1, "unit": "gge"},
                     },
                 },
                 {
