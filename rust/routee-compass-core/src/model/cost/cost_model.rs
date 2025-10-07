@@ -107,7 +107,7 @@ impl CostModel {
                 feature
                     .network_cost_rate
                     .network_cost(trajectory, state, tree, state_model)?;
-            let cost = (v_cost + n_cost);
+            let cost = v_cost + n_cost;
             result.insert(name, cost, feature.weight);
         }
         Ok(result)
