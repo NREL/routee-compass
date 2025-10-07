@@ -73,6 +73,31 @@ impl VehicleCostRate {
         Ok(cost)
     }
 
+    pub fn get_unit_name(&self) -> Option<String> {
+        match self {
+            VehicleCostRate::Zero => None,
+            VehicleCostRate::Distance { unit, .. } => {
+                unit.map(|u| u.to_string())
+            },
+            VehicleCostRate::Time { unit, .. } => {
+                unit.map(|u| u.to_string())
+            },
+            VehicleCostRate::Speed { unit, .. } => {
+                unit.map(|u| u.to_string())
+            },
+            VehicleCostRate::Energy { unit, .. } => {
+                unit.map(|u| u.to_string())
+            },
+            VehicleCostRate::Ratio { unit, .. } => {
+                unit.map(|u| u.to_string())
+            },
+            VehicleCostRate::Temperature { unit, .. } => {
+                unit.map(|u| u.to_string())
+            },
+            VehicleCostRate::Custom { variable_type, .. } => Some(variable_type.to_string()),
+        }
+    }
+
     /// helper function to get the multiplicitive factor for a given [`VehicleCostRate`].
     pub fn get_factor(&self) -> f64 {
         match self {
@@ -154,7 +179,22 @@ impl VehicleCostRate {
 
 impl std::fmt::Display for VehicleCostRate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = serde_json::to_string_pretty(self).unwrap_or_default();
+        let factor= match self {
+            VehicleCostRate::Zero => &None,
+            VehicleCostRate::Distance { factor, .. } => factor,
+            VehicleCostRate::Time { factor, .. } => factor,
+            VehicleCostRate::Speed { factor, .. } => factor,
+            VehicleCostRate::Energy { factor, .. } => factor,
+            VehicleCostRate::Ratio { factor, .. } => factor,
+            VehicleCostRate::Temperature { factor, .. } => factor,
+            VehicleCostRate::Custom { factor, .. } => factor,
+        };
+        let s = match (factor, self.get_unit_name()) {
+            (None, None) => String::from("zeroed"),
+            (None, Some(unit)) => format!("cost per {unit}"),
+            (Some(factor), None) => format!("cost times {factor}"),
+            (Some(factor), Some(unit)) => format!("cost times {factor} per {unit}"),
+        };
         write!(f, "{}", s)
     }
 }
