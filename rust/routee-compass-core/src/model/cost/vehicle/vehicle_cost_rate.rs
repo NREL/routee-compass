@@ -150,31 +150,6 @@ impl VehicleCostRate {
         }
     }
 
-    /// maps a state variable to a Cost value based on a user-configured mapping.
-    ///
-    /// # Arguments
-    ///
-    /// * `state` - the state variable to map to a Cost value
-    ///
-    /// # Result
-    ///
-    /// the Cost value for that state, a real number that is aggregated with
-    /// other Cost values in a common unit space.
-    #[deprecated = "use compute_cost instead"]
-    pub fn map_value(&self, _state: StateVariable) -> Option<Cost> {
-        todo!()
-        // match self {
-        //     VehicleCostRate::Zero => None,
-        //     VehicleCostRate::Raw => Some(Cost::new(state.0)),
-        //     VehicleCostRate::Factor { factor } => Some(Cost::new(state.0 * factor)),
-        //     VehicleCostRate::Offset { offset } => Some(Cost::new(state.0 + offset)),
-        //     VehicleCostRate::Combined(mappings) => {
-        //         mappings.iter().try_fold(Cost::new(state.0), |acc, f| {
-        //             f.map_value(StateVariable(acc.as_f64()))
-        //         })
-        //     }
-        // }
-    }
 }
 
 impl std::fmt::Display for VehicleCostRate {
