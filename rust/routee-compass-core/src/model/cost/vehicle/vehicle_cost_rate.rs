@@ -17,35 +17,36 @@ pub enum VehicleCostRate {
     /// on the cost of traversal.
     #[default]
     Zero,
+    Raw,
     /// use a distance value as a cost, optionally multiplied against a cost factor
     Distance {
-        unit: Option<DistanceUnit>,
-        factor: Option<f64>,
+        factor: f64,
+        unit: DistanceUnit,
     },
     /// use a time value as a cost, optionally multiplied against a cost factor
     Time {
-        unit: Option<TimeUnit>,
-        factor: Option<f64>,
+        factor: f64,
+        unit: TimeUnit,
     },
     /// use a speed value as a cost, optionally multiplied against a cost factor
     Speed {
-        unit: Option<SpeedUnit>,
-        factor: Option<f64>,
+        factor: f64,
+        unit: SpeedUnit,
     },
     /// use a energy value as a cost, optionally multiplied against a cost factor
     Energy {
-        unit: Option<EnergyUnit>,
-        factor: Option<f64>,
+        factor: f64,
+        unit: EnergyUnit,
     },
     /// use a ratio value as a cost, optionally multiplied against a cost factor
     Ratio {
-        unit: Option<RatioUnit>,
-        factor: Option<f64>,
+        factor: f64,
+        unit: RatioUnit,
     },
     /// use a temperature value as a cost, optionally multiplied against a cost factor
     Temperature {
-        unit: Option<TemperatureUnit>,
-        factor: Option<f64>,
+        factor: f64,
+        unit: TemperatureUnit,
     },
     /// use a custom value as a cost, optionally multiplied against a cost factor
     Custom {
@@ -76,12 +77,13 @@ impl VehicleCostRate {
     pub fn get_unit_name(&self) -> Option<String> {
         match self {
             VehicleCostRate::Zero => None,
-            VehicleCostRate::Distance { unit, .. } => unit.map(|u| u.to_string()),
-            VehicleCostRate::Time { unit, .. } => unit.map(|u| u.to_string()),
-            VehicleCostRate::Speed { unit, .. } => unit.map(|u| u.to_string()),
-            VehicleCostRate::Energy { unit, .. } => unit.map(|u| u.to_string()),
-            VehicleCostRate::Ratio { unit, .. } => unit.map(|u| u.to_string()),
-            VehicleCostRate::Temperature { unit, .. } => unit.map(|u| u.to_string()),
+            VehicleCostRate::Raw => None,
+            VehicleCostRate::Distance { unit, .. } => Some(unit.to_string()),
+            VehicleCostRate::Time { unit, .. } => Some(unit.to_string()),
+            VehicleCostRate::Speed { unit, .. } => Some(unit.to_string()),
+            VehicleCostRate::Energy { unit, .. } => Some(unit.to_string()),
+            VehicleCostRate::Ratio { unit, .. } => Some(unit.to_string()),
+            VehicleCostRate::Temperature { unit, .. } => Some(unit.to_string()),
             VehicleCostRate::Custom { variable_type, .. } => Some(variable_type.to_string()),
         }
     }
@@ -90,12 +92,13 @@ impl VehicleCostRate {
     pub fn get_factor(&self) -> f64 {
         match self {
             VehicleCostRate::Zero => 0.0,
-            VehicleCostRate::Distance { factor, .. } => factor.unwrap_or(1.0),
-            VehicleCostRate::Time { factor, .. } => factor.unwrap_or(1.0),
-            VehicleCostRate::Speed { factor, .. } => factor.unwrap_or(1.0),
-            VehicleCostRate::Energy { factor, .. } => factor.unwrap_or(1.0),
-            VehicleCostRate::Ratio { factor, .. } => factor.unwrap_or(1.0),
-            VehicleCostRate::Temperature { factor, .. } => factor.unwrap_or(1.0),
+            VehicleCostRate::Raw => 1.0,
+            VehicleCostRate::Distance { factor, .. } => *factor,
+            VehicleCostRate::Time { factor, .. } => *factor,
+            VehicleCostRate::Speed { factor, .. } => *factor,
+            VehicleCostRate::Energy { factor, .. } => *factor,
+            VehicleCostRate::Ratio { factor, .. } => *factor,
+            VehicleCostRate::Temperature { factor, .. } => *factor,
             VehicleCostRate::Custom { factor, .. } => factor.unwrap_or(1.0),
         }
     }
@@ -109,34 +112,38 @@ impl VehicleCostRate {
     ) -> Result<f64, CostModelError> {
         match self {
             VehicleCostRate::Zero => Ok(0.0),
+            VehicleCostRate::Raw => {
+                let raw = state_model.get_raw_state_variable(state, name)?;
+                Ok(raw.0)
+            }
             VehicleCostRate::Distance { unit, .. } => {
                 let value: Length = state_model.get_distance(state, name)?;
-                let raw = unit.unwrap_or_default().from_uom(value);
+                let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Time { unit, .. } => {
                 let value: Time = state_model.get_time(state, name)?;
-                let raw = unit.unwrap_or_default().from_uom(value);
+                let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Speed { unit, .. } => {
                 let value: Velocity = state_model.get_speed(state, name)?;
-                let raw = unit.unwrap_or_default().from_uom(value);
+                let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Energy { unit, .. } => {
                 let value: Energy = state_model.get_energy(state, name)?;
-                let raw = unit.unwrap_or_default().from_uom(value);
+                let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Ratio { unit, .. } => {
                 let value: Ratio = state_model.get_ratio(state, name)?;
-                let raw = unit.unwrap_or_default().from_uom(value);
+                let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Temperature { unit, .. } => {
                 let value: ThermodynamicTemperature = state_model.get_temperature(state, name)?;
-                let raw = unit.unwrap_or_default().from_uom(value);
+                let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Custom { variable_type, .. } => match variable_type {
@@ -168,14 +175,15 @@ impl VehicleCostRate {
 impl std::fmt::Display for VehicleCostRate {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let factor = match self {
-            VehicleCostRate::Zero => &None,
-            VehicleCostRate::Distance { factor, .. } => factor,
-            VehicleCostRate::Time { factor, .. } => factor,
-            VehicleCostRate::Speed { factor, .. } => factor,
-            VehicleCostRate::Energy { factor, .. } => factor,
-            VehicleCostRate::Ratio { factor, .. } => factor,
-            VehicleCostRate::Temperature { factor, .. } => factor,
-            VehicleCostRate::Custom { factor, .. } => factor,
+            VehicleCostRate::Zero => None,
+            VehicleCostRate::Raw => None,
+            VehicleCostRate::Distance { factor, .. } => Some(*factor),
+            VehicleCostRate::Time { factor, .. } => Some(*factor),
+            VehicleCostRate::Speed { factor, .. } => Some(*factor),
+            VehicleCostRate::Energy { factor, .. } => Some(*factor),
+            VehicleCostRate::Ratio { factor, .. } => Some(*factor),
+            VehicleCostRate::Temperature { factor, .. } => Some(*factor),
+            VehicleCostRate::Custom { factor, .. } => factor.to_owned(),
         };
         let s = match (factor, self.get_unit_name()) {
             (None, None) => String::from("zeroed"),

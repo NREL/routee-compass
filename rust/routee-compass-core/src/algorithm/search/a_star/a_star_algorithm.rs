@@ -347,10 +347,7 @@ mod tests {
             Arc::new(HashMap::from([(String::from("trip_distance"), 1.0)])),
             Arc::new(HashMap::from([(
                 String::from("trip_distance"),
-                VehicleCostRate::Distance {
-                    unit: None,
-                    factor: None,
-                },
+                VehicleCostRate::Raw,
             )])),
             Arc::new(HashMap::new()),
             CostAggregation::Sum,
