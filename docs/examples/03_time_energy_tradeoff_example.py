@@ -35,17 +35,18 @@ energy_weights = np.linspace(0, 1, 100)
 energy_weights = energy_weights ** (1 / 4)
 time_weights = 1 - energy_weights
 
-test_cases = [
-    {
-        "name": f"energy_{i}",
-        "weights": {
-            "trip_distance": 0,
-            "trip_time": time_weights[i],
-            "trip_energy_electric": energy_weights[i],
-        },
-    }
-    for i in range(len(energy_weights))
-]
+def get_test_cases(energy_key: str):
+    return  [
+        {
+            "name": f"energy_{i}",
+            "weights": {
+                "trip_distance": 0,
+                "trip_time": time_weights[i],
+                energy_key: energy_weights[i],
+            },
+        }
+        for i in range(len(energy_weights))
+    ]
 
 """
 Let's take a quick look at the weights we've generated.
@@ -76,7 +77,7 @@ bev_query = {
         "trip_energy_electric": {"type": "energy", "factor": 0.12, "unit": "kwh" },
     },
     "grid_search": {
-        "test_cases": test_cases,
+        "test_cases": get_test_cases("trip_energy_electric"),
     },
 }
 
@@ -128,7 +129,7 @@ ice_query = {
         "trip_energy_liquid": {"type": "energy", "factor": 3.0, "unit": "gge" },
     },
     "grid_search": {
-        "test_cases": test_cases,
+        "test_cases": get_test_cases("trip_energy_liquid"),
     },
 }
 
