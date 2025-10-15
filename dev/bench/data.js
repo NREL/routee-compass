@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1760553016477,
+  "lastUpdate": 1760561738585,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -809,6 +809,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2908824,
             "range": "± 145126",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Nicholas.Reinicke@nrel.gov",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "Nicholas.Reinicke@nrel.gov",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "distinct": true,
+          "id": "c88ac491e299774b4375502bc68623e4a5a93f2e",
+          "message": "attempt to install rasterio with conda for docs",
+          "timestamp": "2025-10-15T14:53:18-06:00",
+          "tree_id": "f8e00c82c3cebe98247c62a9fa5a6bce18acbb65",
+          "url": "https://github.com/NREL/routee-compass/commit/c88ac491e299774b4375502bc68623e4a5a93f2e"
+        },
+        "date": 1760561737567,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2933697,
+            "range": "± 237979",
             "unit": "ns/iter"
           }
         ]
