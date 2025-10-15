@@ -124,8 +124,6 @@ class TestDowntownDenverExample(TestCase):
             / "osm_default_energy.toml"
         )
 
-        energy_key = "trip_energy"
-
         base_query = {
             "origin_name": "NREL",
             "destination_name": "Comrade Brewing Company",
@@ -136,9 +134,9 @@ class TestDowntownDenverExample(TestCase):
             "starting_soc_percent": 100,
             "model_name": "2017_CHEVROLET_Bolt",
             "vehicle_rates": {
-                "trip_distance": {"type": "factor", "factor": 0.655},
-                "trip_time": {"type": "factor", "factor": 0.5},
-                "trip_energy": {"type": "factor", "factor": 0.12},
+                "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
+                "trip_time": {"type": "time", "factor": 0.5, "unit": "minutes" },
+                "trip_energy_electric": {"type": "energy", "factor": 0.12, "unit": "kwh"},
             },
         }
 
@@ -146,21 +144,21 @@ class TestDowntownDenverExample(TestCase):
         t_opt_query["weights"] = {
             "trip_distance": 0,
             "trip_time": 1,
-            energy_key: 0,
+            "trip_energy_electric": 0,
         }
 
         e_opt_query = dict(base_query)
         e_opt_query["weights"] = {
             "trip_distance": 0,
             "trip_time": 0,
-            energy_key: 1,
+            "trip_energy_electric": 1,
         }
 
         c_opt_query = dict(base_query)
         c_opt_query["weights"] = {
             "trip_distance": 1,
             "trip_time": 1,
-            energy_key: 1,
+            "trip_energy_electric": 1,
         }
 
         t_opt_result = app.run(t_opt_query)
@@ -194,11 +192,11 @@ class TestDowntownDenverExample(TestCase):
         )
 
         t_opt_time = t_opt_result["route"]["traversal_summary"]["trip_time"]
-        t_opt_energy = t_opt_result["route"]["traversal_summary"][energy_key]
+        t_opt_energy = t_opt_result["route"]["traversal_summary"]["trip_energy_electric"]
         t_opt_cost = t_opt_result["route"]["cost"]["total_cost"]
 
         e_opt_time = e_opt_result["route"]["traversal_summary"]["trip_time"]
-        e_opt_energy = e_opt_result["route"]["traversal_summary"][energy_key]
+        e_opt_energy = e_opt_result["route"]["traversal_summary"]["trip_energy_electric"]
         e_opt_cost = e_opt_result["route"]["cost"]["total_cost"]
 
         c_opt_cost = c_opt_result["route"]["cost"]["total_cost"]
@@ -239,7 +237,7 @@ class TestDowntownDenverExample(TestCase):
         for i in range(steps):
             p = i / (steps - 1)  # From 0 to 1
             query = dict(base_query)
-            query["weights"] = {"trip_distance": 0, "trip_time": p, energy_key: 1 - p}
+            query["weights"] = {"trip_distance": 0, "trip_time": p, "trip_energy_electric": 1 - p}
             result = app.run(query)
             if not isinstance(result, dict):
                 self.fail(
@@ -255,7 +253,7 @@ class TestDowntownDenverExample(TestCase):
                 {
                     "p": p,
                     "time": result["route"]["traversal_summary"]["trip_time"],
-                    "energy": result["route"]["traversal_summary"][energy_key],
+                    "energy": result["route"]["traversal_summary"]["trip_energy_electric"],
                 }
             )
 

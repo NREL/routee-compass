@@ -1,5 +1,5 @@
 use allocative::Allocative;
-use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
+use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign, Sum};
 use ordered_float::OrderedFloat;
 use serde::{Deserialize, Serialize};
 use std::ops::{Deref, DerefMut};
@@ -14,9 +14,13 @@ use std::ops::{Deref, DerefMut};
     Debug,
     Default,
     Add,
+    AddAssign,
     Sub,
+    SubAssign,
     Mul,
+    MulAssign,
     Div,
+    DivAssign,
     Sum,
     Neg,
     PartialEq,

@@ -7,6 +7,7 @@ use super::search_error::SearchError;
 use super::util::RouteSimilarityFunction;
 use super::SearchInstance;
 use super::{a_star, direction::Direction};
+use crate::model::cost::TraversalCost;
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
 use crate::model::unit::Cost;
@@ -18,18 +19,29 @@ pub enum SearchAlgorithm {
     Dijkstra,
     #[serde(rename = "a*")]
     AStarAlgorithm {
+        /// modifier applied as a factor to all cost values
         weight_factor: Option<Cost>,
     },
     KspSingleVia {
+        /// number of alternative paths to attempt
         k: usize,
+        /// path search algorithm to use
         underlying: Box<SearchAlgorithm>,
+        /// if provided, filters out potential solution paths based on their
+        /// similarity to the paths in the stored result set
         similarity: Option<RouteSimilarityFunction>,
+        /// termination criteria for the inner path search function
         termination: Option<KspTerminationCriteria>,
     },
     Yens {
+        /// number of alternative paths to attempt
         k: usize,
+        /// path search algorithm to use
         underlying: Box<SearchAlgorithm>,
+        /// if provided, filters out potential solution paths based on their
+        /// similarity to the paths in the stored result set
         similarity: Option<RouteSimilarityFunction>,
+        /// termination criteria for the inner path search function
         termination: Option<KspTerminationCriteria>,
     },
 }
@@ -178,7 +190,7 @@ pub fn run_edge_oriented(
     let src_et = EdgeTraversal {
         edge_list_id: source.0,
         edge_id: source.1,
-        cost: Cost::ZERO,
+        cost: TraversalCost::default(),
         result_state: si.state_model.initial_state(None)?,
     };
 
@@ -240,7 +252,7 @@ pub fn run_edge_oriented(
                 let dst_et = EdgeTraversal {
                     edge_list_id: target_edge.0,
                     edge_id: target_edge.1,
-                    cost: Cost::ZERO,
+                    cost: TraversalCost::default(),
                     result_state: final_state.result_state.to_vec(),
                 };
                 route.insert(0, src_et.clone());

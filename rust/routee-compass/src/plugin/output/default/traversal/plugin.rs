@@ -76,7 +76,6 @@ impl OutputPlugin for TraversalPlugin {
                         tree,
                         si.map_model.clone(),
                         si.state_model.clone(),
-                        si.cost_model.clone(),
                     )
                 })
                 .collect::<Result<Vec<_>, _>>()?;
@@ -102,12 +101,7 @@ fn construct_route_output(
         .last()
         .ok_or_else(|| String::from("cannot find result route state when route is empty"))?;
     let path_json = output_format
-        .generate_route_output(
-            route,
-            si.map_model.clone(),
-            si.state_model.clone(),
-            si.cost_model.clone(),
-        )
+        .generate_route_output(route, si.map_model.clone(), si.state_model.clone())
         .map_err(|e| e.to_string())?;
     let traversal_summary = si
         .state_model
@@ -119,10 +113,7 @@ fn construct_route_output(
     log::debug!("result state: {:?}", last_edge.result_state);
 
     let state_model = si.state_model.serialize_state_model();
-    let cost = si
-        .cost_model
-        .serialize_cost(&last_edge.result_state, si.state_model.clone())
-        .map_err(|e| e.to_string())?;
+    let cost = json![last_edge.cost];
     let cost_model = si
         .cost_model
         .serialize_cost_info()

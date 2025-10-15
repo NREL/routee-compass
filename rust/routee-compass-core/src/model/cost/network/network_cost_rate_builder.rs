@@ -1,23 +1,20 @@
 use super::network_cost_rate::NetworkCostRate;
+use crate::model::cost::network::NetworkVertexCostRow;
 use crate::model::cost::CostModelError;
 use crate::{
-    model::cost::network::{
-        network_access_cost_row::NetworkAccessUtilityRow,
-        network_traversal_cost_row::NetworkTraversalUtilityRow,
-    },
-    util::fs::read_utils,
+    model::cost::network::network_edge_cost_row::NetworkEdgeCostRow, util::fs::read_utils,
 };
 use kdam::Bar;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
 pub enum NetworkCostRateBuilder {
-    #[serde(rename = "traversal_lookup")]
+    #[serde(rename = "edge_id")]
     EdgeLookupBuilder { cost_input_file: String },
-    #[serde(rename = "access_lookup")]
-    EdgeEdgeLookupBuilder { cost_input_file: String },
+    #[serde(rename = "vertex_id")]
+    VertexLookupBuilder { cost_input_file: String },
     #[serde(rename = "combined")]
     Combined(Vec<NetworkCostRateBuilder>),
 }
@@ -28,7 +25,7 @@ impl NetworkCostRateBuilder {
         use NetworkCostRateBuilder as Builder;
         match self {
             Builder::EdgeLookupBuilder { cost_input_file } => {
-                let lookup = read_utils::from_csv::<NetworkTraversalUtilityRow>(
+                let lookup = read_utils::from_csv::<NetworkEdgeCostRow>(
                     cost_input_file,
                     true,
                     Some(Bar::builder().desc("network edge cost lookup")),
@@ -44,8 +41,8 @@ impl NetworkCostRateBuilder {
                 .collect::<HashMap<_, _>>();
                 Ok(NCM::EdgeLookup { lookup })
             }
-            Builder::EdgeEdgeLookupBuilder { cost_input_file } => {
-                let lookup = read_utils::from_csv::<NetworkAccessUtilityRow>(
+            Builder::VertexLookupBuilder { cost_input_file } => {
+                let lookup = read_utils::from_csv::<NetworkVertexCostRow>(
                     cost_input_file,
                     true,
                     Some(Bar::builder().desc("network edge->edge cost lookup")),
@@ -57,10 +54,10 @@ impl NetworkCostRateBuilder {
                     ))
                 })?
                 .iter()
-                .map(|row| ((row.source, row.destination), row.cost))
+                .map(|row| (row.vertex_id, row.cost))
                 .collect::<HashMap<_, _>>();
 
-                Ok(NCM::EdgeEdgeLookup { lookup })
+                Ok(NCM::VertexLookup { lookup })
             }
             Builder::Combined(builders) => {
                 let mappings = builders

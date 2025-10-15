@@ -56,45 +56,83 @@ query = [
         "destination_y": 39.693005,
         "starting_soc_percent": 100,
         "vehicle_rates": {
-            "trip_distance": {"type": "factor", "factor": 0.655},
-            "trip_time": {"type": "factor", "factor": 0.33},
+            "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
+            "trip_time": {"type": "time", "factor": 20.0, "unit": "hours" },
         },
         "grid_search": {
-            "_models": [
+            "_test_cases": [
                 {
                     "model_name": "2017_CHEVROLET_Bolt",
                     "vehicle_rates": {
-                        "trip_energy_electric": {"type": "factor", "factor": 0.5}
+                        "trip_energy_electric": {"type": "energy", "factor": 0.5, "unit": "kwh"}
+                    },
+                    "name": "least_time",
+                    "weights": {
+                        "trip_distance": 0,
+                        "trip_time": 1,
+                        "trip_energy_electric": 0,
                     },
                 },
                 {
                     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
                     "vehicle_rates": {
-                        "trip_energy_liquid": {"type": "factor", "factor": 3.1},
+                        "trip_energy_liquid": {"type": "energy", "factor": 3.1, "unit": "gge"},
+                    },
+                    "name": "least_time",
+                    "weights": {
+                        "trip_distance": 0,
+                        "trip_time": 1,
+                        "trip_energy_liquid": 0,
                     },
                 },
                 {
                     "model_name": "2016_CHEVROLET_Volt",
                     "vehicle_rates": {
-                        "trip_energy_electric": {"type": "factor", "factor": 0.5}
+                        "trip_energy_electric": {"type": "energy", "factor": 0.5, "unit": "kwh"}
                     },
-                },
-            ],
-            "test_cases": [
-                {
                     "name": "least_time",
                     "weights": {
                         "trip_distance": 0,
                         "trip_time": 1,
-                        "trip_energy": 0,
+                        "trip_energy_liquid": 0,
+                        "trip_energy_electric": 0,
                     },
                 },
                 {
+                    "model_name": "2017_CHEVROLET_Bolt",
+                    "vehicle_rates": {
+                        "trip_energy_electric": {"type": "energy", "factor": 0.5, "unit": "kwh"}
+                    },
                     "name": "least_energy",
                     "weights": {
                         "trip_distance": 0,
                         "trip_time": 0,
-                        "trip_energy": 1,
+                        "trip_energy_electric": 1,
+                    },
+                },
+                {
+                    "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
+                    "vehicle_rates": {
+                        "trip_energy_liquid": {"type": "energy", "factor": 3.1, "unit": "gge"},
+                    },
+                    "name": "least_energy",
+                    "weights": {
+                        "trip_distance": 0,
+                        "trip_time": 0,
+                        "trip_energy_liquid": 1,
+                    },
+                },
+                {
+                    "model_name": "2016_CHEVROLET_Volt",
+                    "vehicle_rates": {
+                        "trip_energy_electric": {"type": "energy", "factor": 0.5, "unit": "kwh"}
+                    },
+                    "name": "least_energy",
+                    "weights": {
+                        "trip_distance": 0,
+                        "trip_time": 0,
+                        "trip_energy_liquid": 1,
+                        "trip_energy_electric": 1,
                     },
                 },
             ],
@@ -138,7 +176,7 @@ We'll use gge as our unit and convert the electrical energy using a factor of 33
 # %%
 
 bolt_rows = gdf["request.model_name"] == "2017_CHEVROLET_Bolt"
-bolt_energy = gdf.loc[bolt_rows, "route.traversal_summary.trip_energy"]
+bolt_energy = gdf.loc[bolt_rows, "route.traversal_summary.trip_energy_electric"]
 gdf.loc[bolt_rows, "gge"] = bolt_energy * (1 / 33.694)
 
 volt_rows = gdf["request.model_name"] == "2016_CHEVROLET_Volt"
@@ -155,7 +193,7 @@ gdf.loc[volt_rows, "gge"] = volt_elec * (1 / 33.694) + volt_liq
 camry_rows = gdf["request.model_name"] == "2016_TOYOTA_Camry_4cyl_2WD"
 camry_energy = gdf.loc[
     camry_rows,
-    "route.traversal_summary.trip_energy",
+    "route.traversal_summary.trip_energy_liquid",
 ]
 gdf.loc[camry_rows, "gge"] = camry_energy
 

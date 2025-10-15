@@ -68,19 +68,27 @@ impl TraversalModel for IceEnergyModel {
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
         vec![
             (
-                String::from(fieldname::TRIP_ENERGY),
+                String::from(fieldname::TRIP_ENERGY_LIQUID),
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: true,
-                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
+                    output_unit: Some(
+                        self.prediction_model_record
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
                 },
             ),
             (
-                String::from(fieldname::EDGE_ENERGY),
+                String::from(fieldname::EDGE_ENERGY_LIQUID),
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
                     accumulator: false,
-                    output_unit: Some(EnergyUnit::GallonsGasolineEquivalent),
+                    output_unit: Some(
+                        self.prediction_model_record
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
                 },
             ),
         ]
@@ -149,7 +157,7 @@ fn ice_traversal(
         record.predict(state, state_model)?
     };
 
-    state_model.add_energy(state, fieldname::TRIP_ENERGY, &energy)?;
-    state_model.set_energy(state, fieldname::EDGE_ENERGY, &energy)?;
+    state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy)?;
+    state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy)?;
     Ok(())
 }

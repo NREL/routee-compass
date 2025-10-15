@@ -103,9 +103,9 @@ query = [
         "destination_y": 39.693005,
         "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
         "vehicle_rates": {
-            "trip_distance": {"type": "factor", "factor": 0.655},
-            "trip_time": {"type": "factor", "factor": 0.33},
-            "trip_energy": {"type": "factor", "factor": 3.0},
+            "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
+            "trip_time": {"type": "time", "factor": 20.0, "unit": "hours" },
+            "trip_energy_liquid": {"type": "energy", "factor": 3.0, "unit": "gge" },
         },
         "grid_search": {
             "test_cases": [
@@ -114,7 +114,7 @@ query = [
                     "weights": {
                         "trip_distance": 0,
                         "trip_time": 1,
-                        "trip_energy": 0,
+                        "trip_energy_liquid": 0,
                     },
                 },
                 {
@@ -122,7 +122,7 @@ query = [
                     "weights": {
                         "trip_distance": 0,
                         "trip_time": 0,
-                        "trip_energy": 1,
+                        "trip_energy_liquid": 1,
                     },
                 },
                 {
@@ -130,7 +130,7 @@ query = [
                     "weights": {
                         "trip_distance": 1,
                         "trip_time": 1,
-                        "trip_energy": 1,
+                        "trip_energy_liquid": 1,
                     },
                 },
             ]
@@ -186,23 +186,10 @@ Since we have the `traversal` output plugin activated by default, we can take a 
 def pretty_print(dict):
     print(json.dumps(dict, indent=4))
 
-
-shortest_time_result = next(
-    filter(lambda r: r["request"]["name"] == "least_time", results)
-)
-least_energy_result = next(
-    filter(lambda r: r["request"]["name"] == "least_energy", results)
-)
-least_cost_result = next(
-    filter(lambda r: r["request"]["name"] == "least_cost", results)
-)
-
-
-# %%
-
-
-shortest_time_result["route"]["path"]["features"][-1]
-# %%
+results_map = { r["request"]["name"]: r for r in results }
+shortest_time_result = results_map["least_time"]
+least_energy_result = results_map["least_energy"]
+least_cost_result = results_map["least_cost"]
 
 
 """
@@ -281,8 +268,8 @@ time_diff = (
     - least_energy_result["route"]["traversal_summary"]["trip_time"]
 )
 enrg_diff = (
-    shortest_time_result["route"]["traversal_summary"]["trip_energy"]
-    - least_energy_result["route"]["traversal_summary"]["trip_energy"]
+    shortest_time_result["route"]["traversal_summary"]["trip_energy_liquid"]
+    - least_energy_result["route"]["traversal_summary"]["trip_energy_liquid"]
 )
 cost_diff = (
     shortest_time_result["route"]["cost"]["total_cost"]
@@ -290,7 +277,7 @@ cost_diff = (
 )
 dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"]["output_unit"]
 time_unit = shortest_time_result["route"]["state_model"]["trip_time"]["output_unit"]
-enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy"]["output_unit"]
+enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy_liquid"]["output_unit"]
 print(f" - distance: {dist_diff:.2f} {dist_unit} further with time-optimal")
 print(f" - time: {-time_diff:.2f} {time_unit} longer with energy-optimal")
 print(f" - energy: {enrg_diff:.2f} {enrg_unit} more with time-optimal")
@@ -370,7 +357,7 @@ We can also use the plot_routes_folium function and pass in multiple results. Th
 
 folium_map = plot_routes_folium(
     results,
-    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy"],
+    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy_liquid"],
     color_map="plasma",
 )
 folium_map
@@ -396,7 +383,7 @@ new_results = app.run(query)
 
 folium_map = plot_routes_folium(
     new_results,
-    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy"],
+    value_fn=lambda r: r["route"]["traversal_summary"]["trip_energy_liquid"],
     color_map="plasma",
     folium_map=folium_map,
 )

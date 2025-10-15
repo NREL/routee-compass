@@ -2,6 +2,8 @@ use itertools::Itertools;
 use serde::{de::Visitor, Deserialize, Deserializer, Serialize};
 use std::str::FromStr;
 
+use crate::model::unit::EnergyUnit;
+
 #[derive(Debug, Clone, Eq, PartialEq, Copy, Hash, PartialOrd)]
 pub enum EnergyRateUnit {
     GGPM,
@@ -13,6 +15,15 @@ pub enum EnergyRateUnit {
 impl EnergyRateUnit {
     pub fn to_uom(&self, _value: f64) -> String {
         todo!()
+    }
+
+    pub fn associated_energy_unit(&self) -> EnergyUnit {
+        match self {
+            EnergyRateUnit::GGPM => EnergyUnit::GallonsGasolineEquivalent,
+            EnergyRateUnit::GDPM => EnergyUnit::GallonsDieselEquivalent,
+            EnergyRateUnit::KWHPM => EnergyUnit::KilowattHours,
+            EnergyRateUnit::KWHPKM => EnergyUnit::KilowattHours,
+        }
     }
 }
 

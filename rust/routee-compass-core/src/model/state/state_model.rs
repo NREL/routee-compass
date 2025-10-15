@@ -30,7 +30,8 @@ type IndexedFeatureIterator<'a> =
 
 impl StateModel {
     pub fn new(features: Vec<(String, StateVariableConfig)>) -> StateModel {
-        let map = IndexMap::from_iter(features);
+        let deduped = deduplicate(&features);
+        let map = IndexMap::from_iter(deduped);
         StateModel(map)
     }
 
@@ -186,7 +187,7 @@ impl StateModel {
         state: &[StateVariable],
         name: &str,
     ) -> Result<Length, StateModelError> {
-        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let value: &StateVariable = self.get_raw_state_variable(state, name)?;
         let length = DistanceUnit::default().to_uom(value.0);
         Ok(length)
     }
@@ -201,7 +202,7 @@ impl StateModel {
     ///
     /// feature value in the expected unit type, or an error
     pub fn get_time(&self, state: &[StateVariable], name: &str) -> Result<Time, StateModelError> {
-        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let value: &StateVariable = self.get_raw_state_variable(state, name)?;
         let time = TimeUnit::default().to_uom(value.0);
         Ok(time)
     }
@@ -219,7 +220,7 @@ impl StateModel {
         state: &[StateVariable],
         name: &str,
     ) -> Result<Energy, StateModelError> {
-        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let value: &StateVariable = self.get_raw_state_variable(state, name)?;
         let energy = EnergyUnit::default().to_uom(value.0);
         Ok(energy)
     }
@@ -237,7 +238,7 @@ impl StateModel {
         state: &[StateVariable],
         name: &str,
     ) -> Result<Velocity, StateModelError> {
-        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let value: &StateVariable = self.get_raw_state_variable(state, name)?;
         let speed = SpeedUnit::default().to_uom(value.0);
         Ok(speed)
     }
@@ -251,7 +252,7 @@ impl StateModel {
     ///
     /// feature value in the expected unit type, or an error
     pub fn get_ratio(&self, state: &[StateVariable], name: &str) -> Result<Ratio, StateModelError> {
-        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let value: &StateVariable = self.get_raw_state_variable(state, name)?;
         let grade = RatioUnit::default().to_uom(value.0);
         Ok(grade)
     }
@@ -269,7 +270,7 @@ impl StateModel {
         state: &[StateVariable],
         name: &str,
     ) -> Result<ThermodynamicTemperature, StateModelError> {
-        let value: &StateVariable = self.get_state_variable(state, name)?;
+        let value: &StateVariable = self.get_raw_state_variable(state, name)?;
         let temperature = TemperatureUnit::default().to_uom(value.0);
         Ok(temperature)
     }
@@ -363,7 +364,7 @@ impl StateModel {
         state: &'a [StateVariable],
         name: &str,
     ) -> Result<(&'a StateVariable, &CustomVariableConfig), StateModelError> {
-        let value = self.get_state_variable(state, name)?;
+        let value = self.get_raw_state_variable(state, name)?;
         let feature = self.get_feature(name)?;
         let format = feature.get_custom_feature_format()?;
         Ok((value, format))
@@ -386,8 +387,8 @@ impl StateModel {
         next: &[StateVariable],
         name: &str,
     ) -> Result<T, StateModelError> {
-        let prev_val = self.get_state_variable(prev, name)?;
-        let next_val = self.get_state_variable(next, name)?;
+        let prev_val = self.get_raw_state_variable(prev, name)?;
+        let next_val = self.get_raw_state_variable(next, name)?;
         let delta = *next_val - *prev_val;
         Ok(delta.into())
     }
@@ -612,8 +613,10 @@ impl StateModel {
         })
     }
 
-    /// gets a state variable from a state vector by name
-    fn get_state_variable<'a>(
+    /// gets a state variable from a state vector by name.
+    /// this gets the value as a [`StateVariable`]. for most use cases, use the methods
+    /// that return the value as a uom value with its correct unit, such as "get_distance".
+    pub fn get_raw_state_variable<'a>(
         &self,
         state: &'a [StateVariable],
         name: &str,
@@ -653,6 +656,38 @@ impl StateModel {
         state[index] = updated;
         Ok(())
     }
+}
+
+/// tests if multiple traversal models are outputting to the same state variable feature
+/// and if so, retains only the configuration that sets an output unit for this type.
+/// if multiple are found, a warning is logged.
+fn deduplicate(features: &[(String, StateVariableConfig)]) -> HashMap<String, StateVariableConfig> {
+    let mut map: HashMap<String, StateVariableConfig> = HashMap::new();
+    for (name, next) in features.iter() {
+        map.entry(name.clone())
+            .and_modify(|prev| {
+                match (prev.output_unit_name(), next.output_unit_name()) {
+                    (Some(prev_unit), Some(next_unit)) => {
+                        log::warn!("{}", duplicate_message(name, &prev_unit, &next_unit));
+                    }
+                    (None, Some(_)) => {
+                        *prev = next.clone();
+                    }
+                    _ => { /* NOOP */ }
+                }
+            })
+            .or_insert(next.clone());
+    }
+    map
+}
+
+/// creates the message for cases where two variable configurations have matching
+/// output unit declarations.
+fn duplicate_message(name: &str, prev: &str, next: &str) -> String {
+    let s1 = format!("Two traversal models are producing output feature '{name}'");
+    let s2 = format!("Previous uses '{prev}', next uses '{next}'. Keeping '{prev}'");
+    let s3 = "To avoid non-deterministic behavior, only set output_unit in one traversal model.";
+    format!("{s1} {s2} {s3}")
 }
 
 impl<'a> TryFrom<&'a serde_json::Value> for StateModel {

@@ -95,7 +95,7 @@ impl CompassApp {
             Some(state_config) => Arc::new(StateModel::new(state_config.clone())),
             None => Arc::new(StateModel::empty()),
         };
-        let cost_model_service = CostModelService::from(&config.cost);
+        let cost_model_service = CostModelService::try_from(&config.cost)?;
         let label_model_service = builder.build_label_model_service(&config.label)?;
         let termination_model = TerminationModelBuilder::build(&config.termination, None)?;
 

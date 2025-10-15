@@ -323,7 +323,7 @@ fn min_cost_ordering(pair: &(&Label, Option<&EdgeTraversal>)) -> OrderedFloat<f6
     let (_, et) = pair;
     match et {
         None => OrderedFloat(f64::MAX),
-        Some(e) => OrderedFloat(e.cost.as_f64()),
+        Some(e) => OrderedFloat(e.cost.total_cost.as_f64()),
     }
 }
 
@@ -350,6 +350,7 @@ pub enum SearchTreeError {
 mod tests {
     use super::*;
     use crate::model::{
+        cost::TraversalCost,
         network::{EdgeId, EdgeListId, VertexId},
         unit::Cost,
     };
@@ -1094,7 +1095,11 @@ mod tests {
         EdgeTraversal {
             edge_id: EdgeId(edge_id),
             edge_list_id: EdgeListId(0),
-            cost: Cost::new(cost),
+            cost: TraversalCost {
+                total_cost: Cost::new(cost),
+                objective_cost: Cost::new(cost),
+                cost_component: HashMap::new(),
+            },
             result_state: vec![],
         }
     }

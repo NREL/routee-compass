@@ -81,7 +81,7 @@ pub fn run(
             rev_labels.get(fwd_branch.label())
         {
             if rev_labels.contains_key(&label) {
-                let total_cost = fwd_et.cost + incoming_edge.cost;
+                let total_cost = fwd_et.cost.total_cost + incoming_edge.cost.total_cost;
                 intersection_queue.push(*label.vertex_id(), total_cost.into());
             }
         }

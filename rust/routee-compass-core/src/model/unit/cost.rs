@@ -1,7 +1,7 @@
 use self::internal_float::InternalFloat;
 use crate::model::unit::{AsF64, *};
 use allocative::Allocative;
-use derive_more::{Add, Div, Mul, Neg, Sub, Sum};
+use derive_more::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign, Sum};
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::Display,
@@ -20,9 +20,13 @@ use std::{
     PartialOrd,
     Ord,
     Add,
+    AddAssign,
     Sub,
+    SubAssign,
     Mul,
+    MulAssign,
     Div,
+    DivAssign,
     Sum,
     Neg,
     Serialize,
@@ -66,6 +70,12 @@ impl Cost {
         } else {
             cost
         }
+    }
+}
+
+impl Default for Cost {
+    fn default() -> Self {
+        Cost::ZERO
     }
 }
 

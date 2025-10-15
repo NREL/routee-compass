@@ -1,11 +1,10 @@
 use super::search_error::SearchError;
 use super::SearchInstance;
 use crate::algorithm::search::SearchTree;
-use crate::model::cost::CostModel;
+use crate::model::cost::{CostModel, TraversalCost};
 use crate::model::network::{Edge, EdgeId, EdgeListId, Vertex};
 use crate::model::state::{StateModel, StateVariable};
 use crate::model::traversal::TraversalModel;
-use crate::model::unit::Cost;
 use allocative::Allocative;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -14,7 +13,7 @@ use std::fmt::Display;
 pub struct EdgeTraversal {
     pub edge_list_id: EdgeListId,
     pub edge_id: EdgeId,
-    pub cost: Cost,
+    pub cost: TraversalCost,
     pub result_state: Vec<StateVariable>,
 }
 
@@ -23,7 +22,7 @@ impl Display for EdgeTraversal {
         write!(
             f,
             "edge {} cost:{} state:{:?}",
-            self.edge_id, self.cost, self.result_state
+            self.edge_id, self.cost.total_cost, self.result_state
         )
     }
 }
@@ -90,7 +89,7 @@ impl EdgeTraversal {
 
         traversal_model.traverse_edge(trajectory, &mut result_state, tree, state_model)?;
 
-        let cost = cost_model.traversal_cost(edge, prev_state, &result_state)?;
+        let cost = cost_model.traversal_cost(trajectory, &result_state, tree, state_model)?;
 
         let result = EdgeTraversal {
             edge_list_id: edge.edge_list_id,

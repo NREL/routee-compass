@@ -1,109 +1,29 @@
-use super::{network::NetworkCostRate, CostAggregation, CostModelError, VehicleCostRate};
-use crate::model::{network::Edge, state::StateVariable, unit::Cost};
+use std::{collections::HashMap, sync::Arc};
 
-/// steps through each state variable and assigns vehicle costs related to that variable
-/// due to an edge access + traversal event.
-///
-/// # Arguments
-/// * `prev_state` - the state before beginning the traversal
-/// * `next_state` - the state after traversal
-/// * `indices`    - feature names and corresponding state indices
-pub fn calculate_vehicle_costs(
-    state_sequence: (&[StateVariable], &[StateVariable]),
-    indices: &[(String, usize)],
-    weights: &[f64],
-    rates: &[VehicleCostRate],
-    cost_aggregation: &CostAggregation,
-) -> Result<Cost, CostModelError> {
-    let (prev_state, next_state) = state_sequence;
-    let mut costs: Vec<(&str, Cost)> = vec![];
-    for (name, state_idx) in indices.iter() {
-        // compute delta
-        let prev_state_var = prev_state
-            .get(*state_idx)
-            .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*state_idx, name.clone()))?;
-        let next_state_var = next_state
-            .get(*state_idx)
-            .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*state_idx, name.clone()))?;
-        let delta: StateVariable = *next_state_var - *prev_state_var;
+use crate::model::cost::network::NetworkCostRate;
 
-        // collect weight and vehicle cost rate
-        let mapping = rates.get(*state_idx).ok_or_else(|| {
-            CostModelError::CostVectorOutOfBounds(*state_idx, String::from("vehicle_rates"))
-        })?;
-        let weight = weights.get(*state_idx).ok_or_else(|| {
-            CostModelError::CostVectorOutOfBounds(*state_idx, String::from("weights"))
-        })?;
+use super::VehicleCostRate;
 
-        // compute cost
+/// validates cost feature configuration. catches invalid combinations of found and missing
+/// configuration arguments.
+pub fn describe_cost_feature_configuration(
+    name: &str,
+    weights_mapping: Arc<HashMap<String, f64>>,
+    vehicle_rate_mapping: Arc<HashMap<String, VehicleCostRate>>,
+    network_rate_mapping: Arc<HashMap<String, NetworkCostRate>>,
+) -> String {
+    let has_weight = weights_mapping.get(name);
+    let has_rate = vehicle_rate_mapping.get(name);
+    let has_nrate = network_rate_mapping.get(name);
 
-        if let Some(delta_cost) = mapping.map_value(delta) {
-            costs.push((name, delta_cost * weight));
-        }
+    match (has_weight, has_rate, has_nrate) {
+        (None, None, None) => format!("Feature '{name}' will not contribute to cost model has it has no weight or cost rate."),
+        (None, Some(v), None) => format!("Feature '{name}' was provided cost rate '{v}' but no weight, so it will not contribute to the cost model."),
+        (Some(w), None, None) => format!("Feature '{name}' was provided weight {w} but no cost rate. The default rate is zero, so this feature will be zeroed out and will not contribute to the cost model."),
+        (Some(w), Some(v), None) => format!("Feature '{name}' was provided weight {w} and vehicle rate {v} and will contribute to the cost model. No network costs were provided for this feature."),
+        (None, None, Some(_)) => format!("Feature '{name}' with network rate will not contribute to cost model because it has no weight."),
+        (None, Some(v), Some(_)) => format!("Feature '{name}' was provided vehicle cost rate '{v}' and network rate, but has no weight value, so it will not contribute to the cost model."),
+        (Some(w), None, Some(_)) => format!("Feature '{name}' was provided weight {w} and network rate input, will contribute to the cost model."),
+        (Some(w), Some(v), Some(_)) => format!("Feature '{name}' was provided weight {w}, vehicle rate {v} and network rate. It will contribute to the cost model."),
     }
-
-    cost_aggregation.aggregate(&costs)
-}
-
-pub fn calculate_network_traversal_costs(
-    state_sequence: (&[StateVariable], &[StateVariable]),
-    edge: &Edge,
-    indices: &[(String, usize)],
-    weights: &[f64],
-    rates: &[NetworkCostRate],
-    cost_aggregation: &CostAggregation,
-) -> Result<Cost, CostModelError> {
-    let (prev_state, next_state) = state_sequence;
-    let mut costs: Vec<(&str, Cost)> = vec![];
-    for (name, state_idx) in indices.iter() {
-        let prev_state_var = prev_state
-            .get(*state_idx)
-            .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*state_idx, name.clone()))?;
-        let next_state_var = next_state
-            .get(*state_idx)
-            .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*state_idx, name.clone()))?;
-
-        // determine weight and access cost for this state feature
-        let weight = weights.get(*state_idx).ok_or_else(|| {
-            CostModelError::CostVectorOutOfBounds(*state_idx, String::from("weights"))
-        })?;
-        let rate = rates.get(*state_idx).ok_or_else(|| {
-            CostModelError::CostVectorOutOfBounds(*state_idx, String::from("network_cost_rate"))
-        })?;
-        let access_cost = rate.traversal_cost(*prev_state_var, *next_state_var, edge)?;
-        let cost = access_cost * weight;
-        costs.push((name, cost));
-    }
-
-    cost_aggregation.aggregate(&costs)
-}
-
-pub fn calculate_network_access_costs(
-    state_sequence: (&[StateVariable], &[StateVariable]),
-    edge_sequence: (&Edge, &Edge),
-    indices: &[(String, usize)],
-    weights: &[f64],
-    rates: &[NetworkCostRate],
-    cost_aggregation: &CostAggregation,
-) -> Result<Cost, CostModelError> {
-    let (prev_state, next_state) = state_sequence;
-    let (prev_edge, next_edge) = edge_sequence;
-    let mut costs: Vec<(&str, Cost)> = vec![];
-    for (name, idx) in indices.iter() {
-        if let Some(m) = rates.get(*idx) {
-            let prev_state_var = prev_state
-                .get(*idx)
-                .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*idx, name.clone()))?;
-            let next_state_var = next_state
-                .get(*idx)
-                .ok_or_else(|| CostModelError::StateIndexOutOfBounds(*idx, name.clone()))?;
-            let access_cost =
-                m.access_cost(*prev_state_var, *next_state_var, prev_edge, next_edge)?;
-            let coefficient = weights.get(*idx).unwrap_or(&1.0);
-            let cost = access_cost * coefficient;
-            costs.push((name, cost));
-        }
-    }
-
-    cost_aggregation.aggregate(&costs)
 }

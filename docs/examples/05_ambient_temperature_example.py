@@ -36,7 +36,7 @@ query = {
     "destination_x": -104.975360,
     "destination_y": 39.693005,
     "model_name": "2016_Nissan_Leaf_30_kWh_Steady_Thermal",
-    "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy": 0},
+    "weights": {"trip_distance": 0, "trip_time": 1, "trip_energy_electric": 0},
     "ambient_temperature": {"value": 72, "unit": "fahrenheit"},
 }
 # %%
@@ -49,7 +49,7 @@ if "error" in result:
 Let's look at the energy consumption for the route.
 """
 
-energy = result["route"]["traversal_summary"]["trip_energy"]
+energy = result["route"]["traversal_summary"]["trip_energy_electric"]
 print(
     f"Ambient Temperature: {query['ambient_temperature']['value']} F, Trip Energy: {round(energy, 3)} kWh"
 )
@@ -66,11 +66,11 @@ for temp in [0, 15, 32, 50, 72, 90, 110]:
     if "error" in result:
         print(result["error"])
     else:
-        energy = result["route"]["traversal_summary"]["trip_energy"]
+        energy = result["route"]["traversal_summary"]["trip_energy_electric"]
         temp_results.append(
             {
                 "ambient_temperature_f": temp,
-                "trip_energy": energy,
+                "trip_energy_electric": energy,
                 "vehicle_model": query["model_name"],
             }
         )
@@ -80,7 +80,7 @@ for temp in [0, 15, 32, 50, 72, 90, 110]:
 plot_df = pd.DataFrame(temp_results)
 # %%
 plt.figure(figsize=(10, 6))
-plt.plot(plot_df["ambient_temperature_f"], plot_df["trip_energy"], marker="o")
+plt.plot(plot_df["ambient_temperature_f"], plot_df["trip_energy_electric"], marker="o")
 plt.title("Effect of Ambient Temperature on Trip Energy Consumption")
 plt.xlabel("Ambient Temperature (F)")
 plt.ylabel("Trip Energy (kWh)")
@@ -102,11 +102,11 @@ for model in [
         if "error" in result:
             print(result["error"])
         else:
-            energy = result["route"]["traversal_summary"]["trip_energy"]
+            energy = result["route"]["traversal_summary"]["trip_energy_electric"]
             temp_results.append(
                 {
                     "ambient_temperature_f": temp,
-                    "trip_energy": energy,
+                    "trip_energy_electric": energy,
                     "vehicle_model": model,
                 }
             )
@@ -122,7 +122,7 @@ for model in plot_df["vehicle_model"].unique():
     model_data = plot_df[plot_df["vehicle_model"] == model]
     plt.plot(
         model_data["ambient_temperature_f"],
-        model_data["trip_energy"],
+        model_data["trip_energy_electric"],
         marker="o",
         label=model,
     )
