@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1759509638394,
+  "lastUpdate": 1760553016477,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -749,6 +749,66 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 6609820,
             "range": "± 124423",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "16d420d06df0d5f0287c988a0c56a132473ae991",
+          "message": "Merge pull request #397 from NREL/ndr/minor-doc-fixes\n\nMinor doc fixes",
+          "timestamp": "2025-10-03T15:06:54-06:00",
+          "tree_id": "a8089cb620cbe901fc1839c5d2c57df51535f1ce",
+          "url": "https://github.com/NREL/routee-compass/commit/16d420d06df0d5f0287c988a0c56a132473ae991"
+        },
+        "date": 1759525991641,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 6596627,
+            "range": "± 340242",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "beba1e4f873d242bd658fc084c6b980d37d12944",
+          "message": "Merge pull request #399 from NREL/rjf/cost-model-errors\n\nRjf/cost model errors",
+          "timestamp": "2025-10-15T12:28:09-06:00",
+          "tree_id": "17c1191e3da9cc6c26ca2f9df1c534dc1eef4736",
+          "url": "https://github.com/NREL/routee-compass/commit/beba1e4f873d242bd658fc084c6b980d37d12944"
+        },
+        "date": 1760553015926,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2908824,
+            "range": "± 145126",
             "unit": "ns/iter"
           }
         ]

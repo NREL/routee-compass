@@ -469,17 +469,18 @@ Based on our own testing, the energy weights are more sensitive as they approach
 <span class="n">energy_weights</span> <span class="o">=</span> <span class="n">energy_weights</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
 <span class="n">time_weights</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">energy_weights</span>
 
-<span class="n">test_cases</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;energy_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="n">time_weights</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-            <span class="s2">&quot;trip_energy&quot;</span><span class="p">:</span> <span class="n">energy_weights</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-        <span class="p">},</span>
-    <span class="p">}</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">energy_weights</span><span class="p">))</span>
-<span class="p">]</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_test_cases</span><span class="p">(</span><span class="n">energy_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">return</span>  <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;energy_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="n">time_weights</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">energy_key</span><span class="p">:</span> <span class="n">energy_weights</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">energy_weights</span><span class="p">))</span>
+    <span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -509,12 +510,12 @@ Based on our own testing, the energy weights are more sensitive as they approach
     <span class="s2">&quot;destination_y&quot;</span><span class="p">:</span> <span class="mf">39.7867693</span><span class="p">,</span>
     <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="s2">&quot;2017_CHEVROLET_Bolt&quot;</span><span class="p">,</span>
     <span class="s2">&quot;vehicle_rates&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.655</span><span class="p">},</span>
-        <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
-        <span class="s2">&quot;trip_energy&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.12</span><span class="p">},</span>
+        <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.655</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;miles&quot;</span> <span class="p">},</span>
+        <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">20.0</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;hours&quot;</span> <span class="p">},</span>
+        <span class="s2">&quot;trip_energy_electric&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.12</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;kwh&quot;</span> <span class="p">},</span>
     <span class="p">},</span>
     <span class="s2">&quot;grid_search&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;test_cases&quot;</span><span class="p">:</span> <span class="n">test_cases</span><span class="p">,</span>
+        <span class="s2">&quot;test_cases&quot;</span><span class="p">:</span> <span class="n">get_test_cases</span><span class="p">(</span><span class="s2">&quot;trip_energy_electric&quot;</span><span class="p">),</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -530,8 +531,8 @@ Based on our own testing, the energy weights are more sensitive as they approach
 <span class="n">bev_ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span>
     <span class="n">data</span><span class="o">=</span><span class="n">bev_gdf</span><span class="p">,</span>
     <span class="n">x</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_time&quot;</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_energy&quot;</span><span class="p">,</span>
-    <span class="n">hue</span><span class="o">=</span><span class="s2">&quot;request.weights.trip_energy&quot;</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_energy_electric&quot;</span><span class="p">,</span>
+    <span class="n">hue</span><span class="o">=</span><span class="s2">&quot;request.weights.trip_energy_electric&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">bev_ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
     <span class="n">title</span><span class="o">=</span><span class="s2">&quot;2017 Chevy Bolt Time vs Energy&quot;</span><span class="p">,</span>
@@ -549,7 +550,7 @@ Between 23 and 24 minutes of travel time, the energy consmption decreses signifi
 <p>Let's take a look at what those actual routes look like:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bev_gdf</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_energy&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bev_gdf</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_energy_electric&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -566,12 +567,12 @@ The routes that have lower energy consumption use the local roads to reduce the 
     <span class="s2">&quot;destination_y&quot;</span><span class="p">:</span> <span class="mf">39.7867693</span><span class="p">,</span>
     <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
     <span class="s2">&quot;vehicle_rates&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.655</span><span class="p">},</span>
-        <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">},</span>
-        <span class="s2">&quot;trip_energy&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">},</span>
+        <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.655</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;miles&quot;</span> <span class="p">},</span>
+        <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">20.0</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;hours&quot;</span> <span class="p">},</span>
+        <span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;gge&quot;</span> <span class="p">},</span>
     <span class="p">},</span>
     <span class="s2">&quot;grid_search&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;test_cases&quot;</span><span class="p">:</span> <span class="n">test_cases</span><span class="p">,</span>
+        <span class="s2">&quot;test_cases&quot;</span><span class="p">:</span> <span class="n">get_test_cases</span><span class="p">(</span><span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">),</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -583,8 +584,8 @@ The routes that have lower energy consumption use the local roads to reduce the 
 <span class="n">ice_ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span>
     <span class="n">data</span><span class="o">=</span><span class="n">ice_gdf</span><span class="p">,</span>
     <span class="n">x</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_time&quot;</span><span class="p">,</span>
-    <span class="n">y</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_energy&quot;</span><span class="p">,</span>
-    <span class="n">hue</span><span class="o">=</span><span class="s2">&quot;request.weights.trip_energy&quot;</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_energy_liquid&quot;</span><span class="p">,</span>
+    <span class="n">hue</span><span class="o">=</span><span class="s2">&quot;request.weights.trip_energy_liquid&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">ice_ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
     <span class="n">title</span><span class="o">=</span><span class="s2">&quot;2016 Toyota Corrola Time vs Energy&quot;</span><span class="p">,</span>
@@ -597,18 +598,18 @@ The routes that have lower energy consumption use the local roads to reduce the 
 </div>
 </div>
 <p>Here, we see a quite different tradeoff between time and energy consumption.
-The Toyota Corolla achieves the minimum energy consumption at around 24 minutes of travel time and doesn't exhibit the same sharp decrease in energy consumption as the Chevy Bolt.
+The Toyota Camry achieves the minimum energy consumption at around 24 minutes of travel time and doesn't exhibit the same sharp decrease in energy consumption as the Chevy Bolt.
 At the same time, there are no alternative routes with significantly longer travel times, relative to those that were found for the Chevy Bolt.</p>
-<p>Lastly, let's take a look at the routes for the Toyota Corolla:</p>
+<p>Lastly, let's take a look at the routes for the Toyota Camry:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ice_gdf</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_energy&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ice_gdf</span><span class="o">.</span><span class="n">explore</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="s2">&quot;route.traversal_summary.trip_energy_liquid&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 </div>
 <p>Here we notice, similarly to the Chevy Bolt, that the routes that minimize time and have larger energy consumption use the highway, while the routes that minimize energy consumption use the local roads.
-But, there are much fewer local alternatives for the Toyota Corolla than there were for the Chevy Bolt.</p>
+But, there are much fewer local alternatives for the Toyota Camry than there were for the Chevy Bolt.</p>
 </section>
 </section>
 

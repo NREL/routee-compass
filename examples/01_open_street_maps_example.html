@@ -490,10 +490,10 @@ So, we recommend that you include grade information in your graph but want to be
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:adding grade information
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w105
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w106
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w106
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w105
 </pre></div>
 </div>
 <div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
@@ -572,9 +572,9 @@ In the least_cost case, we allow each cost component to contribute equally and t
         <span class="s2">&quot;destination_y&quot;</span><span class="p">:</span> <span class="mf">39.693005</span><span class="p">,</span>
         <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="s2">&quot;2016_TOYOTA_Camry_4cyl_2WD&quot;</span><span class="p">,</span>
         <span class="s2">&quot;vehicle_rates&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.655</span><span class="p">},</span>
-            <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.33</span><span class="p">},</span>
-            <span class="s2">&quot;trip_energy&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">},</span>
+            <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;distance&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">0.655</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;miles&quot;</span> <span class="p">},</span>
+            <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">20.0</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;hours&quot;</span> <span class="p">},</span>
+            <span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="mf">3.0</span><span class="p">,</span> <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="s2">&quot;gge&quot;</span> <span class="p">},</span>
         <span class="p">},</span>
         <span class="s2">&quot;grid_search&quot;</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">&quot;test_cases&quot;</span><span class="p">:</span> <span class="p">[</span>
@@ -583,7 +583,7 @@ In the least_cost case, we allow each cost component to contribute equally and t
                     <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">{</span>
                         <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                         <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                        <span class="s2">&quot;trip_energy&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                        <span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                     <span class="p">},</span>
                 <span class="p">},</span>
                 <span class="p">{</span>
@@ -591,7 +591,7 @@ In the least_cost case, we allow each cost component to contribute equally and t
                     <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">{</span>
                         <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                         <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                        <span class="s2">&quot;trip_energy&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
                     <span class="p">},</span>
                 <span class="p">},</span>
                 <span class="p">{</span>
@@ -599,7 +599,7 @@ In the least_cost case, we allow each cost component to contribute equally and t
                     <span class="s2">&quot;weights&quot;</span><span class="p">:</span> <span class="p">{</span>
                         <span class="s2">&quot;trip_distance&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
                         <span class="s2">&quot;trip_time&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-                        <span class="s2">&quot;trip_energy&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
                     <span class="p">},</span>
                 <span class="p">},</span>
             <span class="p">]</span>
@@ -649,21 +649,10 @@ Since we used the grid search to specify three separate searches, we should get 
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">pretty_print</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
 
-
-<span class="n">shortest_time_result</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-    <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;request&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;least_time&quot;</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
-<span class="p">)</span>
-<span class="n">least_energy_result</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-    <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;request&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;least_energy&quot;</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
-<span class="p">)</span>
-<span class="n">least_cost_result</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-    <span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;request&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;least_cost&quot;</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span>
-<span class="p">)</span>
-
-
-
-
-<span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;path&quot;</span><span class="p">][</span><span class="s2">&quot;features&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">results_map</span> <span class="o">=</span> <span class="p">{</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;request&quot;</span><span class="p">][</span><span class="s2">&quot;name&quot;</span><span class="p">]:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="p">}</span>
+<span class="n">shortest_time_result</span> <span class="o">=</span> <span class="n">results_map</span><span class="p">[</span><span class="s2">&quot;least_time&quot;</span><span class="p">]</span>
+<span class="n">least_energy_result</span> <span class="o">=</span> <span class="n">results_map</span><span class="p">[</span><span class="s2">&quot;least_energy&quot;</span><span class="p">]</span>
+<span class="n">least_cost_result</span> <span class="o">=</span> <span class="n">results_map</span><span class="p">[</span><span class="s2">&quot;least_cost&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -724,8 +713,8 @@ Since we used the grid search to specify three separate searches, we should get 
     <span class="o">-</span> <span class="n">least_energy_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">][</span><span class="s2">&quot;trip_time&quot;</span><span class="p">]</span>
 <span class="p">)</span>
 <span class="n">enrg_diff</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy&quot;</span><span class="p">]</span>
-    <span class="o">-</span> <span class="n">least_energy_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy&quot;</span><span class="p">]</span>
+    <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">]</span>
+    <span class="o">-</span> <span class="n">least_energy_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">]</span>
 <span class="p">)</span>
 <span class="n">cost_diff</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;cost&quot;</span><span class="p">][</span><span class="s2">&quot;total_cost&quot;</span><span class="p">]</span>
@@ -733,7 +722,7 @@ Since we used the grid search to specify three separate searches, we should get 
 <span class="p">)</span>
 <span class="n">dist_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_distance&quot;</span><span class="p">][</span><span class="s2">&quot;output_unit&quot;</span><span class="p">]</span>
 <span class="n">time_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_time&quot;</span><span class="p">][</span><span class="s2">&quot;output_unit&quot;</span><span class="p">]</span>
-<span class="n">enrg_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy&quot;</span><span class="p">][</span><span class="s2">&quot;output_unit&quot;</span><span class="p">]</span>
+<span class="n">enrg_unit</span> <span class="o">=</span> <span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">][</span><span class="s2">&quot;output_unit&quot;</span><span class="p">]</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - distance: </span><span class="si">{</span><span class="n">dist_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">dist_unit</span><span class="si">}</span><span class="s2"> further with time-optimal&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - time: </span><span class="si">{</span><span class="o">-</span><span class="n">time_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">time_unit</span><span class="si">}</span><span class="s2"> longer with energy-optimal&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; - energy: </span><span class="si">{</span><span class="n">enrg_diff</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">enrg_unit</span><span class="si">}</span><span class="s2"> more with time-optimal&quot;</span><span class="p">)</span>
@@ -797,7 +786,7 @@ Here's a list of all the different sections that get returned:</p>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">folium_map</span> <span class="o">=</span> <span class="n">plot_routes_folium</span><span class="p">(</span>
     <span class="n">results</span><span class="p">,</span>
-    <span class="n">value_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy&quot;</span><span class="p">],</span>
+    <span class="n">value_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">],</span>
     <span class="n">color_map</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">folium_map</span>
@@ -820,7 +809,7 @@ Here's a list of all the different sections that get returned:</p>
 
 <span class="n">folium_map</span> <span class="o">=</span> <span class="n">plot_routes_folium</span><span class="p">(</span>
     <span class="n">new_results</span><span class="p">,</span>
-    <span class="n">value_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy&quot;</span><span class="p">],</span>
+    <span class="n">value_fn</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">][</span><span class="s2">&quot;trip_energy_liquid&quot;</span><span class="p">],</span>
     <span class="n">color_map</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span>
     <span class="n">folium_map</span><span class="o">=</span><span class="n">folium_map</span><span class="p">,</span>
 <span class="p">)</span>
