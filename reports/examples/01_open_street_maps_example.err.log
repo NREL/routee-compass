@@ -39,9 +39,9 @@ INFO:nrel.routee.compass.io.generate_dataset:processing graph topology and speed
 ----- stderr -----
 INFO:nrel.routee.compass.io.generate_dataset:adding grade information
 ----- stderr -----
-INFO:nrel.routee.compass.io.utils:downloading n40w106
------ stderr -----
 INFO:nrel.routee.compass.io.utils:downloading n40w105
+----- stderr -----
+INFO:nrel.routee.compass.io.utils:downloading n40w106
 ------------------
 
 [31m---------------------------------------------------------------------------[39m
