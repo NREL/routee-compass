@@ -24,7 +24,7 @@ jobs:
 
       - name: Install package
         run: |
-          conda install -c conda-forge osmnx
+          conda install -c conda-forge osmnx rasterio
           pip install ".[all]"
 
       - name: Build book
