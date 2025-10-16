@@ -10,7 +10,7 @@ mod compass_json_extensions;
 pub mod response;
 
 pub use compass_app::CompassApp;
-pub use compass_app_config::{SearchConfig, CompassAppConfig};
+pub use compass_app_config::{CompassAppConfig, SearchConfig};
 pub use compass_app_error::CompassAppError;
 pub use compass_app_system::CompassAppSystemParameters;
 pub use compass_builder_inventory::BuilderRegistration;

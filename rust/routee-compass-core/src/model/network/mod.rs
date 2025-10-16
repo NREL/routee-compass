@@ -15,7 +15,7 @@ pub use edge_id::EdgeId;
 pub use edge_list::EdgeList;
 pub use edge_list_id::EdgeListId;
 pub use graph::Graph;
-pub use graph_config::{GraphConfig, EdgeListConfig};
+pub use graph_config::{EdgeListConfig, GraphConfig};
 pub use network_error::NetworkError;
 pub use vertex::Vertex;
 pub use vertex_id::VertexId;
