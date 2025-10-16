@@ -35,6 +35,14 @@ pub struct CompassAppConfig {
     pub system: CompassAppSystemParameters,
 }
 
+/// sub-section of [`CompassAppConfig`] where the [`TraversalModelService`], [`AccessModelService`], and [`FrontierModelService`] components
+/// for an [`EdgeList`] are specified.
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct SearchConfig {
+    pub traversal: Value,
+    pub frontier: Value,
+}
+
 impl CompassAppConfig {
     /// reads a stringified configuration file with provided format and constructs a [`CompassAppConfig`]
     pub fn from_str(
@@ -90,14 +98,6 @@ impl TryFrom<&Path> for CompassAppConfig {
 
         Ok(compass_config)
     }
-}
-
-/// sub-section of [`CompassAppConfig`] where the [`TraversalModelService`], [`AccessModelService`], and [`FrontierModelService`] components
-/// for an [`EdgeList`] are specified.
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct SearchConfig {
-    pub traversal: Value,
-    pub frontier: Value,
 }
 
 impl CompassAppConfig {
