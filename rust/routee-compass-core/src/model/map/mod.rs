@@ -21,7 +21,7 @@ pub use map_json_extensions::MapJsonExtensions;
 pub use map_json_key::MapJsonKey;
 pub use map_model::MapModel;
 pub use map_model_config::DistanceTolerance;
-pub use map_model_config::MapModelConfig;
+pub use map_model_config::{MapModelConfig, MapModelGeometryConfig};
 pub use map_vertex_rtree_object::MapVertexRTreeObject;
 pub use matching_type::{MapInputResult, MatchingType};
 pub use nearest_search_result::NearestSearchResult;
