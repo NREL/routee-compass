@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1760561738585,
+  "lastUpdate": 1760722305268,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -839,6 +839,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2933697,
             "range": "± 237979",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d365080193ad22b6298c08f6e4417faa9f629ee3",
+          "message": "Merge pull request #401 from NREL/rjf/pub-edge-list-config\n\nmake all CompassAppConfig types accessible from downstream crates",
+          "timestamp": "2025-10-17T11:29:25-06:00",
+          "tree_id": "b04e93eeeb9c978ddce872e07b6c9fbcab1db727",
+          "url": "https://github.com/NREL/routee-compass/commit/d365080193ad22b6298c08f6e4417faa9f629ee3"
+        },
+        "date": 1760722304255,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2909958,
+            "range": "± 143363",
             "unit": "ns/iter"
           }
         ]
