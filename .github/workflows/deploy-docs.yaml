@@ -24,8 +24,8 @@ jobs:
 
       - name: Install package
         run: |
-          conda install -c conda-forge osmnx rasterio
-          pip install ".[all]"
+          conda install -c conda-forge osmnx rasterio jupyter-book seaborn matplotlib
+          pip install .
 
       - name: Build book
         working-directory: ${{runner.workspace}}/routee-compass/docs/
