@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1760722305268,
+  "lastUpdate": 1760974403802,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -869,6 +869,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2909958,
             "range": "± 143363",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8a80f8f3b600a09669e971f3ca41e58bb95a4063",
+          "message": "Merge pull request #402 from NREL/rjf/map-conf\n\nmake MapModelGeometryConfig accessible from module",
+          "timestamp": "2025-10-20T09:31:11-06:00",
+          "tree_id": "f03f1eee1c249c8d0a6a5245f33163ddd82444f7",
+          "url": "https://github.com/NREL/routee-compass/commit/8a80f8f3b600a09669e971f3ca41e58bb95a4063"
+        },
+        "date": 1760974403233,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2930414,
+            "range": "± 44159",
             "unit": "ns/iter"
           }
         ]
