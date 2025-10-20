@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1760974403802,
+  "lastUpdate": 1760989691077,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -899,6 +899,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2930414,
             "range": "± 44159",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Nicholas.Reinicke@nrel.gov",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "Nicholas.Reinicke@nrel.gov",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "distinct": true,
+          "id": "1c696ba216e2cbd472753c496215608abbc56276",
+          "message": "install osm deps with conda for docs error",
+          "timestamp": "2025-10-20T13:40:36-06:00",
+          "tree_id": "d27e5dc0daa91381d4204497823c804351b286c3",
+          "url": "https://github.com/NREL/routee-compass/commit/1c696ba216e2cbd472753c496215608abbc56276"
+        },
+        "date": 1760989690066,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2943395,
+            "range": "± 50988",
             "unit": "ns/iter"
           }
         ]
