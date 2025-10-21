@@ -27,7 +27,7 @@ jobs:
       - name: Install package
         run: |
           conda install geospatial
-          pip install .
+          pip install ".[all]" 
 
       - name: Sanity check imports
         working-directory: ${{runner.workspace}}/routee-compass/docs/
