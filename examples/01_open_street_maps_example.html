@@ -490,41 +490,34 @@ So, we recommend that you include grade information in your graph but want to be
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:adding grade information
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w105
-</pre></div>
-</div>
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w106
 </pre></div>
 </div>
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">ImportError</span><span class="g g-Whitespace">                               </span>Traceback (most recent call last)
-<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
-<span class="ne">----&gt; </span><span class="mi">1</span> <span class="n">generate_compass_dataset</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">output_directory</span><span class="o">=</span><span class="s2">&quot;denver_co&quot;</span><span class="p">)</span>
-
-<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/generate_dataset.py:113,</span> in <span class="ni">generate_compass_dataset</span><span class="nt">(g, output_directory, hwy_speeds, fallback, agg, phases, raster_resolution_arc_seconds, default_config, requests_kwds, afdc_api_key)</span>
-<span class="g g-Whitespace">    </span><span class="mi">111</span> <span class="k">if</span> <span class="n">GeneratePipelinePhase</span><span class="o">.</span><span class="n">POWERTRAIN</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">112</span>     <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;adding grade information&quot;</span><span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">113</span>     <span class="n">g1</span> <span class="o">=</span> <span class="n">add_grade_to_graph</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">114</span>         <span class="n">g1</span><span class="p">,</span> <span class="n">resolution_arc_seconds</span><span class="o">=</span><span class="n">raster_resolution_arc_seconds</span>
-<span class="g g-Whitespace">    </span><span class="mi">115</span>     <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">117</span> <span class="n">v</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">graph_to_gdfs</span><span class="p">(</span><span class="n">g1</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">119</span> <span class="c1"># process vertices</span>
-
-<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/nrel/routee/compass/io/utils.py:192,</span> in <span class="ni">add_grade_to_graph</span><span class="nt">(g, output_dir, resolution_arc_seconds, api_key)</span>
-<span class="g g-Whitespace">    </span><span class="mi">189</span>     <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">190</span>         <span class="n">filepath</span> <span class="o">=</span> <span class="n">files</span>
-<span class="ne">--&gt; </span><span class="mi">192</span>     <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_node_elevations_raster</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">193</span> <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">194</span>     <span class="n">g</span> <span class="o">=</span> <span class="n">ox</span><span class="o">.</span><span class="n">add_node_elevations_google</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">)</span>
-
-<span class="nn">File /usr/share/miniconda/envs/test/lib/python3.11/site-packages/osmnx/elevation.py:179,</span> in <span class="ni">add_node_elevations_raster</span><span class="nt">(G, filepath, band, cpus)</span>
-<span class="g g-Whitespace">    </span><span class="mi">177</span> <span class="k">if</span> <span class="n">rasterio</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-<span class="g g-Whitespace">    </span><span class="mi">178</span>     <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;rasterio must be installed as an optional dependency to query rasters.&quot;</span>
-<span class="ne">--&gt; </span><span class="mi">179</span>     <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">181</span> <span class="c1"># if multiple filepaths are passed in, compose them as a virtual raster</span>
-<span class="g g-Whitespace">    </span><span class="mi">182</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
-
-<span class="ne">ImportError</span>: rasterio must be installed as an optional dependency to query rasters.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.utils:downloading n40w105
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:processing vertices
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:processing edges
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:writing vertex files
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:writing edge files
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:writing edge attribute files
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:copying default configuration TOML files
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:downloading the default RouteE Powertrain models
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:nrel.routee.compass.io.generate_dataset:Downloading EV charging stations for the road network bounding box.
 </pre></div>
 </div>
 </div>
@@ -542,6 +535,13 @@ We'll pick <code class="docutils literal notranslate"><span class="pre">osm_defa
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">app</span> <span class="o">=</span> <span class="n">CompassApp</span><span class="o">.</span><span class="n">from_config_file</span><span class="p">(</span><span class="s2">&quot;denver_co/osm_default_energy.toml&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>graph edge list 0: /home/runner/work/routee-compass/routee-compass/docs/examples/denver_co/edges-compass.csv.gz: 48408it [00:00, 1298459.62it/s]
+
+edge LineString geometry file: 100%|██████████| 48408/48408 [00:00&lt;00:00, 12903574.00it/s]
 </pre></div>
 </div>
 </div>
@@ -622,6 +622,21 @@ If the input is a list of objects, the application will run these queries in par
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 3259.74it/s]
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+applying input plugin 2: 100%|██████████| 3/3 [00:00&lt;00:00, 95825.21it/s]
+
+
+
+search:  33%|███▄      | 1/3 [00:00&lt;00:00, 6.00it/s]
+search: 100%|██████████| 3/3 [00:00&lt;00:00, 9.48it/s]
+</pre></div>
+</div>
+</div>
 </div>
 </section>
 </section>
@@ -664,11 +679,116 @@ Since we used the grid search to specify three separate searches, we should get 
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
+    &quot;trip_elevation_gain&quot;: 0.06195211869420864,
+    &quot;trip_energy_liquid&quot;: 0.31381722555985586,
+    &quot;trip_elevation_loss&quot;: -0.039226938847055075,
+    &quot;trip_time&quot;: 10.663838340327228,
+    &quot;trip_distance&quot;: 9.12549458741086
+}
+</pre></div>
+</div>
+</div>
 </div>
 <p>And, if we need to know the units and/or the initial conditions for the search, we can look at the state model</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pretty_print</span><span class="p">(</span><span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;state_model&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
+    &quot;edge_time&quot;: {
+        &quot;type&quot;: &quot;time&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: false,
+        &quot;output_unit&quot;: &quot;minutes&quot;,
+        &quot;index&quot;: 0,
+        &quot;name&quot;: &quot;edge_time&quot;
+    },
+    &quot;edge_distance&quot;: {
+        &quot;type&quot;: &quot;distance&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: false,
+        &quot;output_unit&quot;: &quot;miles&quot;,
+        &quot;index&quot;: 1,
+        &quot;name&quot;: &quot;edge_distance&quot;
+    },
+    &quot;trip_elevation_gain&quot;: {
+        &quot;type&quot;: &quot;distance&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: true,
+        &quot;output_unit&quot;: &quot;miles&quot;,
+        &quot;index&quot;: 2,
+        &quot;name&quot;: &quot;trip_elevation_gain&quot;
+    },
+    &quot;edge_energy_liquid&quot;: {
+        &quot;type&quot;: &quot;energy&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: false,
+        &quot;output_unit&quot;: &quot;gallons_gasoline_equivalent&quot;,
+        &quot;index&quot;: 3,
+        &quot;name&quot;: &quot;edge_energy_liquid&quot;
+    },
+    &quot;trip_energy_liquid&quot;: {
+        &quot;type&quot;: &quot;energy&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: true,
+        &quot;output_unit&quot;: &quot;gallons_gasoline_equivalent&quot;,
+        &quot;index&quot;: 4,
+        &quot;name&quot;: &quot;trip_energy_liquid&quot;
+    },
+    &quot;trip_time&quot;: {
+        &quot;type&quot;: &quot;time&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: true,
+        &quot;output_unit&quot;: &quot;minutes&quot;,
+        &quot;index&quot;: 5,
+        &quot;name&quot;: &quot;trip_time&quot;
+    },
+    &quot;trip_distance&quot;: {
+        &quot;type&quot;: &quot;distance&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: true,
+        &quot;output_unit&quot;: &quot;miles&quot;,
+        &quot;index&quot;: 6,
+        &quot;name&quot;: &quot;trip_distance&quot;
+    },
+    &quot;trip_elevation_loss&quot;: {
+        &quot;type&quot;: &quot;distance&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: true,
+        &quot;output_unit&quot;: &quot;miles&quot;,
+        &quot;index&quot;: 7,
+        &quot;name&quot;: &quot;trip_elevation_loss&quot;
+    },
+    &quot;edge_speed&quot;: {
+        &quot;type&quot;: &quot;speed&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: false,
+        &quot;output_unit&quot;: &quot;miles/hour&quot;,
+        &quot;index&quot;: 8,
+        &quot;name&quot;: &quot;edge_speed&quot;
+    },
+    &quot;edge_grade&quot;: {
+        &quot;type&quot;: &quot;ratio&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: false,
+        &quot;output_unit&quot;: &quot;decimal&quot;,
+        &quot;index&quot;: 9,
+        &quot;name&quot;: &quot;edge_grade&quot;
+    },
+    &quot;edge_turn_delay&quot;: {
+        &quot;type&quot;: &quot;time&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: false,
+        &quot;output_unit&quot;: &quot;seconds&quot;,
+        &quot;index&quot;: 10,
+        &quot;name&quot;: &quot;edge_turn_delay&quot;
+    }
+}
 </pre></div>
 </div>
 </div>
@@ -678,6 +798,27 @@ Since we used the grid search to specify three separate searches, we should get 
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pretty_print</span><span class="p">(</span><span class="n">shortest_time_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;cost&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
+    &quot;objective_cost&quot;: 3.554612780109076,
+    &quot;total_cost&quot;: 10.473263411542757,
+    &quot;cost_component&quot;: {
+        &quot;trip_energy_liquid&quot;: 0.9414516766795675,
+        &quot;trip_distance&quot;: 5.977198954754113,
+        &quot;edge_turn_delay&quot;: 0.0,
+        &quot;trip_time&quot;: 3.554612780109076,
+        &quot;edge_time&quot;: 0.0,
+        &quot;edge_speed&quot;: 0.0,
+        &quot;trip_elevation_gain&quot;: 0.0,
+        &quot;trip_elevation_loss&quot;: 0.0,
+        &quot;edge_grade&quot;: 0.0,
+        &quot;edge_distance&quot;: 0.0,
+        &quot;edge_energy_liquid&quot;: 0.0
+    }
+}
 </pre></div>
 </div>
 </div>
@@ -691,12 +832,152 @@ Since we used the grid search to specify three separate searches, we should get 
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
+    &quot;edge_time&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 0,
+        &quot;description&quot;: &quot;Feature &#39;edge_time&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;edge_distance&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 1,
+        &quot;description&quot;: &quot;Feature &#39;edge_distance&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;trip_elevation_gain&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 2,
+        &quot;description&quot;: &quot;Feature &#39;trip_elevation_gain&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;edge_energy_liquid&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 3,
+        &quot;description&quot;: &quot;Feature &#39;edge_energy_liquid&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;trip_energy_liquid&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;energy&quot;,
+            &quot;factor&quot;: 3.0,
+            &quot;unit&quot;: &quot;gallons_gasoline_equivalent&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 4,
+        &quot;description&quot;: &quot;Feature &#39;trip_energy_liquid&#39; was provided weight 0 and vehicle rate cost times 3 per gallons_gasoline_equivalent and will contribute to the cost model. No network costs were provided for this feature.&quot;
+    },
+    &quot;trip_time&quot;: {
+        &quot;weight&quot;: 1.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;time&quot;,
+            &quot;factor&quot;: 20.0,
+            &quot;unit&quot;: &quot;hours&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 5,
+        &quot;description&quot;: &quot;Feature &#39;trip_time&#39; was provided weight 1 and vehicle rate cost times 20 per hours and will contribute to the cost model. No network costs were provided for this feature.&quot;
+    },
+    &quot;trip_distance&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;distance&quot;,
+            &quot;factor&quot;: 0.655,
+            &quot;unit&quot;: &quot;miles&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 6,
+        &quot;description&quot;: &quot;Feature &#39;trip_distance&#39; was provided weight 0 and vehicle rate cost times 0.655 per miles and will contribute to the cost model. No network costs were provided for this feature.&quot;
+    },
+    &quot;trip_elevation_loss&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 7,
+        &quot;description&quot;: &quot;Feature &#39;trip_elevation_loss&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;edge_speed&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 8,
+        &quot;description&quot;: &quot;Feature &#39;edge_speed&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;edge_grade&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 9,
+        &quot;description&quot;: &quot;Feature &#39;edge_grade&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;edge_turn_delay&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 10,
+        &quot;description&quot;: &quot;Feature &#39;edge_turn_delay&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;cost_aggregation&quot;: &quot;sum&quot;
+}
+</pre></div>
+</div>
+</div>
 </div>
 <p>Each response object contains this information. The least energy traversal and cost summary are below.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pretty_print</span><span class="p">(</span><span class="n">least_energy_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;traversal_summary&quot;</span><span class="p">])</span>
 <span class="n">pretty_print</span><span class="p">(</span><span class="n">least_energy_result</span><span class="p">[</span><span class="s2">&quot;route&quot;</span><span class="p">][</span><span class="s2">&quot;cost&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
+    &quot;trip_energy_liquid&quot;: 0.24380501512103228,
+    &quot;trip_elevation_loss&quot;: -0.018515147296623655,
+    &quot;trip_elevation_gain&quot;: 0.041240327143777226,
+    &quot;trip_time&quot;: 13.138340087522598,
+    &quot;trip_distance&quot;: 6.443526785294254
+}
+{
+    &quot;objective_cost&quot;: 0.7314150453630969,
+    &quot;total_cost&quot;: 9.331371785571699,
+    &quot;cost_component&quot;: {
+        &quot;trip_time&quot;: 4.379446695840866,
+        &quot;trip_distance&quot;: 4.220510044367736,
+        &quot;edge_grade&quot;: 0.0,
+        &quot;edge_turn_delay&quot;: 0.0,
+        &quot;trip_elevation_gain&quot;: 0.0,
+        &quot;edge_energy_liquid&quot;: 0.0,
+        &quot;trip_elevation_loss&quot;: 0.0,
+        &quot;edge_time&quot;: 0.0,
+        &quot;edge_distance&quot;: 0.0,
+        &quot;edge_speed&quot;: 0.0,
+        &quot;trip_energy_liquid&quot;: 0.7314150453630969
+    }
+}
 </pre></div>
 </div>
 </div>
@@ -730,6 +1011,14 @@ Since we used the grid search to specify three separate searches, we should get 
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> - distance: 2.68 miles further with time-optimal
+ - time: 2.47 minutes longer with energy-optimal
+ - energy: 0.07 gallons_gasoline_equivalent more with time-optimal
+ - cost: $1.14 more with time-optimal
+</pre></div>
+</div>
+</div>
 </div>
 <p>In addition to the summary, the result also contains much more information.
 Here's a list of all the different sections that get returned:</p>
@@ -746,6 +1035,232 @@ Here's a list of all the different sections that get returned:</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> - iterations
+ - output_plugin_executed_time
+ - request
+   - destination_vertex
+   - destination_x
+   - destination_y
+   - model_name
+   - name
+   - origin_vertex
+   - origin_x
+   - origin_y
+   - query_weight_estimate
+   - vehicle_rates
+     - trip_distance
+       - factor
+       - type
+       - unit
+     - trip_energy_liquid
+       - factor
+       - type
+       - unit
+     - trip_time
+       - factor
+       - type
+       - unit
+   - weights
+     - trip_distance
+     - trip_energy_liquid
+     - trip_time
+ - route
+   - cost
+     - cost_component
+       - edge_distance
+       - edge_energy_liquid
+       - edge_grade
+       - edge_speed
+       - edge_time
+       - edge_turn_delay
+       - trip_distance
+       - trip_elevation_gain
+       - trip_elevation_loss
+       - trip_energy_liquid
+       - trip_time
+     - objective_cost
+     - total_cost
+   - cost_model
+     - cost_aggregation
+     - edge_distance
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - type
+       - weight
+     - edge_energy_liquid
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - type
+       - weight
+     - edge_grade
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - type
+       - weight
+     - edge_speed
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - type
+       - weight
+     - edge_time
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - type
+       - weight
+     - edge_turn_delay
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - type
+       - weight
+     - trip_distance
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - factor
+         - type
+         - unit
+       - weight
+     - trip_elevation_gain
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - type
+       - weight
+     - trip_elevation_loss
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - type
+       - weight
+     - trip_energy_liquid
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - factor
+         - type
+         - unit
+       - weight
+     - trip_time
+       - description
+       - index
+       - network_rate
+       - vehicle_rate
+         - factor
+         - type
+         - unit
+       - weight
+   - path
+     - features
+     - type
+   - state_model
+     - edge_distance
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - edge_energy_liquid
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - edge_grade
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - edge_speed
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - edge_time
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - edge_turn_delay
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - trip_distance
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - trip_elevation_gain
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - trip_elevation_loss
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - trip_energy_liquid
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+     - trip_time
+       - accumulator
+       - index
+       - initial
+       - name
+       - output_unit
+       - type
+   - traversal_summary
+     - trip_distance
+     - trip_elevation_gain
+     - trip_elevation_loss
+     - trip_energy_liquid
+     - trip_time
+ - route_edges
+ - search_executed_time
+ - search_result_size_mib
+ - search_runtime
+ - tree_size_count
+</pre></div>
+</div>
+</div>
 </div>
 <p>We can also convert the results into a geodataframe:</p>
 <div class="cell docutils container">
@@ -755,6 +1270,101 @@ Here's a list of all the different sections that get returned:</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>output_plugin_executed_time</th>
+      <th>search_executed_time</th>
+      <th>search_runtime</th>
+      <th>route_edges</th>
+      <th>tree_size_count</th>
+      <th>search_result_size_mib</th>
+      <th>iterations</th>
+      <th>request.origin_x</th>
+      <th>request.origin_y</th>
+      <th>request.destination_x</th>
+      <th>...</th>
+      <th>route.cost.cost_component.edge_grade</th>
+      <th>route.cost.cost_component.edge_turn_delay</th>
+      <th>route.cost.cost_component.trip_elevation_gain</th>
+      <th>route.cost.cost_component.edge_energy_liquid</th>
+      <th>route.cost.cost_component.trip_elevation_loss</th>
+      <th>route.cost.cost_component.edge_time</th>
+      <th>route.cost.cost_component.edge_distance</th>
+      <th>route.cost.cost_component.edge_speed</th>
+      <th>route.cost.cost_component.trip_energy_liquid</th>
+      <th>geometry</th>
+    </tr>
+    <tr>
+      <th>route_id</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2025-10-21T17:39:32.265946710+00:00</td>
+      <td>2025-10-21T17:39:32.118650915+00:00</td>
+      <td>0:00:00.147</td>
+      <td>91</td>
+      <td>7425</td>
+      <td>1.740222</td>
+      <td>7233</td>
+      <td>-104.969307</td>
+      <td>39.779021</td>
+      <td>-104.97536</td>
+      <td>...</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.731415</td>
+      <td>LINESTRING (-104.96884 39.77875, -104.96865 39...</td>
+    </tr>
+  </tbody>
+</table>
+<p>1 rows × 175 columns</p>
+</div></div></div>
 </div>
 </section>
 <section id="plotting">
@@ -780,6 +1390,348 @@ Here's a list of all the different sections that get returned:</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div style="width:100%;"><div style="position:relative;width:100%;height:0;padding-bottom:60%;"><span style="color:#565656">Make this Notebook Trusted to load map: File -> Trust Notebook</span><iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    
+    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;
+    
+            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
+            &lt;style&gt;
+                #map_1973fcd5cde6436a796cc631b528a710 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            &lt;/style&gt;
+
+            &lt;style&gt;html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            &lt;/style&gt;
+
+            &lt;style&gt;#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            &lt;/style&gt;
+
+            &lt;script&gt;
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            &lt;/script&gt;
+
+        
+&lt;/head&gt;
+&lt;body&gt;
+    
+    
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_1973fcd5cde6436a796cc631b528a710&quot; &gt;&lt;/div&gt;
+        
+&lt;/body&gt;
+&lt;script&gt;
+    
+    
+            var map_1973fcd5cde6436a796cc631b528a710 = L.map(
+                &quot;map_1973fcd5cde6436a796cc631b528a710&quot;,
+                {
+                    center: [39.73683738708496, -104.99208068847656],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  &quot;zoom&quot;: 12,
+  &quot;zoomControl&quot;: true,
+  &quot;preferCanvas&quot;: false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_fa560181623f0d9604bc1853a2985714 = L.tileLayer(
+                &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
+                {
+  &quot;minZoom&quot;: 0,
+  &quot;maxZoom&quot;: 19,
+  &quot;maxNativeZoom&quot;: 19,
+  &quot;noWrap&quot;: false,
+  &quot;attribution&quot;: &quot;\u0026copy; \u003ca href=\&quot;https://www.openstreetmap.org/copyright\&quot;\u003eOpenStreetMap\u003c/a\u003e contributors&quot;,
+  &quot;subdomains&quot;: &quot;abc&quot;,
+  &quot;detectRetina&quot;: false,
+  &quot;tms&quot;: false,
+  &quot;opacity&quot;: 1,
+}
+
+            );
+        
+    
+            tile_layer_fa560181623f0d9604bc1853a2985714.addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            map_1973fcd5cde6436a796cc631b528a710.fitBounds(
+                [[39.6929817199707, -105.01736450195312], [39.78069305419922, -104.966796875]],
+                {&quot;maxZoom&quot;: 12}
+            );
+        
+    
+            var poly_line_658919d787a1454c8a5e9c89d4da766d = L.polyline(
+                [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.77865982055664, -104.96807098388672], [39.77926254272461, -104.96719360351562], [39.7796745300293, -104.96698760986328], [39.78050994873047, -104.966796875], [39.78050994873047, -104.96704864501953], [39.78001403808594, -104.9715347290039], [39.77994155883789, -104.97315216064453], [39.779685974121094, -104.9766845703125], [39.78001403808594, -104.98262786865234], [39.7800178527832, -104.98450469970703], [39.78069305419922, -104.98828887939453], [39.77692794799805, -104.98979187011719], [39.774696350097656, -104.99018096923828], [39.77122116088867, -104.99103546142578], [39.768856048583984, -104.99392700195312], [39.76498794555664, -105.00135803222656], [39.76063537597656, -105.00548553466797], [39.75861740112305, -105.0083999633789], [39.758094787597656, -105.00910949707031], [39.755245208740234, -105.01296997070312], [39.75261688232422, -105.01597595214844], [39.74444580078125, -105.01736450195312], [39.74345016479492, -105.01632690429688], [39.73714828491211, -105.0142822265625], [39.73179244995117, -105.01585388183594], [39.729949951171875, -105.01531219482422], [39.728843688964844, -105.01493835449219], [39.725276947021484, -105.01322937011719], [39.720741271972656, -105.0081787109375], [39.71499252319336, -105.00151824951172], [39.71266174316406, -105.00003051757812], [39.703487396240234, -104.99188232421875], [39.703189849853516, -104.99092102050781], [39.700706481933594, -104.98689270019531], [39.69866180419922, -104.9847412109375], [39.69713592529297, -104.98299407958984], [39.69398498535156, -104.97977447509766], [39.6934814453125, -104.9792709350586], [39.69298553466797, -104.97871398925781], [39.6929931640625, -104.9772720336914], [39.692989349365234, -104.97694396972656], [39.6929817199707, -104.97577667236328]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;red&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;red&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            poly_line_658919d787a1454c8a5e9c89d4da766d.bindTooltip(
+                `&lt;div&gt;
+                     Shortest Time
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_545c9dc7b8cd4e3edfe50b4fa6ecbb9c = L.marker(
+                [39.778751373291016, -104.96884155273438],
+                {
+}
+            ).addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            var icon_99d713e14a0c56fac3de5add2c758d97 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_545c9dc7b8cd4e3edfe50b4fa6ecbb9c.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_545c9dc7b8cd4e3edfe50b4fa6ecbb9c.setIcon(icon_99d713e14a0c56fac3de5add2c758d97);
+            
+    
+            var marker_3785372dc64abd48d8deef0cb3389ce0 = L.marker(
+                [39.6929817199707, -104.97577667236328],
+                {
+}
+            ).addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            var icon_612a9dfa4ab667bdd4c26619a85d7056 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_3785372dc64abd48d8deef0cb3389ce0.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_3785372dc64abd48d8deef0cb3389ce0.setIcon(icon_612a9dfa4ab667bdd4c26619a85d7056);
+            
+    
+            var poly_line_22a6b0037df1ac82688e3302e585aed6 = L.polyline(
+                [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;green&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;green&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            poly_line_22a6b0037df1ac82688e3302e585aed6.bindTooltip(
+                `&lt;div&gt;
+                     Least Energy
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_e9bd59ec3ec59b38bd92df1f6e93df95 = L.marker(
+                [39.778751373291016, -104.96884155273438],
+                {
+}
+            ).addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            var icon_7927408917d319822bc70dfc6de04e6d = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_e9bd59ec3ec59b38bd92df1f6e93df95.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_e9bd59ec3ec59b38bd92df1f6e93df95.setIcon(icon_7927408917d319822bc70dfc6de04e6d);
+            
+    
+            var marker_0e2e447fece88af607764ba26298a60d = L.marker(
+                [39.6929817199707, -104.97577667236328],
+                {
+}
+            ).addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            var icon_50809e9ae8ca643747a9fae182dcc87d = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_0e2e447fece88af607764ba26298a60d.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_0e2e447fece88af607764ba26298a60d.setIcon(icon_50809e9ae8ca643747a9fae182dcc87d);
+            
+    
+            var poly_line_87cdce751e0ff83a915d469ea38276ed = L.polyline(
+                [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            poly_line_87cdce751e0ff83a915d469ea38276ed.bindTooltip(
+                `&lt;div&gt;
+                     Least Cost
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_6a6bf15a5bcb4bcde7d73b95979645be = L.marker(
+                [39.778751373291016, -104.96884155273438],
+                {
+}
+            ).addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            var icon_b33fc99ae26d706062adc45825077d09 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_6a6bf15a5bcb4bcde7d73b95979645be.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_6a6bf15a5bcb4bcde7d73b95979645be.setIcon(icon_b33fc99ae26d706062adc45825077d09);
+            
+    
+            var marker_b5c195965260bada2c9119e7ec6f25b0 = L.marker(
+                [39.6929817199707, -104.97577667236328],
+                {
+}
+            ).addTo(map_1973fcd5cde6436a796cc631b528a710);
+        
+    
+            var icon_df9e9c90ebd1fd7a2eec729152fda69a = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_b5c195965260bada2c9119e7ec6f25b0.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_b5c195965260bada2c9119e7ec6f25b0.setIcon(icon_df9e9c90ebd1fd7a2eec729152fda69a);
+            
+&lt;/script&gt;
+&lt;/html&gt;" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div></div></div>
 </div>
 <p>We can also use the plot_routes_folium function and pass in multiple results. The function will color the routes based on the <code class="docutils literal notranslate"><span class="pre">value_fn</span></code> which takes a single result as an argument. For example, we can tell it to color the routes based on the total energy usage.</p>
 <div class="cell docutils container">
@@ -793,6 +1745,348 @@ Here's a list of all the different sections that get returned:</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div style="width:100%;"><div style="position:relative;width:100%;height:0;padding-bottom:60%;"><span style="color:#565656">Make this Notebook Trusted to load map: File -> Trust Notebook</span><iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    
+    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;
+    
+            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
+            &lt;style&gt;
+                #map_b9440128152e243b543687ca5520f86a {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            &lt;/style&gt;
+
+            &lt;style&gt;html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            &lt;/style&gt;
+
+            &lt;style&gt;#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            &lt;/style&gt;
+
+            &lt;script&gt;
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            &lt;/script&gt;
+
+        
+&lt;/head&gt;
+&lt;body&gt;
+    
+    
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_b9440128152e243b543687ca5520f86a&quot; &gt;&lt;/div&gt;
+        
+&lt;/body&gt;
+&lt;script&gt;
+    
+    
+            var map_b9440128152e243b543687ca5520f86a = L.map(
+                &quot;map_b9440128152e243b543687ca5520f86a&quot;,
+                {
+                    center: [39.73683738708496, -104.99208068847656],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  &quot;zoom&quot;: 12,
+  &quot;zoomControl&quot;: true,
+  &quot;preferCanvas&quot;: false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_d340676322bb663db76ad13d2a1dca3e = L.tileLayer(
+                &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
+                {
+  &quot;minZoom&quot;: 0,
+  &quot;maxZoom&quot;: 19,
+  &quot;maxNativeZoom&quot;: 19,
+  &quot;noWrap&quot;: false,
+  &quot;attribution&quot;: &quot;\u0026copy; \u003ca href=\&quot;https://www.openstreetmap.org/copyright\&quot;\u003eOpenStreetMap\u003c/a\u003e contributors&quot;,
+  &quot;subdomains&quot;: &quot;abc&quot;,
+  &quot;detectRetina&quot;: false,
+  &quot;tms&quot;: false,
+  &quot;opacity&quot;: 1,
+}
+
+            );
+        
+    
+            tile_layer_d340676322bb663db76ad13d2a1dca3e.addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            map_b9440128152e243b543687ca5520f86a.fitBounds(
+                [[39.6929817199707, -105.01736450195312], [39.78069305419922, -104.966796875]],
+                {&quot;maxZoom&quot;: 12}
+            );
+        
+    
+            var poly_line_ff762ce394134b6de8e37d06d3086772 = L.polyline(
+                [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.77865982055664, -104.96807098388672], [39.77926254272461, -104.96719360351562], [39.7796745300293, -104.96698760986328], [39.78050994873047, -104.966796875], [39.78050994873047, -104.96704864501953], [39.78001403808594, -104.9715347290039], [39.77994155883789, -104.97315216064453], [39.779685974121094, -104.9766845703125], [39.78001403808594, -104.98262786865234], [39.7800178527832, -104.98450469970703], [39.78069305419922, -104.98828887939453], [39.77692794799805, -104.98979187011719], [39.774696350097656, -104.99018096923828], [39.77122116088867, -104.99103546142578], [39.768856048583984, -104.99392700195312], [39.76498794555664, -105.00135803222656], [39.76063537597656, -105.00548553466797], [39.75861740112305, -105.0083999633789], [39.758094787597656, -105.00910949707031], [39.755245208740234, -105.01296997070312], [39.75261688232422, -105.01597595214844], [39.74444580078125, -105.01736450195312], [39.74345016479492, -105.01632690429688], [39.73714828491211, -105.0142822265625], [39.73179244995117, -105.01585388183594], [39.729949951171875, -105.01531219482422], [39.728843688964844, -105.01493835449219], [39.725276947021484, -105.01322937011719], [39.720741271972656, -105.0081787109375], [39.71499252319336, -105.00151824951172], [39.71266174316406, -105.00003051757812], [39.703487396240234, -104.99188232421875], [39.703189849853516, -104.99092102050781], [39.700706481933594, -104.98689270019531], [39.69866180419922, -104.9847412109375], [39.69713592529297, -104.98299407958984], [39.69398498535156, -104.97977447509766], [39.6934814453125, -104.9792709350586], [39.69298553466797, -104.97871398925781], [39.6929931640625, -104.9772720336914], [39.692989349365234, -104.97694396972656], [39.6929817199707, -104.97577667236328]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#eff821&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#eff821&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            poly_line_ff762ce394134b6de8e37d06d3086772.bindTooltip(
+                `&lt;div&gt;
+                     0.31381722555985586
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_fe620e8639ad8343d90551784db12052 = L.marker(
+                [39.778751373291016, -104.96884155273438],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_6781229d608b98b1717ed2988201cd16 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_fe620e8639ad8343d90551784db12052.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_fe620e8639ad8343d90551784db12052.setIcon(icon_6781229d608b98b1717ed2988201cd16);
+            
+    
+            var marker_1f63e745a2b68e106e2c35f9e4710c37 = L.marker(
+                [39.6929817199707, -104.97577667236328],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_80f0a6b459c7fd1223b9d48f5355cce6 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_1f63e745a2b68e106e2c35f9e4710c37.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_1f63e745a2b68e106e2c35f9e4710c37.setIcon(icon_80f0a6b459c7fd1223b9d48f5355cce6);
+            
+    
+            var poly_line_622586620e23f640b5963dc5595afd74 = L.polyline(
+                [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            poly_line_622586620e23f640b5963dc5595afd74.bindTooltip(
+                `&lt;div&gt;
+                     0.24380501512103228
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_0fa7915d9e0084c3ec62a8c7425627c3 = L.marker(
+                [39.778751373291016, -104.96884155273438],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_6b2395c3b7e94e6c73781dc9839c2809 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_0fa7915d9e0084c3ec62a8c7425627c3.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_0fa7915d9e0084c3ec62a8c7425627c3.setIcon(icon_6b2395c3b7e94e6c73781dc9839c2809);
+            
+    
+            var marker_afbddc7c4da6afad4fbac874cdbb314b = L.marker(
+                [39.6929817199707, -104.97577667236328],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_90d8bee709b2ba4a4e9956db66da93dc = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_afbddc7c4da6afad4fbac874cdbb314b.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_afbddc7c4da6afad4fbac874cdbb314b.setIcon(icon_90d8bee709b2ba4a4e9956db66da93dc);
+            
+    
+            var poly_line_c1028ff9843a06402e19e3da33afd4f8 = L.polyline(
+                [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            poly_line_c1028ff9843a06402e19e3da33afd4f8.bindTooltip(
+                `&lt;div&gt;
+                     0.24380501512103228
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_615c159c72498f2002fb440fe034e47a = L.marker(
+                [39.778751373291016, -104.96884155273438],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_6be46a987b71ce7017d066e570bdb27f = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_615c159c72498f2002fb440fe034e47a.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_615c159c72498f2002fb440fe034e47a.setIcon(icon_6be46a987b71ce7017d066e570bdb27f);
+            
+    
+            var marker_248e8a59d0526e3b3d4a64f5a2a56152 = L.marker(
+                [39.6929817199707, -104.97577667236328],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_7dddcdf00da66df32190aac68914fd75 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_248e8a59d0526e3b3d4a64f5a2a56152.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_248e8a59d0526e3b3d4a64f5a2a56152.setIcon(icon_7dddcdf00da66df32190aac68914fd75);
+            
+&lt;/script&gt;
+&lt;/html&gt;" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div></div></div>
 </div>
 <p>And the <code class="docutils literal notranslate"><span class="pre">plot_routes_folium</span></code> can also accept an existing <code class="docutils literal notranslate"><span class="pre">folium_map</span></code> parameter. Let's query our application with different origin and destination places:</p>
 <div class="cell docutils container">
@@ -817,6 +2111,615 @@ Here's a list of all the different sections that get returned:</p>
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 177935.94it/s]
+
+applying input plugin 2: 100%|██████████| 3/3 [00:00&lt;00:00, 54772.51it/s]
+
+
+
+search:  33%|███▄      | 1/3 [00:00&lt;00:00, 8.49it/s]
+                                                    
+search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.40it/s]
+</pre></div>
+</div>
+<div class="output text_html"><div style="width:100%;"><div style="position:relative;width:100%;height:0;padding-bottom:60%;"><span style="color:#565656">Make this Notebook Trusted to load map: File -> Trust Notebook</span><iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    
+    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=UTF-8&quot; /&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://code.jquery.com/jquery-3.7.1.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js&quot;&gt;&lt;/script&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css&quot;/&gt;
+    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css&quot;/&gt;
+    
+            &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
+            &lt;style&gt;
+                #map_b9440128152e243b543687ca5520f86a {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            &lt;/style&gt;
+
+            &lt;style&gt;html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            &lt;/style&gt;
+
+            &lt;style&gt;#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            &lt;/style&gt;
+
+            &lt;script&gt;
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            &lt;/script&gt;
+
+        
+&lt;/head&gt;
+&lt;body&gt;
+    
+    
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_b9440128152e243b543687ca5520f86a&quot; &gt;&lt;/div&gt;
+        
+&lt;/body&gt;
+&lt;script&gt;
+    
+    
+            var map_b9440128152e243b543687ca5520f86a = L.map(
+                &quot;map_b9440128152e243b543687ca5520f86a&quot;,
+                {
+                    center: [39.73683738708496, -104.99208068847656],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  &quot;zoom&quot;: 12,
+  &quot;zoomControl&quot;: true,
+  &quot;preferCanvas&quot;: false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_d340676322bb663db76ad13d2a1dca3e = L.tileLayer(
+                &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
+                {
+  &quot;minZoom&quot;: 0,
+  &quot;maxZoom&quot;: 19,
+  &quot;maxNativeZoom&quot;: 19,
+  &quot;noWrap&quot;: false,
+  &quot;attribution&quot;: &quot;\u0026copy; \u003ca href=\&quot;https://www.openstreetmap.org/copyright\&quot;\u003eOpenStreetMap\u003c/a\u003e contributors&quot;,
+  &quot;subdomains&quot;: &quot;abc&quot;,
+  &quot;detectRetina&quot;: false,
+  &quot;tms&quot;: false,
+  &quot;opacity&quot;: 1,
+}
+
+            );
+        
+    
+            tile_layer_d340676322bb663db76ad13d2a1dca3e.addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            map_b9440128152e243b543687ca5520f86a.fitBounds(
+                [[39.6929817199707, -105.01736450195312], [39.78069305419922, -104.966796875]],
+                {&quot;maxZoom&quot;: 12}
+            );
+        
+    
+            var poly_line_ff762ce394134b6de8e37d06d3086772 = L.polyline(
+                [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.77865982055664, -104.96807098388672], [39.77926254272461, -104.96719360351562], [39.7796745300293, -104.96698760986328], [39.78050994873047, -104.966796875], [39.78050994873047, -104.96704864501953], [39.78001403808594, -104.9715347290039], [39.77994155883789, -104.97315216064453], [39.779685974121094, -104.9766845703125], [39.78001403808594, -104.98262786865234], [39.7800178527832, -104.98450469970703], [39.78069305419922, -104.98828887939453], [39.77692794799805, -104.98979187011719], [39.774696350097656, -104.99018096923828], [39.77122116088867, -104.99103546142578], [39.768856048583984, -104.99392700195312], [39.76498794555664, -105.00135803222656], [39.76063537597656, -105.00548553466797], [39.75861740112305, -105.0083999633789], [39.758094787597656, -105.00910949707031], [39.755245208740234, -105.01296997070312], [39.75261688232422, -105.01597595214844], [39.74444580078125, -105.01736450195312], [39.74345016479492, -105.01632690429688], [39.73714828491211, -105.0142822265625], [39.73179244995117, -105.01585388183594], [39.729949951171875, -105.01531219482422], [39.728843688964844, -105.01493835449219], [39.725276947021484, -105.01322937011719], [39.720741271972656, -105.0081787109375], [39.71499252319336, -105.00151824951172], [39.71266174316406, -105.00003051757812], [39.703487396240234, -104.99188232421875], [39.703189849853516, -104.99092102050781], [39.700706481933594, -104.98689270019531], [39.69866180419922, -104.9847412109375], [39.69713592529297, -104.98299407958984], [39.69398498535156, -104.97977447509766], [39.6934814453125, -104.9792709350586], [39.69298553466797, -104.97871398925781], [39.6929931640625, -104.9772720336914], [39.692989349365234, -104.97694396972656], [39.6929817199707, -104.97577667236328]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#eff821&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#eff821&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            poly_line_ff762ce394134b6de8e37d06d3086772.bindTooltip(
+                `&lt;div&gt;
+                     0.31381722555985586
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_fe620e8639ad8343d90551784db12052 = L.marker(
+                [39.778751373291016, -104.96884155273438],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_6781229d608b98b1717ed2988201cd16 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_fe620e8639ad8343d90551784db12052.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_fe620e8639ad8343d90551784db12052.setIcon(icon_6781229d608b98b1717ed2988201cd16);
+            
+    
+            var marker_1f63e745a2b68e106e2c35f9e4710c37 = L.marker(
+                [39.6929817199707, -104.97577667236328],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_80f0a6b459c7fd1223b9d48f5355cce6 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_1f63e745a2b68e106e2c35f9e4710c37.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_1f63e745a2b68e106e2c35f9e4710c37.setIcon(icon_80f0a6b459c7fd1223b9d48f5355cce6);
+            
+    
+            var poly_line_622586620e23f640b5963dc5595afd74 = L.polyline(
+                [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            poly_line_622586620e23f640b5963dc5595afd74.bindTooltip(
+                `&lt;div&gt;
+                     0.24380501512103228
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_0fa7915d9e0084c3ec62a8c7425627c3 = L.marker(
+                [39.778751373291016, -104.96884155273438],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_6b2395c3b7e94e6c73781dc9839c2809 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_0fa7915d9e0084c3ec62a8c7425627c3.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_0fa7915d9e0084c3ec62a8c7425627c3.setIcon(icon_6b2395c3b7e94e6c73781dc9839c2809);
+            
+    
+            var marker_afbddc7c4da6afad4fbac874cdbb314b = L.marker(
+                [39.6929817199707, -104.97577667236328],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_90d8bee709b2ba4a4e9956db66da93dc = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_afbddc7c4da6afad4fbac874cdbb314b.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_afbddc7c4da6afad4fbac874cdbb314b.setIcon(icon_90d8bee709b2ba4a4e9956db66da93dc);
+            
+    
+            var poly_line_c1028ff9843a06402e19e3da33afd4f8 = L.polyline(
+                [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            poly_line_c1028ff9843a06402e19e3da33afd4f8.bindTooltip(
+                `&lt;div&gt;
+                     0.24380501512103228
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_615c159c72498f2002fb440fe034e47a = L.marker(
+                [39.778751373291016, -104.96884155273438],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_6be46a987b71ce7017d066e570bdb27f = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_615c159c72498f2002fb440fe034e47a.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_615c159c72498f2002fb440fe034e47a.setIcon(icon_6be46a987b71ce7017d066e570bdb27f);
+            
+    
+            var marker_248e8a59d0526e3b3d4a64f5a2a56152 = L.marker(
+                [39.6929817199707, -104.97577667236328],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_7dddcdf00da66df32190aac68914fd75 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_248e8a59d0526e3b3d4a64f5a2a56152.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_248e8a59d0526e3b3d4a64f5a2a56152.setIcon(icon_7dddcdf00da66df32190aac68914fd75);
+            
+    
+            tile_layer_d340676322bb663db76ad13d2a1dca3e.addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+                marker_fe620e8639ad8343d90551784db12052.setIcon(icon_6781229d608b98b1717ed2988201cd16);
+            
+    
+                marker_1f63e745a2b68e106e2c35f9e4710c37.setIcon(icon_80f0a6b459c7fd1223b9d48f5355cce6);
+            
+    
+                marker_0fa7915d9e0084c3ec62a8c7425627c3.setIcon(icon_6b2395c3b7e94e6c73781dc9839c2809);
+            
+    
+                marker_afbddc7c4da6afad4fbac874cdbb314b.setIcon(icon_90d8bee709b2ba4a4e9956db66da93dc);
+            
+    
+                marker_615c159c72498f2002fb440fe034e47a.setIcon(icon_6be46a987b71ce7017d066e570bdb27f);
+            
+    
+                marker_248e8a59d0526e3b3d4a64f5a2a56152.setIcon(icon_7dddcdf00da66df32190aac68914fd75);
+            
+    
+            var poly_line_291f081d7e0704fd00970327af44abe1 = L.polyline(
+                [[39.66568374633789, -105.08139038085938], [39.6677360534668, -105.08140563964844], [39.6677360534668, -105.07869720458984], [39.66777420043945, -105.07354736328125], [39.6668815612793, -105.07353210449219], [39.66482162475586, -105.07266998291016], [39.664669036865234, -105.07173156738281], [39.66452407836914, -105.0707778930664], [39.66436004638672, -105.06983184814453], [39.66421890258789, -105.06890869140625], [39.664180755615234, -105.06729888916016], [39.66508865356445, -105.06524658203125], [39.667762756347656, -105.06513214111328], [39.667762756347656, -105.06404876708984], [39.667762756347656, -105.06297302246094], [39.66777420043945, -105.06085968017578], [39.66777420043945, -105.06013488769531], [39.66777420043945, -105.06005096435547], [39.667781829833984, -105.05903625488281], [39.667781829833984, -105.05797576904297], [39.66777801513672, -105.05694580078125], [39.667781829833984, -105.055908203125], [39.66778564453125, -105.05487060546875], [39.667781829833984, -105.05392456054688], [39.667781829833984, -105.05325317382812], [39.66777038574219, -105.05178833007812], [39.66777038574219, -105.05079650878906], [39.66775894165039, -105.04981231689453], [39.667762756347656, -105.048828125], [39.667762756347656, -105.0478286743164], [39.667762756347656, -105.04683685302734], [39.66775894165039, -105.04656982421875], [39.66775894165039, -105.04583740234375], [39.66775894165039, -105.04553985595703], [39.66775131225586, -105.04484558105469], [39.66775131225586, -105.0438461303711], [39.66774368286133, -105.04286193847656], [39.667724609375, -105.041748046875], [39.667720794677734, -105.04067993164062], [39.6677131652832, -105.03968048095703], [39.66770935058594, -105.0386962890625], [39.66770553588867, -105.03777313232422], [39.66769790649414, -105.0368423461914], [39.66769027709961, -105.03593444824219], [39.667686462402344, -105.03497314453125], [39.66769027709961, -105.03382873535156], [39.66769790649414, -105.03285217285156], [39.66769790649414, -105.0318832397461], [39.66769790649414, -105.0309066772461], [39.66770935058594, -105.02987670898438], [39.66771697998047, -105.02886199951172], [39.667720794677734, -105.02796173095703], [39.66773223876953, -105.02699279785156], [39.667724609375, -105.02607727050781], [39.6677131652832, -105.02510833740234], [39.66855239868164, -105.02509307861328], [39.6701545715332, -105.02509307861328], [39.67064666748047, -105.02501678466797], [39.67182159423828, -105.02501678466797], [39.672733306884766, -105.02501678466797], [39.67340850830078, -105.02501678466797], [39.675010681152344, -105.02500915527344], [39.67530059814453, -105.02500915527344], [39.6767692565918, -105.02500915527344], [39.67864990234375, -105.02497863769531], [39.67864990234375, -105.02381134033203], [39.678653717041016, -105.02323913574219], [39.678653717041016, -105.02275848388672], [39.67865753173828, -105.02210235595703], [39.67866897583008, -105.02037811279297], [39.67867660522461, -105.01802825927734], [39.67868423461914, -105.01569366455078], [39.67866897583008, -105.01337432861328], [39.67864990234375, -105.01102447509766], [39.678627014160156, -105.0086669921875], [39.678585052490234, -105.00640106201172], [39.678565979003906, -105.00524139404297], [39.678558349609375, -105.00411224365234], [39.67854309082031, -105.00288391113281], [39.67852783203125, -105.00177764892578], [39.67851638793945, -105.00064086914062], [39.67850112915039, -104.99947357177734], [39.67848587036133, -104.99851989746094], [39.678470611572266, -104.9975357055664], [39.67845916748047, -104.99715423583984], [39.678436279296875, -104.9959945678711], [39.67841339111328, -104.9941635131836], [39.67841339111328, -104.99386596679688], [39.67841339111328, -104.99348449707031], [39.67841339111328, -104.99308776855469], [39.67841339111328, -104.99292755126953], [39.678436279296875, -104.98995971679688], [39.678401947021484, -104.98880004882812], [39.678497314453125, -104.9876708984375], [39.67850112915039, -104.98750305175781], [39.67853546142578, -104.98635864257812], [39.678550720214844, -104.98521423339844], [39.67851638793945, -104.98404693603516], [39.67851257324219, -104.98287200927734], [39.67852020263672, -104.98167419433594], [39.67856216430664, -104.98048400878906], [39.678550720214844, -104.97933959960938], [39.678531646728516, -104.97813415527344], [39.67852783203125, -104.97692108154297], [39.67852020263672, -104.97575378417969], [39.67852020263672, -104.974609375], [39.67851257324219, -104.97344207763672], [39.67850112915039, -104.9722671508789], [39.67849349975586, -104.97109985351562], [39.67848205566406, -104.96992492675781], [39.67847442626953, -104.96875], [39.67847442626953, -104.96757507324219], [39.67847442626953, -104.96699523925781], [39.67843246459961, -104.96640014648438], [39.67842483520508, -104.96524047851562], [39.678436279296875, -104.95938110351562], [39.67662048339844, -104.95941162109375], [39.67484664916992, -104.95941925048828], [39.67354965209961, -104.95941162109375], [39.673030853271484, -104.95939636230469], [39.67122268676758, -104.95939636230469], [39.669410705566406, -104.95940399169922], [39.6676025390625, -104.95939636230469], [39.66603088378906, -104.95941162109375], [39.66393280029297, -104.95943450927734], [39.663055419921875, -104.95944213867188], [39.66191482543945, -104.95945739746094], [39.66034698486328, -104.95946502685547], [39.659568786621094, -104.95946502685547], [39.65707015991211, -104.95945739746094], [39.65707015991211, -104.95846557617188], [39.65707015991211, -104.95752716064453], [39.657066345214844, -104.95580291748047], [39.657066345214844, -104.95423126220703], [39.65705490112305, -104.95330810546875], [39.65705490112305, -104.952392578125], [39.65705108642578, -104.95204162597656], [39.65630340576172, -104.95204162597656]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#eff821&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#eff821&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            poly_line_291f081d7e0704fd00970327af44abe1.bindTooltip(
+                `&lt;div&gt;
+                     0.38076359650827013
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_dc6bd2d2a69e82c6e1ba855f83f2e699 = L.marker(
+                [39.66568374633789, -105.08139038085938],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_6de84fa1355e6546c90ca36515340cdc = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_dc6bd2d2a69e82c6e1ba855f83f2e699.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_dc6bd2d2a69e82c6e1ba855f83f2e699.setIcon(icon_6de84fa1355e6546c90ca36515340cdc);
+            
+    
+            var marker_85a2aef8f3fa1e8486db9bb5ca1aa467 = L.marker(
+                [39.65630340576172, -104.95204162597656],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_4b57314e855167023bdf5b7607b15d1e = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_85a2aef8f3fa1e8486db9bb5ca1aa467.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_85a2aef8f3fa1e8486db9bb5ca1aa467.setIcon(icon_4b57314e855167023bdf5b7607b15d1e);
+            
+    
+            var poly_line_91d1c24ebb59ce322d97de7d9ab1a6c8 = L.polyline(
+                [[39.66568374633789, -105.08139038085938], [39.6677360534668, -105.08140563964844], [39.6677360534668, -105.07869720458984], [39.66777420043945, -105.07354736328125], [39.6668815612793, -105.07353210449219], [39.66482162475586, -105.07266998291016], [39.664669036865234, -105.07173156738281], [39.66452407836914, -105.0707778930664], [39.66436004638672, -105.06983184814453], [39.66421890258789, -105.06890869140625], [39.664180755615234, -105.06729888916016], [39.66508865356445, -105.06524658203125], [39.667762756347656, -105.06513214111328], [39.667762756347656, -105.06404876708984], [39.667762756347656, -105.06297302246094], [39.66777420043945, -105.06085968017578], [39.66777420043945, -105.06013488769531], [39.66777420043945, -105.06005096435547], [39.667781829833984, -105.05903625488281], [39.667781829833984, -105.05797576904297], [39.66777801513672, -105.05694580078125], [39.667781829833984, -105.055908203125], [39.66778564453125, -105.05487060546875], [39.667781829833984, -105.05392456054688], [39.667781829833984, -105.05325317382812], [39.66777038574219, -105.05178833007812], [39.66777038574219, -105.05079650878906], [39.66775894165039, -105.04981231689453], [39.667762756347656, -105.048828125], [39.667762756347656, -105.0478286743164], [39.667762756347656, -105.04683685302734], [39.66775894165039, -105.04656982421875], [39.66775894165039, -105.04583740234375], [39.66775894165039, -105.04553985595703], [39.66775131225586, -105.04484558105469], [39.66775131225586, -105.0438461303711], [39.66774368286133, -105.04286193847656], [39.667724609375, -105.041748046875], [39.667720794677734, -105.04067993164062], [39.6677131652832, -105.03968048095703], [39.66770935058594, -105.0386962890625], [39.66770553588867, -105.03777313232422], [39.66769790649414, -105.0368423461914], [39.66769027709961, -105.03593444824219], [39.667686462402344, -105.03497314453125], [39.66769027709961, -105.03382873535156], [39.66769790649414, -105.03285217285156], [39.66769790649414, -105.0318832397461], [39.66769790649414, -105.0309066772461], [39.66770935058594, -105.02987670898438], [39.66771697998047, -105.02886199951172], [39.667720794677734, -105.02796173095703], [39.66773223876953, -105.02699279785156], [39.667724609375, -105.02607727050781], [39.6677131652832, -105.02510833740234], [39.66855239868164, -105.02509307861328], [39.6701545715332, -105.02509307861328], [39.67064666748047, -105.02501678466797], [39.67182159423828, -105.02501678466797], [39.672733306884766, -105.02501678466797], [39.67340850830078, -105.02501678466797], [39.675010681152344, -105.02500915527344], [39.67530059814453, -105.02500915527344], [39.6767692565918, -105.02500915527344], [39.67864990234375, -105.02497863769531], [39.67864990234375, -105.02381134033203], [39.678653717041016, -105.02323913574219], [39.678653717041016, -105.02275848388672], [39.67865753173828, -105.02210235595703], [39.67866897583008, -105.02037811279297], [39.67867660522461, -105.01802825927734], [39.67868423461914, -105.01569366455078], [39.67866897583008, -105.01337432861328], [39.67864990234375, -105.01102447509766], [39.678627014160156, -105.0086669921875], [39.678585052490234, -105.00640106201172], [39.678565979003906, -105.00524139404297], [39.678558349609375, -105.00411224365234], [39.67854309082031, -105.00288391113281], [39.67852783203125, -105.00177764892578], [39.67851638793945, -105.00064086914062], [39.67850112915039, -104.99947357177734], [39.67848587036133, -104.99851989746094], [39.678470611572266, -104.9975357055664], [39.67845916748047, -104.99715423583984], [39.678436279296875, -104.9959945678711], [39.67841339111328, -104.9941635131836], [39.67841339111328, -104.99386596679688], [39.67841339111328, -104.99348449707031], [39.67841339111328, -104.99308776855469], [39.67841339111328, -104.99292755126953], [39.678436279296875, -104.98995971679688], [39.678401947021484, -104.98880004882812], [39.678497314453125, -104.9876708984375], [39.67850112915039, -104.98750305175781], [39.67853546142578, -104.98635864257812], [39.678550720214844, -104.98521423339844], [39.67851638793945, -104.98404693603516], [39.67851257324219, -104.98287200927734], [39.67852020263672, -104.98167419433594], [39.67856216430664, -104.98048400878906], [39.678550720214844, -104.97933959960938], [39.678531646728516, -104.97813415527344], [39.67852783203125, -104.97692108154297], [39.67852020263672, -104.97575378417969], [39.67852020263672, -104.974609375], [39.67851257324219, -104.97344207763672], [39.67850112915039, -104.9722671508789], [39.67849349975586, -104.97109985351562], [39.67848205566406, -104.96992492675781], [39.67847442626953, -104.96875], [39.67847442626953, -104.96757507324219], [39.67847442626953, -104.96699523925781], [39.67843246459961, -104.96640014648438], [39.67842483520508, -104.96524047851562], [39.678436279296875, -104.95938110351562], [39.67662048339844, -104.95941162109375], [39.67484664916992, -104.95941925048828], [39.67354965209961, -104.95941162109375], [39.673030853271484, -104.95939636230469], [39.67122268676758, -104.95939636230469], [39.669410705566406, -104.95940399169922], [39.6676025390625, -104.95939636230469], [39.66603088378906, -104.95941162109375], [39.66393280029297, -104.95943450927734], [39.663055419921875, -104.95944213867188], [39.66191482543945, -104.95945739746094], [39.66034698486328, -104.95946502685547], [39.659568786621094, -104.95946502685547], [39.65707015991211, -104.95945739746094], [39.65707015991211, -104.95846557617188], [39.65707015991211, -104.95752716064453], [39.657066345214844, -104.95580291748047], [39.657066345214844, -104.95423126220703], [39.65705490112305, -104.95330810546875], [39.65705490112305, -104.952392578125], [39.65705108642578, -104.95204162597656], [39.65630340576172, -104.95204162597656]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#eff821&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#eff821&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            poly_line_91d1c24ebb59ce322d97de7d9ab1a6c8.bindTooltip(
+                `&lt;div&gt;
+                     0.38076359650827013
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_d4e5bc7039a0a0d93c8509286ec278e2 = L.marker(
+                [39.66568374633789, -105.08139038085938],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_7ee290db3cfe3de8caa96d0d8ed22e96 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_d4e5bc7039a0a0d93c8509286ec278e2.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_d4e5bc7039a0a0d93c8509286ec278e2.setIcon(icon_7ee290db3cfe3de8caa96d0d8ed22e96);
+            
+    
+            var marker_9f219e9792147e943ff8a023e7b1df8a = L.marker(
+                [39.65630340576172, -104.95204162597656],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_41e0d509b5c7b0178899f04d77904df0 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_9f219e9792147e943ff8a023e7b1df8a.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_9f219e9792147e943ff8a023e7b1df8a.setIcon(icon_41e0d509b5c7b0178899f04d77904df0);
+            
+    
+            var poly_line_840ae779000ad03ff7d8cd6080d00d5d = L.polyline(
+                [[39.66568374633789, -105.08139038085938], [39.6677360534668, -105.08140563964844], [39.6677360534668, -105.07869720458984], [39.66777420043945, -105.07354736328125], [39.6668815612793, -105.07353210449219], [39.66482162475586, -105.07266998291016], [39.664669036865234, -105.07173156738281], [39.66452407836914, -105.0707778930664], [39.66436004638672, -105.06983184814453], [39.66421890258789, -105.06890869140625], [39.664180755615234, -105.06729888916016], [39.66498565673828, -105.0672836303711], [39.667762756347656, -105.06619262695312], [39.667762756347656, -105.06513214111328], [39.667762756347656, -105.06404876708984], [39.667762756347656, -105.06297302246094], [39.66777420043945, -105.06085968017578], [39.66777420043945, -105.06013488769531], [39.66777420043945, -105.06005096435547], [39.667781829833984, -105.05903625488281], [39.667781829833984, -105.05797576904297], [39.66777801513672, -105.05694580078125], [39.667781829833984, -105.055908203125], [39.66778564453125, -105.05487060546875], [39.667781829833984, -105.05392456054688], [39.667781829833984, -105.05325317382812], [39.66777038574219, -105.05178833007812], [39.66777038574219, -105.05079650878906], [39.66775894165039, -105.04981231689453], [39.667762756347656, -105.048828125], [39.667762756347656, -105.0478286743164], [39.667762756347656, -105.04683685302734], [39.66775894165039, -105.04656982421875], [39.66775894165039, -105.04583740234375], [39.66775894165039, -105.04553985595703], [39.66775131225586, -105.04484558105469], [39.66775131225586, -105.0438461303711], [39.66774368286133, -105.04286193847656], [39.667724609375, -105.041748046875], [39.667720794677734, -105.04067993164062], [39.6677131652832, -105.03968048095703], [39.66770935058594, -105.0386962890625], [39.66770553588867, -105.03777313232422], [39.66769790649414, -105.0368423461914], [39.66769027709961, -105.03593444824219], [39.667686462402344, -105.03497314453125], [39.66769027709961, -105.03382873535156], [39.66769790649414, -105.03285217285156], [39.66769790649414, -105.0318832397461], [39.66769790649414, -105.0309066772461], [39.66770935058594, -105.02987670898438], [39.66771697998047, -105.02886199951172], [39.667720794677734, -105.02796173095703], [39.66773223876953, -105.02699279785156], [39.667724609375, -105.02607727050781], [39.6677131652832, -105.02510833740234], [39.66855239868164, -105.02509307861328], [39.6701545715332, -105.02509307861328], [39.67064666748047, -105.02501678466797], [39.67182159423828, -105.02501678466797], [39.672733306884766, -105.02501678466797], [39.67340850830078, -105.02501678466797], [39.675010681152344, -105.02500915527344], [39.67530059814453, -105.02500915527344], [39.6767692565918, -105.02500915527344], [39.67864990234375, -105.02497863769531], [39.67864990234375, -105.02381134033203], [39.678653717041016, -105.02323913574219], [39.678653717041016, -105.02275848388672], [39.67865753173828, -105.02210235595703], [39.67866897583008, -105.02037811279297], [39.67867660522461, -105.01802825927734], [39.67868423461914, -105.01569366455078], [39.67866897583008, -105.01337432861328], [39.67864990234375, -105.01102447509766], [39.678627014160156, -105.0086669921875], [39.678585052490234, -105.00640106201172], [39.678565979003906, -105.00524139404297], [39.678558349609375, -105.00411224365234], [39.67854309082031, -105.00288391113281], [39.67852783203125, -105.00177764892578], [39.67851638793945, -105.00064086914062], [39.67850112915039, -104.99947357177734], [39.67848587036133, -104.99851989746094], [39.678470611572266, -104.9975357055664], [39.67845916748047, -104.99715423583984], [39.678436279296875, -104.9959945678711], [39.67841339111328, -104.9941635131836], [39.67841339111328, -104.99386596679688], [39.67841339111328, -104.99348449707031], [39.67841339111328, -104.99308776855469], [39.67841339111328, -104.99292755126953], [39.678436279296875, -104.98995971679688], [39.678401947021484, -104.98880004882812], [39.678497314453125, -104.9876708984375], [39.67850112915039, -104.98750305175781], [39.67853546142578, -104.98635864257812], [39.678550720214844, -104.98521423339844], [39.67851638793945, -104.98404693603516], [39.67851257324219, -104.98287200927734], [39.67852020263672, -104.98167419433594], [39.67856216430664, -104.98048400878906], [39.678550720214844, -104.97933959960938], [39.678531646728516, -104.97813415527344], [39.67852783203125, -104.97692108154297], [39.67852020263672, -104.97575378417969], [39.67852020263672, -104.974609375], [39.67851257324219, -104.97344207763672], [39.67850112915039, -104.9722671508789], [39.67849349975586, -104.97109985351562], [39.67848205566406, -104.96992492675781], [39.67847442626953, -104.96875], [39.67847442626953, -104.96757507324219], [39.67847442626953, -104.96699523925781], [39.67843246459961, -104.96640014648438], [39.67842483520508, -104.96524047851562], [39.678436279296875, -104.95938110351562], [39.67662048339844, -104.95941162109375], [39.67484664916992, -104.95941925048828], [39.67354965209961, -104.95941162109375], [39.673030853271484, -104.95939636230469], [39.67122268676758, -104.95939636230469], [39.669410705566406, -104.95940399169922], [39.6676025390625, -104.95939636230469], [39.66603088378906, -104.95941162109375], [39.66393280029297, -104.95943450927734], [39.663055419921875, -104.95944213867188], [39.66191482543945, -104.95945739746094], [39.66034698486328, -104.95946502685547], [39.659568786621094, -104.95946502685547], [39.65707015991211, -104.95945739746094], [39.65707015991211, -104.95846557617188], [39.65707015991211, -104.95752716064453], [39.657066345214844, -104.95580291748047], [39.657066345214844, -104.95423126220703], [39.65705490112305, -104.95330810546875], [39.65705490112305, -104.952392578125], [39.65705108642578, -104.95204162597656], [39.65630340576172, -104.95204162597656]],
+                {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            poly_line_840ae779000ad03ff7d8cd6080d00d5d.bindTooltip(
+                `&lt;div&gt;
+                     0.38047125317832603
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+            var marker_49eca11f6830f9f696fe57b09a7f6930 = L.marker(
+                [39.66568374633789, -105.08139038085938],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_30b6b34a719feb8837622dacc4fae5d4 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;green&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_49eca11f6830f9f696fe57b09a7f6930.bindTooltip(
+                `&lt;div&gt;
+                     Origin
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_49eca11f6830f9f696fe57b09a7f6930.setIcon(icon_30b6b34a719feb8837622dacc4fae5d4);
+            
+    
+            var marker_a6d751f2b11ebf2780ee4157779b33c3 = L.marker(
+                [39.65630340576172, -104.95204162597656],
+                {
+}
+            ).addTo(map_b9440128152e243b543687ca5520f86a);
+        
+    
+            var icon_46a1e89bda8fec31631417b8a2770924 = L.AwesomeMarkers.icon(
+                {
+  &quot;markerColor&quot;: &quot;red&quot;,
+  &quot;iconColor&quot;: &quot;white&quot;,
+  &quot;icon&quot;: &quot;circle&quot;,
+  &quot;prefix&quot;: &quot;fa&quot;,
+  &quot;extraClasses&quot;: &quot;fa-rotate-0&quot;,
+}
+            );
+        
+    
+            marker_a6d751f2b11ebf2780ee4157779b33c3.bindTooltip(
+                `&lt;div&gt;
+                     Destination
+                 &lt;/div&gt;`,
+                {
+  &quot;sticky&quot;: true,
+}
+            );
+        
+    
+                marker_a6d751f2b11ebf2780ee4157779b33c3.setIcon(icon_46a1e89bda8fec31631417b8a2770924);
+            
+&lt;/script&gt;
+&lt;/html&gt;" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div></div></div>
 </div>
 </section>
 </section>
