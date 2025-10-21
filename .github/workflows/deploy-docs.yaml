@@ -24,13 +24,12 @@ jobs:
 
       - name: Install package
         run: |
-          conda install -c conda-forge osmnx 
-          pip install ".[all]"
+          conda install -c conda-forge osmnx rasterio jupyter-book seaborn matplotlib 
+          pip install . 
 
       - name: Sanity check imports
         working-directory: ${{runner.workspace}}/routee-compass/docs/
         run: |
-          pip freeze
           python -c "import sys; print(sys.executable)"
           python -c "import rasterio, osmnx; print('rasterio OK', rasterio.__version__); print('osmnx OK', osmnx.__version__)"
 
