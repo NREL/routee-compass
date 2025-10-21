@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761062048006,
+  "lastUpdate": 1761062638232,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -1019,6 +1019,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2943820,
             "range": "± 148955",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Nicholas.Reinicke@nrel.gov",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "Nicholas.Reinicke@nrel.gov",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "distinct": true,
+          "id": "806566274353200a4a57ca57b1059a8a75ae2a1a",
+          "message": "use geospatial package on conda forge for geo docs import",
+          "timestamp": "2025-10-21T09:51:24-06:00",
+          "tree_id": "81f8ee98411d22f095d310505283a890e76bbd96",
+          "url": "https://github.com/NREL/routee-compass/commit/806566274353200a4a57ca57b1059a8a75ae2a1a"
+        },
+        "date": 1761062637567,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2953468,
+            "range": "± 474100",
             "unit": "ns/iter"
           }
         ]
