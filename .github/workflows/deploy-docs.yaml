@@ -21,11 +21,13 @@ jobs:
         with:
           auto-update-conda: true
           python-version: "3.11"
+          channels: conda-forge
+          channel-priority: strict
 
       - name: Install package
         run: |
-          conda install -c conda-forge geospatial libnetcdf
-          pip install . 
+          conda install geospatial
+          pip install .
 
       - name: Sanity check imports
         working-directory: ${{runner.workspace}}/routee-compass/docs/
