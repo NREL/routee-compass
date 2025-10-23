@@ -37,6 +37,10 @@ impl EdgeList {
         self.0.len()
     }
 
+    /// Returns true if the edge list contains no edges.
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
     pub fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Edge> + 'a> {
         Box::new(self.0.iter())
     }
