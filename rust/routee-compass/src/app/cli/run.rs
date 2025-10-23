@@ -5,7 +5,6 @@ use crate::app::compass::{
 };
 use itertools::{Either, Itertools};
 use log::{debug, error};
-use routee_compass_core::config::CompassConfigurationError;
 use serde_json::{json, Value};
 use std::io::BufRead;
 use std::{fs::File, io::BufReader, path::Path};
