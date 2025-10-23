@@ -52,8 +52,10 @@ impl TryFrom<&GraphConfig> for Graph {
         )
         .map_err(|e| NetworkError::CsvError { source: e })?;
 
-        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![IndexMap::new(); vertices.len()];
-        let mut rev: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![IndexMap::new(); vertices.len()];
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(); vertices.len()];
+        let mut rev: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(); vertices.len()];
 
         // this callback is invoked when reading each line of the edge list input file and
         // inserts the adjacency information of the edge (src)-[edge]->(dst).
@@ -68,7 +70,6 @@ impl TryFrom<&GraphConfig> for Graph {
         let mut missing_vertices: HashSet<VertexId> = HashSet::new();
         for edge_list in edge_lists.iter() {
             for edge in edge_list.edges() {
-                
                 match adj.get_mut(edge.src_vertex_id.0) {
                     None => {
                         missing_vertices.insert(edge.src_vertex_id);
@@ -92,7 +93,7 @@ impl TryFrom<&GraphConfig> for Graph {
             edge_lists,
             vertices,
             adj: adj.into_boxed_slice(),
-            rev: rev.into_boxed_slice()
+            rev: rev.into_boxed_slice(),
         };
 
         Ok(graph)

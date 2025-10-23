@@ -18,7 +18,6 @@ impl EdgeList {
         edge_list_input_file: &P,
         edge_list_id: EdgeListId,
     ) -> Result<EdgeList, NetworkError> {
-
         // read each row as an [`EdgeConfig`] and then assign the [`EdgeListId`] to finalize it as a [`Edge`].
         let edge_config_iter = tqdm!(
             read_utils::iterator_from_csv(edge_list_input_file, true, None)?,
