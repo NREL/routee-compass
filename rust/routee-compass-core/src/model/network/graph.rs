@@ -1,4 +1,3 @@
-
 use super::{Edge, EdgeId, EdgeList, NetworkError, Vertex, VertexId};
 use crate::algorithm::search::Direction;
 use crate::model::network::EdgeListId;
