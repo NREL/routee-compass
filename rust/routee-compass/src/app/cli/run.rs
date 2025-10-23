@@ -102,11 +102,11 @@ fn run_newline_json(
         debug!("executing batch {}", iteration + 1);
         // parse JSON output
         let (mut chunk_queries, errors): (Vec<Value>, Vec<CompassAppError>) =
-            chunk.partition_map(|row| match row {
+            chunk.enumerate().partition_map(|(idx, row)| match row {
                 Ok(string) => match serde_json::from_str(&string) {
                     Ok(query) => Either::Left(query),
-                    Err(e) => Either::Right(CompassAppError::CompassConfigurationError(
-                        CompassConfigurationError::SerdeDeserializationError(e),
+                    Err(e) => Either::Right(CompassAppError::CompassFailure(
+                        format!("while reading chunk {iteration} row {idx}, failed to read JSON: {e}")
                     )),
                 },
                 Err(e) => Either::Right(CompassAppError::CompassFailure(format!(
