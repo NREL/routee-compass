@@ -5,7 +5,6 @@ use crate::app::compass::{
 };
 use itertools::{Either, Itertools};
 use log::{debug, error};
-use routee_compass_core::config::CompassConfigurationError;
 use serde_json::{json, Value};
 use std::io::BufRead;
 use std::{fs::File, io::BufReader, path::Path};
@@ -44,6 +43,7 @@ pub fn command_line_runner(
     };
 
     // read user file containing JSON query/queries
+    log::info!("reading queries from {}", &args.query_file);
     let query_file = File::open(args.query_file.clone()).map_err(|_e| {
         CompassAppError::BuildFailure(format!("Could not find query file {}", args.query_file))
     })?;
@@ -95,17 +95,18 @@ fn run_newline_json(
     let iterator = reader.lines();
     let chunksize = chunksize_option.unwrap_or(usize::MAX);
     let chunks = iterator.chunks(chunksize);
+    log::info!("reading {chunksize} queries at-a-time from newline-delimited JSON file");
 
     for (iteration, chunk) in chunks.into_iter().enumerate() {
         debug!("executing batch {}", iteration + 1);
         // parse JSON output
         let (mut chunk_queries, errors): (Vec<Value>, Vec<CompassAppError>) =
-            chunk.partition_map(|row| match row {
+            chunk.enumerate().partition_map(|(idx, row)| match row {
                 Ok(string) => match serde_json::from_str(&string) {
                     Ok(query) => Either::Left(query),
-                    Err(e) => Either::Right(CompassAppError::CompassConfigurationError(
-                        CompassConfigurationError::SerdeDeserializationError(e),
-                    )),
+                    Err(e) => Either::Right(CompassAppError::CompassFailure(format!(
+                        "while reading chunk {iteration} row {idx}, failed to read JSON: {e}"
+                    ))),
                 },
                 Err(e) => Either::Right(CompassAppError::CompassFailure(format!(
                     "failed to parse query row due to: {e}"

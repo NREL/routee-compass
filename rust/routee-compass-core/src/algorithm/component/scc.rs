@@ -151,7 +151,7 @@ mod tests {
     use uom::si::f64::Length;
 
     use super::*;
-    use crate::model::network::{Edge, EdgeList, Graph, Vertex};
+    use crate::model::network::{Edge, EdgeList, EdgeListId, Graph, Vertex};
 
     fn build_mock_graph() -> Graph {
         let vertices = vec![
@@ -183,21 +183,20 @@ mod tests {
         // Create the adjacency and reverse adjacency lists.
         let mut adj = vec![IndexMap::new(); vertices.len()];
         let mut rev = vec![IndexMap::new(); vertices.len()];
+        let edge_list_id = EdgeListId(0);
 
         for edge in &edges {
-            adj[edge.src_vertex_id.0].insert(edge.edge_id, edge.dst_vertex_id);
-            rev[edge.dst_vertex_id.0].insert(edge.edge_id, edge.src_vertex_id);
+            adj[edge.src_vertex_id.0].insert((edge_list_id, edge.edge_id), edge.dst_vertex_id);
+            rev[edge.dst_vertex_id.0].insert((edge_list_id, edge.edge_id), edge.src_vertex_id);
         }
 
         // Construct the Graph instance.
 
         Graph {
             vertices: vertices.into_boxed_slice(),
-            edge_lists: vec![EdgeList {
-                adj: adj.into_boxed_slice(),
-                rev: rev.into_boxed_slice(),
-                edges: edges.into_boxed_slice(),
-            }],
+            edge_lists: vec![EdgeList(edges.into_boxed_slice())],
+            adj: adj.into_boxed_slice(),
+            rev: rev.into_boxed_slice(),
         }
     }
 

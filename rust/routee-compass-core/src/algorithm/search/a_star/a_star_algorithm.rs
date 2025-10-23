@@ -82,7 +82,7 @@ pub fn run_vertex_oriented(
         // visit all neighbors of this source vertex
         let incident_edge_iterator = direction.get_incident_edges(f.prev_label.vertex_id(), si);
         for (edge_list_id, edge_id) in incident_edge_iterator {
-            let e = si.graph.get_edge(&edge_list_id, &edge_id)?;
+            let e = si.graph.get_edge(edge_list_id, edge_id)?;
 
             let terminal_vertex_id = direction.terminal_vertex_id(e);
             let terminal_label = si.label_model.label_from_state(
@@ -97,7 +97,7 @@ pub fn run_vertex_oriented(
                 None => None,
             };
             let valid_frontier = {
-                si.get_frontier_model(&edge_list_id)?.valid_frontier(
+                si.get_frontier_model(edge_list_id)?.valid_frontier(
                     e,
                     previous_edge,
                     &f.prev_state,
@@ -108,7 +108,7 @@ pub fn run_vertex_oriented(
                 continue;
             }
 
-            let next_edge = (edge_list_id, edge_id);
+            let next_edge = (*edge_list_id, *edge_id);
             let et = EdgeTraversal::new(next_edge, &solution, &f.prev_state, si)?;
 
             let key_label = si.label_model.label_from_state(
@@ -265,19 +265,20 @@ mod tests {
 
         let mut adj = vec![IndexMap::new(); vertices.len()];
         let mut rev = vec![IndexMap::new(); vertices.len()];
+        let edge_list_id = EdgeListId(0);
 
         for edge in &edges {
-            adj[edge.src_vertex_id.0].insert(edge.edge_id, edge.dst_vertex_id);
-            rev[edge.dst_vertex_id.0].insert(edge.edge_id, edge.src_vertex_id);
+            adj[edge.src_vertex_id.0].insert((edge_list_id, edge.edge_id), edge.dst_vertex_id);
+            rev[edge.dst_vertex_id.0].insert((edge_list_id, edge.edge_id), edge.src_vertex_id);
         }
+
+        // Construct the Graph instance.
 
         Graph {
             vertices: vertices.into_boxed_slice(),
-            edge_lists: vec![EdgeList {
-                adj: adj.into_boxed_slice(),
-                rev: rev.into_boxed_slice(),
-                edges: edges.into_boxed_slice(),
-            }],
+            edge_lists: vec![EdgeList(edges.into_boxed_slice())],
+            adj: adj.into_boxed_slice(),
+            rev: rev.into_boxed_slice(),
         }
     }
 
