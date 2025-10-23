@@ -44,6 +44,7 @@ pub fn command_line_runner(
     };
 
     // read user file containing JSON query/queries
+    log::info!("reading queries from {}", &args.query_file);
     let query_file = File::open(args.query_file.clone()).map_err(|_e| {
         CompassAppError::BuildFailure(format!("Could not find query file {}", args.query_file))
     })?;
@@ -95,6 +96,7 @@ fn run_newline_json(
     let iterator = reader.lines();
     let chunksize = chunksize_option.unwrap_or(usize::MAX);
     let chunks = iterator.chunks(chunksize);
+    log::info!("reading {chunksize} queries at-a-time from newline-delimited JSON file");
 
     for (iteration, chunk) in chunks.into_iter().enumerate() {
         debug!("executing batch {}", iteration + 1);
