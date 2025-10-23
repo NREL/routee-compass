@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 
 use super::{Edge, EdgeId, EdgeList, NetworkError, Vertex, VertexId};
 use crate::algorithm::search::Direction;
