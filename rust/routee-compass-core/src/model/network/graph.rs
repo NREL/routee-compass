@@ -67,12 +67,17 @@ impl TryFrom<&GraphConfig> for Graph {
             .map(|(idx, c)| EdgeList::new(&c.input_file, EdgeListId(idx)))
             .collect::<Result<Vec<_>, _>>()?;
 
-        let mut missing_vertices: HashSet<VertexId> = HashSet::new();
+        let mut bad_refs: Vec<String> = vec![];
         for edge_list in edge_lists.iter() {
             for edge in edge_list.edges() {
                 match adj.get_mut(edge.src_vertex_id.0) {
                     None => {
-                        missing_vertices.insert(edge.src_vertex_id);
+                        bad_refs.push(format!("
+                            vertex {} not found in forward adjacencies for edge list, edge: {}, {}",
+                            edge.src_vertex_id,
+                            edge.edge_list_id,
+                            edge.edge_id
+                        ));
                     }
                     Some(out_links) => {
                         out_links.insert((edge.edge_list_id, edge.edge_id), edge.dst_vertex_id);
@@ -80,13 +85,23 @@ impl TryFrom<&GraphConfig> for Graph {
                 }
                 match rev.get_mut(edge.dst_vertex_id.0) {
                     None => {
-                        missing_vertices.insert(edge.dst_vertex_id);
+                        bad_refs.push(format!("
+                            vertex {} not found in forward adjacencies for edge list, edge: {}, {}",
+                            edge.dst_vertex_id,
+                            edge.edge_list_id,
+                            edge.edge_id
+                        ));
                     }
                     Some(in_links) => {
                         in_links.insert((edge.edge_list_id, edge.edge_id), edge.src_vertex_id);
                     }
                 }
             }
+        }
+
+        if !bad_refs.is_empty() {
+            let msg = format!("[{}]", bad_refs.iter().take(5).join("\n  "));
+            return Err(NetworkError::DatasetError(format!("invalid edge lists for vertex set. (up to) first five errors:\n  {msg}")));
         }
 
         let graph = Graph {
