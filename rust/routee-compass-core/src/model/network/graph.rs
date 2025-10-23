@@ -1,8 +1,11 @@
+use std::collections::HashSet;
+
 use super::{Edge, EdgeId, EdgeList, NetworkError, Vertex, VertexId};
 use crate::algorithm::search::Direction;
 use crate::model::network::EdgeListId;
 use crate::model::network::GraphConfig;
 use crate::util::fs::read_utils;
+use indexmap::IndexMap;
 use itertools::Itertools;
 use kdam::Bar;
 
@@ -28,7 +31,12 @@ use kdam::Bar;
 pub struct Graph {
     pub vertices: Box<[Vertex]>,
     pub edge_lists: Vec<EdgeList>,
+    pub adj: DenseAdjacencyList,
+    pub rev: DenseAdjacencyList,
 }
+
+/// a graph adjacency list with an entry (possibly empty) for each VertexId in the Graph.
+pub type DenseAdjacencyList = Box<[IndexMap<(EdgeListId, EdgeId), VertexId>]>;
 
 impl TryFrom<&GraphConfig> for Graph {
     type Error = NetworkError;
@@ -44,16 +52,47 @@ impl TryFrom<&GraphConfig> for Graph {
         )
         .map_err(|e| NetworkError::CsvError { source: e })?;
 
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![IndexMap::new(); vertices.len()];
+        let mut rev: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![IndexMap::new(); vertices.len()];
+
+        // this callback is invoked when reading each line of the edge list input file and
+        // inserts the adjacency information of the edge (src)-[edge]->(dst).
+
         let edge_lists = config
             .edge_list
             .iter()
             .enumerate()
-            .map(|(idx, c)| EdgeList::new(&c.input_file, EdgeListId(idx), vertices.len()))
+            .map(|(idx, c)| EdgeList::new(&c.input_file, EdgeListId(idx)))
             .collect::<Result<Vec<_>, _>>()?;
+
+        let mut missing_vertices: HashSet<VertexId> = HashSet::new();
+        for edge_list in edge_lists.iter() {
+            for edge in edge_list.edges() {
+                
+                match adj.get_mut(edge.src_vertex_id.0) {
+                    None => {
+                        missing_vertices.insert(edge.src_vertex_id);
+                    }
+                    Some(out_links) => {
+                        out_links.insert((edge.edge_list_id, edge.edge_id), edge.dst_vertex_id);
+                    }
+                }
+                match rev.get_mut(edge.dst_vertex_id.0) {
+                    None => {
+                        missing_vertices.insert(edge.dst_vertex_id);
+                    }
+                    Some(in_links) => {
+                        in_links.insert((edge.edge_list_id, edge.edge_id), edge.src_vertex_id);
+                    }
+                }
+            }
+        }
 
         let graph = Graph {
             edge_lists,
             vertices,
+            adj: adj.into_boxed_slice(),
+            rev: rev.into_boxed_slice()
         };
 
         Ok(graph)
@@ -73,7 +112,7 @@ impl Graph {
 
     /// number of edges in the Graph, not to be conflated with the list of edge ids
     pub fn n_edges(&self) -> usize {
-        self.edge_lists.iter().map(|el| el.n_edges()).sum::<usize>()
+        self.edge_lists.iter().map(|el| el.len()).sum::<usize>()
     }
 
     /// number of vertices in the Graph
@@ -89,7 +128,7 @@ impl Graph {
         edge_list_id: &EdgeListId,
     ) -> Result<Box<dyn Iterator<Item = EdgeId>>, NetworkError> {
         self.get_edge_list(edge_list_id).map(|e| {
-            let iter: Box<dyn Iterator<Item = EdgeId>> = Box::new((0..e.n_edges()).map(EdgeId));
+            let iter: Box<dyn Iterator<Item = EdgeId>> = Box::new((0..e.len()).map(EdgeId));
             iter
         })
     }
@@ -104,7 +143,7 @@ impl Graph {
 
     /// iterates through all edges in the graph
     pub fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Edge> + 'a> {
-        Box::new(self.edge_lists.iter().flat_map(|el| el.edges.iter()))
+        Box::new(self.edge_lists.iter().flat_map(|el| el.edges()))
     }
 
     /// retrieve an `Edge` record from the graph
@@ -125,7 +164,7 @@ impl Graph {
             None => Err(NetworkError::InternalError(format!(
                 "EdgeListId not found: {edge_list_id}"
             ))),
-            Some(edge_list) => match edge_list.edges.get(edge_id.0) {
+            Some(edge_list) => match edge_list.get(edge_id) {
                 None => Err(NetworkError::EdgeNotFound(*edge_id)),
                 Some(edge) => Ok(edge),
             },
@@ -159,31 +198,18 @@ impl Graph {
     /// A list of `EdgeIds` for outbound edges that leave this `VertexId`, or an error
     /// if the vertex is missing from the Graph adjacency matrix.
     pub fn out_edges(&self, src: &VertexId) -> Vec<(EdgeListId, EdgeId)> {
-        self.out_edges_iter(src).collect_vec()
+        self.out_edges_iter(src).cloned().collect_vec()
     }
 
     /// builds an iterator
     pub fn out_edges_iter<'a>(
         &'a self,
         src: &'a VertexId,
-    ) -> Box<dyn Iterator<Item = (EdgeListId, EdgeId)> + 'a> {
-        let result = self
-            .edge_lists
-            .iter()
-            .enumerate()
-            .flat_map(|(edge_list_idx, edge_list)| {
-                let iter: Box<dyn Iterator<Item = (EdgeListId, EdgeId)>> =
-                    match edge_list.adj.get(src.0) {
-                        Some(out_map) => Box::new(
-                            out_map
-                                .keys()
-                                .map(move |edge_id| (EdgeListId(edge_list_idx), *edge_id)),
-                        ),
-                        None => Box::new(std::iter::empty()),
-                    };
-                iter
-            });
-        Box::new(result)
+    ) -> Box<dyn Iterator<Item = &'a (EdgeListId, EdgeId)> + 'a> {
+        match self.adj.get(src.0) {
+            Some(out_map) => Box::new(out_map.keys()),
+            None => Box::new(std::iter::empty()),
+        }
     }
 
     /// retrieve a list of `EdgeId`s for edges that arrive at the given `VertexId`
@@ -197,25 +223,17 @@ impl Graph {
     /// A list of `EdgeIds` for inbound edges that arrive at this `VertexId`, or an error
     /// if the vertex is missing from the Graph adjacency matrix.
     pub fn in_edges(&self, dst: &VertexId) -> Vec<(EdgeListId, EdgeId)> {
-        self.in_edges_iter(dst).collect_vec()
+        self.in_edges_iter(dst).cloned().collect_vec()
     }
 
     pub fn in_edges_iter<'a>(
         &'a self,
         src: &'a VertexId,
-    ) -> Box<dyn Iterator<Item = (EdgeListId, EdgeId)> + 'a> {
-        let result = self
-            .edge_lists
-            .iter()
-            .enumerate()
-            .flat_map(|(edge_list_idx, edge_list)| {
-                let in_keys: Box<dyn Iterator<Item = &EdgeId>> = match edge_list.rev.get(src.0) {
-                    None => Box::new(std::iter::empty()),
-                    Some(in_map) => Box::new(in_map.keys()),
-                };
-                in_keys.map(move |edge_id| (EdgeListId(edge_list_idx), *edge_id))
-            });
-        Box::new(result)
+    ) -> Box<dyn Iterator<Item = &'a (EdgeListId, EdgeId)> + 'a> {
+        match self.rev.get(src.0) {
+            Some(in_map) => Box::new(in_map.keys()),
+            None => Box::new(std::iter::empty()),
+        }
     }
 
     /// retrieve the source vertex id of an edge
@@ -291,7 +309,7 @@ impl Graph {
         &'a self,
         vertex_id: &'a VertexId,
         direction: &Direction,
-    ) -> Box<dyn Iterator<Item = (EdgeListId, EdgeId)> + 'a> {
+    ) -> Box<dyn Iterator<Item = &'a (EdgeListId, EdgeId)> + 'a> {
         match direction {
             Direction::Forward => self.out_edges_iter(vertex_id),
             Direction::Reverse => self.in_edges_iter(vertex_id),
@@ -366,7 +384,7 @@ impl Graph {
         self.incident_edges_iter(vertex_id, direction)
             .map(|(edge_list_id, edge_id)| {
                 let terminal_vid = self.incident_vertex(&edge_list_id, &edge_id, direction)?;
-                Ok((*vertex_id, edge_list_id, edge_id, terminal_vid))
+                Ok((*vertex_id, *edge_list_id, *edge_id, terminal_vid))
             })
             .collect()
     }

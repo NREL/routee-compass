@@ -36,7 +36,7 @@ impl GeometryModel {
             ))
         })?;
 
-        let edge_list_len = edge_list.n_edges();
+        let edge_list_len = edge_list.len();
         let linestrings = read_linestrings(geometry_input_file, edge_list_len)?;
 
         if linestrings.len() != edge_list_len {
@@ -83,7 +83,7 @@ fn create_linestrings_from_vertices(
         MapError::BuildError(format!("while creating GeometryModel from vertices, {e}"))
     })?;
 
-    let n_edges = edge_list.n_edges();
+    let n_edges = edge_list.len();
     let mut pb = kdam::Bar::builder()
         .total(n_edges)
         .animation("fillup")
@@ -92,8 +92,7 @@ fn create_linestrings_from_vertices(
         .map_err(MapError::InternalError)?;
 
     let edges = edge_list
-        .edges
-        .iter()
+        .edges()
         .map(|e| {
             let src_v = graph.get_vertex(&e.src_vertex_id).map_err(|_| {
                 MapError::InternalError(format!(
