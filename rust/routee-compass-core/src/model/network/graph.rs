@@ -72,11 +72,10 @@ impl TryFrom<&GraphConfig> for Graph {
             for edge in edge_list.edges() {
                 match adj.get_mut(edge.src_vertex_id.0) {
                     None => {
-                        bad_refs.push(format!("
+                        bad_refs.push(format!(
+                            "
                             vertex {} not found in forward adjacencies for edge list, edge: {}, {}",
-                            edge.src_vertex_id,
-                            edge.edge_list_id,
-                            edge.edge_id
+                            edge.src_vertex_id, edge.edge_list_id, edge.edge_id
                         ));
                     }
                     Some(out_links) => {
@@ -85,11 +84,10 @@ impl TryFrom<&GraphConfig> for Graph {
                 }
                 match rev.get_mut(edge.dst_vertex_id.0) {
                     None => {
-                        bad_refs.push(format!("
+                        bad_refs.push(format!(
+                            "
                             vertex {} not found in forward adjacencies for edge list, edge: {}, {}",
-                            edge.dst_vertex_id,
-                            edge.edge_list_id,
-                            edge.edge_id
+                            edge.dst_vertex_id, edge.edge_list_id, edge.edge_id
                         ));
                     }
                     Some(in_links) => {
@@ -101,7 +99,9 @@ impl TryFrom<&GraphConfig> for Graph {
 
         if !bad_refs.is_empty() {
             let msg = format!("[{}]", bad_refs.iter().take(5).join("\n  "));
-            return Err(NetworkError::DatasetError(format!("invalid edge lists for vertex set. (up to) first five errors:\n  {msg}")));
+            return Err(NetworkError::DatasetError(format!(
+                "invalid edge lists for vertex set. (up to) first five errors:\n  {msg}"
+            )));
         }
 
         let graph = Graph {
