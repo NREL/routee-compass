@@ -384,7 +384,7 @@ impl Graph {
     ) -> Result<Vec<(VertexId, EdgeListId, EdgeId, VertexId)>, NetworkError> {
         self.incident_edges_iter(vertex_id, direction)
             .map(|(edge_list_id, edge_id)| {
-                let terminal_vid = self.incident_vertex(&edge_list_id, &edge_id, direction)?;
+                let terminal_vid = self.incident_vertex(edge_list_id, edge_id, direction)?;
                 Ok((*vertex_id, *edge_list_id, *edge_id, terminal_vid))
             })
             .collect()

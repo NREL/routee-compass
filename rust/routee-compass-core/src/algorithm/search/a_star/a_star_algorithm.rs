@@ -82,7 +82,7 @@ pub fn run_vertex_oriented(
         // visit all neighbors of this source vertex
         let incident_edge_iterator = direction.get_incident_edges(f.prev_label.vertex_id(), si);
         for (edge_list_id, edge_id) in incident_edge_iterator {
-            let e = si.graph.get_edge(&edge_list_id, &edge_id)?;
+            let e = si.graph.get_edge(edge_list_id, edge_id)?;
 
             let terminal_vertex_id = direction.terminal_vertex_id(e);
             let terminal_label = si.label_model.label_from_state(
@@ -97,7 +97,7 @@ pub fn run_vertex_oriented(
                 None => None,
             };
             let valid_frontier = {
-                si.get_frontier_model(&edge_list_id)?.valid_frontier(
+                si.get_frontier_model(edge_list_id)?.valid_frontier(
                     e,
                     previous_edge,
                     &f.prev_state,
