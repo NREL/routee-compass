@@ -105,9 +105,9 @@ fn run_newline_json(
             chunk.enumerate().partition_map(|(idx, row)| match row {
                 Ok(string) => match serde_json::from_str(&string) {
                     Ok(query) => Either::Left(query),
-                    Err(e) => Either::Right(CompassAppError::CompassFailure(
-                        format!("while reading chunk {iteration} row {idx}, failed to read JSON: {e}")
-                    )),
+                    Err(e) => Either::Right(CompassAppError::CompassFailure(format!(
+                        "while reading chunk {iteration} row {idx}, failed to read JSON: {e}"
+                    ))),
                 },
                 Err(e) => Either::Right(CompassAppError::CompassFailure(format!(
                     "failed to parse query row due to: {e}"
