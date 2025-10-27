@@ -35,8 +35,9 @@ energy_weights = np.linspace(0, 1, 100)
 energy_weights = energy_weights ** (1 / 4)
 time_weights = 1 - energy_weights
 
+
 def get_test_cases(energy_key: str):
-    return  [
+    return [
         {
             "name": f"energy_{i}",
             "weights": {
@@ -47,6 +48,7 @@ def get_test_cases(energy_key: str):
         }
         for i in range(len(energy_weights))
     ]
+
 
 """
 Let's take a quick look at the weights we've generated.
@@ -72,9 +74,9 @@ bev_query = {
     "destination_y": 39.7867693,
     "model_name": "2017_CHEVROLET_Bolt",
     "vehicle_rates": {
-        "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
-        "trip_time": {"type": "time", "factor": 20.0, "unit": "hours" },
-        "trip_energy_electric": {"type": "energy", "factor": 0.12, "unit": "kwh" },
+        "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles"},
+        "trip_time": {"type": "time", "factor": 20.0, "unit": "hours"},
+        "trip_energy_electric": {"type": "energy", "factor": 0.12, "unit": "kwh"},
     },
     "grid_search": {
         "test_cases": get_test_cases("trip_energy_electric"),
@@ -124,9 +126,9 @@ ice_query = {
     "destination_y": 39.7867693,
     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
     "vehicle_rates": {
-        "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
-        "trip_time": {"type": "time", "factor": 20.0, "unit": "hours" },
-        "trip_energy_liquid": {"type": "energy", "factor": 3.0, "unit": "gge" },
+        "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles"},
+        "trip_time": {"type": "time", "factor": 20.0, "unit": "hours"},
+        "trip_energy_liquid": {"type": "energy", "factor": 3.0, "unit": "gge"},
     },
     "grid_search": {
         "test_cases": get_test_cases("trip_energy_liquid"),

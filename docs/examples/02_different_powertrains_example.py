@@ -56,15 +56,19 @@ query = [
         "destination_y": 39.693005,
         "starting_soc_percent": 100,
         "vehicle_rates": {
-            "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
-            "trip_time": {"type": "time", "factor": 20.0, "unit": "hours" },
+            "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles"},
+            "trip_time": {"type": "time", "factor": 20.0, "unit": "hours"},
         },
         "grid_search": {
             "_test_cases": [
                 {
                     "model_name": "2017_CHEVROLET_Bolt",
                     "vehicle_rates": {
-                        "trip_energy_electric": {"type": "energy", "factor": 0.5, "unit": "kwh"}
+                        "trip_energy_electric": {
+                            "type": "energy",
+                            "factor": 0.5,
+                            "unit": "kwh",
+                        }
                     },
                     "name": "least_time",
                     "weights": {
@@ -76,7 +80,11 @@ query = [
                 {
                     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
                     "vehicle_rates": {
-                        "trip_energy_liquid": {"type": "energy", "factor": 3.1, "unit": "gge"},
+                        "trip_energy_liquid": {
+                            "type": "energy",
+                            "factor": 3.1,
+                            "unit": "gge",
+                        },
                     },
                     "name": "least_time",
                     "weights": {
@@ -88,7 +96,11 @@ query = [
                 {
                     "model_name": "2016_CHEVROLET_Volt",
                     "vehicle_rates": {
-                        "trip_energy_electric": {"type": "energy", "factor": 0.5, "unit": "kwh"}
+                        "trip_energy_electric": {
+                            "type": "energy",
+                            "factor": 0.5,
+                            "unit": "kwh",
+                        }
                     },
                     "name": "least_time",
                     "weights": {
@@ -101,7 +113,11 @@ query = [
                 {
                     "model_name": "2017_CHEVROLET_Bolt",
                     "vehicle_rates": {
-                        "trip_energy_electric": {"type": "energy", "factor": 0.5, "unit": "kwh"}
+                        "trip_energy_electric": {
+                            "type": "energy",
+                            "factor": 0.5,
+                            "unit": "kwh",
+                        }
                     },
                     "name": "least_energy",
                     "weights": {
@@ -113,7 +129,11 @@ query = [
                 {
                     "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
                     "vehicle_rates": {
-                        "trip_energy_liquid": {"type": "energy", "factor": 3.1, "unit": "gge"},
+                        "trip_energy_liquid": {
+                            "type": "energy",
+                            "factor": 3.1,
+                            "unit": "gge",
+                        },
                     },
                     "name": "least_energy",
                     "weights": {
@@ -125,7 +145,11 @@ query = [
                 {
                     "model_name": "2016_CHEVROLET_Volt",
                     "vehicle_rates": {
-                        "trip_energy_electric": {"type": "energy", "factor": 0.5, "unit": "kwh"}
+                        "trip_energy_electric": {
+                            "type": "energy",
+                            "factor": 0.5,
+                            "unit": "kwh",
+                        }
                     },
                     "name": "least_energy",
                     "weights": {
