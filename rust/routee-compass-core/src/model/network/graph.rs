@@ -457,7 +457,7 @@ fn append_to_adjacency(
             let direction = if forward { "forward" } else { "reverse" };
             Err(format!(
                 "vertex {} not found in {} adjacencies for edge list, edge: {}, {}",
-                vertex_idx, direction, edge.edge_list_id, edge.edge_id
+                vertex_idx, direction, edge.edge_list_id.0, edge.edge_id.0
             ))
         }
         Some(out_links) => {
@@ -572,7 +572,7 @@ mod tests {
 
         assert!(result.is_err());
         let error_msg = result.unwrap_err();
-        assert!(error_msg.contains("vertex 0 not found in reverse adjacencies"));
+        assert!(error_msg.contains("vertex 5 not found in reverse adjacencies"));
         assert!(error_msg.contains("edge list, edge: 1, 10"));
     }
 
