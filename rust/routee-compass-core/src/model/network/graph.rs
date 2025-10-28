@@ -75,8 +75,8 @@ impl TryFrom<&GraphConfig> for Graph {
 
         let build_adjacencies_iter = tqdm!(
             edge_lists.iter().flat_map(|el| el.edges()),
-            desc="building adjacencies",
-            total=total_edges
+            desc = "building adjacencies",
+            total = total_edges
         );
         let mut bad_refs: Vec<String> = vec![];
         for edge in build_adjacencies_iter {
@@ -429,12 +429,12 @@ impl Graph {
     }
 }
 
-/// appends this edge to an adjacency list. if forward is true (forward-oriented adjacency), 
+/// appends this edge to an adjacency list. if forward is true (forward-oriented adjacency),
 /// append using the source vertex id. if false, use the destination (reverse-oriented adjacency).
 fn append_to_adjacency(
-    edge: &Edge, 
+    edge: &Edge,
     adj: &mut Vec<IndexMap<(EdgeListId, EdgeId), VertexId>>,
-    forward: bool
+    forward: bool,
 ) -> Result<(), String> {
     let vertex_idx = if forward {
         edge.src_vertex_id.0
@@ -443,17 +443,10 @@ fn append_to_adjacency(
     };
     match adj.get_mut(vertex_idx) {
         None => {
-            let direction = if forward {
-                "forward"
-            } else {
-                "reverse"
-            };
+            let direction = if forward { "forward" } else { "reverse" };
             Err(format!(
                 "vertex {} not found in {} adjacencies for edge list, edge: {}, {}",
-                edge.src_vertex_id, 
-                direction,
-                edge.edge_list_id, 
-                edge.edge_id
+                edge.src_vertex_id, direction, edge.edge_list_id, edge.edge_id
             ))
         }
         Some(out_links) => {
