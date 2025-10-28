@@ -46,7 +46,7 @@ jobs:
 
       - name: Run formatter
         run: |
-          ruff format
+          ruff format --check
 
       - name: Run tests
         run: |

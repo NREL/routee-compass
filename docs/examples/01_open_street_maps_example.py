@@ -103,9 +103,9 @@ query = [
         "destination_y": 39.693005,
         "model_name": "2016_TOYOTA_Camry_4cyl_2WD",
         "vehicle_rates": {
-            "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles" },
-            "trip_time": {"type": "time", "factor": 20.0, "unit": "hours" },
-            "trip_energy_liquid": {"type": "energy", "factor": 3.0, "unit": "gge" },
+            "trip_distance": {"type": "distance", "factor": 0.655, "unit": "miles"},
+            "trip_time": {"type": "time", "factor": 20.0, "unit": "hours"},
+            "trip_energy_liquid": {"type": "energy", "factor": 3.0, "unit": "gge"},
         },
         "grid_search": {
             "test_cases": [
@@ -186,7 +186,8 @@ Since we have the `traversal` output plugin activated by default, we can take a 
 def pretty_print(dict):
     print(json.dumps(dict, indent=4))
 
-results_map = { r["request"]["name"]: r for r in results }
+
+results_map = {r["request"]["name"]: r for r in results}
 shortest_time_result = results_map["least_time"]
 least_energy_result = results_map["least_energy"]
 least_cost_result = results_map["least_cost"]
@@ -277,7 +278,9 @@ cost_diff = (
 )
 dist_unit = shortest_time_result["route"]["state_model"]["trip_distance"]["output_unit"]
 time_unit = shortest_time_result["route"]["state_model"]["trip_time"]["output_unit"]
-enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy_liquid"]["output_unit"]
+enrg_unit = shortest_time_result["route"]["state_model"]["trip_energy_liquid"][
+    "output_unit"
+]
 print(f" - distance: {dist_diff:.2f} {dist_unit} further with time-optimal")
 print(f" - time: {-time_diff:.2f} {time_unit} longer with energy-optimal")
 print(f" - energy: {enrg_diff:.2f} {enrg_unit} more with time-optimal")
