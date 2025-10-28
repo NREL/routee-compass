@@ -27,6 +27,7 @@ impl EdgeList {
             .map(|r| r.map(|edge_config: EdgeConfig| edge_config.assign_edge_list(&edge_list_id)))
             .collect::<Result<Vec<Edge>, csv::Error>>()?
             .into_boxed_slice();
+        eprintln!();
 
         let edge_list = EdgeList(edges);
         Ok(edge_list)
