@@ -5,6 +5,7 @@ use crate::model::network::GraphConfig;
 use crate::util::fs::read_utils;
 use indexmap::IndexMap;
 use itertools::Itertools;
+use kdam::tqdm;
 use kdam::Bar;
 
 /// Road network topology represented as an adjacency list.
@@ -65,33 +66,25 @@ impl TryFrom<&GraphConfig> for Graph {
             .map(|(idx, c)| EdgeList::new(&c.input_file, EdgeListId(idx)))
             .collect::<Result<Vec<_>, _>>()?;
 
+        let total_edges = edge_lists.iter().map(|el| el.len()).sum::<usize>();
+        log::info!(
+            "loaded {} edge lists with a total of {} edges",
+            edge_lists.len(),
+            total_edges
+        );
+
+        let build_adjacencies_iter = tqdm!(
+            edge_lists.iter().flat_map(|el| el.edges()),
+            desc="building adjacencies",
+            total=total_edges
+        );
         let mut bad_refs: Vec<String> = vec![];
-        for edge_list in edge_lists.iter() {
-            for edge in edge_list.edges() {
-                match adj.get_mut(edge.src_vertex_id.0) {
-                    None => {
-                        bad_refs.push(format!(
-                            "
-                            vertex {} not found in forward adjacencies for edge list, edge: {}, {}",
-                            edge.src_vertex_id, edge.edge_list_id, edge.edge_id
-                        ));
-                    }
-                    Some(out_links) => {
-                        out_links.insert((edge.edge_list_id, edge.edge_id), edge.dst_vertex_id);
-                    }
-                }
-                match rev.get_mut(edge.dst_vertex_id.0) {
-                    None => {
-                        bad_refs.push(format!(
-                            "
-                            vertex {} not found in forward adjacencies for edge list, edge: {}, {}",
-                            edge.dst_vertex_id, edge.edge_list_id, edge.edge_id
-                        ));
-                    }
-                    Some(in_links) => {
-                        in_links.insert((edge.edge_list_id, edge.edge_id), edge.src_vertex_id);
-                    }
-                }
+        for edge in build_adjacencies_iter {
+            if let Err(e) = append_to_adjacency(edge, &mut adj, true) {
+                bad_refs.push(e);
+            }
+            if let Err(e) = append_to_adjacency(edge, &mut rev, false) {
+                bad_refs.push(e);
             }
         }
 
@@ -114,6 +107,7 @@ impl TryFrom<&GraphConfig> for Graph {
 }
 
 impl Graph {
+    /// access a specific EdgeList by its id
     pub fn get_edge_list(&self, edge_list_id: &EdgeListId) -> Result<&EdgeList, NetworkError> {
         self.edge_lists
             .get(edge_list_id.0)
@@ -432,5 +426,39 @@ impl Graph {
                 Ok((src, edge, dst))
             })
             .collect()
+    }
+}
+
+/// appends this edge to an adjacency list. if forward is true (forward-oriented adjacency), 
+/// append using the source vertex id. if false, use the destination (reverse-oriented adjacency).
+fn append_to_adjacency(
+    edge: &Edge, 
+    adj: &mut Vec<IndexMap<(EdgeListId, EdgeId), VertexId>>,
+    forward: bool
+) -> Result<(), String> {
+    let vertex_idx = if forward {
+        edge.src_vertex_id.0
+    } else {
+        edge.dst_vertex_id.0
+    };
+    match adj.get_mut(vertex_idx) {
+        None => {
+            let direction = if forward {
+                "forward"
+            } else {
+                "reverse"
+            };
+            Err(format!(
+                "vertex {} not found in {} adjacencies for edge list, edge: {}, {}",
+                edge.src_vertex_id, 
+                direction,
+                edge.edge_list_id, 
+                edge.edge_id
+            ))
+        }
+        Some(out_links) => {
+            out_links.insert((edge.edge_list_id, edge.edge_id), edge.dst_vertex_id);
+            Ok(())
+        }
     }
 }
