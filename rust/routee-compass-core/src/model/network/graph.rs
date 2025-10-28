@@ -461,7 +461,11 @@ fn append_to_adjacency(
             ))
         }
         Some(out_links) => {
-            let target_vertex = if forward { edge.dst_vertex_id } else { edge.src_vertex_id };
+            let target_vertex = if forward {
+                edge.dst_vertex_id
+            } else {
+                edge.src_vertex_id
+            };
             out_links.insert((edge.edge_list_id, edge.edge_id), target_vertex);
             Ok(())
         }
@@ -491,11 +495,8 @@ mod tests {
     #[test]
     fn test_append_to_adjacency_forward_success() {
         // Create an adjacency list with 3 vertices
-        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![
-            IndexMap::new(),
-            IndexMap::new(),
-            IndexMap::new(),
-        ];
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new(), IndexMap::new()];
 
         // Create an edge from vertex 0 to vertex 2
         let edge = create_test_edge(0, 0, 0, 2);
@@ -504,12 +505,12 @@ mod tests {
         let result = append_to_adjacency(&edge, &mut adj, true);
 
         assert!(result.is_ok());
-        
+
         // Check that the edge was added to the correct adjacency list entry
         let expected_key = (EdgeListId(0), EdgeId(0));
         assert!(adj[0].contains_key(&expected_key));
         assert_eq!(adj[0][&expected_key], VertexId(2)); // Target should be dst_vertex_id
-        
+
         // Other adjacency lists should remain empty
         assert!(adj[1].is_empty());
         assert!(adj[2].is_empty());
@@ -518,11 +519,8 @@ mod tests {
     #[test]
     fn test_append_to_adjacency_reverse_success() {
         // Create an adjacency list with 3 vertices
-        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![
-            IndexMap::new(),
-            IndexMap::new(),
-            IndexMap::new(),
-        ];
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new(), IndexMap::new()];
 
         // Create an edge from vertex 0 to vertex 2
         let edge = create_test_edge(0, 0, 0, 2);
@@ -531,12 +529,12 @@ mod tests {
         let result = append_to_adjacency(&edge, &mut adj, false);
 
         assert!(result.is_ok());
-        
+
         // Check that the edge was added to the correct adjacency list entry
         let expected_key = (EdgeListId(0), EdgeId(0));
         assert!(adj[2].contains_key(&expected_key));
         assert_eq!(adj[2][&expected_key], VertexId(0)); // Target should be src_vertex_id
-        
+
         // Other adjacency lists should remain empty
         assert!(adj[0].is_empty());
         assert!(adj[1].is_empty());
@@ -545,10 +543,8 @@ mod tests {
     #[test]
     fn test_append_to_adjacency_forward_invalid_vertex() {
         // Create an adjacency list with only 2 vertices (indices 0 and 1)
-        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![
-            IndexMap::new(),
-            IndexMap::new(),
-        ];
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new()];
 
         // Create an edge with src_vertex_id = 3 (out of bounds)
         let edge = create_test_edge(0, 5, 3, 1);
@@ -565,10 +561,8 @@ mod tests {
     #[test]
     fn test_append_to_adjacency_reverse_invalid_vertex() {
         // Create an adjacency list with only 2 vertices (indices 0 and 1)
-        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![
-            IndexMap::new(),
-            IndexMap::new(),
-        ];
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new()];
 
         // Create an edge with dst_vertex_id = 5 (out of bounds)
         let edge = create_test_edge(1, 10, 0, 5);
@@ -585,11 +579,8 @@ mod tests {
     #[test]
     fn test_append_to_adjacency_multiple_edges_same_vertex() {
         // Create an adjacency list with 3 vertices
-        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![
-            IndexMap::new(),
-            IndexMap::new(),
-            IndexMap::new(),
-        ];
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new(), IndexMap::new()];
 
         // Create multiple edges from vertex 0
         let edge1 = create_test_edge(0, 0, 0, 1);
@@ -603,7 +594,7 @@ mod tests {
 
         // Check that all edges were added to vertex 0's adjacency list
         assert_eq!(adj[0].len(), 3);
-        
+
         // Verify each edge maps to the correct target vertex
         assert_eq!(adj[0][&(EdgeListId(0), EdgeId(0))], VertexId(1));
         assert_eq!(adj[0][&(EdgeListId(0), EdgeId(1))], VertexId(2));
@@ -613,11 +604,8 @@ mod tests {
     #[test]
     fn test_append_to_adjacency_edge_overwrite() {
         // Create an adjacency list with 3 vertices
-        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> = vec![
-            IndexMap::new(),
-            IndexMap::new(),
-            IndexMap::new(),
-        ];
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new(), IndexMap::new()];
 
         // Create two edges with the same EdgeListId and EdgeId but different targets
         let edge1 = create_test_edge(0, 0, 0, 1);
@@ -633,4 +621,3 @@ mod tests {
         assert_eq!(adj[0][&(EdgeListId(0), EdgeId(0))], VertexId(2)); // Updated target
     }
 }
-
