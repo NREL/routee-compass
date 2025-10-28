@@ -1,6 +1,6 @@
 [package]
 name = "routee-compass-py"
-version = "0.14.0"
+version = "0.15.0"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -11,9 +11,9 @@ documentation = "https://docs.rs/routee-compass"
 exclude = ["test", "**/.DS_Store", "target/"]
 
 [dependencies]
-routee-compass = { path = "../routee-compass", version = "0.14.0" }
-routee-compass-core = { path = "../routee-compass-core", version = "0.14.0" }
-routee-compass-macros = { path = "../routee-compass-macros", version = "0.14.0" }
+routee-compass = { path = "../routee-compass", version = "0.15.0" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.15.0" }
+routee-compass-macros = { path = "../routee-compass-macros", version = "0.15.0" }
 pyo3 = { version = "0.27.1", features = ["extension-module", "serde"] }
 serde_json = { workspace = true }
 config = { workspace = true }
