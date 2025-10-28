@@ -5,6 +5,7 @@ use crate::model::network::GraphConfig;
 use crate::util::fs::read_utils;
 use indexmap::IndexMap;
 use itertools::Itertools;
+use kdam::tqdm;
 use kdam::Bar;
 
 /// Road network topology represented as an adjacency list.
@@ -65,33 +66,25 @@ impl TryFrom<&GraphConfig> for Graph {
             .map(|(idx, c)| EdgeList::new(&c.input_file, EdgeListId(idx)))
             .collect::<Result<Vec<_>, _>>()?;
 
+        let total_edges = edge_lists.iter().map(|el| el.len()).sum::<usize>();
+        log::info!(
+            "loaded {} edge lists with a total of {} edges",
+            edge_lists.len(),
+            total_edges
+        );
+
+        let build_adjacencies_iter = tqdm!(
+            edge_lists.iter().flat_map(|el| el.edges()),
+            desc = "building adjacencies",
+            total = total_edges
+        );
         let mut bad_refs: Vec<String> = vec![];
-        for edge_list in edge_lists.iter() {
-            for edge in edge_list.edges() {
-                match adj.get_mut(edge.src_vertex_id.0) {
-                    None => {
-                        bad_refs.push(format!(
-                            "
-                            vertex {} not found in forward adjacencies for edge list, edge: {}, {}",
-                            edge.src_vertex_id, edge.edge_list_id, edge.edge_id
-                        ));
-                    }
-                    Some(out_links) => {
-                        out_links.insert((edge.edge_list_id, edge.edge_id), edge.dst_vertex_id);
-                    }
-                }
-                match rev.get_mut(edge.dst_vertex_id.0) {
-                    None => {
-                        bad_refs.push(format!(
-                            "
-                            vertex {} not found in forward adjacencies for edge list, edge: {}, {}",
-                            edge.dst_vertex_id, edge.edge_list_id, edge.edge_id
-                        ));
-                    }
-                    Some(in_links) => {
-                        in_links.insert((edge.edge_list_id, edge.edge_id), edge.src_vertex_id);
-                    }
-                }
+        for edge in build_adjacencies_iter {
+            if let Err(e) = append_to_adjacency(edge, &mut adj, true) {
+                bad_refs.push(e);
+            }
+            if let Err(e) = append_to_adjacency(edge, &mut rev, false) {
+                bad_refs.push(e);
             }
         }
 
@@ -114,6 +107,7 @@ impl TryFrom<&GraphConfig> for Graph {
 }
 
 impl Graph {
+    /// access a specific EdgeList by its id
     pub fn get_edge_list(&self, edge_list_id: &EdgeListId) -> Result<&EdgeList, NetworkError> {
         self.edge_lists
             .get(edge_list_id.0)
@@ -432,5 +426,198 @@ impl Graph {
                 Ok((src, edge, dst))
             })
             .collect()
+    }
+}
+
+/// Appends an edge to an adjacency list.
+///
+/// # Arguments
+///
+/// * `edge` - The edge to append to the adjacency list
+/// * `adj` - The adjacency list to modify
+/// * `forward` - If `true`, appends using the source vertex id (forward-oriented adjacency).
+///              If `false`, uses the destination vertex id (reverse-oriented adjacency).
+///
+/// # Returns
+///
+/// Returns `Ok(())` if the edge was successfully appended, or an error message if the
+/// required vertex is not found in the adjacency list.
+fn append_to_adjacency(
+    edge: &Edge,
+    adj: &mut Vec<IndexMap<(EdgeListId, EdgeId), VertexId>>,
+    forward: bool,
+) -> Result<(), String> {
+    let vertex_idx = if forward {
+        edge.src_vertex_id.0
+    } else {
+        edge.dst_vertex_id.0
+    };
+    match adj.get_mut(vertex_idx) {
+        None => {
+            let direction = if forward { "forward" } else { "reverse" };
+            Err(format!(
+                "vertex {} not found in {} adjacencies for edge list, edge: {}, {}",
+                vertex_idx, direction, edge.edge_list_id.0, edge.edge_id.0
+            ))
+        }
+        Some(out_links) => {
+            let target_vertex = if forward {
+                edge.dst_vertex_id
+            } else {
+                edge.src_vertex_id
+            };
+            out_links.insert((edge.edge_list_id, edge.edge_id), target_vertex);
+            Ok(())
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use uom::si::{f64::Length, length::meter};
+
+    fn create_test_edge(
+        edge_list_id: usize,
+        edge_id: usize,
+        src_vertex_id: usize,
+        dst_vertex_id: usize,
+    ) -> Edge {
+        Edge::new(
+            edge_list_id,
+            edge_id,
+            src_vertex_id,
+            dst_vertex_id,
+            Length::new::<meter>(1.0),
+        )
+    }
+
+    #[test]
+    fn test_append_to_adjacency_forward_success() {
+        // Create an adjacency list with 3 vertices
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new(), IndexMap::new()];
+
+        // Create an edge from vertex 0 to vertex 2
+        let edge = create_test_edge(0, 0, 0, 2);
+
+        // Test forward adjacency (should use src_vertex_id = 0 as index)
+        let result = append_to_adjacency(&edge, &mut adj, true);
+
+        assert!(result.is_ok());
+
+        // Check that the edge was added to the correct adjacency list entry
+        let expected_key = (EdgeListId(0), EdgeId(0));
+        assert!(adj[0].contains_key(&expected_key));
+        assert_eq!(adj[0][&expected_key], VertexId(2)); // Target should be dst_vertex_id
+
+        // Other adjacency lists should remain empty
+        assert!(adj[1].is_empty());
+        assert!(adj[2].is_empty());
+    }
+
+    #[test]
+    fn test_append_to_adjacency_reverse_success() {
+        // Create an adjacency list with 3 vertices
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new(), IndexMap::new()];
+
+        // Create an edge from vertex 0 to vertex 2
+        let edge = create_test_edge(0, 0, 0, 2);
+
+        // Test reverse adjacency (should use dst_vertex_id = 2 as index)
+        let result = append_to_adjacency(&edge, &mut adj, false);
+
+        assert!(result.is_ok());
+
+        // Check that the edge was added to the correct adjacency list entry
+        let expected_key = (EdgeListId(0), EdgeId(0));
+        assert!(adj[2].contains_key(&expected_key));
+        assert_eq!(adj[2][&expected_key], VertexId(0)); // Target should be src_vertex_id
+
+        // Other adjacency lists should remain empty
+        assert!(adj[0].is_empty());
+        assert!(adj[1].is_empty());
+    }
+
+    #[test]
+    fn test_append_to_adjacency_forward_invalid_vertex() {
+        // Create an adjacency list with only 2 vertices (indices 0 and 1)
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new()];
+
+        // Create an edge with src_vertex_id = 3 (out of bounds)
+        let edge = create_test_edge(0, 5, 3, 1);
+
+        // Test forward adjacency - should fail because vertex 3 doesn't exist
+        let result = append_to_adjacency(&edge, &mut adj, true);
+
+        assert!(result.is_err());
+        let error_msg = result.unwrap_err();
+        assert!(error_msg.contains("vertex 3 not found in forward adjacencies"));
+        assert!(error_msg.contains("edge list, edge: 0, 5"));
+    }
+
+    #[test]
+    fn test_append_to_adjacency_reverse_invalid_vertex() {
+        // Create an adjacency list with only 2 vertices (indices 0 and 1)
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new()];
+
+        // Create an edge with dst_vertex_id = 5 (out of bounds)
+        let edge = create_test_edge(1, 10, 0, 5);
+
+        // Test reverse adjacency - should fail because vertex 5 doesn't exist
+        let result = append_to_adjacency(&edge, &mut adj, false);
+
+        assert!(result.is_err());
+        let error_msg = result.unwrap_err();
+        assert!(error_msg.contains("vertex 5 not found in reverse adjacencies"));
+        assert!(error_msg.contains("edge list, edge: 1, 10"));
+    }
+
+    #[test]
+    fn test_append_to_adjacency_multiple_edges_same_vertex() {
+        // Create an adjacency list with 3 vertices
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new(), IndexMap::new()];
+
+        // Create multiple edges from vertex 0
+        let edge1 = create_test_edge(0, 0, 0, 1);
+        let edge2 = create_test_edge(0, 1, 0, 2);
+        let edge3 = create_test_edge(1, 0, 0, 2); // Different edge list
+
+        // Add all edges in forward direction
+        assert!(append_to_adjacency(&edge1, &mut adj, true).is_ok());
+        assert!(append_to_adjacency(&edge2, &mut adj, true).is_ok());
+        assert!(append_to_adjacency(&edge3, &mut adj, true).is_ok());
+
+        // Check that all edges were added to vertex 0's adjacency list
+        assert_eq!(adj[0].len(), 3);
+
+        // Verify each edge maps to the correct target vertex
+        assert_eq!(adj[0][&(EdgeListId(0), EdgeId(0))], VertexId(1));
+        assert_eq!(adj[0][&(EdgeListId(0), EdgeId(1))], VertexId(2));
+        assert_eq!(adj[0][&(EdgeListId(1), EdgeId(0))], VertexId(2));
+    }
+
+    #[test]
+    fn test_append_to_adjacency_edge_overwrite() {
+        // Create an adjacency list with 3 vertices
+        let mut adj: Vec<IndexMap<(EdgeListId, EdgeId), VertexId>> =
+            vec![IndexMap::new(), IndexMap::new(), IndexMap::new()];
+
+        // Create two edges with the same EdgeListId and EdgeId but different targets
+        let edge1 = create_test_edge(0, 0, 0, 1);
+        let edge2 = create_test_edge(0, 0, 0, 2); // Same edge list and edge id
+
+        // Add first edge
+        assert!(append_to_adjacency(&edge1, &mut adj, true).is_ok());
+        assert_eq!(adj[0][&(EdgeListId(0), EdgeId(0))], VertexId(1));
+
+        // Add second edge - should overwrite the first one
+        assert!(append_to_adjacency(&edge2, &mut adj, true).is_ok());
+        assert_eq!(adj[0].len(), 1); // Still only one entry
+        assert_eq!(adj[0][&(EdgeListId(0), EdgeId(0))], VertexId(2)); // Updated target
     }
 }
