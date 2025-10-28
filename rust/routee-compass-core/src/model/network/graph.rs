@@ -457,7 +457,7 @@ fn append_to_adjacency(
             let direction = if forward { "forward" } else { "reverse" };
             Err(format!(
                 "vertex {} not found in {} adjacencies for edge list, edge: {}, {}",
-                edge.src_vertex_id, direction, edge.edge_list_id, edge.edge_id
+                vertex_idx, direction, edge.edge_list_id, edge.edge_id
             ))
         }
         Some(out_links) => {
