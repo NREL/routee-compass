@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761685080181,
+  "lastUpdate": 1761685112537,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -1199,6 +1199,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 3010560,
             "range": "± 74848",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0d961a0f2af0032b5e4a154447bd0dec14d7652a",
+          "message": "Merge pull request #406 from NREL/ndr/add-pixi-tool\n\nNdr/add pixi tool",
+          "timestamp": "2025-10-28T14:56:19-06:00",
+          "tree_id": "6393f1ad8ad1d0566376df5dd480f61339d7d041",
+          "url": "https://github.com/NREL/routee-compass/commit/0d961a0f2af0032b5e4a154447bd0dec14d7652a"
+        },
+        "date": 1761685112146,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2987634,
+            "range": "± 307660",
             "unit": "ns/iter"
           }
         ]
