@@ -3,7 +3,7 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "nrel.routee.compass"
+name = "nrel-routee-compass"
 version = "0.15.0"
 description = "An eco-routing tool build upon RouteE-Powertrain"
 readme = "README.md"
