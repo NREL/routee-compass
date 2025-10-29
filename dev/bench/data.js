@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761689886633,
+  "lastUpdate": 1761757608089,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -1259,6 +1259,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2945719,
             "range": "± 404338",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9a9eed944875538b96c9f30ec6c1a7589682b5b3",
+          "message": "Merge pull request #409 from NREL/robfitzgerald-patch-1\n\nnormalize python project name for pypi",
+          "timestamp": "2025-10-29T11:02:31-06:00",
+          "tree_id": "1f39f0f278f437c039d764c7fe140484a3dbc9a2",
+          "url": "https://github.com/NREL/routee-compass/commit/9a9eed944875538b96c9f30ec6c1a7589682b5b3"
+        },
+        "date": 1761757607092,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2986759,
+            "range": "± 274874",
             "unit": "ns/iter"
           }
         ]
