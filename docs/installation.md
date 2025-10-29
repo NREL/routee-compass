@@ -9,7 +9,7 @@
 The recommended way to get started with RouteE Compass is to use [conda](https://docs.conda.io/en/latest/) to install the python package:
 
 ```console
-conda create -n routee-compass -c conda-forge python=3.11 nrel.routee.compass
+conda create -n routee-compass -c conda-forge python=3.11 nrel_routee_compass
 ```
 
 This creates a new conda environment with python 3.11 and then installs RouteE Compass into it.
@@ -23,7 +23,7 @@ The conda distribution includes several optional dependencies and is recommended
 You can also just directly install the package directly with [pip](https://pypi.org/project/pip/) and none of the optional dependnecies:
 
 ```console
-pip install nrel.routee.compass
+pip install nrel_routee_compass
 ```
 
 This is useful if you already have a road network dataset (see [here](examples/01_open_street_maps_example)) on your system and you just want to compute routes.

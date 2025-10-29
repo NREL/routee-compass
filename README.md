@@ -2,11 +2,11 @@
 
 <div align="left">
     <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue"/>
-  <a href="https://anaconda.org/conda-forge/nrel.routee.compass">
-    <img src="https://img.shields.io/conda/v/conda-forge/nrel.routee.compass" alt="Conda Latest Release"/>
+  <a href="https://anaconda.org/conda-forge/nrel_routee_compass">
+    <img src="https://img.shields.io/conda/v/conda-forge/nrel_routee_compass" alt="Conda Latest Release"/>
   </a>
-  <a href="https://pypi.org/project/nrel.routee.compass/">
-    <img src="https://img.shields.io/pypi/v/nrel.routee.compass" alt="PyPi Latest Release"/>
+  <a href="https://pypi.org/project/nrel_routee_compass/">
+    <img src="https://img.shields.io/pypi/v/nrel_routee_compass" alt="PyPi Latest Release"/>
   </a>
   <a href="https://crates.io/crates/routee-compass">
     <img src="https://img.shields.io/crates/v/routee-compass" alt="Crates.io Latest Release"/>

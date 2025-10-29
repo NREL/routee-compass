@@ -6,10 +6,10 @@ This crate provides Python bindings to CompassApp.
 
 ## Usage
 
-This app can be installed in python using the [provided python library](../../python) via [pip](https://pypi.org/project/nrel.routee.compass/):
+This app can be installed in python using the [provided python library](../../python) via [pip](https://pypi.org/project/nrel_routee_compass/):
 
 ```bash
-pip install nrel.routee.compass
+pip install nrel_routee_compass
 ```
 
 To install as a library in Rust, add routee-compass-py to your Cargo.toml file:

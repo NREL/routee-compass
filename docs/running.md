@@ -8,7 +8,7 @@ We provide python bindings for the core engine that allow you to run queries fro
 After following the [installation instructions](installation), you can load an application and run queries like this:
 
 ```python
-from nrel.routee.compass import CompassApp
+from nrel_routee_compass import CompassApp
 
 app = CompassApp.from_config_file("path/to/config.toml")
 

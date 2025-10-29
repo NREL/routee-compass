@@ -8,7 +8,7 @@ In this example, we download a road network from OSM using the OSMNx package, an
 To download an open street maps dataset, we'll need some extra dependnecies which are included with the conda distribution of this pacakge:
 
 ```console
-conda create -n routee-compass -c conda-forge python=3.11 nrel.routee.compass
+conda create -n routee-compass -c conda-forge python=3.11 nrel_routee_compass
 ```
 """
 
@@ -18,9 +18,9 @@ import osmnx as ox
 
 import json
 
-from nrel.routee.compass import CompassApp
-from nrel.routee.compass.io import generate_compass_dataset, results_to_geopandas
-from nrel.routee.compass.plot import plot_route_folium, plot_routes_folium
+from nrel_routee_compass import CompassApp
+from nrel_routee_compass.io import generate_compass_dataset, results_to_geopandas
+from nrel_routee_compass.plot import plot_route_folium, plot_routes_folium
 # %%
 
 """

@@ -11,8 +11,8 @@ import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 
-from nrel.routee.compass import CompassApp
-from nrel.routee.compass.io.convert_results import results_to_geopandas
+from nrel_routee_compass import CompassApp
+from nrel_routee_compass.io.convert_results import results_to_geopandas
 # %%
 
 """

@@ -284,7 +284,7 @@ def load_us_state_boundaries() -> "GeoDataFrame":
             "Required libraries not installed. Please install pandas and geopandas."
         )
     with importlib.resources.path(
-        "nrel.routee.compass.resources", "us_states.csv.gz"
+        "nrel_routee_compass.resources", "us_states.csv.gz"
     ) as state_filepath:
         states_gdf = pd.read_csv(state_filepath)
 

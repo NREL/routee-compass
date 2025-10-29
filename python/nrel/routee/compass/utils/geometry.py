@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import json
 
-from nrel.routee.compass.utils.type_alias import Route
+from nrel_routee_compass.utils.type_alias import Route
 
 if TYPE_CHECKING:
     from shapely.geometry import LineString
@@ -31,7 +31,7 @@ def geometry_from_route(route: Route) -> "LineString":
         import shapely
     except ImportError:
         raise ImportError(
-            "requires shapely to be installed. Try 'pip install nrel.routee.compass[osm]'"
+            "requires shapely to be installed. Try 'pip install nrel_routee_compass[osm]'"
         )
     geom = route.get(PATH_KEY)
     if geom is None:

@@ -1,14 +1,14 @@
 import folium
 
-from nrel.routee.compass.utils.type_alias import (
+from nrel_routee_compass.utils.type_alias import (
     Result as QueryResult,
     Results as QueryResults,
 )
 
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
-from nrel.routee.compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
+from nrel_routee_compass.plot.plot_utils import ColormapCircularIterator, rgba_to_hex
 
-from nrel.routee.compass.utils.geometry import ROUTE_KEY, geometry_from_route
+from nrel_routee_compass.utils.geometry import ROUTE_KEY, geometry_from_route
 
 DEFAULT_LINE_KWARGS = {
     "color": "blue",
@@ -28,8 +28,8 @@ def result_dict_to_coords(result_dict: QueryResult) -> Sequence[Tuple[float, flo
         Sequence[(float, float)]: A sequence of latitude and longitude tuples.
 
     Example:
-        >>> from nrel.routee.compass import CompassApp
-        >>> from nrel.routee.compass.plot import result_dict_to_coords
+        >>> from nrel_routee_compass import CompassApp
+        >>> from nrel_routee_compass.plot import result_dict_to_coords
         >>> app = CompassApp.from_config_file("config.toml")
         >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
         >>> result = app.run(query)
@@ -77,8 +77,8 @@ def _calculate_folium_args(fit_coords: Sequence[Tuple[float, float]]) -> dict[st
             represents a rectangle that covers all the coords.
 
     Example:
-        >>> from nrel.routee.compass import CompassApp
-        >>> from nrel.routee.compass.plot import _create_empty_folium_map
+        >>> from nrel_routee_compass import CompassApp
+        >>> from nrel_routee_compass.plot import _create_empty_folium_map
         >>> app = CompassApp.from_config_file("config.toml")
         >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
         >>> result = app.run(query)
@@ -108,8 +108,8 @@ def _create_empty_folium_map(fit_coords: Sequence[Tuple[float, float]]) -> foliu
         folium.Map: An empty folium map centered to fit all the coordinates
 
     Example:
-        >>> from nrel.routee.compass import CompassApp
-        >>> from nrel.routee.compass.plot import _create_empty_folium_map
+        >>> from nrel_routee_compass import CompassApp
+        >>> from nrel_routee_compass.plot import _create_empty_folium_map
         >>> app = CompassApp.from_config_file("config.toml")
         >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
         >>> result = app.run(query)
@@ -146,8 +146,8 @@ def plot_route_folium(
         folium_map: A folium map with the route plotted on it
 
     Example:
-        >>> from nrel.routee.compass import CompassApp
-        >>> from nrel.routee.compass.plot import plot_route_folium
+        >>> from nrel_routee_compass import CompassApp
+        >>> from nrel_routee_compass.plot import plot_route_folium
         >>> app = CompassApp.from_config_file("config.toml")
         >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
         >>> result = app.run(query)
@@ -178,8 +178,8 @@ def plot_coords_folium(
         folium.Map: A folium map with the route plotted on it
 
     Example:
-        >>> from nrel.routee.compass import CompassApp
-        >>> from nrel.routee.compass.plot import plot_route_folium
+        >>> from nrel_routee_compass import CompassApp
+        >>> from nrel_routee_compass.plot import plot_route_folium
         >>> app = CompassApp.from_config_file("config.toml")
         >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
         >>> result = app.run(query)
@@ -241,8 +241,8 @@ def plot_routes_folium(
         folium_map: A folium map with the routes plotted on it
 
     Example:
-        >>> from nrel.routee.compass import CompassApp
-        >>> from nrel.routee.compass.plot import plot_results_folium
+        >>> from nrel_routee_compass import CompassApp
+        >>> from nrel_routee_compass.plot import plot_results_folium
         >>> app = CompassApp.from_config_file("config.toml")
         >>> query = {origin_x: -105.1710052, origin_y: 39.7402804, destination_x: -104.9009913, destination_y: 39.6757025}
         >>> result = app.run(query)

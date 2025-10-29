@@ -10,9 +10,9 @@ import shutil
 import tomlkit
 
 
-from nrel.routee.compass.io import utils
-from nrel.routee.compass.io.utils import CACHE_DIR, add_grade_to_graph
-from nrel.routee.compass.io.charging_station_ops import (
+from nrel_routee_compass.io import utils
+from nrel_routee_compass.io.utils import CACHE_DIR, add_grade_to_graph
+from nrel_routee_compass.io.charging_station_ops import (
     download_ev_charging_stations_for_polygon,
 )
 
@@ -223,7 +223,7 @@ def generate_compass_dataset(
             base_config_files.append("osm_default_charging.toml")
         for filename in base_config_files:
             with importlib.resources.path(
-                "nrel.routee.compass.resources", filename
+                "nrel_routee_compass.resources", filename
             ) as init_toml_path:
                 with init_toml_path.open() as f:
                     init_toml: dict[str, Any] = tomlkit.load(f)
@@ -238,7 +238,7 @@ def generate_compass_dataset(
             model_output_directory.mkdir(exist_ok=True)
 
         with importlib.resources.path(
-            "nrel.routee.compass.resources.models", "download_links.json"
+            "nrel_routee_compass.resources.models", "download_links.json"
         ) as model_link_path:
             with model_link_path.open() as f:
                 model_links = json.load(f)

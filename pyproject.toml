@@ -48,7 +48,7 @@ osm = [
     "numpy>=1.26,<3.0",
     "seaborn>=0.12.0,<1.0",
 ]
-all = ["nrel.routee.compass[osm]", "nrel.routee.compass[dev]"]
+all = ["nrel_routee_compass[osm]", "nrel_routee_compass[dev]"]
 
 [project.urls]
 Homepage = "https://github.com/NREL/routee-compass"
@@ -57,7 +57,7 @@ Documentation = "https://nrel.github.io/routee-compass"
 [tool.maturin]
 python-source = "python"
 features = ["pyo3/extension-module"]
-module-name = "nrel.routee.compass.routee_compass_py"
+module-name = "nrel_routee_compass.routee_compass_py"
 manifest-path = "rust/routee-compass-py/Cargo.toml"
 include = [
     "python/nrel/routee/compass/resources/models/*.bin",

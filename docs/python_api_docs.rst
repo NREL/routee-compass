@@ -1,14 +1,14 @@
 Python API Docs
 ===============
 
-.. automodule:: nrel.routee.compass.compass_app 
+.. automodule:: nrel_routee_compass.compass_app 
     :members:
 
-.. automodule:: nrel.routee.compass.io.generate_dataset
+.. automodule:: nrel_routee_compass.io.generate_dataset
     :members:
 
-.. automodule:: nrel.routee.compass.io.utils
+.. automodule:: nrel_routee_compass.io.utils
     :members:
 
-.. automodule:: nrel.routee.compass.plot.plot_folium 
+.. automodule:: nrel_routee_compass.plot.plot_folium 
     :members:

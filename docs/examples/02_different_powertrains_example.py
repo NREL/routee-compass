@@ -9,8 +9,8 @@ This builds off of the [Open Street Maps Example](01_open_street_maps_example) a
 # %%
 import seaborn as sns
 
-from nrel.routee.compass import CompassApp
-from nrel.routee.compass.io.convert_results import results_to_geopandas
+from nrel_routee_compass import CompassApp
+from nrel_routee_compass.io.convert_results import results_to_geopandas
 
 
 """

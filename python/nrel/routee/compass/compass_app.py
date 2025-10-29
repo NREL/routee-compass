@@ -6,17 +6,17 @@ from tempfile import TemporaryDirectory
 
 from pathlib import Path
 from typing import Any, List, Optional, Union, Callable, TYPE_CHECKING, cast
-from nrel.routee.compass.routee_compass_py import (
+from nrel_routee_compass.routee_compass_py import (
     CompassAppWrapper,
 )
-from nrel.routee.compass.io.generate_dataset import (
+from nrel_routee_compass.io.generate_dataset import (
     GeneratePipelinePhase,
     generate_compass_dataset,
 )
 
 if TYPE_CHECKING:
     from shapely.geometry import Polygon, MultiPolygon
-    from nrel.routee.compass.utils.type_alias import (
+    from nrel_routee_compass.utils.type_alias import (
         Config,
         OSMNXQuery,
         CompassQuery,
@@ -67,7 +67,7 @@ class CompassApp:
             app: A CompassApp object
 
         Example:
-            >>> from nrel.routee.compass import CompassApp
+            >>> from nrel_routee_compass import CompassApp
             >>> app = CompassApp.from_config_file("config.toml")
         """
         config_path = Path(config_file)
@@ -93,7 +93,7 @@ class CompassApp:
             app: a CompassApp object
 
         Example:
-            >>> from nrel.routee.compass import CompassApp
+            >>> from nrel_routee_compass import CompassApp
             >>> conf = { "parallelism": 2 }
             >>> app = CompassApp.from_config(conf)
         """
@@ -149,7 +149,7 @@ class CompassApp:
             CompassApp: a CompassApp object
 
         Example:
-            >>> from nrel.routee.compass import CompassApp
+            >>> from nrel_routee_compass import CompassApp
             >>> app = CompassApp.from_place("Denver, Colorado, USA")
         """
         # temp_dir will not be used but is needed to keep the Temporary Directory active until
@@ -226,7 +226,7 @@ class CompassApp:
             CompassApp: a CompassApp object
 
         Example:
-            >>> from nrel.routee.compass import CompassApp
+            >>> from nrel_routee_compass import CompassApp
             >>> from shapely import geometry
             >>> p1 = geometry.Point(0,0)
             >>> p2 = geometry.Point(1,0)
@@ -280,7 +280,7 @@ class CompassApp:
             results: A list of results (or a single result if a single query was passed)
 
         Example:
-            >>> from nrel.routee.compass import CompassApp
+            >>> from nrel_routee_compass import CompassApp
             >>> app = CompassApp.from_config_file("config.toml")
             >>> query = {
                     "origin_name": "NREL",

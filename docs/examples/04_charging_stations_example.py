@@ -11,8 +11,8 @@ so be sure to check that one out first.
 
 # %%
 import folium
-from nrel.routee.compass import CompassApp
-from nrel.routee.compass.plot import plot_route_folium
+from nrel_routee_compass import CompassApp
+from nrel_routee_compass.plot import plot_route_folium
 
 import pandas as pd
 import matplotlib.pyplot as plt

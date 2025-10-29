@@ -1,7 +1,7 @@
 import json
 from unittest import TestCase
-from nrel.routee.compass import package_root
-from nrel.routee.compass.compass_app import CompassApp
+from nrel_routee_compass import package_root
+from nrel_routee_compass.compass_app import CompassApp
 
 
 class TestDowntownDenverExample(TestCase):

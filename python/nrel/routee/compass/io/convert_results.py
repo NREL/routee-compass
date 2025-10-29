@@ -1,7 +1,7 @@
 from typing import Optional, Tuple, Union, TYPE_CHECKING
 
-from nrel.routee.compass.utils.geometry import geometry_from_route
-from nrel.routee.compass.utils.type_alias import Result, Results
+from nrel_routee_compass.utils.geometry import geometry_from_route
+from nrel_routee_compass.utils.type_alias import Result, Results
 
 if TYPE_CHECKING:
     from geopandas import GeoDataFrame
@@ -15,7 +15,7 @@ def tree_result_to_geopandas(
         import geopandas as gpd
     except ImportError:
         raise ImportError(
-            "requires geopandas to be installed. Try 'pip install nrel.routee.compass[osm]'"
+            "requires geopandas to be installed. Try 'pip install nrel_routee_compass[osm]'"
         )
     if "error" in result:
         raise ValueError(f"Error in result: {result['error']}")
@@ -40,7 +40,7 @@ def route_result_to_geopandas(
         import pandas as pd
     except ImportError:
         raise ImportError(
-            "requires geopandas to be installed. Try 'pip install nrel.routee.compass[osm]'"
+            "requires geopandas to be installed. Try 'pip install nrel_routee_compass[osm]'"
         )
     if "error" in result:
         raise ValueError(f"Error in result: {result['error']}")
@@ -77,7 +77,7 @@ def results_to_geopandas(
         import pandas as pd
     except ImportError:
         raise ImportError(
-            "requires pandas to be installed. Try 'pip install nrel.routee.compass[osm]'"
+            "requires pandas to be installed. Try 'pip install nrel_routee_compass[osm]'"
         )
     if isinstance(results, dict):
         results = [results]

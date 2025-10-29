@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/project/nrel.routee.compass
+      url: https://test.pypi.org/project/nrel_routee_compass
     permissions:
       id-token: write
     steps:
@@ -137,7 +137,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/project/nrel.routee.compass
+      url: https://pypi.org/project/nrel_routee_compass
     permissions:
       id-token: write
     steps:

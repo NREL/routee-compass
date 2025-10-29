@@ -10,7 +10,7 @@ so be sure to check that one out first.
 """
 
 # %%
-from nrel.routee.compass import CompassApp
+from nrel_routee_compass import CompassApp
 
 import pandas as pd
 import matplotlib.pyplot as plt
