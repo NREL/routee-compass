@@ -127,6 +127,8 @@ ENV/
 *.egg-info
 
 # uv
-uv.lock# pixi environments
+uv.lock
+
+# pixi environments
 .pixi/*
 !.pixi/config.toml
