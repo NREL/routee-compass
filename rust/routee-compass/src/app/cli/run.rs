@@ -50,17 +50,14 @@ pub fn command_line_runner(
 
     // execute queries on app
     match (args.chunksize, args.newline_delimited) {
-        (None, true) => Err(CompassAppError::InternalError(String::from(
-            "invalid argument combination should have been caught during CLI validation",
-        ))),
         (None, false) => run_json(&query_file, &compass_app, run_config),
-        (Some(_), true) => {
-            let chunksize = args.get_chunksize_option()?;
-            run_newline_json(&query_file, chunksize, &compass_app, run_config)
-        }
         (Some(_), false) => Err(CompassAppError::InternalError(String::from(
             "not yet implemented",
         ))),
+        (_, true) => {
+            let chunksize = args.get_chunksize_option()?;
+            run_newline_json(&query_file, chunksize, &compass_app, run_config)
+        }
     }
 }
 
