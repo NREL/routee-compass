@@ -27,7 +27,7 @@ impl TerminationFailurePolicy {
         if let Some(explanation) = &search_result.terminated {
             let error_on_terminate = match self {
                 T::AllTerminationsFail => true,
-                T::AllowTreeTermination if !has_destination => true,
+                T::AllowTreeTermination if has_destination => true,
                 _ => false,
             };
             if error_on_terminate {
