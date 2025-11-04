@@ -26,6 +26,7 @@ impl OutputPlugin for SummaryOutputPlugin {
                     .terminated
                     .clone()
                     .unwrap_or_else(|| "false".to_string());
+
                 output["search_executed_time"] = json![result.search_executed_time.clone()];
                 output["search_runtime"] = json![result.search_runtime.hhmmss()];
                 output["route_edges"] = json![route_edges];
