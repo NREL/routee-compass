@@ -45,10 +45,7 @@ impl ResponseOutputFormat {
             ResponseOutputFormat::Json { newline_delimited } => {
                 json_ops::final_file_contents(*newline_delimited)
             }
-            ResponseOutputFormat::Csv {
-                mapping: _,
-                sorted: _,
-            } => None,
+            ResponseOutputFormat::Csv { .. } => None,
         }
     }
 
