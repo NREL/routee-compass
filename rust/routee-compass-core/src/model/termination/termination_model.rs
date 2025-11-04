@@ -1,5 +1,5 @@
 use super::termination_model_error::TerminationModelError;
-use crate::util::duration_extension::DurationExtension;
+use crate::{algorithm::search::SearchTree, util::duration_extension::DurationExtension};
 use serde::Deserialize;
 use std::time::{Duration, Instant};
 
@@ -24,102 +24,119 @@ pub enum TerminationModel {
 }
 
 impl TerminationModel {
-    /// Tests if the search should terminate.
-    pub fn test(
+    /// Tests if the search should terminate. If it should terminate, return a message
+    /// explaining the reason to terminate. If it should not terminate, return None.
+    pub fn continue_or_explain(
         &self,
         start_time: &Instant,
-        solution_size: usize,
+        solution: &SearchTree,
+        iterations: u64,
+    ) -> Option<String> {
+        let should_terminate = self.should_terminate(start_time, solution, iterations);
+        if should_terminate {
+            let explanation = self.explain(start_time, solution, iterations);
+            Some(explanation)
+        } else {
+            None
+        }
+    }
+
+
+    /// Tests if the search should terminate. If it should terminate, generate a useful
+    /// termination message and return that in the error channel. If it should not terminate,
+    /// returns Ok(()).
+    pub fn continue_or_error(
+        &self,
+        start_time: &Instant,
+        solution: &SearchTree,
         iterations: u64,
     ) -> Result<(), TerminationModelError> {
-        let should_terminate = self.terminate_search(start_time, solution_size, iterations)?;
+        let should_terminate = self.should_terminate(start_time, solution, iterations);
         if should_terminate {
-            let explanation = self.explain_termination(start_time, solution_size, iterations);
-            match explanation {
-                None => {
-                    return Err(TerminationModelError::RuntimeError(format!(
-                        "unable to explain termination with start_time, solution_size, iterations: {:?}, {}, {}",
-                        &start_time,
-                        solution_size,
-                        iterations
-                    )))
-                }
-                Some(msg) => return Err(TerminationModelError::QueryTerminated(msg)),
-            }
+            let explanation = self.explain(start_time, solution, iterations);
+            return Err(TerminationModelError::QueryTerminated(explanation))
         }
         Ok(())
     }
 
-    /// predicate to test whether a query should terminate based on
-    /// application-level configurations
-    pub fn terminate_search(
+    /// predicate to test whether a query should terminate based on application-level configurations.
+    /// evaluates before traversing a link.
+    pub fn should_terminate(
         &self,
         start_time: &Instant,
-        solution_size: usize,
+        solution: &SearchTree,
         iteration: u64,
-    ) -> Result<bool, TerminationModelError> {
+    ) -> bool {
         use TerminationModel as T;
         match self {
             T::QueryRuntimeLimit { limit, frequency } => {
                 if iteration % frequency == 0 {
                     let dur = Instant::now().duration_since(*start_time);
-                    Ok(dur > *limit)
+                    dur > *limit
                 } else {
-                    Ok(false)
+                    false
                 }
             }
-            T::SolutionSizeLimit { limit } => Ok(solution_size > *limit),
-            T::IterationsLimit { limit } => Ok(iteration + 1 > *limit),
-            T::Combined { models } => models.iter().try_fold(false, |acc, m| {
-                m.terminate_search(start_time, solution_size, iteration)
-                    .map(|r| acc || r)
+            T::SolutionSizeLimit { limit } => {
+                // if you add one more branch to the tree it would violate this termination criteria
+                solution.len() >= *limit
+            },
+            T::IterationsLimit { limit } => {
+                // if you perform one more iteration it would violate this termination criteria
+                iteration >= *limit
+            },
+            T::Combined { models } => models.iter().fold(false, |acc, m| {
+                let inner = m.should_terminate(start_time, solution, iteration);
+                acc || inner
             }),
         }
     }
 
     /// this method will a string explaining why a model terminated. if the
     /// conditions do not merit termination, then the result will be None.
-    pub fn explain_termination(
+    pub fn explain(
         &self,
         start_time: &Instant,
-        solution_size: usize,
+        solution: &SearchTree,
         iterations: u64,
-    ) -> Option<String> {
+    ) -> String {
         use TerminationModel as T;
-        let caused_termination = self
-            .terminate_search(start_time, solution_size, iterations)
-            .unwrap_or(false);
+        // must test if this particular [`TerminationModel`] variant instance was the cause of
+        // termination, in the case of [`TerminationModel::Combined`].
+        let caused_termination = self.should_terminate(start_time, solution, iterations);
         match self {
             T::Combined { models } => {
                 let combined_explanations: String = models
                     .iter()
-                    .filter_map(|m| m.explain_termination(start_time, solution_size, iterations))
+                    .map(|m| m.explain(start_time, solution, iterations))
+                    .filter(|m| !m.is_empty())
                     .collect::<Vec<_>>()
                     .join(", ");
                 if combined_explanations.is_empty() {
-                    None
+                    "".to_string()
                 } else {
-                    Some(combined_explanations)
+                    combined_explanations
                 }
             }
             T::QueryRuntimeLimit { limit, .. } => {
                 if caused_termination {
-                    Some(format!("exceeded runtime limit of {}", limit.hhmmss()))
+                    format!("exceeded runtime limit of {}", limit.hhmmss())
                 } else {
-                    None
+                    "".to_string()
                 }
             }
             T::SolutionSizeLimit { limit } => {
                 if caused_termination {
-                    Some(format!("exceeded solution size limit of {limit}"))
+                    format!("exceeded solution size limit of {limit}")
                 } else {
-                    None
+                    "".to_string()
                 }
             }
             T::IterationsLimit { limit } => {
                 if caused_termination {
-                    Some(format!("exceeded iteration limit of {limit}"))
+                    format!("exceeded iteration limit of {limit}")
                 } else {
-                    None
+                    "".to_string()
                 }
             }
         }
@@ -130,6 +147,8 @@ impl TerminationModel {
 mod tests {
     use std::time::{Duration, Instant};
 
+    use crate::{algorithm::search::{Direction, EdgeTraversal, SearchTree}, model::{cost::TraversalCost, label::Label, network::{EdgeId, EdgeListId, VertexId}, unit::Cost}};
+
     use super::TerminationModel as T;
 
     #[test]
@@ -138,10 +157,12 @@ mod tests {
         let start_time = Instant::now() - within_limit;
         let limit = Duration::from_secs(2);
         let frequency = 10;
-
+        let tree = mock_tree(0);
+        
         let m = T::QueryRuntimeLimit { limit, frequency };
+
         for iteration in 0..(frequency + 1) {
-            let result = m.terminate_search(&start_time, 0, iteration).unwrap();
+            let result = m.should_terminate(&start_time, &tree, iteration);
             // in all iterations, the result should be false, though for iterations 1-9, that will be due to the sample frequency
             assert!(!result);
         }
@@ -153,10 +174,12 @@ mod tests {
         let start_time = Instant::now() - exceeds_limit;
         let limit = Duration::from_secs(2);
         let frequency = 10;
-
+        let tree = mock_tree(0);
+        
         let m = T::QueryRuntimeLimit { limit, frequency };
+
         for iteration in 0..(frequency + 1) {
-            let result = m.terminate_search(&start_time, 0, iteration).unwrap();
+            let result = m.should_terminate(&start_time, &tree, iteration);
             if iteration == 0 {
                 // edge case. when iteration == 0, we will run the test, and it should fail, since 10 % 0 == 0 is true.
                 // but let's continue testing iterations 1-10 to explore the expected range of behaviors.
@@ -176,24 +199,34 @@ mod tests {
     fn test_iterations_limit() {
         let m = T::IterationsLimit { limit: 5 };
         let i = Instant::now();
-        let t_good = m.terminate_search(&i, 4, 4).unwrap();
-        let t_bad1 = m.terminate_search(&i, 5, 5).unwrap();
-        let t_bad2 = m.terminate_search(&i, 6, 6).unwrap();
-        assert!(!t_good);
-        assert!(t_bad1);
-        assert!(t_bad2);
+        
+        let t4 = mock_tree(4);
+        let t5 = mock_tree(5);
+        let t6 = mock_tree(6);
+        
+        let good = m.should_terminate(&i, &t4, 4);
+        let terminate1 = m.should_terminate(&i, &t5, 5);
+        let terminate2 = m.should_terminate(&i, &t6, 6);
+        assert!(!good);
+        assert!(terminate1);
+        assert!(terminate2);
     }
 
     #[test]
-    fn test_size_limit() {
+    fn test_solution_size_limit() {
+        // solution size limit of 5 should accept tree of size 4 + 5, fail on size 6
         let m = T::SolutionSizeLimit { limit: 5 };
         let i = Instant::now();
-        let t_good = m.terminate_search(&i, 4, 4).unwrap();
-        let t_bad1 = m.terminate_search(&i, 5, 5).unwrap();
-        let t_bad2 = m.terminate_search(&i, 6, 6).unwrap();
-        assert!(!t_good);
-        assert!(!t_bad1);
-        assert!(t_bad2);
+        let t4 = mock_tree(4);
+        let t5 = mock_tree(5);
+        let t6 = mock_tree(6);
+        
+        let good1 = m.should_terminate(&i, &t4, 4);
+        let terminate1 = m.should_terminate(&i, &t5, 5);
+        let terminate2 = m.should_terminate(&i, &t6, 6);
+        assert!(!good1);
+        assert!(terminate1);
+        assert!(terminate2);
     }
 
     #[test]
@@ -204,6 +237,7 @@ mod tests {
         let frequency = 1;
         let iteration_limit = 5;
         let solution_limit = 3;
+        let tree = mock_tree(solution_limit + 1);
 
         let m1 = T::QueryRuntimeLimit {
             limit: runtime_limit,
@@ -219,18 +253,16 @@ mod tests {
             models: vec![m1, m2, m3],
         };
         let terminate = cm
-            .terminate_search(&start_time, solution_limit + 1, iteration_limit + 1)
-            .unwrap();
+            .should_terminate(&start_time, &tree, iteration_limit + 1);
         assert!(terminate);
-        let msg = cm.explain_termination(&start_time, solution_limit + 1, iteration_limit + 1);
-        let expected = Some(
+        let msg = cm.explain(&start_time, &tree, iteration_limit + 1);
+        let expected = 
             [
                 "exceeded runtime limit of 0:00:02.000",
                 "exceeded iteration limit of 5",
                 "exceeded solution size limit of 3",
             ]
-            .join(", "),
-        );
+            .join(", ");
         assert_eq!(msg, expected);
     }
 
@@ -242,6 +274,7 @@ mod tests {
         let frequency = 1;
         let iteration_limit = 5;
         let solution_limit = 3;
+        let tree = mock_tree(solution_limit - 1);
 
         let m1 = T::QueryRuntimeLimit {
             limit: runtime_limit,
@@ -257,17 +290,37 @@ mod tests {
             models: vec![m1, m2, m3],
         };
         let terminate = cm
-            .terminate_search(&start_time, solution_limit - 1, iteration_limit + 1)
-            .unwrap();
+            .should_terminate(&start_time, &tree, iteration_limit + 1);
         assert!(terminate);
-        let msg = cm.explain_termination(&start_time, solution_limit - 1, iteration_limit + 1);
-        let expected = Some(
-            [
+        let msg = cm.explain(&start_time, &tree, iteration_limit + 1);
+        let expected = [
                 "exceeded runtime limit of 0:00:02.000",
                 "exceeded iteration limit of 5",
             ]
-            .join(", "),
-        );
+            .join(", ");
         assert_eq!(msg, expected);
+    }
+
+    fn mock_tree(size: usize) -> SearchTree {
+        let mut tree = SearchTree::new(Direction::Forward);
+        if size == 0 {
+            return tree;
+        }
+        // when creating the tree, it will create a root node, so len() will be mock_tree's size + 1
+        for idx in 0..(size-1) {
+            let cost = TraversalCost {
+                objective_cost: Cost::MIN_COST,
+                total_cost: Cost::MIN_COST,
+                cost_component: Default::default(),
+            };
+            let edge_traversal  = EdgeTraversal { edge_list_id: EdgeListId(0), edge_id: EdgeId(idx), cost, result_state: vec![] };
+            tree.insert(
+                Label::Vertex(VertexId(idx)),
+                edge_traversal,
+                Label::Vertex(VertexId(idx + 1))
+            )
+            .expect("test invariant failed")
+        }
+        tree
     }
 }
