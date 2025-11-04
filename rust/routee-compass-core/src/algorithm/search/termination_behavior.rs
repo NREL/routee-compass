@@ -6,14 +6,12 @@ use crate::algorithm::search::{SearchError, SearchResult};
 #[serde(rename_all = "snake_case")]
 pub enum TerminationFailurePolicy {
     /// treat any early-terminated search as a routing failure
-    #[serde(rename = "all")]
     AllTerminationsFail,
     /// treat early-terminated path searches as failures. if the query
     /// has no destination (if the result is a tree), it is not a failure.
     /// used for reachability search, isochrone generation, etc.
     #[default]
-    #[serde(rename = "allow_tree_termination")]
-    PathTerminationsFail,
+    AllowTreeTermination,
 }
 
 impl TerminationFailurePolicy {
@@ -29,7 +27,7 @@ impl TerminationFailurePolicy {
         if let Some(explanation) = &search_result.terminated {
             let error_on_terminate = match self {
                 T::AllTerminationsFail => true,
-                T::PathTerminationsFail if !has_destination => true,
+                T::AllowTreeTermination if !has_destination => true,
                 _ => false,
             };
             if error_on_terminate {
