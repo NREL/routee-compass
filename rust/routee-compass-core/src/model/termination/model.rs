@@ -295,7 +295,7 @@ mod tests {
         };
         let i = Instant::now();
         let empty_tree = mock_tree(0);
-        let fuller_tree = mock_tree(100);
+        let fuller_tree = mock_tree(100); // larger than 0.01MB == 10KB
 
         let good = m.should_terminate(&i, &empty_tree, 4);
         let terminate = m.should_terminate(&i, &fuller_tree, 5);
