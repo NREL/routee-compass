@@ -55,7 +55,6 @@ pub fn deserialize_duration<'de, D>(deserializer: D) -> Result<Duration, D::Erro
 where
     D: serde::Deserializer<'de>,
 {
-    use crate::util::conversion::duration_extension::DurationExtension as ConversionDurationExtension;
     use serde::de::Error;
 
     #[derive(Deserialize)]
