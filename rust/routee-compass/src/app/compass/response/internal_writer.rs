@@ -78,6 +78,8 @@ impl Write for InternalWriter {
 }
 
 fn is_empty(file: &File) -> Result<bool, CompassAppError> {
-    let m = file.metadata().map_err(|e| CompassAppError::InternalError(format!("failure inspecting output file metadata: {e}")))?;
+    let m = file.metadata().map_err(|e| {
+        CompassAppError::InternalError(format!("failure inspecting output file metadata: {e}"))
+    })?;
     Ok(m.len() == 0)
 }
