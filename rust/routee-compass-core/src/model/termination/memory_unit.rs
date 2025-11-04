@@ -8,7 +8,7 @@ pub enum MemoryUnit {
     #[serde(rename = "MB")]
     Megabytes,
     #[serde(rename = "GB")]
-    Gigabytes
+    Gigabytes,
 }
 
 impl MemoryUnit {

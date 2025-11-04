@@ -9,7 +9,7 @@ pub enum TerminationFailurePolicy {
     #[serde(rename = "all")]
     AllTerminationsFail,
     /// treat early-terminated path searches as failures. if the query
-    /// has no destination (if the result is a tree), it is not a failure. 
+    /// has no destination (if the result is a tree), it is not a failure.
     /// used for reachability search, isochrone generation, etc.
     #[default]
     #[serde(rename = "allow_tree_termination")]

@@ -57,22 +57,22 @@ where
 {
     use crate::util::conversion::duration_extension::DurationExtension as ConversionDurationExtension;
     use serde::de::Error;
-    
+
     #[derive(Deserialize)]
     #[serde(untagged)]
     enum DurationValue {
         Seconds(u64),
         String(String),
     }
-    
+
     let value = DurationValue::deserialize(deserializer)?;
     match value {
         DurationValue::Seconds(secs) => Ok(Duration::from_secs(secs)),
         DurationValue::String(s) => {
             let json_value = serde_json::Value::String(s);
-            json_value.as_duration().map_err(|e| {
-                D::Error::custom(format!("Failed to parse duration string: {}", e))
-            })
+            json_value
+                .as_duration()
+                .map_err(|e| D::Error::custom(format!("Failed to parse duration string: {}", e)))
         }
     }
 }
