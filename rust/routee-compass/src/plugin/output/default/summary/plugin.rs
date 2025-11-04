@@ -28,7 +28,10 @@ impl OutputPlugin for SummaryOutputPlugin {
                 output["tree_size_count"] = json![tree_edges];
                 output["search_result_size_mib"] = json![memory_mib];
                 output["iterations"] = json![result.iterations];
-                output["terminated"] = json![result.terminated.clone().unwrap_or_else(|| "false".to_string())];
+                output["terminated"] = json![result
+                    .terminated
+                    .clone()
+                    .unwrap_or_else(|| "false".to_string())];
                 Ok(())
             }
         }

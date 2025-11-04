@@ -11,5 +11,5 @@ pub struct SearchAppResult {
     pub search_executed_time: String,
     pub search_runtime: Duration,
     pub iterations: u64,
-    pub terminated: Option<String>
+    pub terminated: Option<String>,
 }
