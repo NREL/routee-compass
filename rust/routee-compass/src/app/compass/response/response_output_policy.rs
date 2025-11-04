@@ -2,7 +2,7 @@ use super::{
     response_output_format::ResponseOutputFormat, response_sink::ResponseSink,
     write_mode::WriteMode,
 };
-use crate::app::compass::{response::internal_writer::InternalWriter, CompassAppError};
+use crate::app::compass::{CompassAppError, response::{internal_writer::InternalWriter}};
 use flate2::{write::GzEncoder, Compression};
 use serde::{Deserialize, Serialize};
 use std::{
