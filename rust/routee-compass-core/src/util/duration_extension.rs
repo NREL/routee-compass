@@ -56,6 +56,7 @@ where
     D: serde::Deserializer<'de>,
 {
     use serde::de::Error;
+    use crate::util::conversion::duration_extension::DurationExtension;
 
     #[derive(Deserialize)]
     #[serde(untagged)]
