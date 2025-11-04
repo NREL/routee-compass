@@ -20,9 +20,10 @@ impl InternalWriter {
         &mut self,
         format: &ResponseOutputFormat,
     ) -> core::result::Result<(), CompassAppError> {
-        if !self.is_empty()? {
+        let file_is_empty = self.is_empty()?;
+        if file_is_empty {
             let header = format
-                .initial_file_contents()
+                .generate_header()
                 .unwrap_or_else(|| String::from(""));
 
             self.write(header.as_bytes()).map(|_| {}).map_err(|e| {
@@ -32,7 +33,8 @@ impl InternalWriter {
         Ok(())
     }
 
-    /// test if file has not yet received any data
+    /// test if file has not yet received any data using the File::metadata() inspector and
+    /// metadata.len().
     pub fn is_empty(&self) -> Result<bool, CompassAppError> {
         match self {
             InternalWriter::File { file } => is_empty(file),

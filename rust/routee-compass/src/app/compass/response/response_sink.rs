@@ -18,7 +18,7 @@ pub enum ResponseSink {
 }
 
 impl ResponseSink {
-    /// uses a writer
+    /// uses a writer to write a RouteE Compass app response to some location.
     pub fn write_response(&self, response: &mut serde_json::Value) -> Result<(), CompassAppError> {
         match self {
             ResponseSink::None => Ok(()),
@@ -74,9 +74,7 @@ impl ResponseSink {
                 filename,
                 file,
                 format,
-                delimiter: _,
-                iterations_per_flush: _,
-                iterations: _,
+                ..
             } => {
                 let file_ref = Arc::clone(file);
                 let mut file_attained = file_ref.lock().map_err(|e| {
@@ -85,14 +83,14 @@ impl ResponseSink {
                     ))
                 })?;
 
-                let final_contents = format
-                    .final_file_contents()
-                    .unwrap_or_else(|| String::from(""));
-                writeln!(file_attained, "{final_contents}").map_err(|e| {
-                    CompassAppError::InternalError(format!(
-                        "failure writing final contents to {filename}: {e}"
-                    ))
-                })?;
+                // write optional footer (depends on format type)
+                if let Some(final_contents) = format.generate_footer() {
+                    writeln!(file_attained, "{final_contents}").map_err(|e| {
+                        CompassAppError::InternalError(format!(
+                            "failure writing final contents to {filename}: {e}"
+                        ))
+                    })?;
+                }
                 file_attained.finish()?;
                 Ok(filename.clone())
             }
