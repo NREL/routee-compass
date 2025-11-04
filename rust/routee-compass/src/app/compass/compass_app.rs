@@ -17,7 +17,7 @@ use chrono::Local;
 use itertools::Itertools;
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
-use routee_compass_core::algorithm::search::SearchInstance;
+use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
 use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::model::cost::cost_model_service::CostModelService;
 use routee_compass_core::model::map::MapModel;
@@ -117,9 +117,11 @@ impl CompassApp {
             Ok(Arc::new(mm))
         })?;
 
+        let search_algorithm = SearchAlgorithm::from(&config.algorithm);
+
         // build search app
         let search_app = Arc::new(SearchApp::new(
-            config.algorithm.clone(),
+            search_algorithm,
             graph,
             map_model,
             state_model,

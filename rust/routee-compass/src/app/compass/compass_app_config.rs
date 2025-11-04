@@ -2,7 +2,7 @@ use std::{path::Path, sync::Arc};
 
 use config::Config;
 use routee_compass_core::{
-    algorithm::search::SearchAlgorithm,
+    algorithm::search::SearchAlgorithmConfig,
     config::{ConfigJsonExtensions, OneOrMany},
     model::{
         cost::CostModelConfig, frontier::FrontierModelService, map::MapModelConfig,
@@ -22,7 +22,7 @@ use crate::{
 /// [`CompassApp`].
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct CompassAppConfig {
-    pub algorithm: SearchAlgorithm,
+    pub algorithm: SearchAlgorithmConfig,
     pub state: Option<Vec<(String, StateVariableConfig)>>,
     pub cost: CostModelConfig,
     pub label: Value,

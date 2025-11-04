@@ -7,20 +7,22 @@ use super::search_error::SearchError;
 use super::util::RouteSimilarityFunction;
 use super::SearchInstance;
 use super::{a_star, direction::Direction};
+use crate::algorithm::search::TerminationFailurePolicy;
+use crate::algorithm::search::search_algorithm_config::SearchAlgorithmConfig;
 use crate::model::cost::TraversalCost;
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
 use crate::model::unit::Cost;
-use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "snake_case", tag = "type")]
+#[derive(Clone, Debug)]
 pub enum SearchAlgorithm {
-    Dijkstra,
-    #[serde(rename = "a*")]
     AStarAlgorithm {
         /// modifier applied as a factor to all cost values
         weight_factor: Option<Cost>,
+        /// if the termination model returns early, treat it as a search error.
+        /// if false, the result is still returned. this option is not valid
+        /// for searches without destinations (path searches).
+        termination_behavior: TerminationFailurePolicy
     },
     KspSingleVia {
         /// number of alternative paths to attempt
@@ -56,22 +58,14 @@ impl SearchAlgorithm {
         si: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
-            SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
-                weight_factor: Some(Cost::ZERO),
-            }
-            .run_vertex_oriented(src_id, dst_id_opt, query, direction, si),
-            SearchAlgorithm::AStarAlgorithm { weight_factor } => {
-                let w_val = match query.get("weight_factor") {
-                    Some(w_json) => w_json
-                        .as_f64()
-                        .ok_or(SearchError::BuildError(format!(
-                            "weight_factor must be a float, found {w_json}"
-                        )))
-                        .map(|f| Some(Cost::new(f))),
-                    None => Ok(*weight_factor),
-                }?;
+            SearchAlgorithm::AStarAlgorithm { weight_factor, termination_behavior } => {
+                
+                let w_val = get_weight_factor(query)?.or_else(|| weight_factor.clone());
+                
                 let search_result =
                     a_star::run_vertex_oriented(src_id, dst_id_opt, direction, w_val, si)?;
+                termination_behavior.handle_termination(&search_result, dst_id_opt.is_some())?;
+                
                 let routes = match dst_id_opt {
                     None => vec![],
                     Some(dst_id) => {
@@ -83,7 +77,8 @@ impl SearchAlgorithm {
                     trees: vec![search_result.tree],
                     routes,
                     iterations: search_result.iterations,
-                })
+                    terminated: search_result.terminated.clone()
+                })   
             }
             SearchAlgorithm::Yens {
                 k,
@@ -96,8 +91,8 @@ impl SearchAlgorithm {
                         "attempting to run KSP algorithm without destination",
                     ))
                 })?;
-                let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
-                let term_fn = termination.as_ref().cloned().unwrap_or_default();
+                let sim_fn = similarity.clone().unwrap_or_default();
+                let term_fn = termination.clone().unwrap_or_default();
                 let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
                 yens::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
             }
@@ -112,8 +107,8 @@ impl SearchAlgorithm {
                         "attempting to run KSP algorithm without destination",
                     ))
                 })?;
-                let sim_fn = similarity.as_ref().cloned().unwrap_or_default();
-                let term_fn = termination.as_ref().cloned().unwrap_or_default();
+                let sim_fn = similarity.clone().unwrap_or_default();
+                let term_fn = termination.clone().unwrap_or_default();
                 let ksp_query = KspQuery::new(src_id, dst_id, query, *k)?;
                 svp::run(&ksp_query, &term_fn, &sim_fn, si, underlying)
             }
@@ -128,13 +123,12 @@ impl SearchAlgorithm {
         si: &SearchInstance,
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
-            SearchAlgorithm::Dijkstra => SearchAlgorithm::AStarAlgorithm {
-                weight_factor: Some(Cost::ZERO),
-            }
-            .run_edge_oriented(src, dst_opt, query, direction, si),
-            SearchAlgorithm::AStarAlgorithm { weight_factor } => {
+            SearchAlgorithm::AStarAlgorithm { weight_factor, termination_behavior } => {
                 let search_result =
                     a_star::run_edge_oriented(src, dst_opt, direction, *weight_factor, si)?;
+                
+                termination_behavior.handle_termination(&search_result, dst_opt.is_some())?;
+
                 let routes = match dst_opt {
                     None => vec![],
                     Some(dst_id) => {
@@ -148,6 +142,7 @@ impl SearchAlgorithm {
                     trees: vec![search_result.tree],
                     routes,
                     iterations: search_result.iterations,
+                    terminated: search_result.terminated.clone()
                 })
             }
             SearchAlgorithm::KspSingleVia {
@@ -163,6 +158,35 @@ impl SearchAlgorithm {
                 termination: _,
             } => run_edge_oriented(src, dst_opt, query, direction, self, si),
         }
+    }
+}
+
+impl From<&SearchAlgorithmConfig> for SearchAlgorithm {
+    fn from(value: &SearchAlgorithmConfig) -> Self {
+        match value {
+            SearchAlgorithmConfig::Dijkstras { termination_behavior } => Self::AStarAlgorithm { weight_factor: None, termination_behavior: termination_behavior.clone().unwrap_or_default() },
+            SearchAlgorithmConfig::AStar { weight_factor, termination_behavior } =>  Self::AStarAlgorithm { weight_factor: *weight_factor, termination_behavior: termination_behavior.clone().unwrap_or_default() },
+            SearchAlgorithmConfig::KspSingleVia { k, underlying, similarity, termination } => {
+                let underlying: Box<SearchAlgorithm> = Box::new(underlying.as_ref().into());
+                Self::KspSingleVia { k: *k, underlying, similarity: similarity.clone(), termination: termination.clone() }
+            },
+            SearchAlgorithmConfig::Yens { k, underlying, similarity, termination } => {
+                let underlying: Box<SearchAlgorithm> = Box::new(underlying.as_ref().into());
+                Self::Yens { k: *k, underlying, similarity: similarity.clone(), termination: termination.clone() }
+            },
+        }
+    }
+}
+
+pub fn get_weight_factor(query: &serde_json::Value) -> Result<Option<Cost>, SearchError> {
+    match query.get("weight_factor") {
+        Some(w_json) => w_json
+            .as_f64()
+            .ok_or(SearchError::BuildError(format!(
+                "weight_factor must be a float, found {w_json}"
+            )))
+            .map(|f| Some(Cost::new(f))),
+        None => Ok(None),
     }
 }
 
@@ -200,6 +224,7 @@ pub fn run_edge_oriented(
                 mut trees,
                 mut routes,
                 iterations,
+                terminated
             } = alg.run_vertex_oriented(e1_dst, None, query, direction, si)?;
 
             let dst_label =
@@ -218,6 +243,7 @@ pub fn run_edge_oriented(
                 trees,
                 routes,
                 iterations: iterations + 1,
+                terminated
             };
             Ok(updated)
         }
@@ -236,6 +262,7 @@ pub fn run_edge_oriented(
                 trees,
                 mut routes,
                 iterations,
+                terminated
             } = alg.run_vertex_oriented(e1_dst, Some(e2_src), query, direction, si)?;
 
             if trees.is_empty() {
@@ -263,6 +290,7 @@ pub fn run_edge_oriented(
                 trees,
                 routes,
                 iterations: iterations + 2,
+                terminated
             };
             Ok(result)
         }

@@ -10,6 +10,8 @@ mod search_result;
 mod search_tree;
 mod search_tree_node;
 pub mod util;
+mod search_algorithm_config;
+mod termination_behavior;
 
 pub use direction::Direction;
 pub use edge_traversal::EdgeTraversal;
@@ -20,3 +22,5 @@ pub use search_instance::SearchInstance;
 pub use search_result::SearchResult;
 pub use search_tree::{SearchTree, SearchTreeError};
 pub use search_tree_node::SearchTreeNode;
+pub use termination_behavior::TerminationFailurePolicy;
+pub use search_algorithm_config::SearchAlgorithmConfig;
