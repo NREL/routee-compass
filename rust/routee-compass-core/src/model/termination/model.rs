@@ -1,17 +1,21 @@
-use super::termination_model_error::TerminationModelError;
-use crate::{algorithm::search::SearchTree, util::duration_extension::DurationExtension};
-use serde::Deserialize;
+use super::{TerminationModelError, MemoryUnit};
+use crate::{algorithm::search::SearchTree, util::duration_extension::{DurationExtension, deserialize_duration}};
+use serde::{Deserialize, Serialize};
 use std::time::{Duration, Instant};
 
 /// the termination model for the application should be evaluated at the top of each iteration
 /// of a search. if it returns true, an error response should be created for the user using the
 /// explain method.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum TerminationModel {
     /// terminates a query if the runtime exceeds some limit.
     /// only checks at some provided iteration frequency, since the computation is expensive.
     #[serde(rename = "query_runtime")]
-    QueryRuntimeLimit { limit: Duration, frequency: u64 },
+    QueryRuntimeLimit { 
+        #[serde(deserialize_with = "deserialize_duration")]
+        limit: Duration, 
+        frequency: Option<u64> 
+    },
     /// terminates if the size of the solution exceeds (greater than) some limit
     #[serde(rename = "solution_size")]
     SolutionSizeLimit { limit: usize },
@@ -19,6 +23,10 @@ pub enum TerminationModel {
     /// iterations begin at 0, so we add 1 to the iteration to make this comparison
     #[serde(rename = "iterations")]
     IterationsLimit { limit: u64 },
+    /// terminates a query if the solution size exceeds some limit.
+    /// only checks at some provided iteration frequency, since the computation is expensive.
+    #[serde(rename = "ram")]
+    MemoryLimit { limit: f64, unit: MemoryUnit, frequency: Option<u64> },
     #[serde(rename = "combined")]
     Combined { models: Vec<TerminationModel> },
 }
@@ -69,11 +77,12 @@ impl TerminationModel {
         use TerminationModel as T;
         match self {
             T::QueryRuntimeLimit { limit, frequency } => {
-                if iteration.is_multiple_of(*frequency) {
-                    let dur = Instant::now().duration_since(*start_time);
-                    dur > *limit
-                } else {
-                    false
+                match frequency {
+                    Some(freq) if !iteration.is_multiple_of(*freq) => false,
+                    _ => {
+                        let dur = Instant::now().duration_since(*start_time);
+                        dur > *limit
+                    },
                 }
             }
             T::SolutionSizeLimit { limit } => {
@@ -84,6 +93,19 @@ impl TerminationModel {
                 // if you perform one more iteration it would violate this termination criteria
                 iteration >= *limit
             }
+            T::MemoryLimit { limit, unit, frequency } => {
+                match frequency {
+                    Some(freq) if !iteration.is_multiple_of(*freq) => false,
+                    _ => {
+                        let root_bytes = allocative::size_of_unique(solution) as f64;
+                        let node_bytes = solution.nodes().map(|n| allocative::size_of_unique(n) as f64).sum::<f64>();
+                        let label_bytes = solution.labels().map(|l| allocative::size_of_unique(l) as f64).sum::<f64>();
+                        let memory_bytes = root_bytes + node_bytes + label_bytes;
+                        let memory = unit.convert(memory_bytes);
+                        &memory > limit
+                    },
+                }
+            },
             T::Combined { models } => models.iter().fold(false, |acc, m| {
                 let inner = m.should_terminate(start_time, solution, iteration);
                 acc || inner
@@ -112,11 +134,11 @@ impl TerminationModel {
                     combined_explanations
                 }
             }
-            T::QueryRuntimeLimit { limit, .. } => {
-                if caused_termination {
-                    format!("exceeded runtime limit of {}", limit.hhmmss())
-                } else {
-                    "".to_string()
+            T::QueryRuntimeLimit { limit, frequency } => {
+                match (caused_termination, frequency) {
+                    (true, None) => format!("exceeded runtime limit of {}", limit.hhmmss()),
+                    (true, Some(freq)) => format!("exceeded runtime limit of {} tested every {freq} iterations", limit.hhmmss()),
+                    (false, _) => "".to_string(),
                 }
             }
             T::SolutionSizeLimit { limit } => {
@@ -133,6 +155,13 @@ impl TerminationModel {
                     "".to_string()
                 }
             }
+            T::MemoryLimit { limit, unit, frequency } => {
+                match (caused_termination, frequency) {
+                    (true, None) => format!("exceeded memory limit of {limit} {unit}"),
+                    (true, Some(freq)) => format!("exceeded memory limit of {limit} {unit} tested every {freq} iterations"),
+                    (false, _) => "".to_string(),
+                }
+            }
         }
     }
 }
@@ -144,10 +173,7 @@ mod tests {
     use crate::{
         algorithm::search::{Direction, EdgeTraversal, SearchTree},
         model::{
-            cost::TraversalCost,
-            label::Label,
-            network::{EdgeId, EdgeListId, VertexId},
-            unit::Cost,
+            cost::TraversalCost, label::Label, network::{EdgeId, EdgeListId, VertexId}, termination::MemoryUnit, unit::Cost
         },
     };
 
@@ -161,7 +187,7 @@ mod tests {
         let frequency = 10;
         let tree = mock_tree(0);
 
-        let m = T::QueryRuntimeLimit { limit, frequency };
+        let m = T::QueryRuntimeLimit { limit, frequency: Some(frequency) };
 
         for iteration in 0..(frequency + 1) {
             let result = m.should_terminate(&start_time, &tree, iteration);
@@ -178,7 +204,7 @@ mod tests {
         let frequency = 10;
         let tree = mock_tree(0);
 
-        let m = T::QueryRuntimeLimit { limit, frequency };
+        let m = T::QueryRuntimeLimit { limit, frequency: Some(frequency) };
 
         for iteration in 0..(frequency + 1) {
             let result = m.should_terminate(&start_time, &tree, iteration);
@@ -232,6 +258,20 @@ mod tests {
     }
 
     #[test]
+    fn test_memory_limit() {
+        let m = T::MemoryLimit { limit: 0.01, unit: MemoryUnit::Megabytes, frequency: None };
+        let i = Instant::now();
+        let empty_tree = mock_tree(0);
+        let fuller_tree = mock_tree(100);
+
+        let good = m.should_terminate(&i, &empty_tree, 4);
+        let terminate = m.should_terminate(&i, &fuller_tree, 5);
+
+        assert!(!good);
+        assert!(terminate);
+    }
+
+    #[test]
     fn test_combined_3() {
         let exceeds_limit = Duration::from_secs(3);
         let start_time = Instant::now() - exceeds_limit;
@@ -243,7 +283,7 @@ mod tests {
 
         let m1 = T::QueryRuntimeLimit {
             limit: runtime_limit,
-            frequency,
+            frequency: Some(frequency),
         };
         let m2 = T::IterationsLimit {
             limit: iteration_limit,
@@ -258,7 +298,7 @@ mod tests {
         assert!(terminate);
         let msg = cm.explain(&start_time, &tree, iteration_limit + 1);
         let expected = [
-            "exceeded runtime limit of 0:00:02.000",
+            "exceeded runtime limit of 0:00:02.000 tested every 1 iterations",
             "exceeded iteration limit of 5",
             "exceeded solution size limit of 3",
         ]
@@ -278,7 +318,7 @@ mod tests {
 
         let m1 = T::QueryRuntimeLimit {
             limit: runtime_limit,
-            frequency,
+            frequency: Some(frequency),
         };
         let m2 = T::IterationsLimit {
             limit: iteration_limit,
@@ -293,7 +333,7 @@ mod tests {
         assert!(terminate);
         let msg = cm.explain(&start_time, &tree, iteration_limit + 1);
         let expected = [
-            "exceeded runtime limit of 0:00:02.000",
+            "exceeded runtime limit of 0:00:02.000 tested every 1 iterations",
             "exceeded iteration limit of 5",
         ]
         .join(", ");
@@ -326,5 +366,41 @@ mod tests {
             .expect("test invariant failed")
         }
         tree
+    }
+
+    #[test]
+    fn test_deserialize_runtime_limit_from_string() {
+        // Test deserialization from hh:mm:ss string format
+        let json_str = r#"{"query_runtime": {"limit": "01:30:45", "frequency": 10}}"#;
+        let result: Result<T, _> = serde_json::from_str(json_str);
+        if result.is_err() {
+            println!("Error: {:?}", result.as_ref().unwrap_err());
+        }
+        assert!(result.is_ok());
+        
+        if let Ok(T::QueryRuntimeLimit { limit, frequency }) = result {
+            assert_eq!(limit, Duration::from_secs(1 * 3600 + 30 * 60 + 45)); // 1:30:45 = 5445 seconds
+            assert_eq!(frequency, Some(10));
+        } else {
+            panic!("Expected QueryRuntimeLimit variant");
+        }
+    }
+
+    #[test]
+    fn test_deserialize_runtime_limit_from_seconds() {
+        // Test deserialization from numeric seconds format (backward compatibility)
+        let json_str = r#"{"query_runtime": {"limit": 5445, "frequency": 10}}"#;
+        let result: Result<T, _> = serde_json::from_str(json_str);
+        if result.is_err() {
+            println!("Error: {:?}", result.as_ref().unwrap_err());
+        }
+        assert!(result.is_ok());
+        
+        if let Ok(T::QueryRuntimeLimit { limit, frequency }) = result {
+            assert_eq!(limit, Duration::from_secs(5445));
+            assert_eq!(frequency, Some(10));
+        } else {
+            panic!("Expected QueryRuntimeLimit variant");
+        }
     }
 }

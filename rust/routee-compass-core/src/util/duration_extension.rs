@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use serde::Deserialize;
+
 pub trait DurationExtension {
     fn one_second() -> Duration {
         Duration::from_secs(1)
@@ -45,6 +47,33 @@ impl DurationExtension for Duration {
             pad_zero(s),
             pad_millis(ml)
         )
+    }
+}
+
+// Custom deserializer for duration that supports both numeric (seconds) and string (hh:mm:ss) formats
+pub fn deserialize_duration<'de, D>(deserializer: D) -> Result<Duration, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use crate::util::conversion::duration_extension::DurationExtension as ConversionDurationExtension;
+    use serde::de::Error;
+    
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum DurationValue {
+        Seconds(u64),
+        String(String),
+    }
+    
+    let value = DurationValue::deserialize(deserializer)?;
+    match value {
+        DurationValue::Seconds(secs) => Ok(Duration::from_secs(secs)),
+        DurationValue::String(s) => {
+            let json_value = serde_json::Value::String(s);
+            json_value.as_duration().map_err(|e| {
+                D::Error::custom(format!("Failed to parse duration string: {}", e))
+            })
+        }
     }
 }
 

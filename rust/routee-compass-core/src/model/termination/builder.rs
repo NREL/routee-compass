@@ -29,7 +29,7 @@ impl TerminationModelBuilder {
                 let freq = config.get_config_i64(&"frequency", &local_scope)? as u64;
                 Ok(T::QueryRuntimeLimit {
                     limit: dur,
-                    frequency: freq,
+                    frequency: Some(freq),
                 })
             }
             "iterations" => {
