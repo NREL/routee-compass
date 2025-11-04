@@ -7,6 +7,7 @@ use std::time::{Duration, Instant};
 /// of a search. if it returns true, an error response should be created for the user using the
 /// explain method.
 #[derive(Debug, Deserialize, Serialize, Clone)]
+#[serde(tag = "type")]
 pub enum TerminationModel {
     /// terminates a query if the runtime exceeds some limit.
     /// only checks at some provided iteration frequency, since the computation is expensive.
@@ -371,7 +372,7 @@ mod tests {
     #[test]
     fn test_deserialize_runtime_limit_from_string() {
         // Test deserialization from hh:mm:ss string format
-        let json_str = r#"{"query_runtime": {"limit": "01:30:45", "frequency": 10}}"#;
+        let json_str = r#"{"type": "query_runtime", "limit": "01:30:45", "frequency": 10}"#;
         let result: Result<T, _> = serde_json::from_str(json_str);
         if result.is_err() {
             println!("Error: {:?}", result.as_ref().unwrap_err());
@@ -389,7 +390,7 @@ mod tests {
     #[test]
     fn test_deserialize_runtime_limit_from_seconds() {
         // Test deserialization from numeric seconds format (backward compatibility)
-        let json_str = r#"{"query_runtime": {"limit": 5445, "frequency": 10}}"#;
+        let json_str = r#"{"type": "query_runtime", "limit": 5445, "frequency": 10}"#;
         let result: Result<T, _> = serde_json::from_str(json_str);
         if result.is_err() {
             println!("Error: {:?}", result.as_ref().unwrap_err());

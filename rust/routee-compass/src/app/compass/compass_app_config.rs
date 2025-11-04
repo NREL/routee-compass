@@ -5,8 +5,7 @@ use routee_compass_core::{
     algorithm::search::SearchAlgorithmConfig,
     config::{ConfigJsonExtensions, OneOrMany},
     model::{
-        cost::CostModelConfig, frontier::FrontierModelService, map::MapModelConfig,
-        network::GraphConfig, state::StateVariableConfig, traversal::TraversalModelService,
+        cost::CostModelConfig, frontier::FrontierModelService, map::MapModelConfig, network::GraphConfig, state::StateVariableConfig, termination::TerminationModel, traversal::TraversalModelService
     },
 };
 use serde::{Deserialize, Serialize};
@@ -31,7 +30,7 @@ pub struct CompassAppConfig {
     /// section containing a single search config or an array of search configs (OneOrMany).
     pub search: OneOrMany<SearchConfig>,
     pub plugin: PluginConfig,
-    pub termination: Value,
+    pub termination: TerminationModel,
     pub system: CompassAppSystemParameters,
 }
 
