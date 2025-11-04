@@ -50,7 +50,12 @@ impl WriteMode {
 
 fn remove_if_exists(path: &Path) -> Result<(), CompassAppError> {
     if path.exists() {
-        std::fs::remove_file(path).map_err(|e| CompassAppError::BuildFailure(format!("attempting to remove existing file {} in overwrite mode, {e}", path.to_string_lossy())))
+        std::fs::remove_file(path).map_err(|e| {
+            CompassAppError::BuildFailure(format!(
+                "attempting to remove existing file {} in overwrite mode, {e}",
+                path.to_string_lossy()
+            ))
+        })
     } else {
         Ok(())
     }

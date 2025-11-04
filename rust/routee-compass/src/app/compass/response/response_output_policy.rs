@@ -2,7 +2,7 @@ use super::{
     response_output_format::ResponseOutputFormat, response_sink::ResponseSink,
     write_mode::WriteMode,
 };
-use crate::app::compass::{CompassAppError, response::{internal_writer::InternalWriter}};
+use crate::app::compass::{response::internal_writer::InternalWriter, CompassAppError};
 use flate2::{write::GzEncoder, Compression};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -73,14 +73,15 @@ impl ResponseOutputPolicy {
 }
 
 /// helper function to handle the various file type + write mode options
-fn get_or_create_file_writer(filename: &str, write_mode: &WriteMode) -> Result<InternalWriter, CompassAppError> {
+fn get_or_create_file_writer(
+    filename: &str,
+    write_mode: &WriteMode,
+) -> Result<InternalWriter, CompassAppError> {
     let output_file_path = PathBuf::from(filename);
     if filename.ends_with(".gz") {
         let file = write_mode.open_file(&output_file_path)?;
         let encoder = GzEncoder::new(file, Compression::default());
-        Ok(InternalWriter::GzippedFile {
-            encoder
-        })
+        Ok(InternalWriter::GzippedFile { encoder })
     } else {
         let file = write_mode.open_file(&output_file_path)?;
         Ok(InternalWriter::File { file })
