@@ -13,8 +13,8 @@ pub enum InternalWriter {
 }
 
 impl InternalWriter {
-    /// writes the header to the file. checks if the file is empty; in the case that this 
-    /// was invoked in a chunking run of Compass, the file could already contain rows and 
+    /// writes the header to the file. checks if the file is empty; in the case that this
+    /// was invoked in a chunking run of Compass, the file could already contain rows and
     /// we therefore want to skip writing the header.
     pub fn write_header(
         &mut self,
@@ -24,7 +24,7 @@ impl InternalWriter {
             let header = format
                 .initial_file_contents()
                 .unwrap_or_else(|| String::from(""));
-    
+
             self.write(header.as_bytes()).map(|_| {}).map_err(|e| {
                 CompassAppError::InternalError(format!("Failure writing header to file: {e}"))
             })?;
@@ -35,12 +35,8 @@ impl InternalWriter {
     /// test if file has not yet received any data
     pub fn is_empty(&self) -> Result<bool, CompassAppError> {
         match self {
-            InternalWriter::File { file } => {
-                is_empty(file)
-            }
-            InternalWriter::GzippedFile { encoder } => {
-                is_empty(encoder.get_ref())
-            }
+            InternalWriter::File { file } => is_empty(file),
+            InternalWriter::GzippedFile { encoder } => is_empty(encoder.get_ref()),
         }
     }
 
@@ -82,6 +78,8 @@ impl Write for InternalWriter {
 }
 
 fn is_empty(file: &File) -> Result<bool, CompassAppError> {
-    let m = file.metadata().map_err(|e| CompassAppError::InternalError(format!("failure inspecting output file metadata: {e}")))?;
+    let m = file.metadata().map_err(|e| {
+        CompassAppError::InternalError(format!("failure inspecting output file metadata: {e}"))
+    })?;
     Ok(m.len() == 0)
 }
