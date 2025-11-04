@@ -63,9 +63,10 @@ pub fn run_vertex_oriented(
     let mut iterations = 0;
 
     loop {
-        // terminate the search if a termination condition was met. returns an error.
-        si.termination_model
-            .test(&start_time, solution.len(), iterations)?;
+        // terminate the search if a termination condition was met. 
+        if let Some(explanation) = si.termination_model.continue_or_explain(&start_time, &solution, iterations) {
+            return Ok(SearchResult::terminated(solution, iterations, explanation));
+        }
 
         // grab the frontier assets, or break if there is nothing to pop
         let f = match FrontierInstance::pop_new(
@@ -159,7 +160,7 @@ pub fn run_vertex_oriented(
         solution.len()
     );
 
-    let result = SearchResult::new(solution, iterations);
+    let result = SearchResult::completed(solution, iterations);
     Ok(result)
 }
 
