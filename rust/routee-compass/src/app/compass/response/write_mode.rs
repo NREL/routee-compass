@@ -6,11 +6,15 @@ use std::{
     path::Path,
 };
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum WriteMode {
+    /// default write mode which accomodates the Compass chunking API. expects we can continue to append to a file.
+    #[default]
     Append,
+    /// if a file already exists, overwrite it. should NOT be used in chunking mode.
     Overwrite,
+    /// if a file already exists, produce an error. should NOT be used in chunking mode.
     Error,
 }
 
@@ -24,6 +28,7 @@ impl WriteMode {
                 open_append(path)
             }
             WriteMode::Overwrite => {
+                remove_if_exists(path)?;
                 create_file(path)?;
                 open_append(path)
             }
@@ -40,6 +45,14 @@ impl WriteMode {
                 open_append(path)
             }
         }
+    }
+}
+
+fn remove_if_exists(path: &Path) -> Result<(), CompassAppError> {
+    if path.exists() {
+        std::fs::remove_file(path).map_err(|e| CompassAppError::BuildFailure(format!("attempting to remove existing file {} in overwrite mode, {e}", path.to_string_lossy())))
+    } else {
+        Ok(())
     }
 }
 
