@@ -160,7 +160,7 @@ pub fn run(
         trees: shortest.trees,
         routes: accepted,
         iterations,
-        terminated: None
+        terminated: None,
     };
     Ok(result)
 }

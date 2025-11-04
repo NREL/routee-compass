@@ -24,7 +24,7 @@ pub fn run(
         trees: fwd_trees,
         routes: _,
         iterations: fwd_iterations,
-        terminated: fwd_terminated
+        terminated: fwd_terminated,
     } = underlying.run_vertex_oriented(
         query.source,
         Some(query.target),
@@ -36,7 +36,7 @@ pub fn run(
         trees: rev_trees,
         routes: _,
         iterations: rev_iterations,
-        terminated: rev_terminated
+        terminated: rev_terminated,
     } = underlying.run_vertex_oriented(
         query.target,
         Some(query.source),
@@ -153,7 +153,9 @@ pub fn run(
         (None, None) => None,
         (None, Some(rev)) => Some(format!("SVP reverse search terminated: {rev}")),
         (Some(fwd), None) => Some(format!("SVP forward search terminated: {fwd}")),
-        (Some(fwd), Some(rev)) => Some(format!("SVP forward and reverse searches terminated. FWD: {fwd}. REV: {rev}")),
+        (Some(fwd), Some(rev)) => Some(format!(
+            "SVP forward and reverse searches terminated. FWD: {fwd}. REV: {rev}"
+        )),
     };
 
     // combine all data into this result
@@ -161,7 +163,7 @@ pub fn run(
         trees: vec![fwd_tree.clone(), rev_tree.clone()], // todo: figure out how to avoid this clone
         routes,
         iterations: fwd_iterations + rev_iterations + ksp_it, // todo: figure out how to report individually
-        terminated
+        terminated,
     };
     Ok(result)
 }

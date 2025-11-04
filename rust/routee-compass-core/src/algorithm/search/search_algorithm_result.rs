@@ -6,5 +6,5 @@ pub struct SearchAlgorithmResult {
     pub trees: Vec<SearchTree>,
     pub routes: Vec<Vec<EdgeTraversal>>,
     pub iterations: u64,
-    pub terminated: Option<String>
+    pub terminated: Option<String>,
 }

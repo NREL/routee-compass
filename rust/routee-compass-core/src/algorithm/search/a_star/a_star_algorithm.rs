@@ -63,8 +63,11 @@ pub fn run_vertex_oriented(
     let mut iterations = 0;
 
     loop {
-        // terminate the search if a termination condition was met. 
-        if let Some(explanation) = si.termination_model.continue_or_explain(&start_time, &solution, iterations) {
+        // terminate the search if a termination condition was met.
+        if let Some(explanation) =
+            si.termination_model
+                .continue_or_explain(&start_time, &solution, iterations)
+        {
             return Ok(SearchResult::terminated(solution, iterations, explanation));
         }
 

@@ -16,16 +16,20 @@ pub enum TerminationFailurePolicy {
 }
 
 impl TerminationFailurePolicy {
-    /// validates and handles error propagation from search based on the [`TerminationFailurePolicy`]. 
+    /// validates and handles error propagation from search based on the [`TerminationFailurePolicy`].
     /// if this search result terminated early and this policy treats that result as an error, then
     /// return an error message, otherwise return nothing.
-    pub fn handle_termination(&self, search_result: &SearchResult, has_destination: bool) -> Result<(), SearchError> {
+    pub fn handle_termination(
+        &self,
+        search_result: &SearchResult,
+        has_destination: bool,
+    ) -> Result<(), SearchError> {
         use TerminationFailurePolicy as T;
         if let Some(explanation) = &search_result.terminated {
             let error_on_terminate = match self {
-                T::AllTerminationsFail  => true,
+                T::AllTerminationsFail => true,
                 T::PathTerminationsFail if !has_destination => true,
-                _ => false
+                _ => false,
             };
             if error_on_terminate {
                 return Err(SearchError::QueryTerminated(explanation.clone()));
@@ -34,4 +38,3 @@ impl TerminationFailurePolicy {
         Ok(())
     }
 }
-

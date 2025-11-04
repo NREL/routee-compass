@@ -41,7 +41,6 @@ impl TerminationModel {
         }
     }
 
-
     /// Tests if the search should terminate. If it should terminate, generate a useful
     /// termination message and return that in the error channel. If it should not terminate,
     /// returns Ok(()).
@@ -54,7 +53,7 @@ impl TerminationModel {
         let should_terminate = self.should_terminate(start_time, solution, iterations);
         if should_terminate {
             let explanation = self.explain(start_time, solution, iterations);
-            return Err(TerminationModelError::QueryTerminated(explanation))
+            return Err(TerminationModelError::QueryTerminated(explanation));
         }
         Ok(())
     }
@@ -80,11 +79,11 @@ impl TerminationModel {
             T::SolutionSizeLimit { limit } => {
                 // if you add one more branch to the tree it would violate this termination criteria
                 solution.len() >= *limit
-            },
+            }
             T::IterationsLimit { limit } => {
                 // if you perform one more iteration it would violate this termination criteria
                 iteration >= *limit
-            },
+            }
             T::Combined { models } => models.iter().fold(false, |acc, m| {
                 let inner = m.should_terminate(start_time, solution, iteration);
                 acc || inner
@@ -94,12 +93,7 @@ impl TerminationModel {
 
     /// this method will a string explaining why a model terminated. if the
     /// conditions do not merit termination, then the result will be None.
-    pub fn explain(
-        &self,
-        start_time: &Instant,
-        solution: &SearchTree,
-        iterations: u64,
-    ) -> String {
+    pub fn explain(&self, start_time: &Instant, solution: &SearchTree, iterations: u64) -> String {
         use TerminationModel as T;
         // must test if this particular [`TerminationModel`] variant instance was the cause of
         // termination, in the case of [`TerminationModel::Combined`].
@@ -147,7 +141,15 @@ impl TerminationModel {
 mod tests {
     use std::time::{Duration, Instant};
 
-    use crate::{algorithm::search::{Direction, EdgeTraversal, SearchTree}, model::{cost::TraversalCost, label::Label, network::{EdgeId, EdgeListId, VertexId}, unit::Cost}};
+    use crate::{
+        algorithm::search::{Direction, EdgeTraversal, SearchTree},
+        model::{
+            cost::TraversalCost,
+            label::Label,
+            network::{EdgeId, EdgeListId, VertexId},
+            unit::Cost,
+        },
+    };
 
     use super::TerminationModel as T;
 
@@ -158,7 +160,7 @@ mod tests {
         let limit = Duration::from_secs(2);
         let frequency = 10;
         let tree = mock_tree(0);
-        
+
         let m = T::QueryRuntimeLimit { limit, frequency };
 
         for iteration in 0..(frequency + 1) {
@@ -175,7 +177,7 @@ mod tests {
         let limit = Duration::from_secs(2);
         let frequency = 10;
         let tree = mock_tree(0);
-        
+
         let m = T::QueryRuntimeLimit { limit, frequency };
 
         for iteration in 0..(frequency + 1) {
@@ -199,11 +201,11 @@ mod tests {
     fn test_iterations_limit() {
         let m = T::IterationsLimit { limit: 5 };
         let i = Instant::now();
-        
+
         let t4 = mock_tree(4);
         let t5 = mock_tree(5);
         let t6 = mock_tree(6);
-        
+
         let good = m.should_terminate(&i, &t4, 4);
         let terminate1 = m.should_terminate(&i, &t5, 5);
         let terminate2 = m.should_terminate(&i, &t6, 6);
@@ -220,7 +222,7 @@ mod tests {
         let t4 = mock_tree(4);
         let t5 = mock_tree(5);
         let t6 = mock_tree(6);
-        
+
         let good1 = m.should_terminate(&i, &t4, 4);
         let terminate1 = m.should_terminate(&i, &t5, 5);
         let terminate2 = m.should_terminate(&i, &t6, 6);
@@ -252,17 +254,15 @@ mod tests {
         let cm = T::Combined {
             models: vec![m1, m2, m3],
         };
-        let terminate = cm
-            .should_terminate(&start_time, &tree, iteration_limit + 1);
+        let terminate = cm.should_terminate(&start_time, &tree, iteration_limit + 1);
         assert!(terminate);
         let msg = cm.explain(&start_time, &tree, iteration_limit + 1);
-        let expected = 
-            [
-                "exceeded runtime limit of 0:00:02.000",
-                "exceeded iteration limit of 5",
-                "exceeded solution size limit of 3",
-            ]
-            .join(", ");
+        let expected = [
+            "exceeded runtime limit of 0:00:02.000",
+            "exceeded iteration limit of 5",
+            "exceeded solution size limit of 3",
+        ]
+        .join(", ");
         assert_eq!(msg, expected);
     }
 
@@ -289,15 +289,14 @@ mod tests {
         let cm = T::Combined {
             models: vec![m1, m2, m3],
         };
-        let terminate = cm
-            .should_terminate(&start_time, &tree, iteration_limit + 1);
+        let terminate = cm.should_terminate(&start_time, &tree, iteration_limit + 1);
         assert!(terminate);
         let msg = cm.explain(&start_time, &tree, iteration_limit + 1);
         let expected = [
-                "exceeded runtime limit of 0:00:02.000",
-                "exceeded iteration limit of 5",
-            ]
-            .join(", ");
+            "exceeded runtime limit of 0:00:02.000",
+            "exceeded iteration limit of 5",
+        ]
+        .join(", ");
         assert_eq!(msg, expected);
     }
 
@@ -307,17 +306,22 @@ mod tests {
             return tree;
         }
         // when creating the tree, it will create a root node, so len() will be mock_tree's size + 1
-        for idx in 0..(size-1) {
+        for idx in 0..(size - 1) {
             let cost = TraversalCost {
                 objective_cost: Cost::MIN_COST,
                 total_cost: Cost::MIN_COST,
                 cost_component: Default::default(),
             };
-            let edge_traversal  = EdgeTraversal { edge_list_id: EdgeListId(0), edge_id: EdgeId(idx), cost, result_state: vec![] };
+            let edge_traversal = EdgeTraversal {
+                edge_list_id: EdgeListId(0),
+                edge_id: EdgeId(idx),
+                cost,
+                result_state: vec![],
+            };
             tree.insert(
                 Label::Vertex(VertexId(idx)),
                 edge_traversal,
-                Label::Vertex(VertexId(idx + 1))
+                Label::Vertex(VertexId(idx + 1)),
             )
             .expect("test invariant failed")
         }
