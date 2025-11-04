@@ -22,9 +22,7 @@ impl InternalWriter {
     ) -> core::result::Result<(), CompassAppError> {
         let file_is_empty = self.is_empty()?;
         if file_is_empty {
-            let header = format
-                .generate_header()
-                .unwrap_or_else(|| String::from(""));
+            let header = format.generate_header().unwrap_or_else(|| String::from(""));
 
             self.write(header.as_bytes()).map(|_| {}).map_err(|e| {
                 CompassAppError::InternalError(format!("Failure writing header to file: {e}"))
