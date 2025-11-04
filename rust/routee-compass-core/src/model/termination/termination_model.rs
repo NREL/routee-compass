@@ -69,7 +69,7 @@ impl TerminationModel {
         use TerminationModel as T;
         match self {
             T::QueryRuntimeLimit { limit, frequency } => {
-                if iteration % frequency == 0 {
+                if iteration.is_multiple_of(*frequency) {
                     let dur = Instant::now().duration_since(*start_time);
                     dur > *limit
                 } else {

@@ -62,7 +62,7 @@ impl SearchAlgorithm {
                 weight_factor,
                 termination_behavior,
             } => {
-                let w_val = get_weight_factor(query)?.or_else(|| weight_factor.clone());
+                let w_val = get_weight_factor(query)?.or_else(|| *weight_factor);
 
                 let search_result =
                     a_star::run_vertex_oriented(src_id, dst_id_opt, direction, w_val, si)?;
