@@ -9,7 +9,7 @@ use std::{
 #[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum WriteMode {
-    /// default write mode which accomodates the Compass chunking API. expects we can continue to append to a file.
+    /// default write mode which accommodates the Compass chunking API. expects we can continue to append to a file.
     #[default]
     Append,
     /// if a file already exists, overwrite it. should NOT be used in chunking mode.
