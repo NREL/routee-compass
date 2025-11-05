@@ -16,10 +16,14 @@ pub enum ResponseOutputPolicy {
     #[default]
     None,
     File {
+        /// destination file. may be a standard file suffix, or, if terminates with '.gz' will be gzip-encrypted.
         filename: String,
+        /// file format to target
         format: ResponseOutputFormat,
-        file_flush_rate: Option<i64>,
-        // write_mode: WriteMode,
+        /// optional argument to specify the frequency (in rows) to flush data to the file
+        file_flush_rate: Option<u64>,
+        /// optional argument to specify if we expect to open, append, or overwrite data.
+        write_mode: Option<WriteMode>,
     },
     Combined {
         policies: Vec<Box<ResponseOutputPolicy>>,
@@ -37,33 +41,15 @@ impl ResponseOutputPolicy {
                 filename,
                 format,
                 file_flush_rate,
-                // write_mode,
+                write_mode,
             } => {
-                let output_file_path = PathBuf::from(filename);
-
-                // Optionally wrap file in GzEncoder
-                let mut wrapped_file = if filename.ends_with(".gz") {
-                    let file = WriteMode::Overwrite.open_file(&output_file_path)?;
-                    InternalWriter::GzippedFile {
-                        encoder: GzEncoder::new(file, Compression::default()),
-                    }
-                } else {
-                    let file = WriteMode::Append.open_file(&output_file_path)?;
-                    InternalWriter::File { file }
-                };
+                let wm = write_mode.clone().unwrap_or_default();
+                let mut wrapped_file = get_or_create_file_writer(filename, &wm)?;
                 wrapped_file.write_header(format)?;
 
                 // wrap the file in a mutex so we can share it between threads
                 let file_shareable = Arc::new(Mutex::new(wrapped_file));
-
-                let iterations_per_flush = match file_flush_rate {
-                    Some(rate) if *rate <= 0 => Err(CompassAppError::CompassFailure(format!(
-                        "file policy iterations_per_flush must be positive, found {rate}"
-                    ))),
-                    None => Ok(1),
-                    Some(rate) => Ok(*rate as u64),
-                }?;
-
+                let iterations_per_flush = file_flush_rate.unwrap_or(1);
                 let iterations: Arc<Mutex<u64>> = Arc::new(Mutex::new(0));
 
                 Ok(ResponseSink::File {
@@ -83,5 +69,21 @@ impl ResponseOutputPolicy {
                 Ok(ResponseSink::Combined(policies))
             }
         }
+    }
+}
+
+/// helper function to handle the various file type + write mode options
+fn get_or_create_file_writer(
+    filename: &str,
+    write_mode: &WriteMode,
+) -> Result<InternalWriter, CompassAppError> {
+    let output_file_path = PathBuf::from(filename);
+    if filename.ends_with(".gz") {
+        let file = write_mode.open_file(&output_file_path)?;
+        let encoder = GzEncoder::new(file, Compression::default());
+        Ok(InternalWriter::GzippedFile { encoder })
+    } else {
+        let file = write_mode.open_file(&output_file_path)?;
+        Ok(InternalWriter::File { file })
     }
 }
