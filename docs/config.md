@@ -181,6 +181,9 @@ exist as meta-algorithms, namely Yen's and Single-Via Paths.
 
 ### Single-Sourced Shortest Path (SSSP)
 
+  - Dijkstra's Algorithm: see _Cormen, Thomas H., et al. Introduction to algorithms. MIT press, 2022._
+  - A* Algorithm: see Wikipedia entry [A* Search Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
+
 ```toml
 [algorithm]
 # classic best-first search algorithm, will use cost estimates to guide the search
@@ -201,6 +204,9 @@ type = "dijkstras"
 ```
 
 ### K-Shortest Paths (KSP)
+
+  - SVP: documented in Häcker, Christian, et al. "Most diverse near-shortest paths." Proceedings of the 29th International Conference on Advances in Geographic Information Systems. 2021.
+  - Yen's: see Wikipedia [Yen's Algorithm](https://en.wikipedia.org/wiki/Yen%27s_algorithm)
 
 To configure either ksp algorithm, you must set some additional parameters as well as 
 choose the underlying search algorithm (a* or Dijkstra's):
