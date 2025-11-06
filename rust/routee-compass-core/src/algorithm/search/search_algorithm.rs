@@ -15,14 +15,16 @@ use crate::model::network::{EdgeId, VertexId};
 
 #[derive(Clone, Debug)]
 pub enum SearchAlgorithm {
+    /// algorithm to support classic SSSP algorithms such as Dijkstra's and A*.
     SingleSourceShortestPath {
         /// if the termination model returns early, treat it as a search error.
         /// if false, the result is still returned. this option is not valid
         /// for searches without destinations (path searches).
         termination_behavior: TerminationFailurePolicy,
-        /// if true, use an cost estimate heuristic to guide the search towards destinations
+        /// if true, use a cost estimate heuristic to guide the search towards destinations
         a_star: bool,
     },
+    /// KSP using the single via paths algorithm.
     KspSingleVia {
         /// number of alternative paths to attempt
         k: usize,
@@ -34,6 +36,7 @@ pub enum SearchAlgorithm {
         /// termination criteria for the inner path search function
         termination: Option<KspTerminationCriteria>,
     },
+    /// KSP using Yen's Algorithm
     Yens {
         /// number of alternative paths to attempt
         k: usize,
