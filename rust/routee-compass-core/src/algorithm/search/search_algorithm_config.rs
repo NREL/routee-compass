@@ -30,6 +30,7 @@ pub enum SearchAlgorithmConfig {
     /// Taken from the paper Häcker, Christian, et al. "Most diverse near-shortest paths."
     /// Proceedings of the 29th International Conference on Advances in
     /// Geographic Information Systems. 2021.
+    #[serde(rename = "svp")]
     KspSingleVia {
         /// number of alternative paths to attempt
         k: usize,

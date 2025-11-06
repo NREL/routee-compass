@@ -8,7 +8,13 @@ We added some annotations to describe the different sections:
 
 ```toml
 # how many threads should a CompassApp use to process queries?
+[system]
 parallelism = 2
+
+[algorithm]
+# classic best-first search algorithm, will use cost estimates to guide the search
+# toward a path destination.
+type = "a*"
 
 # the parameters for the underlying road network graph
 [graph]
@@ -166,6 +172,75 @@ output_plugins = [
     # The uuid plugin adds a map specific id (like Open Street Maps Nodes) onto the compass verticies
     { type = "uuid", uuid_input_file = "vertices-uuid-enumerated.txt.gz" },
 ]
+```
+
+## Search Algorithm
+
+The search algorithm used. The default is A*. Dijkstra's is also available. K-shortest path algorithms
+exist as meta-algorithms, namely Yen's and Single-Via Paths.
+
+### Single-Sourced Shortest Path (SSSP)
+
+```toml
+[algorithm]
+# classic best-first search algorithm, will use cost estimates to guide the search
+# toward a path destination.
+type = "a*"
+
+# # default behavior on search termination is "allow_tree_termination" which supports
+# # reachability searches. if you do not want to allow partial search results, you
+# # can choose "all_terminations_fail".
+# termination_behavior = "all_terminations_fail"
+```
+
+To skip cost estimates and use a simple breadth-first search, choose "Dijkstra's":
+
+```toml
+[algorithm]
+type = "dijkstras"
+```
+
+### K-Shortest Paths (KSP)
+
+To configure either ksp algorithm, you must set some additional parameters as well as 
+choose the underlying search algorithm (a* or Dijkstra's):
+
+```toml
+# # classic k-shortest paths algorithm
+type = "yens"
+# type = "svp"
+k = 5
+similarity = { type = "distance_weighted_cosine_similarity", threshold = 0.1 }
+termination = { type = "max_iteration", max = 10 }
+[algorithm.underlying]
+type = "a*"
+```
+
+#### KSP Parameters
+
+_k_ is the target number of path alternatives in the result. It is possible for
+less than _k_ to be returned, and this depends on the network and other KSP parameters.
+
+Similarity function is optional and filters path alternatives by their similarity
+to the working solution set. In this example, both similarity functions will dismiss
+paths that are greater than 10% similar.
+```toml
+# cheaper computation
+similarity = { type = "edge_id_cosine_similarity", threshold = 0.1 }
+# slightly more expensive but more correct
+similarity = { type = "distance_weighted_cosine_similarity", threshold = 0.1 }
+
+KSP termination criteria determines how long to run the meta-search. Given that a 
+similarity function might dismiss a candidate path, it may require running a KSP
+algorithm for many more iterations than _k_ to gather _k_ alternatives. 
+
+```toml
+# run it for k steps (default)
+termination.type = "exact"
+# run it for up to max steps until k is reached. max should be >= k.
+termination = { type = "max_iteration", max = 10 }
+# run it for up to (k*factor) steps until k is reached. useful if k varies between queries.
+termination = { type = "factor", factor = 2 }
 ```
 
 ## Mapping Model
@@ -493,3 +568,128 @@ Both the `route` and the `tree` key are optional and if omitted, the plugin will
 - "json": non-geometry output writing traversal metrics (cost, state) as JSON for a route or a tree
 - "wkt": outputs a LINESTRING for a route, or a MULTILINESTRING for a tree
 - "geo_json": annotated geometry data as a FeatureCollection of LineStrings with properties assigned from traversal metrics
+
+## System
+
+The system section declares application-level parameters.
+
+### Parallelism
+
+Parallelism defines the number of threads to run searches on. Each thread grows a search tree or set of search trees in RAM. Each tree has a space complexity of _O(E * L)_ for _E_ graph edges and _L_ vertex labels. The correct parallelism depends on your system CPU and RAM resources along with your study area. 
+
+Parallelism is an optional argument.
+
+```toml
+[system]
+# default: 1
+parallelism = 2
+```
+
+### Outputs
+
+Compass can be configured to return results in memory or on disk using the `ResponsePersistencePolicy` and `ResponseOutputPolicy` respectively. These are both optional.
+
+```toml
+[system]
+# the default. used in most Python Compass executions to allow Compass to return JSON
+# result payloads into Python. Also supports Rust code integrations.
+response_persistence_policy = "persist_response_in_memory"
+# use on CLI runs of Compass to prevent memory leaks.
+response_persistence_policy = "discard_response_from_memory"
+```
+
+Output to JSON:
+
+```toml
+[system.response_output_policy]
+type = "file"
+filename = "result.json"
+format = { type = "json", newline_delimited = false }
+
+# append to an existing file (default)
+write_mode = "append"
+# # overwrite an existing file. do not use when running Compass in "chunking" mode.
+# write_mode = "overwrite"
+# # throw an error if the file exists. do not use when running Compass in "chunking" mode.
+# write_mode = "error"
+
+# # optionally set the "flush rate" to force write operations at some interval
+# # here, for example, every 100 searches.
+# file_flush_rate = 100
+```
+
+Output to JSON in newline-delimited format:
+
+```toml
+[system.response_output_policy]
+type = "file"
+filename = "result.jsonl"
+format = { type = "json", newline_delimited = true }
+```
+
+Output to CSV. This requires a mapping from JSON path to CSV column.
+
+_note: when running Compass in "chunking" mode, always set sorted to `true` so that
+subsequent chunks always share the same CSV header ordering._
+
+```toml
+[system.response_output_policy]
+type = "file"
+filename = "result.csv"
+[system.response_output_policy.format]
+sorted = true
+[system.response_output_policy.format.mapping]
+olon = "request.origin_x"
+olat = "request.origin_y"
+dlon = "request.destination_x"
+dlat = "request.destination_y"
+runtime = "search_app_runtime"
+ram_mb = "search_result_size_mib"
+error = { optional = "error" }
+time = "route.traversal_summary.trip_time"
+total_cost = "route.cost.total_cost"
+```
+
+Multiple output files are supported. Here, the complete output as JSON is 
+preserved, while a CSV contains a high-level summary. An additional file
+contains any errors.
+
+```toml
+[system.response_output_policy]
+type = "combined"
+
+[[system.response_output_policy.policies]]
+type = "file"
+filename = "result.jsonl"
+format = { type = "json", newline_delimited = true }
+
+[[system.response_output_policy.policies]]
+type = "file"
+filename = "summary.csv"
+[system.response_output_policy.policies.format]
+sorted = true
+[system.response_output_policy.policies.format.mapping]
+olon = "request.origin_x"
+olat = "request.origin_y"
+dlon = "request.destination_x"
+dlat = "request.destination_y"
+runtime = "search_app_runtime"
+ram_mb = "search_result_size_mib"
+time = "route.traversal_summary.trip_time"
+total_cost = "route.cost.total_cost"
+# add other relevant summary columns here
+
+[[system.response_output_policy.policies]]
+type = "file"
+filename = "errors.csv"
+[system.response_output_policy.policies.format]
+type = "csv"
+sorted = true
+[system.response_output_policy.policies.format.mapping]
+name = "request.name"  # any keys on queries are available here
+olon = "request.origin_x"
+olat = "request.origin_y"
+dlon = "request.destination_x"
+dlat = "request.destination_y"
+error = { optional = "error" }
+```
