@@ -51,8 +51,8 @@ pub fn run_vertex_oriented(
         (Some(target), true) => {
             let cost_est = estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
             cost_est.objective_cost
-        },
-        _ => Cost::ZERO
+        }
+        _ => Cost::ZERO,
     };
     frontier.push(inital_label, origin_cost.into());
 
@@ -130,10 +130,11 @@ pub fn run_vertex_oriented(
 
                 let dst_h_cost = match (target, a_star) {
                     (Some(target), true) => {
-                        let cost_est = estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
+                        let cost_est =
+                            estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
                         cost_est.objective_cost
-                    },
-                    _ => Cost::ZERO
+                    }
+                    _ => Cost::ZERO,
                 };
 
                 let f_score_value = tentative_gscore + dst_h_cost;

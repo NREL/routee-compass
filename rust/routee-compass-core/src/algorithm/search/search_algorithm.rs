@@ -21,7 +21,7 @@ pub enum SearchAlgorithm {
         /// for searches without destinations (path searches).
         termination_behavior: TerminationFailurePolicy,
         /// if true, use an cost estimate heuristic to guide the search towards destinations
-        a_star: bool
+        a_star: bool,
     },
     KspSingleVia {
         /// number of alternative paths to attempt
@@ -59,9 +59,10 @@ impl SearchAlgorithm {
         match self {
             SearchAlgorithm::SingleSourceShortestPath {
                 termination_behavior,
-                a_star
+                a_star,
             } => {
-                let search_result = a_star::run_vertex_oriented(src_id, dst_id_opt, direction, *a_star, si)?;
+                let search_result =
+                    a_star::run_vertex_oriented(src_id, dst_id_opt, direction, *a_star, si)?;
                 termination_behavior.handle_termination(&search_result, dst_id_opt.is_some())?;
 
                 let routes = match dst_id_opt {
@@ -123,9 +124,10 @@ impl SearchAlgorithm {
         match self {
             SearchAlgorithm::SingleSourceShortestPath {
                 termination_behavior,
-                a_star
+                a_star,
             } => {
-                let search_result = a_star::run_edge_oriented(src, dst_opt, direction, *a_star, si)?;
+                let search_result =
+                    a_star::run_edge_oriented(src, dst_opt, direction, *a_star, si)?;
 
                 termination_behavior.handle_termination(&search_result, dst_opt.is_some())?;
 
@@ -168,13 +170,13 @@ impl From<&SearchAlgorithmConfig> for SearchAlgorithm {
                 termination_behavior,
             } => Self::SingleSourceShortestPath {
                 termination_behavior: termination_behavior.clone().unwrap_or_default(),
-                a_star: false
+                a_star: false,
             },
             SearchAlgorithmConfig::AStar {
                 termination_behavior,
             } => Self::SingleSourceShortestPath {
                 termination_behavior: termination_behavior.clone().unwrap_or_default(),
-                a_star: true
+                a_star: true,
             },
             SearchAlgorithmConfig::KspSingleVia {
                 k,
