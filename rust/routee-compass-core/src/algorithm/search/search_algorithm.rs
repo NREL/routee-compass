@@ -58,9 +58,7 @@ impl SearchAlgorithm {
             SearchAlgorithm::AStarAlgorithm {
                 termination_behavior,
             } => {
-
-                let search_result =
-                    a_star::run_vertex_oriented(src_id, dst_id_opt, direction, si)?;
+                let search_result = a_star::run_vertex_oriented(src_id, dst_id_opt, direction, si)?;
                 termination_behavior.handle_termination(&search_result, dst_id_opt.is_some())?;
 
                 let routes = match dst_id_opt {
@@ -123,8 +121,7 @@ impl SearchAlgorithm {
             SearchAlgorithm::AStarAlgorithm {
                 termination_behavior,
             } => {
-                let search_result =
-                    a_star::run_edge_oriented(src, dst_opt, direction, si)?;
+                let search_result = a_star::run_edge_oriented(src, dst_opt, direction, si)?;
 
                 termination_behavior.handle_termination(&search_result, dst_opt.is_some())?;
 

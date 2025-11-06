@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    algorithm::search::{
-        ksp::KspTerminationCriteria, util::RouteSimilarityFunction, TerminationFailurePolicy,
-    },
+use crate::algorithm::search::{
+    ksp::KspTerminationCriteria, util::RouteSimilarityFunction, TerminationFailurePolicy,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
