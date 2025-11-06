@@ -539,13 +539,13 @@ We'll pick <code class="docutils literal notranslate"><span class="pre">osm_defa
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>graph edge list 0: /home/runner/work/routee-compass/routee-compass/docs/examples/denver_co/edges-compass.csv.gz: 48406it [00:00, 1704964.12it/s]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>graph edge list 0: /home/runner/work/routee-compass/routee-compass/docs/examples/denver_co/edges-compass.csv.gz: 48406it [00:00, 1692720.12it/s]
 
 
-building adjacencies: 100%|██████████| 48406/48406 [00:00&lt;00:00, 5000674.00it/s]
-building adjacencies: 100%|██████████| 48406/48406 [00:00&lt;00:00, 4992835.00it/s]
+building adjacencies: 100%|██████████| 48406/48406 [00:00&lt;00:00, 4832568.50it/s]
+building adjacencies: 100%|██████████| 48406/48406 [00:00&lt;00:00, 4824544.00it/s]
 
-edge LineString geometry file: 100%|██████████| 48406/48406 [00:00&lt;00:00, 12136020.00it/s]
+edge LineString geometry file: 100%|██████████| 48406/48406 [00:00&lt;00:00, 12205460.00it/s]
 </pre></div>
 </div>
 </div>
@@ -628,14 +628,14 @@ If the input is a list of objects, the application will run these queries in par
 </div>
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 3297.42it/s]
+applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 3036.91it/s]
 
-applying input plugin 2: 100%|██████████| 3/3 [00:00&lt;00:00, 114806.17it/s]
+applying input plugin 2: 100%|██████████| 3/3 [00:00&lt;00:00, 104631.70it/s]
 
 
 
-search:  33%|███▄      | 1/3 [00:00&lt;00:00, 6.01it/s]
-search: 100%|██████████| 3/3 [00:00&lt;00:00, 9.53it/s]
+search:  33%|███▄      | 1/3 [00:00&lt;00:00, 4.27it/s]
+search: 100%|██████████| 3/3 [00:00&lt;00:00, 6.44it/s]
 </pre></div>
 </div>
 </div>
@@ -684,10 +684,10 @@ Since we used the grid search to specify three separate searches, we should get 
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
-    &quot;trip_time&quot;: 10.676793730415316,
-    &quot;trip_elevation_gain&quot;: 0.06195211869420864,
-    &quot;trip_energy_liquid&quot;: 0.313817384769621,
+    &quot;trip_energy_liquid&quot;: 0.31381681697142016,
+    &quot;trip_time&quot;: 10.676814943607663,
     &quot;trip_distance&quot;: 9.12549458741086,
+    &quot;trip_elevation_gain&quot;: 0.06195211869420864,
     &quot;trip_elevation_loss&quot;: -0.039226938847055075
 }
 </pre></div>
@@ -703,29 +703,29 @@ Since we used the grid search to specify three separate searches, we should get 
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
-    &quot;edge_time&quot;: {
+    &quot;trip_distance&quot;: {
+        &quot;type&quot;: &quot;distance&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: true,
+        &quot;output_unit&quot;: &quot;miles&quot;,
+        &quot;index&quot;: 0,
+        &quot;name&quot;: &quot;trip_distance&quot;
+    },
+    &quot;trip_energy_liquid&quot;: {
+        &quot;type&quot;: &quot;energy&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: true,
+        &quot;output_unit&quot;: &quot;gallons_gasoline_equivalent&quot;,
+        &quot;index&quot;: 1,
+        &quot;name&quot;: &quot;trip_energy_liquid&quot;
+    },
+    &quot;edge_turn_delay&quot;: {
         &quot;type&quot;: &quot;time&quot;,
         &quot;initial&quot;: 0.0,
         &quot;accumulator&quot;: false,
-        &quot;output_unit&quot;: &quot;minutes&quot;,
-        &quot;index&quot;: 0,
-        &quot;name&quot;: &quot;edge_time&quot;
-    },
-    &quot;edge_distance&quot;: {
-        &quot;type&quot;: &quot;distance&quot;,
-        &quot;initial&quot;: 0.0,
-        &quot;accumulator&quot;: false,
-        &quot;output_unit&quot;: &quot;miles&quot;,
-        &quot;index&quot;: 1,
-        &quot;name&quot;: &quot;edge_distance&quot;
-    },
-    &quot;edge_grade&quot;: {
-        &quot;type&quot;: &quot;ratio&quot;,
-        &quot;initial&quot;: 0.0,
-        &quot;accumulator&quot;: false,
-        &quot;output_unit&quot;: &quot;decimal&quot;,
+        &quot;output_unit&quot;: &quot;seconds&quot;,
         &quot;index&quot;: 2,
-        &quot;name&quot;: &quot;edge_grade&quot;
+        &quot;name&quot;: &quot;edge_turn_delay&quot;
     },
     &quot;trip_time&quot;: {
         &quot;type&quot;: &quot;time&quot;,
@@ -735,13 +735,13 @@ Since we used the grid search to specify three separate searches, we should get 
         &quot;index&quot;: 3,
         &quot;name&quot;: &quot;trip_time&quot;
     },
-    &quot;trip_elevation_loss&quot;: {
+    &quot;edge_distance&quot;: {
         &quot;type&quot;: &quot;distance&quot;,
         &quot;initial&quot;: 0.0,
-        &quot;accumulator&quot;: true,
+        &quot;accumulator&quot;: false,
         &quot;output_unit&quot;: &quot;miles&quot;,
         &quot;index&quot;: 4,
-        &quot;name&quot;: &quot;trip_elevation_loss&quot;
+        &quot;name&quot;: &quot;edge_distance&quot;
     },
     &quot;trip_elevation_gain&quot;: {
         &quot;type&quot;: &quot;distance&quot;,
@@ -751,45 +751,45 @@ Since we used the grid search to specify three separate searches, we should get 
         &quot;index&quot;: 5,
         &quot;name&quot;: &quot;trip_elevation_gain&quot;
     },
-    &quot;trip_distance&quot;: {
-        &quot;type&quot;: &quot;distance&quot;,
+    &quot;edge_grade&quot;: {
+        &quot;type&quot;: &quot;ratio&quot;,
         &quot;initial&quot;: 0.0,
-        &quot;accumulator&quot;: true,
-        &quot;output_unit&quot;: &quot;miles&quot;,
+        &quot;accumulator&quot;: false,
+        &quot;output_unit&quot;: &quot;decimal&quot;,
         &quot;index&quot;: 6,
-        &quot;name&quot;: &quot;trip_distance&quot;
-    },
-    &quot;edge_speed&quot;: {
-        &quot;type&quot;: &quot;speed&quot;,
-        &quot;initial&quot;: 0.0,
-        &quot;accumulator&quot;: false,
-        &quot;output_unit&quot;: &quot;miles/hour&quot;,
-        &quot;index&quot;: 7,
-        &quot;name&quot;: &quot;edge_speed&quot;
-    },
-    &quot;edge_turn_delay&quot;: {
-        &quot;type&quot;: &quot;time&quot;,
-        &quot;initial&quot;: 0.0,
-        &quot;accumulator&quot;: false,
-        &quot;output_unit&quot;: &quot;seconds&quot;,
-        &quot;index&quot;: 8,
-        &quot;name&quot;: &quot;edge_turn_delay&quot;
-    },
-    &quot;trip_energy_liquid&quot;: {
-        &quot;type&quot;: &quot;energy&quot;,
-        &quot;initial&quot;: 0.0,
-        &quot;accumulator&quot;: true,
-        &quot;output_unit&quot;: &quot;gallons_gasoline_equivalent&quot;,
-        &quot;index&quot;: 9,
-        &quot;name&quot;: &quot;trip_energy_liquid&quot;
+        &quot;name&quot;: &quot;edge_grade&quot;
     },
     &quot;edge_energy_liquid&quot;: {
         &quot;type&quot;: &quot;energy&quot;,
         &quot;initial&quot;: 0.0,
         &quot;accumulator&quot;: false,
         &quot;output_unit&quot;: &quot;gallons_gasoline_equivalent&quot;,
-        &quot;index&quot;: 10,
+        &quot;index&quot;: 7,
         &quot;name&quot;: &quot;edge_energy_liquid&quot;
+    },
+    &quot;edge_time&quot;: {
+        &quot;type&quot;: &quot;time&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: false,
+        &quot;output_unit&quot;: &quot;minutes&quot;,
+        &quot;index&quot;: 8,
+        &quot;name&quot;: &quot;edge_time&quot;
+    },
+    &quot;edge_speed&quot;: {
+        &quot;type&quot;: &quot;speed&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: false,
+        &quot;output_unit&quot;: &quot;miles/hour&quot;,
+        &quot;index&quot;: 9,
+        &quot;name&quot;: &quot;edge_speed&quot;
+    },
+    &quot;trip_elevation_loss&quot;: {
+        &quot;type&quot;: &quot;distance&quot;,
+        &quot;initial&quot;: 0.0,
+        &quot;accumulator&quot;: true,
+        &quot;output_unit&quot;: &quot;miles&quot;,
+        &quot;index&quot;: 10,
+        &quot;name&quot;: &quot;trip_elevation_loss&quot;
     }
 }
 </pre></div>
@@ -806,20 +806,20 @@ Since we used the grid search to specify three separate searches, we should get 
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
-    &quot;objective_cost&quot;: 3.558931243471772,
-    &quot;total_cost&quot;: 10.477582352534746,
+    &quot;objective_cost&quot;: 3.5589383145358875,
+    &quot;total_cost&quot;: 10.47758772020426,
     &quot;cost_component&quot;: {
-        &quot;edge_energy_liquid&quot;: 0.0,
-        &quot;edge_distance&quot;: 0.0,
-        &quot;edge_speed&quot;: 0.0,
         &quot;edge_turn_delay&quot;: 0.0,
+        &quot;trip_energy_liquid&quot;: 0.9414504509142605,
+        &quot;trip_time&quot;: 3.5589383145358875,
+        &quot;trip_elevation_loss&quot;: 0.0,
         &quot;edge_time&quot;: 0.0,
         &quot;trip_distance&quot;: 5.977198954754113,
-        &quot;trip_time&quot;: 3.558931243471772,
+        &quot;edge_speed&quot;: 0.0,
         &quot;edge_grade&quot;: 0.0,
-        &quot;trip_energy_liquid&quot;: 0.941452154308863,
+        &quot;edge_distance&quot;: 0.0,
         &quot;trip_elevation_gain&quot;: 0.0,
-        &quot;trip_elevation_loss&quot;: 0.0
+        &quot;edge_energy_liquid&quot;: 0.0
     }
 }
 </pre></div>
@@ -837,32 +837,36 @@ Since we used the grid search to specify three separate searches, we should get 
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
-    &quot;edge_time&quot;: {
+    &quot;trip_distance&quot;: {
         &quot;weight&quot;: 0.0,
         &quot;vehicle_rate&quot;: {
-            &quot;type&quot;: &quot;zero&quot;
+            &quot;type&quot;: &quot;distance&quot;,
+            &quot;factor&quot;: 0.655,
+            &quot;unit&quot;: &quot;miles&quot;
         },
         &quot;network_rate&quot;: &quot;zero&quot;,
         &quot;index&quot;: 0,
-        &quot;description&quot;: &quot;Feature &#39;edge_time&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+        &quot;description&quot;: &quot;Feature &#39;trip_distance&#39; was provided weight 0 and vehicle rate cost times 0.655 per miles and will contribute to the cost model. No network costs were provided for this feature.&quot;
     },
-    &quot;edge_distance&quot;: {
+    &quot;trip_energy_liquid&quot;: {
         &quot;weight&quot;: 0.0,
         &quot;vehicle_rate&quot;: {
-            &quot;type&quot;: &quot;zero&quot;
+            &quot;type&quot;: &quot;energy&quot;,
+            &quot;factor&quot;: 3.0,
+            &quot;unit&quot;: &quot;gallons_gasoline_equivalent&quot;
         },
         &quot;network_rate&quot;: &quot;zero&quot;,
         &quot;index&quot;: 1,
-        &quot;description&quot;: &quot;Feature &#39;edge_distance&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+        &quot;description&quot;: &quot;Feature &#39;trip_energy_liquid&#39; was provided weight 0 and vehicle rate cost times 3 per gallons_gasoline_equivalent and will contribute to the cost model. No network costs were provided for this feature.&quot;
     },
-    &quot;edge_grade&quot;: {
+    &quot;edge_turn_delay&quot;: {
         &quot;weight&quot;: 0.0,
         &quot;vehicle_rate&quot;: {
             &quot;type&quot;: &quot;zero&quot;
         },
         &quot;network_rate&quot;: &quot;zero&quot;,
         &quot;index&quot;: 2,
-        &quot;description&quot;: &quot;Feature &#39;edge_grade&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+        &quot;description&quot;: &quot;Feature &#39;edge_turn_delay&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
     },
     &quot;trip_time&quot;: {
         &quot;weight&quot;: 1.0,
@@ -875,14 +879,14 @@ Since we used the grid search to specify three separate searches, we should get 
         &quot;index&quot;: 3,
         &quot;description&quot;: &quot;Feature &#39;trip_time&#39; was provided weight 1 and vehicle rate cost times 20 per hours and will contribute to the cost model. No network costs were provided for this feature.&quot;
     },
-    &quot;trip_elevation_loss&quot;: {
+    &quot;edge_distance&quot;: {
         &quot;weight&quot;: 0.0,
         &quot;vehicle_rate&quot;: {
             &quot;type&quot;: &quot;zero&quot;
         },
         &quot;network_rate&quot;: &quot;zero&quot;,
         &quot;index&quot;: 4,
-        &quot;description&quot;: &quot;Feature &#39;trip_elevation_loss&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+        &quot;description&quot;: &quot;Feature &#39;edge_distance&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
     },
     &quot;trip_elevation_gain&quot;: {
         &quot;weight&quot;: 0.0,
@@ -893,45 +897,14 @@ Since we used the grid search to specify three separate searches, we should get 
         &quot;index&quot;: 5,
         &quot;description&quot;: &quot;Feature &#39;trip_elevation_gain&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
     },
-    &quot;trip_distance&quot;: {
+    &quot;edge_grade&quot;: {
         &quot;weight&quot;: 0.0,
         &quot;vehicle_rate&quot;: {
-            &quot;type&quot;: &quot;distance&quot;,
-            &quot;factor&quot;: 0.655,
-            &quot;unit&quot;: &quot;miles&quot;
+            &quot;type&quot;: &quot;zero&quot;
         },
         &quot;network_rate&quot;: &quot;zero&quot;,
         &quot;index&quot;: 6,
-        &quot;description&quot;: &quot;Feature &#39;trip_distance&#39; was provided weight 0 and vehicle rate cost times 0.655 per miles and will contribute to the cost model. No network costs were provided for this feature.&quot;
-    },
-    &quot;edge_speed&quot;: {
-        &quot;weight&quot;: 0.0,
-        &quot;vehicle_rate&quot;: {
-            &quot;type&quot;: &quot;zero&quot;
-        },
-        &quot;network_rate&quot;: &quot;zero&quot;,
-        &quot;index&quot;: 7,
-        &quot;description&quot;: &quot;Feature &#39;edge_speed&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
-    },
-    &quot;edge_turn_delay&quot;: {
-        &quot;weight&quot;: 0.0,
-        &quot;vehicle_rate&quot;: {
-            &quot;type&quot;: &quot;zero&quot;
-        },
-        &quot;network_rate&quot;: &quot;zero&quot;,
-        &quot;index&quot;: 8,
-        &quot;description&quot;: &quot;Feature &#39;edge_turn_delay&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
-    },
-    &quot;trip_energy_liquid&quot;: {
-        &quot;weight&quot;: 0.0,
-        &quot;vehicle_rate&quot;: {
-            &quot;type&quot;: &quot;energy&quot;,
-            &quot;factor&quot;: 3.0,
-            &quot;unit&quot;: &quot;gallons_gasoline_equivalent&quot;
-        },
-        &quot;network_rate&quot;: &quot;zero&quot;,
-        &quot;index&quot;: 9,
-        &quot;description&quot;: &quot;Feature &#39;trip_energy_liquid&#39; was provided weight 0 and vehicle rate cost times 3 per gallons_gasoline_equivalent and will contribute to the cost model. No network costs were provided for this feature.&quot;
+        &quot;description&quot;: &quot;Feature &#39;edge_grade&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
     },
     &quot;edge_energy_liquid&quot;: {
         &quot;weight&quot;: 0.0,
@@ -939,8 +912,35 @@ Since we used the grid search to specify three separate searches, we should get 
             &quot;type&quot;: &quot;zero&quot;
         },
         &quot;network_rate&quot;: &quot;zero&quot;,
-        &quot;index&quot;: 10,
+        &quot;index&quot;: 7,
         &quot;description&quot;: &quot;Feature &#39;edge_energy_liquid&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;edge_time&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 8,
+        &quot;description&quot;: &quot;Feature &#39;edge_time&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;edge_speed&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 9,
+        &quot;description&quot;: &quot;Feature &#39;edge_speed&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
+    },
+    &quot;trip_elevation_loss&quot;: {
+        &quot;weight&quot;: 0.0,
+        &quot;vehicle_rate&quot;: {
+            &quot;type&quot;: &quot;zero&quot;
+        },
+        &quot;network_rate&quot;: &quot;zero&quot;,
+        &quot;index&quot;: 10,
+        &quot;description&quot;: &quot;Feature &#39;trip_elevation_loss&#39; will not contribute to cost model has it has no weight or cost rate.&quot;
     },
     &quot;cost_aggregation&quot;: &quot;sum&quot;
 }
@@ -958,27 +958,27 @@ Since we used the grid search to specify three separate searches, we should get 
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{
-    &quot;trip_time&quot;: 13.138739485236208,
-    &quot;trip_elevation_loss&quot;: -0.018515147296623655,
+    &quot;trip_time&quot;: 13.138814995385069,
     &quot;trip_elevation_gain&quot;: 0.041240327143777226,
-    &quot;trip_energy_liquid&quot;: 0.24380588576403175,
-    &quot;trip_distance&quot;: 6.443531969129094
+    &quot;trip_elevation_loss&quot;: -0.018515147296623655,
+    &quot;trip_distance&quot;: 6.443531969129094,
+    &quot;trip_energy_liquid&quot;: 0.2438054693235313
 }
 {
-    &quot;objective_cost&quot;: 0.7314176572920953,
-    &quot;total_cost&quot;: 9.331510925483721,
+    &quot;objective_cost&quot;: 0.7314164079705939,
+    &quot;total_cost&quot;: 9.33153484621184,
     &quot;cost_component&quot;: {
+        &quot;edge_energy_liquid&quot;: 0.0,
+        &quot;trip_time&quot;: 4.379604998461689,
         &quot;edge_time&quot;: 0.0,
         &quot;trip_elevation_loss&quot;: 0.0,
         &quot;edge_grade&quot;: 0.0,
-        &quot;edge_turn_delay&quot;: 0.0,
-        &quot;trip_distance&quot;: 4.220513439779557,
-        &quot;edge_energy_liquid&quot;: 0.0,
-        &quot;trip_time&quot;: 4.379579828412069,
-        &quot;trip_energy_liquid&quot;: 0.7314176572920953,
-        &quot;edge_speed&quot;: 0.0,
+        &quot;trip_elevation_gain&quot;: 0.0,
         &quot;edge_distance&quot;: 0.0,
-        &quot;trip_elevation_gain&quot;: 0.0
+        &quot;trip_distance&quot;: 4.220513439779557,
+        &quot;trip_energy_liquid&quot;: 0.7314164079705939,
+        &quot;edge_speed&quot;: 0.0,
+        &quot;edge_turn_delay&quot;: 0.0
     }
 }
 </pre></div>
@@ -1262,6 +1262,7 @@ Here's a list of all the different sections that get returned:</p>
  - search_executed_time
  - search_result_size_mib
  - search_runtime
+ - terminated
  - tree_size_count
 </pre></div>
 </div>
@@ -1301,19 +1302,19 @@ Here's a list of all the different sections that get returned:</p>
       <th>tree_size_count</th>
       <th>search_result_size_mib</th>
       <th>iterations</th>
+      <th>terminated</th>
       <th>request.origin_x</th>
       <th>request.origin_y</th>
-      <th>request.destination_x</th>
       <th>...</th>
+      <th>route.cost.cost_component.edge_time</th>
+      <th>route.cost.cost_component.trip_elevation_loss</th>
       <th>route.cost.cost_component.edge_grade</th>
-      <th>route.cost.cost_component.edge_turn_delay</th>
+      <th>route.cost.cost_component.trip_elevation_gain</th>
+      <th>route.cost.cost_component.edge_distance</th>
       <th>route.cost.cost_component.trip_distance</th>
-      <th>route.cost.cost_component.edge_energy_liquid</th>
-      <th>route.cost.cost_component.trip_time</th>
       <th>route.cost.cost_component.trip_energy_liquid</th>
       <th>route.cost.cost_component.edge_speed</th>
-      <th>route.cost.cost_component.edge_distance</th>
-      <th>route.cost.cost_component.trip_elevation_gain</th>
+      <th>route.cost.cost_component.edge_turn_delay</th>
       <th>geometry</th>
     </tr>
     <tr>
@@ -1344,31 +1345,31 @@ Here's a list of all the different sections that get returned:</p>
   <tbody>
     <tr>
       <th>0</th>
-      <td>2025-10-28T21:04:35.826359186+00:00</td>
-      <td>2025-10-28T21:04:35.679812153+00:00</td>
-      <td>0:00:00.146</td>
+      <td>2025-11-06T22:39:01.841232794+00:00</td>
+      <td>2025-11-06T22:39:01.661133191+00:00</td>
+      <td>0:00:00.180</td>
       <td>91</td>
-      <td>7425</td>
-      <td>1.740222</td>
-      <td>7233</td>
+      <td>8524</td>
+      <td>1.992834</td>
+      <td>8300</td>
+      <td>false</td>
       <td>-104.969307</td>
       <td>39.779021</td>
-      <td>-104.97536</td>
       <td>...</td>
       <td>0.0</td>
       <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>0.0</td>
       <td>4.220513</td>
-      <td>0.0</td>
-      <td>4.37958</td>
-      <td>0.731418</td>
-      <td>0.0</td>
+      <td>0.731416</td>
       <td>0.0</td>
       <td>0.0</td>
       <td>LINESTRING (-104.96884 39.77875, -104.96865 39...</td>
     </tr>
   </tbody>
 </table>
-<p>1 rows × 175 columns</p>
+<p>1 rows × 176 columns</p>
 </div></div></div>
 </div>
 </section>
@@ -1415,7 +1416,7 @@ Here's a list of all the different sections that get returned:</p>
             &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
             &lt;style&gt;
-                #map_2242eaf4b373bb4fbc5bca74e5faf02e {
+                #map_30c67427a24d527f3abc6cc22390fea0 {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -1452,14 +1453,14 @@ Here's a list of all the different sections that get returned:</p>
 &lt;body&gt;
     
     
-            &lt;div class=&quot;folium-map&quot; id=&quot;map_2242eaf4b373bb4fbc5bca74e5faf02e&quot; &gt;&lt;/div&gt;
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_30c67427a24d527f3abc6cc22390fea0&quot; &gt;&lt;/div&gt;
         
 &lt;/body&gt;
 &lt;script&gt;
     
     
-            var map_2242eaf4b373bb4fbc5bca74e5faf02e = L.map(
-                &quot;map_2242eaf4b373bb4fbc5bca74e5faf02e&quot;,
+            var map_30c67427a24d527f3abc6cc22390fea0 = L.map(
+                &quot;map_30c67427a24d527f3abc6cc22390fea0&quot;,
                 {
                     center: [39.73683738708496, -104.99208068847656],
                     crs: L.CRS.EPSG3857,
@@ -1476,7 +1477,7 @@ Here's a list of all the different sections that get returned:</p>
 
         
     
-            var tile_layer_484c98289b3c04ae580002d3eac2b143 = L.tileLayer(
+            var tile_layer_967816b63356c596b59fb4dda3129f96 = L.tileLayer(
                 &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
                 {
   &quot;minZoom&quot;: 0,
@@ -1493,22 +1494,22 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            tile_layer_484c98289b3c04ae580002d3eac2b143.addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            tile_layer_967816b63356c596b59fb4dda3129f96.addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            map_2242eaf4b373bb4fbc5bca74e5faf02e.fitBounds(
+            map_30c67427a24d527f3abc6cc22390fea0.fitBounds(
                 [[39.6929817199707, -105.01736450195312], [39.78069305419922, -104.966796875]],
                 {&quot;maxZoom&quot;: 12}
             );
         
     
-            var poly_line_e38d3cf5adaf577cc52a67d540833e71 = L.polyline(
+            var poly_line_e8cf8fcd2c7893b43e387c5f48989c3a = L.polyline(
                 [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.77865982055664, -104.96807098388672], [39.77926254272461, -104.96719360351562], [39.7796745300293, -104.96698760986328], [39.78050994873047, -104.966796875], [39.78050994873047, -104.96704864501953], [39.78001403808594, -104.9715347290039], [39.77994155883789, -104.97315216064453], [39.779685974121094, -104.9766845703125], [39.78001403808594, -104.98262786865234], [39.7800178527832, -104.98450469970703], [39.78069305419922, -104.98828887939453], [39.77692794799805, -104.98979187011719], [39.774696350097656, -104.99018096923828], [39.77122116088867, -104.99103546142578], [39.768856048583984, -104.99392700195312], [39.76498794555664, -105.00135803222656], [39.76063537597656, -105.00548553466797], [39.75861740112305, -105.0083999633789], [39.758094787597656, -105.00910949707031], [39.755245208740234, -105.01296997070312], [39.75261688232422, -105.01597595214844], [39.74444580078125, -105.01736450195312], [39.74345016479492, -105.01632690429688], [39.73714828491211, -105.0142822265625], [39.73179244995117, -105.01585388183594], [39.729949951171875, -105.01531219482422], [39.728843688964844, -105.01493835449219], [39.725276947021484, -105.01322937011719], [39.720741271972656, -105.0081787109375], [39.71499252319336, -105.00151824951172], [39.71266174316406, -105.00003051757812], [39.703487396240234, -104.99188232421875], [39.703189849853516, -104.99092102050781], [39.700706481933594, -104.98689270019531], [39.69866180419922, -104.9847412109375], [39.69713592529297, -104.98299407958984], [39.69398498535156, -104.97977447509766], [39.6934814453125, -104.9792709350586], [39.69298553466797, -104.97871398925781], [39.6929931640625, -104.9772720336914], [39.692989349365234, -104.97694396972656], [39.6929817199707, -104.97577667236328]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;red&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;red&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            ).addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            poly_line_e38d3cf5adaf577cc52a67d540833e71.bindTooltip(
+            poly_line_e8cf8fcd2c7893b43e387c5f48989c3a.bindTooltip(
                 `&lt;div&gt;
                      Shortest Time
                  &lt;/div&gt;`,
@@ -1518,14 +1519,14 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            var marker_44167a13212bf67e8062f4c349e1429e = L.marker(
+            var marker_95dba2fd341c0ed5f9f3bfca53d7fcec = L.marker(
                 [39.778751373291016, -104.96884155273438],
                 {
 }
-            ).addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            ).addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            var icon_fe2d47e2ba1332905aa718245b914e55 = L.AwesomeMarkers.icon(
+            var icon_ad0438ceb53e7cf9de34f967926c905f = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -1536,7 +1537,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_44167a13212bf67e8062f4c349e1429e.bindTooltip(
+            marker_95dba2fd341c0ed5f9f3bfca53d7fcec.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -1546,17 +1547,17 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_44167a13212bf67e8062f4c349e1429e.setIcon(icon_fe2d47e2ba1332905aa718245b914e55);
+                marker_95dba2fd341c0ed5f9f3bfca53d7fcec.setIcon(icon_ad0438ceb53e7cf9de34f967926c905f);
             
     
-            var marker_ea6753e36405ef242a636abfec5304fc = L.marker(
+            var marker_7c26d7e2a880c380f6aa89f5bfaabe2b = L.marker(
                 [39.6929817199707, -104.97577667236328],
                 {
 }
-            ).addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            ).addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            var icon_5f04f2eb38c4536791c7ab0583069bc1 = L.AwesomeMarkers.icon(
+            var icon_f8d6cdb802970e913d4d3fba6b95be15 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -1567,7 +1568,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_ea6753e36405ef242a636abfec5304fc.bindTooltip(
+            marker_7c26d7e2a880c380f6aa89f5bfaabe2b.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -1577,16 +1578,16 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_ea6753e36405ef242a636abfec5304fc.setIcon(icon_5f04f2eb38c4536791c7ab0583069bc1);
+                marker_7c26d7e2a880c380f6aa89f5bfaabe2b.setIcon(icon_f8d6cdb802970e913d4d3fba6b95be15);
             
     
-            var poly_line_2fd5adc18cca320f639768634c028088 = L.polyline(
+            var poly_line_d2324ad32a388b038698cee715f183b7 = L.polyline(
                 [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;green&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;green&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            ).addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            poly_line_2fd5adc18cca320f639768634c028088.bindTooltip(
+            poly_line_d2324ad32a388b038698cee715f183b7.bindTooltip(
                 `&lt;div&gt;
                      Least Energy
                  &lt;/div&gt;`,
@@ -1596,14 +1597,14 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            var marker_fb4e63e8e74c79279ff269612f4ce7c4 = L.marker(
+            var marker_77508346f448baf7bddbb3c1d4e602c4 = L.marker(
                 [39.778751373291016, -104.96884155273438],
                 {
 }
-            ).addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            ).addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            var icon_f468678dd0816e30f42149b6140accd0 = L.AwesomeMarkers.icon(
+            var icon_7c7f03abe491bff40612bdc853bdb5b6 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -1614,7 +1615,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_fb4e63e8e74c79279ff269612f4ce7c4.bindTooltip(
+            marker_77508346f448baf7bddbb3c1d4e602c4.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -1624,17 +1625,17 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_fb4e63e8e74c79279ff269612f4ce7c4.setIcon(icon_f468678dd0816e30f42149b6140accd0);
+                marker_77508346f448baf7bddbb3c1d4e602c4.setIcon(icon_7c7f03abe491bff40612bdc853bdb5b6);
             
     
-            var marker_854cbfc2e2cf429a94d90d6a4b1b4973 = L.marker(
+            var marker_d5deaac0a8d9346638f94c4188f3feec = L.marker(
                 [39.6929817199707, -104.97577667236328],
                 {
 }
-            ).addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            ).addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            var icon_ea19a629c0f3dd8a4fc3c4510737fc09 = L.AwesomeMarkers.icon(
+            var icon_81e3bb3b024f4abb499d327630bc9449 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -1645,7 +1646,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_854cbfc2e2cf429a94d90d6a4b1b4973.bindTooltip(
+            marker_d5deaac0a8d9346638f94c4188f3feec.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -1655,16 +1656,16 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_854cbfc2e2cf429a94d90d6a4b1b4973.setIcon(icon_ea19a629c0f3dd8a4fc3c4510737fc09);
+                marker_d5deaac0a8d9346638f94c4188f3feec.setIcon(icon_81e3bb3b024f4abb499d327630bc9449);
             
     
-            var poly_line_36696e600fffd24fba802102d55b4bd1 = L.polyline(
+            var poly_line_6cc6cc9b18bc48c4fb6e972b196e129f = L.polyline(
                 [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;blue&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;blue&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            ).addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            poly_line_36696e600fffd24fba802102d55b4bd1.bindTooltip(
+            poly_line_6cc6cc9b18bc48c4fb6e972b196e129f.bindTooltip(
                 `&lt;div&gt;
                      Least Cost
                  &lt;/div&gt;`,
@@ -1674,14 +1675,14 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            var marker_624a98a5c49ea6442208540703e11d01 = L.marker(
+            var marker_f1a55a7c64192ca6c7a84af273f75c8d = L.marker(
                 [39.778751373291016, -104.96884155273438],
                 {
 }
-            ).addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            ).addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            var icon_4fe869171d975094c203c7c713d58d57 = L.AwesomeMarkers.icon(
+            var icon_b3b234481fb4fd409b97afccdf254538 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -1692,7 +1693,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_624a98a5c49ea6442208540703e11d01.bindTooltip(
+            marker_f1a55a7c64192ca6c7a84af273f75c8d.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -1702,17 +1703,17 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_624a98a5c49ea6442208540703e11d01.setIcon(icon_4fe869171d975094c203c7c713d58d57);
+                marker_f1a55a7c64192ca6c7a84af273f75c8d.setIcon(icon_b3b234481fb4fd409b97afccdf254538);
             
     
-            var marker_12a6ff8febdd54551730a18865cb285d = L.marker(
+            var marker_6844e433360eaa90dec2e711a0c0a324 = L.marker(
                 [39.6929817199707, -104.97577667236328],
                 {
 }
-            ).addTo(map_2242eaf4b373bb4fbc5bca74e5faf02e);
+            ).addTo(map_30c67427a24d527f3abc6cc22390fea0);
         
     
-            var icon_6a9d926818ded1c9aff0745888ffd077 = L.AwesomeMarkers.icon(
+            var icon_4e4075a3d9716324c445a95262b0b4c6 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -1723,7 +1724,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_12a6ff8febdd54551730a18865cb285d.bindTooltip(
+            marker_6844e433360eaa90dec2e711a0c0a324.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -1733,7 +1734,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_12a6ff8febdd54551730a18865cb285d.setIcon(icon_6a9d926818ded1c9aff0745888ffd077);
+                marker_6844e433360eaa90dec2e711a0c0a324.setIcon(icon_4e4075a3d9716324c445a95262b0b4c6);
             
 &lt;/script&gt;
 &lt;/html&gt;" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div></div></div>
@@ -1770,7 +1771,7 @@ Here's a list of all the different sections that get returned:</p>
             &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
             &lt;style&gt;
-                #map_b7a588815a6ca97607346036b0b20d1a {
+                #map_77b2f70ee4820fe97f3df07db5bb3e9f {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -1807,14 +1808,14 @@ Here's a list of all the different sections that get returned:</p>
 &lt;body&gt;
     
     
-            &lt;div class=&quot;folium-map&quot; id=&quot;map_b7a588815a6ca97607346036b0b20d1a&quot; &gt;&lt;/div&gt;
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_77b2f70ee4820fe97f3df07db5bb3e9f&quot; &gt;&lt;/div&gt;
         
 &lt;/body&gt;
 &lt;script&gt;
     
     
-            var map_b7a588815a6ca97607346036b0b20d1a = L.map(
-                &quot;map_b7a588815a6ca97607346036b0b20d1a&quot;,
+            var map_77b2f70ee4820fe97f3df07db5bb3e9f = L.map(
+                &quot;map_77b2f70ee4820fe97f3df07db5bb3e9f&quot;,
                 {
                     center: [39.73683738708496, -104.99208068847656],
                     crs: L.CRS.EPSG3857,
@@ -1831,7 +1832,7 @@ Here's a list of all the different sections that get returned:</p>
 
         
     
-            var tile_layer_f6b0434ed86bcbe0b9f35c0129b85792 = L.tileLayer(
+            var tile_layer_38e5e914cfea00848fcd997be09c30b8 = L.tileLayer(
                 &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
                 {
   &quot;minZoom&quot;: 0,
@@ -1848,24 +1849,24 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            tile_layer_f6b0434ed86bcbe0b9f35c0129b85792.addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            tile_layer_38e5e914cfea00848fcd997be09c30b8.addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            map_b7a588815a6ca97607346036b0b20d1a.fitBounds(
+            map_77b2f70ee4820fe97f3df07db5bb3e9f.fitBounds(
                 [[39.6929817199707, -105.01736450195312], [39.78069305419922, -104.966796875]],
                 {&quot;maxZoom&quot;: 12}
             );
         
     
-            var poly_line_0a1810c189b7075c3216c2553d585b00 = L.polyline(
+            var poly_line_bea04c6de2f3092f171af4d794751ba7 = L.polyline(
                 [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.77865982055664, -104.96807098388672], [39.77926254272461, -104.96719360351562], [39.7796745300293, -104.96698760986328], [39.78050994873047, -104.966796875], [39.78050994873047, -104.96704864501953], [39.78001403808594, -104.9715347290039], [39.77994155883789, -104.97315216064453], [39.779685974121094, -104.9766845703125], [39.78001403808594, -104.98262786865234], [39.7800178527832, -104.98450469970703], [39.78069305419922, -104.98828887939453], [39.77692794799805, -104.98979187011719], [39.774696350097656, -104.99018096923828], [39.77122116088867, -104.99103546142578], [39.768856048583984, -104.99392700195312], [39.76498794555664, -105.00135803222656], [39.76063537597656, -105.00548553466797], [39.75861740112305, -105.0083999633789], [39.758094787597656, -105.00910949707031], [39.755245208740234, -105.01296997070312], [39.75261688232422, -105.01597595214844], [39.74444580078125, -105.01736450195312], [39.74345016479492, -105.01632690429688], [39.73714828491211, -105.0142822265625], [39.73179244995117, -105.01585388183594], [39.729949951171875, -105.01531219482422], [39.728843688964844, -105.01493835449219], [39.725276947021484, -105.01322937011719], [39.720741271972656, -105.0081787109375], [39.71499252319336, -105.00151824951172], [39.71266174316406, -105.00003051757812], [39.703487396240234, -104.99188232421875], [39.703189849853516, -104.99092102050781], [39.700706481933594, -104.98689270019531], [39.69866180419922, -104.9847412109375], [39.69713592529297, -104.98299407958984], [39.69398498535156, -104.97977447509766], [39.6934814453125, -104.9792709350586], [39.69298553466797, -104.97871398925781], [39.6929931640625, -104.9772720336914], [39.692989349365234, -104.97694396972656], [39.6929817199707, -104.97577667236328]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#eff821&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#eff821&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            poly_line_0a1810c189b7075c3216c2553d585b00.bindTooltip(
+            poly_line_bea04c6de2f3092f171af4d794751ba7.bindTooltip(
                 `&lt;div&gt;
-                     0.313817384769621
+                     0.31381681697142016
                  &lt;/div&gt;`,
                 {
   &quot;sticky&quot;: true,
@@ -1873,14 +1874,14 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            var marker_f768731825fa488882a8416d27b3a4d7 = L.marker(
+            var marker_fb383dacaf43a147e46bc4c776fbae16 = L.marker(
                 [39.778751373291016, -104.96884155273438],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_b5a489b4db5f709b34fe601c07710409 = L.AwesomeMarkers.icon(
+            var icon_2cc759a763ab27131f7ba8143e0c74c4 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -1891,7 +1892,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_f768731825fa488882a8416d27b3a4d7.bindTooltip(
+            marker_fb383dacaf43a147e46bc4c776fbae16.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -1901,17 +1902,17 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_f768731825fa488882a8416d27b3a4d7.setIcon(icon_b5a489b4db5f709b34fe601c07710409);
+                marker_fb383dacaf43a147e46bc4c776fbae16.setIcon(icon_2cc759a763ab27131f7ba8143e0c74c4);
             
     
-            var marker_690345c8be7fe7ad8039e1fcef130612 = L.marker(
+            var marker_a89500336cdb24e09244b18a3347229f = L.marker(
                 [39.6929817199707, -104.97577667236328],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_46e59f862b23e39ac8979b6983608679 = L.AwesomeMarkers.icon(
+            var icon_7c7fc3d425d3843828e62892e7d99190 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -1922,7 +1923,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_690345c8be7fe7ad8039e1fcef130612.bindTooltip(
+            marker_a89500336cdb24e09244b18a3347229f.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -1932,18 +1933,18 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_690345c8be7fe7ad8039e1fcef130612.setIcon(icon_46e59f862b23e39ac8979b6983608679);
+                marker_a89500336cdb24e09244b18a3347229f.setIcon(icon_7c7fc3d425d3843828e62892e7d99190);
             
     
-            var poly_line_11896e3dd845c13824d7707c42eb0e04 = L.polyline(
+            var poly_line_fbc47513a181ca69ebd1e48200f2153c = L.polyline(
                 [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            poly_line_11896e3dd845c13824d7707c42eb0e04.bindTooltip(
+            poly_line_fbc47513a181ca69ebd1e48200f2153c.bindTooltip(
                 `&lt;div&gt;
-                     0.24380588576403175
+                     0.2438054693235313
                  &lt;/div&gt;`,
                 {
   &quot;sticky&quot;: true,
@@ -1951,14 +1952,14 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            var marker_9e3d93fe3d13e12877fc3f11b00dc77e = L.marker(
+            var marker_c1bea336a91e7206aac013aeb38e0a24 = L.marker(
                 [39.778751373291016, -104.96884155273438],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_6d28679d609f2f99383261799ab92c0a = L.AwesomeMarkers.icon(
+            var icon_1b169d45b00f2af29a558bd854212563 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -1969,7 +1970,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_9e3d93fe3d13e12877fc3f11b00dc77e.bindTooltip(
+            marker_c1bea336a91e7206aac013aeb38e0a24.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -1979,17 +1980,17 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_9e3d93fe3d13e12877fc3f11b00dc77e.setIcon(icon_6d28679d609f2f99383261799ab92c0a);
+                marker_c1bea336a91e7206aac013aeb38e0a24.setIcon(icon_1b169d45b00f2af29a558bd854212563);
             
     
-            var marker_9ef03374aac2c5310350cf1827759fbb = L.marker(
+            var marker_8b2eb23857705f8a3c82f2b78c0d6d9a = L.marker(
                 [39.6929817199707, -104.97577667236328],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_88201d107caee1f38898d5803c217b0a = L.AwesomeMarkers.icon(
+            var icon_1b3321bac9e73fd881e1d942e630671a = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2000,7 +2001,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_9ef03374aac2c5310350cf1827759fbb.bindTooltip(
+            marker_8b2eb23857705f8a3c82f2b78c0d6d9a.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -2010,18 +2011,18 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_9ef03374aac2c5310350cf1827759fbb.setIcon(icon_88201d107caee1f38898d5803c217b0a);
+                marker_8b2eb23857705f8a3c82f2b78c0d6d9a.setIcon(icon_1b3321bac9e73fd881e1d942e630671a);
             
     
-            var poly_line_a1013bd3c15c04060a22e8e7c91d9d5c = L.polyline(
+            var poly_line_d732c712efc95244b946d047dcbf2621 = L.polyline(
                 [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            poly_line_a1013bd3c15c04060a22e8e7c91d9d5c.bindTooltip(
+            poly_line_d732c712efc95244b946d047dcbf2621.bindTooltip(
                 `&lt;div&gt;
-                     0.24380588576403175
+                     0.2438054693235313
                  &lt;/div&gt;`,
                 {
   &quot;sticky&quot;: true,
@@ -2029,14 +2030,14 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            var marker_1d88044a4be5ca0e29af29705b5343c0 = L.marker(
+            var marker_8887f5290e14444f6a4cdfa9b6371272 = L.marker(
                 [39.778751373291016, -104.96884155273438],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_9caa67e70bd1d1c200701b08ce98f986 = L.AwesomeMarkers.icon(
+            var icon_1ac6fde903f6452872d1dd189a7d800f = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2047,7 +2048,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_1d88044a4be5ca0e29af29705b5343c0.bindTooltip(
+            marker_8887f5290e14444f6a4cdfa9b6371272.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -2057,17 +2058,17 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_1d88044a4be5ca0e29af29705b5343c0.setIcon(icon_9caa67e70bd1d1c200701b08ce98f986);
+                marker_8887f5290e14444f6a4cdfa9b6371272.setIcon(icon_1ac6fde903f6452872d1dd189a7d800f);
             
     
-            var marker_7510bddc2b155cb209e3bf285644353f = L.marker(
+            var marker_bf2f0e640211e143b1421afdda9666ed = L.marker(
                 [39.6929817199707, -104.97577667236328],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_e9093d1ca71a674acb8803134844e86d = L.AwesomeMarkers.icon(
+            var icon_a1a29b3961c11d64b2c4a24bf1d4ac6e = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2078,7 +2079,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-            marker_7510bddc2b155cb209e3bf285644353f.bindTooltip(
+            marker_bf2f0e640211e143b1421afdda9666ed.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -2088,7 +2089,7 @@ Here's a list of all the different sections that get returned:</p>
             );
         
     
-                marker_7510bddc2b155cb209e3bf285644353f.setIcon(icon_e9093d1ca71a674acb8803134844e86d);
+                marker_bf2f0e640211e143b1421afdda9666ed.setIcon(icon_a1a29b3961c11d64b2c4a24bf1d4ac6e);
             
 &lt;/script&gt;
 &lt;/html&gt;" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div></div></div>
@@ -2118,15 +2119,15 @@ Here's a list of all the different sections that get returned:</p>
 </div>
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
-applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 197667.52it/s]
+applying input plugin 1: 100%|██████████| 1/1 [00:00&lt;00:00, 204123.30it/s]
 
-applying input plugin 2: 100%|██████████| 3/3 [00:00&lt;00:00, 47505.19it/s]
+applying input plugin 2: 100%|██████████| 3/3 [00:00&lt;00:00, 108393.25it/s]
 
 
 
-search:  33%|███▄      | 1/3 [00:00&lt;00:00, 8.88it/s]
+search:  33%|███▄      | 1/3 [00:00&lt;00:00, 6.49it/s]
                                                     
-search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
+search: 100%|██████████| 3/3 [00:00&lt;00:00, 10.39it/s]
 </pre></div>
 </div>
 <div class="output text_html"><div style="width:100%;"><div style="position:relative;width:100%;height:0;padding-bottom:60%;"><span style="color:#565656">Make this Notebook Trusted to load map: File -> Trust Notebook</span><iframe srcdoc="&lt;!DOCTYPE html&gt;
@@ -2148,7 +2149,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no&quot; /&gt;
             &lt;style&gt;
-                #map_b7a588815a6ca97607346036b0b20d1a {
+                #map_77b2f70ee4820fe97f3df07db5bb3e9f {
                     position: relative;
                     width: 100.0%;
                     height: 100.0%;
@@ -2185,14 +2186,14 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
 &lt;body&gt;
     
     
-            &lt;div class=&quot;folium-map&quot; id=&quot;map_b7a588815a6ca97607346036b0b20d1a&quot; &gt;&lt;/div&gt;
+            &lt;div class=&quot;folium-map&quot; id=&quot;map_77b2f70ee4820fe97f3df07db5bb3e9f&quot; &gt;&lt;/div&gt;
         
 &lt;/body&gt;
 &lt;script&gt;
     
     
-            var map_b7a588815a6ca97607346036b0b20d1a = L.map(
-                &quot;map_b7a588815a6ca97607346036b0b20d1a&quot;,
+            var map_77b2f70ee4820fe97f3df07db5bb3e9f = L.map(
+                &quot;map_77b2f70ee4820fe97f3df07db5bb3e9f&quot;,
                 {
                     center: [39.73683738708496, -104.99208068847656],
                     crs: L.CRS.EPSG3857,
@@ -2209,7 +2210,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
 
         
     
-            var tile_layer_f6b0434ed86bcbe0b9f35c0129b85792 = L.tileLayer(
+            var tile_layer_38e5e914cfea00848fcd997be09c30b8 = L.tileLayer(
                 &quot;https://tile.openstreetmap.org/{z}/{x}/{y}.png&quot;,
                 {
   &quot;minZoom&quot;: 0,
@@ -2226,24 +2227,24 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            tile_layer_f6b0434ed86bcbe0b9f35c0129b85792.addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            tile_layer_38e5e914cfea00848fcd997be09c30b8.addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            map_b7a588815a6ca97607346036b0b20d1a.fitBounds(
+            map_77b2f70ee4820fe97f3df07db5bb3e9f.fitBounds(
                 [[39.6929817199707, -105.01736450195312], [39.78069305419922, -104.966796875]],
                 {&quot;maxZoom&quot;: 12}
             );
         
     
-            var poly_line_0a1810c189b7075c3216c2553d585b00 = L.polyline(
+            var poly_line_bea04c6de2f3092f171af4d794751ba7 = L.polyline(
                 [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.77865982055664, -104.96807098388672], [39.77926254272461, -104.96719360351562], [39.7796745300293, -104.96698760986328], [39.78050994873047, -104.966796875], [39.78050994873047, -104.96704864501953], [39.78001403808594, -104.9715347290039], [39.77994155883789, -104.97315216064453], [39.779685974121094, -104.9766845703125], [39.78001403808594, -104.98262786865234], [39.7800178527832, -104.98450469970703], [39.78069305419922, -104.98828887939453], [39.77692794799805, -104.98979187011719], [39.774696350097656, -104.99018096923828], [39.77122116088867, -104.99103546142578], [39.768856048583984, -104.99392700195312], [39.76498794555664, -105.00135803222656], [39.76063537597656, -105.00548553466797], [39.75861740112305, -105.0083999633789], [39.758094787597656, -105.00910949707031], [39.755245208740234, -105.01296997070312], [39.75261688232422, -105.01597595214844], [39.74444580078125, -105.01736450195312], [39.74345016479492, -105.01632690429688], [39.73714828491211, -105.0142822265625], [39.73179244995117, -105.01585388183594], [39.729949951171875, -105.01531219482422], [39.728843688964844, -105.01493835449219], [39.725276947021484, -105.01322937011719], [39.720741271972656, -105.0081787109375], [39.71499252319336, -105.00151824951172], [39.71266174316406, -105.00003051757812], [39.703487396240234, -104.99188232421875], [39.703189849853516, -104.99092102050781], [39.700706481933594, -104.98689270019531], [39.69866180419922, -104.9847412109375], [39.69713592529297, -104.98299407958984], [39.69398498535156, -104.97977447509766], [39.6934814453125, -104.9792709350586], [39.69298553466797, -104.97871398925781], [39.6929931640625, -104.9772720336914], [39.692989349365234, -104.97694396972656], [39.6929817199707, -104.97577667236328]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#eff821&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#eff821&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            poly_line_0a1810c189b7075c3216c2553d585b00.bindTooltip(
+            poly_line_bea04c6de2f3092f171af4d794751ba7.bindTooltip(
                 `&lt;div&gt;
-                     0.313817384769621
+                     0.31381681697142016
                  &lt;/div&gt;`,
                 {
   &quot;sticky&quot;: true,
@@ -2251,14 +2252,14 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            var marker_f768731825fa488882a8416d27b3a4d7 = L.marker(
+            var marker_fb383dacaf43a147e46bc4c776fbae16 = L.marker(
                 [39.778751373291016, -104.96884155273438],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_b5a489b4db5f709b34fe601c07710409 = L.AwesomeMarkers.icon(
+            var icon_2cc759a763ab27131f7ba8143e0c74c4 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2269,7 +2270,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_f768731825fa488882a8416d27b3a4d7.bindTooltip(
+            marker_fb383dacaf43a147e46bc4c776fbae16.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -2279,17 +2280,17 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_f768731825fa488882a8416d27b3a4d7.setIcon(icon_b5a489b4db5f709b34fe601c07710409);
+                marker_fb383dacaf43a147e46bc4c776fbae16.setIcon(icon_2cc759a763ab27131f7ba8143e0c74c4);
             
     
-            var marker_690345c8be7fe7ad8039e1fcef130612 = L.marker(
+            var marker_a89500336cdb24e09244b18a3347229f = L.marker(
                 [39.6929817199707, -104.97577667236328],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_46e59f862b23e39ac8979b6983608679 = L.AwesomeMarkers.icon(
+            var icon_7c7fc3d425d3843828e62892e7d99190 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2300,7 +2301,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_690345c8be7fe7ad8039e1fcef130612.bindTooltip(
+            marker_a89500336cdb24e09244b18a3347229f.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -2310,18 +2311,18 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_690345c8be7fe7ad8039e1fcef130612.setIcon(icon_46e59f862b23e39ac8979b6983608679);
+                marker_a89500336cdb24e09244b18a3347229f.setIcon(icon_7c7fc3d425d3843828e62892e7d99190);
             
     
-            var poly_line_11896e3dd845c13824d7707c42eb0e04 = L.polyline(
+            var poly_line_fbc47513a181ca69ebd1e48200f2153c = L.polyline(
                 [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            poly_line_11896e3dd845c13824d7707c42eb0e04.bindTooltip(
+            poly_line_fbc47513a181ca69ebd1e48200f2153c.bindTooltip(
                 `&lt;div&gt;
-                     0.24380588576403175
+                     0.2438054693235313
                  &lt;/div&gt;`,
                 {
   &quot;sticky&quot;: true,
@@ -2329,14 +2330,14 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            var marker_9e3d93fe3d13e12877fc3f11b00dc77e = L.marker(
+            var marker_c1bea336a91e7206aac013aeb38e0a24 = L.marker(
                 [39.778751373291016, -104.96884155273438],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_6d28679d609f2f99383261799ab92c0a = L.AwesomeMarkers.icon(
+            var icon_1b169d45b00f2af29a558bd854212563 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2347,7 +2348,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_9e3d93fe3d13e12877fc3f11b00dc77e.bindTooltip(
+            marker_c1bea336a91e7206aac013aeb38e0a24.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -2357,17 +2358,17 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_9e3d93fe3d13e12877fc3f11b00dc77e.setIcon(icon_6d28679d609f2f99383261799ab92c0a);
+                marker_c1bea336a91e7206aac013aeb38e0a24.setIcon(icon_1b169d45b00f2af29a558bd854212563);
             
     
-            var marker_9ef03374aac2c5310350cf1827759fbb = L.marker(
+            var marker_8b2eb23857705f8a3c82f2b78c0d6d9a = L.marker(
                 [39.6929817199707, -104.97577667236328],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_88201d107caee1f38898d5803c217b0a = L.AwesomeMarkers.icon(
+            var icon_1b3321bac9e73fd881e1d942e630671a = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2378,7 +2379,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_9ef03374aac2c5310350cf1827759fbb.bindTooltip(
+            marker_8b2eb23857705f8a3c82f2b78c0d6d9a.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -2388,18 +2389,18 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_9ef03374aac2c5310350cf1827759fbb.setIcon(icon_88201d107caee1f38898d5803c217b0a);
+                marker_8b2eb23857705f8a3c82f2b78c0d6d9a.setIcon(icon_1b3321bac9e73fd881e1d942e630671a);
             
     
-            var poly_line_a1013bd3c15c04060a22e8e7c91d9d5c = L.polyline(
+            var poly_line_d732c712efc95244b946d047dcbf2621 = L.polyline(
                 [[39.778751373291016, -104.96884155273438], [39.778587341308594, -104.9686508178711], [39.77839660644531, -104.96841430664062], [39.7774772644043, -104.96961212158203], [39.77666473388672, -104.97066497802734], [39.7766227722168, -104.97071838378906], [39.775978088378906, -104.97154998779297], [39.77467346191406, -104.97323608398438], [39.773738861083984, -104.97444915771484], [39.77297592163086, -104.9754409790039], [39.77229690551758, -104.97456359863281], [39.77191162109375, -104.97406768798828], [39.77157974243164, -104.9736328125], [39.77125549316406, -104.97321319580078], [39.770233154296875, -104.97198486328125], [39.76918411254883, -104.97335815429688], [39.7681770324707, -104.97335052490234], [39.7680549621582, -104.97335052490234], [39.7677001953125, -104.97335052490234], [39.766971588134766, -104.97335052490234], [39.766502380371094, -104.97335052490234], [39.76605987548828, -104.97335052490234], [39.76577377319336, -104.97335052490234], [39.76523208618164, -104.97335052490234], [39.76495361328125, -104.97335052490234], [39.7645149230957, -104.97335052490234], [39.76421356201172, -104.97335052490234], [39.76380920410156, -104.97335052490234], [39.76325988769531, -104.97335052490234], [39.76306915283203, -104.97335052490234], [39.762603759765625, -104.97335815429688], [39.762454986572266, -104.97335815429688], [39.762054443359375, -104.97335052490234], [39.76118087768555, -104.97335052490234], [39.76076126098633, -104.97335052490234], [39.760440826416016, -104.97335052490234], [39.7595100402832, -104.97335052490234], [39.75912094116211, -104.97335052490234], [39.75823211669922, -104.97335052490234], [39.75699234008789, -104.97335815429688], [39.75673294067383, -104.97335815429688], [39.75574493408203, -104.97335815429688], [39.75531005859375, -104.97335815429688], [39.754547119140625, -104.97335815429688], [39.75325012207031, -104.97335815429688], [39.751991271972656, -104.97335815429688], [39.750732421875, -104.9733657836914], [39.74947738647461, -104.9733657836914], [39.74812698364258, -104.97337341308594], [39.74747085571289, -104.97337341308594], [39.746952056884766, -104.97337341308594], [39.74594497680664, -104.97338104248047], [39.745052337646484, -104.97340393066406], [39.744834899902344, -104.97339630126953], [39.74483871459961, -104.97476196289062], [39.74324417114258, -104.97477722167969], [39.74166488647461, -104.97477722167969], [39.740020751953125, -104.97480010986328], [39.74002456665039, -104.97415924072266], [39.73841857910156, -104.9741439819336], [39.736881256103516, -104.97413635253906], [39.73514938354492, -104.97413635253906], [39.73370361328125, -104.97410583496094], [39.7320556640625, -104.97410583496094], [39.7304573059082, -104.97410583496094], [39.72907257080078, -104.97410583496094], [39.72727966308594, -104.9740982055664], [39.7255859375, -104.97409057617188], [39.72406768798828, -104.97408294677734], [39.72374725341797, -104.97408294677734], [39.72247314453125, -104.97408294677734], [39.721946716308594, -104.97408294677734], [39.72013473510742, -104.97406768798828], [39.71888732910156, -104.97404479980469], [39.718318939208984, -104.97382354736328], [39.71653366088867, -104.97339630126953], [39.71472930908203, -104.97344207763672], [39.71427917480469, -104.9734115600586], [39.71291732788086, -104.97340393066406], [39.71110534667969, -104.97340393066406], [39.70929718017578, -104.973388671875], [39.70749282836914, -104.973388671875], [39.70566940307617, -104.97337341308594], [39.70386505126953, -104.973388671875], [39.70206069946289, -104.97339630126953], [39.70021057128906, -104.97340393066406], [39.698429107666016, -104.97340393066406], [39.69660949707031, -104.9734115600586], [39.694740295410156, -104.97341918945312], [39.6929817199707, -104.97342681884766], [39.6929817199707, -104.974609375], [39.6929817199707, -104.97577667236328]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            poly_line_a1013bd3c15c04060a22e8e7c91d9d5c.bindTooltip(
+            poly_line_d732c712efc95244b946d047dcbf2621.bindTooltip(
                 `&lt;div&gt;
-                     0.24380588576403175
+                     0.2438054693235313
                  &lt;/div&gt;`,
                 {
   &quot;sticky&quot;: true,
@@ -2407,14 +2408,14 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            var marker_1d88044a4be5ca0e29af29705b5343c0 = L.marker(
+            var marker_8887f5290e14444f6a4cdfa9b6371272 = L.marker(
                 [39.778751373291016, -104.96884155273438],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_9caa67e70bd1d1c200701b08ce98f986 = L.AwesomeMarkers.icon(
+            var icon_1ac6fde903f6452872d1dd189a7d800f = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2425,7 +2426,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_1d88044a4be5ca0e29af29705b5343c0.bindTooltip(
+            marker_8887f5290e14444f6a4cdfa9b6371272.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -2435,17 +2436,17 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_1d88044a4be5ca0e29af29705b5343c0.setIcon(icon_9caa67e70bd1d1c200701b08ce98f986);
+                marker_8887f5290e14444f6a4cdfa9b6371272.setIcon(icon_1ac6fde903f6452872d1dd189a7d800f);
             
     
-            var marker_7510bddc2b155cb209e3bf285644353f = L.marker(
+            var marker_bf2f0e640211e143b1421afdda9666ed = L.marker(
                 [39.6929817199707, -104.97577667236328],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_e9093d1ca71a674acb8803134844e86d = L.AwesomeMarkers.icon(
+            var icon_a1a29b3961c11d64b2c4a24bf1d4ac6e = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2456,7 +2457,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_7510bddc2b155cb209e3bf285644353f.bindTooltip(
+            marker_bf2f0e640211e143b1421afdda9666ed.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -2466,39 +2467,39 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_7510bddc2b155cb209e3bf285644353f.setIcon(icon_e9093d1ca71a674acb8803134844e86d);
+                marker_bf2f0e640211e143b1421afdda9666ed.setIcon(icon_a1a29b3961c11d64b2c4a24bf1d4ac6e);
             
     
-            tile_layer_f6b0434ed86bcbe0b9f35c0129b85792.addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            tile_layer_38e5e914cfea00848fcd997be09c30b8.addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-                marker_f768731825fa488882a8416d27b3a4d7.setIcon(icon_b5a489b4db5f709b34fe601c07710409);
+                marker_fb383dacaf43a147e46bc4c776fbae16.setIcon(icon_2cc759a763ab27131f7ba8143e0c74c4);
             
     
-                marker_690345c8be7fe7ad8039e1fcef130612.setIcon(icon_46e59f862b23e39ac8979b6983608679);
+                marker_a89500336cdb24e09244b18a3347229f.setIcon(icon_7c7fc3d425d3843828e62892e7d99190);
             
     
-                marker_9e3d93fe3d13e12877fc3f11b00dc77e.setIcon(icon_6d28679d609f2f99383261799ab92c0a);
+                marker_c1bea336a91e7206aac013aeb38e0a24.setIcon(icon_1b169d45b00f2af29a558bd854212563);
             
     
-                marker_9ef03374aac2c5310350cf1827759fbb.setIcon(icon_88201d107caee1f38898d5803c217b0a);
+                marker_8b2eb23857705f8a3c82f2b78c0d6d9a.setIcon(icon_1b3321bac9e73fd881e1d942e630671a);
             
     
-                marker_1d88044a4be5ca0e29af29705b5343c0.setIcon(icon_9caa67e70bd1d1c200701b08ce98f986);
+                marker_8887f5290e14444f6a4cdfa9b6371272.setIcon(icon_1ac6fde903f6452872d1dd189a7d800f);
             
     
-                marker_7510bddc2b155cb209e3bf285644353f.setIcon(icon_e9093d1ca71a674acb8803134844e86d);
+                marker_bf2f0e640211e143b1421afdda9666ed.setIcon(icon_a1a29b3961c11d64b2c4a24bf1d4ac6e);
             
     
-            var poly_line_54fa38b86b05d51e2fefff50109e1b1a = L.polyline(
+            var poly_line_f3d6bc628296df3d40eb0c9d4fa0e696 = L.polyline(
                 [[39.66568374633789, -105.08139038085938], [39.6677360534668, -105.08140563964844], [39.6677360534668, -105.07869720458984], [39.66777420043945, -105.07354736328125], [39.6668815612793, -105.07353210449219], [39.66482162475586, -105.07266998291016], [39.664669036865234, -105.07173156738281], [39.66452407836914, -105.0707778930664], [39.66436004638672, -105.06983184814453], [39.66421890258789, -105.06890869140625], [39.664180755615234, -105.06729888916016], [39.66508865356445, -105.06524658203125], [39.667762756347656, -105.06513214111328], [39.667762756347656, -105.06404876708984], [39.667762756347656, -105.06297302246094], [39.66777420043945, -105.06085968017578], [39.66777420043945, -105.06013488769531], [39.66777420043945, -105.06005096435547], [39.667781829833984, -105.05903625488281], [39.667781829833984, -105.05797576904297], [39.66777801513672, -105.05694580078125], [39.667781829833984, -105.055908203125], [39.66778564453125, -105.05487060546875], [39.667781829833984, -105.05392456054688], [39.667781829833984, -105.05325317382812], [39.66777038574219, -105.05178833007812], [39.66777038574219, -105.05079650878906], [39.66775894165039, -105.04981231689453], [39.667762756347656, -105.048828125], [39.667762756347656, -105.0478286743164], [39.667762756347656, -105.04683685302734], [39.66775894165039, -105.04656982421875], [39.66775894165039, -105.04583740234375], [39.66775894165039, -105.04553985595703], [39.66775131225586, -105.04484558105469], [39.66775131225586, -105.0438461303711], [39.66774368286133, -105.04286193847656], [39.667724609375, -105.041748046875], [39.667720794677734, -105.04067993164062], [39.6677131652832, -105.03968048095703], [39.66770935058594, -105.0386962890625], [39.66770553588867, -105.03777313232422], [39.66769790649414, -105.0368423461914], [39.66769027709961, -105.03593444824219], [39.667686462402344, -105.03497314453125], [39.66769027709961, -105.03382873535156], [39.66769790649414, -105.03285217285156], [39.66769790649414, -105.0318832397461], [39.66769790649414, -105.0309066772461], [39.66770935058594, -105.02987670898438], [39.66771697998047, -105.02886199951172], [39.667720794677734, -105.02796173095703], [39.66773223876953, -105.02699279785156], [39.667724609375, -105.02607727050781], [39.6677131652832, -105.02510833740234], [39.66855239868164, -105.02509307861328], [39.6701545715332, -105.02509307861328], [39.67064666748047, -105.02501678466797], [39.67182159423828, -105.02501678466797], [39.672733306884766, -105.02501678466797], [39.67340850830078, -105.02501678466797], [39.675010681152344, -105.02500915527344], [39.67530059814453, -105.02500915527344], [39.6767692565918, -105.02500915527344], [39.67864990234375, -105.02497863769531], [39.67864990234375, -105.02381134033203], [39.678653717041016, -105.02323913574219], [39.678653717041016, -105.02275848388672], [39.67865753173828, -105.02210235595703], [39.67866897583008, -105.02037811279297], [39.67867660522461, -105.01802825927734], [39.67868423461914, -105.01569366455078], [39.67866897583008, -105.01337432861328], [39.67864990234375, -105.01102447509766], [39.678627014160156, -105.0086669921875], [39.678585052490234, -105.00640106201172], [39.678565979003906, -105.00524139404297], [39.678558349609375, -105.00411224365234], [39.67854309082031, -105.00288391113281], [39.67852783203125, -105.00177764892578], [39.67851638793945, -105.00064086914062], [39.67850112915039, -104.99947357177734], [39.67848587036133, -104.99851989746094], [39.678470611572266, -104.9975357055664], [39.67845916748047, -104.99715423583984], [39.678436279296875, -104.9959945678711], [39.67841339111328, -104.9941635131836], [39.67841339111328, -104.99386596679688], [39.67841339111328, -104.99348449707031], [39.67841339111328, -104.99308776855469], [39.67841339111328, -104.99292755126953], [39.678436279296875, -104.98995971679688], [39.678401947021484, -104.98880004882812], [39.678497314453125, -104.9876708984375], [39.67850112915039, -104.98750305175781], [39.67853546142578, -104.98635864257812], [39.678550720214844, -104.98521423339844], [39.67851638793945, -104.98404693603516], [39.67851257324219, -104.98287200927734], [39.67852020263672, -104.98167419433594], [39.67856216430664, -104.98048400878906], [39.678550720214844, -104.97933959960938], [39.678531646728516, -104.97813415527344], [39.67852783203125, -104.97692108154297], [39.67852020263672, -104.97575378417969], [39.67852020263672, -104.974609375], [39.67851257324219, -104.97344207763672], [39.67850112915039, -104.9722671508789], [39.67849349975586, -104.97109985351562], [39.67848205566406, -104.96992492675781], [39.67847442626953, -104.96875], [39.67847442626953, -104.96757507324219], [39.67847442626953, -104.96699523925781], [39.67843246459961, -104.96640014648438], [39.67842483520508, -104.96524047851562], [39.678436279296875, -104.95938110351562], [39.67662048339844, -104.95941162109375], [39.67484664916992, -104.95941925048828], [39.67354965209961, -104.95941162109375], [39.673030853271484, -104.95939636230469], [39.67122268676758, -104.95939636230469], [39.669410705566406, -104.95940399169922], [39.6676025390625, -104.95939636230469], [39.66603088378906, -104.95941162109375], [39.66393280029297, -104.95943450927734], [39.663055419921875, -104.95944213867188], [39.66191482543945, -104.95945739746094], [39.66034698486328, -104.95946502685547], [39.659568786621094, -104.95946502685547], [39.65707015991211, -104.95945739746094], [39.65707015991211, -104.95846557617188], [39.65707015991211, -104.95752716064453], [39.657066345214844, -104.95580291748047], [39.657066345214844, -104.95423126220703], [39.65705490112305, -104.95330810546875], [39.65705490112305, -104.952392578125], [39.65705108642578, -104.95204162597656], [39.65630340576172, -104.95204162597656]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#eff821&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#eff821&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            poly_line_54fa38b86b05d51e2fefff50109e1b1a.bindTooltip(
+            poly_line_f3d6bc628296df3d40eb0c9d4fa0e696.bindTooltip(
                 `&lt;div&gt;
-                     0.38078888650735065
+                     0.3807703861181133
                  &lt;/div&gt;`,
                 {
   &quot;sticky&quot;: true,
@@ -2506,14 +2507,14 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            var marker_6e486ebc1c330958f899584f4ccc90d2 = L.marker(
+            var marker_98d19d765afb987c434b4751ee43d81a = L.marker(
                 [39.66568374633789, -105.08139038085938],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_1fc789522f5961b38f08eae8f0e08182 = L.AwesomeMarkers.icon(
+            var icon_ad6c3109bb36fde941070bcd2e20c1fa = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2524,7 +2525,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_6e486ebc1c330958f899584f4ccc90d2.bindTooltip(
+            marker_98d19d765afb987c434b4751ee43d81a.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -2534,17 +2535,17 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_6e486ebc1c330958f899584f4ccc90d2.setIcon(icon_1fc789522f5961b38f08eae8f0e08182);
+                marker_98d19d765afb987c434b4751ee43d81a.setIcon(icon_ad6c3109bb36fde941070bcd2e20c1fa);
             
     
-            var marker_1422b7576f8a1a2335586f72a4e3379b = L.marker(
+            var marker_72ef11e79cade4d7ff8c1567a3bc24e5 = L.marker(
                 [39.65630340576172, -104.95204162597656],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_caefeba463cf3e2a54b183893652daa6 = L.AwesomeMarkers.icon(
+            var icon_edf9d025e8745485252805457fc6c952 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2555,7 +2556,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_1422b7576f8a1a2335586f72a4e3379b.bindTooltip(
+            marker_72ef11e79cade4d7ff8c1567a3bc24e5.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -2565,18 +2566,18 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_1422b7576f8a1a2335586f72a4e3379b.setIcon(icon_caefeba463cf3e2a54b183893652daa6);
+                marker_72ef11e79cade4d7ff8c1567a3bc24e5.setIcon(icon_edf9d025e8745485252805457fc6c952);
             
     
-            var poly_line_37df934eed717a2417fc779ffb94034e = L.polyline(
+            var poly_line_3ef0f30e0123ebd36f4b6160acb62075 = L.polyline(
                 [[39.66568374633789, -105.08139038085938], [39.6677360534668, -105.08140563964844], [39.6677360534668, -105.07869720458984], [39.66777420043945, -105.07354736328125], [39.6668815612793, -105.07353210449219], [39.66482162475586, -105.07266998291016], [39.664669036865234, -105.07173156738281], [39.66452407836914, -105.0707778930664], [39.66436004638672, -105.06983184814453], [39.66421890258789, -105.06890869140625], [39.664180755615234, -105.06729888916016], [39.66508865356445, -105.06524658203125], [39.667762756347656, -105.06513214111328], [39.667762756347656, -105.06404876708984], [39.667762756347656, -105.06297302246094], [39.66777420043945, -105.06085968017578], [39.66777420043945, -105.06013488769531], [39.66777420043945, -105.06005096435547], [39.667781829833984, -105.05903625488281], [39.667781829833984, -105.05797576904297], [39.66777801513672, -105.05694580078125], [39.667781829833984, -105.055908203125], [39.66778564453125, -105.05487060546875], [39.667781829833984, -105.05392456054688], [39.667781829833984, -105.05325317382812], [39.66777038574219, -105.05178833007812], [39.66777038574219, -105.05079650878906], [39.66775894165039, -105.04981231689453], [39.667762756347656, -105.048828125], [39.667762756347656, -105.0478286743164], [39.667762756347656, -105.04683685302734], [39.66775894165039, -105.04656982421875], [39.66775894165039, -105.04583740234375], [39.66775894165039, -105.04553985595703], [39.66775131225586, -105.04484558105469], [39.66775131225586, -105.0438461303711], [39.66774368286133, -105.04286193847656], [39.667724609375, -105.041748046875], [39.667720794677734, -105.04067993164062], [39.6677131652832, -105.03968048095703], [39.66770935058594, -105.0386962890625], [39.66770553588867, -105.03777313232422], [39.66769790649414, -105.0368423461914], [39.66769027709961, -105.03593444824219], [39.667686462402344, -105.03497314453125], [39.66769027709961, -105.03382873535156], [39.66769790649414, -105.03285217285156], [39.66769790649414, -105.0318832397461], [39.66769790649414, -105.0309066772461], [39.66770935058594, -105.02987670898438], [39.66771697998047, -105.02886199951172], [39.667720794677734, -105.02796173095703], [39.66773223876953, -105.02699279785156], [39.667724609375, -105.02607727050781], [39.6677131652832, -105.02510833740234], [39.66855239868164, -105.02509307861328], [39.6701545715332, -105.02509307861328], [39.67064666748047, -105.02501678466797], [39.67182159423828, -105.02501678466797], [39.672733306884766, -105.02501678466797], [39.67340850830078, -105.02501678466797], [39.675010681152344, -105.02500915527344], [39.67530059814453, -105.02500915527344], [39.6767692565918, -105.02500915527344], [39.67864990234375, -105.02497863769531], [39.67864990234375, -105.02381134033203], [39.678653717041016, -105.02323913574219], [39.678653717041016, -105.02275848388672], [39.67865753173828, -105.02210235595703], [39.67866897583008, -105.02037811279297], [39.67867660522461, -105.01802825927734], [39.67868423461914, -105.01569366455078], [39.67866897583008, -105.01337432861328], [39.67864990234375, -105.01102447509766], [39.678627014160156, -105.0086669921875], [39.678585052490234, -105.00640106201172], [39.678565979003906, -105.00524139404297], [39.678558349609375, -105.00411224365234], [39.67854309082031, -105.00288391113281], [39.67852783203125, -105.00177764892578], [39.67851638793945, -105.00064086914062], [39.67850112915039, -104.99947357177734], [39.67848587036133, -104.99851989746094], [39.678470611572266, -104.9975357055664], [39.67845916748047, -104.99715423583984], [39.678436279296875, -104.9959945678711], [39.67841339111328, -104.9941635131836], [39.67841339111328, -104.99386596679688], [39.67841339111328, -104.99348449707031], [39.67841339111328, -104.99308776855469], [39.67841339111328, -104.99292755126953], [39.678436279296875, -104.98995971679688], [39.678401947021484, -104.98880004882812], [39.678497314453125, -104.9876708984375], [39.67850112915039, -104.98750305175781], [39.67853546142578, -104.98635864257812], [39.678550720214844, -104.98521423339844], [39.67851638793945, -104.98404693603516], [39.67851257324219, -104.98287200927734], [39.67852020263672, -104.98167419433594], [39.67856216430664, -104.98048400878906], [39.678550720214844, -104.97933959960938], [39.678531646728516, -104.97813415527344], [39.67852783203125, -104.97692108154297], [39.67852020263672, -104.97575378417969], [39.67852020263672, -104.974609375], [39.67851257324219, -104.97344207763672], [39.67850112915039, -104.9722671508789], [39.67849349975586, -104.97109985351562], [39.67848205566406, -104.96992492675781], [39.67847442626953, -104.96875], [39.67847442626953, -104.96757507324219], [39.67847442626953, -104.96699523925781], [39.67843246459961, -104.96640014648438], [39.67842483520508, -104.96524047851562], [39.678436279296875, -104.95938110351562], [39.67662048339844, -104.95941162109375], [39.67484664916992, -104.95941925048828], [39.67354965209961, -104.95941162109375], [39.673030853271484, -104.95939636230469], [39.67122268676758, -104.95939636230469], [39.669410705566406, -104.95940399169922], [39.6676025390625, -104.95939636230469], [39.66603088378906, -104.95941162109375], [39.66393280029297, -104.95943450927734], [39.663055419921875, -104.95944213867188], [39.66191482543945, -104.95945739746094], [39.66034698486328, -104.95946502685547], [39.659568786621094, -104.95946502685547], [39.65707015991211, -104.95945739746094], [39.65707015991211, -104.95846557617188], [39.65707015991211, -104.95752716064453], [39.657066345214844, -104.95580291748047], [39.657066345214844, -104.95423126220703], [39.65705490112305, -104.95330810546875], [39.65705490112305, -104.952392578125], [39.65705108642578, -104.95204162597656], [39.65630340576172, -104.95204162597656]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#eff821&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#eff821&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            poly_line_37df934eed717a2417fc779ffb94034e.bindTooltip(
+            poly_line_3ef0f30e0123ebd36f4b6160acb62075.bindTooltip(
                 `&lt;div&gt;
-                     0.38078888650735065
+                     0.3807703861181133
                  &lt;/div&gt;`,
                 {
   &quot;sticky&quot;: true,
@@ -2584,14 +2585,14 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            var marker_6c245c5b1213c77b64872434f9e20cb7 = L.marker(
+            var marker_67e5ac00d28e8fc5f29658a4513e4053 = L.marker(
                 [39.66568374633789, -105.08139038085938],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_74b9daef2bc67c02c21330f4a51d92a9 = L.AwesomeMarkers.icon(
+            var icon_3c4b356a727d9687cf7f23d236f7f36d = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2602,7 +2603,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_6c245c5b1213c77b64872434f9e20cb7.bindTooltip(
+            marker_67e5ac00d28e8fc5f29658a4513e4053.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -2612,17 +2613,17 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_6c245c5b1213c77b64872434f9e20cb7.setIcon(icon_74b9daef2bc67c02c21330f4a51d92a9);
+                marker_67e5ac00d28e8fc5f29658a4513e4053.setIcon(icon_3c4b356a727d9687cf7f23d236f7f36d);
             
     
-            var marker_47a4dde96424f40cacade805a42a43ac = L.marker(
+            var marker_0910056a5e3bf95d5c9b203638776ba9 = L.marker(
                 [39.65630340576172, -104.95204162597656],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_0a62b29cab02c46411cec05937a4c360 = L.AwesomeMarkers.icon(
+            var icon_84770e6ffb77a05733e18f4d698bcb1d = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2633,7 +2634,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_47a4dde96424f40cacade805a42a43ac.bindTooltip(
+            marker_0910056a5e3bf95d5c9b203638776ba9.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -2643,18 +2644,18 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_47a4dde96424f40cacade805a42a43ac.setIcon(icon_0a62b29cab02c46411cec05937a4c360);
+                marker_0910056a5e3bf95d5c9b203638776ba9.setIcon(icon_84770e6ffb77a05733e18f4d698bcb1d);
             
     
-            var poly_line_a803c0040963d78fce141b26a922cb59 = L.polyline(
+            var poly_line_cc5bb4b2de9ad5d3773632ac303eaac4 = L.polyline(
                 [[39.66568374633789, -105.08139038085938], [39.6677360534668, -105.08140563964844], [39.6677360534668, -105.07869720458984], [39.66777420043945, -105.07354736328125], [39.6668815612793, -105.07353210449219], [39.66482162475586, -105.07266998291016], [39.664669036865234, -105.07173156738281], [39.66452407836914, -105.0707778930664], [39.66436004638672, -105.06983184814453], [39.66421890258789, -105.06890869140625], [39.664180755615234, -105.06729888916016], [39.66498565673828, -105.0672836303711], [39.667762756347656, -105.06619262695312], [39.667762756347656, -105.06513214111328], [39.667762756347656, -105.06404876708984], [39.667762756347656, -105.06297302246094], [39.66777420043945, -105.06085968017578], [39.66777420043945, -105.06013488769531], [39.66777420043945, -105.06005096435547], [39.667781829833984, -105.05903625488281], [39.667781829833984, -105.05797576904297], [39.66777801513672, -105.05694580078125], [39.667781829833984, -105.055908203125], [39.66778564453125, -105.05487060546875], [39.667781829833984, -105.05392456054688], [39.667781829833984, -105.05325317382812], [39.66777038574219, -105.05178833007812], [39.66777038574219, -105.05079650878906], [39.66775894165039, -105.04981231689453], [39.667762756347656, -105.048828125], [39.667762756347656, -105.0478286743164], [39.667762756347656, -105.04683685302734], [39.66775894165039, -105.04656982421875], [39.66775894165039, -105.04583740234375], [39.66775894165039, -105.04553985595703], [39.66775131225586, -105.04484558105469], [39.66775131225586, -105.0438461303711], [39.66774368286133, -105.04286193847656], [39.667724609375, -105.041748046875], [39.667720794677734, -105.04067993164062], [39.6677131652832, -105.03968048095703], [39.66770935058594, -105.0386962890625], [39.66770553588867, -105.03777313232422], [39.66769790649414, -105.0368423461914], [39.66769027709961, -105.03593444824219], [39.667686462402344, -105.03497314453125], [39.66769027709961, -105.03382873535156], [39.66769790649414, -105.03285217285156], [39.66769790649414, -105.0318832397461], [39.66769790649414, -105.0309066772461], [39.66770935058594, -105.02987670898438], [39.66771697998047, -105.02886199951172], [39.667720794677734, -105.02796173095703], [39.66773223876953, -105.02699279785156], [39.667724609375, -105.02607727050781], [39.6677131652832, -105.02510833740234], [39.66855239868164, -105.02509307861328], [39.6701545715332, -105.02509307861328], [39.67064666748047, -105.02501678466797], [39.67182159423828, -105.02501678466797], [39.672733306884766, -105.02501678466797], [39.67340850830078, -105.02501678466797], [39.675010681152344, -105.02500915527344], [39.67530059814453, -105.02500915527344], [39.6767692565918, -105.02500915527344], [39.67864990234375, -105.02497863769531], [39.67864990234375, -105.02381134033203], [39.678653717041016, -105.02323913574219], [39.678653717041016, -105.02275848388672], [39.67865753173828, -105.02210235595703], [39.67866897583008, -105.02037811279297], [39.67867660522461, -105.01802825927734], [39.67868423461914, -105.01569366455078], [39.67866897583008, -105.01337432861328], [39.67864990234375, -105.01102447509766], [39.678627014160156, -105.0086669921875], [39.678585052490234, -105.00640106201172], [39.678565979003906, -105.00524139404297], [39.678558349609375, -105.00411224365234], [39.67854309082031, -105.00288391113281], [39.67852783203125, -105.00177764892578], [39.67851638793945, -105.00064086914062], [39.67850112915039, -104.99947357177734], [39.67848587036133, -104.99851989746094], [39.678470611572266, -104.9975357055664], [39.67845916748047, -104.99715423583984], [39.678436279296875, -104.9959945678711], [39.67841339111328, -104.9941635131836], [39.67841339111328, -104.99386596679688], [39.67841339111328, -104.99348449707031], [39.67841339111328, -104.99308776855469], [39.67841339111328, -104.99292755126953], [39.678436279296875, -104.98995971679688], [39.678401947021484, -104.98880004882812], [39.678497314453125, -104.9876708984375], [39.67850112915039, -104.98750305175781], [39.67853546142578, -104.98635864257812], [39.678550720214844, -104.98521423339844], [39.67851638793945, -104.98404693603516], [39.67851257324219, -104.98287200927734], [39.67852020263672, -104.98167419433594], [39.67856216430664, -104.98048400878906], [39.678550720214844, -104.97933959960938], [39.678531646728516, -104.97813415527344], [39.67852783203125, -104.97692108154297], [39.67852020263672, -104.97575378417969], [39.67852020263672, -104.974609375], [39.67851257324219, -104.97344207763672], [39.67850112915039, -104.9722671508789], [39.67849349975586, -104.97109985351562], [39.67848205566406, -104.96992492675781], [39.67847442626953, -104.96875], [39.67847442626953, -104.96757507324219], [39.67847442626953, -104.96699523925781], [39.67843246459961, -104.96640014648438], [39.67842483520508, -104.96524047851562], [39.678436279296875, -104.95938110351562], [39.67662048339844, -104.95941162109375], [39.67484664916992, -104.95941925048828], [39.67354965209961, -104.95941162109375], [39.673030853271484, -104.95939636230469], [39.67122268676758, -104.95939636230469], [39.669410705566406, -104.95940399169922], [39.6676025390625, -104.95939636230469], [39.66603088378906, -104.95941162109375], [39.66393280029297, -104.95943450927734], [39.663055419921875, -104.95944213867188], [39.66191482543945, -104.95945739746094], [39.66034698486328, -104.95946502685547], [39.659568786621094, -104.95946502685547], [39.65707015991211, -104.95945739746094], [39.65707015991211, -104.95846557617188], [39.65707015991211, -104.95752716064453], [39.657066345214844, -104.95580291748047], [39.657066345214844, -104.95423126220703], [39.65705490112305, -104.95330810546875], [39.65705490112305, -104.952392578125], [39.65705108642578, -104.95204162597656], [39.65630340576172, -104.95204162597656]],
                 {&quot;bubblingMouseEvents&quot;: true, &quot;color&quot;: &quot;#0c0786&quot;, &quot;dashArray&quot;: null, &quot;dashOffset&quot;: null, &quot;fill&quot;: false, &quot;fillColor&quot;: &quot;#0c0786&quot;, &quot;fillOpacity&quot;: 0.2, &quot;fillRule&quot;: &quot;evenodd&quot;, &quot;lineCap&quot;: &quot;round&quot;, &quot;lineJoin&quot;: &quot;round&quot;, &quot;noClip&quot;: false, &quot;opacity&quot;: 0.8, &quot;smoothFactor&quot;: 1.0, &quot;stroke&quot;: true, &quot;weight&quot;: 10}
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            poly_line_a803c0040963d78fce141b26a922cb59.bindTooltip(
+            poly_line_cc5bb4b2de9ad5d3773632ac303eaac4.bindTooltip(
                 `&lt;div&gt;
-                     0.38049644956973416
+                     0.3804777127921349
                  &lt;/div&gt;`,
                 {
   &quot;sticky&quot;: true,
@@ -2662,14 +2663,14 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            var marker_8ed1ed455a196887f7d8b3481b181ecb = L.marker(
+            var marker_317e3535182fac7351fd51033da8c63b = L.marker(
                 [39.66568374633789, -105.08139038085938],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_46d752ad4fc6931a6ba2832f87654b9f = L.AwesomeMarkers.icon(
+            var icon_6a844fbd498a798196142fb34ed6271a = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;green&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2680,7 +2681,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_8ed1ed455a196887f7d8b3481b181ecb.bindTooltip(
+            marker_317e3535182fac7351fd51033da8c63b.bindTooltip(
                 `&lt;div&gt;
                      Origin
                  &lt;/div&gt;`,
@@ -2690,17 +2691,17 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_8ed1ed455a196887f7d8b3481b181ecb.setIcon(icon_46d752ad4fc6931a6ba2832f87654b9f);
+                marker_317e3535182fac7351fd51033da8c63b.setIcon(icon_6a844fbd498a798196142fb34ed6271a);
             
     
-            var marker_66445079e007f4006e3c92eb98f13680 = L.marker(
+            var marker_ff067ef8e602ed7209107f34548a430b = L.marker(
                 [39.65630340576172, -104.95204162597656],
                 {
 }
-            ).addTo(map_b7a588815a6ca97607346036b0b20d1a);
+            ).addTo(map_77b2f70ee4820fe97f3df07db5bb3e9f);
         
     
-            var icon_01ee3f8f8bb5adcc1f0d3b3f73281ebb = L.AwesomeMarkers.icon(
+            var icon_a68eda9bbf952efc289f14feb3e6a7a5 = L.AwesomeMarkers.icon(
                 {
   &quot;markerColor&quot;: &quot;red&quot;,
   &quot;iconColor&quot;: &quot;white&quot;,
@@ -2711,7 +2712,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-            marker_66445079e007f4006e3c92eb98f13680.bindTooltip(
+            marker_ff067ef8e602ed7209107f34548a430b.bindTooltip(
                 `&lt;div&gt;
                      Destination
                  &lt;/div&gt;`,
@@ -2721,7 +2722,7 @@ search: 100%|██████████| 3/3 [00:00&lt;00:00, 14.83it/s]
             );
         
     
-                marker_66445079e007f4006e3c92eb98f13680.setIcon(icon_01ee3f8f8bb5adcc1f0d3b3f73281ebb);
+                marker_ff067ef8e602ed7209107f34548a430b.setIcon(icon_a68eda9bbf952efc289f14feb3e6a7a5);
             
 &lt;/script&gt;
 &lt;/html&gt;" style="position:absolute;width:100%;height:100%;left:0;top:0;border:none !important;" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div></div></div></div>

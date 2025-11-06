@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1761685112537,
+  "lastUpdate": 1762468338799,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -1229,6 +1229,186 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2987634,
             "range": "± 307660",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c480de6362a4fe36774f9e09a6ac8f1f4faeebcc",
+          "message": "Merge pull request #408 from NREL/v0.15.0\n\nbump version to 0.15.0",
+          "timestamp": "2025-10-28T16:15:59-06:00",
+          "tree_id": "433576ba32e2be0292342a65fc062ea04f98f7a7",
+          "url": "https://github.com/NREL/routee-compass/commit/c480de6362a4fe36774f9e09a6ac8f1f4faeebcc"
+        },
+        "date": 1761689886090,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2945719,
+            "range": "± 404338",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9a9eed944875538b96c9f30ec6c1a7589682b5b3",
+          "message": "Merge pull request #409 from NREL/robfitzgerald-patch-1\n\nnormalize python project name for pypi",
+          "timestamp": "2025-10-29T11:02:31-06:00",
+          "tree_id": "1f39f0f278f437c039d764c7fe140484a3dbc9a2",
+          "url": "https://github.com/NREL/routee-compass/commit/9a9eed944875538b96c9f30ec6c1a7589682b5b3"
+        },
+        "date": 1761757607092,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2986759,
+            "range": "± 274874",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0bad33170e67ea40ea48079521f5548a39608e4a",
+          "message": "Merge pull request #411 from NREL/release/0.15.1\n\nRelease/0.15.1",
+          "timestamp": "2025-10-29T12:26:43-06:00",
+          "tree_id": "5d70ebdf3494efb4c432fe272742b27b66515d81",
+          "url": "https://github.com/NREL/routee-compass/commit/0bad33170e67ea40ea48079521f5548a39608e4a"
+        },
+        "date": 1761762544996,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2990241,
+            "range": "± 232689",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6a0c2a528d5472763dfe48894d4d62cca1a7bde5",
+          "message": "Merge pull request #413 from NREL/rjf/412-newline-with-no-chunksize\n\nallow newline json without chunksize",
+          "timestamp": "2025-11-03T09:59:41-07:00",
+          "tree_id": "03063fa61c7bb459a0477123177d4ddeacc3b8a0",
+          "url": "https://github.com/NREL/routee-compass/commit/6a0c2a528d5472763dfe48894d4d62cca1a7bde5"
+        },
+        "date": 1762189415728,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2971827,
+            "range": "± 181460",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "51354b68e6f5a0062713896cf1ffa4d12470c77b",
+          "message": "Merge pull request #416 from NREL/rjf/one-header-per-file\n\nRjf/one header per file",
+          "timestamp": "2025-11-05T19:37:27-07:00",
+          "tree_id": "0fca1a6be34247b166d6be95336b6b585a931f2d",
+          "url": "https://github.com/NREL/routee-compass/commit/51354b68e6f5a0062713896cf1ffa4d12470c77b"
+        },
+        "date": 1762396776967,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2959206,
+            "range": "± 135150",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d82c319e8cd4adad15382c3deb3eb54c7252fd06",
+          "message": "Merge pull request #415 from NREL/rjf/termination-without-failure\n\nRjf/termination without failure",
+          "timestamp": "2025-11-06T15:30:06-07:00",
+          "tree_id": "e7e8d9c6f32c0eaf701d95d32ec2c38815d94319",
+          "url": "https://github.com/NREL/routee-compass/commit/d82c319e8cd4adad15382c3deb3eb54c7252fd06"
+        },
+        "date": 1762468337923,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 3000320,
+            "range": "± 100384",
             "unit": "ns/iter"
           }
         ]

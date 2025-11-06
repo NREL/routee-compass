@@ -400,6 +400,14 @@ document.write(`
             </div>
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#search-algorithm">Search Algorithm</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#single-sourced-shortest-path-sssp">Single-Sourced Shortest Path (SSSP)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#k-shortest-paths-ksp">K-Shortest Paths (KSP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#ksp-parameters">KSP Parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mapping-model">Mapping Model</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal-models">Traversal Models</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distance">Distance</a></li>
@@ -420,6 +428,11 @@ document.write(`
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system">System</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parallelism">Parallelism</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -438,7 +451,13 @@ The configuration file specifies things like &quot;Which traversal model should 
 <p>If you follow the <a class="reference internal" href="examples/01_open_street_maps_example.html"><span class="doc std std-doc">open street maps example</span></a>, the code will produce a few configuration files in the <code class="docutils literal notranslate"><span class="pre">golden_co/</span></code> folder. Let's take a look at the <code class="docutils literal notranslate"><span class="pre">osm_default_energy.toml</span></code> file.
 We added some annotations to describe the different sections:</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># how many threads should a CompassApp use to process queries?</span>
+<span class="k">[system]</span>
 <span class="n">parallelism</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+
+<span class="k">[algorithm]</span>
+<span class="c1"># classic best-first search algorithm, will use cost estimates to guide the search</span>
+<span class="c1"># toward a path destination.</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;a*&quot;</span>
 
 <span class="c1"># the parameters for the underlying road network graph</span>
 <span class="k">[graph]</span>
@@ -598,6 +617,79 @@ We added some annotations to describe the different sections:</p>
 <span class="p">]</span>
 </pre></div>
 </div>
+<section id="search-algorithm">
+<h2>Search Algorithm<a class="headerlink" href="#search-algorithm" title="Link to this heading">#</a></h2>
+<p>The search algorithm used. The default is A*. Dijkstra's is also available. K-shortest path algorithms
+exist as meta-algorithms, namely Yen's and Single-Via Paths.</p>
+<section id="single-sourced-shortest-path-sssp">
+<h3>Single-Sourced Shortest Path (SSSP)<a class="headerlink" href="#single-sourced-shortest-path-sssp" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>Dijkstra's Algorithm: see <em>Cormen, Thomas H., et al. Introduction to algorithms. MIT press, 2022.</em></p></li>
+<li><p>A* Algorithm: see Wikipedia entry <a class="reference external" href="https://en.wikipedia.org/wiki/A*_search_algorithm">A* Search Algorithm</a></p></li>
+</ul>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[algorithm]</span>
+<span class="c1"># classic best-first search algorithm, will use cost estimates to guide the search</span>
+<span class="c1"># toward a path destination.</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;a*&quot;</span>
+
+<span class="c1"># # default behavior on search termination is &quot;allow_tree_termination&quot; which supports</span>
+<span class="c1"># # reachability searches. if you do not want to allow partial search results, you</span>
+<span class="c1"># # can choose &quot;all_terminations_fail&quot;.</span>
+<span class="c1"># termination_behavior = &quot;all_terminations_fail&quot;</span>
+</pre></div>
+</div>
+<p>To skip cost estimates and use a simple breadth-first search, choose &quot;Dijkstra's&quot;:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[algorithm]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;dijkstras&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="k-shortest-paths-ksp">
+<h3>K-Shortest Paths (KSP)<a class="headerlink" href="#k-shortest-paths-ksp" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p>SVP: documented in Häcker, Christian, et al. &quot;Most diverse near-shortest paths.&quot; Proceedings of the 29th International Conference on Advances in Geographic Information Systems. 2021.</p></li>
+<li><p>Yen's: see Wikipedia <a class="reference external" href="https://en.wikipedia.org/wiki/Yen%27s_algorithm">Yen's Algorithm</a></p></li>
+</ul>
+<p>To configure either ksp algorithm, you must set some additional parameters as well as
+choose the underlying search algorithm (a* or Dijkstra's):</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># # classic k-shortest paths algorithm</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;yens&quot;</span>
+<span class="c1"># type = &quot;svp&quot;</span>
+<span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span>
+<span class="n">similarity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;distance_weighted_cosine_similarity&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">threshold</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span><span class="p">}</span>
+<span class="n">termination</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;max_iteration&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">max</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="p">}</span>
+<span class="k">[algorithm.underlying]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;a*&quot;</span>
+</pre></div>
+</div>
+<section id="ksp-parameters">
+<h4>KSP Parameters<a class="headerlink" href="#ksp-parameters" title="Link to this heading">#</a></h4>
+<p><em>k</em> is the target number of path alternatives in the result. It is possible for
+less than <em>k</em> to be returned, and this depends on the network and other KSP parameters.</p>
+<p>Similarity function is optional and filters path alternatives by their similarity
+to the working solution set. In this example, both similarity functions will dismiss
+paths that are greater than 10% similar.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># cheaper computation</span>
+<span class="n">similarity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;edge_id_cosine_similarity&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">threshold</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span><span class="p">}</span>
+<span class="c1"># slightly more expensive but more correct</span>
+<span class="n">similarity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;distance_weighted_cosine_similarity&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">threshold</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mf">0.1</span><span class="w"> </span><span class="p">}</span>
+
+<span class="n">KSP</span><span class="w"> </span><span class="n">termination</span><span class="w"> </span><span class="n">criteria</span><span class="w"> </span><span class="n">determines</span><span class="w"> </span><span class="n">how</span><span class="w"> </span><span class="n">long</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">run</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">meta-search</span><span class="p">.</span><span class="w"> </span><span class="n">Given</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">a</span><span class="w"> </span>
+<span class="n">similarity</span><span class="w"> </span><span class="n">function</span><span class="w"> </span><span class="n">might</span><span class="w"> </span><span class="n">dismiss</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">candidate</span><span class="w"> </span><span class="n">path</span><span class="err">,</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="n">may</span><span class="w"> </span><span class="n">require</span><span class="w"> </span><span class="n">running</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">KSP</span>
+<span class="n">algorithm</span><span class="w"> </span><span class="n">for</span><span class="w"> </span><span class="n">many</span><span class="w"> </span><span class="n">more</span><span class="w"> </span><span class="n">iterations</span><span class="w"> </span><span class="n">than</span><span class="w"> </span><span class="n">_k_</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">gather</span><span class="w"> </span><span class="n">_k_</span><span class="w"> </span><span class="n">alternatives</span><span class="p">.</span><span class="w"> </span>
+
+<span class="err">```</span><span class="n">toml</span>
+<span class="c1"># run it for k steps (default)</span>
+<span class="n">termination</span><span class="p">.</span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;exact&quot;</span>
+<span class="c1"># run it for up to max steps until k is reached. max should be &gt;= k.</span>
+<span class="n">termination</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;max_iteration&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">max</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="p">}</span>
+<span class="c1"># run it for up to (k*factor) steps until k is reached. useful if k varies between queries.</span>
+<span class="n">termination</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;factor&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">factor</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
 <section id="mapping-model">
 <h2>Mapping Model<a class="headerlink" href="#mapping-model" title="Link to this heading">#</a></h2>
 <p>The mapping model deals with geospatial mappings from the road network graph. This may be represented using the graph vertices and drawing lines between coordinates, or, by loading LineString geometries from a file.</p>
@@ -898,6 +990,119 @@ The <code class="docutils literal notranslate"><span class="pre">tree</span></co
 </ul>
 </section>
 </section>
+<section id="system">
+<h2>System<a class="headerlink" href="#system" title="Link to this heading">#</a></h2>
+<p>The system section declares application-level parameters.</p>
+<section id="parallelism">
+<h3>Parallelism<a class="headerlink" href="#parallelism" title="Link to this heading">#</a></h3>
+<p>Parallelism defines the number of threads to run searches on. Each thread grows a search tree or set of search trees in RAM. Each tree has a space complexity of <em>O(E * L)</em> for <em>E</em> graph edges and <em>L</em> vertex labels. The correct parallelism depends on your system CPU and RAM resources along with your study area.</p>
+<p>Parallelism is an optional argument.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[system]</span>
+<span class="c1"># default: 1</span>
+<span class="n">parallelism</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+</pre></div>
+</div>
+</section>
+<section id="outputs">
+<h3>Outputs<a class="headerlink" href="#outputs" title="Link to this heading">#</a></h3>
+<p>Compass can be configured to return results in memory or on disk using the <code class="docutils literal notranslate"><span class="pre">ResponsePersistencePolicy</span></code> and <code class="docutils literal notranslate"><span class="pre">ResponseOutputPolicy</span></code> respectively. These are both optional.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[system]</span>
+<span class="c1"># the default. used in most Python Compass executions to allow Compass to return JSON</span>
+<span class="c1"># result payloads into Python. Also supports Rust code integrations.</span>
+<span class="n">response_persistence_policy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;persist_response_in_memory&quot;</span>
+<span class="c1"># use on CLI runs of Compass to prevent memory leaks.</span>
+<span class="n">response_persistence_policy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;discard_response_from_memory&quot;</span>
+</pre></div>
+</div>
+<p>Output to JSON:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[system.response_output_policy]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;file&quot;</span>
+<span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;result.json&quot;</span>
+<span class="n">format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">newline_delimited</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+
+<span class="c1"># append to an existing file (default)</span>
+<span class="n">write_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;append&quot;</span>
+<span class="c1"># # overwrite an existing file. do not use when running Compass in &quot;chunking&quot; mode.</span>
+<span class="c1"># write_mode = &quot;overwrite&quot;</span>
+<span class="c1"># # throw an error if the file exists. do not use when running Compass in &quot;chunking&quot; mode.</span>
+<span class="c1"># write_mode = &quot;error&quot;</span>
+
+<span class="c1"># # optionally set the &quot;flush rate&quot; to force write operations at some interval</span>
+<span class="c1"># # here, for example, every 100 searches.</span>
+<span class="c1"># file_flush_rate = 100</span>
+</pre></div>
+</div>
+<p>Output to JSON in newline-delimited format:</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[system.response_output_policy]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;file&quot;</span>
+<span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;result.jsonl&quot;</span>
+<span class="n">format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">newline_delimited</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Output to CSV. This requires a mapping from JSON path to CSV column.</p>
+<p><em>note: when running Compass in &quot;chunking&quot; mode, always set sorted to <code class="docutils literal notranslate"><span class="pre">true</span></code> so that
+subsequent chunks always share the same CSV header ordering.</em></p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[system.response_output_policy]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;file&quot;</span>
+<span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;result.csv&quot;</span>
+<span class="k">[system.response_output_policy.format]</span>
+<span class="n">sorted</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="k">[system.response_output_policy.format.mapping]</span>
+<span class="n">olon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.origin_x&quot;</span>
+<span class="n">olat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.origin_y&quot;</span>
+<span class="n">dlon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.destination_x&quot;</span>
+<span class="n">dlat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.destination_y&quot;</span>
+<span class="n">runtime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;search_app_runtime&quot;</span>
+<span class="n">ram_mb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;search_result_size_mib&quot;</span>
+<span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">optional</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="n">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;route.traversal_summary.trip_time&quot;</span>
+<span class="n">total_cost</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;route.cost.total_cost&quot;</span>
+</pre></div>
+</div>
+<p>Multiple output files are supported. Here, the complete output as JSON is
+preserved, while a CSV contains a high-level summary. An additional file
+contains any errors.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[system.response_output_policy]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;combined&quot;</span>
+
+<span class="k">[[system.response_output_policy.policies]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;file&quot;</span>
+<span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;result.jsonl&quot;</span>
+<span class="n">format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;json&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">newline_delimited</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+
+<span class="k">[[system.response_output_policy.policies]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;file&quot;</span>
+<span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;summary.csv&quot;</span>
+<span class="k">[system.response_output_policy.policies.format]</span>
+<span class="n">sorted</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="k">[system.response_output_policy.policies.format.mapping]</span>
+<span class="n">olon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.origin_x&quot;</span>
+<span class="n">olat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.origin_y&quot;</span>
+<span class="n">dlon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.destination_x&quot;</span>
+<span class="n">dlat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.destination_y&quot;</span>
+<span class="n">runtime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;search_app_runtime&quot;</span>
+<span class="n">ram_mb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;search_result_size_mib&quot;</span>
+<span class="n">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;route.traversal_summary.trip_time&quot;</span>
+<span class="n">total_cost</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;route.cost.total_cost&quot;</span>
+<span class="c1"># add other relevant summary columns here</span>
+
+<span class="k">[[system.response_output_policy.policies]]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;file&quot;</span>
+<span class="n">filename</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;errors.csv&quot;</span>
+<span class="k">[system.response_output_policy.policies.format]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;csv&quot;</span>
+<span class="n">sorted</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="k">[system.response_output_policy.policies.format.mapping]</span>
+<span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.name&quot;</span><span class="w">  </span><span class="c1"># any keys on queries are available here</span>
+<span class="n">olon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.origin_x&quot;</span>
+<span class="n">olat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.origin_y&quot;</span>
+<span class="n">dlon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.destination_x&quot;</span>
+<span class="n">dlat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;request.destination_y&quot;</span>
+<span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">optional</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;error&quot;</span><span class="w"> </span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 
     <script type="text/x-thebe-config">
@@ -964,6 +1169,14 @@ The <code class="docutils literal notranslate"><span class="pre">tree</span></co
   </div>
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#search-algorithm">Search Algorithm</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#single-sourced-shortest-path-sssp">Single-Sourced Shortest Path (SSSP)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#k-shortest-paths-ksp">K-Shortest Paths (KSP)</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#ksp-parameters">KSP Parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mapping-model">Mapping Model</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal-models">Traversal Models</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#distance">Distance</a></li>
@@ -982,6 +1195,11 @@ The <code class="docutils literal notranslate"><span class="pre">tree</span></co
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#output-plugins">Output Plugins</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#traversal">Traversal</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#system">System</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#parallelism">Parallelism</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#outputs">Outputs</a></li>
 </ul>
 </li>
 </ul>
