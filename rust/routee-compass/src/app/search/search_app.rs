@@ -123,6 +123,7 @@ impl SearchApp {
             search_executed_time: search_start_time.to_rfc3339(),
             search_runtime,
             iterations: results.iterations,
+            terminated: results.terminated,
         };
 
         Ok((result, si))

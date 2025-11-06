@@ -1,7 +1,7 @@
-mod termination_model;
-mod termination_model_builder;
-mod termination_model_error;
+mod error;
+mod memory_unit;
+mod model;
 
-pub use termination_model::TerminationModel;
-pub use termination_model_builder::TerminationModelBuilder;
-pub use termination_model_error::TerminationModelError;
+pub use error::TerminationModelError;
+pub use memory_unit::MemoryUnit;
+pub use model::TerminationModel;

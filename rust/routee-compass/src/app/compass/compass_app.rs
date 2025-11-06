@@ -17,13 +17,12 @@ use chrono::Local;
 use itertools::Itertools;
 use kdam::{Bar, BarExt};
 use rayon::{current_num_threads, prelude::*};
-use routee_compass_core::algorithm::search::SearchInstance;
+use routee_compass_core::algorithm::search::{SearchAlgorithm, SearchInstance};
 use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::model::cost::cost_model_service::CostModelService;
 use routee_compass_core::model::map::MapModel;
 use routee_compass_core::model::network::Graph;
 use routee_compass_core::model::state::StateModel;
-use routee_compass_core::model::termination::TerminationModelBuilder;
 use routee_compass_core::util::duration_extension::DurationExtension;
 use serde_json::Value;
 use std::{
@@ -97,7 +96,7 @@ impl CompassApp {
         };
         let cost_model_service = CostModelService::try_from(&config.cost)?;
         let label_model_service = builder.build_label_model_service(&config.label)?;
-        let termination_model = TerminationModelBuilder::build(&config.termination, None)?;
+        log::info!("app termination model: {:?}", config.termination);
 
         // build selected components for search behaviors
         let traversal_model_services = with_timing("traversal models", || {
@@ -117,16 +116,18 @@ impl CompassApp {
             Ok(Arc::new(mm))
         })?;
 
+        let search_algorithm = SearchAlgorithm::from(&config.algorithm);
+
         // build search app
         let search_app = Arc::new(SearchApp::new(
-            config.algorithm.clone(),
+            search_algorithm,
             graph,
             map_model,
             state_model,
             traversal_model_services,
             frontier_model_services,
             cost_model_service,
-            termination_model,
+            config.termination.clone(),
             label_model_service,
             config.system.default_edge_list,
         ));

@@ -5,17 +5,18 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
+/// finds the similarity between two paths during a ksp algorithm.
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum RouteSimilarityFunction {
     #[default]
     AcceptAll,
-    EdgeIdCosineSimilarity {
-        threshold: f64,
-    },
-    DistanceWeightedCosineSimilarity {
-        threshold: f64,
-    },
+    /// each edge id match between paths is counted. a path is "similar" if
+    /// match count / total edges is greater than threshold.
+    EdgeIdCosineSimilarity { threshold: f64 },
+    /// weights each match count by the edge distance. a path is "similar" if
+    /// match distances / total distances is greater than threshold.
+    DistanceWeightedCosineSimilarity { threshold: f64 },
 }
 
 type DistanceFunction<'a> =

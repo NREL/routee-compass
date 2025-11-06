@@ -10,7 +10,6 @@ use crate::model::label::Label;
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
 use crate::model::state::StateVariable;
-use crate::model::unit::AsF64;
 use crate::model::unit::Cost;
 use crate::model::unit::ReverseCost;
 use crate::util::priority_queue::InternalPriorityQueue;
@@ -27,11 +26,11 @@ pub fn run_vertex_oriented(
     source: VertexId,
     target: Option<VertexId>,
     direction: &Direction,
-    weight_factor: Option<Cost>,
+    a_star: bool,
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     log::debug!(
-        "run_vertex_oriented: source: {source}, target: {target:?}, direction: {direction:?}"
+        "sssp::run_vertex_oriented: source: {source}, target: {target:?}, direction: {direction:?}, astar: {a_star}"
     );
     if target == Some(source) {
         return Ok(SearchResult::default());
@@ -48,14 +47,12 @@ pub fn run_vertex_oriented(
         .label_model
         .label_from_state(source, &initial_state, &si.state_model)?;
     traversal_costs.insert(inital_label.clone(), Cost::ZERO);
-    let origin_cost = match target {
-        None => Cost::ZERO,
-        Some(target) => {
+    let origin_cost = match (target, a_star) {
+        (Some(target), true) => {
             let cost_est = estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
-            Cost::new(
-                cost_est.objective_cost.as_f64() * weight_factor.unwrap_or(Cost::ONE).as_f64(),
-            )
+            cost_est.objective_cost
         }
+        _ => Cost::ZERO,
     };
     frontier.push(inital_label, origin_cost.into());
 
@@ -63,9 +60,13 @@ pub fn run_vertex_oriented(
     let mut iterations = 0;
 
     loop {
-        // terminate the search if a termination condition was met. returns an error.
-        si.termination_model
-            .test(&start_time, solution.len(), iterations)?;
+        // terminate the search if a termination condition was met.
+        if let Some(explanation) =
+            si.termination_model
+                .continue_or_explain(&start_time, &solution, iterations)
+        {
+            return Ok(SearchResult::terminated(solution, iterations, explanation));
+        }
 
         // grab the frontier assets, or break if there is nothing to pop
         let f = match FrontierInstance::pop_new(
@@ -117,10 +118,6 @@ pub fn run_vertex_oriented(
                 &si.state_model,
             )?;
 
-            // let current_gscore = traversal_costs
-            //     .get(&terminal_label)
-            //     .unwrap_or(&Cost::INFINITY)
-            //     .to_owned();
             let tentative_gscore = et.cost.objective_cost;
             let existing_gscore = traversal_costs
                 .get(&key_label)
@@ -131,22 +128,15 @@ pub fn run_vertex_oriented(
                 traversal_costs.insert(key_label.clone(), tentative_gscore);
                 solution.insert(terminal_label, et.clone(), key_label.clone())?;
 
-                let dst_h_cost = match target {
-                    None => Cost::ZERO,
-                    Some(target_v) => {
-                        let cost_est = estimate_traversal_cost(
-                            key_vertex_id,
-                            target_v,
-                            &f.prev_state,
-                            &solution,
-                            si,
-                        )?;
-                        Cost::new(
-                            cost_est.objective_cost.as_f64()
-                                * weight_factor.unwrap_or(Cost::ONE).as_f64(),
-                        )
+                let dst_h_cost = match (target, a_star) {
+                    (Some(target), true) => {
+                        let cost_est =
+                            estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
+                        cost_est.objective_cost
                     }
+                    _ => Cost::ZERO,
                 };
+
                 let f_score_value = tentative_gscore + dst_h_cost;
                 frontier.push_increase(key_label, f_score_value.into());
             }
@@ -159,7 +149,7 @@ pub fn run_vertex_oriented(
         solution.len()
     );
 
-    let result = SearchResult::new(solution, iterations);
+    let result = SearchResult::completed(solution, iterations);
     Ok(result)
 }
 
@@ -167,13 +157,11 @@ pub fn run_vertex_oriented(
 /// edge ids instead of vertex ids. invokes a vertex-oriented search
 /// from the out-vertex of the source edge to the in-vertex of the
 /// target edge. composes the result with the source and target.
-///
-/// not tested.
 pub fn run_edge_oriented(
     source: (EdgeListId, EdgeId),
     target: Option<(EdgeListId, EdgeId)>,
     direction: &Direction,
-    weight_factor: Option<Cost>,
+    a_star: bool,
     si: &SearchInstance,
 ) -> Result<SearchResult, SearchError> {
     // For now, convert to vertex-oriented search and use compatibility layer
@@ -181,7 +169,7 @@ pub fn run_edge_oriented(
     let e1_dst = si.graph.dst_vertex_id(&source.0, &source.1)?;
 
     match target {
-        None => run_vertex_oriented(e1_dst, None, direction, weight_factor, si),
+        None => run_vertex_oriented(e1_dst, None, direction, a_star, si),
         Some(target_edge) => {
             let e2_src = si.graph.src_vertex_id(&target_edge.0, &target_edge.1)?;
             let _e2_dst = si.graph.dst_vertex_id(&target_edge.0, &target_edge.1)?;
@@ -189,7 +177,7 @@ pub fn run_edge_oriented(
             if source == target_edge {
                 Ok(SearchResult::default())
             } else {
-                run_vertex_oriented(e1_dst, Some(e2_src), direction, weight_factor, si)
+                run_vertex_oriented(e1_dst, Some(e2_src), direction, a_star, si)
             }
         }
     }
@@ -372,7 +360,7 @@ mod tests {
             .clone()
             .into_par_iter()
             .map(|(o, d, _expected)| {
-                run_vertex_oriented(o, Some(d), &Direction::Forward, None, &si)
+                run_vertex_oriented(o, Some(d), &Direction::Forward, false, &si)
                     .map(|search_result| search_result.tree)
             })
             .collect();

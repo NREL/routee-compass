@@ -22,12 +22,18 @@ impl OutputPlugin for SummaryOutputPlugin {
                 let memory_mib = memory_bytes / 1_048_576.0;
                 let route_edges = result.routes.iter().map(|r| r.len()).sum::<usize>();
                 let tree_edges = result.trees.iter().map(|t| t.len()).sum::<usize>();
+                let terminated = result
+                    .terminated
+                    .clone()
+                    .unwrap_or_else(|| "false".to_string());
+
                 output["search_executed_time"] = json![result.search_executed_time.clone()];
                 output["search_runtime"] = json![result.search_runtime.hhmmss()];
                 output["route_edges"] = json![route_edges];
                 output["tree_size_count"] = json![tree_edges];
                 output["search_result_size_mib"] = json![memory_mib];
                 output["iterations"] = json![result.iterations];
+                output["terminated"] = json![terminated];
                 Ok(())
             }
         }
