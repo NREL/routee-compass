@@ -22,7 +22,8 @@ pub enum ResponseOutputFormat {
 }
 
 impl ResponseOutputFormat {
-    pub fn initial_file_contents(&self) -> Option<String> {
+    /// generates the output header content, if it exists for this format.
+    pub fn generate_header(&self) -> Option<String> {
         match self {
             ResponseOutputFormat::Json { newline_delimited } => {
                 json_ops::initial_file_contents(*newline_delimited)
@@ -38,15 +39,13 @@ impl ResponseOutputFormat {
         }
     }
 
-    pub fn final_file_contents(&self) -> Option<String> {
+    /// generates the output footer content, if it exists for this format.
+    pub fn generate_footer(&self) -> Option<String> {
         match self {
             ResponseOutputFormat::Json { newline_delimited } => {
                 json_ops::final_file_contents(*newline_delimited)
             }
-            ResponseOutputFormat::Csv {
-                mapping: _,
-                sorted: _,
-            } => None,
+            ResponseOutputFormat::Csv { .. } => None,
         }
     }
 
