@@ -4,7 +4,6 @@ use crate::{
     algorithm::search::{
         ksp::KspTerminationCriteria, util::RouteSimilarityFunction, TerminationFailurePolicy,
     },
-    model::unit::Cost,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -19,8 +18,6 @@ pub enum SearchAlgorithmConfig {
     /// Classic best-first search algorithm.
     #[serde(rename = "a*")]
     AStar {
-        /// modifier applied as a factor to all cost values
-        weight_factor: Option<Cost>,
         /// optional argument to define handling of terminated searches
         termination_behavior: Option<TerminationFailurePolicy>,
     },

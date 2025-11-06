@@ -12,13 +12,10 @@ use crate::algorithm::search::TerminationFailurePolicy;
 use crate::model::cost::TraversalCost;
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
-use crate::model::unit::Cost;
 
 #[derive(Clone, Debug)]
 pub enum SearchAlgorithm {
     AStarAlgorithm {
-        /// modifier applied as a factor to all cost values
-        weight_factor: Option<Cost>,
         /// if the termination model returns early, treat it as a search error.
         /// if false, the result is still returned. this option is not valid
         /// for searches without destinations (path searches).
@@ -59,13 +56,11 @@ impl SearchAlgorithm {
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
             SearchAlgorithm::AStarAlgorithm {
-                weight_factor,
                 termination_behavior,
             } => {
-                let w_val = get_weight_factor(query)?.or(*weight_factor);
 
                 let search_result =
-                    a_star::run_vertex_oriented(src_id, dst_id_opt, direction, w_val, si)?;
+                    a_star::run_vertex_oriented(src_id, dst_id_opt, direction, si)?;
                 termination_behavior.handle_termination(&search_result, dst_id_opt.is_some())?;
 
                 let routes = match dst_id_opt {
@@ -126,11 +121,10 @@ impl SearchAlgorithm {
     ) -> Result<SearchAlgorithmResult, SearchError> {
         match self {
             SearchAlgorithm::AStarAlgorithm {
-                weight_factor,
                 termination_behavior,
             } => {
                 let search_result =
-                    a_star::run_edge_oriented(src, dst_opt, direction, *weight_factor, si)?;
+                    a_star::run_edge_oriented(src, dst_opt, direction, si)?;
 
                 termination_behavior.handle_termination(&search_result, dst_opt.is_some())?;
 
@@ -172,14 +166,11 @@ impl From<&SearchAlgorithmConfig> for SearchAlgorithm {
             SearchAlgorithmConfig::Dijkstras {
                 termination_behavior,
             } => Self::AStarAlgorithm {
-                weight_factor: None,
                 termination_behavior: termination_behavior.clone().unwrap_or_default(),
             },
             SearchAlgorithmConfig::AStar {
-                weight_factor,
                 termination_behavior,
             } => Self::AStarAlgorithm {
-                weight_factor: *weight_factor,
                 termination_behavior: termination_behavior.clone().unwrap_or_default(),
             },
             SearchAlgorithmConfig::KspSingleVia {
@@ -211,18 +202,6 @@ impl From<&SearchAlgorithmConfig> for SearchAlgorithm {
                 }
             }
         }
-    }
-}
-
-pub fn get_weight_factor(query: &serde_json::Value) -> Result<Option<Cost>, SearchError> {
-    match query.get("weight_factor") {
-        Some(w_json) => w_json
-            .as_f64()
-            .ok_or(SearchError::BuildError(format!(
-                "weight_factor must be a float, found {w_json}"
-            )))
-            .map(|f| Some(Cost::new(f))),
-        None => Ok(None),
     }
 }
 
