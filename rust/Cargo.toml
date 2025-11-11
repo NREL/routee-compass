@@ -29,7 +29,7 @@ chrono = "0.4.40"
 regex = "1.11.1"
 wkt = { version = "0.12.0", features = ["serde"] }
 wkb = "0.8.0"
-config = "0.15.21"
+config = "0.15.11"
 ordered-float = { version = "5.0.0", features = ["serde"] }
 allocative = "0.3.4"
 indoc = "2.0.6"
