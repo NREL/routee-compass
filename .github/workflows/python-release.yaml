@@ -125,7 +125,14 @@ jobs:
           path: dist/
           pattern: wheel*
 
-      - run: ls -1 dist/
+      - run: |
+          echo "Listing dist/"
+          ls -l dist/
+          echo "Inspecting sdist (if present):"
+          file dist/*.tar.gz || true
+          tar -tzf dist/*.tar.gz | sed -n '1,50p' || true
+          echo "Grepping for PKG-INFO:"
+          tar -tzf dist/*.tar.gz | grep -F 'PKG-INFO' || true
 
       - name: Publish package to TestPyPI
         uses: pypa/gh-action-pypi-publish@ab69e431e9c9f48a3310be0a56527c679f56e04d
