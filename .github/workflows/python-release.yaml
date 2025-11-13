@@ -127,7 +127,7 @@ jobs:
 
       - name: Publish package to TestPyPI
         run: |
-          pip install -U twine
+          pip install -U twine packaging
           twine check dist/*
           twine upload --repository testpypi dist/*
 
@@ -150,6 +150,6 @@ jobs:
 
       - name: publish package to PyPI
         run: |
-          pip install -U twine
+          pip install -U twine packaging
           twine check dist/*
           twine upload dist/*
