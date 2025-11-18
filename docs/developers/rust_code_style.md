@@ -381,7 +381,7 @@ use std::sync::Arc;
 use routee_compass_core::model::{
   filter::{FilterModelBuilder, FilterModelService, FilterModel},
 };
-use routee_compass::model::filter_model::default::road_class::RoadClassBuilder;
+use routee_compass::model::filter::default::road_class::RoadClassBuilder;
 
 // RouteE Compass passes in the "[traversal]" section of the application configuration 
 // here so that it can be used by the selected builder to configure a service.

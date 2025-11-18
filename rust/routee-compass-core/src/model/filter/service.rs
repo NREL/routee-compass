@@ -11,7 +11,7 @@ use super::{error::FilterModelError, FilterModel};
 /// [`FilterModelService`] must be read across the thread pool and so it implements
 /// Send and Sync.
 ///
-/// [FilterModel]: routee_compass_core::model::traversal::traversal_model::FilterModel
+/// [FilterModel]: routee_compass_core::model::filter::FilterModel
 pub trait FilterModelService: Send + Sync {
     /// Builds a [FilterModel] for the incoming query, used as parameters for this
     /// build operation.
@@ -27,7 +27,7 @@ pub trait FilterModelService: Send + Sync {
     ///
     /// The [FilterModel] instance for this query, or an error
     ///
-    /// [FilterModel]: routee_compass_core::model::traversal::traversal_model::FilterModel
+    /// [FilterModel]: routee_compass_core::model::filter::FilterModel
     fn build(
         &self,
         query: &serde_json::Value,

@@ -8,19 +8,19 @@ use super::{error::FilterModelError, FilterModelService};
 /// A [`FilterModelBuilder`] instance should be an empty struct that implements
 /// this trait.
 ///
-/// [FilterModel]: routee_compass_core::model::frontier::FilterModel
+/// [FilterModel]: routee_compass_core::model::filter::FilterModel
 pub trait FilterModelBuilder {
     /// Builds a [FilterModel] from JSON configuration.
     ///
     /// # Arguments
     ///
-    /// * `parameters` - the contents of the "frontier" TOML config section
+    /// * `parameters` - the contents of the "filter" TOML config section
     ///
     /// # Returns
     ///
     /// A [FilterModel] designed to persist the duration of the CompassApp.
     ///
-    /// [FilterModel]: routee_compass_core::model::frontier::FilterModel
+    /// [FilterModel]: routee_compass_core::model::filter::FilterModel
     fn build(
         &self,
         parameters: &serde_json::Value,
