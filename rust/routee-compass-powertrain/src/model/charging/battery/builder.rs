@@ -5,21 +5,21 @@ use routee_compass_core::model::filter::{
 };
 use uom::si::f64::Ratio;
 
-use super::BatteryFrontierService;
+use super::BatteryFilterService;
 
-pub struct BatteryFrontierBuilder {
+pub struct BatteryFilterBuilder {
     pub soc_lower_bound: Ratio,
 }
 
-impl Default for BatteryFrontierBuilder {
+impl Default for BatteryFilterBuilder {
     fn default() -> Self {
-        BatteryFrontierBuilder {
+        BatteryFilterBuilder {
             soc_lower_bound: Ratio::new::<uom::si::ratio::percent>(0.0),
         }
     }
 }
 
-impl FilterModelBuilder for BatteryFrontierBuilder {
+impl FilterModelBuilder for BatteryFilterBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
@@ -33,7 +33,7 @@ impl FilterModelBuilder for BatteryFrontierBuilder {
         } else {
             self.soc_lower_bound
         };
-        let service = BatteryFrontierService { soc_lower_bound };
+        let service = BatteryFilterService { soc_lower_bound };
         Ok(Arc::new(service))
     }
 }

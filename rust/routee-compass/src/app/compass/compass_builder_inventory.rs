@@ -48,7 +48,7 @@ use routee_compass_core::{
 };
 use routee_compass_powertrain::model::{
     charging::{
-        battery::BatteryFrontierBuilder, simple_charging_builder::SimpleChargingBuilder,
+        battery::BatteryFilterBuilder, simple_charging_builder::SimpleChargingBuilder,
         soc_label_builder::SOCLabelModelBuilder,
     },
     EnergyModelBuilder,
@@ -80,7 +80,7 @@ inventory::submit! {
         builder.add_filter_model("no_restriction".to_string(), Rc::new(NoRestrictionBuilder {}));
         builder.add_filter_model("road_class".to_string(), Rc::new(RoadClassBuilder {}));
         builder.add_filter_model("turn_restriction".to_string(), Rc::new(TurnRestrictionBuilder {}));
-        builder.add_filter_model("battery".to_string(), Rc::new(BatteryFrontierBuilder::default()));
+        builder.add_filter_model("battery".to_string(), Rc::new(BatteryFilterBuilder::default()));
         builder.add_filter_model("vehicle_restriction".to_string(), Rc::new(VehicleRestrictionBuilder {}));
         builder.add_label_model("vertex".to_string(), Rc::new(VertexLabelModelBuilder));
         builder.add_label_model("soc".to_string(), Rc::new(SOCLabelModelBuilder));

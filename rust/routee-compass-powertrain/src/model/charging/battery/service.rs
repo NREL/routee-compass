@@ -6,19 +6,19 @@ use routee_compass_core::model::{
 };
 use uom::si::f64::Ratio;
 
-use super::BatteryFrontier;
+use super::BatteryFilter;
 
-pub struct BatteryFrontierService {
+pub struct BatteryFilterService {
     pub soc_lower_bound: Ratio,
 }
 
-impl FilterModelService for BatteryFrontierService {
+impl FilterModelService for BatteryFilterService {
     fn build(
         &self,
         _query: &serde_json::Value,
         _state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn FilterModel>, FilterModelError> {
-        let model = BatteryFrontier {
+        let model = BatteryFilter {
             soc_lower_bound: self.soc_lower_bound,
         };
         Ok(Arc::new(model))

@@ -8,11 +8,11 @@ use uom::si::f64::Ratio;
 use crate::model::fieldname;
 
 #[derive(Clone)]
-pub struct BatteryFrontier {
+pub struct BatteryFilter {
     pub soc_lower_bound: Ratio,
 }
 
-impl FilterModel for BatteryFrontier {
+impl FilterModel for BatteryFilter {
     fn valid_frontier(
         &self,
         _edge: &Edge,
