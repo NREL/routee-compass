@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Cargo workspace dependencies
+  - package-ecosystem: "cargo"
+    directory: "/rust/"
+    schedule:
+      interval: "weekly"
+
+  # GitHub Actions versions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      # dependabot default labels
+      - "dependencies"
+      - "github-actions"
+      # additional labels
+      - "CI-skip-changelog"
