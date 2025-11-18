@@ -10,25 +10,25 @@ repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
 exclude = ["test", "**/.DS_Store", "target/"]
 
-[dependencies]
-routee-compass-core = { path = "../routee-compass-core", version = "0.15.2" }
-smartcore = { version = "=0.4.0", features = ["serde"] }                      # random forest
-thiserror = { workspace = true }
-log = { workspace = true }
-geo = { workspace = true }
-uom = { workspace = true, features = ["serde"] }
-kdam = { workspace = true }
-bincode = { version = "2.0.1", features = ["serde"] }
-csv = { workspace = true }
-env_logger = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde_repr = "0.1"
-serde_json = { workspace = true }
-ordered-float = { workspace = true }
-ndarray = "0.16.1"
-rayon = { workspace = true }
-itertools = { workspace = true }
-ninterp = "0.7.0"
-
 [features]
 default = []
+
+[dependencies]
+bincode = { workspace = true }
+csv = { workspace = true }
+env_logger = { workspace = true }
+geo = { workspace = true }
+itertools = { workspace = true }
+kdam = { workspace = true }
+log = { workspace = true }
+ndarray = { workspace = true }
+ninterp = { workspace = true }
+ordered-float = { workspace = true }
+rayon = { workspace = true }
+routee-compass-core = { path = "../routee-compass-core", version = "0.15.2" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_repr = { workspace = true }
+smartcore = { workspace = true }
+thiserror = { workspace = true }
+uom = { workspace = true }

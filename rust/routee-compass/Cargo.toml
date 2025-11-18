@@ -18,46 +18,6 @@ keywords = [
 ]
 categories = ["science", "science::geo"]
 
-[dependencies]
-routee-compass-core = { path = "../routee-compass-core", version = "0.15.2" }
-routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.15.2" }
-thiserror = { workspace = true }
-flate2 = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-csv = { workspace = true }
-geo = { workspace = true }
-geo-traits = { workspace = true }
-geo-types = { workspace = true }
-geojson = { workspace = true }
-rstar = { workspace = true }
-uom = { workspace = true, features = ["serde"] }
-wkt = { workspace = true }
-wkb = { workspace = true }
-env_logger = { workspace = true }
-kdam = { workspace = true }
-log = { workspace = true }
-rayon = { workspace = true }
-serde_repr = "0.1"
-rand = "0.9.0"
-chrono = { workspace = true }
-config = { workspace = true }
-clap = { version = "4.3.19", features = ["derive"] }
-itertools = { workspace = true }
-ordered-float = { workspace = true }
-allocative = { workspace = true }
-indoc = { workspace = true }
-ordered_hash_map = { version = "0.4.0", features = ["serde"] }
-inventory = { workspace = true }
-
-[dev-dependencies]
-criterion = "0.6.0"
-tempfile = "3.20.0"
-
-[[bench]]
-name = "denver_bench"
-harness = false
-
 [lib]
 bench = false
 
@@ -70,3 +30,43 @@ bench = false
 name = "geom-app"
 path = "src/bin/geom-app.rs"
 bench = false
+
+[dependencies]
+allocative = { workspace = true }
+chrono = { workspace = true }
+clap = { workspace = true }
+config = { workspace = true }
+csv = { workspace = true }
+env_logger = { workspace = true }
+flate2 = { workspace = true }
+geo = { workspace = true }
+geo-traits = { workspace = true }
+geo-types = { workspace = true }
+geojson = { workspace = true }
+indoc = { workspace = true }
+inventory = { workspace = true }
+itertools = { workspace = true }
+kdam = { workspace = true }
+log = { workspace = true }
+ordered-float = { workspace = true }
+ordered_hash_map = { workspace = true }
+rand = { workspace = true }
+rayon = { workspace = true }
+routee-compass-core = { path = "../routee-compass-core", version = "0.15.2" }
+routee-compass-powertrain = { path = "../routee-compass-powertrain", version = "0.15.2" }
+rstar = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_repr = { workspace = true }
+thiserror = { workspace = true }
+uom = { workspace = true }
+wkb = { workspace = true }
+wkt = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+tempfile = { workspace = true }
+
+[[bench]]
+name = "denver_bench"
+harness = false
