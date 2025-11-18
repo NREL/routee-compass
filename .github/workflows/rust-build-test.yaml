@@ -31,6 +31,7 @@ jobs:
         run: |
           rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }} 
           rustup component add rustfmt
+          cargo install cargo-sort
 
       - name: Build
         working-directory: ./rust
@@ -44,3 +45,7 @@ jobs:
       - name: Run formatting
         working-directory: ./rust
         run: cargo fmt --all -- --check
+
+      - name: Run cargo sort --check
+        working-directory: ./rust
+        run: cargo sort --check --workspace
