@@ -435,8 +435,7 @@ impl Graph {
 ///
 /// * `edge` - The edge to append to the adjacency list
 /// * `adj` - The adjacency list to modify
-/// * `forward` - If `true`, appends using the source vertex id (forward-oriented adjacency).
-///              If `false`, uses the destination vertex id (reverse-oriented adjacency).
+/// * `forward` - If `true`, appends using the source vertex id (forward-oriented adjacency). If `false`, uses the destination vertex id (reverse-oriented adjacency).
 ///
 /// # Returns
 ///
@@ -444,7 +443,7 @@ impl Graph {
 /// required vertex is not found in the adjacency list.
 fn append_to_adjacency(
     edge: &Edge,
-    adj: &mut Vec<IndexMap<(EdgeListId, EdgeId), VertexId>>,
+    adj: &mut [IndexMap<(EdgeListId, EdgeId), VertexId>],
     forward: bool,
 ) -> Result<(), String> {
     let vertex_idx = if forward {

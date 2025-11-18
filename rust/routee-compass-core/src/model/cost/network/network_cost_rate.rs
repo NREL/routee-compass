@@ -67,9 +67,9 @@ impl NetworkCostRate {
     pub fn network_cost(
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
-        state: &[StateVariable],
-        tree: &SearchTree,
-        state_model: &StateModel,
+        _state: &[StateVariable],
+        _tree: &SearchTree,
+        _state_model: &StateModel,
     ) -> Result<Cost, CostModelError> {
         match self {
             NetworkCostRate::Zero => Ok(Cost::ZERO),
@@ -86,7 +86,7 @@ impl NetworkCostRate {
             NetworkCostRate::Combined(rates) => {
                 let mapped = rates
                     .iter()
-                    .map(|f| f.network_cost(trajectory, state, tree, state_model))
+                    .map(|f| f.network_cost(trajectory, _state, _tree, _state_model))
                     .collect::<Result<Vec<Cost>, CostModelError>>()?;
                 let cost = mapped.iter().fold(Cost::ZERO, |a, b| a + *b);
 
