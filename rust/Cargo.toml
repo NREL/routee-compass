@@ -31,8 +31,8 @@ itertools = { version = "0.14.0" }
 kdam = "0.6.3"
 log = "0.4.28"
 lru = "0.16.2"
-ndarray = "0.17.1"
-ninterp = "0.8.0"
+ndarray = "0.16.1"
+ninterp = "0.7.3"
 ordered-float = { version = "5.1.0", features = ["serde"] }
 ordered_hash_map = { version = "0.5.0", features = ["serde"] }
 priority-queue = "2.7.0"
