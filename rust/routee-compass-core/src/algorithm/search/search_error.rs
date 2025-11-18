@@ -45,7 +45,7 @@ pub enum SearchError {
         #[from]
         source: TraversalModelError,
     },
-    #[error("The search failed due to filter model error. The filter model restricts access to edges. Please review the [frontier] section of your Compass Configuration. Source: {source}")]
+    #[error("The search failed due to filter model error. The filter model restricts access to edges. Please review the [filter] section of your Compass Configuration. Source: {source}")]
     FilterModelFailure {
         #[from]
         source: FilterModelError,

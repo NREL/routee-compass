@@ -41,7 +41,7 @@ pub struct CompassAppConfig {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SearchConfig {
     pub traversal: Value,
-    pub frontier: Value,
+    pub filter: Value,
 }
 
 impl CompassAppConfig {
@@ -121,7 +121,7 @@ impl CompassAppConfig {
         let result = self
             .search
             .iter()
-            .map(|el| builders.build_filter_model_service(&el.frontier))
+            .map(|el| builders.build_filter_model_service(&el.filter))
             .collect::<Result<Vec<_>, _>>()?;
         Ok(result)
     }

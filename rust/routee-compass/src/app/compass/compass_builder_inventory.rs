@@ -218,14 +218,14 @@ impl CompassBuilderInventory {
             String::from("combined"),
             Rc::new(CombinedFilterModelBuilder::new(builders.clone())),
         );
-        let fm_type = config.get_config_string(&"type", &"frontier")?;
+        let fm_type = config.get_config_string(&"type", &"filter")?;
         log::info!("loading filter model service '{fm_type}'");
         builders
             .get(&fm_type)
             .ok_or_else(|| {
                 CompassConfigurationError::UnknownModelNameForComponent(
                     fm_type.clone(),
-                    String::from("frontier"),
+                    String::from("filter"),
                     self.filter_model_builders.keys().join(", "),
                 )
             })

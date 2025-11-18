@@ -158,7 +158,7 @@ mod test {
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
-            .join("frontier")
+            .join("filter")
             .join("default")
             .join("vehicle_restrictions")
             .join("test")

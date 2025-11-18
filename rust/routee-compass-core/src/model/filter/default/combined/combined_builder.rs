@@ -38,7 +38,7 @@ impl CombinedFilterModelBuilder {
             .ok_or_else(|| {
                 CompassConfigurationError::UnknownModelNameForComponent(
                     fm_type.clone(),
-                    String::from("frontier"),
+                    String::from("filter"),
                     self.builders.keys().join(", "),
                 )
             })
