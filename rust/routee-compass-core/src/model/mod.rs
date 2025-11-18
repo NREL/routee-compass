@@ -1,5 +1,5 @@
 pub mod cost;
-pub mod frontier;
+pub mod filter;
 pub mod label;
 pub mod map;
 pub mod network;

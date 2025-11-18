@@ -55,7 +55,7 @@ type = "a*"
 
 [search]
 traversal = { type = "distance", distance_unit = "kilometers" }
-frontier.type = "no_restriction"
+filter.type = "no_restriction"
 
 [cost]
 cost_aggregation = "sum"

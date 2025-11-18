@@ -368,9 +368,9 @@ The following table illustrates this relationship for the Frontier and Traversal
 
 | phase       | description                                                      | lifetime                                              | Frontier               | Traversal               
 | ----------- | ---------------------------------------------------------------- | ----------------------------------------------------- | ---------------------- | ----------------------- 
-| **builder** | an empty struct with a `build` method that creates a **service** | app initialization only                               | `FrontierModelBuilder` | `TraversalModelBuilder` 
-| **service** | struct with a `build` method that creates a **model**            | entire program lifetime (same as CompassApp instance) | `FrontierModelService` | `TraversalModelService` 
-| **model**   | object used by the search algorithm                              | duration of a single query                            | `FrontierModel`        | `TraversalModel`        
+| **builder** | an empty struct with a `build` method that creates a **service** | app initialization only                               | `FilterModelBuilder` | `TraversalModelBuilder` 
+| **service** | struct with a `build` method that creates a **model**            | entire program lifetime (same as CompassApp instance) | `FilterModelService` | `TraversalModelService` 
+| **model**   | object used by the search algorithm                              | duration of a single query                            | `FilterModel`        | `TraversalModel`        
 
 when we apply the `build` methods, we get these results (using the travel time `TraversalModel` as an example):
 
@@ -379,9 +379,9 @@ use serde_json::{Value, json};
 use std::rc::Rc;
 use std::sync::Arc;
 use routee_compass_core::model::{
-  frontier::{FrontierModelBuilder, FrontierModelService, FrontierModel},
+  filter::{FilterModelBuilder, FilterModelService, FilterModel},
 };
-use routee_compass::model::frontier_model::default::road_class::RoadClassBuilder;
+use routee_compass::model::filter_model::default::road_class::RoadClassBuilder;
 
 // RouteE Compass passes in the "[traversal]" section of the application configuration 
 // here so that it can be used by the selected builder to configure a service.
@@ -392,9 +392,9 @@ let query: Value = json!({
   "road_class": ["sidewalk", "living_street", "service", "steps", "track", "path", "trailhead", "pedestrian"]
 });  
     
-let builder: Rc<dyn FrontierModelBuilder> = Box::new(RoadClassBuilder {});
-let service: Arc<dyn FrontierModelService> = builder.build(&config)?;
-let model: Arc<dyn FrontierModel> = service.build(&query);
+let builder: Rc<dyn FilterModelBuilder> = Box::new(RoadClassBuilder {});
+let service: Arc<dyn FilterModelService> = builder.build(&config)?;
+let model: Arc<dyn FilterModel> = service.build(&query);
 ```
 
 Trait objects are built on the heap. 

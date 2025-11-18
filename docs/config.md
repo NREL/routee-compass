@@ -291,7 +291,7 @@ Edge-oriented mapping uses some additional (non-optional) line geometry input an
 
 This model will map coordinates to `origin_edge` or a `destination_edge` into the query.
 
-As opposed to vertex-oriented mapping, the edge-oriented will additionally apply any frontier model rules to any mapped edges, preventing mapping assignments that are invalid frontiers.
+As opposed to vertex-oriented mapping, the edge-oriented will additionally apply any filter model rules to any mapped edges, preventing mapping assignments that are invalid frontiers.
 
 ```toml
 [mapping]
