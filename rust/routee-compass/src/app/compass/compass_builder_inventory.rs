@@ -48,8 +48,8 @@ use routee_compass_core::{
 };
 use routee_compass_powertrain::model::{
     charging::{
-        battery::BatteryFrontierBuilder,
-        simple_charging_builder::SimpleChargingBuilder, soc_label_builder::SOCLabelModelBuilder,
+        battery::BatteryFrontierBuilder, simple_charging_builder::SimpleChargingBuilder,
+        soc_label_builder::SOCLabelModelBuilder,
     },
     EnergyModelBuilder,
 };

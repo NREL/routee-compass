@@ -46,8 +46,7 @@ impl FilterModelBuilder for VehicleRestrictionBuilder {
 
 pub fn vehicle_restriction_lookup_from_file(
     vehicle_restriction_input_file: &PathBuf,
-) -> Result<HashMap<EdgeId, IndexMap<VehicleParameterType, VehicleRestriction>>, FilterModelError>
-{
+) -> Result<HashMap<EdgeId, IndexMap<VehicleParameterType, VehicleRestriction>>, FilterModelError> {
     let rows: Vec<RestrictionRow> = read_utils::from_csv(
         &vehicle_restriction_input_file,
         true,

@@ -13,10 +13,7 @@ pub struct EdgeCutFilterModel {
 }
 
 impl EdgeCutFilterModel {
-    pub fn new(
-        underlying: Arc<dyn FilterModel>,
-        cut_edges: HashSet<EdgeId>,
-    ) -> EdgeCutFilterModel {
+    pub fn new(underlying: Arc<dyn FilterModel>, cut_edges: HashSet<EdgeId>) -> EdgeCutFilterModel {
         EdgeCutFilterModel {
             underlying,
             cut_edges,

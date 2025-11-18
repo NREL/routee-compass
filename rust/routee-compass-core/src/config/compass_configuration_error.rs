@@ -1,7 +1,7 @@
 use crate::{
     model::{
-        filter::FilterModelError, label::label_model_error::LabelModelError,
-        network::NetworkError, traversal::TraversalModelError,
+        filter::FilterModelError, label::label_model_error::LabelModelError, network::NetworkError,
+        traversal::TraversalModelError,
     },
     util::conversion::conversion_error::ConversionError,
 };
