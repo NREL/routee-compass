@@ -34,8 +34,7 @@ impl CostModel {
     /// at runtime, we can iterate through these vectors to compute the cost.
     ///
     /// # Arguments
-    /// * `displayed_costs`      - on serialization, the cost values to calculate. state variable names
-    /// can be called out explicitly here that do not contribute to the total cost.
+    /// * `displayed_costs`      - on serialization, the cost values to calculate. state variable names can be called out explicitly here that do not contribute to the total cost.
     /// * `weights`              - user-provided weighting factors for each feature
     /// * `vehicle_rate_mapping` - for each feature name, a vehicle cost rate for that feature
     /// * `network_rate_mapping` - for each feature name, a network cost rate for that feature

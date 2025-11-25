@@ -10,14 +10,14 @@ repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
 exclude = ["test", "**/.DS_Store", "target/"]
 
-[dependencies]
-routee-compass = { path = "../routee-compass", version = "0.15.2" }
-routee-compass-core = { path = "../routee-compass-core", version = "0.15.2" }
-routee-compass-macros = { path = "../routee-compass-macros", version = "0.15.2" }
-pyo3 = { version = "0.27.1", features = ["extension-module", "serde"] }
-serde_json = { workspace = true }
-config = { workspace = true }
-
 [lib]
 name = "routee_compass_py"
 crate-type = ["cdylib"]
+
+[dependencies]
+config = { workspace = true }
+pyo3 = { version = "0.27.1", features = ["extension-module", "serde"] }
+routee-compass = { path = "../routee-compass", version = "0.15.2" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.15.2" }
+routee-compass-macros = { path = "../routee-compass-macros", version = "0.15.2" }
+serde_json = { workspace = true }

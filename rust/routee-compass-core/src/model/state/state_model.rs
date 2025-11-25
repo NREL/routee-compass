@@ -147,9 +147,7 @@ impl StateModel {
     ///
     /// # Arguments
     ///
-    /// * `prev_state` - if included, builds a state as a successor to some previous state,
-    /// ensuring that non-accumulator state variables are reset to their initial values. if
-    /// prev_state is None, the generated state is the initial search state.
+    /// * `prev_state` - if included, builds a state as a successor to some previous state, ensuring that non-accumulator state variables are reset to their initial values. if prev_state is None, the generated state is the initial search state.
     ///
     /// # Returns
     ///
