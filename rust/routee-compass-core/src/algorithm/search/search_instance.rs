@@ -2,7 +2,7 @@ use crate::{
     algorithm::search::SearchError,
     model::{
         cost::CostModel,
-        frontier::FrontierModel,
+        filter::FilterModel,
         label::label_model::LabelModel,
         map::MapModel,
         network::{EdgeListId, Graph},
@@ -17,7 +17,7 @@ use std::sync::Arc;
 /// been prepared for a specific query.
 pub struct SearchInstance {
     pub graph: Arc<Graph>,
-    pub frontier_models: Vec<Arc<dyn FrontierModel>>,
+    pub filter_models: Vec<Arc<dyn FilterModel>>,
     pub traversal_models: Vec<Arc<dyn TraversalModel>>,
     pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
@@ -34,13 +34,13 @@ impl SearchInstance {
         self.traversal_models[self.default_edge_list.unwrap_or_default()].clone()
     }
 
-    pub fn get_frontier_model(
+    pub fn get_filter_model(
         &self,
         edge_list_id: &EdgeListId,
-    ) -> Result<Arc<dyn FrontierModel>, SearchError> {
-        self.frontier_models
+    ) -> Result<Arc<dyn FilterModel>, SearchError> {
+        self.filter_models
             .get(edge_list_id.0)
-            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve frontier models for edge list {edge_list_id} that does not exist")))
+            .ok_or_else(|| SearchError::InternalError(format!("during search, attempting to retrieve filter models for edge list {edge_list_id} that does not exist")))
             .cloned()
     }
 

@@ -40,10 +40,10 @@ This allows time-of-day features to impact the energy model such as network spee
 
 ### Extensible Model API
 
-The routing model is broken into three components: the **Frontier Model** and **Traversal Model**.
+The routing model is broken into three components: the **Filter Model** and **Traversal Model**.
 Each slices off an aspect of a single iteration of a traditional path search.
 
-The **Frontier Model** serves to restrict travel over links based on criteria such as the road classification, turn restrictions, or vehicle restrictions.
+The **Filter Model** serves to restrict travel over links based on criteria such as the road classification, turn restrictions, or vehicle restrictions.
 It is invoked before adding a link to the frontier of unexplored links.
 
 The **Traversal Model** computes changes to the state tuple due to traversing a single link.

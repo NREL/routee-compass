@@ -41,8 +41,8 @@ output_plugins = [
 ]
 
 # Used for restricting travel after the battery is depleted.
-[search.frontier]
-type = "battery_frontier"
+[search.filter]
+type = "battery"
 
 [search.traversal]
 type = "combined"
