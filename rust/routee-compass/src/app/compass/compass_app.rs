@@ -102,8 +102,8 @@ impl CompassApp {
         let traversal_model_services = with_timing("traversal models", || {
             config.build_traversal_model_services(builder)
         })?;
-        let frontier_model_services = with_timing("frontier models", || {
-            config.build_frontier_model_services(builder)
+        let constraint_model_services = with_timing("constraint models", || {
+            config.build_constraint_model_services(builder)
         })?;
 
         // build graph
@@ -125,7 +125,7 @@ impl CompassApp {
             map_model,
             state_model,
             traversal_model_services,
-            frontier_model_services,
+            constraint_model_services,
             cost_model_service,
             config.termination.clone(),
             label_model_service,

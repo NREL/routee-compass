@@ -18,8 +18,7 @@ model | category | implementation | key | description
 [Graph] | topology | static | `[graph]` | the road network topology as a vectorized adjacency list 
 [MapModel] | topology | static | `[mapping]` | geospatial map matching and LineString reconstruction of routing results
 [TraversalModel] | physics | dynamic | `[traversal]` | applies link traversal updates to search state (e.g., link travel time)
-[AccessModel] | physics | dynamic | `[access]` | applies updates between link pairs to search state (e.g., turn delays)
-[FrontierModel] | physics | dynamic | `[frontier]` | predicates for determining if a given link is traversable
+[ConstraintModel] | physics | dynamic | `[constraint]` | predicates for determining if a given link is traversable
 [TerminationModel] | physics | static | `[termination]` | applies rules on compute resource utilization for each search instance
 [StateModel] | metrics | static | `[state]` | mapping between domain-level state representation and the vectorized search state
 [CostModel] | metrics | static | `[cost]` | maps search state to a cost scalar that is minimized by the search algorithm
@@ -35,7 +34,7 @@ A **Model** is instantiated in the thread when running the search and is destroy
 For details on the builder, service, and model traits for each dynamic model type, see:
   - [`crate::model::traversal`]
   - [`crate::model::access`]
-  - [`crate::model::frontier`]
+  - [`crate::model::constraint`]
 
 ## Algorithm
 
@@ -52,7 +51,7 @@ Single-Via Paths | [svp] | KSP | [dl.acm.org](https://dl.acm.org/doi/pdf/10.1145
 [MapModel]: crate::model::map::MapModel
 [TraversalModel]: crate::model::traversal::TraversalModel
 [AccessModel]: crate::model::access::AccessModel
-[FrontierModel]: crate::model::frontier::FrontierModel
+[ConstraintModel]: crate::model::constraint::ConstraintModel
 [TerminationModel]: crate::model::termination::TerminationModel
 [StateModel]: crate::model::state::StateModel
 [CostModel]: crate::model::cost::CostModel

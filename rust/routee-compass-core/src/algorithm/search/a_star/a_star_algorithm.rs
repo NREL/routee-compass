@@ -98,7 +98,7 @@ pub fn run_vertex_oriented(
                 None => None,
             };
             let valid_frontier = {
-                si.get_frontier_model(edge_list_id)?.valid_frontier(
+                si.get_constraint_model(edge_list_id)?.valid_frontier(
                     e,
                     previous_edge,
                     &f.prev_state,
@@ -209,10 +209,10 @@ pub fn estimate_traversal_cost(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::constraint::default::no_restriction::NoRestriction;
     use crate::model::cost::CostAggregation;
     use crate::model::cost::CostModel;
     use crate::model::cost::VehicleCostRate;
-    use crate::model::frontier::default::no_restriction::NoRestriction;
 
     use crate::model::label::default::vertex_label_model::VertexLabelModel;
     use crate::model::map::MapModel;
@@ -348,7 +348,7 @@ mod tests {
             map_model,
             state_model: state_model.clone(),
             traversal_models: vec![traversal_model.clone()],
-            frontier_models: vec![Arc::new(NoRestriction {})],
+            constraint_models: vec![Arc::new(NoRestriction {})],
             cost_model: Arc::new(cost_model),
             termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
             label_model: Arc::new(VertexLabelModel {}),
