@@ -209,10 +209,10 @@ pub fn estimate_traversal_cost(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::constraint::default::no_restriction::NoRestriction;
     use crate::model::cost::CostAggregation;
     use crate::model::cost::CostModel;
     use crate::model::cost::VehicleCostRate;
-    use crate::model::constraint::default::no_restriction::NoRestriction;
 
     use crate::model::label::default::vertex_label_model::VertexLabelModel;
     use crate::model::map::MapModel;

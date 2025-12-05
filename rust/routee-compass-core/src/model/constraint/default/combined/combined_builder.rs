@@ -1,5 +1,7 @@
 use crate::config::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions};
-use crate::model::constraint::{ConstraintModelBuilder, ConstraintModelError, ConstraintModelService};
+use crate::model::constraint::{
+    ConstraintModelBuilder, ConstraintModelError, ConstraintModelService,
+};
 use itertools::Itertools;
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 

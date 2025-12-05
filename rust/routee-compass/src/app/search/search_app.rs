@@ -4,8 +4,8 @@ use chrono::Local;
 use routee_compass_core::{
     algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance},
     model::{
-        cost::cost_model_service::CostModelService,
         constraint::ConstraintModelService,
+        cost::cost_model_service::CostModelService,
         label::label_model_service::LabelModelService,
         map::{MapJsonExtensions, MapModel},
         network::Graph,

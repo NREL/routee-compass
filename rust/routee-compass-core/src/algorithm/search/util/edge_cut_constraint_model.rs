@@ -13,7 +13,10 @@ pub struct EdgeCutConstraintModel {
 }
 
 impl EdgeCutConstraintModel {
-    pub fn new(underlying: Arc<dyn ConstraintModel>, cut_edges: HashSet<EdgeId>) -> EdgeCutConstraintModel {
+    pub fn new(
+        underlying: Arc<dyn ConstraintModel>,
+        cut_edges: HashSet<EdgeId>,
+    ) -> EdgeCutConstraintModel {
         EdgeCutConstraintModel {
             underlying,
             cut_edges,
@@ -37,7 +40,10 @@ impl ConstraintModel for EdgeCutConstraintModel {
         }
     }
 
-    fn valid_edge(&self, edge: &Edge) -> Result<bool, crate::model::constraint::ConstraintModelError> {
+    fn valid_edge(
+        &self,
+        edge: &Edge,
+    ) -> Result<bool, crate::model::constraint::ConstraintModelError> {
         if self.cut_edges.contains(&edge.edge_id) {
             self.underlying.valid_edge(edge)
         } else {

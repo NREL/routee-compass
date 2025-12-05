@@ -19,7 +19,10 @@ impl ConstraintModel for NoRestriction {
         Ok(true)
     }
 
-    fn valid_edge(&self, _edge: &crate::model::network::Edge) -> Result<bool, ConstraintModelError> {
+    fn valid_edge(
+        &self,
+        _edge: &crate::model::network::Edge,
+    ) -> Result<bool, ConstraintModelError> {
         Ok(true)
     }
 }

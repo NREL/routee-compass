@@ -5,8 +5,9 @@ use routee_compass_core::config::CompassConfigurationError;
 use routee_compass_core::{
     algorithm::search::SearchError,
     model::{
-        cost::CostModelError, constraint::ConstraintModelError, map::MapError, network::NetworkError,
-        state::StateModelError, termination::TerminationModelError, traversal::TraversalModelError,
+        constraint::ConstraintModelError, cost::CostModelError, map::MapError,
+        network::NetworkError, state::StateModelError, termination::TerminationModelError,
+        traversal::TraversalModelError,
     },
 };
 

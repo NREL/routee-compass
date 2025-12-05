@@ -1,8 +1,8 @@
 use crate::{
     algorithm::search::SearchTreeError,
     model::{
-        cost::CostModelError,
         constraint::ConstraintModelError,
+        cost::CostModelError,
         label::label_model_error::LabelModelError,
         network::{EdgeId, NetworkError, VertexId},
         state::StateModelError,

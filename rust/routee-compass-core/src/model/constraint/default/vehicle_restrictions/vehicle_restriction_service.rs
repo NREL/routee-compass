@@ -25,7 +25,9 @@ impl ConstraintModelService for VehicleRestrictionFrontierService {
     ) -> Result<Arc<dyn ConstraintModel>, ConstraintModelError> {
         let service: Arc<VehicleRestrictionFrontierService> = Arc::new(self.clone());
         let vp_json = query.get("vehicle_parameters").ok_or_else(|| {
-            ConstraintModelError::BuildError("Missing field `vehicle_parameters` in query".to_string())
+            ConstraintModelError::BuildError(
+                "Missing field `vehicle_parameters` in query".to_string(),
+            )
         })?;
         let vehicle_parameter_configs: Vec<VehicleParameterConfig> =
             serde_json::from_value(vp_json.clone()).map_err(|e| {

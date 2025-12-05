@@ -5,7 +5,7 @@ use routee_compass_core::{
     algorithm::search::SearchAlgorithmConfig,
     config::{ConfigJsonExtensions, OneOrMany},
     model::{
-        cost::CostModelConfig, constraint::ConstraintModelService, map::MapModelConfig,
+        constraint::ConstraintModelService, cost::CostModelConfig, map::MapModelConfig,
         network::GraphConfig, state::StateVariableConfig, termination::TerminationModel,
         traversal::TraversalModelService,
     },
