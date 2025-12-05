@@ -1,7 +1,7 @@
 use super::turn_restriction_service::{RestrictedEdgePair, TurnRestrictionFrontierService};
 use crate::config::{CompassConfigurationField, ConfigJsonExtensions};
 use crate::{
-    model::filter::{FilterModelBuilder, FilterModelError, FilterModelService},
+    model::constraint::{ConstraintModelBuilder, ConstraintModelError, ConstraintModelService},
     util::fs::read_utils,
 };
 use kdam::Bar;
@@ -9,18 +9,18 @@ use std::{collections::HashSet, sync::Arc};
 
 pub struct TurnRestrictionBuilder {}
 
-impl FilterModelBuilder for TurnRestrictionBuilder {
+impl ConstraintModelBuilder for TurnRestrictionBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn FilterModelService>, FilterModelError> {
-        let filter_key = CompassConfigurationField::Frontier.to_string();
+    ) -> Result<Arc<dyn ConstraintModelService>, ConstraintModelError> {
+        let constraint_key = CompassConfigurationField::Constraint.to_string();
         let turn_restriction_file_key = String::from("turn_restriction_input_file");
 
         let turn_restriction_file = parameters
-            .get_config_path(&turn_restriction_file_key, &filter_key)
+            .get_config_path(&turn_restriction_file_key, &constraint_key)
             .map_err(|e| {
-                FilterModelError::BuildError(format!(
+                ConstraintModelError::BuildError(format!(
                     "configuration error due to {}: {}",
                     turn_restriction_file_key.clone(),
                     e
@@ -34,7 +34,7 @@ impl FilterModelBuilder for TurnRestrictionBuilder {
             None,
         )
         .map_err(|e| {
-            FilterModelError::BuildError(format!(
+            ConstraintModelError::BuildError(format!(
                 "configuration error due to {}: {}",
                 turn_restriction_file_key.clone(),
                 e
@@ -50,7 +50,7 @@ impl FilterModelBuilder for TurnRestrictionBuilder {
             turn_restriction_file
         );
 
-        let m: Arc<dyn FilterModelService> = Arc::new(TurnRestrictionFrontierService {
+        let m: Arc<dyn ConstraintModelService> = Arc::new(TurnRestrictionFrontierService {
             restricted_edge_pairs: Arc::new(restricted_edges),
         });
         Ok(m)

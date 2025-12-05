@@ -1,4 +1,4 @@
-use super::error::FilterModelError;
+use super::error::ConstraintModelError;
 use crate::model::{
     network::Edge,
     state::{StateModel, StateVariable},
@@ -10,7 +10,7 @@ use crate::model::{
 /// may not be traversable for this query, such as due to height restrictions.
 ///
 /// [TraversalModel]: crate::model::traversal::traversal_model::TraversalModel
-pub trait FilterModel: Send + Sync {
+pub trait ConstraintModel: Send + Sync {
     /// Validates an edge before allowing it to be added to the search frontier.
     ///
     /// # Arguments
@@ -29,10 +29,10 @@ pub trait FilterModel: Send + Sync {
         previous_edge: Option<&Edge>,
         state: &[StateVariable],
         state_model: &StateModel,
-    ) -> Result<bool, FilterModelError>;
+    ) -> Result<bool, ConstraintModelError>;
 
     /// Validates an edge independent of a search state, noting whether it
-    /// is simply impassable with this FilterModel configuration. Can be
+    /// is simply impassable with this ConstraintModel configuration. Can be
     /// called by valid_frontier as a cheaper first-pass operation. Also
     /// used by MapModel during query map matching.
     ///
@@ -43,5 +43,5 @@ pub trait FilterModel: Send + Sync {
     /// # Returns
     ///
     /// True if the edge is valid
-    fn valid_edge(&self, edge: &Edge) -> Result<bool, FilterModelError>;
+    fn valid_edge(&self, edge: &Edge) -> Result<bool, ConstraintModelError>;
 }

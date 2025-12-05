@@ -1,34 +1,34 @@
 use crate::model::{
-    filter::FilterModel,
+    constraint::ConstraintModel,
     network::{Edge, EdgeId},
 };
 use std::{collections::HashSet, sync::Arc};
 
-/// A wrapper of the user-generated FilterModel which prohibits traversals
+/// A wrapper of the user-generated ConstraintModel which prohibits traversals
 /// on selected edges. algorithms can create this wrapper with a set of "cut edges"
 /// and the search will not allow traversal of these edges.
-pub struct EdgeCutFilterModel {
-    pub underlying: Arc<dyn FilterModel>,
+pub struct EdgeCutConstraintModel {
+    pub underlying: Arc<dyn ConstraintModel>,
     cut_edges: HashSet<EdgeId>,
 }
 
-impl EdgeCutFilterModel {
-    pub fn new(underlying: Arc<dyn FilterModel>, cut_edges: HashSet<EdgeId>) -> EdgeCutFilterModel {
-        EdgeCutFilterModel {
+impl EdgeCutConstraintModel {
+    pub fn new(underlying: Arc<dyn ConstraintModel>, cut_edges: HashSet<EdgeId>) -> EdgeCutConstraintModel {
+        EdgeCutConstraintModel {
             underlying,
             cut_edges,
         }
     }
 }
 
-impl FilterModel for EdgeCutFilterModel {
+impl ConstraintModel for EdgeCutConstraintModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
         previous_edge: Option<&Edge>,
         state: &[crate::model::state::StateVariable],
         state_model: &crate::model::state::StateModel,
-    ) -> Result<bool, crate::model::filter::FilterModelError> {
+    ) -> Result<bool, crate::model::constraint::ConstraintModelError> {
         if self.cut_edges.contains(&edge.edge_id) {
             Ok(false)
         } else {
@@ -37,7 +37,7 @@ impl FilterModel for EdgeCutFilterModel {
         }
     }
 
-    fn valid_edge(&self, edge: &Edge) -> Result<bool, crate::model::filter::FilterModelError> {
+    fn valid_edge(&self, edge: &Edge) -> Result<bool, crate::model::constraint::ConstraintModelError> {
         if self.cut_edges.contains(&edge.edge_id) {
             self.underlying.valid_edge(edge)
         } else {

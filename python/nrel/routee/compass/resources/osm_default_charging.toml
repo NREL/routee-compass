@@ -53,7 +53,7 @@ step = 1
 
 # Used for restricting travel after the battery is depleted.
 [search]
-[search.filter]
+[search.constraint]
 type = "battery"
 
 [search.traversal]

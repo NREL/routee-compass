@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use routee_compass_core::model::{
-    filter::{FilterModel, FilterModelError, FilterModelService},
+    constraint::{ConstraintModel, ConstraintModelError, ConstraintModelService},
     state::StateModel,
 };
 use uom::si::f64::Ratio;
@@ -12,12 +12,12 @@ pub struct BatteryFilterService {
     pub soc_lower_bound: Ratio,
 }
 
-impl FilterModelService for BatteryFilterService {
+impl ConstraintModelService for BatteryFilterService {
     fn build(
         &self,
         _query: &serde_json::Value,
         _state_model: Arc<StateModel>,
-    ) -> Result<Arc<dyn FilterModel>, FilterModelError> {
+    ) -> Result<Arc<dyn ConstraintModel>, ConstraintModelError> {
         let model = BatteryFilter {
             soc_lower_bound: self.soc_lower_bound,
         };

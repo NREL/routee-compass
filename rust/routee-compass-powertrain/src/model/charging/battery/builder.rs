@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use routee_compass_core::model::filter::{
-    FilterModelBuilder, FilterModelError, FilterModelService,
+use routee_compass_core::model::constraint::{
+    ConstraintModelBuilder, ConstraintModelError, ConstraintModelService,
 };
 use uom::si::f64::Ratio;
 
@@ -19,11 +19,11 @@ impl Default for BatteryFilterBuilder {
     }
 }
 
-impl FilterModelBuilder for BatteryFilterBuilder {
+impl ConstraintModelBuilder for BatteryFilterBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn FilterModelService>, FilterModelError> {
+    ) -> Result<Arc<dyn ConstraintModelService>, ConstraintModelError> {
         // get the 'soc_lower_bound' from the parameters if it's there, otherwise use the existing value
         let soc_lower_bound = if let Some(soc_lower_bound_percent) = parameters
             .get("soc_lower_bound_percent")

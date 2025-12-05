@@ -1,5 +1,5 @@
 use crate::model::{
-    filter::{error::FilterModelError, FilterModel, FilterModelService},
+    constraint::{error::ConstraintModelError, ConstraintModel, ConstraintModelService},
     network::Edge,
     state::StateModel,
 };
@@ -8,28 +8,28 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct NoRestriction {}
 
-impl FilterModel for NoRestriction {
+impl ConstraintModel for NoRestriction {
     fn valid_frontier(
         &self,
         _edge: &Edge,
         _previos_edge: Option<&Edge>,
         _state: &[crate::model::state::StateVariable],
         _state_model: &StateModel,
-    ) -> Result<bool, FilterModelError> {
+    ) -> Result<bool, ConstraintModelError> {
         Ok(true)
     }
 
-    fn valid_edge(&self, _edge: &crate::model::network::Edge) -> Result<bool, FilterModelError> {
+    fn valid_edge(&self, _edge: &crate::model::network::Edge) -> Result<bool, ConstraintModelError> {
         Ok(true)
     }
 }
 
-impl FilterModelService for NoRestriction {
+impl ConstraintModelService for NoRestriction {
     fn build(
         &self,
         _query: &serde_json::Value,
         _state_model: Arc<StateModel>,
-    ) -> Result<Arc<dyn FilterModel>, FilterModelError> {
+    ) -> Result<Arc<dyn ConstraintModel>, ConstraintModelError> {
         Ok(Arc::new(self.clone()))
     }
 }

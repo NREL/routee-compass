@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use uom::si::f64::{Length, Mass};
 
-use crate::model::filter::default::vehicle_restrictions::VehicleParameterType;
+use crate::model::constraint::default::vehicle_restrictions::VehicleParameterType;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd, Deserialize)]
 pub enum VehicleParameter {

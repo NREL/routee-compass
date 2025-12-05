@@ -1,37 +1,37 @@
 use crate::model::{
-    filter::{FilterModel, FilterModelError},
+    constraint::{ConstraintModel, ConstraintModelError},
     network::Edge,
     state::{StateModel, StateVariable},
 };
 use std::sync::Arc;
 
-pub struct CombinedFilterModel {
-    pub inner_models: Vec<Arc<dyn FilterModel>>,
+pub struct CombinedConstraintModel {
+    pub inner_models: Vec<Arc<dyn ConstraintModel>>,
 }
 
-impl FilterModel for CombinedFilterModel {
+impl ConstraintModel for CombinedConstraintModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
         previous_edge: Option<&Edge>,
         state: &[StateVariable],
         state_model: &StateModel,
-    ) -> Result<bool, FilterModelError> {
+    ) -> Result<bool, ConstraintModelError> {
         // If any of the inner models return an invalid frontier, it invalidates the whole set and we
         // return an early false. We only return true if all the frontiers are valid.
-        for filter_model in self.inner_models.iter() {
-            if !filter_model.valid_frontier(edge, previous_edge, state, state_model)? {
+        for constraint_model in self.inner_models.iter() {
+            if !constraint_model.valid_frontier(edge, previous_edge, state, state_model)? {
                 return Ok(false);
             }
         }
         Ok(true)
     }
 
-    fn valid_edge(&self, edge: &Edge) -> Result<bool, FilterModelError> {
+    fn valid_edge(&self, edge: &Edge) -> Result<bool, ConstraintModelError> {
         // If any of the inner models return an invalid frontier, it invalidates the whole set and we
         // return an early false. We only return true if all the frontiers are valid.
-        for filter_model in self.inner_models.iter() {
-            if !filter_model.valid_edge(edge)? {
+        for constraint_model in self.inner_models.iter() {
+            if !constraint_model.valid_edge(edge)? {
                 return Ok(false);
             }
         }

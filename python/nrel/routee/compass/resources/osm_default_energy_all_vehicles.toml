@@ -46,7 +46,7 @@ factor = 0.50
 unit = "kwh"
 
 # Used for restricting travel after the battery is depleted.
-[search.filter]
+[search.constraint]
 type = "battery"
 
 [search.traversal]

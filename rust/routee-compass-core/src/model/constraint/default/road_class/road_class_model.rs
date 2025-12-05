@@ -1,28 +1,28 @@
 use super::road_class_service::RoadClassFrontierService;
 use crate::model::{
-    filter::{FilterModel, FilterModelError},
+    constraint::{ConstraintModel, ConstraintModelError},
     network::Edge,
     state::{StateModel, StateVariable},
 };
 use std::{collections::HashSet, sync::Arc};
 
-pub struct RoadClassFilterModel {
+pub struct RoadClassConstraintModel {
     pub service: Arc<RoadClassFrontierService>,
     pub query_road_classes: Option<HashSet<String>>,
 }
 
-impl FilterModel for RoadClassFilterModel {
+impl ConstraintModel for RoadClassConstraintModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
         _previous_edge: Option<&Edge>,
         _state: &[StateVariable],
         _state_model: &StateModel,
-    ) -> Result<bool, FilterModelError> {
+    ) -> Result<bool, ConstraintModelError> {
         self.valid_edge(edge)
     }
 
-    fn valid_edge(&self, edge: &Edge) -> Result<bool, FilterModelError> {
+    fn valid_edge(&self, edge: &Edge) -> Result<bool, ConstraintModelError> {
         match &self.query_road_classes {
             None => Ok(true),
             Some(road_classes) => self
@@ -30,8 +30,8 @@ impl FilterModel for RoadClassFilterModel {
                 .road_class_by_edge
                 .get(edge.edge_id.0)
                 .ok_or_else(|| {
-                    FilterModelError::FilterModelError(format!(
-                        "edge id {} missing from filter model file",
+                    ConstraintModelError::ConstraintModelError(format!(
+                        "edge id {} missing from constraint model file",
                         edge.edge_id
                     ))
                 })
@@ -43,9 +43,9 @@ impl FilterModel for RoadClassFilterModel {
 #[cfg(test)]
 mod test {
     use crate::model::{
-        filter::{
-            default::road_class::road_class_service::RoadClassFrontierService, FilterModel,
-            FilterModelService,
+        constraint::{
+            default::road_class::road_class_service::RoadClassFrontierService, ConstraintModel,
+            ConstraintModelService,
         },
         network::Edge,
         state::StateModel,
@@ -58,7 +58,7 @@ mod test {
     /// # Arguments
     /// * `road_class_vector` - the value assumed to be read from a file, with road classes by EdgeId index value
     /// * `query` - the user query which should provide the set of valid road classes for this search
-    fn mock(road_class_vector: Box<[String]>, query: Value) -> Arc<dyn FilterModel> {
+    fn mock(road_class_vector: Box<[String]>, query: Value) -> Arc<dyn ConstraintModel> {
         let service = Arc::new(RoadClassFrontierService {
             road_class_by_edge: Arc::new(road_class_vector),
         });

@@ -2,7 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use super::{ComparisonOperation, RestrictionRow, VehicleParameter, VehicleParameterType};
 use crate::model::{
-    filter::FilterModelError,
+    constraint::ConstraintModelError,
     unit::{DistanceUnit, WeightUnit},
 };
 use serde::Deserialize;
@@ -37,7 +37,7 @@ impl VehicleRestriction {
 }
 
 impl TryFrom<&RestrictionRow> for VehicleRestriction {
-    type Error = FilterModelError;
+    type Error = ConstraintModelError;
 
     fn try_from(row: &RestrictionRow) -> Result<Self, Self::Error> {
         use VehicleParameterType as VPT;
@@ -45,7 +45,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
             VPT::Height => Ok(VehicleParameter::Height {
                 value: DistanceUnit::from_str(&row.unit)
                     .map_err(|e| {
-                        FilterModelError::BuildError(format!(
+                        ConstraintModelError::BuildError(format!(
                             "Unable to parse height unit {}: {}",
                             row.unit, e
                         ))
@@ -55,7 +55,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
             VPT::Width => Ok(VehicleParameter::Width {
                 value: DistanceUnit::from_str(&row.unit)
                     .map_err(|e| {
-                        FilterModelError::BuildError(format!(
+                        ConstraintModelError::BuildError(format!(
                             "Unable to parse height unit {}: {}",
                             row.unit, e
                         ))
@@ -65,7 +65,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
             VPT::TotalLength => Ok(VehicleParameter::TotalLength {
                 value: DistanceUnit::from_str(&row.unit)
                     .map_err(|e| {
-                        FilterModelError::BuildError(format!(
+                        ConstraintModelError::BuildError(format!(
                             "Unable to parse height unit {}: {}",
                             row.unit, e
                         ))
@@ -75,7 +75,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
             VPT::TrailerLength => Ok(VehicleParameter::TrailerLength {
                 value: DistanceUnit::from_str(&row.unit)
                     .map_err(|e| {
-                        FilterModelError::BuildError(format!(
+                        ConstraintModelError::BuildError(format!(
                             "Unable to parse height unit {}: {}",
                             row.unit, e
                         ))
@@ -85,7 +85,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
             VPT::TotalWeight => Ok(VehicleParameter::TotalWeight {
                 value: WeightUnit::from_str(&row.unit)
                     .map_err(|e| {
-                        FilterModelError::BuildError(format!(
+                        ConstraintModelError::BuildError(format!(
                             "Unable to parse weight unit {}: {}",
                             row.unit, e
                         ))
@@ -95,7 +95,7 @@ impl TryFrom<&RestrictionRow> for VehicleRestriction {
             VPT::WeightPerAxle => Ok(VehicleParameter::WeightPerAxle {
                 value: WeightUnit::from_str(&row.unit)
                     .map_err(|e| {
-                        FilterModelError::BuildError(format!(
+                        ConstraintModelError::BuildError(format!(
                             "Unable to parse weight unit {}: {}",
                             row.unit, e
                         ))

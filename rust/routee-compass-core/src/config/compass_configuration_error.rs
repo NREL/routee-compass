@@ -1,6 +1,6 @@
 use crate::{
     model::{
-        filter::FilterModelError, label::label_model_error::LabelModelError, network::NetworkError,
+        constraint::ConstraintModelError, label::label_model_error::LabelModelError, network::NetworkError,
         traversal::TraversalModelError,
     },
     util::conversion::conversion_error::ConversionError,
@@ -60,7 +60,7 @@ pub enum CompassConfigurationError {
     #[error(transparent)]
     TraversalModelError(#[from] TraversalModelError),
     #[error(transparent)]
-    FilterModelError(#[from] FilterModelError),
+    ConstraintModelError(#[from] ConstraintModelError),
     #[error(transparent)]
     LabelModelError(#[from] LabelModelError),
 }

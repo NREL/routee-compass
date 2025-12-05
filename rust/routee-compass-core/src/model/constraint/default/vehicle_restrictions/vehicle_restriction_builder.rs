@@ -4,7 +4,7 @@ use super::{
 use crate::config::{CompassConfigurationField, ConfigJsonExtensions};
 use crate::{
     model::{
-        filter::{FilterModelBuilder, FilterModelError, FilterModelService},
+        constraint::{ConstraintModelBuilder, ConstraintModelError, ConstraintModelService},
         network::EdgeId,
     },
     util::fs::read_utils,
@@ -15,18 +15,18 @@ use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 pub struct VehicleRestrictionBuilder {}
 
-impl FilterModelBuilder for VehicleRestrictionBuilder {
+impl ConstraintModelBuilder for VehicleRestrictionBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn FilterModelService>, FilterModelError> {
-        let filter_key = CompassConfigurationField::Frontier.to_string();
+    ) -> Result<Arc<dyn ConstraintModelService>, ConstraintModelError> {
+        let constraint_key = CompassConfigurationField::Constraint.to_string();
         let vehicle_restriction_input_file_key = String::from("vehicle_restriction_input_file");
 
         let vehicle_restriction_input_file = parameters
-            .get_config_path(&vehicle_restriction_input_file_key, &filter_key)
+            .get_config_path(&vehicle_restriction_input_file_key, &constraint_key)
             .map_err(|e| {
-                FilterModelError::BuildError(format!(
+                ConstraintModelError::BuildError(format!(
                     "configuration error due to {}: {}",
                     vehicle_restriction_input_file_key.clone(),
                     e
@@ -46,7 +46,7 @@ impl FilterModelBuilder for VehicleRestrictionBuilder {
 
 pub fn vehicle_restriction_lookup_from_file(
     vehicle_restriction_input_file: &PathBuf,
-) -> Result<HashMap<EdgeId, IndexMap<VehicleParameterType, VehicleRestriction>>, FilterModelError> {
+) -> Result<HashMap<EdgeId, IndexMap<VehicleParameterType, VehicleRestriction>>, ConstraintModelError> {
     let rows: Vec<RestrictionRow> = read_utils::from_csv(
         &vehicle_restriction_input_file,
         true,
@@ -54,7 +54,7 @@ pub fn vehicle_restriction_lookup_from_file(
         None,
     )
     .map_err(|e| {
-        FilterModelError::BuildError(format!(
+        ConstraintModelError::BuildError(format!(
             "Could not load vehicle restriction file {vehicle_restriction_input_file:?}: {e}"
         ))
     })?

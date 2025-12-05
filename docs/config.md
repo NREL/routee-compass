@@ -227,7 +227,7 @@ type = "a*"
 _k_ is the target number of path alternatives in the result. It is possible for
 less than _k_ to be returned, and this depends on the network and other KSP parameters.
 
-Similarity function is optional and filters path alternatives by their similarity
+Similarity function is optional and constraints path alternatives by their similarity
 to the working solution set. In this example, both similarity functions will dismiss
 paths that are greater than 10% similar.
 ```toml
@@ -291,7 +291,7 @@ Edge-oriented mapping uses some additional (non-optional) line geometry input an
 
 This model will map coordinates to `origin_edge` or a `destination_edge` into the query.
 
-As opposed to vertex-oriented mapping, the edge-oriented will additionally apply any filter model rules to any mapped edges, preventing mapping assignments that are invalid frontiers.
+As opposed to vertex-oriented mapping, the edge-oriented will additionally apply any constraint model rules to any mapped edges, preventing mapping assignments that are invalid frontiers.
 
 ```toml
 [mapping]

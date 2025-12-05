@@ -104,7 +104,7 @@ The way this is typically done is as follows:
 
 #### Custom Models
 
-The [traversal] and [filter] modules all contain Builder, Service, and Model traits that can be implemented. 
+The [traversal] and [constraint] modules all contain Builder, Service, and Model traits that can be implemented. 
 For each new type of model, you must implement the builder and service as well, such that
   - your builder's `build` method creates or reads all data related to your model that can be shared across all queries (see lifetime image, above)
   - your service's `build` method can gather values from the incoming query that may further paramerize or override your service while producing a model for the incoming query
@@ -113,7 +113,7 @@ For each new type of model, you must implement the builder and service as well, 
 
 For an example, review the implementation of the built-in models:
   - [`routee_compass_core::model::traversal::default`]
-  - [`routee_compass_core::model::filter::default`]
+  - [`routee_compass_core::model::constraint::default`]
 
 To understand how these each interact with the state model, review the documentation of the [state] module.
 
@@ -130,14 +130,14 @@ For examples, review the implementation of the built-in plugins:
 [CompassBuilderInventory]: crate::app::compass::CompassBuilderInventory
 
 [traversal]: routee_compass_core::model::traversal
-[filter]: routee_compass_core::model::filter
+[constraint]: routee_compass_core::model::constraint
 [state]:routee_compass_core::model::state
 
 [TraversalModelBuilder]: routee_compass_core::model::traversal::TraversalModelBuilder
 [TraversalModelService]: routee_compass_core::model::traversal::TraversalModelService
 [TraversalModel]: routee_compass_core::model::traversal::TraversalModel
 
-[FilterModelBuilder]: routee_compass_core::model::filter::FilterModelBuilder
+[ConstraintModelBuilder]: routee_compass_core::model::constraint::ConstraintModelBuilder
 
 [TerminationModel]: routee_compass_core::model::termination::TerminationModel
 

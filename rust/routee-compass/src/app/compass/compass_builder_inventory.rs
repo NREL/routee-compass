@@ -18,15 +18,15 @@ use crate::plugin::{
 use inventory;
 use itertools::Itertools;
 use routee_compass_core::model::{
-    filter::{
+    constraint::{
         default::{
-            combined::combined_builder::CombinedFilterModelBuilder,
+            combined::combined_builder::CombinedConstraintModelBuilder,
             no_restriction_builder::NoRestrictionBuilder,
             road_class::road_class_builder::RoadClassBuilder,
             turn_restrictions::turn_restriction_builder::TurnRestrictionBuilder,
             vehicle_restrictions::VehicleRestrictionBuilder,
         },
-        FilterModelBuilder, FilterModelService,
+        ConstraintModelBuilder, ConstraintModelService,
     },
     label::{
         default::vertex_label_model::VertexLabelModelBuilder,
@@ -77,11 +77,11 @@ inventory::submit! {
         builder.add_traversal_model("temperature".to_string(), Rc::new(TemperatureTraversalBuilder {}));
         builder.add_traversal_model("turn_delay".to_string(), Rc::new(TurnDelayTraversalModelBuilder {}));
         builder.add_traversal_model("custom".to_string(), Rc::new(CustomTraversalBuilder {}));
-        builder.add_filter_model("no_restriction".to_string(), Rc::new(NoRestrictionBuilder {}));
-        builder.add_filter_model("road_class".to_string(), Rc::new(RoadClassBuilder {}));
-        builder.add_filter_model("turn_restriction".to_string(), Rc::new(TurnRestrictionBuilder {}));
-        builder.add_filter_model("battery".to_string(), Rc::new(BatteryFilterBuilder::default()));
-        builder.add_filter_model("vehicle_restriction".to_string(), Rc::new(VehicleRestrictionBuilder {}));
+        builder.add_constraint_model("no_restriction".to_string(), Rc::new(NoRestrictionBuilder {}));
+        builder.add_constraint_model("road_class".to_string(), Rc::new(RoadClassBuilder {}));
+        builder.add_constraint_model("turn_restriction".to_string(), Rc::new(TurnRestrictionBuilder {}));
+        builder.add_constraint_model("battery".to_string(), Rc::new(BatteryFilterBuilder::default()));
+        builder.add_constraint_model("vehicle_restriction".to_string(), Rc::new(VehicleRestrictionBuilder {}));
         builder.add_label_model("vertex".to_string(), Rc::new(VertexLabelModelBuilder));
         builder.add_label_model("soc".to_string(), Rc::new(SOCLabelModelBuilder));
         builder.add_input_plugin("grid_search".to_string(), Rc::new(GridSearchBuilder {}));
@@ -112,7 +112,7 @@ inventory::submit! {
 ///
 pub struct CompassBuilderInventory {
     traversal_model_builders: HashMap<String, Rc<dyn TraversalModelBuilder>>,
-    filter_model_builders: HashMap<String, Rc<dyn FilterModelBuilder>>,
+    constraint_model_builders: HashMap<String, Rc<dyn ConstraintModelBuilder>>,
     label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>>,
     input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
     output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
@@ -134,7 +134,7 @@ impl CompassBuilderInventory {
     pub fn empty() -> CompassBuilderInventory {
         CompassBuilderInventory {
             traversal_model_builders: HashMap::new(),
-            filter_model_builders: HashMap::new(),
+            constraint_model_builders: HashMap::new(),
             label_model_builders: HashMap::new(),
             input_plugin_builders: HashMap::new(),
             output_plugin_builders: HashMap::new(),
@@ -160,8 +160,8 @@ impl CompassBuilderInventory {
         let _ = self.traversal_model_builders.insert(name, builder);
     }
 
-    pub fn add_filter_model(&mut self, name: String, builder: Rc<dyn FilterModelBuilder>) {
-        let _ = self.filter_model_builders.insert(name, builder);
+    pub fn add_constraint_model(&mut self, name: String, builder: Rc<dyn ConstraintModelBuilder>) {
+        let _ = self.constraint_model_builders.insert(name, builder);
     }
 
     pub fn add_label_model(&mut self, name: String, builder: Rc<dyn LabelModelBuilder>) {
@@ -206,32 +206,32 @@ impl CompassBuilderInventory {
         result
     }
 
-    /// builds a filter model with the specified type name with the provided
-    /// filter model configuration JSON
-    pub fn build_filter_model_service(
+    /// builds a constraint model with the specified type name with the provided
+    /// constraint model configuration JSON
+    pub fn build_constraint_model_service(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Arc<dyn FilterModelService>, CompassConfigurationError> {
-        // append the combined filter model builder.
-        let mut builders = self.filter_model_builders.clone();
+    ) -> Result<Arc<dyn ConstraintModelService>, CompassConfigurationError> {
+        // append the combined constraint model builder.
+        let mut builders = self.constraint_model_builders.clone();
         builders.insert(
             String::from("combined"),
-            Rc::new(CombinedFilterModelBuilder::new(builders.clone())),
+            Rc::new(CombinedConstraintModelBuilder::new(builders.clone())),
         );
-        let fm_type = config.get_config_string(&"type", &"filter")?;
-        log::info!("loading filter model service '{fm_type}'");
+        let fm_type = config.get_config_string(&"type", &"constraint")?;
+        log::info!("loading constraint model service '{fm_type}'");
         builders
             .get(&fm_type)
             .ok_or_else(|| {
                 CompassConfigurationError::UnknownModelNameForComponent(
                     fm_type.clone(),
-                    String::from("filter"),
-                    self.filter_model_builders.keys().join(", "),
+                    String::from("constraint"),
+                    self.constraint_model_builders.keys().join(", "),
                 )
             })
             .and_then(|b| {
                 b.build(config)
-                    .map_err(CompassConfigurationError::FilterModelError)
+                    .map_err(CompassConfigurationError::ConstraintModelError)
             })
     }
 

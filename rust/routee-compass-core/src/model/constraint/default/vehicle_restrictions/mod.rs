@@ -14,6 +14,6 @@ pub use vehicle_parameter_config::VehicleParameterConfig;
 pub use vehicle_parameter_type::VehicleParameterType;
 pub use vehicle_restriction::VehicleRestriction;
 pub use vehicle_restriction_builder::VehicleRestrictionBuilder;
-pub use vehicle_restriction_model::VehicleRestrictionFilterModel;
+pub use vehicle_restriction_model::VehicleRestrictionConstraintModel;
 pub use vehicle_restriction_row::RestrictionRow;
 pub use vehicle_restriction_service::VehicleRestrictionFrontierService;

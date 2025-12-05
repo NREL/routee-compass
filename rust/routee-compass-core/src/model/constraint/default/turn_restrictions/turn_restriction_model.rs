@@ -1,5 +1,5 @@
 use crate::model::{
-    filter::{FilterModel, FilterModelError},
+    constraint::{ConstraintModel, ConstraintModelError},
     network::Edge,
     state::{StateModel, StateVariable},
 };
@@ -7,18 +7,18 @@ use std::sync::Arc;
 
 use super::turn_restriction_service::{RestrictedEdgePair, TurnRestrictionFrontierService};
 
-pub struct TurnRestrictionFilterModel {
+pub struct TurnRestrictionConstraintModel {
     pub service: Arc<TurnRestrictionFrontierService>,
 }
 
-impl FilterModel for TurnRestrictionFilterModel {
+impl ConstraintModel for TurnRestrictionConstraintModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
         previous_edge: Option<&Edge>,
         _state: &[StateVariable],
         _state_model: &StateModel,
-    ) -> Result<bool, FilterModelError> {
+    ) -> Result<bool, ConstraintModelError> {
         match previous_edge {
             Some(previous_edge) => {
                 let edge_pair = RestrictedEdgePair {
@@ -35,7 +35,7 @@ impl FilterModel for TurnRestrictionFilterModel {
         }
     }
 
-    fn valid_edge(&self, _edge: &Edge) -> Result<bool, FilterModelError> {
+    fn valid_edge(&self, _edge: &Edge) -> Result<bool, ConstraintModelError> {
         Ok(true)
     }
 }

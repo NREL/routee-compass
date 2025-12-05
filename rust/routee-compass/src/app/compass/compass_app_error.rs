@@ -5,7 +5,7 @@ use routee_compass_core::config::CompassConfigurationError;
 use routee_compass_core::{
     algorithm::search::SearchError,
     model::{
-        cost::CostModelError, filter::FilterModelError, map::MapError, network::NetworkError,
+        cost::CostModelError, constraint::ConstraintModelError, map::MapError, network::NetworkError,
         state::StateModelError, termination::TerminationModelError, traversal::TraversalModelError,
     },
 };
@@ -68,10 +68,10 @@ pub enum CompassAppError {
         #[from]
         source: TraversalModelError,
     },
-    #[error("While interacting with the filter model outside of the context of search, an error occurred. Source: {source}")]
-    FilterModelFailure {
+    #[error("While interacting with the constraint model outside of the context of search, an error occurred. Source: {source}")]
+    ConstraintModelFailure {
         #[from]
-        source: FilterModelError,
+        source: ConstraintModelError,
     },
     #[error("While interacting with the cost model outside of the context of search, an error occurred. Source: {source}")]
     CostFailure {

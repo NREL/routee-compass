@@ -1,7 +1,7 @@
 use super::road_class_service::RoadClassFrontierService;
 use crate::config::{CompassConfigurationField, ConfigJsonExtensions};
 use crate::{
-    model::filter::{FilterModelBuilder, FilterModelError, FilterModelService},
+    model::constraint::{ConstraintModelBuilder, ConstraintModelError, ConstraintModelService},
     util::fs::{read_decoders, read_utils},
 };
 use kdam::Bar;
@@ -9,18 +9,18 @@ use std::sync::Arc;
 
 pub struct RoadClassBuilder {}
 
-impl FilterModelBuilder for RoadClassBuilder {
+impl ConstraintModelBuilder for RoadClassBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn FilterModelService>, FilterModelError> {
-        let filter_key = CompassConfigurationField::Frontier.to_string();
+    ) -> Result<Arc<dyn ConstraintModelService>, ConstraintModelError> {
+        let constraint_key = CompassConfigurationField::Constraint.to_string();
         let road_class_file_key = String::from("road_class_input_file");
 
         let road_class_file = parameters
-            .get_config_path(&road_class_file_key, &filter_key)
+            .get_config_path(&road_class_file_key, &constraint_key)
             .map_err(|e| {
-                FilterModelError::BuildError(format!(
+                ConstraintModelError::BuildError(format!(
                     "configuration error due to {}: {}",
                     road_class_file_key.clone(),
                     e
@@ -34,14 +34,14 @@ impl FilterModelBuilder for RoadClassBuilder {
             None,
         )
         .map_err(|e| {
-            FilterModelError::BuildError(format!(
+            ConstraintModelError::BuildError(format!(
                 "failed to load file at {:?}: {}",
                 road_class_file.clone().to_str(),
                 e
             ))
         })?;
 
-        let m: Arc<dyn FilterModelService> = Arc::new(RoadClassFrontierService {
+        let m: Arc<dyn ConstraintModelService> = Arc::new(RoadClassFrontierService {
             road_class_by_edge: Arc::new(road_class_lookup),
             // road_class_parser,
         });

@@ -1,26 +1,26 @@
 use crate::config::{CompassConfigurationError, CompassConfigurationField, ConfigJsonExtensions};
-use crate::model::filter::{FilterModelBuilder, FilterModelError, FilterModelService};
+use crate::model::constraint::{ConstraintModelBuilder, ConstraintModelError, ConstraintModelService};
 use itertools::Itertools;
 use std::{collections::HashMap, rc::Rc, sync::Arc};
 
 use super::combined_service::CombinedFrontierService;
 
-pub struct CombinedFilterModelBuilder {
-    pub builders: HashMap<String, Rc<dyn FilterModelBuilder>>,
+pub struct CombinedConstraintModelBuilder {
+    pub builders: HashMap<String, Rc<dyn ConstraintModelBuilder>>,
 }
 
-impl CombinedFilterModelBuilder {
-    pub fn new(builders: HashMap<String, Rc<dyn FilterModelBuilder>>) -> Self {
+impl CombinedConstraintModelBuilder {
+    pub fn new(builders: HashMap<String, Rc<dyn ConstraintModelBuilder>>) -> Self {
         Self { builders }
     }
 
     fn build_service(
         &self,
         config: &serde_json::Value,
-    ) -> Result<Arc<dyn FilterModelService>, CompassConfigurationError> {
+    ) -> Result<Arc<dyn ConstraintModelService>, CompassConfigurationError> {
         let fm_type_obj = config.get("type").ok_or_else(|| {
             CompassConfigurationError::ExpectedFieldForComponent(
-                CompassConfigurationField::Frontier.to_string(),
+                CompassConfigurationField::Constraint.to_string(),
                 String::from("type"),
             )
         })?;
@@ -38,32 +38,32 @@ impl CombinedFilterModelBuilder {
             .ok_or_else(|| {
                 CompassConfigurationError::UnknownModelNameForComponent(
                     fm_type.clone(),
-                    String::from("filter"),
+                    String::from("constraint"),
                     self.builders.keys().join(", "),
                 )
             })
             .and_then(|b| {
                 b.build(config)
-                    .map_err(CompassConfigurationError::FilterModelError)
+                    .map_err(CompassConfigurationError::ConstraintModelError)
             })
     }
 }
 
-impl FilterModelBuilder for CombinedFilterModelBuilder {
+impl ConstraintModelBuilder for CombinedConstraintModelBuilder {
     fn build(
         &self,
         parameters: &serde_json::Value,
-    ) -> Result<Arc<dyn FilterModelService>, FilterModelError> {
-        let filter_key = CompassConfigurationField::Frontier;
+    ) -> Result<Arc<dyn ConstraintModelService>, ConstraintModelError> {
+        let constraint_key = CompassConfigurationField::Constraint;
         let params = parameters
-            .get_config_array(&"models", &filter_key)
-            .map_err(|e| FilterModelError::BuildError(e.to_string()))?;
+            .get_config_array(&"models", &constraint_key)
+            .map_err(|e| ConstraintModelError::BuildError(e.to_string()))?;
 
         let inner_services = params
             .iter()
             .map(|p| self.build_service(p))
-            .collect::<Result<Vec<Arc<dyn FilterModelService>>, CompassConfigurationError>>()
-            .map_err(|e| FilterModelError::BuildError(e.to_string()))?;
+            .collect::<Result<Vec<Arc<dyn ConstraintModelService>>, CompassConfigurationError>>()
+            .map_err(|e| ConstraintModelError::BuildError(e.to_string()))?;
 
         let service = CombinedFrontierService { inner_services };
 

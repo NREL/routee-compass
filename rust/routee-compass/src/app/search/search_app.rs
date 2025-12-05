@@ -5,7 +5,7 @@ use routee_compass_core::{
     algorithm::search::{Direction, SearchAlgorithm, SearchError, SearchInstance},
     model::{
         cost::cost_model_service::CostModelService,
-        filter::FilterModelService,
+        constraint::ConstraintModelService,
         label::label_model_service::LabelModelService,
         map::{MapJsonExtensions, MapModel},
         network::Graph,
@@ -24,7 +24,7 @@ pub struct SearchApp {
     pub map_model: Arc<MapModel>,
     pub state_model: Arc<StateModel>,
     pub traversal_model_services: Vec<Arc<dyn TraversalModelService>>,
-    pub filter_model_services: Vec<Arc<dyn FilterModelService>>,
+    pub constraint_model_services: Vec<Arc<dyn ConstraintModelService>>,
     pub cost_model_service: Arc<CostModelService>,
     pub termination_model: Arc<TerminationModel>,
     pub label_model_service: Arc<dyn LabelModelService>,
@@ -41,7 +41,7 @@ impl SearchApp {
         map_model: Arc<MapModel>,
         state_model: Arc<StateModel>,
         traversal_model_services: Vec<Arc<dyn TraversalModelService>>,
-        filter_model_services: Vec<Arc<dyn FilterModelService>>,
+        constraint_model_services: Vec<Arc<dyn ConstraintModelService>>,
         cost_model_service: CostModelService,
         termination_model: TerminationModel,
         label_model_service: Arc<dyn LabelModelService>,
@@ -54,7 +54,7 @@ impl SearchApp {
             state_model,
             traversal_model_services,
             cost_model_service: Arc::new(cost_model_service),
-            filter_model_services,
+            constraint_model_services,
             termination_model: Arc::new(termination_model),
             label_model_service,
             default_edge_list,
@@ -156,8 +156,8 @@ impl SearchApp {
             .cost_model_service
             .build(query, state_model.clone())
             .map_err(|e| SearchError::BuildError(e.to_string()))?;
-        let filter_models = self
-            .filter_model_services
+        let constraint_models = self
+            .constraint_model_services
             .iter()
             .map(|m| m.build(query, state_model.clone()))
             .collect::<Result<Vec<_>, _>>()?;
@@ -170,7 +170,7 @@ impl SearchApp {
             state_model,
             traversal_models,
             cost_model: Arc::new(cost_model),
-            filter_models,
+            constraint_models,
             termination_model: self.termination_model.clone(),
             label_model,
             default_edge_list: self.default_edge_list,

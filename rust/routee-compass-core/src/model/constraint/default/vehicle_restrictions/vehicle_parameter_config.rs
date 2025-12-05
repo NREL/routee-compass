@@ -1,5 +1,5 @@
 use crate::model::{
-    filter::default::vehicle_restrictions::VehicleParameter,
+    constraint::default::vehicle_restrictions::VehicleParameter,
     unit::{DistanceUnit, WeightUnit},
 };
 use serde::{Deserialize, Serialize};

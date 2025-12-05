@@ -1,6 +1,6 @@
-use super::turn_restriction_model::TurnRestrictionFilterModel;
+use super::turn_restriction_model::TurnRestrictionConstraintModel;
 use crate::model::{
-    filter::{FilterModel, FilterModelError, FilterModelService},
+    constraint::{ConstraintModel, ConstraintModelError, ConstraintModelService},
     network::EdgeId,
     state::StateModel,
 };
@@ -18,14 +18,14 @@ pub struct TurnRestrictionFrontierService {
     pub restricted_edge_pairs: Arc<HashSet<RestrictedEdgePair>>,
 }
 
-impl FilterModelService for TurnRestrictionFrontierService {
+impl ConstraintModelService for TurnRestrictionFrontierService {
     fn build(
         &self,
         _query: &serde_json::Value,
         _state_model: Arc<StateModel>,
-    ) -> Result<Arc<dyn FilterModel>, FilterModelError> {
+    ) -> Result<Arc<dyn ConstraintModel>, ConstraintModelError> {
         let service: Arc<TurnRestrictionFrontierService> = Arc::new(self.clone());
-        let model = TurnRestrictionFilterModel { service };
+        let model = TurnRestrictionConstraintModel { service };
         Ok(Arc::new(model))
     }
 }

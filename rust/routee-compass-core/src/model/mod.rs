@@ -1,5 +1,5 @@
 pub mod cost;
-pub mod filter;
+pub mod constraint;
 pub mod label;
 pub mod map;
 pub mod network;

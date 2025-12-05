@@ -1,36 +1,36 @@
 use super::{VehicleParameter, VehicleRestrictionFrontierService};
 use crate::model::{
-    filter::{FilterModel, FilterModelError},
+    constraint::{ConstraintModel, ConstraintModelError},
     network::Edge,
     state::{StateModel, StateVariable},
 };
 use std::sync::Arc;
 
-pub struct VehicleRestrictionFilterModel {
+pub struct VehicleRestrictionConstraintModel {
     pub service: Arc<VehicleRestrictionFrontierService>,
     pub vehicle_parameters: Vec<VehicleParameter>,
 }
 
-impl FilterModel for VehicleRestrictionFilterModel {
+impl ConstraintModel for VehicleRestrictionConstraintModel {
     fn valid_frontier(
         &self,
         edge: &Edge,
         _previos_edge: Option<&Edge>,
         _state: &[StateVariable],
         _state_model: &StateModel,
-    ) -> Result<bool, FilterModelError> {
+    ) -> Result<bool, ConstraintModelError> {
         validate_edge(self, edge)
     }
 
-    fn valid_edge(&self, edge: &Edge) -> Result<bool, FilterModelError> {
+    fn valid_edge(&self, edge: &Edge) -> Result<bool, ConstraintModelError> {
         validate_edge(self, edge)
     }
 }
 
 fn validate_edge(
-    model: &VehicleRestrictionFilterModel,
+    model: &VehicleRestrictionConstraintModel,
     edge: &Edge,
-) -> Result<bool, FilterModelError> {
+) -> Result<bool, ConstraintModelError> {
     // if there are no parameters or restrictions, the edge is valid
     let restriction_map_option = model.service.vehicle_restriction_lookup.get(&edge.edge_id);
     let restrictions = match (restriction_map_option, model.vehicle_parameters.as_slice()) {
@@ -39,7 +39,7 @@ fn validate_edge(
         (Some(vehicle_restrictions), _) => vehicle_restrictions,
     };
 
-    // for each parameter of this filter model, test if the parameter is valid for any matching restriction
+    // for each parameter of this constraint model, test if the parameter is valid for any matching restriction
     for p in model.vehicle_parameters.iter() {
         let p_type = p.vehicle_parameter_type();
         match restrictions.get(p_type) {
@@ -57,9 +57,9 @@ fn validate_edge(
 mod test {
 
     use crate::model::{
-        filter::{
-            default::vehicle_restrictions::VehicleRestrictionBuilder, FilterModel,
-            FilterModelBuilder,
+        constraint::{
+            default::vehicle_restrictions::VehicleRestrictionBuilder, ConstraintModel,
+            ConstraintModelBuilder,
         },
         network::Edge,
         state::StateModel,
@@ -115,7 +115,7 @@ mod test {
         }
     }
 
-    fn build_model(restriction_filename: &str, query_filename: &str) -> Arc<dyn FilterModel> {
+    fn build_model(restriction_filename: &str, query_filename: &str) -> Arc<dyn ConstraintModel> {
         let restriction_file = test_filepath(restriction_filename);
         let conf = json!({
             "vehicle_restriction_input_file": restriction_file,
@@ -154,11 +154,11 @@ mod test {
     }
 
     fn test_dir() -> PathBuf {
-        // rust/routee-compass/src/app/compass/model/filter_model/vehicle_restrictions/test
+        // rust/routee-compass/src/app/compass/model/constraint_model/vehicle_restrictions/test
         Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
-            .join("filter")
+            .join("constraint")
             .join("default")
             .join("vehicle_restrictions")
             .join("test")

@@ -2,7 +2,7 @@ use crate::{
     algorithm::search::SearchTreeError,
     model::{
         cost::CostModelError,
-        filter::FilterModelError,
+        constraint::ConstraintModelError,
         label::label_model_error::LabelModelError,
         network::{EdgeId, NetworkError, VertexId},
         state::StateModelError,
@@ -45,10 +45,10 @@ pub enum SearchError {
         #[from]
         source: TraversalModelError,
     },
-    #[error("The search failed due to filter model error. The filter model restricts access to edges. Please review the [filter] section of your Compass Configuration. Source: {source}")]
-    FilterModelFailure {
+    #[error("The search failed due to constraint model error. The constraint model restricts access to edges. Please review the [constraint] section of your Compass Configuration. Source: {source}")]
+    ConstraintModelFailure {
         #[from]
-        source: FilterModelError,
+        source: ConstraintModelError,
     },
     #[error("The search failed due to cost model error. The cost model interprets a delta of search state dimensions as having a cost value, which is minimized by the search. Please see the [cost] section of your Compass Configuration and additionally any query-time overrides. Source: {source}")]
     CostFailure {
