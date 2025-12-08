@@ -11,29 +11,29 @@ repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
 
 [dependencies]
-approx = "0.5.1"
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-rayon = { workspace = true }
-thiserror = { workspace = true }
+allocative = { workspace = true }
+approx = { workspace = true }
+chrono = { workspace = true }
+csv = { workspace = true }
+derive_more = { workspace = true }
+env_logger = { workspace = true }
 flate2 = { workspace = true }
 geo = { workspace = true }
 geo-traits = { workspace = true }
-ordered-float = { workspace = true }
-derive_more = { workspace = true }
-priority-queue = "2.0.2"
-env_logger = { workspace = true }
-lru = "0.14.0"
-csv = { workspace = true }
+indexmap = { workspace = true }
+itertools = { workspace = true }
 kdam = { workspace = true }
 log = { workspace = true }
-itertools = { workspace = true }
-chrono = { workspace = true }
+lru = { workspace = true }
+ordered-float = { workspace = true }
+priority-queue = { workspace = true }
+rayon = { workspace = true }
 regex = { workspace = true }
-wkt = { workspace = true }
-wkb = { workspace = true }
-allocative = { workspace = true }
 rstar = { workspace = true }
-uom = { workspace = true, features = ["serde"] }
-indexmap = { workspace = true }
-topological-sort = "0.2.2"
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+topological-sort = { workspace = true }
+uom = { workspace = true }
+wkb = { workspace = true }
+wkt = { workspace = true }

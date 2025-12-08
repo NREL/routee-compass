@@ -8,6 +8,7 @@ use routee_compass_core::{
     model::{map::MapModel, state::StateModel},
 };
 use serde::{Deserialize, Serialize};
+use wkb::writer::WriteOptions;
 use wkt::ToWkt;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
@@ -106,9 +107,12 @@ fn geometry_to_wkb_string<T: CoordFloat + Into<f64>>(
     let geom: Geometry<f64> = geometry.try_convert().map_err(|e| {
         OutputPluginError::OutputPluginFailed(format!("unable to convert geometry to f64: {e}"))
     })?;
-    wkb::writer::write_geometry(&mut out_bytes, &geom, wkb::Endianness::BigEndian).map_err(
-        |e| OutputPluginError::OutputPluginFailed(format!("failed to write geometry as WKB: {e}")),
-    )?;
+    let write_options = WriteOptions {
+        endianness: wkb::Endianness::BigEndian,
+    };
+    wkb::writer::write_geometry(&mut out_bytes, &geom, &write_options).map_err(|e| {
+        OutputPluginError::OutputPluginFailed(format!("failed to write geometry as WKB: {e}"))
+    })?;
     let out_string = String::from_utf8(out_bytes).map_err(|e| {
         OutputPluginError::OutputPluginFailed(format!("failed to read WKB as utf8: {e}"))
     })?;
