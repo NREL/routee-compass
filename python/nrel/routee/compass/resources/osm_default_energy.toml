@@ -48,8 +48,8 @@ factor = 0.50
 unit = "kwh"
 
 # Used for restricting travel after the battery is depleted.
-[search.frontier]
-type = "battery_frontier"
+[search.constraint]
+type = "battery"
 
 [search.traversal]
 type = "combined"

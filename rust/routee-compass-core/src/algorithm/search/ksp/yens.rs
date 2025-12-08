@@ -5,11 +5,11 @@ use crate::{
         search_algorithm::SearchAlgorithm,
         search_algorithm_result::SearchAlgorithmResult,
         search_error::SearchError,
-        util::{EdgeCutFrontierModel, RouteSimilarityFunction},
+        util::{EdgeCutConstraintModel, RouteSimilarityFunction},
         SearchInstance,
     },
     model::{
-        frontier::{FrontierModel, FrontierModelError},
+        constraint::{ConstraintModel, ConstraintModelError},
         network::EdgeId,
         unit::Cost,
     },
@@ -96,10 +96,10 @@ pub fn run(
                 }
             }
 
-            // execute a new path search using a wrapped frontier model to exclude edges
-            let yens_frontier: Vec<Arc<dyn FrontierModel>> = cut_edges.iter().enumerate().map(|(edge_list_id, cut)| {
-                let underlying = si.frontier_models.get(edge_list_id).ok_or_else(|| FrontierModelError::FrontierModelError(format!("when constructing edge cut frontier model, could not find edge list '{edge_list_id}'")))?;
-                let model: Arc<dyn FrontierModel> = Arc::new(EdgeCutFrontierModel::new(underlying.clone(), cut.clone()));
+            // execute a new path search using a wrapped constraint model to exclude edges
+            let yens_frontier: Vec<Arc<dyn ConstraintModel>> = cut_edges.iter().enumerate().map(|(edge_list_id, cut)| {
+                let underlying = si.constraint_models.get(edge_list_id).ok_or_else(|| ConstraintModelError::ConstraintModelError(format!("when constructing edge cut constraint model, could not find edge list '{edge_list_id}'")))?;
+                let model: Arc<dyn ConstraintModel> = Arc::new(EdgeCutConstraintModel::new(underlying.clone(), cut.clone()));
                 Ok(model)
             }).collect::<Result<Vec<_>, SearchError>>()?;
             let yens_si = SearchInstance {
@@ -108,7 +108,7 @@ pub fn run(
                 state_model: si.state_model.clone(),
                 traversal_models: si.traversal_models.iter().cloned().collect_vec(),
                 cost_model: si.cost_model.clone(),
-                frontier_models: yens_frontier,
+                constraint_models: yens_frontier,
                 termination_model: si.termination_model.clone(),
                 label_model: si.label_model.clone(),
                 default_edge_list: si.default_edge_list,

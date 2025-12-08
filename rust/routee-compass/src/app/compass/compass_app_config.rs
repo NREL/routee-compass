@@ -5,7 +5,7 @@ use routee_compass_core::{
     algorithm::search::SearchAlgorithmConfig,
     config::{ConfigJsonExtensions, OneOrMany},
     model::{
-        cost::CostModelConfig, frontier::FrontierModelService, map::MapModelConfig,
+        constraint::ConstraintModelService, cost::CostModelConfig, map::MapModelConfig,
         network::GraphConfig, state::StateVariableConfig, termination::TerminationModel,
         traversal::TraversalModelService,
     },
@@ -36,12 +36,12 @@ pub struct CompassAppConfig {
     pub system: CompassAppSystemParameters,
 }
 
-/// sub-section of [`CompassAppConfig`] where the [`TraversalModelService`], [`AccessModelService`], and [`FrontierModelService`] components
+/// sub-section of [`CompassAppConfig`] where the [`TraversalModelService`], [`AccessModelService`], and [`ConstraintModelService`] components
 /// for an [`EdgeList`] are specified.
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct SearchConfig {
     pub traversal: Value,
-    pub frontier: Value,
+    pub constraint: Value,
 }
 
 impl CompassAppConfig {
@@ -114,14 +114,14 @@ impl CompassAppConfig {
         Ok(result)
     }
 
-    pub fn build_frontier_model_services(
+    pub fn build_constraint_model_services(
         &self,
         builders: &CompassBuilderInventory,
-    ) -> Result<Vec<Arc<dyn FrontierModelService>>, CompassAppError> {
+    ) -> Result<Vec<Arc<dyn ConstraintModelService>>, CompassAppError> {
         let result = self
             .search
             .iter()
-            .map(|el| builders.build_frontier_model_service(&el.frontier))
+            .map(|el| builders.build_constraint_model_service(&el.constraint))
             .collect::<Result<Vec<_>, _>>()?;
         Ok(result)
     }

@@ -3,7 +3,7 @@ use std::fmt::Display;
 #[derive(Debug)]
 pub enum CompassConfigurationField {
     Graph,
-    Frontier,
+    Constraint,
     Termination,
     Label,
     State,
@@ -32,7 +32,7 @@ impl CompassConfigurationField {
             CompassConfigurationField::Access => "access",
             CompassConfigurationField::Cost => "cost",
             CompassConfigurationField::State => "state",
-            CompassConfigurationField::Frontier => "frontier",
+            CompassConfigurationField::Constraint => "constraint",
             CompassConfigurationField::Termination => "termination",
             CompassConfigurationField::Algorithm => "algorithm",
             CompassConfigurationField::Parallelism => "parallelism",
