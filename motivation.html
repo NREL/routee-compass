@@ -459,9 +459,9 @@ This allows time-of-day features to impact the energy model such as network spee
 </section>
 <section id="extensible-model-api">
 <h3>Extensible Model API<a class="headerlink" href="#extensible-model-api" title="Link to this heading">#</a></h3>
-<p>The routing model is broken into three components: the <strong>Frontier Model</strong> and <strong>Traversal Model</strong>.
+<p>The routing model is broken into three components: the <strong>Filter Model</strong> and <strong>Traversal Model</strong>.
 Each slices off an aspect of a single iteration of a traditional path search.</p>
-<p>The <strong>Frontier Model</strong> serves to restrict travel over links based on criteria such as the road classification, turn restrictions, or vehicle restrictions.
+<p>The <strong>Filter Model</strong> serves to restrict travel over links based on criteria such as the road classification, turn restrictions, or vehicle restrictions.
 It is invoked before adding a link to the frontier of unexplored links.</p>
 <p>The <strong>Traversal Model</strong> computes changes to the state tuple due to traversing a single link.
 This is where link travel time and link distance are recorded, and also where link distance, grade and speed can be used to estimate the energy consumption.</p>

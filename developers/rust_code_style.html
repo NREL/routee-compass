@@ -842,19 +842,19 @@ The following table illustrates this relationship for the Frontier and Traversal
 <tr class="row-even"><td><p><strong>builder</strong></p></td>
 <td><p>an empty struct with a <code class="docutils literal notranslate"><span class="pre">build</span></code> method that creates a <strong>service</strong></p></td>
 <td><p>app initialization only</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FrontierModelBuilder</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ConstraintModelBuilder</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TraversalModelBuilder</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>service</strong></p></td>
 <td><p>struct with a <code class="docutils literal notranslate"><span class="pre">build</span></code> method that creates a <strong>model</strong></p></td>
 <td><p>entire program lifetime (same as CompassApp instance)</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FrontierModelService</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ConstraintModelService</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TraversalModelService</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><strong>model</strong></p></td>
 <td><p>object used by the search algorithm</p></td>
 <td><p>duration of a single query</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FrontierModel</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ConstraintModel</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">TraversalModel</span></code></p></td>
 </tr>
 </tbody>
@@ -865,9 +865,9 @@ The following table illustrates this relationship for the Frontier and Traversal
 <span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">rc</span><span class="p">::</span><span class="n">Rc</span><span class="p">;</span>
 <span class="k">use</span><span class="w"> </span><span class="n">std</span><span class="p">::</span><span class="n">sync</span><span class="p">::</span><span class="n">Arc</span><span class="p">;</span>
 <span class="k">use</span><span class="w"> </span><span class="n">routee_compass_core</span><span class="p">::</span><span class="n">model</span><span class="p">::{</span>
-<span class="w">  </span><span class="n">frontier</span><span class="p">::{</span><span class="n">FrontierModelBuilder</span><span class="p">,</span><span class="w"> </span><span class="n">FrontierModelService</span><span class="p">,</span><span class="w"> </span><span class="n">FrontierModel</span><span class="p">},</span>
+<span class="w">  </span><span class="n">constraint</span><span class="p">::{</span><span class="n">ConstraintModelBuilder</span><span class="p">,</span><span class="w"> </span><span class="n">ConstraintModelService</span><span class="p">,</span><span class="w"> </span><span class="n">ConstraintModel</span><span class="p">},</span>
 <span class="p">};</span>
-<span class="k">use</span><span class="w"> </span><span class="n">routee_compass</span><span class="p">::</span><span class="n">model</span><span class="p">::</span><span class="n">frontier_model</span><span class="p">::</span><span class="n">default</span><span class="p">::</span><span class="n">road_class</span><span class="p">::</span><span class="n">RoadClassBuilder</span><span class="p">;</span>
+<span class="k">use</span><span class="w"> </span><span class="n">routee_compass</span><span class="p">::</span><span class="n">model</span><span class="p">::</span><span class="n">constraint</span><span class="p">::</span><span class="n">default</span><span class="p">::</span><span class="n">road_class</span><span class="p">::</span><span class="n">RoadClassBuilder</span><span class="p">;</span>
 
 <span class="c1">// RouteE Compass passes in the &quot;[traversal]&quot; section of the application configuration </span>
 <span class="c1">// here so that it can be used by the selected builder to configure a service.</span>
@@ -878,9 +878,9 @@ The following table illustrates this relationship for the Frontier and Traversal
 <span class="w">  </span><span class="s">&quot;road_class&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;sidewalk&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;living_street&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;service&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;steps&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;track&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;path&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;trailhead&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;pedestrian&quot;</span><span class="p">]</span>
 <span class="p">});</span><span class="w">  </span>
 <span class="w">    </span>
-<span class="kd">let</span><span class="w"> </span><span class="n">builder</span><span class="p">:</span><span class="w"> </span><span class="nc">Rc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">FrontierModelBuilder</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Box</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">RoadClassBuilder</span><span class="w"> </span><span class="p">{});</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">service</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">FrontierModelService</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">config</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
-<span class="kd">let</span><span class="w"> </span><span class="n">model</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">FrontierModel</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">service</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">query</span><span class="p">);</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">builder</span><span class="p">:</span><span class="w"> </span><span class="nc">Rc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">ConstraintModelBuilder</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Box</span><span class="p">::</span><span class="n">new</span><span class="p">(</span><span class="n">RoadClassBuilder</span><span class="w"> </span><span class="p">{});</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">service</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">ConstraintModelService</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">builder</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">config</span><span class="p">)</span><span class="o">?</span><span class="p">;</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">model</span><span class="p">:</span><span class="w"> </span><span class="nc">Arc</span><span class="o">&lt;</span><span class="k">dyn</span><span class="w"> </span><span class="n">ConstraintModel</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">service</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="o">&amp;</span><span class="n">query</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Trait objects are built on the heap.

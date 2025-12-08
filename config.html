@@ -666,7 +666,7 @@ choose the underlying search algorithm (a* or Dijkstra's):</p>
 <h4>KSP Parameters<a class="headerlink" href="#ksp-parameters" title="Link to this heading">#</a></h4>
 <p><em>k</em> is the target number of path alternatives in the result. It is possible for
 less than <em>k</em> to be returned, and this depends on the network and other KSP parameters.</p>
-<p>Similarity function is optional and filters path alternatives by their similarity
+<p>Similarity function is optional and constraints path alternatives by their similarity
 to the working solution set. In this example, both similarity functions will dismiss
 paths that are greater than 10% similar.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="c1"># cheaper computation</span>
@@ -726,7 +726,7 @@ paths that are greater than 10% similar.</p>
 </div>
 <p>Edge-oriented mapping uses some additional (non-optional) line geometry input and builds a spatial lookup over those lines.</p>
 <p>This model will map coordinates to <code class="docutils literal notranslate"><span class="pre">origin_edge</span></code> or a <code class="docutils literal notranslate"><span class="pre">destination_edge</span></code> into the query.</p>
-<p>As opposed to vertex-oriented mapping, the edge-oriented will additionally apply any frontier model rules to any mapped edges, preventing mapping assignments that are invalid frontiers.</p>
+<p>As opposed to vertex-oriented mapping, the edge-oriented will additionally apply any constraint model rules to any mapped edges, preventing mapping assignments that are invalid frontiers.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[mapping]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;edge&quot;</span>
 <span class="c1"># this can b</span>
