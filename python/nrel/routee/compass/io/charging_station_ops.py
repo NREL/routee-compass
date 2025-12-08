@@ -1,4 +1,4 @@
-import importlib
+import importlib.resources
 import requests
 import re
 from typing import List, Union, TYPE_CHECKING
