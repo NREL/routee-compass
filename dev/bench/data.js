@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1765223082571,
+  "lastUpdate": 1765223193990,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -1799,6 +1799,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2998552,
             "range": "± 68419",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "robert.fitzgerald@nrel.gov",
+            "name": "Rob Fitzgerald",
+            "username": "robfitzgerald"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "21fdfbf3d5f7b1284b652c99678151b2ad6fd1b3",
+          "message": "Merge pull request #432 from NREL/dependabot/cargo/rust/criterion-0.8.0\n\nUpdate criterion requirement from 0.7.0 to 0.8.0 in /rust",
+          "timestamp": "2025-12-08T12:44:21-07:00",
+          "tree_id": "7529039ba72173e661c851d72f81bbbd68b1aee8",
+          "url": "https://github.com/NREL/routee-compass/commit/21fdfbf3d5f7b1284b652c99678151b2ad6fd1b3"
+        },
+        "date": 1765223193034,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2982117,
+            "range": "± 88666",
             "unit": "ns/iter"
           }
         ]
