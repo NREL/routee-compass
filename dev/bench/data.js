@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1765496384604,
+  "lastUpdate": 1765840083468,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -1919,6 +1919,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2982702,
             "range": "± 202592",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "068eef524d4c7378899f25810fa381d7db9e5dc4",
+          "message": "Merge pull request #435 from NREL/dependabot/cargo/rust/geo-0.32.0\n\nUpdate geo requirement from 0.31.0 to 0.32.0 in /rust",
+          "timestamp": "2025-12-15T16:05:51-07:00",
+          "tree_id": "e31956f0fce0745acb903a2626c121ec258ab6c0",
+          "url": "https://github.com/NREL/routee-compass/commit/068eef524d4c7378899f25810fa381d7db9e5dc4"
+        },
+        "date": 1765840082908,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2973184,
+            "range": "± 93531",
             "unit": "ns/iter"
           }
         ]
