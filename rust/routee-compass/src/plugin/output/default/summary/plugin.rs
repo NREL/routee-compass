@@ -8,7 +8,7 @@ use serde_json::{self, json};
 
 /// provides metrics for the performance of the search algorithm.
 pub struct SummaryOutputPlugin {
-    pub estimate_memory_consumption: bool
+    pub estimate_memory_consumption: bool,
 }
 
 impl OutputPlugin for SummaryOutputPlugin {
@@ -49,6 +49,8 @@ impl OutputPlugin for SummaryOutputPlugin {
 
 impl SummaryOutputPlugin {
     pub fn new(conf: SummaryConfig) -> SummaryOutputPlugin {
-        SummaryOutputPlugin { estimate_memory_consumption: conf.estimate_memory_consumption.unwrap_or_default() }
+        SummaryOutputPlugin {
+            estimate_memory_consumption: conf.estimate_memory_consumption.unwrap_or_default(),
+        }
     }
 }

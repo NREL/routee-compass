@@ -1,7 +1,7 @@
 mod builder;
-mod plugin;
 mod config;
+mod plugin;
 
 pub use builder::SummaryOutputPluginBuilder;
-pub use plugin::SummaryOutputPlugin;
 pub use config::SummaryConfig;
+pub use plugin::SummaryOutputPlugin;
