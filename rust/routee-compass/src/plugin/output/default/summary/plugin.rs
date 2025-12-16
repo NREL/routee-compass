@@ -4,7 +4,7 @@ use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::output::OutputPluginError;
 use routee_compass_core::algorithm::search::SearchInstance;
 use routee_compass_core::util::duration_extension::DurationExtension;
-use serde_json::{self, json};
+use serde_json::json;
 
 /// provides metrics for the performance of the search algorithm.
 pub struct SummaryOutputPlugin {
