@@ -1,7 +1,7 @@
 use super::plugin::SummaryOutputPlugin;
 use crate::{
     app::compass::CompassComponentError,
-    plugin::output::{OutputPlugin, OutputPluginBuilder},
+    plugin::{PluginError, output::{OutputPlugin, OutputPluginBuilder, default::summary::SummaryConfig}},
 };
 use std::sync::Arc;
 
@@ -10,8 +10,10 @@ pub struct SummaryOutputPluginBuilder {}
 impl OutputPluginBuilder for SummaryOutputPluginBuilder {
     fn build(
         &self,
-        _parameters: &serde_json::Value,
+        parameters: &serde_json::Value,
     ) -> Result<Arc<dyn OutputPlugin>, CompassComponentError> {
-        Ok(Arc::new(SummaryOutputPlugin {}))
+        let conf: SummaryConfig = serde_json::from_value(parameters.clone())
+            .map_err(|e| PluginError::BuildFailed(format!("failure reading summary output plugin config: {e}")))?;
+        Ok(Arc::new(SummaryOutputPlugin::new(conf)))
     }
 }
