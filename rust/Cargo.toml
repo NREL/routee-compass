@@ -8,6 +8,10 @@ members = [
     "routee-compass-py",
 ]
 
+[profile.profiling]
+inherits = "release"
+debug = true
+
 [workspace.dependencies]
 allocative = "0.3.4"
 approx = "0.5.1"

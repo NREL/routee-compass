@@ -131,7 +131,7 @@ pub fn run_vertex_oriented(
                 let dst_h_cost = match (target, a_star) {
                     (Some(target), true) => {
                         let cost_est =
-                            estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
+                            estimate_traversal_cost(key_vertex_id, target, &initial_state, &solution, si)?;
                         cost_est.objective_cost
                     }
                     _ => Cost::ZERO,
@@ -349,7 +349,7 @@ mod tests {
             state_model.clone(),
         )
         .unwrap();
-        let si = SearchInstance {
+        SearchInstance {
             graph,
             map_model,
             state_model: state_model.clone(),
@@ -359,8 +359,7 @@ mod tests {
             termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
             label_model: Arc::new(VertexLabelModel {}),
             default_edge_list: None,
-        };
-        si
+        }
     }
 
     #[test]
@@ -416,8 +415,8 @@ mod tests {
             (
                 // 0 -[7]-> 3 -[5]-> 2 -[3]-> 1
                 VertexId(0),
-                VertexId(5),
-                vec![EdgeId(6), EdgeId(8)],
+                VertexId(1),
+                vec![EdgeId(7), EdgeId(5), EdgeId(3)],
             ),
             (
                 // 0 -[7]-> 3
