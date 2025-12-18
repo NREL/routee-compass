@@ -371,14 +371,17 @@ mod tests {
         let graph = Arc::new(build_astar_graph());
         let si = build_search_instance(graph.clone());
         let result = run_vertex_oriented(
-            query_origin, 
-            Some(query_destination), 
+            query_origin,
+            Some(query_destination),
             &Direction::Forward,
-            true, 
-            &si)
-            .expect("failure running search for A* test");
+            true,
+            &si,
+        )
+        .expect("failure running search for A* test");
         assert_eq!(result.iterations, 2);
-        let route = result.tree.backtrack(query_destination)
+        let route = result
+            .tree
+            .backtrack(query_destination)
             .expect("failure creating search result");
         for (route_edge, expected_edge) in route.into_iter().zip(optimal_route.into_iter()) {
             assert_eq!(route_edge.edge_id, expected_edge);
