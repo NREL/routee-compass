@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1766095707570,
+  "lastUpdate": 1766098509760,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -1979,6 +1979,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2963757,
             "range": "± 298433",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a0ee51206a5172891c7b17f3a80ef5a856ab909c",
+          "message": "Merge pull request #437 from NREL/rjf/optional-allocative\n\nRjf/optional allocative",
+          "timestamp": "2025-12-18T15:52:55-07:00",
+          "tree_id": "962767a1b64b8f4ab4417f1c2748bcf2e3e1093c",
+          "url": "https://github.com/NREL/routee-compass/commit/a0ee51206a5172891c7b17f3a80ef5a856ab909c"
+        },
+        "date": 1766098509186,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2962254,
+            "range": "± 313576",
             "unit": "ns/iter"
           }
         ]
