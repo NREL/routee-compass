@@ -232,7 +232,9 @@ mod tests {
     use std::sync::Arc;
     use uom::si::f64::Length;
 
-    fn build_mock_graph() -> Graph {
+    fn build_square_graph() -> Graph {
+        use uom::si::length::kilometer;
+
         let vertices = vec![
             Vertex::new(0, 0.0, 0.0),
             Vertex::new(1, 0.0, 0.0),
@@ -241,14 +243,14 @@ mod tests {
         ];
 
         let edges = vec![
-            Edge::new(0, 0, 0, 1, Length::new::<uom::si::length::kilometer>(10.0)),
-            Edge::new(0, 1, 1, 0, Length::new::<uom::si::length::kilometer>(10.0)),
-            Edge::new(0, 2, 1, 2, Length::new::<uom::si::length::kilometer>(2.0)),
-            Edge::new(0, 3, 2, 1, Length::new::<uom::si::length::kilometer>(2.0)),
-            Edge::new(0, 4, 2, 3, Length::new::<uom::si::length::kilometer>(1.0)),
-            Edge::new(0, 5, 3, 2, Length::new::<uom::si::length::kilometer>(1.0)),
-            Edge::new(0, 6, 3, 0, Length::new::<uom::si::length::kilometer>(2.0)),
-            Edge::new(0, 7, 0, 3, Length::new::<uom::si::length::kilometer>(2.0)),
+            Edge::new(0, 0, 0, 1, Length::new::<kilometer>(10.0)),
+            Edge::new(0, 1, 1, 0, Length::new::<kilometer>(10.0)),
+            Edge::new(0, 2, 1, 2, Length::new::<kilometer>(2.0)),
+            Edge::new(0, 3, 2, 1, Length::new::<kilometer>(2.0)),
+            Edge::new(0, 4, 2, 3, Length::new::<kilometer>(1.0)),
+            Edge::new(0, 5, 3, 2, Length::new::<kilometer>(1.0)),
+            Edge::new(0, 6, 3, 0, Length::new::<kilometer>(2.0)),
+            Edge::new(0, 7, 0, 3, Length::new::<kilometer>(2.0)),
         ];
 
         let mut adj = vec![IndexMap::new(); vertices.len()];
@@ -270,54 +272,58 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_e2e_queries() {
-        // simple box world that exists in a non-euclidean plane that stretches
-        // the distances between vertex 0 and 1. tested using a distance cost
-        // function. to zero out the cost estimate function, all vertices have a
-        // position of (0,0).
-        // (0) <---> (1)
-        //  ^         ^
-        //  |         |
-        //  v         v
-        // (3) <---> (2)
-        // (0) -[0]-> (1) 10 units distance
-        // (1) -[1]-> (0) 10 units distance
-        // (1) -[2]-> (2) 2 units distance
-        // (2) -[3]-> (1) 2 units distance
-        // (2) -[4]-> (3) 1 units distance
-        // (3) -[5]-> (2) 1 units distance
-        // (3) -[6]-> (0) 2 units distance
-        // (0) -[7]-> (3) 2 units distance
+    /// builds a cross-shaped test graph where A* should outperform Dijkstra's.
+    fn build_astar_graph() -> Graph {
+        use uom::si::length::kilometer;
 
-        // these are the queries to test the grid world. for each query,
-        // we have the vertex pair (source, target) to submit to the
-        // search algorithm, and then the expected route traversal vector for each pair.
-        // a comment is provided that illustrates each query/expected traversal combination.
-        let queries: Vec<(VertexId, VertexId, Vec<EdgeId>)> = vec![
-            (
-                // 0 -[7]-> 3 -[5]-> 2 -[3]-> 1
-                VertexId(0),
-                VertexId(1),
-                vec![EdgeId(7), EdgeId(5), EdgeId(3)],
-            ),
-            (
-                // 0 -[7]-> 3
-                VertexId(0),
-                VertexId(3),
-                vec![EdgeId(7)],
-            ),
-            (
-                // 1 -[2]-> 2 -[4]-> 3 -[6]-> 0
-                VertexId(1),
-                VertexId(0),
-                vec![EdgeId(2), EdgeId(4), EdgeId(6)],
-            ),
-            (VertexId(1), VertexId(2), vec![EdgeId(2)]), // 1 -[2]-> 2
-            (VertexId(2), VertexId(3), vec![EdgeId(4)]), // 2 -[4]-> 3
+        //       (3)
+        //        |
+        // (2) - (0) - (4) - (5)
+        //        |
+        //       (1)
+
+        let vertices = vec![
+            Vertex::new(0, 0.0, 0.0),
+            Vertex::new(1, 0.0, -0.01),
+            Vertex::new(2, -0.01, 0.0),
+            Vertex::new(3, 0.0, 0.01),
+            Vertex::new(4, 0.01, 0.0),
+            Vertex::new(5, 0.02, 0.0),
         ];
 
-        let graph = Arc::new(build_mock_graph());
+        let onekm = Length::new::<kilometer>(1.0);
+        let edges = vec![
+            Edge::new(0, 0, 0, 1, onekm),
+            Edge::new(0, 1, 1, 0, onekm),
+            Edge::new(0, 2, 0, 2, onekm),
+            Edge::new(0, 3, 2, 0, onekm),
+            Edge::new(0, 4, 0, 3, onekm),
+            Edge::new(0, 5, 3, 0, onekm),
+            Edge::new(0, 6, 0, 4, onekm),
+            Edge::new(0, 7, 4, 0, onekm),
+            Edge::new(0, 8, 4, 5, onekm),
+        ];
+
+        let mut adj = vec![IndexMap::new(); vertices.len()];
+        let mut rev = vec![IndexMap::new(); vertices.len()];
+        let edge_list_id = EdgeListId(0);
+
+        for edge in &edges {
+            adj[edge.src_vertex_id.0].insert((edge_list_id, edge.edge_id), edge.dst_vertex_id);
+            rev[edge.dst_vertex_id.0].insert((edge_list_id, edge.edge_id), edge.src_vertex_id);
+        }
+
+        // Construct the Graph instance.
+
+        Graph {
+            vertices: vertices.into_boxed_slice(),
+            edge_lists: vec![EdgeList(edges.into_boxed_slice())],
+            adj: adj.into_boxed_slice(),
+            rev: rev.into_boxed_slice(),
+        }
+    }
+
+    fn build_search_instance(graph: Arc<Graph>) -> SearchInstance {
         let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
         let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::default()));
 
@@ -354,6 +360,80 @@ mod tests {
             label_model: Arc::new(VertexLabelModel {}),
             default_edge_list: None,
         };
+        si
+    }
+
+    #[test]
+    fn test_astar_graph() {
+        let query_origin = VertexId(0);
+        let query_destination = VertexId(5);
+        let optimal_route = vec![EdgeId(6), EdgeId(8)];
+        let graph = Arc::new(build_astar_graph());
+        let si = build_search_instance(graph.clone());
+        let result = run_vertex_oriented(
+            query_origin, 
+            Some(query_destination), 
+            &Direction::Forward,
+            true, 
+            &si)
+            .expect("failure running search for A* test");
+        assert_eq!(result.iterations, 2);
+        let route = result.tree.backtrack(query_destination)
+            .expect("failure creating search result");
+        for (route_edge, expected_edge) in route.into_iter().zip(optimal_route.into_iter()) {
+            assert_eq!(route_edge.edge_id, expected_edge);
+        }
+    }
+
+    #[test]
+    fn test_square_graph() {
+        // simple box world that exists in a non-euclidean plane that stretches
+        // the distances between vertex 0 and 1. tested using a distance cost
+        // function. to zero out the cost estimate function, all vertices have a
+        // position of (0,0).
+        // (0) <---> (1)
+        //  ^         ^
+        //  |         |
+        //  v         v
+        // (3) <---> (2)
+        // (0) -[0]-> (1) 10 units distance
+        // (1) -[1]-> (0) 10 units distance
+        // (1) -[2]-> (2) 2 units distance
+        // (2) -[3]-> (1) 2 units distance
+        // (2) -[4]-> (3) 1 units distance
+        // (3) -[5]-> (2) 1 units distance
+        // (3) -[6]-> (0) 2 units distance
+        // (0) -[7]-> (3) 2 units distance
+
+        // these are the queries to test the grid world. for each query,
+        // we have the vertex pair (source, target) to submit to the
+        // search algorithm, and then the expected route traversal vector for each pair.
+        // a comment is provided that illustrates each query/expected traversal combination.
+        let queries: Vec<(VertexId, VertexId, Vec<EdgeId>)> = vec![
+            (
+                // 0 -[7]-> 3 -[5]-> 2 -[3]-> 1
+                VertexId(0),
+                VertexId(5),
+                vec![EdgeId(6), EdgeId(8)],
+            ),
+            (
+                // 0 -[7]-> 3
+                VertexId(0),
+                VertexId(3),
+                vec![EdgeId(7)],
+            ),
+            (
+                // 1 -[2]-> 2 -[4]-> 3 -[6]-> 0
+                VertexId(1),
+                VertexId(0),
+                vec![EdgeId(2), EdgeId(4), EdgeId(6)],
+            ),
+            (VertexId(1), VertexId(2), vec![EdgeId(2)]), // 1 -[2]-> 2
+            (VertexId(2), VertexId(3), vec![EdgeId(4)]), // 2 -[4]-> 3
+        ];
+
+        let graph = Arc::new(build_square_graph());
+        let si = build_search_instance(graph.clone());
 
         // execute the route search
         let result: Vec<Result<SearchTree, SearchError>> = queries
