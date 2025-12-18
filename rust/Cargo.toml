@@ -54,3 +54,7 @@ topological-sort = "0.2.2"
 uom = { version = "=0.36.0", features = ["serde"] }
 wkb = "0.9.1"
 wkt = { version = "0.14.0", features = ["serde"] }
+
+[profile.profiling]
+inherits = "release"
+debug = true
