@@ -8,10 +8,6 @@ members = [
     "routee-compass-py",
 ]
 
-[profile.profiling]
-inherits = "release"
-debug = true
-
 [workspace.dependencies]
 allocative = "0.3.4"
 approx = "0.5.1"
@@ -58,3 +54,7 @@ topological-sort = "0.2.2"
 uom = { version = "=0.36.0", features = ["serde"] }
 wkb = "0.9.1"
 wkt = { version = "0.14.0", features = ["serde"] }
+
+[profile.profiling]
+inherits = "release"
+debug = true
