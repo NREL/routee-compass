@@ -130,8 +130,13 @@ pub fn run_vertex_oriented(
 
                 let dst_h_cost = match (target, a_star) {
                     (Some(target), true) => {
-                        let cost_est =
-                            estimate_traversal_cost(key_vertex_id, target, &initial_state, &solution, si)?;
+                        let cost_est = estimate_traversal_cost(
+                            key_vertex_id,
+                            target,
+                            &initial_state,
+                            &solution,
+                            si,
+                        )?;
                         cost_est.objective_cost
                     }
                     _ => Cost::ZERO,

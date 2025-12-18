@@ -1,0 +1,60 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+**RouteE Compass** 
+RouteE Compass is an energy-aware routing engine for the RouteE ecosystem of software tools with the following key features:
+
+    - Dynamic and extensible search objectives that allow customized blends of distance, time, cost, and energy (via RouteE Powertrain) at query-time
+    - Core engine written in Rust for improved runtimes, parallel query execution, and the ability to load nation-sized road networks into memory
+    - Rust and Python APIs for integration into different research pipelines and other software
+
+## Repository Structure
+
+```
+docs/                         # Documentation source files
+python/                       # Python wrapper code
+  nrel/routee/compass/        # Main Python package source
+rust/                         # Core Rust implementation
+  routee-compass/             # Main application and binary crate
+  routee-compass-core/        # Core shared logic for application 
+  routee-compass-macros/      # Macros for the project 
+  routee-compass-powertrain/  # Extension to include RouteE Powertrain Energy 
+  routee-compass-py/          # Rust-Python bindings using PyO3
+```
+
+## Component-Specific Guidance
+
+**For Rust core development**:
+- All core rust code is in `rust/`
+
+**For Python Wrapper development**:
+- Package is managed with matruin and pyproject.toml and uses PyO3 bindings
+- Development setup: `conda activate routee-compass && matruin develop` from root directory
+
+## Quick Start Commands
+
+### Core Operations
+```bash
+cd rust 
+
+# Build 
+cargo build --release
+
+# Run tests
+cargo test
+```
+
+### Python Wrapper Operations
+```bash
+# activate environment
+conda activate routee-compass
+
+# build source
+maturin develop
+
+# testing
+pytest tests/
+```
