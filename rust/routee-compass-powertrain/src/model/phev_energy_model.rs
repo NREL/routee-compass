@@ -250,12 +250,12 @@ fn phev_traversal(
         match depleting.energy_rate_unit {
             EnergyRateUnit::KWHPM => {
                 let distance_miles = distance.get::<uom::si::length::mile>();
-                let energy_kwh = depleting.ideal_energy_rate * distance_miles;
+                let energy_kwh = depleting.a_star_heuristic_energy_rate * distance_miles;
                 Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
             }
             EnergyRateUnit::KWHPKM => {
                 let distance_km = distance.get::<uom::si::length::kilometer>();
-                let energy_kwh = depleting.ideal_energy_rate * distance_km;
+                let energy_kwh = depleting.a_star_heuristic_energy_rate * distance_km;
                 Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
             }
             _ => {
@@ -339,12 +339,13 @@ fn mixed_traversal(
             // TODO: This should be updated once we have a uom EnergyRateUnit
             EnergyRateUnit::GGPM => {
                 let distance_miles = remaining_dist.get::<uom::si::length::mile>();
-                let energy_gallons_gas = sustaining.ideal_energy_rate * distance_miles;
+                let energy_gallons_gas = sustaining.a_star_heuristic_energy_rate * distance_miles;
                 EnergyUnit::GallonsGasolineEquivalent.to_uom(energy_gallons_gas)
             }
             EnergyRateUnit::GDPM => {
                 let distance_miles = remaining_dist.get::<uom::si::length::mile>();
-                let energy_gallons_diesel = sustaining.ideal_energy_rate * distance_miles;
+                let energy_gallons_diesel =
+                    sustaining.a_star_heuristic_energy_rate * distance_miles;
                 EnergyUnit::GallonsDieselEquivalent.to_uom(energy_gallons_diesel)
             }
             _ => {
@@ -580,6 +581,7 @@ mod test {
             },
             input_features,
             energy_rate_unit,
+            None,
             Some(1.3958),
         );
         let model_record =

@@ -2,51 +2,44 @@ parallelism = 2
 
 [graph]
 vertex_list_input_file = "vertices-compass.csv.gz"
-edge_list = { input_file = "edges-compass.csv.gz" }
-
-# based on 65.5 cents per mile 2023 IRS mileage rate
-[cost.vehicle_rates.trip_distance]
-type = "distance"
-factor = 0.655
-unit = "miles"
-
-# based on $20/hr approximation of 2023 median hourly wages
-[cost.vehicle_rates.trip_time]
-type = "time"
-factor = 0.333336
-unit = "minutes"
-
-# based on $0.50/kWh approximation of DCFC charge rates
-[cost.vehicle_rates.trip_energy_electric]
-type = "energy"
-factor = 0.50
-unit = "kwh"
 
 [mapping]
 type = "edge"
-geometry.input_file = "edges-geometries-enumerated.txt.gz"
-tolerance.distance = 15.0
-tolerance.unit = "meters"
 queries_without_destinations = false
 matching_type = ["point", "vertex_id", "edge_id"]
 
 [plugin]
-input_plugins = [
-    { type = "grid_search" },
-    { type = "load_balancer", weight_heuristic = { type = "haversine" } },
-]
-output_plugins = [
-    { type = "summary" },
-    { type = "traversal", route = "geo_json", geometry_input_file = "edges-geometries-enumerated.txt.gz" },
-]
+[[plugin.input_plugins]]
+type = "grid_search"
 
-# Used for restricting travel after the battery is depleted.
+[[plugin.input_plugins]]
+type = "load_balancer"
+
+[plugin.input_plugins.weight_heuristic]
+type = "haversine"
+[[plugin.output_plugins]]
+type = "summary"
+
+[[plugin.output_plugins]]
+type = "traversal"
+route = "geo_json"
+geometry_input_file = "edges-geometries-enumerated.txt.gz"
+
+[graph.edge_list]
+input_file = "edges-compass.csv.gz"
+
+[mapping.geometry]
+input_file = "edges-geometries-enumerated.txt.gz"
+
+[mapping.tolerance]
+distance = 15.0
+unit = "meters"
+
 [search.constraint]
 type = "battery"
 
 [search.traversal]
 type = "combined"
-
 [[search.traversal.models]]
 type = "temperature"
 
@@ -70,6 +63,7 @@ time_unit = "minutes"
 [[search.traversal.models]]
 type = "turn_delay"
 edge_heading_input_file = "edges-headings-enumerated.csv.gz"
+
 [search.traversal.models.turn_delay_model]
 type = "tabular_discrete"
 time_unit = "seconds"
@@ -82,88 +76,30 @@ slight_left = 1.0
 left = 2.5
 sharp_left = 3.5
 u_turn = 9.5
-
 [[search.traversal.models]]
 type = "grade"
 grade_unit = "decimal"
 grade_input_file = "edges-grade-enumerated.txt.gz"
+
 [[search.traversal.models]]
 type = "energy"
-
-[[search.traversal.models.vehicles]]
-name = "2016_Nissan_Leaf_30_kWh_Steady_Thermal"
-type = "bev"
-model_input_file = "models/2016_Nissan_Leaf_30_kWh_Steady_Thermal.bin"
-distance_unit = "miles"
-energy_rate_unit = "kWh/mile"
-battery_capacity = 30
-battery_capacity_unit = "kilowatt_hours"
-input_features = [
-    { type = "speed", name = "edge_speed", unit = "mph" },
-    { type = "ratio", name = "edge_grade", unit = "percent" },
-    { type = "temperature", name = "ambient_temperature", unit = "fahrenheit" },
+vehicles = [
+    "vehicles/2016_Nissan_Leaf_30_kWh_Steady_Thermal.json",
+    "vehicles/2022_Tesla_Model_3_RWD_Steady_Thermal.json",
+    "vehicles/2020_Chevrolet_Bolt_EV_Steady_Thermal.json",
 ]
 
-[search.traversal.models.vehicles.model_type]
-interpolate.underlying_model_type = "smartcore"
-interpolate.feature_bounds.edge_speed.lower_bound = 0
-interpolate.feature_bounds.edge_speed.upper_bound = 100
-interpolate.feature_bounds.edge_speed.num_bins = 101
-interpolate.feature_bounds.edge_grade.lower_bound = -20
-interpolate.feature_bounds.edge_grade.upper_bound = 20
-interpolate.feature_bounds.edge_grade.num_bins = 41
-interpolate.feature_bounds.ambient_temperature.lower_bound = 0 
-interpolate.feature_bounds.ambient_temperature.upper_bound = 110
-interpolate.feature_bounds.ambient_temperature.num_bins = 111 
+[cost.vehicle_rates.trip_distance]
+type = "distance"
+factor = 0.655
+unit = "miles"
 
-[[search.traversal.models.vehicles]]
-name = "2022_Tesla_Model_3_RWD_Steady_Thermal"
-type = "bev"
-model_input_file = "models/2022_Tesla_Model_3_RWD_Steady_Thermal.bin"
-distance_unit = "miles"
-energy_rate_unit = "kWh/mile"
-battery_capacity = 58 
-battery_capacity_unit = "kilowatt_hours"
-input_features = [
-    { type = "speed", name = "edge_speed", unit = "mph" },
-    { type = "ratio", name = "edge_grade", unit = "percent" },
-    { type = "temperature", name = "ambient_temperature", unit = "fahrenheit" },
-]
+[cost.vehicle_rates.trip_time]
+type = "time"
+factor = 0.333336
+unit = "minutes"
 
-[search.traversal.models.vehicles.model_type]
-interpolate.underlying_model_type = "smartcore"
-interpolate.feature_bounds.edge_speed.lower_bound = 0
-interpolate.feature_bounds.edge_speed.upper_bound = 100
-interpolate.feature_bounds.edge_speed.num_bins = 101
-interpolate.feature_bounds.edge_grade.lower_bound = -20
-interpolate.feature_bounds.edge_grade.upper_bound = 20
-interpolate.feature_bounds.edge_grade.num_bins = 41
-interpolate.feature_bounds.ambient_temperature.lower_bound = 0 
-interpolate.feature_bounds.ambient_temperature.upper_bound = 110
-interpolate.feature_bounds.ambient_temperature.num_bins = 111 
-
-[[search.traversal.models.vehicles]]
-name = "2020_Chevrolet_Bolt_EV_Steady_Thermal"
-type = "bev"
-model_input_file = "models/2020_Chevrolet_Bolt_EV_Steady_Thermal.bin"
-distance_unit = "miles"
-energy_rate_unit = "kWh/mile"
-battery_capacity = 66 
-battery_capacity_unit = "kilowatt_hours"
-input_features = [
-    { type = "speed", name = "edge_speed", unit = "mph" },
-    { type = "ratio", name = "edge_grade", unit = "percent" },
-    { type = "temperature", name = "ambient_temperature", unit = "fahrenheit" },
-]
-
-[search.traversal.models.vehicles.model_type]
-interpolate.underlying_model_type = "smartcore"
-interpolate.feature_bounds.edge_speed.lower_bound = 0
-interpolate.feature_bounds.edge_speed.upper_bound = 100
-interpolate.feature_bounds.edge_speed.num_bins = 101
-interpolate.feature_bounds.edge_grade.lower_bound = -20
-interpolate.feature_bounds.edge_grade.upper_bound = 20
-interpolate.feature_bounds.edge_grade.num_bins = 41
-interpolate.feature_bounds.ambient_temperature.lower_bound = 0 
-interpolate.feature_bounds.ambient_temperature.upper_bound = 110
-interpolate.feature_bounds.ambient_temperature.num_bins = 111 
+[cost.vehicle_rates.trip_energy_electric]
+type = "energy"
+factor = 0.5
+unit = "kwh"

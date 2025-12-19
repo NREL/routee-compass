@@ -204,12 +204,12 @@ fn bev_traversal_estimate(
     let energy = match record.energy_rate_unit {
         EnergyRateUnit::KWHPM => {
             let distance_miles = distance.get::<uom::si::length::mile>();
-            let energy_kwh = record.ideal_energy_rate * distance_miles;
+            let energy_kwh = record.a_star_heuristic_energy_rate * distance_miles;
             Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
         }
         EnergyRateUnit::KWHPKM => {
             let distance_km = distance.get::<uom::si::length::kilometer>();
-            let energy_kwh = record.ideal_energy_rate * distance_km;
+            let energy_kwh = record.a_star_heuristic_energy_rate * distance_km;
             Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
         }
         _ => {
@@ -411,6 +411,7 @@ mod tests {
             },
             input_features,
             EnergyRateUnit::KWHPM,
+            Some(0.2),
             Some(1.3958),
         );
         let model_record =

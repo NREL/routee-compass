@@ -70,7 +70,7 @@ pub fn find_min_energy_rate(
         }
     }
 
-    // Cap the lower bound of the minimum energy rate to 0.0
+    // Cap the lower bound of the minimum energy rate to a realsitic value  
     if minimum_energy_rate < 0.0 {
         minimum_energy_rate = 0.0;
     }

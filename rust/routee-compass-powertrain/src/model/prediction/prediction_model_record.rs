@@ -19,7 +19,7 @@ pub struct PredictionModelRecord {
     pub model_type: ModelType,
     pub input_features: Vec<InputFeature>,
     pub energy_rate_unit: EnergyRateUnit,
-    pub ideal_energy_rate: f64,
+    pub a_star_heuristic_energy_rate: f64,
     pub real_world_energy_adjustment: f64,
 }
 
@@ -52,11 +52,15 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
                 Arc::new(model)
             }
         };
-        let ideal_energy_rate = prediction_model_ops::find_min_energy_rate(
-            &prediction_model,
-            &config.input_features,
-            &config.energy_rate_unit,
-        )?;
+
+        let a_star_heuristic_energy_rate = match config.a_star_heuristic_energy_rate {
+            None => prediction_model_ops::find_min_energy_rate(
+                &prediction_model,
+                &config.input_features,
+                &config.energy_rate_unit,
+            )?,
+            Some(rate) => rate,
+        };
 
         let real_world_energy_adjustment = config.real_world_energy_adjustment.unwrap_or(1.0);
 
@@ -66,7 +70,7 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
             model_type: config.model_type.clone(),
             input_features: config.input_features.clone(),
             energy_rate_unit: config.energy_rate_unit,
-            ideal_energy_rate,
+            a_star_heuristic_energy_rate,
             real_world_energy_adjustment,
         })
     }

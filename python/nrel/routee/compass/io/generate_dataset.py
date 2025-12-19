@@ -230,7 +230,7 @@ def generate_compass_dataset(
             with open(output_directory / filename, "w") as f:
                 f.write(tomlkit.dumps(init_toml))
 
-    # DOWLOAD ROUTEE ENERGY MODEL CATALOG
+    # DOWLOAD ROUTEE ENERGY MODEL CATALOG AND VEHICLE CONFIGS
     if GeneratePipelinePhase.POWERTRAIN in phases:
         log.info("downloading the default RouteE Powertrain models")
         model_output_directory = output_directory / "models"
@@ -257,6 +257,20 @@ def generate_compass_dataset(
                         f.write(download_response.content)  # type: ignore
 
                 shutil.copy(cached_model_destination, model_destination)
+
+        log.info("copying vehicle configuration files")
+        vehicle_output_directory = output_directory / "vehicles"
+        if not vehicle_output_directory.exists():
+            vehicle_output_directory.mkdir(exist_ok=True)
+
+        with importlib.resources.path(
+            "nrel.routee.compass.resources", "vehicles"
+        ) as vehicles_dir:
+            if vehicles_dir.is_dir():
+                for vehicle_file in vehicles_dir.glob("*.json"):
+                    shutil.copy(
+                        vehicle_file, vehicle_output_directory / vehicle_file.name
+                    )
 
     if GeneratePipelinePhase.CHARGING_STATIONS in phases:
         log.info("Downloading EV charging stations for the road network bounding box.")
