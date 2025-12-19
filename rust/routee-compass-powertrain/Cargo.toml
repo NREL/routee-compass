@@ -1,6 +1,6 @@
 [package]
 name = "routee-compass-powertrain"
-version = "0.16.0"
+version = "0.16.1"
 edition = "2021"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -25,7 +25,7 @@ ndarray = { workspace = true }
 ninterp = { workspace = true }
 ordered-float = { workspace = true }
 rayon = { workspace = true }
-routee-compass-core = { path = "../routee-compass-core", version = "0.16.0" }
+routee-compass-core = { path = "../routee-compass-core", version = "0.16.1" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_repr = { workspace = true }
