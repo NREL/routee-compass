@@ -9,6 +9,7 @@
     "distance_unit": "miles",
     "energy_rate_unit": "kWh/mile",
     "real_world_energy_adjustment": 1.3958,
+    "a_star_heuristic_energy_rate": 0.25,
     "input_features": [
       {
         "type": "speed",
@@ -45,6 +46,7 @@
     "distance_unit": "miles",
     "energy_rate_unit": "gallons gasoline/mile",
     "real_world_energy_adjustment": 1.1252,
+    "a_star_heuristic_energy_rate": 0.025,
     "input_features": [
       {
         "type": "speed",
