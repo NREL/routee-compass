@@ -6,7 +6,45 @@ use std::{
     str::FromStr,
 };
 
-const FILE_NORMALIZATION_POSTFIX: &str = "input_file";
+/// Helper function to determine if a string looks like a file path.
+/// Returns true if the string ends with a common file extension.
+fn looks_like_file_path(s: &str) -> bool {
+    let common_extensions = [
+        ".json",
+        ".toml",
+        ".yaml",
+        ".yml",
+        ".csv",
+        ".txt",
+        ".xml",
+        ".ini",
+        ".conf",
+        ".config",
+        ".properties",
+        ".parquet",
+        ".arrow",
+        ".geojson",
+        ".osm",
+        ".pbf",
+        ".db",
+        ".sqlite",
+        ".bin",
+        ".dat",
+        ".log",
+        ".vrt",
+        ".tif",
+        ".tiff",
+        ".shp",
+        ".gpkg",
+        ".gz",
+        ".zip",
+        ".tar",
+    ];
+
+    common_extensions
+        .iter()
+        .any(|ext| s.to_lowercase().ends_with(ext))
+}
 
 pub trait ConfigJsonExtensions {
     fn get_config_section(
@@ -322,6 +360,11 @@ impl ConfigJsonExtensions for serde_json::Value {
     ) -> Result<serde_json::Value, CompassConfigurationError> {
         match self {
             serde_json::Value::String(path_string) => {
+                // Only attempt normalization if the string looks like a file path
+                if !looks_like_file_path(path_string) {
+                    return Ok(serde_json::Value::String(path_string.clone()));
+                }
+
                 let path = Path::new(path_string);
 
                 // no need to modify if the file exists
@@ -355,10 +398,8 @@ impl ConfigJsonExtensions for serde_json::Value {
             serde_json::Value::Object(obj) => {
                 let mut new_obj = serde_json::map::Map::new();
                 for (key, value) in obj.iter() {
-                    if key.ends_with(FILE_NORMALIZATION_POSTFIX)
-                        || value.is_object()
-                        || value.is_array()
-                    {
+                    // Always recursively process strings, objects, and arrays
+                    if value.is_string() || value.is_object() || value.is_array() {
                         new_obj.insert(
                             String::from(key),
                             value.normalize_file_paths(key, root_config_path)?,
@@ -377,6 +418,9 @@ impl ConfigJsonExtensions for serde_json::Value {
                             new_arr.push(value.normalize_file_paths(parent_key, root_config_path)?)
                         }
                         serde_json::Value::Object(_) => {
+                            new_arr.push(value.normalize_file_paths(parent_key, root_config_path)?)
+                        }
+                        serde_json::Value::String(_) => {
                             new_arr.push(value.normalize_file_paths(parent_key, root_config_path)?)
                         }
                         _ => new_arr.push(value.clone()),

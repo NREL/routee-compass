@@ -8,6 +8,7 @@ use routee_compass_core::model::traversal::TraversalModelBuilder;
 use routee_compass_core::model::traversal::TraversalModelError;
 use routee_compass_core::model::traversal::TraversalModelService;
 use std::collections::HashMap;
+use std::path::Path;
 use std::sync::Arc;
 
 pub struct EnergyModelBuilder {}
@@ -47,7 +48,14 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                         "failed to parse vehicle config file '{}': {}",
                         file_path, e
                     ))
-                })?; 
+                })?
+                .normalize_file_paths(&"", Path::new(file_path))
+                .map_err(|e| {
+                    TraversalModelError::BuildError(format!(
+                        "failed to normalize file paths in vehicle config file '{}': {}",
+                        file_path, e
+                    ))
+                })?;
 
             let model_name = vehicle_json
                 .get_config_string(&"name", &parent_key)
