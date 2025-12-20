@@ -1,5 +1,6 @@
 {
   "type": "phev",
+  "mass_estimate_lbs": 3200,
   "name": "2016_BMW_i3_REx_PHEV",
   "battery_capacity": 12,
   "battery_capacity_unit": "kilowatt_hours",

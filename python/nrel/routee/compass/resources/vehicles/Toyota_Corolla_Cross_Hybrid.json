@@ -1,6 +1,7 @@
 {
   "name": "Toyota_Corolla_Cross_Hybrid",
   "type": "ice",
+  "mass_estimate_lbs": 3100,
   "model_input_file": "../models/Toyota_Corolla_Cross_Hybrid.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

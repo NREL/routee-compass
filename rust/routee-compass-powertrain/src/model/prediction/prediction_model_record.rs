@@ -10,7 +10,7 @@ use routee_compass_core::model::{
     unit::{EnergyRateUnit, EnergyUnit},
 };
 use std::sync::Arc;
-use uom::si::f64::Energy;
+use uom::si::f64::{Energy, Mass};
 
 /// A struct to hold the prediction model and associated metadata
 pub struct PredictionModelRecord {
@@ -19,6 +19,7 @@ pub struct PredictionModelRecord {
     pub model_type: ModelType,
     pub input_features: Vec<InputFeature>,
     pub energy_rate_unit: EnergyRateUnit,
+    pub mass_estimate: Mass,
     pub a_star_heuristic_energy_rate: f64,
     pub real_world_energy_adjustment: f64,
 }
@@ -64,12 +65,15 @@ impl TryFrom<&PredictionModelConfig> for PredictionModelRecord {
 
         let real_world_energy_adjustment = config.real_world_energy_adjustment.unwrap_or(1.0);
 
+        let mass_estimate = Mass::new::<uom::si::mass::pound>(config.mass_estimate_lbs);
+
         Ok(PredictionModelRecord {
             name: config.name.clone(),
             prediction_model,
             model_type: config.model_type.clone(),
             input_features: config.input_features.clone(),
             energy_rate_unit: config.energy_rate_unit,
+            mass_estimate,
             a_star_heuristic_energy_rate,
             real_world_energy_adjustment,
         })

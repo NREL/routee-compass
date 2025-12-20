@@ -1,6 +1,7 @@
 {
   "name": "Nissan_Navara",
   "type": "ice",
+  "mass_estimate_lbs": 4400,
   "model_input_file": "../models/Nissan_Navara.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

@@ -1,6 +1,7 @@
 {
   "name": "2023_Mitsubishi_Pajero_Sport",
   "type": "ice",
+  "mass_estimate_lbs": 4600,
   "model_input_file": "../models/2023_Mitsubishi_Pajero_Sport.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

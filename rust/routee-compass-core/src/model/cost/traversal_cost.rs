@@ -23,11 +23,17 @@ impl TraversalCost {
     ///
     /// when recording a cost component, if it already exists, we append to the cost value.
     pub fn insert(&mut self, name: &str, cost: Cost, weight: f64) {
-        self.total_cost += cost;
-        self.objective_cost += cost * weight;
+        // enforce a minimum cost to avoid zero or negative cost edges
+        let floored_cost = if cost < Cost::MIN_COST {
+            Cost::MIN_COST
+        } else {
+            cost
+        };
+        self.total_cost += floored_cost;
+        self.objective_cost += floored_cost * weight;
         self.cost_component
             .entry(name.to_string())
-            .and_modify(|v| *v += cost)
-            .or_insert(cost);
+            .and_modify(|v| *v += floored_cost)
+            .or_insert(floored_cost);
     }
 }

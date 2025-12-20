@@ -1,6 +1,7 @@
 {
   "name": "2022_Toyota_RAV4_Hybrid_LE",
   "type": "ice",
+  "mass_estimate_lbs": 3750,
   "model_input_file": "../models/2022_Toyota_RAV4_Hybrid_LE.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

@@ -1,6 +1,7 @@
 {
   "name": "Maruti_Swift_4cyl_2WD",
   "type": "ice",
+  "mass_estimate_lbs": 2000,
   "model_input_file": "../models/Maruti_Swift_4cyl_2WD.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

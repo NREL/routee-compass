@@ -27,17 +27,20 @@ pub struct PredictionModelConfig {
     pub model_type: ModelType,
     pub input_features: Vec<InputFeature>,
     pub energy_rate_unit: EnergyRateUnit,
+    pub mass_estimate_lbs: f64,
     pub a_star_heuristic_energy_rate: Option<f64>,
     pub real_world_energy_adjustment: Option<f64>,
 }
 
 impl PredictionModelConfig {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         name: String,
         model_input_file: String,
         model_type: ModelType,
         input_features: Vec<InputFeature>,
         energy_rate_unit: EnergyRateUnit,
+        mass_estimate_lbs: f64,
         a_star_heuristic_energy_rate: Option<f64>,
         real_world_energy_adjustment: Option<f64>,
     ) -> Self {
@@ -47,6 +50,7 @@ impl PredictionModelConfig {
             model_type,
             input_features,
             energy_rate_unit,
+            mass_estimate_lbs,
             a_star_heuristic_energy_rate,
             real_world_energy_adjustment,
         }

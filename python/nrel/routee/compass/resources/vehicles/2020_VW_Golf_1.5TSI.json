@@ -1,6 +1,7 @@
 {
   "name": "2020_VW_Golf_1.5TSI",
   "type": "ice",
+  "mass_estimate_lbs": 2900,
   "model_input_file": "../models/2020_VW_Golf_1.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

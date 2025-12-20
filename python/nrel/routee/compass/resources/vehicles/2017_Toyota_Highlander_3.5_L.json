@@ -1,6 +1,7 @@
 {
   "name": "2017_Toyota_Highlander_3.5_L",
   "type": "ice",
+  "mass_estimate_lbs": 4400,
   "model_input_file": "../models/2017_Toyota_Highlander_3.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

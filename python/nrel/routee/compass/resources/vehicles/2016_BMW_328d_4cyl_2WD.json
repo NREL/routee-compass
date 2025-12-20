@@ -1,6 +1,7 @@
 {
   "name": "2016_BMW_328d_4cyl_2WD",
   "type": "ice",
+  "mass_estimate_lbs": 3500,
   "model_input_file": "../models/2016_BMW_328d_4cyl_2WD.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

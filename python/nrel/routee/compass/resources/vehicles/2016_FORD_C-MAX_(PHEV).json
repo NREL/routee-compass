@@ -1,5 +1,6 @@
 {
   "type": "phev",
+  "mass_estimate_lbs": 3900,
   "name": "2016_FORD_C-MAX_(PHEV)",
   "battery_capacity": 7.6,
   "battery_capacity_unit": "kilowatt_hours",

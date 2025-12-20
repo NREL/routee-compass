@@ -1,6 +1,7 @@
 {
   "name": "Renault_Megane_1.5_dCi_Authentique",
   "type": "ice",
+  "mass_estimate_lbs": 2900,
   "model_input_file": "../models/Renault_Megane_1.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons diesel/mile",

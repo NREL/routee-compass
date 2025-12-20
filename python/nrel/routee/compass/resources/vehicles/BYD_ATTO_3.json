@@ -1,6 +1,7 @@
 {
   "name": "BYD_ATTO_3",
   "type": "bev",
+  "mass_estimate_lbs": 3700,
   "model_input_file": "../models/BYD_ATTO_3.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "kWh/mile",

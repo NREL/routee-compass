@@ -1,6 +1,7 @@
 {
   "name": "2017_Maruti_Dzire_VDI",
   "type": "ice",
+  "mass_estimate_lbs": 2300,
   "model_input_file": "../models/2017_Maruti_Dzire_VDI.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

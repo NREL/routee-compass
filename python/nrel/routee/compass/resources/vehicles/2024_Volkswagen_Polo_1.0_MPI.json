@@ -1,6 +1,7 @@
 {
   "name": "2024_Volkswagen_Polo_1.0_MPI",
   "type": "ice",
+  "mass_estimate_lbs": 2500,
   "model_input_file": "../models/2024_Volkswagen_Polo_1.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

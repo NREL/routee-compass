@@ -1,13 +1,14 @@
 {
   "name": "2021_BMW_iX_xDrive40",
   "type": "bev",
+  "mass_estimate_lbs": 5300,
   "model_input_file": "../models/2021_BMW_iX_xDrive40.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "kWh/mile",
   "battery_capacity": 71,
   "battery_capacity_unit": "kilowatt_hours",
   "real_world_energy_adjustment": 1.3958,
-  "a_star_heuristic_energy_rate": 0.30,
+  "a_star_heuristic_energy_rate": 0.3,
   "input_features": [
     {
       "type": "speed",

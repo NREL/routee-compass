@@ -1,6 +1,7 @@
 {
   "name": "2016_Toyota_Prius_Two_FWD",
   "type": "ice",
+  "mass_estimate_lbs": 3050,
   "model_input_file": "../models/2016_Toyota_Prius_Two_FWD.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

@@ -1,6 +1,7 @@
 {
   "name": "2012_Ford_Fusion",
   "type": "ice",
+  "mass_estimate_lbs": 3400,
   "model_input_file": "../models/2012_Ford_Fusion.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

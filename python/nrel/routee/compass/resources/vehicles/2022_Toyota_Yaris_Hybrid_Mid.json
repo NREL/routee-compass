@@ -1,6 +1,7 @@
 {
   "name": "2022_Toyota_Yaris_Hybrid_Mid",
   "type": "ice",
+  "mass_estimate_lbs": 2500,
   "model_input_file": "../models/2022_Toyota_Yaris_Hybrid_Mid.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

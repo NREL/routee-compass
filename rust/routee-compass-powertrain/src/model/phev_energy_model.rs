@@ -581,6 +581,7 @@ mod test {
             },
             input_features,
             energy_rate_unit,
+            3000.0,
             None,
             Some(1.3958),
         );

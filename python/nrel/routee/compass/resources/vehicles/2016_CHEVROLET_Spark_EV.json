@@ -1,6 +1,7 @@
 {
   "name": "2016_CHEVROLET_Spark_EV",
   "type": "bev",
+  "mass_estimate_lbs": 2900,
   "model_input_file": "../models/2016_CHEVROLET_Spark_EV.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "kWh/mile",

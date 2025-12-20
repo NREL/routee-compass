@@ -1,5 +1,6 @@
 {
   "type": "phev",
+  "mass_estimate_lbs": 3375,
   "name": "2017_Prius_Prime",
   "battery_capacity": 8,
   "battery_capacity_unit": "kilowatt_hours",

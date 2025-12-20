@@ -1,6 +1,7 @@
 {
   "name": "2020_VW_Golf_2.0TDI",
   "type": "ice",
+  "mass_estimate_lbs": 3100,
   "model_input_file": "../models/2020_VW_Golf_2.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons diesel/mile",

@@ -1,6 +1,7 @@
 {
   "name": "Toyota_Hilux_Double_Cab_4WD",
   "type": "ice",
+  "mass_estimate_lbs": 4600,
   "model_input_file": "../models/Toyota_Hilux_Double_Cab_4WD.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons diesel/mile",

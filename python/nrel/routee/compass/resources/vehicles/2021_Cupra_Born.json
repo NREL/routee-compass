@@ -1,6 +1,7 @@
 {
   "name": "2021_Cupra_Born",
   "type": "bev",
+  "mass_estimate_lbs": 3900,
   "model_input_file": "../models/2021_Cupra_Born.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "kWh/mile",

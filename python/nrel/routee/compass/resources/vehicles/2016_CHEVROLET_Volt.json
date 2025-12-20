@@ -1,5 +1,6 @@
 {
   "type": "phev",
+  "mass_estimate_lbs": 3550,
   "name": "2016_CHEVROLET_Volt",
   "battery_capacity": 12,
   "battery_capacity_unit": "kilowatt_hours",

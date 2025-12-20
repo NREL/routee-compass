@@ -1,6 +1,7 @@
 {
   "name": "2016_KIA_Optima_Hybrid",
   "type": "ice",
+  "mass_estimate_lbs": 3600,
   "model_input_file": "../models/2016_KIA_Optima_Hybrid.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

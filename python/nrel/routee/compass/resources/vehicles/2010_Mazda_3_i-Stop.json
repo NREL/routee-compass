@@ -1,6 +1,7 @@
 {
   "name": "2010_Mazda_3_i-Stop",
   "type": "ice",
+  "mass_estimate_lbs": 2900,
   "model_input_file": "../models/2010_Mazda_3_i-Stop.bin",
   "distance_unit": "miles",
   "energy_rate_unit": "gallons gasoline/mile",

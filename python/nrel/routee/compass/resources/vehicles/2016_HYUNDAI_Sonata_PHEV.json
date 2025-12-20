@@ -1,5 +1,6 @@
 {
   "type": "phev",
+  "mass_estimate_lbs": 3800,
   "name": "2016_HYUNDAI_Sonata_PHEV",
   "battery_capacity": 9.8,
   "battery_capacity_unit": "kilowatt_hours",
