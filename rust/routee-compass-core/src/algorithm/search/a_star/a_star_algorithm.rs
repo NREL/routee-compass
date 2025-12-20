@@ -150,12 +150,6 @@ pub fn run_vertex_oriented(
                 };
 
                 let f_score_value = tentative_gscore + dst_h_cost;
-
-                if f_score_value < Cost::ZERO {
-                    panic!(
-                        "negative f_score_value detected: tentative_gscore: {tentative_gscore}, dst_h_cost: {dst_h_cost}"
-                    );
-                }
                 frontier.push_increase(key_label, f_score_value.into());
             }
         }
