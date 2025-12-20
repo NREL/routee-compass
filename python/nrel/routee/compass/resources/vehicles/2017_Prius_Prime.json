@@ -1,11 +1,11 @@
 {
   "type": "phev",
-  "mass_estimate_lbs": 3375,
   "name": "2017_Prius_Prime",
   "battery_capacity": 8,
   "battery_capacity_unit": "kilowatt_hours",
   "charge_depleting": {
     "name": "2017_Prius_Prime_Charge_Depleting",
+    "mass_estimate_lbs": 3375,
     "model_input_file": "../models/2017_Prius_Prime_Charge_Depleting.bin",
     "distance_unit": "miles",
     "energy_rate_unit": "kWh/mile",
@@ -43,6 +43,7 @@
   },
   "charge_sustaining": {
     "name": "2017_Prius_Prime_Charge_Sustaining",
+    "mass_estimate_lbs": 3375,
     "model_input_file": "../models/2017_Prius_Prime_Charge_Sustaining.bin",
     "distance_unit": "miles",
     "energy_rate_unit": "gallons gasoline/mile",

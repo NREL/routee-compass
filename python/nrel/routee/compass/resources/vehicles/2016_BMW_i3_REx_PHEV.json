@@ -1,11 +1,11 @@
 {
   "type": "phev",
-  "mass_estimate_lbs": 3200,
   "name": "2016_BMW_i3_REx_PHEV",
   "battery_capacity": 12,
   "battery_capacity_unit": "kilowatt_hours",
   "charge_depleting": {
     "name": "2016_BMW_i3_REx_PHEV_Charge_Depleting",
+    "mass_estimate_lbs": 3200,
     "model_input_file": "../models/2016_BMW_i3_REx_PHEV_Charge_Depleting.bin",
     "distance_unit": "miles",
     "energy_rate_unit": "kWh/mile",
@@ -43,6 +43,7 @@
   },
   "charge_sustaining": {
     "name": "2016_BMW_i3_REx_PHEV_Charge_Sustaining",
+    "mass_estimate_lbs": 3200,
     "model_input_file": "../models/2016_BMW_i3_REx_PHEV_Charge_Sustaining.bin",
     "distance_unit": "miles",
     "energy_rate_unit": "gallons gasoline/mile",
