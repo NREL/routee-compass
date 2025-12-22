@@ -258,7 +258,7 @@ impl SearchTree {
         self.backtrack(d_v)
     }
 
-        /// Reconstruct a path from root to the given target label
+    /// Reconstruct a path from root to the given target label
     /// This is the primary backtracking method for route reconstruction
     /// If depth is provided, the path will be limited to a specified number of EdgeTraversals.
     pub fn reconstruct_path(
@@ -275,18 +275,20 @@ impl SearchTree {
         loop {
             // detect cycles
             if !visited.insert(current_label.clone()) {
-                return Err(SearchTreeError::InvalidBranchStructure(
-                    format!("Cycle detected at label: {}", current_label)
-                ));
+                return Err(SearchTreeError::InvalidBranchStructure(format!(
+                    "Cycle detected at label: {}",
+                    current_label
+                )));
             }
 
             // extra sanity check which should never be true given the cycle
             // check above, but, we always want to be defensive against infinite loops.
             if steps > self.nodes.len() as u64 {
-                return Err(SearchTreeError::InvalidBranchStructure(
-                    format!("Exceeded tree size {} while backtracking from {}", 
-                        self.nodes.len(), target_label)
-                ));
+                return Err(SearchTreeError::InvalidBranchStructure(format!(
+                    "Exceeded tree size {} while backtracking from {}",
+                    self.nodes.len(),
+                    target_label
+                )));
             }
 
             let exceeds_depth = depth.map(|l| steps >= l).unwrap_or_default();
@@ -1107,7 +1109,7 @@ mod tests {
         assert_eq!(path[2].edge_id, EdgeId(5)); // 4 -> 5
     }
 
-#[test]
+    #[test]
     fn test_backtrack_with_cycle() {
         let mut tree = SearchTree::new(Direction::Forward);
 
@@ -1115,7 +1117,7 @@ mod tests {
         //     0
         //   /   \
         //  1 --- 2
-        
+
         let l1 = create_test_label(1);
         let l2 = create_test_label(2);
         let l3 = create_test_label(3);
@@ -1124,17 +1126,17 @@ mod tests {
         let t2 = create_test_edge_traversal(2, 10.0);
         let t3 = create_test_edge_traversal(3, 10.0);
 
-        tree.insert(l1.clone(), t1, l2.clone())
-            .unwrap();
-        tree.insert(l2.clone(), t2, l3.clone())
-            .unwrap();
-        tree.insert(l3.clone(), t3, l1.clone())
-            .unwrap();
+        tree.insert(l1.clone(), t1, l2.clone()).unwrap();
+        tree.insert(l2.clone(), t2, l3.clone()).unwrap();
+        tree.insert(l3.clone(), t3, l1.clone()).unwrap();
 
         // Test backtrack from leaf node 3 with depth 1
         let result = tree.backtrack(VertexId(3));
         assert!(result.is_err());
-        assert!(result.unwrap_err().to_string().contains("Cycle detected at label"))
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Cycle detected at label"))
     }
 
     fn create_test_edge_traversal(edge_id: usize, cost: f64) -> EdgeTraversal {
