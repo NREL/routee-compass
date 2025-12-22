@@ -76,6 +76,8 @@ impl SearchTree {
         }
 
         // Check for cycles: if child already exists as an ancestor of parent
+        // Only perform this check in debug builds and tests for performance
+        #[cfg(any(test, debug_assertions))]
         if self.nodes.contains_key(&child_label) {
             // Walk up from parent to root to check if child is an ancestor
             let mut current = &parent_label;
