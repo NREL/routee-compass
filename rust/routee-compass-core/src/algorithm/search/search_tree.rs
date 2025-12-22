@@ -75,6 +75,38 @@ impl SearchTree {
             }
         }
 
+        // Check for cycles: if child already exists as an ancestor of parent
+        if self.nodes.contains_key(&child_label) {
+            // Walk up from parent to root to check if child is an ancestor
+            let mut current = &parent_label;
+            let mut visited = HashSet::new();
+
+            loop {
+                if current == &child_label {
+                    return Err(SearchTreeError::CycleDetected(format!(
+                        "Inserting edge from {} to {} would create a cycle",
+                        parent_label, child_label
+                    )));
+                }
+
+                if !visited.insert(current.clone()) {
+                    // Cycle in ancestry chain - shouldn't happen in well-formed tree
+                    return Err(SearchTreeError::InvalidBranchStructure(format!(
+                        "Cycle detected in ancestry while checking for insertion of {} -> {}",
+                        parent_label, child_label
+                    )));
+                }
+
+                match self.nodes.get(current) {
+                    Some(SearchTreeNode::Root { .. }) => break,
+                    Some(SearchTreeNode::Branch { parent, .. }) => {
+                        current = parent;
+                    }
+                    None => break,
+                }
+            }
+        }
+
         // Create the new node
         let new_node = SearchTreeNode::new_child(
             child_label.clone(),
@@ -357,6 +389,8 @@ pub enum SearchTreeError {
     InvalidBranchStructure(String),
     #[error("Vertex not found in tree: {0}")]
     VertexNotFound(VertexId),
+    #[error("Cycle detected: {0}")]
+    CycleDetected(String),
     #[error("Search tree error while interacting with Graph: {source}")]
     NetworkError {
         #[from]
@@ -1110,7 +1144,7 @@ mod tests {
     }
 
     #[test]
-    fn test_backtrack_with_cycle() {
+    fn test_insert_with_cycle() {
         let mut tree = SearchTree::new(Direction::Forward);
 
         // Build a cycle graph and pretend it's a tree:
@@ -1128,15 +1162,12 @@ mod tests {
 
         tree.insert(l1.clone(), t1, l2.clone()).unwrap();
         tree.insert(l2.clone(), t2, l3.clone()).unwrap();
-        tree.insert(l3.clone(), t3, l1.clone()).unwrap();
 
-        // Test backtrack from leaf node 3 with depth 1
-        let result = tree.backtrack(VertexId(3));
+        // This insert should fail because it would create a cycle: 3 -> 1 -> 2 -> 3
+        let result = tree.insert(l3.clone(), t3, l1.clone());
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .to_string()
-            .contains("Cycle detected at label"))
+        assert!(matches!(result, Err(SearchTreeError::CycleDetected(_))));
+        assert!(result.unwrap_err().to_string().contains("Cycle detected"));
     }
 
     fn create_test_edge_traversal(edge_id: usize, cost: f64) -> EdgeTraversal {
