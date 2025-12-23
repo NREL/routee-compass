@@ -19,6 +19,11 @@ use uom::{
     ConstZero,
 };
 
+// CONSTANT: Energy (kWh) required to lift 1 kg by 1 meter.
+// Derived from: 9.81 (gravity) / 3,600,000 (Joules per kWh)
+// TODO: Re-enable elevation energy calculations once we can estimate elevation gain/loss in estimate_traversal
+//const KWH_PER_KG_METER: f64 = 0.000002725;
+
 #[derive(Clone)]
 pub struct BevEnergyModel {
     prediction_model_record: Arc<PredictionModelRecord>,
@@ -107,10 +112,21 @@ impl TraversalModel for BevEnergyModel {
         format!("BEV Energy Model: {}", self.prediction_model_record.name)
     }
     fn input_features(&self) -> Vec<InputFeature> {
-        let mut input_features = vec![InputFeature::Distance {
-            name: String::from(fieldname::EDGE_DISTANCE),
-            unit: None,
-        }];
+        let mut input_features = vec![
+            InputFeature::Distance {
+                name: String::from(fieldname::EDGE_DISTANCE),
+                unit: None,
+            },
+            // TODO: Once we have estimates for elevation gain/loss in estimate_traversal, include these
+            // InputFeature::Distance {
+            //     name: String::from(fieldname::TRIP_ELEVATION_LOSS),
+            //     unit: None,
+            // },
+            // InputFeature::Distance {
+            //     name: String::from(fieldname::TRIP_ELEVATION_GAIN),
+            //     unit: None,
+            // },
+        ];
         input_features.extend(self.prediction_model_record.input_features.clone());
         input_features
     }
@@ -204,12 +220,12 @@ fn bev_traversal_estimate(
     let energy = match record.energy_rate_unit {
         EnergyRateUnit::KWHPM => {
             let distance_miles = distance.get::<uom::si::length::mile>();
-            let energy_kwh = record.ideal_energy_rate * distance_miles;
+            let energy_kwh = record.a_star_heuristic_energy_rate * distance_miles;
             Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
         }
         EnergyRateUnit::KWHPKM => {
             let distance_km = distance.get::<uom::si::length::kilometer>();
-            let energy_kwh = record.ideal_energy_rate * distance_km;
+            let energy_kwh = record.a_star_heuristic_energy_rate * distance_km;
             Energy::new::<uom::si::energy::kilowatt_hour>(energy_kwh)
         }
         _ => {
@@ -219,6 +235,25 @@ fn bev_traversal_estimate(
             )));
         }
     };
+
+    // TODO: Once we can estimate elevation gain/loss in estimate_traversal, include that here
+    // let elevation_loss = state_model.get_distance(state, fieldname::TRIP_ELEVATION_LOSS)?;
+    // let elevation_gain = state_model.get_distance(state, fieldname::TRIP_ELEVATION_GAIN)?;
+    // let mass_kg = record.mass_estimate.get::<uom::si::mass::kilogram>();
+
+    // let elevation_loss_m = elevation_loss.get::<uom::si::length::meter>();
+    // let elevation_gain_m = elevation_gain.get::<uom::si::length::meter>();
+
+    // let energy_from_elevation_loss = Energy::new::<uom::si::energy::kilowatt_hour>(
+    //     mass_kg * elevation_loss_m * KWH_PER_KG_METER,
+    // );
+    // let energy_from_elevation_gain = Energy::new::<uom::si::energy::kilowatt_hour>(
+    //     mass_kg * elevation_gain_m * KWH_PER_KG_METER,
+    // );
+
+    // let net_elevation_energy = energy_from_elevation_gain + energy_from_elevation_loss;
+    // let energy = energy + net_elevation_energy;
+
     let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
 
     state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &energy)?;
@@ -411,6 +446,8 @@ mod tests {
             },
             input_features,
             EnergyRateUnit::KWHPM,
+            3000.0, // mass estimate in pounds
+            Some(0.2),
             Some(1.3958),
         );
         let model_record =

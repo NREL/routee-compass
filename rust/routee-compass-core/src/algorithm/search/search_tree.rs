@@ -211,54 +211,6 @@ impl SearchTree {
         self.direction
     }
 
-    /// Reconstruct a path from root to the given target label
-    /// This is the primary backtracking method for route reconstruction
-    /// If depth is provided, the path will be limited to a specified number of EdgeTraversals.
-    pub fn reconstruct_path(
-        &self,
-        target_label: &Label,
-        depth: Option<u64>,
-    ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
-        let mut path = Vec::new();
-        let mut current_label = target_label;
-        let mut steps: u64 = 0;
-
-        // Walk up from target to root
-        loop {
-            let exceeds_depth = depth.map(|l| steps >= l).unwrap_or_default();
-            if exceeds_depth {
-                break;
-            }
-            let current_node = self
-                .get(current_label)
-                .ok_or_else(|| SearchTreeError::LabelNotFound(current_label.clone()))?;
-
-            // If this is the root, we're done, otherwise traverse path
-            match current_node {
-                SearchTreeNode::Root { .. } => break,
-                SearchTreeNode::Branch {
-                    incoming_edge,
-                    parent,
-                    ..
-                } => {
-                    path.push(incoming_edge.clone());
-                    current_label = parent;
-                }
-            }
-            steps += 1;
-        }
-
-        // For forward search, reverse the path to go from root to target
-        // For reverse search, keep the path as-is (it's already from target to source)
-        match self.direction {
-            Direction::Forward => {
-                path.reverse();
-                Ok(path)
-            }
-            Direction::Reverse => Ok(path),
-        }
-    }
-
     /// Backtrack from a leaf vertex to construct a path using the tree's inherent direction
     /// and limit the backtracking depth to some nonzero count of edges.
     ///
@@ -306,6 +258,73 @@ impl SearchTree {
         self.backtrack(d_v)
     }
 
+    /// Reconstruct a path from root to the given target label
+    /// This is the primary backtracking method for route reconstruction
+    /// If depth is provided, the path will be limited to a specified number of EdgeTraversals.
+    pub fn reconstruct_path(
+        &self,
+        target_label: &Label,
+        depth: Option<u64>,
+    ) -> Result<Vec<EdgeTraversal>, SearchTreeError> {
+        let mut path = Vec::new();
+        let mut current_label = target_label;
+        let mut steps: u64 = 0;
+        let mut visited = HashSet::new();
+
+        // Walk up from target to root
+        loop {
+            // detect cycles
+            if !visited.insert(current_label.clone()) {
+                return Err(SearchTreeError::InvalidBranchStructure(format!(
+                    "Cycle detected at label: {}",
+                    current_label
+                )));
+            }
+
+            // extra sanity check which should never be true given the cycle
+            // check above, but, we always want to be defensive against infinite loops.
+            if steps > self.nodes.len() as u64 {
+                return Err(SearchTreeError::InvalidBranchStructure(format!(
+                    "Exceeded tree size {} while backtracking from {}",
+                    self.nodes.len(),
+                    target_label
+                )));
+            }
+
+            let exceeds_depth = depth.map(|l| steps >= l).unwrap_or_default();
+            if exceeds_depth {
+                break;
+            }
+            let current_node = self
+                .get(current_label)
+                .ok_or_else(|| SearchTreeError::LabelNotFound(current_label.clone()))?;
+
+            // If this is the root, we're done, otherwise traverse path
+            match current_node {
+                SearchTreeNode::Root { .. } => break,
+                SearchTreeNode::Branch {
+                    incoming_edge,
+                    parent,
+                    ..
+                } => {
+                    path.push(incoming_edge.clone());
+                    current_label = parent;
+                }
+            }
+            steps += 1;
+        }
+
+        // For forward search, reverse the path to go from root to target
+        // For reverse search, keep the path as-is (it's already from target to source)
+        match self.direction {
+            Direction::Forward => {
+                path.reverse();
+                Ok(path)
+            }
+            Direction::Reverse => Ok(path),
+        }
+    }
+
     /// Get all labels in the tree
     pub fn labels(&self) -> impl Iterator<Item = &Label> {
         self.nodes.keys()
@@ -338,6 +357,8 @@ pub enum SearchTreeError {
     InvalidBranchStructure(String),
     #[error("Vertex not found in tree: {0}")]
     VertexNotFound(VertexId),
+    #[error("Cycle detected: {0}")]
+    CycleDetected(String),
     #[error("Search tree error while interacting with Graph: {source}")]
     NetworkError {
         #[from]

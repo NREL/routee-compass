@@ -15,6 +15,7 @@ default = []
 
 [dependencies]
 bincode = { workspace = true }
+config = { workspace = true }
 csv = { workspace = true }
 env_logger = { workspace = true }
 geo = { workspace = true }
