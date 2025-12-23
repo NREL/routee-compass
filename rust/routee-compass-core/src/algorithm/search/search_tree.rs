@@ -1,4 +1,5 @@
 use super::{EdgeTraversal, SearchTreeNode};
+use crate::model::label::LabelModel;
 use crate::model::network::{EdgeId, EdgeListId, Graph, NetworkError, VertexId};
 use crate::model::unit::AsF64;
 use crate::{algorithm::search::Direction, model::label::Label};
@@ -58,14 +59,15 @@ impl SearchTree {
         self.root = Some(root_label);
     }
 
-    /// Insert the trajectory (parent) -[edge]-> (child) as a node in the tree
+    /// Insert the trajectory (parent) -[edge]-> (child) as a node in the tree. tests for any dominated
+    /// tree entries and removes them.
     pub fn insert(
         &mut self,
         parent_label: Label,
         edge_traversal: EdgeTraversal,
         child_label: Label,
     ) -> Result<(), SearchTreeError> {
-        // Verify parent exists
+        // Verify parent exists - special case on empty tree
         // If parent doesn't exist but tree is empty, make parent the root
         if !self.nodes.contains_key(&parent_label) {
             if self.is_empty() {
@@ -125,6 +127,19 @@ impl SearchTree {
     /// Find labels for the given vertex ID
     pub fn get_labels(&self, vertex: VertexId) -> Option<&HashSet<Label>> {
         self.labels.get(&vertex)
+    }
+
+    /// Find labels for the given vertex ID as an owned iterator
+    pub fn get_labels_iter(&self, vertex: VertexId) -> Box<dyn Iterator<Item = Label>> {
+        match self.labels.get(&vertex) {
+            Some(labels) => Box::new(labels.clone().into_iter()),
+            None => Box::new(std::iter::empty()),
+        }
+    }
+
+    /// Find labels for the given vertex ID with mutable access.
+    pub fn get_labels_mut(&mut self, vertex: VertexId) -> Option<&mut HashSet<Label>> {
+        self.labels.get_mut(&vertex)
     }
 
     /// finds a single label by picking the one that is maximal/minimal wrt some comparison function.
@@ -332,6 +347,8 @@ pub enum SearchTreeError {
     ParentNotFound(Label),
     #[error("Label not found in tree: {0}")]
     LabelNotFound(Label),
+    #[error("Label '{0}' exists in tree without matching SearchTreeNode")]
+    MissingNodeForLabel(Label),
     #[error("Node is missing parent reference: {0}")]
     MissingParent(Label),
     #[error("Invalid branch structure: {0}")]

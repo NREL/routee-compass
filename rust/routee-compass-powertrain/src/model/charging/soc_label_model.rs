@@ -2,8 +2,7 @@ use std::sync::Arc;
 
 use routee_compass_core::model::{
     label::{
-        label_enum::Label, label_model::LabelModel, label_model_error::LabelModelError,
-        label_model_service::LabelModelService,
+        label_enum::Label, label_model::LabelModel, label_model_error::LabelModelError, label_model_service::LabelModelService
     },
     network::VertexId,
     state::{StateModel, StateVariable},
@@ -43,6 +42,20 @@ impl LabelModel for SOCLabelModel {
             state: soc_bin,
         })
     }
+    
+    fn compare(&self, prev: &Label, next: &Label) -> Result<std::cmp::Ordering, LabelModelError> {
+        match (prev, next) {
+            (Label::VertexWithIntState { state: s1 ,..}, Label::VertexWithIntState { state: s2, .. }) => {
+                Ok(s1.cmp(s2))
+            }
+            _ => {
+                Err(LabelModelError::MismatchLabelTypes(prev.clone(), next.clone()))
+            }
+        }
+    }
+    
+
+    
 }
 
 impl LabelModelService for SOCLabelModel {

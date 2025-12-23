@@ -2,8 +2,7 @@ use std::sync::Arc;
 
 use crate::model::{
     label::{
-        label_enum::Label, label_model::LabelModel, label_model_builder::LabelModelBuilder,
-        label_model_error::LabelModelError, label_model_service::LabelModelService,
+        Label, LabelModel, LabelModelBuilder, LabelModelError, LabelModelService
     },
     network::VertexId,
     state::{StateModel, StateVariable},
@@ -19,6 +18,16 @@ impl LabelModel for VertexLabelModel {
         _state_model: &StateModel,
     ) -> Result<Label, LabelModelError> {
         Ok(Label::Vertex(vertex_id))
+    }
+    
+    /// a vertex label always dominates over any previous label since it holds no
+    /// additional state to compare.
+    fn compare(
+        &self, 
+        _prev_label: &Label,
+        _next_label: &Label,
+    ) -> Result<std::cmp::Ordering, LabelModelError> {
+        Ok(std::cmp::Ordering::Greater)
     }
 }
 
