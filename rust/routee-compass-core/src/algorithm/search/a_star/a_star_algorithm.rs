@@ -87,6 +87,11 @@ pub fn run_vertex_oriented(
             }
         }
 
+        let prev_gscore = traversal_costs
+            .get(&f.prev_label)
+            .unwrap_or(&Cost::INFINITY)
+            .to_owned();
+
         // visit all neighbors of this source vertex
         let incident_edge_iterator = direction.get_incident_edges(f.prev_label.vertex_id(), si);
         for (edge_list_id, edge_id) in incident_edge_iterator {
@@ -125,10 +130,6 @@ pub fn run_vertex_oriented(
                 &si.state_model,
             )?;
 
-            let prev_gscore = traversal_costs
-                .get(&f.prev_label)
-                .unwrap_or(&Cost::INFINITY)
-                .to_owned();
             let tentative_gscore = prev_gscore + et.cost.objective_cost;
 
             let existing_gscore = traversal_costs
