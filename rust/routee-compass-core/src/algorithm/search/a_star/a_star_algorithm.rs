@@ -125,11 +125,17 @@ pub fn run_vertex_oriented(
                 &si.state_model,
             )?;
 
-            let tentative_gscore = et.cost.objective_cost;
+            let prev_gscore = traversal_costs
+                .get(&f.prev_label)
+                .unwrap_or(&Cost::INFINITY)
+                .to_owned();
+            let tentative_gscore = prev_gscore + et.cost.objective_cost;
+
             let existing_gscore = traversal_costs
                 .get(&key_label)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
+
             if tentative_gscore < existing_gscore {
                 // accept this traversal, updating search state
                 traversal_costs.insert(key_label.clone(), tentative_gscore);
