@@ -138,12 +138,12 @@ fn ice_traversal(
         match record.energy_rate_unit {
             EnergyRateUnit::GGPM => {
                 let distance_miles = distance.get::<uom::si::length::mile>();
-                let energy_gallons_gas = record.ideal_energy_rate * distance_miles;
+                let energy_gallons_gas = record.a_star_heuristic_energy_rate * distance_miles;
                 EnergyUnit::GallonsGasolineEquivalent.to_uom(energy_gallons_gas)
             }
             EnergyRateUnit::GDPM => {
                 let distance_miles = distance.get::<uom::si::length::mile>();
-                let energy_gallons_diesel = record.ideal_energy_rate * distance_miles;
+                let energy_gallons_diesel = record.a_star_heuristic_energy_rate * distance_miles;
                 EnergyUnit::GallonsDieselEquivalent.to_uom(energy_gallons_diesel)
             }
             _ => {

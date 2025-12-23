@@ -1,0 +1,82 @@
+{
+  "type": "phev",
+  "name": "2016_FORD_C-MAX_(PHEV)",
+  "battery_capacity": 7.6,
+  "battery_capacity_unit": "kilowatt_hours",
+  "charge_depleting": {
+    "name": "2016_FORD_C-MAX_(PHEV)_Charge_Depleting",
+    "mass_estimate_lbs": 3900,
+    "model_input_file": "../models/2016_FORD_C-MAX_(PHEV)_Charge_Depleting.bin",
+    "distance_unit": "miles",
+    "energy_rate_unit": "kWh/mile",
+    "real_world_energy_adjustment": 1.3958,
+    "a_star_heuristic_energy_rate": 0.15,
+    "input_features": [
+      {
+        "type": "speed",
+        "name": "edge_speed",
+        "unit": "mph"
+      },
+      {
+        "type": "ratio",
+        "name": "edge_grade",
+        "unit": "percent"
+      }
+    ],
+    "model_type": {
+      "interpolate": {
+        "underlying_model_type": "smartcore",
+        "feature_bounds": {
+          "edge_speed": {
+            "lower_bound": 0,
+            "upper_bound": 100,
+            "num_bins": 101
+          },
+          "edge_grade": {
+            "lower_bound": -20,
+            "upper_bound": 20,
+            "num_bins": 41
+          }
+        }
+      }
+    }
+  },
+  "charge_sustaining": {
+    "name": "2016_FORD_C-MAX_(PHEV)_Charge_Sustaining",
+    "mass_estimate_lbs": 3900,
+    "model_input_file": "../models/2016_FORD_C-MAX_(PHEV)_Charge_Sustaining.bin",
+    "distance_unit": "miles",
+    "energy_rate_unit": "gallons gasoline/mile",
+    "real_world_energy_adjustment": 1.1252,
+    "a_star_heuristic_energy_rate": 0.022,
+    "input_features": [
+      {
+        "type": "speed",
+        "name": "edge_speed",
+        "unit": "mph"
+      },
+      {
+        "type": "ratio",
+        "name": "edge_grade",
+        "unit": "percent"
+      }
+    ],
+    "model_type": {
+      "interpolate": {
+        "underlying_model_type": "smartcore",
+        "feature_bounds": {
+          "edge_speed": {
+            "lower_bound": 0,
+            "upper_bound": 100,
+            "num_bins": 101
+          },
+          "edge_grade": {
+            "lower_bound": -20,
+            "upper_bound": 20,
+            "num_bins": 41
+          }
+        }
+      }
+    }
+  }
+}

@@ -83,6 +83,18 @@ pub fn run_vertex_oriented(
             Some(f) => f,
         };
 
+        // test if we're at the target
+        if let Some(target_vertex_id) = target {
+            if *f.prev_label.vertex_id() == target_vertex_id {
+                break;
+            }
+        }
+
+        let prev_gscore = traversal_costs
+            .get(&f.prev_label)
+            .unwrap_or(&Cost::INFINITY)
+            .to_owned();
+
         // visit all neighbors of this source vertex
         let incident_edge_iterator = direction.get_incident_edges(f.prev_label.vertex_id(), si);
         for (edge_list_id, edge_id) in incident_edge_iterator {
@@ -120,11 +132,13 @@ pub fn run_vertex_oriented(
                 &si.state_model,
             )?;
 
-            let tentative_gscore = et.cost.objective_cost;
+            let tentative_gscore = prev_gscore + et.cost.objective_cost;
+
             let existing_gscore = traversal_costs
                 .get(&key_label)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
+
             if tentative_gscore < existing_gscore {
                 // accept this traversal, updating search state
                 prune_tree(&mut solution, &key_label, &et, si.label_model.clone())?;

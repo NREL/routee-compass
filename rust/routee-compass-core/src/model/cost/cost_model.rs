@@ -90,22 +90,62 @@ impl CostModel {
     }
 
     /// calculates the total trip cost of traversing the provided edge.
+    ///
+    /// For accumulator features, the cost is computed as the difference between
+    /// the current and previous state (delta). For non-accumulator features,
+    /// the cost is computed directly from the current state value (which already
+    /// represents just the edge traversal).
     pub fn traversal_cost(
         &self,
         trajectory: (&Vertex, &Edge, &Vertex),
-        state: &[StateVariable],
+        previous_state: &[StateVariable],
+        current_state: &[StateVariable],
         tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<TraversalCost, CostModelError> {
         let mut result = TraversalCost::default();
         for (name, feature) in self.features.iter() {
-            let v_cost = feature
-                .vehicle_cost_rate
-                .compute_cost(name, state, state_model)?;
-            let n_cost =
+            let is_accumulator = state_model.is_accumlator(name)?;
+
+            let v_cost = if is_accumulator {
+                let current_cost =
+                    feature
+                        .vehicle_cost_rate
+                        .compute_cost(name, current_state, state_model)?;
+                let previous_cost =
+                    feature
+                        .vehicle_cost_rate
+                        .compute_cost(name, previous_state, state_model)?;
+                current_cost - previous_cost
+            } else {
                 feature
-                    .network_cost_rate
-                    .network_cost(trajectory, state, tree, state_model)?;
+                    .vehicle_cost_rate
+                    .compute_cost(name, current_state, state_model)?
+            };
+
+            let n_cost = if is_accumulator {
+                let current_network_cost = feature.network_cost_rate.network_cost(
+                    trajectory,
+                    current_state,
+                    tree,
+                    state_model,
+                )?;
+                let previous_network_cost = feature.network_cost_rate.network_cost(
+                    trajectory,
+                    previous_state,
+                    tree,
+                    state_model,
+                )?;
+                current_network_cost - previous_network_cost
+            } else {
+                feature.network_cost_rate.network_cost(
+                    trajectory,
+                    current_state,
+                    tree,
+                    state_model,
+                )?
+            };
+
             let cost = v_cost + n_cost;
             result.insert(name, cost, feature.weight);
         }
@@ -173,4 +213,379 @@ impl CostModel {
     const WEIGHT: &'static str = "weight";
     const COST_AGGREGATION: &'static str = "cost_aggregation";
     const DESCRIPTION: &'static str = "description";
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::algorithm::search::{Direction, SearchTree};
+    use crate::model::cost::VehicleCostRate;
+    use crate::model::network::{Edge, Vertex};
+    use crate::model::state::{StateModel, StateVariable, StateVariableConfig};
+    use crate::model::unit::{AsF64, DistanceUnit, TimeUnit};
+    use std::collections::HashMap;
+    use std::sync::Arc;
+    use uom::si::f64::*;
+    use uom::si::length::meter;
+    use uom::si::time::second;
+
+    /// Helper function to create a minimal search tree for testing
+    fn create_test_tree() -> SearchTree {
+        SearchTree::new(Direction::Forward)
+    }
+
+    /// Helper function to create a test trajectory
+    fn create_test_trajectory() -> (Vertex, Edge, Vertex) {
+        let src = Vertex::new(0, 0.0, 0.0);
+        let edge = Edge::new(0, 0, 0, 1, Length::new::<meter>(100.0));
+        let dst = Vertex::new(1, 1.0, 1.0);
+        (src, edge, dst)
+    }
+
+    #[test]
+    fn test_accumulator_feature_uses_differential() {
+        // Create a state model with an accumulator feature (distance)
+        let state_model = Arc::new(StateModel::new(vec![(
+            "distance".to_string(),
+            StateVariableConfig::Distance {
+                initial: Length::new::<meter>(0.0),
+                accumulator: true, // This is an accumulator
+                output_unit: Some(DistanceUnit::Meters),
+            },
+        )]));
+
+        // Create cost model with distance weighted
+        let mut weights = HashMap::new();
+        weights.insert("distance".to_string(), 1.0);
+
+        let mut vehicle_rates = HashMap::new();
+        vehicle_rates.insert(
+            "distance".to_string(),
+            VehicleCostRate::Raw, // Use raw to avoid unit conversion complexity
+        );
+
+        let network_rates = HashMap::new();
+
+        let cost_model = CostModel::new(
+            Arc::new(weights),
+            Arc::new(vehicle_rates),
+            Arc::new(network_rates),
+            CostAggregation::Sum,
+            state_model.clone(),
+        )
+        .expect("should create cost model");
+
+        // Create states: previous = 100m, current = 150m
+        // For accumulator, cost should be the difference: 150 - 100 = 50
+        let previous_state = vec![StateVariable(100.0)];
+        let current_state = vec![StateVariable(150.0)];
+
+        let tree = create_test_tree();
+        let (src, edge, dst) = create_test_trajectory();
+
+        let traversal_cost = cost_model
+            .traversal_cost(
+                (&src, &edge, &dst),
+                &previous_state,
+                &current_state,
+                &tree,
+                &state_model,
+            )
+            .expect("should compute traversal cost");
+
+        // The cost should be the differential (50m), not the absolute value (150m)
+        let cost = traversal_cost.cost_component.get("distance").unwrap();
+        assert_eq!(
+            cost.as_f64(),
+            50.0,
+            "Accumulator feature should use differential cost"
+        );
+    }
+
+    #[test]
+    fn test_non_accumulator_feature_uses_current_state() {
+        // Create a state model with a non-accumulator feature (time)
+        let state_model = Arc::new(StateModel::new(vec![(
+            "time".to_string(),
+            StateVariableConfig::Time {
+                initial: Time::new::<second>(0.0),
+                accumulator: false, // This is NOT an accumulator
+                output_unit: Some(TimeUnit::Seconds),
+            },
+        )]));
+
+        // Create cost model with time weighted
+        let mut weights = HashMap::new();
+        weights.insert("time".to_string(), 1.0);
+
+        let mut vehicle_rates = HashMap::new();
+        vehicle_rates.insert(
+            "time".to_string(),
+            VehicleCostRate::Raw, // Use raw to avoid unit conversion complexity
+        );
+
+        let network_rates = HashMap::new();
+
+        let cost_model = CostModel::new(
+            Arc::new(weights),
+            Arc::new(vehicle_rates),
+            Arc::new(network_rates),
+            CostAggregation::Sum,
+            state_model.clone(),
+        )
+        .expect("should create cost model");
+
+        // Create states: previous = 5s, current = 10s
+        // For non-accumulator, cost should be the current value: 10s
+        let previous_state = vec![StateVariable(5.0)];
+        let current_state = vec![StateVariable(10.0)];
+
+        let tree = create_test_tree();
+        let (src, edge, dst) = create_test_trajectory();
+
+        let traversal_cost = cost_model
+            .traversal_cost(
+                (&src, &edge, &dst),
+                &previous_state,
+                &current_state,
+                &tree,
+                &state_model,
+            )
+            .expect("should compute traversal cost");
+
+        // The cost should be the current state value (10s), not the differential (5s)
+        let cost = traversal_cost.cost_component.get("time").unwrap();
+        assert_eq!(
+            cost.as_f64(),
+            10.0,
+            "Non-accumulator feature should use current state value"
+        );
+    }
+
+    #[test]
+    fn test_mixed_accumulator_and_non_accumulator() {
+        // Create a state model with both accumulator and non-accumulator features
+        let state_model = Arc::new(StateModel::new(vec![
+            (
+                "distance".to_string(),
+                StateVariableConfig::Distance {
+                    initial: Length::new::<meter>(0.0),
+                    accumulator: true, // Accumulator
+                    output_unit: Some(DistanceUnit::Meters),
+                },
+            ),
+            (
+                "time".to_string(),
+                StateVariableConfig::Time {
+                    initial: Time::new::<second>(0.0),
+                    accumulator: false, // Non-accumulator
+                    output_unit: Some(TimeUnit::Seconds),
+                },
+            ),
+        ]));
+
+        // Create cost model with both features weighted
+        let mut weights = HashMap::new();
+        weights.insert("distance".to_string(), 1.0);
+        weights.insert("time".to_string(), 1.0);
+
+        let mut vehicle_rates = HashMap::new();
+        vehicle_rates.insert(
+            "distance".to_string(),
+            VehicleCostRate::Raw, // Use raw to avoid unit conversion complexity
+        );
+        vehicle_rates.insert(
+            "time".to_string(),
+            VehicleCostRate::Raw, // Use raw to avoid unit conversion complexity
+        );
+
+        let network_rates = HashMap::new();
+
+        let cost_model = CostModel::new(
+            Arc::new(weights),
+            Arc::new(vehicle_rates),
+            Arc::new(network_rates),
+            CostAggregation::Sum,
+            state_model.clone(),
+        )
+        .expect("should create cost model");
+
+        // Determine the correct state vector order based on the StateModel
+        // The StateModel uses IndexMap which preserves insertion order
+        let feature_order: Vec<String> = state_model.keys().cloned().collect();
+
+        // Create states:
+        // We need to match the order in the StateModel
+        // distance: previous = 100m, current = 200m (diff = 100m)
+        // time: previous = 5s, current = 8s (current value = 8s)
+        let mut previous_state = vec![StateVariable(0.0); 2];
+        let mut current_state = vec![StateVariable(0.0); 2];
+
+        for (idx, name) in feature_order.iter().enumerate() {
+            match name.as_str() {
+                "distance" => {
+                    previous_state[idx] = StateVariable(100.0);
+                    current_state[idx] = StateVariable(200.0);
+                }
+                "time" => {
+                    previous_state[idx] = StateVariable(5.0);
+                    current_state[idx] = StateVariable(8.0);
+                }
+                _ => {}
+            }
+        }
+
+        let tree = create_test_tree();
+        let (src, edge, dst) = create_test_trajectory();
+
+        let traversal_cost = cost_model
+            .traversal_cost(
+                (&src, &edge, &dst),
+                &previous_state,
+                &current_state,
+                &tree,
+                &state_model,
+            )
+            .expect("should compute traversal cost");
+
+        // Check accumulator feature (distance) uses differential
+        let distance_cost = traversal_cost.cost_component.get("distance").unwrap();
+        assert_eq!(
+            distance_cost.as_f64(),
+            100.0,
+            "Distance (accumulator) should use differential"
+        );
+
+        // Check non-accumulator feature (time) uses current state
+        let time_cost = traversal_cost.cost_component.get("time").unwrap();
+        assert_eq!(
+            time_cost.as_f64(),
+            8.0,
+            "Time (non-accumulator) should use current state"
+        );
+
+        // Check total cost (should be sum of both)
+        assert_eq!(
+            traversal_cost.total_cost.as_f64(),
+            108.0,
+            "Total cost should be sum of both features"
+        );
+    }
+
+    #[test]
+    fn test_accumulator_with_zero_differential() {
+        // Test case where accumulator has no change between states
+        let state_model = Arc::new(StateModel::new(vec![(
+            "distance".to_string(),
+            StateVariableConfig::Distance {
+                initial: Length::new::<meter>(0.0),
+                accumulator: true,
+                output_unit: Some(DistanceUnit::Meters),
+            },
+        )]));
+
+        let mut weights = HashMap::new();
+        weights.insert("distance".to_string(), 1.0);
+
+        let mut vehicle_rates = HashMap::new();
+        vehicle_rates.insert(
+            "distance".to_string(),
+            VehicleCostRate::Raw, // Use raw to avoid unit conversion complexity
+        );
+
+        let network_rates = HashMap::new();
+
+        let cost_model = CostModel::new(
+            Arc::new(weights),
+            Arc::new(vehicle_rates),
+            Arc::new(network_rates),
+            CostAggregation::Sum,
+            state_model.clone(),
+        )
+        .expect("should create cost model");
+
+        // Same value in both states
+        let previous_state = vec![StateVariable(100.0)];
+        let current_state = vec![StateVariable(100.0)];
+
+        let tree = create_test_tree();
+        let (src, edge, dst) = create_test_trajectory();
+
+        let traversal_cost = cost_model
+            .traversal_cost(
+                (&src, &edge, &dst),
+                &previous_state,
+                &current_state,
+                &tree,
+                &state_model,
+            )
+            .expect("should compute traversal cost");
+
+        let cost = traversal_cost.cost_component.get("distance").unwrap();
+        assert!(
+            cost.as_f64() <= 1e-9,
+            "Zero differential should result in MIN_COST or zero cost, got {}",
+            cost.as_f64()
+        );
+    }
+
+    #[test]
+    fn test_accumulator_with_negative_differential() {
+        // Test case where accumulator decreases (e.g., battery charge)
+        let state_model = Arc::new(StateModel::new(vec![(
+            "energy".to_string(),
+            StateVariableConfig::Energy {
+                initial: Energy::new::<uom::si::energy::joule>(0.0),
+                accumulator: true,
+                output_unit: None,
+            },
+        )]));
+
+        let mut weights = HashMap::new();
+        weights.insert("energy".to_string(), 1.0);
+
+        let mut vehicle_rates = HashMap::new();
+        vehicle_rates.insert(
+            "energy".to_string(),
+            VehicleCostRate::Raw, // Use raw to avoid unit conversion complexity
+        );
+
+        let network_rates = HashMap::new();
+
+        let cost_model = CostModel::new(
+            Arc::new(weights),
+            Arc::new(vehicle_rates),
+            Arc::new(network_rates),
+            CostAggregation::Sum,
+            state_model.clone(),
+        )
+        .expect("should create cost model");
+
+        // Energy decreases from 1000 to 800 (consumed 200 units)
+        // Differential = 800 - 1000 = -200
+        let previous_state = vec![StateVariable(1000.0)];
+        let current_state = vec![StateVariable(800.0)];
+
+        let tree = create_test_tree();
+        let (src, edge, dst) = create_test_trajectory();
+
+        let traversal_cost = cost_model
+            .traversal_cost(
+                (&src, &edge, &dst),
+                &previous_state,
+                &current_state,
+                &tree,
+                &state_model,
+            )
+            .expect("should compute traversal cost");
+
+        // Note: Cost::enforce_strictly_positive in TraversalCost::insert will make this MIN_COST (1e-10)
+        // since negative costs are converted to MIN_COST
+        let cost = traversal_cost.cost_component.get("energy").unwrap();
+        assert!(
+            cost.as_f64() <= 1e-9,
+            "Negative differential is converted to MIN_COST by Cost::enforce_strictly_positive, got {}",
+            cost.as_f64()
+        );
+    }
 }
