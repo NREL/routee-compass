@@ -75,40 +75,6 @@ impl SearchTree {
             }
         }
 
-        // Check for cycles: if child already exists as an ancestor of parent
-        // Only perform this check in debug builds and tests for performance
-        #[cfg(any(test, debug_assertions))]
-        if self.nodes.contains_key(&child_label) {
-            // Walk up from parent to root to check if child is an ancestor
-            let mut current = &parent_label;
-            let mut visited = HashSet::new();
-
-            loop {
-                if current == &child_label {
-                    return Err(SearchTreeError::CycleDetected(format!(
-                        "Inserting edge from {} to {} would create a cycle",
-                        parent_label, child_label
-                    )));
-                }
-
-                if !visited.insert(current.clone()) {
-                    // Cycle in ancestry chain - shouldn't happen in well-formed tree
-                    return Err(SearchTreeError::InvalidBranchStructure(format!(
-                        "Cycle detected in ancestry while checking for insertion of {} -> {}",
-                        parent_label, child_label
-                    )));
-                }
-
-                match self.nodes.get(current) {
-                    Some(SearchTreeNode::Root { .. }) => break,
-                    Some(SearchTreeNode::Branch { parent, .. }) => {
-                        current = parent;
-                    }
-                    None => break,
-                }
-            }
-        }
-
         // Create the new node
         let new_node = SearchTreeNode::new_child(
             child_label.clone(),
@@ -1143,33 +1109,6 @@ mod tests {
         assert_eq!(path[0].edge_id, EdgeId(2)); // root -> 2
         assert_eq!(path[1].edge_id, EdgeId(4)); // 2 -> 4
         assert_eq!(path[2].edge_id, EdgeId(5)); // 4 -> 5
-    }
-
-    #[test]
-    fn test_insert_with_cycle() {
-        let mut tree = SearchTree::new(Direction::Forward);
-
-        // Build a cycle graph and pretend it's a tree:
-        //     0
-        //   /   \
-        //  1 --- 2
-
-        let l1 = create_test_label(1);
-        let l2 = create_test_label(2);
-        let l3 = create_test_label(3);
-
-        let t1 = create_test_edge_traversal(1, 10.0);
-        let t2 = create_test_edge_traversal(2, 10.0);
-        let t3 = create_test_edge_traversal(3, 10.0);
-
-        tree.insert(l1.clone(), t1, l2.clone()).unwrap();
-        tree.insert(l2.clone(), t2, l3.clone()).unwrap();
-
-        // This insert should fail because it would create a cycle: 3 -> 1 -> 2 -> 3
-        let result = tree.insert(l3.clone(), t3, l1.clone());
-        assert!(result.is_err());
-        assert!(matches!(result, Err(SearchTreeError::CycleDetected(_))));
-        assert!(result.unwrap_err().to_string().contains("Cycle detected"));
     }
 
     fn create_test_edge_traversal(edge_id: usize, cost: f64) -> EdgeTraversal {

@@ -8,7 +8,7 @@
   "battery_capacity": 20,
   "battery_capacity_unit": "kilowatt_hours",
   "real_world_energy_adjustment": 1.3958,
-  "a_star_heuristic_energy_rate": 0.22,
+  "a_star_heuristic_energy_rate": 0.15,
   "input_features": [
     {
       "type": "speed",

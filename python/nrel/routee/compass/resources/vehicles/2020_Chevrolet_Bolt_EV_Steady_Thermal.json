@@ -7,7 +7,7 @@
   "energy_rate_unit": "kWh/mile",
   "battery_capacity": 66,
   "battery_capacity_unit": "kilowatt_hours",
-  "a_star_heuristic_energy_rate": 0.25,
+  "a_star_heuristic_energy_rate": 0.15,
   "input_features": [
     {
       "type": "speed",
