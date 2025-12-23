@@ -62,13 +62,13 @@ pub trait LabelModel: Send + Sync {
     ///   - "equivalent" (Ordering::Equal)
     ///   - "dominated" (Ordering::Less)
     /// this allows for pruning of the label state space during SearchTree insertion.
-    /// 
+    ///
     /// # Arguments
     /// * prev - the existing label
     /// * next - the new label
-    /// 
+    ///
     /// # Result
-    /// 
+    ///
     /// result of comparing the labels via this label model's implementation.
     fn compare(&self, prev: &Label, next: &Label) -> Result<std::cmp::Ordering, LabelModelError>;
 }
