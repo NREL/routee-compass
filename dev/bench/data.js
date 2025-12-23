@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1766511520843,
+  "lastUpdate": 1766524423275,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -2069,6 +2069,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 3010159,
             "range": "± 189421",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b67522255bae4eee48bad4a56b2a4839288d5af4",
+          "message": "Merge pull request #446 from NREL/ndr/cycle-bugfix\n\nCompute cost differentials for edge traversals",
+          "timestamp": "2025-12-23T14:11:14-07:00",
+          "tree_id": "e28b65ac08473094cb57addc9919ada0db73f3d8",
+          "url": "https://github.com/NREL/routee-compass/commit/b67522255bae4eee48bad4a56b2a4839288d5af4"
+        },
+        "date": 1766524422716,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 3009365,
+            "range": "± 165584",
             "unit": "ns/iter"
           }
         ]
