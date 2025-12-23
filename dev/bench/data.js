@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1766165426135,
+  "lastUpdate": 1766511520843,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -2039,6 +2039,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2963780,
             "range": "± 47115",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "12667eb599bf6b79902e2c00a8e86d3b238069d9",
+          "message": "Merge pull request #440 from NREL/ndr/update-vehicle-models\n\nNdr/update vehicle models",
+          "timestamp": "2025-12-23T10:36:30-07:00",
+          "tree_id": "f056a95984753a602a2b8a6e751d021f7b972ffa",
+          "url": "https://github.com/NREL/routee-compass/commit/12667eb599bf6b79902e2c00a8e86d3b238069d9"
+        },
+        "date": 1766511519961,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 3010159,
+            "range": "± 189421",
             "unit": "ns/iter"
           }
         ]
