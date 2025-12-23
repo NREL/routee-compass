@@ -6,6 +6,7 @@ use crate::plugin::output::output_plugin::OutputPlugin;
 use crate::plugin::output::OutputPluginError;
 use routee_compass_core::algorithm::search::EdgeTraversal;
 use routee_compass_core::algorithm::search::SearchInstance;
+use routee_compass_core::model::cost::TraversalCost;
 use serde_json::json;
 
 pub struct TraversalPlugin {
@@ -113,7 +114,23 @@ fn construct_route_output(
     log::debug!("result state: {:?}", last_edge.result_state);
 
     let state_model = si.state_model.serialize_state_model();
-    let cost = json![last_edge.cost];
+
+    // Compute total route cost by summing all edge costs
+    let route_cost = route
+        .iter()
+        .fold(TraversalCost::default(), |mut acc, edge| {
+            acc.total_cost += edge.cost.total_cost;
+            acc.objective_cost += edge.cost.objective_cost;
+            for (name, cost) in &edge.cost.cost_component {
+                acc.cost_component
+                    .entry(name.clone())
+                    .and_modify(|v| *v += *cost)
+                    .or_insert(*cost);
+            }
+            acc
+        });
+
+    let cost = json![route_cost];
     let cost_model = si
         .cost_model
         .serialize_cost_info()

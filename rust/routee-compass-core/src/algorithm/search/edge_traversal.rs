@@ -89,7 +89,8 @@ impl EdgeTraversal {
 
         traversal_model.traverse_edge(trajectory, &mut result_state, tree, state_model)?;
 
-        let cost = cost_model.traversal_cost(trajectory, &result_state, tree, state_model)?;
+        let cost =
+            cost_model.traversal_cost(trajectory, prev_state, &result_state, tree, state_model)?;
 
         let result = EdgeTraversal {
             edge_list_id: edge.edge_list_id,
