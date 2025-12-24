@@ -103,7 +103,6 @@ pub trait ConfigJsonExtensions {
     ) -> Result<Option<T>, CompassConfigurationError>;
     fn normalize_file_paths(
         &self,
-        parent_key: &dyn AsRef<str>,
         root_config_path: &Path,
     ) -> Result<serde_json::Value, CompassConfigurationError>;
 }
@@ -355,7 +354,6 @@ impl ConfigJsonExtensions for serde_json::Value {
     /// * `Result<serde_json::Value, CompassConfigurationError>` - The JSON object with normalized paths.
     fn normalize_file_paths(
         &self,
-        parent_key: &dyn AsRef<str>,
         root_config_path: &Path,
     ) -> Result<serde_json::Value, CompassConfigurationError> {
         match self {
@@ -386,12 +384,10 @@ impl ConfigJsonExtensions for serde_json::Value {
                     if new_path.is_file() {
                         Ok(serde_json::Value::String(new_path_string))
                     } else {
-                        // if we can't find the file in either location, we throw an error
-                        Err(CompassConfigurationError::FileNormalizationNotFound(
-                            String::from(parent_key.as_ref()),
-                            path_string.clone(),
-                            new_path_string,
-                        ))
+                        // if the file doesn't exist in either of these locations, it's possible that it could speficy an output file that doesn't exist yet
+                        // if this is the case, we just return the path as-is.
+                        // For input files that aren't found, an error will be raised later when attempting to read the file.
+                        Ok(serde_json::Value::String(path_string.clone()))
                     }
                 }
             }
@@ -402,7 +398,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                     if value.is_string() || value.is_object() || value.is_array() {
                         new_obj.insert(
                             String::from(key),
-                            value.normalize_file_paths(key, root_config_path)?,
+                            value.normalize_file_paths(root_config_path)?,
                         );
                     } else {
                         new_obj.insert(String::from(key), value.clone());
@@ -415,13 +411,13 @@ impl ConfigJsonExtensions for serde_json::Value {
                 for value in arr.iter() {
                     match value {
                         serde_json::Value::Array(_) => {
-                            new_arr.push(value.normalize_file_paths(parent_key, root_config_path)?)
+                            new_arr.push(value.normalize_file_paths(root_config_path)?)
                         }
                         serde_json::Value::Object(_) => {
-                            new_arr.push(value.normalize_file_paths(parent_key, root_config_path)?)
+                            new_arr.push(value.normalize_file_paths(root_config_path)?)
                         }
                         serde_json::Value::String(_) => {
-                            new_arr.push(value.normalize_file_paths(parent_key, root_config_path)?)
+                            new_arr.push(value.normalize_file_paths(root_config_path)?)
                         }
                         _ => new_arr.push(value.clone()),
                     }

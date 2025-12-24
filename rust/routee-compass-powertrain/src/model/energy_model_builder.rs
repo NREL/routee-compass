@@ -49,7 +49,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                         file_path, e
                     ))
                 })?
-                .normalize_file_paths(&"", Path::new(file_path))
+                .normalize_file_paths(Path::new(file_path))
                 .map_err(|e| {
                     TraversalModelError::BuildError(format!(
                         "failed to normalize file paths in vehicle config file '{}': {}",

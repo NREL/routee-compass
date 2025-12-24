@@ -1,8 +1,5 @@
 parallelism = 2
 
-[algorithm]
-type = "dijkstra"
-
 [graph]
 vertex_list_input_file = "vertices-compass.csv.gz"
 
