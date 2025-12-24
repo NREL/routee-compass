@@ -5,8 +5,10 @@ use crate::algorithm::search::SearchError;
 use crate::algorithm::search::SearchInstance;
 use crate::algorithm::search::SearchResult;
 use crate::algorithm::search::SearchTree;
+use crate::algorithm::search::SearchTreeError;
 use crate::model::cost::TraversalCost;
 use crate::model::label::Label;
+use crate::model::label::LabelModel;
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
 use crate::model::state::StateVariable;
@@ -15,6 +17,7 @@ use crate::model::unit::ReverseCost;
 use crate::util::priority_queue::InternalPriorityQueue;
 
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::Instant;
 
 /// run an A* Search over the given directed graph model. traverses links
@@ -123,7 +126,6 @@ pub fn run_vertex_oriented(
 
             let next_edge = (*edge_list_id, *edge_id);
             let et = EdgeTraversal::new(next_edge, &solution, &f.prev_state, si)?;
-
             let key_label = si.label_model.label_from_state(
                 key_vertex_id,
                 &et.result_state,
@@ -139,6 +141,7 @@ pub fn run_vertex_oriented(
 
             if tentative_gscore < existing_gscore {
                 // accept this traversal, updating search state
+                prune_tree(&mut solution, &key_label, &et, si.label_model.clone())?;
                 traversal_costs.insert(key_label.clone(), tentative_gscore);
                 solution.insert(terminal_label, et.clone(), key_label.clone())?;
 
@@ -223,6 +226,45 @@ pub fn estimate_traversal_cost(
     )?;
     let cost_estimate = si.cost_model.estimate_cost(&dst_state, &si.state_model)?;
     Ok(cost_estimate)
+}
+
+/// allow the new label to remove any old labels which are dominated both
+/// by cost and by their LabelModel's definition of "dominated".
+fn prune_tree(
+    tree: &mut SearchTree,
+    label: &Label,
+    traversal: &EdgeTraversal,
+    label_model: Arc<dyn LabelModel>,
+) -> Result<(), SearchError> {
+    let this_cost = traversal.cost.objective_cost;
+    let prev_entries = tree
+        .get_labels_iter(*label.vertex_id())
+        .map(|label| {
+            let node = tree
+                .get(&label)
+                .ok_or_else(|| SearchTreeError::MissingNodeForLabel(label.clone()))?;
+            let cost = node.traversal_cost().map(|tc| tc.objective_cost);
+            Ok((label, cost.unwrap_or_default()))
+        })
+        .collect::<Result<Vec<_>, SearchError>>()?;
+
+    if let Some(labels) = tree.get_labels_mut(*label.vertex_id()) {
+        for (prev_label, prev_cost) in prev_entries.into_iter() {
+            // remove previous label if next label is strictly better on at least one dimension,
+            // and at least as good on the other.
+            let label_comparison = label_model.compare(&prev_label, label)?;
+            let remove = match label_comparison {
+                std::cmp::Ordering::Less => true,
+                std::cmp::Ordering::Equal => this_cost < prev_cost,
+                std::cmp::Ordering::Greater => this_cost <= prev_cost,
+            };
+            if remove {
+                let _ = labels.remove(&prev_label);
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
