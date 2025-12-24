@@ -80,6 +80,18 @@ pub fn run_vertex_oriented(
             Some(f) => f,
         };
 
+        // test if we're at the target
+        if let Some(target_vertex_id) = target {
+            if *f.prev_label.vertex_id() == target_vertex_id {
+                break;
+            }
+        }
+
+        let prev_gscore = traversal_costs
+            .get(&f.prev_label)
+            .unwrap_or(&Cost::INFINITY)
+            .to_owned();
+
         // visit all neighbors of this source vertex
         let incident_edge_iterator = direction.get_incident_edges(f.prev_label.vertex_id(), si);
         for (edge_list_id, edge_id) in incident_edge_iterator {
@@ -118,11 +130,13 @@ pub fn run_vertex_oriented(
                 &si.state_model,
             )?;
 
-            let tentative_gscore = et.cost.objective_cost;
+            let tentative_gscore = prev_gscore + et.cost.objective_cost;
+
             let existing_gscore = traversal_costs
                 .get(&key_label)
                 .unwrap_or(&Cost::INFINITY)
                 .to_owned();
+
             if tentative_gscore < existing_gscore {
                 // accept this traversal, updating search state
                 traversal_costs.insert(key_label.clone(), tentative_gscore);
@@ -130,8 +144,13 @@ pub fn run_vertex_oriented(
 
                 let dst_h_cost = match (target, a_star) {
                     (Some(target), true) => {
-                        let cost_est =
-                            estimate_traversal_cost(source, target, &initial_state, &solution, si)?;
+                        let cost_est = estimate_traversal_cost(
+                            key_vertex_id,
+                            target,
+                            &initial_state,
+                            &solution,
+                            si,
+                        )?;
                         cost_est.objective_cost
                     }
                     _ => Cost::ZERO,
@@ -232,7 +251,9 @@ mod tests {
     use std::sync::Arc;
     use uom::si::f64::Length;
 
-    fn build_mock_graph() -> Graph {
+    fn build_square_graph() -> Graph {
+        use uom::si::length::kilometer;
+
         let vertices = vec![
             Vertex::new(0, 0.0, 0.0),
             Vertex::new(1, 0.0, 0.0),
@@ -241,14 +262,14 @@ mod tests {
         ];
 
         let edges = vec![
-            Edge::new(0, 0, 0, 1, Length::new::<uom::si::length::kilometer>(10.0)),
-            Edge::new(0, 1, 1, 0, Length::new::<uom::si::length::kilometer>(10.0)),
-            Edge::new(0, 2, 1, 2, Length::new::<uom::si::length::kilometer>(2.0)),
-            Edge::new(0, 3, 2, 1, Length::new::<uom::si::length::kilometer>(2.0)),
-            Edge::new(0, 4, 2, 3, Length::new::<uom::si::length::kilometer>(1.0)),
-            Edge::new(0, 5, 3, 2, Length::new::<uom::si::length::kilometer>(1.0)),
-            Edge::new(0, 6, 3, 0, Length::new::<uom::si::length::kilometer>(2.0)),
-            Edge::new(0, 7, 0, 3, Length::new::<uom::si::length::kilometer>(2.0)),
+            Edge::new(0, 0, 0, 1, Length::new::<kilometer>(10.0)),
+            Edge::new(0, 1, 1, 0, Length::new::<kilometer>(10.0)),
+            Edge::new(0, 2, 1, 2, Length::new::<kilometer>(2.0)),
+            Edge::new(0, 3, 2, 1, Length::new::<kilometer>(2.0)),
+            Edge::new(0, 4, 2, 3, Length::new::<kilometer>(1.0)),
+            Edge::new(0, 5, 3, 2, Length::new::<kilometer>(1.0)),
+            Edge::new(0, 6, 3, 0, Length::new::<kilometer>(2.0)),
+            Edge::new(0, 7, 0, 3, Length::new::<kilometer>(2.0)),
         ];
 
         let mut adj = vec![IndexMap::new(); vertices.len()];
@@ -270,8 +291,123 @@ mod tests {
         }
     }
 
+    /// builds a cross-shaped test graph where A* should outperform Dijkstra's.
+    fn build_astar_graph() -> Graph {
+        use uom::si::length::kilometer;
+
+        //       (3)
+        //        |
+        // (2) - (0) - (4) - (5)
+        //        |
+        //       (1)
+
+        let vertices = vec![
+            Vertex::new(0, 0.0, 0.0),
+            Vertex::new(1, 0.0, -0.01),
+            Vertex::new(2, -0.01, 0.0),
+            Vertex::new(3, 0.0, 0.01),
+            Vertex::new(4, 0.01, 0.0),
+            Vertex::new(5, 0.02, 0.0),
+        ];
+
+        let onekm = Length::new::<kilometer>(1.0);
+        let edges = vec![
+            Edge::new(0, 0, 0, 1, onekm),
+            Edge::new(0, 1, 1, 0, onekm),
+            Edge::new(0, 2, 0, 2, onekm),
+            Edge::new(0, 3, 2, 0, onekm),
+            Edge::new(0, 4, 0, 3, onekm),
+            Edge::new(0, 5, 3, 0, onekm),
+            Edge::new(0, 6, 0, 4, onekm),
+            Edge::new(0, 7, 4, 0, onekm),
+            Edge::new(0, 8, 4, 5, onekm),
+        ];
+
+        let mut adj = vec![IndexMap::new(); vertices.len()];
+        let mut rev = vec![IndexMap::new(); vertices.len()];
+        let edge_list_id = EdgeListId(0);
+
+        for edge in &edges {
+            adj[edge.src_vertex_id.0].insert((edge_list_id, edge.edge_id), edge.dst_vertex_id);
+            rev[edge.dst_vertex_id.0].insert((edge_list_id, edge.edge_id), edge.src_vertex_id);
+        }
+
+        // Construct the Graph instance.
+
+        Graph {
+            vertices: vertices.into_boxed_slice(),
+            edge_lists: vec![EdgeList(edges.into_boxed_slice())],
+            adj: adj.into_boxed_slice(),
+            rev: rev.into_boxed_slice(),
+        }
+    }
+
+    fn build_search_instance(graph: Arc<Graph>) -> SearchInstance {
+        let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
+        let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::default()));
+
+        // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
+        // these live in the "driver" process and are passed as read-only memory to each executor process
+        let state_model = Arc::new(
+            StateModel::empty()
+                .register(
+                    traversal_model.clone().input_features(),
+                    traversal_model.clone().output_features(),
+                )
+                .unwrap(),
+        );
+        let cost_model = CostModel::new(
+            // vec![(String::from("distance"), 0usize)],
+            Arc::new(HashMap::from([(String::from("trip_distance"), 1.0)])),
+            Arc::new(HashMap::from([(
+                String::from("trip_distance"),
+                VehicleCostRate::Raw,
+            )])),
+            Arc::new(HashMap::new()),
+            CostAggregation::Sum,
+            state_model.clone(),
+        )
+        .unwrap();
+        SearchInstance {
+            graph,
+            map_model,
+            state_model: state_model.clone(),
+            traversal_models: vec![traversal_model.clone()],
+            constraint_models: vec![Arc::new(NoRestriction {})],
+            cost_model: Arc::new(cost_model),
+            termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
+            label_model: Arc::new(VertexLabelModel {}),
+            default_edge_list: None,
+        }
+    }
+
     #[test]
-    fn test_e2e_queries() {
+    fn test_astar_graph() {
+        let query_origin = VertexId(0);
+        let query_destination = VertexId(5);
+        let optimal_route = vec![EdgeId(6), EdgeId(8)];
+        let graph = Arc::new(build_astar_graph());
+        let si = build_search_instance(graph.clone());
+        let result = run_vertex_oriented(
+            query_origin,
+            Some(query_destination),
+            &Direction::Forward,
+            true,
+            &si,
+        )
+        .expect("failure running search for A* test");
+        assert_eq!(result.iterations, 2);
+        let route = result
+            .tree
+            .backtrack(query_destination)
+            .expect("failure creating search result");
+        for (route_edge, expected_edge) in route.into_iter().zip(optimal_route.into_iter()) {
+            assert_eq!(route_edge.edge_id, expected_edge);
+        }
+    }
+
+    #[test]
+    fn test_square_graph() {
         // simple box world that exists in a non-euclidean plane that stretches
         // the distances between vertex 0 and 1. tested using a distance cost
         // function. to zero out the cost estimate function, all vertices have a
@@ -317,43 +453,8 @@ mod tests {
             (VertexId(2), VertexId(3), vec![EdgeId(4)]), // 2 -[4]-> 3
         ];
 
-        let graph = Arc::new(build_mock_graph());
-        let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
-        let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::default()));
-
-        // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
-        // these live in the "driver" process and are passed as read-only memory to each executor process
-        let state_model = Arc::new(
-            StateModel::empty()
-                .register(
-                    traversal_model.clone().input_features(),
-                    traversal_model.clone().output_features(),
-                )
-                .unwrap(),
-        );
-        let cost_model = CostModel::new(
-            // vec![(String::from("distance"), 0usize)],
-            Arc::new(HashMap::from([(String::from("trip_distance"), 1.0)])),
-            Arc::new(HashMap::from([(
-                String::from("trip_distance"),
-                VehicleCostRate::Raw,
-            )])),
-            Arc::new(HashMap::new()),
-            CostAggregation::Sum,
-            state_model.clone(),
-        )
-        .unwrap();
-        let si = SearchInstance {
-            graph,
-            map_model,
-            state_model: state_model.clone(),
-            traversal_models: vec![traversal_model.clone()],
-            constraint_models: vec![Arc::new(NoRestriction {})],
-            cost_model: Arc::new(cost_model),
-            termination_model: Arc::new(TerminationModel::IterationsLimit { limit: 20 }),
-            label_model: Arc::new(VertexLabelModel {}),
-            default_edge_list: None,
-        };
+        let graph = Arc::new(build_square_graph());
+        let si = build_search_instance(graph.clone());
 
         // execute the route search
         let result: Vec<Result<SearchTree, SearchError>> = queries

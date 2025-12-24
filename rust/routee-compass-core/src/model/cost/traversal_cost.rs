@@ -23,11 +23,12 @@ impl TraversalCost {
     ///
     /// when recording a cost component, if it already exists, we append to the cost value.
     pub fn insert(&mut self, name: &str, cost: Cost, weight: f64) {
-        self.total_cost += cost;
-        self.objective_cost += cost * weight;
+        let positive_cost = Cost::enforce_strictly_positive(cost);
+        self.total_cost += positive_cost;
+        self.objective_cost += positive_cost * weight;
         self.cost_component
             .entry(name.to_string())
-            .and_modify(|v| *v += cost)
-            .or_insert(cost);
+            .and_modify(|v| *v += positive_cost)
+            .or_insert(positive_cost);
     }
 }
