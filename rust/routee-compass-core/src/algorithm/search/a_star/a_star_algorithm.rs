@@ -84,13 +84,6 @@ pub fn run_vertex_oriented(
             Some(f) => f,
         };
 
-        // test if we're at the target
-        if let Some(target_vertex_id) = target {
-            if *f.prev_label.vertex_id() == target_vertex_id {
-                break;
-            }
-        }
-
         let prev_gscore = traversal_costs
             .get(&f.prev_label)
             .unwrap_or(&Cost::INFINITY)
