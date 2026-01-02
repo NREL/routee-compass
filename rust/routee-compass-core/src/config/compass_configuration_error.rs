@@ -30,7 +30,7 @@ pub enum CompassConfigurationError {
 
         Second, make sure the file exists.
 
-        Third, make sure the config key ends with '_input_file(s)' or '_output_file(s)' which is a schema requirement
+        Third, make sure the config key ends with '_input_file(s)' which is a schema requirement
         for the CompassApp config.
         "#
     )]
