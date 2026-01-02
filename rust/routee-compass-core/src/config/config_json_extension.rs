@@ -296,16 +296,13 @@ impl ConfigJsonExtensions for serde_json::Value {
     }
 
     /// This function is used to normalize file paths in the configuration JSON object.
-    /// Incoming file paths can be in one of three locations:
+    /// Incoming file paths can be in one of two locations:
     ///
     /// 1. Absolute path
-    /// 2. Relative path to the config file itself
-    /// 3. Relative path to where the application is being run
+    /// 2. Relative path to the config file
     ///
     /// This function scans each key value pair in the config and for any key that
     /// ends with `_input_file` or `_input_files`, it will validate that the file exists.
-    /// For keys ending with `_output_file` or `_output_files`, it will normalize paths
-    /// without requiring the file to exist.
     ///
     /// Arguments:
     ///
