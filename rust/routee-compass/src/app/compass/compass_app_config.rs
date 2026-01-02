@@ -102,6 +102,14 @@ impl TryFrom<&Path> for CompassAppConfig {
 }
 
 impl CompassAppConfig {
+    /// Returns a pretty-printed JSON representation of this config.
+    /// Useful for debugging and logging the exact configuration being used.
+    pub fn to_pretty_string(&self) -> Result<String, CompassAppError> {
+        serde_json::to_string_pretty(self).map_err(|e| {
+            CompassAppError::BuildFailure(format!("Failed to serialize config: {}", e))
+        })
+    }
+
     pub fn build_traversal_model_services(
         &self,
         builders: &CompassBuilderInventory,
