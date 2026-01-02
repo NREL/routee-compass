@@ -37,3 +37,6 @@ topological-sort = { workspace = true }
 uom = { workspace = true }
 wkb = { workspace = true }
 wkt = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

@@ -104,6 +104,7 @@ pub trait ConfigJsonExtensions {
     fn normalize_file_paths(
         &self,
         root_config_path: &Path,
+        parent_key: Option<&str>,
     ) -> Result<serde_json::Value, CompassConfigurationError>;
 }
 
@@ -342,12 +343,14 @@ impl ConfigJsonExtensions for serde_json::Value {
     /// 3. Relative path to where the application is being run
     ///
     /// This function scans each key value pair in the config and for any key that
-    /// ends with `_input_file`, it will attempt to normalize the path such that the application
-    /// can find the file regardless of where it is being executed.
+    /// ends with `_input_file` or `_input_files`, it will validate that the file exists.
+    /// For keys ending with `_output_file` or `_output_files`, it will normalize paths
+    /// without requiring the file to exist.
     ///
     /// Arguments:
     ///
     /// * `root_config_path` - The path to the where the config file is located.
+    /// * `parent_key` - Optional parent key name for tracking context through arrays.
     ///
     /// Returns:
     ///
@@ -355,7 +358,17 @@ impl ConfigJsonExtensions for serde_json::Value {
     fn normalize_file_paths(
         &self,
         root_config_path: &Path,
+        parent_key: Option<&str>,
     ) -> Result<serde_json::Value, CompassConfigurationError> {
+        /// Helper to determine if a key expects input files that must exist
+        fn is_input_file_key(key: &str) -> bool {
+            key.ends_with("_input_file") || key.ends_with("_input_files")
+        }
+
+        /// Helper to determine if a key specifies output files that may not exist yet
+        fn is_output_file_key(key: &str) -> bool {
+            key.ends_with("_output_file") || key.ends_with("_output_files")
+        }
         match self {
             serde_json::Value::String(path_string) => {
                 // Only attempt normalization if the string looks like a file path
@@ -364,6 +377,8 @@ impl ConfigJsonExtensions for serde_json::Value {
                 }
 
                 let path = Path::new(path_string);
+                let is_input_file = parent_key.map(is_input_file_key).unwrap_or(false);
+                let is_output_file = parent_key.map(is_output_file_key).unwrap_or(false);
 
                 // no need to modify if the file exists
                 if path.is_file() {
@@ -383,11 +398,23 @@ impl ConfigJsonExtensions for serde_json::Value {
                         .to_string();
                     if new_path.is_file() {
                         Ok(serde_json::Value::String(new_path_string))
+                    } else if is_input_file {
+                        // Input files must exist - fail early with clear error
+                        Err(CompassConfigurationError::FileNotFoundForComponent(
+                            path_string.clone(),
+                            parent_key.unwrap_or("unknown").to_string(),
+                            "config".to_string(),
+                        ))
+                    } else if is_output_file {
+                        // Output files may not exist yet - return normalized path
+                        Ok(serde_json::Value::String(new_path_string))
                     } else {
-                        // if the file doesn't exist in either of these locations, it's possible that it could speficy an output file that doesn't exist yet
-                        // if this is the case, we just return the path as-is.
-                        // For input files that aren't found, an error will be raised later when attempting to read the file.
-                        Ok(serde_json::Value::String(path_string.clone()))
+                        // No suffix specified but looks like a file path.
+                        Err(CompassConfigurationError::FileNotFoundForComponent(
+                            path_string.clone(),
+                            parent_key.unwrap_or("unknown").to_string(),
+                            "config".to_string(),
+                        ))
                     }
                 }
             }
@@ -398,7 +425,7 @@ impl ConfigJsonExtensions for serde_json::Value {
                     if value.is_string() || value.is_object() || value.is_array() {
                         new_obj.insert(
                             String::from(key),
-                            value.normalize_file_paths(root_config_path)?,
+                            value.normalize_file_paths(root_config_path, Some(key))?,
                         );
                     } else {
                         new_obj.insert(String::from(key), value.clone());
@@ -411,13 +438,13 @@ impl ConfigJsonExtensions for serde_json::Value {
                 for value in arr.iter() {
                     match value {
                         serde_json::Value::Array(_) => {
-                            new_arr.push(value.normalize_file_paths(root_config_path)?)
+                            new_arr.push(value.normalize_file_paths(root_config_path, parent_key)?)
                         }
                         serde_json::Value::Object(_) => {
-                            new_arr.push(value.normalize_file_paths(root_config_path)?)
+                            new_arr.push(value.normalize_file_paths(root_config_path, parent_key)?)
                         }
                         serde_json::Value::String(_) => {
-                            new_arr.push(value.normalize_file_paths(root_config_path)?)
+                            new_arr.push(value.normalize_file_paths(root_config_path, parent_key)?)
                         }
                         _ => new_arr.push(value.clone()),
                     }
@@ -426,5 +453,109 @@ impl ConfigJsonExtensions for serde_json::Value {
             }
             _ => Ok(self.clone()),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use serde_json::json;
+    use std::fs;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_input_file_validation() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.toml");
+        fs::write(&config_path, "").unwrap();
+
+        // Test case: input file that doesn't exist should fail
+        let config_json = json!({
+            "edges_input_file": "nonexistent.csv"
+        });
+
+        let result = config_json.normalize_file_paths(&config_path, None);
+        assert!(result.is_err(), "Expected error for nonexistent input file");
+        if let Err(e) = result {
+            match e {
+                CompassConfigurationError::FileNotFoundForComponent(path, key, _) => {
+                    assert_eq!(path, "nonexistent.csv");
+                    assert_eq!(key, "edges_input_file");
+                }
+                _ => panic!("Expected FileNotFoundForComponent error"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_input_files_array_validation() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.toml");
+        fs::write(&config_path, "").unwrap();
+
+        // Test case: array of input files where one doesn't exist should fail
+        let config_json = json!({
+            "vehicles_input_files": [
+                "nonexistent1.toml",
+                "nonexistent2.toml"
+            ]
+        });
+
+        let result = config_json.normalize_file_paths(&config_path, None);
+        assert!(
+            result.is_err(),
+            "Expected error for nonexistent input files in array"
+        );
+    }
+
+    #[test]
+    fn test_output_file_allows_nonexistent() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.toml");
+        fs::write(&config_path, "").unwrap();
+
+        // Test case: output file that doesn't exist should succeed
+        let config_json = json!({
+            "results_output_file": "output/results.json"
+        });
+
+        let result = config_json.normalize_file_paths(&config_path, None);
+        assert!(result.is_ok(), "Output file should not require existence");
+    }
+
+    #[test]
+    fn test_input_file_exists_relative_path() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.toml");
+        fs::write(&config_path, "").unwrap();
+
+        // Create an actual input file relative to config
+        let input_file = temp_dir.path().join("data.csv");
+        fs::write(&input_file, "test").unwrap();
+
+        let config_json = json!({
+            "data_input_file": "data.csv"
+        });
+
+        let result = config_json.normalize_file_paths(&config_path, None);
+        assert!(result.is_ok(), "Existing input file should succeed");
+    }
+
+    #[test]
+    fn test_backward_compatibility_no_suffix() {
+        let temp_dir = TempDir::new().unwrap();
+        let config_path = temp_dir.path().join("config.toml");
+        fs::write(&config_path, "").unwrap();
+
+        // Test case: file without suffix should not fail (backward compatibility)
+        let config_json = json!({
+            "some_file": "nonexistent.csv"
+        });
+
+        let result = config_json.normalize_file_paths(&config_path, None);
+        assert!(
+            result.is_err(),
+            "Files without _input_file suffix should throw error if nonexistent"
+        );
     }
 }

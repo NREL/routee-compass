@@ -21,7 +21,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         let parent_key = String::from("energy traversal model");
 
         let vehicle_files = params
-            .get_config_array(&"vehicles", &parent_key)
+            .get_config_array(&"vehicle_input_files", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
 
         // read all vehicle configurations from files
@@ -49,7 +49,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                         file_path, e
                     ))
                 })?
-                .normalize_file_paths(Path::new(file_path))
+                .normalize_file_paths(Path::new(file_path), None)
                 .map_err(|e| {
                     TraversalModelError::BuildError(format!(
                         "failed to normalize file paths in vehicle config file '{}': {}",
