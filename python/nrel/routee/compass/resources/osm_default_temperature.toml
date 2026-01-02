@@ -83,7 +83,7 @@ grade_input_file = "edges-grade-enumerated.txt.gz"
 
 [[search.traversal.models]]
 type = "energy"
-vehicles = [
+vehicle_input_files = [
     "vehicles/2016_Nissan_Leaf_30_kWh_Steady_Thermal.json",
     "vehicles/2022_Tesla_Model_3_RWD_Steady_Thermal.json",
     "vehicles/2020_Chevrolet_Bolt_EV_Steady_Thermal.json",

@@ -80,7 +80,7 @@ distance_unit = "feet"
 
 [[search.traversal.models]]
 type = "energy"
-vehicles = [
+vehicle_input_files = [
     "vehicles/2010_Mazda_3_i-Stop.json",
     "vehicles/2012_Ford_Focus.json",
     "vehicles/2012_Ford_Fusion.json",
