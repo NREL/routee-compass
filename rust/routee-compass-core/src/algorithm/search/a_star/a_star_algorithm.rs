@@ -97,12 +97,6 @@ pub fn run_vertex_oriented(
         for (edge_list_id, edge_id) in incident_edge_iterator {
             let e = si.graph.get_edge(edge_list_id, edge_id)?;
 
-            let terminal_vertex_id = direction.terminal_vertex_id(e);
-            let terminal_label = si.label_model.label_from_state(
-                terminal_vertex_id,
-                &f.prev_state,
-                &si.state_model,
-            )?;
             let key_vertex_id = direction.tree_key_vertex_id(e);
 
             let previous_edge = match f.prev_edge {
@@ -140,7 +134,7 @@ pub fn run_vertex_oriented(
             if tentative_gscore < existing_gscore {
                 // accept this traversal, updating search state
                 traversal_costs.insert(key_label.clone(), tentative_gscore);
-                solution.insert(terminal_label, et.clone(), key_label.clone())?;
+                solution.insert(f.prev_label.clone(), et.clone(), key_label.clone())?;
 
                 let dst_h_cost = match (target, a_star) {
                     (Some(target), true) => {
