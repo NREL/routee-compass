@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1767384017819,
+  "lastUpdate": 1767402102491,
   "repoUrl": "https://github.com/NREL/routee-compass",
   "entries": {
     "Rust Benchmark": [
@@ -2219,6 +2219,36 @@ window.BENCHMARK_DATA = {
             "name": "routee-compass/downtown denver example",
             "value": 2964026,
             "range": "± 112369",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "nreinicke@users.noreply.github.com",
+            "name": "Nicholas Reinicke",
+            "username": "nreinicke"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f20eddf8fb6a404db5cfe37e2ed19b3f16bc0dec",
+          "message": "Merge pull request #451 from NREL/ndr/pretty-print-config\n\nPretty print config",
+          "timestamp": "2026-01-02T17:59:24-07:00",
+          "tree_id": "5675758b5b8ab64fed7f8648d16620a1b8b43bd1",
+          "url": "https://github.com/NREL/routee-compass/commit/f20eddf8fb6a404db5cfe37e2ed19b3f16bc0dec"
+        },
+        "date": 1767402102171,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "routee-compass/downtown denver example",
+            "value": 2983780,
+            "range": "± 269301",
             "unit": "ns/iter"
           }
         ]
