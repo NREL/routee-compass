@@ -34,6 +34,10 @@ pub fn command_line_runner(
     };
     let config_path = Path::new(&args.config_file);
     let config = CompassAppConfig::try_from(config_path)?;
+    log::info!(
+        "Loaded the following Compass configuration:\n{}",
+        config.to_pretty_string()?
+    );
     let compass_app = match CompassApp::new(&config, &builder_or_default) {
         Ok(app) => app,
         Err(e) => {
