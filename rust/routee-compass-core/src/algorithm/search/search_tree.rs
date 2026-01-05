@@ -1134,7 +1134,6 @@ mod tests {
             cost: TraversalCost {
                 total_cost: Cost::new(cost),
                 objective_cost: Cost::new(cost),
-                cost_component: HashMap::new(),
             },
             result_state: vec![],
         }

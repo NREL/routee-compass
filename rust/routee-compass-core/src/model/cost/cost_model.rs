@@ -19,8 +19,6 @@ use std::sync::Arc;
 /// in the state model.
 pub struct CostModel {
     features: IndexMap<String, CostFeature>,
-    /// cached Arc<str> for each feature name to avoid repeated allocations
-    feature_names: IndexMap<String, Arc<str>>,
     weights_mapping: Arc<HashMap<String, f64>>,
     vehicle_rate_mapping: Arc<HashMap<String, VehicleCostRate>>,
     network_rate_mapping: Arc<HashMap<String, NetworkCostRate>>,
@@ -83,16 +81,8 @@ impl CostModel {
             return Err(CostModelError::InvalidCostVariables(vec![]));
         }
 
-        // Create cached Arc<str> for each feature name to minimize memory overhead
-        // when millions of TraversalCost instances are created during search
-        let feature_names = features
-            .keys()
-            .map(|k| (k.clone(), Arc::from(k.as_str())))
-            .collect();
-
         Ok(CostModel {
             features,
-            feature_names,
             weights_mapping,
             vehicle_rate_mapping,
             network_rate_mapping,
@@ -158,8 +148,7 @@ impl CostModel {
             };
 
             let cost = v_cost + n_cost;
-            let name_arc = self.feature_names.get(name).expect("feature name must exist in cache");
-            result.insert(Arc::clone(name_arc), cost, feature.weight);
+            result.insert(cost, feature.weight);
         }
         Ok(result)
     }
@@ -175,8 +164,7 @@ impl CostModel {
             let v_cost = feature
                 .vehicle_cost_rate
                 .compute_cost(name, state, state_model)?;
-            let name_arc = self.feature_names.get(name).expect("feature name must exist in cache");
-            result.insert(Arc::clone(name_arc), v_cost, feature.weight);
+            result.insert(v_cost, feature.weight);
         }
         Ok(result)
     }
