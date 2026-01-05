@@ -121,12 +121,6 @@ fn construct_route_output(
         .fold(TraversalCost::default(), |mut acc, edge| {
             acc.total_cost += edge.cost.total_cost;
             acc.objective_cost += edge.cost.objective_cost;
-            for (name, cost) in &edge.cost.cost_component {
-                acc.cost_component
-                    .entry(name.clone())
-                    .and_modify(|v| *v += *cost)
-                    .or_insert(*cost);
-            }
             acc
         });
 
