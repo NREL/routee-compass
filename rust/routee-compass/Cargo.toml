@@ -18,6 +18,10 @@ keywords = [
 ]
 categories = ["science", "science::geo"]
 
+[features]
+default = []
+memory-profiling = ["dep:allocative"]
+
 [lib]
 bench = false
 
@@ -32,7 +36,7 @@ path = "src/bin/geom-app.rs"
 bench = false
 
 [dependencies]
-allocative = { workspace = true }
+allocative = { workspace = true, optional = true }
 chrono = { workspace = true }
 clap = { workspace = true }
 config = { workspace = true }

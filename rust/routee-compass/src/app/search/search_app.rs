@@ -107,6 +107,7 @@ impl SearchApp {
             Err(CompassAppError::CompassFailure(String::from("SearchApp.run called with query that lacks origin_edge and origin_vertex, at least one required")))
         }?;
 
+
         let search_end_time = Local::now();
         let search_runtime = (search_end_time - search_start_time)
             .to_std()
@@ -116,6 +117,17 @@ impl SearchApp {
             "Search Completed in {:?} miliseconds",
             search_runtime.as_millis()
         );
+
+        #[cfg(feature = "memory-profiling")]
+        {
+            use allocative::FlameGraphBuilder;
+
+            let mut flamegraph = FlameGraphBuilder::default();
+            flamegraph.visit_root(&results);
+            let output_data = flamegraph.finish().flamegraph().write();
+            std::fs::write("search_app_memory_flamegraph.out", output_data).unwrap();
+        }
+
 
         let result = SearchAppResult {
             routes: results.routes,

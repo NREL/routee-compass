@@ -19,6 +19,8 @@ use std::sync::Arc;
 /// in the state model.
 pub struct CostModel {
     features: IndexMap<String, CostFeature>,
+    /// cached Arc<str> for each feature name to avoid repeated allocations
+    feature_names: IndexMap<String, Arc<str>>,
     weights_mapping: Arc<HashMap<String, f64>>,
     vehicle_rate_mapping: Arc<HashMap<String, VehicleCostRate>>,
     network_rate_mapping: Arc<HashMap<String, NetworkCostRate>>,
@@ -80,8 +82,17 @@ impl CostModel {
             // TODO: update this Error variant after refactor
             return Err(CostModelError::InvalidCostVariables(vec![]));
         }
+
+        // Create cached Arc<str> for each feature name to minimize memory overhead
+        // when millions of TraversalCost instances are created during search
+        let feature_names = features
+            .keys()
+            .map(|k| (k.clone(), Arc::from(k.as_str())))
+            .collect();
+
         Ok(CostModel {
             features,
+            feature_names,
             weights_mapping,
             vehicle_rate_mapping,
             network_rate_mapping,
@@ -147,7 +158,8 @@ impl CostModel {
             };
 
             let cost = v_cost + n_cost;
-            result.insert(name, cost, feature.weight);
+            let name_arc = self.feature_names.get(name).expect("feature name must exist in cache");
+            result.insert(Arc::clone(name_arc), cost, feature.weight);
         }
         Ok(result)
     }
@@ -163,7 +175,8 @@ impl CostModel {
             let v_cost = feature
                 .vehicle_cost_rate
                 .compute_cost(name, state, state_model)?;
-            result.insert(name, v_cost, feature.weight);
+            let name_arc = self.feature_names.get(name).expect("feature name must exist in cache");
+            result.insert(Arc::clone(name_arc), v_cost, feature.weight);
         }
         Ok(result)
     }
@@ -294,7 +307,7 @@ mod test {
             .expect("should compute traversal cost");
 
         // The cost should be the differential (50m), not the absolute value (150m)
-        let cost = traversal_cost.cost_component.get("distance").unwrap();
+        let cost = traversal_cost.cost_component.get("distance" as &str).unwrap();
         assert_eq!(
             cost.as_f64(),
             50.0,
@@ -354,7 +367,7 @@ mod test {
             .expect("should compute traversal cost");
 
         // The cost should be the current state value (10s), not the differential (5s)
-        let cost = traversal_cost.cost_component.get("time").unwrap();
+        let cost = traversal_cost.cost_component.get("time" as &str).unwrap();
         assert_eq!(
             cost.as_f64(),
             10.0,
@@ -449,7 +462,7 @@ mod test {
             .expect("should compute traversal cost");
 
         // Check accumulator feature (distance) uses differential
-        let distance_cost = traversal_cost.cost_component.get("distance").unwrap();
+        let distance_cost = traversal_cost.cost_component.get("distance" as &str).unwrap();
         assert_eq!(
             distance_cost.as_f64(),
             100.0,
@@ -457,7 +470,7 @@ mod test {
         );
 
         // Check non-accumulator feature (time) uses current state
-        let time_cost = traversal_cost.cost_component.get("time").unwrap();
+        let time_cost = traversal_cost.cost_component.get("time" as &str).unwrap();
         assert_eq!(
             time_cost.as_f64(),
             8.0,
@@ -521,7 +534,7 @@ mod test {
             )
             .expect("should compute traversal cost");
 
-        let cost = traversal_cost.cost_component.get("distance").unwrap();
+        let cost = traversal_cost.cost_component.get("distance" as &str).unwrap();
         assert!(
             cost.as_f64() <= 1e-9,
             "Zero differential should result in MIN_COST or zero cost, got {}",
@@ -581,7 +594,7 @@ mod test {
 
         // Note: Cost::enforce_strictly_positive in TraversalCost::insert will make this MIN_COST (1e-10)
         // since negative costs are converted to MIN_COST
-        let cost = traversal_cost.cost_component.get("energy").unwrap();
+        let cost = traversal_cost.cost_component.get("energy" as &str).unwrap();
         assert!(
             cost.as_f64() <= 1e-9,
             "Negative differential is converted to MIN_COST by Cost::enforce_strictly_positive, got {}",
