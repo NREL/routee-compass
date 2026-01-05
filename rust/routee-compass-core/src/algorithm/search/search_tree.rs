@@ -47,7 +47,7 @@ impl SearchTree {
 
     /// Set the root node of the tree
     pub fn set_root(&mut self, root_label: Label) {
-        let root_node = SearchTreeNode::new_root(root_label.clone(), self.direction);
+        let root_node = SearchTreeNode::new_root(self.direction);
         self.nodes.insert(root_label.clone(), root_node);
         self.labels
             .entry(*root_label.vertex_id())
@@ -77,16 +77,10 @@ impl SearchTree {
 
         // Create the new node
         let new_node = SearchTreeNode::new_child(
-            child_label.clone(),
             edge_traversal,
             parent_label.clone(),
             self.direction,
         );
-
-        // Add child relationship to parent
-        if let Some(parent_node) = self.nodes.get_mut(&parent_label) {
-            parent_node.add_child(child_label.clone());
-        }
 
         // Insert the new node
         self.nodes.insert(child_label.clone(), new_node);
@@ -98,6 +92,7 @@ impl SearchTree {
             .or_insert(HashSet::from([child_label.clone()]));
 
         Ok(())
+
     }
 
     pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Label, &'a SearchTreeNode)> + 'a> {
@@ -168,27 +163,6 @@ impl SearchTree {
         let node = self.get(label)?;
         let parent_label = node.parent_label()?;
         self.get(parent_label)
-    }
-
-    /// Get all children of a node
-    pub fn get_children(&self, label: &Label) -> Vec<&SearchTreeNode> {
-        match self.get(label) {
-            None => vec![],
-            Some(node) => node
-                .children()
-                .iter()
-                .filter_map(|child_label| self.get(child_label))
-                .collect(),
-        }
-    }
-
-    /// Get all child labels of a node
-    pub fn get_child_labels(&self, label: &Label) -> Vec<Label> {
-        if let Some(node) = self.get(label) {
-            node.children().iter().cloned().collect()
-        } else {
-            Vec::new()
-        }
     }
 
     /// Check if the tree contains a node with the given label
@@ -396,8 +370,6 @@ mod tests {
 
         let root_node = tree.get(&root_label).unwrap();
         assert!(root_node.is_root());
-        assert_eq!(root_node.vertex_id(), &VertexId(0));
-        assert!(root_node.children().is_empty());
     }
 
     #[test]
@@ -427,14 +399,6 @@ mod tests {
 
         assert_eq!(tree.len(), 3);
 
-        // Verify root has two children
-        let children = tree.get_children(&root_label);
-        assert_eq!(children.len(), 2);
-
-        let child_labels = tree.get_child_labels(&root_label);
-        assert!(child_labels.contains(&child1_label));
-        assert!(child_labels.contains(&child2_label));
-
         // Verify child nodes
         let child1_node = tree.get(&child1_label).unwrap();
         assert!(!child1_node.is_root());
@@ -446,6 +410,7 @@ mod tests {
         assert_eq!(child2_node.parent_label(), Some(&root_label));
         assert_eq!(child2_node.incoming_edge().unwrap().edge_id, EdgeId(2));
     }
+
 
     #[test]
     fn test_insert_with_nonexistent_parent() {
@@ -474,9 +439,10 @@ mod tests {
         assert!(tree.get_parent(&root_label).is_none());
 
         // Child has root as parent
-        let parent = tree.get_parent(&child_label).unwrap();
-        assert_eq!(parent.label(), &root_label);
+        let parent = tree.get(&child_label).unwrap().parent_label().unwrap();
+        assert_eq!(parent, &root_label);
     }
+
 
     #[test]
     fn test_reconstruct_path_forward_orientation() {
@@ -596,12 +562,13 @@ mod tests {
         let node_count = tree.nodes().count();
         assert_eq!(node_count, 3);
 
-        let vertex_ids: HashSet<_> = tree.nodes().map(|n| n.vertex_id()).collect();
+        let vertex_ids: HashSet<_> = tree.labels().map(|l| l.vertex_id()).collect();
         assert_eq!(vertex_ids.len(), 3);
         assert!(vertex_ids.contains(&VertexId(0)));
         assert!(vertex_ids.contains(&VertexId(1)));
         assert!(vertex_ids.contains(&VertexId(2)));
     }
+
 
     #[test]
     fn test_backtrack_forward_tree() {
@@ -752,14 +719,15 @@ mod tests {
         // Verify structure
         let root_node = tree.get(&parent_label).unwrap();
         assert!(root_node.is_root());
-        assert_eq!(root_node.children().len(), 1);
-        assert!(root_node.children().contains(&child_label));
+        // Verify automatic root creation logic via label presence in nodes map
+        assert!(tree.nodes.contains_key(&parent_label));
 
         let child_node = tree.get(&child_label).unwrap();
         assert!(!child_node.is_root());
         assert_eq!(child_node.parent_label(), Some(&parent_label));
         assert_eq!(child_node.incoming_edge().unwrap().edge_id, EdgeId(1));
     }
+
 
     #[test]
     fn test_auto_root_creation_chain() {
