@@ -7,11 +7,15 @@ use std::sync::Arc;
 
 pub struct DistanceTraversalService {
     pub distance_unit: DistanceUnit,
+    pub include_trip_distance: bool,
 }
 
 impl DistanceTraversalService {
-    pub fn new(distance_unit: DistanceUnit) -> DistanceTraversalService {
-        Self { distance_unit }
+    pub fn new(distance_unit: DistanceUnit, include_trip_distance: bool) -> DistanceTraversalService {
+        Self {
+            distance_unit,
+            include_trip_distance,
+        }
     }
 }
 
@@ -20,7 +24,10 @@ impl TraversalModelService for DistanceTraversalService {
         &self,
         _parameters: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        let m: Arc<dyn TraversalModel> = Arc::new(DistanceTraversalModel::new(self.distance_unit));
+        let m: Arc<dyn TraversalModel> = Arc::new(DistanceTraversalModel::new(
+            self.distance_unit,
+            self.include_trip_distance,
+        ));
         Ok(m)
     }
 }

@@ -29,6 +29,7 @@ pub struct BevEnergyModel {
     prediction_model_record: Arc<PredictionModelRecord>,
     battery_capacity: Energy,
     starting_soc: Ratio,
+    include_trip_energy: bool,
 }
 
 impl BevEnergyModel {
@@ -36,6 +37,7 @@ impl BevEnergyModel {
         prediction_model_record: Arc<PredictionModelRecord>,
         battery_capacity: Energy,
         starting_battery_energy: Energy,
+        include_trip_energy: bool,
     ) -> Result<Self, TraversalModelError> {
         let starting_soc = energy_model_ops::soc_from_energy(
             starting_battery_energy,
@@ -48,6 +50,7 @@ impl BevEnergyModel {
             prediction_model_record,
             battery_capacity,
             starting_soc,
+            include_trip_energy,
         })
     }
 }
@@ -64,6 +67,7 @@ impl TraversalModelService for BevEnergyModel {
                     self.prediction_model_record.clone(),
                     self.battery_capacity,
                     starting_energy,
+                    self.include_trip_energy,
                 )?;
                 Ok(Arc::new(updated))
             }
@@ -97,11 +101,16 @@ impl TryFrom<&Value> for BevEnergyModel {
         .map_err(|e| {
             TraversalModelError::BuildError(format!("failed to parse battery capacity unit: {e}"))
         })?;
+        let include_trip_energy = value
+            .get("include_trip_energy")
+            .map(|v| v.as_bool().unwrap_or(true))
+            .unwrap_or(true);
 
         let bev = BevEnergyModel::new(
             Arc::new(prediction_model),
             battery_energy_unit.to_uom(battery_capacity),
             battery_energy_unit.to_uom(battery_capacity),
+            include_trip_energy,
         )?;
         Ok(bev)
     }
@@ -132,19 +141,7 @@ impl TraversalModel for BevEnergyModel {
     }
 
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        vec![
-            (
-                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
-                StateVariableConfig::Energy {
-                    initial: Energy::ZERO,
-                    accumulator: true,
-                    output_unit: Some(
-                        self.prediction_model_record
-                            .energy_rate_unit
-                            .associated_energy_unit(),
-                    ),
-                },
-            ),
+        let mut features = vec![
             (
                 String::from(fieldname::EDGE_ENERGY_ELECTRIC),
                 StateVariableConfig::Energy {
@@ -165,15 +162,22 @@ impl TraversalModel for BevEnergyModel {
                     output_unit: Some(RatioUnit::default()),
                 },
             ),
-            (
-                String::from(fieldname::BATTERY_CAPACITY),
+        ];
+        if self.include_trip_energy {
+            features.push((
+                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
                 StateVariableConfig::Energy {
-                    initial: self.battery_capacity,
-                    accumulator: false,
-                    output_unit: Some(EnergyUnit::KilowattHours),
+                    initial: Energy::ZERO,
+                    accumulator: true,
+                    output_unit: Some(
+                        self.prediction_model_record
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
                 },
-            ),
-        ]
+            ));
+        }
+        features
     }
 
     fn traverse_edge(
@@ -188,6 +192,7 @@ impl TraversalModel for BevEnergyModel {
             state_model,
             self.prediction_model_record.clone(),
             self.battery_capacity,
+            self.include_trip_energy,
         )
     }
 
@@ -203,6 +208,7 @@ impl TraversalModel for BevEnergyModel {
             state_model,
             self.prediction_model_record.clone(),
             self.battery_capacity,
+            self.include_trip_energy,
         )
     }
 }
@@ -212,6 +218,7 @@ fn bev_traversal_estimate(
     state_model: &StateModel,
     record: Arc<PredictionModelRecord>,
     battery_capacity: Energy,
+    include_trip_energy: bool,
 ) -> Result<(), TraversalModelError> {
     // gather state variables
     let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
@@ -256,7 +263,9 @@ fn bev_traversal_estimate(
 
     let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
 
-    state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &energy)?;
+    if include_trip_energy {
+        state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &energy)?;
+    }
     state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &energy)?;
     state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
     Ok(())
@@ -267,6 +276,7 @@ fn bev_traversal(
     state_model: &StateModel,
     record: Arc<PredictionModelRecord>,
     battery_capacity: Energy,
+    include_trip_energy: bool,
 ) -> Result<(), TraversalModelError> {
     // gather state variables
     let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
@@ -274,7 +284,9 @@ fn bev_traversal(
     // generate energy for link traversal
     let energy = record.predict(state, state_model)?;
 
-    state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &energy)?;
+    if include_trip_energy {
+        state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &energy)?;
+    }
     state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &energy)?;
 
     let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
@@ -309,7 +321,7 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(0.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
+        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, true).unwrap();
 
         let elec = state_model
             .get_energy(&state, fieldname::TRIP_ENERGY_ELECTRIC)
@@ -340,7 +352,7 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(-5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
+        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, true).unwrap();
 
         let elec = state_model
             .get_energy(&state, fieldname::TRIP_ENERGY_ELECTRIC)
@@ -371,7 +383,7 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(-5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
+        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, true).unwrap();
 
         let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc <= Ratio::new::<uom::si::ratio::percent>(100.0));
@@ -391,7 +403,7 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap).unwrap();
+        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, true).unwrap();
 
         let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc >= Ratio::ZERO);
@@ -461,8 +473,13 @@ mod tests {
         battery_capacity: Energy,
     ) -> Arc<dyn TraversalModel> {
         let starting_energy = battery_capacity * starting_soc;
-        let bev = BevEnergyModel::new(prediction_model_record, battery_capacity, starting_energy)
-            .expect("test invariant failed");
+        let bev = BevEnergyModel::new(
+            prediction_model_record,
+            battery_capacity,
+            starting_energy,
+            true,
+        )
+        .expect("test invariant failed");
 
         // mock the upstream models via TestTraversalModel
 
