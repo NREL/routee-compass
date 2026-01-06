@@ -4,11 +4,15 @@ use crate::model::{
     state::StateModel,
 };
 use serde_json::Value;
-use std::{collections::HashSet, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+};
 
 #[derive(Clone)]
 pub struct RoadClassFrontierService {
-    pub road_class_by_edge: Arc<Box<[String]>>,
+    pub road_class_by_edge: Arc<Box<[u8]>>,
+    pub road_class_mapping: Arc<HashMap<String, u8>>,
 }
 
 impl ConstraintModelService for RoadClassFrontierService {
@@ -19,7 +23,14 @@ impl ConstraintModelService for RoadClassFrontierService {
     ) -> Result<Arc<dyn ConstraintModel>, ConstraintModelError> {
         let query_road_classes = match query.get("road_classes").map(read_road_classes_from_query) {
             Some(Err(e)) => Err(e),
-            Some(Ok(road_classes)) => Ok(Some(road_classes)),
+            Some(Ok(road_classes)) => {
+                let mapped: HashSet<u8> = road_classes
+                    .iter()
+                    .filter_map(|c| self.road_class_mapping.get(c))
+                    .copied()
+                    .collect();
+                Ok(Some(mapped))
+            }
             None => Ok(None),
         }?;
 
