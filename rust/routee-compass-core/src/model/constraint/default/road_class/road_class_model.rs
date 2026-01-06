@@ -8,7 +8,7 @@ use std::{collections::HashSet, sync::Arc};
 
 pub struct RoadClassConstraintModel {
     pub service: Arc<RoadClassFrontierService>,
-    pub query_road_classes: Option<HashSet<String>>,
+    pub query_road_classes: Option<HashSet<u8>>,
 }
 
 impl ConstraintModel for RoadClassConstraintModel {
@@ -59,8 +59,22 @@ mod test {
     /// * `road_class_vector` - the value assumed to be read from a file, with road classes by EdgeId index value
     /// * `query` - the user query which should provide the set of valid road classes for this search
     fn mock(road_class_vector: Box<[String]>, query: Value) -> Arc<dyn ConstraintModel> {
+        let mut mapping = std::collections::HashMap::new();
+        let mut encoded = Vec::with_capacity(road_class_vector.len());
+        let mut next_id = 0u8;
+
+        for class in road_class_vector.iter() {
+            let id = *mapping.entry(class.clone()).or_insert_with(|| {
+                let id = next_id;
+                next_id += 1;
+                id
+            });
+            encoded.push(id);
+        }
+
         let service = Arc::new(RoadClassFrontierService {
-            road_class_by_edge: Arc::new(road_class_vector),
+            road_class_by_edge: Arc::new(encoded.into_boxed_slice()),
+            road_class_mapping: Arc::new(mapping),
         });
         let state_model = Arc::new(StateModel::empty());
         service.build(&query, state_model.clone()).unwrap()
