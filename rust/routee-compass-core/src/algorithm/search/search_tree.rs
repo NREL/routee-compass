@@ -49,12 +49,14 @@ impl SearchTree {
     pub fn set_root(&mut self, root_label: Label) {
         let root_node = SearchTreeNode::new_root(self.direction);
         self.nodes.insert(root_label.clone(), root_node);
-        self.labels
-            .entry(*root_label.vertex_id())
-            .and_modify(|l| {
-                let _ = l.insert(root_label.clone());
-            })
-            .or_insert(HashSet::from([root_label.clone()]));
+        if !matches!(root_label, Label::Vertex(_)) {
+            self.labels
+                .entry(*root_label.vertex_id())
+                .and_modify(|l| {
+                    let _ = l.insert(root_label.clone());
+                })
+                .or_insert(HashSet::from([root_label.clone()]));
+        }
         self.root = Some(root_label);
     }
 
@@ -84,12 +86,14 @@ impl SearchTree {
 
         // Insert the new node
         self.nodes.insert(child_label.clone(), new_node);
-        self.labels
-            .entry(*child_label.vertex_id())
-            .and_modify(|l| {
-                let _ = l.insert(child_label.clone());
-            })
-            .or_insert(HashSet::from([child_label.clone()]));
+        if !matches!(child_label, Label::Vertex(_)) {
+            self.labels
+                .entry(*child_label.vertex_id())
+                .and_modify(|l| {
+                    let _ = l.insert(child_label.clone());
+                })
+                .or_insert(HashSet::from([child_label.clone()]));
+        }
 
         Ok(())
 
@@ -118,8 +122,16 @@ impl SearchTree {
     }
 
     /// Find labels for the given vertex ID
-    pub fn get_labels(&self, vertex: VertexId) -> Option<&HashSet<Label>> {
-        self.labels.get(&vertex)
+    pub fn get_labels(&self, vertex: VertexId) -> Box<dyn Iterator<Item = Label> + '_> {
+        if self.labels.is_empty() {
+            // if the labels map is empty, we assume we're using the Vertex label only
+            Box::new(std::iter::once(Label::Vertex(vertex)))
+        } else {
+            match self.labels.get(&vertex) {
+                Some(labels) => Box::new(labels.iter().cloned()),
+                None => Box::new(std::iter::empty()),
+            }
+        }
     }
 
     /// finds a single label by picking the one that is maximal/minimal wrt some comparison function.
@@ -134,9 +146,10 @@ impl SearchTree {
     where
         F: FnMut(&(&Label, Option<&EdgeTraversal>)) -> OrderedFloat<f64>,
     {
-        let label_edge_iter = self.get_labels(vertex)?.iter().filter_map(|label| {
-            let edge_traversal = self.get(label)?.incoming_edge();
-            Some((label, edge_traversal))
+        let label_edge_iter = self.get_labels(vertex).filter_map(|label| {
+            let (stored_label, node) = self.nodes.get_key_value(&label)?;
+            let edge_traversal = node.incoming_edge();
+            Some((stored_label, edge_traversal))
         });
 
         let found = if min {
