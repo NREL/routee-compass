@@ -29,6 +29,7 @@ pub struct PhevEnergyModel {
     pub charge_depleting_model: Arc<PredictionModelRecord>,
     pub battery_capacity: Energy,
     pub starting_soc: Ratio,
+    pub include_trip_energy: bool,
 }
 
 impl PhevEnergyModel {
@@ -37,6 +38,7 @@ impl PhevEnergyModel {
         charge_depleting_model: Arc<PredictionModelRecord>,
         battery_capacity: Energy,
         starting_battery_energy: Energy,
+        include_trip_energy: bool,
     ) -> Result<Self, TraversalModelError> {
         let starting_soc = energy_model_ops::soc_from_energy(
             starting_battery_energy,
@@ -50,6 +52,7 @@ impl PhevEnergyModel {
             charge_depleting_model,
             battery_capacity,
             starting_soc,
+            include_trip_energy,
         })
     }
 }
@@ -60,6 +63,8 @@ struct PhevEnergyModelConfig {
     pub charge_depleting: PredictionModelConfig,
     pub battery_capacity: f64,
     pub battery_capacity_unit: EnergyUnit,
+    #[serde(default)]
+    pub include_trip_energy: Option<bool>,
 }
 
 impl TryFrom<&Value> for PhevEnergyModel {
@@ -74,11 +79,13 @@ impl TryFrom<&Value> for PhevEnergyModel {
         let charge_depleting_record = PredictionModelRecord::try_from(&config.charge_depleting)?;
         let charge_sustaining_record = PredictionModelRecord::try_from(&config.charge_sustaining)?;
         let battery_capacity = config.battery_capacity_unit.to_uom(config.battery_capacity);
+        let include_trip_energy = config.include_trip_energy.unwrap_or(true);
         let bev = PhevEnergyModel::new(
             Arc::new(charge_sustaining_record),
             Arc::new(charge_depleting_record),
             battery_capacity,
             battery_capacity,
+            include_trip_energy,
         )?;
         Ok(bev)
     }
@@ -97,6 +104,7 @@ impl TraversalModelService for PhevEnergyModel {
                     self.charge_depleting_model.clone(),
                     self.battery_capacity,
                     starting_energy,
+                    self.include_trip_energy,
                 )?;
                 Ok(Arc::new(updated))
             }
@@ -128,19 +136,7 @@ impl TraversalModel for PhevEnergyModel {
     }
 
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        vec![
-            (
-                String::from(fieldname::TRIP_ENERGY_LIQUID),
-                StateVariableConfig::Energy {
-                    initial: Energy::ZERO,
-                    accumulator: true,
-                    output_unit: Some(
-                        self.charge_sustain_model
-                            .energy_rate_unit
-                            .associated_energy_unit(),
-                    ),
-                },
-            ),
+        let mut features = vec![
             (
                 String::from(fieldname::EDGE_ENERGY_LIQUID),
                 StateVariableConfig::Energy {
@@ -148,18 +144,6 @@ impl TraversalModel for PhevEnergyModel {
                     accumulator: false,
                     output_unit: Some(
                         self.charge_sustain_model
-                            .energy_rate_unit
-                            .associated_energy_unit(),
-                    ),
-                },
-            ),
-            (
-                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
-                StateVariableConfig::Energy {
-                    initial: Energy::ZERO,
-                    accumulator: true,
-                    output_unit: Some(
-                        self.charge_depleting_model
                             .energy_rate_unit
                             .associated_energy_unit(),
                     ),
@@ -185,7 +169,36 @@ impl TraversalModel for PhevEnergyModel {
                     output_unit: Some(RatioUnit::Percent),
                 },
             ),
-        ]
+        ];
+
+        if self.include_trip_energy {
+            features.push((
+                String::from(fieldname::TRIP_ENERGY_LIQUID),
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
+                    accumulator: true,
+                    output_unit: Some(
+                        self.charge_sustain_model
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
+                },
+            ));
+            features.push((
+                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
+                    accumulator: true,
+                    output_unit: Some(
+                        self.charge_depleting_model
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
+                },
+            ));
+        }
+
+        features
     }
 
     fn traverse_edge(
@@ -201,6 +214,7 @@ impl TraversalModel for PhevEnergyModel {
             self.charge_depleting_model.clone(),
             self.charge_sustain_model.clone(),
             self.battery_capacity,
+            self.include_trip_energy,
             false,
         )
     }
@@ -219,6 +233,7 @@ impl TraversalModel for PhevEnergyModel {
             self.charge_depleting_model.clone(),
             self.charge_sustain_model.clone(),
             self.battery_capacity,
+            self.include_trip_energy,
             true,
         )
     }
@@ -235,12 +250,19 @@ fn phev_traversal(
     depleting: Arc<PredictionModelRecord>,
     sustaining: Arc<PredictionModelRecord>,
     battery_capacity: Energy,
+    include_trip_energy: bool,
     estimate: bool,
 ) -> Result<(), TraversalModelError> {
     // collect state variables
     let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
     let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
-    let trip_energy_elec = state_model.get_energy(state, fieldname::TRIP_ENERGY_ELECTRIC)?;
+    let trip_energy_elec = if include_trip_energy {
+        state_model.get_energy(state, fieldname::TRIP_ENERGY_ELECTRIC)?
+    } else {
+        // if we are not tracking trip energy, we still need to calculate the current battery state
+        // based on the start SOC
+        (Ratio::new::<uom::si::ratio::ratio>(1.0) - start_soc) * battery_capacity
+    };
 
     // figure out how much energy we had at the start of the edge
     let edge_start_elec = battery_capacity - trip_energy_elec;
@@ -281,6 +303,7 @@ fn phev_traversal(
             start_soc,
             est_edge_elec,
             battery_capacity,
+            include_trip_energy,
         )
     } else {
         mixed_traversal(
@@ -290,6 +313,7 @@ fn phev_traversal(
             edge_start_elec,
             trip_energy_elec,
             energy_overage,
+            include_trip_energy,
             estimate,
         )
     }
@@ -302,9 +326,12 @@ fn depleting_only_traversal(
     start_soc: Ratio,
     est_edge_elec: Energy,
     battery_capacity: Energy,
+    include_trip_energy: bool,
 ) -> Result<(), TraversalModelError> {
     state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &est_edge_elec)?;
-    state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &est_edge_elec)?;
+    if include_trip_energy {
+        state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &est_edge_elec)?;
+    }
     let end_soc = energy_model_ops::update_soc_percent(start_soc, est_edge_elec, battery_capacity)?;
     state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
     Ok(())
@@ -317,13 +344,16 @@ fn mixed_traversal(
     edge_start_elec: Energy,
     trip_energy_elec: Energy,
     energy_overage: Energy,
+    include_trip_energy: bool,
     estimate: bool,
 ) -> Result<(), TraversalModelError> {
     let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
 
     // use up remaining battery first (edge start electricity, not edge consumption electricity)
     state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &edge_start_elec)?;
-    state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &edge_start_elec)?;
+    if include_trip_energy {
+        state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &edge_start_elec)?;
+    }
     state_model.set_ratio(state, fieldname::TRIP_SOC, &Ratio::ZERO)?;
 
     // find the amount of distance remaining on this edge as a ratio of remaining energy to total energy used
@@ -360,7 +390,9 @@ fn mixed_traversal(
     };
 
     state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &remaining_energy)?;
-    state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &remaining_energy)?;
+    if include_trip_energy {
+        state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &remaining_energy)?;
+    }
     Ok(())
 }
 
@@ -420,6 +452,7 @@ mod test {
             charge_depleting.clone(),
             charge_sustaining.clone(),
             bat_cap,
+            true,
             false,
         )
         .expect("test invariant failed");
@@ -470,6 +503,7 @@ mod test {
             charge_depleting.clone(),
             charge_sustaining.clone(),
             bat_cap,
+            true,
             false,
         )
         .expect("test invariant failed");
@@ -494,6 +528,7 @@ mod test {
             charge_depleting.clone(),
             charge_sustaining.clone(),
             bat_cap,
+            true,
             false,
         )
         .expect("test invariant failed");
@@ -523,6 +558,7 @@ mod test {
             charge_depleting,
             battery_capacity,
             starting_battery_energy,
+            true,
         )
         .expect("test invariant failed");
 

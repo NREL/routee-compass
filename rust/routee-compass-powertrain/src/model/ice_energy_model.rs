@@ -16,14 +16,17 @@ use uom::{si::f64::Energy, ConstZero};
 #[derive(Clone)]
 pub struct IceEnergyModel {
     pub prediction_model_record: Arc<PredictionModelRecord>,
+    pub include_trip_energy: bool,
 }
 
 impl IceEnergyModel {
     pub fn new(
         prediction_model_record: PredictionModelRecord,
+        include_trip_energy: bool,
     ) -> Result<Self, TraversalModelError> {
         Ok(Self {
             prediction_model_record: Arc::new(prediction_model_record),
+            include_trip_energy,
         })
     }
 }
@@ -47,7 +50,11 @@ impl TryFrom<&Value> for IceEnergyModel {
             ))
         })?;
         let prediction_model = PredictionModelRecord::try_from(&config)?;
-        let ice_model = IceEnergyModel::new(prediction_model)?;
+        let include_trip_energy = value
+            .get("include_trip_energy")
+            .map(|v| v.as_bool().unwrap_or(true))
+            .unwrap_or(true);
+        let ice_model = IceEnergyModel::new(prediction_model, include_trip_energy)?;
         Ok(ice_model)
     }
 }
@@ -66,8 +73,20 @@ impl TraversalModel for IceEnergyModel {
     }
 
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        vec![
-            (
+        let mut features = vec![(
+            String::from(fieldname::EDGE_ENERGY_LIQUID),
+            StateVariableConfig::Energy {
+                initial: Energy::ZERO,
+                accumulator: false,
+                output_unit: Some(
+                    self.prediction_model_record
+                        .energy_rate_unit
+                        .associated_energy_unit(),
+                ),
+            },
+        )];
+        if self.include_trip_energy {
+            features.push((
                 String::from(fieldname::TRIP_ENERGY_LIQUID),
                 StateVariableConfig::Energy {
                     initial: Energy::ZERO,
@@ -78,20 +97,9 @@ impl TraversalModel for IceEnergyModel {
                             .associated_energy_unit(),
                     ),
                 },
-            ),
-            (
-                String::from(fieldname::EDGE_ENERGY_LIQUID),
-                StateVariableConfig::Energy {
-                    initial: Energy::ZERO,
-                    accumulator: false,
-                    output_unit: Some(
-                        self.prediction_model_record
-                            .energy_rate_unit
-                            .associated_energy_unit(),
-                    ),
-                },
-            ),
-        ]
+            ));
+        }
+        features
     }
 
     fn traverse_edge(
@@ -105,6 +113,7 @@ impl TraversalModel for IceEnergyModel {
             state,
             state_model,
             self.prediction_model_record.clone(),
+            self.include_trip_energy,
             false,
         )
     }
@@ -120,6 +129,7 @@ impl TraversalModel for IceEnergyModel {
             state,
             state_model,
             self.prediction_model_record.clone(),
+            self.include_trip_energy,
             true,
         )
     }
@@ -129,6 +139,7 @@ fn ice_traversal(
     state: &mut [StateVariable],
     state_model: &StateModel,
     record: Arc<PredictionModelRecord>,
+    include_trip_energy: bool,
     estimate: bool,
 ) -> Result<(), TraversalModelError> {
     let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
@@ -157,7 +168,9 @@ fn ice_traversal(
         record.predict(state, state_model)?
     };
 
-    state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy)?;
+    if include_trip_energy {
+        state_model.add_energy(state, fieldname::TRIP_ENERGY_LIQUID, &energy)?;
+    }
     state_model.set_energy(state, fieldname::EDGE_ENERGY_LIQUID, &energy)?;
     Ok(())
 }

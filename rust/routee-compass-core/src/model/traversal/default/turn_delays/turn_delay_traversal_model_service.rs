@@ -7,6 +7,7 @@ use std::sync::Arc;
 
 pub struct TurnDelayTraversalModelService {
     pub engine: Arc<TurnDelayTraversalModelEngine>,
+    pub include_trip_time: bool,
 }
 
 impl TurnDelayTraversalModelService {}
@@ -18,6 +19,7 @@ impl TraversalModelService for TurnDelayTraversalModelService {
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let model = TurnDelayTraversalModel {
             engine: self.engine.clone(),
+            include_trip_time: self.include_trip_time,
         };
         Ok(Arc::new(model))
     }

@@ -55,24 +55,25 @@ impl TraversalModel for TimeTraversalModel {
     }
 
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        vec![
-            (
-                String::from(fieldname::EDGE_TIME),
-                StateVariableConfig::Time {
-                    initial: Time::ZERO,
-                    accumulator: false,
-                    output_unit: Some(self.config.time_unit),
-                },
-            ),
-            (
+        let mut features = vec![(
+            String::from(fieldname::EDGE_TIME),
+            StateVariableConfig::Time {
+                initial: Time::ZERO,
+                accumulator: false,
+                output_unit: Some(self.config.time_unit),
+            },
+        )];
+        if self.config.include_trip_time.unwrap_or(true) {
+            features.push((
                 String::from(fieldname::TRIP_TIME),
                 StateVariableConfig::Time {
                     initial: Time::ZERO,
                     accumulator: true,
                     output_unit: Some(self.config.time_unit),
                 },
-            ),
-        ]
+            ));
+        }
+        features
     }
 
     fn traverse_edge(
@@ -87,7 +88,9 @@ impl TraversalModel for TimeTraversalModel {
 
         let edge_time = distance / speed;
 
-        state_model.add_time(state, fieldname::TRIP_TIME, &edge_time)?;
+        if self.config.include_trip_time.unwrap_or(true) {
+            state_model.add_time(state, fieldname::TRIP_TIME, &edge_time)?;
+        }
         state_model.add_time(state, fieldname::EDGE_TIME, &edge_time)?;
 
         Ok(())
@@ -114,7 +117,9 @@ impl TraversalModel for TimeTraversalModel {
         let speed = state_model.get_speed(state, fieldname::EDGE_SPEED)?;
         let time = distance / speed;
 
-        state_model.add_time(state, fieldname::TRIP_TIME, &time)?;
+        if self.config.include_trip_time.unwrap_or(true) {
+            state_model.add_time(state, fieldname::TRIP_TIME, &time)?;
+        }
         state_model.add_time(state, fieldname::EDGE_TIME, &time)?;
 
         Ok(())

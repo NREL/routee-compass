@@ -14,11 +14,15 @@ use std::sync::Arc;
 
 pub struct TurnDelayTraversalModel {
     pub engine: Arc<TurnDelayTraversalModelEngine>,
+    pub include_trip_time: bool,
 }
 
 impl TurnDelayTraversalModel {
-    pub fn new(engine: Arc<TurnDelayTraversalModelEngine>) -> Self {
-        TurnDelayTraversalModel { engine }
+    pub fn new(engine: Arc<TurnDelayTraversalModelEngine>, include_trip_time: bool) -> Self {
+        TurnDelayTraversalModel {
+            engine,
+            include_trip_time,
+        }
     }
 }
 
@@ -32,7 +36,7 @@ impl TraversalModel for TurnDelayTraversalModel {
     }
 
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        vec![
+        let mut features = vec![
             (
                 String::from(fieldname::EDGE_TURN_DELAY),
                 StateVariableConfig::Time {
@@ -49,15 +53,18 @@ impl TraversalModel for TurnDelayTraversalModel {
                     output_unit: None,
                 },
             ),
-            (
+        ];
+        if self.include_trip_time {
+            features.push((
                 String::from(fieldname::TRIP_TIME),
                 StateVariableConfig::Time {
                     initial: Time::ZERO,
                     accumulator: true,
                     output_unit: None,
                 },
-            ),
-        ]
+            ));
+        }
+        features
     }
 
     fn traverse_edge(
@@ -85,7 +92,9 @@ impl TraversalModel for TurnDelayTraversalModel {
             let delay = self.engine.get_delay(prev, edge.edge_id)?;
             state_model.set_time(state, fieldname::EDGE_TURN_DELAY, &delay)?;
             state_model.add_time(state, fieldname::EDGE_TIME, &delay)?;
-            state_model.add_time(state, fieldname::TRIP_TIME, &delay)?;
+            if self.include_trip_time {
+                state_model.add_time(state, fieldname::TRIP_TIME, &delay)?;
+            }
         }
 
         Ok(())

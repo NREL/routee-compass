@@ -5,4 +5,6 @@ use crate::model::unit::DistanceUnit;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DistanceTraversalConfig {
     pub distance_unit: Option<DistanceUnit>,
+    #[serde(default)]
+    pub include_trip_distance: Option<bool>,
 }
