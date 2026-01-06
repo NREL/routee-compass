@@ -11,7 +11,10 @@ pub struct DistanceTraversalService {
 }
 
 impl DistanceTraversalService {
-    pub fn new(distance_unit: DistanceUnit, include_trip_distance: bool) -> DistanceTraversalService {
+    pub fn new(
+        distance_unit: DistanceUnit,
+        include_trip_distance: bool,
+    ) -> DistanceTraversalService {
         Self {
             distance_unit,
             include_trip_distance,

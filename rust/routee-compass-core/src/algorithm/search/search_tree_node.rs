@@ -30,11 +30,7 @@ impl SearchTreeNode {
         }
     }
 
-    pub fn new_child(
-        edge_traversal: EdgeTraversal,
-        parent: Label,
-        direction: Direction,
-    ) -> Self {
+    pub fn new_child(edge_traversal: EdgeTraversal, parent: Label, direction: Direction) -> Self {
         Self::Branch {
             incoming_edge: edge_traversal,
             parent,
@@ -77,4 +73,3 @@ impl SearchTreeNode {
         }
     }
 }
-
