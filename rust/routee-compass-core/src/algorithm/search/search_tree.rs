@@ -78,11 +78,8 @@ impl SearchTree {
         }
 
         // Create the new node
-        let new_node = SearchTreeNode::new_child(
-            edge_traversal,
-            parent_label.clone(),
-            self.direction,
-        );
+        let new_node =
+            SearchTreeNode::new_child(edge_traversal, parent_label.clone(), self.direction);
 
         // Insert the new node
         self.nodes.insert(child_label.clone(), new_node);
@@ -96,7 +93,6 @@ impl SearchTree {
         }
 
         Ok(())
-
     }
 
     pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Label, &'a SearchTreeNode)> + 'a> {
@@ -424,7 +420,6 @@ mod tests {
         assert_eq!(child2_node.incoming_edge().unwrap().edge_id, EdgeId(2));
     }
 
-
     #[test]
     fn test_insert_with_nonexistent_parent() {
         let root_label = create_test_label(0);
@@ -455,7 +450,6 @@ mod tests {
         let parent = tree.get(&child_label).unwrap().parent_label().unwrap();
         assert_eq!(parent, &root_label);
     }
-
 
     #[test]
     fn test_reconstruct_path_forward_orientation() {
@@ -581,7 +575,6 @@ mod tests {
         assert!(vertex_ids.contains(&VertexId(1)));
         assert!(vertex_ids.contains(&VertexId(2)));
     }
-
 
     #[test]
     fn test_backtrack_forward_tree() {
@@ -740,7 +733,6 @@ mod tests {
         assert_eq!(child_node.parent_label(), Some(&parent_label));
         assert_eq!(child_node.incoming_edge().unwrap().edge_id, EdgeId(1));
     }
-
 
     #[test]
     fn test_auto_root_creation_chain() {

@@ -61,7 +61,7 @@ impl CostModel {
         let mut features = IndexMap::new();
         let mut total_weight = 0.0;
 
-        for (name, _) in state_model.iter() {
+        for (name, config) in state_model.iter() {
             // always instantiate a value for each vector, diverting to default (zero-valued) if not provided
             // which has the following effect:
             // - weight: deactivates costs for this feature (product)
@@ -70,7 +70,8 @@ impl CostModel {
             let w_opt = weights_mapping.get(name);
             let v_opt = vehicle_rate_mapping.get(name);
             let n_opt = network_rate_mapping.get(name);
-            let feature = CostFeature::new(name.clone(), w_opt, v_opt, n_opt);
+            let feature =
+                CostFeature::new(name.clone(), w_opt, v_opt, n_opt, config.is_accumulator());
 
             total_weight += feature.weight;
             features.insert(name.clone(), feature);
@@ -106,9 +107,7 @@ impl CostModel {
     ) -> Result<TraversalCost, CostModelError> {
         let mut result = TraversalCost::default();
         for (name, feature) in self.features.iter() {
-            let is_accumulator = state_model.is_accumlator(name)?;
-
-            let v_cost = if is_accumulator {
+            let v_cost = if feature.is_accumulator {
                 let current_cost =
                     feature
                         .vehicle_cost_rate
@@ -124,7 +123,7 @@ impl CostModel {
                     .compute_cost(name, current_state, state_model)?
             };
 
-            let n_cost = if is_accumulator {
+            let n_cost = if feature.is_accumulator {
                 let current_network_cost = feature.network_cost_rate.network_cost(
                     trajectory,
                     current_state,
