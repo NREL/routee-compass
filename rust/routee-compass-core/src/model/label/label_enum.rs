@@ -14,6 +14,15 @@ pub const OS_ALIGNED_STATE_LEN: usize = 4;
 pub const OS_ALIGNED_STATE_LEN: usize = 8;
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize, Allocative)]
+pub struct IntStateVec(pub Vec<usize>);
+
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize, Allocative)]
+pub struct U8StateVec {
+    pub state: Vec<u8>,
+    pub state_len: u8,
+}
+
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Serialize, Allocative)]
 pub enum Label {
     Vertex(VertexId),
     VertexWithIntState {
@@ -22,10 +31,12 @@ pub enum Label {
     },
     VertexWithIntStateVec {
         vertex_id: VertexId,
-        state: Vec<usize>,
+        state: Box<IntStateVec>,
     },
     /// Store u8 state data. more efficient memory layout for smaller
     /// numbers or categorical data with 256 or fewer categories.
+    ///
+    /// The state vector is stored on the heap to keep the enum size small.
     ///
     /// For memory alignment, the Vec<u8> will be extended to the
     /// nearest integer multiple of OS_ALIGNED_STATE_LEN that covers
@@ -38,8 +49,7 @@ pub enum Label {
     /// the get_u8_state method for retrieval.
     VertexWithU8StateVec {
         vertex_id: VertexId,
-        state: Vec<u8>,
-        state_len: u8,
+        state: Box<U8StateVec>,
     },
 }
 
@@ -83,8 +93,10 @@ impl Label {
 
         Ok(Label::VertexWithU8StateVec {
             vertex_id,
-            state_len,
-            state: label_state,
+            state: Box::new(U8StateVec {
+                state: label_state,
+                state_len,
+            }),
         })
     }
 
@@ -95,11 +107,9 @@ impl Label {
     /// Some reference to the state vector if this is a VertexWithU8StateVec, None otherwise
     pub fn get_u8_state(&self) -> Option<&[u8]> {
         match self {
-            Label::VertexWithU8StateVec {
-                state, state_len, ..
-            } => {
-                let len: usize = (*state_len).into();
-                Some(&state[0..len])
+            Label::VertexWithU8StateVec { state, .. } => {
+                let len: usize = state.state_len.into();
+                Some(&state.state[0..len])
             }
             _ => None,
         }
@@ -123,16 +133,13 @@ impl Display for Label {
                 write!(f, "VertexWithIntState({vertex_id}, {state})")
             }
             Label::VertexWithIntStateVec { vertex_id, state } => {
-                write!(f, "VertexWithIntStateVec({vertex_id}, {state:?})")
+                write!(f, "VertexWithIntStateVec({vertex_id}, {:?})", state.0)
             }
-            Label::VertexWithU8StateVec {
-                vertex_id,
-                state_len,
-                state,
-            } => {
+            Label::VertexWithU8StateVec { vertex_id, state } => {
                 write!(
                     f,
-                    "VertexWithU8StateVec({vertex_id}, {state_len}, {state:?})"
+                    "VertexWithU8StateVec({vertex_id}, {}, {:?})",
+                    state.state_len, state.state
                 )
             }
         }
@@ -187,7 +194,7 @@ mod tests {
             } => {
                 // should pad to OS_ALIGNED_STATE_LEN - 1
                 // (minus one due to storing state_len value)
-                assert_eq!(inner_state.len(), super::OS_ALIGNED_STATE_LEN - 1);
+                assert_eq!(inner_state.state.len(), super::OS_ALIGNED_STATE_LEN - 1);
             }
             _ => panic!("wrong label variant!"),
         };
