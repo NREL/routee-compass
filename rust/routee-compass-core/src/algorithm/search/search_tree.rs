@@ -119,14 +119,13 @@ impl SearchTree {
 
     /// Find labels for the given vertex ID
     pub fn get_labels(&self, vertex: VertexId) -> Box<dyn Iterator<Item = Label> + '_> {
-        if self.labels.is_empty() {
-            // if the labels map is empty, we assume we're using the Vertex label only
-            Box::new(std::iter::once(Label::Vertex(vertex)))
-        } else {
-            match self.labels.get(&vertex) {
-                Some(labels) => Box::new(labels.iter().cloned()),
-                None => Box::new(std::iter::empty()),
-            }
+        // we always perform a lookup for the Vertex label, as it is excluded from the labels map
+        let vertex_label = Label::Vertex(vertex);
+        let vertex_iter = std::iter::once(vertex_label);
+
+        match self.labels.get(&vertex) {
+            Some(labels) => Box::new(vertex_iter.chain(labels.iter().cloned())),
+            None => Box::new(vertex_iter),
         }
     }
 
@@ -1098,5 +1097,86 @@ mod tests {
 
     fn create_test_label(vertex_id: usize) -> Label {
         Label::Vertex(VertexId(vertex_id))
+    }
+
+    #[test]
+    fn test_backtrack_mixed_labels_bug() {
+        // Reproduction of bug where mixed label types cause Label::Vertex lookup to fail
+        let mut tree = SearchTree::new(Direction::Forward);
+
+        let root_label = Label::Vertex(VertexId(0));
+        let child_label = Label::VertexWithIntState {
+            vertex_id: VertexId(1),
+            state: 1,
+        };
+
+        // This will set root as Label::Vertex(0)
+        // Label::Vertex is NOT added to self.labels
+        tree.insert(
+            root_label.clone(),
+            create_test_edge_traversal(1, 10.0),
+            child_label.clone(),
+        )
+        .unwrap();
+
+        // child_label IS added to self.labels because it is not Label::Vertex
+
+        // Now self.labels is NOT empty (contains key VertexId(1))
+
+        // Try to backtrack from root.
+        // We expect this to SUCCEED (return empty path for root), but currently it might fail
+        // with VertexNotFound(0) because get_labels skips Label::Vertex when self.labels is populated.
+        let result = tree.backtrack(VertexId(0));
+        assert!(
+            result.is_ok(),
+            "Backtracking from root Vertex label should succeed even if tree has mixed labels"
+        );
+    }
+
+    #[test]
+    fn test_vertex_label_model_optimization_correctness() {
+        // This test verifies that the specialized handling for Label::Vertex (skipping the aux labels map)
+        // works correctly with backtracking.
+        let mut tree = SearchTree::new(Direction::Forward);
+
+        // 1. Setup a tree with only Vertex labels (simulating VertexLabelModel)
+        let root_id = VertexId(0);
+        let child_id = VertexId(1);
+
+        let root_label = Label::Vertex(root_id);
+        let child_label = Label::Vertex(child_id);
+
+        // Create an edge traversal
+        let et = create_test_edge_traversal(1, 10.0);
+
+        // Insert (root -> child)
+        // This trigger's root creation and child insertion
+        tree.insert(root_label.clone(), et, child_label.clone())
+            .unwrap();
+
+        // 2. Verify OPTIMIZATION: labels map should be EMPTY
+        // Because Label::Vertex is optimized to NOT be stored in the secondary index
+        assert!(
+            tree.labels.is_empty(),
+            "Tree labels map should be empty for pure Vertex labels"
+        );
+
+        // 3. Verify backtracking works despite empty labels map
+        // This confirms get_labels correctly synthesizes the Vertex label lookup
+        let result = tree.backtrack(child_id);
+        assert!(
+            result.is_ok(),
+            "Backtracking failed for Vertex label: {:?}",
+            result.err()
+        );
+
+        let path = result.unwrap();
+        assert_eq!(path.len(), 1);
+        assert_eq!(path[0].edge_id, EdgeId(1));
+
+        // 4. Verify backtracking from root
+        let root_result = tree.backtrack(root_id);
+        assert!(root_result.is_ok());
+        assert_eq!(root_result.unwrap().len(), 0);
     }
 }
