@@ -101,10 +101,15 @@ impl TryFrom<&Value> for BevEnergyModel {
         .map_err(|e| {
             TraversalModelError::BuildError(format!("failed to parse battery capacity unit: {e}"))
         })?;
-        let include_trip_energy = value
-            .get("include_trip_energy")
-            .map(|v| v.as_bool().unwrap_or(true))
-            .unwrap_or(true);
+
+        let include_trip_energy = match value.get("include_trip_energy") {
+            Some(v) => {
+                v.as_bool().ok_or_else(|| {
+                    TraversalModelError::BuildError("Failed to parse the parameter `include_trip_energy` as a boolean when building the BEV Energy model".to_string())
+                })?
+            },
+            None => true
+        };
 
         let bev = BevEnergyModel::new(
             Arc::new(prediction_model),

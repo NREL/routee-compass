@@ -117,16 +117,6 @@ impl SearchApp {
             search_runtime.as_millis()
         );
 
-        #[cfg(feature = "memory-profiling")]
-        {
-            use allocative::FlameGraphBuilder;
-
-            let mut flamegraph = FlameGraphBuilder::default();
-            flamegraph.visit_root(&results);
-            let output_data = flamegraph.finish().flamegraph().write();
-            std::fs::write("search_app_memory_flamegraph.out", output_data).unwrap();
-        }
-
         let result = SearchAppResult {
             routes: results.routes,
             trees: results.trees,

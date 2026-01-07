@@ -31,10 +31,6 @@ name = "geom-app"
 path = "src/bin/geom-app.rs"
 bench = false
 
-[features]
-default = []
-memory-profiling = []
-
 [dependencies]
 allocative = { workspace = true }
 chrono = { workspace = true }
