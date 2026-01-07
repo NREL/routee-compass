@@ -10,6 +10,10 @@ homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
 
+[features]
+default = []
+detailed_costs = []
+
 [dependencies]
 allocative = { workspace = true }
 approx = { workspace = true }

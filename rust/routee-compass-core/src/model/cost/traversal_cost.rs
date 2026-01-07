@@ -10,6 +10,9 @@ pub struct TraversalCost {
     pub objective_cost: Cost,
     /// the true total cost of this traversal
     pub total_cost: Cost,
+    #[cfg(feature = "detailed_costs")]
+    /// the cost components making up this traversal
+    pub cost_component: HashMap<String, Cost>,
 }
 
 impl TraversalCost {
@@ -22,5 +25,12 @@ impl TraversalCost {
         let positive_cost = Cost::enforce_strictly_positive(cost);
         self.total_cost += positive_cost;
         self.objective_cost += positive_cost * weight;
+        #[cfg(feature = "detailed_costs")]
+        {
+            self.cost_components
+                .entry(cost.name.clone())
+                .and_modify(|c| *c += positive_cost)
+                .or_insert(positive_cost);
+        }
     }
 }

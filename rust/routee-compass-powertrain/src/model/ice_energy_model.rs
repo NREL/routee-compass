@@ -50,10 +50,14 @@ impl TryFrom<&Value> for IceEnergyModel {
             ))
         })?;
         let prediction_model = PredictionModelRecord::try_from(&config)?;
-        let include_trip_energy = value
-            .get("include_trip_energy")
-            .map(|v| v.as_bool().unwrap_or(true))
-            .unwrap_or(true);
+        let include_trip_energy = match value.get("include_trip_energy") {
+            Some(v) => {
+                v.as_bool().ok_or_else(|| {
+                    TraversalModelError::BuildError("Failed to parse the parameter `include_trip_energy` as a boolean when building the ICE Energy model".to_string())
+                })?
+            },
+            None => true
+        };
         let ice_model = IceEnergyModel::new(prediction_model, include_trip_energy)?;
         Ok(ice_model)
     }
