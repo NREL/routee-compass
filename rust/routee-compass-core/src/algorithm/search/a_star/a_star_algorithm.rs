@@ -9,6 +9,7 @@ use crate::algorithm::search::SearchTreeError;
 use crate::model::cost::TraversalCost;
 use crate::model::label::Label;
 use crate::model::label::LabelModel;
+use crate::model::label::LabelModelError;
 use crate::model::network::EdgeListId;
 use crate::model::network::{EdgeId, VertexId};
 use crate::model::state::StateVariable;
@@ -232,13 +233,13 @@ pub fn estimate_traversal_cost(
 /// by cost and by their LabelModel's definition of "dominated".
 fn prune_tree(
     tree: &mut SearchTree,
-    label: &Label,
+    next_label: &Label,
     traversal: &EdgeTraversal,
     label_model: Arc<dyn LabelModel>,
 ) -> Result<(), SearchError> {
     let this_cost = traversal.cost.objective_cost;
     let prev_entries = tree
-        .get_labels_iter(*label.vertex_id())
+        .get_labels_iter(*next_label.vertex_id())
         .map(|label| {
             let node = tree
                 .get(&label)
@@ -248,11 +249,12 @@ fn prune_tree(
         })
         .collect::<Result<Vec<_>, SearchError>>()?;
 
-    if let Some(labels) = tree.get_labels_mut(*label.vertex_id()) {
+    if let Some(labels) = tree.get_labels_mut(*next_label.vertex_id()) {
         for (prev_label, prev_cost) in prev_entries.into_iter() {
             // remove previous label if next label is strictly better on at least one dimension,
-            // and at least as good on the other.
-            let label_comparison = label_model.compare(&prev_label, label)?;
+            // and at least as good on the other. we "maximize" over labels (more is better) while
+            // minimizing over costs.
+            let label_comparison = label_model.compare(&prev_label, next_label)?;
             let remove = match label_comparison {
                 std::cmp::Ordering::Less => true,
                 std::cmp::Ordering::Equal => this_cost < prev_cost,
@@ -267,6 +269,22 @@ fn prune_tree(
     Ok(())
 }
 
+fn pareto_optimal(
+    prev_label: &Label,
+    prev_cost: Cost,
+    next_label: &Label,
+    next_cost: Cost,
+    label_model: Arc<dyn LabelModel>
+) -> Result<bool, LabelModelError> {
+    let label_comparison = label_model.compare(prev_label, next_label)?;
+    let is_pareto_optimal = match label_comparison {
+        std::cmp::Ordering::Less => true,
+        std::cmp::Ordering::Equal => next_cost < prev_cost,
+        std::cmp::Ordering::Greater => next_cost <= prev_cost,
+    };
+    Ok(is_pareto_optimal)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -274,7 +292,6 @@ mod tests {
     use crate::model::cost::CostAggregation;
     use crate::model::cost::CostModel;
     use crate::model::cost::VehicleCostRate;
-
     use crate::model::label::default::vertex_label_model::VertexLabelModel;
     use crate::model::map::MapModel;
     use crate::model::map::MapModelConfig;
@@ -421,6 +438,54 @@ mod tests {
             label_model: Arc::new(VertexLabelModel {}),
             default_edge_list: None,
         }
+    }
+
+    fn build_soc_label_model() -> Arc<dyn LabelModel> {
+        struct SocLabelModel {}
+        impl LabelModel for SocLabelModel {
+            fn label_from_state(
+                &self,
+                _vertex_id: VertexId,
+                _state: &[StateVariable],
+                _state_model: &StateModel,
+            ) -> Result<Label, LabelModelError> {
+                unreachable!()
+            }
+        
+            fn compare(&self, prev: &Label, next: &Label) -> Result<std::cmp::Ordering, LabelModelError> {
+                match (prev, next) {
+                    (Label::VertexWithIntState { state: s1, .. }, Label::VertexWithIntState { state: s2, .. }) => {
+                        Ok(s1.cmp(s2))
+                    }
+                    _ => unreachable!()
+                }
+            }
+        }
+        Arc::new(SocLabelModel {})
+    }
+
+    #[test]
+    fn test_pareto_true() {
+        let label_model = build_soc_label_model();
+        let prev_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 30 };
+        let prev_cost = Cost::new(50.0);
+        let next_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 80 };
+        let next_cost = Cost::new(70.0);
+        let result = pareto_optimal(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())
+            .expect("test invariant failed");
+        assert!(result);
+    }
+
+    #[test]
+    fn test_pareto_dominated() {
+        let label_model = build_soc_label_model();
+        let prev_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 30 };
+        let prev_cost = Cost::new(50.0);
+        let next_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 80 };
+        let next_cost = Cost::new(40.0);
+        let result = pareto_optimal(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())
+            .expect("test invariant failed");
+        assert!(!result);
     }
 
     #[test]
