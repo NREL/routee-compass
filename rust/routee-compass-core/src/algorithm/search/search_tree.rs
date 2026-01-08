@@ -49,6 +49,8 @@ impl SearchTree {
     pub fn set_root(&mut self, root_label: Label) {
         let root_node = SearchTreeNode::new_root(self.direction);
         self.nodes.insert(root_label.clone(), root_node);
+        // Note that we only introduce non-vertex labels into the labels map since,
+        // the Label::Vertex variant is effectively equivalent to the vertex ID itself.
         if !matches!(root_label, Label::Vertex(_)) {
             self.labels
                 .entry(*root_label.vertex_id())
@@ -83,6 +85,8 @@ impl SearchTree {
 
         // Insert the new node
         self.nodes.insert(child_label.clone(), new_node);
+        // Note that we only introduce non-vertex labels into the labels map since,
+        // the Label::Vertex variant is effectively equivalent to the vertex ID itself.
         if !matches!(child_label, Label::Vertex(_)) {
             self.labels
                 .entry(*child_label.vertex_id())
