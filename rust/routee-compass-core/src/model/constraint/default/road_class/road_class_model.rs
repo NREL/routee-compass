@@ -105,35 +105,95 @@ mod test {
 
     #[test]
     fn test_invalid_class() {
-        let model = mock(
-            Box::new([String::from("oh no!")]),
-            json!({"road_classes": ["a"]}),
-        );
-        let edge = mock_edge();
-        let result = model.valid_edge(&edge).unwrap();
-        assert!(!result)
+        let road_class_vector = Box::new([String::from("oh no!")]);
+        let mut mapping = std::collections::HashMap::new();
+        let mut encoded = Vec::with_capacity(road_class_vector.len());
+        let mut next_id = 0u8;
+
+        for class in road_class_vector.iter() {
+            let id = *mapping.entry(class.clone()).or_insert_with(|| {
+                let id = next_id;
+                next_id += 1;
+                id
+            });
+            encoded.push(id);
+        }
+
+        let service = Arc::new(RoadClassFrontierService {
+            road_class_by_edge: Arc::new(encoded.into_boxed_slice()),
+            road_class_mapping: Arc::new(mapping),
+        });
+        let state_model = Arc::new(StateModel::empty());
+        let result = service.build(&json!({"road_classes": ["a"]}), state_model.clone());
+        assert!(result.is_err());
+        if let Err(e) = result {
+            let err_msg = e.to_string();
+            assert!(err_msg.contains("road class 'a' not found in road class mapping"));
+        }
     }
 
     #[test]
     fn test_one_of_valid_classes() {
-        let model = mock(
-            Box::new([String::from("a")]),
-            json!({"road_classes": ["a", "b", "c"]}),
+        let road_class_vector = Box::new([String::from("a")]);
+        let mut mapping = std::collections::HashMap::new();
+        let mut encoded = Vec::with_capacity(road_class_vector.len());
+        let mut next_id = 0u8;
+
+        for class in road_class_vector.iter() {
+            let id = *mapping.entry(class.clone()).or_insert_with(|| {
+                let id = next_id;
+                next_id += 1;
+                id
+            });
+            encoded.push(id);
+        }
+
+        let service = Arc::new(RoadClassFrontierService {
+            road_class_by_edge: Arc::new(encoded.into_boxed_slice()),
+            road_class_mapping: Arc::new(mapping),
+        });
+        let state_model = Arc::new(StateModel::empty());
+        let result = service.build(
+            &json!({"road_classes": ["a", "b", "c"]}),
+            state_model.clone(),
         );
-        let edge = mock_edge();
-        let result = model.valid_edge(&edge).unwrap();
-        assert!(result)
+        assert!(result.is_err());
+        if let Err(e) = result {
+            let err_msg = e.to_string();
+            assert!(err_msg.contains("not found in road class mapping"));
+        }
     }
 
     #[test]
     fn test_none_of_valid_classes() {
-        let model = mock(
-            Box::new([String::from("oh no!")]),
-            json!({"road_classes": ["a", "b", "c"]}),
+        let road_class_vector = Box::new([String::from("oh no!")]);
+        let mut mapping = std::collections::HashMap::new();
+        let mut encoded = Vec::with_capacity(road_class_vector.len());
+        let mut next_id = 0u8;
+
+        for class in road_class_vector.iter() {
+            let id = *mapping.entry(class.clone()).or_insert_with(|| {
+                let id = next_id;
+                next_id += 1;
+                id
+            });
+            encoded.push(id);
+        }
+
+        let service = Arc::new(RoadClassFrontierService {
+            road_class_by_edge: Arc::new(encoded.into_boxed_slice()),
+            road_class_mapping: Arc::new(mapping),
+        });
+        let state_model = Arc::new(StateModel::empty());
+        let result = service.build(
+            &json!({"road_classes": ["a", "b", "c"]}),
+            state_model.clone(),
         );
-        let edge = mock_edge();
-        let result = model.valid_edge(&edge).unwrap();
-        assert!(!result)
+        assert!(result.is_err());
+        if let Err(e) = result {
+            let err_msg = e.to_string();
+            assert!(err_msg.contains("not found in road class mapping"));
+        }
     }
 
     #[test]
@@ -146,13 +206,31 @@ mod test {
 
     #[test]
     fn test_invalid_numeric_class() {
-        let model = mock(
-            Box::new([String::from("OH NO!")]),
-            json!({"road_classes": [1]}),
-        );
-        let edge = mock_edge();
-        let result = model.valid_edge(&edge).unwrap();
-        assert!(!result)
+        let road_class_vector = Box::new([String::from("OH NO!")]);
+        let mut mapping = std::collections::HashMap::new();
+        let mut encoded = Vec::with_capacity(road_class_vector.len());
+        let mut next_id = 0u8;
+
+        for class in road_class_vector.iter() {
+            let id = *mapping.entry(class.clone()).or_insert_with(|| {
+                let id = next_id;
+                next_id += 1;
+                id
+            });
+            encoded.push(id);
+        }
+
+        let service = Arc::new(RoadClassFrontierService {
+            road_class_by_edge: Arc::new(encoded.into_boxed_slice()),
+            road_class_mapping: Arc::new(mapping),
+        });
+        let state_model = Arc::new(StateModel::empty());
+        let result = service.build(&json!({"road_classes": [1]}), state_model.clone());
+        assert!(result.is_err());
+        if let Err(e) = result {
+            let err_msg = e.to_string();
+            assert!(err_msg.contains("road class '1' not found in road class mapping"));
+        }
     }
 
     #[test]
@@ -168,12 +246,71 @@ mod test {
 
     #[test]
     fn test_invalid_boolean_class() {
+        let road_class_vector = Box::new([String::from("OH NO!")]);
+        let mut mapping = std::collections::HashMap::new();
+        let mut encoded = Vec::with_capacity(road_class_vector.len());
+        let mut next_id = 0u8;
+
+        for class in road_class_vector.iter() {
+            let id = *mapping.entry(class.clone()).or_insert_with(|| {
+                let id = next_id;
+                next_id += 1;
+                id
+            });
+            encoded.push(id);
+        }
+
+        let service = Arc::new(RoadClassFrontierService {
+            road_class_by_edge: Arc::new(encoded.into_boxed_slice()),
+            road_class_mapping: Arc::new(mapping),
+        });
+        let state_model = Arc::new(StateModel::empty());
+        let result = service.build(&json!({"road_classes": [true]}), state_model.clone());
+        assert!(result.is_err());
+        if let Err(e) = result {
+            let err_msg = e.to_string();
+            assert!(err_msg.contains("road class 'true' not found in road class mapping"));
+        }
+    }
+
+    #[test]
+    fn test_edge_with_different_valid_class_is_rejected() {
+        // Both "a" and "b" are in the mapping, but edge has "b" and query wants "a"
         let model = mock(
-            Box::new([String::from("OH NO!")]),
-            json!({"road_classes": [true]}),
+            Box::new([String::from("b"), String::from("a")]),
+            json!({"road_classes": ["a"]}),
         );
-        let edge = mock_edge();
+        let edge = mock_edge(); // edge 0 has road class "b"
         let result = model.valid_edge(&edge).unwrap();
-        assert!(!result)
+        assert!(!result);
+    }
+
+    #[test]
+    fn test_edge_matches_one_of_multiple_valid_classes() {
+        // Edge has "a", query allows "a", "b", "c" - all are in mapping
+        let model = mock(
+            Box::new([String::from("a"), String::from("b"), String::from("c")]),
+            json!({"road_classes": ["a", "b", "c"]}),
+        );
+        let edge = mock_edge(); // edge 0 has road class "a"
+        let result = model.valid_edge(&edge).unwrap();
+        assert!(result);
+    }
+
+    #[test]
+    fn test_edge_rejected_when_not_in_multiple_valid_classes() {
+        // Edge has "d", query allows "a", "b", "c" - all are in mapping
+        let model = mock(
+            Box::new([
+                String::from("d"),
+                String::from("a"),
+                String::from("b"),
+                String::from("c"),
+            ]),
+            json!({"road_classes": ["a", "b", "c"]}),
+        );
+        let edge = mock_edge(); // edge 0 has road class "d"
+        let result = model.valid_edge(&edge).unwrap();
+        assert!(!result);
     }
 }
