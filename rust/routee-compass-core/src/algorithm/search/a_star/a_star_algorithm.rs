@@ -244,7 +244,13 @@ fn prune_tree(
 
     if let Some(labels) = tree.get_labels_mut(*next_label.vertex_id()) {
         for (prev_label, prev_cost) in prev_entries.into_iter() {
-            let remove = next_label_dominates_prev(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())?;
+            let remove = next_label_dominates_prev(
+                &prev_label,
+                prev_cost,
+                &next_label,
+                next_cost,
+                label_model.clone(),
+            )?;
             if remove {
                 // new label is pareto-dominant over this previous label.
                 let _ = labels.remove(&prev_label);
@@ -263,7 +269,7 @@ fn next_label_dominates_prev(
     prev_cost: Cost,
     next_label: &Label,
     next_cost: Cost,
-    label_model: Arc<dyn LabelModel>
+    label_model: Arc<dyn LabelModel>,
 ) -> Result<bool, LabelModelError> {
     let label_comparison = label_model.compare(&prev_label, next_label)?;
     let dominates = match label_comparison {
@@ -444,13 +450,18 @@ mod tests {
             ) -> Result<Label, LabelModelError> {
                 unreachable!()
             }
-        
-            fn compare(&self, prev: &Label, next: &Label) -> Result<std::cmp::Ordering, LabelModelError> {
+
+            fn compare(
+                &self,
+                prev: &Label,
+                next: &Label,
+            ) -> Result<std::cmp::Ordering, LabelModelError> {
                 match (prev, next) {
-                    (Label::VertexWithIntState { state: s1, .. }, Label::VertexWithIntState { state: s2, .. }) => {
-                        Ok(s1.cmp(s2))
-                    }
-                    _ => unreachable!()
+                    (
+                        Label::VertexWithIntState { state: s1, .. },
+                        Label::VertexWithIntState { state: s2, .. },
+                    ) => Ok(s1.cmp(s2)),
+                    _ => unreachable!(),
                 }
             }
         }
@@ -460,24 +471,48 @@ mod tests {
     #[test]
     fn test_not_pareto_dominated() {
         let label_model = build_soc_label_model();
-        let prev_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 30 };
+        let prev_label = Label::VertexWithIntState {
+            vertex_id: VertexId(0),
+            state: 30,
+        };
         let prev_cost = Cost::new(50.0);
-        let next_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 80 };
+        let next_label = Label::VertexWithIntState {
+            vertex_id: VertexId(0),
+            state: 80,
+        };
         let next_cost = Cost::new(70.0);
-        let is_dominated = next_label_dominates_prev(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())
-            .expect("test invariant failed");
+        let is_dominated = next_label_dominates_prev(
+            &prev_label,
+            prev_cost,
+            &next_label,
+            next_cost,
+            label_model.clone(),
+        )
+        .expect("test invariant failed");
         assert!(!is_dominated);
     }
 
     #[test]
     fn test_is_pareto_dominated() {
         let label_model = build_soc_label_model();
-        let prev_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 30 };
+        let prev_label = Label::VertexWithIntState {
+            vertex_id: VertexId(0),
+            state: 30,
+        };
         let prev_cost = Cost::new(50.0);
-        let next_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 80 };
+        let next_label = Label::VertexWithIntState {
+            vertex_id: VertexId(0),
+            state: 80,
+        };
         let next_cost = Cost::new(40.0);
-        let is_dominated = next_label_dominates_prev(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())
-            .expect("test invariant failed");
+        let is_dominated = next_label_dominates_prev(
+            &prev_label,
+            prev_cost,
+            &next_label,
+            next_cost,
+            label_model.clone(),
+        )
+        .expect("test invariant failed");
         assert!(is_dominated);
     }
 
