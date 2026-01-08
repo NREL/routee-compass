@@ -15,11 +15,15 @@ use crate::util::geo::haversine;
 /// a model for traversing edges based on distance.
 pub struct DistanceTraversalModel {
     pub distance_unit: DistanceUnit,
+    pub include_trip_distance: bool,
 }
 
 impl DistanceTraversalModel {
-    pub fn new(distance_unit: DistanceUnit) -> DistanceTraversalModel {
-        Self { distance_unit }
+    pub fn new(distance_unit: DistanceUnit, include_trip_distance: bool) -> DistanceTraversalModel {
+        Self {
+            distance_unit,
+            include_trip_distance,
+        }
     }
 }
 
@@ -41,7 +45,9 @@ impl TraversalModel for DistanceTraversalModel {
         let (_, edge, _) = trajectory;
 
         state_model.add_distance(state, fieldname::EDGE_DISTANCE, &edge.distance)?;
-        state_model.add_distance(state, fieldname::TRIP_DISTANCE, &edge.distance)?;
+        if self.include_trip_distance {
+            state_model.add_distance(state, fieldname::TRIP_DISTANCE, &edge.distance)?;
+        }
         Ok(())
     }
 
@@ -60,7 +66,9 @@ impl TraversalModel for DistanceTraversalModel {
                     "could not compute haversine distance between {src} and {dst}: {e}"
                 ))
             })?;
-        state_model.add_distance(state, fieldname::TRIP_DISTANCE, &distance)?;
+        if self.include_trip_distance {
+            state_model.add_distance(state, fieldname::TRIP_DISTANCE, &distance)?;
+        }
         state_model.add_distance(state, fieldname::EDGE_DISTANCE, &distance)?;
         Ok(())
     }
@@ -70,23 +78,24 @@ impl TraversalModel for DistanceTraversalModel {
     }
 
     fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        vec![
-            (
+        let mut features = vec![(
+            String::from(fieldname::EDGE_DISTANCE),
+            StateVariableConfig::Distance {
+                initial: Length::ZERO,
+                accumulator: false,
+                output_unit: Some(self.distance_unit),
+            },
+        )];
+        if self.include_trip_distance {
+            features.push((
                 String::from(fieldname::TRIP_DISTANCE),
                 StateVariableConfig::Distance {
                     initial: Length::ZERO,
                     accumulator: true,
                     output_unit: Some(self.distance_unit),
                 },
-            ),
-            (
-                String::from(fieldname::EDGE_DISTANCE),
-                StateVariableConfig::Distance {
-                    initial: Length::ZERO,
-                    accumulator: false,
-                    output_unit: Some(self.distance_unit),
-                },
-            ),
-        ]
+            ));
+        }
+        features
     }
 }

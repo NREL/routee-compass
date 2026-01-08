@@ -7,6 +7,7 @@ pub struct CostFeature {
     pub weight: f64,
     pub vehicle_cost_rate: VehicleCostRate,
     pub network_cost_rate: NetworkCostRate,
+    pub is_accumulator: bool,
 }
 
 impl CostFeature {
@@ -17,6 +18,7 @@ impl CostFeature {
             weight: f64::default(),
             vehicle_cost_rate: VehicleCostRate::default(),
             network_cost_rate: NetworkCostRate::default(),
+            is_accumulator: false,
         }
     }
 
@@ -26,6 +28,7 @@ impl CostFeature {
         weight: Option<&f64>,
         vehicle_rate: Option<&VehicleCostRate>,
         network_rate: Option<&NetworkCostRate>,
+        is_accumulator: bool,
     ) -> CostFeature {
         match (weight, vehicle_rate, network_rate) {
             (None, _, _) => CostFeature::zero(name),
@@ -35,18 +38,21 @@ impl CostFeature {
                 weight: *w,
                 vehicle_cost_rate: VehicleCostRate::default(),
                 network_cost_rate: n.clone(),
+                is_accumulator,
             },
             (Some(w), Some(v), None) => CostFeature {
                 name,
                 weight: *w,
                 vehicle_cost_rate: v.clone(),
                 network_cost_rate: NetworkCostRate::default(),
+                is_accumulator,
             },
             (Some(w), Some(v), Some(n)) => CostFeature {
                 name,
                 weight: *w,
                 vehicle_cost_rate: v.clone(),
                 network_cost_rate: n.clone(),
+                is_accumulator,
             },
         }
     }

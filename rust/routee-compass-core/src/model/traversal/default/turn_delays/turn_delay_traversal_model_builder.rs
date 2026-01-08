@@ -46,12 +46,22 @@ impl TraversalModelBuilder for TurnDelayTraversalModelBuilder {
                 ))
             })?;
 
+        let include_trip_time = parameters
+            .get_config_serde_optional::<bool>(&"include_trip_time", &"turn delay access model")
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "failure reading 'include_trip_time' from access model configuration: {e}"
+                ))
+            })?
+            .unwrap_or(true);
+
         let engine = TurnDelayTraversalModelEngine {
             edge_headings,
             turn_delay_model: turn_delay_model_config.into(),
         };
         let service = TurnDelayTraversalModelService {
             engine: Arc::new(engine),
+            include_trip_time,
         };
         Ok(Arc::new(service))
     }

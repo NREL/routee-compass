@@ -17,8 +17,11 @@ impl TraversalModelBuilder for DistanceTraversalBuilder {
                 TraversalModelError::BuildError(format!("while reading distance config, {e}"))
             })?;
         let distance_unit = config.distance_unit.unwrap_or_default();
-        let m: Arc<dyn TraversalModelService> =
-            Arc::new(DistanceTraversalService::new(distance_unit));
+        let include_trip_distance = config.include_trip_distance.unwrap_or(true);
+        let m: Arc<dyn TraversalModelService> = Arc::new(DistanceTraversalService::new(
+            distance_unit,
+            include_trip_distance,
+        ));
         Ok(m)
     }
 }

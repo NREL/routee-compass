@@ -383,7 +383,6 @@ mod tests {
             let cost = TraversalCost {
                 objective_cost: Cost::MIN_COST,
                 total_cost: Cost::MIN_COST,
-                cost_component: Default::default(),
             };
             let edge_traversal = EdgeTraversal {
                 edge_list_id: EdgeListId(0),
