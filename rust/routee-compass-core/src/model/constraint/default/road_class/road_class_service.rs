@@ -24,12 +24,18 @@ impl ConstraintModelService for RoadClassFrontierService {
         let query_road_classes = match query.get("road_classes").map(read_road_classes_from_query) {
             Some(Err(e)) => Err(e),
             Some(Ok(road_classes)) => {
-                let mapped: HashSet<u8> = road_classes
+                let mapped: Result<HashSet<u8>, ConstraintModelError> = road_classes
                     .iter()
-                    .filter_map(|c| self.road_class_mapping.get(c))
-                    .copied()
+                    .map(|c| {
+                        self.road_class_mapping.get(c).copied().ok_or_else(|| {
+                            ConstraintModelError::BuildError(format!(
+                                "road class '{}' not found in road class mapping",
+                                c
+                            ))
+                        })
+                    })
                     .collect();
-                Ok(Some(mapped))
+                mapped.map(Some)
             }
             None => Ok(None),
         }?;
