@@ -247,7 +247,7 @@ fn prune_tree(
             let remove = next_label_dominates_prev(
                 &prev_label,
                 prev_cost,
-                &next_label,
+                next_label,
                 next_cost,
                 label_model.clone(),
             )?;
@@ -271,7 +271,7 @@ fn next_label_dominates_prev(
     next_cost: Cost,
     label_model: Arc<dyn LabelModel>,
 ) -> Result<bool, LabelModelError> {
-    let label_comparison = label_model.compare(&prev_label, next_label)?;
+    let label_comparison = label_model.compare(prev_label, next_label)?;
     let dominates = match label_comparison {
         // prev_label is worse in label state than the new label; new must
         // also be no worse in cost to dominate.
