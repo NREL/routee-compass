@@ -230,7 +230,7 @@ fn prune_tree(
     traversal: &EdgeTraversal,
     label_model: Arc<dyn LabelModel>,
 ) -> Result<(), SearchError> {
-    let this_cost = traversal.cost.objective_cost;
+    let next_cost = traversal.cost.objective_cost;
     let prev_entries = tree
         .get_labels_iter(*next_label.vertex_id())
         .map(|label| {
@@ -244,16 +244,9 @@ fn prune_tree(
 
     if let Some(labels) = tree.get_labels_mut(*next_label.vertex_id()) {
         for (prev_label, prev_cost) in prev_entries.into_iter() {
-            // remove previous label if next label is strictly better on at least one dimension,
-            // and at least as good on the other. we "maximize" over labels (more is better) while
-            // minimizing over costs.
-            let label_comparison = label_model.compare(&prev_label, next_label)?;
-            let remove = match label_comparison {
-                std::cmp::Ordering::Less => true,
-                std::cmp::Ordering::Equal => this_cost < prev_cost,
-                std::cmp::Ordering::Greater => this_cost <= prev_cost,
-            };
+            let remove = next_label_dominates_prev(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())?;
             if remove {
+                // new label is pareto-dominant over this previous label.
                 let _ = labels.remove(&prev_label);
             }
         }
@@ -262,20 +255,27 @@ fn prune_tree(
     Ok(())
 }
 
-fn pareto_optimal(
+/// remove previous label only if it is dominated by the new label
+/// in a Pareto sense: new is at least as good on all objectives
+/// (label state and cost) and strictly better on at least one.
+fn next_label_dominates_prev(
     prev_label: &Label,
     prev_cost: Cost,
     next_label: &Label,
     next_cost: Cost,
     label_model: Arc<dyn LabelModel>
 ) -> Result<bool, LabelModelError> {
-    let label_comparison = label_model.compare(prev_label, next_label)?;
-    let is_pareto_optimal = match label_comparison {
-        std::cmp::Ordering::Less => true,
+    let label_comparison = label_model.compare(&prev_label, next_label)?;
+    let dominates = match label_comparison {
+        // prev_label is worse in label state than the new label; new must
+        // also be no worse in cost to dominate.
+        std::cmp::Ordering::Less => next_cost <= prev_cost,
+        // label states are equivalent; new must be strictly cheaper to dominate.
         std::cmp::Ordering::Equal => next_cost < prev_cost,
-        std::cmp::Ordering::Greater => next_cost <= prev_cost,
+        // prev_label is better in label state; new cannot dominate regardless of cost.
+        std::cmp::Ordering::Greater => false,
     };
-    Ok(is_pareto_optimal)
+    Ok(dominates)
 }
 
 #[cfg(test)]
@@ -458,27 +458,27 @@ mod tests {
     }
 
     #[test]
-    fn test_pareto_true() {
+    fn test_not_pareto_dominated() {
         let label_model = build_soc_label_model();
         let prev_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 30 };
         let prev_cost = Cost::new(50.0);
         let next_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 80 };
         let next_cost = Cost::new(70.0);
-        let result = pareto_optimal(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())
+        let is_dominated = next_label_dominates_prev(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())
             .expect("test invariant failed");
-        assert!(result);
+        assert!(!is_dominated);
     }
 
     #[test]
-    fn test_pareto_dominated() {
+    fn test_is_pareto_dominated() {
         let label_model = build_soc_label_model();
         let prev_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 30 };
         let prev_cost = Cost::new(50.0);
         let next_label = Label::VertexWithIntState { vertex_id: VertexId(0), state: 80 };
         let next_cost = Cost::new(40.0);
-        let result = pareto_optimal(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())
+        let is_dominated = next_label_dominates_prev(&prev_label, prev_cost, &next_label, next_cost, label_model.clone())
             .expect("test invariant failed");
-        assert!(!result);
+        assert!(is_dominated);
     }
 
     #[test]
