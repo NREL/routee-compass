@@ -17,10 +17,7 @@ impl TraversalModelService for TurnDelayTraversalModelService {
         &self,
         _query: &serde_json::Value,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        let model = TurnDelayTraversalModel {
-            engine: self.engine.clone(),
-            include_trip_time: self.include_trip_time,
-        };
+        let model = TurnDelayTraversalModel::new(self.engine.clone(), self.include_trip_time);
         Ok(Arc::new(model))
     }
 }

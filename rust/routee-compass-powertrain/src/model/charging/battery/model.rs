@@ -10,6 +10,7 @@ use crate::model::fieldname;
 #[derive(Clone)]
 pub struct BatteryFilter {
     pub soc_lower_bound: Ratio,
+    pub state_model_contains_trip_soc: bool,
 }
 
 impl ConstraintModel for BatteryFilter {
@@ -20,7 +21,7 @@ impl ConstraintModel for BatteryFilter {
         state: &[StateVariable],
         state_model: &StateModel,
     ) -> Result<bool, ConstraintModelError> {
-        if !state_model.contains_key(&fieldname::TRIP_SOC.to_string()) {
+        if !self.state_model_contains_trip_soc {
             // if we don't have the trip_soc, then this frontier is valid
             return Ok(true);
         }

@@ -16,6 +16,8 @@ use std::sync::Arc;
 pub struct SpeedTraversalModel {
     engine: Arc<SpeedTraversalEngine>,
     speed_limit: Option<Velocity>,
+    // Cached index for performance
+    edge_speed_idx: Option<usize>,
 }
 
 impl SpeedTraversalModel {
@@ -27,11 +29,13 @@ impl SpeedTraversalModel {
             Ok(SpeedTraversalModel {
                 engine,
                 speed_limit: Some(max_speed),
+                edge_speed_idx: None,
             })
         } else {
             Ok(SpeedTraversalModel {
                 engine,
                 speed_limit: None,
+                edge_speed_idx: None,
             })
         }
     }
@@ -70,7 +74,15 @@ impl TraversalModel for SpeedTraversalModel {
         let (_, edge, _) = trajectory;
         let lookup_speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let speed = apply_speed_limit(lookup_speed, self.speed_limit);
-        state_model.set_speed(state, fieldname::EDGE_SPEED, &speed)?;
+        
+        // Resolve index (or use cached)
+        let edge_speed_idx = match self.edge_speed_idx {
+            Some(idx) => idx,
+            None => state_model.get_index(fieldname::EDGE_SPEED)
+                .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find EDGE_SPEED index: {}", e)))?,
+        };
+        
+        state_model.set_speed_by_index(state, edge_speed_idx, &speed)?;
         Ok(())
     }
 
@@ -86,7 +98,15 @@ impl TraversalModel for SpeedTraversalModel {
             Some(speed_limit) => speed_limit,
             None => self.engine.max_speed,
         };
-        state_model.set_speed(state, fieldname::EDGE_SPEED, &speed)?;
+        
+        // Resolve index (or use cached)
+        let edge_speed_idx = match self.edge_speed_idx {
+            Some(idx) => idx,
+            None => state_model.get_index(fieldname::EDGE_SPEED)
+                .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find EDGE_SPEED index: {}", e)))?,
+        };
+        
+        state_model.set_speed_by_index(state, edge_speed_idx, &speed)?;
 
         Ok(())
     }

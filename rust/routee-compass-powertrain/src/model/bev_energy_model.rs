@@ -30,6 +30,10 @@ pub struct BevEnergyModel {
     battery_capacity: Energy,
     starting_soc: Ratio,
     include_trip_energy: bool,
+    // Cached state variable indices for performance
+    trip_soc_idx: Option<usize>,
+    trip_energy_idx: Option<usize>,
+    edge_energy_idx: Option<usize>,
 }
 
 impl BevEnergyModel {
@@ -51,6 +55,9 @@ impl BevEnergyModel {
             battery_capacity,
             starting_soc,
             include_trip_energy,
+            trip_soc_idx: None,
+            trip_energy_idx: None,
+            edge_energy_idx: None,
         })
     }
 }
@@ -63,12 +70,16 @@ impl TraversalModelService for BevEnergyModel {
         match energy_model_ops::get_query_start_energy(query, self.battery_capacity)? {
             None => Ok(Arc::new(self.clone())),
             Some(starting_energy) => {
-                let updated = Self::new(
+                let mut updated = Self::new(
                     self.prediction_model_record.clone(),
                     self.battery_capacity,
                     starting_energy,
                     self.include_trip_energy,
                 )?;
+                // Preserve cached indices from the service instance
+                updated.trip_soc_idx = self.trip_soc_idx;
+                updated.trip_energy_idx = self.trip_energy_idx;
+                updated.edge_energy_idx = self.edge_energy_idx;
                 Ok(Arc::new(updated))
             }
         }
@@ -192,12 +203,50 @@ impl TraversalModel for BevEnergyModel {
         _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
+        // Resolve indices once (or use cached values)
+        let trip_soc_idx = match self.trip_soc_idx {
+            Some(idx) => idx,
+            None => state_model.get_index(fieldname::TRIP_SOC).map_err(|e| {
+                TraversalModelError::BuildError(format!("Failed to find TRIP_SOC index: {}", e))
+            })?,
+        };
+        let edge_energy_idx = match self.edge_energy_idx {
+            Some(idx) => idx,
+            None => state_model
+                .get_index(fieldname::EDGE_ENERGY_ELECTRIC)
+                .map_err(|e| {
+                    TraversalModelError::BuildError(format!(
+                        "Failed to find EDGE_ENERGY_ELECTRIC index: {}",
+                        e
+                    ))
+                })?,
+        };
+        let trip_energy_idx = if self.include_trip_energy {
+            match self.trip_energy_idx {
+                Some(idx) => Some(idx),
+                None => Some(
+                    state_model
+                        .get_index(fieldname::TRIP_ENERGY_ELECTRIC)
+                        .map_err(|e| {
+                            TraversalModelError::BuildError(format!(
+                                "Failed to find TRIP_ENERGY_ELECTRIC index: {}",
+                                e
+                            ))
+                        })?,
+                ),
+            }
+        } else {
+            None
+        };
+
         bev_traversal(
             state,
             state_model,
             self.prediction_model_record.clone(),
             self.battery_capacity,
-            self.include_trip_energy,
+            trip_soc_idx,
+            trip_energy_idx,
+            edge_energy_idx,
         )
     }
 
@@ -208,12 +257,50 @@ impl TraversalModel for BevEnergyModel {
         _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
+        // Resolve indices once (or use cached values)
+        let trip_soc_idx = match self.trip_soc_idx {
+            Some(idx) => idx,
+            None => state_model.get_index(fieldname::TRIP_SOC).map_err(|e| {
+                TraversalModelError::BuildError(format!("Failed to find TRIP_SOC index: {}", e))
+            })?,
+        };
+        let edge_energy_idx = match self.edge_energy_idx {
+            Some(idx) => idx,
+            None => state_model
+                .get_index(fieldname::EDGE_ENERGY_ELECTRIC)
+                .map_err(|e| {
+                    TraversalModelError::BuildError(format!(
+                        "Failed to find EDGE_ENERGY_ELECTRIC index: {}",
+                        e
+                    ))
+                })?,
+        };
+        let trip_energy_idx = if self.include_trip_energy {
+            match self.trip_energy_idx {
+                Some(idx) => Some(idx),
+                None => Some(
+                    state_model
+                        .get_index(fieldname::TRIP_ENERGY_ELECTRIC)
+                        .map_err(|e| {
+                            TraversalModelError::BuildError(format!(
+                                "Failed to find TRIP_ENERGY_ELECTRIC index: {}",
+                                e
+                            ))
+                        })?,
+                ),
+            }
+        } else {
+            None
+        };
+
         bev_traversal_estimate(
             state,
             state_model,
             self.prediction_model_record.clone(),
             self.battery_capacity,
-            self.include_trip_energy,
+            trip_soc_idx,
+            trip_energy_idx,
+            edge_energy_idx,
         )
     }
 }
@@ -223,11 +310,13 @@ fn bev_traversal_estimate(
     state_model: &StateModel,
     record: Arc<PredictionModelRecord>,
     battery_capacity: Energy,
-    include_trip_energy: bool,
+    trip_soc_idx: usize,
+    trip_energy_idx: Option<usize>,
+    edge_energy_idx: usize,
 ) -> Result<(), TraversalModelError> {
     // gather state variables
     let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
-    let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
+    let start_soc = state_model.get_ratio_by_index(state, trip_soc_idx)?;
 
     let energy = match record.energy_rate_unit {
         EnergyRateUnit::KWHPM => {
@@ -268,11 +357,11 @@ fn bev_traversal_estimate(
 
     let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
 
-    if include_trip_energy {
-        state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &energy)?;
+    if let Some(idx) = trip_energy_idx {
+        state_model.add_energy_by_index(state, idx, &energy)?;
     }
-    state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &energy)?;
-    state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
+    state_model.set_energy_by_index(state, edge_energy_idx, &energy)?;
+    state_model.set_ratio_by_index(state, trip_soc_idx, &end_soc)?;
     Ok(())
 }
 
@@ -281,22 +370,24 @@ fn bev_traversal(
     state_model: &StateModel,
     record: Arc<PredictionModelRecord>,
     battery_capacity: Energy,
-    include_trip_energy: bool,
+    trip_soc_idx: usize,
+    trip_energy_idx: Option<usize>,
+    edge_energy_idx: usize,
 ) -> Result<(), TraversalModelError> {
-    // gather state variables
-    let start_soc = state_model.get_ratio(state, fieldname::TRIP_SOC)?;
+    // gather state variables - using index-based access for performance
+    let start_soc = state_model.get_ratio_by_index(state, trip_soc_idx)?;
 
     // generate energy for link traversal
     let energy = record.predict(state, state_model)?;
 
-    if include_trip_energy {
-        state_model.add_energy(state, fieldname::TRIP_ENERGY_ELECTRIC, &energy)?;
+    if let Some(idx) = trip_energy_idx {
+        state_model.add_energy_by_index(state, idx, &energy)?;
     }
-    state_model.set_energy(state, fieldname::EDGE_ENERGY_ELECTRIC, &energy)?;
+    state_model.set_energy_by_index(state, edge_energy_idx, &energy)?;
 
     let end_soc = energy_model_ops::update_soc_percent(start_soc, energy, battery_capacity)?;
 
-    state_model.set_ratio(state, fieldname::TRIP_SOC, &end_soc)?;
+    state_model.set_ratio_by_index(state, trip_soc_idx, &end_soc)?;
 
     Ok(())
 }
@@ -326,7 +417,26 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(0.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, true).unwrap();
+        let trip_soc_idx = state_model.get_index(fieldname::TRIP_SOC).unwrap();
+        let trip_energy_idx = Some(
+            state_model
+                .get_index(fieldname::TRIP_ENERGY_ELECTRIC)
+                .unwrap(),
+        );
+        let edge_energy_idx = state_model
+            .get_index(fieldname::EDGE_ENERGY_ELECTRIC)
+            .unwrap();
+
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            trip_soc_idx,
+            trip_energy_idx,
+            edge_energy_idx,
+        )
+        .unwrap();
 
         let elec = state_model
             .get_energy(&state, fieldname::TRIP_ENERGY_ELECTRIC)
@@ -357,7 +467,26 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(-5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, true).unwrap();
+        let trip_soc_idx = state_model.get_index(fieldname::TRIP_SOC).unwrap();
+        let trip_energy_idx = Some(
+            state_model
+                .get_index(fieldname::TRIP_ENERGY_ELECTRIC)
+                .unwrap(),
+        );
+        let edge_energy_idx = state_model
+            .get_index(fieldname::EDGE_ENERGY_ELECTRIC)
+            .unwrap();
+
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            trip_soc_idx,
+            trip_energy_idx,
+            edge_energy_idx,
+        )
+        .unwrap();
 
         let elec = state_model
             .get_energy(&state, fieldname::TRIP_ENERGY_ELECTRIC)
@@ -388,7 +517,26 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(-5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, true).unwrap();
+        let trip_soc_idx = state_model.get_index(fieldname::TRIP_SOC).unwrap();
+        let trip_energy_idx = Some(
+            state_model
+                .get_index(fieldname::TRIP_ENERGY_ELECTRIC)
+                .unwrap(),
+        );
+        let edge_energy_idx = state_model
+            .get_index(fieldname::EDGE_ENERGY_ELECTRIC)
+            .unwrap();
+
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            trip_soc_idx,
+            trip_energy_idx,
+            edge_energy_idx,
+        )
+        .unwrap();
 
         let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc <= Ratio::new::<uom::si::ratio::percent>(100.0));
@@ -408,7 +556,26 @@ mod tests {
         let grade = Ratio::new::<uom::si::ratio::percent>(5.0);
         let mut state = state_vector(&state_model, distance, speed, grade);
 
-        bev_traversal(&mut state, &state_model, record.clone(), bat_cap, true).unwrap();
+        let trip_soc_idx = state_model.get_index(fieldname::TRIP_SOC).unwrap();
+        let trip_energy_idx = Some(
+            state_model
+                .get_index(fieldname::TRIP_ENERGY_ELECTRIC)
+                .unwrap(),
+        );
+        let edge_energy_idx = state_model
+            .get_index(fieldname::EDGE_ENERGY_ELECTRIC)
+            .unwrap();
+
+        bev_traversal(
+            &mut state,
+            &state_model,
+            record.clone(),
+            bat_cap,
+            trip_soc_idx,
+            trip_energy_idx,
+            edge_energy_idx,
+        )
+        .unwrap();
 
         let battery_percent_soc = state_model.get_ratio(&state, fieldname::TRIP_SOC).unwrap();
         assert!(battery_percent_soc >= Ratio::ZERO);

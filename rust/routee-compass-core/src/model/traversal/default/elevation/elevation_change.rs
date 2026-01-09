@@ -45,6 +45,10 @@ impl ElevationChange {
         } else {
             fieldname::TRIP_ELEVATION_GAIN
         };
-        state_model.add_distance(state, feature_name, &self.elevation)
+        
+        // Use index-based access for performance - resolve index on each call
+        // since this is called from different contexts
+        let idx = state_model.get_index(feature_name)?;
+        state_model.add_distance_by_index(state, idx, &self.elevation)
     }
 }

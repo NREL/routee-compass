@@ -142,6 +142,20 @@ impl StateModel {
         Ok(feature.is_accumulator())
     }
 
+    /// Gets the state vector index for a named state variable.
+    /// Use this to cache indices for repeated access, avoiding string lookups.
+    ///
+    /// # Arguments
+    /// * `name` - the name of the state variable
+    ///
+    /// # Returns
+    /// The index in the state vector, or an error if the name is not found
+    pub fn get_index(&self, name: &str) -> Result<usize, StateModelError> {
+        self.0.get_index_of(name).ok_or_else(|| {
+            StateModelError::UnknownStateVariableName(name.to_string(), self.get_names())
+        })
+    }
+
     /// Creates the initial state of a search. this should be a vector of
     /// accumulators, defined in the state model configuration.
     ///
@@ -190,6 +204,29 @@ impl StateModel {
         Ok(length)
     }
 
+    /// retrieves a state variable by index that is expected to have a type of Distance.
+    /// This avoids the string lookup overhead and is faster for repeated access.
+    ///
+    /// # Arguments
+    /// * `state` - state vector to inspect
+    /// * `idx`  - index in the state vector
+    ///
+    /// # Returns
+    ///
+    /// feature value in the expected unit type, or an error
+    #[inline]
+    pub fn get_distance_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<Length, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let length = DistanceUnit::default().to_uom(value.0);
+        Ok(length)
+    }
+
     /// retrieves a state variable that is expected to have a type of Time
     ///
     /// # Arguments
@@ -201,6 +238,20 @@ impl StateModel {
     /// feature value in the expected unit type, or an error
     pub fn get_time(&self, state: &[StateVariable], name: &str) -> Result<Time, StateModelError> {
         let value: &StateVariable = self.get_raw_state_variable(state, name)?;
+        let time = TimeUnit::default().to_uom(value.0);
+        Ok(time)
+    }
+
+    /// retrieves a state variable by index that is expected to have a type of Time
+    #[inline]
+    pub fn get_time_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<Time, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
         let time = TimeUnit::default().to_uom(value.0);
         Ok(time)
     }
@@ -222,6 +273,20 @@ impl StateModel {
         let energy = EnergyUnit::default().to_uom(value.0);
         Ok(energy)
     }
+
+    /// retrieves a state variable by index that is expected to have a type of Energy
+    #[inline]
+    pub fn get_energy_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<Energy, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let energy = EnergyUnit::default().to_uom(value.0);
+        Ok(energy)
+    }
     /// retrieves a state variable that is expected to have a type of Speed
     ///
     /// # Arguments
@@ -240,6 +305,20 @@ impl StateModel {
         let speed = SpeedUnit::default().to_uom(value.0);
         Ok(speed)
     }
+
+    /// retrieves a state variable by index that is expected to have a type of Speed
+    #[inline]
+    pub fn get_speed_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<Velocity, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let speed = SpeedUnit::default().to_uom(value.0);
+        Ok(speed)
+    }
     /// retrieves a state variable that is expected to have a type of Ratio
     ///
     /// # Arguments
@@ -251,6 +330,20 @@ impl StateModel {
     /// feature value in the expected unit type, or an error
     pub fn get_ratio(&self, state: &[StateVariable], name: &str) -> Result<Ratio, StateModelError> {
         let value: &StateVariable = self.get_raw_state_variable(state, name)?;
+        let grade = RatioUnit::default().to_uom(value.0);
+        Ok(grade)
+    }
+
+    /// retrieves a state variable by index that is expected to have a type of Ratio
+    #[inline]
+    pub fn get_ratio_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<Ratio, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
         let grade = RatioUnit::default().to_uom(value.0);
         Ok(grade)
     }
@@ -273,6 +366,20 @@ impl StateModel {
         Ok(temperature)
     }
 
+    /// retrieves a state variable by index that is expected to have a type of Temperature
+    #[inline]
+    pub fn get_temperature_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<ThermodynamicTemperature, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let temperature = TemperatureUnit::default().to_uom(value.0);
+        Ok(temperature)
+    }
+
     /// retrieves a state variable that is expected to have a type of f64.
     ///
     /// # Arguments
@@ -291,6 +398,25 @@ impl StateModel {
         let result = format.decode_f64(value)?;
         Ok(result)
     }
+
+    /// retrieves a state variable by index that is expected to have a type of f64.
+    #[inline]
+    pub fn get_custom_f64_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<f64, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let feature = self.0.get_index(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("feature at index {}", idx), idx)
+        })?;
+        let format = feature.1.get_custom_feature_format()?;
+        let result = format.decode_f64(value)?;
+        Ok(result)
+    }
+
     /// retrieves a state variable that is expected to have a type of i64.
     ///
     /// # Arguments
@@ -403,6 +529,23 @@ impl StateModel {
         self.set_distance(state, name, &next_distance)
     }
 
+    /// adds a distance value by index - avoids double string lookup
+    #[inline]
+    pub fn add_distance_by_index(
+        &self,
+        state: &mut [StateVariable],
+        idx: usize,
+        distance: &Length,
+    ) -> Result<(), StateModelError> {
+        let prev_value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let prev_distance = DistanceUnit::default().to_uom(prev_value.0);
+        let next_distance = prev_distance + *distance;
+        state[idx] = StateVariable(DistanceUnit::default().from_uom(next_distance));
+        Ok(())
+    }
+
     /// adds a time value with time unit to this feature vector
     pub fn add_time(
         &self,
@@ -415,6 +558,23 @@ impl StateModel {
         self.set_time(state, name, &next_time)
     }
 
+    /// adds a time value by index - avoids double string lookup
+    #[inline]
+    pub fn add_time_by_index(
+        &self,
+        state: &mut [StateVariable],
+        idx: usize,
+        time: &Time,
+    ) -> Result<(), StateModelError> {
+        let prev_value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let prev_time = TimeUnit::default().to_uom(prev_value.0);
+        let next_time = prev_time + *time;
+        state[idx] = StateVariable(TimeUnit::default().from_uom(next_time));
+        Ok(())
+    }
+
     /// adds a energy value with energy unit to this feature vector
     pub fn add_energy(
         &self,
@@ -425,6 +585,23 @@ impl StateModel {
         let prev_energy = self.get_energy(state, name)?;
         let next_energy = prev_energy + *energy;
         self.set_energy(state, name, &next_energy)
+    }
+
+    /// adds an energy value by index - avoids double string lookup
+    #[inline]
+    pub fn add_energy_by_index(
+        &self,
+        state: &mut [StateVariable],
+        idx: usize,
+        energy: &Energy,
+    ) -> Result<(), StateModelError> {
+        let prev_value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let prev_energy = EnergyUnit::default().to_uom(prev_value.0);
+        let next_energy = prev_energy + *energy;
+        state[idx] = StateVariable(EnergyUnit::default().from_uom(next_energy));
+        Ok(())
     }
 
     /// adds a speed value with energy unit to this feature vector
@@ -461,6 +638,21 @@ impl StateModel {
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
+    #[inline]
+    pub fn set_distance_by_index(
+        &self,
+        state: &mut [StateVariable],
+        idx: usize,
+        distance: &Length,
+    ) -> Result<(), StateModelError> {
+        let value = StateVariable(DistanceUnit::default().from_uom(*distance));
+        let entry = state.get_mut(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        *entry = value;
+        Ok(())
+    }
+
     pub fn set_time(
         &self,
         state: &mut [StateVariable],
@@ -469,6 +661,21 @@ impl StateModel {
     ) -> Result<(), StateModelError> {
         let value = StateVariable(TimeUnit::default().from_uom(*time));
         self.update_state(state, name, &value, UpdateOperation::Replace)
+    }
+
+    #[inline]
+    pub fn set_time_by_index(
+        &self,
+        state: &mut [StateVariable],
+        idx: usize,
+        time: &Time,
+    ) -> Result<(), StateModelError> {
+        let value = StateVariable(TimeUnit::default().from_uom(*time));
+        let entry = state.get_mut(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        *entry = value;
+        Ok(())
     }
 
     pub fn set_energy(
@@ -481,6 +688,21 @@ impl StateModel {
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
+    #[inline]
+    pub fn set_energy_by_index(
+        &self,
+        state: &mut [StateVariable],
+        idx: usize,
+        energy: &Energy,
+    ) -> Result<(), StateModelError> {
+        let value = StateVariable(EnergyUnit::default().from_uom(*energy));
+        let entry = state.get_mut(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        *entry = value;
+        Ok(())
+    }
+
     pub fn set_ratio(
         &self,
         state: &mut [StateVariable],
@@ -489,6 +711,21 @@ impl StateModel {
     ) -> Result<(), StateModelError> {
         let value = StateVariable(RatioUnit::default().from_uom(*grade));
         self.update_state(state, name, &value, UpdateOperation::Replace)
+    }
+
+    #[inline]
+    pub fn set_ratio_by_index(
+        &self,
+        state: &mut [StateVariable],
+        idx: usize,
+        ratio: &Ratio,
+    ) -> Result<(), StateModelError> {
+        let value = StateVariable(RatioUnit::default().from_uom(*ratio));
+        let entry = state.get_mut(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        *entry = value;
+        Ok(())
     }
 
     pub fn set_speed(
@@ -501,6 +738,21 @@ impl StateModel {
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
+    #[inline]
+    pub fn set_speed_by_index(
+        &self,
+        state: &mut [StateVariable],
+        idx: usize,
+        speed: &Velocity,
+    ) -> Result<(), StateModelError> {
+        let value = StateVariable(SpeedUnit::default().from_uom(*speed));
+        let entry = state.get_mut(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        *entry = value;
+        Ok(())
+    }
+
     pub fn set_temperature(
         &self,
         state: &mut [StateVariable],
@@ -509,6 +761,21 @@ impl StateModel {
     ) -> Result<(), StateModelError> {
         let value = StateVariable(TemperatureUnit::default().from_uom(*temperature));
         self.update_state(state, name, &value, UpdateOperation::Replace)
+    }
+
+    #[inline]
+    pub fn set_temperature_by_index(
+        &self,
+        state: &mut [StateVariable],
+        idx: usize,
+        temperature: &ThermodynamicTemperature,
+    ) -> Result<(), StateModelError> {
+        let value = StateVariable(TemperatureUnit::default().from_uom(*temperature));
+        let entry = state.get_mut(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        *entry = value;
+        Ok(())
     }
 
     pub fn set_custom_f64(
@@ -648,7 +915,6 @@ impl StateModel {
             .ok_or(StateModelError::InvalidStateVariableIndex(
                 name.to_string(),
                 index,
-                state.len(),
             ))?;
         let updated = op.perform_operation(prev, value);
         state[index] = updated;

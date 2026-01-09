@@ -15,6 +15,10 @@ use std::sync::Arc;
 pub struct TurnDelayTraversalModel {
     pub engine: Arc<TurnDelayTraversalModelEngine>,
     pub include_trip_time: bool,
+    // Cached indices for performance
+    edge_turn_delay_idx: Option<usize>,
+    edge_time_idx: Option<usize>,
+    trip_time_idx: Option<usize>,
 }
 
 impl TurnDelayTraversalModel {
@@ -22,6 +26,9 @@ impl TurnDelayTraversalModel {
         TurnDelayTraversalModel {
             engine,
             include_trip_time,
+            edge_turn_delay_idx: None,
+            edge_time_idx: None,
+            trip_time_idx: None,
         }
     }
 }
@@ -90,10 +97,29 @@ impl TraversalModel for TurnDelayTraversalModel {
             .map(|et| et.edge_id);
         if let Some(prev) = prev_opt {
             let delay = self.engine.get_delay(prev, edge.edge_id)?;
-            state_model.set_time(state, fieldname::EDGE_TURN_DELAY, &delay)?;
-            state_model.add_time(state, fieldname::EDGE_TIME, &delay)?;
+            
+            // Resolve indices (or use cached)
+            let edge_turn_delay_idx = match self.edge_turn_delay_idx {
+                Some(idx) => idx,
+                None => state_model.get_index(fieldname::EDGE_TURN_DELAY)
+                    .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find EDGE_TURN_DELAY index: {}", e)))?,
+            };
+            let edge_time_idx = match self.edge_time_idx {
+                Some(idx) => idx,
+                None => state_model.get_index(fieldname::EDGE_TIME)
+                    .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find EDGE_TIME index: {}", e)))?,
+            };
+            
+            state_model.set_time_by_index(state, edge_turn_delay_idx, &delay)?;
+            state_model.add_time_by_index(state, edge_time_idx, &delay)?;
+            
             if self.include_trip_time {
-                state_model.add_time(state, fieldname::TRIP_TIME, &delay)?;
+                let trip_time_idx = match self.trip_time_idx {
+                    Some(idx) => idx,
+                    None => state_model.get_index(fieldname::TRIP_TIME)
+                        .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find TRIP_TIME index: {}", e)))?,
+                };
+                state_model.add_time_by_index(state, trip_time_idx, &delay)?;
             }
         }
 
