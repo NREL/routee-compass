@@ -236,8 +236,10 @@ mod tests {
     use crate::model::network::Vertex;
     use crate::model::state::StateModel;
     use crate::model::termination::TerminationModel;
-    use crate::model::traversal::default::distance::DistanceTraversalModel;
-    use crate::model::traversal::TraversalModel;
+    use crate::model::traversal::default::distance::{
+        DistanceTraversalModel, DistanceTraversalService,
+    };
+    use crate::model::traversal::{TraversalModel, TraversalModelService};
     use crate::model::unit::DistanceUnit;
     use indexmap::IndexMap;
     use rayon::prelude::*;
@@ -337,15 +339,21 @@ mod tests {
 
     fn build_search_instance(graph: Arc<Graph>) -> SearchInstance {
         let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
-        let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::default(), true));
+        let traversal_service = Arc::new(DistanceTraversalService::new(
+            DistanceUnit::default(),
+            true,
+        ));
+        let traversal_model = traversal_service
+            .build(&serde_json::json!({}))
+            .unwrap();
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
         let state_model = Arc::new(
             StateModel::empty()
                 .register(
-                    traversal_model.clone().input_features(),
-                    traversal_model.clone().output_features(),
+                    traversal_service.input_features(),
+                    traversal_service.output_features(),
                 )
                 .unwrap(),
         );

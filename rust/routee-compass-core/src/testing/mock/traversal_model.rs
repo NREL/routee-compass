@@ -3,7 +3,7 @@ use uom::ConstZero;
 use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::{CustomVariableConfig, InputFeature};
-use crate::model::traversal::TraversalModel;
+use crate::model::traversal::{TraversalModel, TraversalModelService};
 use crate::model::{
     state::StateVariableConfig,
     traversal::{default::combined::CombinedTraversalModel, TraversalModelError},
@@ -14,33 +14,55 @@ use std::sync::Arc;
 /// registers all of the input feature requirements for the provided model.
 pub struct TestTraversalModel {}
 
+pub struct TestTraversalModelResult {
+    pub model: Arc<dyn TraversalModel>,
+    pub input_features: Vec<InputFeature>,
+    pub output_features: Vec<(String, StateVariableConfig)>,
+}
+
 impl TestTraversalModel {
     /// build (wrap) the model for testing.
+    /// Takes a service to access feature requirements, and builds a model from it.
     #[allow(clippy::new_ret_no_self)]
     pub fn new(
-        model: Arc<dyn TraversalModel>,
-    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        service: Arc<dyn TraversalModelService>,
+    ) -> Result<TestTraversalModelResult, TraversalModelError> {
+        let model = service.build(&serde_json::json!({}))?;
         let upstream: Box<dyn TraversalModel> =
-            Box::new(MockUpstreamModel::new_upstream_from(model.clone()));
+            Box::new(MockUpstreamModel::new_upstream_from(service.clone()));
         let wrapped: Arc<dyn TraversalModel> = Arc::new(CombinedTraversalModel::new(vec![
             Arc::from(upstream),
             model.clone(),
         ]));
-        Ok(wrapped)
+        
+        // Collect all input features from the service and convert them to output features for mocking
+        let mut output_features: Vec<(String, StateVariableConfig)> = Vec::new();
+        for input_feature in service.input_features().iter() {
+            let output = MockUpstreamModel::input_feature_to_output_config(input_feature);
+            output_features.push(output);
+        }
+        // Add the actual output features from the service
+        output_features.extend(service.output_features());
+        
+        Ok(TestTraversalModelResult {
+            model: wrapped,
+            input_features: vec![],
+            output_features,
+        })
     }
 }
 
-struct MockUpstreamModel {
+pub struct MockUpstreamModel {
     input_features: Vec<InputFeature>,
     output_features: Vec<(String, StateVariableConfig)>,
 }
 
 impl MockUpstreamModel {
     /// builds a new mock upstream TraversalModel that registers all of the input feature
-    /// requirements for the provided model.
-    pub fn new_upstream_from(model: Arc<dyn TraversalModel>) -> MockUpstreamModel {
+    /// requirements for the provided service.
+    pub fn new_upstream_from(service: Arc<dyn TraversalModelService>) -> MockUpstreamModel {
         let input_features = vec![];
-        let output_features = model
+        let output_features = service
             .input_features()
             .iter()
             .map(|feature| match feature {
@@ -122,18 +144,75 @@ impl MockUpstreamModel {
             output_features,
         }
     }
+    
+    /// Helper function to convert an InputFeature to a StateVariableConfig for mocking
+    fn input_feature_to_output_config(feature: &InputFeature) -> (String, StateVariableConfig) {
+        match feature {
+            InputFeature::Distance { name, .. } => (
+                name.clone(),
+                StateVariableConfig::Distance {
+                    initial: uom::si::f64::Length::ZERO,
+                    accumulator: false,
+                    output_unit: None,
+                },
+            ),
+            InputFeature::Ratio { name, .. } => (
+                name.clone(),
+                StateVariableConfig::Ratio {
+                    initial: uom::si::f64::Ratio::ZERO,
+                    accumulator: false,
+                    output_unit: None,
+                },
+            ),
+            InputFeature::Speed { name, .. } => (
+                name.clone(),
+                StateVariableConfig::Speed {
+                    initial: uom::si::f64::Velocity::ZERO,
+                    accumulator: false,
+                    output_unit: None,
+                },
+            ),
+            InputFeature::Time { name, .. } => (
+                name.clone(),
+                StateVariableConfig::Time {
+                    initial: uom::si::f64::Time::ZERO,
+                    accumulator: false,
+                    output_unit: None,
+                },
+            ),
+            InputFeature::Energy { name, .. } => (
+                name.clone(),
+                StateVariableConfig::Energy {
+                    initial: uom::si::f64::Energy::ZERO,
+                    accumulator: false,
+                    output_unit: None,
+                },
+            ),
+            InputFeature::Temperature { name, .. } => (
+                name.clone(),
+                StateVariableConfig::Temperature {
+                    initial: uom::si::f64::ThermodynamicTemperature::ZERO,
+                    accumulator: false,
+                    output_unit: None,
+                },
+            ),
+            InputFeature::Custom { name, .. } => (
+                name.clone(),
+                StateVariableConfig::Custom {
+                    custom_type: name.clone(),
+                    value: CustomVariableConfig::FloatingPoint {
+                        initial: ordered_float::OrderedFloat(0.0),
+                    },
+                    accumulator: false,
+                },
+            ),
+        }
+    }
 }
 
 impl TraversalModel for MockUpstreamModel {
     fn name(&self) -> String {
         String::from("Mock Upstream Traversal Model")
-    }
-    fn input_features(&self) -> Vec<InputFeature> {
-        self.input_features.clone()
-    }
-
-    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        self.output_features.clone()
     }
 
     fn traverse_edge(

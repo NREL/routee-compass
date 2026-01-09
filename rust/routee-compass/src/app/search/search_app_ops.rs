@@ -2,13 +2,13 @@ use itertools::Itertools;
 use routee_compass_core::config::ConfigJsonExtensions;
 use routee_compass_core::model::{
     state::{StateModelError, StateVariableConfig},
-    traversal::TraversalModel,
+    traversal::TraversalModelService,
 };
 use std::{collections::HashMap, sync::Arc};
 
 /// collects the state features to use in this search. the features are collected in
 /// the following order:
-///   1. from the traversal model
+///   1. from the traversal model service
 ///   2. from the access model
 ///   3. optionally from the query itself
 ///
@@ -17,12 +17,12 @@ use std::{collections::HashMap, sync::Arc};
 /// StateFeature::get_feature_unit_name.
 pub fn collect_features(
     query: &serde_json::Value,
-    traversal_models: &[Arc<dyn TraversalModel>],
+    traversal_model_services: &[Arc<dyn TraversalModelService>],
 ) -> Result<Vec<(String, StateVariableConfig)>, StateModelError> {
     // prepare the set of features for this state model
-    let model_features = traversal_models
+    let model_features = traversal_model_services
         .iter()
-        .flat_map(|m| m.output_features().into_iter())
+        .flat_map(|s| s.output_features().into_iter())
         .collect::<HashMap<_, _>>();
 
     // build the state model. inject state features from the traversal and access models

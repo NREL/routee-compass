@@ -63,6 +63,66 @@ impl BevEnergyModel {
 }
 
 impl TraversalModelService for BevEnergyModel {
+    fn input_features(&self) -> Vec<InputFeature> {
+        let mut input_features = vec![
+            InputFeature::Distance {
+                name: String::from(fieldname::EDGE_DISTANCE),
+                unit: None,
+            },
+            // TODO: Once we have estimates for elevation gain/loss in estimate_traversal, include these
+            // InputFeature::Distance {
+            //     name: String::from(fieldname::TRIP_ELEVATION_LOSS),
+            //     unit: None,
+            // },
+            // InputFeature::Distance {
+            //     name: String::from(fieldname::TRIP_ELEVATION_GAIN),
+            //     unit: None,
+            // },
+        ];
+        input_features.extend(self.prediction_model_record.input_features.clone());
+        input_features
+    }
+
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
+        let mut features = vec![
+            (
+                String::from(fieldname::EDGE_ENERGY_ELECTRIC),
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
+                    accumulator: false,
+                    output_unit: Some(
+                        self.prediction_model_record
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
+                },
+            ),
+            (
+                String::from(fieldname::TRIP_SOC),
+                StateVariableConfig::Ratio {
+                    initial: self.starting_soc,
+                    accumulator: true,
+                    output_unit: Some(RatioUnit::default()),
+                },
+            ),
+        ];
+        if self.include_trip_energy {
+            features.push((
+                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
+                StateVariableConfig::Energy {
+                    initial: Energy::ZERO,
+                    accumulator: true,
+                    output_unit: Some(
+                        self.prediction_model_record
+                            .energy_rate_unit
+                            .associated_energy_unit(),
+                    ),
+                },
+            ));
+        }
+        features
+    }
+
     fn build(
         &self,
         query: &serde_json::Value,
@@ -135,65 +195,6 @@ impl TryFrom<&Value> for BevEnergyModel {
 impl TraversalModel for BevEnergyModel {
     fn name(&self) -> String {
         format!("BEV Energy Model: {}", self.prediction_model_record.name)
-    }
-    fn input_features(&self) -> Vec<InputFeature> {
-        let mut input_features = vec![
-            InputFeature::Distance {
-                name: String::from(fieldname::EDGE_DISTANCE),
-                unit: None,
-            },
-            // TODO: Once we have estimates for elevation gain/loss in estimate_traversal, include these
-            // InputFeature::Distance {
-            //     name: String::from(fieldname::TRIP_ELEVATION_LOSS),
-            //     unit: None,
-            // },
-            // InputFeature::Distance {
-            //     name: String::from(fieldname::TRIP_ELEVATION_GAIN),
-            //     unit: None,
-            // },
-        ];
-        input_features.extend(self.prediction_model_record.input_features.clone());
-        input_features
-    }
-
-    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        let mut features = vec![
-            (
-                String::from(fieldname::EDGE_ENERGY_ELECTRIC),
-                StateVariableConfig::Energy {
-                    initial: Energy::ZERO,
-                    accumulator: false,
-                    output_unit: Some(
-                        self.prediction_model_record
-                            .energy_rate_unit
-                            .associated_energy_unit(),
-                    ),
-                },
-            ),
-            (
-                String::from(fieldname::TRIP_SOC),
-                StateVariableConfig::Ratio {
-                    initial: self.starting_soc,
-                    accumulator: true,
-                    output_unit: Some(RatioUnit::default()),
-                },
-            ),
-        ];
-        if self.include_trip_energy {
-            features.push((
-                String::from(fieldname::TRIP_ENERGY_ELECTRIC),
-                StateVariableConfig::Energy {
-                    initial: Energy::ZERO,
-                    accumulator: true,
-                    output_unit: Some(
-                        self.prediction_model_record
-                            .energy_rate_unit
-                            .associated_energy_unit(),
-                    ),
-                },
-            ));
-        }
-        features
     }
 
     fn traverse_edge(
@@ -407,8 +408,8 @@ mod tests {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
-        let model = mock_traversal_model(record.clone(), start_soc, bat_cap);
-        let state_model = state_model(model);
+        let (_service, input_features, output_features) = mock_traversal_model(record.clone(), start_soc, bat_cap);
+        let state_model = state_model(input_features, output_features);
 
         // starting at 100% SOC, we should be able to traverse a flat 110 miles at 60 mph
         // and it should use about half of the battery since the EPA range is 238 miles
@@ -457,8 +458,8 @@ mod tests {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(20.0);
-        let model = mock_traversal_model(record.clone(), start_soc, bat_cap);
-        let state_model = state_model(model);
+        let (_service, input_features, output_features) = mock_traversal_model(record.clone(), start_soc, bat_cap);
+        let state_model = state_model(input_features, output_features);
 
         // starting at 20% SOC, going downhill at -5% grade for 10 miles at 55mph, we should be see
         // some regen braking events and should end up with more energy than we started with
@@ -509,8 +510,8 @@ mod tests {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
-        let model = mock_traversal_model(record.clone(), start_soc, bat_cap);
-        let state_model = state_model(model);
+        let (_service, input_features, output_features) = mock_traversal_model(record.clone(), start_soc, bat_cap);
+        let state_model = state_model(input_features, output_features);
 
         let distance = Length::new::<uom::si::length::mile>(10.0);
         let speed = Velocity::new::<uom::si::velocity::mile_per_hour>(55.0);
@@ -548,8 +549,8 @@ mod tests {
         let bat_cap = Energy::new::<uom::si::energy::kilowatt_hour>(60.0);
         let record = mock_prediction_model();
         let start_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
-        let model = mock_traversal_model(record.clone(), start_soc, bat_cap);
-        let state_model = state_model(model);
+        let (_service, input_features, output_features) = mock_traversal_model(record.clone(), start_soc, bat_cap);
+        let state_model = state_model(input_features, output_features);
 
         let distance = Length::new::<uom::si::length::mile>(100.0);
         let speed = Velocity::new::<uom::si::velocity::mile_per_hour>(55.0);
@@ -643,7 +644,7 @@ mod tests {
         prediction_model_record: Arc<PredictionModelRecord>,
         starting_soc: Ratio,
         battery_capacity: Energy,
-    ) -> Arc<dyn TraversalModel> {
+    ) -> (Arc<BevEnergyModel>, Vec<InputFeature>, Vec<(String, StateVariableConfig)>) {
         let starting_energy = battery_capacity * starting_soc;
         let bev = BevEnergyModel::new(
             prediction_model_record,
@@ -653,14 +654,14 @@ mod tests {
         )
         .expect("test invariant failed");
 
-        // mock the upstream models via TestTraversalModel
-
-        (TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed")) as _
+        let service = Arc::new(bev);
+        let test_result = TestTraversalModel::new(service.clone()).expect("test invariant failed");
+        (service, test_result.input_features, test_result.output_features)
     }
 
-    fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
+    fn state_model(input_features: Vec<InputFeature>, output_features: Vec<(String, StateVariableConfig)>) -> StateModel {
         StateModel::empty()
-            .register(m.input_features(), m.output_features())
+            .register(input_features, output_features)
             .expect("test invariant failed")
     }
 

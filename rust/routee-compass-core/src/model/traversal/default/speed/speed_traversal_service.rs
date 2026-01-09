@@ -2,19 +2,39 @@ use super::{
     speed_traversal_engine::SpeedTraversalEngine, speed_traversal_model::SpeedTraversalModel,
 };
 use crate::model::{
+    state::{InputFeature, StateVariableConfig},
     traversal::{
-        traversal_model::TraversalModel, traversal_model_error::TraversalModelError,
-        traversal_model_service::TraversalModelService,
+        default::fieldname, traversal_model::TraversalModel,
+        traversal_model_error::TraversalModelError, traversal_model_service::TraversalModelService,
     },
     unit::SpeedUnit,
 };
 use std::{str::FromStr, sync::Arc};
+use uom::{si::f64::Velocity, ConstZero};
 
 pub struct SpeedLookupService {
     pub e: Arc<SpeedTraversalEngine>,
 }
 
 impl TraversalModelService for SpeedLookupService {
+    fn input_features(&self) -> Vec<InputFeature> {
+        vec![InputFeature::Distance {
+            name: fieldname::EDGE_DISTANCE.to_string(),
+            unit: None,
+        }]
+    }
+
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
+        vec![(
+            String::from(fieldname::EDGE_SPEED),
+            StateVariableConfig::Speed {
+                initial: Velocity::ZERO,
+                accumulator: false,
+                output_unit: Some(SpeedUnit::default()),
+            },
+        )]
+    }
+
     fn build(
         &self,
         parameters: &serde_json::Value,

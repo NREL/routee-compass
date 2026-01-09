@@ -45,23 +45,6 @@ impl TraversalModel for SpeedTraversalModel {
     fn name(&self) -> String {
         String::from("Speed Traversal Model")
     }
-    fn input_features(&self) -> Vec<InputFeature> {
-        vec![InputFeature::Distance {
-            name: fieldname::EDGE_DISTANCE.to_string(),
-            unit: None,
-        }]
-    }
-
-    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        vec![(
-            String::from(fieldname::EDGE_SPEED),
-            StateVariableConfig::Speed {
-                initial: Velocity::ZERO,
-                accumulator: false,
-                output_unit: Some(SpeedUnit::default()),
-            },
-        )]
-    }
 
     /// records the speed that will be driven over this edge into the state vector.
     fn traverse_edge(
@@ -150,6 +133,8 @@ fn apply_speed_limit(lookup_speed: Velocity, speed_limit: Option<Velocity>) -> V
 mod tests {
     use super::*;
     use crate::model::network::{Edge, EdgeId, EdgeListId, Vertex, VertexId};
+    use crate::model::traversal::default::speed::speed_traversal_service::SpeedLookupService;
+    use crate::model::traversal::TraversalModelService;
     use crate::model::unit::SpeedUnit;
     use crate::testing::mock::traversal_model::TestTraversalModel;
     use crate::util::geo::InternalCoord;
@@ -199,18 +184,19 @@ mod tests {
         let file: PathBuf = filepath();
         let engine =
             SpeedTraversalEngine::new(&file, SpeedUnit::KPH).expect("test invariant failed");
-        let speed_model =
-            SpeedTraversalModel::new(Arc::new(engine), None).expect("test invariant failed");
-        let test_model =
-            TestTraversalModel::new(Arc::new(speed_model)).expect("test invariant failed");
+        let speed_service = Arc::new(SpeedLookupService {
+            e: Arc::new(engine),
+        });
+        let test_result = TestTraversalModel::new(speed_service).expect("test invariant failed");
         let state_model = StateModel::empty()
-            .register(test_model.input_features(), test_model.output_features())
+            .register(test_result.input_features, test_result.output_features)
             .expect("failed tp register state features");
 
         let mut state = state_model.initial_state(None).unwrap();
         let v = mock_vertex();
         let e1 = mock_edge(0);
-        test_model
+        test_result
+            .model
             .traverse_edge(
                 (&v, &e1, &v),
                 &mut state,
@@ -238,19 +224,32 @@ mod tests {
             SpeedTraversalEngine::new(&file, SpeedUnit::KPH).expect("test invariant failed"),
         );
 
-        let regular_model =
-            SpeedTraversalModel::new(engine.clone(), None).expect("test invariant failed");
-        let limited_model = SpeedTraversalModel::new(engine.clone(), Some(speed_limit))
-            .expect("test invariant failed");
+        let regular_service = Arc::new(SpeedLookupService { e: engine.clone() });
+        let limited_service = Arc::new(SpeedLookupService { e: engine.clone() });
 
-        let test_regular_model =
-            TestTraversalModel::new(Arc::new(regular_model)).expect("test invariant failed");
-        let test_limited_model =
-            TestTraversalModel::new(Arc::new(limited_model)).expect("test invariant failed");
+        let test_regular_result =
+            TestTraversalModel::new(regular_service.clone()).expect("test invariant failed");
+
+        // For the limited version, we need to build with speed limit parameter
+        let limited_model = limited_service
+            .build(&serde_json::json!({"speed_limit": 5.0, "speed_limit_unit": "kph"}))
+            .unwrap();
+        let upstream_mock = Arc::new(
+            crate::testing::mock::traversal_model::MockUpstreamModel::new_upstream_from(
+                limited_service.clone(),
+            ),
+        );
+        let test_limited_model = Arc::new(
+            crate::model::traversal::default::combined::CombinedTraversalModel::new(vec![
+                upstream_mock,
+                limited_model,
+            ]),
+        );
+
         let state_model = StateModel::empty()
             .register(
-                test_regular_model.input_features(),
-                test_regular_model.output_features(),
+                test_regular_result.input_features.clone(),
+                test_regular_result.output_features.clone(),
             )
             .expect("test invariant failed");
         let tree = SearchTree::default();
@@ -267,7 +266,8 @@ mod tests {
             .unwrap();
 
         // Traverse without speed limit
-        test_regular_model
+        test_regular_result
+            .model
             .traverse_edge((&v, &e, &v), &mut state_without_limit, &tree, &state_model)
             .unwrap();
 

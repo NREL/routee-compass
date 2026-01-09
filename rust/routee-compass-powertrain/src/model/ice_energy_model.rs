@@ -39,41 +39,6 @@ impl IceEnergyModel {
 }
 
 impl TraversalModelService for IceEnergyModel {
-    fn build(
-        &self,
-        _query: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        Ok(Arc::new(self.clone()))
-    }
-}
-
-impl TryFrom<&Value> for IceEnergyModel {
-    type Error = TraversalModelError;
-
-    fn try_from(value: &Value) -> Result<Self, Self::Error> {
-        let config: PredictionModelConfig = serde_json::from_value(value.clone()).map_err(|e| {
-            TraversalModelError::BuildError(format!(
-                "failure reading prediction model configuration: {e}"
-            ))
-        })?;
-        let prediction_model = PredictionModelRecord::try_from(&config)?;
-        let include_trip_energy = match value.get("include_trip_energy") {
-            Some(v) => {
-                v.as_bool().ok_or_else(|| {
-                    TraversalModelError::BuildError("Failed to parse the parameter `include_trip_energy` as a boolean when building the ICE Energy model".to_string())
-                })?
-            },
-            None => true
-        };
-        let ice_model = IceEnergyModel::new(prediction_model, include_trip_energy)?;
-        Ok(ice_model)
-    }
-}
-
-impl TraversalModel for IceEnergyModel {
-    fn name(&self) -> String {
-        format!("ICE Energy Model: {}", self.prediction_model_record.name)
-    }
     fn input_features(&self) -> Vec<InputFeature> {
         let mut input_features = vec![InputFeature::Distance {
             name: String::from(fieldname::EDGE_DISTANCE),
@@ -111,6 +76,42 @@ impl TraversalModel for IceEnergyModel {
             ));
         }
         features
+    }
+
+    fn build(
+        &self,
+        _query: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        Ok(Arc::new(self.clone()))
+    }
+}
+
+impl TryFrom<&Value> for IceEnergyModel {
+    type Error = TraversalModelError;
+
+    fn try_from(value: &Value) -> Result<Self, Self::Error> {
+        let config: PredictionModelConfig = serde_json::from_value(value.clone()).map_err(|e| {
+            TraversalModelError::BuildError(format!(
+                "failure reading prediction model configuration: {e}"
+            ))
+        })?;
+        let prediction_model = PredictionModelRecord::try_from(&config)?;
+        let include_trip_energy = match value.get("include_trip_energy") {
+            Some(v) => {
+                v.as_bool().ok_or_else(|| {
+                    TraversalModelError::BuildError("Failed to parse the parameter `include_trip_energy` as a boolean when building the ICE Energy model".to_string())
+                })?
+            },
+            None => true
+        };
+        let ice_model = IceEnergyModel::new(prediction_model, include_trip_energy)?;
+        Ok(ice_model)
+    }
+}
+
+impl TraversalModel for IceEnergyModel {
+    fn name(&self) -> String {
+        format!("ICE Energy Model: {}", self.prediction_model_record.name)
     }
 
     fn traverse_edge(

@@ -4,15 +4,11 @@ use routee_compass_core::{
     algorithm::search::SearchTree,
     model::{
         network::{Edge, Vertex},
-        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        state::{StateModel, StateVariable},
         traversal::{TraversalModel, TraversalModelError},
-        unit::TimeUnit,
     },
 };
-use uom::{
-    si::f64::{Ratio, Time},
-    ConstZero,
-};
+use uom::si::f64::{Ratio, Time};
 
 use crate::model::{
     charging::charging_station_locator::{ChargingStationLocator, PowerType},
@@ -31,51 +27,7 @@ impl TraversalModel for SimpleChargingModel {
     fn name(&self) -> String {
         "Simple Charging Model".to_string()
     }
-    fn input_features(&self) -> Vec<InputFeature> {
-        vec![
-            InputFeature::Ratio {
-                name: fieldname::TRIP_SOC.to_string(),
-                unit: None,
-            },
-            InputFeature::Energy {
-                name: fieldname::BATTERY_CAPACITY.to_string(),
-                unit: None,
-            },
-        ]
-    }
-    fn output_features(
-        &self,
-    ) -> Vec<(
-        String,
-        routee_compass_core::model::state::StateVariableConfig,
-    )> {
-        vec![
-            (
-                fieldname::EDGE_TIME.to_string(),
-                StateVariableConfig::Time {
-                    initial: Time::ZERO,
-                    accumulator: false,
-                    output_unit: Some(TimeUnit::default()),
-                },
-            ),
-            (
-                fieldname::TRIP_TIME.to_string(),
-                StateVariableConfig::Time {
-                    initial: Time::ZERO,
-                    accumulator: true,
-                    output_unit: Some(TimeUnit::default()),
-                },
-            ),
-            (
-                fieldname::TRIP_SOC.to_string(),
-                StateVariableConfig::Ratio {
-                    initial: self.starting_soc,
-                    accumulator: true,
-                    output_unit: None,
-                },
-            ),
-        ]
-    }
+
     fn estimate_traversal(
         &self,
         _od: (&Vertex, &Vertex),
@@ -121,19 +73,23 @@ impl TraversalModel for SimpleChargingModel {
 mod tests {
     use super::*;
     use crate::model::{
-        charging::charging_station_locator::{ChargingStation, ChargingStationLocator, PowerType},
+        charging::{
+            charging_station_locator::{ChargingStation, ChargingStationLocator, PowerType},
+            simple_charging_service::SimpleChargingService,
+        },
         fieldname,
     };
     use geo::coord;
     use routee_compass_core::{
         model::{
             network::{Edge, EdgeId, EdgeListId, Vertex, VertexId},
-            state::{StateModel, StateVariable},
+            state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+            traversal::TraversalModelService,
         },
         util::geo::InternalCoord,
     };
     use std::collections::HashMap;
-    use uom::si::f64::{Energy, Length, Power, Ratio, Time};
+    use uom::{si::f64::{Energy, Length, Power, Ratio, Time}, ConstZero};
 
     fn mock_charging_station_locator() -> Arc<ChargingStationLocator> {
         let mut stations = HashMap::new();
@@ -161,23 +117,23 @@ mod tests {
         Arc::new(ChargingStationLocator::new(stations))
     }
 
-    fn mock_simple_charging_model() -> SimpleChargingModel {
+    fn mock_simple_charging_service() -> Arc<SimpleChargingService> {
         let charging_station_locator = mock_charging_station_locator();
         let starting_soc = Ratio::new::<uom::si::ratio::percent>(50.0);
         let full_soc = Ratio::new::<uom::si::ratio::percent>(100.0);
         let charge_soc_threshold = Ratio::new::<uom::si::ratio::percent>(20.0);
         let valid_power_types = vec![PowerType::DCFC, PowerType::L2].into_iter().collect();
 
-        SimpleChargingModel {
+        Arc::new(SimpleChargingService {
             charging_station_locator,
             starting_soc,
             full_soc,
             charge_soc_threshold,
             valid_power_types,
-        }
+        })
     }
 
-    fn state_model(m: &SimpleChargingModel) -> StateModel {
+    fn state_model(service: Arc<dyn TraversalModelService>) -> StateModel {
         // Create a state model that includes all the required features
         let mut input_features = vec![
             InputFeature::Ratio {
@@ -190,8 +146,8 @@ mod tests {
             },
         ];
 
-        // Add features from the model
-        input_features.extend(m.input_features());
+        // Add features from the service
+        input_features.extend(service.input_features());
 
         // Create output features - we need to provide battery_capacity as an output feature
         let mut output_features = vec![(
@@ -203,8 +159,8 @@ mod tests {
             },
         )];
 
-        // Add features from the model
-        output_features.extend(m.output_features());
+        // Add features from the service
+        output_features.extend(service.output_features());
 
         StateModel::empty()
             .register(input_features, output_features)
@@ -247,8 +203,8 @@ mod tests {
 
     #[test]
     fn test_charging_when_soc_below_threshold() {
-        let model = mock_simple_charging_model();
-        let state_model = state_model(&model);
+        let service = mock_simple_charging_service();
+        let state_model = state_model(service);
         let tree = SearchTree::default();
 
         // Set SOC to 15% (below 20% threshold) and 60 kWh battery
@@ -292,8 +248,8 @@ mod tests {
 
     #[test]
     fn test_no_charging_when_soc_above_threshold() {
-        let model = mock_simple_charging_model();
-        let state_model = state_model(&model);
+        let service = mock_simple_charging_service();
+        let state_model = state_model(service);
         let tree = SearchTree::default();
 
         // Set SOC to 50% (above 20% threshold)
@@ -334,8 +290,8 @@ mod tests {
 
     #[test]
     fn test_no_charging_station_at_vertex() {
-        let model = mock_simple_charging_model();
-        let state_model = state_model(&model);
+        let service = mock_simple_charging_service();
+        let state_model = state_model(service.clone());
         let tree = SearchTree::default();
 
         // Set SOC to 15% (below 20% threshold)
@@ -347,11 +303,11 @@ mod tests {
         let trajectory = mock_trajectory(99);
 
         let charging_model = SimpleChargingModel {
-            charging_station_locator: mock_charging_station_locator(),
-            starting_soc: Ratio::new::<uom::si::ratio::percent>(50.0),
-            full_soc: Ratio::new::<uom::si::ratio::percent>(100.0),
-            charge_soc_threshold: Ratio::new::<uom::si::ratio::percent>(20.0),
-            valid_power_types: vec![PowerType::DCFC, PowerType::L2].into_iter().collect(),
+            charging_station_locator: service.charging_station_locator.clone(),
+            starting_soc: service.starting_soc,
+            full_soc: service.full_soc,
+            charge_soc_threshold: service.charge_soc_threshold,
+            valid_power_types: service.valid_power_types.clone(),
         };
 
         charging_model
@@ -376,8 +332,8 @@ mod tests {
 
     #[test]
     fn test_charging_with_different_power_types() {
-        let model = mock_simple_charging_model();
-        let state_model = state_model(&model);
+        let service = mock_simple_charging_service();
+        let state_model = state_model(service);
         let tree = SearchTree::default();
 
         // Test DC fast charging
@@ -443,8 +399,8 @@ mod tests {
 
     #[test]
     fn test_invalid_power_type() {
-        let model = mock_simple_charging_model();
-        let state_model = state_model(&model);
+        let service = mock_simple_charging_service();
+        let state_model = state_model(service);
         let tree = SearchTree::default();
 
         // Set SOC to 15% (below 20% threshold)
@@ -482,13 +438,14 @@ mod tests {
 
     #[test]
     fn test_model_name_and_features() {
-        let model = mock_simple_charging_model();
+        let service = mock_simple_charging_service();
+        let model = service.build(&serde_json::Value::Null).expect("build failed");
 
         // Test model name
         assert_eq!(model.name(), "Simple Charging Model");
 
-        // Test input features
-        let input_features = model.input_features();
+        // Test input features (from service)
+        let input_features = service.input_features();
         assert_eq!(input_features.len(), 2);
         assert!(input_features.iter().any(|f| match f {
             InputFeature::Ratio { name, .. } => name == fieldname::TRIP_SOC,
@@ -499,8 +456,8 @@ mod tests {
             _ => false,
         }));
 
-        // Test output features
-        let output_features = model.output_features();
+        // Test output features (from service)
+        let output_features = service.output_features();
         assert_eq!(output_features.len(), 3);
         assert!(output_features
             .iter()

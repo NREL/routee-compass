@@ -19,20 +19,6 @@ impl TraversalModel for TemperatureTraversalModel {
     fn name(&self) -> String {
         String::from("Temperature Traversal Model")
     }
-    fn input_features(&self) -> Vec<InputFeature> {
-        vec![]
-    }
-
-    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        vec![(
-            String::from(fieldname::AMBIENT_TEMPERATURE),
-            StateVariableConfig::Temperature {
-                initial: ThermodynamicTemperature::ZERO,
-                accumulator: false,
-                output_unit: Some(TemperatureUnit::Fahrenheit),
-            },
-        )]
-    }
 
     fn traverse_edge(
         &self,

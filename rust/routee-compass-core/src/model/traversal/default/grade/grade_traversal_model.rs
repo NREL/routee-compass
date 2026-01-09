@@ -31,22 +31,6 @@ impl TraversalModel for GradeTraversalModel {
     fn name(&self) -> String {
         String::from("Grade Traversal Model")
     }
-    /// no upstream state dependencies
-    fn input_features(&self) -> Vec<InputFeature> {
-        vec![]
-    }
-
-    //
-    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        vec![(
-            String::from(fieldname::EDGE_GRADE),
-            StateVariableConfig::Ratio {
-                initial: Ratio::ZERO,
-                accumulator: false,
-                output_unit: Some(RatioUnit::default()),
-            },
-        )]
-    }
 
     fn traverse_edge(
         &self,

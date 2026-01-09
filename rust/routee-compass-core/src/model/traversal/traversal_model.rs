@@ -13,14 +13,6 @@ use crate::model::state::{InputFeature, StateModel, StateVariable, StateVariable
 /// [SpeedLookupModel]: super::default::speed_lookup_model::SpeedLookupModel
 pub trait TraversalModel: Send + Sync {
     fn name(&self) -> String;
-    /// list the state variables required as inputs to this traversal model. for
-    /// example, if this traversal model uses a distance metric to compute time, then
-    /// it should list the expected distance state variable here.
-    fn input_features(&self) -> Vec<InputFeature>;
-
-    /// lists the state variables produced by this traversal model. for example,
-    /// if this traversal model produces leg distances, it should specify that here.
-    fn output_features(&self) -> Vec<(String, StateVariableConfig)>;
 
     /// Updates the traversal state by traversing an edge.
     ///

@@ -40,18 +40,6 @@ impl TimeTraversalModel {
 }
 
 impl TraversalModelService for TimeTraversalModel {
-    fn build(
-        &self,
-        _query: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        Ok(Arc::new(self.clone()))
-    }
-}
-
-impl TraversalModel for TimeTraversalModel {
-    fn name(&self) -> String {
-        String::from("Time Traversal Model")
-    }
     fn input_features(&self) -> Vec<InputFeature> {
         vec![
             InputFeature::Distance {
@@ -85,6 +73,19 @@ impl TraversalModel for TimeTraversalModel {
             ));
         }
         features
+    }
+
+    fn build(
+        &self,
+        _query: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        Ok(Arc::new(self.clone()))
+    }
+}
+
+impl TraversalModel for TimeTraversalModel {
+    fn name(&self) -> String {
+        String::from("Time Traversal Model")
     }
 
     fn traverse_edge(

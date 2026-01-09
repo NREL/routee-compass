@@ -20,18 +20,6 @@ use super::elevation_change::ElevationChange;
 pub struct ElevationTraversalModel {}
 
 impl TraversalModelService for ElevationTraversalModel {
-    fn build(
-        &self,
-        _query: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        Ok(Arc::new(self.clone()))
-    }
-}
-
-impl TraversalModel for ElevationTraversalModel {
-    fn name(&self) -> String {
-        String::from("Elevation Traversal Model")
-    }
     fn input_features(&self) -> Vec<InputFeature> {
         vec![
             InputFeature::Distance {
@@ -64,6 +52,19 @@ impl TraversalModel for ElevationTraversalModel {
                 },
             ),
         ]
+    }
+
+    fn build(
+        &self,
+        _query: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        Ok(Arc::new(self.clone()))
+    }
+}
+
+impl TraversalModel for ElevationTraversalModel {
+    fn name(&self) -> String {
+        String::from("Elevation Traversal Model")
     }
 
     /// compute the change in elevation along this edge and store it to the state vector

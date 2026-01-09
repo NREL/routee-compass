@@ -1,4 +1,5 @@
 use super::{traversal_model::TraversalModel, traversal_model_error::TraversalModelError};
+use crate::model::state::{InputFeature, StateVariableConfig};
 use std::sync::Arc;
 
 /// A [`TraversalModelService`] is a persistent builder of [TraversalModel] instances.
@@ -10,6 +11,15 @@ use std::sync::Arc;
 ///
 /// [TraversalModel]: compass_core::model::traversal::traversal_model::TraversalModel
 pub trait TraversalModelService: Send + Sync {
+    /// List the state variables required as inputs to this traversal model. For
+    /// example, if this traversal model uses a distance metric to compute time, then
+    /// it should list the expected distance state variable here.
+    fn input_features(&self) -> Vec<InputFeature>;
+
+    /// Lists the state variables produced by this traversal model. For example,
+    /// if this traversal model produces leg distances, it should specify that here.
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)>;
+
     /// Builds a [TraversalModel] for the incoming query, used as parameters for this
     /// build operation.
     ///
@@ -19,6 +29,7 @@ pub trait TraversalModelService: Send + Sync {
     /// # Arguments
     ///
     /// * `query` - the incoming query which may contain parameters for building the [TraversalModel]
+    /// * `state_model` - the state model used in this search
     ///
     /// # Returns
     ///

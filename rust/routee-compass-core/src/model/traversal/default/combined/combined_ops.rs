@@ -1,35 +1,45 @@
-use crate::model::traversal::{TraversalModel, TraversalModelError};
+use crate::model::traversal::{TraversalModel, TraversalModelError, TraversalModelService};
 use itertools::Itertools;
 use std::sync::Arc;
 use topological_sort;
 
-/// sorts the traversal models such that the inter-model dependencies are sorted.
-/// in other words: a time model depends on a distance calculation <-> the distance model
-/// must appear earlier in the list than the time model.
+/// sorts the traversal models based on service feature declarations such that the inter-model
+/// dependencies are sorted. in other words: a time model depends on a distance calculation <->
+/// the distance model must appear earlier in the list than the time model.
 ///
 /// only confirms that the names match, ignores confirming the feature types match.
 ///
 /// # Arguments
 ///
-/// * `models` - the traversal models to sort
+/// * `services` - the traversal model services
+/// * `models` - the corresponding traversal models built from those services
 ///
 /// # Returns
 ///
 /// Sorted list of models, or an error if dependencies are missing
-pub fn topological_dependency_sort(
+pub fn topological_dependency_sort_services(
+    services: &[Arc<dyn TraversalModelService>],
     models: &[Arc<dyn TraversalModel>],
 ) -> Result<Vec<Arc<dyn TraversalModel>>, TraversalModelError> {
-    let output_features_lookup = models
+    if services.len() != models.len() {
+        return Err(TraversalModelError::BuildError(format!(
+            "services and models must have same length: {} vs {}",
+            services.len(),
+            models.len()
+        )));
+    }
+
+    let output_features_lookup = services
         .iter()
         .enumerate()
-        .flat_map(|(idx, m)| m.output_features().into_iter().map(move |(n, _)| (n, idx)))
+        .flat_map(|(idx, s)| s.output_features().into_iter().map(move |(n, _)| (n, idx)))
         .into_group_map();
 
     // find relationships between model input and output features
     let mut missing_parents: Vec<String> = vec![];
     let mut sort = topological_sort::TopologicalSort::<usize>::new();
-    for (idx, m) in models.iter().enumerate() {
-        let input_features = m.input_features();
+    for (idx, s) in services.iter().enumerate() {
+        let input_features = s.input_features();
         if input_features.is_empty() {
             sort.insert(idx);
         } else {
@@ -84,16 +94,43 @@ pub fn topological_dependency_sort(
     Ok(result)
 }
 
+/// sorts the traversal models such that the inter-model dependencies are sorted.
+/// in other words: a time model depends on a distance calculation <-> the distance model
+/// must appear earlier in the list than the time model.
+///
+/// only confirms that the names match, ignores confirming the feature types match.
+///
+/// # Arguments
+///
+/// * `models` - the traversal models to sort
+///
+/// # Returns
+///
+/// Sorted list of models, or an error if dependencies are missing
+///
+/// # Deprecated
+///
+/// This function is deprecated. Use `topological_dependency_sort_services` instead.
+#[deprecated(
+    since = "0.1.0",
+    note = "Use topological_dependency_sort_services instead, which takes services to access feature information"
+)]
+pub fn topological_dependency_sort(
+    _models: &[Arc<dyn TraversalModel>],
+) -> Result<Vec<Arc<dyn TraversalModel>>, TraversalModelError> {
+    panic!("topological_dependency_sort is deprecated. Use topological_dependency_sort_services instead, which requires both services and models.");
+}
+
 #[cfg(test)]
 mod test {
 
-    use super::topological_dependency_sort;
+    use super::{topological_dependency_sort, topological_dependency_sort_services};
     use crate::{
         algorithm::search::SearchTree,
         model::{
             network::{Edge, Vertex},
             state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-            traversal::{TraversalModel, TraversalModelError},
+            traversal::{TraversalModel, TraversalModelError, TraversalModelService},
         },
     };
     use itertools::Itertools;
@@ -119,43 +156,60 @@ mod test {
             unit: None,
         };
 
-        // mock up models for 6 dimensions, 3 of which have upstream dependencies
-        let distance = MockModel::new(vec![], vec!["distance"]);
-        let speed = MockModel::new(vec![], vec!["speed"]);
-        let time = MockModel::new(
+        // mock up services for 6 dimensions, 3 of which have upstream dependencies
+        let distance_svc = MockModelService::new(vec![], vec!["distance"]);
+        let speed_svc = MockModelService::new(vec![], vec!["speed"]);
+        let time_svc = MockModelService::new(
             vec![distance_feature.clone(), speed_feature.clone()],
             vec!["time"],
         );
-        let grade = MockModel::new(vec![], vec!["grade"]);
-        let elevation = MockModel::new(vec![grade_feature.clone()], vec!["elevation"]);
-        let energy = MockModel::new(
+        let grade_svc = MockModelService::new(vec![], vec!["grade"]);
+        let elevation_svc = MockModelService::new(vec![grade_feature.clone()], vec!["elevation"]);
+        let energy_svc = MockModelService::new(
             vec![distance_feature, speed_feature, grade_feature],
             vec!["energy"],
         );
-        let models: Vec<Arc<dyn TraversalModel>> =
-            vec![energy, elevation, time, grade, speed, distance]
+        let services: Vec<Arc<dyn TraversalModelService>> =
+            vec![energy_svc, elevation_svc, time_svc, grade_svc, speed_svc, distance_svc]
                 .into_iter()
-                .map(|m| {
-                    let am: Arc<dyn TraversalModel> = Arc::new(m);
-                    am
+                .map(|s| {
+                    let svc: Arc<dyn TraversalModelService> = Arc::new(s);
+                    svc
                 })
                 .collect_vec();
+        
+        // Build models from services
+        let models: Vec<Arc<dyn TraversalModel>> = services
+            .iter()
+            .map(|svc| svc.build(&serde_json::Value::Null).expect("build failed"))
+            .collect_vec();
 
         // apply sort and then reconstruct descriptions for each model on the sorted values
-        let sorted = topological_dependency_sort(&models).expect("failure during sort function");
+        let sorted = topological_dependency_sort_services(&services, &models).expect("failure during sort function");
         let sorted_descriptions = sorted
             .iter()
             .map(|m| {
-                let input_features = m.input_features();
+                // Find the matching service for this model by matching names
+                let model_name = m.name();
+                let svc = services.iter()
+                    .find(|s| {
+                        // Build a model from the service to check its name
+                        s.build(&serde_json::Value::Null)
+                            .map(|built| built.name() == model_name)
+                            .unwrap_or(false)
+                    })
+                    .expect("should find matching service");
+                
+                let input_features = svc.input_features();
                 let in_names = if input_features.is_empty() {
                     String::from("*")
                 } else {
-                    m.input_features()
+                    svc.input_features()
                         .iter()
                         .map(|feature| feature.name())
                         .join("+")
                 };
-                let out_name = m.output_features().iter().map(|(n, _)| n).join("");
+                let out_name = svc.output_features().iter().map(|(n, _)| n).join("");
                 format!("{in_names}->{out_name}")
             })
             .collect_vec();
@@ -202,43 +256,57 @@ mod test {
             unit: None,
         };
 
-        // mock up models for 6 dimensions, 3 of which have upstream dependencies
-        let distance = MockModel::new(vec![], vec!["distance"]);
-        let speed = MockModel::new(vec![], vec!["speed"]);
-        let time = MockModel::new(
+        // mock up services for 6 dimensions, 3 of which have upstream dependencies
+        let distance_svc = MockModelService::new(vec![], vec!["distance"]);
+        let speed_svc = MockModelService::new(vec![], vec!["speed"]);
+        let time_svc = MockModelService::new(
             vec![distance_feature.clone(), speed_feature.clone()],
             vec!["time"],
         );
-        let grade = MockModel::new(vec![], vec!["grade"]);
-        let elevation = MockModel::new(vec![grade_feature.clone()], vec!["elevation"]);
-        let energy = MockModel::new(
+        let grade_svc = MockModelService::new(vec![], vec!["grade"]);
+        let elevation_svc = MockModelService::new(vec![grade_feature.clone()], vec!["elevation"]);
+        let energy_svc = MockModelService::new(
             vec![distance_feature, speed_feature, grade_feature, soc_feature],
             vec!["energy", "soc"],
         );
-        let models: Vec<Arc<dyn TraversalModel>> =
-            vec![energy, elevation, time, grade, speed, distance]
+        let services: Vec<Arc<dyn TraversalModelService>> =
+            vec![energy_svc, elevation_svc, time_svc, grade_svc, speed_svc, distance_svc]
                 .into_iter()
-                .map(|m| {
-                    let am: Arc<dyn TraversalModel> = Arc::new(m);
-                    am
+                .map(|s| {
+                    let svc: Arc<dyn TraversalModelService> = Arc::new(s);
+                    svc
                 })
                 .collect_vec();
 
+        // Build models from services
+        let models: Vec<Arc<dyn TraversalModel>> = services
+            .iter()
+            .map(|svc| svc.build(&serde_json::Value::Null).expect("build failed"))
+            .collect_vec();
+
         // apply sort and then reconstruct descriptions for each model on the sorted values
-        let sorted = topological_dependency_sort(&models).expect("failure during sort function");
+        let sorted = topological_dependency_sort_services(&services, &models).expect("failure during sort function");
         let sorted_descriptions = sorted
             .iter()
             .map(|m| {
-                let input_features = m.input_features();
+                // Find the matching service for this model by matching names
+                let model_name = m.name();
+                let svc = services.iter()
+                    .find(|s| {
+                        // Build a model from the service to check its name
+                        s.build(&serde_json::Value::Null)
+                            .map(|built| built.name() == model_name)
+                            .unwrap_or(false)
+                    })
+                    .expect("should find matching service");
+                
+                let input_features = svc.input_features();
                 let in_names = if input_features.is_empty() {
                     String::from("*")
                 } else {
-                    m.input_features()
-                        .iter()
-                        .map(|feature| feature.name())
-                        .join("+")
+                    input_features.iter().map(|f| f.name()).join("+")
                 };
-                let out_name = m.output_features().iter().map(|(n, _)| n).join("+");
+                let out_name = svc.output_features().iter().map(|(n, _)| n).join("+");
                 format!("{in_names}->{out_name}")
             })
             .collect_vec();
@@ -284,14 +352,31 @@ mod test {
         }
     }
 
-    impl TraversalModel for MockModel {
-        fn name(&self) -> String {
-            format!(
-                "Mock Traversal Model: {} -> {}",
-                self.in_features.iter().map(|f| f.name()).join("+"),
-                self.out_features.join("+")
-            )
+    struct MockModelService {
+        in_features: Vec<InputFeature>,
+        out_features: Vec<String>,
+    }
+
+    impl MockModelService {
+        pub fn new(in_features: Vec<InputFeature>, out_features: Vec<&str>) -> MockModelService {
+            MockModelService {
+                in_features,
+                out_features: out_features.into_iter().map(String::from).collect_vec(),
+            }
         }
+    }
+
+    impl TraversalModelService for MockModelService {
+        fn build(
+            &self,
+            _parameters: &serde_json::Value,
+        ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+            Ok(Arc::new(MockModel {
+                in_features: self.in_features.clone(),
+                out_features: self.out_features.clone(),
+            }))
+        }
+
         fn input_features(&self) -> Vec<InputFeature> {
             self.in_features.clone()
         }
@@ -310,6 +395,16 @@ mod test {
                     )
                 })
                 .collect_vec()
+        }
+    }
+
+    impl TraversalModel for MockModel {
+        fn name(&self) -> String {
+            format!(
+                "Mock Traversal Model: {} -> {}",
+                self.in_features.iter().map(|f| f.name()).join("+"),
+                self.out_features.join("+")
+            )
         }
 
         fn traverse_edge(

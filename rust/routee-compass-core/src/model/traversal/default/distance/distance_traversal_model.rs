@@ -127,30 +127,4 @@ impl TraversalModel for DistanceTraversalModel {
         state_model.add_distance_by_index(state, edge_distance_idx, &distance)?;
         Ok(())
     }
-
-    fn input_features(&self) -> Vec<InputFeature> {
-        vec![]
-    }
-
-    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        let mut features = vec![(
-            String::from(fieldname::EDGE_DISTANCE),
-            StateVariableConfig::Distance {
-                initial: Length::ZERO,
-                accumulator: false,
-                output_unit: Some(self.distance_unit),
-            },
-        )];
-        if self.include_trip_distance {
-            features.push((
-                String::from(fieldname::TRIP_DISTANCE),
-                StateVariableConfig::Distance {
-                    initial: Length::ZERO,
-                    accumulator: true,
-                    output_unit: Some(self.distance_unit),
-                },
-            ));
-        }
-        features
-    }
 }

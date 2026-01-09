@@ -1,17 +1,40 @@
 use std::sync::Arc;
 
-use crate::model::traversal::{
-    default::temperature::{
-        ambient_temperature_config::AmbientTemperatureConfig, TemperatureTraversalModel,
+use crate::model::{
+    state::{InputFeature, StateVariableConfig},
+    traversal::{
+        default::{
+            fieldname,
+            temperature::{
+                ambient_temperature_config::AmbientTemperatureConfig, TemperatureTraversalModel,
+            },
+        },
+        TraversalModel, TraversalModelError, TraversalModelService,
     },
-    TraversalModel, TraversalModelError, TraversalModelService,
+    unit::TemperatureUnit,
 };
+use uom::{si::f64::ThermodynamicTemperature, ConstZero};
 
 pub struct TemperatureTraversalService {
     pub default_ambient_temperature: Option<AmbientTemperatureConfig>,
 }
 
 impl TraversalModelService for TemperatureTraversalService {
+    fn input_features(&self) -> Vec<InputFeature> {
+        vec![]
+    }
+
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
+        vec![(
+            String::from(fieldname::AMBIENT_TEMPERATURE),
+            StateVariableConfig::Temperature {
+                initial: ThermodynamicTemperature::ZERO,
+                accumulator: false,
+                output_unit: Some(TemperatureUnit::Fahrenheit),
+            },
+        )]
+    }
+
     fn build(
         &self,
         query: &serde_json::Value,

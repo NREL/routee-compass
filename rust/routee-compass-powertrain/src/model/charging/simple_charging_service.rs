@@ -1,9 +1,14 @@
 use std::{collections::HashSet, str::FromStr, sync::Arc};
 
-use routee_compass_core::model::traversal::{
-    TraversalModel, TraversalModelError, TraversalModelService,
+use routee_compass_core::model::{
+    state::{InputFeature, StateVariableConfig},
+    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
+    unit::TimeUnit,
 };
-use uom::si::f64::Ratio;
+use uom::{
+    si::f64::{Ratio, Time},
+    ConstZero,
+};
 
 use crate::model::{
     charging::{
@@ -11,6 +16,7 @@ use crate::model::{
         simple_charging_model::SimpleChargingModel,
     },
     energy_model_ops::get_query_start_soc,
+    fieldname,
 };
 
 pub struct SimpleChargingService {
@@ -22,6 +28,48 @@ pub struct SimpleChargingService {
 }
 
 impl TraversalModelService for SimpleChargingService {
+    fn input_features(&self) -> Vec<InputFeature> {
+        vec![
+            InputFeature::Ratio {
+                name: fieldname::TRIP_SOC.to_string(),
+                unit: None,
+            },
+            InputFeature::Energy {
+                name: fieldname::BATTERY_CAPACITY.to_string(),
+                unit: None,
+            },
+        ]
+    }
+
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
+        vec![
+            (
+                fieldname::EDGE_TIME.to_string(),
+                StateVariableConfig::Time {
+                    initial: Time::ZERO,
+                    accumulator: false,
+                    output_unit: Some(TimeUnit::default()),
+                },
+            ),
+            (
+                fieldname::TRIP_TIME.to_string(),
+                StateVariableConfig::Time {
+                    initial: Time::ZERO,
+                    accumulator: true,
+                    output_unit: Some(TimeUnit::default()),
+                },
+            ),
+            (
+                fieldname::TRIP_SOC.to_string(),
+                StateVariableConfig::Ratio {
+                    initial: self.starting_soc,
+                    accumulator: true,
+                    output_unit: None,
+                },
+            ),
+        ]
+    }
+
     fn build(
         &self,
         query: &serde_json::Value,

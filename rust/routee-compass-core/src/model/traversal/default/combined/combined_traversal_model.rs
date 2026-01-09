@@ -2,7 +2,7 @@ use crate::{
     algorithm::search::SearchTree,
     model::{
         network::{Edge, Vertex},
-        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        state::{StateModel, StateVariable},
         traversal::{TraversalModel, TraversalModelError},
     },
 };
@@ -31,19 +31,6 @@ impl TraversalModel for CombinedTraversalModel {
                 .collect::<Vec<String>>()
                 .join(", ")
         )
-    }
-    fn input_features(&self) -> Vec<InputFeature> {
-        self.models
-            .iter()
-            .flat_map(|m| m.input_features())
-            .collect()
-    }
-
-    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
-        self.models
-            .iter()
-            .flat_map(|m| m.output_features())
-            .collect()
     }
 
     fn traverse_edge(

@@ -1,5 +1,6 @@
-use routee_compass_core::model::traversal::{
-    TraversalModel, TraversalModelError, TraversalModelService,
+use routee_compass_core::model::{
+    state::{InputFeature, StateVariableConfig},
+    traversal::{TraversalModel, TraversalModelError, TraversalModelService},
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -20,6 +21,22 @@ impl EnergyModelService {
 }
 
 impl TraversalModelService for EnergyModelService {
+    fn input_features(&self) -> Vec<InputFeature> {
+        // Return the union of all input features from all vehicle models
+        self.vehicle_library
+            .values()
+            .flat_map(|service| service.input_features())
+            .collect()
+    }
+
+    fn output_features(&self) -> Vec<(String, StateVariableConfig)> {
+        // Return the union of all output features from all vehicle models
+        self.vehicle_library
+            .values()
+            .flat_map(|service| service.output_features())
+            .collect()
+    }
+
     fn build(
         &self,
         parameters: &serde_json::Value,

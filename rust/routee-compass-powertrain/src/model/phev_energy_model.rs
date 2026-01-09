@@ -105,33 +105,6 @@ impl TryFrom<&Value> for PhevEnergyModel {
 }
 
 impl TraversalModelService for PhevEnergyModel {
-    fn build(
-        &self,
-        query: &serde_json::Value,
-    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        match energy_model_ops::get_query_start_energy(query, self.battery_capacity)? {
-            None => Ok(Arc::new(self.clone())),
-            Some(starting_energy) => {
-                let updated = Self::new(
-                    self.charge_sustain_model.clone(),
-                    self.charge_depleting_model.clone(),
-                    self.battery_capacity,
-                    starting_energy,
-                    self.include_trip_energy,
-                )?;
-                Ok(Arc::new(updated))
-            }
-        }
-    }
-}
-
-impl TraversalModel for PhevEnergyModel {
-    fn name(&self) -> String {
-        format!(
-            "PHEV Energy Model: {} / {}",
-            self.charge_depleting_model.name, self.charge_sustain_model.name
-        )
-    }
     fn input_features(&self) -> Vec<InputFeature> {
         let mut input_features = vec![InputFeature::Distance {
             name: String::from(fieldname::EDGE_DISTANCE),
@@ -210,8 +183,35 @@ impl TraversalModel for PhevEnergyModel {
                 },
             ));
         }
-
         features
+    }
+
+    fn build(
+        &self,
+        query: &serde_json::Value,
+    ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        match energy_model_ops::get_query_start_energy(query, self.battery_capacity)? {
+            None => Ok(Arc::new(self.clone())),
+            Some(starting_energy) => {
+                let updated = Self::new(
+                    self.charge_sustain_model.clone(),
+                    self.charge_depleting_model.clone(),
+                    self.battery_capacity,
+                    starting_energy,
+                    self.include_trip_energy,
+                )?;
+                Ok(Arc::new(updated))
+            }
+        }
+    }
+}
+
+impl TraversalModel for PhevEnergyModel {
+    fn name(&self) -> String {
+        format!(
+            "PHEV Energy Model: {} / {}",
+            self.charge_depleting_model.name, self.charge_sustain_model.name
+        )
     }
 
     fn traverse_edge(
@@ -607,8 +607,8 @@ mod test {
     };
     use routee_compass_core::{
         model::{
-            state::{InputFeature, StateModel, StateVariable},
-            traversal::TraversalModel,
+            state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+            traversal::{TraversalModel, TraversalModelService},
             unit::{EnergyRateUnit, RatioUnit, SpeedUnit},
         },
         testing::mock::traversal_model::TestTraversalModel,
@@ -630,13 +630,13 @@ mod test {
             "2016_CHEVROLET_Volt_Charge_Sustaining",
             EnergyRateUnit::GGPM,
         );
-        let model = mock_phev(
+        let (_service, input_features, output_features) = mock_phev(
             charge_sustaining.clone(),
             charge_depleting.clone(),
             Ratio::new::<uom::si::ratio::percent>(100.0),
             bat_cap,
         );
-        let state_model = state_model(model);
+        let state_model = state_model(input_features, output_features);
         // starting at 100% SOC, we should be able to traverse 1000 meters
         // without using any liquid_fuel
         let distance = Length::new::<uom::si::length::meter>(1000.0);
@@ -705,13 +705,13 @@ mod test {
             "2016_CHEVROLET_Volt_Charge_Sustaining",
             EnergyRateUnit::GGPM,
         );
-        let model = mock_phev(
+        let (_service, input_features, output_features) = mock_phev(
             charge_sustaining.clone(),
             charge_depleting.clone(),
             Ratio::new::<uom::si::ratio::percent>(100.0),
             bat_cap,
         );
-        let state_model = state_model(model);
+        let state_model = state_model(input_features, output_features);
 
         // now let's traverse a really long link to deplete the battery
         let distance = Length::new::<uom::si::length::mile>(100.0);
@@ -802,9 +802,9 @@ mod test {
         charge_depleting: Arc<PredictionModelRecord>,
         starting_soc_percent: Ratio,
         battery_capacity: Energy,
-    ) -> Arc<dyn TraversalModel> {
+    ) -> (Arc<PhevEnergyModel>, Vec<InputFeature>, Vec<(String, StateVariableConfig)>) {
         let starting_battery_energy = battery_capacity * starting_soc_percent;
-        let bev = PhevEnergyModel::new(
+        let phev = PhevEnergyModel::new(
             charge_sustaining,
             charge_depleting,
             battery_capacity,
@@ -813,9 +813,9 @@ mod test {
         )
         .expect("test invariant failed");
 
-        // mock the upstream models via TestTraversalModel
-
-        (TestTraversalModel::new(Arc::new(bev)).expect("test invariant failed")) as _
+        let service = Arc::new(phev);
+        let test_result = TestTraversalModel::new(service.clone()).expect("test invariant failed");
+        (service, test_result.input_features, test_result.output_features)
     }
 
     fn mock_prediction_model(
@@ -877,9 +877,9 @@ mod test {
         Arc::new(model_record)
     }
 
-    fn state_model(m: Arc<dyn TraversalModel>) -> StateModel {
+    fn state_model(input_features: Vec<InputFeature>, output_features: Vec<(String, StateVariableConfig)>) -> StateModel {
         StateModel::empty()
-            .register(m.input_features(), m.output_features())
+            .register(input_features, output_features)
             .expect("test invariant failed")
     }
 
