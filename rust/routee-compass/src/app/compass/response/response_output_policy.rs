@@ -1,6 +1,6 @@
 use super::{
-    response_output_format::ResponseOutputFormat, response_sink::ResponseSink,
-    write_mode::WriteMode,
+    parquet_writer::ParquetPartitionWriter, response_output_format::ResponseOutputFormat,
+    response_sink::ResponseSink, write_mode::WriteMode,
 };
 use crate::app::compass::{response::internal_writer::InternalWriter, CompassAppError};
 use flate2::{write::GzEncoder, Compression};
@@ -24,6 +24,9 @@ pub enum ResponseOutputPolicy {
         file_flush_rate: Option<u64>,
         /// optional argument to specify if we expect to open, append, or overwrite data.
         write_mode: Option<WriteMode>,
+    },
+    Parquet {
+        filename: String,
     },
     Combined {
         policies: Vec<Box<ResponseOutputPolicy>>,
@@ -59,6 +62,20 @@ impl ResponseOutputPolicy {
                     delimiter: format.delimiter(),
                     iterations_per_flush,
                     iterations,
+                })
+            }
+            ResponseOutputPolicy::Parquet { filename } => {
+                let num_threads = rayon::current_num_threads();
+                let writers = (0..num_threads)
+                    .map(|i| {
+                        let fname = format!("{}_part_{}.parquet", filename, i);
+                        let writer = ParquetPartitionWriter::new(fname);
+                        Mutex::new(writer)
+                    })
+                    .collect();
+                Ok(ResponseSink::Parquet {
+                    base_filename: filename.clone(),
+                    writers,
                 })
             }
             ResponseOutputPolicy::Combined { policies } => {
