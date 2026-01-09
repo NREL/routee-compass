@@ -16,28 +16,21 @@ use std::sync::Arc;
 pub struct SpeedTraversalModel {
     engine: Arc<SpeedTraversalEngine>,
     speed_limit: Option<Velocity>,
-    // Cached index for performance
-    edge_speed_idx: Option<usize>,
+    // Pre-resolved index for performance
+    edge_speed_idx: usize,
 }
 
 impl SpeedTraversalModel {
     pub fn new(
         engine: Arc<SpeedTraversalEngine>,
         speed_limit: Option<Velocity>,
+        edge_speed_idx: usize,
     ) -> Result<SpeedTraversalModel, TraversalModelError> {
-        if let Some(max_speed) = speed_limit {
-            Ok(SpeedTraversalModel {
-                engine,
-                speed_limit: Some(max_speed),
-                edge_speed_idx: None,
-            })
-        } else {
-            Ok(SpeedTraversalModel {
-                engine,
-                speed_limit: None,
-                edge_speed_idx: None,
-            })
-        }
+        Ok(SpeedTraversalModel {
+            engine,
+            speed_limit,
+            edge_speed_idx,
+        })
     }
 }
 
@@ -58,18 +51,7 @@ impl TraversalModel for SpeedTraversalModel {
         let lookup_speed = get_speed(&self.engine.speed_table, edge.edge_id)?;
         let speed = apply_speed_limit(lookup_speed, self.speed_limit);
 
-        // Resolve index (or use cached)
-        let edge_speed_idx = match self.edge_speed_idx {
-            Some(idx) => idx,
-            None => state_model.get_index(fieldname::EDGE_SPEED).map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to find EDGE_SPEED index: {}",
-                    e
-                ))
-            })?,
-        };
-
-        state_model.set_speed_by_index(state, edge_speed_idx, &speed)?;
+        state_model.set_speed_by_index(state, self.edge_speed_idx, &speed)?;
         Ok(())
     }
 
@@ -86,18 +68,7 @@ impl TraversalModel for SpeedTraversalModel {
             None => self.engine.max_speed,
         };
 
-        // Resolve index (or use cached)
-        let edge_speed_idx = match self.edge_speed_idx {
-            Some(idx) => idx,
-            None => state_model.get_index(fieldname::EDGE_SPEED).map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to find EDGE_SPEED index: {}",
-                    e
-                ))
-            })?,
-        };
-
-        state_model.set_speed_by_index(state, edge_speed_idx, &speed)?;
+        state_model.set_speed_by_index(state, self.edge_speed_idx, &speed)?;
 
         Ok(())
     }
@@ -230,9 +201,34 @@ mod tests {
         let test_regular_result =
             TestTraversalModel::new(regular_service.clone()).expect("test invariant failed");
 
+        // Create state model for building the limited model
+        let input_features = limited_service.input_features();
+        let output_features = limited_service.output_features();
+
+        // First register mock outputs for the inputs
+        let mock_output_features: Vec<(String, StateVariableConfig)> = input_features
+            .iter()
+            .map(|input_feature| {
+                crate::testing::mock::traversal_model::MockUpstreamModel::input_feature_to_output_config(input_feature)
+            })
+            .collect();
+        let state_model_with_mocks = Arc::new(
+            StateModel::empty()
+                .register(vec![], mock_output_features)
+                .expect("failed to register mock features"),
+        );
+        let state_model = Arc::new(
+            state_model_with_mocks
+                .register(input_features, output_features)
+                .expect("failed to register features"),
+        );
+
         // For the limited version, we need to build with speed limit parameter
         let limited_model = limited_service
-            .build(&serde_json::json!({"speed_limit": 5.0, "speed_limit_unit": "kph"}))
+            .build(
+                &serde_json::json!({"speed_limit": 5.0, "speed_limit_unit": "kph"}),
+                state_model,
+            )
             .unwrap();
         let upstream_mock = Arc::new(
             crate::testing::mock::traversal_model::MockUpstreamModel::new_upstream_from(

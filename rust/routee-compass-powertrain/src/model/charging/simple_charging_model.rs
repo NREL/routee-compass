@@ -89,7 +89,10 @@ mod tests {
         util::geo::InternalCoord,
     };
     use std::collections::HashMap;
-    use uom::{si::f64::{Energy, Length, Power, Ratio, Time}, ConstZero};
+    use uom::{
+        si::f64::{Energy, Length, Power, Ratio, Time},
+        ConstZero,
+    };
 
     fn mock_charging_station_locator() -> Arc<ChargingStationLocator> {
         let mut stations = HashMap::new();
@@ -438,8 +441,45 @@ mod tests {
 
     #[test]
     fn test_model_name_and_features() {
+        use routee_compass_core::testing::mock::traversal_model::MockUpstreamModel;
+
         let service = mock_simple_charging_service();
-        let model = service.build(&serde_json::Value::Null).expect("build failed");
+
+        // Create state model for building
+        let input_features = service.input_features();
+        let output_features = service.output_features();
+
+        // Filter out input features that are also output features (like trip_soc)
+        // Those shouldn't be mocked since the service updates them
+        let output_feature_names: std::collections::HashSet<String> = output_features
+            .iter()
+            .map(|(name, _)| name.clone())
+            .collect();
+        let inputs_to_mock: Vec<InputFeature> = input_features
+            .iter()
+            .filter(|f| !output_feature_names.contains(&f.name()))
+            .cloned()
+            .collect();
+
+        // First register mock outputs for the inputs that aren't also outputs
+        let mock_output_features: Vec<(String, StateVariableConfig)> = inputs_to_mock
+            .iter()
+            .map(|input_feature| MockUpstreamModel::input_feature_to_output_config(input_feature))
+            .collect();
+        let state_model_with_mocks = Arc::new(
+            StateModel::empty()
+                .register(vec![], mock_output_features)
+                .expect("failed to register mock features"),
+        );
+        let state_model = Arc::new(
+            state_model_with_mocks
+                .register(input_features.clone(), output_features.clone())
+                .expect("failed to register features"),
+        );
+
+        let model = service
+            .build(&serde_json::Value::Null, state_model)
+            .expect("build failed");
 
         // Test model name
         assert_eq!(model.name(), "Simple Charging Model");

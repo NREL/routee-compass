@@ -1,5 +1,5 @@
 use super::DistanceTraversalModel;
-use crate::model::state::{InputFeature, StateVariableConfig};
+use crate::model::state::{InputFeature, StateModel, StateVariableConfig};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::TraversalModelError;
@@ -56,10 +56,37 @@ impl TraversalModelService for DistanceTraversalService {
     fn build(
         &self,
         _parameters: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        let edge_distance_idx = state_model
+            .get_index(fieldname::EDGE_DISTANCE)
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Failed to find EDGE_DISTANCE index: {}",
+                    e
+                ))
+            })?;
+
+        let trip_distance_idx = if self.include_trip_distance {
+            Some(
+                state_model
+                    .get_index(fieldname::TRIP_DISTANCE)
+                    .map_err(|e| {
+                        TraversalModelError::BuildError(format!(
+                            "Failed to find TRIP_DISTANCE index: {}",
+                            e
+                        ))
+                    })?,
+            )
+        } else {
+            None
+        };
+
         let m: Arc<dyn TraversalModel> = Arc::new(DistanceTraversalModel::new(
             self.distance_unit,
             self.include_trip_distance,
+            edge_distance_idx,
+            trip_distance_idx,
         ));
         Ok(m)
     }

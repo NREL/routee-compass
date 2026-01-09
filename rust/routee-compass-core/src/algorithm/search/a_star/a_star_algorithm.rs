@@ -339,14 +339,8 @@ mod tests {
 
     fn build_search_instance(graph: Arc<Graph>) -> SearchInstance {
         let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
-        let traversal_service = Arc::new(DistanceTraversalService::new(
-            DistanceUnit::default(),
-            true,
-        ));
-        let traversal_model = traversal_service
-            .build(&serde_json::json!({}))
-            .unwrap();
-
+        let traversal_service =
+            Arc::new(DistanceTraversalService::new(DistanceUnit::default(), true));
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process
         let state_model = Arc::new(
@@ -357,6 +351,11 @@ mod tests {
                 )
                 .unwrap(),
         );
+
+        let traversal_model = traversal_service
+            .build(&serde_json::json!({}), state_model.clone())
+            .unwrap();
+
         let cost_model = CostModel::new(
             // vec![(String::from("distance"), 0usize)],
             Arc::new(HashMap::from([(String::from("trip_distance"), 1.0)])),

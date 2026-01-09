@@ -30,12 +30,12 @@ pub struct PhevEnergyModel {
     pub battery_capacity: Energy,
     pub starting_soc: Ratio,
     pub include_trip_energy: bool,
-    // Cached indices for performance
-    edge_distance_idx: Option<usize>,
-    trip_soc_idx: Option<usize>,
+    // Pre-resolved indices for performance
+    edge_distance_idx: usize,
+    trip_soc_idx: usize,
     trip_energy_elec_idx: Option<usize>,
-    edge_energy_elec_idx: Option<usize>,
-    edge_energy_liquid_idx: Option<usize>,
+    edge_energy_elec_idx: usize,
+    edge_energy_liquid_idx: usize,
     trip_energy_liquid_idx: Option<usize>,
 }
 
@@ -46,6 +46,12 @@ impl PhevEnergyModel {
         battery_capacity: Energy,
         starting_battery_energy: Energy,
         include_trip_energy: bool,
+        edge_distance_idx: usize,
+        trip_soc_idx: usize,
+        trip_energy_elec_idx: Option<usize>,
+        edge_energy_elec_idx: usize,
+        edge_energy_liquid_idx: usize,
+        trip_energy_liquid_idx: Option<usize>,
     ) -> Result<Self, TraversalModelError> {
         let starting_soc = energy_model_ops::soc_from_energy(
             starting_battery_energy,
@@ -60,12 +66,12 @@ impl PhevEnergyModel {
             battery_capacity,
             starting_soc,
             include_trip_energy,
-            edge_distance_idx: None,
-            trip_soc_idx: None,
-            trip_energy_elec_idx: None,
-            edge_energy_elec_idx: None,
-            edge_energy_liquid_idx: None,
-            trip_energy_liquid_idx: None,
+            edge_distance_idx,
+            trip_soc_idx,
+            trip_energy_elec_idx,
+            edge_energy_elec_idx,
+            edge_energy_liquid_idx,
+            trip_energy_liquid_idx,
         })
     }
 }
@@ -99,6 +105,12 @@ impl TryFrom<&Value> for PhevEnergyModel {
             battery_capacity,
             battery_capacity,
             include_trip_energy,
+            0,    // dummy edge_distance_idx
+            0,    // dummy trip_soc_idx
+            None, // dummy trip_energy_elec_idx
+            0,    // dummy edge_energy_elec_idx
+            0,    // dummy edge_energy_liquid_idx
+            None, // dummy trip_energy_liquid_idx
         )?;
         Ok(bev)
     }
@@ -189,18 +201,102 @@ impl TraversalModelService for PhevEnergyModel {
     fn build(
         &self,
         query: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
+        let edge_distance_idx = state_model
+            .get_index(fieldname::EDGE_DISTANCE)
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Failed to find EDGE_DISTANCE index: {}",
+                    e
+                ))
+            })?;
+
+        let trip_soc_idx = state_model.get_index(fieldname::TRIP_SOC).map_err(|e| {
+            TraversalModelError::BuildError(format!("Failed to find TRIP_SOC index: {}", e))
+        })?;
+
+        let edge_energy_elec_idx = state_model
+            .get_index(fieldname::EDGE_ENERGY_ELECTRIC)
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Failed to find EDGE_ENERGY_ELECTRIC index: {}",
+                    e
+                ))
+            })?;
+
+        let edge_energy_liquid_idx = state_model
+            .get_index(fieldname::EDGE_ENERGY_LIQUID)
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Failed to find EDGE_ENERGY_LIQUID index: {}",
+                    e
+                ))
+            })?;
+
+        let trip_energy_elec_idx = if self.include_trip_energy {
+            Some(
+                state_model
+                    .get_index(fieldname::TRIP_ENERGY_ELECTRIC)
+                    .map_err(|e| {
+                        TraversalModelError::BuildError(format!(
+                            "Failed to find TRIP_ENERGY_ELECTRIC index: {}",
+                            e
+                        ))
+                    })?,
+            )
+        } else {
+            None
+        };
+
+        let trip_energy_liquid_idx = if self.include_trip_energy {
+            Some(
+                state_model
+                    .get_index(fieldname::TRIP_ENERGY_LIQUID)
+                    .map_err(|e| {
+                        TraversalModelError::BuildError(format!(
+                            "Failed to find TRIP_ENERGY_LIQUID index: {}",
+                            e
+                        ))
+                    })?,
+            )
+        } else {
+            None
+        };
+
         match energy_model_ops::get_query_start_energy(query, self.battery_capacity)? {
-            None => Ok(Arc::new(self.clone())),
-            Some(starting_energy) => {
-                let updated = Self::new(
+            None => {
+                let starting_energy = self.starting_soc * self.battery_capacity;
+                let model = Self::new(
                     self.charge_sustain_model.clone(),
                     self.charge_depleting_model.clone(),
                     self.battery_capacity,
                     starting_energy,
                     self.include_trip_energy,
+                    edge_distance_idx,
+                    trip_soc_idx,
+                    trip_energy_elec_idx,
+                    edge_energy_elec_idx,
+                    edge_energy_liquid_idx,
+                    trip_energy_liquid_idx,
                 )?;
-                Ok(Arc::new(updated))
+                Ok(Arc::new(model))
+            }
+            Some(starting_energy) => {
+                let model = Self::new(
+                    self.charge_sustain_model.clone(),
+                    self.charge_depleting_model.clone(),
+                    self.battery_capacity,
+                    starting_energy,
+                    self.include_trip_energy,
+                    edge_distance_idx,
+                    trip_soc_idx,
+                    trip_energy_elec_idx,
+                    edge_energy_elec_idx,
+                    edge_energy_liquid_idx,
+                    trip_energy_liquid_idx,
+                )?;
+                Ok(Arc::new(model))
             }
         }
     }
@@ -221,96 +317,18 @@ impl TraversalModel for PhevEnergyModel {
         _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        // Resolve indices (or use cached)
-        let edge_distance_idx = match self.edge_distance_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_DISTANCE)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_DISTANCE index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let trip_soc_idx = match self.trip_soc_idx {
-            Some(idx) => idx,
-            None => state_model.get_index(fieldname::TRIP_SOC).map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to find TRIP_SOC index: {}",
-                    e
-                ))
-            })?,
-        };
-        let edge_energy_elec_idx = match self.edge_energy_elec_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_ENERGY_ELECTRIC)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_ENERGY_ELECTRIC index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let edge_energy_liquid_idx = match self.edge_energy_liquid_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_ENERGY_LIQUID)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_ENERGY_LIQUID index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let trip_energy_elec_idx = if self.include_trip_energy {
-            match self.trip_energy_elec_idx {
-                Some(idx) => Some(idx),
-                None => Some(
-                    state_model
-                        .get_index(fieldname::TRIP_ENERGY_ELECTRIC)
-                        .map_err(|e| {
-                            TraversalModelError::TraversalModelFailure(format!(
-                                "Failed to find TRIP_ENERGY_ELECTRIC index: {}",
-                                e
-                            ))
-                        })?,
-                ),
-            }
-        } else {
-            None
-        };
-        let trip_energy_liquid_idx = if self.include_trip_energy {
-            match self.trip_energy_liquid_idx {
-                Some(idx) => Some(idx),
-                None => Some(
-                    state_model
-                        .get_index(fieldname::TRIP_ENERGY_LIQUID)
-                        .map_err(|e| {
-                            TraversalModelError::TraversalModelFailure(format!(
-                                "Failed to find TRIP_ENERGY_LIQUID index: {}",
-                                e
-                            ))
-                        })?,
-                ),
-            }
-        } else {
-            None
-        };
-
         phev_traversal(
             state,
             state_model,
             self.charge_depleting_model.clone(),
             self.charge_sustain_model.clone(),
             self.battery_capacity,
-            edge_distance_idx,
-            trip_soc_idx,
-            edge_energy_elec_idx,
-            edge_energy_liquid_idx,
-            trip_energy_elec_idx,
-            trip_energy_liquid_idx,
+            self.edge_distance_idx,
+            self.trip_soc_idx,
+            self.edge_energy_elec_idx,
+            self.edge_energy_liquid_idx,
+            self.trip_energy_elec_idx,
+            self.trip_energy_liquid_idx,
             false,
         )
     }
@@ -323,96 +341,18 @@ impl TraversalModel for PhevEnergyModel {
         _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        // Resolve indices (or use cached)
-        let edge_distance_idx = match self.edge_distance_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_DISTANCE)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_DISTANCE index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let trip_soc_idx = match self.trip_soc_idx {
-            Some(idx) => idx,
-            None => state_model.get_index(fieldname::TRIP_SOC).map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to find TRIP_SOC index: {}",
-                    e
-                ))
-            })?,
-        };
-        let edge_energy_elec_idx = match self.edge_energy_elec_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_ENERGY_ELECTRIC)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_ENERGY_ELECTRIC index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let edge_energy_liquid_idx = match self.edge_energy_liquid_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_ENERGY_LIQUID)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_ENERGY_LIQUID index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let trip_energy_elec_idx = if self.include_trip_energy {
-            match self.trip_energy_elec_idx {
-                Some(idx) => Some(idx),
-                None => Some(
-                    state_model
-                        .get_index(fieldname::TRIP_ENERGY_ELECTRIC)
-                        .map_err(|e| {
-                            TraversalModelError::TraversalModelFailure(format!(
-                                "Failed to find TRIP_ENERGY_ELECTRIC index: {}",
-                                e
-                            ))
-                        })?,
-                ),
-            }
-        } else {
-            None
-        };
-        let trip_energy_liquid_idx = if self.include_trip_energy {
-            match self.trip_energy_liquid_idx {
-                Some(idx) => Some(idx),
-                None => Some(
-                    state_model
-                        .get_index(fieldname::TRIP_ENERGY_LIQUID)
-                        .map_err(|e| {
-                            TraversalModelError::TraversalModelFailure(format!(
-                                "Failed to find TRIP_ENERGY_LIQUID index: {}",
-                                e
-                            ))
-                        })?,
-                ),
-            }
-        } else {
-            None
-        };
-
         phev_traversal(
             state,
             state_model,
             self.charge_depleting_model.clone(),
             self.charge_sustain_model.clone(),
             self.battery_capacity,
-            edge_distance_idx,
-            trip_soc_idx,
-            edge_energy_elec_idx,
-            edge_energy_liquid_idx,
-            trip_energy_elec_idx,
-            trip_energy_liquid_idx,
+            self.edge_distance_idx,
+            self.trip_soc_idx,
+            self.edge_energy_elec_idx,
+            self.edge_energy_liquid_idx,
+            self.trip_energy_elec_idx,
+            self.trip_energy_liquid_idx,
             true,
         )
     }
@@ -802,7 +742,11 @@ mod test {
         charge_depleting: Arc<PredictionModelRecord>,
         starting_soc_percent: Ratio,
         battery_capacity: Energy,
-    ) -> (Arc<PhevEnergyModel>, Vec<InputFeature>, Vec<(String, StateVariableConfig)>) {
+    ) -> (
+        Arc<PhevEnergyModel>,
+        Vec<InputFeature>,
+        Vec<(String, StateVariableConfig)>,
+    ) {
         let starting_battery_energy = battery_capacity * starting_soc_percent;
         let phev = PhevEnergyModel::new(
             charge_sustaining,
@@ -810,12 +754,22 @@ mod test {
             battery_capacity,
             starting_battery_energy,
             true,
+            0,       // edge_distance_idx - dummy value for test
+            1,       // trip_soc_idx
+            Some(2), // trip_energy_elec_idx
+            3,       // edge_energy_elec_idx
+            4,       // edge_energy_liquid_idx
+            Some(5), // trip_energy_liquid_idx
         )
         .expect("test invariant failed");
 
         let service = Arc::new(phev);
         let test_result = TestTraversalModel::new(service.clone()).expect("test invariant failed");
-        (service, test_result.input_features, test_result.output_features)
+        (
+            service,
+            test_result.input_features,
+            test_result.output_features,
+        )
     }
 
     fn mock_prediction_model(
@@ -877,7 +831,10 @@ mod test {
         Arc::new(model_record)
     }
 
-    fn state_model(input_features: Vec<InputFeature>, output_features: Vec<(String, StateVariableConfig)>) -> StateModel {
+    fn state_model(
+        input_features: Vec<InputFeature>,
+        output_features: Vec<(String, StateVariableConfig)>,
+    ) -> StateModel {
         StateModel::empty()
             .register(input_features, output_features)
             .expect("test invariant failed")

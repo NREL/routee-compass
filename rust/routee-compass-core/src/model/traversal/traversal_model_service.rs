@@ -1,5 +1,5 @@
 use super::{traversal_model::TraversalModel, traversal_model_error::TraversalModelError};
-use crate::model::state::{InputFeature, StateVariableConfig};
+use crate::model::state::{InputFeature, StateModel, StateVariableConfig};
 use std::sync::Arc;
 
 /// A [`TraversalModelService`] is a persistent builder of [TraversalModel] instances.
@@ -39,5 +39,6 @@ pub trait TraversalModelService: Send + Sync {
     fn build(
         &self,
         query: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError>;
 }

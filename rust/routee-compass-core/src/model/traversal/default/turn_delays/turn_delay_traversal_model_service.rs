@@ -1,6 +1,6 @@
 use super::TurnDelayTraversalModel;
 use super::TurnDelayTraversalModelEngine;
-use crate::model::state::{InputFeature, StateVariableConfig};
+use crate::model::state::{InputFeature, StateModel, StateVariableConfig};
 use crate::model::traversal::default::fieldname;
 use crate::model::traversal::TraversalModel;
 use crate::model::traversal::TraversalModelError;
@@ -56,6 +56,7 @@ impl TraversalModelService for TurnDelayTraversalModelService {
     fn build(
         &self,
         _query: &serde_json::Value,
+        _state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let model = TurnDelayTraversalModel::new(self.engine.clone(), self.include_trip_time);
         Ok(Arc::new(model))

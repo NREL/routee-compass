@@ -18,7 +18,13 @@ impl TraversalModelBuilder for TimeTraversalBuilder {
                     "failed to read time traversal model configuration: {e}"
                 ))
             })?;
-        let model = TimeTraversalModel::new(config);
+        // Note: indices are resolved during the build() call on the service
+        let model = TimeTraversalModel::new(
+            config, 0,    // dummy value, will be set in build()
+            0,    // dummy value, will be set in build()
+            0,    // dummy value, will be set in build()
+            None, // dummy value, will be set in build()
+        );
         let service = Arc::new(model);
         Ok(service)
     }

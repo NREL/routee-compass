@@ -1,6 +1,6 @@
 use super::{CustomTraversalEngine, CustomTraversalModel};
 use crate::model::{
-    state::{InputFeature, StateVariableConfig},
+    state::{InputFeature, StateModel, StateVariableConfig},
     traversal::{
         traversal_model::TraversalModel, traversal_model_error::TraversalModelError,
         traversal_model_service::TraversalModelService,
@@ -26,6 +26,7 @@ impl TraversalModelService for CustomTraversalService {
     fn build(
         &self,
         _parameters: &serde_json::Value,
+        _state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let model = CustomTraversalModel::new(self.engine.clone());
         Ok(Arc::new(model))

@@ -1,9 +1,7 @@
 use super::{GradeTraversalEngine, GradeTraversalModel};
 use crate::model::{
-    state::{InputFeature, StateVariableConfig},
-    traversal::{
-        default::fieldname, TraversalModel, TraversalModelError, TraversalModelService,
-    },
+    state::{InputFeature, StateModel, StateVariableConfig},
+    traversal::{default::fieldname, TraversalModel, TraversalModelError, TraversalModelService},
     unit::RatioUnit,
 };
 use std::sync::Arc;
@@ -38,8 +36,13 @@ impl TraversalModelService for GradeTraversalService {
     fn build(
         &self,
         _query: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        let model = GradeTraversalModel::new(self.engine.clone());
+        let edge_grade_idx = state_model.get_index(fieldname::EDGE_GRADE).map_err(|e| {
+            TraversalModelError::BuildError(format!("Failed to find EDGE_GRADE index: {}", e))
+        })?;
+
+        let model = GradeTraversalModel::new(self.engine.clone(), edge_grade_idx);
         Ok(Arc::new(model))
     }
 }

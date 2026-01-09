@@ -17,23 +17,26 @@ use uom::{si::f64::Energy, ConstZero};
 pub struct IceEnergyModel {
     pub prediction_model_record: Arc<PredictionModelRecord>,
     pub include_trip_energy: bool,
-    // Cached indices for performance
-    edge_distance_idx: Option<usize>,
-    edge_energy_idx: Option<usize>,
+    // Pre-resolved indices for performance
+    edge_distance_idx: usize,
+    edge_energy_idx: usize,
     trip_energy_idx: Option<usize>,
 }
 
 impl IceEnergyModel {
     pub fn new(
-        prediction_model_record: PredictionModelRecord,
+        prediction_model_record: Arc<PredictionModelRecord>,
         include_trip_energy: bool,
+        edge_distance_idx: usize,
+        edge_energy_idx: usize,
+        trip_energy_idx: Option<usize>,
     ) -> Result<Self, TraversalModelError> {
         Ok(Self {
-            prediction_model_record: Arc::new(prediction_model_record),
+            prediction_model_record,
             include_trip_energy,
-            edge_distance_idx: None,
-            edge_energy_idx: None,
-            trip_energy_idx: None,
+            edge_distance_idx,
+            edge_energy_idx,
+            trip_energy_idx,
         })
     }
 }
@@ -81,8 +84,49 @@ impl TraversalModelService for IceEnergyModel {
     fn build(
         &self,
         _query: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        Ok(Arc::new(self.clone()))
+        let edge_distance_idx = state_model
+            .get_index(fieldname::EDGE_DISTANCE)
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Failed to find EDGE_DISTANCE index: {}",
+                    e
+                ))
+            })?;
+
+        let edge_energy_idx = state_model
+            .get_index(fieldname::EDGE_ENERGY_LIQUID)
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Failed to find EDGE_ENERGY_LIQUID index: {}",
+                    e
+                ))
+            })?;
+
+        let trip_energy_idx = if self.include_trip_energy {
+            Some(
+                state_model
+                    .get_index(fieldname::TRIP_ENERGY_LIQUID)
+                    .map_err(|e| {
+                        TraversalModelError::BuildError(format!(
+                            "Failed to find TRIP_ENERGY_LIQUID index: {}",
+                            e
+                        ))
+                    })?,
+            )
+        } else {
+            None
+        };
+
+        let model = IceEnergyModel::new(
+            self.prediction_model_record.clone(),
+            self.include_trip_energy,
+            edge_distance_idx,
+            edge_energy_idx,
+            trip_energy_idx,
+        )?;
+        Ok(Arc::new(model))
     }
 }
 
@@ -104,7 +148,14 @@ impl TryFrom<&Value> for IceEnergyModel {
             },
             None => true
         };
-        let ice_model = IceEnergyModel::new(prediction_model, include_trip_energy)?;
+        // Note: indices are dummy values and will be set properly in build()
+        let ice_model = IceEnergyModel::new(
+            Arc::new(prediction_model),
+            include_trip_energy,
+            0,    // dummy edge_distance_idx
+            0,    // dummy edge_energy_idx
+            None, // dummy trip_energy_idx
+        )?;
         Ok(ice_model)
     }
 }
@@ -121,54 +172,13 @@ impl TraversalModel for IceEnergyModel {
         _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        // Resolve indices (or use cached)
-        let edge_distance_idx = match self.edge_distance_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_DISTANCE)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_DISTANCE index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let edge_energy_idx = match self.edge_energy_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_ENERGY_LIQUID)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_ENERGY_LIQUID index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let trip_energy_idx = if self.include_trip_energy {
-            match self.trip_energy_idx {
-                Some(idx) => Some(idx),
-                None => Some(
-                    state_model
-                        .get_index(fieldname::TRIP_ENERGY_LIQUID)
-                        .map_err(|e| {
-                            TraversalModelError::TraversalModelFailure(format!(
-                                "Failed to find TRIP_ENERGY_LIQUID index: {}",
-                                e
-                            ))
-                        })?,
-                ),
-            }
-        } else {
-            None
-        };
-
         ice_traversal(
             state,
             state_model,
             self.prediction_model_record.clone(),
-            edge_distance_idx,
-            edge_energy_idx,
-            trip_energy_idx,
+            self.edge_distance_idx,
+            self.edge_energy_idx,
+            self.trip_energy_idx,
             false,
         )
     }
@@ -180,54 +190,13 @@ impl TraversalModel for IceEnergyModel {
         _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        // Resolve indices (or use cached)
-        let edge_distance_idx = match self.edge_distance_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_DISTANCE)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_DISTANCE index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let edge_energy_idx = match self.edge_energy_idx {
-            Some(idx) => idx,
-            None => state_model
-                .get_index(fieldname::EDGE_ENERGY_LIQUID)
-                .map_err(|e| {
-                    TraversalModelError::TraversalModelFailure(format!(
-                        "Failed to find EDGE_ENERGY_LIQUID index: {}",
-                        e
-                    ))
-                })?,
-        };
-        let trip_energy_idx = if self.include_trip_energy {
-            match self.trip_energy_idx {
-                Some(idx) => Some(idx),
-                None => Some(
-                    state_model
-                        .get_index(fieldname::TRIP_ENERGY_LIQUID)
-                        .map_err(|e| {
-                            TraversalModelError::TraversalModelFailure(format!(
-                                "Failed to find TRIP_ENERGY_LIQUID index: {}",
-                                e
-                            ))
-                        })?,
-                ),
-            }
-        } else {
-            None
-        };
-
         ice_traversal(
             state,
             state_model,
             self.prediction_model_record.clone(),
-            edge_distance_idx,
-            edge_energy_idx,
-            trip_energy_idx,
+            self.edge_distance_idx,
+            self.edge_energy_idx,
+            self.trip_energy_idx,
             true,
         )
     }

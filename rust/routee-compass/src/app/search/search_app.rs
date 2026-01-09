@@ -150,7 +150,7 @@ impl SearchApp {
         let traversal_models = self
             .traversal_model_services
             .iter()
-            .map(|m| m.build(query))
+            .map(|m| m.build(query, state_model.clone()))
             .collect::<Result<Vec<_>, _>>()?;
 
         let cost_model = self

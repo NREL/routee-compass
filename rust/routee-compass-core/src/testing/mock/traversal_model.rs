@@ -2,7 +2,7 @@ use uom::ConstZero;
 
 use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::{CustomVariableConfig, InputFeature};
+use crate::model::state::{CustomVariableConfig, InputFeature, StateModel};
 use crate::model::traversal::{TraversalModel, TraversalModelService};
 use crate::model::{
     state::StateVariableConfig,
@@ -27,27 +27,45 @@ impl TestTraversalModel {
     pub fn new(
         service: Arc<dyn TraversalModelService>,
     ) -> Result<TestTraversalModelResult, TraversalModelError> {
-        let model = service.build(&serde_json::json!({}))?;
+        let input_features = service.input_features();
+        let output_features = service.output_features();
+
+        // First, convert input features to mock output features so they're available
+        let mock_output_features: Vec<(String, StateVariableConfig)> = input_features
+            .iter()
+            .map(|input_feature| MockUpstreamModel::input_feature_to_output_config(input_feature))
+            .collect();
+
+        // Register mock outputs first (with no inputs, since they're "provided" by the mock)
+        let state_model_with_mocks =
+            Arc::new(StateModel::empty().register(vec![], mock_output_features.clone())?);
+
+        // Then register the actual service outputs (its inputs are now satisfied by mock outputs)
+        let state_model = Arc::new(
+            state_model_with_mocks.register(input_features.clone(), output_features.clone())?,
+        );
+
+        let model = service.build(&serde_json::json!({}), state_model)?;
         let upstream: Box<dyn TraversalModel> =
             Box::new(MockUpstreamModel::new_upstream_from(service.clone()));
         let wrapped: Arc<dyn TraversalModel> = Arc::new(CombinedTraversalModel::new(vec![
             Arc::from(upstream),
             model.clone(),
         ]));
-        
+
         // Collect all input features from the service and convert them to output features for mocking
-        let mut output_features: Vec<(String, StateVariableConfig)> = Vec::new();
+        let mut final_output_features: Vec<(String, StateVariableConfig)> = Vec::new();
         for input_feature in service.input_features().iter() {
             let output = MockUpstreamModel::input_feature_to_output_config(input_feature);
-            output_features.push(output);
+            final_output_features.push(output);
         }
         // Add the actual output features from the service
-        output_features.extend(service.output_features());
-        
+        final_output_features.extend(service.output_features());
+
         Ok(TestTraversalModelResult {
             model: wrapped,
             input_features: vec![],
-            output_features,
+            output_features: final_output_features,
         })
     }
 }
@@ -144,9 +162,9 @@ impl MockUpstreamModel {
             output_features,
         }
     }
-    
+
     /// Helper function to convert an InputFeature to a StateVariableConfig for mocking
-    fn input_feature_to_output_config(feature: &InputFeature) -> (String, StateVariableConfig) {
+    pub fn input_feature_to_output_config(feature: &InputFeature) -> (String, StateVariableConfig) {
         match feature {
             InputFeature::Distance { name, .. } => (
                 name.clone(),

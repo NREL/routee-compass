@@ -40,6 +40,7 @@ impl TraversalModelService for EnergyModelService {
     fn build(
         &self,
         parameters: &serde_json::Value,
+        state_model: Arc<routee_compass_core::model::state::StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let model_name = parameters
             .get("model_name")
@@ -62,7 +63,7 @@ impl TraversalModelService for EnergyModelService {
                     .join(",")
             ))
         })?;
-        let model = service.build(parameters)?;
+        let model = service.build(parameters, state_model)?;
         Ok(model)
     }
 }

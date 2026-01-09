@@ -14,15 +14,15 @@ use std::sync::Arc;
 
 pub struct GradeTraversalModel {
     pub engine: Arc<GradeTraversalEngine>,
-    // Cached index for performance
-    edge_grade_idx: Option<usize>,
+    // Pre-resolved index for performance
+    edge_grade_idx: usize,
 }
 
 impl GradeTraversalModel {
-    pub fn new(engine: Arc<GradeTraversalEngine>) -> GradeTraversalModel {
+    pub fn new(engine: Arc<GradeTraversalEngine>, edge_grade_idx: usize) -> GradeTraversalModel {
         GradeTraversalModel {
             engine,
-            edge_grade_idx: None,
+            edge_grade_idx,
         }
     }
 }
@@ -42,18 +42,7 @@ impl TraversalModel for GradeTraversalModel {
         let (_, edge, _) = trajectory;
         let grade = self.engine.get_grade(edge.edge_id)?;
 
-        // Resolve index (or use cached)
-        let edge_grade_idx = match self.edge_grade_idx {
-            Some(idx) => idx,
-            None => state_model.get_index(fieldname::EDGE_GRADE).map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to find EDGE_GRADE index: {}",
-                    e
-                ))
-            })?,
-        };
-
-        state_model.set_ratio_by_index(state, edge_grade_idx, &grade)?;
+        state_model.set_ratio_by_index(state, self.edge_grade_idx, &grade)?;
         Ok(())
     }
 

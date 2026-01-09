@@ -1,6 +1,6 @@
 use super::CombinedTraversalModel;
 use crate::model::{
-    state::{InputFeature, StateVariableConfig},
+    state::{InputFeature, StateModel, StateVariableConfig},
     traversal::{
         default::combined::combined_ops::topological_dependency_sort_services, TraversalModel,
         TraversalModelError, TraversalModelService,
@@ -37,13 +37,14 @@ impl TraversalModelService for CombinedTraversalService {
     fn build(
         &self,
         query: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let models: Vec<Arc<dyn TraversalModel>> = self
             .services
             .iter()
             .map(|s| {
                 let service = s.clone();
-                service.build(query)
+                service.build(query, state_model.clone())
             })
             .try_collect()?;
         let sorted_models = topological_dependency_sort_services(&self.services, &models)?;

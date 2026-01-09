@@ -57,6 +57,7 @@ impl TraversalModelService for ElevationTraversalModel {
     fn build(
         &self,
         _query: &serde_json::Value,
+        _state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         Ok(Arc::new(self.clone()))
     }

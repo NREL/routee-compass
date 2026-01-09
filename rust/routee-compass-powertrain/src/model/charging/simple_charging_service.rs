@@ -73,6 +73,7 @@ impl TraversalModelService for SimpleChargingService {
     fn build(
         &self,
         query: &serde_json::Value,
+        _state_model: Arc<routee_compass_core::model::state::StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let starting_soc = match get_query_start_soc(query)? {
             Some(soc) => soc,

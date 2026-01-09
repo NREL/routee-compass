@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::model::{
-    state::{InputFeature, StateVariableConfig},
+    state::{InputFeature, StateModel, StateVariableConfig},
     traversal::{
         default::{
             fieldname,
@@ -38,6 +38,7 @@ impl TraversalModelService for TemperatureTraversalService {
     fn build(
         &self,
         query: &serde_json::Value,
+        _state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let ambient_temp_config: AmbientTemperatureConfig = match query.get("ambient_temperature") {
             Some(value) => {

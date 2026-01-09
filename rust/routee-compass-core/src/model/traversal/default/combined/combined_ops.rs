@@ -169,37 +169,59 @@ mod test {
             vec![distance_feature, speed_feature, grade_feature],
             vec!["energy"],
         );
-        let services: Vec<Arc<dyn TraversalModelService>> =
-            vec![energy_svc, elevation_svc, time_svc, grade_svc, speed_svc, distance_svc]
-                .into_iter()
-                .map(|s| {
-                    let svc: Arc<dyn TraversalModelService> = Arc::new(s);
-                    svc
-                })
-                .collect_vec();
-        
+        let services: Vec<Arc<dyn TraversalModelService>> = vec![
+            energy_svc,
+            elevation_svc,
+            time_svc,
+            grade_svc,
+            speed_svc,
+            distance_svc,
+        ]
+        .into_iter()
+        .map(|s| {
+            let svc: Arc<dyn TraversalModelService> = Arc::new(s);
+            svc
+        })
+        .collect_vec();
+
+        // Build a minimal state model for testing
+        let all_input_features: Vec<InputFeature> =
+            services.iter().flat_map(|s| s.input_features()).collect();
+        let all_output_features: Vec<(String, StateVariableConfig)> =
+            services.iter().flat_map(|s| s.output_features()).collect();
+        let state_model = Arc::new(
+            StateModel::empty()
+                .register(all_input_features, all_output_features)
+                .expect("failed to register features"),
+        );
+
         // Build models from services
         let models: Vec<Arc<dyn TraversalModel>> = services
             .iter()
-            .map(|svc| svc.build(&serde_json::Value::Null).expect("build failed"))
+            .map(|svc| {
+                svc.build(&serde_json::Value::Null, state_model.clone())
+                    .expect("build failed")
+            })
             .collect_vec();
 
         // apply sort and then reconstruct descriptions for each model on the sorted values
-        let sorted = topological_dependency_sort_services(&services, &models).expect("failure during sort function");
+        let sorted = topological_dependency_sort_services(&services, &models)
+            .expect("failure during sort function");
         let sorted_descriptions = sorted
             .iter()
             .map(|m| {
                 // Find the matching service for this model by matching names
                 let model_name = m.name();
-                let svc = services.iter()
+                let svc = services
+                    .iter()
                     .find(|s| {
                         // Build a model from the service to check its name
-                        s.build(&serde_json::Value::Null)
+                        s.build(&serde_json::Value::Null, state_model.clone())
                             .map(|built| built.name() == model_name)
                             .unwrap_or(false)
                     })
                     .expect("should find matching service");
-                
+
                 let input_features = svc.input_features();
                 let in_names = if input_features.is_empty() {
                     String::from("*")
@@ -269,37 +291,59 @@ mod test {
             vec![distance_feature, speed_feature, grade_feature, soc_feature],
             vec!["energy", "soc"],
         );
-        let services: Vec<Arc<dyn TraversalModelService>> =
-            vec![energy_svc, elevation_svc, time_svc, grade_svc, speed_svc, distance_svc]
-                .into_iter()
-                .map(|s| {
-                    let svc: Arc<dyn TraversalModelService> = Arc::new(s);
-                    svc
-                })
-                .collect_vec();
+        let services: Vec<Arc<dyn TraversalModelService>> = vec![
+            energy_svc,
+            elevation_svc,
+            time_svc,
+            grade_svc,
+            speed_svc,
+            distance_svc,
+        ]
+        .into_iter()
+        .map(|s| {
+            let svc: Arc<dyn TraversalModelService> = Arc::new(s);
+            svc
+        })
+        .collect_vec();
+
+        // Build a minimal state model for testing
+        let all_input_features: Vec<InputFeature> =
+            services.iter().flat_map(|s| s.input_features()).collect();
+        let all_output_features: Vec<(String, StateVariableConfig)> =
+            services.iter().flat_map(|s| s.output_features()).collect();
+        let state_model = Arc::new(
+            StateModel::empty()
+                .register(all_input_features, all_output_features)
+                .expect("failed to register features"),
+        );
 
         // Build models from services
         let models: Vec<Arc<dyn TraversalModel>> = services
             .iter()
-            .map(|svc| svc.build(&serde_json::Value::Null).expect("build failed"))
+            .map(|svc| {
+                svc.build(&serde_json::Value::Null, state_model.clone())
+                    .expect("build failed")
+            })
             .collect_vec();
 
         // apply sort and then reconstruct descriptions for each model on the sorted values
-        let sorted = topological_dependency_sort_services(&services, &models).expect("failure during sort function");
+        let sorted = topological_dependency_sort_services(&services, &models)
+            .expect("failure during sort function");
         let sorted_descriptions = sorted
             .iter()
             .map(|m| {
                 // Find the matching service for this model by matching names
                 let model_name = m.name();
-                let svc = services.iter()
+                let svc = services
+                    .iter()
                     .find(|s| {
                         // Build a model from the service to check its name
-                        s.build(&serde_json::Value::Null)
+                        s.build(&serde_json::Value::Null, state_model.clone())
                             .map(|built| built.name() == model_name)
                             .unwrap_or(false)
                     })
                     .expect("should find matching service");
-                
+
                 let input_features = svc.input_features();
                 let in_names = if input_features.is_empty() {
                     String::from("*")
@@ -370,6 +414,7 @@ mod test {
         fn build(
             &self,
             _parameters: &serde_json::Value,
+            _state_model: Arc<StateModel>,
         ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
             Ok(Arc::new(MockModel {
                 in_features: self.in_features.clone(),

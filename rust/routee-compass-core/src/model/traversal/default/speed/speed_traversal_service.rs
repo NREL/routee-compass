@@ -2,7 +2,7 @@ use super::{
     speed_traversal_engine::SpeedTraversalEngine, speed_traversal_model::SpeedTraversalModel,
 };
 use crate::model::{
-    state::{InputFeature, StateVariableConfig},
+    state::{InputFeature, StateModel, StateVariableConfig},
     traversal::{
         default::fieldname, traversal_model::TraversalModel,
         traversal_model_error::TraversalModelError, traversal_model_service::TraversalModelService,
@@ -38,6 +38,7 @@ impl TraversalModelService for SpeedLookupService {
     fn build(
         &self,
         parameters: &serde_json::Value,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
         let speed_limit_tuple = match parameters.get("speed_limit") {
             Some(speed_limit) => {
@@ -71,7 +72,11 @@ impl TraversalModelService for SpeedLookupService {
         let speed_limit = speed_limit_tuple
             .map(|(speed_limit, max_speed_unit)| max_speed_unit.to_uom(speed_limit));
 
-        let model = SpeedTraversalModel::new(self.e.clone(), speed_limit)?;
+        let edge_speed_idx = state_model.get_index(fieldname::EDGE_SPEED).map_err(|e| {
+            TraversalModelError::BuildError(format!("Failed to find EDGE_SPEED index: {}", e))
+        })?;
+
+        let model = SpeedTraversalModel::new(self.e.clone(), speed_limit, edge_speed_idx)?;
         Ok(Arc::new(model))
     }
 }
