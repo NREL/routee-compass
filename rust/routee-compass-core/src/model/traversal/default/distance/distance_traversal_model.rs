@@ -52,17 +52,29 @@ impl TraversalModel for DistanceTraversalModel {
         // Resolve indices (or use cached)
         let edge_distance_idx = match self.edge_distance_idx {
             Some(idx) => idx,
-            None => state_model.get_index(fieldname::EDGE_DISTANCE)
-                .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find EDGE_DISTANCE index: {}", e)))?,
+            None => state_model
+                .get_index(fieldname::EDGE_DISTANCE)
+                .map_err(|e| {
+                    TraversalModelError::TraversalModelFailure(format!(
+                        "Failed to find EDGE_DISTANCE index: {}",
+                        e
+                    ))
+                })?,
         };
 
         state_model.add_distance_by_index(state, edge_distance_idx, &edge.distance)?;
-        
+
         if self.include_trip_distance {
             let trip_distance_idx = match self.trip_distance_idx {
                 Some(idx) => idx,
-                None => state_model.get_index(fieldname::TRIP_DISTANCE)
-                    .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find TRIP_DISTANCE index: {}", e)))?,
+                None => state_model
+                    .get_index(fieldname::TRIP_DISTANCE)
+                    .map_err(|e| {
+                        TraversalModelError::TraversalModelFailure(format!(
+                            "Failed to find TRIP_DISTANCE index: {}",
+                            e
+                        ))
+                    })?,
             };
             state_model.add_distance_by_index(state, trip_distance_idx, &edge.distance)?;
         }
@@ -84,19 +96,31 @@ impl TraversalModel for DistanceTraversalModel {
                     "could not compute haversine distance between {src} and {dst}: {e}"
                 ))
             })?;
-        
+
         // Resolve indices (or use cached)
         let edge_distance_idx = match self.edge_distance_idx {
             Some(idx) => idx,
-            None => state_model.get_index(fieldname::EDGE_DISTANCE)
-                .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find EDGE_DISTANCE index: {}", e)))?,
+            None => state_model
+                .get_index(fieldname::EDGE_DISTANCE)
+                .map_err(|e| {
+                    TraversalModelError::TraversalModelFailure(format!(
+                        "Failed to find EDGE_DISTANCE index: {}",
+                        e
+                    ))
+                })?,
         };
 
         if self.include_trip_distance {
             let trip_distance_idx = match self.trip_distance_idx {
                 Some(idx) => idx,
-                None => state_model.get_index(fieldname::TRIP_DISTANCE)
-                    .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find TRIP_DISTANCE index: {}", e)))?,
+                None => state_model
+                    .get_index(fieldname::TRIP_DISTANCE)
+                    .map_err(|e| {
+                        TraversalModelError::TraversalModelFailure(format!(
+                            "Failed to find TRIP_DISTANCE index: {}",
+                            e
+                        ))
+                    })?,
             };
             state_model.add_distance_by_index(state, trip_distance_idx, &distance)?;
         }

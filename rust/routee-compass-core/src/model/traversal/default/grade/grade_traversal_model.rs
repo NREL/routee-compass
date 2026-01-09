@@ -20,7 +20,7 @@ pub struct GradeTraversalModel {
 
 impl GradeTraversalModel {
     pub fn new(engine: Arc<GradeTraversalEngine>) -> GradeTraversalModel {
-        GradeTraversalModel { 
+        GradeTraversalModel {
             engine,
             edge_grade_idx: None,
         }
@@ -57,14 +57,18 @@ impl TraversalModel for GradeTraversalModel {
     ) -> Result<(), TraversalModelError> {
         let (_, edge, _) = trajectory;
         let grade = self.engine.get_grade(edge.edge_id)?;
-        
+
         // Resolve index (or use cached)
         let edge_grade_idx = match self.edge_grade_idx {
             Some(idx) => idx,
-            None => state_model.get_index(fieldname::EDGE_GRADE)
-                .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find EDGE_GRADE index: {}", e)))?,
+            None => state_model.get_index(fieldname::EDGE_GRADE).map_err(|e| {
+                TraversalModelError::TraversalModelFailure(format!(
+                    "Failed to find EDGE_GRADE index: {}",
+                    e
+                ))
+            })?,
         };
-        
+
         state_model.set_ratio_by_index(state, edge_grade_idx, &grade)?;
         Ok(())
     }

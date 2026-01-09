@@ -24,7 +24,7 @@ impl ConstraintModelService for BatteryFilterService {
             state_model.contains_key(&fieldname::TRIP_SOC.to_string());
         let model = BatteryFilter {
             soc_lower_bound: self.soc_lower_bound,
-            state_model_contains_trip_soc
+            state_model_contains_trip_soc,
         };
         Ok(Arc::new(model))
     }

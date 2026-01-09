@@ -45,7 +45,7 @@ impl ElevationChange {
         } else {
             fieldname::TRIP_ELEVATION_GAIN
         };
-        
+
         // Use index-based access for performance - resolve index on each call
         // since this is called from different contexts
         let idx = state_model.get_index(feature_name)?;

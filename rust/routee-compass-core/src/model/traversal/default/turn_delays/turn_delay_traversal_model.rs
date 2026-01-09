@@ -86,41 +86,51 @@ impl TraversalModel for TurnDelayTraversalModel {
             return Ok(());
         }
         let (src, edge, _) = traversal;
-        let prev_opt = tree
-            .backtrack_with_depth(src.vertex_id, 1)
-            .map_err(|e| {
+
+        // Efficiently get the incoming edge for the source vertex (previous edge in path)
+        let prev_edge_id = match tree.get_incoming_edge(src.vertex_id) {
+            Some(prev_traversal) => prev_traversal.edge_id,
+            None => return Ok(()), // No previous edge (at root), no turn delay
+        };
+
+        let delay = self.engine.get_delay(prev_edge_id, edge.edge_id)?;
+
+        // Resolve indices (or use cached)
+        let edge_turn_delay_idx = match self.edge_turn_delay_idx {
+            Some(idx) => idx,
+            None => state_model
+                .get_index(fieldname::EDGE_TURN_DELAY)
+                .map_err(|e| {
+                    TraversalModelError::TraversalModelFailure(format!(
+                        "Failed to find EDGE_TURN_DELAY index: {}",
+                        e
+                    ))
+                })?,
+        };
+        let edge_time_idx = match self.edge_time_idx {
+            Some(idx) => idx,
+            None => state_model.get_index(fieldname::EDGE_TIME).map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
-                    "while applying turn delays, {e}"
+                    "Failed to find EDGE_TIME index: {}",
+                    e
                 ))
-            })?
-            .first()
-            .map(|et| et.edge_id);
-        if let Some(prev) = prev_opt {
-            let delay = self.engine.get_delay(prev, edge.edge_id)?;
-            
-            // Resolve indices (or use cached)
-            let edge_turn_delay_idx = match self.edge_turn_delay_idx {
+            })?,
+        };
+
+        state_model.set_time_by_index(state, edge_turn_delay_idx, &delay)?;
+        state_model.add_time_by_index(state, edge_time_idx, &delay)?;
+
+        if self.include_trip_time {
+            let trip_time_idx = match self.trip_time_idx {
                 Some(idx) => idx,
-                None => state_model.get_index(fieldname::EDGE_TURN_DELAY)
-                    .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find EDGE_TURN_DELAY index: {}", e)))?,
+                None => state_model.get_index(fieldname::TRIP_TIME).map_err(|e| {
+                    TraversalModelError::TraversalModelFailure(format!(
+                        "Failed to find TRIP_TIME index: {}",
+                        e
+                    ))
+                })?,
             };
-            let edge_time_idx = match self.edge_time_idx {
-                Some(idx) => idx,
-                None => state_model.get_index(fieldname::EDGE_TIME)
-                    .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find EDGE_TIME index: {}", e)))?,
-            };
-            
-            state_model.set_time_by_index(state, edge_turn_delay_idx, &delay)?;
-            state_model.add_time_by_index(state, edge_time_idx, &delay)?;
-            
-            if self.include_trip_time {
-                let trip_time_idx = match self.trip_time_idx {
-                    Some(idx) => idx,
-                    None => state_model.get_index(fieldname::TRIP_TIME)
-                        .map_err(|e| TraversalModelError::TraversalModelFailure(format!("Failed to find TRIP_TIME index: {}", e)))?,
-                };
-                state_model.add_time_by_index(state, trip_time_idx, &delay)?;
-            }
+            state_model.add_time_by_index(state, trip_time_idx, &delay)?;
         }
 
         Ok(())
