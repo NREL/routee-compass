@@ -40,6 +40,7 @@ pub struct PhevEnergyModel {
 }
 
 impl PhevEnergyModel {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         charge_sustain_model: Arc<PredictionModelRecord>,
         charge_depleting_model: Arc<PredictionModelRecord>,
@@ -363,6 +364,7 @@ impl TraversalModel for PhevEnergyModel {
 /// greater than 0, then the charge depleting model is used. otherwise, the charge sustaining model is used.
 /// if battery state is empty mid-traversal, the remaining distance will be applied to the charge
 /// sustaining model.
+#[allow(clippy::too_many_arguments)]
 fn phev_traversal(
     state: &mut [StateVariable],
     state_model: &StateModel,
@@ -451,6 +453,7 @@ fn phev_traversal(
 }
 
 /// used when edge traversal can be fully served by battery fuel
+#[allow(clippy::too_many_arguments)]
 fn depleting_only_traversal(
     state: &mut [StateVariable],
     state_model: &StateModel,
@@ -470,6 +473,7 @@ fn depleting_only_traversal(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn mixed_traversal(
     state: &mut [StateVariable],
     state_model: &StateModel,
@@ -548,7 +552,6 @@ mod test {
     use routee_compass_core::{
         model::{
             state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-            traversal::{TraversalModel, TraversalModelService},
             unit::{EnergyRateUnit, RatioUnit, SpeedUnit},
         },
         testing::mock::traversal_model::TestTraversalModel,

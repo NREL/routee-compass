@@ -94,37 +94,10 @@ pub fn topological_dependency_sort_services(
     Ok(result)
 }
 
-/// sorts the traversal models such that the inter-model dependencies are sorted.
-/// in other words: a time model depends on a distance calculation <-> the distance model
-/// must appear earlier in the list than the time model.
-///
-/// only confirms that the names match, ignores confirming the feature types match.
-///
-/// # Arguments
-///
-/// * `models` - the traversal models to sort
-///
-/// # Returns
-///
-/// Sorted list of models, or an error if dependencies are missing
-///
-/// # Deprecated
-///
-/// This function is deprecated. Use `topological_dependency_sort_services` instead.
-#[deprecated(
-    since = "0.1.0",
-    note = "Use topological_dependency_sort_services instead, which takes services to access feature information"
-)]
-pub fn topological_dependency_sort(
-    _models: &[Arc<dyn TraversalModel>],
-) -> Result<Vec<Arc<dyn TraversalModel>>, TraversalModelError> {
-    panic!("topological_dependency_sort is deprecated. Use topological_dependency_sort_services instead, which requires both services and models.");
-}
-
 #[cfg(test)]
 mod test {
 
-    use super::{topological_dependency_sort, topological_dependency_sort_services};
+    use super::topological_dependency_sort_services;
     use crate::{
         algorithm::search::SearchTree,
         model::{
@@ -385,15 +358,6 @@ mod test {
     struct MockModel {
         in_features: Vec<InputFeature>,
         out_features: Vec<String>,
-    }
-
-    impl MockModel {
-        pub fn new(in_features: Vec<InputFeature>, out_features: Vec<&str>) -> MockModel {
-            MockModel {
-                in_features,
-                out_features: out_features.into_iter().map(String::from).collect_vec(),
-            }
-        }
     }
 
     struct MockModelService {

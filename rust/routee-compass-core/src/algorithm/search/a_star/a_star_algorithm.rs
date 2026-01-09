@@ -236,10 +236,8 @@ mod tests {
     use crate::model::network::Vertex;
     use crate::model::state::StateModel;
     use crate::model::termination::TerminationModel;
-    use crate::model::traversal::default::distance::{
-        DistanceTraversalModel, DistanceTraversalService,
-    };
-    use crate::model::traversal::{TraversalModel, TraversalModelService};
+    use crate::model::traversal::default::distance::DistanceTraversalService;
+    use crate::model::traversal::TraversalModelService;
     use crate::model::unit::DistanceUnit;
     use indexmap::IndexMap;
     use rayon::prelude::*;

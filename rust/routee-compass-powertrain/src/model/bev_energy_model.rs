@@ -38,6 +38,7 @@ pub struct BevEnergyModel {
 }
 
 impl BevEnergyModel {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         prediction_model_record: Arc<PredictionModelRecord>,
         battery_capacity: Energy,
@@ -295,6 +296,7 @@ impl TraversalModel for BevEnergyModel {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn bev_traversal_estimate(
     state: &mut [StateVariable],
     state_model: &StateModel,
