@@ -4,6 +4,7 @@ use crate::model::cost::{network::NetworkCostRate, VehicleCostRate};
 #[derive(Clone, Debug)]
 pub struct CostFeature {
     pub name: String,
+    pub index: usize,
     pub weight: f64,
     pub vehicle_cost_rate: VehicleCostRate,
     pub network_cost_rate: NetworkCostRate,
@@ -15,6 +16,7 @@ impl CostFeature {
     pub fn zero(name: String) -> CostFeature {
         CostFeature {
             name,
+            index: 0,
             weight: f64::default(),
             vehicle_cost_rate: VehicleCostRate::default(),
             network_cost_rate: NetworkCostRate::default(),
@@ -25,6 +27,7 @@ impl CostFeature {
     /// builds a cost feature instance based on the potential combinations of optional configuration arguments
     pub fn new(
         name: String,
+        index: usize,
         weight: Option<&f64>,
         vehicle_rate: Option<&VehicleCostRate>,
         network_rate: Option<&NetworkCostRate>,
@@ -35,6 +38,7 @@ impl CostFeature {
             (Some(_), None, None) => CostFeature::zero(name),
             (Some(w), None, Some(n)) => CostFeature {
                 name,
+                index,
                 weight: *w,
                 vehicle_cost_rate: VehicleCostRate::default(),
                 network_cost_rate: n.clone(),
@@ -42,6 +46,7 @@ impl CostFeature {
             },
             (Some(w), Some(v), None) => CostFeature {
                 name,
+                index,
                 weight: *w,
                 vehicle_cost_rate: v.clone(),
                 network_cost_rate: NetworkCostRate::default(),
@@ -49,6 +54,7 @@ impl CostFeature {
             },
             (Some(w), Some(v), Some(n)) => CostFeature {
                 name,
+                index,
                 weight: *w,
                 vehicle_cost_rate: v.clone(),
                 network_cost_rate: n.clone(),

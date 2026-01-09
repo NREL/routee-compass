@@ -12,6 +12,8 @@ pub enum CostModelError {
     StateVariableNotFound(String, String, String),
     #[error("index {0} for state variable {1} out of bounds, not found in traversal state")]
     StateIndexOutOfBounds(usize, String),
+    #[error("state variable at index {0} not found in state vector")]
+    MissingStateVariable(usize),
     #[error("index {0} for {1} state vector is out of bounds")]
     CostVectorOutOfBounds(usize, String),
     #[error("attempting to build cost model with invalid weight names: {0:?}, should only include the following state model feature names: {1:?}")]

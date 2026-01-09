@@ -64,11 +64,11 @@ impl VehicleCostRate {
     /// this vehicle cost rate configuration.
     pub fn compute_cost(
         &self,
-        name: &str,
+        index: usize,
         state: &[StateVariable],
         state_model: &StateModel,
     ) -> Result<Cost, CostModelError> {
-        let raw = self.get_raw(name, state, state_model)?;
+        let raw = self.get_raw(index, state, state_model)?;
         let cost_factor = self.get_factor();
         let cost = Cost::new(raw * cost_factor);
         Ok(cost)
@@ -106,61 +106,65 @@ impl VehicleCostRate {
     /// helper function to get the raw state variable as an f64 which can be used to compute a cost.
     pub fn get_raw(
         &self,
-        name: &str,
+        index: usize,
         state: &[StateVariable],
         state_model: &StateModel,
     ) -> Result<f64, CostModelError> {
         match self {
             VehicleCostRate::Zero => Ok(0.0),
             VehicleCostRate::Raw => {
-                let raw = state_model.get_raw_state_variable(state, name)?;
-                Ok(raw.0)
+                // Direct O(1) array access
+                Ok(state
+                    .get(index)
+                    .ok_or(CostModelError::MissingStateVariable(index))?
+                    .0)
             }
             VehicleCostRate::Distance { unit, .. } => {
-                let value: Length = state_model.get_distance(state, name)?;
+                let value: Length = state_model.get_distance_by_index(state, index)?;
                 let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Time { unit, .. } => {
-                let value: Time = state_model.get_time(state, name)?;
+                let value: Time = state_model.get_time_by_index(state, index)?;
                 let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Speed { unit, .. } => {
-                let value: Velocity = state_model.get_speed(state, name)?;
+                let value: Velocity = state_model.get_speed_by_index(state, index)?;
                 let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Energy { unit, .. } => {
-                let value: Energy = state_model.get_energy(state, name)?;
+                let value: Energy = state_model.get_energy_by_index(state, index)?;
                 let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Ratio { unit, .. } => {
-                let value: Ratio = state_model.get_ratio(state, name)?;
+                let value: Ratio = state_model.get_ratio_by_index(state, index)?;
                 let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Temperature { unit, .. } => {
-                let value: ThermodynamicTemperature = state_model.get_temperature(state, name)?;
+                let value: ThermodynamicTemperature =
+                    state_model.get_temperature_by_index(state, index)?;
                 let raw = unit.from_uom(value);
                 Ok(raw)
             }
             VehicleCostRate::Custom { variable_type, .. } => match variable_type {
                 CustomVariableType::FloatingPoint => {
-                    let value = state_model.get_custom_f64(state, name)?;
+                    let value = state_model.get_custom_f64_by_index(state, index)?;
                     Ok(value)
                 }
                 CustomVariableType::SignedInteger => {
-                    let value = state_model.get_custom_i64(state, name)?;
+                    let value = state_model.get_custom_i64_by_index(state, index)?;
                     Ok(value as f64)
                 }
                 CustomVariableType::UnsignedInteger => {
-                    let value = state_model.get_custom_u64(state, name)?;
+                    let value = state_model.get_custom_u64_by_index(state, index)?;
                     Ok(value as f64)
                 }
                 CustomVariableType::Boolean => {
-                    let is_one = state_model.get_custom_bool(state, name)?;
+                    let is_one = state_model.get_custom_bool_by_index(state, index)?;
                     if is_one {
                         Ok(1.0)
                     } else {

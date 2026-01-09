@@ -56,9 +56,37 @@ impl TraversalModelService for TurnDelayTraversalModelService {
     fn build(
         &self,
         _query: &serde_json::Value,
-        _state_model: Arc<StateModel>,
+        state_model: Arc<StateModel>,
     ) -> Result<Arc<dyn TraversalModel>, TraversalModelError> {
-        let model = TurnDelayTraversalModel::new(self.engine.clone(), self.include_trip_time);
+        let edge_turn_delay_idx =
+            state_model
+                .get_index(fieldname::EDGE_TURN_DELAY)
+                .map_err(|e| {
+                    TraversalModelError::BuildError(format!(
+                        "Failed to find EDGE_TURN_DELAY index: {}",
+                        e
+                    ))
+                })?;
+
+        let edge_time_idx = state_model.get_index(fieldname::EDGE_TIME).map_err(|e| {
+            TraversalModelError::BuildError(format!("Failed to find EDGE_TIME index: {}", e))
+        })?;
+
+        let trip_time_idx = if self.include_trip_time {
+            Some(state_model.get_index(fieldname::TRIP_TIME).map_err(|e| {
+                TraversalModelError::BuildError(format!("Failed to find TRIP_TIME index: {}", e))
+            })?)
+        } else {
+            None
+        };
+
+        let model = TurnDelayTraversalModel::new(
+            self.engine.clone(),
+            self.include_trip_time,
+            edge_turn_delay_idx,
+            edge_time_idx,
+            trip_time_idx,
+        );
         Ok(Arc::new(model))
     }
 }

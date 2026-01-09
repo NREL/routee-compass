@@ -67,11 +67,18 @@ impl CostModel {
             // - weight: deactivates costs for this feature (product)
             // - v_rate: ignores vehicle costs for this feature (sum)
             // - n_rate: ignores network costs for this feature (sum)
+            let index = state_model.get_index(name)?;
             let w_opt = weights_mapping.get(name);
             let v_opt = vehicle_rate_mapping.get(name);
             let n_opt = network_rate_mapping.get(name);
-            let feature =
-                CostFeature::new(name.clone(), w_opt, v_opt, n_opt, config.is_accumulator());
+            let feature = CostFeature::new(
+                name.clone(),
+                index,
+                w_opt,
+                v_opt,
+                n_opt,
+                config.is_accumulator(),
+            );
 
             total_weight += feature.weight;
             features.insert(name.clone(), feature);
@@ -106,21 +113,23 @@ impl CostModel {
         state_model: &StateModel,
     ) -> Result<TraversalCost, CostModelError> {
         let mut result = TraversalCost::default();
-        for (name, feature) in self.features.iter() {
+        for (_name, feature) in self.features.iter() {
             let v_cost = if feature.is_accumulator {
-                let current_cost =
-                    feature
-                        .vehicle_cost_rate
-                        .compute_cost(name, current_state, state_model)?;
-                let previous_cost =
-                    feature
-                        .vehicle_cost_rate
-                        .compute_cost(name, previous_state, state_model)?;
+                let current_cost = feature.vehicle_cost_rate.compute_cost(
+                    feature.index,
+                    current_state,
+                    state_model,
+                )?;
+                let previous_cost = feature.vehicle_cost_rate.compute_cost(
+                    feature.index,
+                    previous_state,
+                    state_model,
+                )?;
                 current_cost - previous_cost
             } else {
                 feature
                     .vehicle_cost_rate
-                    .compute_cost(name, current_state, state_model)?
+                    .compute_cost(feature.index, current_state, state_model)?
             };
 
             let n_cost = if feature.is_accumulator {
@@ -159,10 +168,11 @@ impl CostModel {
         state_model: &StateModel,
     ) -> Result<TraversalCost, CostModelError> {
         let mut result = TraversalCost::default();
-        for (name, feature) in self.features.iter() {
-            let v_cost = feature
-                .vehicle_cost_rate
-                .compute_cost(name, state, state_model)?;
+        for (_name, feature) in self.features.iter() {
+            let v_cost =
+                feature
+                    .vehicle_cost_rate
+                    .compute_cost(feature.index, state, state_model)?;
             result.insert(v_cost, feature.weight);
         }
         Ok(result)

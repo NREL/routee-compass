@@ -435,6 +435,25 @@ impl StateModel {
         let result = format.decode_i64(value)?;
         Ok(result)
     }
+
+    /// retrieves a state variable by index that is expected to have a type of i64.
+    #[inline]
+    pub fn get_custom_i64_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<i64, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let feature = self.0.get_index(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("feature at index {}", idx), idx)
+        })?;
+        let format = feature.1.get_custom_feature_format()?;
+        let result = format.decode_i64(value)?;
+        Ok(result)
+    }
+
     /// retrieves a state variable that is expected to have a type of u64.
     ///
     /// # Arguments
@@ -453,6 +472,25 @@ impl StateModel {
         let result = format.decode_u64(value)?;
         Ok(result)
     }
+
+    /// retrieves a state variable by index that is expected to have a type of u64.
+    #[inline]
+    pub fn get_custom_u64_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<u64, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let feature = self.0.get_index(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("feature at index {}", idx), idx)
+        })?;
+        let format = feature.1.get_custom_feature_format()?;
+        let result = format.decode_u64(value)?;
+        Ok(result)
+    }
+
     /// retrieves a state variable that is expected to have a type of bool.
     ///
     /// # Arguments
@@ -468,6 +506,24 @@ impl StateModel {
         name: &str,
     ) -> Result<bool, StateModelError> {
         let (value, format) = self.get_custom_state_variable(state, name)?;
+        let result = format.decode_bool(value)?;
+        Ok(result)
+    }
+
+    /// retrieves a state variable by index that is expected to have a type of bool.
+    #[inline]
+    pub fn get_custom_bool_by_index(
+        &self,
+        state: &[StateVariable],
+        idx: usize,
+    ) -> Result<bool, StateModelError> {
+        let value = state.get(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("index {}", idx), idx)
+        })?;
+        let feature = self.0.get_index(idx).ok_or_else(|| {
+            StateModelError::InvalidStateVariableIndex(format!("feature at index {}", idx), idx)
+        })?;
+        let format = feature.1.get_custom_feature_format()?;
         let result = format.decode_bool(value)?;
         Ok(result)
     }
