@@ -1,13 +1,11 @@
-use uom::{si::f64::Ratio, ConstZero};
 
 use super::GradeTraversalEngine;
 use crate::{
     algorithm::search::SearchTree,
     model::{
         network::{Edge, Vertex},
-        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
-        traversal::{default::fieldname, TraversalModel, TraversalModelError},
-        unit::RatioUnit,
+        state::{StateModel, StateVariable},
+        traversal::{TraversalModel, TraversalModelError},
     },
 };
 use std::sync::Arc;

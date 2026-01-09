@@ -1,12 +1,11 @@
-use uom::{si::f64::ThermodynamicTemperature, ConstZero};
+use uom::si::f64::ThermodynamicTemperature;
 
 use crate::{
     algorithm::search::SearchTree,
     model::{
         network::{Edge, Vertex},
-        state::{InputFeature, StateModel, StateVariable, StateVariableConfig},
+        state::{StateModel, StateVariable},
         traversal::{default::fieldname, TraversalModel, TraversalModelError},
-        unit::TemperatureUnit,
     },
 };
 

@@ -33,7 +33,7 @@ impl TestTraversalModel {
         // First, convert input features to mock output features so they're available
         let mock_output_features: Vec<(String, StateVariableConfig)> = input_features
             .iter()
-            .map(|input_feature| MockUpstreamModel::input_feature_to_output_config(input_feature))
+            .map(MockUpstreamModel::input_feature_to_output_config)
             .collect();
 
         // Register mock outputs first (with no inputs, since they're "provided" by the mock)

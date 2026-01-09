@@ -1,16 +1,12 @@
 use uom::si::f64::Velocity;
-use uom::ConstZero;
 
 use super::speed_traversal_engine::SpeedTraversalEngine;
 use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, EdgeId, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
-use crate::model::state::{InputFeature, StateVariableConfig};
-use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
-use crate::model::unit::SpeedUnit;
 use std::sync::Arc;
 
 pub struct SpeedTraversalModel {

@@ -1,12 +1,9 @@
-use uom::si::f64::Length;
 use uom::ConstZero;
 
 use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;
 use crate::model::state::StateVariable;
-use crate::model::state::{InputFeature, StateVariableConfig};
-use crate::model::traversal::default::fieldname;
 use crate::model::traversal::traversal_model::TraversalModel;
 use crate::model::traversal::traversal_model_error::TraversalModelError;
 use crate::model::unit::DistanceUnit;

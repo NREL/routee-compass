@@ -1,13 +1,11 @@
-use uom::{si::f64::Time, ConstZero};
 
 use super::TurnDelayTraversalModelEngine;
 use crate::{
     algorithm::search::SearchTree,
     model::{
         network::{Edge, Vertex},
-        state::{StateModel, StateVariable, StateVariableConfig},
+        state::{StateModel, StateVariable},
         traversal::{default::fieldname, TraversalModel, TraversalModelError},
-        unit::TimeUnit,
     },
 };
 use std::sync::Arc;

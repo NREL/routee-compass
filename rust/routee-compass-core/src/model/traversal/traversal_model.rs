@@ -1,7 +1,7 @@
 use super::traversal_model_error::TraversalModelError;
 use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, Vertex};
-use crate::model::state::{InputFeature, StateModel, StateVariable, StateVariableConfig};
+use crate::model::state::{StateModel, StateVariable};
 
 /// Dictates how state transitions occur while traversing a graph in a search algorithm.
 ///
