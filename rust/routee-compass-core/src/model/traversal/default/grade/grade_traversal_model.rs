@@ -1,4 +1,3 @@
-
 use super::GradeTraversalEngine;
 use crate::{
     algorithm::search::SearchTree,

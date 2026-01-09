@@ -1,4 +1,7 @@
-use crate::model::traversal::{TraversalModelBuilder, TraversalModelError, TraversalModelService, default::elevation::ElevationTraversalService};
+use crate::model::traversal::{
+    default::elevation::ElevationTraversalService, TraversalModelBuilder, TraversalModelError,
+    TraversalModelService,
+};
 use std::sync::Arc;
 
 pub struct ElevationTraversalBuilder {}
