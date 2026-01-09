@@ -441,7 +441,7 @@ mod tests {
 
     #[test]
     fn test_model_name_and_features() {
-        use routee_compass_core::testing::mock::traversal_model::MockUpstreamModel;
+        use routee_compass_core::testing::mock::traversal_model::MockUpstreamService;
 
         let service = mock_simple_charging_service();
 
@@ -464,7 +464,7 @@ mod tests {
         // First register mock outputs for the inputs that aren't also outputs
         let mock_output_features: Vec<(String, StateVariableConfig)> = inputs_to_mock
             .iter()
-            .map(|input_feature| MockUpstreamModel::input_feature_to_output_config(input_feature))
+            .map(|input_feature| MockUpstreamService::input_feature_to_output_config(input_feature))
             .collect();
         let state_model_with_mocks = Arc::new(
             StateModel::empty()

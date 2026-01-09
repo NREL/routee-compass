@@ -1,5 +1,3 @@
-use uom::ConstZero;
-
 use crate::algorithm::search::SearchTree;
 use crate::model::network::{Edge, Vertex};
 use crate::model::state::StateModel;

@@ -5,7 +5,6 @@ use uom::{
 
 use crate::model::{
     state::{StateModel, StateModelError, StateVariable},
-    traversal::default::fieldname,
     unit::UnitError,
 };
 

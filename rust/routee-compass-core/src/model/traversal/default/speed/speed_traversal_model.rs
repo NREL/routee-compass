@@ -206,7 +206,7 @@ mod tests {
         let mock_output_features: Vec<(String, StateVariableConfig)> = input_features
             .iter()
             .map(|input_feature| {
-                crate::testing::mock::traversal_model::MockUpstreamModel::input_feature_to_output_config(input_feature)
+                crate::testing::mock::traversal_model::MockUpstreamService::input_feature_to_output_config(input_feature)
             })
             .collect();
         let state_model_with_mocks = Arc::new(
@@ -227,11 +227,11 @@ mod tests {
                 state_model,
             )
             .unwrap();
-        let upstream_mock = Arc::new(
-            crate::testing::mock::traversal_model::MockUpstreamModel::new_upstream_from(
-                limited_service.clone(),
-            ),
-        );
+        let upstream_mock = crate::testing::mock::traversal_model::MockUpstreamService::new_from(
+            limited_service.clone(),
+        )
+        .build(&serde_json::json!({}), Arc::new(StateModel::empty()))
+        .expect("test invariant failed");
         let test_limited_model = Arc::new(
             crate::model::traversal::default::combined::CombinedTraversalModel::new(vec![
                 upstream_mock,
