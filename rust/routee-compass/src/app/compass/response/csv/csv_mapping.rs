@@ -4,24 +4,24 @@ use serde_json::json;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
-pub enum CsvMapping {
+pub enum FileMapping {
     Path(String),
-    Sum { sum: Vec<Box<CsvMapping>> },
-    Optional { optional: Box<CsvMapping> },
+    Sum { sum: Vec<Box<FileMapping>> },
+    Optional { optional: Box<FileMapping> },
 }
 
-impl CsvMapping {
+impl FileMapping {
     // const CSV_ERR_SEPARATOR: &'static str = "-";
 
     // /// applies a user-specified JSON to CSV mapping. if the mapping fails,
     // /// a helpful error message is returned.
     pub fn apply_mapping(&self, json: &serde_json::Value) -> Result<serde_json::Value, String> {
         match self {
-            CsvMapping::Path(p) => {
+            FileMapping::Path(p) => {
                 let split_path = p.split('.').collect_vec();
                 traverse(json, &split_path)
             }
-            CsvMapping::Sum { sum } => {
+            FileMapping::Sum { sum } => {
                 let (ok, err): (Vec<_>, Vec<_>) =
                     sum.iter().map(|m| m.apply_mapping(json)).partition_result();
                 if !err.is_empty() {
@@ -58,7 +58,7 @@ impl CsvMapping {
                     }
                 }
             }
-            CsvMapping::Optional { optional } => match optional.apply_mapping(json).ok() {
+            FileMapping::Optional { optional } => match optional.apply_mapping(json).ok() {
                 Some(value) => Ok(value),
                 None => Ok(serde_json::Value::Null),
             },

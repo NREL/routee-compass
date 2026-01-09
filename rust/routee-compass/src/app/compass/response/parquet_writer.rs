@@ -1,7 +1,10 @@
+use super::csv::csv_mapping::FileMapping;
 use crate::app::compass::CompassAppError;
 use arrow::json::{reader::infer_json_schema, ReaderBuilder};
+use ordered_hash_map::OrderedHashMap;
 use parquet::arrow::ArrowWriter;
 use parquet::file::properties::WriterProperties;
+use serde_json::json;
 use std::fs::File;
 use std::io::{Cursor, Seek, SeekFrom};
 use std::sync::Arc;
@@ -12,21 +15,44 @@ pub struct ParquetPartitionWriter {
     buffer: Vec<serde_json::Value>,
     buffer_limit: usize,
     schema: Option<arrow::datatypes::SchemaRef>,
+    mapping: Option<OrderedHashMap<String, FileMapping>>,
 }
 
 impl ParquetPartitionWriter {
-    pub fn new(filename: String) -> Self {
+    pub fn new(
+        filename: String,
+        buffer_limit: usize,
+        mapping: Option<OrderedHashMap<String, FileMapping>>,
+    ) -> Self {
         Self {
             filename,
             writer: None,
             buffer: Vec::new(),
-            buffer_limit: 1000,
+            buffer_limit,
             schema: None,
+            mapping,
         }
     }
 
     pub fn write_record(&mut self, record: serde_json::Value) -> Result<(), CompassAppError> {
-        self.buffer.push(record);
+        let record_to_write = if let Some(mapping) = &self.mapping {
+            let mut mapped_record = serde_json::Map::new();
+            for (key, value) in mapping {
+                match value.apply_mapping(&record) {
+                    Ok(val) => {
+                        mapped_record.insert(key.clone(), val);
+                    }
+                    Err(msg) => {
+                        mapped_record.insert("error".to_string(), json!(msg));
+                    }
+                }
+            }
+            serde_json::Value::Object(mapped_record)
+        } else {
+            record
+        };
+
+        self.buffer.push(record_to_write);
         if self.buffer.len() >= self.buffer_limit {
             self.flush_buffer()?;
         }
