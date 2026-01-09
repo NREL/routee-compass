@@ -100,6 +100,28 @@ impl SearchTree {
         Ok(())
     }
 
+    /// removes a label from the search tree. occurs during pruning when making a comparison
+    /// between two labels, where one is pareto-dominant.
+    pub fn remove(&mut self, label: &Label) -> Result<(), SearchTreeError> {
+        // Remove from nodes map
+        self.nodes.remove(label)
+            .ok_or_else(|| SearchTreeError::LabelNotFound(label.clone()))?;
+        
+        // Remove from labels map if not a Vertex label
+        if !matches!(label, Label::Vertex(_)) {
+            let vertex_id = label.vertex_id();
+            if let Some(label_set) = self.labels.get_mut(vertex_id) {
+                label_set.remove(label);
+                // Clean up empty sets
+                if label_set.is_empty() {
+                    self.labels.remove(vertex_id);
+                }
+            }
+        }
+        
+        Ok(())
+    }
+
     pub fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = (&'a Label, &'a SearchTreeNode)> + 'a> {
         Box::new(self.nodes.iter())
     }

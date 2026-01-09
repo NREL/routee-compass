@@ -242,19 +242,17 @@ fn prune_tree(
         })
         .collect::<Result<Vec<_>, SearchError>>()?;
 
-    if let Some(labels) = tree.get_labels_mut(*next_label.vertex_id()) {
-        for (prev_label, prev_cost) in prev_entries.into_iter() {
-            let remove = next_label_dominates_prev(
-                &prev_label,
-                prev_cost,
-                next_label,
-                next_cost,
-                label_model.clone(),
-            )?;
-            if remove {
-                // new label is pareto-dominant over this previous label.
-                let _ = labels.remove(&prev_label);
-            }
+    for (prev_label, prev_cost) in prev_entries.into_iter() {
+        let remove = next_label_dominates_prev(
+            &prev_label,
+            prev_cost,
+            next_label,
+            next_cost,
+            label_model.clone(),
+        )?;
+        if remove {
+            // new label is pareto-dominant over this previous label.
+            let _ = tree.remove(&prev_label);
         }
     }
 
