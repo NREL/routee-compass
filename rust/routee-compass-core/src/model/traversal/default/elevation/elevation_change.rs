@@ -36,19 +36,20 @@ impl ElevationChange {
         &self,
         state: &mut [StateVariable],
         state_model: &StateModel,
+        trip_elevation_gain_idx: usize,
+        trip_elevation_loss_idx: usize,
     ) -> Result<(), StateModelError> {
         if self.elevation == Length::ZERO {
             return Ok(());
         }
-        let feature_name = if self.elevation < Length::ZERO {
-            fieldname::TRIP_ELEVATION_LOSS
+        let feature_idx = if self.elevation < Length::ZERO {
+            trip_elevation_loss_idx
         } else {
-            fieldname::TRIP_ELEVATION_GAIN
+            trip_elevation_gain_idx
         };
 
         // Use index-based access for performance - resolve index on each call
         // since this is called from different contexts
-        let idx = state_model.get_index(feature_name)?;
-        state_model.add_distance_by_index(state, idx, &self.elevation)
+        state_model.add_distance_by_index(state, feature_idx, &self.elevation)
     }
 }

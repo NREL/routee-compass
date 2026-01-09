@@ -5,12 +5,11 @@ use routee_compass_core::model::{
 };
 use uom::si::f64::Ratio;
 
-use crate::model::fieldname;
-
 #[derive(Clone)]
 pub struct BatteryFilter {
     pub soc_lower_bound: Ratio,
     pub state_model_contains_trip_soc: bool,
+    pub trip_soc_idx: Option<usize>,
 }
 
 impl ConstraintModel for BatteryFilter {
@@ -25,12 +24,11 @@ impl ConstraintModel for BatteryFilter {
             // if we don't have the trip_soc, then this frontier is valid
             return Ok(true);
         }
-        let soc: Ratio = state_model.get_ratio(state, fieldname::TRIP_SOC).map_err(|_| {
-            ConstraintModelError::ConstraintModelError(
-                "BatteryFrontier constraint model requires the state variable 'trip_soc' but not found".to_string(),
-            )
-        })?;
-        Ok(soc > self.soc_lower_bound)
+        if let Some(idx) = self.trip_soc_idx {
+            let soc: Ratio = state_model.get_ratio_by_index(state, idx)?;
+            return Ok(soc > self.soc_lower_bound);
+        }
+        Ok(true)
     }
 
     fn valid_edge(&self, _edge: &Edge) -> Result<bool, ConstraintModelError> {

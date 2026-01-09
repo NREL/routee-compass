@@ -22,9 +22,21 @@ impl ConstraintModelService for BatteryFilterService {
     ) -> Result<Arc<dyn ConstraintModel>, ConstraintModelError> {
         let state_model_contains_trip_soc =
             state_model.contains_key(&fieldname::TRIP_SOC.to_string());
+
+        let trip_soc_idx = if state_model_contains_trip_soc {
+            Some(state_model.get_index(fieldname::TRIP_SOC).map_err(|_| {
+                ConstraintModelError::ConstraintModelError(
+                    "BatteryFilter constraint model requires the state variable 'trip_soc' but not found".to_string(),
+                )
+            })?)
+        } else {
+            None
+        };
+
         let model = BatteryFilter {
             soc_lower_bound: self.soc_lower_bound,
             state_model_contains_trip_soc,
+            trip_soc_idx,
         };
         Ok(Arc::new(model))
     }

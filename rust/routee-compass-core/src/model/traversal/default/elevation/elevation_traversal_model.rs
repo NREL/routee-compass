@@ -17,7 +17,13 @@ use crate::{
 use super::elevation_change::ElevationChange;
 
 #[derive(Clone, Debug)]
-pub struct ElevationTraversalModel {}
+pub struct ElevationTraversalModel {
+    // Pre-resolved indices for performance
+    pub edge_distance_idx: usize,
+    pub edge_grade_idx: usize,
+    pub trip_elevation_gain_idx: usize,
+    pub trip_elevation_loss_idx: usize,
+}
 
 impl TraversalModelService for ElevationTraversalModel {
     fn input_features(&self) -> Vec<InputFeature> {
@@ -76,12 +82,17 @@ impl TraversalModel for ElevationTraversalModel {
         _tree: &SearchTree,
         state_model: &StateModel,
     ) -> Result<(), TraversalModelError> {
-        let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
-        let grade = state_model.get_ratio(state, fieldname::EDGE_GRADE)?;
+        let distance = state_model.get_distance_by_index(state, self.edge_distance_idx)?;
+        let grade = state_model.get_ratio_by_index(state, self.edge_grade_idx)?;
         let elevation_change = ElevationChange::new(distance, grade).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!("Elevation change error: {e}"))
         })?;
-        elevation_change.add_elevation_to_state(state, state_model)?;
+        elevation_change.add_elevation_to_state(
+            state,
+            state_model,
+            self.trip_elevation_gain_idx,
+            self.trip_elevation_loss_idx,
+        )?;
         Ok(())
     }
 

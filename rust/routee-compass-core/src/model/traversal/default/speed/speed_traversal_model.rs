@@ -100,6 +100,7 @@ fn apply_speed_limit(lookup_speed: Velocity, speed_limit: Option<Velocity>) -> V
 mod tests {
     use super::*;
     use crate::model::network::{Edge, EdgeId, EdgeListId, Vertex, VertexId};
+    use crate::model::state::StateVariableConfig;
     use crate::model::traversal::default::speed::speed_traversal_service::SpeedLookupService;
     use crate::model::traversal::TraversalModelService;
     use crate::model::unit::SpeedUnit;
