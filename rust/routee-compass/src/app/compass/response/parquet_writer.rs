@@ -37,7 +37,10 @@ impl ParquetPartitionWriter {
         self.flush_buffer()?;
         if let Some(writer) = self.writer.take() {
             writer.close().map_err(|e| {
-                CompassAppError::InternalError(format!("failed to close parquet file {}: {}", self.filename, e))
+                CompassAppError::InternalError(format!(
+                    "failed to close parquet file {}: {}",
+                    self.filename, e
+                ))
             })?;
         }
         Ok(self.filename.clone())
@@ -52,23 +55,32 @@ impl ParquetPartitionWriter {
         let mut json_bytes = Vec::new();
         for val in &self.buffer {
             serde_json::to_writer(&mut json_bytes, val).map_err(|e| {
-                CompassAppError::InternalError(format!("Failed to serialize json for parquet: {}", e))
+                CompassAppError::InternalError(format!(
+                    "Failed to serialize json for parquet: {}",
+                    e
+                ))
             })?;
             json_bytes.push(b'\n');
         }
 
         // 2. Create RecordBatch using Arrow JSON Reader
         let mut cursor = Cursor::new(json_bytes);
-        
+
         // Resolve schema: use existing or infer
         let schema = if let Some(s) = &self.schema {
             s.clone()
         } else {
-            let (inferred_schema, _records_read) = infer_json_schema(&mut cursor, Some(self.buffer.len())).map_err(|e| {
-                CompassAppError::InternalError(format!("Failed to infer schema from json: {}", e))
-            })?;
+            let (inferred_schema, _records_read) =
+                infer_json_schema(&mut cursor, Some(self.buffer.len())).map_err(|e| {
+                    CompassAppError::InternalError(format!(
+                        "Failed to infer schema from json: {}",
+                        e
+                    ))
+                })?;
             // Reset cursor after inference
-            cursor.seek(SeekFrom::Start(0)).map_err(|e| CompassAppError::InternalError(e.to_string()))?;
+            cursor
+                .seek(SeekFrom::Start(0))
+                .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
             let s = Arc::new(inferred_schema);
             self.schema = Some(s.clone());
             s
@@ -80,16 +92,25 @@ impl ParquetPartitionWriter {
         })?;
 
         // There should be exactly one batch since we provided everything in one cursor
-        let batch = reader.next().transpose().map_err(|e| {
-            CompassAppError::InternalError(format!("Failed to read batch from json: {}", e))
-        })?.ok_or_else(|| CompassAppError::InternalError("No batch produced from buffer".to_string()))?;
+        let batch = reader
+            .next()
+            .transpose()
+            .map_err(|e| {
+                CompassAppError::InternalError(format!("Failed to read batch from json: {}", e))
+            })?
+            .ok_or_else(|| {
+                CompassAppError::InternalError("No batch produced from buffer".to_string())
+            })?;
 
         // 3. Initialize Parquet Writer if not exists
         if self.writer.is_none() {
             let file = File::create(&self.filename).map_err(|e| {
-                CompassAppError::InternalError(format!("Failed to create parquet file {}: {}", self.filename, e))
+                CompassAppError::InternalError(format!(
+                    "Failed to create parquet file {}: {}",
+                    self.filename, e
+                ))
             })?;
-            
+
             // Capture the schema from the first batch
             if self.schema.is_none() {
                 self.schema = Some(batch.schema());
@@ -104,9 +125,9 @@ impl ParquetPartitionWriter {
 
         // 4. Write batch
         if let Some(writer) = &mut self.writer {
-             writer.write(&batch).map_err(|e| {
-                 CompassAppError::InternalError(format!("Failed to write batch to parquet: {}", e))
-             })?;
+            writer.write(&batch).map_err(|e| {
+                CompassAppError::InternalError(format!("Failed to write batch to parquet: {}", e))
+            })?;
         }
 
         self.buffer.clear();

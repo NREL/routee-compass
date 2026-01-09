@@ -22,7 +22,6 @@ pub enum ResponseSink {
     Combined(Vec<Box<ResponseSink>>),
 }
 
-
 impl ResponseSink {
     /// uses a writer to write a RouteE Compass app response to some location.
     pub fn write_response(&self, response: &mut serde_json::Value) -> Result<(), CompassAppError> {
