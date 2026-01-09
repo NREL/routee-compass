@@ -32,8 +32,9 @@ pub struct BevEnergyModel {
     include_trip_energy: bool,
     // Pre-resolved state variable indices for performance
     trip_soc_idx: usize,
-    trip_energy_idx: Option<usize>,
     edge_energy_idx: usize,
+    edge_distance_idx: usize,
+    trip_energy_idx: Option<usize>,
 }
 
 impl BevEnergyModel {
@@ -43,8 +44,9 @@ impl BevEnergyModel {
         starting_battery_energy: Energy,
         include_trip_energy: bool,
         trip_soc_idx: usize,
-        trip_energy_idx: Option<usize>,
         edge_energy_idx: usize,
+        edge_distance_idx: usize,
+        trip_energy_idx: Option<usize>,
     ) -> Result<Self, TraversalModelError> {
         let starting_soc = energy_model_ops::soc_from_energy(
             starting_battery_energy,
@@ -59,8 +61,9 @@ impl BevEnergyModel {
             starting_soc,
             include_trip_energy,
             trip_soc_idx,
-            trip_energy_idx,
             edge_energy_idx,
+            edge_distance_idx,
+            trip_energy_idx,
         })
     }
 }
@@ -158,6 +161,14 @@ impl TraversalModelService for BevEnergyModel {
         } else {
             None
         };
+        let edge_distance_idx = state_model
+            .get_index(fieldname::EDGE_DISTANCE)
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Failed to find EDGE_DISTANCE index: {}",
+                    e
+                ))
+            })?;
 
         match energy_model_ops::get_query_start_energy(query, self.battery_capacity)? {
             None => {
@@ -168,8 +179,9 @@ impl TraversalModelService for BevEnergyModel {
                     starting_energy,
                     self.include_trip_energy,
                     trip_soc_idx,
-                    trip_energy_idx,
                     edge_energy_idx,
+                    edge_distance_idx,
+                    trip_energy_idx,
                 )?;
                 Ok(Arc::new(model))
             }
@@ -180,8 +192,9 @@ impl TraversalModelService for BevEnergyModel {
                     starting_energy,
                     self.include_trip_energy,
                     trip_soc_idx,
-                    trip_energy_idx,
                     edge_energy_idx,
+                    edge_distance_idx,
+                    trip_energy_idx,
                 )?;
                 Ok(Arc::new(model))
             }
@@ -231,8 +244,9 @@ impl TryFrom<&Value> for BevEnergyModel {
             battery_energy_unit.to_uom(battery_capacity),
             include_trip_energy,
             0,    // dummy trip_soc_idx
-            None, // dummy trip_energy_idx
+            0,    // dummy edge_distance_idx
             0,    // dummy edge_energy_idx
+            None, // dummy trip_energy_idx
         )?;
         Ok(bev)
     }
@@ -276,6 +290,7 @@ impl TraversalModel for BevEnergyModel {
             self.trip_soc_idx,
             self.trip_energy_idx,
             self.edge_energy_idx,
+            self.edge_distance_idx,
         )
     }
 }
@@ -288,9 +303,10 @@ fn bev_traversal_estimate(
     trip_soc_idx: usize,
     trip_energy_idx: Option<usize>,
     edge_energy_idx: usize,
+    edge_distance_idx: usize,
 ) -> Result<(), TraversalModelError> {
     // gather state variables
-    let distance = state_model.get_distance(state, fieldname::EDGE_DISTANCE)?;
+    let distance = state_model.get_distance_by_index(state, edge_distance_idx)?;
     let start_soc = state_model.get_ratio_by_index(state, trip_soc_idx)?;
 
     let energy = match record.energy_rate_unit {
@@ -634,8 +650,9 @@ mod tests {
             starting_energy,
             true,
             0,       // trip_soc_idx - dummy value for test
-            Some(1), // trip_energy_idx
             2,       // edge_energy_idx
+            3,       // edge_distance_idx
+            Some(1), // trip_energy_idx
         )
         .expect("test invariant failed");
 
