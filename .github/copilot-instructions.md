@@ -111,7 +111,7 @@ jupyter-book build docs/
 ## Code Style & Conventions
 
 ### Rust-Specific Rules (see `docs/developers/rust_code_style.md`)
-- **NEVER use** `.unwrap()`, `panic!()`, or `.expect()` except in approved edge cases with comments
+- **NEVER use** `.unwrap()`, `panic!()`, or `.expect()` except in tests
 - Prefer returning `Result<T, E>` or `Option<T>` for error handling
 - Use `thiserror` crate for error types, NOT `anyhow` (except simple CLI scripts)
 - Prefer `&T` (reference) over `T` (value) in function parameters (99% of cases)
