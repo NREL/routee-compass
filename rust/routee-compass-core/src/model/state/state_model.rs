@@ -31,8 +31,7 @@ type IndexedFeatureIterator<'a> =
 impl StateModel {
     pub fn new(features: Vec<(String, StateVariableConfig)>) -> StateModel {
         let deduped = deduplicate(&features);
-        let map = IndexMap::from_iter(deduped);
-        StateModel(map)
+        StateModel(deduped)
     }
 
     pub fn empty() -> StateModel {
@@ -981,8 +980,10 @@ impl StateModel {
 /// tests if multiple traversal models are outputting to the same state variable feature
 /// and if so, retains only the configuration that sets an output unit for this type.
 /// if multiple are found, a warning is logged.
-fn deduplicate(features: &[(String, StateVariableConfig)]) -> HashMap<String, StateVariableConfig> {
-    let mut map: HashMap<String, StateVariableConfig> = HashMap::new();
+fn deduplicate(
+    features: &[(String, StateVariableConfig)],
+) -> IndexMap<String, StateVariableConfig> {
+    let mut map: IndexMap<String, StateVariableConfig> = IndexMap::new();
     for (name, next) in features.iter() {
         map.entry(name.clone())
             .and_modify(|prev| {

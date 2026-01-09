@@ -48,8 +48,10 @@ pub fn collect_features(
             Some(_) => Ok((name, feature)),
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let mut added_features: Vec<(String, StateVariableConfig)> =
-        model_features.into_iter().collect_vec();
+    let mut added_features: Vec<(String, StateVariableConfig)> = model_features
+        .into_iter()
+        .sorted_by(|(k1, _), (k2, _)| k1.cmp(k2))
+        .collect_vec();
     added_features.extend(user_features);
     Ok(added_features)
 }
