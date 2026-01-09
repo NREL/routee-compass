@@ -104,9 +104,10 @@ impl SearchTree {
     /// between two labels, where one is pareto-dominant.
     pub fn remove(&mut self, label: &Label) -> Result<(), SearchTreeError> {
         // Remove from nodes map
-        self.nodes.remove(label)
+        self.nodes
+            .remove(label)
             .ok_or_else(|| SearchTreeError::LabelNotFound(label.clone()))?;
-        
+
         // Remove from labels map if not a Vertex label
         if !matches!(label, Label::Vertex(_)) {
             let vertex_id = label.vertex_id();
@@ -118,7 +119,7 @@ impl SearchTree {
                 }
             }
         }
-        
+
         Ok(())
     }
 
