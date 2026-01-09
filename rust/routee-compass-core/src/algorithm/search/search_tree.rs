@@ -60,8 +60,7 @@ impl SearchTree {
         self.root = Some(root_label);
     }
 
-    /// Insert the trajectory (parent) -[edge]-> (child) as a node in the tree.
-    /// Note: dominated entries should be pruned by the caller before insertion.
+    /// Insert the trajectory (parent) -[edge]-> (child) as a node in the tree
     pub fn insert(
         &mut self,
         parent_label: Label,
