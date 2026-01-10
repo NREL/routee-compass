@@ -1,5 +1,6 @@
 pub mod csv;
 pub mod internal_writer;
+pub mod parquet_writer;
 pub mod response_output_format;
 pub mod response_output_format_json;
 pub mod response_output_policy;
