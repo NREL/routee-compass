@@ -213,7 +213,7 @@ impl StateModel {
     /// # Returns
     ///
     /// feature value in the expected unit type, or an error
-    #[inline]
+
     pub fn get_distance_by_index(
         &self,
         state: &[StateVariable],
@@ -242,7 +242,7 @@ impl StateModel {
     }
 
     /// retrieves a state variable by index that is expected to have a type of Time
-    #[inline]
+
     pub fn get_time_by_index(
         &self,
         state: &[StateVariable],
@@ -274,7 +274,7 @@ impl StateModel {
     }
 
     /// retrieves a state variable by index that is expected to have a type of Energy
-    #[inline]
+
     pub fn get_energy_by_index(
         &self,
         state: &[StateVariable],
@@ -306,7 +306,7 @@ impl StateModel {
     }
 
     /// retrieves a state variable by index that is expected to have a type of Speed
-    #[inline]
+
     pub fn get_speed_by_index(
         &self,
         state: &[StateVariable],
@@ -334,7 +334,7 @@ impl StateModel {
     }
 
     /// retrieves a state variable by index that is expected to have a type of Ratio
-    #[inline]
+
     pub fn get_ratio_by_index(
         &self,
         state: &[StateVariable],
@@ -366,7 +366,7 @@ impl StateModel {
     }
 
     /// retrieves a state variable by index that is expected to have a type of Temperature
-    #[inline]
+
     pub fn get_temperature_by_index(
         &self,
         state: &[StateVariable],
@@ -399,7 +399,7 @@ impl StateModel {
     }
 
     /// retrieves a state variable by index that is expected to have a type of f64.
-    #[inline]
+
     pub fn get_custom_f64_by_index(
         &self,
         state: &[StateVariable],
@@ -436,7 +436,7 @@ impl StateModel {
     }
 
     /// retrieves a state variable by index that is expected to have a type of i64.
-    #[inline]
+
     pub fn get_custom_i64_by_index(
         &self,
         state: &[StateVariable],
@@ -473,7 +473,7 @@ impl StateModel {
     }
 
     /// retrieves a state variable by index that is expected to have a type of u64.
-    #[inline]
+
     pub fn get_custom_u64_by_index(
         &self,
         state: &[StateVariable],
@@ -510,7 +510,7 @@ impl StateModel {
     }
 
     /// retrieves a state variable by index that is expected to have a type of bool.
-    #[inline]
+
     pub fn get_custom_bool_by_index(
         &self,
         state: &[StateVariable],
@@ -585,7 +585,7 @@ impl StateModel {
     }
 
     /// adds a distance value by index - avoids double string lookup
-    #[inline]
+
     pub fn add_distance_by_index(
         &self,
         state: &mut [StateVariable],
@@ -614,7 +614,7 @@ impl StateModel {
     }
 
     /// adds a time value by index - avoids double string lookup
-    #[inline]
+
     pub fn add_time_by_index(
         &self,
         state: &mut [StateVariable],
@@ -643,7 +643,7 @@ impl StateModel {
     }
 
     /// adds an energy value by index - avoids double string lookup
-    #[inline]
+
     pub fn add_energy_by_index(
         &self,
         state: &mut [StateVariable],
@@ -693,7 +693,6 @@ impl StateModel {
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
-    #[inline]
     pub fn set_distance_by_index(
         &self,
         state: &mut [StateVariable],
@@ -718,7 +717,6 @@ impl StateModel {
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
-    #[inline]
     pub fn set_time_by_index(
         &self,
         state: &mut [StateVariable],
@@ -743,7 +741,6 @@ impl StateModel {
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
-    #[inline]
     pub fn set_energy_by_index(
         &self,
         state: &mut [StateVariable],
@@ -768,7 +765,6 @@ impl StateModel {
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
-    #[inline]
     pub fn set_ratio_by_index(
         &self,
         state: &mut [StateVariable],
@@ -793,7 +789,6 @@ impl StateModel {
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
-    #[inline]
     pub fn set_speed_by_index(
         &self,
         state: &mut [StateVariable],
@@ -818,7 +813,6 @@ impl StateModel {
         self.update_state(state, name, &value, UpdateOperation::Replace)
     }
 
-    #[inline]
     pub fn set_temperature_by_index(
         &self,
         state: &mut [StateVariable],
