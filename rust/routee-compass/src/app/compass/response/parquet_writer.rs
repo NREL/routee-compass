@@ -176,31 +176,29 @@ fn apply_overrides(
     let mut new_fields = Vec::new();
     for field in schema.fields() {
         let field_name = field.name();
-        if let Some(map) = mapping.get(field_name) {
-            if let FileMapping::Optional {
-                dtype: Some(dtype), ..
-            } = map
-            {
-                let new_dtype = match dtype.as_str() {
-                    "string" => DataType::Utf8,
-                    "float" | "float64" => DataType::Float64,
-                    "int" | "int64" => DataType::Int64,
-                    "int32" => DataType::Int32,
-                    "bool" | "boolean" => DataType::Boolean,
-                    _ => {
-                        return Err(CompassAppError::InternalError(format!(
-                            "Unsupported dtype: {}",
-                            dtype
-                        )))
-                    }
-                };
-
-                // If current type is Null, or we just want to force it
-                if field.data_type() == &DataType::Null || field.data_type() != &new_dtype {
-                    new_fields.push(Arc::new(Field::new(field_name, new_dtype, true)));
-                    // Always nullable for Optional
-                    continue;
+        if let Some(FileMapping::Optional {
+            dtype: Some(dtype), ..
+        }) = mapping.get(field_name)
+        {
+            let new_dtype = match dtype.as_str() {
+                "string" => DataType::Utf8,
+                "float" | "float64" => DataType::Float64,
+                "int" | "int64" => DataType::Int64,
+                "int32" => DataType::Int32,
+                "bool" | "boolean" => DataType::Boolean,
+                _ => {
+                    return Err(CompassAppError::InternalError(format!(
+                        "Unsupported dtype: {}",
+                        dtype
+                    )))
                 }
+            };
+
+            // If current type is Null, or we just want to force it
+            if field.data_type() == &DataType::Null || field.data_type() != &new_dtype {
+                new_fields.push(Arc::new(Field::new(field_name, new_dtype, true)));
+                // Always nullable for Optional
+                continue;
             }
         }
         new_fields.push(field.clone());

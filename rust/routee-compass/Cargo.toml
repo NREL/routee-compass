@@ -32,8 +32,8 @@ path = "src/bin/geom-app.rs"
 bench = false
 
 [dependencies]
-arrow = { workspace = true }
 allocative = { workspace = true }
+arrow = { workspace = true }
 chrono = { workspace = true }
 clap = { workspace = true }
 config = { workspace = true }
