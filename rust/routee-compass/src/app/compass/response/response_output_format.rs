@@ -1,4 +1,4 @@
-use super::{csv::csv_mapping::FileMapping, response_output_format_json as json_ops};
+use super::{mapping::file_mapping::FileMapping, response_output_format_json as json_ops};
 use crate::app::compass::CompassAppError;
 use itertools::Itertools;
 use ordered_hash_map::OrderedHashMap;

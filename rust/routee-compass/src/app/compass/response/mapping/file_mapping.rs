@@ -6,8 +6,14 @@ use serde_json::json;
 #[serde(untagged)]
 pub enum FileMapping {
     Path(String),
-    Sum { sum: Vec<Box<FileMapping>> },
-    Optional { optional: Box<FileMapping> },
+    Sum {
+        sum: Vec<Box<FileMapping>>,
+    },
+    Optional {
+        optional: Box<FileMapping>,
+        #[serde(default)]
+        dtype: Option<String>,
+    },
 }
 
 impl FileMapping {
@@ -58,7 +64,7 @@ impl FileMapping {
                     }
                 }
             }
-            FileMapping::Optional { optional } => match optional.apply_mapping(json).ok() {
+            FileMapping::Optional { optional, .. } => match optional.apply_mapping(json).ok() {
                 Some(value) => Ok(value),
                 None => Ok(serde_json::Value::Null),
             },

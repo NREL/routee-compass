@@ -1,4 +1,4 @@
-pub mod csv;
+pub mod mapping;
 pub mod internal_writer;
 pub mod parquet_writer;
 pub mod response_output_format;

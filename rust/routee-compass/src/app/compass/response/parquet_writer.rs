@@ -1,5 +1,6 @@
-use super::csv::csv_mapping::FileMapping;
+use super::mapping::file_mapping::FileMapping;
 use crate::app::compass::CompassAppError;
+use arrow::datatypes::{DataType, Field, Schema};
 use arrow::json::{reader::infer_json_schema, ReaderBuilder};
 use ordered_hash_map::OrderedHashMap;
 use parquet::arrow::ArrowWriter;
@@ -107,7 +108,14 @@ impl ParquetPartitionWriter {
             cursor
                 .seek(SeekFrom::Start(0))
                 .map_err(|e| CompassAppError::InternalError(e.to_string()))?;
-            let s = Arc::new(inferred_schema);
+
+            let final_schema = if let Some(mapping) = &self.mapping {
+                apply_overrides(inferred_schema, mapping)?
+            } else {
+                inferred_schema
+            };
+
+            let s = Arc::new(final_schema);
             self.schema = Some(s.clone());
             s
         };
@@ -159,4 +167,43 @@ impl ParquetPartitionWriter {
         self.buffer.clear();
         Ok(())
     }
+}
+
+fn apply_overrides(
+    schema: Schema,
+    mapping: &OrderedHashMap<String, FileMapping>,
+) -> Result<Schema, CompassAppError> {
+    let mut new_fields = Vec::new();
+    for field in schema.fields() {
+        let field_name = field.name();
+        if let Some(map) = mapping.get(field_name) {
+            if let FileMapping::Optional {
+                dtype: Some(dtype), ..
+            } = map
+            {
+                let new_dtype = match dtype.as_str() {
+                    "string" => DataType::Utf8,
+                    "float" | "float64" => DataType::Float64,
+                    "int" | "int64" => DataType::Int64,
+                    "int32" => DataType::Int32,
+                    "bool" | "boolean" => DataType::Boolean,
+                    _ => {
+                        return Err(CompassAppError::InternalError(format!(
+                            "Unsupported dtype: {}",
+                            dtype
+                        )))
+                    }
+                };
+
+                // If current type is Null, or we just want to force it
+                if field.data_type() == &DataType::Null || field.data_type() != &new_dtype {
+                    new_fields.push(Arc::new(Field::new(field_name, new_dtype, true)));
+                    // Always nullable for Optional
+                    continue;
+                }
+            }
+        }
+        new_fields.push(field.clone());
+    }
+    Ok(Schema::new(new_fields))
 }
