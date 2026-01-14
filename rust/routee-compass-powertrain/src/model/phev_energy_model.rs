@@ -337,6 +337,7 @@ fn depleting_only_traversal(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn mixed_traversal(
     state: &mut [StateVariable],
     state_model: &StateModel,

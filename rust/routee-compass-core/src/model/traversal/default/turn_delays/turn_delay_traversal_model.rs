@@ -79,22 +79,15 @@ impl TraversalModel for TurnDelayTraversalModel {
             return Ok(());
         }
         let (src, edge, _) = traversal;
-        let prev_opt = tree
-            .backtrack_with_depth(src.vertex_id, 1)
-            .map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!(
-                    "while applying turn delays, {e}"
-                ))
-            })?
-            .first()
-            .map(|et| et.edge_id);
-        if let Some(prev) = prev_opt {
-            let delay = self.engine.get_delay(prev, edge.edge_id)?;
-            state_model.set_time(state, fieldname::EDGE_TURN_DELAY, &delay)?;
-            state_model.add_time(state, fieldname::EDGE_TIME, &delay)?;
-            if self.include_trip_time {
-                state_model.add_time(state, fieldname::TRIP_TIME, &delay)?;
-            }
+        let prev_edge_id = match tree.get_incoming_edge(src.vertex_id) {
+            Some(prev_traversal) => prev_traversal.edge_id,
+            None => return Ok(()), // no previous edge, no turn delay to apply
+        };
+        let delay = self.engine.get_delay(prev_edge_id, edge.edge_id)?;
+        state_model.set_time(state, fieldname::EDGE_TURN_DELAY, &delay)?;
+        state_model.add_time(state, fieldname::EDGE_TIME, &delay)?;
+        if self.include_trip_time {
+            state_model.add_time(state, fieldname::TRIP_TIME, &delay)?;
         }
 
         Ok(())
