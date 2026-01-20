@@ -1,4 +1,4 @@
-use super::{csv::csv_mapping::CsvMapping, response_output_format_json as json_ops};
+use super::{mapping::file_mapping::FileMapping, response_output_format_json as json_ops};
 use crate::app::compass::CompassAppError;
 use itertools::Itertools;
 use ordered_hash_map::OrderedHashMap;
@@ -16,8 +16,11 @@ pub enum ResponseOutputFormat {
     /// order matches the order of keys in the map, unless "sorted" is true, in which
     /// case the fields are sorted lexicagraphically.
     Csv {
-        mapping: OrderedHashMap<String, CsvMapping>,
+        mapping: OrderedHashMap<String, FileMapping>,
         sorted: bool,
+    },
+    Parquet {
+        mapping: Option<OrderedHashMap<String, FileMapping>>,
     },
 }
 
@@ -36,6 +39,7 @@ impl ResponseOutputFormat {
                 };
                 Some(format!("{header}\n"))
             }
+            ResponseOutputFormat::Parquet { .. } => None,
         }
     }
 
@@ -46,6 +50,7 @@ impl ResponseOutputFormat {
                 json_ops::final_file_contents(*newline_delimited)
             }
             ResponseOutputFormat::Csv { .. } => None,
+            ResponseOutputFormat::Parquet { .. } => None,
         }
     }
 
@@ -57,6 +62,7 @@ impl ResponseOutputFormat {
             ResponseOutputFormat::Json { newline_delimited } => {
                 json_ops::format_response(response, *newline_delimited)
             }
+            ResponseOutputFormat::Parquet { .. } => Ok(String::new()),
             ResponseOutputFormat::Csv { mapping, sorted } => {
                 let mut errors: HashMap<String, String> = HashMap::new();
                 let row = if *sorted {
@@ -102,6 +108,7 @@ impl ResponseOutputFormat {
                 mapping: _,
                 sorted: _,
             } => Some(String::from("\n")),
+            ResponseOutputFormat::Parquet { .. } => None,
         }
     }
 }

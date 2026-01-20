@@ -1,3 +1,4 @@
+use super::parquet_writer::ParquetPartitionWriter;
 use super::response_output_format::ResponseOutputFormat;
 use crate::app::compass::response::internal_writer::InternalWriter;
 use crate::app::compass::CompassAppError;
@@ -13,6 +14,10 @@ pub enum ResponseSink {
         delimiter: Option<String>,
         iterations_per_flush: u64,
         iterations: Arc<Mutex<u64>>,
+    },
+    Parquet {
+        base_filename: String,
+        writers: Vec<Mutex<ParquetPartitionWriter>>,
     },
     Combined(Vec<Box<ResponseSink>>),
 }
@@ -58,6 +63,21 @@ impl ResponseSink {
 
                 Ok(())
             }
+            ResponseSink::Parquet {
+                base_filename: _,
+                writers,
+            } => {
+                let thread_idx = rayon::current_thread_index().unwrap_or(0);
+                let writer_idx = thread_idx % writers.len();
+                let writer_mutex = &writers[writer_idx];
+                let mut writer = writer_mutex.lock().map_err(|e| {
+                    CompassAppError::ReadOnlyPoisonError(format!(
+                        "Poisoned lock on parquet writer: {e}"
+                    ))
+                })?;
+                writer.write_record(response.clone())?;
+                Ok(())
+            }
             ResponseSink::Combined(policies) => {
                 for policy in policies {
                     policy.write_response(response)?;
@@ -93,6 +113,25 @@ impl ResponseSink {
                 }
                 file_attained.finish()?;
                 Ok(filename.clone())
+            }
+            ResponseSink::Parquet {
+                base_filename: _,
+                writers,
+            } => {
+                let mut out_strs = vec![];
+                for (i, writer_mutex) in writers.iter().enumerate() {
+                    let mut writer = writer_mutex.lock().map_err(|e| {
+                        CompassAppError::ReadOnlyPoisonError(format!(
+                            "Poisoned lock on parquet writer {}: {e}",
+                            i
+                        ))
+                    })?;
+                    let fname = writer.close()?;
+                    if !fname.is_empty() {
+                        out_strs.push(fname);
+                    }
+                }
+                Ok(out_strs.join(","))
             }
             ResponseSink::Combined(policies) => {
                 let mut out_strs = vec![];

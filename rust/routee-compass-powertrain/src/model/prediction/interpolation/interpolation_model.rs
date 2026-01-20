@@ -3,15 +3,34 @@ use crate::model::prediction::{
     model_type::ModelType, prediction_model::PredictionModel, smartcore::SmartcoreModel,
 };
 use itertools::Itertools;
-use ndarray::{ArrayD, IxDyn};
+use ndarray::{Array1, Array2, Array3, ArrayD, IxDyn};
 use ninterp::prelude::*;
 use routee_compass_core::model::{
     state::InputFeature, traversal::TraversalModelError, unit::EnergyRateUnit,
 };
 use std::{collections::HashMap, path::Path};
 
+/// Enum to hold different interpolator types based on dimensionality
+enum InterpolatorVariant {
+    One(Interp1DOwned<f64, strategy::Linear>),
+    Two(Interp2DOwned<f64, strategy::Linear>),
+    Three(Interp3DOwned<f64, strategy::Linear>),
+    N(InterpNDOwned<f64, strategy::Linear>),
+}
+
+impl InterpolatorVariant {
+    fn interpolate(&self, point: &[f64]) -> Result<f64, ninterp::error::InterpolateError> {
+        match self {
+            InterpolatorVariant::One(interp) => interp.interpolate(point),
+            InterpolatorVariant::Two(interp) => interp.interpolate(point),
+            InterpolatorVariant::Three(interp) => interp.interpolate(point),
+            InterpolatorVariant::N(interp) => interp.interpolate(point),
+        }
+    }
+}
+
 pub struct InterpolationModel {
-    interpolator: InterpNDOwned<f64, strategy::Linear>,
+    interpolator: InterpolatorVariant,
     energy_rate_unit: EnergyRateUnit,
 }
 
@@ -22,7 +41,7 @@ impl PredictionModel for InterpolationModel {
     ) -> Result<(f64, EnergyRateUnit), TraversalModelError> {
         let y = self.interpolator.interpolate(feature_vector).map_err(|e| {
             TraversalModelError::TraversalModelFailure(format!(
-                "Failed to interpolate speed/grade model output during prediction: {e}"
+                "Failed to interpolate model output during prediction: {e}"
             ))
         })?;
 
@@ -39,7 +58,15 @@ impl InterpolationModel {
         feature_bounds: HashMap<String, FeatureBounds>,
         energy_rate_unit: EnergyRateUnit,
     ) -> Result<Self, TraversalModelError> {
-        // load underlying model to build the interpolation grid
+        let num_features = input_features.len();
+
+        if num_features == 0 {
+            return Err(TraversalModelError::BuildError(
+                "InterpolationModel requires at least one input feature".to_string(),
+            ));
+        }
+
+        // Load underlying model to build the interpolation grid
         let model = match underlying_model_type {
             ModelType::Smartcore => SmartcoreModel::new(underlying_model_path, energy_rate_unit)?,
             _ => {
@@ -49,6 +76,7 @@ impl InterpolationModel {
             }
         };
 
+        // Build the grid for all features
         let mut grid: Vec<ndarray::Array1<f64>> = Vec::new();
 
         for input_feature in input_features.iter() {
@@ -67,6 +95,140 @@ impl InterpolationModel {
             grid.push(feature_grid);
         }
 
+        // Build the appropriate interpolator based on dimensionality
+        let interpolator = match num_features {
+            1 => {
+                let grid_0 = grid[0].clone();
+                let values = Self::build_values_1d(&model, &grid_0)?;
+                let interp = Interp1D::new(grid_0, values, strategy::Linear, Extrapolate::Clamp)
+                    .map_err(|e| {
+                        TraversalModelError::TraversalModelFailure(format!(
+                            "Failed to validate 1D interpolation model: {e}"
+                        ))
+                    })?;
+                InterpolatorVariant::One(interp)
+            }
+            2 => {
+                let grid_0 = grid[0].clone();
+                let grid_1 = grid[1].clone();
+                let values = Self::build_values_2d(&model, &grid_0, &grid_1)?;
+                let interp =
+                    Interp2D::new(grid_0, grid_1, values, strategy::Linear, Extrapolate::Clamp)
+                        .map_err(|e| {
+                            TraversalModelError::TraversalModelFailure(format!(
+                                "Failed to validate 2D interpolation model: {e}"
+                            ))
+                        })?;
+                InterpolatorVariant::Two(interp)
+            }
+            3 => {
+                let grid_0 = grid[0].clone();
+                let grid_1 = grid[1].clone();
+                let grid_2 = grid[2].clone();
+                let values = Self::build_values_3d(&model, &grid_0, &grid_1, &grid_2)?;
+                let interp = Interp3D::new(
+                    grid_0,
+                    grid_1,
+                    grid_2,
+                    values,
+                    strategy::Linear,
+                    Extrapolate::Clamp,
+                )
+                .map_err(|e| {
+                    TraversalModelError::TraversalModelFailure(format!(
+                        "Failed to validate 3D interpolation model: {e}"
+                    ))
+                })?;
+                InterpolatorVariant::Three(interp)
+            }
+            _ => {
+                let values = Self::build_values_nd(&model, &grid)?;
+                let interp = InterpND::new(grid, values, strategy::Linear, Extrapolate::Clamp)
+                    .map_err(|e| {
+                        TraversalModelError::TraversalModelFailure(format!(
+                            "Failed to validate N-D interpolation model: {e}"
+                        ))
+                    })?;
+                InterpolatorVariant::N(interp)
+            }
+        };
+
+        Ok(InterpolationModel {
+            interpolator,
+            energy_rate_unit,
+        })
+    }
+
+    fn build_values_1d(
+        model: &SmartcoreModel,
+        grid_0: &Array1<f64>,
+    ) -> Result<Array1<f64>, TraversalModelError> {
+        let mut values = Array1::<f64>::zeros(grid_0.len());
+
+        for (i, &x) in grid_0.iter().enumerate() {
+            let input = vec![x];
+            let (energy_rate, _) = model.predict(&input).map_err(|e| {
+                TraversalModelError::TraversalModelFailure(format!(
+                    "Failed to predict energy rate: {e}"
+                ))
+            })?;
+            values[i] = energy_rate;
+        }
+
+        Ok(values)
+    }
+
+    fn build_values_2d(
+        model: &SmartcoreModel,
+        grid_0: &Array1<f64>,
+        grid_1: &Array1<f64>,
+    ) -> Result<Array2<f64>, TraversalModelError> {
+        let mut values = Array2::<f64>::zeros((grid_0.len(), grid_1.len()));
+
+        for (i, &x) in grid_0.iter().enumerate() {
+            for (j, &y) in grid_1.iter().enumerate() {
+                let input = vec![x, y];
+                let (energy_rate, _) = model.predict(&input).map_err(|e| {
+                    TraversalModelError::TraversalModelFailure(format!(
+                        "Failed to predict energy rate: {e}"
+                    ))
+                })?;
+                values[[i, j]] = energy_rate;
+            }
+        }
+
+        Ok(values)
+    }
+
+    fn build_values_3d(
+        model: &SmartcoreModel,
+        grid_0: &Array1<f64>,
+        grid_1: &Array1<f64>,
+        grid_2: &Array1<f64>,
+    ) -> Result<Array3<f64>, TraversalModelError> {
+        let mut values = Array3::<f64>::zeros((grid_0.len(), grid_1.len(), grid_2.len()));
+
+        for (i, &x) in grid_0.iter().enumerate() {
+            for (j, &y) in grid_1.iter().enumerate() {
+                for (k, &z) in grid_2.iter().enumerate() {
+                    let input = vec![x, y, z];
+                    let (energy_rate, _) = model.predict(&input).map_err(|e| {
+                        TraversalModelError::TraversalModelFailure(format!(
+                            "Failed to predict energy rate: {e}"
+                        ))
+                    })?;
+                    values[[i, j, k]] = energy_rate;
+                }
+            }
+        }
+
+        Ok(values)
+    }
+
+    fn build_values_nd(
+        model: &SmartcoreModel,
+        grid: &[Array1<f64>],
+    ) -> Result<ArrayD<f64>, TraversalModelError> {
         let shape: Vec<usize> = grid.iter().map(|feature| feature.len()).collect();
         let mut values = ArrayD::<f64>::zeros(IxDyn(&shape));
 
@@ -81,8 +243,8 @@ impl InterpolationModel {
                 .map(|(dim, &i)| grid[dim][i])
                 .collect();
 
-            // predict the energy rate
-            let (energy_rate, _energy_rate_unit) = model.predict(&input).map_err(|e| {
+            // Predict the energy rate
+            let (energy_rate, _) = model.predict(&input).map_err(|e| {
                 TraversalModelError::TraversalModelFailure(format!(
                     "Failed to predict energy rate: {e}"
                 ))
@@ -90,17 +252,7 @@ impl InterpolationModel {
             values[IxDyn(&indices)] = energy_rate;
         }
 
-        let interpolator = InterpND::new(grid, values, strategy::Linear, Extrapolate::Clamp)
-            .map_err(|e| {
-                TraversalModelError::TraversalModelFailure(format!(
-                    "Failed to validate interpolation model: {e}"
-                ))
-            })?;
-
-        Ok(InterpolationModel {
-            interpolator,
-            energy_rate_unit,
-        })
+        Ok(values)
     }
 }
 
@@ -113,7 +265,7 @@ mod test {
     use routee_compass_core::model::unit::{EnergyRateUnit, RatioUnit, SpeedUnit};
 
     #[test]
-    fn test_interpolation_speed_grade_model() {
+    fn test_interpolation_2d_speed_grade_model() {
         let model_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("src")
             .join("model")
@@ -159,9 +311,7 @@ mod test {
 
         let underlying_model = SmartcoreModel::new(&model_path, EnergyRateUnit::GGPM).unwrap();
 
-        // let's check to make sure the interpolation model is
-        // producing similar results to the underlying model
-
+        // Check that the 2D interpolation model produces similar results to the underlying model
         for speed in 0..100 {
             for grade in -20..20 {
                 let speed_f64 = speed as f64;
@@ -171,7 +321,7 @@ mod test {
                 let (underlying_energy_rate, _energy_rate_unit) =
                     underlying_model.predict(&input).unwrap();
 
-                // check if they're within 1% of each other
+                // Check if they're within 1% of each other
                 let diff = (interp_energy_rate - underlying_energy_rate) / underlying_energy_rate;
                 assert!(diff.abs() < 0.01);
             }
@@ -181,10 +331,28 @@ mod test {
 
         assert_eq!(energy_rate_unit, EnergyRateUnit::GGPM);
 
-        // energy rate should be between 28-32 mpg
+        // Energy rate should be between 28-32 mpg
         let expected_lower = 1.0 / 32.0;
         let expected_upper = 1.0 / 28.0;
         assert!(energy_rate >= expected_lower);
         assert!(energy_rate <= expected_upper);
+    }
+
+    #[test]
+    fn test_interpolation_rejects_zero_features() {
+        let model_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("src")
+            .join("model")
+            .join("test")
+            .join("Toyota_Camry.bin");
+
+        let result = InterpolationModel::new(
+            &model_path,
+            ModelType::Smartcore,
+            vec![],
+            HashMap::new(),
+            EnergyRateUnit::GGPM,
+        );
+        assert!(result.is_err());
     }
 }

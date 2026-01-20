@@ -353,6 +353,20 @@ impl SearchTree {
     pub fn nodes(&self) -> impl Iterator<Item = &SearchTreeNode> {
         self.nodes.values()
     }
+
+    /// Get the incoming edge for a vertex by finding its minimum cost label.
+    /// This is an optimized version for getting just the parent edge without full backtracking.
+    ///
+    /// # Arguments
+    /// * `vertex` - The vertex ID to get the incoming edge for
+    ///
+    /// # Returns
+    /// The incoming EdgeTraversal if the vertex exists and is not the root, None otherwise
+    pub fn get_incoming_edge(&self, vertex: VertexId) -> Option<&EdgeTraversal> {
+        let label = self.get_label_by(vertex, min_cost_ordering, true)?;
+        let node = self.get(label)?;
+        node.incoming_edge()
+    }
 }
 
 /// helper function to construct the min cost ordering
@@ -1217,5 +1231,51 @@ mod tests {
         let root_result = tree.backtrack(root_id);
         assert!(root_result.is_ok());
         assert_eq!(root_result.unwrap().len(), 0);
+    }
+
+    #[test]
+    fn test_get_incoming_edge() {
+        // Test the optimized get_incoming_edge method
+        let root_label = create_test_label(0);
+        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
+
+        // Build a linear path: 0 -> 1 -> 2 -> 3
+        let child1_label = create_test_label(1);
+        let child1_traversal = create_test_edge_traversal(1, 10.0);
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
+            .unwrap();
+
+        let child2_label = create_test_label(2);
+        let child2_traversal = create_test_edge_traversal(2, 15.0);
+        tree.insert(child1_label.clone(), child2_traversal, child2_label.clone())
+            .unwrap();
+
+        let child3_label = create_test_label(3);
+        let child3_traversal = create_test_edge_traversal(3, 20.0);
+        tree.insert(child2_label.clone(), child3_traversal, child3_label.clone())
+            .unwrap();
+
+        // Test: get incoming edge for vertex 1 (should be edge 1: 0->1)
+        let edge1 = tree.get_incoming_edge(VertexId(1));
+        assert!(edge1.is_some());
+        assert_eq!(edge1.unwrap().edge_id, EdgeId(1));
+
+        // Test: get incoming edge for vertex 2 (should be edge 2: 1->2)
+        let edge2 = tree.get_incoming_edge(VertexId(2));
+        assert!(edge2.is_some());
+        assert_eq!(edge2.unwrap().edge_id, EdgeId(2));
+
+        // Test: get incoming edge for vertex 3 (should be edge 3: 2->3)
+        let edge3 = tree.get_incoming_edge(VertexId(3));
+        assert!(edge3.is_some());
+        assert_eq!(edge3.unwrap().edge_id, EdgeId(3));
+
+        // Test: root has no incoming edge
+        let edge_root = tree.get_incoming_edge(VertexId(0));
+        assert!(edge_root.is_none());
+
+        // Test: nonexistent vertex returns None
+        let edge_none = tree.get_incoming_edge(VertexId(99));
+        assert!(edge_none.is_none());
     }
 }
