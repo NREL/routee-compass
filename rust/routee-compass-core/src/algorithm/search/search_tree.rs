@@ -60,14 +60,15 @@ impl SearchTree {
         self.root = Some(root_label);
     }
 
-    /// Insert the trajectory (parent) -[edge]-> (child) as a node in the tree
+    /// Insert the trajectory (parent) -[edge]-> (child) as a node in the tree.
+    /// Note: dominated entries should be pruned by the caller before insertion.
     pub fn insert(
         &mut self,
         parent_label: Label,
         edge_traversal: EdgeTraversal,
         child_label: Label,
     ) -> Result<(), SearchTreeError> {
-        // Verify parent exists
+        // Verify parent exists - special case on empty tree
         // If parent doesn't exist but tree is empty, make parent the root
         if !self.nodes.contains_key(&parent_label) {
             if self.is_empty() {
@@ -90,6 +91,29 @@ impl SearchTree {
                     let _ = l.insert(child_label.clone());
                 })
                 .or_insert(HashSet::from([child_label.clone()]));
+        }
+
+        Ok(())
+    }
+
+    /// removes a label from the search tree. occurs during pruning when making a comparison
+    /// between two labels, where one is pareto-dominant.
+    pub fn remove(&mut self, label: &Label) -> Result<(), SearchTreeError> {
+        // Remove from nodes map
+        self.nodes
+            .remove(label)
+            .ok_or_else(|| SearchTreeError::LabelNotFound(label.clone()))?;
+
+        // Remove from labels map if not a Vertex label
+        if !matches!(label, Label::Vertex(_)) {
+            let vertex_id = label.vertex_id();
+            if let Some(label_set) = self.labels.get_mut(vertex_id) {
+                label_set.remove(label);
+                // Clean up empty sets
+                if label_set.is_empty() {
+                    self.labels.remove(vertex_id);
+                }
+            }
         }
 
         Ok(())
@@ -127,6 +151,19 @@ impl SearchTree {
             Some(labels) => Box::new(vertex_iter.chain(labels.iter().cloned())),
             None => Box::new(vertex_iter),
         }
+    }
+
+    /// Find labels for the given vertex ID as an owned iterator
+    pub fn get_labels_iter(&self, vertex: VertexId) -> Box<dyn Iterator<Item = Label>> {
+        match self.labels.get(&vertex) {
+            Some(labels) => Box::new(labels.clone().into_iter()),
+            None => Box::new(std::iter::empty()),
+        }
+    }
+
+    /// Find labels for the given vertex ID with mutable access.
+    pub fn get_labels_mut(&mut self, vertex: VertexId) -> Option<&mut HashSet<Label>> {
+        self.labels.get_mut(&vertex)
     }
 
     /// finds a single label by picking the one that is maximal/minimal wrt some comparison function.
@@ -347,6 +384,8 @@ pub enum SearchTreeError {
     ParentNotFound(Label),
     #[error("Label not found in tree: {0}")]
     LabelNotFound(Label),
+    #[error("Label '{0}' exists in tree without matching SearchTreeNode")]
+    MissingNodeForLabel(Label),
     #[error("Node is missing parent reference: {0}")]
     MissingParent(Label),
     #[error("Invalid branch structure: {0}")]
