@@ -134,7 +134,7 @@ impl Label {
     }
 
     /// returns true if this label variant is not a bijection to the vertex set.
-    /// if not, then its type has a greater cardinality than the vertex set and so 
+    /// if not, then its type has a greater cardinality than the vertex set and so
     /// we will want to prune any dominated labels with matching VertexId.
     pub fn does_not_require_pruning(&self) -> bool {
         !matches!(self, Label::Vertex(_))
