@@ -230,6 +230,9 @@ fn prune_tree(
     traversal: &EdgeTraversal,
     label_model: Arc<dyn LabelModel>,
 ) -> Result<(), SearchError> {
+    if next_label.does_not_require_pruning() {
+        return Ok(());
+    }
     let next_cost = traversal.cost.objective_cost;
     let prev_entries = tree
         .get_labels_iter(*next_label.vertex_id())
