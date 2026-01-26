@@ -10,6 +10,10 @@ homepage = "https://nrel.github.io/routee-compass"
 repository = "https://github.com/NREL/routee-compass"
 documentation = "https://docs.rs/routee-compass"
 
+[features]
+default = []
+detailed_costs = []
+
 [dependencies]
 allocative = { workspace = true }
 approx = { workspace = true }
@@ -37,3 +41,6 @@ topological-sort = { workspace = true }
 uom = { workspace = true }
 wkb = { workspace = true }
 wkt = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

@@ -21,8 +21,17 @@ impl TraversalModelBuilder for EnergyModelBuilder {
         let parent_key = String::from("energy traversal model");
 
         let vehicle_files = params
-            .get_config_array(&"vehicles", &parent_key)
+            .get_config_array(&"vehicle_input_files", &parent_key)
             .map_err(|e| TraversalModelError::BuildError(e.to_string()))?;
+
+        let include_trip_energy: Option<bool> = params
+            .get_config_serde_optional(&"include_trip_energy", &parent_key)
+            .map_err(|e| {
+                TraversalModelError::BuildError(format!(
+                    "Failed to get optional parameter `include_trip_energy` from config: {}",
+                    e
+                ))
+            })?;
 
         // read all vehicle configurations from files
         let mut vehicle_library = HashMap::new();
@@ -41,7 +50,7 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                     ))
                 })?;
 
-            let vehicle_json = vehicle_config
+            let mut vehicle_json = vehicle_config
                 .try_deserialize::<serde_json::Value>()
                 .map_err(|e| {
                     TraversalModelError::BuildError(format!(
@@ -49,13 +58,18 @@ impl TraversalModelBuilder for EnergyModelBuilder {
                         file_path, e
                     ))
                 })?
-                .normalize_file_paths(&"", Path::new(file_path))
+                .normalize_file_paths(Path::new(file_path), None)
                 .map_err(|e| {
                     TraversalModelError::BuildError(format!(
                         "failed to normalize file paths in vehicle config file '{}': {}",
                         file_path, e
                     ))
                 })?;
+
+            // inject include_trip_energy if specified at the model level
+            if let Some(include_trip_energy) = include_trip_energy {
+                vehicle_json["include_trip_energy"] = serde_json::Value::Bool(include_trip_energy);
+            }
 
             let model_name = vehicle_json
                 .get_config_string(&"name", &parent_key)

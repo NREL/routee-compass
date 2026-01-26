@@ -80,7 +80,7 @@ grade_input_file = "edges-grade-enumerated.txt.gz"
 
 [[search.traversal.models]]
 type = "energy"
-vehicles = [
+vehicle_input_files = [
     "vehicles/2016_TOYOTA_Camry_4cyl_2WD.json",
     "vehicles/2017_CHEVROLET_Bolt.json",
     "vehicles/2016_CHEVROLET_Volt.json",

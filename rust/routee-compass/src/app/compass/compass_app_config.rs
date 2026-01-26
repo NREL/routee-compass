@@ -66,7 +66,7 @@ impl CompassAppConfig {
         let config_json = config
             .clone()
             .try_deserialize::<serde_json::Value>()?
-            .normalize_file_paths(&"", Path::new(config_path))?;
+            .normalize_file_paths(Path::new(config_path), None)?;
         let compass_config: CompassAppConfig = serde_json::from_value(config_json)?;
 
         Ok(compass_config)
@@ -90,7 +90,7 @@ impl TryFrom<&Path> for CompassAppConfig {
         let config_json = config
             .clone()
             .try_deserialize::<serde_json::Value>()?
-            .normalize_file_paths(&"", config_path)?;
+            .normalize_file_paths(config_path, None)?;
         let compass_config: CompassAppConfig =
             serde_json::from_value(config_json).map_err(|e| {
                 let filename = config_path.to_str().unwrap_or("<config path>");
@@ -102,6 +102,14 @@ impl TryFrom<&Path> for CompassAppConfig {
 }
 
 impl CompassAppConfig {
+    /// Returns a pretty-printed JSON representation of this config.
+    /// Useful for debugging and logging the exact configuration being used.
+    pub fn to_pretty_string(&self) -> Result<String, CompassAppError> {
+        serde_json::to_string_pretty(self).map_err(|e| {
+            CompassAppError::BuildFailure(format!("Failed to serialize config: {}", e))
+        })
+    }
+
     pub fn build_traversal_model_services(
         &self,
         builders: &CompassBuilderInventory,

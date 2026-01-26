@@ -80,13 +80,6 @@ pub fn run_vertex_oriented(
             Some(f) => f,
         };
 
-        // test if we're at the target
-        if let Some(target_vertex_id) = target {
-            if *f.prev_label.vertex_id() == target_vertex_id {
-                break;
-            }
-        }
-
         let prev_gscore = traversal_costs
             .get(&f.prev_label)
             .unwrap_or(&Cost::INFINITY)
@@ -344,7 +337,7 @@ mod tests {
 
     fn build_search_instance(graph: Arc<Graph>) -> SearchInstance {
         let map_model = Arc::new(MapModel::new(graph.clone(), &MapModelConfig::default()).unwrap());
-        let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::default()));
+        let traversal_model = Arc::new(DistanceTraversalModel::new(DistanceUnit::default(), true));
 
         // setup the graph, traversal model, and a* heuristic to be shared across the queries in parallel
         // these live in the "driver" process and are passed as read-only memory to each executor process

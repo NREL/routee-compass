@@ -5,4 +5,6 @@ use serde::{Deserialize, Serialize};
 pub struct TimeTraversalConfig {
     /// time unit for state modeling
     pub time_unit: TimeUnit,
+    #[serde(default)]
+    pub include_trip_time: Option<bool>,
 }

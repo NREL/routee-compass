@@ -1,4 +1,7 @@
-use super::{plugin::TraversalPlugin, traversal_output_format::TraversalOutputFormat};
+use super::{
+    plugin::{SummaryOp, TraversalPlugin},
+    traversal_output_format::TraversalOutputFormat,
+};
 use crate::{
     app::compass::CompassComponentError,
     plugin::{
@@ -7,6 +10,7 @@ use crate::{
     },
 };
 use routee_compass_core::config::ConfigJsonExtensions;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 /// Builds a plugin that can generate traversal outputs.
@@ -48,8 +52,11 @@ impl OutputPluginBuilder for TraversalPluginBuilder {
             parameters.get_config_serde_optional(&"route", &parent_key)?;
         let tree: Option<TraversalOutputFormat> =
             parameters.get_config_serde_optional(&"tree", &parent_key)?;
+        let summary_ops: HashMap<String, SummaryOp> = parameters
+            .get_config_serde_optional(&"summary_ops", &parent_key)?
+            .unwrap_or_default();
 
-        let geom_plugin = TraversalPlugin::new(route, tree)
+        let geom_plugin = TraversalPlugin::new(route, tree, summary_ops)
             .map_err(|e| PluginError::OutputPluginFailed { source: e })?;
         Ok(Arc::new(geom_plugin))
     }

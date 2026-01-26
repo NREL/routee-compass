@@ -47,14 +47,16 @@ impl SearchTree {
 
     /// Set the root node of the tree
     pub fn set_root(&mut self, root_label: Label) {
-        let root_node = SearchTreeNode::new_root(root_label.clone(), self.direction);
+        let root_node = SearchTreeNode::new_root(self.direction);
         self.nodes.insert(root_label.clone(), root_node);
-        self.labels
-            .entry(*root_label.vertex_id())
-            .and_modify(|l| {
-                let _ = l.insert(root_label.clone());
-            })
-            .or_insert(HashSet::from([root_label.clone()]));
+        if root_label.needs_vertex_map_storage() {
+            self.labels
+                .entry(*root_label.vertex_id())
+                .and_modify(|l| {
+                    let _ = l.insert(root_label.clone());
+                })
+                .or_insert(HashSet::from([root_label.clone()]));
+        }
         self.root = Some(root_label);
     }
 
@@ -76,26 +78,19 @@ impl SearchTree {
         }
 
         // Create the new node
-        let new_node = SearchTreeNode::new_child(
-            child_label.clone(),
-            edge_traversal,
-            parent_label.clone(),
-            self.direction,
-        );
-
-        // Add child relationship to parent
-        if let Some(parent_node) = self.nodes.get_mut(&parent_label) {
-            parent_node.add_child(child_label.clone());
-        }
+        let new_node =
+            SearchTreeNode::new_child(edge_traversal, parent_label.clone(), self.direction);
 
         // Insert the new node
         self.nodes.insert(child_label.clone(), new_node);
-        self.labels
-            .entry(*child_label.vertex_id())
-            .and_modify(|l| {
-                let _ = l.insert(child_label.clone());
-            })
-            .or_insert(HashSet::from([child_label.clone()]));
+        if child_label.needs_vertex_map_storage() {
+            self.labels
+                .entry(*child_label.vertex_id())
+                .and_modify(|l| {
+                    let _ = l.insert(child_label.clone());
+                })
+                .or_insert(HashSet::from([child_label.clone()]));
+        }
 
         Ok(())
     }
@@ -123,8 +118,15 @@ impl SearchTree {
     }
 
     /// Find labels for the given vertex ID
-    pub fn get_labels(&self, vertex: VertexId) -> Option<&HashSet<Label>> {
-        self.labels.get(&vertex)
+    pub fn get_labels(&self, vertex: VertexId) -> Box<dyn Iterator<Item = Label> + '_> {
+        // we always perform a lookup for the Vertex label, as it is excluded from the labels map
+        let vertex_label = Label::Vertex(vertex);
+        let vertex_iter = std::iter::once(vertex_label);
+
+        match self.labels.get(&vertex) {
+            Some(labels) => Box::new(vertex_iter.chain(labels.iter().cloned())),
+            None => Box::new(vertex_iter),
+        }
     }
 
     /// finds a single label by picking the one that is maximal/minimal wrt some comparison function.
@@ -139,9 +141,10 @@ impl SearchTree {
     where
         F: FnMut(&(&Label, Option<&EdgeTraversal>)) -> OrderedFloat<f64>,
     {
-        let label_edge_iter = self.get_labels(vertex)?.iter().filter_map(|label| {
-            let edge_traversal = self.get(label)?.incoming_edge();
-            Some((label, edge_traversal))
+        let label_edge_iter = self.get_labels(vertex).filter_map(|label| {
+            let (stored_label, node) = self.nodes.get_key_value(&label)?;
+            let edge_traversal = node.incoming_edge();
+            Some((stored_label, edge_traversal))
         });
 
         let found = if min {
@@ -168,27 +171,6 @@ impl SearchTree {
         let node = self.get(label)?;
         let parent_label = node.parent_label()?;
         self.get(parent_label)
-    }
-
-    /// Get all children of a node
-    pub fn get_children(&self, label: &Label) -> Vec<&SearchTreeNode> {
-        match self.get(label) {
-            None => vec![],
-            Some(node) => node
-                .children()
-                .iter()
-                .filter_map(|child_label| self.get(child_label))
-                .collect(),
-        }
-    }
-
-    /// Get all child labels of a node
-    pub fn get_child_labels(&self, label: &Label) -> Vec<Label> {
-        if let Some(node) = self.get(label) {
-            node.children().iter().cloned().collect()
-        } else {
-            Vec::new()
-        }
     }
 
     /// Check if the tree contains a node with the given label
@@ -334,6 +316,20 @@ impl SearchTree {
     pub fn nodes(&self) -> impl Iterator<Item = &SearchTreeNode> {
         self.nodes.values()
     }
+
+    /// Get the incoming edge for a vertex by finding its minimum cost label.
+    /// This is an optimized version for getting just the parent edge without full backtracking.
+    ///
+    /// # Arguments
+    /// * `vertex` - The vertex ID to get the incoming edge for
+    ///
+    /// # Returns
+    /// The incoming EdgeTraversal if the vertex exists and is not the root, None otherwise
+    pub fn get_incoming_edge(&self, vertex: VertexId) -> Option<&EdgeTraversal> {
+        let label = self.get_label_by(vertex, min_cost_ordering, true)?;
+        let node = self.get(label)?;
+        node.incoming_edge()
+    }
 }
 
 /// helper function to construct the min cost ordering
@@ -396,8 +392,6 @@ mod tests {
 
         let root_node = tree.get(&root_label).unwrap();
         assert!(root_node.is_root());
-        assert_eq!(root_node.vertex_id(), &VertexId(0));
-        assert!(root_node.children().is_empty());
     }
 
     #[test]
@@ -426,14 +420,6 @@ mod tests {
         .unwrap();
 
         assert_eq!(tree.len(), 3);
-
-        // Verify root has two children
-        let children = tree.get_children(&root_label);
-        assert_eq!(children.len(), 2);
-
-        let child_labels = tree.get_child_labels(&root_label);
-        assert!(child_labels.contains(&child1_label));
-        assert!(child_labels.contains(&child2_label));
 
         // Verify child nodes
         let child1_node = tree.get(&child1_label).unwrap();
@@ -474,8 +460,8 @@ mod tests {
         assert!(tree.get_parent(&root_label).is_none());
 
         // Child has root as parent
-        let parent = tree.get_parent(&child_label).unwrap();
-        assert_eq!(parent.label(), &root_label);
+        let parent = tree.get(&child_label).unwrap().parent_label().unwrap();
+        assert_eq!(parent, &root_label);
     }
 
     #[test]
@@ -596,7 +582,7 @@ mod tests {
         let node_count = tree.nodes().count();
         assert_eq!(node_count, 3);
 
-        let vertex_ids: HashSet<_> = tree.nodes().map(|n| n.vertex_id()).collect();
+        let vertex_ids: HashSet<_> = tree.labels().map(|l| l.vertex_id()).collect();
         assert_eq!(vertex_ids.len(), 3);
         assert!(vertex_ids.contains(&VertexId(0)));
         assert!(vertex_ids.contains(&VertexId(1)));
@@ -752,8 +738,8 @@ mod tests {
         // Verify structure
         let root_node = tree.get(&parent_label).unwrap();
         assert!(root_node.is_root());
-        assert_eq!(root_node.children().len(), 1);
-        assert!(root_node.children().contains(&child_label));
+        // Verify automatic root creation logic via label presence in nodes map
+        assert!(tree.nodes.contains_key(&parent_label));
 
         let child_node = tree.get(&child_label).unwrap();
         assert!(!child_node.is_root());
@@ -1118,7 +1104,6 @@ mod tests {
             cost: TraversalCost {
                 total_cost: Cost::new(cost),
                 objective_cost: Cost::new(cost),
-                cost_component: HashMap::new(),
             },
             result_state: vec![],
         }
@@ -1126,5 +1111,132 @@ mod tests {
 
     fn create_test_label(vertex_id: usize) -> Label {
         Label::Vertex(VertexId(vertex_id))
+    }
+
+    #[test]
+    fn test_backtrack_mixed_labels_bug() {
+        // Reproduction of bug where mixed label types cause Label::Vertex lookup to fail
+        let mut tree = SearchTree::new(Direction::Forward);
+
+        let root_label = Label::Vertex(VertexId(0));
+        let child_label = Label::VertexWithIntState {
+            vertex_id: VertexId(1),
+            state: 1,
+        };
+
+        // This will set root as Label::Vertex(0)
+        // Label::Vertex is NOT added to self.labels
+        tree.insert(
+            root_label.clone(),
+            create_test_edge_traversal(1, 10.0),
+            child_label.clone(),
+        )
+        .unwrap();
+
+        // child_label IS added to self.labels because it is not Label::Vertex
+
+        // Now self.labels is NOT empty (contains key VertexId(1))
+
+        // Try to backtrack from root.
+        // We expect this to SUCCEED (return empty path for root), but currently it might fail
+        // with VertexNotFound(0) because get_labels skips Label::Vertex when self.labels is populated.
+        let result = tree.backtrack(VertexId(0));
+        assert!(
+            result.is_ok(),
+            "Backtracking from root Vertex label should succeed even if tree has mixed labels"
+        );
+    }
+
+    #[test]
+    fn test_vertex_label_model_optimization_correctness() {
+        // This test verifies that the specialized handling for Label::Vertex (skipping the aux labels map)
+        // works correctly with backtracking.
+        let mut tree = SearchTree::new(Direction::Forward);
+
+        // 1. Setup a tree with only Vertex labels (simulating VertexLabelModel)
+        let root_id = VertexId(0);
+        let child_id = VertexId(1);
+
+        let root_label = Label::Vertex(root_id);
+        let child_label = Label::Vertex(child_id);
+
+        // Create an edge traversal
+        let et = create_test_edge_traversal(1, 10.0);
+
+        // Insert (root -> child)
+        // This trigger's root creation and child insertion
+        tree.insert(root_label.clone(), et, child_label.clone())
+            .unwrap();
+
+        // 2. Verify OPTIMIZATION: labels map should be EMPTY
+        // Because Label::Vertex is optimized to NOT be stored in the secondary index
+        assert!(
+            tree.labels.is_empty(),
+            "Tree labels map should be empty for pure Vertex labels"
+        );
+
+        // 3. Verify backtracking works despite empty labels map
+        // This confirms get_labels correctly synthesizes the Vertex label lookup
+        let result = tree.backtrack(child_id);
+        assert!(
+            result.is_ok(),
+            "Backtracking failed for Vertex label: {:?}",
+            result.err()
+        );
+
+        let path = result.unwrap();
+        assert_eq!(path.len(), 1);
+        assert_eq!(path[0].edge_id, EdgeId(1));
+
+        // 4. Verify backtracking from root
+        let root_result = tree.backtrack(root_id);
+        assert!(root_result.is_ok());
+        assert_eq!(root_result.unwrap().len(), 0);
+    }
+
+    #[test]
+    fn test_get_incoming_edge() {
+        // Test the optimized get_incoming_edge method
+        let root_label = create_test_label(0);
+        let mut tree = SearchTree::with_root(root_label.clone(), Direction::Forward);
+
+        // Build a linear path: 0 -> 1 -> 2 -> 3
+        let child1_label = create_test_label(1);
+        let child1_traversal = create_test_edge_traversal(1, 10.0);
+        tree.insert(root_label.clone(), child1_traversal, child1_label.clone())
+            .unwrap();
+
+        let child2_label = create_test_label(2);
+        let child2_traversal = create_test_edge_traversal(2, 15.0);
+        tree.insert(child1_label.clone(), child2_traversal, child2_label.clone())
+            .unwrap();
+
+        let child3_label = create_test_label(3);
+        let child3_traversal = create_test_edge_traversal(3, 20.0);
+        tree.insert(child2_label.clone(), child3_traversal, child3_label.clone())
+            .unwrap();
+
+        // Test: get incoming edge for vertex 1 (should be edge 1: 0->1)
+        let edge1 = tree.get_incoming_edge(VertexId(1));
+        assert!(edge1.is_some());
+        assert_eq!(edge1.unwrap().edge_id, EdgeId(1));
+
+        // Test: get incoming edge for vertex 2 (should be edge 2: 1->2)
+        let edge2 = tree.get_incoming_edge(VertexId(2));
+        assert!(edge2.is_some());
+        assert_eq!(edge2.unwrap().edge_id, EdgeId(2));
+
+        // Test: get incoming edge for vertex 3 (should be edge 3: 2->3)
+        let edge3 = tree.get_incoming_edge(VertexId(3));
+        assert!(edge3.is_some());
+        assert_eq!(edge3.unwrap().edge_id, EdgeId(3));
+
+        // Test: root has no incoming edge
+        let edge_root = tree.get_incoming_edge(VertexId(0));
+        assert!(edge_root.is_none());
+
+        // Test: nonexistent vertex returns None
+        let edge_none = tree.get_incoming_edge(VertexId(99));
+        assert!(edge_none.is_none());
     }
 }
