@@ -43,6 +43,10 @@ use routee_compass_core::model::{
     },
 };
 use routee_compass_core::{
+    algorithm::map_matching::{
+        HmmMapMatchingBuilder, LcssMapMatchingBuilder, MapMatchingAlgorithm, MapMatchingBuilder,
+        SimpleMapMatchingBuilder,
+    },
     config::{CompassConfigurationError, ConfigJsonExtensions},
     model::traversal::default::{distance::DistanceTraversalBuilder, speed::SpeedTraversalBuilder},
 };
@@ -91,6 +95,9 @@ inventory::submit! {
         builder.add_output_plugin("traversal".to_string(), Rc::new(TraversalPluginBuilder {}));
         builder.add_output_plugin("summary".to_string(), Rc::new(SummaryOutputPluginBuilder {}));
         builder.add_output_plugin("uuid".to_string(), Rc::new(UUIDOutputPluginBuilder {}));
+        builder.add_map_matching_model("simple".to_string(), Rc::new(SimpleMapMatchingBuilder {}));
+        builder.add_map_matching_model("hmm".to_string(), Rc::new(HmmMapMatchingBuilder {}));
+        builder.add_map_matching_model("lcss".to_string(), Rc::new(LcssMapMatchingBuilder {}));
         Ok(())
     })
 }
@@ -116,6 +123,7 @@ pub struct CompassBuilderInventory {
     label_model_builders: HashMap<String, Rc<dyn LabelModelBuilder>>,
     input_plugin_builders: HashMap<String, Rc<dyn InputPluginBuilder>>,
     output_plugin_builders: HashMap<String, Rc<dyn OutputPluginBuilder>>,
+    map_matching_builders: HashMap<String, Rc<dyn MapMatchingBuilder>>,
 }
 
 impl CompassBuilderInventory {
@@ -138,6 +146,7 @@ impl CompassBuilderInventory {
             label_model_builders: HashMap::new(),
             input_plugin_builders: HashMap::new(),
             output_plugin_builders: HashMap::new(),
+            map_matching_builders: HashMap::new(),
         }
     }
 
@@ -174,6 +183,10 @@ impl CompassBuilderInventory {
 
     pub fn add_output_plugin(&mut self, name: String, builder: Rc<dyn OutputPluginBuilder>) {
         let _ = self.output_plugin_builders.insert(name, builder);
+    }
+
+    pub fn add_map_matching_model(&mut self, name: String, builder: Rc<dyn MapMatchingBuilder>) {
+        let _ = self.map_matching_builders.insert(name, builder);
     }
 
     /// builds a traversal model with the specified type name with the provided
@@ -304,5 +317,28 @@ impl CompassBuilderInventory {
             plugins.push(output_plugin);
         }
         Ok(plugins)
+    }
+
+    pub fn build_map_matching_algorithm(
+        &self,
+        config: &serde_json::Value,
+    ) -> Result<Arc<dyn MapMatchingAlgorithm>, CompassConfigurationError> {
+        let mm_type = config
+            .get("type")
+            .and_then(|t| t.as_str())
+            .map(String::from)
+            .unwrap_or_else(|| String::from("default"));
+        log::info!("loading map matching algorithm '{mm_type}'");
+        let builder = self.map_matching_builders.get(&mm_type).ok_or_else(|| {
+            CompassConfigurationError::UnknownModelNameForComponent(
+                mm_type.clone(),
+                String::from("Map Matching Algorithm"),
+                self.map_matching_builders.keys().join(", "),
+            )
+        })?;
+        // Call build to create a configured instance from the builder
+        builder
+            .build(config)
+            .map_err(CompassConfigurationError::MapMatchingError)
     }
 }
